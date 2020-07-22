@@ -27,6 +27,7 @@ schedule:
 - console/java
 - console/sqlite3
 - console/gdb
+- console/perf
 - console/sysctl
 - console/sysstat
 - console/krb5

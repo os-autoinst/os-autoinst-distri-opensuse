@@ -1642,7 +1642,7 @@ sub load_extra_tests_console {
     loadtest "console/sqlite3";
     loadtest "console/ant" if is_sle('<15-sp1');
     loadtest "console/gdb";
-    loadtest "console/perf" if is_sle('<15-sp1');
+    loadtest "console/perf" unless is_sle;
     loadtest "console/sysctl";
     loadtest "console/sysstat";
     loadtest "console/curl_ipv6" unless get_var('PUBLIC_CLOUD');
@@ -3209,6 +3209,7 @@ sub load_kernel_baremetal_tests {
     }
     # make sure we always have the toolchain installed
     loadtest "toolchain/install";
+    loadtest "console/perf";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
