@@ -4,4 +4,4 @@ description:    >
 schedule:
   - boot/boot_to_desktop
   - network/setup_multimachine
-  - x11/rmt
+  - x11/rmt/rmt_import
