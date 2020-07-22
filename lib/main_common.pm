@@ -95,7 +95,6 @@ our @EXPORT = qw(
   load_ssh_key_import_tests
   load_svirt_boot_tests
   load_svirt_vm_setup_tests
-  load_systemd_patches_tests
   load_system_update_tests
   loadtest
   load_testdir
@@ -2554,43 +2553,6 @@ sub load_security_tests {
             diag "unknown scenario for SECURITY_TEST value $test_name";
         }
     }
-}
-
-sub load_systemd_patches_tests {
-    if (get_var('BOOT_HDD_IMAGE')) {
-        if (check_var('ARCH', 'aarch64')) {
-            loadtest 'installation/bootloader_uefi';
-        }
-        else {
-            boot_hdd_image;
-        }
-    }
-    loadtest 'systemd_testsuite/binary_tests';
-    loadtest 'systemd_testsuite/test_01_basic';
-    loadtest 'systemd_testsuite/test_02_cryptsetup';
-    loadtest 'systemd_testsuite/test_03_jobs';
-    loadtest 'systemd_testsuite/test_04_journal';
-    loadtest 'systemd_testsuite/test_05_rlimits';
-    #loadtest 'systemd_testsuite/test_06_selinux';
-    loadtest 'systemd_testsuite/test_07_issue_1981';
-    loadtest 'systemd_testsuite/test_08_issue_2730';
-    loadtest 'systemd_testsuite/test_09_issue_2691';
-    loadtest 'systemd_testsuite/test_10_issue_2467';
-    loadtest 'systemd_testsuite/test_11_issue_3166';
-    loadtest 'systemd_testsuite/test_12_issue_3171';
-    loadtest 'systemd_testsuite/test_13_nspawn_smoke';
-    loadtest 'systemd_testsuite/test_14_machine_id';
-    loadtest 'systemd_testsuite/test_15_dropin';
-    loadtest 'systemd_testsuite/test_16_extend_timeout';
-    loadtest 'systemd_testsuite/test_17_udev_wants';
-    loadtest 'systemd_testsuite/test_18_failureaction';
-    loadtest 'systemd_testsuite/test_19_delegate';
-    loadtest 'systemd_testsuite/test_20_mainpidgames';
-    loadtest 'systemd_testsuite/test_21_sysusers';
-    loadtest 'systemd_testsuite/test_22_tmpfiles';
-    loadtest 'systemd_testsuite/test_23_type_exec';
-
-    load_shutdown_tests;
 }
 
 sub load_system_prepare_tests {
