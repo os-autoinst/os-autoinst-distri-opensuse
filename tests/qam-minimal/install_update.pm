@@ -88,7 +88,8 @@ sub run {
         }
         prepare_system_shutdown;
         type_string "reboot\n";
-        $self->wait_boot;
+        my $timeout = check_var('ARCH', 'aarch64') ? '300' : '200';
+        $self->wait_boot(bootloader_time => $timeout);
     }
 }
 
