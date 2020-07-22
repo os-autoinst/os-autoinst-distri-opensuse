@@ -32,6 +32,7 @@ our @EXPORT = qw(is_network_manager_default
   accept_warning_network_manager_default
   workaround_suppress_lvm_warnings
   with_yast_env_variables
+  use_wicked_network_manager
 );
 
 =head2 with_yast_env_variables
@@ -104,6 +105,21 @@ sub workaround_suppress_lvm_warnings {
         record_soft_failure('bsc#1124481 - LVM is polluting stdout with leaked invocation warnings');
         assert_script_run('export LVM_SUPPRESS_FD_WARNINGS=1');
     }
+}
+
+=head2 use_wicked_network_manager
+
+ use_wicked_network_manager();
+
+switch network manager to wicked.
+
+=cut
+sub use_wicked_network_manager {
+    return unless is_network_manager_default;
+    assert_script_run "systemctl disable NetworkManager --now";
+    assert_script_run "systemctl enable --force wicked --now";
+    assert_script_run "systemctl start wickedd.service";
+    assert_script_run "systemctl start wicked.service";
 }
 
 sub post_fail_hook {
