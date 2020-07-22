@@ -37,32 +37,28 @@ sub run {
     send_key "ctrl-shift-a";
     assert_screen('firefox-addons_manager', 90);
     assert_and_click "firefox-extensions";
-    for (1 .. 5) {
-        assert_and_click 'firefox-searchall-addon';
-        type_string "flagfox\n";
-        assert_and_click 'firefox-extensions-flagfox';
-        wait_still_screen 3;
-        assert_and_click 'firefox-extensions-add-to-firefox';
-        wait_still_screen 3;
-        assert_screen 'firefox-extensions-confirm-add';
-        send_key 'alt-a';
-        wait_still_screen 3;
-        assert_and_click 'firefox-extensions-added';
-        wait_still_screen 3;
-        assert_and_click 'firefox-extensions-flagfox-tab';
-        # close the flagfox relase notes tab and flagfox search tab
-        send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
-        # refresh the page to see addon buttons
-        send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 5, 5;
-        last if check_screen 'firefox-extensions-flagfox_installed';
-    }
+    assert_and_click 'firefox-searchall-addon';
+    type_string "flagfox\n";
+    assert_and_click 'firefox-extensions-flagfox';
+    wait_still_screen 3;
+    assert_and_click 'firefox-extensions-add-to-firefox';
+    wait_still_screen 3;
+    assert_and_click 'firefox-extensions-confirm-add';
+    wait_still_screen 3;
+    assert_and_click 'firefox-extensions-added';
+    wait_still_screen 3;
+    assert_and_click 'firefox-extensions-flagfox-tab';
+    # close the flagfox relase notes tab and flagfox search tab
+    send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
+    # refresh the page to see addon buttons
+    send_key_until_needlematch 'firefox-extensions-flagfox_installed', 'f5', 5, 5;
 
     send_key "alt-1";
     $self->firefox_open_url('opensuse.org');
     assert_screen('firefox-extensions-show_flag');
 
     send_key "alt-2";
-    wait_still_screen 3;
+    wait_still_screen 2, 4;
     assert_and_click('firefox-extensions-menu-icon') if check_screen('firefox-extensions-menu-icon');
     assert_and_click('firefox-extensions-remove');
     wait_still_screen 2, 4;
