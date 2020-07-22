@@ -35,7 +35,7 @@ sub install_packages {
 
     # loop over packages in patchinfo and try installation
     foreach my $line (split(/\n/, $patch_info)) {
-        if (my ($package) = $line =~ $pattern and $1 !~ /-devel$|-patch-/) {
+        if (my ($package) = $line =~ $pattern and $1 !~ /-patch-/) {
             # uninstall conflicting packages to allow problemless install
             my %conflict = (
                 'reiserfs-kmp-default'   => 'kernel-default-base',
@@ -74,6 +74,7 @@ sub get_patch {
     $patches =~ s/\r//g;
     return $patches;
 }
+
 sub get_patchinfos {
     my ($patches) = @_;
     my $patches_status = script_output("zypper -n info -t patch $patches", 200);
@@ -84,6 +85,26 @@ sub change_repos_state {
     my ($repos, $state) = @_;
     $repos =~ tr/,/ /;
     zypper_call("mr --$state $repos");
+}
+
+sub get_installed_bin_version {
+    my $name = $_[0];
+    if (not script_run("rpm -q $name")) {
+        return script_output "rpm -q --queryformat '%{VERSION}-%{RELEASE}' $name";
+    } else {
+        return 0;
+    }
+}
+
+sub get_results {
+    my ($self) = @_;
+    my ($bins_ref, $package_ref) = ($self->{bins}, $self->{package_list});
+    my $output .= sprintf "%-30s %-30s %-30s %-30s\n", "Binary", "Previous", "Updated", "Status";
+    foreach (sort(@$package_ref)) {
+        my $result = $bins_ref->{$_}{update_status} ? 'Success' : 'Failure ';
+        $output .= sprintf "%-30s %-30s %-30s %-30s\n", $_, $bins_ref->{$_}{old}, $bins_ref->{$_}{new}, $result;
+    }
+    return $output;
 }
 
 sub run {
@@ -108,9 +129,59 @@ sub run {
 
     install_packages($patch_infos);
 
-    change_repos_state($repos, 'enable');
+    # Get packages affected by the incident.
+    my @packages = get_incident_packages($incident_id);
 
+    # Extract module name from repo url.
+    my @modules = split(/,/, $repos);
+    s{http.*SUSE_Updates_(.*)/}{$1} for @modules;
+
+    # Get binaries that are in each package across the modules that are in the repos.
+    my %bins;
+    foreach (@packages) {
+        %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
+    }
+
+    my @l2          = grep { ($bins{$_}->{supportstatus} eq 'l2') } keys %bins;
+    my @l3          = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
+    my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
+
+    # Store the version of the installed binaries before the update.
+    foreach (keys %bins) {
+        $bins{$_}->{old} = get_installed_bin_version($_);
+    }
+
+    change_repos_state($repos, 'enable');
     zypper_call("in -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
+
+    # After the update has been applied check the new version and based on that
+    # determine if the update was succesful.
+    foreach (keys %bins) {
+        $bins{$_}->{new} = get_installed_bin_version($_);
+    }
+    my $l3_results = "L3 binaries must always be updated.\n";
+    foreach (@l3) {
+        if ($bins{$_}->{old} eq $bins{$_}->{new} or not $bins{$_}->{new}) {
+            $bins{$_}->{update_status} = 0;
+        } else {
+            $bins{$_}->{update_status} = 1;
+        }
+    }
+    $l3_results .= get_results({bins => \%bins, package_list => \@l3});
+    record_info('L3', $l3_results) if scalar(@l3);
+
+    my $l2_results = "L2 binaries need not always be updated but they must be installed.\n";
+    $bins{$_}->{update_status} = !!$bins{$_}->{new} foreach (@l2);
+    $l2_results .= get_results({bins => \%bins, package_list => \@l2});
+    record_info('L2', $l2_results) if scalar(@l2);
+
+    my $unsupported_results = "Unsupported binaries are ignored.\n";
+    $bins{$_}->{update_status} = 1 foreach (@unsupported);
+    $unsupported_results .= get_results({bins => \%bins, package_list => \@unsupported});
+    record_info('UNSUPPORTED', $unsupported_results) if scalar(@unsupported);
+
+    record_soft_failure 'poo#67357 Some L3 binaries were not updated.'   if scalar(grep { !$bins{$_}->{update_status} } @l3);
+    record_soft_failure 'poo#67357 Some L2 binaries were not installed.' if scalar(grep { !$bins{$_}->{update_status} } @l2);
 
     prepare_system_shutdown;
     power_action("reboot");
