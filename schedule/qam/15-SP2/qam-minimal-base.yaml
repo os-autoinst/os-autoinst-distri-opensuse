@@ -59,6 +59,7 @@ schedule:
 - console/apache_ssl
 - console/apache_nss
 - console/postgresql_server
+- '{{s390tools}}'
 - console/orphaned_packages_check
 - console/coredump_collect
 conditional_schedule:
@@ -83,4 +84,8 @@ conditional_schedule:
     BACKEND:
       qemu:
         - console/yast2_nfs_server
+  s390tools:
+    ARCH:
+      s390x:
+        - qam-minimal/s390tools
 ...
