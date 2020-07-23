@@ -59,7 +59,7 @@ sub run {
     # Add option to keep guest after successful installation
     # Only for x86_64 now
     if (check_var('ARCH', 'x86_64')) {
-        assert_script_run("sed -i 's/vm-install.sh/vm-install\.sh -g /' /usr/share/qa/qa_test_virtualization/installos");
+        assert_script_run("sed -i 's/vm-install.sh/vm-install\.sh -g -k /' /usr/share/qa/qa_test_virtualization/installos");
         assert_script_run("sed -i 's/virt-install.sh/virt-install\.sh -u /' /usr/share/qa/qa_test_virtualization/virt_installos");
         assert_script_run('cat /usr/share/qa/qa_test_virtualization/installos | grep vm-install');
         save_screenshot;
