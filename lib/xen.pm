@@ -34,7 +34,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles12sp3PV => {
             autoyast     => 'autoyast_xen/sles12sp3PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp3',
             macaddress   => '52:54:00:78:73:a1',
             ip           => '192.168.122.106',
             distro       => 'SLE_12_SP3',
@@ -42,7 +42,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp3HVM => {
             autoyast     => 'autoyast_xen/sles12sp3HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp3',
             macaddress   => '52:54:00:78:73:a2',
             ip           => '192.168.122.105',
             distro       => 'SLE_12_SP3',
@@ -50,7 +50,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15PV => {
             autoyast     => 'autoyast_xen/sles15PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15',
             macaddress   => '52:54:00:78:73:a3',
             ip           => '192.168.122.102',
             distro       => 'SLE_15',
@@ -58,7 +58,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15HVM => {
             autoyast     => 'autoyast_xen/sles15HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15',
             macaddress   => '52:54:00:78:73:a4',
             ip           => '192.168.122.101',
             distro       => 'SLE_15',
@@ -66,7 +66,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles11sp4PVx32 => {
             autoyast     => 'autoyast_xen/sles11sp4PVx32_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --arch i686',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --arch i686 --os-variant sles11sp4',
             macaddress   => '52:54:00:78:73:a5',
             ip           => '192.168.122.110',
             distro       => 'SLE_11_SP4',
@@ -74,7 +74,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles11sp4HVMx32 => {
             autoyast     => 'autoyast_xen/sles11sp4HVMx32_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --arch i686',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --arch i686 --os-variant sles11sp4',
             macaddress   => '52:54:00:78:73:a6',
             ip           => '192.168.122.108',
             distro       => 'SLE_11_SP4',
@@ -82,7 +82,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles11sp4PVx64 => {
             autoyast     => 'autoyast_xen/sles11sp4PVx64_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles11sp4',
             macaddress   => '52:54:00:78:73:a7',
             ip           => '192.168.122.109',
             distro       => 'SLE_11_SP4',
@@ -90,7 +90,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles11sp4HVMx64 => {
             autoyast     => 'autoyast_xen/sles11sp4HVMx64_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles11sp4',
             macaddress   => '52:54:00:78:73:a8',
             ip           => '192.168.122.107',
             distro       => 'SLE_11_SP4',
@@ -98,7 +98,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp4PV => {
             autoyast     => 'autoyast_xen/sles12sp4PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp4',
             macaddress   => '52:54:00:78:73:a9',
             ip           => '192.168.122.104',
             distro       => 'SLE_12_SP4',
@@ -106,7 +106,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp4HVM => {
             autoyast     => 'autoyast_xen/sles12sp4HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',
             macaddress   => '52:54:00:78:73:aa',
             ip           => '192.168.122.103',
             distro       => 'SLE_12_SP4',
@@ -114,7 +114,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp1HVM => {
             autoyast     => 'autoyast_xen/sles15sp1HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',
             distro       => 'SLE_15',
@@ -122,7 +122,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp1PV => {
             autoyast     => 'autoyast_xen/sles15sp1PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',
             macaddress   => '52:54:00:78:73:ac',
             ip           => '192.168.122.112',
             distro       => 'SLE_15',
@@ -130,7 +130,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5HVM => {
             autoyast     => 'autoyast_xen/sles12sp5HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp5',
             macaddress   => '52:54:00:78:73:ad',
             ip           => '192.168.122.113',
             distro       => 'SLE_12_SP5',
@@ -138,7 +138,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5PV => {
             autoyast     => 'autoyast_xen/sles12sp5PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp5',
             macaddress   => '52:54:00:78:73:ae',
             ip           => '192.168.122.114',
             distro       => 'SLE_12_SP5',
@@ -146,8 +146,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
     );
 
-    delete($guests{sles11sp4HVMx32});
-    delete($guests{sles11sp4PVx64});
+    delete($guests{sles11sp4PVx32});
+    delete($guests{sles11sp4HVMx64});
     delete($guests{sles12sp3HVM}) if (!is_sle('=12-SP3'));
     delete($guests{sles12sp4PV})  if (!is_sle('=12-SP4'));
     delete($guests{sles12sp5HVM}) if (!is_sle('=12-SP5'));
@@ -157,7 +157,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles12sp3 => {
             autoyast     => 'autoyast_kvm/sles12sp3_PRG.xml',
-            extra_params => '',
+            extra_params => '--os-variant sles12sp3',
             macaddress   => '52:54:00:78:73:a2',
             ip           => '192.168.122.102',
             distro       => 'SLE_12_SP3',
@@ -165,7 +165,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp4 => {
             autoyast     => 'autoyast_kvm/sles12sp4_PRG.xml',
-            extra_params => '',
+            extra_params => '--os-variant sles12sp4',
             macaddress   => '52:54:00:78:73:aa',
             ip           => '192.168.122.103',
             distro       => 'SLE_12_SP4',
@@ -173,7 +173,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15 => {
             autoyast     => 'autoyast_kvm/sles15_PRG.xml',
-            extra_params => '',
+            extra_params => '--os-variant sle15',
             macaddress   => '52:54:00:78:73:a4',
             ip           => '192.168.122.101',
             distro       => 'SLE_15',
@@ -181,7 +181,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp1 => {
             autoyast     => 'autoyast_kvm/sles15sp1_PRG.xml',
-            extra_params => '',
+            extra_params => '--os-variant sle15sp1',
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',
             distro       => 'SLE_15',
@@ -189,7 +189,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5 => {
             autoyast     => 'autoyast_kvm/sles12sp5_PRG.xml',
-            extra_params => '',
+            extra_params => '--os-variant sles12sp5',
             macaddress   => '52:54:00:78:73:ad',
             ip           => '192.168.122.113',
             distro       => 'SLE_12_SP5',
@@ -224,7 +224,7 @@ sub create_guest {
 
         # Run unattended installation for selected guest
         assert_script_run "qemu-img create -f qcow2 /var/lib/libvirt/images/xen/$guest.qcow2 20G", 180;
-        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$guest.qcow2 --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --os-variant sles12 --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
+        script_run "( virt-install $extra_params --name $guest --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$guest.qcow2 --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$guest.txt 2>&1 & )";
     }
 }
 
