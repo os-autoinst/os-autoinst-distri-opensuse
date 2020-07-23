@@ -97,6 +97,7 @@ sub run {
     my $self = shift;
     select_console('root-console');
 
+    assert_script_run('cd ' . get_var('WORK_DIR'));
     for my $category (@category) {
         assert_script_run('mkdir -p ' . LOG_DIR . $category);
 

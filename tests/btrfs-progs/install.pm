@@ -50,7 +50,7 @@ sub run {
         zypper_call '--gpg-auto-import-keys ref';
         zypper_call 'in -r filesystems btrfs-progs';
         zypper_call 'rr filesystems';
-        assert_script_run 'cd /opt/btrfs-progs-tests';
+        set_var('WORK_DIR', '/opt/btrfs-progs-tests');
     }
     else {
         # Build test suite of btrfs-progs from git
@@ -60,7 +60,7 @@ sub run {
         assert_script_run 'wget ' . autoinst_url('/data/btrfs-progs/install.sh');
         assert_script_run 'chmod a+x install.sh';
         assert_script_run './install.sh ' . GIT_URL . " " . INST_DIR, timeout => 1200;
-        assert_script_run 'cd ' . INST_DIR;
+        set_var('WORK_DIR', INST_DIR);
     }
 
     # Create log file
