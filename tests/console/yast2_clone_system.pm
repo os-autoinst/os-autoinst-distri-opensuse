@@ -19,7 +19,7 @@ use version_utils qw(is_sle is_opensuse is_staging);
 use utils 'zypper_call';
 use repo_tools 'get_repo_var_name';
 
-my $xml_schema_path = "/usr/share/YaST2/schema/autoyast/rng/profile.rng";
+my $xml_schema_path = "/usr/share/YaST2/schema/autoyast/rng";
 
 sub run {
     my $self = shift;
@@ -52,7 +52,7 @@ sub run {
 
     zypper_call 'install jing';
     zypper_call "rr devel-repo" if (is_staging);
-    my $rc_jing = script_run "jing $xml_schema_path $ay_profile_path";
+    my $rc_jing = script_run "jing $xml_schema_path/profile.rng $ay_profile_path";
 
     if ($rc_jing) {
         if (is_sle('<15')) {
@@ -83,7 +83,7 @@ sub get_ftp_uri {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    upload_logs($xml_schema_path);
+    $self->tar_and_upload_log("$xml_schema_path/*.rng", '/tmp/autoyast_schema.tar.bz2');
 }
 
 1;
