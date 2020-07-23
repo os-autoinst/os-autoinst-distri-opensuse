@@ -65,6 +65,11 @@ sub minion_prepare {
     # Check all the settings we changed
     assert_script_run("grep 'master:\\\|ipv6:\\\|log_' /etc/salt/minion");
 
+    assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
+    assert_script_run("echo -en 'disable_modules:\n  - boto3_elasticsearch\n' >> /etc/salt/minion");
+    assert_script_run("grep -B9 -A9 'disable_modules' /etc/salt/minion");
+    upload_logs '/etc/salt/minion';
+
     # Enable and start the salt-minion
     systemctl 'enable salt-minion';
     systemctl 'start salt-minion';
@@ -85,12 +90,21 @@ Method fetching Salt specific logs.
 =cut
 
 sub logs_from_salt {
+    assert_script_run "ls /var/log/salt";
+
     if (check_var('HOSTNAME', 'master')) {
         upload_logs '/var/log/salt/master', log_name => 'salt-master.txt';
         upload_logs '/var/log/salt/event',  log_name => 'salt-event.txt';
     }
 
     upload_logs '/var/log/salt/minion', log_name => 'salt-minion.txt';
+
+    my $error = "cat /var/log/salt/* | grep -i 'CRITICAL\\|ERROR\\|Traceback' ";
+    $error .= "| grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError' ";
+    $error .= "| grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'";
+    if (script_run("$error") != 1) {
+        die "Salt logs are containing errors!";
+    }
 }
 
 =head2 post_run_hook
@@ -103,6 +117,9 @@ sub post_run_hook {
 
     # fetch Salt specific logs
     logs_from_salt();
+
+    # Stop both master and minion at the end
+    stop();
 
     # start next test in home directory
     type_string "cd\n";
@@ -119,12 +136,16 @@ Method executed when run() finishes and the module has result => 'fail'
 sub post_fail_hook {
     my ($self) = shift;
     select_console('log-console');
-    $self->SUPER::post_fail_hook;
-    $self->remount_tmp_if_ro;
-    $self->export_logs_basic;
 
     # fetch Salt specific logs
     logs_from_salt();
+
+    # Stop both master and minion at the end
+    stop();
+
+    $self->SUPER::post_fail_hook;
+    $self->remount_tmp_if_ro;
+    $self->export_logs_basic;
 }
 
 1;

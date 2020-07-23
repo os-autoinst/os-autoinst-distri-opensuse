@@ -38,7 +38,7 @@ use utils qw(script_retry zypper_call);
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Install, configure and start the salt master
     $self->master_prepare();
@@ -95,9 +95,7 @@ sub run {
     assert_script_run("salt --state-output=terse -t 300 '*' state.highstate", 300);
     mutex_create 'SALT_STATES_SYSCTL';
 
-    # Stop both master and minion at the end
     barrier_wait 'SALT_FINISHED';
-    $self->stop();
 }
 
 1;
