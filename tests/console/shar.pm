@@ -19,8 +19,13 @@ use version_utils;
 
 sub run {
     my $self = shift;
-    select_console 'user-console';
 
+    if (is_jeos()) {
+        select_console 'root-console';
+        zypper_call('in sharutils');
+    }
+
+    select_console 'user-console';
     assert_script_run('sh ~/data/shar_testdata.sh');
     assert_script_run('file shar_testdata/suse.png | grep "600 x 550"');
     assert_script_run('head -1 shar_testdata/hallo.txt | grep "Hallo Welt"');
