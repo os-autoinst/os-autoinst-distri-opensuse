@@ -27,30 +27,37 @@ use utils;
 use strict;
 use warnings;
 use testapi;
-use virt_autotest_base;
-use virt_utils;
 use version_utils;
 
 our @EXPORT = qw(check_virt_kernel);
 
 sub check_virt_kernel {
-    my $guest  = shift // '';
-    my $suffix = shift // '';
-    my $go_to_target = $guest eq '' ? '' : "ssh root\@$guest";
+    my %args         = @_;
+    my $target       = $args{target} // 'localhost';
+    my $suffix       = $args{suffix} // '';
+    my $log_file     = $args{log_file} // '/tmp/virt_kernel.txt';
+    my $go_to_target = $target eq 'localhost' ? '' : "ssh root\@$target";
     my ($sles_running_version, $sles_running_sp) = get_sles_release($go_to_target);
 
-    assert_script_run("$go_to_target uname -a");
+    record_info "KERNEL $target$suffix", "We are now checking kernel on $target$suffix.";
+    assert_script_run qq(echo -e "\\n# $target$suffix:" >> $log_file);
+
+    assert_script_run("$go_to_target uname -a | tee -a $log_file");
+    assert_script_run("$go_to_target uptime | tee -a $log_file");
+    script_run("$go_to_target zypper lr -d | tee -a $log_file");
+
     if ($sles_running_version >= 12) {
-        assert_script_run("$go_to_target journalctl -b | tee /tmp/journalctl-b-$guest$suffix.log");
-        upload_logs("/tmp/journalctl-b-$guest$suffix.log");
+        assert_script_run("$go_to_target journalctl -b | tee /tmp/journalctl-b-$target$suffix.txt");
+        upload_logs("/tmp/journalctl-b-$target$suffix.txt");
     } else {
-        assert_script_run("$go_to_target dmesg | tee /tmp/dmesg-$guest$suffix.log");
-        upload_logs("/tmp/dmesg-$guest$suffix.log");
+        assert_script_run("$go_to_target dmesg | tee /tmp/dmesg-$target$suffix.txt");
+        upload_logs("/tmp/dmesg-$target$suffix.txt");
     }
 
-    my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack' |grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST\\|xapic not enabled\\|Firmware\\|missing monitors config'";
+    my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack\\|buffer' | grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|firmware\\|calibration\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST\\|xapic not enabled\\|Firmware\\|missing monitors config\\|perfctr\\|mitigation\\|vesa\\|ram buffer\\|microcode\\|frame\\|nmi\\|pci-dma\\|pm-timer\\|tsc\\|drm\\|hv_vmbus\\|floppy\\|fd0\\|nmi\\|x2apic'";
     if (script_run("$go_to_target $dmesg") != 1) {
-        record_soft_failure "The $guest needs to be checked manually!";
+        record_soft_failure "The $target needs to be checked manually!";
+        assert_script_run("$go_to_target $dmesg | tee -a $log_file");
     }
     save_screenshot;
 }

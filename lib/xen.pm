@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use virt_autotest::utils;
 
 # Supported guest configuration
 #   * location of the installation tree
@@ -130,7 +131,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5HVM => {
             autoyast     => 'autoyast_xen/sles12sp5HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp5',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',            # old system compatibility
             macaddress   => '52:54:00:78:73:ad',
             ip           => '192.168.122.113',
             distro       => 'SLE_12_SP5',
@@ -138,7 +139,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5PV => {
             autoyast     => 'autoyast_xen/sles12sp5PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp5',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp4',       # old system compatibility
             macaddress   => '52:54:00:78:73:ae',
             ip           => '192.168.122.114',
             distro       => 'SLE_12_SP5',
@@ -181,7 +182,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp1 => {
             autoyast     => 'autoyast_kvm/sles15sp1_PRG.xml',
-            extra_params => '--os-variant sle15sp1',
+            extra_params => '--os-variant sles12',                                                          # problems after kernel upgrade
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',
             distro       => 'SLE_15',
@@ -189,13 +190,93 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles12sp5 => {
             autoyast     => 'autoyast_kvm/sles12sp5_PRG.xml',
-            extra_params => '--os-variant sles12sp5',
+            extra_params => '--os-variant sles12sp4',                                                       # old system compatibility
             macaddress   => '52:54:00:78:73:ad',
             ip           => '192.168.122.113',
             distro       => 'SLE_12_SP5',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
     );
+} elsif (is_vmware_virtualization) {
+    %guests = (
+        sles11sp4x64 => {
+            ip => 'd125.qam.suse.de',
+        },
+        sles11sp4x32 => {
+            ip => 'd11.qam.suse.de',
+        },
+        sles12sp2 => {
+            ip => 'vm-sle12-sp2-a60.qam.suse.de',
+        },
+        sles12sp3 => {
+            ip => 'd153.qam.suse.de',
+        },
+        sles12sp4 => {
+            ip => 'd370.qam.suse.de',
+        },
+        sles12sp5 => {
+            ip => 'd388.qam.suse.de',
+        },
+        sles15 => {
+            ip => 'd294.qam.suse.de',
+        },
+        sles15sp1 => {
+            ip => 'd208.qam.suse.de',
+        },
+        sles15sp2 => {
+            ip => 'd192.qam.suse.de',
+        },
+    );
+
+    delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
+    delete($guests{sles11sp4x64}) if (!is_sle('=11-SP4'));
+    delete($guests{sles12sp2})    if (!is_sle('=12-SP2'));
+    delete($guests{sles12sp3})    if (!is_sle('=12-SP3'));
+    delete($guests{sles12sp4})    if (!is_sle('=12-SP4'));
+    delete($guests{sles12sp5})    if (!is_sle('=12-SP5'));
+    delete($guests{sles15})       if (!is_sle('=15'));
+    delete($guests{sles15sp1})    if (!is_sle('=15-SP1'));
+    delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
+} elsif (is_hyperv_virtualization) {
+    %guests = (
+        sles11sp4x32 => {
+            ip => 'borg-11.qam.suse.de',
+        },
+        sles11sp4x64 => {
+            ip => 'borg-10.qam.suse.de',
+        },
+        sles12sp3 => {
+            ip => 'borg-14.qam.suse.de',
+        },
+        sles12sp2 => {
+            ip => 'borg-13.qam.suse.de',
+        },
+        sles12sp4 => {
+            ip => 'd112.qam.suse.de',
+        },
+        sles12sp5 => {
+            ip => 'd387.qam.suse.de',
+        },
+        sles15 => {
+            ip => 'd67.qam.suse.de',
+        },
+        sles15sp1 => {
+            ip => 'd402.qam.suse.de',
+        },
+        sles15sp2 => {
+            ip => 'd196.qam.suse.de',
+        },
+    );
+
+    delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
+    delete($guests{sles11sp4x64}) if (!is_sle('=11-SP4'));
+    delete($guests{sles12sp2})    if (!is_sle('=12-SP2'));
+    delete($guests{sles12sp3})    if (!is_sle('=12-SP3'));
+    delete($guests{sles12sp4})    if (!is_sle('=12-SP4'));
+    delete($guests{sles12sp5})    if (!is_sle('=12-SP5'));
+    delete($guests{sles15})       if (!is_sle('=15'));
+    delete($guests{sles15sp1})    if (!is_sle('=15-SP1'));
+    delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
 } else {
     %guests = ();
 }

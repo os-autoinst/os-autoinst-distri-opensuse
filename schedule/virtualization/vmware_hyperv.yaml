@@ -1,0 +1,11 @@
+name:           vmware_hyperv
+description:    >
+    Maintainer: pdostal@suse.cz
+    Testing Kernel on VMware / Hyper-V SLE hosts
+schedule:
+    - boot/boot_to_desktop
+    - virtualization/external/prepare
+    - virtualization/xen/ssh_hypervisor_init
+    - virtualization/xen/ssh_guests_init
+    - virtualization/xen/upgrade_guests
+    - virtualization/xen/patch_guests

@@ -26,10 +26,23 @@ use Exporter;
 use strict;
 use warnings;
 use utils;
+use version_utils;
 use testapi;
+use DateTime;
 
 our @EXPORT
-  = qw(is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file);
+  = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file
+  ssh_setup ssh_copy_id);
+
+#return 1 if it is a VMware test judging by REGRESSION variable
+sub is_vmware_virtualization {
+    return get_var("REGRESSION", '') =~ /vmware/;
+}
+
+#return 1 if it is a Hyper-V test judging by REGRESSION variable
+sub is_hyperv_virtualization {
+    return get_var("REGRESSION", '') =~ /hyperv/;
+}
 
 #return 1 if it is a fv guest judging by name
 #feel free to extend to support more cases
@@ -82,7 +95,26 @@ sub print_cmd_output_to_file {
     $cmd = "ssh root\@$machine \"" . $cmd . "\"" if $machine;
     script_run "echo -e \"\n# $cmd\" >> $file";
     script_run "$cmd >> $file";
+}
 
+sub ssh_setup {
+    my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa" : "/var/testvirt.net/.ssh/id_rsa";
+    my $dt              = DateTime->now;
+    my $comment         = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
+    if (script_run("[[ -s $default_ssh_key ]]") != 0) {
+        assert_script_run "ssh-keygen -t rsa -P '' -C '$comment' -f $default_ssh_key";
+    }
+}
+
+sub ssh_copy_id {
+    my $guest           = shift;
+    my $mode            = is_sle('=11-sp4') ? '' : '-f';
+    my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
+    script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
+    assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
+    if (script_run("ssh -o PreferredAuthentications=publickey root\@$guest hostname -f") != 0) {
+        exec_and_insert_password("ssh-copy-id -i $default_ssh_key -o StrictHostKeyChecking=no $mode root\@$guest");
+    }
 }
 
 1;
