@@ -707,7 +707,7 @@ sub console_nr {
 
 =head2 activate_console
 
-  activate_console($console [, [ensure_tty_selected => 0|1, ] [skip_set_standard_prompt => 0|1, ] [skip_setterm => 0|1, ]])
+  activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, timeout => $timeout]])
 
 Callback whenever a console is selected for the first time. Accepts arguments
 provided to select_console().
@@ -717,6 +717,9 @@ e.g. if you want select_console() without addition console setup. Then, at some
 point, you should set it on your own.
 
 Option C<ensure_tty_selected> ensures TTY is selected.
+
+C<timeout> is set on the internal C<assert_screen> call and can be set to
+configure a timeout value different than default.
 =cut
 sub activate_console {
     my ($self, $console, %args) = @_;
@@ -775,7 +778,7 @@ sub activate_console {
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
-            assert_screen \@tags, 60;
+            assert_screen \@tags, $args{timeout} // 60;
             if (match_has_tag("tty$nr-selected")) {
                 type_string "$user\n";
                 handle_password_prompt;
@@ -857,7 +860,7 @@ sub activate_console {
 
 =head2 console_selected
 
-    console_selected($console [, await_console => $await_console] [, tags => $tags ] [, ignore => $ignore ]);
+    console_selected($console [, await_console => $await_console] [, tags => $tags ] [, ignore => $ignore ] [, timeout => $timeout ]);
 
 Overrides C<select_console> callback from C<testapi>. Waits for console by
 calling assert_screen on C<tags>, by default the name of the selected console.
@@ -870,6 +873,9 @@ test module specific.
 
 C<ignore> can be overridden to not check on certain consoles. By default the
 known uncheckable consoles are already ignored.
+
+C<timeout> is set on the internal C<assert_screen> call and can be set to
+configure a timeout value different than default.
 =cut
 sub console_selected {
     my ($self, $console, %args) = @_;
@@ -892,7 +898,7 @@ sub console_selected {
     # x11 needs special handling because we can not easily know if screen is
     # locked, display manager is waiting for login, etc.
     return ensure_unlocked_desktop if $args{tags} =~ /x11/;
-    assert_screen($args{tags}, no_wait => 1);
+    assert_screen($args{tags}, no_wait => 1, timeout => $args{timeout});
 }
 
 1;
