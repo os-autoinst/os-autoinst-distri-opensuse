@@ -42,11 +42,8 @@ sub run {
         assert_screen 'enlightenment_compositing';
     }
     assert_and_click "enlightenment_assistant_next";
-    assert_screen [qw(enlightenment_generic_desktop enlightenment_acpid_missing)];
-    if (match_has_tag 'enlightenment_acpid_missing') {
-        assert_and_click 'enlightenment_acpid_missing';
-        assert_screen 'enlightenment_generic_desktop';
-    }
+    assert_and_click 'enlightenment_acpid_missing';
+    assert_screen 'enlightenment_generic_desktop';
 }
 
 sub test_flags {
