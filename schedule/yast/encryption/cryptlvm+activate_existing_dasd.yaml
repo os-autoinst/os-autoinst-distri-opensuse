@@ -15,6 +15,7 @@ schedule:
   - installation/disk_activation
   - installation/scc_registration
   - installation/encrypted_volume_activation
+  - console/validate_activation_encrypted_partition
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -32,3 +33,5 @@ schedule:
   - installation/boot_encrypt
   - boot/reconnect_mgmt_console
   - installation/first_boot
+test_data:
+  <<: !include test_data/yast/encryption/cryptlvm+activate_existing.yaml
