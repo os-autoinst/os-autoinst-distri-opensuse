@@ -251,13 +251,14 @@ sub is_leap {
 
     # Leap and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
-    return 0 unless $version =~ /^\d{2,}\.\d/;
+    return 0 unless $version =~ /^\d{2,}\.\d/ || $version =~ /^Jump/;
     return 1 unless $query;
 
     # Hacks for staging and HG2G :)
     $query   =~ s/^([<>=]*)42/${1}14/;
     $version =~ s/^42/14/;
     $version =~ s/:(Core|S)[:\w]*//i;
+    $version =~ s/^Jump://i;
 
     return check_version($query, $version, qr/\d{2,}\.\d/);
 }
