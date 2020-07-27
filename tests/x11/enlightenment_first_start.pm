@@ -32,9 +32,11 @@ sub run {
     assert_and_click "enlightenment_assistant_next";
     assert_screen "enlightenment_windowfocus";
     assert_and_click "enlightenment_assistant_next";
-    assert_screen "enlightenment_keybindings";
-    assert_and_click "enlightenment_assistant_next";
-    assert_screen [qw(enlightenment_compositing enlightenment_bluez_not_found)];
+    assert_screen [qw(enlightenment_keybindings enlightenment_bluez_not_found)];
+    if (match_has_tag 'enlightenment_keybindings') {
+        assert_and_click "enlightenment_assistant_next";
+        assert_screen [qw(enlightenment_compositing enlightenment_bluez_not_found)];
+    }
     if (match_has_tag 'enlightenment_bluez_not_found') {
         assert_and_click 'enlightenment_assistant_next';
         assert_screen 'enlightenment_compositing';
