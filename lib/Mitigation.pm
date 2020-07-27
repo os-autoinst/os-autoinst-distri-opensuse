@@ -80,9 +80,34 @@ sub reboot_and_wait {
     if (check_var('BACKEND', 'ipmi')) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
-        check_screen([qw(login_screen linux-login)], $timeout);
-        use_ssh_serial_console;
+        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+            assert_screen 'pxe-qa-net-mitigation', 90;
+            send_key 'ret';
+            assert_screen([qw(grub2 grub1)], 60);
+            #send key 'up' to stop grub timer counting down, to be more robust to select xen
+            send_key 'up';
+            save_screenshot;
 
+            for (1 .. 20) {
+                if ($_ == 10) {
+                    reset_consoles;
+                    select_console 'sol', await_console => 0;
+                }
+                send_key 'down';
+                last if check_screen 'virttest-bootmenu-xen-kernel', 5;
+            }
+            save_screenshot;
+            send_key 'ret';
+        }
+        sleep 30;    # Wait for the GRUB to disappear (there's no chance for the system to boot faster
+        save_screenshot;
+
+        for (my $i = 0; $i <= 4; $i++) {
+            last if (check_screen([qw(linux-login virttest-displaymanager)], 60));
+            save_screenshot;
+            send_key 'ret';
+        }
+        use_ssh_serial_console;
     }
     else {
         power_action('reboot', textmode => 1);
