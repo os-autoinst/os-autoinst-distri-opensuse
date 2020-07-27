@@ -1994,6 +1994,7 @@ sub load_x11_other {
             loadtest "x11/gnome_tweak_tool";
             loadtest "x11/seahorse";
         }
+        loadtest 'x11/flatpak' if (is_opensuse);
     }
     # shotwell was replaced by gnome-photos in SLE15 & yast_virtualization isn't in SLE15
     if (is_sle('>=12-sp2') && is_sle('<15')) {
