@@ -345,6 +345,7 @@ sub default_desktop {
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
     return         if get_var('VERSION', '') lt '12';
     return 'gnome' if get_var('VERSION', '') lt '15';
+    return 'gnome' if get_var('VERSION', '') =~ /^Jump/;
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'gnome' if is_desktop_module_selected;
