@@ -772,6 +772,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/guest_installation_run";
         if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64) {
             loadtest "virt_autotest/set_config_as_glue";
+            loadtest "virt_autotest/setup_dns_service";
             if (get_var("ENABLE_VIR_NET")) {
                 loadtest "virt_autotest/libvirt_virtual_network_init";
                 loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
@@ -779,7 +780,6 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/libvirt_routed_virtual_network";
                 loadtest "virt_autotest/libvirt_isolated_virtual_network";
             }
-            loadtest "virt_autotest/setup_dns_service";
             loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
             loadtest "virtualization/xen/hotplugging"                   if get_var("ENABLE_HOTPLUGGING");
             loadtest "virtualization/xen/storage"                       if get_var("ENABLE_STORAGE");
