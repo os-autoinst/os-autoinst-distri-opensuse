@@ -13,6 +13,8 @@ schedule:
   - autoyast/installation
   - autoyast/console
   - autoyast/login
+  - console/validate_lvm
+  - autoyast/verify_lvm_partitions
   - autoyast/wicked
   - autoyast/autoyast_verify
   - autoyast/repos
@@ -21,3 +23,43 @@ schedule:
   - autoyast/autoyast_reboot
   - installation/grub_test
   - installation/first_boot
+  - autoyast/verify_cloned_profile
+test_data:
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/system
+          partitions:
+            - partition:
+                unique_key: lv_name
+                lv_name: root_lv
+                mount: /
+            - partition:
+                unique_key: lv_name
+                lv_name: opt_lv
+                mount: /opt
+            - partition:
+                unique_key: lv_name
+                lv_name: swap_lv
+                mount: swap
+      - drive:
+          unique_key: device
+          device: /dev/sda
+          partitions:
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 1
+                lvm_group: system
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 2
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 3
+  lvm:
+    vg: system
+    lvs:
+      - root_lv
+      - opt_lv
+      - swap_lv
