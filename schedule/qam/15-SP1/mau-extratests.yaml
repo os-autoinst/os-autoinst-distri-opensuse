@@ -66,6 +66,7 @@ schedule:
 - console/gd
 - console/valgrind
 - console/sssd_samba
+- console/wpa_supplicant
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:

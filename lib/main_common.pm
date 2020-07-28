@@ -1694,7 +1694,7 @@ sub load_extra_tests_console {
     loadtest "console/gd";
     loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
     loadtest 'console/sssd_samba'     unless (is_sle("<15") || is_sle(">=15-sp2"));
-    loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos);
+    loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
 }
 
 sub load_extra_tests_sdk {
