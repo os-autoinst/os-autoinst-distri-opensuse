@@ -65,6 +65,7 @@ schedule:
 - console/libqca2
 - console/gd
 - console/valgrind
+- console/wpa_supplicant
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:
