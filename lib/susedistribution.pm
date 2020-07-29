@@ -888,6 +888,7 @@ sub console_selected {
     $args{await_console} //= 1;
     $args{tags}          //= $console;
     $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary};
+    $args{timeout}       //= 30;
 
     if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
