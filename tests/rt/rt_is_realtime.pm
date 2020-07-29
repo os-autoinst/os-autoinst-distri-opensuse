@@ -16,8 +16,10 @@ use warnings;
 use testapi;
 
 sub run {
+    my $self = shift;
+    $self->select_serial_terminal;
     # check booted kernel, expected RT
-    validate_script_output("uname -v", sub { m/\s{1}PREEMPT\s{1}RT\s{1}/ });
+    validate_script_output("uname -v", sub { m/\s{1}PREEMPT(\s{1}|_)RT\s{1}/ });
     # display running RT processes, expected to see FF - SCHED_FIFO or RR - SCHED_RR processes
     validate_script_output("ps -e -o pid,start_time,pri,cls,command", sub { m/FF|RR/ });
     # is realtime ?
