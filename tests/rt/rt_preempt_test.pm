@@ -14,12 +14,13 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use utils qw(zypper_call);
 
 # Run preempt test
 sub run {
-    script_run "zypper -q ar http://download.suse.de/ibs/Devel:/RTE:/SLE12SP1/standard/Devel:RTE:SLE12SP1.repo";
-    script_run "zypper -q --gpg-auto-import-keys refresh";
-    script_run "zypper -q --non-interactive install preempt-test";
+    (my $version = get_var('VERSION')) =~ s/-/_/g;
+    zypper_call "ar --refresh --no-gpgcheck http://download.suse.de/ibs/home:/mloviska/SUSE_SLE_$version preempt_temp_repo";
+    zypper_call "install preempt-test";
     assert_script_run "preempt-test | tee ~/preempt.out";
     assert_script_run "grep \'Test PASSED\' ~/preempt.out && rm -f ~/preempt.out";
 }

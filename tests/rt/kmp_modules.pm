@@ -64,22 +64,22 @@ sub run {
 
     # allow to load unsupported modules
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
-    zypper_call 'ref';
 
-    # slert12sp4 does not install lttng-tools by default as sle15sp1
     # install kmp packages
-    zypper_call 'in lttng-tools' if (is_sle('<15'));
-    zypper_call 'in *-kmp-rt', 500;
+    zypper_call 'ref';
+    zypper_call 'in lttng-tools *-kmp-rt', 500;
 
     # Reboot in order to select RT kernel
-    power_action('reboot', textmode => 1);
-    select_kernel('rt');
-    assert_screen 'generic-desktop';
+    if (script_run q|egrep 'BOOT_IMAGE=/boot/vmlinuz-.*-[[:digit:]]-rt' /proc/cmdline|) {
+        power_action('reboot', textmode => 1);
+        select_kernel('rt');
+        assert_screen 'generic-desktop';
+        $self->select_serial_terminal;
+    }
 
     # switched to RT kernel
     # check if kernel is proper $kernel
     # filter out list of kernel modules
-    $self->select_serial_terminal;
     assert_script_run('uname -r|grep rt', 90, 'Expected rt kernel not found');
 
     my @kmp_rpms = grep { !/lttng-modules/ } split("\n", script_output "rpm -qa \*-kmp-rt");
