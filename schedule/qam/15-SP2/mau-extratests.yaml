@@ -65,7 +65,7 @@ schedule:
 - console/libqca2
 - console/gd
 - console/valgrind
-- console/wpa_supplicant
+- '{{wpa_supplicant}}'
 - console/coredump_collect
 conditional_schedule:
   zkvm_boot:
@@ -85,4 +85,8 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/lshw
+  wpa_supplicant:
+    ARCH:
+      x86_64:
+        - console/wpa_supplicant
 ...
