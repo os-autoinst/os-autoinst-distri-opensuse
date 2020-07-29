@@ -419,6 +419,17 @@ sub export_logs_basic {
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
 }
 
+=head2 select_log_console
+
+ select_log_console();
+
+Select 'log-console' with higher timeout on screen check to even cover systems
+that react very slow due to high background load or high memory consumption.
+This should be especially useful in C<post_fail_hook> implementations.
+
+=cut
+sub select_log_console { select_console('log-console', timeout => 180, @_) }
+
 =head2 export_logs
 
  export_logs();
@@ -428,7 +439,7 @@ This method will call several other log gathering methods from this class.
 =cut
 sub export_logs {
     my ($self) = shift;
-    select_console 'log-console';
+    select_log_console;
     save_screenshot;
     $self->remount_tmp_if_ro;
     $self->problem_detection;
@@ -505,7 +516,7 @@ Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.
 =cut
 sub export_logs_desktop {
     my ($self) = @_;
-    select_console 'log-console';
+    select_log_console;
     save_screenshot;
 
     if (check_var("DESKTOP", "kde")) {
@@ -1184,7 +1195,7 @@ sub post_fail_hook {
     # set current variables in x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {
         my $program = get_var('IN_X11_START_PROGRAM');
-        select_console 'log-console';
+        select_log_console;
         my $r = script_run "which $program";
         if ($r != 0) {
             record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
@@ -1214,7 +1225,7 @@ sub post_fail_hook {
     }
     # Find out in post-fail-hook if system is I/O-busy, poo#35877
     else {
-        select_console 'log-console';
+        select_log_console;
         my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
         record_info('System I/O status:', ($io_status =~ /^0$/) ? 'idle' : 'busy');
     }
