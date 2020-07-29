@@ -4,6 +4,7 @@ description:   >
 vars:
   AUTOYAST: autoyast_sle15/autoyast_non_secure_boot.xml
   AUTOYAST_PREPARE_PROFILE: 1
+  DESKTOP: textmode
   EXTRABOOTPARAMS: startshell=1
 schedule:
   - autoyast/prepare_profile

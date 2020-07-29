@@ -9,7 +9,6 @@ description: >
 vars:
   DESKTOP: gnome
   ENCRYPT: 1
-  INSTALLONLY: 1
   LVM: 0
   MAX_JOB_TIME: 14400
 schedule:

@@ -1,15 +1,20 @@
+---
 name:           autoyast_y2_firstboot
 description:    >
-    Smoke test for YaST2 firstboot module
+  Smoke test for YaST2 Firstboot module, basically same as yast2_firstboot test suite.
+  Test pre-defined autoyast profile, which enables YaST2 Firstboot during system deployment.
+  SUT should boot to YaST2 Firstboot wizard after reboot. Test goes through all Firstboot tabs,
+  configure root and user accounts. SUT should end up in GDM screen after exiting YaST2
+  Firstboot.
 vars:
-    AUTOYAST: autoyast_opensuse/autoyast_firstboot.xml
-    DESKTOP: gnome
-    YAST2_FIRSTBOOT_USERNAME: firstbootuser
+  AUTOYAST: autoyast_opensuse/autoyast_firstboot.xml
+  DESKTOP: gnome
+  YAST2_FIRSTBOOT_USERNAME: firstbootuser
 schedule:
-    - autoyast/prepare_profile
-    - installation/isosize
-    - installation/bootloader_start
-    - autoyast/installation
-    - installation/yast2_firstboot
-    - installation/first_boot
-    - console/validate_yast2_firstboot_configuration
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/yast2_firstboot
+  - installation/first_boot
+  - console/validate_yast2_firstboot_configuration

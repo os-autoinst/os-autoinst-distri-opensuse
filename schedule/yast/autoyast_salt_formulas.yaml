@@ -2,6 +2,12 @@
 name: autoyast_salt_formulas
 description: |
   Test installation using AutoYaST plus salt formulas.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_salt.xml
+  AUTOYAST_CONFIRM: '1'
+  AUTOYAST_PREPARE_PROFILE: '1'
+  DESKTOP: textmode
+  SALT_FORMULAS_PATH: yast2/salt.tar.gz
 schedule:
   - autoyast/prepare_profile
   - installation/isosize

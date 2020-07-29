@@ -5,8 +5,10 @@ description: >
   wizard screen.
 name: cryptlvm
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
+  LVM: '1'
+  MAX_JOB_TIME: '14400'
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
 schedule:
   - installation/bootloader_start
   - installation/welcome
