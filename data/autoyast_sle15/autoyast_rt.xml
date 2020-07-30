@@ -212,6 +212,8 @@
         <source><![CDATA[
 #!/bin/sh
 zypper ar --priority 110 http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/PUBLISH/images/repo/SLE-15-SP2-Module-RT-POOL-Media1/ ga_rt_ibs
+[ $? eq 7 ] && sleep 30;
+zypper ar --priority 110 http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/PUBLISH/images/repo/SLE-15-SP2-Module-RT-POOL-Media1/ ga_rt_ibs
 ]]>
         </source>
       </script>
