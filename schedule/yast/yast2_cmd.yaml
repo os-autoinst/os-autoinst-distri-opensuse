@@ -11,6 +11,7 @@ schedule:
   - yast2_cmd/yast_nfs_server
   - yast2_cmd/yast_nfs_client
   - yast2_cmd/yast_tftp_server
+  - '{{yast_dns_server}}'
   - '{{yast_lan}}'
   - yast2_cmd/yast_users
   - yast2_cmd/yast_sysconfig
@@ -33,3 +34,7 @@ conditional_schedule:
         - yast2_cmd/yast_lan
       svirt:
         - yast2_cmd/yast_lan
+  yast_dns_server:
+    BACKEND:
+      qemu:
+        - yast2_cmd/yast_dns_server
