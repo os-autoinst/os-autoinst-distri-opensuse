@@ -56,7 +56,7 @@ sub _install_packages {
     zypper_call("in " . join(" ", @packages));
 }
 
-sub turnoff_gnome_screensaver_and_suspend {
+sub _turnoff_gnome_screensaver_and_suspend {
     assert_script_run "gsettings set org.gnome.desktop.session idle-delay 0";
     assert_script_run "gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'";
 }
@@ -67,7 +67,7 @@ sub run {
     if (!check_var('SUPPORT_SERVER_GENERATOR', 1)) {
         _install_packages;
         use_wicked_network_manager;
-        turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
+        _turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
     }
 }
 
