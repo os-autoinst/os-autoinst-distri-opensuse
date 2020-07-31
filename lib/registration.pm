@@ -702,11 +702,12 @@ sub select_addons_in_textmode {
 sub registration_bootloader_cmdline {
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
+    my $cmdline = '';
     if (my $url = get_var('SMT_URL') || get_var('SCC_URL')) {
-        my $cmdline = " regurl=$url";
+        $cmdline .= " regurl=$url";
         $cmdline .= " regcert=$url" if get_var('SCC_CERT');
-        return $cmdline;
     }
+    return $cmdline;
 }
 
 sub registration_bootloader_params {
