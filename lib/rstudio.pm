@@ -64,7 +64,8 @@ sub rstudio_create_and_test_new_project {
 
     # open the .gitignore file, enter *~ at the top and save it
     assert_and_click("$prefix-files-tab_select-gitignore");
-    assert_screen("$prefix-gitignore-file");
+    # click on the .gitignore tab to select that editor
+    assert_and_click("$prefix-gitignore-file");
     type_string("*~");
     wait_still_screen(1);
     send_key('ret');
