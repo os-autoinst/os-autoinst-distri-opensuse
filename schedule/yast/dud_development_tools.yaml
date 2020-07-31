@@ -31,3 +31,11 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/validate_dud_addon_repos
+  - console/orphaned_packages_check
+test_data:
+  dud_repos:
+    # The URI is the same as set in 'data/dev_tools.dud' file.
+    - URI: 'ftp://openqa.suse.de/SLE-15-Module-Development-Tools-POOL-x86_64-Media1-CURRENT'
+      Enabled: Yes
+      Autorefresh: On

@@ -72,7 +72,9 @@ our @EXPORT = qw(
   prepare_oss_repo
   disable_oss_repo
   generate_version
-  validate_repo_enablement);
+  validate_repo_enablement
+  parse_repo_data
+);
 
 =head2 add_qa_head_repo
 
@@ -406,6 +408,28 @@ sub validate_repo_enablement {
 
     assert_equals($args{uri}, $+{uri},
         "Repository $args{name} has system wrong url or repo is not added to the system:\n$output");
+}
+
+=head2 parse_repo_data
+
+ parse_repo_data($repo_identifier);
+
+Parses the output of 'zypper lr C<$repo_identifier>' command (detailed information about specific repository) and
+returns it as Hash reference.
+
+C<$repo_identifier> can be either alias, name, number from simple zypper lr, or URI.
+Please, search for 'repos (lr)' on 'https://en.opensuse.org/SDB:Zypper_manual' page for more details of the command
+usage and its output.
+
+Returns Hash reference with all the parsed properties and their values, for example:
+{Alias => 'repo-oss', Name => 'openSUSE-Tumbleweed-Oss', Enabled => 'Yes', ...}
+
+=cut
+sub parse_repo_data {
+    my ($repo_identifier) = @_;
+    my @lines             = split(/\n/, script_output("zypper lr $repo_identifier"));
+    my %repo_data         = map { split(/\s*:\s*/, $_, 2) } @lines;
+    return \%repo_data;
 }
 
 1;
