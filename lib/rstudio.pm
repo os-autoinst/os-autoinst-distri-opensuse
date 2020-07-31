@@ -54,9 +54,11 @@ sub rstudio_create_and_test_new_project {
     assert_and_click("$prefix-new-project_new-directory");
     assert_and_click("$prefix-new-project_project-type");
 
-    # enter project name and select "Create a git repository"
+    # enter project name, select ~ as the subdirectory and select "Create a git repository"
     assert_screen("$prefix-create-new-project");
     type_string("test_project");
+    assert_and_click("$prefix-create-new-project_browse-subdirectory");
+    assert_and_click("$prefix-create-new-project_select-HOME");
     assert_and_click("$prefix-create-new-project_create-git-repository");
     assert_and_click("$prefix-create-new-project_create-project");
 
