@@ -19,8 +19,9 @@ use testapi;
 use version_utils 'is_caasp';
 
 my %services_for = (
-    default => [qw(sshd issue-generator issue-add-ssh-keys)],
-    microos => [qw(transactional-update.timer)],
+    # default is Tumbleweed
+    default => [qw(sshd issue-generator !issue-add-ssh-keys)],
+    microos => [qw(!sshd transactional-update.timer)],
     cloud   => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
     cluster => [qw(chronyd)],
     admin   => [qw(docker kubelet etcd)],
