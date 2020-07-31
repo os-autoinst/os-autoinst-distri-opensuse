@@ -50,7 +50,7 @@ sub run {
     zypper_call("ar http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo");
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('dup --auto-agree-with-licenses');
-    zypper_call('in openQA-worker perl-DBIx-Class-DeploymentHandler perl-YAML-Tiny perl-Test-Assert');
+    zypper_call('in openQA-worker perl-DBIx-Class-DeploymentHandler perl-YAML-Tiny perl-Test-Assert perl-JSON');
     zypper_call('in --replacefiles perl-DBD-SQLite');
 
     #NFS mount
