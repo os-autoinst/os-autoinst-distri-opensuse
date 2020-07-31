@@ -1605,6 +1605,7 @@ sub load_extra_tests_geo_desktop {
 
 sub load_extra_tests_console {
     loadtest "console/check_os_release";
+    loadtest 'console/services_enabled';
     loadtest "console/orphaned_packages_check";
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;

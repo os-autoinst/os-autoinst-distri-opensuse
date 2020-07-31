@@ -45,7 +45,7 @@ sub load_feature_tests {
     loadtest 'microos/libzypp_config';
     loadtest 'microos/image_checks' if is_image_flavor;
     loadtest 'microos/one_line_checks';
-    loadtest 'microos/services_enabled';
+    loadtest 'console/services_enabled';
     load_transactional_role_tests;
     loadtest 'microos/journal_check';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
