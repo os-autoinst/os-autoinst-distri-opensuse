@@ -542,7 +542,7 @@ sub select_installation_source {
     my ($m_server, $m_share, $m_directory);
 
     # Parse SUSEMIRROR into variables
-    if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)(/.*)$}) {
+    if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)/(.*)$}) {
         ($m_server, $m_directory) = ($1, $2);
         if ($m_protocol eq "smb") {
             ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
