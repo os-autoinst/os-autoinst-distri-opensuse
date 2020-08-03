@@ -44,9 +44,8 @@ sub run {
         # original system didn't have the pattern (for example, from SLES4SAP 11-SP4)
         die "Pattern sap_server not installed by default"
           unless (check_var('SYSTEM_ROLE', 'textmode') or is_upgrade() or is_updates_tests() or check_var('SLE_PRODUCT', 'sles'));
-        record_info('install sap_server', 'Installing sap_server pattern and starting tuned');
+        record_info('install sap_server', 'Installing sap_server pattern');
         zypper_call('in -y -t pattern sap_server');
-        systemctl 'start tuned';
     }
 
     # This test is also used for testing SAP products installation on plain SLE

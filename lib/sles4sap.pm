@@ -138,30 +138,23 @@ sub is_saptune_installed {
     return (defined $ret and $ret == 0);
 }
 
-sub is_nw_profile {
-    my $list = script_output "tuned-adm list";
-    return ($list =~ /sap-netweaver/);
-}
-
 sub prepare_profile {
     my ($self, $profile) = @_;
     return unless ($profile eq 'HANA' or $profile eq 'NETWEAVER');
 
     # Will prepare system with saptune only if it's available.
-    # Otherwise will try to use the tuned 'sap-netweaver' profile
-    # for netweaver and the recommended one for hana
     my $has_saptune = $self->is_saptune_installed();
 
     if ($has_saptune) {
         assert_script_run "tuned-adm profile saptune";
         assert_script_run "saptune solution apply $profile";
     }
-    elsif ($profile eq 'NETWEAVER') {
-        $profile = $self->is_nw_profile() ? 'sap-netweaver' : '$(tuned-adm recommend)';
-        assert_script_run "tuned-adm profile $profile";
+    elsif (is_sle('15+')) {
+        # On SLE15+ the sapconf command was dropped
+        assert_script_run "/usr/lib/sapconf/sapconf start";
     }
-    elsif ($profile eq 'HANA') {
-        assert_script_run 'tuned-adm profile $(tuned-adm recommend)';
+    else {
+        assert_script_run("sapconf stop && sapconf " . lc($profile));
     }
 
     if (!$has_saptune) {
@@ -226,13 +219,9 @@ sub prepare_profile {
             $output = script_output "saptune daemon status";
         }
         record_info("tuned status", $output);
+        $output = script_output "tuned-adm active";
+        record_info("tuned profile", $output);
     }
-    else {
-        assert_script_run "systemctl restart tuned";
-    }
-
-    my $output = script_output "tuned-adm active";
-    record_info("tuned profile", $output);
 }
 
 sub copy_media {
