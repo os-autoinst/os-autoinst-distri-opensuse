@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Configure remote administration with yast2 vnc
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
@@ -46,13 +46,8 @@ sub configure_remote_admin {
 
 sub check_service_listening {
     my $cmd_check_port = $is_older_product ? 'netstat' : 'ss -tln | grep -E LISTEN.*:5901';
-    if (script_run($cmd_check_port)) {
-        record_soft_failure 'boo#1088646 - service vncmanager is not started automatically';
-        systemctl('status vncmanager', expect_false => 1);
-        systemctl('restart vncmanager');
-        systemctl('status vncmanager');
-        assert_script_run $cmd_check_port;
-    }
+    script_retry("$cmd_check_port", retry => 5, delay => 1);
+    systemctl('status vncmanager');
 }
 
 sub test_setup {
