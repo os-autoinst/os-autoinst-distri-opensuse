@@ -31,6 +31,7 @@ BEGIN {
 }
 use utils;
 use main_common;
+use main_pods;
 use known_bugs;
 
 init_main();
@@ -636,6 +637,9 @@ elsif (is_installcheck) {
     load_svirt_vm_setup_tests;
     loadtest "installation/rescuesystem";
     loadtest "installation/installcheck";
+}
+elsif (is_pod_test) {
+    load_pod_tests;
 }
 elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login";
