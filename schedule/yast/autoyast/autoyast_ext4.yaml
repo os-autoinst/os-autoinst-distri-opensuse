@@ -5,7 +5,9 @@ description: >
   with product defined in the profile.
 vars:
   AUTOYAST: autoyast_sle15/autoyast_ext4.xml
+  AUTOYAST_PREPARE_PROFILE: '1'
   DESKTOP: gnome
+  FILESYSTEM: ext4
 schedule:
   - autoyast/prepare_profile
   - installation/isosize

@@ -7,8 +7,9 @@ description: >
   SLE 12 we register the installation and have system roles wizard screen.
 name: lvm
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
+  MAX_JOB_TIME: '14400'
+  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
 schedule:
   - installation/bootloader
   - installation/welcome

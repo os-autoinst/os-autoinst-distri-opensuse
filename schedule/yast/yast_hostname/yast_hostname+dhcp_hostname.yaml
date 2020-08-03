@@ -5,6 +5,7 @@ description: >
   Test validates if installation can successfully start in case of usage of
   these parameters.
 vars:
+  EXIT_AFTER_START_INSTALL: '1'
   EXPECTED_INSTALL_HOSTNAME: dhcphostname
   EXTRABOOTPARAMS: ifcfg=*=dhcp
   NICTYPE_USER_OPTIONS: hostname=dhcphostname

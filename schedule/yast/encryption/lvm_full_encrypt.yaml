@@ -6,6 +6,7 @@ description: >
 vars:
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
+  MAX_JOB_TIME: '14400'
 conditional_schedule:
   boot_encrypt_reconnect_mgmt_console:
     ARCH:
