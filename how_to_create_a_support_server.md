@@ -6,10 +6,9 @@
 
 ## How to generate a supportserver
 
-There are two ways to create a supportserver. The first one is using a job called
-*supportserver_generator* and the second leveraging the *create_hdd*
+There are two ways to create a supportserver. The first one is using a job called *supportserver_generator* using an Autoyast and the second leveraging the *create_hdd*
 
-We are also obliged to generate two images based on the desktop that the test is used on. Thus we need separate qcow image to support test with gnome and another for textmode.
+We are also obliged to generate two images based on the desktop that the test is used on. Thus we need separate qcow image to support test with gnome and another one for textmode.
 
 ## Using autoyast
 
@@ -37,23 +36,11 @@ openqa_support_server_sles15sp2_aarch64_textmode_202007.qcow2
 
 ## Using create_hdd
 
-The disadvantage with the Autoyast is that you need to get a working xml for your needs. The xml might change from build to build. Also the autoyast_supportserver_generator works for the textmode but there is provided xml for gnome. In the other side we have `create_hdd_gnome` and `create_hdd_textmode` which can be used as normal jobs with some extra tweaking, to add particular configuration. For this we can use the `support_server/configure.pm` which is scheduled in `schedule/supportserver_generator.yaml` yaml scheduler. The simpliest way to trigger the generation, per se, is cloning the job with the scheduler yaml or with an isos POST request
-
-for gnome
-```bash
-openqa-cli api --osd -X POST isos TEST=create_hdd_gnome YAML_SCHEDULE=schedule/supportserver_generator.yaml PUBLISH_HDD_1=openqa_support_server_sles15sp2_%ARCH%_%BUILD%@%MACHINE%_%DESKTOP%.qcow2 {...}
-```
-
-for textmode
-```bash
-openqa-cli api --osd -X POST isos TEST=create_hdd_textmode YAML_SCHEDULE=schedule/supportserver_generator.yaml PUBLISH_HDD_1=openqa_support_server_sles15sp2_%ARCH%_%BUILD%@%MACHINE%_%DESKTOP%.qcow2 {...}
-```
-
-where {...} are all the specific variables for the arch, build, etc
+The disadvantage with the Autoyast is that you need to get a working xml for your needs. The xml might change from build to build. In the other side we have `create_hdd_gnome` and `create_hdd_textmode` which can be used as normal jobs with some extra tweaking, to add particular configuration. The above mentioned job publish an qcow that we can leverage, boot into it and run the configuration that we want, and publish again under the corresponding name.
 
 ## supportserver_generator_from_hdd
 
-To accelerate the creation we can chain the jobs between create_hdd_gnome/create_hdd_textmode and a job that is scheduled with the `schedule/supportserver_generator_from_hdd.yaml`. The chained job has to be in accordance with the DESKTOP variable that it is used in the create_hdd(ex: DESKTOP=gnome if publish image is coming from create_hdd_gnome). The chained job has to have enabled the BOOT_HDD_IMAGE, HDD_1 and BOOTFROM. At the end we need to define the PUBLISH_HDD_1 with the new name of the supportserver.
+To accelerate the creation we can chain the jobs between create_hdd_gnome/create_hdd_textmode and a job that is scheduled with the `schedule/supportserver_generator_from_hdd.yaml` yaml scheduler. The chained job has to be in accordance with the DESKTOP variable that it is used in the create_hdd(ex: DESKTOP=gnome if publish image is coming from create_hdd_gnome). The chained job has to have enabled the BOOT_HDD_IMAGE, HDD_1 and BOOTFROM. At the end we need to define the PUBLISH_HDD_1 with the new name of the supportserver.
 
 ```bash
 openqa-cli api --osd -X POST isos TEST=supportserver_generator_from_hdd YAML_SCHEDULE=schedule/supportserver_generator_from_hdd.yaml PUBLISH_HDD_1=openqa_support_server_sles15sp2_%ARCH%_%BUILD%@%MACHINE%_%DESKTOP%.qcow2 DESKTOP=textmode START_AFTER_TEST=create_hdd_gnome:aarch64 BOOTFROM=c _SKIP_CHAINED_DEPS=1 CONSOLE_JUST_ACTIVATED=0 HDD_1=SLES-15-SP2-%ARCH%-Build%{BUILD}%@%ARCH%-%DESKTOP%.qcow2 {...}
