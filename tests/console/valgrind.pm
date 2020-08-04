@@ -38,6 +38,7 @@ sub run {
     if (is_sle && !main_common::is_updates_tests()) {
         cleanup_registration;
         register_product;
+        add_suseconnect_product(get_addon_fullname('desktop'));
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
     # install requirements
