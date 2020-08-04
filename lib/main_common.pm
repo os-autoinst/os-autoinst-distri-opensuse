@@ -2793,6 +2793,7 @@ sub load_publiccloud_tests {
         loadtest 'publiccloud/storage_perf';
     }
     elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
+        loadtest "publiccloud/imageversion_check" if get_var("PUBLIC_CLOUD_QAM");
         loadtest "publiccloud/upload_image";
     }
 }
