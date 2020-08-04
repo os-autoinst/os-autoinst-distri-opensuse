@@ -25,7 +25,7 @@ sub run {
     $mirror_src .= '?ssl_verify=no' if ($method eq 'HTTPS');
     my $sle_prod = uc get_var('SLE_PRODUCT') . get_var('VERSION');
 
-    record_info("Check mirror", "Validate if mirror used for installation is added in the installed system");
+    record_info("Mirror Validation", "Validate $mirror_src used for installation is added in the installed system");
     validate_repo_enablement(alias => $sle_prod, name => $sle_prod, uri => $mirror_src);
 }
 

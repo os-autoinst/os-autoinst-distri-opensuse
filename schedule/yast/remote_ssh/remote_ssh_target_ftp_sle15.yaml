@@ -19,6 +19,7 @@ schedule:
   - console/force_scheduled_tasks
   - console/textinfo
   - console/hostname
+  - console/validate_mirror_repos
   - console/installation_snapshots
   - console/zypper_lr
   - console/zypper_ref
