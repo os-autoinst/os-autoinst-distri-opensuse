@@ -727,6 +727,7 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
+    my (%args) = @_;
     # for leap to sle migration, we need to install yast2-registration
     # before running yast2 registration module.
     my $client_module = 'scc';
@@ -734,7 +735,7 @@ sub yast_scc_registration {
         zypper_call('in yast2-registration');
         $client_module = 'registration';
     }
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module);
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,

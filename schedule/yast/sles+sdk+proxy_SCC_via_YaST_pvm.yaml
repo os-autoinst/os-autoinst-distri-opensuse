@@ -1,0 +1,31 @@
+name:           sles+sdk+proxy_SCC_via_YaST
+description:    >
+  Add add-on via SCC using YaST module.
+vars:
+  ADDONS: all-packages
+  DESKTOP: textmode
+  SCC_ADDONS: sdk
+  SCC_REGISTER: console
+  SYSTEM_ROLE: textmode
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
+  - installation/addon_products_via_SCC_yast2_ncurses
