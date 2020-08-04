@@ -122,6 +122,11 @@ sub run {
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
 
+        # ROLLING UPGRADE barriers
+        for (1 .. $num_nodes) {
+            barrier_create("NODE_UPGRADED_${cluster_name}_NODE$_", $num_nodes);
+        }
+
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
             barrier_create("VG_INIT_${fs_tag}_$cluster_name",             $num_nodes);
