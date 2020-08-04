@@ -3,7 +3,6 @@ name: autoyast_multi_btrfs
 description: >
   Test autoyast installation, while using multi-device Btrfs filesystem
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_multi_btrfs.xml
   DESKTOP: gnome
   ENCRYPT: 1
   NUMDISKS: '4'
