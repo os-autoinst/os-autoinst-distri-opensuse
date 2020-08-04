@@ -25,6 +25,7 @@
 # Maintainer: Leon Guo <xguo@suse.com>
 
 use virt_autotest::virtual_network_utils;
+use virt_autotest::utils;
 use base "virt_feature_test_base";
 use virt_utils;
 use set_config_as_glue;
@@ -45,7 +46,7 @@ sub run_test {
     virt_autotest::virtual_network_utils::enable_libvirt_log();
 
     #VM HOST SSH SETUP
-    virt_autotest::virtual_network_utils::ssh_setup();
+    virt_autotest::utils::ssh_setup();
 
     #Backup file /etc/hosts before virtual network testing
     virt_autotest::virtual_network_utils::hosts_backup();
@@ -64,7 +65,7 @@ sub run_test {
         #Check that all guests are still running before virtual network tests
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
         save_guest_ip($guest, name => "br123");
-        virt_autotest::virtual_network_utils::ssh_copy_id($guest);
+        virt_autotest::utils::ssh_copy_id($guest);
         #Prepare the new guest network interface files for libvirt virtual network
         assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
         if ($guest =~ m/sles-?11/i) {

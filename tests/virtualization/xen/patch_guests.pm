@@ -19,13 +19,17 @@ use utils;
 use xen;
 use version_utils;
 use virt_autotest::kernel;
+use virt_autotest::utils;
 
 sub run {
     my ($self) = @_;
+    my $kernel_log = '/tmp/guests_kernel_results.txt';
     my ($host_running_version, $host_running_sp) = get_sles_release();
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
     my ($guest_running_version, $guest_running_sp);
+    assert_script_run qq(echo -e "Guests before and after patching:" > $kernel_log);
+    assert_script_run qq(echo -e "\\n\\nBefore:" >> $kernel_log);
     foreach my $guest (keys %xen::guests) {
         ($guest_running_version, $guest_running_sp) = get_sles_release("ssh root\@$guest");
 
@@ -33,26 +37,33 @@ sub run {
         if ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp) {
             ssh_add_test_repositories "$guest";
 
-            check_virt_kernel($guest, '-before');
-            script_run "ssh root\@$guest zypper lr -d";
-            script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-before.txt";
+            assert_script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-before.txt", 600;
             upload_logs("/tmp/rpm-qa-$guest-before.txt");
+
+            check_virt_kernel(target => $guest, suffix => '-before', log_file => $kernel_log);
 
             ssh_fully_patch_system "$guest";
         }
 
-        record_info "REBOOT", "Rebooting the $guest";
-
-        assert_script_run "ssh root\@$guest 'reboot' || true";
-        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
+        record_info "REBOOT",                                  "Rebooting the $guest";
+        assert_script_run "ssh root\@$guest 'reboot' || true", 900;
+    }
+    assert_script_run qq(echo -e "\\n\\nAfter:" >> $kernel_log);
+    foreach my $guest (keys %xen::guests) {
+        if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 12, die => 0)) {
             record_soft_failure "Reboot on $guest failed";
-            script_run "virsh destroy $guest",      90;
-            assert_script_run "virsh start $guest", 60;
+            unless (is_vmware_virtualization || is_hyperv_virtualization) {
+                script_run "virsh destroy $guest",      90;
+                assert_script_run "virsh start $guest", 60;
+            }
+        } else {
+            wait_still_screen stilltime => 15, timeout => 90;
         }
-        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6);
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 12);
 
-        check_virt_kernel($guest, 'after');
-        script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-after.txt";
+        check_virt_kernel(target => $guest, suffix => '-after', log_file => $kernel_log);
+        upload_logs($kernel_log);
+        assert_script_run "ssh root\@$guest rpm -qa > /tmp/rpm-qa-$guest-after.txt", 600;
         upload_logs("/tmp/rpm-qa-$guest-after.txt");
     }
 }

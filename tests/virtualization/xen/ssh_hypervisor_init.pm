@@ -23,27 +23,28 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use virt_autotest::utils;
 
 sub run {
     my ($self) = @_;
+    $self->select_serial_terminal;
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # Remove old files
     assert_script_run 'rm ~/.ssh/* || true';
 
     # Generate the key pair
-    assert_script_run "ssh-keygen -t rsa -P '' -C 'localhost' -f ~/.ssh/id_rsa";
+    virt_autotest::utils::ssh_setup();
 
     # Configure the Master socket
-    assert_script_run "echo 'StrictHostKeyChecking no
-    HostKeyAlgorithms ssh-rsa' > ~/.ssh/config";
+    assert_script_run qq(echo -e "StrictHostKeyChecking no\\nHostKeyAlgorithms ssh-rsa" > ~/.ssh/config);
 
     # Exchange SSH keys
     assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";
     exec_and_insert_password "ssh-copy-id root\@$hypervisor";
 
     # Test the connection
-    assert_script_run "ssh root\@$hypervisor hostname -f";
+    assert_script_run "ssh root\@$hypervisor hostname";
 
     # Copy that also for normal user
     assert_script_run "install -o $testapi::username -g users -m 0700 -d /home/$testapi::username/.ssh";
@@ -51,7 +52,7 @@ sub run {
 
     my ($sles_running_version, $sles_running_sp) = get_sles_release();
     zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_" . $sles_running_version . "/SUSE:CA.repo");
-    zypper_call("in ca-certificates-suse");
+    zypper_call("in ca-certificates-suse", exitcode => [0, 102, 103, 106]);
 }
 
 sub test_flags {

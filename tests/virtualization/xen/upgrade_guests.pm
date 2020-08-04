@@ -21,6 +21,10 @@ use xen;
 sub run {
     my ($self) = @_;
 
+    assert_script_run "ssh root\@$_ rm /etc/zypp/repos.d/SUSE_Maintenance* || true" foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$_ rm /etc/zypp/repos.d/TEST* || true"             foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$_ rm /tmp/dup* || true"                           foreach (keys %xen::guests);
+    assert_script_run "ssh root\@$_ zypper ref"                                     foreach (keys %xen::guests);
     record_info "DUP", "Upgrading the system to it's latest version";
     script_run "( ssh root\@$_ '( zypper -n dup > /tmp/dup.log; echo \$? > /tmp/dup )' & )" foreach (keys %xen::guests);
     record_info "WAIT", "Waiting for all systems to be upgraded";

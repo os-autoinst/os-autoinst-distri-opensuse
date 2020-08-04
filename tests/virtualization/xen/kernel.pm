@@ -19,13 +19,14 @@ use utils;
 use qam;
 
 sub run {
-    my $self = shift;
+    my $self       = shift;
+    my $kernel_log = shift // '/tmp/virt_kernel.txt';
 
-    script_run "zypper lr -d";
     script_run "rpm -qa > /tmp/rpm-qa.txt";
     upload_logs("/tmp/rpm-qa.txt");
 
-    check_virt_kernel();
+    check_virt_kernel(log_file => $kernel_log);
+    upload_logs($kernel_log);
 }
 
 sub post_run_hook {

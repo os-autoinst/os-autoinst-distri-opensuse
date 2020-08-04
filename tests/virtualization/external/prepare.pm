@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test fetch SSH keys of all guests and authorize the client one
+# Summary: This test prepares environment
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -22,16 +22,19 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use virt_autotest::utils;
+use version_utils;
 
 sub run {
-    foreach my $guest (keys %xen::guests) {
-        record_info "$guest", "Establishing SSH connection to $guest";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
-        virt_autotest::utils::ssh_copy_id($guest);
-        assert_script_run "ssh root\@$guest 'rm /etc/cron.d/qam_cron; hostname'";
-    }
-    assert_script_run qq(echo -e "PreferredAuthentications publickey\\nControlMaster auto\\nControlPersist 86400\\nControlPath ~/.ssh/ssh_%r_%h_%p" >> ~/.ssh/config);
+    assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
+    assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
+    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
+
+    # Fill the current pairs of hostname & address into /etc/hosts file
+    assert_script_run "echo \"\$(dig +short $xen::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %xen::guests);
+    assert_script_run "cat /etc/hosts";
 }
 
 sub test_flags {
