@@ -26,7 +26,17 @@ Tools for repositories used by openQA:
 
 =item * rmt_wizard
 
+=item * rmt_sync
+
+=item * rmt_enable_pro
+
+=item * rmt_list_pro
+
 =item * rmt_mirror_repo
+
+=item * rmt_export_data
+
+=item * rmt_import_data
 
 =item * prepare_source_repo
 
@@ -64,7 +74,12 @@ our @EXPORT = qw(
   smt_wizard
   smt_mirror_repo
   rmt_wizard
+  rmt_sync
+  rmt_enable_pro
+  rmt_list_pro
   rmt_mirror_repo
+  rmt_export_data
+  rmt_import_data
   prepare_source_repo
   disable_source_repo
   get_repo_var_name
@@ -215,7 +230,7 @@ sub rmt_wizard {
     wait_still_screen;
     type_string(get_required_var('SMT_ORG_PASSWORD'));
     send_key 'alt-n';
-    assert_screen 'yast2_rmt_config_written_successfully';
+    assert_screen 'yast2_rmt_config_written_successfully', 60;
     send_key 'alt-o';
     assert_screen 'yast2_rmt_db_password';
     send_key 'alt-p';
@@ -229,59 +244,99 @@ sub rmt_wizard {
     send_key 'alt-n';
     assert_screen 'yast2_rmt_ssl_CA_password';
     type_password_twice;
-    assert_screen 'yast2_rmt_firewall';
-    send_key 'alt-o';
+    if (check_screen 'yast2_rmt_firewall') {
+        send_key 'alt-o';
+    } else {
+        assert_screen 'yast2_rmt_firewall_disable';
+    }
     wait_still_screen;
     send_key 'alt-n';
     assert_screen 'yast2_rmt_service_status';
-    send_key 'alt-n';
-    assert_screen 'yast2_rmt_config_summary';
+    send_key_until_needlematch('yast2_rmt_config_summary', 'alt-n', 3, 10);
     send_key 'alt-f';
     wait_serial("yast2-rmt-wizard-0", 800) || die 'rmt wizard failed, it can be connection issue or credential issue';
+}
+
+=head2 rmt_sync
+ 
+ rmt_sync();
+
+Function to sync rmt server
+
+=cut
+sub rmt_sync {
+    assert_script_run 'rmt-cli sync', 1800;
+}
+
+=head2 rmt_enable_pro
+ 
+ rmt_enable_pro();
+
+Function to enable products
+
+=cut
+sub rmt_enable_pro {
+    my $pro_ls = get_var('RMT_PRO') || 'sle-module-legacy/15/x86_64';
+    assert_script_run "rmt-cli products enable $pro_ls", 600;
 }
 
 =head2 rmt_mirror_repo
 
  rmt_mirror_repo();
 
-Function to verify and enable repository mirror
+Function to mirror the enabled repository
 
 =cut
 sub rmt_mirror_repo {
-    my $repo_list = get_var('RMT_REPO') || 'sle-module-legacy/15/x86_64';
-    assert_script_run 'rmt-cli sync', 1800;
-    for my $repo (split(/,/, $repo_list)) {
-        assert_script_run "rmt-cli products enable $repo", 600;
-    }
     assert_script_run 'rmt-cli mirror', 1800;
-    assert_script_run 'rmt-cli repo list';
+}
+
+=head2 rmt_list_pro
+
+ rmt_list_pro();
+
+Function to list products
+
+=cut
+sub rmt_list_pro {
+    assert_script_run 'rmt-cli product list', 600;
 }
 
 =head2 rmt_import_data
 
  rmt_import_data($datafile);
 
-RMT server import data about available repositories and the mirrored packages
-from disconnected RMT server, then verify imported repositories on new RMT server.
+RMT server import data from one folder which stored RMT export data about
+available repositories and the mirrored packages
 C<$datafile> is repository source.
 
 =cut
 sub rmt_import_data {
-    my ($datafile) = @_;
-    my $datapath = "/mnt/external/";
-    # Decompress the RMT data file to test path
-    assert_script_run("mkdir -p $datapath");
-    assert_script_run("wget -q " . data_url("rmt/$datafile"));
-    assert_script_run("tar -xzvf $datafile -C $datapath");
-    assert_script_run("rm -rf $datafile");
+    my ($datapath) = @_;
+    # Check import data resource exsited
+    assert_script_run("ls $datapath");
     # Import RMT data from test path to new RMT server
     assert_script_run("rmt-cli import data $datapath",  600);
     assert_script_run("rmt-cli import repos $datapath", 600);
-    # Show repo list on new RMT server for later debugging
-    assert_script_run("rmt-cli repos list");
-    # Enable repositories as required on new RMT server
-    assert_script_run("rmt-cli repos list | grep Web-Scripting");
     assert_script_run("rm -rf $datapath");
+}
+
+=head2 rmt_export_data
+
+ rmt_export_data();
+
+RMT server export data about available repositories and the mirrored packages
+
+=cut
+sub rmt_export_data {
+    my $datapath = "/rmtdata/";
+    assert_script_run("mkdir -p $datapath");
+    assert_script_run("chown _rmt:nginx $datapath");
+    # Export RMT data to one folder
+    assert_script_run("rmt-cli export data $datapath",     600);
+    assert_script_run("rmt-cli export settings $datapath", 600);
+    assert_script_run("rmt-cli export repos $datapath",    600);
+    assert_script_run("ls $datapath");
 }
 
 =head2 prepare_source_repo
