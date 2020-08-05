@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -219,6 +219,13 @@ Install Repository Mirroring Tool and mariadb database
 
 =cut
 sub rmt_wizard {
+    # add develop version of rmt repo
+    if (get_var("DEV_PATH")) {
+        my $url = get_var("DEV_PATH");
+        zypper_call("ar -f http://download.suse.de/ibs/Devel:/SCC:/RMT/$url/ scc_rmt");
+        zypper_call '--gpg-auto-import-keys ref';
+    }
+
     # install RMT and mariadb
     zypper_call 'in rmt-server';
     zypper_call 'in mariadb';
@@ -246,10 +253,9 @@ sub rmt_wizard {
     send_key 'alt-n';
     assert_screen 'yast2_rmt_ssl_CA_password';
     type_password_twice;
+    assert_screen ['yast2_rmt_firewall', 'yast2_rmt_firewall_disable'], 50;
     if (check_screen 'yast2_rmt_firewall') {
         send_key 'alt-o';
-    } else {
-        assert_screen 'yast2_rmt_firewall_disable';
     }
     wait_still_screen;
     send_key 'alt-n';
