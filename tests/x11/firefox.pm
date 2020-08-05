@@ -27,17 +27,22 @@ sub run() {
     $self->start_firefox;
     wait_still_screen;
     send_key_until_needlematch('firefox-help-menu', 'alt-h', 5, 6);
-    send_key_until_needlematch('test-firefox-3',    'a',     5, 6);
+    send_key_until_needlematch('test-firefox-3',    'a',     9, 6);
 
     # close About
     send_key "alt-f4";
     assert_screen 'firefox-html-test';
 
     send_key "alt-f4";
-    assert_screen [qw(firefox-save-and-quit generic-desktop)];
-    if (match_has_tag 'firefox-save-and-quit') {
+    assert_screen [qw(firefox-save-and-quit generic-desktop not-responding), timeout => 90];
+    if (match_has_tag 'not-responding') {
+        record_soft_failure "firefox is not responding, see boo#1174857";
         # confirm "save&quit"
-        send_key_until_needlematch('generic-desktop', 'ret', 5, 6);
+        send_key_until_needlematch('generic-desktop', 'ret', 9, 6);
+    }
+    elsif (match_has_tag 'firefox-save-and-quit') {
+        # confirm "save&quit"
+        send_key_until_needlematch('generic-desktop', 'ret', 9, 6);
     }
 }
 
