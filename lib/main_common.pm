@@ -2157,6 +2157,7 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "piglit")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
+        loadtest "x11/disable_screensaver";
         loadtest "x11/piglit/piglit";
     }
     # Used by ibus tests
