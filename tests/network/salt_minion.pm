@@ -31,7 +31,7 @@ use mm_network 'setup_static_mm_network';
 
 sub run {
     my $self = shift;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Install, configure and start the salt minion
     $self->minion_prepare();
@@ -63,9 +63,7 @@ sub run {
     assert_script_run("sysctl -a | grep 'net.ipv4.ip_forward = 1'");
     assert_script_run("cat /proc/sys/net/ipv4/ip_forward");
 
-    # Stop the minion at the end
     barrier_wait 'SALT_FINISHED';
-    $self->stop();
 }
 
 1;
