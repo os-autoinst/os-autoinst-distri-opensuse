@@ -1,12 +1,12 @@
-name:           qam-ha_rolling_upgrade_migration
+name:           qam-ha_rolling_update_migration
 description:    >
-  Test a rolling upgrade in a two nodes cluster
+  Test a rolling update in a two nodes cluster
   Further info about the test suite
 schedule:
-  - migration/version_switch_origin_system
   - boot/boot_to_desktop
   - console/suseconnect_scc
   - update/zypper_up
+  - console/scc_deregistration
   - console/console_reboot
   - ha/wait_barriers
   - console/system_prepare
@@ -17,7 +17,7 @@ schedule:
   - ha/firewall_disable
   - ha/iscsi_client
   - ha/watchdog
-  - ha/ha_cluster_join
+  - ha/ha_cluster_init
   - ha/check_hawk
   - ha/dlm
   - ha/clvmd_lvmlockd
@@ -29,23 +29,9 @@ schedule:
   - ha/ctdb
   - ha/haproxy
   - ha/await_upgrade_or_update
-  - migration/version_switch_upgrade_target
-  - '{{cluster_boot_mgmt}}'
   - ha/cluster_state_mgmt
-  - migration/online_migration/zypper_migration
-  - migration/online_migration/post_migration
-  - '{{cluster_boot_mgmt}}'
-  - '{{console_reboot}}'
+  - migration/online_migration/zypper_patch
   - ha/check_cluster_integrity
   - ha/check_hawk
   - ha/wait_others_upgraded_or_updated
   - ha/check_logs
-conditional_schedule:
-  cluster_boot_mgmt:
-    QAM_INCI:
-      1:
-        - ha/cluster_boot_mgmt
-  console_reboot:
-    QAM_INCI:
-      1:
-        - console/console_reboot
