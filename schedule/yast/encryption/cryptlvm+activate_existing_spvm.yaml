@@ -15,6 +15,7 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
+  - console/validate_activation_encrypted_partition
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
