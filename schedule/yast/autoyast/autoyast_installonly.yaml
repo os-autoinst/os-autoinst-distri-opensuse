@@ -6,7 +6,6 @@ description: >
   variables. The variables are specified in Job Group or in Test Suite settings.
 vars:
   AUTOYAST_PREPARE_PROFILE: '1'
-  DESKTOP: textmode
 schedule:
   - autoyast/prepare_profile
   - installation/isosize
