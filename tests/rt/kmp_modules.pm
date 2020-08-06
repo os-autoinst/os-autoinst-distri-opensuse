@@ -84,7 +84,7 @@ sub run {
     # filter out list of kernel modules
     assert_script_run('uname -r|grep rt', 90, 'Expected rt kernel not found');
 
-    my @kmp_rpms = grep { !/lttng-modules/ } split("\n", script_output "rpm -qa \*-kmp-rt");
+    my @kmp_rpms = grep { $_ !~ m/lttng/ && $_ !~ m/kselftests-kmp-rt/ } split("\n", script_output "rpm -qa \*-kmp-rt");
     my @kernel_modules;
     push @kernel_modules, grep { /.*\.ko/ } split("\n", script_output "rpm -ql $_") foreach (@kmp_rpms);
     # load kernel modules
@@ -97,6 +97,7 @@ sub run {
 
     # verify lttng basic tracing functionality
     run_lttng_demo_trace;
+    assert_script_run 'killall lttng-sessiond';
     clear_console;
 }
 
