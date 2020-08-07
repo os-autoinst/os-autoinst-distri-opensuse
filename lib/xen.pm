@@ -129,6 +129,22 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
         },
+        sles15sp2HVM => {
+            autoyast     => 'autoyast_xen/sles15sp2HVM_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp2',
+            macaddress   => '52:54:00:78:73:b0',
+            ip           => '192.168.122.116',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/',
+        },
+        sles15sp2PV => {
+            autoyast     => 'autoyast_xen/sles15sp2PV_PRG.xml',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp2',
+            macaddress   => '52:54:00:78:73:af',
+            ip           => '192.168.122.115',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/',
+        },
         sles12sp5HVM => {
             autoyast     => 'autoyast_xen/sles12sp5HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',            # old system compatibility
@@ -188,9 +204,17 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
         },
+        sles15sp2 => {
+            autoyast     => 'autoyast_kvm/sles15sp2_PRG.xml',
+            extra_params => '--os-variant sles12',                                                     # problems after kernel upgrade (originally sle15sp2)
+            macaddress   => '52:54:00:78:73:af',
+            ip           => '192.168.122.115',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/',
+        },
         sles12sp5 => {
             autoyast     => 'autoyast_kvm/sles12sp5_PRG.xml',
-            extra_params => '--os-variant sles12sp4',                                                       # old system compatibility
+            extra_params => '--os-variant sles12sp4',                                                    # old system compatibility
             macaddress   => '52:54:00:78:73:ad',
             ip           => '192.168.122.113',
             distro       => 'SLE_12_SP5',
