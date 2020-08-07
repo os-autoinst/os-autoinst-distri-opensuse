@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# check if in /tmp is at least 2048 MB of free disk space
-AVAILABLE_DISK_SPACE=$(df -m /tmp|awk '{print$4}'|grep [[:digit:]])
+# check if in /var/tmp is at least 2048 MB of free disk space
+AVAILABLE_DISK_SPACE=$(df -m /var/tmp|awk '{print$4}'|grep [[:digit:]])
 if [ "$AVAILABLE_DISK_SPACE" -lt "2048"  ]; then
-    echo "At leat 2G of disk space in /tmp is needed, free disk space or modify script"
+    echo "At leat 2G of disk space in /var/tmp is needed, free disk space or modify script"
     exit 1
 fi
 
@@ -18,7 +18,7 @@ RANDOM_DATA_COPY_COUNT=4
 
 LANG=C
 
-TEMP_ROOT=/tmp/mdadm_test
+TEMP_ROOT=/var/tmp/mdadm_test
 tempdir=$TEMP_ROOT/$RANDOM
 tempmnt=$tempdir/mnt
 
@@ -69,7 +69,7 @@ function breakdown
   if [ -e $MD_DEVICE ] ; then mdadm --stop $MD_DEVICE ; fi
   for i in 1 2 3 ; do if losetup $(eval echo \$DEV_$i) >/dev/null 2>&1 ; then run losetup -d $(eval echo \$DEV_$i) ; fi ; done
 
-  run rm -rf $TEMP_ROOT /tmp/mdadm.sh.conf
+  run rm -rf $TEMP_ROOT /var/tmp/mdadm.sh.conf
 
   echo ""
   echo "$result"
@@ -161,9 +161,9 @@ do
 done
 
 run umount $MD_DEVICE
-run mdadm --detail --scan >/tmp/mdadm.sh.conf
+run mdadm --detail --scan >/var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
-run mdadm --assemble --scan --config=/tmp/mdadm.sh.conf
+run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
 mount | fgrep -q $tempmnt || exit 1
 
@@ -305,9 +305,9 @@ do
 done
 
 run umount $MD_DEVICE
-run mdadm --detail --scan > /tmp/mdadm.sh.conf
+run mdadm --detail --scan > /var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
-run mdadm --assemble --scan --config=/tmp/mdadm.sh.conf
+run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
 mount | fgrep -q $tempmnt || exit 1
 
@@ -437,9 +437,9 @@ do
 done
 
 run umount $MD_DEVICE
-run mdadm --detail --scan > /tmp/mdadm.sh.conf
+run mdadm --detail --scan > /var/tmp/mdadm.sh.conf
 run mdadm --stop $MD_DEVICE
-run mdadm --assemble --scan --config=/tmp/mdadm.sh.conf
+run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
 run mount $MD_DEVICE $tempmnt
 mount | fgrep -q $tempmnt || exit 1
 
