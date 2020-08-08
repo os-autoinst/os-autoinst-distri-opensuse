@@ -34,4 +34,4 @@ disks:
           filesystem: swap
         mounting_options:
           should_mount: 1
-          mount_point: '[SWAP]'
+          mount_point: SWAP

@@ -36,10 +36,10 @@ sub validate_partition_table {
 sub validate_partition_creation {
     my $args = shift;
     record_info("Check $args->{mount_point}", "Verify that partition $args->{mount_point} was created.");
-    my @lsblk_output = split(/\n/, script_output("lsblk -n"));
+    my @lsblk_output = split(/\n/, script_output("lsblk -o MOUNTPOINT"));
     my $check;
     foreach (@lsblk_output) {
-        if ($_ =~ /(?<check>$args->{mount_point}]?\Z)/) {
+        if ($_ =~ /\[?(?<check>$args->{mount_point})\]?/) {
             $check = $+{check};
             last;
         }
@@ -56,10 +56,10 @@ sub validate_filesystem {
 }
 
 sub validate_read_write {
-    my $args = shift;
-    my $emptyfile = catfile($args->{mount_point}, 'emptyfile');
-    assert_script_run("echo Hello > $emptyfile", fail_message => 'Failure while writing in ' . $args->{mount_point});
-    assert_script_run("grep Hello $emptyfile",   fail_message => 'Failure while reading from ' . $args->{mount_point});
+    my $args          = shift;
+    my $emptyfilepath = catfile($args->{mount_point}, 'emptyfile');
+    assert_script_run("echo Hello > $emptyfilepath", fail_message => 'Failure while writing in ' . $args->{mount_point});
+    assert_script_run("grep Hello $emptyfilepath",   fail_message => 'Failure while reading from ' . $args->{mount_point});
 }
 
 sub validate_unpartitioned_space {
