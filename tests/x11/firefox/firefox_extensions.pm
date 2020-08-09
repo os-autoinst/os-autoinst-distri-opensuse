@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,6 +39,7 @@ sub run {
     assert_and_click "firefox-extensions";
     assert_and_click 'firefox-searchall-addon';
     type_string "flagfox\n";
+    wait_still_screen 2, 4;
     assert_and_click 'firefox-extensions-flagfox';
     wait_still_screen 3;
     assert_and_click 'firefox-extensions-add-to-firefox';
