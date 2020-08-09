@@ -9,7 +9,7 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
-
+package spectre_v2;
 use strict;
 use warnings;
 
@@ -26,7 +26,7 @@ my $eibrs_string_on      = "Mitigation: Enhanced IBRS, IBPB: always-on, RSB fill
 my $eibrs_string_default = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
 my $retpoline_string     = "Mitigation: Full generic retpoline,";
 
-my %mitigations_list =
+our %mitigations_list =
   (
     name                   => "spectre_v2",
     CPUID                  => hex '4000000',

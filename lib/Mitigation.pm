@@ -63,6 +63,12 @@ use Utils::Backends 'use_ssh_serial_console';
 use bootloader_setup qw(grub_mkconfig change_grub_config add_grub_cmdline_settings remove_grub_cmdline_settings grep_grub_settings set_framebuffer_resolution set_extrabootparams_grub_conf);
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
+use constant {
+    CPUID_EAX => 1,
+    CPUID_EBX => 2,
+    CPUID_ECX => 3,
+    CPUID_EDX => 4,
+};
 
 my $vm_ip_addr;
 my $qa_password;
@@ -158,22 +164,33 @@ sub MSR {
     return $self->{IA32_ARCH_CAPABILITIES};
 }
 
-sub read_cpuid {
+sub read_cpuid_base {
+    my ($self, $value) = @_;
     #Reimplement: "cpuid -1 -l 7 -s 0 -r | awk \'{print \$6}\' | awk -F \"=\" \'{print \$2}\' | tail -n1"
     #Refer to data/virtualization/spectre-meltdown-checker.sh
-    my $self = shift;
+    #$value: 1=EAX,2=EBX,3=ECX,4=EDX
     script_output('modprobe cpuid');
     my $_leaf        = 7;                             #leaf=7
     my $_ddskip      = int($_leaf / 16);
     my $_odskip      = int($_leaf - $_ddskip * 16);
     my $_odskip_plus = int($_odskip + 1);
     my $_skip_byte   = int($_odskip * 16);
-    my $edx          = 0;
-    $edx = hex script_output(
-        "dd if=/dev/cpu/0/cpuid bs=16 skip=$_ddskip count=$_odskip_plus 2>/dev/null | od -j $_skip_byte -A n -t x4 | awk \'{print \$4}\'"
+    my $ret          = 0;
+    $ret = hex script_output(
+        "dd if=/dev/cpu/0/cpuid bs=16 skip=$_ddskip count=$_odskip_plus 2>/dev/null | od -j $_skip_byte -A n -t x4 | awk \'{print \$$value}\'"
     );
-    print sprintf("read_cpuid edx: 0x%X\n", $edx);
-    return $edx;
+    print sprintf("read_cpuid_base reg#$value: 0x%X\n", $ret);
+    return $ret;
+}
+
+sub read_cpuid_edx {
+    my $self = shift;
+    return $self->read_cpuid_base(CPUID_EDX);
+}
+
+sub read_cpuid_ebx {
+    my $self = shift;
+    return $self->read_cpuid_base(CPUID_EBX);
 }
 
 sub read_msr {
@@ -187,13 +204,13 @@ sub read_msr {
 
 sub vulnerabilities {
     my $self = shift;
-    if ($self->read_cpuid() & $self->CPUID()) {
+    if ($self->read_cpuid_edx() & $self->CPUID()) {
         if ($self->read_msr() & $self->MSR()) {
-            record_info("Not Affected", "This machine needn't be tested.");
+            record_info("$self->{'name'} Not Affected", "This machine needn't be tested.");
             return 0;    #Not Affected
         }
     }
-    record_info("vulnerable", "Testing will continue.");
+    record_info("$self->{'name'} vulnerable", "Testing will continue.");
     return 1;            #Affected
 }
 
@@ -234,19 +251,27 @@ sub lscpu {
 sub check_default_status {
     my $self = shift;
     assert_script_run('cat /proc/cmdline');
-    my $ret = script_run('grep "' . $self->{parameter} . '=[a-z,]*" /proc/cmdline');
-    if ($ret eq 0) {
-        remove_grub_cmdline_settings($self->{parameter} . "=[a-z,]*");
+    if (ref($self->{parameter}) ne 'ARRAY') {
+        $self->{parameter} = [$self->{parameter}];
     }
-    $ret = script_run('grep "' . "mitigations" . '=[a-z]*" /proc/cmdline');
+    foreach my $parameter_item (@{$self->{parameter}}) {
+        my $ret = script_run('grep "' . $parameter_item . '=[a-z,]*" /proc/cmdline');
+        if ($ret eq 0) {
+            remove_grub_cmdline_settings($parameter_item . "=[a-z,]*");
+        }
+    }
+    my $ret = script_run('grep "' . "mitigations" . '=[a-z,]*" /proc/cmdline');
     if ($ret eq 0) {
-        remove_grub_cmdline_settings("mitigations=[a-z]*");
+        remove_grub_cmdline_settings("mitigations=[a-z,]*");
     }
     reboot_and_wait($self, 150);
-    $ret = script_run('grep "' . $self->{parameter} . '=off" /proc/cmdline');
-    if ($ret eq 0) {
-        die "there are still have parameter will impacted our test";
+    foreach my $parameter_item (@{$self->{parameter}}) {
+        my $ret = script_run('grep "' . $parameter_item . '=off" /proc/cmdline');
+        if ($ret eq 0) {
+            die "there are still have parameter will impacted our test";
+        }
     }
+
 }
 
 #Check cpu flags exist or not.
@@ -269,10 +294,21 @@ sub check_cpu_flags {
 
 sub check_sysfs {
     my ($self, $value) = @_;
-    assert_script_run('cat ' . $syspath . $self->sysfs_name());
-    if (@_ == 2) {
-        assert_script_run(
-            'cat ' . $syspath . $self->sysfs_name() . '| grep ' . '"' . $self->sysfs($value) . '"');
+    record_info("sysfs:$value", "checking sysfs: $value");
+    if (ref($self->{sysfs_name}) eq 'ARRAY') {
+        foreach my $sysfs_name_item (@{$self->{sysfs_name}}) {
+            assert_script_run('cat ' . $syspath . $sysfs_name_item);
+            if (@_ == 2) {
+                assert_script_run(
+                    'cat ' . $syspath . $sysfs_name_item . '| grep ' . '"' . $self->{sysfs}->{$value}->{$sysfs_name_item} . '"');
+            }
+        }
+    } else {
+        assert_script_run('cat ' . $syspath . $self->sysfs_name());
+        if (@_ == 2) {
+            assert_script_run(
+                'cat ' . $syspath . $self->sysfs_name() . '| grep ' . '"' . $self->sysfs($value) . '"');
+        }
     }
 }
 
@@ -311,7 +347,7 @@ sub check_each_parameter_value {
     #testing each parameter.
     my $self = shift;
     foreach my $cmd (@{$self->cmdline()}) {
-        record_info("$self->{name}=$cmd", "Mitigation $self->{name} = $cmd  testing start.");
+        record_info("$self->{name}=$cmd", "Mitigation $self->{name}=$cmd testing start.");
         $self->add_parameter($cmd);
         $self->check_cmdline();
         $self->check_cpu_flags($cmd);
@@ -324,14 +360,26 @@ sub check_each_parameter_value {
 
 sub add_parameter {
     my ($self, $value) = @_;
-    add_grub_cmdline_settings($self->{parameter} . '=' . $value);
+    if (ref($self->{parameter}) eq 'ARRAY') {
+        foreach my $para (@{$self->{parameter}}) {
+            add_grub_cmdline_settings($para . '=' . $value);
+        }
+    } else {
+        add_grub_cmdline_settings($self->{parameter} . '=' . $value);
+    }
     grub_mkconfig();
     reboot_and_wait($self, 150);
 }
 
 sub remove_parameter {
     my ($self, $value) = @_;
-    remove_grub_cmdline_settings($self->{parameter} . '=' . $value);
+    if (ref($self->{parameter}) eq 'ARRAY') {
+        foreach my $para (@{$self->{parameter}}) {
+            remove_grub_cmdline_settings($para . '=' . $value);
+        }
+    } else {
+        remove_grub_cmdline_settings($self->{parameter} . '=' . $value);
+    }
 }
 
 sub ssh_vm_cmd {
@@ -501,21 +549,24 @@ sub do_test {
     my $self = shift;
     select_console 'root-console';
 
-    #If it is qemu vm and didn't passthrough cpu flags
-    #Meltdown doesn't matter CPU flags
-    if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && check_var('BACKEND', 'qemu') && !(get_var('TEST') =~ /MELTDOWN/)) {
-        record_info('NO-IBRS machine', "This is a QEMU VM and didn't passthrough CPU flags.");
-        record_info('INFO',            "Check status of mitigations as like OFF.");
-        $self->check_sysfs("off");
-        return;
-    }
+    if (!check_var('TEST', 'MITIGATIONS') && !check_var('TEST', 'KVM_GUEST_MITIGATIONS')) {
+        #If it is qemu vm and didn't passthrough cpu flags
+        #Meltdown doesn't matter CPU flags
+        if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && check_var('BACKEND', 'qemu') && !(get_var('TEST') =~ /MELTDOWN/)) {
+            record_info('NO-IBRS machine', "This is a QEMU VM and didn't passthrough CPU flags.");
+            record_info('INFO',            "Check status of mitigations as like OFF.");
+            $self->check_sysfs("off");
+            return;
+        }
 
-    my $ret = $self->vulnerabilities();
-    if ($ret == 0) {
-        record_info('INFO', "This CPU is not affected by $self->{name}.");
-        return 2;
-    } else {
-        record_info('INFO', "Mitigation $self->{name} testing start.");
+        record_info("vulnerabilities?", "checking vulnerabilities for $self->{name}");
+        my $ret = $self->vulnerabilities();
+        if ($ret == 0) {
+            record_info('INFO', "This CPU is not affected by $self->{name}.");
+            return 2;
+        } else {
+            record_info('INFO', "Mitigation $self->{name} testing start.");
+        }
     }
     #check system default status
     #and prepare the command line parameter for next testings
