@@ -381,7 +381,7 @@ my $spec_ctrl_hash = {%$spec_ctrl_no, %$spec_ctrl_no_xen, %$spec_ctrl_pv_on, %$s
     %$spec_ctrl_branch_harden_off, %$spec_ctrl_bti_thunk_jmp};
 
 # TODO
-if (get_var('FLAVOR', '') =~ /amd/i) {
+if (get_var('ARCH', '') =~ /amd/i) {
     ${$spec_ctrl_hash}{'bti-thunk=lfence'} = ${$spec_ctrl_bti_thunk_retp_for_amd}{'bti-thunk=lfence'};
 } else {
     ${$spec_ctrl_hash}{'bti-thunk=retpoline'} = ${$spec_ctrl_bti_thunk_retp_for_intel}{'bti-thunk=retpoline'};
