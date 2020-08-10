@@ -1,4 +1,4 @@
-PERL5LIB_:=../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:$$PERL5LIB
+PERL5LIB_:=../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:tests/cpu_bugs:$$PERL5LIB
 
 .PHONY: all
 all:

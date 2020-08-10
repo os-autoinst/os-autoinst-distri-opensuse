@@ -9,7 +9,7 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
-
+package l1tf;
 use strict;
 use warnings;
 
@@ -22,11 +22,12 @@ use power_action_utils 'power_action';
 
 use Mitigation;
 
-my %mitigations_list =
+our %mitigations_list =
   (
-    name                   => "l1tf",
-    CPUID                  => hex '10000000',
-    IA32_ARCH_CAPABILITIES => 8,                #bit3 --SKIP_L1TF_VMENTRY
+    name => "l1tf",
+    #Refer to https://software.intel.com/security-software-guidance/insights/processors-affected-l1-terminal-fault
+    CPUID                  => hex 'ffffffff',    #Ignore CPUID checking
+    IA32_ARCH_CAPABILITIES => 1,                 #Use MSR bit#0 RDCL_NO check
     parameter              => 'l1tf',
     cpuflags               => ['flush_l1d'],
     sysfs_name             => "l1tf",
