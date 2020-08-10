@@ -598,8 +598,9 @@ sub start_firefox_with_profile {
     type_string "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla\n";
     # Start Firefox
     type_string "firefox $url >firefox.log 2>&1 &\n";
-    wait_still_screen 3;
+    wait_still_screen 2,                4;
     assert_screen 'firefox-url-loaded', 300;
+    wait_still_screen 2,                4;
 }
 
 sub start_firefox {
@@ -672,7 +673,8 @@ sub firefox_open_url {
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
-        wait_screen_change { assert_and_click 'firefox_titlebar' };
+        assert_and_click 'firefox_titlebar';
+        wait_still_screen 1, 2;
         send_key 'alt-d';
         send_key 'delete';
         send_key 'alt-d';
