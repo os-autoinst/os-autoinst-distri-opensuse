@@ -311,49 +311,8 @@ sub ensure_installed {
     testapi::x11_start_program('xterm');
     $self->become_root;
     ensure_serialdev_permissions;
-
-    # make sure packagekit service is available
-    testapi::assert_script_run('systemctl is-active -q packagekit || (systemctl unmask -q packagekit ; systemctl start -q packagekit)');
-    type_string "exit\n";
-    $self->script_run("pkcon install -yp $pkglist; echo pkcon-status-\$? | tee /dev/$testapi::serialdev", 0);
-    my @tags = qw(PolicyKit-authenticate Policykit-behind-window pkcon-finished);
-    while (1) {
-        last unless @tags;
-        assert_screen(\@tags, timeout => $args{timeout});
-        last if (match_has_tag('pkcon-finished'));
-        if (match_has_tag('PolicyKit-authenticate')) {
-            type_password;
-            click_lastmatch;
-            @tags = grep { $_ ne 'PolicyKit-authenticate' } @tags;
-            @tags = grep { $_ ne 'Policykit-behind-window' } @tags;
-            next;
-        }
-        if (match_has_tag('Policykit-behind-window')) {
-            wait_screen_change { send_key 'alt-tab' };
-            next;
-        }
-    }
-    my $ret = wait_serial('pkcon-status-\d+');
-    if ($ret =~ /pkcon-status-4/) {
-        $self->_ensure_installed_zypper_fallback($pkglist);
-        record_soft_failure "boo#1091353 - pkcon doesn't find existing pkg - falling back to zypper";
-    }
-    elsif ($ret =~ /pkcon-status-5/) {
-        if (!check_screen('pkcon-pkg-already-installed')) {
-            record_info 'pkcon failed', 'Return value meaning: "Nothing useful was done", trying fallback to zypper"';
-            $self->_ensure_installed_zypper_fallback($pkglist);
-            record_soft_failure 'boo#1100134 - pkcon randomly fails to download packages';
-        }
-    }
-    elsif ($ret =~ /pkcon-status-7/) {
-        # If a pkg is already installed, status 7 is no problem.
-        # This is only for legacy as pkg-already-installed will trigger status 5
-        # since https://build.suse.de/request/show/220474
-        assert_screen('pkcon-pkg-already-installed');
-    }
-    elsif ($ret !~ /pkcon-status-0/) {
-        die "pkcon install did not succeed, return code: $ret";
-    }
+    pkcon_quit;
+    zypper_call "in $pkglist";
     wait_still_screen 1;
     send_key("alt-f4");    # close xterm
     assert_screen 'generic-desktop' if is_opensuse;
