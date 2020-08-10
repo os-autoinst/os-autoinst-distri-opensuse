@@ -1,12 +1,11 @@
 ---
-table_type: msdos
-partition_table_disk: xvdb
+table_type: gpt
+partition_table_disk: vda
 disks:
-  - name: xvdb
+  - name: vda
     allowed_unpartitioned: 0.00GB
     partitions:
-      - size: 9250Mib
-        role: operating-system
+      - role: operating-system
         partition_type: primary
         validation_flag: 1
         formatting_options:
@@ -15,8 +14,7 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: /
-      - size: 9250Mib
-        role: data
+      - role: data
         partition_type: primary
         validation_flag: 1
         formatting_options:
@@ -25,8 +23,7 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: /home
-      - size: max
-        role: swap
+      - role: swap
         partition_type: primary
         validation_flag: 0
         formatting_options:
