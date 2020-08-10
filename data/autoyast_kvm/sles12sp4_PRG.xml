@@ -1131,6 +1131,7 @@ DefaultPolicy default
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
+      <package>binutils</package>
       <package>snapper</package>
       <package>sles-release</package>
       <package>qa_test_ltp</package>
