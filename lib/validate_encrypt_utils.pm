@@ -35,7 +35,7 @@ sub parse_devices_in_crypttab {
 
 sub parse_cryptsetup_status {
     my ($dev)  = @_;
-    my @lines  = split(/\n/, script_output("cryptsetup status $dev"));
+    my @lines  = split(/\n/, script_output("cryptsetup status $dev", proceed_on_failure => 1));
     my $status = {};
     foreach (@lines) {
         if (!exists $status->{message} && $_ =~ /is (in)?active/) {
@@ -65,7 +65,7 @@ sub verify_number_of_encrypted_devices {
 
 sub verify_cryptsetup_message {
     my ($expected_message, $actual_message) = @_;
-    record_info("active volumes", "Verify crypted volume is active");
+    record_info("Assert volumes status", "Verify crypted volume status based on test_data expectations");
     assert_matches(qr/$expected_message/, $actual_message,
         "Message of cryptsetup status does not match regex");
 }
