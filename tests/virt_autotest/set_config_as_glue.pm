@@ -21,7 +21,7 @@
 package set_config_as_glue;
 
 use base "consoletest";
-use xen;
+use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
@@ -35,7 +35,7 @@ sub fufill_guests_in_setting {
     foreach (@vm_hostnames_array) {
         my $get_vm_macaddress = "virsh domiflist --domain $_ | grep -oE \"([0-9|a-z]{2}:){5}[0-9|a-z]{2}\"";
         my $vm_macaddress     = script_output($get_vm_macaddress, $wait_script, type_command => 0, proceed_on_failure => 0);
-        $xen::guests{$_}->{macaddress} = $vm_macaddress;
+        $virt_autotest::common::guests{$_}->{macaddress} = $vm_macaddress;
     }
 }
 

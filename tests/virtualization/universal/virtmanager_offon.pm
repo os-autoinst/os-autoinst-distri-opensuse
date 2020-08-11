@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test prepares environment
+# Summary: This test turns all VMs off and then on again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -22,19 +22,31 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils;
+use virtmanager;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
 
-    assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
-    assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
-    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
+    #x11_start_program 'virt-manager';
+    type_string "virt-manager\n";
 
-    # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo \"\$(dig +short $virt_autotest::common::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat /etc/hosts";
+    establish_connection();
+
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        record_info "$guest", "VM $guest will be turned off and then on again";
+
+        select_guest($guest);
+
+        assert_and_click 'virt-manager_view';
+        assert_and_click 'virt-manager_resizetovm';
+
+        detect_login_screen();
+        powercycle();
+        detect_login_screen(120);
+        close_guest();
+    }
+
+    wait_screen_change { send_key 'ctrl-q'; };
 }
 
 sub test_flags {

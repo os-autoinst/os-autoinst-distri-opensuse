@@ -13,6 +13,7 @@
 use strict;
 use warnings;
 use base "virt_autotest_base";
+use virt_autotest::utils;
 use testapi;
 use virt_utils;
 use utils;
@@ -96,6 +97,8 @@ sub install_package {
             zypper_call("in -t pattern xen_server", 1800);
         }
     }
+
+    virt_autotest::utils::install_default_packages();
 }
 
 sub run {

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test prepares environment
+# Summary: Stop all libvirt guests
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -22,19 +22,17 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    record_info "POWEROFF", "Shut every guest down";
+    script_run "ssh root\@$_ poweroff" foreach (keys %virt_autotest::common::guests);
+    script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 60, expect => 1;
 
-    assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
-    assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
-    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
+    record_info "AUTOSTART DISABLE", "Disable autostart for all guests";
+    assert_script_run "virsh autostart --disable $_" foreach (keys %virt_autotest::common::guests);
 
-    # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo \"\$(dig +short $virt_autotest::common::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat /etc/hosts";
+    record_info "LIBVIRTD", "Restart libvirtd and expect all guests to stay down";
+    systemctl 'restart libvirtd';
 }
 
 sub test_flags {

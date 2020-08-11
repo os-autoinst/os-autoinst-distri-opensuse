@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: This is the base package for virsh test modules, for example,
-# tests/virtualization/xen/hotplugging.pm
+# tests/virtualization/universal/hotplugging.pm
 # tests/virt_autotest/virsh_internal_snapshot.pm
 # tests/virt_autotest/virsh_external_snapshot.pm
 # and etc.
@@ -41,7 +41,7 @@ use List::Util 'first';
 use testapi;
 use utils;
 use virt_utils;
-use xen;
+use virt_autotest::common;
 
 sub run_test {
     die('Please override this subroutine in children modules to run desired tests.');
@@ -107,7 +107,7 @@ sub analyzeResult {
     #Then count up all counters by the number of tests in corresponding status
     my @test_item_status_array = ('pass', 'fail', 'skip', 'softfail', 'timeout', 'unknown');
     $self->{$_ . '_nums'} = 0 foreach (@test_item_status_array);
-    foreach my $guest (keys %xen::guests) {
+    foreach my $guest (keys %virt_autotest::common::guests) {
         foreach my $item (keys %{$self->{test_results}->{$guest}}) {
             my $item_status      = $self->{test_results}->{$guest}->{$item}->{status};
             my $test_item_status = first { $item_status =~ /^$_/i } @test_item_status_array;
@@ -120,7 +120,7 @@ sub analyzeResult {
     if ($status eq 'FAILED' && $self->{"fail_nums"} eq '0') {
         $self->{"fail_nums"} = '1';
         my $uncheckpoint_failure       = script_output("cat /root/commands_history | tail -3 | head -1");
-        my @involved_failure_guest     = grep { $uncheckpoint_failure =~ /$_/img } (keys %xen::guests);
+        my @involved_failure_guest     = grep { $uncheckpoint_failure =~ /$_/img } (keys %virt_autotest::common::guests);
         my $uncheckpoint_failure_guest = "";
         if (!scalar @involved_failure_guest) {
             $uncheckpoint_failure_guest = "NO SPECIFIC TEST GUEST INVOLVED";

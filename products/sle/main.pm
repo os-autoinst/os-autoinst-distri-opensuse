@@ -785,8 +785,8 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/libvirt_isolated_virtual_network";
             }
             loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
-            loadtest "virtualization/xen/hotplugging"                   if get_var("ENABLE_HOTPLUGGING");
-            loadtest "virtualization/xen/storage"                       if get_var("ENABLE_STORAGE");
+            loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
+            loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
             loadtest "virt_autotest/virsh_internal_snapshot";
             loadtest "virt_autotest/virsh_external_snapshot";
         }

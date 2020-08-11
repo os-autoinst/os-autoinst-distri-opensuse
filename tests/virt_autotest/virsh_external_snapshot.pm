@@ -26,12 +26,13 @@ use testapi;
 use set_config_as_glue;
 use utils;
 use virt_utils;
-use xen;
+use virt_autotest::common;
+use virt_autotest::utils;
 
 sub run_test {
     my ($self) = @_;
     #Snapshots are supported on KVM VM Host Servers only
-    return unless check_var("REGRESSION", "qemu-hypervisor") || check_var("SYSTEM_ROLE", "kvm");
+    return unless is_kvm_host;
 
     my $vm_types           = "sles|win";
     my $wait_script        = "30";
@@ -50,7 +51,7 @@ sub run_test {
     my $vm_hostnames_inactive       = script_output($get_vm_hostnames_inactive, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_inactive_array = split(/\n+/, $vm_hostnames_inactive);
 
-    foreach my $guest (keys %xen::guests) {
+    foreach my $guest (keys %virt_autotest::common::guests) {
         my $type = check_guest_disk_type($guest);
         next if ($type == 1);
         record_info "virsh-snapshot", "Creating External Snapshot of guest's disk";

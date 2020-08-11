@@ -2624,69 +2624,69 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'install')) {
         loadtest "virt_autotest/login_console";
-        loadtest 'virtualization/xen/prepare_guests';         # Prepare libvirt and install guests
-        loadtest 'virtualization/xen/ssh_hypervisor_init';    # Configure SSH for hypervisor
-        loadtest 'virtualization/xen/waitfor_guests';         # Wait for guests to be installed
+        loadtest 'virtualization/universal/prepare_guests';         # Prepare libvirt and install guests
+        loadtest 'virtualization/universal/ssh_hypervisor_init';    # Configure SSH for hypervisor
+        loadtest 'virtualization/universal/waitfor_guests';         # Wait for guests to be installed
 
-        loadtest 'virtualization/xen/ssh_guests_init';        # Fetch SSH key from guests and connect
-        loadtest 'virtualization/xen/register_guests';        # Register guests against the SMT server
-        loadtest 'virtualization/xen/upgrade_guests';         # Upgrade all guests
-        loadtest 'virtualization/xen/patch_guests';           # Apply patches to all compatible guests
-        loadtest 'virtualization/xen/patch_and_reboot';       # Apply updates and reboot
+        loadtest 'virtualization/universal/ssh_guests_init';        # Fetch SSH key from guests and connect
+        loadtest 'virtualization/universal/register_guests';        # Register guests against the SMT server
+        loadtest 'virtualization/universal/upgrade_guests';         # Upgrade all guests
+        loadtest 'virtualization/universal/patch_guests';           # Apply patches to all compatible guests
+        loadtest 'virtualization/universal/patch_and_reboot';       # Apply updates and reboot
 
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";            # List all guests and ensure they are running
-        loadtest "virtualization/xen/kernel";                 # Virtualization kernel functions
+        loadtest "virtualization/universal/list_guests";            # List all guests and ensure they are running
+        loadtest "virtualization/universal/kernel";                 # Virtualization kernel functions
     }
 
     if (check_var('VIRT_PART', 'virtmanager')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";            # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";            # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/virtmanager_init';       # Connect to the Xen hypervisor using virt-manager
-        loadtest 'virtualization/xen/virtmanager_offon';      # Turn all VMs off and then on again
+        loadtest 'virtualization/universal/virtmanager_init';       # Connect to the Xen hypervisor using virt-manager
+        loadtest 'virtualization/universal/virtmanager_offon';      # Turn all VMs off and then on again
 
         if (is_sle('12-SP3+')) {
-            loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
-            loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
+            loadtest 'virtualization/universal/virtmanager_add_devices';    # Add some aditional HV to all VMs
+            loadtest 'virtualization/universal/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
         }
     }
 
 
     if (check_var('VIRT_PART', 'save_and_restore')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
-        loadtest 'virtualization/xen/save_and_restore';               # Try to save and restore the state of the guest
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
+        loadtest 'virtualization/universal/save_and_restore';               # Try to save and restore the state of the guest
     }
 
     if (check_var('VIRT_PART', 'guest_management')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
-        loadtest 'virtualization/xen/guest_management';               # Try to shutdown, start, suspend and resume the guest
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
+        loadtest 'virtualization/universal/guest_management';               # Try to shutdown, start, suspend and resume the guest
     }
 
     if (check_var('VIRT_PART', 'dom_metrics')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/virsh_stop';                     # Stop libvirt guests
-        loadtest 'virtualization/xen/xl_create';                      # Clone guests using the xl Xen tool
-        loadtest 'virtualization/xen/dom_install';                    # Install vhostmd and vm-dump-metrics
-        loadtest 'virtualization/xen/dom_metrics';                    # Collect some sample metrics
-        loadtest 'virtualization/xen/xl_stop';                        # Stop guests created by the xl Xen tool
-        loadtest 'virtualization/xen/virsh_start';                    # Start virsh guests again
+        loadtest 'virtualization/universal/virsh_stop';                     # Stop libvirt guests
+        loadtest 'virtualization/universal/xl_create';                      # Clone guests using the xl Xen tool
+        loadtest 'virtualization/universal/dom_install';                    # Install vhostmd and vm-dump-metrics
+        loadtest 'virtualization/universal/dom_metrics';                    # Collect some sample metrics
+        loadtest 'virtualization/universal/xl_stop';                        # Stop guests created by the xl Xen tool
+        loadtest 'virtualization/universal/virsh_start';                    # Start virsh guests again
     }
 
     if (check_var('VIRT_PART', 'hotplugging')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
+        loadtest 'virtualization/universal/hotplugging';                    # Try to change properties of guests
     }
 
     if (check_var('VIRT_PART', 'networking')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";
+        loadtest "virtualization/universal/list_guests";
 
         loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
         loadtest "virt_autotest/libvirt_nated_virtual_network";
@@ -2695,7 +2695,7 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'snapshots')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";
+        loadtest "virtualization/universal/list_guests";
 
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
@@ -2703,18 +2703,18 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'storage')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/storage';        # Storage pool / volume test
+        loadtest 'virtualization/universal/storage';        # Storage pool / volume test
     }
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";          # List all guests and ensure they are running
-        loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
-        loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
-        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
-        loadtest "virtualization/xen/stresstest";           # Perform stress tests on the guests
+        loadtest "virtualization/universal/list_guests";          # List all guests and ensure they are running
+        loadtest 'virtualization/universal/ssh_final';            # Check that every guest is reachable over SSH
+        loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
+        loadtest "virtualization/universal/smoketest";            # Virtualization smoke test for hypervisor
+        loadtest "virtualization/universal/stresstest";           # Perform stress tests on the guests
     }
 }
 

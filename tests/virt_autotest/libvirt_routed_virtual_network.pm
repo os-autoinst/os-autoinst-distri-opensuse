@@ -25,6 +25,7 @@ use base "virt_feature_test_base";
 use virt_utils;
 use set_config_as_glue;
 use virt_autotest::virtual_network_utils;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -53,7 +54,7 @@ sub run_test {
     my $target2 = '192.168.129.1';
     my $gate1   = '192.168.129.1';
     my $gate2   = '192.168.130.1';
-    foreach my $guest (keys %xen::guests) {
+    foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "ROUTED NETWORK for $guest";
         #NOTE
         #There will be two guests in two different routed networks so then the
@@ -67,7 +68,7 @@ sub run_test {
         assert_script_run("virsh start $guest");
         assert_script_run("virsh start $guest.clone");
 
-        if (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) {
+        if (is_sle('=11-sp4') && is_xen_host) {
             $affecter  = "--persistent";
             $exclusive = "bridge --live --persistent";
         } else {
@@ -78,14 +79,14 @@ sub run_test {
         #figure out that used with virtio as the network device model during
         #attach-interface via virsh worked for all sles guest
         $mac1   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
-        $model1 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        $model1 = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest network vnet_routed --model $model1 --mac $mac1 --live $affecter", 60);
 
         $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
-        $model2 = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        $model2 = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest.clone", module => "acpiphp");
