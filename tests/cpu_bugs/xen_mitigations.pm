@@ -537,6 +537,8 @@ sub run {
     my $self = @_;
     select_console 'root-console';
     die "platform mistake, This system is not running as Dom0." if script_run("test -d /proc/xen");
+    zypper_call '--gpg-auto-import-keys ref';
+    zypper_call 'in -y xmlstarlet expect';
     do_test($self, $mitigations_list);
 }
 
