@@ -26,7 +26,16 @@ sub run {
 
     select_console 'tunnel-console';
 
-    $args->{my_instance}->run_ssh_command(cmd => "sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420) unless (get_var('FLAVOR') =~ 'On-Demand');
+    my $max_retries = 3;
+    for (1 .. $max_retries) {
+        eval {
+            $args->{my_instance}->run_ssh_command(cmd => "sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420) unless (get_var('FLAVOR') =~ 'On-Demand');
+        };
+        last unless ($@);
+        diag "SUSEConnect failed: $@";
+        diag "Maybe the SCC or network is busy. Retry: $_ of $max_retries";
+    }
+    die "SCC registration on publiccloud failed (with retries)" if $@;
 
     for my $addon (@addons) {
         if (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
