@@ -47,7 +47,7 @@ sub _remove_installation_media_and_add_network_repos {
     if (get_var("SLENKINS_REPO")) {
         $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("SLENKINS_REPO") . "' slenkins\n";
     }
-
+    $script .= "zypper --gpg-auto-import-keys ref -f\n";
     script_output($script);
 }
 
