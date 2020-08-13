@@ -38,6 +38,7 @@ sub setup_autofs_server {
         assert_script_run("grep '+dir:/etc/auto.master.d' $args{autofs_conf_file}");
     }
     assert_script_run("echo $args{test_mount_dir} $args{test_conf_file} > $args{autofs_map_file}");
+    assert_script_run("grep '$args{test_conf_file}' $args{autofs_map_file}");
     assert_script_run($args{test_conf_file_content}, fail_message => "File $args{test_conf_file} could not be created");
 }
 
