@@ -26,6 +26,7 @@ schedule:
 - qam-minimal/install_update
 - qam-minimal/update_minimal
 - qam-minimal/check_logs
+- '{{s390tools}}'
 - '{{publish}}'
 conditional_schedule:
   disk_activation:
@@ -46,6 +47,10 @@ conditional_schedule:
         - installation/grub_test
       aarch64:
         - installation/grub_test
+  s390tools:
+    ARCH:
+      s390x:
+        - qam-minimal/s390tools
   publish:
     ARCH:
       x86_64:
