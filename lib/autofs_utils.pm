@@ -21,7 +21,7 @@ my $autofs_map_file        = '/etc/auto.master.d/autofs_regression_test.autofs';
 my $test_conf_file         = '/etc/auto.iso';
 my $test_mount_dir         = '/mnt/test_autofs_local';
 my $file_to_mount          = '/tmp/test-iso.iso';
-my $test_conf_file_content = "iso  -fstype=auto,ro  :$file_to_mount";
+my $test_conf_file_content = "iso -fstype=auto,ro :$file_to_mount";
 
 =head2 setup_autofs_server
 
@@ -40,6 +40,7 @@ sub setup_autofs_server {
     assert_script_run("echo $args{test_mount_dir} $args{test_conf_file} > $args{autofs_map_file}");
     assert_script_run("grep '$args{test_conf_file}' $args{autofs_map_file}");
     assert_script_run("echo $args{test_conf_file_content} > $args{test_conf_file}", fail_message => "File $args{test_conf_file} could not be created");
+    assert_script_run("grep '$args{test_conf_file_content}' $args{test_conf_file}");
 }
 
 =head2 check_autofs_service
