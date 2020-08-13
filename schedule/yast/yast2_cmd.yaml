@@ -15,6 +15,7 @@ schedule:
   - '{{yast_lan}}'
   - yast2_cmd/yast_users
   - yast2_cmd/yast_sysconfig
+  - '{{yast_lang}}'
 conditional_schedule:
   bootloader:
     ARCH:
@@ -38,3 +39,7 @@ conditional_schedule:
     BACKEND:
       qemu:
         - yast2_cmd/yast_dns_server
+  yast_lang:
+    BACKEND:
+      qemu:
+        - yast2_cmd/yast_lang
