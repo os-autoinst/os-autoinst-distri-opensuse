@@ -34,7 +34,7 @@ sub setup_autofs_server {
     my (%args) = @_;
     my $grep_output = script_output("grep '#+dir' $args{autofs_conf_file}");
     if ($grep_output =~ /\#\+dir/) {
-        assert_script_run("sed -i_bk 's:#+dir\\:/etc/auto\\.master\\.d:+dir\\:/etc/auto\\.master\\.d:' $args{autofs_conf_file}");
+        assert_script_run(q{sed -i_bk 's|#\(+dir:/etc/auto\.master\.d\)|\1|' } . $args{autofs_conf_file});
     }
     assert_script_run("echo $args{test_mount_dir} $args{test_conf_file} > $args{autofs_map_file}");
     assert_script_run($args{test_conf_file_content}, fail_message => "File $args{test_conf_file} could not be created");
