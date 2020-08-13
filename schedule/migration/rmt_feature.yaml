@@ -1,0 +1,6 @@
+name:    rmt_feature
+description:    >
+    This is for rmt feature test
+schedule:
+  - boot/boot_to_desktop
+  - x11/rmt/rmt_feature
