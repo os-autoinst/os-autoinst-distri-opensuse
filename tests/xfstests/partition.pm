@@ -136,13 +136,61 @@ sub do_partition_for_xfstests {
     script_run('sync');
 }
 
+# Create loop device by giving inputs
+# only available when enable XFSTESTS_LOOP_DEVICE in openQA
+# Inputs explain
+# $filesystem: filesystem type
+# $size: Size of each partition size for TEST_DEV and SCRATCH_DEV. Default: 5120
+sub create_loop_device_by_rootsize {
+    my $ref    = shift;
+    my %para   = %{$ref};
+    my $amount = 1;
+    my ($size, $count, $bsize);
+    if ($para{fstype} =~ /btrfs/) {
+        $amount = 5;
+    }
+    $size  = int($para{size} / ($amount + 1));
+    $bsize = 4096;
+    $count = int($size * 1028 * 1028 / $bsize);
+    my $num = 0;
+    my $filename;
+    while ($amount >= $num) {
+        if ($num) {
+            $filename = "scratch_dev$num";
+        }
+        else {
+            $filename = "test_dev";
+        }
+        script_run("dd if=/dev/zero bs=$bsize count=$count of=$INST_DIR/$filename");
+        script_run("losetup -fP $INST_DIR/$filename");
+        $num += 1;
+    }
+    script_run("losetup -a");
+    format_partition("$INST_DIR/test_dev", $para{fstype});
+    # Create mount points
+    script_run('mkdir /mnt/test /mnt/scratch');
+    # Setup configure file xfstests/local.config
+    script_run("echo 'export TEST_DEV=/dev/loop0' >> $CONFIG_FILE");
+    script_run("echo 'export TEST_DIR=/mnt/test' >> $CONFIG_FILE");
+    script_run("echo 'export SCRATCH_MNT=/mnt/scratch' >> $CONFIG_FILE");
+    if ($amount == 1) {
+        script_run("echo 'export SCRATCH_DEV=/dev/loop1' >> $CONFIG_FILE");
+    }
+    else {
+        script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5\"' >> $CONFIG_FILE");
+    }
+    # Sync
+    script_run('sync');
+}
+
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
     # by default we use /home partition spaces for test, and don't need this setting
-    my $device = get_var('XFSTESTS_DEVICE');
+    my $device  = get_var('XFSTESTS_DEVICE');
+    my $loopdev = get_var('XFSTESTS_LOOP_DEVICE');
 
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
@@ -153,13 +201,21 @@ sub run {
         do_partition_for_xfstests(\%para);
     }
     else {
-        my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");
-        my %size_num  = partition_amount_by_homesize($home_size);
-        $para{fstype}  = $filesystem;
-        $para{amount}  = $size_num{num};
-        $para{size}    = $size_num{size};
-        $para{delhome} = 1;
-        do_partition_for_xfstests(\%para);
+        if ($loopdev) {
+            $para{fstype} = $filesystem;
+            $para{size}   = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
+            $para{siza}   = str_to_mb($para{siza});
+            create_loop_device_by_rootsize(\%para);
+        }
+        else {
+            my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");
+            my %size_num  = partition_amount_by_homesize($home_size);
+            $para{fstype}  = $filesystem;
+            $para{amount}  = $size_num{num};
+            $para{size}    = $size_num{size};
+            $para{delhome} = 1;
+            do_partition_for_xfstests(\%para);
+        }
     }
 }
 
