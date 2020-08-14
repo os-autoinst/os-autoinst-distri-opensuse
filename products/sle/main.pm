@@ -755,8 +755,11 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
-    else {
-        if (!check_var('ARCH', 's390x')) {
+    elsif (!is_x86_64 || !get_var('START_DIRECTLY_AFTER_TEST') || get_var('VIRT_PREPARE_HOST')) {
+        if (is_s390x) {
+            loadtest "virt_autotest/login_console";
+        }
+        else {
             load_boot_tests();
             if (get_var("AUTOYAST")) {
                 loadtest "autoyast/installation";
@@ -767,17 +770,29 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/login_console";
             }
         }
-        elsif (check_var('ARCH', 's390x')) {
-            loadtest "virt_autotest/login_console";
-        }
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
-        loadtest "virt_autotest/download_guest_assets" if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
+    }
+    #for chained tests, login_console directly, need boot?
+    my $is_virt_feature_test;
+    $is_virt_feature_test = 'yes' if get_var('START_DIRECTLY_AFTER_TEST') && (get_var("VIRT_EXTENDED_TEST") || get_var("ENABLE_VIR_NET") || get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH"));
+    if (get_var('START_DIRECTLY_AFTER_TEST')) {
+        loadtest "virt_autotest/login_console";
+        if ($is_virt_feature_test eq 'yes' && !get_var('SKIP_GUEST_INSTALL')) {
+            loadtest "virt_autotest/prepare_guest";
+        }
+        else {
+            loadtest "virt_autotest/cleanup_service";
+        }
+    }
+    if (get_var("SKIP_GUEST_INSTALL")) {
+        loadtest "virt_autotest/download_guest_assets";
+        loadtest "virt_autotest/restore_guests" if $is_virt_feature_test eq 'yes';
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
-        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64) {
+        unless (get_var('START_DIRECTLY_AFTER_TEST')) {
             loadtest "virt_autotest/set_config_as_glue";
             loadtest "virt_autotest/setup_dns_service";
             if (get_var("ENABLE_VIR_NET")) {
@@ -787,11 +802,30 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/libvirt_routed_virtual_network";
                 loadtest "virt_autotest/libvirt_isolated_virtual_network";
             }
-            loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
-            loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
-            loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
+            loadtest "virtualization/universal/hotplugging" if get_var("ENABLE_HOTPLUGGING");
+            loadtest "virtualization/universal/storage"     if get_var("ENABLE_STORAGE");
             loadtest "virt_autotest/virsh_internal_snapshot";
             loadtest "virt_autotest/virsh_external_snapshot";
+        }
+    }
+    elsif ($is_virt_feature_test eq 'yes') {
+        loadtest "virt_autotest/set_config_as_glue";
+        loadtest "virt_autotest/setup_dns_service";
+        if (get_var("VIRT_EXTENDED_TEST")) {
+            loadtest "virtualization/universal/hotplugging" if get_var("ENABLE_HOTPLUGGING");
+            loadtest "virtualization/universal/storage"     if get_var("ENABLE_STORAGE");
+            loadtest "virt_autotest/virsh_internal_snapshot";
+            loadtest "virt_autotest/virsh_external_snapshot";
+        }
+        elsif (get_var("ENABLE_VIR_NET")) {
+            loadtest "virt_autotest/libvirt_virtual_network_init";
+            loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+            loadtest "virt_autotest/libvirt_nated_virtual_network";
+            loadtest "virt_autotest/libvirt_routed_virtual_network";
+            loadtest "virt_autotest/libvirt_isolated_virtual_network";
+        }
+        elsif (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+            loadtest "virt_autotest/sriov_network_card_pci_passthrough";
         }
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {

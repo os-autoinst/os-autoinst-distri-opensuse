@@ -25,13 +25,25 @@ use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
+use virt_utils qw(get_guest_list);
 
 sub fufill_guests_in_setting {
-    my $wait_script        = "30";
-    my $vm_types           = "sles|win";
-    my $get_vm_hostnames   = "virsh list --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
-    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    my $wait_script = "30";
+    my $vm_types    = "sles|win";
+    my $vm_hostnames;
+    my @vm_hostnames_array;
+    if (get_var('VIRT_AUTOTEST')) {
+        $vm_hostnames = get_guest_list();
+        foreach (split "\n", $vm_hostnames) {
+            my $domain_name = script_output "virsh list --all | grep $_ | awk \'{print \$2}\'";
+            push @vm_hostnames_array, $domain_name;
+        }
+    }
+    else {
+        my $get_vm_hostnames = "virsh list --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
+        $vm_hostnames       = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
+        @vm_hostnames_array = split(/\n+/, $vm_hostnames);
+    }
     foreach (@vm_hostnames_array) {
         my $get_vm_macaddress = "virsh domiflist --domain $_ | grep -oE \"([0-9|a-z]{2}:){5}[0-9|a-z]{2}\"";
         my $vm_macaddress     = script_output($get_vm_macaddress, $wait_script, type_command => 0, proceed_on_failure => 0);

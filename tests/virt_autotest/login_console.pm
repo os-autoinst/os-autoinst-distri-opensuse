@@ -63,11 +63,13 @@ sub login_to_console {
     my $sut_machine = get_var('SUT_IP', 'nosutip');
     boot_local_disk_arm_huawei if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /huawei/img));
 
-    if (!check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
-        ipmitool("chassis power reset");
-        reset_consoles;
-        select_console 'sol', await_console => 0;
-        check_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
+    unless (get_var('IPMI_DO_NOT_RESTART_HOST')) {
+        if (!check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
+            ipmitool("chassis power reset");
+            reset_consoles;
+            select_console 'sol', await_console => 0;
+            check_screen([qw(grub2 grub1 prague-pxe-menu)], 90);
+        }
     }
 
     # If a PXE menu will appear just select the default option (and save us the time)
@@ -77,7 +79,7 @@ sub login_to_console {
         check_screen([qw(grub2 grub1)], 60);
     }
 
-    if (!get_var("reboot_for_upgrade_step")) {
+    if (!get_var("reboot_for_upgrade_step") && !get_var('IPMI_DO_NOT_RESTART_HOST')) {
         if (is_xen_host) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
@@ -93,7 +95,7 @@ sub login_to_console {
             }
         }
     }
-    else {
+    elsif (get_var("reboot_for_upgrade_step")) {
         save_screenshot;
         #offline upgrade requires upgrading offline during reboot while online doesn't
         if (check_var('offline_upgrade', 'yes')) {
@@ -149,7 +151,7 @@ sub login_to_console {
     save_screenshot;
     send_key 'ret';
 
-    sleep 30;    # Wait for the GRUB to disappier (there's no chance for the system to boot faster
+    sleep 30 unless get_var('IPMI_DO_NOT_RESTART_HOST');    # Wait for the GRUB to disappier (there's no chance for the system to boot faster
     save_screenshot;
 
     for (my $i = 0; $i <= 4; $i++) {
