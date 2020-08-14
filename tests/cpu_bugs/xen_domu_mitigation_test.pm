@@ -650,8 +650,12 @@ sub run {
     my $self = @_;
     select_console 'root-console';
     die "platform mistake, This system is not running as Dom0." if script_run("test -d /proc/xen");
+
+    my $qa_repo_url = get_var("QA_REPO_RUL", "http://dist.suse.de/ibs/QA:/Head/SLE-15-SP2/");
+    zypper_ar($qa_repo_url, name => 'qa-head');
     zypper_call '--gpg-auto-import-keys ref';
     zypper_call 'in -y xmlstarlet expect sshpass';
+
     get_expect_script();
     exec_testcases();
 }
