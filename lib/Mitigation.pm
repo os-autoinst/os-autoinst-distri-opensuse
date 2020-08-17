@@ -384,7 +384,7 @@ sub remove_parameter {
 
 sub ssh_vm_cmd {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $ret = script_run("sshpass -p ${qa_password} ssh -qy root\@${vm_ip_addr} \"$cmd\"");
+    my $ret = script_run("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"");
     return $ret;
 }
 
@@ -392,7 +392,7 @@ sub ssh_vm_cmd {
 # Execute $cmd in vm and get output
 sub script_output_from_vm {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
-    my $output = script_output("sshpass -p ${qa_password} ssh -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+    my $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
     return $output;
 }
 
