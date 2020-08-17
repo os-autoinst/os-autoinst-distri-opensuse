@@ -9,3 +9,10 @@ schedule:
     - virtualization/xen/ssh_guests_init
     - virtualization/xen/upgrade_guests
     - virtualization/xen/patch_guests
+    - '{{open_vm_tools}}'
+
+conditional_schedule:
+    open_vm_tools:
+        REGRESSION:
+            vmware:
+                - virtualization/xen/open_vm_tools
