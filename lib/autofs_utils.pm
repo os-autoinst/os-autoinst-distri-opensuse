@@ -21,7 +21,7 @@ my $autofs_map_file        = '/etc/auto.master.d/autofs_regression_test.autofs';
 my $test_conf_file         = '/etc/auto.iso';
 my $test_mount_dir         = '/mnt/test_autofs_local';
 my $file_to_mount          = '/tmp/test-iso.iso';
-my $test_conf_file_content = "echo  iso     -fstype=auto,ro         :$file_to_mount > $test_conf_file";
+my $test_conf_file_content = "iso -fstype=auto,ro :$file_to_mount";
 
 =head2 setup_autofs_server
 
@@ -34,10 +34,13 @@ sub setup_autofs_server {
     my (%args) = @_;
     my $grep_output = script_output("grep '#+dir' $args{autofs_conf_file}");
     if ($grep_output =~ /\#\+dir/) {
-        assert_script_run("sed -i_bk 's:#+dir\\:/etc/auto\\.master\\.d:+dir\\:/etc/auto\\.master\\.d:' $args{autofs_conf_file}");
+        assert_script_run(q{sed -i_bk 's|#\(+dir:/etc/auto\.master\.d\)|\1|' } . $args{autofs_conf_file});
+        assert_script_run("grep '+dir:/etc/auto.master.d' $args{autofs_conf_file}");
     }
     assert_script_run("echo $args{test_mount_dir} $args{test_conf_file} > $args{autofs_map_file}");
-    assert_script_run($args{test_conf_file_content}, fail_message => "File $args{test_conf_file} could not be created");
+    assert_script_run("grep '$args{test_conf_file}' $args{autofs_map_file}");
+    assert_script_run("echo $args{test_conf_file_content} > $args{test_conf_file}", fail_message => "File $args{test_conf_file} could not be created");
+    assert_script_run("grep '$args{test_conf_file_content}' $args{test_conf_file}");
 }
 
 =head2 check_autofs_service
