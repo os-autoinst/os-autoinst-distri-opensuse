@@ -31,6 +31,9 @@ sub run {
     # Verify that the filesystem mounted at /var grew beyond the default 5GiB
     my $varsize = script_output "findmnt -rnboSIZE -T/var";
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
+
+    # Verify that combustion ran (not on 15.2 yet)
+    validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/) unless check_var('VERSION', '15.2');
 }
 
 1;
