@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test prepares environment
+# Summary: This stops all xl VMs
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -22,19 +22,14 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        record_info "$guest",                         "Stopping xl-$guest guests";
+        assert_script_run "xl shutdown -w xl-$guest", 180;
+    }
 
-    assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
-    assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
-    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
-
-    # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo \"\$(dig +short $virt_autotest::common::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat /etc/hosts";
+    script_retry "xl list | grep xl", delay => 3, retry => 30, expect => 1;
 }
 
 sub test_flags {

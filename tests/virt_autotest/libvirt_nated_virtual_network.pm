@@ -25,6 +25,7 @@ use base "virt_feature_test_base";
 use virt_utils;
 use set_config_as_glue;
 use virt_autotest::virtual_network_utils;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -48,10 +49,10 @@ sub run_test {
 
     my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.128.1';
-    foreach my $guest (keys %xen::guests) {
+    foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "NAT BASED NETWORK for $guest";
 
-        if (is_sle('=11-sp4') && (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen'))) {
+        if (is_sle('=11-sp4') && is_xen_host) {
             $affecter  = "--persistent";
             $exclusive = "bridge --live --persistent";
         } else {
@@ -60,7 +61,7 @@ sub run_test {
         }
 
         $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
-        $model = (get_var('XEN') || check_var('SYSTEM_ROLE', 'xen') || check_var('HOST_HYPERVISOR', 'xen')) ? 'netfront' : 'virtio';
+        $model = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest", module => "acpiphp");

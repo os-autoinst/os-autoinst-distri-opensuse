@@ -13,32 +13,23 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test prepares environment
+# Summary: This checks all VMs over SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
-use virt_autotest::common;
 use strict;
 use warnings;
+use virt_autotest::common;
+use strict;
 use testapi;
 use utils;
-use version_utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
-
-    assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
-    assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
-    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
-
-    # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo \"\$(dig +short $virt_autotest::common::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat /etc/hosts";
-}
-
-sub test_flags {
-    return {fatal => 1, milestone => 1};
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        record_info "$guest", "Establishing SSH connection to $guest";
+        assert_script_run "ping -c3 -W1 $guest";
+        assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
+    }
 }
 
 1;

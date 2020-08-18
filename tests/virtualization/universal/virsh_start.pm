@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Summary: This test prepares environment
+# Summary: This starts libvirt guests again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
@@ -22,19 +22,18 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils;
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    record_info "AUTOSTART ENABLE", "Enable autostart for all guests";
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        if (script_run("virsh autostart $guest", 30) != 0) {
+            record_soft_failure "Cannot enable autostart on $guest guest";
+        }
+    }
 
-    assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
-    assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
-    zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
-
-    # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo \"\$(dig +short $virt_autotest::common::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "cat /etc/hosts";
+    record_info "LIBVIRTD", "Restart libvirtd and expect all guests to boot up";
+    systemctl 'restart libvirtd';
+    script_retry "ssh root\@$_ hostname -f", delay => 30, retry => 6 foreach (keys %virt_autotest::common::guests);
 }
 
 sub test_flags {
