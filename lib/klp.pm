@@ -276,6 +276,23 @@ sub klp_wait_for_transition {
     }
 }
 
+sub _get_kernel_tainted {
+    my $tainted = script_output("sysctl kernel.tainted");
+
+    if (!($tainted =~ m/^kernel.tainted\s*=\s*([0-9]+)$/)) {
+        die "Unrecognized output from 'sysctl kernel.tainted': '$tainted'";
+    }
+
+    return int($1);
+}
+
+sub is_kernel_tainted {
+    my $mask    = shift;
+    my $tainted = _get_kernel_tainted();
+
+    return ($tainted & $mask);
+}
+
 sub verify_klp_pkg_patch_is_active {
     my $klp_pkg = shift;
 
@@ -330,7 +347,7 @@ sub verify_klp_pkg_patch_is_active {
         die "Expected active livepatch from package '$$klp_pkg{name}', got '$rpm'";
     }
 
-    # Finally check that uname -v has changed, i.e. that the reported
+    # Check that uname -v has changed, i.e. that the reported
     # livepatch git revision matches the one from the package
     # description.
     my $output = script_output("uname -v");
@@ -351,6 +368,14 @@ sub verify_klp_pkg_patch_is_active {
         ($pkgdesc_gitrev_len <= $uname_v_gitrev_len &&
             $pkgdesc_gitrev ne substr($uname_v_gitrev, 0, $pkgdesc_gitrev_len))) {
         die "Livepatch package GIT rev '$pkgdesc_gitrev' doesn't match '$uname_v_gitrev' from 'uname -v'";
+    }
+
+    # Verify that the livepatch module has been properly signed by
+    # checking the kernel for TAINT_UNSIGNED_MODULE tainting.
+    # TAINT_UNSIGNED_MODULE is represented by bit 13 within the
+    # kernel's tainted bitmask.
+    if (is_kernel_tainted(0x2000)) {
+        die "The kernel has been tainted with TAINT_UNSIGNED_MODULE";
     }
 }
 
