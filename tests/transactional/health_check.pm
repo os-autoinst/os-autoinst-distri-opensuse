@@ -77,8 +77,8 @@ sub post_fail_hook {
     upload_logs "health-checker.log";
 
     # revert changes to rebootmgr.sh and reboot
-    if (script_run "test -e %{_libexecdir})/health-checker/fail.sh") {
-        trup_shell "rm $(rpm --eval %{_libexecdir})/health-checker/fail.sh";
+    if (script_run('test -e $(rpm --eval %{_libexecdir})/health-checker/fail.sh') == 0) {
+        trup_shell 'rm $(rpm --eval %{_libexecdir})/health-checker/fail.sh';
     }
 }
 
