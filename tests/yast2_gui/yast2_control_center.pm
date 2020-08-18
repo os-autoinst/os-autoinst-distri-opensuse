@@ -324,8 +324,7 @@ sub run {
         # kdump is disabled by default in the installer, so ensure that it's installed
         ensure_installed 'yast2-kdump';
         # see bsc#1062331, sound is not added to the yast2 pattern
-        # also add missing yast2-ca-management and yast2-auth-server
-        ensure_installed 'yast2-boot-server yast2-sound yast2-ca-management yast2-auth-server';
+        ensure_installed 'yast2-boot-server yast2-sound';
     }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
