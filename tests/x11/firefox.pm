@@ -34,7 +34,7 @@ sub run() {
     assert_screen 'firefox-html-test';
 
     send_key "alt-f4";
-    assert_screen [qw(firefox-save-and-quit generic-desktop not-responding), timeout => 90];
+    assert_screen([qw(firefox-save-and-quit generic-desktop not-responding)], timeout => 90);
     if (match_has_tag 'not-responding') {
         record_soft_failure "firefox is not responding, see boo#1174857";
         # confirm "save&quit"
