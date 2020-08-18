@@ -54,15 +54,24 @@ sub rstudio_create_and_test_new_project {
     assert_and_click("$prefix-new-project_new-directory");
     assert_and_click("$prefix-new-project_project-type");
 
-    # enter project name and select "Create a git repository"
+    # enter project name, select ~ as the subdirectory and select "Create a git repository"
     assert_screen("$prefix-create-new-project");
     type_string("test_project");
-    assert_and_click("$prefix-create-new-project_create-git-repository");
+    assert_and_click("$prefix-create-new-project_browse-subdirectory");
+    assert_and_click("$prefix-create-new-project_select-HOME");
+
+    # check whether the "create a git repository" option is unselected
+    # if it is, click it to ensure it is
+    my $create_git_repo_selected = check_screen("$prefix-create-new-project_create-git-repository", timeout => 10);
+    if (defined $create_git_repo_selected) {
+        click_lastmatch();
+    }
     assert_and_click("$prefix-create-new-project_create-project");
 
     # open the .gitignore file, enter *~ at the top and save it
     assert_and_click("$prefix-files-tab_select-gitignore");
-    assert_screen("$prefix-gitignore-file");
+    # click on the .gitignore tab to select that editor
+    assert_and_click("$prefix-gitignore-file");
     type_string("*~");
     wait_still_screen(1);
     send_key('ret');
