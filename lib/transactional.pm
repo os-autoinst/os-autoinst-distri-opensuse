@@ -122,6 +122,10 @@ sub rpmver {
         $rpm{obs} = {v => '5', r => '4.3'};
     }
 
+    if ($arch eq 'ppc64le') {
+        $rpm{obs} = {v => '5.1', r => '1.1'};
+    }
+
     my $vr = "$rpm{$iobs}{v}-$rpm{$iobs}{r}";
     # Returns expected package version after installation
     return $vr if $q eq 'vr';
