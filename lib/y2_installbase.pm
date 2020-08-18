@@ -337,7 +337,7 @@ sub toogle_package {
 
 sub use_wicked {
     script_run "cd /proc/sys/net/ipv4/conf";
-    script_run("for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 300);
+    script_run("for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 600);
     save_screenshot;
 }
 sub use_ifconfig {
