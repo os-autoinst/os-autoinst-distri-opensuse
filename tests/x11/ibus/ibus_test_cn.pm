@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use utils;
 
-sub ibus_enable_source_ch {
+sub ibus_enable_source_cn {
     send_key 'super';
     wait_still_screen;
     type_string_slow ' region & language';
@@ -31,21 +31,21 @@ sub ibus_enable_source_ch {
 
     assert_and_click 'ibus-input-chinese';
     assert_and_dclick 'ibus-input-chinese-pinyin';
-    assert_screen 'ibus-input-added-ch';
+    assert_screen 'ibus-input-added-cn';
     send_key 'alt-f4';
     assert_screen 'generic-desktop';
 }
 
-sub test_ch {
+sub test_cn {
     x11_start_program('gedit');
     hold_key 'super';
-    send_key_until_needlematch 'ibus_switch_ch', 'spc', 6;
+    send_key_until_needlematch 'ibus_switch_cn', 'spc', 6;
     release_key 'super';
 
     wait_still_screen(3);
     type_string_slow 'nihao';
     type_string_slow '1';
-    assert_screen 'ibus_ch_nihao';
+    assert_screen 'ibus_cn_nihao';
 
     hold_key 'super';
     send_key_until_needlematch 'ibus_switch_en', 'spc', 6;
@@ -62,10 +62,10 @@ sub run {
 
     assert_screen "generic-desktop";
     # enable Chinese input sources
-    ibus_enable_source_ch;
+    ibus_enable_source_cn;
 
     # open gedit and test chinese
-    test_ch;
+    test_cn;
 }
 
 1;
