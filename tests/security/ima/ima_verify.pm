@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ sub run {
     my $cert_der = "/root/certs/ima_cert.der";
 
     # Make sure IMA is in the enforce mode
-    validate_script_output "grep 'ima_appraise=fix' /etc/default/grub || echo 'IMA enforced'", sub { m/IMA enforced/ };
+    validate_script_output "grep -E 'ima_appraise=(fix|log|off)' /etc/default/grub || echo 'IMA enforced'", sub { m/IMA enforced/ };
     assert_script_run("test -e /etc/sysconfig/ima-policy", fail_message => 'ima-policy file is missing');
 
     assert_script_run "evmctl ima_sign -a sha256 -k $mok_priv $sample_app";
