@@ -351,14 +351,14 @@ sub untick_welcome_on_next_startup {
     }
 }
 
-=head2 workaround_boo1170586
+=head2 workaround_broken_opensuse_welcome_window
 
- workaround_boo1170586();
+ workaround_broken_opensuse_welcome_window();
 
 Kill broken opensuse-welcome window and restart it properly to workaround boo#1170586.
 
 =cut
-sub workaround_boo1170586 {
+sub workaround_broken_opensuse_welcome_window {
     x11_start_program('killall /usr/bin/opensuse-welcome', target_match => 'generic-desktop');
     x11_start_program('opensuse-welcome');
 }
@@ -374,8 +374,8 @@ Also handle workarounds when needed.
 =cut
 sub handle_welcome_screen {
     my (%args) = @_;
-    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1170586)], $args{timeout});
-    workaround_boo1170586 if match_has_tag("opensuse-welcome-boo1170586");
+    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203)], $args{timeout});
+    workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
 
