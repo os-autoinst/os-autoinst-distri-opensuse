@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,8 +26,11 @@ sub run() {
 
     $self->start_firefox;
     wait_still_screen;
-    send_key_until_needlematch('firefox-help-menu', 'alt-h', 5, 6);
-    send_key_until_needlematch('test-firefox-3',    'a',     9, 6);
+    send_key('alt');
+    assert_screen('firefox-top-bar-highlighted');
+    send_key('h');
+    assert_screen('firefox-help-menu');
+    send_key_until_needlematch('test-firefox-3', 'a', 9, 6);
 
     # close About
     send_key "alt-f4";
