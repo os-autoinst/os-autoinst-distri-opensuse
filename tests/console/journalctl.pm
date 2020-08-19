@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -50,7 +50,7 @@ sub check_syslog {
 sub reboot {
     my ($self) = @_;
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 200);
+    $self->wait_boot(bootloader_time => 300);
     select_console 'root-console';
 }
 
