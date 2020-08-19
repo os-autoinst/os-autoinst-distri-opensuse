@@ -66,9 +66,14 @@ sub run {
         assert_script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --allow-run-as-root --host $cluster_nodes  /tmp/simple_mpi");
     } elsif ($mpi eq 'mvapich2') {
         # we do not support ethernet with mvapich2
-        my $return = script_run("/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi");
+        my $return = script_run("set -o pipefail;/usr/lib64/mpi/gcc/$mpi/bin/mpirun --host $cluster_nodes /tmp/simple_mpi |& tee /tmp/simple_mpi.log");
         if ($return == 143) {
             record_info("echo $return - No IB device found");
+        } elsif ($return == 139 || $return == 255) {
+            # process running (on master return 139, on slave return 255)
+            if (script_run('grep \'Caught error: Segmentation fault (signal 11)\' /tmp/simple_mpi.log') == 0) {
+                record_soft_failure('bsc#1144000 MVAPICH2: segfault while executing without ib_uverbs loaded');
+            }
         } else {
             ##TODO: condider more rebust handling of various errors
             die("echo $return - not expected errorcode");
