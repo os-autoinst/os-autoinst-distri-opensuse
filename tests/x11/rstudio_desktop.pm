@@ -29,6 +29,8 @@ sub run {
 
     rstudio_create_and_test_new_project(rstudio_mode => "desktop");
 
+    rstudio_run_profiler(rstudio_mode => "desktop");
+
     # bye-bye
     send_key('alt-f4');
 }

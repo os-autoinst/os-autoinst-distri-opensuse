@@ -5,7 +5,7 @@ use warnings;
 use utils;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(rstudio_help_menu rstudio_sin_x_plot rstudio_create_and_test_new_project rstudio_cleanup_project);
+our @EXPORT = qw(rstudio_help_menu rstudio_sin_x_plot rstudio_create_and_test_new_project rstudio_run_profiler rstudio_cleanup_project);
 
 sub rstudio_help_menu {
     my %args         = @_;
@@ -99,6 +99,39 @@ sub rstudio_create_and_test_new_project {
     assert_and_click("$prefix-project_current-project-menu_close-project");
     check_screen("$prefix-project_close-project_save-window", timeout => 10) && assert_and_click("$prefix-project_close-project_save-window", timeout => 1);
     assert_screen("$prefix-project_no-project-open");
+}
+
+# regression test for boo#1172426 and test that installing R modules actually works
+sub rstudio_run_profiler {
+    my %args         = @_;
+    my $rstudio_mode = $args{rstudio_mode} || "server";
+    my $prefix       = "rstudio_$rstudio_mode";
+
+    assert_and_click("$prefix-prompt");
+
+    type_string("require(\"profvis\")");
+    send_key("ret", wait_screen_change => 1);
+
+    my $profvis_not_found = check_screen("rstudio_package_profvis_not_found", timeout => 10);
+    if (defined $profvis_not_found) {
+        type_string("install.packages(\"profvis\")");
+        send_key("ret");
+        # wait for the 'DONE (profvis)' string to appear
+        # the installation can take quite a while because it needs to compile a
+        # bunch of R modules
+        assert_screen("$prefix-profvis_installed", timeout => 900);
+    }
+
+    type_string("library(profvis)");
+    send_key("ret", wait_screen_change => 1);
+
+    type_string("df = data.frame(v = 1:4, name = letters[1:4])");
+    send_key("ret", wait_screen_change => 1);
+
+    type_string("profvis(expr = {sub.test1 <- system.time(for (i in 1:50000) {df[3, 2]})})");
+    send_key("ret");
+
+    assert_screen("$prefix-profile_flame-graph_close");
 }
 
 sub rstudio_cleanup_project {

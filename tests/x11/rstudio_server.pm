@@ -54,6 +54,8 @@ sub run() {
 
     rstudio_create_and_test_new_project(rstudio_mode => "server");
 
+    rstudio_run_profiler(rstudio_mode => "server");
+
     # log out at last and close firefox
     assert_and_click("rstudio_server-sign-out");
     assert_screen("rstudio_server-login-username");
