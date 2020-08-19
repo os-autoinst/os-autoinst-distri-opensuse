@@ -5,7 +5,7 @@ use warnings;
 use utils;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(rstudio_help_menu rstudio_sin_x_plot rstudio_create_and_test_new_project rstudio_run_profiler rstudio_cleanup_project);
+our @EXPORT = qw(rstudio_help_menu rstudio_sin_x_plot rstudio_create_and_test_new_project rstudio_run_profiler rstudio_test_notebook rstudio_cleanup_project);
 
 sub rstudio_help_menu {
     my %args         = @_;
@@ -132,6 +132,74 @@ sub rstudio_run_profiler {
     send_key("ret");
 
     assert_screen("$prefix-profile_flame-graph_close");
+}
+
+sub rstudio_test_notebook {
+    my %args         = @_;
+    my $rstudio_mode = $args{rstudio_mode} || "server";
+    my $prefix       = "rstudio_$rstudio_mode";
+
+    # open the menu to create a new notebook, use shortcuts for the desktop app,
+    # but cannot use these inside the browser
+    if ("$rstudio_mode" eq "desktop") {
+        send_key("alt-f", wait_screen_change => 1);
+        send_key("f",     wait_screen_change => 1);
+        send_key("n",     wait_screen_change => 1);
+    } else {
+        assert_and_click("$prefix-R_notebook-file_menu");
+
+        send_key("down",  wait_screen_change => 1);
+        send_key("right", wait_screen_change => 1);
+        send_key("down",  wait_screen_change => 1);
+
+        assert_and_click("$prefix-R_notebook-file_menu-new_file-R_notebook");
+    }
+
+    my $notebook_open_timeout = 10;
+    # In case packages are missing a popup will show up that we have to install
+    # packages (this popup can take a while to show up on weak workers, thus the
+    # high timeout).
+    # If we install packages, then we have to wait for a bit longer.
+    my $need_install_packages = check_screen("$prefix-R_notebook-install_required_packages_prompt", timeout => 30);
+    if (defined $need_install_packages) {
+        click_lastmatch();
+        $notebook_open_timeout = 300;
+    }
+    assert_screen("$prefix-R_notebook-open", timeout => $notebook_open_timeout);
+
+    # run all code blocks
+    send_key("ctrl-alt-r", wait_screen_change => 1);
+    assert_screen("$prefix-R_notebook-plot_open");
+
+    # save it
+    send_key("ctrl-s", wait_screen_change => 1);
+    assert_and_click("$prefix-R_notebook-save_as");
+    type_string("test_notebook");
+    send_key("ret");
+    assert_screen("$prefix-R_notebook-plot_open");
+
+    # open the preview:
+    # in RStudio-server Firefox might complain that popups are being blocked, we
+    # have to allow popups then, which will open the preview but RStudio will
+    # notice this and open another message itself that we have to dismiss
+    # afterwards as well
+    send_key("ctrl-shift-k", wait_screen_change => 1);
+    my $popup_needle = "rstudio_server-Firefox-popup_blocked";
+    assert_screen([("$prefix-R_notebook-preview", $popup_needle)]);
+    my $popup_blocked = match_has_tag($popup_needle);
+    if ($popup_blocked) {
+        click_lastmatch();
+        assert_and_click("rstudio_server-Firefox-allow_for_localhost");
+        assert_screen("$prefix-R_notebook-preview");
+    }
+
+    send_key("alt-f4", wait_screen_change => 1);
+
+    if ($popup_blocked) {
+        assert_and_click("rstudio_server-Firefox-dismiss_popup_message");
+    }
+
+    assert_and_click("$prefix-R_notebook-close");
 }
 
 sub rstudio_cleanup_project {

@@ -31,6 +31,8 @@ sub run {
 
     rstudio_run_profiler(rstudio_mode => "desktop");
 
+    rstudio_test_notebook(rstudio_mode => "desktop");
+
     # bye-bye
     send_key('alt-f4');
 }
