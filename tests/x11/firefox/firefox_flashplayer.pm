@@ -29,7 +29,6 @@ sub run {
     $self->firefox_open_url('http://www.adobe.com/software/flash/about/', 'do_not_check_loaded_url');
     assert_screen('firefox-flashplayer-verify_loaded', 90);
 
-    send_key "pgdn";
     # flashplayer dropped since sled12 sp2
     while (assert_screen([qw(firefox-flashplayer-dropped firefox-flashplayer-verify)])) {
         last if (match_has_tag('firefox-flashplayer-dropped'));
