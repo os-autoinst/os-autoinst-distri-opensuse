@@ -56,11 +56,16 @@ sub run {
 
     #upload logs
     script_run("xl dmesg > /tmp/xl-dmesg.log");
-    my $logs = "/var/log/libvirt /var/log/messages /var/lib/xen/dump /tmp/xl-dmesg.log";
+    my $xen_logs = "";
+    if ($hypervisor =~ /XEN/im) {
+        $xen_logs = "/var/lib/xen/dump /tmp/xl-dmesg.log";
+        script_run("xl dmesg > /tmp/xl-dmesg.log");
+        #separate the xen logs from other virt logs because it needs to be remained or xen service will fail to start
+        script_run "tar -czf var_log_xen.tar.gz /var/log/xen";
+        upload_logs "var_log_xen.tar.gz";
+    }
+    my $logs = "/var/log/libvirt /var/log/messages $xen_logs";
     virt_autotest_base::upload_virt_logs($logs, "guest-migration-dst-logs");
-    #separate the xen logs from other virt logs because it needs to be remained or xen service will fail to start
-    script_run "tar -czf var_log_xen.tar.gz /var/log/xen";
-    upload_logs "var_log_xen.tar.gz";
     virt_utils::upload_supportconfig_log;
     save_screenshot;
 
