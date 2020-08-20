@@ -130,6 +130,8 @@ sub setup_networks {
 
     $setup_script .= "FIXED_NIC=`grep $net_conf->{fixed}->{mac} /sys/class/net/*/address |cut -d / -f 5`\n";
     $setup_script .= "iptables -F\n";
+    $setup_script .= "iptables -A INPUT -i \$FIXED_NIC -j ACCEPT\n";
+    $setup_script .= "iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT\n";
     $setup_script .= "iptables -t nat -A POSTROUTING -o \$FIXED_NIC -j MASQUERADE\n";
     for my $network (keys %$net_conf) {
         next if $network eq 'fixed';
