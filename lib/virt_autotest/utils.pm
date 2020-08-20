@@ -31,7 +31,7 @@ use testapi;
 use DateTime;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file
-  ssh_setup ssh_copy_id create_guest install_default_packages);
+  ssh_setup ssh_copy_id create_guest install_default_packages upload_y2logs);
 
 #return 1 if it is a VMware test judging by REGRESSION variable
 sub is_vmware_virtualization {
@@ -138,6 +138,13 @@ sub create_guest {
 sub install_default_packages {
     # Install nmap, ip, dig
     zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 4, 102, 103, 106];
+}
+
+sub upload_y2logs {
+    # Create and Upload y2log for analysis
+    assert_script_run "save_y2logs /tmp/y2logs.tar.bz2", 180;
+    upload_logs("/tmp/y2logs.tar.bz2");
+    save_screenshot;
 }
 
 1;
