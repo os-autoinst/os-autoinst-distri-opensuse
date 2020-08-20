@@ -1,0 +1,4 @@
+---
+<<: !include test_data/yast/minimal+role_minimal_defaults.yaml
+default_target: graphical.target
+device: vda
