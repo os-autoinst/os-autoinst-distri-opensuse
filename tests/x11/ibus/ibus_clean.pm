@@ -19,17 +19,14 @@ use utils;
 
 sub remove_cn {
     assert_and_click 'ibus-input-added-cn';
-    assert_and_click 'ibus-input-remove';
 }
 
 sub remove_jp {
     assert_and_click 'ibus-input-added-jp';
-    assert_and_click 'ibus-input-remove';
 }
 
 sub remove_kr {
     assert_and_click 'ibus-input-added-kr';
-    assert_and_click 'ibus-input-remove';
 }
 
 sub run {
