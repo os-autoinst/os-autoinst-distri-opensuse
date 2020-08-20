@@ -27,7 +27,7 @@ use proxymode;
 use version_utils 'is_sle';
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console);
 
 sub enable_debug_logging {
 
@@ -623,6 +623,81 @@ sub perform_guest_restart {
             }
         }
     }
+}
+
+#This subroutine collects desired logs from host and guest, and place them into folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
+#Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
+sub collect_host_and_guest_logs {
+    my ($guest_wanted, $host_extra_logs, $guest_extra_logs) = @_;
+
+    my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
+    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    save_screenshot;
+
+    my $logs_fetching_script_url = data_url("virt_autotest/fetch_logs_from_guest.sh");
+    script_output("curl -s -o ~/fetch_logs_from_guest.sh $logs_fetching_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    save_screenshot;
+
+    upload_logs("/tmp/virt_logs_all.tar.gz");
+    upload_logs("/var/log/virt_logs_collector.log");
+    upload_logs("/var/log/fetch_logs_from_guest.log");
+    save_screenshot;
+    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log");
+    save_screenshot;
+}
+
+#The script clean_up_virt_logs.sh records its output in /var/log/clean_up_virt_logs.log, you can choose to upload it when necessary
+#Please refer to clean_up_virt_logs.sh data/virt_autotest for its detailed functionality, implementation and usage
+sub cleanup_host_and_guest_logs {
+    my ($extra_logs_to_cleanup) = @_;
+
+    script_run("source /usr/share/qa/qa_test_virtualization/shared/standalone") if get_var('VIRT_AUTOTEST');
+    my $logs_cleanup_script_url = data_url("virt_autotest/clean_up_virt_logs.sh");
+    script_output("curl -s -o ~/clean_up_virt_logs.sh $logs_cleanup_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+    script_output("chmod +x ~/clean_up_virt_logs.sh && ~/clean_up_virt_logs.sh -l \"$extra_logs_to_cleanup\"", 1800, type_command => 1, proceed_on_failure => 1);
+    save_screenshot;
+}
+
+#The script guest_console_monitor.sh records its output in /var/log/guest_console_monitor.log, you can choose to upload it when necessary
+#The recorded guest console output is placed in folder /tmp/virt_logs_residence on host, you can choose to upload it separately or by calling
+#collect_host_and_guest_logs. Please refer to guest_console_monitor.sh in data/virt_autotest for its detailed functionality, implementation and usage
+sub monitor_guest_console {
+    my ($monitor_button) = @_;
+    my $monitor_option = "";
+
+    if ($monitor_button eq "start") {
+        $monitor_option = "-s";
+    }
+    elsif ($monitor_button eq "stop") {
+        $monitor_option = "-e";
+    }
+    else {
+        diag("Guest console monitor can only accept start or stop as options.");
+        return;
+    }
+
+    my $guest_console_script_url = data_url("virt_autotest/guest_console_monitor.sh");
+    script_output("curl -s -o ~/guest_console_monitor.sh $guest_console_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+    script_output("chmod +x ~/guest_console_monitor.sh && ~/guest_console_monitor.sh $monitor_option", 1800, type_command => 1, proceed_on_failure => 1);
+    save_screenshot;
+}
+
+#Start monitoring guest console
+sub start_monitor_guest_console {
+    monitor_guest_console('start');
+    save_screenshot;
+}
+
+#Stop monitor guest console
+sub stop_monitor_guest_console {
+    monitor_guest_console('stop');
+    save_screenshot;
 }
 
 1;
