@@ -498,8 +498,8 @@ sub parse_repo_data {
 
  verify_software(%args);
 
-Validates that package or patter is installed, or not installed and/or if package is
-available the given repo,
+Validates that package or pattern is installed, or not installed and/or if
+package is available in the given repo.
 returns string with error or empty string in case of matching expectations.
 C<%args> should have following keys defined:
 - C<name>: package or pattern name
@@ -508,9 +508,8 @@ C<%args> should have following keys defined:
 - C<available>: if set to true, validate that package or pattern is available in
                 the list of packages with given search criteria, otherwise
                 expect zypper command to fail
-- C<repo>: Optional, name of the repo where we package should be available. Check
+- C<repo>: Optional, name of the repo where the package should be available. Check
            is triggered only if C<available> is set to true
-
 
 =cut
 
@@ -520,8 +519,6 @@ sub verify_software {
     my $zypper_args = $args{installed} ? '--installed-only' : '--not-installed-only';
     # define search type
     $zypper_args .= $args{pattern} ? ' -t pattern' : ' -t package';
-    # Set flag if availability condition is defined and is true or not defined
-    my $available = !!(!defined($args{available}) || $args{available}->());
     # Negate condition if package should not be available
     my $cmd = $args{available} ? '' : '! ';
     $cmd .= "zypper --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
@@ -532,7 +529,7 @@ sub verify_software {
     # Record error in case non-zero return code
     if (script_run($cmd)) {
         my $error = $args{pattern} ? 'Pattern' : 'Package';
-        if ($available) {
+        if ($args{available}) {
             $error .= " '$args{name}' not found in @{[ $args{repo} ]} or not preinstalled."
               . " Expected to be installed: @{[ $args{installed} ? 'true' : 'false' ]}\n";
         }
