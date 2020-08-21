@@ -108,16 +108,16 @@ sub run {
     # start yast2 ftp configuration
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'ftp-server');
 
-    assert_screen 'ftp-server';    # check ftp server configuration page
+    assert_screen 'ftp-server', 90;    # check ftp server configuration page
 
     if (is_sle('>15') || is_leap('>15.0') || is_tumbleweed) {
-        send_key 'alt-t';          #opens service popup (start service after this config)
-        send_key 'up';             #selects 'Start'
-        send_key 'ret';            #confirm
+        send_key 'alt-t';              #opens service popup (start service after this config)
+        send_key 'up';                 #selects 'Start'
+        send_key 'ret';                #confirm
 
-        send_key 'alt-a';          #opens service popup (enable service after reboot)
-        send_key 'up';             #selects 'Start on boot'
-        send_key 'ret';            #confirm
+        send_key 'alt-a';              #opens service popup (enable service after reboot)
+        send_key 'up';                 #selects 'Start on boot'
+        send_key 'ret';                #confirm
     } else {
         send_key 'alt-w';                     # make sure ftp start-up when booting
         send_key 'alt-d' if is_sle('=15');    # only sle 15 has this specific combination
@@ -136,8 +136,10 @@ sub run {
     type_string($vsftpd_directives->{ftpd_banner});                                # type new welcome text
     assert_screen 'ftp_welcome_message_added';                                     # check new welcome text
     send_key 'alt-u';                                                              # select umask for anounymous
+    wait_still_screen 1;
     type_string($vsftpd_directives->{anon_umask});                                 # set 755
     send_key 'alt-s';                                                              # select umask for authenticated users
+    wait_still_screen 1;
     type_string($vsftpd_directives->{local_umask});                                # set 755
     assert_screen 'ftp_umask_value';                                               # check umask value
     wait_screen_change { send_key 'alt-y' };                                       # give a new directory for anonymous users
