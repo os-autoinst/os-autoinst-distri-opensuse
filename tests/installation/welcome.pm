@@ -32,6 +32,7 @@ use x11utils 'ensure_fullscreen';
 use version_utils qw(:VERSION :SCENARIO);
 use Utils::Backends 'is_remote_backend';
 use Utils::Architectures;
+use utils 'handle_untrusted_gpg_key';
 
 sub switch_keyboard_layout {
     record_info 'keyboard layout', 'Check keyboard layout switching to another language';
@@ -105,6 +106,7 @@ sub run {
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
+    push @welcome_tags, 'import-known-untrusted-gpg-key' if get_var('INSTALLER_SELF_UPDATE');
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
     while ($iterations++ < scalar(@welcome_tags)) {
@@ -115,6 +117,7 @@ sub run {
         if ((match_has_tag 'inst-betawarning') || (match_has_tag 'inst-welcome') || (match_has_tag 'inst-welcome-no-product-list')) {
             last;
         }
+        handle_untrusted_gpg_key;
         if (match_has_tag 'scc-invalid-url') {
             die 'SCC reg URL is invalid' if !get_var('SCC_URL_VALID');
             send_key 'alt-r';    # registration URL field
