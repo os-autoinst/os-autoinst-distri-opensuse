@@ -149,7 +149,8 @@ sub create_loop_device_by_rootsize {
     if ($para{fstype} =~ /btrfs/) {
         $amount = 5;
     }
-    $size  = int($para{size} / ($amount + 1));
+    # Use 90% of free space, not use all space in /root
+    $size  = int($para{size} * 0.9 / ($amount + 1));
     $bsize = 4096;
     $count = int($size * 1024 * 1024 / $bsize);
     my $num = 0;
