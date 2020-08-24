@@ -533,7 +533,13 @@ sub zypper_call {
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
         upload_logs('/var/log/zypper.log');
-        die "'zypper -n $command' failed with code $ret";
+        my $msg = "'zypper -n $command' failed with code $ret";
+        if ($ret == 104) {
+            $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
+            $msg .= script_output('cat /tmp/z104.txt');
+        }
+        die $msg;
     }
     $IN_ZYPPER_CALL = 0;
     return $ret;
