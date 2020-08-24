@@ -89,6 +89,7 @@ our @EXPORT = qw(
   generate_version
   validate_repo_enablement
   parse_repo_data
+  verify_software
 );
 
 =head2 add_qa_head_repo
@@ -266,7 +267,7 @@ sub rmt_wizard {
 }
 
 =head2 rmt_sync
- 
+
  rmt_sync();
 
 Function to sync rmt server
@@ -277,7 +278,7 @@ sub rmt_sync {
 }
 
 =head2 rmt_enable_pro
- 
+
  rmt_enable_pro();
 
 Function to enable products
@@ -491,6 +492,53 @@ sub parse_repo_data {
     my @lines             = split(/\n/, script_output("zypper lr $repo_identifier"));
     my %repo_data         = map { split(/\s*:\s*/, $_, 2) } @lines;
     return \%repo_data;
+}
+
+=head2 verify_software
+
+ verify_software(%args);
+
+Validates that package or pattern is installed, or not installed and/or if
+package is available in the given repo.
+returns string with error or empty string in case of matching expectations.
+C<%args> should have following keys defined:
+- C<name>: package or pattern name
+- C<installed>: if set to true, validate that package or pattern is installed
+- C<pattern>: set to true if is pattern, otherwise validating package
+- C<available>: if set to true, validate that package or pattern is available in
+                the list of packages with given search criteria, otherwise
+                expect zypper command to fail
+- C<repo>: Optional, name of the repo where the package should be available. Check
+           is triggered only if C<available> is set to true
+
+=cut
+
+sub verify_software {
+    my (%args) = @_;
+
+    my $zypper_args = $args{installed} ? '--installed-only' : '--not-installed-only';
+    # define search type
+    $zypper_args .= $args{pattern} ? ' -t pattern' : ' -t package';
+    # Negate condition if package should not be available
+    my $cmd = $args{available} ? '' : '! ';
+    $cmd .= "zypper --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
+    # Verify repo only if package expected to be available
+    if ($args{repo} && $args{available}) {
+        $cmd .= ' | grep ' . $args{repo};
+    }
+    # Record error in case non-zero return code
+    if (script_run($cmd)) {
+        my $error = $args{pattern} ? 'Pattern' : 'Package';
+        if ($args{available}) {
+            $error .= " '$args{name}' not found in @{[ $args{repo} ]} or not preinstalled."
+              . " Expected to be installed: @{[ $args{installed} ? 'true' : 'false' ]}\n";
+        }
+        else {
+            $error .= " '$args{name}' found in @{[ $args{repo} ]} repo, this package should not be present.\n";
+        }
+        return $error;
+    }
+    return '';
 }
 
 1;
