@@ -149,9 +149,10 @@ sub create_loop_device_by_rootsize {
     if ($para{fstype} =~ /btrfs/) {
         $amount = 5;
     }
-    $size  = int($para{size} / ($amount + 1));
+    # Use 90% of free space, not use all space in /root
+    $size  = int($para{size} * 0.9 / ($amount + 1));
     $bsize = 4096;
-    $count = int($size * 1028 * 1028 / $bsize);
+    $count = int($size * 1024 * 1024 / $bsize);
     my $num = 0;
     my $filename;
     while ($amount >= $num) {
@@ -204,7 +205,7 @@ sub run {
         if ($loopdev) {
             $para{fstype} = $filesystem;
             $para{size}   = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
-            $para{siza}   = str_to_mb($para{siza});
+            $para{size}   = str_to_mb($para{size});
             create_loop_device_by_rootsize(\%para);
         }
         else {
