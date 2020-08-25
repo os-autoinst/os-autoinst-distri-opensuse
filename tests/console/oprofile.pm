@@ -23,7 +23,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Install fio as load generator and oprofile
-    zypper_call "in fio oprofile";
+    zypper_call "in fio oprofile psmisc";
 
     # Start a system wide profiling
     script_run "(operf --system-wide &)";
