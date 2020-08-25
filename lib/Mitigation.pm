@@ -520,12 +520,16 @@ sub guest_cycle {
                     $testcase_status = "fail";
                     $failure_tc_count_in_ts += 1;
                     $total_failure_tc_count += 1;
+                    insert_tc2_xml(file_name => "$junit_file",
+                        class_name  => "$key",
+                        case_status => "$testcase_status",
+                        sys_output  => "$match_type:" . "$match_value",
+                        sys_err     => "Actual:" . "$actual_output");
+                } else {
+                    insert_tc2_xml(file_name => "$junit_file",
+                        class_name  => "$key",
+                        case_status => "$testcase_status");
                 }
-                insert_tc2_xml(file_name => "$junit_file",
-                    class_name  => "$key",
-                    case_status => "$testcase_status",
-                    sys_output  => "$match_type:" . "$match_value",
-                    sys_err     => "Actual:" . "$actual_output");
                 update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
                 update_ts_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count_in_ts);
                 # update testsuites info
