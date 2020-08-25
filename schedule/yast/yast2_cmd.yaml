@@ -23,7 +23,7 @@ conditional_schedule:
         - installation/bootloader_zkvm
     BACKEND:
       spvm:
-        - installation/bootloader
+        - installation/bootloader_start
   # As per bsc#1161234 yast keyaboard won't be fixed on s390x
   yast_keyboard:
     BACKEND:
