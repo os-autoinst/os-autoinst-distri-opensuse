@@ -87,7 +87,7 @@ our @EXPORT = qw(
   prepare_oss_repo
   disable_oss_repo
   generate_version
-  validate_repo_enablement
+  validate_repo_properties
   parse_repo_data
   verify_software
 );
@@ -442,34 +442,51 @@ sub generate_version {
 }
 
 
-=head2 validate_repo_enablement
+=head2 validate_repo_properties
 
- validate_repo_enablement(%args);
+ validate_repo_properties($args);
 
-Validates that repo with given name and alias has correct uri and is enabled.
-C<%args> should have following keys defined:
-- C<alias>: repository alias
-- C<name>: repository name
-- C<uri>: repository uri
+Validates that repo with given search criteria (uri, alias, number)
+has other properties mathing the expectations.
+If one of the keys is not provided, that field will NOT be validated.
+C<$args> should have following keys defined:
+- C<Alias>: repository alias, optional
+- C<Autorefresh>: repository Autorefresh property, optional
+- C<Enabled>: repository Enabled property, optional
+- C<Filter>: repository search criteria (alias, uri, number), uri is used if not defined
+- C<Name>: repository name, optional
+- C<URI>: repository uri, used as a search criteria if no C<Filter> provided.
 
 =cut
-sub validate_repo_enablement {
-    my (%args) = @_;
+sub validate_repo_properties {
+    my ($args)           = @_;
+    my $search_criteria  = $args->{Filter} // $args->{URI};
+    my $actual_repo_data = parse_repo_data($search_criteria);
 
-    my $output = script_output('zypper lr --uri');
+    if ($args->{Alias}) {
+        assert_true($actual_repo_data->{Alias} =~ /$args->{Alias}/,
+            "Repository $args->{Name} has wrong alias, expected: '$args->{Alias}', got: '$actual_repo_data->{Alias}'");
+    }
 
-    assert_true($output =~ /
-        \d\s+\|                 # #
-        \s+$args{alias}.*\s+\|  # Alias
-        \s+$args{name}.*\s+\|   # Name
-        \s+Yes\s+\|             # Enabled
-        \s+\(r\s+\)\s+Yes\s+\|  # GPG Check
-        \s+Yes\s+\|             # Refresh
-        \s+(?<uri>.*)           # URI
-    /ix, "Repository $args{name} is not found in the installed system:\n$output");
+    if ($args->{Name}) {
+        assert_true($actual_repo_data->{Name} =~ /$args->{Name}/,
+            "Repository '$args->{Name}' has wrong name: '$actual_repo_data->{Name}'");
+    }
 
-    assert_equals($args{uri}, $+{uri},
-        "Repository $args{name} has system wrong url or repo is not added to the system:\n$output");
+    if ($args->{URI}) {
+        assert_true($actual_repo_data->{URI} =~ /$args->{Alias}/,
+            "Repository $args->{Name} has wrong URI, expected: '$args->{URI}', got: '$actual_repo_data->{URI}'");
+    }
+
+    if ($args->{Enabled}) {
+        assert_equals($actual_repo_data->{Enabled}, $args->{Enabled},
+            "Repository $args->{Name} has wrong value for the field 'Enabled'");
+    }
+
+    if ($args->{Autorefresh}) {
+        assert_equals($actual_repo_data->{Autorefresh}, $args->{Autorefresh},
+            "Repository $args->{Name} has wrong value for the field 'Autorefresh'");
+    }
 }
 
 =head2 parse_repo_data
