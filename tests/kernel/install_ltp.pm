@@ -275,7 +275,7 @@ sub setup_network {
         script_run('/etc/init.d/SuSEfirewall2_setup stop');
     }
     else {
-        disable_and_stop_service(opensusebasetest::firewall);
+        disable_and_stop_service(opensusebasetest::firewall, ignore_failure => 1);
     }
 }
 
