@@ -78,10 +78,8 @@ sub ibtest_master {
 
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-    zypper_call('in git-core twopence bc iputils python');
+    zypper_call('in git-core twopence-shell-client bc iputils python');
 
-    # create symlinks, the package is (for now) broken
-    assert_script_run('ln -sf /usr/lib64/libtwopence.so.0.3.8 /usr/lib64/libtwopence.so.0');
     # pull in the testsuite
     assert_script_run("git -c http.sslVerify=false clone $hpc_testing --branch $hpc_testing_branch");
 
