@@ -469,8 +469,14 @@ sub validate_repo_properties {
     }
 
     if ($args->{Name}) {
-        assert_true($actual_repo_data->{Name} =~ /$args->{Name}/,
-            "Repository '$args->{Name}' has wrong name: '$actual_repo_data->{Name}'");
+        # TODO remove workaround poo#70546
+        if ($actual_repo_data->{Name} =~ /$args->{Alias}\/?/) {
+            record_soft_failure "repo name is not set correctly - bsc#1175374 - found actual repo name $actual_repo_data->{Name}";
+        }
+        else {
+            assert_true($actual_repo_data->{Name} =~ /$args->{Name}/,
+                "Repository '$args->{Name}' has wrong name: '$actual_repo_data->{Name}'");
+        }
     }
 
     if ($args->{URI}) {
