@@ -78,3 +78,14 @@ test_data:
     sdb:
       prio: 0
       status: enabled
+  software:
+    packages:
+      # Device Mapper Tools
+      device-mapper:
+        installed: 1
+      # Tools to Manage Multipathed Devices with the device-mapper
+      multipath-tools:
+        installed: 1
+      # Manages partition tables on device-mapper devices
+      kpartx:
+        installed: 1

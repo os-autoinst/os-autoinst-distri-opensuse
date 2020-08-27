@@ -20,12 +20,18 @@ use base "opensusebasetest";
 use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
+use repo_tools 'verify_software';
 
 sub verify_packages_installed {
-    my ($pkg_ref) = shift;
-    record_info('pkgs', 'Verify required packages installed');
-    assert_script_run("rpm -qa | grep $_",
-        fail_message => "$_ is not installed in the system") for (@{$pkg_ref});
+    my ($software) = shift;
+    record_info('packages', 'Verify required packages installed');
+    my $errors = '';
+    for my $name (keys %{$software->{packages}}) {
+        $errors .= verify_software(name => $name,
+            installed => $software->{packages}->{$name}->{installed},
+            available => 1);
+    }
+    die "$errors" if $errors;
 }
 
 sub verify_kernel_modules_loaded {
@@ -117,11 +123,7 @@ sub verify_paths_list {
 sub verify_basic_multipath_configuration {
     my ($test_data) = shift;
 
-    # Verify required packages are installed:
-    #   * device-mapper:   Device Mapper Tools
-    #   * multipath-tools: Tools to Manage Multipathed Devices with the device-mapper
-    #   * kpartx:          Manages partition tables on device-mapper devices
-    verify_packages_installed(['device-mapper', 'multipath-tools', 'kpartx']);
+    verify_packages_installed($test_data->{software});
 
     # Verify required kernel modules are loaded:
     #   * dm_multipath: device-mapper multipath target
