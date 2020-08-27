@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE Linux GmbH
+# Copyright © 2015-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -174,6 +174,7 @@ sub run {
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
     push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
+    push @needles, 'bsc1175335' if is_sle('15-SP3+');
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
@@ -201,6 +202,12 @@ sub run {
         elsif (match_has_tag('import-untrusted-gpg-key')) {
             handle_untrusted_gpg_key;
             @needles = grep { $_ ne 'import-untrusted-gpg-key' } @needles;
+            next;
+        }
+        elsif (match_has_tag('bsc1175335')) {
+            @needles = grep { $_ ne 'bsc1175335' } @needles;
+            send_key $cmd{ok};
+            send_key $cmd{next};
             next;
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
