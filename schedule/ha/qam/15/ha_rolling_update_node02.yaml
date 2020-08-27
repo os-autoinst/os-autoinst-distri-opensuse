@@ -6,7 +6,6 @@ schedule:
   - boot/boot_to_desktop
   - console/suseconnect_scc
   - update/zypper_up
-  - console/scc_deregistration
   - console/console_reboot
   - ha/wait_barriers
   - console/system_prepare
