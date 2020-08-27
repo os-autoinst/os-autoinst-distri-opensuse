@@ -86,7 +86,6 @@ sub run {
     # It is intended to be used as a secure mechanism to allow real-time scheduling to be used by normal user processes.
     record_info('Service', 'Is rtkit-daemon.service active?');
     systemctl 'is-active rtkit-daemon.service';
-    record_info('Limits', script_output q{cat /etc/security/limits.conf});
 
     # Retrieve PID of bash on bg
     # Save PID in bash env
@@ -94,7 +93,6 @@ sub run {
     assert_script_run "sudo -bu rt_tester 'bash'";
     assert_script_run q{BG_BASH_PID=`ps -U rt_tester | awk 'END{print $1}'`};
 
-    record_info('Change', 'Change current policy for bash on the background');
     # User *rt_tester* has created a proces with SCHED_OTHER and Priority 0
     assert_script_run q{chrt -p $BG_BASH_PID};
 
@@ -102,7 +100,8 @@ sub run {
         my $scheduler_policy = remap_args($_);
         my $scheduler        = $_;
         # Try to modify *rt_tester's* bash proces with a sequence of valid and invalid priorities
-        foreach ($sched_settings->{$scheduler}->{max}, $sched_settings->{$scheduler}->{min}, 42, 100, -1) {
+        foreach ($sched_settings->{$scheduler}->{min}, 42, 100, -1, $sched_settings->{$scheduler}->{max}) {
+            record_info('Change', "Change policy to $scheduler, set priority to $_");
             if ((script_run qq{chrt $scheduler_policy -p $_ \$BG_BASH_PID})
                 && ($_ > 99 && $_ < 0)) {
                 die 'Unsupported priority value for the policy';
