@@ -179,10 +179,26 @@ sub handle_login {
     my ($myuser, $user_selected) = @_;
     $myuser        //= $username;
     $user_selected //= 0;
-
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
-    send_key_until_needlematch('displaymanager', 'esc', 30, 3);
+    
+    my $counter = 0;
+    while (!check_screen('displaymanager') &&  $counter < 5) {
+        send_key 'esc';
+        wait_still_screen 3;
+	$counter++;
+    }
+
+    if ($counter >= 5) {
+        if (check_screen 'screenlock') {
+            mouse_set(50,50); # move mouse to workaround #bsc1058521
+	    mouse_click('left');
+	    record_soft_failure('bsc#1058521');
+        }
+    }
+
+    send_key_until_needlematch('displaymanager', 'esc', 5, 3);
+
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
             record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';

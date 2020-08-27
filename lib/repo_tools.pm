@@ -274,7 +274,7 @@ Function to sync rmt server
 
 =cut
 sub rmt_sync {
-    assert_script_run 'rmt-cli sync', 1800;
+    script_retry 'rmt-cli sync', delay => 30, retry => 6, timeout => 1800;
 }
 
 =head2 rmt_enable_pro
