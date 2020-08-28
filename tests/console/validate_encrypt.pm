@@ -2,11 +2,19 @@
 #
 # Copyright © 2020 SUSE LLC
 #
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
-
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, see <http://www.gnu.org/licenses/>.
+#
 # Summary: Validation module to check encrypted volumes.
 # Scenarios covered:
 # - Verify existence and content of '/etc/crypttab';
@@ -37,8 +45,10 @@ sub run {
         verify_cryptsetup_properties($test_data->{cryptsetup}->{device_status}->{properties}, $status->{properties});
     }
     foreach my $dev (sort keys %{$devices}) {
-        verify_restoring_luks_backups(encrypted_device => $devices->{$dev}->{encrypted_device},
-            backup_file_info => $test_data->{backup_file_info}
+        verify_restoring_luks_backups(
+            encrypted_device_path => $devices->{$dev}->{encrypted_device},
+            backup_file_info      => $test_data->{backup_file_info},
+            backup_base_path      => $test_data->{backup_base_path}
         );
     }
 }
