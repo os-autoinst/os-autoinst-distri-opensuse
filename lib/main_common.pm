@@ -2487,6 +2487,9 @@ sub load_mitigation_tests {
     if (get_var('XEN_GRUB_SETUP')) {
         loadtest "cpu_bugs/xen_grub_setup";
     }
+    if (get_var('MITIGATION_ENV_SETUP')) {
+        loadtest "cpu_bugs/mitigation_env_setup";
+    }
     if (get_var('MELTDOWN')) {
         loadtest "cpu_bugs/meltdown";
     }
