@@ -33,7 +33,8 @@ sub run {
     my $nfs_share    = get_required_var('NFS_SUPPORT_SHARE');
     my $mountpt      = '/support_fs';
     my $cluster_name = get_cluster_name;
-    my $dir_id       = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'));
+    my $build        = join('_', get_required_var('BUILD') =~ m/(\w+)/g);
+    my $dir_id       = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $build);
     my $testname     = get_required_var('TEST');
     my $time_to_wait;
 
