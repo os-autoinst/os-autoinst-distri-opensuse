@@ -282,6 +282,9 @@
     % if ($check_var->('DESKTOP', 'gnome')) {
     <default_target>graphical</default_target>
     % }
+    % if ($check_var->('DESKTOP', 'textmode')) {
+    <default_target>multi-user</default_target>
+    % }
     <services>
       <disable config:type="list"/>
       <enable config:type="list">
