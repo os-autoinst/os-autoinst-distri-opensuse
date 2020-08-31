@@ -539,6 +539,11 @@ sub zypper_call {
             script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
             $msg .= script_output('cat /tmp/z104.txt');
         }
+        else {
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
+            $msg .= "\n\nRelated zypper logs:\n";
+            $msg .= script_output('cat /tmp/zlog.txt');
+        }
         die $msg;
     }
     $IN_ZYPPER_CALL = 0;
