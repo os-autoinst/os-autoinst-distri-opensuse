@@ -16,6 +16,7 @@ use File::Basename;
 use testapi;
 use virt_utils 'clean_up_red_disks';
 use base 'reboot_and_wait_up';
+use virt_autotest::utils;
 
 sub run {
     my $self = shift;
@@ -46,6 +47,14 @@ sub run {
     }
 
     $self->reboot_and_wait_up($timeout);
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    reset_consoles;
+    select_console('root-console');
+    $self->upload_y2logs if (check_var('offline_upgrade', 'yes'));
+    $self->SUPER::post_fail_hook;
 }
 
 1;
