@@ -23,7 +23,7 @@ sub run {
 
     my $method     = uc get_required_var('INSTALL_SOURCE');
     my $mirror_src = get_required_var("MIRROR_$method");
-    $mirror_src .= '?ssl_verify=no' if ($method eq 'HTTPS');
+    $mirror_src .= '\?ssl_verify=no' if ($method eq 'HTTPS');
     my $sle_prod = uc get_var('SLE_PRODUCT') . get_var('VERSION');
     my $name     = $sle_prod . '-' . scc_version() . '-0';
 
