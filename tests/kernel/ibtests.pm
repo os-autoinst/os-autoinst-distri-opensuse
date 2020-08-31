@@ -18,8 +18,6 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-use ipmi_backend_utils;
-use version_utils 'is_sle';
 
 
 our $master;
@@ -27,7 +25,7 @@ our $slave;
 
 
 sub upload_ibtest_logs {
-    my $self = @_;
+    my $self = shift;
     my $role = get_required_var('IBTEST_ROLE');
 
     if ($role eq 'IBTEST_MASTER') {
@@ -37,6 +35,18 @@ sub upload_ibtest_logs {
     }
     $self->save_and_upload_log('dmesg',                   '/tmp/dmesg.log',         {screenshot => 0});
     $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+
+    $self->save_and_upload_systemd_unit_log('opensm.service');
+    $self->save_and_upload_systemd_unit_log('srp_daemon.service');
+    $self->save_and_upload_systemd_unit_log('nvmet.service');
+    $self->save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
+    $self->save_and_upload_systemd_unit_log('rdma-hw.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
+    $self->save_and_upload_systemd_unit_log('rdma-ndd.service');
+    $self->save_and_upload_systemd_unit_log('rdma-sriov.service');
+
 }
 
 sub ibtest_slave {
@@ -81,7 +91,7 @@ sub ibtest_master {
     zypper_call('in git-core twopence-shell-client bc iputils python');
 
     # pull in the testsuite
-    assert_script_run("git -c http.sslVerify=false clone $hpc_testing --branch $hpc_testing_branch");
+    assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch");
 
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
@@ -95,11 +105,8 @@ sub ibtest_master {
 }
 
 sub run {
-    my $self        = shift;
-    my $role        = get_required_var('IBTEST_ROLE');
-    my $version     = get_required_var("VERSION");
-    my $arch        = get_required_var("ARCH");
-    my $sdk_version = get_required_var("BUILD_SDK");
+    my $self = shift;
+    my $role = get_required_var('IBTEST_ROLE');
 
     $master = get_required_var('IBTEST_IP1');
     $slave  = get_required_var('IBTEST_IP2');

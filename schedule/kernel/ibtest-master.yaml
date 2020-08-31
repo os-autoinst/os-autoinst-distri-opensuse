@@ -22,4 +22,4 @@ schedule:
     - installation/ipxe_install
     - console/suseconnect_scc
     - toolchain/install
-    - kernel/ib_tests
+    - kernel/ibtests
