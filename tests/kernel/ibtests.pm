@@ -35,6 +35,18 @@ sub upload_ibtest_logs {
     }
     $self->save_and_upload_log('dmesg',                   '/tmp/dmesg.log',         {screenshot => 0});
     $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+
+    $self->save_and_upload_systemd_unit_log('opensm.service');
+    $self->save_and_upload_systemd_unit_log('srp_daemon.service');
+    $self->save_and_upload_systemd_unit_log('nvmet.service');
+    $self->save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
+    $self->save_and_upload_systemd_unit_log('rdma-hw.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
+    $self->save_and_upload_systemd_unit_log('rdma-ndd.service');
+    $self->save_and_upload_systemd_unit_log('rdma-sriov.service');
+
 }
 
 sub ibtest_slave {
