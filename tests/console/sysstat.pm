@@ -72,7 +72,7 @@ sub run {
     validate_script_output "mpstat",     sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
     validate_script_output "sar -u",     sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
     validate_script_output "sar -n DEV", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
-    if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
+    if (is_sle('<=15-SP3') || is_leap('<=15.3')) {
         validate_script_output "sar -b", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
     } else {
         validate_script_output "sar -b", sub { /tps      rtps      wtps      dtps   bread\/s   bwrtn\/s   bdscd\/s/ };
