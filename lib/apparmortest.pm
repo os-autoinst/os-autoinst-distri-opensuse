@@ -622,7 +622,7 @@ sub adminer_database_delete {
     assert_and_click("adminer-click-database-test");
     assert_and_click("adminer-click-drop-database-test");
     # Confirm drop
-    wait_screen_change { send_key 'spc' }
+    send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 1);
     # Exit x11 and turn to console
     send_key "alt-f4";
     assert_screen("generic-desktop");
