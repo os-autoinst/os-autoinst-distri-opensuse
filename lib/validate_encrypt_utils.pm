@@ -184,7 +184,7 @@ Where C<%args> expects the following parameters:
 =item C<$backup_file_info>
   unique string to match with the info of the backup file
 
-=item C<$backup_path_path>
+=item C<$backup_path>
   path to a binary file used for backup of the keys
 
 =back
@@ -195,7 +195,7 @@ sub verify_restoring_luks_backups {
     my (%args)           = @_;
     my $mapped_dev_path  = $args{encrypted_device_path};
     my $backup_file_info = $args{backup_file_info};
-    my $backup_path      = $args{backup_base_path};
+    my $backup_path      = $args{backup_path};
     record_info("LUKS", "Verify storing and restoring for binary backups of LUKS header and keyslot areas.");
     assert_script_run("cryptsetup -v isLuks $mapped_dev_path");
     assert_script_run("cryptsetup -v luksUUID $mapped_dev_path");

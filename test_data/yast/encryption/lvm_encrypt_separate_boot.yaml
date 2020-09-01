@@ -1,5 +1,5 @@
 crypttab:
   num_devices_encrypted: 1
 <<: !include test_data/yast/encryption/default_enc.yaml
-cr_vda2:
-  backup_path: '/root/bkp_luks_header_cr_vda2'
+cr_vda3:
+  backup_path: '/root/bkp_luks_header_cr_vda3'
