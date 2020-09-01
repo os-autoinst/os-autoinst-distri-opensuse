@@ -74,7 +74,7 @@ sub create_credentials_file {
 sub file2name {
     my ($self, $file) = @_;
     my $name = $file;
-    $name = lc $file;    # lower case
+    $name = lc $file;            # lower case
     $name =~ s/\.tar\.gz$//;     # removes tar.gz
     $name =~ s/\./-/g;
     $name =~ s/[^-a-z0-9]//g;    # only allowed characteres from Google Cloud

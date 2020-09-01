@@ -29,7 +29,7 @@ sub run {
     script_run('ls -la /etc/products.d/');
     my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);
     assert_script_run('SUSEConnect --cleanup', 200) if $out =~ /Error: Invalid system credentials/s;
-    add_suseconnect_product('SLES', $version, get_required_var('ARCH'), $suseconnect_str . get_required_var('SCC_REGCODE'));
+    add_suseconnect_product('SLES',                     $version, get_required_var('ARCH'), $suseconnect_str . get_required_var('SCC_REGCODE'));
     add_suseconnect_product('sle-module-hpc',           '12');
     add_suseconnect_product('sle-module-web-scripting', '12');
     zypper_call('in switch_sles_sle-hpc');

@@ -79,8 +79,8 @@ sub test_network_interface {
     my $mac      = $args{mac};
     my $gate     = $args{gate};
     my $isolated = $args{isolated} // 0;
-    my $routed   = $args{routed} // 0;
-    my $target   = $args{target} // script_output("dig +short openqa.suse.de");
+    my $routed   = $args{routed}   // 0;
+    my $target   = $args{target}   // script_output("dig +short openqa.suse.de");
 
     save_guest_ip("$guest", name => $net);
 

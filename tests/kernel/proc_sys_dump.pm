@@ -30,9 +30,9 @@ sub run {
     my $ps_dump        = 'proc_sys_dump.sh';
     my $white_list     = '~/proc_sys_whitelist.txt';
     my $use_white_list = check_var('PROC_SYS_USE_WHITELIST', 1);
-    my $wl_opt  = $use_white_list ? 'u' : 'w';
-    my $timeout = $use_white_list ? 120 : 300;
-    my $script_url = data_url("ltp/$ps_dump");
+    my $wl_opt         = $use_white_list ? 'u' : 'w';
+    my $timeout        = $use_white_list ? 120 : 300;
+    my $script_url     = data_url("ltp/$ps_dump");
 
     $timeout *= 2 if is_aarch64;
 

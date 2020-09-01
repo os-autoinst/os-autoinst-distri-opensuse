@@ -24,7 +24,7 @@ our @EXPORT = qw(
 
 sub validate_partition_table {
     my $args = shift;
-    return if check_var('BACKEND', 's390x');    # blkid output does not show partition table for dasd
+    return if check_var('BACKEND', 's390x');                                       # blkid output does not show partition table for dasd
     record_info("Check $args->{table_type}", "Verify if partition table type is $args->{table_type}");
     my $table_type = (split(/\"/, script_output("blkid $args->{device}")))[-1];    # last element of output eg "gpt"
     my $converter  = {msdos => 'dos'};

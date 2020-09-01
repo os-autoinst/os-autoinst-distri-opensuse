@@ -54,9 +54,9 @@ sub get_opensuse_registry_prefix {
 # If empty, no images available.
 sub get_suse_container_urls {
     my $version    = shift // get_required_var('VERSION');
-    my $totest     = get_var('CONTAINER_TOTEST', '');        # totest/
-    my $dotversion = $version =~ s/-SP/./r;                  # 15 -> 15, 15-SP1 -> 15.1
-    $dotversion = "${dotversion}.0" if $dotversion !~ /\./;  # 15 -> 15.0
+    my $totest     = get_var('CONTAINER_TOTEST', '');          # totest/
+    my $dotversion = $version =~ s/-SP/./r;                    # 15 -> 15, 15-SP1 -> 15.1
+    $dotversion = "${dotversion}.0" if $dotversion !~ /\./;    # 15 -> 15.0
 
     my @image_names  = ();
     my @stable_names = ();

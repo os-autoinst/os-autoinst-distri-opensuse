@@ -47,7 +47,7 @@ sub run {
         assert_screen 'sap-installation-wizard';
     } else {
         select_console 'x11';
-        mouse_hide;    # Hide the mouse so no needle will fail because of the mouse pointer appearing
+        mouse_hide;                    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
         type_string "killall xterm\n";

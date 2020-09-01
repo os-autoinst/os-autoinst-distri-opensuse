@@ -71,7 +71,7 @@ sub run {
         send_key 'alt-c';
         wait_still_screen 3;
         wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
-        assert_screen 'root-console', $default_timeout;
+        assert_screen 'root-console',  $default_timeout;
         systemctl 'restart pacemaker', timeout => $default_timeout;
     }
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;

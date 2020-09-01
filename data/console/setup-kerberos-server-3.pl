@@ -54,7 +54,7 @@ my $kadmin_cmds = [
     ['cpw tester', "1234wert", "1234wert"],
     ['modprinc -policy myPolicy tester'],
     ['getprinc tester'],
-    ['cpw tester', "w", "w"],
+    ['cpw tester',       "w", "w"],
     ['delprinc mcalmer', 'yes'],
     ['delpol myPolicy',  'yes'],
     ['listpols'],

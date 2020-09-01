@@ -56,8 +56,8 @@ sub run() {
         send_key 'alt-y';
     }
     send_key 'alt-m';
-    assert_screen 'nis-client-automounter-enabled';    # this checks if nis and automounter got really enabled
-    send_key 'alt-i';                                  # enter Nis domain for enter string suse.de
+    assert_screen 'nis-client-automounter-enabled';                      # this checks if nis and automounter got really enabled
+    send_key 'alt-i';                                                    # enter Nis domain for enter string suse.de
     send_key_until_needlematch 'nis-domain-empty-field', 'backspace';    # clear NIS Domain field if it is prefilled
     type_string "suse.de";
     send_key 'alt-a';

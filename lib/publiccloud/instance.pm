@@ -20,13 +20,13 @@ use File::Basename;
 
 use constant SSH_TIMEOUT => 90;
 
-has instance_id => undef;                                                                             # unique CSP instance id
-has public_ip   => undef;                                                                             # public IP of instance
-has username    => undef;                                                                             # username for ssh connection
-has ssh_key     => undef;                                                                             # path to ssh-key for connection
-has image_id    => undef;                                                                             # image from where the VM is booted
+has instance_id => undef;               # unique CSP instance id
+has public_ip   => undef;               # public IP of instance
+has username    => undef;               # username for ssh connection
+has ssh_key     => undef;               # path to ssh-key for connection
+has image_id    => undef;               # image from where the VM is booted
 has type        => undef;
-has provider    => undef, weak => 1;                                                                  # back reference to the provider
+has provider    => undef, weak => 1;    # back reference to the provider
 has ssh_opts    => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR';
 
 =head2 run_ssh_command

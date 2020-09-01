@@ -312,7 +312,7 @@ my $spectrev2_user_auto = {"spectre_v2_user=auto" => {
 my $mitigations_auto_on_pv_haswell = {"mitigations=auto" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /proc/cmdline'                                      => ['mitigations=auto'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -326,7 +326,7 @@ my $mitigations_auto_on_pv_haswell = {"mitigations=auto" => {
 my $mitigations_auto_on_pv = {"mitigations=auto" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /proc/cmdline'                                      => ['mitigations=auto'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -366,7 +366,7 @@ my $mitigations_auto_on_hvm_haswell = {"mitigations=auto" => {
 my $mitigations_on_on_pv = {"mitigations=on" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /proc/cmdline'                                      => ['mitigations=on'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -380,7 +380,7 @@ my $mitigations_on_on_pv = {"mitigations=on" => {
 my $mitigations_on_on_pv_haswell = {"mitigations=on" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /proc/cmdline'                                      => ['mitigations=on'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],

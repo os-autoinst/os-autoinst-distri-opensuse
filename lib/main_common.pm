@@ -344,9 +344,9 @@ sub is_desktop_module_selected {
 
 sub default_desktop {
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return         if get_var('VERSION', '') lt '12';
-    return 'gnome' if get_var('VERSION', '') lt '15';
-    return 'gnome' if get_var('VERSION', '') =~ /^Jump/;
+    return            if get_var('VERSION', '') lt '12';
+    return 'gnome'    if get_var('VERSION', '') lt '15';
+    return 'gnome'    if get_var('VERSION', '') =~ /^Jump/;
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'gnome' if is_desktop_module_selected;
@@ -1690,7 +1690,7 @@ sub load_extra_tests_console {
     loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
-    loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
+    loadtest 'console/libgpiod'  if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
@@ -2843,7 +2843,7 @@ sub load_common_opensuse_sle_tests {
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
     loadtest "terraform/create_image"   if get_var('TERRAFORM');
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-    load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
+    load_toolchain_tests                if get_var("TCM")         || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);

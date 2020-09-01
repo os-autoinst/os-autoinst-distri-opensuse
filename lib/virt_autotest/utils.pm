@@ -107,7 +107,7 @@ sub ssh_setup {
 
 sub ssh_copy_id {
     my $guest           = shift;
-    my $mode            = is_sle('=11-sp4') ? '' : '-f';
+    my $mode            = is_sle('=11-sp4')             ? ''                      : '-f';
     my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
     script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";

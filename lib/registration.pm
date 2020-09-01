@@ -759,7 +759,7 @@ sub get_addon_fullname {
         dev       => 'sle-module-development-tools',
         ses       => 'ses',
         live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
-        asmm      => is_sle('15+') ? 'sle-module-basesystem' : 'sle-module-adv-systems-management',
+        asmm      => is_sle('15+') ? 'sle-module-basesystem'    : 'sle-module-adv-systems-management',
         base      => 'sle-module-basesystem',
         contm     => 'sle-module-containers',
         desktop   => 'sle-module-desktop-applications',

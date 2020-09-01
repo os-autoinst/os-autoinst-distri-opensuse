@@ -98,7 +98,7 @@ sub run_test {
             assert_script_run "virsh vcpucount $guest | grep current | grep live | grep 3";
             if (get_var('VIRT_AUTOTEST') && is_kvm_host && ($sles_running_version eq '15' && $sles_running_sp eq '2')) {
                 my $vcpu_nproc = script_retry "ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60, die => 0;
-                record_soft_failure 'bsc#1170026 vCPU hotplugging damages this guest ' . $guest if ($vcpu_nproc != 0);
+                record_soft_failure 'bsc#1170026 vCPU hotplugging damages this guest ' . $guest                                      if ($vcpu_nproc != 0);
                 $self->{test_results}->{$guest}->{"bsc#1170026 vCPU hotplugging damages this guest $guest"}->{status} = 'SOFTFAILED' if ($vcpu_nproc != 0);
             } else {
                 script_retry "ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60;

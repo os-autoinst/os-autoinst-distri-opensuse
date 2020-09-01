@@ -132,7 +132,7 @@ sub run {
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
     my $iso      = get_var('ISO') ? "$root\\cache\\" . basename(get_var('ISO')) : undef;
-    my $ramsize  = get_var('QEMURAM', 1024);
+    my $ramsize  = get_var('QEMURAM',  1024);
     my $cpucount = get_var('QEMUCPUS', 1);
 
     type_string "mkdir -p ~/.vnc/\n";

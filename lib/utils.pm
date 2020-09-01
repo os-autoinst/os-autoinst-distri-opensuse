@@ -490,7 +490,7 @@ sub zypper_call {
     my $command          = shift;
     my %args             = @_;
     my $allow_exit_codes = $args{exitcode} || [0];
-    my $timeout          = $args{timeout} || 700;
+    my $timeout          = $args{timeout}  || 700;
     my $log              = $args{log};
     my $dumb_term        = $args{dumb_term} // is_serial_terminal;
 
@@ -915,7 +915,7 @@ sub addon_decline_license {
         if (check_screen 'next-button-is-active', 5) {
             send_key $cmd{next};
             assert_screen "license-refuse";
-            send_key 'alt-n';    # no, don't refuse agreement
+            send_key 'alt-n';         # no, don't refuse agreement
             wait_still_screen 2;
             send_key $cmd{accept};    # accept license
         }

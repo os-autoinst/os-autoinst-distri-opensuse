@@ -128,7 +128,7 @@ sub handle_addon {
     if (match_has_tag('import-untrusted-gpg-key')) {
         handle_untrusted_gpg_key;
     }
-    send_key 'tab';    # select addon-products-$addon
+    send_key 'tab';                          # select addon-products-$addon
     wait_still_screen 10;
     if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
         send_key_until_needlematch "addon-list-selected", 'tab';

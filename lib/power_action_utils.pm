@@ -360,9 +360,9 @@ sub assert_shutdown_and_restore_system {
         my $svirt = console('svirt');
         # Set disk as a primary boot device
         if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
-            $svirt->change_domain_element(os => initrd  => undef);
-            $svirt->change_domain_element(os => kernel  => undef);
-            $svirt->change_domain_element(os => cmdline => undef);
+            $svirt->change_domain_element(os        => initrd  => undef);
+            $svirt->change_domain_element(os        => kernel  => undef);
+            $svirt->change_domain_element(os        => cmdline => undef);
             $svirt->change_domain_element(on_reboot => undef);
             $svirt->define_and_start;
         }
