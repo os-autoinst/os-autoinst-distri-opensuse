@@ -44,6 +44,7 @@ our @EXPORT = qw(
   ssh_fully_patch_system
   minimal_patch_system
   zypper_search
+  zypper_repos
   set_zypper_lock_timeout
   workaround_type_encrypted_passphrase
   is_boot_encrypted
@@ -889,6 +890,42 @@ sub zypper_search {
     }
 
     my $output = script_output("zypper -n se $params");
+    return parse_zypper_table($output, \@fields);
+}
+
+=head2 zypper_repos
+
+ zypper_repos($params);
+
+Run C<zypper repos> with given command line arguments and parse the output into
+an array of hashes. Only table output is supported.
+
+=cut
+
+sub zypper_repos {
+    my $params = shift // '';
+    my %opts;
+    my @fields = ('order', 'alias', 'name', 'enabled');
+
+    push @fields, 'gpgcheck' if is_sle('12+');
+    push @fields, 'autorefresh';
+
+    # Set Getopt to ignore any unrecognized options
+    Getopt::Long::Configure('bundling', 'pass_through', 'permute');
+
+    # Call in array context to silence warnings about extra options and args
+    my @tmp = GetOptionsFromString($params, \%opts, 'priority|p', 'uri|u',
+        'details|d');
+
+    if (exists($opts{details})) {
+        push @fields, 'priority', 'type', 'uri';
+    }
+    else {
+        push @fields, 'priority' if exists($opts{priority});
+        push @fields, 'uri' if exists($opts{uri});
+    }
+
+    my $output = script_output("zypper lr $params");
     return parse_zypper_table($output, \@fields);
 }
 
