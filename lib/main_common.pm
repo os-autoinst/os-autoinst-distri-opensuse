@@ -2720,6 +2720,8 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
         loadtest "virtualization/universal/smoketest";            # Virtualization smoke test for hypervisor
         loadtest "virtualization/universal/stresstest";           # Perform stress tests on the guests
+        loadtest "console/perf";                                  # Run QAM perf test
+        loadtest "console/oprofile";                              # Run QAM oprofile test
     }
 }
 

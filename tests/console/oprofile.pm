@@ -17,10 +17,20 @@ use warnings;
 use base 'consoletest';
 use testapi;
 use utils;
+use version_utils qw(is_sle);
+use registration qw(add_suseconnect_product);
+
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+
+    # Add required product
+    if (is_sle '>=15') {
+        add_suseconnect_product('sle-module-development-tools');
+    } else {
+        add_suseconnect_product('sle-sdk');
+    }
 
     # Install fio as load generator and oprofile
     zypper_call "in fio oprofile psmisc";
