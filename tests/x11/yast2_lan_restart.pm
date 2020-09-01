@@ -49,14 +49,14 @@ sub check_network_card_setup_tabs {
 }
 
 sub check_default_gateway {
-    send_key 'alt-u';    # Routing tab
+    send_key 'alt-u';        # Routing tab
     assert_screen 'yast2_lan_routing_tab';
-    send_key 'alt-f';    # select Default IPv4 Gateway
+    send_key 'alt-f';        # select Default IPv4 Gateway
     type_string '10.0.2.2';
     save_screenshot;
-    send_key 'alt-g';    # Global options tab
+    send_key 'alt-g';        # Global options tab
     assert_screen 'yast2_lan_global_options_tab';
-    send_key 'alt-u';    # Routing tab
+    send_key 'alt-u';        # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     send_key 'alt-f';
     send_key 'backspace';    # Delete selected IP
@@ -73,7 +73,7 @@ sub change_hw_device_name {
         send_key 'alt-w';    # Hardware tab
         assert_screen 'yast2_lan_hardware_tab';
     }
-    send_key 'alt-e';        # Change device name
+    send_key 'alt-e';                           # Change device name
     assert_screen 'yast2_lan_device_name';
     send_key 'tab' for (1 .. 2);
     type_string $dev_name;

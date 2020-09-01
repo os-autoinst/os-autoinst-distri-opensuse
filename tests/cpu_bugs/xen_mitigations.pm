@@ -373,11 +373,11 @@ my $pv_l1tf_domu_false = {"domu=false" => {
 my $xpti_hash = {%$xpti_true, %$xpti_false, %$xpti_dom0_true, %$xpti_dom0_false, %$xpti_domu_true, %$xpti_domu_false};
 
 my $spec_ctrl_hash = {%$spec_ctrl_no, %$spec_ctrl_no_xen, %$spec_ctrl_pv_on, %$spec_ctrl_pv_0,
-    %$spec_ctrl_hvm_on,   %$spec_ctrl_hvm_0,   %$spec_ctrl_msr_sc_on,     %$spec_ctrl_msr_sc_off,
-    %$spec_ctrl_rsb_on,   %$spec_ctrl_rsb_off, %$spec_ctrl_md_clear_off,  %$spec_ctrl_md_clear_on,
-    %$spec_ctrl_ibrs_off, %$spec_ctrl_ibrs_on, %$spec_ctrl_ibpb_off,      %$spec_ctrl_ibpb_on,
-    %$spec_ctrl_ssbd_off, %$spec_ctrl_ssbd_on, %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
-    %$spec_ctrl_l1d_flsh_off, %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
+    %$spec_ctrl_hvm_on,            %$spec_ctrl_hvm_0,       %$spec_ctrl_msr_sc_on,     %$spec_ctrl_msr_sc_off,
+    %$spec_ctrl_rsb_on,            %$spec_ctrl_rsb_off,     %$spec_ctrl_md_clear_off,  %$spec_ctrl_md_clear_on,
+    %$spec_ctrl_ibrs_off,          %$spec_ctrl_ibrs_on,     %$spec_ctrl_ibpb_off,      %$spec_ctrl_ibpb_on,
+    %$spec_ctrl_ssbd_off,          %$spec_ctrl_ssbd_on,     %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
+    %$spec_ctrl_l1d_flsh_off,      %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
     %$spec_ctrl_branch_harden_off, %$spec_ctrl_bti_thunk_jmp};
 
 # TODO

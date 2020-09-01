@@ -38,7 +38,7 @@ sub run {
         send_key "shift-f10";
     }
     assert_screen 'nautilus-rightkey-menu';
-    send_key "r";    #choose properties
+    send_key "r";        #choose properties
     assert_screen 'nautilus-properties';
     send_key "up";       #move focus onto tab
     send_key "right";    #move to tab Permissions

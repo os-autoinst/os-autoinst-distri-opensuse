@@ -29,7 +29,7 @@ use testapi;
 sub run {
     x11_start_program("evince " . autoinst_url . "/data/x11/test.pdf", valid => 0);
 
-    send_key "ctrl-left";    # rotate left
+    send_key "ctrl-left";     # rotate left
     assert_screen 'evince-rotate-left', 5;
     send_key "ctrl-right";
     send_key "ctrl-right";    # rotate right

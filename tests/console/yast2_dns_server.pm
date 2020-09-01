@@ -89,7 +89,7 @@ sub run {
     continue_info_network_manager_default;
     if ($older_products) {
         assert_screen 'yast2-service-stopped-enabled';
-        send_key 'alt-s';    # Start the service
+        send_key 'alt-s';                           # Start the service
         assert_screen 'yast2-service-running-enabled';
         wait_screen_change { send_key 'alt-t' };    # Disable the service and finish
     }

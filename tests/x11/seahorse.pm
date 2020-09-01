@@ -22,8 +22,8 @@ use testapi;
 
 sub run {
     x11_start_program('seahorse');
-    send_key "ctrl-n";                            # New keyring
-    assert_screen "seahorse-keyring-selector";    # Dialog "Select type to create"
+    send_key "ctrl-n";                                # New keyring
+    assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
     wait_still_screen(3);
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
     my @tags = qw(seahorse-name-new-keyring ok_on_top);

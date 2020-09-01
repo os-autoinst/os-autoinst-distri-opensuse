@@ -59,9 +59,9 @@ sub ibtest_slave {
 sub ibtest_master {
     my $master             = get_required_var('IBTEST_IP1');
     my $slave              = get_required_var('IBTEST_IP2');
-    my $hpc_testing        = get_var('IBTEST_GITTREE', 'https://github.com/SUSE/hpc-testing.git');
+    my $hpc_testing        = get_var('IBTEST_GITTREE',   'https://github.com/SUSE/hpc-testing.git');
     my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
-    my $timeout            = get_var('IBTEST_TIMEOUT', '3600');
+    my $timeout            = get_var('IBTEST_TIMEOUT',   '3600');
 
     # construct some parameters to allow to customize test runs when needed
     my $start_phase  = get_var('IBTEST_START_PHASE');

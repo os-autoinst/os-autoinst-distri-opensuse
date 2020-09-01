@@ -109,15 +109,15 @@ sub setup_mail_server {
 
     # create test users
     assert_script_run "useradd -m admin";
-    script_run "passwd admin", 5;    # set user's password
-    wait_serial("New password:", 5); #Step 3
+    script_run "passwd admin", 5;       # set user's password
+    wait_serial("New password:", 5);    #Step 3
     type_string("password123\n");
     wait_serial("Retype new password:", 5);
     type_string("password123\n");
 
     assert_script_run "useradd -m nimda";
-    script_run "passwd nimda", 5;    # set user's password
-    wait_serial("New password:", 5); #Step 3
+    script_run "passwd nimda", 5;       # set user's password
+    wait_serial("New password:", 5);    #Step 3
     type_string("password123\n");
     wait_serial("Retype new password:", 5);
     type_string("password123\n");

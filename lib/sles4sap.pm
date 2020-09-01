@@ -65,7 +65,7 @@ sub ensure_serialdev_permissions_for_sap {
 }
 
 sub fix_path {
-    my ($self,  $var)  = @_;
+    my ($self, $var) = @_;
     my ($proto, $path) = split m|://|, $var;
     my @aux = split '/', $path;
 
@@ -75,7 +75,7 @@ sub fix_path {
 
     $aux[0] .= ':' if ($proto eq 'nfs');
     $aux[0] = '//' . $aux[0] if ($proto eq 'cifs');
-    $path = join '/', @aux;
+    $path   = join '/', @aux;
     return ($proto, $path);
 }
 
