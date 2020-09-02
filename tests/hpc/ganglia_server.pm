@@ -41,9 +41,7 @@ sub run {
 
     #install web frontend and start apache
     zypper_call('in ganglia-web');
-    # SLE15 has installed by default php7, SLE12 has php5
-    my $php_mod = is_sle('15+') ? 'php7' : 'php5';
-    script_run('a2enmod ' . $php_mod);
+    script_run('a2enmod php7');
     systemctl('start apache2');
     my $page_url = "http://ganglia-server/ganglia/?r=hour&cs=&ce=&c=unspecified&h=";
     $page_url .= "ganglia-server.openqa.test&tab=m&vn=&hide-hf=false";
