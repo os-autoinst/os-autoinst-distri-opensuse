@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+<productDefines  xmlns="http://www.suse.com/1.0/yast2ns"
+    xmlns:config="http://www.suse.com/1.0/configns">
+
+    <!--
+	 Custom file from TW build 20200819
+    -->
+
+    <!--
+    $Id$
+    Work around for the text domain
+    textdomain="firstboot"
+    -->
+
+    <textdomain>firstboot</textdomain>
+
+	<!---
+	See https://github.com/yast/yast-installation/blob/master/doc/control-file.md for more
+	explanation about the control file settings.
+	-->
+
+    <globals>
+
+	<!--
+	If a variable root_password_as_first_user is present in globals section,
+	inst_user step will have the check box
+	    "Use this password for system administrator"
+	so you don't need to include root password step (fate#306297).
+	If the variable is missing (commented), the check box won't appear.
+
+	The value of the variable (true/false) will set the default value for the check box.
+	<root_password_as_first_user config:type="boolean">true</root_password_as_first_user>
+	 -->
+
+	<!-- The default value of "Automatic Login" checkbox -->
+	<enable_autologin config:type="boolean">false</enable_autologin>
+
+	<!-- This option is deprecated in favor of installation-layout -->
+	<!-- <installation_ui>sidebar</installation_ui> -->
+
+	<!-- Configuration of the installation/firstboot layout -->
+	<installation_layout>
+		<mode>steps</mode>
+		<banner config:type="boolean">false</banner>
+	</installation_layout>
+
+	<!--
+	For more variables that can be in this section, look into the control file
+	(/etc/YaST2/control.xml or root directory of installation media).
+	-->
+    </globals>
+    <proposals config:type="list">
+        <proposal>
+            <name>firstboot_hardware</name>
+            <mode>installation</mode>
+            <stage>firstboot</stage>
+            <label>Hardware Configuration</label>
+            <proposal_modules config:type="list">
+                <proposal_module>printer</proposal_module>
+            </proposal_modules>
+        </proposal>
+    </proposals>
+    <workflows  config:type="list">
+        <workflow>
+            <defaults>
+                <enable_back>yes</enable_back>
+                <enable_next>yes</enable_next>
+                <archs>all</archs>
+            </defaults>
+            <stage>firstboot</stage>
+            <label>Configuration</label>
+            <mode>installation</mode>
+            <modules  config:type="list">
+                <module>
+                    <label>Network Autosetup</label>
+                    <name>firstboot_setup_dhcp</name>
+                </module>
+                <module>
+                    <label>Language and Keyboard</label>
+                    <enabled config:type="boolean">true</enabled>
+		    <!-- step for configuration of both language and keyboard layout (fate#306296) -->
+                    <name>firstboot_language_keyboard</name>
+                </module>
+                <module>
+                    <label>Language</label>
+                    <enabled config:type="boolean">false</enabled>
+                    <name>firstboot_language</name>
+                </module>
+                <module>
+                    <label>Keyboard Layout</label>
+                    <enabled config:type="boolean">false</enabled>
+                    <name>firstboot_keyboard</name>
+                </module>
+                <module>
+                    <label>Welcome</label>
+                    <name>firstboot_welcome</name>
+                </module>
+                <module>
+                    <label>License Agreement</label>
+                    <enabled config:type="boolean">true</enabled>
+                    <name>firstboot_licenses</name>
+                </module>
+                <module>
+                    <label>Host Name</label>
+                    <enabled config:type="boolean">true</enabled>
+                    <name>firstboot_hostname</name>
+                </module>
+                <module>
+                    <label>Network</label>
+		    <!-- this step only restarts service 'network' -->
+                    <name>firstboot_network_write</name>
+                    <enabled config:type="boolean">false</enabled>
+                </module>
+                <module>
+                    <enabled config:type="boolean">true</enabled>
+                    <name>firstboot_ssh</name>
+                </module>
+                <module>
+                    <label>Network</label>
+                    <name>inst_lan</name>
+                    <enabled config:type="boolean">false</enabled>
+                </module>
+                 <module>
+                    <label>Automatic Configuration</label>
+                    <name>inst_automatic_configuration</name>
+                    <enabled config:type="boolean">false</enabled>
+                 </module>
+                <module>
+                    <label>Time and Date</label>
+                    <enabled config:type="boolean">true</enabled>
+                    <name>firstboot_timezone</name>
+                </module>
+                <module>
+                    <label>NTP Client</label>
+                    <enabled config:type="boolean">false</enabled>
+                    <name>firstboot_ntp</name>
+                </module>
+                <module>
+                    <label>Desktop</label>
+                    <enabled config:type="boolean">false</enabled>
+                    <name>firstboot_desktop</name>
+                </module>
+                <module>
+                    <label>Network</label>
+                    <name>inst_lan</name>
+                    <enabled config:type="boolean">false</enabled>
+                </module>
+                <module>
+                    <label>Users</label>
+                    <enabled config:type="boolean">true</enabled>
+                    <name>firstboot_user</name>
+                </module>
+                <module>
+                    <label>Root Password</label>
+                    <enabled config:type="boolean">true</enabled>
+                    <name>firstboot_root</name>
+                </module>
+                <module>
+                    <label>Customer Center</label>
+                    <name>registration</name>
+                    <enabled config:type="boolean">false</enabled>
+                </module>
+                <module>
+                    <label>Hardware</label>
+                    <name>inst_proposal</name>
+                    <enabled config:type="boolean">false</enabled>
+                    <proposal>firstboot_hardware</proposal>
+                </module>
+                <module>
+                    <label>Finish Setup</label>
+                    <name>firstboot_write</name>
+                    <enable_back>no</enable_back>
+                    <enable_next>no</enable_next>
+                </module>
+                <module>
+                    <label>Finish Setup</label>
+                    <name>inst_congratulate</name>
+                    <enable_back>no</enable_back>
+                    <enable_next>yes</enable_next>
+                </module>
+
+            </modules>
+        </workflow>
+    </workflows>
+    <texts>
+	<!--
+	Labels used during Automatic Configuration: use "text_id" from "ac_step"
+	-->
+	<ac_label_1><label>Configuring network...</label></ac_label_1>
+	<ac_label_2><label>Configuring hardware...</label></ac_label_2>
+    </texts>
+</productDefines>
