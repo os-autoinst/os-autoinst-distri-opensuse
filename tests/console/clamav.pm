@@ -98,6 +98,8 @@ sub run {
 
 sub post_run_hook {
     assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && check_var('ARCH', 'aarch64'));
+    systemctl('stop clamd', timeout => 500);
+    systemctl('stop freshclam');
 }
 
 sub test_flags {
