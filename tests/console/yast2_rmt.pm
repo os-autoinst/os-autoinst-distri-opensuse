@@ -68,10 +68,11 @@ sub test_config {
     for (@unit) {
         script_run("systemctl is-active $_") && die "The systemd unit $_ is not active";
     }
-    script_run("firewall-cmd --list-services |egrep 'http[[:space:]]https'")            && die "The firewall ports are not opened";
-    script_run("grep rmt /etc/rmt.conf")                                                && die "Missing values in /etc/rmt.conf";
-    script_run("wget --no-check-certificate https://localhost/rmt.crt")                 && die "Certificate not found at https://localhost/rmt.crt";
-    script_run("openssl x509 -noout -subject -in 'rmt.crt' | grep 'rmt1.susetest.org'") && die "Incorrect name in certificate ?";
+    assert_script_run("firewall-cmd --list-services |egrep 'http[[:space:]]https'", fail_message => 'The firewall ports are not opened');
+    assert_script_run("grep rmt /etc/rmt.conf",                                     fail_message => 'Missing values in /etc/rmt.conf');
+    assert_script_run("wget --no-check-certificate https://localhost/rmt.crt",      fail_message => 'Certificate not found at https://localhost/rmt.crt');
+    # yast2-rmt was changed to no longer include the host name as part of the CA
+    assert_script_run("openssl x509 -noout -subject -in 'rmt.crt' | grep 'RMT Certificate Authority'", fail_message => 'Incorrect CN name in the certificate');
 }
 
 sub run {
