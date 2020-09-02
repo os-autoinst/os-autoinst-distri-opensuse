@@ -15,8 +15,13 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use x11utils 'turn_off_screensaver';
 
 sub run() {
+    # disable the screensaver for these tests, as some of the steps take longer
+    # than the default screensaver timeout and cause random failures
+    turn_off_screensaver();
+
     # increase timeout to 15 mins, shouldn't take as long, but it occasionally does
     ensure_installed('rstudio MozillaFirefox', timeout => 900);
 
