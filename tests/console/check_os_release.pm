@@ -47,6 +47,10 @@ sub run {
         $checker{CPE_NAME} =~ s/\-SP/:sp/;
     }
     if (is_leap) {
+        if ($checker{VERSION} =~ /^Jump/) {
+            $checker{VERSION} =~ s/^Jump://;
+            $checker{VERSION_ID} = $checker{VERSION};
+        }
         $checker{NAME}        = "openSUSE Leap";
         $checker{ID}          = "opensuse";
         $checker{PRETTY_NAME} = $checker{NAME} . " " . $checker{VERSION};
