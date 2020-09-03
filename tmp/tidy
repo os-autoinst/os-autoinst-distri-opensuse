@@ -25,6 +25,9 @@ cleanup() {
     echo "Cleaned up"
 }
 
+awk --version
+find-files
+
 set -eo pipefail
 
 check=
