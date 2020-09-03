@@ -76,7 +76,11 @@ find-files() {
 # go to caller directory
 cd "$(dirname $0)/.."
 
-find-files
+file --mime-type * | grep text/x-perl
+file --mime-type * | grep text/x-perl | awk -F':' '{ print $1 }'
+#find-files
+
+exit
 
 # just to make sure we are at the right location
 test -e tools/tidy || exit 1
