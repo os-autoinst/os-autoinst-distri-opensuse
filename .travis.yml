@@ -1,15 +1,15 @@
 language: perl
 matrix:
   include:
-  - name: "openSUSE/SUSE production perl version, only compile check"
-    perl: "5.18"
-    env: TESTS=compile
+#  - name: "openSUSE/SUSE production perl version, only compile check"
+#    perl: "5.18"
+#    env: TESTS=compile
   - name: "testing perl version, static checks"
     perl: "5.26"
     env: TESTS=static
-  - name: "testing perl version, unit tests"
-    perl: "5.26"
-    env: TESTS=unit
+#  - name: "testing perl version, unit tests"
+#    perl: "5.26"
+#    env: TESTS=unit
 env:
   global:
     - COMMIT_AUTHOR_EMAIL=skynet@open.qa
