@@ -62,9 +62,11 @@ fi
 find-files() {
     local files=()
     [[ -d script ]] && files+=(script/*)
+    echo "files: ${files[@]}"
     files=($(file --mime-type * "${files[@]}" | grep text/x-perl | awk -F':' '{ print $1 }'))
     #files+=('**.p[ml]' '**.t')
     files+=('lib/**.p[ml]')
+    echo "files: ${files[@]}"
     if $only_changed; then
         git status --porcelain "${files[@]}" | awk '{ print $2 }'
     else
@@ -75,10 +77,12 @@ find-files() {
 
 # go to caller directory
 cd "$(dirname $0)/.."
-
-file --mime-type * | grep text/x-perl
-file --mime-type * | grep text/x-perl | awk -F':' '{ print $1 }'
 #find-files
+#exit
+
+#file --mime-type * | grep text/x-perl
+#file --mime-type * | grep text/x-perl
+#file --mime-type * | grep text/x-perl | awk -F':' '{ print $1 }'
 
 exit
 
