@@ -22,6 +22,7 @@ EOF
 
 cleanup() {
     find . -name '*.tdy' -delete
+    echo "Cleaned up"
 }
 
 set -eo pipefail
@@ -75,6 +76,8 @@ cd "$(dirname $0)/.."
 test -e tools/tidy || exit 1
 
 cleanup
+
+echo "Start tidy"
 
 find-files | xargs perltidy --pro=.../.perltidyrc
 
