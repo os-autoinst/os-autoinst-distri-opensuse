@@ -61,6 +61,7 @@ fi
 
 find-files() {
     local files=()
+    pwd
     [[ -d script ]] && files+=(script/*)
     echo "files: ${files[@]}"
     files=($(file --mime-type * "${files[@]}" | grep text/x-perl | awk -F':' '{ print $1 }'))
@@ -77,7 +78,7 @@ find-files() {
 
 # go to caller directory
 cd "$(dirname $0)/.."
-#find-files
+find-files
 #exit
 
 #file --mime-type * | grep text/x-perl
