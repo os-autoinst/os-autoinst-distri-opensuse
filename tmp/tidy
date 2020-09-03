@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 #
 # perltidy rules can be found in ../.perltidyrc
@@ -22,10 +21,7 @@ EOF
 
 cleanup() {
     find . -name '*.tdy' -delete
-    echo "Cleaned up"
 }
-
-awk --version
 
 set -eo pipefail
 
@@ -43,7 +39,7 @@ while true; do
   esac
 done
 
-#trap cleanup EXIT
+trap cleanup EXIT
 
 if ! command -v perltidy > /dev/null 2>&1; then
     echo "No perltidy found, install it first!"
@@ -60,15 +56,11 @@ if [ "$perltidy_version_found" != "$perltidy_version_expected" ]; then
 fi
 
 find-files() {
+    set +o pipefail # grep might fail
     local files=()
-    pwd
-    set +o pipefail
     [[ -d script ]] && files+=(script/*)
-    echo "files: ${files[@]}"
     files=($(file --mime-type * "${files[@]}" | grep text/x-perl | awk -F':' '{ print $1 }'))
-    #files+=('**.p[ml]' '**.t')
-    files+=('lib/**.p[ml]')
-    echo "files: ${files[@]}"
+    files+=('**.p[ml]' '**.t')
     if $only_changed; then
         git status --porcelain "${files[@]}" | awk '{ print $2 }'
     else
@@ -77,27 +69,13 @@ find-files() {
     set -o pipefail
 }
 
-
 # go to caller directory
 cd "$(dirname $0)/.."
-#file --mime-type script/import-slenkins-testsuite.pl
-#file --mime-type script/import-slenkins-testsuite.pl | grep text/x-perl
-#file --mime-type script/import-slenkins-testsuite.pl | grep text/x-perl | awk -F: '{ print $1 }'
-find-files
-#exit
-
-#file --mime-type * | grep text/x-perl
-#file --mime-type * | grep text/x-perl
-#file --mime-type * | grep text/x-perl | awk -F':' '{ print $1 }'
-
-exit
 
 # just to make sure we are at the right location
 test -e tools/tidy || exit 1
 
 cleanup
-
-echo "Start tidy"
 
 find-files | xargs perltidy --pro=.../.perltidyrc
 
