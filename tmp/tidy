@@ -56,17 +56,15 @@ if [ "$perltidy_version_found" != "$perltidy_version_expected" ]; then
 fi
 
 find-files() {
-    set +o pipefail # grep might fail
     local files=()
     [[ -d script ]] && files+=(script/*)
-    files=($(file --mime-type * "${files[@]}" | grep text/x-perl | awk -F':' '{ print $1 }'))
+    files=($(file --mime-type * "${files[@]}" | (grep text/x-perl || true) | awk -F':' '{ print $1 }'))
     files+=('**.p[ml]' '**.t')
     if $only_changed; then
         git status --porcelain "${files[@]}" | awk '{ print $2 }'
     else
         git ls-files "${files[@]}"
     fi
-    set -o pipefail
 }
 
 # go to caller directory
