@@ -1,4 +1,4 @@
-name:           qam-ha_rolling_upgrade_migration
+name:           ha_rolling_upgrade_migration
 description:    >
   Test a rolling upgrade in a two nodes cluster
   Further info about the test suite
@@ -26,26 +26,12 @@ schedule:
   - ha/filesystem
   - ha/drbd_passive
   - ha/filesystem
-  - ha/ctdb
-  - ha/haproxy
-  - ha/await_upgrade
+  - ha/await_upgrade_or_update
   - migration/version_switch_upgrade_target
-  - '{{cluster_boot_mgmt}}'
   - ha/cluster_state_mgmt
   - migration/online_migration/zypper_migration
   - migration/online_migration/post_migration
-  - '{{cluster_boot_mgmt}}'
-  - '{{console_reboot}}'
   - ha/check_cluster_integrity
   - ha/check_hawk
-  - ha/wait_others_upgraded
+  - ha/wait_others_upgraded_or_updated
   - ha/check_logs
-conditional_schedule:
-  cluster_boot_mgmt:
-    QAM_INCI:
-      1:
-        - ha/cluster_boot_mgmt
-  console_reboot:
-    QAM_INCI:
-      1:
-        - console/console_reboot

@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use scheduler 'get_test_suite_data';
 use testapi;
+use File::Spec::Functions 'catfile';
 use Test::Assert ':all';
 use Exporter 'import';
 our @EXPORT = qw(
@@ -23,7 +24,7 @@ our @EXPORT = qw(
 
 sub validate_partition_table {
     my $args = shift;
-    return if check_var('BACKEND', 's390x');    # blkid output does not show partition table for dasd
+    return if check_var('BACKEND', 's390x');                                       # blkid output does not show partition table for dasd
     record_info("Check $args->{table_type}", "Verify if partition table type is $args->{table_type}");
     my $table_type = (split(/\"/, script_output("blkid $args->{device}")))[-1];    # last element of output eg "gpt"
     my $converter  = {msdos => 'dos'};
@@ -35,10 +36,10 @@ sub validate_partition_table {
 sub validate_partition_creation {
     my $args = shift;
     record_info("Check $args->{mount_point}", "Verify that partition $args->{mount_point} was created.");
-    my @lsblk_output = split(/\n/, script_output("lsblk -n"));
+    my @lsblk_output = split(/\n/, script_output("lsblk -o MOUNTPOINT"));
     my $check;
     foreach (@lsblk_output) {
-        if ($_ =~ /(?<check>\Q$args->{mount_point}\E\s*\Z)/) {
+        if ($_ =~ /\[?(?<check>$args->{mount_point})\]?/) {
             $check = $+{check};
             last;
         }
@@ -55,9 +56,10 @@ sub validate_filesystem {
 }
 
 sub validate_read_write {
-    my $args = shift;
-    assert_script_run("echo Hello > $args->{mount_point}/emptyfile", fail_message => 'Failure while writing in ' . $args->{mount_point});
-    assert_script_run("grep Hello $args->{mount_point}/emptyfile",   fail_message => 'Failure while reading from ' . $args->{mount_point});
+    my $args          = shift;
+    my $emptyfilepath = catfile($args->{mount_point}, 'emptyfile');
+    assert_script_run("echo Hello > $emptyfilepath", fail_message => 'Failure while writing in ' . $args->{mount_point});
+    assert_script_run("grep Hello $emptyfilepath",   fail_message => 'Failure while reading from ' . $args->{mount_point});
 }
 
 sub validate_unpartitioned_space {

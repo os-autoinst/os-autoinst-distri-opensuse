@@ -83,6 +83,9 @@ sub cleanup_needles {
     $tounregister = is_sle('15-SP2+') ? '0' : '1';
     unregister_needle_tags("ENV-15SP2ORLATER-$tounregister");
 
+    $tounregister = is_sle('15-SP3+') ? '0' : '1';
+    unregister_needle_tags("ENV-15SP3ORLATER-$tounregister");
+
     if (!is_server) {
         unregister_needle_tags("ENV-FLAVOR-Server-DVD");
     }
@@ -610,7 +613,7 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_hypervisor_tests if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
+    load_hypervisor_tests         if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
     load_suseconnect_tests        if check_var("REGRESSION", "suseconnect");
     load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }
@@ -785,8 +788,8 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/libvirt_isolated_virtual_network";
             }
             loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
-            loadtest "virtualization/xen/hotplugging"                   if get_var("ENABLE_HOTPLUGGING");
-            loadtest "virtualization/xen/storage"                       if get_var("ENABLE_STORAGE");
+            loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
+            loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
             loadtest "virt_autotest/virsh_internal_snapshot";
             loadtest "virt_autotest/virsh_external_snapshot";
         }

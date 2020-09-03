@@ -260,34 +260,6 @@ sub test_rename {
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#4_1";
 }
 
-sub test_sapconf {
-    my ($self) = @_;
-
-    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
-
-    # Scenario 1: sapconf is running and active with sap-netweaver profile.
-    # The test shall show, that a running tuned profile or sapconf is not compromised.
-    script_run 'cp /etc/systemd/logind.conf.d/sap.conf{.bak,}';
-    # Otherwise sapconf will fail to start. See bsc#1139176
-    assert_script_run "tuned-adm off" if is_sle('>=15');
-    systemctl "enable --now sapconf";
-    systemctl "disable tuned";
-    systemctl "start tuned";
-    if (is_sle('>=15')) {
-        assert_script_run "tuned-adm profile sapconf";
-    } else {
-        assert_script_run "sapconf netweaver";
-    }
-    $self->reboot;
-    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Upd#2_2";
-
-    # Scenario 2: sapconf has been disabled (only the service), but the package is still there.
-    assert_script_run "cp /etc/security/limits.conf{.bak,}";
-    systemctl "disable --now sapconf";
-    $self->reboot;
-    assert_script_run "mr_test verify Pattern/$SLE/testpattern_Upd#3_2";
-}
-
 sub test_note {
     my ($self, $note) = @_;
 
@@ -447,9 +419,7 @@ sub run {
     $self->setup;
 
     my $test = quotemeta(get_required_var("MR_TEST"));
-    if ($test eq "sapconf") {
-        $self->test_sapconf;
-    } elsif ($test eq "solutions") {
+    if ($test eq "solutions") {
         $self->test_solutions;
     } elsif ($test eq "notes") {
         $self->test_notes;

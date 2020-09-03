@@ -66,9 +66,9 @@ sub run {
 
     #we only need to open the port if closed:
     if (match_has_tag('yast2_tftp_closed_port')) {
-        send_key 'alt-f';    # open tftp port in firewall
+        send_key 'alt-f';                        # open tftp port in firewall
         assert_screen 'yast2_tftp_open_port';
-        send_key $firewall_detail_shortcut;    # open firewall details window
+        send_key $firewall_detail_shortcut;      # open firewall details window
         assert_screen 'yast2_tftp_firewall_details';
         send_key 'alt-o';                        # close the window
         assert_screen 'yast2_tftp_open_port';    # assert that window is closed

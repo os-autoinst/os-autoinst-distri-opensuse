@@ -55,7 +55,7 @@ sub run_test {
     zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
 
     #Prepare Guests
-    foreach my $guest (keys %xen::guests) {
+    foreach my $guest (keys %virt_autotest::common::guests) {
         #Archive deployed Guests
         #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");

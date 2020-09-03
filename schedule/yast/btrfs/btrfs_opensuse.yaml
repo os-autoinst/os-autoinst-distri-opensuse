@@ -35,7 +35,6 @@ test_data:
       - /
       - /home
       - /root
-      - /tmp
       - /usr/local
       - /.snapshots
       - /srv

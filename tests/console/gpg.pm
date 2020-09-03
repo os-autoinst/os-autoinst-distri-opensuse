@@ -70,7 +70,7 @@ EOF
         script_run("gpg2 -vv --gen-key &> /dev/$serialdev", 0);
         assert_screen 'gpg-set-keytype';    # Your Selection?
         type_string "1\n";
-        assert_screen 'gpg-set-keysize';    # What keysize do you want?
+        assert_screen 'gpg-set-keysize';       # What keysize do you want?
         type_string "$key_size\n";
         assert_screen 'gpg-set-expiration';    # Key is valid for? (0)
         send_key 'ret';

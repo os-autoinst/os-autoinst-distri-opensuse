@@ -33,8 +33,8 @@ our @EXPORT = qw(check_virt_kernel);
 
 sub check_virt_kernel {
     my %args         = @_;
-    my $target       = $args{target} // 'localhost';
-    my $suffix       = $args{suffix} // '';
+    my $target       = $args{target}   // 'localhost';
+    my $suffix       = $args{suffix}   // '';
     my $log_file     = $args{log_file} // '/tmp/virt_kernel.txt';
     my $go_to_target = $target eq 'localhost' ? '' : "ssh root\@$target";
     my ($sles_running_version, $sles_running_sp) = get_sles_release($go_to_target);

@@ -20,6 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use repo_tools 'verify_software';
 use version_utils qw(is_sle is_jeos);
 
 my %software = ();
@@ -43,34 +44,6 @@ if (is_sle('15+')) {
     $software{'update-test-trivial'} = $software{'update-test-feature'};
 } else {
     $software{'update-test-trival'} = $software{'update-test-feature'};
-}
-
-sub verify_installation_and_repo {
-    my ($name) = shift;
-
-    my $args = $software{$name}->{installed} ? '--installed-only' : '--not-installed-only';
-    # define search type
-    $args .= $software{$name}->{pattern} ? ' -t pattern' : ' -t package';
-    # Set flag if availability condition is defined and is true or not defined
-    my $available = !!(!defined($software{$name}->{available}) || $software{$name}->{available}->());
-    # Negate condition if package should not be available
-    my $cmd = $available ? '' : '! ';
-    $cmd .= "zypper --non-interactive se -n $args --match-exact --details $name";
-    # Verify repo only if package expected to be available
-    $cmd .= ' | grep ' . $software{$name}->{repo} if $available;
-    # Record error in case non-zero return code
-    if (script_run($cmd)) {
-        my $error = $software{$name}->{pattern} ? 'Pattern' : 'Package';
-        if ($available) {
-            $error .= " '$name' not found in @{ [ $software{$name}->{repo} ] } or not preinstalled."
-              . " Expected to be installed: @{ [ $software{$name}->{installed} ? 'true' : 'false' ] }\n";
-        }
-        else {
-            $error .= " '$name' found in @{ [ $software{$name}->{repo} ] } repo, this package should not be present.\n";
-        }
-        return $error;
-    }
-    return '';
 }
 
 sub verify_pattern {
@@ -97,7 +70,12 @@ sub run {
         # Skip package if condition is defined and is false
         next if defined($software{$name}->{condition}) && !$software{$name}->{condition}->();
         # Validate common part for packages and patterns
-        $errors .= verify_installation_and_repo($name);
+        my $available = !!(!defined($software{$name}->{available}) || $software{$name}->{available}->());
+        $errors .= verify_software(name => $name,
+            installed => $software{$name}->{installed},
+            pattern   => $software{$name}->{pattern},
+            available => $available,
+            repo      => $software{$name}->{repo});
         # Validate pattern
         $errors .= verify_pattern($name) if $software{$name}->{pattern};
     }

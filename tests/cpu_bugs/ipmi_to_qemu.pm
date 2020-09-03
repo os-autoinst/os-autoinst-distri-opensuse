@@ -32,6 +32,8 @@ my $cliect_ini_url    = get_var('CLIENT_INI');
 my $webui_hostname    = get_var('WEBUI_HOSTNAME');
 my $nfs_hostname      = get_var('NFS_HOSTNAME');
 my $qemu_worker_class = get_var('QEMU_WORKER_CLASS');
+#Set IPMI2QEMU_PKGS to custom packages installation
+my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-DeploymentHandler,perl-YAML-Tiny,perl-Test-Assert,perl-JSON');
 sub run {
     my $self = shift;
     my $current_dist;
@@ -50,7 +52,9 @@ sub run {
     zypper_call("ar http://download.opensuse.org/repositories/devel:/openQA:/SLE-$sles_running_version/$current_dist/devel:openQA:SLE-$sles_running_version.repo");
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('dup --auto-agree-with-licenses');
-    zypper_call('in openQA-worker perl-DBIx-Class-DeploymentHandler perl-YAML-Tiny perl-Test-Assert');
+    #Convert comma to space for zypper in
+    $zypper_add_pkgs =~ s/,/ /g;
+    zypper_call("in $zypper_add_pkgs");
     zypper_call('in --replacefiles perl-DBD-SQLite');
 
     #NFS mount

@@ -63,6 +63,9 @@ sub run {
             record_info('bootloader_svirt');
             $self->bootloader_svirt::run();
         }
+        # In mediacheck we do selection from the bootmenu in installation/mediacheck
+        # As normally we also need `bootloader` for this scenario
+        return if get_var('MEDIACHECK');
     }
     # Load regular bootloader for all qemu backends and for x84_86 systems,
     # except Xen PV as id does not have VNC (bsc#961638).

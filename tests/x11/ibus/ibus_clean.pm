@@ -17,19 +17,16 @@ use warnings;
 use testapi;
 use utils;
 
-sub remove_ch {
-    assert_and_click 'ibus-input-added-ch';
-    assert_and_click 'ibus-input-remove';
+sub remove_cn {
+    assert_and_click 'ibus-input-added-cn';
 }
 
 sub remove_jp {
     assert_and_click 'ibus-input-added-jp';
-    assert_and_click 'ibus-input-remove';
 }
 
 sub remove_kr {
     assert_and_click 'ibus-input-added-kr';
-    assert_and_click 'ibus-input-remove';
 }
 
 sub run {
@@ -46,7 +43,7 @@ sub run {
     send_key 'ret';
 
     assert_screen 'ibus-region-language';
-    remove_ch;
+    remove_cn;
     remove_jp;
     remove_kr;
 

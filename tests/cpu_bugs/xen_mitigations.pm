@@ -373,15 +373,15 @@ my $pv_l1tf_domu_false = {"domu=false" => {
 my $xpti_hash = {%$xpti_true, %$xpti_false, %$xpti_dom0_true, %$xpti_dom0_false, %$xpti_domu_true, %$xpti_domu_false};
 
 my $spec_ctrl_hash = {%$spec_ctrl_no, %$spec_ctrl_no_xen, %$spec_ctrl_pv_on, %$spec_ctrl_pv_0,
-    %$spec_ctrl_hvm_on,   %$spec_ctrl_hvm_0,   %$spec_ctrl_msr_sc_on,     %$spec_ctrl_msr_sc_off,
-    %$spec_ctrl_rsb_on,   %$spec_ctrl_rsb_off, %$spec_ctrl_md_clear_off,  %$spec_ctrl_md_clear_on,
-    %$spec_ctrl_ibrs_off, %$spec_ctrl_ibrs_on, %$spec_ctrl_ibpb_off,      %$spec_ctrl_ibpb_on,
-    %$spec_ctrl_ssbd_off, %$spec_ctrl_ssbd_on, %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
-    %$spec_ctrl_l1d_flsh_off, %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
+    %$spec_ctrl_hvm_on,            %$spec_ctrl_hvm_0,       %$spec_ctrl_msr_sc_on,     %$spec_ctrl_msr_sc_off,
+    %$spec_ctrl_rsb_on,            %$spec_ctrl_rsb_off,     %$spec_ctrl_md_clear_off,  %$spec_ctrl_md_clear_on,
+    %$spec_ctrl_ibrs_off,          %$spec_ctrl_ibrs_on,     %$spec_ctrl_ibpb_off,      %$spec_ctrl_ibpb_on,
+    %$spec_ctrl_ssbd_off,          %$spec_ctrl_ssbd_on,     %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
+    %$spec_ctrl_l1d_flsh_off,      %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
     %$spec_ctrl_branch_harden_off, %$spec_ctrl_bti_thunk_jmp};
 
 # TODO
-if (get_var('FLAVOR', '') =~ /amd/i) {
+if (get_var('ARCH', '') =~ /amd/i) {
     ${$spec_ctrl_hash}{'bti-thunk=lfence'} = ${$spec_ctrl_bti_thunk_retp_for_amd}{'bti-thunk=lfence'};
 } else {
     ${$spec_ctrl_hash}{'bti-thunk=retpoline'} = ${$spec_ctrl_bti_thunk_retp_for_intel}{'bti-thunk=retpoline'};
@@ -471,12 +471,19 @@ sub do_test {
     my $total_tc_count_in_ts   = 0;
     my $junit_file             = "/tmp/xen_hypervisor_mitigation_test_junit.xml";
 
+    # user specify test suites to run, take "," as delimiter
+    my $test_suites = get_var("TEST_SUITES", "");
+
     # Initialize junit sturcture for hypervisor mitigation test
     Mitigation::init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
     while (my ($arg, $dict) = each %$hash) {
         $failure_tc_count_in_ts = 0;
         $total_tc_count_in_ts   = 0;
 
+        # run user specifed test suite
+        if ($test_suites and !grep { $_ eq $arg } split(/,+/, $test_suites)) {
+            next;
+        }
         # Add a group case name as testsuite to junit file
         Mitigation::append_ts2_xml(file_name => "$junit_file", testsuite_name => "$arg");
 
@@ -530,6 +537,8 @@ sub run {
     my $self = @_;
     select_console 'root-console';
     die "platform mistake, This system is not running as Dom0." if script_run("test -d /proc/xen");
+    zypper_call '--gpg-auto-import-keys ref';
+    zypper_call 'in -y xmlstarlet expect';
     do_test($self, $mitigations_list);
 }
 

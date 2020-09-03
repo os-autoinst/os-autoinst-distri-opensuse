@@ -1,0 +1,28 @@
+---
+name:           yast2_fistboot_custom
+description:    >
+    Variant of YaST2 Firstboot module using custom control file. Allows us to test different scenarios,
+    and to see if the yast2-firstboot package remains stable whith an old, potentially deprecated control file.
+vars:
+    YAST2_FIRSTBOOT_USERNAME: firstbootuser
+schedule:
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/hostname
+    - installation/enable_y2_firstboot
+    - autoyast/autoyast_reboot
+    - installation/grub_test
+    - installation/yast2_firstboot
+    - installation/first_boot
+    - console/validate_yast2_firstboot_configuration
+test_data:
+    clients:
+        - firstboot_language_keyboard
+        - firstboot_welcome
+        - firstboot_licenses
+        - firstboot_hostname
+        - firstboot_timezone
+        - firstboot_user
+        - firstboot_root
+    custom_control_file: "yast2/firstboot/firstboot_custom-opensuse.xml"

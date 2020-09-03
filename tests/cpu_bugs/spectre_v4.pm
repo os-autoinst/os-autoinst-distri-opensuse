@@ -9,7 +9,7 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
-
+package spectre_v4;
 use strict;
 use warnings;
 
@@ -22,7 +22,7 @@ use utils;
 
 use Mitigation;
 
-my %mitigations_list =
+our %mitigations_list =
   (
     name                   => "spectre_v4",
     CPUID                  => hex '80000000',

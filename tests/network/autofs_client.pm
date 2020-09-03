@@ -55,7 +55,7 @@ sub run {
     my $test_conf_file          = '/etc/auto.share';
     my $test_mount_dir          = '/mnt/test';
     my $test_mount_dir_nfsidmap = '/mnt/test_nfsidmap';
-    my $test_conf_file_content  = "echo  test    -ro,no_subtree_check              $nfs_server:$remote_mount > $test_conf_file";
+    my $test_conf_file_content  = "test -ro,no_subtree_check $nfs_server:$remote_mount";
 
     # autofs
     check_autofs_service();

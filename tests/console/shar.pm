@@ -20,9 +20,12 @@ use version_utils;
 sub run {
     my $self = shift;
 
-    if (is_jeos() || is_public_cloud()) {
+    select_console 'root-console';
+    zypper_call('in sharutils');
+
+    if (check_var('MACHINE', 'RPi3') || check_var('MACHINE', 'RPi4')) {
         select_console 'root-console';
-        zypper_call('in sharutils');
+        zypper_call('in diffutils');
     }
 
     select_console 'user-console';

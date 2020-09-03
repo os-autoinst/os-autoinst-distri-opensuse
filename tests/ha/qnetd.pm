@@ -32,7 +32,7 @@ sub qdevice_status {
     exec_and_insert_password($qnetd_status_cmd) if is_node(2);
 
     # Check qdevice status
-    $output = script_output "$qnetd_status_cmd" if ($expected_status ne 'stopped');
+    $output = script_output "$qnetd_status_cmd"                if ($expected_status ne 'stopped');
     die "Heuristics script for quorum is failing in all nodes" if ($expected_status =~ /^split-brain/ and $output !~ /Heuristics:\s+Pass\s/);
 
     $output = script_output "$quorum_status_cmd";

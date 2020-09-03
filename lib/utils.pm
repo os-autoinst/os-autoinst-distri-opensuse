@@ -490,7 +490,7 @@ sub zypper_call {
     my $command          = shift;
     my %args             = @_;
     my $allow_exit_codes = $args{exitcode} || [0];
-    my $timeout          = $args{timeout} || 700;
+    my $timeout          = $args{timeout}  || 700;
     my $log              = $args{log};
     my $dumb_term        = $args{dumb_term} // is_serial_terminal;
 
@@ -533,7 +533,18 @@ sub zypper_call {
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
         upload_logs('/var/log/zypper.log');
-        die "'zypper -n $command' failed with code $ret";
+        my $msg = "'zypper -n $command' failed with code $ret";
+        if ($ret == 104) {
+            $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
+            $msg .= script_output('cat /tmp/z104.txt');
+        }
+        else {
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
+            $msg .= "\n\nRelated zypper logs:\n";
+            $msg .= script_output('cat /tmp/zlog.txt');
+        }
+        die $msg;
     }
     $IN_ZYPPER_CALL = 0;
     return $ret;
@@ -904,7 +915,7 @@ sub addon_decline_license {
         if (check_screen 'next-button-is-active', 5) {
             send_key $cmd{next};
             assert_screen "license-refuse";
-            send_key 'alt-n';    # no, don't refuse agreement
+            send_key 'alt-n';         # no, don't refuse agreement
             wait_still_screen 2;
             send_key $cmd{accept};    # accept license
         }

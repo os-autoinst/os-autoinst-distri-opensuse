@@ -668,6 +668,7 @@
   </report>
   <software>
     <packages config:type="list">
+      <package>binutils</package>
       <package>ModemManager</package>
       <package>iputils</package>
       <package>NetworkManager</package>

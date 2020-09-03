@@ -19,12 +19,11 @@ use utils;
 use version_utils 'is_sle';
 use qam;
 use kernel 'remove_kernel_packages';
+use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends 'use_ssh_serial_console';
 
-
-my $wk_ker = 0;
 
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
@@ -121,9 +120,6 @@ sub kgraft_state {
 
 sub install_lock_kernel {
     my $version = shift;
-    if ($version eq '4.12.14-25.13.1')     { $wk_ker = 1; }
-    if ($version eq '4.12.14-197.15.1')    { $wk_ker = 2; }
-    if ($version eq '3.12.74-60.64.104.1') { $wk_ker = 3; }
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
@@ -166,11 +162,6 @@ sub install_lock_kernel {
         $package =~ s/$/-$l_v/;
     }
 
-    # workaround for SLE15 - 4.12.4-25.13.1
-    if ($wk_ker == 1) {
-        @packages = grep { $_ ne 'kernel-source-4.12.14-25.13.1' } @packages;
-    }
-
     # install and lock needed kernel
     zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
@@ -178,62 +169,59 @@ sub install_lock_kernel {
 
 sub prepare_kgraft {
     my ($repo, $incident_id) = @_;
-    my $arch    = get_required_var('ARCH');
-    my $version = get_required_var('VERSION');
-    my $release_override;
-    my $lp_product;
-    my $lp_module;
-    if ($version eq '12') {
-        $release_override = '-d';
-    }
-    if (!is_sle('>=12-SP3')) {
-        $version = '12';
-    }
-    # SLE15 has different structure of modules and products than SLE12
-    if (is_sle('15+')) {
-        $lp_product = 'sle-module-live-patching';
-        $lp_module  = 'SLE-Module-Live-Patching';
-    }
-    else {
-        $lp_product = 'sle-live-patching';
-        $lp_module  = 'SLE-Live-Patching';
-    }
-
-    #install kgraft product
-    zypper_call("ar http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/ kgraft-pool");
-    zypper_call("ar $release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/ kgraft-update");
-    zypper_call("ref");
-    zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
-    zypper_call("mr -e kgraft-update");
 
     #add repository with tested patch
+    my $incident_klp_pkg;
+    my @all_pkgs;
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
-        zypper_call("ar $val kgraft-test-repo-$i");
-
-        my $kversion = zypper_search(q(-s -x kernel-default));
-        my $pversion = zypper_search("-s -t package -r kgraft-test-repo-$i");
-        $pversion = join(' ', map { $$_{name} } @$pversion);
-
+        my $cur_repo = "kgraft-test-repo-$i";
+        zypper_call("ar $val $cur_repo");
+        my $pkgs = zypper_search("-s -t package -r $cur_repo");
         #disable kgraf-test-repo for while
-        zypper_call("mr -d kgraft-test-repo-$i");
+        zypper_call("mr -d $cur_repo");
 
-        my $wanted_version = right_kversion($kversion, $pversion);
-        fully_patch_system;
-        install_lock_kernel($wanted_version);
-
-        if (check_var('REMOVE_KGRAFT', '1')) {
-            zypper_call("rm " . $pversion);
+        foreach my $pkg (@$pkgs) {
+            my $cur_klp_pkg = is_klp_pkg($pkg);
+            if ($cur_klp_pkg && $$cur_klp_pkg{kflavor} eq 'default') {
+                if ($incident_klp_pkg) {
+                    die "Multiple kernel live patch packages found: \"$$incident_klp_pkg{name}-$$incident_klp_pkg{version}\" and \"$$cur_klp_pkg{name}-$$cur_klp_pkg{version}\"";
+                }
+                else {
+                    $incident_klp_pkg = $cur_klp_pkg;
+                }
+            }
         }
+
+        push @all_pkgs, @$pkgs;
+    }
+
+    if (!$incident_klp_pkg) {
+        die "No kernel livepatch package found";
+    }
+
+    fully_patch_system;
+
+    my $kversion       = zypper_search(q(-s -x kernel-default));
+    my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
+    install_lock_kernel($wanted_version);
+
+    install_klp_product;
+
+    if (check_var('REMOVE_KGRAFT', '1') && @all_pkgs) {
+        my $pversion = join(' ', map { $$_{name} } @all_pkgs);
+        zypper_call("rm " . $pversion);
     }
 
     power_action('reboot', textmode => 1);
+
+    return $incident_klp_pkg;
 }
 
 sub right_kversion {
-    my ($kversion, $pversion) = @_;
-    my ($kver_fragment) = $pversion =~ qr/(?:kgraft-|kernel-live)patch-(\d+_\d+_\d+-\d+_*\d*_*\d*)-default/;
-    $kver_fragment =~ s/_/\\\./g;
+    my ($kversion, $incident_klp_pkg) = @_;
+    my $kver_fragment = $$incident_klp_pkg{kver};
+    $kver_fragment =~ s/\./\\./g;
 
     for my $item (@$kversion) {
         return $$item{version} if $$item{version} =~ qr/^$kver_fragment\./;
@@ -243,7 +231,7 @@ sub right_kversion {
 }
 
 sub update_kgraft {
-    my ($repo, $incident_id) = @_;
+    my ($incident_klp_pkg, $repo, $incident_id) = @_;
 
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
@@ -254,46 +242,46 @@ sub update_kgraft {
     my $patches = '';
     $patches = get_patches($incident_id, $repo);
 
-    if (!($wk_ker) && ($incident_id && !($patches))) {
+    if ($incident_id && !($patches)) {
         die "Patch isn't needed";
     }
     else {
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
         upload_logs('/tmp/rpmlist.before');
 
-        if (!$wk_ker) {
-            # Download HEAVY LOAD script
-            assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
+        # Download HEAVY LOAD script
+        assert_script_run("curl -f " . autoinst_url . "/data/qam/heavy_load.sh -o /tmp/heavy_load.sh");
 
-            # install screen command
-            zypper_call("in screen", exitcode => [0, 102, 103]);
-            #run HEAVY Load script
-            script_run("bash /tmp/heavy_load.sh");
+        # install screen command
+        zypper_call("in screen", exitcode => [0, 102, 103]);
+        #run HEAVY Load script
+        script_run("bash /tmp/heavy_load.sh");
 
-            # warm up system
-            sleep 15;
-        }
-        # Use single patch or patch list
-        if ($wk_ker == 1) {
-            zypper_call("in -l  kernel-livepatch-4_12_14-25_13-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        elsif ($wk_ker == 2) {
-            zypper_call("in -l  kernel-livepatch-4_12_14-197_15-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        elsif ($wk_ker == 3) {
-            zypper_call("in -l kgraft-patch-3_12_74-60_64_104-xen kgraft-patch-3_12_74-60_64_104-default", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        else {
-            zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
-        }
-        if (!$wk_ker) {
-            #kill HEAVY-LOAD scripts
-            script_run("screen -S LTP_syscalls -X quit");
-            script_run("screen -S newburn_KCOMPILE -X quit");
-            script_run("rm -Rf /var/log/qa");
-        }
+        # warm up system
+        sleep 15;
+
+        zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+
+        #kill HEAVY-LOAD scripts
+        script_run("screen -S LTP_syscalls -X quit");
+        script_run("screen -S newburn_KCOMPILE -X quit");
+        script_run("rm -Rf /var/log/qa");
+
         script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
+
+        my $installed_klp_pkg =
+          find_installed_klp_pkg($$incident_klp_pkg{kver},
+            $$incident_klp_pkg{kflavor});
+        if (!$installed_klp_pkg) {
+            die "No kernel livepatch package installed after update";
+        }
+        elsif (!klp_pkg_eq($installed_klp_pkg, $incident_klp_pkg)) {
+            die "Unexpected kernel livepatch package installed after update";
+        }
+
+        verify_klp_pkg_patch_is_active($incident_klp_pkg);
+        verify_klp_pkg_installation($incident_klp_pkg);
     }
 }
 
@@ -328,26 +316,23 @@ sub run {
     }
 
     if (get_var('KGRAFT')) {
-        prepare_kgraft($repo, $incident_id);
+        my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
         boot_to_console($self);
 
         if (!check_var('REMOVE_KGRAFT', '1')) {
             # dependencies for heavy load script
-            if (!$wk_ker) {
-                add_qa_head_repo;
-                zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-            }
+            add_qa_head_repo;
+            zypper_call("in qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
 
             # update kgraft patch under heavy load
-            update_kgraft($repo, $incident_id);
+            update_kgraft($incident_klp_pkg, $repo, $incident_id);
 
-            if (!$wk_ker) {
-                zypper_call("rr qa-head");
-                zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-            }
+            zypper_call("rr qa-head");
+            zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
             power_action('reboot', textmode => 1);
 
             boot_to_console($self);
+            verify_klp_pkg_patch_is_active($incident_klp_pkg);
         }
 
         kgraft_state;

@@ -11,15 +11,16 @@
 # Maintainer: QA SLE Functional YaST <qa-sle-yast@suse.de>
 
 use base 'consoletest';
+use y2_module_basetest;
 use strict;
 use warnings;
 use testapi;
 
 sub run {
+    my ($self) = shift;
     select_console 'root-console';
-    assert_script_run 'systemctl disable NetworkManager --now';
-    assert_script_run 'systemctl enable wicked --now';
-    assert_script_run qq{systemctl status wickedd.service | grep \"active \(running\)\"};
+    return unless is_network_manager_default;
+    $self->use_wicked_network_manager;
 }
 
 1;

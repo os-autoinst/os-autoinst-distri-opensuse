@@ -54,6 +54,7 @@ sub run {
 
     # test from netcat side
     type_string("fg 1\n");
+    wait_still_screen(1, 2);
     type_string("Hello from nc...\n");
     send_key('ctrl-z');
     type_string("fg 2\n");

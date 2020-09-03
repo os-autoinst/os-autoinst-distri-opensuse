@@ -20,7 +20,7 @@ use power_action_utils 'power_action';
 use testapi;
 use utils;
 
-my $mitigations_list =
+our $mitigations_list =
   {
     name                   => "meltdown",
     CPUID                  => hex '20000000',

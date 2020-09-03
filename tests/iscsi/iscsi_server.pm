@@ -154,12 +154,12 @@ sub config_2way_authentication {
 }
 
 sub target_backstore_tab {
-    send_key 'alt-t';    # go to target tab
+    send_key 'alt-t';     # go to target tab
     assert_screen 'iscsi-target-targets-tab';
-    send_key 'alt-a';    # add target
-                         # we need to wait while YaST generates Identifier value
+    send_key 'alt-a';     # add target
+                          # we need to wait while YaST generates Identifier value
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 44);
-    send_key 'alt-t';    # select target field
+    send_key 'alt-t';     # select target field
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 44);
     send_key 'ctrl-a';    # select all text inside target field
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 45);
@@ -183,9 +183,9 @@ sub target_backstore_tab {
     assert_and_click('iscsi-target-LUN-path-selected', timeout => 20);
     type_string_slow_extended $test_data->{target_conf}->{backstore};
     assert_screen 'iscsi-target-LUN';
-    send_key 'alt-o';    # OK
+    send_key 'alt-o';               # OK
     assert_screen 'iscsi-target-overview';
-    send_key 'alt-n';    # next
+    send_key 'alt-n';               # next
     config_2way_authentication;
     assert_screen 'iscsi-target-overview-target-tab';
     send_key 'alt-f';               # finish
@@ -197,7 +197,7 @@ sub display_targets {
     my $cmd = 'targetcli sessions list | tee -a ' . "/dev/$serialdev";
     assert_script_run 'targetcli ls';
     # targetcli does not support sessions option in sle12
-    return if (is_sle '<15');
+    return                                 if (is_sle '<15');
     $cmd .= '| grep -i ' . $args{expected} if defined($args{expected}) . ' | tee -a ' . "/dev/$serialdev";
     assert_script_run $cmd;
 }

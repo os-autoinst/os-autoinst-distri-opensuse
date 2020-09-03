@@ -13,14 +13,17 @@ schedule:
   - console/system_state
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/zypper_lr
+  - console/zypper_ref
+  - update/prepare_system_for_update_tests
+  - update/updates_packagekit_gpk
+  - update/check_system_is_updated
   - locale/keymap_or_locale
   - console/force_scheduled_tasks
   - console/textinfo
   - console/hostname
   - console/installation_snapshots
   - console/x_vt
-  - console/zypper_lr
-  - console/zypper_ref
   - console/ncurses
   - console/yast2_lan
   - console/curl_https
@@ -40,9 +43,6 @@ schedule:
   - x11/xterm
   - locale/keymap_or_locale_x11
   - x11/sshxterm
-  - update/prepare_system_for_update_tests
-  - update/updates_packagekit_gpk
-  - update/check_system_is_updated
   - x11/gnome_control_center
   - x11/gnome_terminal
   - x11/gedit

@@ -18,6 +18,7 @@ use migration;
 use registration;
 use qam;
 use Utils::Backends 'is_pvm';
+use y2_installbase;
 
 
 sub patching_sle {
@@ -312,4 +313,8 @@ sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    y2_installbase::save_upload_y2logs;
+}
 1;

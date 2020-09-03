@@ -336,7 +336,7 @@ sub uefi_bootmenu_params {
       :         send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
-    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.2'))) {
+    if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.1'))) {
         for (1 .. 3) { send_key "down"; }
         send_key "end";
         # delete "keep" word
@@ -542,10 +542,10 @@ sub select_installation_source {
     my ($m_server, $m_share, $m_directory);
 
     # Parse SUSEMIRROR into variables
-    if ($m_mirror =~ m{^[a-z]+://([a-zA-Z0-9.-]*)/(.*)$}) {
-        ($m_server, $m_directory) = ($1, $2);
+    if ($m_mirror =~ m{^[a-z]+://(?<server>[a-zA-Z0-9.-]*)/(?<dir>.*)$}) {
+        ($m_server, $m_directory) = ($+{server}, $+{dir});
         if ($m_protocol eq "smb") {
-            ($m_share, $m_directory) = $m_directory =~ /\/(.+?)(\/.*)/;
+            ($m_share, $m_directory) = split(/\//, $m_directory, 2);
         }
     }
 

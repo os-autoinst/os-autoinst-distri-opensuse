@@ -27,7 +27,8 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - '{{system_prepare}}'
-  - '{{patch_and_reboot}}'
+  - '{{patch_and_reboot_inci}}'
+  - '{{patch_and_reboot_test_repo}}'
   - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
@@ -38,9 +39,13 @@ conditional_schedule:
     QAM_INCI:
       1:
         - console/system_prepare
-  patch_and_reboot:
+  patch_and_reboot_inci:
     QAM_INCI:
       1:
+        - qa_automation/patch_and_reboot
+  patch_and_reboot_test_repo:
+    FLAVOR:
+      Server-DVD-HA-Updates:
         - qa_automation/patch_and_reboot
   add_update_test_repo:
     QAM_INCI:

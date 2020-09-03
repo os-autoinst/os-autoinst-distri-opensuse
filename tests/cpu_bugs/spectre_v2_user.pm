@@ -9,7 +9,7 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
-
+package spectre_v2_user;
 use strict;
 use warnings;
 
@@ -22,7 +22,7 @@ use power_action_utils 'power_action';
 
 use Mitigation;
 
-my %mitigations_list =
+our %mitigations_list =
   (
     name                   => "spectre_v2_user",
     CPUID                  => hex 'C000000',
@@ -61,7 +61,7 @@ sub run {
         $mitigations_list{sysfs}->{auto}         =~ s/STIBP: conditional/STIBP: disabled/g;
     }
     my $obj = Mitigation->new(\%mitigations_list);
-    if (($obj->read_cpuid() & $obj->CPUID()) eq 0) {
+    if (($obj->read_cpuid_edx() & $obj->CPUID()) eq 0) {
         $mitigations_list{sysfs}->{off} = ".*STIBP: disabled";
     }
     #run base function testing

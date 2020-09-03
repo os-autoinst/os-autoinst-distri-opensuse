@@ -88,6 +88,13 @@ sub load_kernel_tests {
         }
         loadtest_kernel 'boot_ltp';
         loadtest_kernel 'qa_test_klp';
+        unless (get_var('KOTD_REPO') || get_var('INSTALL_KOTD')) {
+            loadtest_kernel 'install_klp_product';
+        }
+    }
+    elsif (get_var('INSTALL_KLP_PRODUCT')) {
+        loadtest_kernel 'boot_ltp';
+        loadtest_kernel 'install_klp_product';
     }
     elsif (get_var('VIRTIO_CONSOLE_TEST')) {
         loadtest_kernel 'virtio_console';

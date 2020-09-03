@@ -34,7 +34,7 @@ Optional C<$package> can be specified name of rpm file. default is 'update-test-
 
 =cut
 sub check_package {
-    my (%args) = @_;
+    my (%args)  = @_;
     my $stage   = $args{stage}   // 'no';
     my $package = $args{package} // 'update-test-security';
     my $in_vr   = rpmver('vr');

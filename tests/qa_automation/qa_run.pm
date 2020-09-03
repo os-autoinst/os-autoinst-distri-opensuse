@@ -69,7 +69,7 @@ sub qaset_config {
 sub prepare_repos {
     my $self           = shift;
     my $qa_server_repo = get_var('QA_SERVER_REPO', '');
-    my $qa_sdk_repo    = get_var('QA_SDK_REPO', '');
+    my $qa_sdk_repo    = get_var('QA_SDK_REPO',    '');
     pkcon_quit;
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
@@ -99,7 +99,7 @@ sub wait_testrun {
     my $self    = shift;
     my %args    = @_;
     my $timeout = $args{timeout} || 180 * 60;
-    my $sleep   = $args{sleep} || 30;
+    my $sleep   = $args{sleep}   || 30;
     my $fdone   = '/var/log/qaset/control/DONE';
     my $pattern = "TESTRUN_FINISHED";
     my $code    = int(rand(999999));

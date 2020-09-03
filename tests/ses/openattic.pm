@@ -24,7 +24,7 @@ sub run {
     if (check_var('HOSTNAME', 'master')) {
         # install firefox and icewm to test openattic
         zypper_call 'in firefox icewm xinit xorg-x11-server';
-        type_string "startx\n";    # start icewm
+        type_string "startx\n";                   # start icewm
         assert_screen 'generic-desktop';
         mouse_set 100, 100;
         mouse_click 'right';

@@ -34,6 +34,19 @@ schedule:
   # Called on BACKEND: qemu, pvm_hmc
   - '{{grub_test}}'
   - installation/first_boot
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/zypper_in
+  - console/firewall_enabled
+  - console/ncurses
+  - console/sshd_running
+  - console/sshd
+  - console/verify_default_target
+  - console/validate_file_system
+  - console/validate_installed_software
+  - console/orphaned_packages_check
 conditional_schedule:
   hostname_inst:
     BACKEND:

@@ -44,7 +44,7 @@ sub setup_nis_client {
         type_string $server_ip;
         assert_screen 'nis_server_address_filled';
     } elsif (match_has_tag 'nis-client-server-in-domain') {
-        send_key 'spc';    # select found NIS server
+        send_key 'spc';      # select found NIS server
         assert_screen 'nis-client-server-in-domain-selected';
         send_key 'alt-o';    # OK
     }
@@ -53,11 +53,11 @@ sub setup_nis_client {
 
 sub nfs_settings_tab {
     assert_screen 'nis-client-enter-nfs-configuration';
-    send_key 'alt-s';        # nfs configuation button
+    send_key 'alt-s';          # nfs configuation button
     assert_screen 'nis-client-nfs-client-configuration';
-    send_key 'alt-s';        # nfs settings tab
+    send_key 'alt-s';          # nfs settings tab
     assert_screen 'nis-client-nfs-settings-tab';
-    send_key 'alt-v';        # nfsv4 domain name field
+    send_key 'alt-v';          # nfsv4 domain name field
     type_string $setup_nis_nfs_x11{nfs_domain};
     wait_still_screen 4, 4;    # blinking cursor
     save_screenshot;

@@ -19,10 +19,9 @@ use bootloader_setup 'create_encrypted_part';
 
 sub run {
     my $test_data = get_test_suite_data();
-    assert_screen 'linuxrc-start-shell-before-installation', 60;
+    assert_screen 'linuxrc-start-shell-before-installation', 120;
     create_encrypted_part(disk => $test_data->{device}, luks_type => 'luks2');
     type_string "exit\n";
 }
 
 1;
-

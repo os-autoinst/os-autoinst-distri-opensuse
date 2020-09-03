@@ -5,7 +5,14 @@ description:    >
 schedule:
     - boot/boot_to_desktop
     - virtualization/external/prepare
-    - virtualization/xen/ssh_hypervisor_init
-    - virtualization/xen/ssh_guests_init
-    - virtualization/xen/upgrade_guests
-    - virtualization/xen/patch_guests
+    - virtualization/universal/ssh_hypervisor_init
+    - virtualization/universal/ssh_guests_init
+    - virtualization/universal/upgrade_guests
+    - virtualization/universal/patch_guests
+    - '{{open_vm_tools}}'
+
+conditional_schedule:
+    open_vm_tools:
+        REGRESSION:
+            vmware:
+                - virtualization/universal/open_vm_tools

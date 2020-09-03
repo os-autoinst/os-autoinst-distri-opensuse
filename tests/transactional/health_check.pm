@@ -53,8 +53,7 @@ sub run {
     compare_id;
 
     # update rebootmgr.sh to force health-checker to fail
-    assert_script_run "cp /usr/lib/health-checker/rebootmgr.sh /tmp/rebootmgr_bk.sh";
-    trup_shell "sed -i 's/exit 0/exit 1/g' /usr/lib/health-checker/rebootmgr.sh", reboot => 0;
+    trup_shell 'f=$(rpm --eval %{_libexecdir})/health-checker/fail.sh; echo -e \'#/bin/sh\n[ "$1" != "check" ]\' > $f && chmod a+x $f', reboot => 0;
 
     # check that the changes applied and we have a new snapshot
     my $current_id = get_btrfsid;
@@ -78,8 +77,8 @@ sub post_fail_hook {
     upload_logs "health-checker.log";
 
     # revert changes to rebootmgr.sh and reboot
-    if (script_run "test -e /tmp/rebootmgr_bk") {
-        trup_shell "mv /tmp/rebootmgr_bk.sh /usr/lib/health-checker/rebootmgr.sh";
+    if (script_run('test -e $(rpm --eval %{_libexecdir})/health-checker/fail.sh') == 0) {
+        trup_shell 'rm $(rpm --eval %{_libexecdir})/health-checker/fail.sh';
     }
 }
 

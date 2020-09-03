@@ -33,7 +33,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use xen;
+use virt_autotest::common;
 use set_config_as_glue;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
@@ -66,7 +66,7 @@ sub run_test {
     my @host_vfs = enable_vf(@host_pfs);
     record_info("VFs enabled", "@host_vfs");
 
-    foreach my $guest (keys %xen::guests) {
+    foreach my $guest (keys %virt_autotest::common::guests) {
 
         record_info("Test $guest");
         prepare_guest($guest);

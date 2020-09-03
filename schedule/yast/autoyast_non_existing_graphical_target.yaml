@@ -18,6 +18,6 @@ schedule:
   - installation/isosize
   - installation/bootloader_start
   - autoyast/installation
-  - autoyast/verify_default_target
+  - console/verify_default_target
 test_data:
   default_target: "graphical.target"

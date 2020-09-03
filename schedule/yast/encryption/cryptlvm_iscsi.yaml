@@ -44,4 +44,6 @@ schedule:
 test_data:
   crypttab:
     num_devices_encrypted: 1
+  cr_scsi-1IET_00010001-part2:
+    backup_path: '/root/bkp_luks_header_cr_scsi-1IET_00010001-part2'
   <<: !include test_data/yast/encryption/default_enc.yaml

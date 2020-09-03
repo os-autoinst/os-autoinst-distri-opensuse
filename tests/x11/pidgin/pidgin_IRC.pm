@@ -34,40 +34,40 @@ sub run {
     assert_and_click("pidgin-welcome-not-focused") if is_sle('>=15') or is_tumbleweed;
 
     # Create account
-    wait_screen_change { send_key "alt-a" };
-    wait_screen_change { send_key "spc" };
+    send_key "alt-a";
+    wait_still_screen 2;
+    send_key "spc";
+    wait_still_screen 2;
 
     # Choose Protocol "IRC"
     send_key_until_needlematch 'pidgin-protocol-irc', 'down';
-    wait_screen_change { send_key "ret" };
-    wait_screen_change { send_key "alt-u" };
-    wait_screen_change { type_string "$CHANNELNAME" };
-    wait_screen_change { send_key "alt-a" };
+    send_key "ret";
+    wait_still_screen 2;
+    send_key "alt-u";
+    wait_still_screen 2;
+    type_string "$CHANNELNAME";
+    wait_still_screen 2;
+    send_key "alt-a";
 
     # Should create IRC account, close account manager
     assert_and_click 'pidgin-irc-account';
 
-    # Warning of spoofing ip may appear
-    assert_screen([qw(pidgin-spoofing-ip pidgin-ready)]);
-    if (match_has_tag('pidgin-spoofing-ip')) {
-        wait_screen_change {
-            send_key is_sle('<15') ? "alt-tab" : "alt-`";
-        };
-        wait_screen_change {
-            send_key "ctrl-w";    # close it
-        };
+    # IP spoofing or CTCP Version and scan warnings may appear
+    assert_screen([qw(pidgin-ready pidgin-spoofing-ip pidgin-ctcp-version)]);    # wait until connection established
+    wait_still_screen 5;                                                         # give some time for warnings to pop-up
+    while (check_screen('pidgin-spoofing-ip') || check_screen('pidgin-ctcp-version')) {
+        send_key is_sle('<15') ? "alt-tab" : "alt-`";                            # focus on warning
+        wait_still_screen 2;
+        send_key "ctrl-w";                                                       # close it
+        wait_still_screen 2;
     }
-
-    # CTCP Version and warning about scan may appear
-    assert_screen([qw(pidgin-ctcp-version pidgin-ready)]);
-    if (match_has_tag('pidgin-ctcp-version')) {
-        wait_screen_change { send_key "ctrl-w" };    # close it
-        assert_screen("pidgin-ready");               # Assure that pidgin is ready
-    }
+    assert_screen('pidgin-ready');
 
     # Join a chat
-    wait_screen_change { send_key "ctrl-c" };
-    wait_screen_change { type_string "#sledtesting" };
+    send_key "ctrl-c";
+    wait_still_screen 2;
+    type_string "#sledtesting";
+    wait_still_screen 2;
     send_key "alt-j";
 
     # Should open sledtesting channel
@@ -75,9 +75,11 @@ sub run {
 
     # Send a message
     send_key is_sle('<15') ? "alt-tab" : "alt-`";
+    wait_still_screen 2;
     type_string "Hello from openQA\n";
     assert_screen 'pidgin-irc-msgsent';
-    wait_screen_change { send_key "ctrl-w" };
+    send_key "ctrl-w";
+    wait_still_screen 2;
 
     # Cleaning
     $self->pidgin_remove_account;
@@ -86,7 +88,8 @@ sub run {
     assert_screen 'pidgin-welcome';
 
     # Exit
-    wait_screen_change { send_key "alt-c" };
+    send_key "alt-c";
+    wait_still_screen 2;
     send_key "ctrl-q";
 }
 

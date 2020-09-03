@@ -259,6 +259,7 @@ sub is_ltp_test {
 sub is_kernel_test {
     return is_ltp_test() ||
       (get_var('QA_TEST_KLP_REPO')
+        || get_var('INSTALL_KLP_PRODUCT')
         || get_var('INSTALL_KOTD')
         || get_var('VIRTIO_CONSOLE_TEST')
         || get_var('BLKTESTS')
@@ -343,9 +344,9 @@ sub is_desktop_module_selected {
 
 sub default_desktop {
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return         if get_var('VERSION', '') lt '12';
-    return 'gnome' if get_var('VERSION', '') lt '15';
-    return 'gnome' if get_var('VERSION', '') =~ /^Jump/;
+    return            if get_var('VERSION', '') lt '12';
+    return 'gnome'    if get_var('VERSION', '') lt '15';
+    return 'gnome'    if get_var('VERSION', '') =~ /^Jump/;
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'gnome' if is_desktop_module_selected;
@@ -1185,7 +1186,7 @@ sub load_consoletests {
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
-# textmode install comes without firewall by default atm on openSUSE. For virtualizatoin server xen and kvm is disabled by default: https://fate.suse.com/324207
+# textmode install comes without firewall by default atm on openSUSE. For virtualization server xen and kvm is disabled by default: https://fate.suse.com/324207
     if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon && !is_virtualization_server) {
         loadtest "console/firewall_enabled";
     }
@@ -1298,10 +1299,10 @@ sub load_x11tests {
         }
     }
     if (kdestep_is_applicable()) {
-        if ((is_tumbleweed || is_leap("15.1+")) && !get_var('LIVECD')) {
+        if (!get_var('LIVECD')) {
             loadtest "x11/plasma_browser_integration";
+            loadtest "x11/khelpcenter";
         }
-        loadtest "x11/khelpcenter";
         if (get_var("PLASMA5")) {
             loadtest "x11/systemsettings5";
         }
@@ -1689,12 +1690,12 @@ sub load_extra_tests_console {
     loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
-    loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
+    loadtest 'console/libgpiod'  if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
     loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
-    loadtest 'console/sssd_samba'     unless (is_sle("<15") || is_sle(">=15-sp2"));
+    loadtest 'console/sssd_samba'     unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
     loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
 }
 
@@ -2164,7 +2165,7 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "ibus")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/ibus/ibus_installation";
-        loadtest "x11/ibus/ibus_test_ch";
+        loadtest "x11/ibus/ibus_test_cn";
         loadtest "x11/ibus/ibus_test_jp";
         loadtest "x11/ibus/ibus_test_kr";
         loadtest "x11/ibus/ibus_clean";
@@ -2355,6 +2356,7 @@ sub load_security_tests_yast2_apparmor {
     loadtest "security/yast2_apparmor/settings_disable_enable_apparmor";
     loadtest "security/yast2_apparmor/settings_toggle_profile_mode";
     loadtest "security/yast2_apparmor/scan_audit_logs";
+    loadtest "security/yast2_apparmor/manually_add_profile";
 }
 
 sub load_security_tests_openscap {
@@ -2483,6 +2485,12 @@ sub load_mitigation_tests {
     if (get_var('IPMI_TO_QEMU')) {
         loadtest "cpu_bugs/ipmi_to_qemu";
     }
+    if (get_var('XEN_GRUB_SETUP')) {
+        loadtest "cpu_bugs/xen_grub_setup";
+    }
+    if (get_var('MITIGATION_ENV_SETUP')) {
+        loadtest "cpu_bugs/mitigation_env_setup";
+    }
     if (get_var('MELTDOWN')) {
         loadtest "cpu_bugs/meltdown";
     }
@@ -2519,6 +2527,9 @@ sub load_mitigation_tests {
     }
     if (get_var('TAA')) {
         loadtest "cpu_bugs/taa";
+    }
+    if (get_var('MDS_TAA')) {
+        loadtest "cpu_bugs/mds_taa";
     }
     if (get_var('ITLB')) {
         loadtest "cpu_bugs/itlb";
@@ -2618,69 +2629,69 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'install')) {
         loadtest "virt_autotest/login_console";
-        loadtest 'virtualization/xen/prepare_guests';         # Prepare libvirt and install guests
-        loadtest 'virtualization/xen/ssh_hypervisor_init';    # Configure SSH for hypervisor
-        loadtest 'virtualization/xen/waitfor_guests';         # Wait for guests to be installed
+        loadtest 'virtualization/universal/prepare_guests';         # Prepare libvirt and install guests
+        loadtest 'virtualization/universal/ssh_hypervisor_init';    # Configure SSH for hypervisor
+        loadtest 'virtualization/universal/waitfor_guests';         # Wait for guests to be installed
 
-        loadtest 'virtualization/xen/ssh_guests_init';        # Fetch SSH key from guests and connect
-        loadtest 'virtualization/xen/register_guests';        # Register guests against the SMT server
-        loadtest 'virtualization/xen/upgrade_guests';         # Upgrade all guests
-        loadtest 'virtualization/xen/patch_guests';           # Apply patches to all compatible guests
-        loadtest 'virtualization/xen/patch_and_reboot';       # Apply updates and reboot
+        loadtest 'virtualization/universal/ssh_guests_init';        # Fetch SSH key from guests and connect
+        loadtest 'virtualization/universal/register_guests';        # Register guests against the SMT server
+        loadtest 'virtualization/universal/upgrade_guests';         # Upgrade all guests
+        loadtest 'virtualization/universal/patch_guests';           # Apply patches to all compatible guests
+        loadtest 'virtualization/universal/patch_and_reboot';       # Apply updates and reboot
 
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";            # List all guests and ensure they are running
-        loadtest "virtualization/xen/kernel";                 # Virtualization kernel functions
+        loadtest "virtualization/universal/list_guests";            # List all guests and ensure they are running
+        loadtest "virtualization/universal/kernel";                 # Virtualization kernel functions
     }
 
     if (check_var('VIRT_PART', 'virtmanager')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";            # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";            # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/virtmanager_init';       # Connect to the Xen hypervisor using virt-manager
-        loadtest 'virtualization/xen/virtmanager_offon';      # Turn all VMs off and then on again
+        loadtest 'virtualization/universal/virtmanager_init';       # Connect to the Xen hypervisor using virt-manager
+        loadtest 'virtualization/universal/virtmanager_offon';      # Turn all VMs off and then on again
 
         if (is_sle('12-SP3+')) {
-            loadtest 'virtualization/xen/virtmanager_add_devices';    # Add some aditional HV to all VMs
-            loadtest 'virtualization/xen/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
+            loadtest 'virtualization/universal/virtmanager_add_devices';    # Add some aditional HV to all VMs
+            loadtest 'virtualization/universal/virtmanager_rm_devices';     # Remove the aditional HV from all VMs
         }
     }
 
 
     if (check_var('VIRT_PART', 'save_and_restore')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
-        loadtest 'virtualization/xen/save_and_restore';               # Try to save and restore the state of the guest
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
+        loadtest 'virtualization/universal/save_and_restore';               # Try to save and restore the state of the guest
     }
 
     if (check_var('VIRT_PART', 'guest_management')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
-        loadtest 'virtualization/xen/guest_management';               # Try to shutdown, start, suspend and resume the guest
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
+        loadtest 'virtualization/universal/guest_management';               # Try to shutdown, start, suspend and resume the guest
     }
 
     if (check_var('VIRT_PART', 'dom_metrics')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/virsh_stop';                     # Stop libvirt guests
-        loadtest 'virtualization/xen/xl_create';                      # Clone guests using the xl Xen tool
-        loadtest 'virtualization/xen/dom_install';                    # Install vhostmd and vm-dump-metrics
-        loadtest 'virtualization/xen/dom_metrics';                    # Collect some sample metrics
-        loadtest 'virtualization/xen/xl_stop';                        # Stop guests created by the xl Xen tool
-        loadtest 'virtualization/xen/virsh_start';                    # Start virsh guests again
+        loadtest 'virtualization/universal/virsh_stop';                     # Stop libvirt guests
+        loadtest 'virtualization/universal/xl_create';                      # Clone guests using the xl Xen tool
+        loadtest 'virtualization/universal/dom_install';                    # Install vhostmd and vm-dump-metrics
+        loadtest 'virtualization/universal/dom_metrics';                    # Collect some sample metrics
+        loadtest 'virtualization/universal/xl_stop';                        # Stop guests created by the xl Xen tool
+        loadtest 'virtualization/universal/virsh_start';                    # Start virsh guests again
     }
 
     if (check_var('VIRT_PART', 'hotplugging')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/hotplugging';                    # Try to change properties of guests
+        loadtest 'virtualization/universal/hotplugging';                    # Try to change properties of guests
     }
 
     if (check_var('VIRT_PART', 'networking')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";
+        loadtest "virtualization/universal/list_guests";
 
         loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
         loadtest "virt_autotest/libvirt_nated_virtual_network";
@@ -2689,7 +2700,7 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'snapshots')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";
+        loadtest "virtualization/universal/list_guests";
 
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
@@ -2697,18 +2708,20 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'storage')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";    # List all guests and ensure they are running
 
-        loadtest 'virtualization/xen/storage';        # Storage pool / volume test
+        loadtest 'virtualization/universal/storage';        # Storage pool / volume test
     }
 
     if (check_var('VIRT_PART', 'final')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/xen/list_guests";          # List all guests and ensure they are running
-        loadtest 'virtualization/xen/ssh_final';            # Check that every guest is reachable over SSH
-        loadtest 'virtualization/xen/virtmanager_final';    # Check that every guest shows the login screen
-        loadtest "virtualization/xen/smoketest";            # Virtualization smoke test for hypervisor
-        loadtest "virtualization/xen/stresstest";           # Perform stress tests on the guests
+        loadtest "virtualization/universal/list_guests";          # List all guests and ensure they are running
+        loadtest 'virtualization/universal/ssh_final';            # Check that every guest is reachable over SSH
+        loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
+        loadtest "virtualization/universal/smoketest";            # Virtualization smoke test for hypervisor
+        loadtest "virtualization/universal/stresstest";           # Perform stress tests on the guests
+        loadtest "console/perf";                                  # Run QAM perf test
+        loadtest "console/oprofile";                              # Run QAM oprofile test
     }
 }
 
@@ -2830,7 +2843,7 @@ sub load_common_opensuse_sle_tests {
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
     loadtest "terraform/create_image"   if get_var('TERRAFORM');
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-    load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
+    load_toolchain_tests                if get_var("TCM")         || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);

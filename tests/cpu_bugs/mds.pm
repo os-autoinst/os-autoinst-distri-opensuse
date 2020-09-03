@@ -9,7 +9,7 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
-
+package mds;
 use strict;
 use warnings;
 
@@ -22,7 +22,7 @@ use power_action_utils 'power_action';
 
 use Mitigation;
 
-my %mitigations_list =
+our %mitigations_list =
   (
     name                   => "mds",
     CPUID                  => hex '20000000',
@@ -48,14 +48,18 @@ sub smt_status_qemu {
     $mitigations_list{sysfs}->{full_nosmt} =~ s/SMT disabled/SMT Host state unknown/ig;
     $mitigations_list{sysfs}->{default}    =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mitigations_list{sysfs}->{off} = 'Vulnerable; SMT Host state unknown';
+    if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
+        $mitigations_list{sysfs}->{default}    = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+        $mitigations_list{sysfs}->{full}       = $mitigations_list{sysfs}->{default};
+        $mitigations_list{sysfs}->{full_nosmt} = $mitigations_list{sysfs}->{default};
+        $mitigations_list{sysfs}->{off}        = $mitigations_list{sysfs}->{default};
+    }
+
 }
 
 sub run {
     if (check_var('BACKEND', 'qemu')) {
         smt_status_qemu();
-        if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
-            $mitigations_list{sysfs}->{off} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
-        }
     }
     my $obj = Mitigation->new(\%mitigations_list);
 
@@ -75,5 +79,6 @@ sub post_fail_hook {
     grub_mkconfig;
     upload_logs '/tmp/upload_mitigations.tar.bz2';
 }
+
 
 1;

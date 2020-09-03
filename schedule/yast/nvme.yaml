@@ -3,7 +3,7 @@ name: nvme
 description: >
   Basic installation test to confirm that installing and booting to an nvme as
   your root disk works. Installation is validated by successful boot and that
-  YaST does not report any issue.
+  YaST does not report any issue in first place. Smoke testing and validation of partitioning of NVMe.
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -26,3 +26,7 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/nvme_checks
+  - console/validate_fs_table
+test_data:
+  <<: !include test_data/yast/nvme.yaml

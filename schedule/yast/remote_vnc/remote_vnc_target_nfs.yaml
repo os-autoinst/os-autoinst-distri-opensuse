@@ -6,6 +6,5 @@ description: >
 vars:
   DESKTOP: gnome
 schedule:
-  - installation/isosize
-  - installation/bootloader
+  - installation/bootloader_start
   - remote/remote_target

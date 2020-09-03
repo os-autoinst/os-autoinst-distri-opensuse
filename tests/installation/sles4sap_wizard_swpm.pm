@@ -30,7 +30,7 @@ sub run {
         send_key 'alt-o';    #Okay
         die 'this is a bug, there is plenty of space';
     }
-    assert_screen "sles4sap-wizard-swpm-overview";    #the same screen as at the beginning of sles4sap_wizard_swpm
+    assert_screen "sles4sap-wizard-swpm-overview";           #the same screen as at the beginning of sles4sap_wizard_swpm
     send_key $cmd{next};
     save_screenshot;
     assert_screen "sles4sap-wizard-swpm-progress", 600;

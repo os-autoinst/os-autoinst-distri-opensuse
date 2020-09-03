@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -37,6 +37,11 @@ sub check_journal {
     return script_run("if [ -s $filename ]; then true; else false; fi");
 }
 
+sub skip_fss_check {
+    # FSS check is not supported by SLE. Disable this check for SLES
+    return is_sle;
+}
+
 sub check_syslog {
     # rsyslog is not installed on tumbleweed anymore
     return !is_tumbleweed && !is_jeos;
@@ -45,7 +50,7 @@ sub check_syslog {
 sub reboot {
     my ($self) = @_;
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 200);
+    $self->wait_boot(bootloader_time => 300);
     select_console 'root-console';
 }
 
@@ -60,12 +65,11 @@ sub run {
     }
     # Enable persistent journal
     assert_script_run("sed -i 's/.*Storage=.*/Storage=persistent/' /etc/systemd/journald.conf");
-    assert_script_run("sed -i 's/.*Seal=.*/Seal=yes/' /etc/systemd/journald.conf");
+    assert_script_run("sed -i 's/.*Seal=.*/Seal=yes/' /etc/systemd/journald.conf") unless skip_fss_check;
     assert_script_run("systemctl restart systemd-journald");
     assert_script_run("journalctl -e | grep -i 'Flush Journal to Persistent Storage'");
     # Setup FSS keys before reboot
-    assert_script_run('journalctl --interval=10s --setup-keys | tee /var/tmp/journalctl-setup-keys.txt');
-    assert_script_run('journalctl --rotate');
+    assert_script_run('journalctl --interval=10s --setup-keys | tee /var/tmp/journalctl-setup-keys.txt && journalctl --rotate') unless skip_fss_check;
     assert_script_run("date '+%F %T' | tee /var/tmp/reboottime");
     assert_script_run("echo 'The batman is going to sleep' | systemd-cat -p info -t batman");
     # Reboot system - public cloud does not handle reboot well atm
@@ -76,7 +80,7 @@ sub run {
         record_info("publiccloud", "Public cloud omits rebooting (temporary workaround)");
     }
     # Check journal state after reboot to trigger bsc#1171858
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
+    record_soft_failure "bsc#1171858" if (!skip_fss_check && script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
     script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
     die "journalctl empty" if check_journal('', "journalctl.txt");
@@ -133,9 +137,15 @@ sub run {
     assert_script_run('journalctl --vacuum-size=100M');
     assert_script_run('journalctl --vacuum-time=1years');
     # Rotate once more and verify the journal afterwards
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
-    assert_script_run('journalctl --rotate');
-    record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
+    if (skip_fss_check) {
+        assert_script_run('journalctl --verify');
+        assert_script_run('journalctl --rotate');
+        assert_script_run('journalctl --verify');
+    } else {
+        record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
+        assert_script_run('journalctl --rotate');
+        record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
+    }
 }
 
 sub cleanup {

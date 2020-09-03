@@ -17,7 +17,7 @@
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
 use base "consoletest";
-use xen;
+use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
@@ -33,7 +33,7 @@ sub run {
     zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
 
     # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo \"\$(dig +short $xen::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %xen::guests);
+    assert_script_run "echo \"\$(dig +short $virt_autotest::common::guests{$_}->{ip}) $_ # virtualization\" >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 }
 

@@ -79,14 +79,16 @@ sub run {
     # For 'en_US' pick 'UTC', for 'de_DE' select 'Europe/Berlin'
     my %tz_key = ('en_US' => 'u', 'de_DE' => 'e');
 
-    # Select locale
-    assert_screen 'jeos-locale', 300;
-    # Without this 'ret' sometimes won't get to the dialog
-    wait_still_screen;
-    send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
-    send_key 'ret';
+    assert_screen [qw(jeos-locale jeos-keylayout)], 300;
 
-    # Select language
+    if (match_has_tag 'jeos-locale') {
+        # Without this 'ret' sometimes won't get to the dialog
+        wait_still_screen;
+        send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
+        send_key 'ret';
+    }
+
+    # Select keyboard layout
     send_key_until_needlematch "jeos-keylayout-$lang", $keylayout_key{$lang}, 30;
     send_key 'ret';
 

@@ -39,7 +39,7 @@ sub run {
 
     # if profile is a template, expand and rename
     $profile = expand_template($profile) if $path =~ s/^(.*\.xml)\.ep$/$1/;
-    die $profile if $profile->isa('Mojo::Exception');
+    die $profile                         if $profile->isa('Mojo::Exception');
 
     $profile = expand_version($profile);
     $profile = adjust_network_conf($profile);

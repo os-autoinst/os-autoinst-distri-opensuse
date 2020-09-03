@@ -1,3 +1,9 @@
 crypttab:
   num_devices_encrypted: 3
 <<: !include test_data/yast/encryption/default_enc.yaml
+cr_root:
+  backup_path: '/root/bkp_luks_header_cr_root'
+cr_home:
+  backup_path: '/root/bkp_luks_header_cr_home'
+cr_swap:
+  backup_path: '/root/bkp_luks_header_cr_swap'

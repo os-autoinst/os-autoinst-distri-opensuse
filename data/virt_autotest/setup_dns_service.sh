@@ -65,7 +65,7 @@ if [ $? -eq 0 ];then
         mv ${dhcpd_config_file}.orig ${dhcpd_config_file} #Restore ${dhcpd_config_file} if it was previously modified by this script
 fi
 cp $dhcpd_config_file $dhcpd_config_file.orig
-sed -irn "s/^.*default-lease-time.*$/default-lease-time 28800;/g; s/^.*max-lease-time.*$/max-lease-time 28800;/g; s/^.*option domain-name.*$/option domain-name \"$dns_domain_forward\";/g" ${qa_standalone_file}
+sed -irn "s/^.*default-lease-time.*$/default-lease-time 28800;/g; s/^.*max-lease-time.*$/max-lease-time 28800;/g; s/^.*option domain-name .*$/option domain-name \"$dns_domain_forward\";/g" ${qa_standalone_file}
 get_dhcp_ipaddr_range=`echo -e ${dns_domain_reverse} | awk -F"." 'BEGIN {OFS=".";} {print $3,$2,$1}'`
 dhcp_ipaddr_range=$(echo -e ${get_dhcp_ipaddr_range})
 sed -irn "s/^IP=.*$/IP=\'${bridgeip}\'/g; s/^NET=.*$/NET=\'${dhcp_ipaddr_range}\.0\'/g; s/^NETREV=.*$/NETREV=\'${dns_domain_reverse}\'/g; s/^NET_DHCP_RANGE_START=.*$/NET_DHCP_RANGE_START=\'${dhcp_ipaddr_range}\.10\'/g; s/^NET_DHCP_RANGE_END=.*$/NET_DHCP_RANGE_END=\'${dhcp_ipaddr_range}\.100\'/g; s/^NET_STATIC_RANGE_START=.*$/NET_STATIC_RANGE_START=\'${dhcp_ipaddr_range}\.101\'/g; s/^NET_STATIC_RANGE_END=.*$/NET_STATIC_RANGE_END=\'${dhcp_ipaddr_range}\.115\'/g" ${qa_standalone_file}

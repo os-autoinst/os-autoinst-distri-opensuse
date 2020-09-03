@@ -41,9 +41,8 @@ my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.0/iso/
 
 sub dl_location_switch {
     my ($tg) = @_;
-    wait_screen_change {
-        send_key "alt-e";
-    };
+    send_key "alt-e";
+    wait_still_screen 2, 4;
     send_key "n";
     assert_screen('firefox-preferences');
 

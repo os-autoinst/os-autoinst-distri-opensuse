@@ -19,7 +19,7 @@ schedule:
   - console/validate_encrypt
   - autoyast/verify_cloned_profile
 test_data:
-  <<: !include test_data/yast/encryption/default_enc.yaml
+  <<: !include test_data/yast/encryption/autoyast_multi_btrfs.yaml
   multi_devices:
     - mount_point: /
       label: root_multi_btrfs
