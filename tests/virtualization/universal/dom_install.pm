@@ -27,7 +27,7 @@ sub run {
     select_console 'root-console';
     opensusebasetest::select_serial_terminal();
 
-    zypper_call '-t in vhostmd';
+    zypper_call '-t in vhostmd', exitcode => [0, 4, 102, 103, 106];
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Install vm-dump-metrics on xl-$guest";

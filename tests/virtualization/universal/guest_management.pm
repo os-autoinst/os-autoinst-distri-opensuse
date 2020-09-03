@@ -12,6 +12,7 @@
 
 use base "consoletest";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -52,7 +53,10 @@ sub run {
 
     record_info "START", "Start all guests";
     foreach my $guest (keys %virt_autotest::common::guests) {
-        script_retry "virsh start $guest",                 delay => 30, retry => 12;
+        if (script_retry("virsh start $guest", delay => 30, retry => 6) != 0) {
+            restart_libvirtd;
+            script_retry "virsh start $guest", delay => 30, retry => 6;
+        }
         script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     }
 
