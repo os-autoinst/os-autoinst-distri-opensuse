@@ -62,6 +62,7 @@ fi
 find-files() {
     local files=()
     pwd
+    set +o pipefail
     [[ -d script ]] && files+=(script/*)
     echo "files: ${files[@]}"
     files=($(file --mime-type * "${files[@]}" | grep text/x-perl | awk -F':' '{ print $1 }'))
@@ -73,15 +74,16 @@ find-files() {
     else
         git ls-files "${files[@]}"
     fi
+    set -o pipefail
 }
 
 
 # go to caller directory
 cd "$(dirname $0)/.."
-file --mime-type script/import-slenkins-testsuite.pl
-file --mime-type script/import-slenkins-testsuite.pl | grep text/x-perl
-file --mime-type script/import-slenkins-testsuite.pl | grep text/x-perl | awk -F: '{ print $1 }'
-#find-files
+#file --mime-type script/import-slenkins-testsuite.pl
+#file --mime-type script/import-slenkins-testsuite.pl | grep text/x-perl
+#file --mime-type script/import-slenkins-testsuite.pl | grep text/x-perl | awk -F: '{ print $1 }'
+find-files
 #exit
 
 #file --mime-type * | grep text/x-perl
