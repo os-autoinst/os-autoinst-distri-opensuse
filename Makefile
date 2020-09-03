@@ -34,9 +34,7 @@ check-links: tools/tidy tools/lib/ os-autoinst/
 .PHONY: check-links
 tidy-check: check-links
 	cp tmp/tidy os-autoinst/tools/tidy
-	echo "======= tools/tidy --check"
 	tools/tidy --check
-	echo "======= tools/tidy finished"
 
 .PHONY: tidy
 tidy: tools/tidy
