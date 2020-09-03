@@ -28,8 +28,8 @@ sub run {
     my $self_update_repo = get_required_var('INSTALLER_SELF_UPDATE');
     assert_script_run("grep /var/log/YaST2/y2log -e '$self_update_repo'",
         fail_message => 'Expected to have log entries that self update repo was contacted');
-    assert_script_run('test -n "$(ls -A /download)"',
-        fail_message => '/download directory is empty, expected to contain downloaded updates');
+    assert_script_run('test -n "$(ls -A /download | grep yast_)"',
+        fail_message => '/download is expected to contain downloaded updates, no yast_* files found');
     assert_script_run('mount | grep -P "/download/yast_\d+"',
         fail_message => 'updates are not mounted, expected /download/yast_* to be mounted as /mount/yast_*');
     select_console('installation');
