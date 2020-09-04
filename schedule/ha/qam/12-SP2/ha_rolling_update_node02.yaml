@@ -1,0 +1,40 @@
+name:           qam-ha_rolling_update_migration
+description:    >
+  Test a rolling update in a two nodes cluster
+  Further info about the test suite
+schedule:
+  - boot/boot_to_desktop
+  - migration/online_migration/register_system
+  - update/zypper_up
+  - console/console_reboot
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - ha/ha_cluster_join
+  - ha/check_hawk
+  - ha/dlm
+  - ha/clvmd_lvmlockd
+  - ha/cluster_md
+  - ha/vg
+  - ha/filesystem
+  - ha/drbd_passive
+  - ha/filesystem
+  - '{{qam_incident}}'
+  - ha/await_upgrade_or_update
+  - ha/cluster_state_mgmt
+  - migration/online_migration/zypper_patch
+  - ha/check_cluster_integrity
+  - ha/check_hawk
+  - ha/wait_others_upgraded_or_updated
+  - ha/check_logs
+conditional_schedule:
+  qam_incident:
+    QAM_INCI:
+      1:
+        - ha/ctdb
+        - ha/haproxy
