@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
 
 use IPC::Run;
@@ -33,6 +33,18 @@ sub ipmitool {
 
     bmwqemu::diag("IPMI: $stdout");
     return $stdout;
+}
+
+sub set_ssh_console_timeout_before_use {
+    reset_consoles;
+    select_console('root-console');
+    set_ssh_console_timeout('/etc/ssh/sshd_config', '28800');
+    reset_consoles;
+    select_console 'sol', await_console => 1;
+    send_key 'ret';
+    check_screen([qw(linux-login virttest-displaymanager)], 60);
+    save_screenshot;
+    send_key 'ret';
 }
 
 sub login_to_console {
@@ -164,6 +176,8 @@ sub login_to_console {
         send_key 'ret';
     }
 
+    # Set ssh console timeout for thunderx machine
+    set_ssh_console_timeout_before_use if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx');
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 
