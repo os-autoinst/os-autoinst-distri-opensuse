@@ -31,7 +31,7 @@ use testapi;
 use DateTime;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file
-  ssh_setup ssh_copy_id create_guest install_default_packages upload_y2logs);
+  ssh_setup ssh_copy_id create_guest install_default_packages upload_y2logs ensure_online);
 
 #return 1 if it is a VMware test judging by REGRESSION variable
 sub is_vmware_virtualization {
@@ -138,6 +138,29 @@ sub create_guest {
 sub install_default_packages {
     # Install nmap, ip, dig
     zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 4, 102, 103, 106];
+}
+
+sub ensure_online {
+    my ($guest, %args) = @_;
+
+    my $hypervisor = $args{HYPERVISOR}    // "192.168.122.1";
+    my $dns_host   = $args{DNS_TEST_HOST} // "suse.de";
+    # Ensure guest is running
+    # Only xen/kvm support to reboot guest at the moment
+    if (is_xen_host || is_kvm_host) {
+        if (script_run("virsh list --all | grep '$guest' | grep running") != 0) {
+            assert_script_run("virsh start '$guest'");
+        }
+    }
+    die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => 5, retry => 60) != 0);
+    # Wait for ssh to come up
+    die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
+    die "$guest not ssh-reachable"  if (script_run("ssh $guest uname") != 0);
+    # Ensure default route is set
+    script_run("ssh $guest ip route add default via $hypervisor");
+    die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 1 $hypervisor", delay => 1, retry => 10) != 0);
+    # Check also if name resolution works
+    die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 1 -w 120 $dns_host", delay => 1, retry => 10) != 0);
 }
 
 sub upload_y2logs {
