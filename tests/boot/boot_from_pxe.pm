@@ -33,10 +33,19 @@ sub run {
         mutex_unlock('pxe');
         resume_vm();
     }
+
     if (check_var('BACKEND', 'ipmi')) {
-        select_console 'sol', await_console => 0;
+        if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx') {
+            select_console 'sol', await_console => 1;
+            send_key 'ret';
+            ipmi_backend_utils::ipmitool 'chassis power reset';
+        }
+        else {
+            select_console 'sol', await_console => 0;
+        }
     }
-    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 300);
+    assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
+
     # boot bare-metal/IPMI machine
     if (check_var('BACKEND', 'ipmi') && get_var('BOOT_IPMI_SYSTEM')) {
         send_key 'ret';
