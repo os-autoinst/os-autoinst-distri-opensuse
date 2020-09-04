@@ -1056,6 +1056,25 @@ else {
             loadtest 'network/curl_client';
         }
     }
+    elsif (get_var('QAM_WIN2019_INSTALL')) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        if (check_var('HOSTNAME', 'win2k19')) {
+            loadtest 'support_server/windows/win2019_install';
+            loadtest 'support_server/windows/win2019_config';
+            loadtest 'support_server/windows/win2019_config_AD';
+        }
+    }
+    elsif (get_var('QAM_SAMBA_AD')) {
+        boot_hdd_image;
+        if (check_var('HOSTNAME', 'client')) {
+            loadtest 'network/setup_multimachine';
+            loadtest 'network/samba/samba_adcli';
+        }
+        elsif (check_var('HOSTNAME', 'win2k19')) {
+            loadtest 'support_server/windows/win2019_boot';
+        }
+    }
     elsif (get_var('QAM_SMT')) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {

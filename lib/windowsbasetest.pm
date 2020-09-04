@@ -44,13 +44,20 @@ sub open_powershell_as_admin {
     my ($self, %args) = @_;
     send_key_until_needlematch 'quick-features-menu', 'super-x';
     wait_still_screen stilltime => 2, timeout => 15;
-    send_key_until_needlematch 'user-acount-ctl-allow-make-changes', 'shift-a';
-    assert_and_click 'user-acount-ctl-yes';
-    wait_still_screen stilltime => 2, timeout => 15;
-    assert_screen 'powershell-as-admin-window', 180;
-    assert_and_click 'window-max';
-    sleep 3;
-    _setup_serial_device unless (exists $args{no_serial});
+    #If using windows server, and logged with Administrator, only open powershell
+    if (get_var('QAM_WINDOWS_SERVER')) {
+        send_key 'shift-a';
+        wait_screen_change { assert_and_click('window-max', timeout => 15) };
+        assert_screen 'windows_server_powershel_opened', 30;
+    } else {
+        send_key_until_needlematch 'user-acount-ctl-allow-make-changes', 'shift-a';
+        assert_and_click 'user-acount-ctl-yes';
+        wait_still_screen stilltime => 2, timeout => 15;
+        assert_screen 'powershell-as-admin-window', 180;
+        assert_and_click 'window-max';
+        sleep 3;
+        _setup_serial_device unless (exists $args{no_serial});
+    }
 }
 
 sub run_in_powershell {
@@ -62,14 +69,19 @@ sub run_in_powershell {
     if (exists $args{code} && (ref $args{code} eq 'CODE')) {
         wait_screen_change(sub { send_key 'ret' }, 10);
         $args{code}->();
+        send_key 'ctrl-l';
+    } elsif (get_var('QAM_WINDOWS_SERVER')) {
+        save_screenshot;
+        wait_screen_change(sub { send_key 'ret' }, 10);
+        assert_screen($args{tags});
+        return;
     } else {
         type_string ';$port.WriteLine(\'' . $rc_hash . '\' + $?)', max_interval => 125;
         wait_screen_change(sub { send_key 'ret' }, 10);
         wait_serial("${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 30) or
           die "Expected string (${rc_hash}True) was not found on serial";
+        send_key 'ctrl-l';
     }
-
-    send_key 'ctrl-l';
 }
 
 sub reboot_or_shutdown {
@@ -78,6 +90,11 @@ sub reboot_or_shutdown {
     wait_screen_change(sub { send_key 'u' }, 10);
     sleep 1;
     wait_screen_change(sub { send_key((!!$is_reboot) ? 'r' : 'u') }, 10);
+    #if using windows server
+    if (get_var('QAM_WINDOWS_SERVER')) {
+        send_key 'ret';
+    }
+
     save_screenshot;
     assert_shutdown unless ($is_reboot);
 }
@@ -93,6 +110,17 @@ sub wait_boot_windows {
 
     assert_screen 'windows-desktop', 120;
 }
+
+sub windows_server_login_Administrator {
+    #Login windows Server as Administrator
+    send_key "ctrl-alt-delete";
+    assert_screen "windows_server_login", timeout => 60;
+    type_string "N0tS3cr3t@";
+    send_key "ret";
+    #some times server_manager windows slow to open when Openqa high load, fix waiting few seconds more...
+    assert_screen "wint_manage_server", timeout => 150;
+}
+
 
 sub test_flags {
     return {fatal => 1};
