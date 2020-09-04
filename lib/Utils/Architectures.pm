@@ -37,6 +37,8 @@ use constant {
           is_aarch64
           is_arm
           is_ppc64le
+          is_orthos_machine
+          is_supported_suse_domain
           )
     ]
 };
@@ -124,6 +126,32 @@ Returns C<check_var('ppc64le')>.
 =cut
 sub is_ppc64le {
     return check_var('ARCH', 'ppc64le');
+}
+
+=head2 is_orthos_machine
+
+ is_orthos_machine();
+
+Returns C<true if machine FQDN has arch.suse.de suffix>.
+
+=cut
+sub is_orthos_machine {
+    my $sut_fqdn = get_var('SUT_IP', 'nosutip');
+    return 1 if $sut_fqdn =~ /(arch\.suse\.de)/im;
+    return 0;
+}
+
+=head2 is_supported_suse_domain
+
+ is_supported_suse_domain();
+
+Returns C<true if machine FQDN has qa.suse.de, qa2.suse.asia or arch.suse.de suffix>.
+
+=cut
+sub is_supported_suse_domain {
+    my $sut_fqdn = get_var('SUT_IP', 'nosutip');
+    return 1 if $sut_fqdn =~ /(arch\.suse\.de|qa2\.suse\.asia|qa\.suse\.de)/im;
+    return 0;
 }
 
 1;

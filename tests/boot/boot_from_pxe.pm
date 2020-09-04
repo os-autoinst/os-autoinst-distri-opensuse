@@ -21,7 +21,7 @@ use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params);
 use registration 'registration_bootloader_cmdline';
 use utils 'type_string_slow';
 use Utils::Backends 'is_remote_backend';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures qw(is_aarch64 is_orthos_machine is_supported_suse_domain);
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -61,29 +61,29 @@ sub run {
 
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
-        my $repo        = $openqa_url . "/assets/repo/${image_name}";
-        my $sut_fqdn    = get_var('SUT_IP', 'nosutip');
-        my $sut_allowed = qr/(arch\.suse\.de|qa2\.suse\.asia)/im;
-        my $key_used    = '';
-        if (is_remote_backend && is_aarch64 && ($sut_fqdn =~ $sut_allowed)) {
+        my $repo     = $openqa_url . "/assets/repo/${image_name}";
+        my $key_used = '';
+        if (is_remote_backend && is_aarch64 && is_supported_suse_domain) {
             $key_used = 'c';
             send_key 'down';
         }
         else {
             $key_used = 'esc';
         }
-        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot)], $key_used, 8, 3;
+        #Detect orthos-grub-boot and qa-net-grub-boot for aarch64 in orthos and openQA networks respectively, and qa-net-boot for x86_64 in openQA network
+        send_key_until_needlematch [qw(qa-net-boot orthos-grub-boot qa-net-grub-boot)], $key_used, 8, 3;
         if (match_has_tag("qa-net-boot")) {
             #Nuremberg
             my $path_prefix = "/mnt/openqa/repo";
             my $path        = "${path_prefix}/${image_name}/boot/${arch}/loader";
             $image_path = "$path/linux initrd=$path/initrd install=$repo";
         }
-        elsif (match_has_tag("orthos-grub-boot")) {
+        elsif (match_has_tag("orthos-grub-boot") or match_has_tag("qa-net-grub-boot")) {
             #Orthos
             wait_still_screen 5;
             my $path_prefix = "auto/openqa/repo";
-            my $path        = "${path_prefix}/${image_name}/boot/${arch}";
+            $path_prefix = "/mnt/openqa/repo" if (!is_orthos_machine);
+            my $path = "${path_prefix}/${image_name}/boot/${arch}";
             $image_path = "linux $path/linux install=$repo";
         }
 
@@ -154,21 +154,23 @@ sub run {
     if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 420;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
-        my @tags              = ($ssh_vnc_tag, 'orthos-grub-boot-linux');
+        #Detect orthos-grub-boot-linux and qa-net-grub-boot-linux for aarch64 in orthos and openQA networks respectively
+        my @tags = ($ssh_vnc_tag, 'orthos-grub-boot-linux', 'qa-net-grub-boot-linux');
 
         # Proceed if the 'installation' console is ready
         # otherwise the 'sol' console may be just freezed
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
-
-            if (match_has_tag("orthos-grub-boot-linux")) {
+            if (match_has_tag("orthos-grub-boot-linux") or match_has_tag("qa-net-grub-boot-linux")) {
                 my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
                 my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+                $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}/initrd" if (!is_orthos_machine);
                 wait_still_screen 5;
                 type_string $args;
                 send_key 'ret';
-                assert_screen 'orthos-grub-boot-initrd', $ssh_vnc_wait_time;
+                #Detect orthos-grub-boot-initrd and qa-net-grub-boot-initrd for aarch64 in orthos and openQA networks respectively
+                assert_screen [qw(orthos-grub-boot-initrd qa-net-grub-boot-initrd)], $ssh_vnc_wait_time;
                 $args = "boot";
                 type_string $args;
                 send_key "ret";
