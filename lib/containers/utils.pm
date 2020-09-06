@@ -178,4 +178,5 @@ sub test_built_img {
     assert_script_run('curl http://localhost:8888/ | grep "Networking test shall pass"');
     assert_script_run("rm -rf /root/templates");
 }
+
 1;

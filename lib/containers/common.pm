@@ -24,7 +24,7 @@ use registration;
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_leap is_caasp is_opensuse is_jeos is_public_cloud);
 
-our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_registry_suse_de_for_docker clean_container_host
+our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
 
 sub install_podman_when_needed {
@@ -37,6 +37,7 @@ sub install_podman_when_needed {
         push(@pkgs, 'podman-cni-config') if is_jeos();
         push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
         zypper_call "in @pkgs";
+        assert_script_run('podman info');
     }
 }
 
@@ -63,14 +64,26 @@ sub install_docker_when_needed {
     assert_script_run('docker info');
 }
 
-sub allow_registry_suse_de_for_docker {
-    # Allow our internal 'insecure' registry
-    assert_script_run("mkdir -p /etc/docker");
-    assert_script_run('cat /etc/docker/daemon.json; true');
-    assert_script_run(
-        'echo "{ \"insecure-registries\" : [\"registry.suse.de\", \"registry.suse.de:443\", \"registry.suse.de:5000\"] }" > /etc/docker/daemon.json');
-    assert_script_run('cat /etc/docker/daemon.json');
-    systemctl('restart docker');
+sub allow_selected_insecure_registries {
+    my %args    = @_;
+    my $runtime = $args{runtime};
+    die "You must define the runtime!" unless $runtime;
+
+    assert_script_run "echo $runtime ...";
+    if ($runtime =~ /docker/) {
+        # Allow our internal 'insecure' registry
+        assert_script_run("mkdir -p /etc/docker");
+        assert_script_run('cat /etc/docker/daemon.json; true');
+        assert_script_run(
+            'echo "{ \"insecure-registries\" : [\"localhost:5000\"] }" > /etc/docker/daemon.json');
+        assert_script_run('cat /etc/docker/daemon.json');
+        systemctl('restart docker');
+    } elsif ($runtime =~ /podman/) {
+        assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
+        assert_script_run "chmod 644 /etc/containers/registries.conf";
+    } else {
+        die "You must define the runtime!";
+    }
 }
 
 sub clean_container_host {
