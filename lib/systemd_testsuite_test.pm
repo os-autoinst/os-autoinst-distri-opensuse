@@ -121,7 +121,6 @@ sub testsuiteprepare {
 
 sub post_fail_hook {
     my ($self) = @_;
-    $self->SUPER::post_fail_hook();
     #upload logs from given testname
     $self->tar_and_upload_log('/var/opt/systemd-tests/logs',       '/tmp/systemd_testsuite-logs.tar.bz2');
     $self->tar_and_upload_log('/var/log/journal /run/log/journal', 'binary-journal-log.tar.bz2');
