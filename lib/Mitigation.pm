@@ -584,10 +584,10 @@ sub do_test {
 
 # Initialize junit xml file structure.
 sub init_xml {
-    my %args = {
+    my %args = (
         testsuites_name => 'ts',
         file_name       => '/tmp/junit.xml'
-    };
+    );
     %args = @_;
     my $xml_content = << "EOF";
 <testsuites error='0' failures='0' name=\\"$args{testsuites_name}\\" skipped='0' tests='0' time=''>
@@ -598,10 +598,10 @@ EOF
 }
 
 sub append_ts2_xml {
-    my %args = {
+    my %args = (
         testsuite_name => 'ts',
         file_name      => '/tmp/junit.xml'
-    };
+    );
     %args = @_;
     my $cmd_append_ts2_xml = << "EOF";
 xmlstarlet ed  -P -L -s /testsuites -t elem -n testsuite -v '' \\
@@ -621,11 +621,11 @@ EOF
 
 # Update testsuites atturate value
 sub update_tss_attr {
-    my %args = {
+    my %args = (
         file_name => "/tmp/junit.xml",
         attr      => 0,
         value     => 0
-    };
+    );
     %args = @_;
     my $cmd_update_tss_attr = << "EOF";
 xmlstarlet ed -L -u /testsuites/\@$args{attr} -v $args{value}  $args{file_name} \\
@@ -635,12 +635,12 @@ EOF
 
 # update testsuite atturate
 sub update_ts_attr {
-    my %args = {
+    my %args = (
         file_name   => "/tmp/junit.xml",
         ts_position => -1,
         attr        => 0,
         value       => 0
-    };
+    );
     %args = @_;
     my $cmd_update_ts_attr = << "EOF";
 xmlstarlet ed -L -u "/testsuites/testsuite[last()]/\@$args{attr}" -v $args{value}  $args{file_name} \\
@@ -650,13 +650,13 @@ EOF
 
 # Insert one test case to existing junit file
 sub insert_tc2_xml {
-    my %args = {
+    my %args = (
         file_name   => "/tmp/junit.xml",
         class_name  => '',
         case_status => 'pass',
         sys_output  => '',
         sys_err     => ''
-    };
+    );
     %args = @_;
     my $cmd_insert_tc2_xml = << "EOF";
 xmlstarlet ed  -L -s "/testsuites/testsuite[last()]" -t elem -n testcase -v "" \\

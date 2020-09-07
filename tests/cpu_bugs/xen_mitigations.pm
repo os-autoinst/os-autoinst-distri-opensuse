@@ -238,14 +238,14 @@ my $spec_ctrl_ibpb_on = {"ibpb=on" => {
 my $spec_ctrl_ssbd_off = {"ssbd=off" => {
         default => {
             expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
-            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']}
+            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD\+.*(TSX|).*, Other:']}
         }
     }
 };
 my $spec_ctrl_ssbd_on = {"ssbd=on" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+, Other:']},
-            unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
+            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+.*, Other:']},
+            unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
         }
     }
 };
@@ -342,14 +342,14 @@ my $pv_l1tf_false = {false => {
 };
 my $pv_l1tf_dom0_true = {"dom0=true" => {
         default => {
-            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled, DomU enabled']},
+            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled']},
             unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled']}
         }
     }
 };
 my $pv_l1tf_dom0_false = {"dom0=false" => {
         default => {
-            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled']},
+            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled']},
             unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled']}
         }
     }
