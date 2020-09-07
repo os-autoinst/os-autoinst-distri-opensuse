@@ -40,7 +40,7 @@ sub run {
     assert_screen "text-logged-in-root";
     assert_script_run 'cd /var/opt/systemd-tests';
     assert_script_run 'ls -l /shutdown-log.txt';
-    assert_script_run './run-tests.sh TEST-09-ISSUE-2691 --run 2>&1 | tee /tmp/testsuite.log', 60;
+    assert_script_run './run-tests.sh TEST-09-ISSUE-2691 --run 2>&1 | tee /tmp/testsuite.log', 300;
     assert_script_run 'grep "PASS: ...TEST-09-ISSUE-2691" /tmp/testsuite.log';
 }
 
