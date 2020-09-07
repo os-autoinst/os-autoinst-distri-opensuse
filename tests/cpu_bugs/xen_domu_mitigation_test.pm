@@ -503,7 +503,7 @@ if ($DOMU_TYPE =~ /pv/i) {
     $pti = {%$pti_on_on_hvm, %$pti_off_on_hvm, %$pti_auto_on_hvm};
 }
 
-if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell/i) {
+if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell|Cascadelake/i) {
     $tsx_async_abort = {%$tsx_async_abort_full_on_haswell, %$tsx_async_abort_full_nosmt_on_haswell};
     $cross_testcases = {%$corss_testcase_mds_taa_off_on_haswell};
     if ($DOMU_TYPE =~ /pv/i) {
@@ -578,7 +578,7 @@ sub install_domu {
 
 
 sub get_domu_ip {
-    return script_output("./get_guest_ip.sh \"${domu_name}\"");
+    return script_output("./get_guest_ip.sh \"${domu_name}\"", timeout => 1800);
 }
 
 sub exec_testcases {
