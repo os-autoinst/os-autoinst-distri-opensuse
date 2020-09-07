@@ -2,7 +2,7 @@
 name: qam-gnome
 schedule:
 - autoyast/prepare_profile
-- '{{boot}}'
+- installation/bootloader_start
 - autoyast/installation
 - autoyast/console
 - autoyast/login
@@ -73,6 +73,8 @@ conditional_schedule:
       s390x:
         - boot/reconnect_mgmt_console
       x86_64:
+        - installation/grub_test
+      aarch64:
         - installation/grub_test
   x86_64_tests:
     ARCH:
