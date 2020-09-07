@@ -21,7 +21,7 @@ use testapi;
 use power_action_utils 'power_action';
 use utils 'zypper_call';
 use version_utils qw(is_opensuse is_sle is_tumbleweed);
-
+use bootloader_setup qw(change_grub_config grub_mkconfig);
 
 sub testsuiteinstall {
     my ($self) = @_;
@@ -62,7 +62,10 @@ sub testsuiteinstall {
     zypper_call '--gpg-auto-import-keys ref';
     # use systemd from the repo of the qa package
     if (get_var('SYSTEMD_FROM_TESTREPO')) {
-        zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0';
+        if (is_sle('>15-SP2')) { zypper_call 'rm systemd-bash-completion' };
+        zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1';
+        change_grub_config('=.*', '=9',       'GRUB_TIMEOUT');
+        grub_mkconfig;
         wait_screen_change { type_string "shutdown -r now\n" };
         if (check_var('ARCH', 's390x')) {
             $self->wait_boot(bootloader_time => 180);
@@ -95,8 +98,8 @@ sub testsuiteprepare {
         assert_script_run "ls -l \$\{testservicepath#testservice=\}";
     }
     else {
-        #some tests don't create the testsuite.service file
-        return if ($testname eq 'TEST-18-FAILUREACTION' || $testname eq 'TEST-21-SYSUSERS');
+        #tests and versions that don't need a reboot
+        return if ($testname eq 'TEST-18-FAILUREACTION' || $testname eq 'TEST-21-SYSUSERS' || is_sle('>15-SP2') || is_tumbleweed);
 
         assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
         #virtual machines do a vm reset instead of reboot
