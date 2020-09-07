@@ -40,7 +40,14 @@ sub run {
         send_key "ret";
     }
     send_key "super-up" if (check_screen "evolution_mail-init-window", 2);
-    assert_screen "evolution_mail-max-window";
+    assert_screen ['evolution_mail-auth', 'evolution_mail-max-window'];
+    if (match_has_tag "evolution_mail-auth") {
+        send_key "alt-a";    #disable keyring option
+        send_key "alt-p";
+        type_password $mail_passwd;
+        send_key "ret";
+        assert_screen "evolution_mail-max-window";
+    }
 
     # Help
     send_key "alt-h";
