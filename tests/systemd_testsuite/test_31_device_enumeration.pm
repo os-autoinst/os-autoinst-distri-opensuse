@@ -24,7 +24,7 @@ sub pre_run_hook {
 sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-31-DEVICE-ENUMERATION --run 2>&1 | tee /tmp/testsuite.log', 60;
+    assert_script_run './run-tests.sh TEST-31-DEVICE-ENUMERATION --run 2>&1 | tee /tmp/testsuite.log', 300;
     assert_script_run 'grep "PASS: ...TEST-31-DEVICE-ENUMERATION" /tmp/testsuite.log';
     script_run './run-tests.sh TEST-31-DEVICE-ENUMERATION --clean';
 }
