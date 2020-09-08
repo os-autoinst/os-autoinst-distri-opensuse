@@ -83,7 +83,7 @@ sub create_list_of_serial_failures {
     push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
 
     # Detect Out of Memory condition
-    push @$serial_failures, {type => 'hard', message => 'Out of memory', pattern => quotemeta 'Out of memory:'};
+    push @$serial_failures, {type => 'hard', message => 'Out of memory', pattern => quotemeta 'Out of memory:'} if !(is_ltp_test());
 
     return $serial_failures;
 }
