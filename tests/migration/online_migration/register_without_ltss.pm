@@ -28,6 +28,15 @@ sub run {
     set_var('SCC_ADDONS', join(',', @scc_addons));
 
     register_system_in_textmode;
+
+    # Sometimes in HA scenario, we need to test rolling upgrade migration from
+    # a LTSS version to another one LTSS version.
+    # In this case, we need to add ltss again to SCC_ADDONS and set HDDVERSION to
+    # the targeted OS version for getting the good LTSS regcode.
+    if (get_var('LTSS_TO_LTSS')) {
+        set_var('SCC_ADDONS', join(',', @scc_addons, 'ltss'));
+        set_var('HDDVERSION', get_var('UPGRADE_TARGET_VERSION', get_var('VERSION')));
+    }
 }
 
 sub test_flags {
