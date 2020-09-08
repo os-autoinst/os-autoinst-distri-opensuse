@@ -52,10 +52,39 @@ sub build_container_image {
 
 # Build a sle container image using zypper_docker
 sub build_with_zypper_docker {
-}
+    my %args          = @_;
+    my $image         = $args{image};
+    my $runtime       = $args{runtime};
+    my $derived_image = "zypper_docker_derived";
 
-# Build a sle image using sle2docker
-sub build_with_sle2docker {
+    my $distri  = $args{distri}  //= get_required_var("DISTRI");
+    my $version = $args{version} //= get_required_var("VERSION");
+
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
+    # zypper docker can only update image if version is same as SUT
+    if ($distri eq 'sle') {
+        my $pretty_version = $version =~ s/-SP/ SP/r;
+        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $pretty_version"/ });
+    }
+    else {
+        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+    }
+
+    zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
+    assert_script_run("zypper-docker list-updates $image");
+    assert_script_run("zypper-docker up $image $derived_image");
+
+    # If zypper-docker list-updates lists no updates then derived image was successfully updated
+    assert_script_run("zypper-docker list-updates $derived_image | grep 'No updates found'");
+
+    my $local_images_list = script_output("$runtime image ls");
+    die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
+
+
+    record_info("Testing derived");
+    test_opensuse_based_image(image => $derived_image, runtime => $runtime);
 }
 
 # Testing openSUSE based images
@@ -85,7 +114,7 @@ sub test_opensuse_based_image {
             script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
         }
     } else {
-        validate_script_output qq{$runtime container run --rm $image cat /etc/os-release}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
     # zypper lr
     assert_script_run("$runtime run --rm $image zypper lr -s", 120);

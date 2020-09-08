@@ -18,6 +18,7 @@
 
 use base "consoletest";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -33,7 +34,17 @@ sub run {
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to boot up";
     systemctl 'restart libvirtd';
-    script_retry "ssh root\@$_ hostname -f", delay => 30, retry => 6 foreach (keys %virt_autotest::common::guests);
+
+
+    # Ensure all guests have network connectivity
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        eval {
+            ensure_online($guest);
+        } or do {
+            my $err = $@;
+            record_info("$guest failure: $err");
+        }
+    }
 }
 
 sub test_flags {

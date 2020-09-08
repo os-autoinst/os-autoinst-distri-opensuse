@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use virt_autotest::utils;
 
 # List of CVEs that are tested by the spectre-meltdown-test script
 my %cves = (
@@ -39,12 +40,11 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    my $is_kvm = is_kvm_host;
     # Print latest Kernel version
     script_run('uname -a');
     script_run('dmesg > /var/tmp/dmesg.txt');
     upload_logs("/var/tmp/dmesg.txt");
-    if ($is_kvm) {
+    if (is_kvm_host) {
         # Check if KVM module is enabled
         script_run("lsmod | grep -e 'kvm_intel\|kvm_amd'");
         record_info('Modules', 'kvm module sucessfully detected');
@@ -55,6 +55,7 @@ sub run {
     # Run smoketests on guests
     smoketest('localhost');
     foreach my $guest (keys %virt_autotest::common::guests) {
+        ensure_online($guest);
         smoketest($guest);
     }
 }
@@ -67,6 +68,8 @@ sub ignore_cve_fail {
     return 1 if $cve =~ /^CVE-2017-5753$/i and $guest =~ /sles11sp4/i;
     return 1 if $cve =~ /^CVE-2017-5715$/i and $guest =~ /sles11sp4/i;
     return 1 if $cve =~ /^CVE-2018-3639$/i and $guest =~ /sles11sp4/i;
+    return 1 if $cve =~ /^CVE-2018-3646$/i;
+    return 1 if $cve =~ /^CVE-2017-5754$/i and is_xen_host;
 
     return 0;
 }
@@ -88,9 +91,17 @@ sub smoketest() {
     for my $cve (keys %cves) {
         my $name = $cves{$cve};
         if (script_run("grep '$cve: OK' /var/tmp/spectre-meltdown-checker-$go_to_target.out")) {
-            # Some failures are OK but we still want to record them
-            record_soft_failure("$cve ($name) vulnerable on $go_to_target") unless ignore_cve_fail($cve, $go_to_target);
-            record_info("$name", "$cve ($name) vulnerable on $go_to_target") if ignore_cve_fail($cve, $go_to_target);
+            # Check if failure comes from outdated CPU microcode (we still test on old hardware!)
+            if (script_run("grep '$cve:' /var/tmp/spectre-meltdown-checker-$go_to_target.out | grep \"Your kernel supports mitigation, but your CPU microcode also needs to be updated to mitigate the vulnerability\|an up-to-date CPU microcode is needed to mitigate this vulnerability\|Your CPU doesn't support SSBD\"")) {
+                record_info("$name", "Cannot test $cve ($name) on $go_to_target (outdated CPU microcode or kernel)");
+                # Or special known failure
+            } elsif ($cve =~ /^CVE-2018-3646$/i && script_run("grep '$cve:' /var/tmp/spectre-meltdown-checker-$go_to_target.out | grep 'disable EPT or enable L1D flushing to mitigate the vulnerability'")) {
+                record_info("$name", "$cve ($name) on $go_to_target vulnerable (expensive mitigations disabled by default)");
+            } else {
+                # Some failures are OK but we still want to record them
+                record_soft_failure("$cve ($name) vulnerable on $go_to_target") unless ignore_cve_fail($cve, $go_to_target);
+                record_info("$name", "$cve ($name) vulnerable on $go_to_target") if ignore_cve_fail($cve, $go_to_target);
+            }
         }
     }
 }

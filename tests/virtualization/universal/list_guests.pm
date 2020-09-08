@@ -5,11 +5,12 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: List every guest and check if runs
+# Summary: List every guest and ensure they are online
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use base "consoletest";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -37,11 +38,15 @@ sub run {
         }
     }
 
-    # Check for SSH not ready guests
+    # Ensure all guests are online and have network connectivity
     foreach my $guest (keys %virt_autotest::common::guests) {
-        record_info "$guest", "Establishing connection to $guest";
-        script_retry "ping -c3 -W1 $guest", delay => 15, retry => 12;
-        assert_script_run "ssh root\@$guest 'hostname -f; uptime'";
+        # This should fix some common issues on the guests. If the procedure fails we still want to go on
+        eval {
+            ensure_online($guest);
+        } or do {
+            my $err = $@;
+            record_info("$guest failure: $err");
+        }
     }
 }
 

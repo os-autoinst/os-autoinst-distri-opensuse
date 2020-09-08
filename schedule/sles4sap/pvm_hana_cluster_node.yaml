@@ -3,7 +3,7 @@ name: pvm_hana_cluster_node
 description: >
   HanaSR Cluster Test for pvm_hmc. Schedule for all nodes.
 
-  Some settings are required in the job group for this schedule to work.
+  Some settings are required in the job group or test suite for this schedule to work.
   HA_CLUSTER_SETUP must be defined for all jobs. In one of the jobs (the parent),
   it must be defined to 'init', while in the rest to 'join'. This will only
   control the conditional scheduling of ha_cluster_init or ha_cluster_join.
@@ -45,15 +45,16 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - '{{multipath}}'
+  - '{{sles4sap12_product}}'
   - installation/addon_products_sle
-  - installation/system_role
-  - installation/sles4sap_product_installation_mode
+  - '{{sles4sap15_product}}'
   - installation/partitioning
   - installation/partitioning_firstdisk
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings_root
   - installation/resolve_dependency_issues
+  - '{{sles4sap12_desktop}}'
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -106,3 +107,41 @@ conditional_schedule:
         - boot/reconnect_mgmt_console
         - installation/grub_test
         - installation/first_boot
+  sles4sap12_product:
+    VERSION:
+      12-SP2:
+        - installation/sles4sap_product_installation_mode
+      12-SP3:
+        - installation/sles4sap_product_installation_mode
+      12-SP4:
+        - installation/sles4sap_product_installation_mode
+      12-SP5:
+        - installation/sles4sap_product_installation_mode
+  sles4sap15_product:
+    VERSION:
+      15:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP1:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP2:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP3:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+  sles4sap12_desktop:
+    VERSION:
+      12-SP2:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP3:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP4:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP5:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues

@@ -29,6 +29,7 @@ sub run {
 
     # Test under load
     type_string("iotop -baoqn 10 > iotop.log &");
+    wait_still_screen(1, 2);
     assert_script_run("dd if=/dev/zero of=./file.img bs=1M count=1000 status=none");
     assert_script_run("wait");
     assert_script_run("grep 'dd if=/dev/zero of=./file.img' iotop.log");

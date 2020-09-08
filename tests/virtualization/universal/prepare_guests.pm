@@ -23,7 +23,7 @@ sub run {
     my $self = shift;
 
     # Ensure additional package is installed
-    zypper_call '-t in libvirt-client';
+    zypper_call '-t in libvirt-client iputils nmap';
 
     assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
 

@@ -626,6 +626,12 @@ sub wait_grub {
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
+        if (get_var('ONLINE_MIGRATION') && check_var('BOOTFROM', 'd')) {
+            assert_screen 'inst-bootmenu';
+            # Select boot from HDD
+            send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
+            send_key 'ret';
+        }
         assert_screen "grub2", 15;
     }
     elsif (get_var("LIVETEST")) {
@@ -1189,6 +1195,8 @@ sub post_fail_hook {
     return if is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
 
     show_tasks_in_blocked_state;
+    show_oom_info;
+
     return if (get_var('NOLOGS'));
 
     # just output error if selected program doesn't exist instead of collecting all logs
