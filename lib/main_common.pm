@@ -253,6 +253,7 @@ sub packagekit_available {
 
 sub is_ltp_test {
     return (get_var('INSTALL_LTP')
+          || get_var('LTP_KNOWN_ISSUES')
           || get_var('LTP_COMMAND_FILE'));
 }
 
