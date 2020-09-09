@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,7 @@ use web_browser qw(setup_web_browser_env run_web_browser_text_based);
 
 sub run {
     select_console("root-console");
-    setup_web_browser_env();
+    zypper_call("--no-refresh --no-gpg-checks search -it pattern fips") if get_var('FIPS_ENABLED');
     zypper_call("--no-refresh --no-gpg-checks in w3m");
     run_web_browser_text_based("w3m", undef);
 }
