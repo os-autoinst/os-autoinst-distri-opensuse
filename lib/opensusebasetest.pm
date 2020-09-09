@@ -458,8 +458,9 @@ sub export_logs {
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
 
     my $compression = is_sle('=12-sp1') ? 'bz2' : 'xz';
-    script_run "save_y2logs /tmp/y2logs_clone.tar.$compression";
-    upload_logs "/tmp/y2logs_clone.tar.$compression";
+    if (script_run("save_y2logs /tmp/y2logs_clone.tar.$compression") == 0) {
+        upload_logs "/tmp/y2logs_clone.tar.$compression";
+    }
     if ($utils::IN_ZYPPER_CALL) {
         script_run("zypper -n patch --debug-solver --with-interactive -l");
         script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
