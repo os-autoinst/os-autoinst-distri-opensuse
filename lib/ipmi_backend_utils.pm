@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot boot_local_disk_arm_huawei);
+our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot boot_local_disk_arm_huawei ipmitool);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -386,6 +386,22 @@ sub boot_local_disk_arm_huawei {
     save_screenshot;
     send_key 'ret';
     save_screenshot;
+}
+
+#ipmitool to perform server management
+sub ipmitool {
+    my ($cmd) = @_;
+
+    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
+    push(@cmd, split(/ /, $cmd));
+
+    my ($stdin, $stdout, $stderr, $ret);
+    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
+    chomp $stdout;
+    chomp $stderr;
+
+    bmwqemu::diag("IPMI: $stdout");
+    return $stdout;
 }
 
 1;
