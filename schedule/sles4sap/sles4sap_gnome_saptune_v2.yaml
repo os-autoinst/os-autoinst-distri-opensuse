@@ -1,0 +1,23 @@
+---
+name: sles4sap_gnome_saptune_v2
+description: >
+  saptune V2 test
+
+  MR_TEST variable should be set in the YAML file
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  DM_NEEDS_USERNAME: '1'
+  HDDSIZEGB: '60'
+  HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+  QEMU_DISABLE_SNAPSHOTS: '1'
+  ROOTONLY: '1'
+  SHUTDOWN_NEEDS_AUTH: '0'
+  SLES4SAP_MODE: sles4sap
+  SLE_PRODUCT: sles4sap
+  START_AFTER_TEST: create_hdd_sles4sap_gnome
+  SYSTEM_ROLE: default
+  TIMEOUT_SCALE: '3'
+schedule:
+  - boot/boot_to_desktop
+  - sles4sap/saptune/mr_test
