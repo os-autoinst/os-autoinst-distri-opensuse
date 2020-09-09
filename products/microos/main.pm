@@ -3,6 +3,7 @@ use warnings;
 use testapi qw(check_var get_var get_required_var);
 use needle;
 use File::Basename;
+use scheduler 'load_yaml_schedule';
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
@@ -90,6 +91,8 @@ sub load_installation_tests {
 #######################
 # Testing starts here #
 #######################
+return 1 if load_yaml_schedule;
+
 if (get_var 'STACK_ROLE') {
     load_boot_from_disk_tests;
     load_tdup_tests      if (get_var 'TDUP');
