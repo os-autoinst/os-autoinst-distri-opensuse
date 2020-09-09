@@ -28,7 +28,7 @@ def _get_conf(jobid, srv):
     client = OpenQA_Client(server='http://%s' % srv)
     conf = client.openqa_request('GET', 'jobs/%s' % jobid)
 
-    testname = conf['job']['test']
+    testname = conf['job']['settings']['TEST_SUITE_NAME']
     jobvars = {}
     jobvars['name'] = testname
     suitevars = client.openqa_request('GET', 'test_suites')
@@ -36,11 +36,9 @@ def _get_conf(jobid, srv):
     vars_generator = (settings for settings in suitevars['TestSuites'])
 
     for v in vars_generator:
-        # there are test jobs that the name is modified in job group and is run with
-        # another name than the name in 'TestSuites' ex installer_extended_textmode
-        # Because ususally the name just appends the name we just check if it startswith
-        if testname.startswith(v['name']):
+        if testname == v.get('name'):
             jobvars.update(v)
+            break
     return jobvars
 
 
