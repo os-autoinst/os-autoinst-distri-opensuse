@@ -22,6 +22,20 @@ sub run() {
     # than the default screensaver timeout and cause random failures
     turn_off_screensaver();
 
+    # use the devel:languages:R:released repository for testing a new version of
+    # RStudio before submitting to Factory
+    if (defined get_var("RSTUDIO_USE_DEVEL_LANGUAGES_R_RELEASED")) {
+        # currently this only works on Tumbleweed
+        die unless get_var("VERSION") eq "Tumbleweed";
+        x11_start_program('xterm');
+        become_root();
+        my $repo_url = "https://download.opensuse.org/repositories/devel:/languages:/R:/released/openSUSE_Factory" . (get_var("ARCH") eq "aarch64" ? "_ARM" : "") . "/devel:languages:R:released.repo";
+        zypper_call("addrepo $repo_url");
+        zypper_call("--gpg-auto-import-keys ref");
+
+        send_key_until_needlematch('generic-desktop', "alt-f4");
+    }
+
     # increase timeout to 15 mins, shouldn't take as long, but it occasionally does
     ensure_installed('rstudio MozillaFirefox', timeout => 900);
 
