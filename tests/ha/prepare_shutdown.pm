@@ -13,6 +13,7 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use testapi;
 
 sub run {
     # We need to stop the cluster stack to avoid fencing during shutdown
