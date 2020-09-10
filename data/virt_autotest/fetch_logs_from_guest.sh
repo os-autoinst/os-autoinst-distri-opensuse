@@ -73,7 +73,7 @@ function fetch_logs_from_guest_via_ssh() {
             echo -e "Failed to fetch ${logs_folder} from guest ${guest_domain} via ssh."
         fi
 
-        return ${ret_result}
+	return ${ret_result}
 }
 
 #Fetch logs from virtual machine to local host by using libguestfs tools
@@ -195,13 +195,17 @@ function compress_virt_logs_folder() {
 	local logs_root=${logs_folder/\//}
 	logs_root=${logs_root/\/*/}
 
-	echo -e "tar -czvf /${logs_root}/virt_logs_all.tar.gz ${logs_folder}"
-	tar -czvf /${logs_root}/virt_logs_all.tar.gz ${logs_folder}
+	pushd ${logs_folder}
+	local mycmd="tar -czvf /${logs_root}/virt_logs_all.tar.gz *"
+	echo -e "$mycmd"
+	$mycmd
 	if [[ $? -eq 0 ]];then
 	   echo -e "Successfully compressed ${logs_folder} to /${logs_root}/virt_logs_all.tar.gz"
+	   popd
 	   return 0
 	else
 	   echo -e "Failed to ${logs_folder} to /${logs_root}/virt_logs_all.tar.gz"
+	   popd
 	   return 1
 	fi
 }
