@@ -1,0 +1,41 @@
+---
+name: migration_online_zypper_sles4sap
+description: >
+  Online migration from installed SLES4SAP.
+
+  This test does an online migration with SCC registration.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: gnome
+  FULL_UPDATE: '1'
+  HDDSIZEGB: '60'
+  HDD_1: sle-%HDDVERSION%-%ARCH%-sap-nw-noscc.qcow2
+  INSTANCE_ID: '00'
+  INSTANCE_SID: QAD
+  INSTANCE_TYPE: ASCS
+  MAX_JOB_TIME: '14400'
+  MIGRATION_METHOD: zypper
+  ONLINE_MIGRATION: '1'
+  ROOTONLY: '1'
+  SCC_ADDONS: ha
+  SCC_PROXY_URL: '%SCC_URL%'
+  SCC_REGISTER: installation
+  SLES4SAP_MODE: sles4sap
+  SLE_PRODUCT: sles4sap
+schedule:
+  - migration/version_switch_origin_system
+  - installation/isosize
+  - installation/bootloader
+  - migration/online_migration/online_migration_setup
+  - migration/online_migration/register_system
+  - migration/online_migration/zypper_patch
+  - installation/install_service
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - migration/online_migration/zypper_migration
+  - migration/online_migration/post_migration
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/sapconf
+  - sles4sap/saptune
+  - sles4sap/netweaver_test_instance
