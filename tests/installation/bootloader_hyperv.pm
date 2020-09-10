@@ -212,8 +212,11 @@ sub run {
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
 
     if (get_var('UEFI')) {
-        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot off")                                                        if $winserver eq '2012';
-        hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot On -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'") if $winserver eq '2016';
+        if ($winserver eq '2012' || get_var('DISABLE_SECUREBOOT')) {
+            hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot Off");
+        } else {
+            hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot On -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'");
+        }
         if (check_var('BOOTFROM', 'c')) {
             hyperv_cmd($ps . ' "' . "\$hd = Get-VMHardDiskDrive $name; Set-VMFirmware $name -BootOrder \$hd" . '"');
         }

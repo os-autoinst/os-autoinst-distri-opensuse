@@ -585,7 +585,8 @@ sub load_jeos_tests {
             loadtest "console/suseconnect_scc";
         }
 
-        replace_opensuse_repos_tests if is_repo_replacement_required;
+        replace_opensuse_repos_tests      if is_repo_replacement_required;
+        loadtest 'console/verify_efi_mok' if get_var('MOK_VERBOSITY');
     }
 }
 

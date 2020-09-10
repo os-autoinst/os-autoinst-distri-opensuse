@@ -1,0 +1,68 @@
+---
+description: 'Main JeOS test suite. Maintainer: qa-c@suse.de'
+name: 'jeos-main'
+conditional_schedule:
+    bootloader:
+        MACHINE:
+            'svirt-xen-hvm':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            'svirt-hyperv-uefi':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'uefi-virtio-vga':
+                - installation/bootloader_uefi
+    efi:
+        MOK_VERBOSITY:
+            '1':
+                - console/verify_efi_mok
+schedule:
+    - '{{bootloader}}'
+    - jeos/firstrun
+    - jeos/record_machine_id
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - jeos/grub2_gfxmode
+    - jeos/diskusage
+    - jeos/build_key
+    - console/suseconnect_scc
+    - '{{efi}}'
+    - jeos/glibc_locale
+    - console/check_network
+    - console/system_state
+    - console/consoletest_setup
+    - locale/keymap_or_locale
+    - console/apache
+    - console/dns_srv
+    - console/postgresql_server
+    - console/shibboleth
+    - console/apache_ssl
+    - console/apache_nss
+    - console/hostname
+    - console/installation_snapshots
+    - console/zypper_lr
+    - console/zypper_ref
+    - console/ncurses
+    - console/yast2_lan
+    - console/curl_https
+    - console/glibc_sanity
+    - update/zypper_up
+    - console/console_reboot
+    - console/zypper_in
+    - console/yast2_i
+    - console/yast2_bootloader
+    - console/vim
+    - console/firewall_enabled
+    - console/gpt_ptable
+    - console/kdump_disabled
+    - console/slp
+    - console/sshd_running
+    - console/sshd
+    - console/ssh_cleanup
+    - console/mtab
+    - console/mysql_srv
+    - console/rsync
+    - console/zypper_lifecycle
+    - console/repo_orphaned_packages_check
+    - console/orphaned_packages_check
+    - console/consoletest_finish
