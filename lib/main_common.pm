@@ -577,7 +577,7 @@ sub load_jeos_tests {
         unless (get_var('INSTALL_LTP')) {
             loadtest "console/force_scheduled_tasks";
             loadtest "jeos/grub2_gfxmode";
-            loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
+            loadtest 'jeos/revive_xen_domain' if (check_var('VIRSH_VMM_FAMILY', 'xen') && (get_var('EXTRATEST') !~ m/filesystem/));
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
         }
@@ -1787,11 +1787,12 @@ sub load_rollback_tests {
 }
 
 sub load_extra_tests_filesystem {
-    loadtest "console/system_prepare";
     loadtest "console/lsof";
     loadtest "console/autofs";
     loadtest 'console/lvm';
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        loadtest 'console/snapper_undochange';
+        loadtest 'console/snapper_create';
         loadtest "console/snapper_jeos_cli" if is_jeos;
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
@@ -1805,8 +1806,6 @@ sub load_extra_tests_filesystem {
         }
         loadtest "console/btrfsmaintenance";
     }
-    loadtest 'console/snapper_undochange';
-    loadtest 'console/snapper_create';
     if (get_var('NUMDISKS', 0) > 1 && (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed)) {
         # On JeOS we use kernel-defaul-base and it does not have 'dm-thin-pool'
         # kernel module required by thin-LVM
@@ -1814,7 +1813,7 @@ sub load_extra_tests_filesystem {
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
     loadtest "console/udisks2" unless is_sle;
-    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64);
+    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
 }
 
 sub get_wicked_tests {
