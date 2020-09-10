@@ -91,7 +91,7 @@ sub run {
     }
 
     # Select keyboard layout
-    assert_screen 'jeos-keylayout';
+    assert_screen 'jeos-keylayout', 300;
     send_key_until_needlematch "jeos-keylayout-$lang", $keylayout_key{$lang}, 30;
     send_key 'ret';
 
