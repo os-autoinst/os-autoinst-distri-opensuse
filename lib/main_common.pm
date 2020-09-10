@@ -577,7 +577,6 @@ sub load_jeos_tests {
         unless (get_var('INSTALL_LTP')) {
             loadtest "console/force_scheduled_tasks";
             loadtest "jeos/grub2_gfxmode";
-            loadtest 'jeos/revive_xen_domain' if (check_var('VIRSH_VMM_FAMILY', 'xen') && (get_var('EXTRATEST') !~ m/filesystem/));
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
         }

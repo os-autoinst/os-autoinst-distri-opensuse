@@ -8,7 +8,6 @@ schedule:
   - jeos/record_machine_id
   - console/force_scheduled_tasks
   - jeos/grub2_gfxmode
-  - jeos/revive_xen_domain
   - jeos/diskusage
   - jeos/build_key
   - console/suseconnect_scc
