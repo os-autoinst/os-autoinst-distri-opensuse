@@ -325,6 +325,8 @@ sub run {
         install_from_repo();
     }
 
+    zypper_call('in efivar') if is_sle('12+') || is_opensuse;
+
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
     if (!is_sle('<12') && defined $grub_param) {
