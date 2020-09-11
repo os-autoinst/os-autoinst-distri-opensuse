@@ -123,6 +123,10 @@ sub run {
     my $target_version = get_var("VERSION");
     assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
 
+    select_console('root-console', await_console => 0);
+    # wait long time for snapper to settle down
+    assert_screen 'root-console', 600;
+
     # We can't use 'keepconsole' here, because sometimes a display-manager upgrade can lead to a screen change
     # during restart of the X/GDM stack
     power_action('reboot', textmode => 1);
