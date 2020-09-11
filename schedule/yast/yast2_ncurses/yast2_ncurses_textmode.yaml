@@ -11,8 +11,13 @@ schedule:
   - console/yast2_i
   - console/yast2_bootloader
   - console/yast2_lan_device_settings
+  - "{{yast_nfs_server}}"
 conditional_schedule:
   bootloader_start:
     BACKEND:
       svirt:
         - installation/bootloader_start
+  yast_nfs_server:
+    BACKEND:
+      qemu:
+        - console/yast2_nfs_server
