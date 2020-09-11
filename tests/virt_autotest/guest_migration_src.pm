@@ -20,6 +20,7 @@ use mmapi;
 use virt_utils;
 use Data::Dumper;
 use Utils::Architectures;
+use virt_autotest::utils qw(is_xen_host);
 
 sub get_script_run {
     my ($self) = @_;
@@ -28,8 +29,8 @@ sub get_script_run {
     my $dst_user = $self->get_var_from_parent('DST_USER');
     my $dst_pass = $self->get_var_from_parent('DST_PASS');
     handle_sp_in_settings_with_sp0("GUEST_LIST");
-    my $guests       = get_var("GUEST_LIST",       "");
-    my $hypervisor   = get_var("HOST_HYPERVISOR",  "kvm");
+    my $guests       = get_var("GUEST_LIST", "");
+    my $hypervisor   = (is_xen_host) ? 'xen' : 'kvm';
     my $test_time    = get_var("MAX_MIGRATE_TIME", "10800") - 90;
     my $args         = "-d $dst_ip -v $hypervisor -u $dst_user -p $dst_pass -i \"$guests\" -t $test_time";
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-guest-migrate-run " . $args;
@@ -135,7 +136,7 @@ sub run {
 
     # clean up logs from prevous tests
     $self->execute_script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30) if !get_var('SKIP_GUEST_INSTALL');
-    $self->execute_script_run('[ -d /var/log/qa/ctcs2/ ] && rm -r /var/log/qa/ctcs2/*',                     30);
+    $self->execute_script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/',                     30);
     $self->execute_script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
     $self->run_test($timeout, "", "yes", "yes", "$log_dirs", "$upload_log_name");

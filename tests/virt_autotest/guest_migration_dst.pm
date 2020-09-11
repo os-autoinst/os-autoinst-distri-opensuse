@@ -18,6 +18,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use virt_utils 'upload_supportconfig_log';
+use virt_autotest::utils qw(is_xen_host);
 
 sub run {
     my ($self) = @_;
@@ -33,7 +34,7 @@ sub run {
     my $src_ip       = $self->get_var_from_child("SRC_IP");
     my $src_user     = $self->get_var_from_child("SRC_USER");
     my $src_pass     = $self->get_var_from_child("SRC_PASS");
-    my $hypervisor   = get_var("HOST_HYPERVISOR", "kvm");
+    my $hypervisor   = (is_xen_host) ? 'xen' : 'kvm';
     my $args         = "-d $src_ip -v $hypervisor -u $src_user -p $src_pass";
     my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/guest_migrate.sh " . $args;
     type_string("$pre_test_cmd \n");
