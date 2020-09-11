@@ -40,10 +40,10 @@ sub update_package {
         upload_asset "/tmp/update_virt_rpms.log", 1, 1;
     }
     else {
-        $ret = $self->execute_script_run($update_pkg_cmd, 7200);
+        $self->execute_script_run($update_pkg_cmd, 7200);
         upload_logs("/tmp/update_virt_rpms.log");
         save_screenshot;
-        if ($ret !~ /Need to reboot system to make the rpms work/m) {
+        if ($self->{script_output} !~ /Need to reboot system to make the rpms work/m) {
             die " Update virt rpms fail, going to terminate following test!";
         }
     }
