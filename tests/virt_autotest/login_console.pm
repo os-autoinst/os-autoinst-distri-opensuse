@@ -18,22 +18,7 @@ use File::Basename;
 use testapi;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use ipmi_backend_utils;
-
 use IPC::Run;
-sub ipmitool {
-    my ($cmd) = @_;
-
-    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
-    push(@cmd, split(/ /, $cmd));
-
-    my ($stdin, $stdout, $stderr, $ret);
-    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
-    chomp $stdout;
-    chomp $stderr;
-
-    bmwqemu::diag("IPMI: $stdout");
-    return $stdout;
-}
 
 sub login_to_console {
     my ($self, $timeout, $counter) = @_;
@@ -48,7 +33,15 @@ sub login_to_console {
     }
 
     reset_consoles;
-    select_console 'sol', await_console => 0;
+    reset_consoles;
+    if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx') {
+        select_console 'sol', await_console => 1;
+        send_key 'ret';
+        ipmi_backend_utils::ipmitool 'chassis power reset';
+    }
+    else {
+        select_console 'sol', await_console => 0;
+    }
 
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
@@ -132,7 +125,7 @@ sub login_to_console {
             }
             my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
             ($host_installed_version) = $host_installed_version =~ /^(\d+)/im;
-            my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');    #format sles-15-sp0
+            my $host_upgrade_version  = get_required_var('UPGRADE_PRODUCT');    #format sles-15-sp0
             my ($host_upgrade_relver) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
             my ($host_upgrade_spver)  = $host_upgrade_version =~ /sp(\d+)$/im;
             if (($host_installed_version eq '11') && (($host_upgrade_relver eq '15' && $host_upgrade_spver eq '0') || ($host_upgrade_relver eq '12' && $host_upgrade_spver eq '5'))) {

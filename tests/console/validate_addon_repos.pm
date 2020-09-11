@@ -18,7 +18,7 @@ use strict;
 use warnings;
 
 use testapi;
-use repo_tools 'validate_repo_enablement';
+use repo_tools 'validate_repo_properties';
 
 sub run {
     select_console 'root-console';
@@ -28,7 +28,13 @@ sub run {
         my $uri      = get_required_var("ADDONURL_$uc_addon");
         my $alias    = get_required_var("REPO_SLE_PRODUCT_$uc_addon");
         my $name     = get_required_var("DISTRI") . "-$addon";
-        validate_repo_enablement(alias => $alias, name => $name, uri => $uri);
+        validate_repo_properties({
+                Alias       => $alias,
+                Name        => $name,
+                URI         => $uri,
+                Enabled     => 'Yes',
+                Autorefresh => 'On'
+        });
     }
 }
 

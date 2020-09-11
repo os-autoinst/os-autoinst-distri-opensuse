@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot boot_local_disk_arm_huawei);
+our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot boot_local_disk_arm_huawei ipmitool);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -273,14 +273,14 @@ sub set_pxe_efiboot {
     my $get_active_eif_maddr = "ip link show | grep $active_eif -A1 | awk \'/link\\\/ether/ \{print \$2\}\' | awk \'\{print \$1,\$2,\$3,\$4,\$5,\$6\}\' FS=\":\" OFS=\"\"";
     my $active_eif_maddr        = script_output($get_active_eif_maddr, $wait_script, type_command => 1, proceed_on_failure => 0);
     my $get_pxeboot_entry_eif   = "$root_prefix/usr/sbin/efibootmgr -v | grep -i $active_eif_maddr";
-    my $pxeboot_entry_eif       = script_output($get_pxeboot_entry_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $pxeboot_entry_eif       = script_output($get_pxeboot_entry_eif,           $wait_script, type_command => 1, proceed_on_failure => 0);
     my $pxeboot_entry_eif_count = script_output("$get_pxeboot_entry_eif | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
     my $get_pxeboot_entry_ip4   = "";
     my $pxeboot_entry_ip4       = "";
     my $pxeboot_entry_ip4_count = "";
     if ($pxeboot_entry_eif_count gt 1) {
         $get_pxeboot_entry_ip4   = "$get_pxeboot_entry_eif | grep -i -E \"IP4|IPv4\"";
-        $pxeboot_entry_ip4       = script_output($get_pxeboot_entry_ip4, $wait_script, type_command => 1, proceed_on_failure => 0);
+        $pxeboot_entry_ip4       = script_output($get_pxeboot_entry_ip4,           $wait_script, type_command => 1, proceed_on_failure => 0);
         $pxeboot_entry_ip4_count = script_output("$get_pxeboot_entry_ip4 | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
     }
     my $get_pxeboot_entry_pxe   = "";
@@ -288,7 +288,7 @@ sub set_pxe_efiboot {
     my $pxeboot_entry_pxe_count = "";
     if ($pxeboot_entry_ip4_count gt 1) {
         $get_pxeboot_entry_pxe   = "$get_pxeboot_entry_ip4 | grep -i \"PXE\"";
-        $pxeboot_entry_pxe       = script_output($get_pxeboot_entry_pxe, $wait_script, type_command => 1, proceed_on_failure => 0);
+        $pxeboot_entry_pxe       = script_output($get_pxeboot_entry_pxe,           $wait_script, type_command => 1, proceed_on_failure => 0);
         $pxeboot_entry_pxe_count = script_output("$get_pxeboot_entry_pxe | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
         if ($pxeboot_entry_pxe_count gt 1) {
             die "The number of PXE boot entries can not be narrowed down to 1";
@@ -386,6 +386,22 @@ sub boot_local_disk_arm_huawei {
     save_screenshot;
     send_key 'ret';
     save_screenshot;
+}
+
+#ipmitool to perform server management
+sub ipmitool {
+    my ($cmd) = @_;
+
+    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
+    push(@cmd, split(/ /, $cmd));
+
+    my ($stdin, $stdout, $stderr, $ret);
+    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
+    chomp $stdout;
+    chomp $stderr;
+
+    bmwqemu::diag("IPMI: $stdout");
+    return $stdout;
 }
 
 1;

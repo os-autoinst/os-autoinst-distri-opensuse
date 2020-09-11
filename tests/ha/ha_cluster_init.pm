@@ -88,6 +88,17 @@ sub run {
     # If we failed to initialize the cluster with 'ha-cluster-init', trying again with crm in debug mode
     cluster_init('crm-debug-mode', $fencing_opt, $unicast_opt, $qdevice_opt) if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
 
+    # Set wait_for_all option to 0 if we are in a two nodes cluster situation
+    # We need to set it for reproducing the same behaviour we had with no-quorum-policy=ignore
+    if (!check_var('TWO_NODES', 'no')) {
+        record_info("Cluster info", "Two nodes cluster detected");
+        assert_script_run "crm corosync set quorum.wait_for_all 0";
+        assert_script_run "grep -q 'wait_for_all: 0' $corosync_conf";
+        assert_script_run "crm cluster stop";
+        assert_script_run "crm cluster start";
+        wait_until_resources_started;
+    }
+
     # Signal that the cluster stack is initialized
     barrier_wait("CLUSTER_INITIALIZED_$cluster_name");
 
@@ -95,17 +106,14 @@ sub run {
     diag 'Waiting for other nodes to join...';
     barrier_wait("NODE_JOINED_$cluster_name");
 
-    # We need to configure the quorum policy according to the number of nodes
-    $quorum_policy = 'ignore' if (get_node_number == 2) && !get_var('QDEVICE');
-    assert_script_run "crm configure property no-quorum-policy=$quorum_policy";
-
     # Execute csync2 to synchronise the configuration files
     exec_csync;
 
     # State of SBD if shared storage SBD is used
     if (!get_var('USE_DISKLESS_SBD')) {
         my $sbd_output = script_output("sbd -d \"$sbd_device\" list");
-        record_soft_failure 'bsc#1170037 - All nodes not shown by sbd list command'
+        # Check if all the nodes have sbd started and ready
+        die "Unexpected node count in sdb list command output"
           if (get_node_number != (my $clear_count = () = $sbd_output =~ /\sclear\s|\sclear$/g));
     }
 

@@ -229,7 +229,7 @@ sub clean_up_red_disks {
     my @disks_nu_array        = split(/\n+/, $disks_not_used);
     my $disks_nu_length       = scalar @disks_nu_array;
     my $get_swaps_not_need = "$get_disks_fs_overview | grep -v -e \"sd[a].*\" | grep -i \"\\\[SWAP\\\]\" | grep -o -e \"sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
-    my $swaps_not_used = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $swaps_not_used     = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
 
     my $wipe_fs_cmd      = "";
     my $installed_os_ver = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
@@ -534,9 +534,9 @@ sub generateXML_from_data {
 sub generate_testcase_xml {
     my ($xml_writer, $testcase, $testinfo) = @_;
 
-    my $testcase_time = eval { $testinfo->{test_time} ? $testinfo->{test_time} : 'n/a' };
-    my $testerror     = eval { $testinfo->{error}     ? $testinfo->{error}     : 'n/a' };
-    my $testoutput    = eval { $testinfo->{output}    ? $testinfo->{output}    : 'n/a' };
+    my $testcase_time   = eval { $testinfo->{test_time} ? $testinfo->{test_time} : 'n/a' };
+    my $testerror       = eval { $testinfo->{error}     ? $testinfo->{error}     : 'n/a' };
+    my $testoutput      = eval { $testinfo->{output}    ? $testinfo->{output}    : 'n/a' };
     my $testcase_status = $testinfo->{status};
     my $testguest       = $testinfo->{guest};
     $xml_writer->startTag(

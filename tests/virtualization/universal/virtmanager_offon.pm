@@ -42,7 +42,7 @@ sub run {
 
         detect_login_screen();
         powercycle();
-        detect_login_screen(120);
+        detect_login_screen(300);
         close_guest();
     }
 

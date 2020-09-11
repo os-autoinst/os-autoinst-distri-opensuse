@@ -13,12 +13,24 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use Utils::Backends qw(is_remote_backend);
 use utils qw(zypper_call systemctl);
 use testapi;
 use hacluster;
 use version_utils 'is_sle';
 
 sub run {
+    # Some remote backends connect to the root-console via sshXtermVt or ipmiXtermVt,
+    # which set DISPLAY and cause yast2 to show its graphical version. This unsets
+    # DISPLAY so the terminal version is shown instead when testing in textmode
+    assert_script_run 'unset DISPLAY' if (check_var('DESKTOP', 'textmode') && is_remote_backend());
+
+    # Save multipath wwids file as we may need it to blacklist iSCSI devices later
+    my $mpconf = '/etc/multipath.conf';
+    my $mpwwid = '/etc/multipath/wwids';
+    my $mptmp  = '/tmp/multipath-wwids';
+    script_run "cp $mpwwid $mptmp.orig";
+
     # Installation of iSCSI client package(s) if needed
     zypper_call 'in yast2-iscsi-client';
 
@@ -70,6 +82,18 @@ sub run {
 
     # iSCSI LUN must be present
     assert_script_run 'ls -1 /dev/disk/by-path/ip-*-lun-*';
+
+    # Blacklist iSCSI devices in multipath. Otherwise HA tests cannot use them directly
+    if (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i)) {
+        assert_script_run "cp $mpwwid $mptmp.new";
+        assert_script_run "echo 'blacklist {' >> $mpconf";
+        # diff returns 1 when files are different, so we do not assert this call
+        my $retval = script_run "diff $mptmp.orig $mptmp.new | sed -n -e 's|/||g' -e 's/> /    wwid /p' >> $mpconf";
+        die "Failed to diff [$mptmp.orig] and [$mptmp.new]" unless ($retval == 0 || $retval == 1);
+        assert_script_run "echo '}' >> $mpconf";
+        assert_script_run "cat $mpconf";
+        systemctl('restart multipathd');
+    }
 }
 
 1;

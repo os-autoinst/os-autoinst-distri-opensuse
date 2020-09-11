@@ -23,6 +23,7 @@ use version_utils qw(is_sle is_leap is_opensuse);
 use strict;
 use warnings;
 use testapi;
+use version;
 
 sub run {
     my $self = shift;
@@ -32,6 +33,8 @@ sub run {
     systemctl 'start sysstat.service';
     systemctl 'stop sysstat.service';
     systemctl 'restart sysstat.service';
+    #disable color output
+    assert_script_run 'export S_COLORS=never';
 
     #compare todays date with todays generated file.
     if (is_sle('>=12-SP3') || is_opensuse) {
@@ -72,14 +75,17 @@ sub run {
     validate_script_output "mpstat",     sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
     validate_script_output "sar -u",     sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
     validate_script_output "sar -n DEV", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
-    if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
-        validate_script_output "sar -b", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
-    } else {
+    #from version 12.1.2 iostat supports discard I/O statistics.
+    if (version->parse(script_output('rpm --qf "%{VERSION}\n" -q sysstat')) >= version->parse('12.1.2')) {
         validate_script_output "sar -b", sub { /tps      rtps      wtps      dtps   bread\/s   bwrtn\/s   bdscd\/s/ };
+    } else {
+        validate_script_output "sar -b", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
     }
     validate_script_output "sar -B", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
     validate_script_output "sar -H", sub { /kbhugfree kbhugused  %hugused/ };
     validate_script_output "sar -S", sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
+
+    assert_script_run 'unset S_COLORS';
 }
 
 1;

@@ -199,10 +199,10 @@ sub run_img_proof {
     $cmd .= '--no-cleanup ';
     $cmd .= '--collect-vm-info ';
     $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
-    $cmd .= "--access-key-id '" . $args{key_id} . "' " if ($args{key_id});
-    $cmd .= "--secret-access-key '" . $args{key_secret} . "' " if ($args{key_secret});
-    $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
-    $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
+    $cmd .= "--access-key-id '" . $args{key_id} . "' "                  if ($args{key_id});
+    $cmd .= "--secret-access-key '" . $args{key_secret} . "' "          if ($args{key_secret});
+    $cmd .= "--ssh-key-name '" . $args{key_name} . "' "                 if ($args{key_name});
+    $cmd .= '-u ' . $args{user} . ' '                                   if ($args{user});
     $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
 

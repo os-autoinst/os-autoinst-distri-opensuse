@@ -1,0 +1,23 @@
+name:           qam-alpha_supportserver
+description:    >
+  Create a supportserver for the alpha two nodes cluster
+  Further info about the test suite
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: 'textmode'
+  HA_CLUSTER: '1'
+  HDDMODEL: 'scsi-hd'
+  HDDSIZEGB_2: '6'
+  NICTYPE: 'tap'
+  NUMDISKS: '2'
+  NUMLUNS: '5'
+  QEMU_DISABLE_SNAPSHOTS: '1'
+  SUPPORT_SERVER: '1'
+  SUPPORT_SERVER_ROLES: 'dhcp,dns,ntp,ssh,iscsi'
+  VIDEOMODE: 'text'
+  VIRTIO_CONSOLE: '0'
+schedule:
+  - support_server/login
+  - support_server/setup
+  - ha/barrier_init
+  - support_server/wait_children

@@ -31,7 +31,7 @@ sub provider_factory {
             key_id     => get_var('PUBLIC_CLOUD_KEY_ID'),
             key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
             region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
-            username   => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
+            username   => get_var('PUBLIC_CLOUD_USER',   'ec2-user')
         );
 
     }
@@ -53,9 +53,9 @@ sub provider_factory {
             private_key_id      => get_var('PUBLIC_CLOUD_KEY_ID'),
             private_key         => get_var('PUBLIC_CLOUD_KEY'),
             client_id           => get_var('PUBLIC_CLOUD_CLIENT_ID'),
-            region              => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
+            region              => get_var('PUBLIC_CLOUD_REGION',  'europe-west1-b'),
             storage_name        => get_var('PUBLIC_CLOUD_STORAGE', 'openqa-storage'),
-            username            => get_var('PUBLIC_CLOUD_USER', 'susetest')
+            username            => get_var('PUBLIC_CLOUD_USER',    'susetest')
         );
     }
     else {

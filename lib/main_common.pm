@@ -344,9 +344,9 @@ sub is_desktop_module_selected {
 
 sub default_desktop {
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return         if get_var('VERSION', '') lt '12';
-    return 'gnome' if get_var('VERSION', '') lt '15';
-    return 'gnome' if get_var('VERSION', '') =~ /^Jump/;
+    return            if get_var('VERSION', '') lt '12';
+    return 'gnome'    if get_var('VERSION', '') lt '15';
+    return 'gnome'    if get_var('VERSION', '') =~ /^Jump/;
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'gnome' if is_desktop_module_selected;
@@ -585,7 +585,8 @@ sub load_jeos_tests {
             loadtest "console/suseconnect_scc";
         }
 
-        replace_opensuse_repos_tests if is_repo_replacement_required;
+        replace_opensuse_repos_tests      if is_repo_replacement_required;
+        loadtest 'console/verify_efi_mok' if get_var('MOK_VERBOSITY');
     }
 }
 
@@ -1186,7 +1187,7 @@ sub load_consoletests {
         loadtest "console/yast2_bootloader";
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
-# textmode install comes without firewall by default atm on openSUSE. For virtualizatoin server xen and kvm is disabled by default: https://fate.suse.com/324207
+# textmode install comes without firewall by default atm on openSUSE. For virtualization server xen and kvm is disabled by default: https://fate.suse.com/324207
     if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon && !is_virtualization_server) {
         loadtest "console/firewall_enabled";
     }
@@ -1299,10 +1300,10 @@ sub load_x11tests {
         }
     }
     if (kdestep_is_applicable()) {
-        if ((is_tumbleweed || is_leap("15.1+")) && !get_var('LIVECD')) {
+        if (!get_var('LIVECD')) {
             loadtest "x11/plasma_browser_integration";
+            loadtest "x11/khelpcenter";
         }
-        loadtest "x11/khelpcenter";
         if (get_var("PLASMA5")) {
             loadtest "x11/systemsettings5";
         }
@@ -1690,12 +1691,12 @@ sub load_extra_tests_console {
     loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
-    loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
+    loadtest 'console/libgpiod'  if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
     loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
-    loadtest 'console/sssd_samba'     unless (is_sle("<15") || is_sle(">=15-sp2"));
+    loadtest 'console/sssd_samba'     unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
     loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
 }
 
@@ -1813,6 +1814,7 @@ sub load_extra_tests_filesystem {
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
     loadtest "console/udisks2" unless is_sle;
+    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64);
 }
 
 sub get_wicked_tests {
@@ -2356,6 +2358,7 @@ sub load_security_tests_yast2_apparmor {
     loadtest "security/yast2_apparmor/settings_disable_enable_apparmor";
     loadtest "security/yast2_apparmor/settings_toggle_profile_mode";
     loadtest "security/yast2_apparmor/scan_audit_logs";
+    loadtest "security/yast2_apparmor/manually_add_profile";
 }
 
 sub load_security_tests_openscap {
@@ -2486,6 +2489,9 @@ sub load_mitigation_tests {
     }
     if (get_var('XEN_GRUB_SETUP')) {
         loadtest "cpu_bugs/xen_grub_setup";
+    }
+    if (get_var('MITIGATION_ENV_SETUP')) {
+        loadtest "cpu_bugs/mitigation_env_setup";
     }
     if (get_var('MELTDOWN')) {
         loadtest "cpu_bugs/meltdown";
@@ -2716,6 +2722,8 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
         loadtest "virtualization/universal/smoketest";            # Virtualization smoke test for hypervisor
         loadtest "virtualization/universal/stresstest";           # Perform stress tests on the guests
+        loadtest "console/perf";                                  # Run QAM perf test
+        loadtest "console/oprofile";                              # Run QAM oprofile test
     }
 }
 
@@ -2837,7 +2845,7 @@ sub load_common_opensuse_sle_tests {
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
     loadtest "terraform/create_image"   if get_var('TERRAFORM');
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-    load_toolchain_tests                if get_var("TCM") || check_var("ADDONS", "tcm");
+    load_toolchain_tests                if get_var("TCM")         || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);

@@ -91,7 +91,7 @@ sub run {
     if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();
 
-        send_key 'alt-s';    # move to hostname/DNS tab
+        send_key 'alt-s';                                           # move to hostname/DNS tab
         send_key_until_needlematch 'loopback-assigned', 'alt-a';    # assign hostname to loopback IP
         close_yast2_lan();
 
@@ -141,7 +141,7 @@ sub run {
 
     open_yast2_lan();
 
-    for (1 .. 2) { send_key "tab" }    # move to device list
+    for (1 .. 2) { send_key "tab" }                              # move to device list
     send_key_until_needlematch 'vlan-selected', 'down', 5, 5;    # move to vlan
     send_key "alt-t";                                            # remove vlan
     assert_screen 'vlan-deleted';

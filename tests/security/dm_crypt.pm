@@ -62,7 +62,7 @@ sub run {
         {name => "aes",     mode => "xts-plain",   hash => "sha512"},
         {name => "aes",     mode => "cbc-plain64", hash => "sha256"},
         {name => "serpent", mode => "xts-plain64", hash => "sha256", no_fips => 1},
-        {name => "twofish", mode => "cbc-plain64", hash => "sha1", no_fips => 1},
+        {name => "twofish", mode => "cbc-plain64", hash => "sha1",   no_fips => 1},
     );    # Not all the combinations will be checked here
 
     foreach my $c (@check_list) {

@@ -26,6 +26,7 @@ use mm_network;
 use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
+use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
@@ -79,6 +80,7 @@ our @EXPORT = qw(
   reconnect_mgmt_console
   set_hostname
   show_tasks_in_blocked_state
+  show_oom_info
   svirt_host_basedir
   disable_serial_getty
   script_retry
@@ -86,6 +88,7 @@ our @EXPORT = qw(
   create_btrfs_subvolume
   file_content_replace
   ensure_ca_certificates_suse_installed
+  is_efi_boot
 );
 
 =head1 SYNOPSIS
@@ -490,7 +493,7 @@ sub zypper_call {
     my $command          = shift;
     my %args             = @_;
     my $allow_exit_codes = $args{exitcode} || [0];
-    my $timeout          = $args{timeout} || 700;
+    my $timeout          = $args{timeout}  || 700;
     my $log              = $args{log};
     my $dumb_term        = $args{dumb_term} // is_serial_terminal;
 
@@ -533,7 +536,18 @@ sub zypper_call {
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
         upload_logs('/var/log/zypper.log');
-        die "'zypper -n $command' failed with code $ret";
+        my $msg = "'zypper -n $command' failed with code $ret";
+        if ($ret == 104) {
+            $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'\(SolverRequester.cc\|THROW\|CAUGHT\)\' > /tmp/z104.txt');
+            $msg .= script_output('cat /tmp/z104.txt');
+        }
+        else {
+            script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
+            $msg .= "\n\nRelated zypper logs:\n";
+            $msg .= script_output('cat /tmp/zlog.txt');
+        }
+        die $msg;
     }
     $IN_ZYPPER_CALL = 0;
     return $ret;
@@ -904,7 +918,7 @@ sub addon_decline_license {
         if (check_screen 'next-button-is-active', 5) {
             send_key $cmd{next};
             assert_screen "license-refuse";
-            send_key 'alt-n';    # no, don't refuse agreement
+            send_key 'alt-n';         # no, don't refuse agreement
             wait_still_screen 2;
             send_key $cmd{accept};    # accept license
         }
@@ -1383,11 +1397,30 @@ See L<https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sy
 =cut
 sub show_tasks_in_blocked_state {
     # sending sysrqs doesn't work for svirt
-    if (!check_var('BACKEND', 'svirt')) {
+    if (has_ttys) {
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i, 1);
         send_key 'ret';    # ensure clean shell prompt
+    }
+}
+
+=head2 show_oom_info
+
+ show_oom_info
+
+Show logs about an out of memory process kill.
+
+=cut
+sub show_oom_info {
+    if (script_run('dmesg | grep "Out of memory"') == 0) {
+        my $oom = script_output('dmesg | grep "Out of memory"');
+        if (has_ttys) {
+            send_key 'alt-sysrq-m';
+            $oom .= "\n\n" . script_output('journalctl -kb | tac | grep -F -m1 -B1000 "sysrq: Show Memory" | tac');
+            $oom .= "\n\n% free -h\n" . script_output('free -h');
+        }
+        record_info('OOM KILL', $oom, result => 'fail');
     }
 }
 
@@ -1654,6 +1687,11 @@ sub ensure_ca_certificates_suse_installed {
         zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
         zypper_call("in ca-certificates-suse");
     }
+}
+
+# non empty */sys/firmware/efi/* must exist in UEFI mode
+sub is_efi_boot {
+    return !!script_output('test -d /sys/firmware/efi/ && ls -A /sys/firmware/efi/', proceed_on_failure => 1);
 }
 
 1;

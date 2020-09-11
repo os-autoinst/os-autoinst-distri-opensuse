@@ -46,7 +46,7 @@ sub add_device {
         send_key_until_needlematch 'yast2_lan_select_eth_card', 'down';
         send_key 'alt-i';    # Edit NIC
         assert_screen 'yast2_lan_network_card_setup';
-        send_key 'alt-k';    # No link (Bonding Slavees)
+        send_key 'alt-k';             # No link (Bonding Slavees)
         send_key 'alt-n';
         assert_screen 'yast2_lan';    # yast2 lan overview tab
     }
@@ -74,7 +74,7 @@ sub add_device {
         send_key 'alt-o';
     }
     elsif ($device eq 'bond') {
-        send_key 'alt-o';             # Bond slaves
+        send_key 'alt-o';                                             # Bond slaves
         assert_screen 'yast2_lan_bond_slaves';
         send_key_until_needlematch 'yast2_lan_bond_slave_tab_selected', 'tab';
         assert_and_click 'yast2_lan_bond_slave_network_interface';    # select network interface
@@ -137,7 +137,7 @@ sub delete_device {
     send_key 'alt-t';    # Delete NIC
     wait_still_screen;
     save_screenshot;
-    send_key 'alt-i';    # Edit NIC
+    send_key 'alt-i';                           # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     wait_screen_change { send_key 'alt-y' };    # Dynamic address
     send_key 'alt-n';                           # Next

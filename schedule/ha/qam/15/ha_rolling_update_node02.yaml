@@ -6,7 +6,6 @@ schedule:
   - boot/boot_to_desktop
   - console/suseconnect_scc
   - update/zypper_up
-  - console/scc_deregistration
   - console/console_reboot
   - ha/wait_barriers
   - console/system_prepare
@@ -26,8 +25,7 @@ schedule:
   - ha/filesystem
   - ha/drbd_passive
   - ha/filesystem
-  - ha/ctdb
-  - ha/haproxy
+  - '{{qam_incident}}'
   - ha/await_upgrade_or_update
   - ha/cluster_state_mgmt
   - migration/online_migration/zypper_patch
@@ -35,3 +33,9 @@ schedule:
   - ha/check_hawk
   - ha/wait_others_upgraded_or_updated
   - ha/check_logs
+conditional_schedule:
+  qam_incident:
+    QAM_INCI:
+      1:
+        - ha/ctdb
+        - ha/haproxy

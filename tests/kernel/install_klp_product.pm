@@ -25,6 +25,13 @@ sub run {
     my $kver;
     my $kflavor;
 
+    # Running in the same job as qa_test_klp, reboot to fix kernel state
+    if (get_var('QA_TEST_KLP_REPO')) {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot;
+        $self->select_serial_terminal;
+    }
+
     my $output = script_output('uname -r');
     if ($output =~ /^([0-9]+([-.][0-9a-z]+)*)-([a-z][a-z0-9]*)/i) {
         $kver    = $1;
@@ -34,7 +41,7 @@ sub run {
         die "Failed to parse 'uname -r' output: '$output'";
     }
 
-    install_klp_product();
+    install_klp_product() unless get_var('KGRAFT');
     my $klp_pkg = find_installed_klp_pkg($kver, $kflavor);
     if (!$klp_pkg) {
         die "No installed kernel livepatch package for current kernel found";

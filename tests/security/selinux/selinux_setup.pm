@@ -33,14 +33,21 @@ sub run {
         assert_script_run('zypper -n in policycoreutils-python');
     }
 
-    my $pkgs = script_output("echo `zypper se selinux | grep -i selinux | grep -v -e srcpackage -e debuginfo -e debugsource | cut -d '|' -f 2`");
+    # install as many as SELinux related packages
+    my $pkgs
+      = "selinux-tools libselinux-devel libselinux1 libselinux1-32bit python3-selinux restorecond mcstrans libsepol1 libsepol-devel libsemanage1 libsemanage-devel checkpolicy setools-console";
     zypper_call("in $pkgs", timeout => 3000);
+
+    if (is_sle('>=15')) {
+        zypper_call("in setools-console setools-devel setools-java setools-libs setools-tcl", timeout => 600);
+    }
 
     # for opensuse, e.g, Tumbleweed install selinux_policy pkgs as needed
     # for sle15 and sle15+ "selinux-policy-*" pkgs will not be released
     # NOTE: have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
     if (!is_sle && !is_leap || is_sle('>=15')) {
-        my @files = ("selinux-policy-20200219-3.6.noarch.rpm", "selinux-policy-minimum-20200219-3.6.noarch.rpm", "selinux-policy-devel-20200219-3.20.noarch.rpm");
+        my @files
+          = ("selinux-policy-20200219-3.6.noarch.rpm", "selinux-policy-minimum-20200219-3.6.noarch.rpm", "selinux-policy-devel-20200219-3.20.noarch.rpm");
         foreach my $file (@files) {
             assert_script_run "wget --quiet " . data_url("selinux/$file");
             assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");

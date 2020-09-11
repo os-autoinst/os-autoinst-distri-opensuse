@@ -83,6 +83,9 @@ sub cleanup_needles {
     $tounregister = is_sle('15-SP2+') ? '0' : '1';
     unregister_needle_tags("ENV-15SP2ORLATER-$tounregister");
 
+    $tounregister = is_sle('15-SP3+') ? '0' : '1';
+    unregister_needle_tags("ENV-15SP3ORLATER-$tounregister");
+
     if (!is_server) {
         unregister_needle_tags("ENV-FLAVOR-Server-DVD");
     }
@@ -610,7 +613,7 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_hypervisor_tests if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
+    load_hypervisor_tests         if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
     load_suseconnect_tests        if check_var("REGRESSION", "suseconnect");
     load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }
@@ -888,8 +891,7 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
-    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked') || get_var('PUBLIC_CLOUD'));
-
+    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked') || get_var('PUBLIC_CLOUD') || is_jeos);
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";

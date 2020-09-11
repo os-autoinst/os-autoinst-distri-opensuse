@@ -18,8 +18,6 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-use ipmi_backend_utils;
-use version_utils 'is_sle';
 
 
 our $master;
@@ -27,7 +25,7 @@ our $slave;
 
 
 sub upload_ibtest_logs {
-    my $self = @_;
+    my $self = shift;
     my $role = get_required_var('IBTEST_ROLE');
 
     if ($role eq 'IBTEST_MASTER') {
@@ -37,6 +35,18 @@ sub upload_ibtest_logs {
     }
     $self->save_and_upload_log('dmesg',                   '/tmp/dmesg.log',         {screenshot => 0});
     $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
+
+    $self->save_and_upload_systemd_unit_log('opensm.service');
+    $self->save_and_upload_systemd_unit_log('srp_daemon.service');
+    $self->save_and_upload_systemd_unit_log('nvmet.service');
+    $self->save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
+    $self->save_and_upload_systemd_unit_log('rdma-hw.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
+    $self->save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
+    $self->save_and_upload_systemd_unit_log('rdma-ndd.service');
+    $self->save_and_upload_systemd_unit_log('rdma-sriov.service');
+
 }
 
 sub ibtest_slave {
@@ -49,9 +59,9 @@ sub ibtest_slave {
 sub ibtest_master {
     my $master             = get_required_var('IBTEST_IP1');
     my $slave              = get_required_var('IBTEST_IP2');
-    my $hpc_testing        = get_var('IBTEST_GITTREE', 'https://github.com/SUSE/hpc-testing.git');
+    my $hpc_testing        = get_var('IBTEST_GITTREE',   'https://github.com/SUSE/hpc-testing.git');
     my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
-    my $timeout            = get_var('IBTEST_TIMEOUT', '3600');
+    my $timeout            = get_var('IBTEST_TIMEOUT',   '3600');
 
     # construct some parameters to allow to customize test runs when needed
     my $start_phase  = get_var('IBTEST_START_PHASE');
@@ -78,12 +88,10 @@ sub ibtest_master {
 
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-    zypper_call('in git-core twopence bc iputils python');
+    zypper_call('in git-core twopence-shell-client bc iputils python');
 
-    # create symlinks, the package is (for now) broken
-    assert_script_run('ln -sf /usr/lib64/libtwopence.so.0.3.8 /usr/lib64/libtwopence.so.0');
     # pull in the testsuite
-    assert_script_run("git -c http.sslVerify=false clone $hpc_testing --branch $hpc_testing_branch");
+    assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch");
 
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
@@ -97,11 +105,8 @@ sub ibtest_master {
 }
 
 sub run {
-    my $self        = shift;
-    my $role        = get_required_var('IBTEST_ROLE');
-    my $version     = get_required_var("VERSION");
-    my $arch        = get_required_var("ARCH");
-    my $sdk_version = get_required_var("BUILD_SDK");
+    my $self = shift;
+    my $role = get_required_var('IBTEST_ROLE');
 
     $master = get_required_var('IBTEST_IP1');
     $slave  = get_required_var('IBTEST_IP2');
@@ -118,11 +123,6 @@ sub run {
     script_run("/usr/bin/clear");
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
-
-    if ((is_sle && is_sle('>15-sp2')) && (script_run('zypper se mpitests-openmpi3') != 0)) {
-        record_info('mpistests-openmpi3', 'add GA Repo (mpitests-openmpi3 missing)', result => 'softfail');
-        zypper_ar("http://download.suse.de/ibs/SUSE:/SLE-$version:/GA/standard/SUSE:SLE-$version:GA.repo");
-    }
 
     barrier_wait('IBTEST_SETUP');
 

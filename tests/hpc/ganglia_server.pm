@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,7 @@
 # Summary: Ganglia Test - server
 #   Acts as server which gets data from the client and is running the webinterface
 #   to show the metrics for all connected hosts
-# Maintainer: soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: soulofdestiny <mgriessmeier@suse.com>, Anton Pappas <apappas@suse.com>
 # Tags: https://fate.suse.com/323979
 
 use base 'hpcbase';
@@ -35,15 +35,27 @@ sub run {
     systemctl 'start gmond';
     barrier_wait('GANGLIA_GMOND_STARTED');
 
-    # wait for client
+    # Wait for client.
     barrier_wait('GANGLIA_INSTALLED');
     barrier_wait('GANGLIA_CLIENT_DONE');
 
-    #install web frontend and start apache
+    # Install web frontend and start apache2.
     zypper_call('in ganglia-web');
-    # SLE15 has installed by default php7, SLE12 has php5
-    my $php_mod = is_sle('15+') ? 'php7' : 'php5';
-    script_run('a2enmod ' . $php_mod);
+
+    # Check which version of php was installed during the previous step.
+    my $php_ver = '';
+    if (!zypper_call('se -i apache2-mod_php7', exitcode => [0, 104])) {
+        $php_ver = '7';
+    }
+    elsif (!zypper_call('se -i apache2-mod_php5', exitcode => [0, 104])) {
+        $php_ver = '5';
+    }
+    else {
+        record_info("Depedency issue", "Is apache-mod_php installed?");
+        die;
+    }
+    script_run("a2enmod php$php_ver");
+
     systemctl('start apache2');
     my $page_url = "http://ganglia-server/ganglia/?r=hour&cs=&ce=&c=unspecified&h=";
     $page_url .= "ganglia-server.openqa.test&tab=m&vn=&hide-hf=false";

@@ -13,11 +13,11 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use utils 'systemctl';
+use testapi;
 
 sub run {
-    # We need to stop pacemaker to avoid fencing during shutdown
-    systemctl 'stop pacemaker.service';
+    # We need to stop the cluster stack to avoid fencing during shutdown
+    assert_script_run("crm cluster stop");
 }
 
 1;

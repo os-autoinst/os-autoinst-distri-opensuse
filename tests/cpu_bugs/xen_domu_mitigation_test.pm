@@ -76,6 +76,7 @@ use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use testapi;
 use utils;
+use bmwqemu;
 
 our $DEBUG_MODE = get_var("XEN_DEBUG", 0);
 our $DOMU_TYPE  = get_required_var("DOMU_TYPE");
@@ -107,13 +108,13 @@ my $hyper_test_cases_hash = {
         #This is hypervisor no-xen situation.
         "no-xen" => {
             default => {
-                nextmove => {'donothing'}
+                nextmove => {}
             }
         },
         #This is hypervisor default enable situation.
         yes => {
             default => {
-                nextmove => {'donothing'}
+                nextmove => {}
             }
         }
     }
@@ -311,7 +312,7 @@ my $spectrev2_user_auto = {"spectre_v2_user=auto" => {
 my $mitigations_auto_on_pv_haswell = {"mitigations=auto" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /proc/cmdline'                                      => ['mitigations=auto'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -325,7 +326,7 @@ my $mitigations_auto_on_pv_haswell = {"mitigations=auto" => {
 my $mitigations_auto_on_pv = {"mitigations=auto" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=auto'],
+                'cat /proc/cmdline'                                      => ['mitigations=auto'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -365,7 +366,7 @@ my $mitigations_auto_on_hvm_haswell = {"mitigations=auto" => {
 my $mitigations_on_on_pv = {"mitigations=on" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /proc/cmdline'                                      => ['mitigations=on'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -379,7 +380,7 @@ my $mitigations_on_on_pv = {"mitigations=on" => {
 my $mitigations_on_on_pv_haswell = {"mitigations=on" => {
         default => {
             expected => {
-                'cat /proc/cmdline' => ['mitigations=on'],
+                'cat /proc/cmdline'                                      => ['mitigations=on'],
 'cat /sys/devices/system/cpu/vulnerabilities/spectre_v2' => ['Mitigation: Full generic retpoline, IBPB: conditional, IBRS_FW, STIBP: conditional, RSB filling'],
                 'cat /sys/devices/system/cpu/vulnerabilities/meltdown'          => ['Unknown.*XEN PV detected, hypervisor mitigation required'],
                 'cat /sys/devices/system/cpu/vulnerabilities/mds'               => ['Clear CPU buffers; SMT Host state unknown'],
@@ -502,7 +503,7 @@ if ($DOMU_TYPE =~ /pv/i) {
     $pti = {%$pti_on_on_hvm, %$pti_off_on_hvm, %$pti_auto_on_hvm};
 }
 
-if (get_var('FLAVOR') =~ /Haswell/i) {
+if ($bmwqemu::vars{MICRO_ARCHITECTURE} =~ /Haswell/i) {
     $tsx_async_abort = {%$tsx_async_abort_full_on_haswell, %$tsx_async_abort_full_nosmt_on_haswell};
     $cross_testcases = {%$corss_testcase_mds_taa_off_on_haswell};
     if ($DOMU_TYPE =~ /pv/i) {

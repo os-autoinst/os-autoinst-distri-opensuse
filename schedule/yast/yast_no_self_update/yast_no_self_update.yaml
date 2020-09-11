@@ -8,9 +8,9 @@ description:    >
 vars:
   INSTALLER_NO_SELF_UPDATE: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
+  - installation/validate_no_self_update
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle

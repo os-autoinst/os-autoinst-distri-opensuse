@@ -78,7 +78,7 @@ sub run {
     assert_script_run "pvresize -y --setphysicalvolumesize $newsize$unit $device";
     $device =~ s/([0-9]+)$//;
     my $partnum = $1;
-    $newsize += 1;    # Just to be sure that the partition is bigger than the PV (+1G)
+    $newsize += 1;                                                                  # Just to be sure that the partition is bigger than the PV (+1G)
     my $resize_cmd = is_sle('15+') ? 'resizepart' : 'resize';
     assert_script_run "parted -s $device $resize_cmd $partnum $newsize${unit}i";    # Unit in parted must use the 'GiB' notation!
 

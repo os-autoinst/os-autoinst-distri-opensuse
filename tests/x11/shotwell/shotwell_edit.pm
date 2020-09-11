@@ -31,9 +31,9 @@ sub run {
     send_key "alt-home";
     send_key "ret";
     assert_screen 'shotwell-display-picture';
-    send_key "ctrl-r";    # Rotate the picture
+    send_key "ctrl-r";          # Rotate the picture
     assert_screen 'shotwell-rotate-picture';
-    send_key "ctrl-o";    # Crop the picture
+    send_key "ctrl-o";          # Crop the picture
     assert_screen 'shotwell-crop-toolbar';
     send_key "ret";
     assert_screen 'shotwell-crop-picture';

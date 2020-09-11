@@ -46,6 +46,7 @@ sub run {
         test_container_image(image => $image_names->[$i], runtime => 'docker');
         build_container_image(image => $image_names->[$i], runtime => 'docker');
         test_opensuse_based_image(image => $image_names->[$i], runtime => 'docker');
+        build_with_zypper_docker(image => $image_names->[$i], runtime => 'docker');
     }
 
     scc_restore_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));

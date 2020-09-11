@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'type_string_very_slow';
-use bootloader_setup qw(uefi_bootmenu_params get_hyperv_fb_video_resolution);
+use bootloader_setup qw(uefi_bootmenu_params get_hyperv_fb_video_resolution tianocore_disable_secureboot);
 
 sub run {
     my $self = shift;
@@ -34,6 +34,7 @@ sub run {
         $counter++;
     } while ((!check_screen('grub2', 1)) && ($counter < 10));
     $self->wait_grub(in_grub => 1, bootloader_time => 10);
+    $self->tianocore_disable_secureboot if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu'));
     uefi_bootmenu_params;
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         type_string_very_slow(get_hyperv_fb_video_resolution);

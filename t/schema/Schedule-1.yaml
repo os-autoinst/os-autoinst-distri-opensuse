@@ -41,7 +41,7 @@ properties:
     additionalProperties: false
     type: object
     patternProperties:
-      "^([a-zA-Z0-9_]+)$":
+      "^([a-zA-Z0-9_-]+)$":
         oneOf:
         - type: string
         - type: number

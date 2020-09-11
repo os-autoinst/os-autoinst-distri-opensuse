@@ -39,23 +39,23 @@ sub run {
     type_string "$iscsi_iqn";
     wait_still_screen(5, 30);
     save_screenshot;
-    send_key "alt-n";    # "Connected Targets" tab, empty list
+    send_key "alt-n";       # "Connected Targets" tab, empty list
     assert_screen 'iscsi-initiator-connected-targets-none-fs';
-    send_key $cmd{add};    # go to "iSCSI Initiator Discovery" screen
+    send_key $cmd{add};     # go to "iSCSI Initiator Discovery" screen
     assert_screen 'iscsi-discovery-fs';
-    send_key "alt-i";      # go to IP address field
+    send_key "alt-i";       # go to IP address field
     wait_still_screen(2, 10);
     type_string "$iscsi_server_ip";
     wait_still_screen(5, 30);
     save_screenshot;
-    send_key "alt-n";      # iSCSI Initiator Discovery: discovered targets list, first one is selected
+    send_key "alt-n";       # iSCSI Initiator Discovery: discovered targets list, first one is selected
     wait_still_screen(2, 10);
     save_screenshot;
-    send_key "alt-o";      # press Connect button
+    send_key "alt-o";       # press Connect button
     wait_still_screen(2, 10);
     assert_screen 'iscsi-initiator-startup-and-authentication';
-    send_key "alt-s";      # startup mode. Selection list: *manual onboot automatic
-    send_key "down";       # Wanted: onboot. Show resulting setting.
+    send_key "alt-s";       # startup mode. Selection list: *manual onboot automatic
+    send_key "down";        # Wanted: onboot. Show resulting setting.
     wait_still_screen(2, 10);
     save_screenshot;
     send_key $cmd{next};    # Now connect

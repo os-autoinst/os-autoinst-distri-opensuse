@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
-use version_utils qw(is_sle is_sles4sap is_caasp is_upgrade);
+use version_utils qw(is_sle is_sles4sap is_caasp is_upgrade is_leap_migration);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 
@@ -659,7 +659,7 @@ sub fill_in_registration_data {
         verify_preselected_modules($modules_needle) if get_var('CHECK_PRESELECTED_MODULES');
         # Add desktop module for SLES if desktop is gnome
         # Need desktop application for minimalx to make change_desktop work
-        if (check_var('SLE_PRODUCT', 'sles')
+        if ((check_var('SLE_PRODUCT', 'sles') && !is_leap_migration)
             && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
             && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we)/)
         {
@@ -721,7 +721,14 @@ sub registration_bootloader_params {
 }
 
 sub yast_scc_registration {
-    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'scc');
+    # for leap to sle migration, we need to install yast2-registration
+    # before running yast2 registration module.
+    my $client_module = 'scc';
+    if (is_leap_migration) {
+        zypper_call('in yast2-registration');
+        $client_module = 'registration';
+    }
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module);
     assert_screen_with_soft_timeout(
         'scc-registration',
         timeout      => 90,
@@ -759,7 +766,7 @@ sub get_addon_fullname {
         dev       => 'sle-module-development-tools',
         ses       => 'ses',
         live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
-        asmm      => is_sle('15+') ? 'sle-module-basesystem' : 'sle-module-adv-systems-management',
+        asmm      => is_sle('15+') ? 'sle-module-basesystem'    : 'sle-module-adv-systems-management',
         base      => 'sle-module-basesystem',
         contm     => 'sle-module-containers',
         desktop   => 'sle-module-desktop-applications',

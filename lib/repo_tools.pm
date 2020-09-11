@@ -87,8 +87,9 @@ our @EXPORT = qw(
   prepare_oss_repo
   disable_oss_repo
   generate_version
-  validate_repo_enablement
+  validate_repo_properties
   parse_repo_data
+  verify_software
 );
 
 =head2 add_qa_head_repo
@@ -266,7 +267,7 @@ sub rmt_wizard {
 }
 
 =head2 rmt_sync
- 
+
  rmt_sync();
 
 Function to sync rmt server
@@ -277,7 +278,7 @@ sub rmt_sync {
 }
 
 =head2 rmt_enable_pro
- 
+
  rmt_enable_pro();
 
 Function to enable products
@@ -441,34 +442,57 @@ sub generate_version {
 }
 
 
-=head2 validate_repo_enablement
+=head2 validate_repo_properties
 
- validate_repo_enablement(%args);
+ validate_repo_properties($args);
 
-Validates that repo with given name and alias has correct uri and is enabled.
-C<%args> should have following keys defined:
-- C<alias>: repository alias
-- C<name>: repository name
-- C<uri>: repository uri
+Validates that repo with given search criteria (uri, alias, number)
+has other properties mathing the expectations.
+If one of the keys is not provided, that field will NOT be validated.
+C<$args> should have following keys defined:
+- C<Alias>: repository alias, optional
+- C<Autorefresh>: repository Autorefresh property, optional
+- C<Enabled>: repository Enabled property, optional
+- C<Filter>: repository search criteria (alias, uri, number), uri is used if not defined
+- C<Name>: repository name, optional
+- C<URI>: repository uri, used as a search criteria if no C<Filter> provided.
 
 =cut
-sub validate_repo_enablement {
-    my (%args) = @_;
+sub validate_repo_properties {
+    my ($args)           = @_;
+    my $search_criteria  = $args->{Filter} // $args->{URI};
+    my $actual_repo_data = parse_repo_data($search_criteria);
 
-    my $output = script_output('zypper lr --uri');
+    if ($args->{Alias}) {
+        assert_true($actual_repo_data->{Alias} =~ /$args->{Alias}/,
+            "Repository $args->{Name} has wrong alias, expected: '$args->{Alias}', got: '$actual_repo_data->{Alias}'");
+    }
 
-    assert_true($output =~ /
-        \d\s+\|                 # #
-        \s+$args{alias}.*\s+\|  # Alias
-        \s+$args{name}.*\s+\|   # Name
-        \s+Yes\s+\|             # Enabled
-        \s+\(r\s+\)\s+Yes\s+\|  # GPG Check
-        \s+Yes\s+\|             # Refresh
-        \s+(?<uri>.*)           # URI
-    /ix, "Repository $args{name} is not found in the installed system:\n$output");
+    if ($args->{Name}) {
+        # TODO remove workaround poo#70546
+        if ($actual_repo_data->{Name} =~ /$args->{Alias}\/?/) {
+            record_soft_failure "repo name is not set correctly - bsc#1175374 - found actual repo name $actual_repo_data->{Name}";
+        }
+        else {
+            assert_true($actual_repo_data->{Name} =~ /$args->{Name}/,
+                "Repository '$args->{Name}' has wrong name: '$actual_repo_data->{Name}'");
+        }
+    }
 
-    assert_equals($args{uri}, $+{uri},
-        "Repository $args{name} has system wrong url or repo is not added to the system:\n$output");
+    if ($args->{URI}) {
+        assert_true($actual_repo_data->{URI} =~ /$args->{URI}/,
+            "Repository $args->{Name} has wrong URI, expected: '$args->{URI}', got: '$actual_repo_data->{URI}'");
+    }
+
+    if ($args->{Enabled}) {
+        assert_equals($actual_repo_data->{Enabled}, $args->{Enabled},
+            "Repository $args->{Name} has wrong value for the field 'Enabled'");
+    }
+
+    if ($args->{Autorefresh}) {
+        assert_equals($actual_repo_data->{Autorefresh}, $args->{Autorefresh},
+            "Repository $args->{Name} has wrong value for the field 'Autorefresh'");
+    }
 }
 
 =head2 parse_repo_data
@@ -491,6 +515,53 @@ sub parse_repo_data {
     my @lines             = split(/\n/, script_output("zypper lr $repo_identifier"));
     my %repo_data         = map { split(/\s*:\s*/, $_, 2) } @lines;
     return \%repo_data;
+}
+
+=head2 verify_software
+
+ verify_software(%args);
+
+Validates that package or pattern is installed, or not installed and/or if
+package is available in the given repo.
+returns string with error or empty string in case of matching expectations.
+C<%args> should have following keys defined:
+- C<name>: package or pattern name
+- C<installed>: if set to true, validate that package or pattern is installed
+- C<pattern>: set to true if is pattern, otherwise validating package
+- C<available>: if set to true, validate that package or pattern is available in
+                the list of packages with given search criteria, otherwise
+                expect zypper command to fail
+- C<repo>: Optional, name of the repo where the package should be available. Check
+           is triggered only if C<available> is set to true
+
+=cut
+
+sub verify_software {
+    my (%args) = @_;
+
+    my $zypper_args = $args{installed} ? '--installed-only' : '--not-installed-only';
+    # define search type
+    $zypper_args .= $args{pattern} ? ' -t pattern' : ' -t package';
+    # Negate condition if package should not be available
+    my $cmd = $args{available} ? '' : '! ';
+    $cmd .= "zypper --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
+    # Verify repo only if package expected to be available
+    if ($args{repo} && $args{available}) {
+        $cmd .= ' | grep ' . $args{repo};
+    }
+    # Record error in case non-zero return code
+    if (script_run($cmd)) {
+        my $error = $args{pattern} ? 'Pattern' : 'Package';
+        if ($args{available}) {
+            $error .= " '$args{name}' not found in @{[ $args{repo} ]} or not preinstalled."
+              . " Expected to be installed: @{[ $args{installed} ? 'true' : 'false' ]}\n";
+        }
+        else {
+            $error .= " '$args{name}' found in @{[ $args{repo} ]} repo, this package should not be present.\n";
+        }
+        return $error;
+    }
+    return '';
 }
 
 1;

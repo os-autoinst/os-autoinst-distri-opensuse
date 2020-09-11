@@ -68,9 +68,9 @@ sub get_product_shortcuts {
             sles => (is_ppc64le() || is_s390x()) ? 'u'
             : is_aarch64() ? 's'
             : 'i',
-            sled     => 'x',
+            sled => 'x',
             sles4sap => is_ppc64le() ? 'i'
-            : (is_sle('=15-SP2') && is_x86_64()) ? 't'
+            : (is_sle('15-SP2+') && is_x86_64()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
             rt  => is_x86_64() ? 't' : undef
@@ -81,8 +81,8 @@ sub get_product_shortcuts {
         sles     => 's',
         sled     => 'u',
         sles4sap => is_ppc64le() ? 'u' : 'x',
-        hpc      => is_x86_64() ? 'x' : 'u',
-        rt       => is_x86_64() ? 'u' : undef
+        hpc      => is_x86_64()  ? 'x' : 'u',
+        rt       => is_x86_64()  ? 'u' : undef
     );
 }
 

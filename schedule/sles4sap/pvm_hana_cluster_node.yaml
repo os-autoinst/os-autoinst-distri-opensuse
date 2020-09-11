@@ -1,0 +1,147 @@
+---
+name: pvm_hana_cluster_node
+description: >
+  HanaSR Cluster Test for pvm_hmc. Schedule for all nodes.
+
+  Some settings are required in the job group or test suite for this schedule to work.
+  HA_CLUSTER_SETUP must be defined for all jobs. In one of the jobs (the parent),
+  it must be defined to 'init', while in the rest to 'join'. This will only
+  control the conditional scheduling of ha_cluster_init or ha_cluster_join.
+
+  The other settings required in the job group are.
+
+  CLUSTER_INFOS must be defined in the parent job to the name of the cluster, number
+  of nodes and number of LUNs. Example 'hana:2:3'
+  CLUSTER_NAME must be defined for all jobs as a string.
+  HA_CLUSTER_INIT must be defined to a non false value in the parent job
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the parent job (the job where HA_CLUSTER_SETUP is defined to init)
+  HANA must be defined pointing to the location of the HANA installation masters
+  HOSTNAME must be defined to different hostnames for each node.
+  ISCSI_LUN_INDEX must be defined in the parent job pointing to an available LUN
+  index in the iSCSI server
+  ISCSI_SERVER must be defined in all jobs pointing to an iSCSI server
+  MAX_JOB_TIME is recommended to be defined as well to a high value (ex. 20000)
+  NFS_SUPPORT_SHARE must be defined in all jobs pointing to a NFS share used by
+  the cluster nodes to share configuration files
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
+  SLE_PRODUCT must be defined and set to sles4sap.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  AUTOMATED_REGISTER: 'false'
+  DESKTOP: 'textmode'
+  DM_NEEDS_USERNAME: '1'
+  HA_CLUSTER: '1'
+  INSTANCE_ID: '00'
+  INSTANCE_IP_CIDR: '10.0.2.200/24'
+  INSTANCE_SID: HA1
+  INSTANCE_TYPE: HDB
+  MULTIPATH_CONFIRM: 'yes'
+schedule:
+  - '{{barrier_init}}'
+  - installation/bootloader
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - '{{multipath}}'
+  - '{{sles4sap12_product}}'
+  - installation/addon_products_sle
+  - '{{sles4sap15_product}}'
+  - installation/partitioning
+  - installation/partitioning_firstdisk
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - '{{sles4sap12_desktop}}'
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/grub_test
+  - installation/first_boot
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/ha_sle15_workarounds
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/setup_hosts_and_luns
+  - ha/watchdog
+  - sles4sap/patterns
+  - sles4sap/hana_install
+  - '{{cluster_setup}}'
+  - sles4sap/hana_cluster
+  - '{{sap_suse_cluster_connector}}'
+  - ha/fencing
+  - '{{boot_to_desktop}}'
+  - ha/check_after_reboot
+  - ha/check_logs
+conditional_schedule:
+  multipath:
+    MULTIPATH:
+      1:
+        - installation/multipath
+  barrier_init:
+    HA_CLUSTER_INIT:
+      1:
+        - ha/barrier_init
+  cluster_setup:
+    HA_CLUSTER_SETUP:
+      init:
+        - ha/ha_cluster_init
+      join:
+        - ha/ha_cluster_join
+  sap_suse_cluster_connector:
+    HA_CLUSTER_INIT:
+      1:
+        - sles4sap/sap_suse_cluster_connector
+  boot_to_desktop:
+    HA_CLUSTER_INIT:
+      1:
+        - boot/reconnect_mgmt_console
+        - installation/grub_test
+        - installation/first_boot
+  sles4sap12_product:
+    VERSION:
+      12-SP2:
+        - installation/sles4sap_product_installation_mode
+      12-SP3:
+        - installation/sles4sap_product_installation_mode
+      12-SP4:
+        - installation/sles4sap_product_installation_mode
+      12-SP5:
+        - installation/sles4sap_product_installation_mode
+  sles4sap15_product:
+    VERSION:
+      15:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP1:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP2:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+      15-SP3:
+        - installation/system_role
+        - installation/sles4sap_product_installation_mode
+  sles4sap12_desktop:
+    VERSION:
+      12-SP2:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP3:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP4:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues
+      12-SP5:
+        - installation/change_desktop
+        - installation/resolve_dependency_issues

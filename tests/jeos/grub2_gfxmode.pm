@@ -14,20 +14,15 @@
 # Summary: Set GRUB_GFXMODE to 1024x768
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest);
 use testapi;
-use bootloader_setup qw(change_grub_config grep_grub_settings grub_mkconfig set_framebuffer_resolution set_extrabootparams_grub_conf);
+use jeos qw(set_grub_gfxmode);
 
 sub run {
-    change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
-    change_grub_config('^#',  '',          'GRUB_GFXMODE');
-    change_grub_config('=.*', '=-1',       'GRUB_TIMEOUT') unless check_var('VIRSH_VMM_TYPE', 'linux');
-    grep_grub_settings('^GRUB_GFXMODE=1024x768$');
-    set_framebuffer_resolution;
-    set_extrabootparams_grub_conf;
-    grub_mkconfig;
+    my $self = shift;
+    $self->select_serial_terminal;
+
+    set_grub_gfxmode;
 }
 
 sub test_flags {

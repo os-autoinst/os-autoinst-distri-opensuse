@@ -18,7 +18,7 @@ use strict;
 use warnings;
 
 use testapi;
-use repo_tools 'parse_repo_data';
+use repo_tools 'validate_repo_properties';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
@@ -26,11 +26,7 @@ sub run {
     my $test_data = get_test_suite_data();
     select_console 'root-console';
     foreach my $expected_dud_repo (@{$test_data->{dud_repos}}) {
-        my $actual_dud_repo = parse_repo_data($expected_dud_repo->{URI});
-        assert_equals($expected_dud_repo->{Enabled}, $actual_dud_repo->{Enabled},
-            "Fail! It is expected that the 'Enabled' field is set to $expected_dud_repo->{Enabled}, but it is $actual_dud_repo->{Enabled}");
-        assert_equals($expected_dud_repo->{Autorefresh}, $actual_dud_repo->{Autorefresh},
-            "Fail! It is expected that the 'Autorefresh' field is set to $expected_dud_repo->{Autorefresh}, but it is $actual_dud_repo->{Autorefresh}");
+        validate_repo_properties($expected_dud_repo);
     }
     assert_script_run('zypper -v ref | grep "All repositories have been refreshed"', 120);
 }

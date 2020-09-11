@@ -8,6 +8,13 @@ SLAPD="/usr/sbin/slapd"
 
 SSS_RELATED_UNITS='nscd.service nscd.socket krb5kdc.service kadmind.service sssd.service slapd.service'
 
+# openSUSE Tumbleweed uses /usr/etc/nsswitch.conf. If the admin wants to modify it, the file is
+# supposed to be copied to /etc and then modified. Let's check if we have /etc/nsswitch.conf already
+# in place, otherwise copy the system template file.
+if [ ! -f /etc/nsswitch.conf ]; then
+  cp /usr/etc/nsswitch.conf /etc/nsswitch.conf
+fi 
+
 # Comprehensive list of system-wide configuration files touched by test cases
 declare -a bakfiles=(/etc/hosts /etc/nsswitch.conf /etc/krb5.conf /var/lib/kerberos/krb5kdc/kdc.conf)
 

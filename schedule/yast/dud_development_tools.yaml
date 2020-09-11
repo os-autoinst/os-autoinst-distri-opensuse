@@ -2,11 +2,15 @@
 name: dud_development_tools
 description: >
   Same as dud_sdk, but due to bsc#1080292 we cannot use ISO.  FTP url is used
-  instead. Limitation is that we use x86_64 url,  as cannot create DUD in the
+  instead. Limitation is that we use x86_64 url, as cannot create DUD in the
   runtime, so test cannot be executed on other architectures.
+  Also development tools module requires desktop applications module as a
+  dependency, so DESKTOP is set to gnome.
 vars:
   DUD: dev_tools.dud
   DUD_ADDONS: sdk
+  DESKTOP: gnome
+  SCC_ADDONS: base,serverapp,desktop
 schedule:
   - installation/isosize
   - installation/bootloader_start

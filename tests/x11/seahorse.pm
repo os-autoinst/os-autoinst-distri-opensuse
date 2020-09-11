@@ -22,8 +22,8 @@ use testapi;
 
 sub run {
     x11_start_program('seahorse');
-    send_key "ctrl-n";                            # New keyring
-    assert_screen "seahorse-keyring-selector";    # Dialog "Select type to create"
+    send_key "ctrl-n";                                # New keyring
+    assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
     wait_still_screen(3);
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
     my @tags = qw(seahorse-name-new-keyring ok_on_top);
@@ -45,9 +45,22 @@ sub run {
     send_key "ret";                                   # Next field (confirm PW)
     type_password;                                    # Re-type user password
     send_key "ret";                                   # Confirm password
-    assert_and_click('seahorse-default_keyring', button  => 'right');    # right click the new keyring
-    assert_and_click('seahorse-set_as_default',  timeout => 60);         # Set the new keyring as default
-    send_key "alt-f4";                                                   # Close seahorse
+    wait_still_screen 1;
+    if (check_screen "seahorse-keyring-locked") {
+        assert_and_click "unlock";
+        type_password;
+        send_key "ret";
+    }
+    assert_screen [qw(seahorse-collecton-is-empty seahorse-default_keyring)];
+    if (match_has_tag "seahorse-collecton-is-empty") {
+        record_soft_failure 'Missing entries of Passwords, Keys, Certificates, see boo#1175513';
+        send_key_until_needlematch("generic-desktop", "alt-f4", 5, 5);
+    }
+    elsif (match_has_tag "seahorse-default_keyring") {
+        assert_and_click('seahorse-default_keyring', button  => 'right');    # right click the new keyring
+        assert_and_click('seahorse-set_as_default',  timeout => 60);         # Set the new keyring as default
+        send_key "alt-f4";                                                   # Close seahorse
+    }
 }
 
 sub test_flags {

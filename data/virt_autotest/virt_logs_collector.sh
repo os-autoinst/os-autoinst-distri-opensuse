@@ -331,7 +331,7 @@ help_usage(){
 [-h help]"
 }
 
-virt_logs_collecor_log="/var/log/virt_logs_collecor.log"
+virt_logs_collecor_log="/var/log/virt_logs_collector.log"
 virt_logs_folder=""
 virt_extra_logs_host=""
 virt_extra_logs_guest=""

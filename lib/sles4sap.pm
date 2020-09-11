@@ -45,7 +45,7 @@ our $sid;
 our $instance;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
-our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u sap.slice';
+our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u SAP.slice';
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -65,7 +65,7 @@ sub ensure_serialdev_permissions_for_sap {
 }
 
 sub fix_path {
-    my ($self,  $var)  = @_;
+    my ($self, $var) = @_;
     my ($proto, $path) = split m|://|, $var;
     my @aux = split '/', $path;
 
@@ -75,7 +75,7 @@ sub fix_path {
 
     $aux[0] .= ':' if ($proto eq 'nfs');
     $aux[0] = '//' . $aux[0] if ($proto eq 'cifs');
-    $path = join '/', @aux;
+    $path   = join '/', @aux;
     return ($proto, $path);
 }
 

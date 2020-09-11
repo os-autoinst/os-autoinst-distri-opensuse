@@ -34,9 +34,8 @@ sub run {
 
     # Create slice cgroup
     my $systemd_path  = '/etc/systemd/system';
-    my $sap_slice_cfg = 'sap.slice';
-    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$sap_slice_cfg -o /tmp/$sap_slice_cfg";
-    assert_script_run "mv -i /tmp/$sap_slice_cfg $systemd_path/$sap_slice_cfg";
+    my $sap_slice_cfg = 'SAP.slice';
+    assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$sap_slice_cfg -o $systemd_path/$sap_slice_cfg";
     assert_script_run "cat $systemd_path/$sap_slice_cfg";
     systemctl('daemon-reload');
 

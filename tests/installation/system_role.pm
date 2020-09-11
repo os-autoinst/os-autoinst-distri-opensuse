@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -73,11 +73,15 @@ sub assert_system_role {
 }
 
 sub run {
-    return record_info(
-        "Skip screen",
-        "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available"
-    ) if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64'));
-    assert_system_role;
+    if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64')) {
+        record_info("Skip screen", "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available");
+    }
+    elsif (check_var('ARCH', 'aarch64') && is_sle('>=12-SP3') && is_sle('<15')) {
+        record_info("Skip screen", "System Role screen is  not displayed on aarch64 between 12SP3 and 12SP5");
+    }
+    else {
+        assert_system_role;
+    }
 }
 
 1;

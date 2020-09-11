@@ -451,7 +451,7 @@ sub prepare_check_macvtap {
 
 sub validate_macvtap {
     my ($self, $macvtap_log) = @_;
-    my $ref_ip     = $self->get_ip(type => 'host',    netmask => 0, is_wicked_ref => 1);
+    my $ref_ip     = $self->get_ip(type => 'host', netmask => 0, is_wicked_ref => 1);
     my $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);
     script_run("./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 & export CHECK_MACVTAP_PID=\$!");
     sleep(30);    # OVS on a worker is slow sometimes to change and we haven't found better way how to handle it
