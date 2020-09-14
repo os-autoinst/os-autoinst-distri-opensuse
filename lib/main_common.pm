@@ -1720,6 +1720,7 @@ sub load_extra_tests_docker {
         loadtest "containers/container_diff";
     }
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
+    loadtest 'containers/registry';
     loadtest "containers/zypper_docker";
 }
 

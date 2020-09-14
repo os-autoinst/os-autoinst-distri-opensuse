@@ -30,5 +30,6 @@ schedule:
     - '{{docker_image}}'
     - '{{containers_3rd_party}}'
     - '{{docker_compose}}'
+    - containers/registry
     - containers/zypper_docker
     - console/coredump_collect

@@ -37,7 +37,6 @@ sub run {
 
     if (is_sle()) {
         ensure_ca_certificates_suse_installed();
-        allow_registry_suse_de_for_docker();
     }
 
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
