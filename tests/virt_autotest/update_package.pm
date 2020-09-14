@@ -20,6 +20,7 @@ use ipmi_backend_utils;
 use Utils::Backends 'is_remote_backend';
 use Utils::Architectures;
 use version_utils 'is_sle';
+use virt_autotest::utils qw(is_xen_host is_kvm_host);
 
 sub update_package {
     my $self           = shift;
@@ -39,10 +40,10 @@ sub update_package {
         upload_asset "/tmp/update_virt_rpms.log", 1, 1;
     }
     else {
-        $ret = $self->execute_script_run($update_pkg_cmd, 7200);
+        $self->execute_script_run($update_pkg_cmd, 7200);
         upload_logs("/tmp/update_virt_rpms.log");
         save_screenshot;
-        if ($ret !~ /Need to reboot system to make the rpms work/m) {
+        if ($self->{script_output} !~ /Need to reboot system to make the rpms work/m) {
             die " Update virt rpms fail, going to terminate following test!";
         }
     }
@@ -51,10 +52,10 @@ sub update_package {
 
 sub run {
     my $self = shift;
-    $self->update_package() unless (is_sle('=15-SP2') && (check_var("HOST_HYPERVISOR", "xen") || check_var("SYSTEM_ROLE", "xen")));
+    $self->update_package() unless is_sle('=15-SP2') && is_xen_host;    #workaroud: skip update package as there are conflicts on sles15sp2 XEN
     if (!check_var('ARCH', 's390x')) {
-        set_serial_console_on_vh('', '', 'xen') if (get_var("XEN")                      || check_var("HOST_HYPERVISOR", "xen"));
-        set_serial_console_on_vh('', '', 'kvm') if (check_var("HOST_HYPERVISOR", "kvm") || check_var("SYSTEM_ROLE",     "kvm"));
+        set_serial_console_on_vh('', '', 'xen') if is_xen_host;
+        set_serial_console_on_vh('', '', 'kvm') if is_kvm_host;
     }
     update_guest_configurations_with_daily_build();
     if (is_remote_backend && check_var('ARCH', 'aarch64') && !check_var('LINUX_CONSOLE_OVERRIDE', 'ttyAMA0') && (get_var('VIRT_PRJ2_HOST_UPGRADE') || get_var('VIRT_PRJ4_GUEST_UPGRADE'))) {

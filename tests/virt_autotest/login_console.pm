@@ -18,6 +18,7 @@ use File::Basename;
 use testapi;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
 use ipmi_backend_utils;
+use virt_autotest::utils qw(is_xen_host);
 use IPC::Run;
 
 sub login_to_console {
@@ -77,7 +78,7 @@ sub login_to_console {
     }
 
     if (!get_var("reboot_for_upgrade_step")) {
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+        if (is_xen_host) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;

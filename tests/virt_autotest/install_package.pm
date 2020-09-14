@@ -18,6 +18,7 @@ use testapi;
 use virt_utils;
 use utils;
 use Utils::Backends 'is_remote_backend';
+use virt_autotest::utils qw(is_xen_host);
 
 sub install_package {
 
@@ -93,7 +94,7 @@ sub install_package {
     }
 
     if (get_var("PROXY_MODE")) {
-        if (get_var("XEN")) {
+        if (is_xen_host) {
             zypper_call("in -t pattern xen_server", 1800);
         }
     }
