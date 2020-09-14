@@ -2442,6 +2442,16 @@ sub load_security_tests_check_kernel_config {
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
 }
 
+sub load_security_tests_pam {
+    load_security_console_prepare;
+
+    loadtest "security/pam/pam_basic_function";
+    loadtest "security/pam/pam_login";
+    loadtest "security/pam/pam_su";
+    loadtest "security/pam/pam_config";
+    loadtest "security/pam/pam_mount";
+}
+
 sub load_security_tests_tpm2 {
     if (is_sle('>=15-SP2')) {
         load_security_console_prepare;
@@ -2552,6 +2562,7 @@ sub load_security_tests {
       system_check
       check_kernel_config
       tpm2
+      pam
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
