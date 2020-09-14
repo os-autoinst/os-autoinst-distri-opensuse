@@ -63,10 +63,11 @@ sub expand_patterns {
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
             my @sle12;
-            push @sle12, qw(Minimal apparmor base documentation 32bit)                 if check_var('DESKTOP', 'textmode');
-            push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic 32bit) if check_var('DESKTOP', 'gnome');
-            push @sle12, qw(desktop-base desktop-gnome)                                if get_var('SCC_ADDONS') =~ m/we/;
-            push @sle12, qw(yast2)                                                     if is_sle('>=12-sp3');
+            push @sle12, qw(Minimal apparmor base documentation)                 if check_var('DESKTOP', 'textmode');
+            push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic) if check_var('DESKTOP', 'gnome');
+            push @sle12, qw(desktop-base desktop-gnome)                          if get_var('SCC_ADDONS') =~ m/we/;
+            push @sle12, qw(yast2)                                               if is_sle('>=12-sp3');
+            push @sle12, qw(32bit)                                               if !check_var('ARCH', 'aarch64') && get_var('DESKTOP') =~ /gnome|textmode/;
             return [@sle12];
         }
         # SLED12 has different patterns
