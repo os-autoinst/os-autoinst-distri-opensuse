@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_leap is_caasp is_opensuse is_jeos is_public_cloud);
+use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_registry_suse_de_for_docker clean_container_host
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
@@ -41,7 +41,7 @@ sub install_podman_when_needed {
 }
 
 sub install_docker_when_needed {
-    if (is_caasp) {
+    if (is_microos) {
         # Docker should be pre-installed in MicroOS
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
     }

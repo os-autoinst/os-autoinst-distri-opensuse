@@ -19,7 +19,7 @@
 use base "consoletest";
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_sle);
+use version_utils 'is_sle';
 use containers::common;
 use strict;
 use warnings;

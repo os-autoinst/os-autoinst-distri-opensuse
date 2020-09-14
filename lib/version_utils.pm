@@ -30,7 +30,7 @@ use constant {
         qw(
           is_sle
           is_pre_15
-          is_caasp
+          is_microos
           is_gnome_next
           is_jeos
           is_krypton_argon
@@ -195,38 +195,32 @@ sub check_version {
     croak "Unsupported version parameter for check_version: '$query'";
 }
 
-=head2 is_caasp
-
-Check if distribution is CaaSP or MicroOS with optional filter:
+=head2 is_microos
+Check if distribution is SUSE MicroOS or openSUSE MicroOS with optional filter:
 Media type: DVD (iso) or VMX (all disk images)
-Version: 1.0 | 2.0 | 2.0+
+Version: Tumbleweed | 15.2 (Leap) | 5.X, 6.X (SUSE)
 Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 =cut
-sub is_caasp {
+sub is_microos {
     my $filter = shift;
     my $distri = get_var('DISTRI');
-    return 0 unless $distri && $distri =~ /caasp|microos/;
+    my $flavor = get_var('FLAVOR');
+    return 0 unless $distri && $distri =~ /microos/;
     return 1 unless $filter;
 
     if ($filter eq 'DVD') {
-        return get_var('FLAVOR') =~ /DVD/;    # DVD and Staging-?-DVD
+        return $flavor =~ /DVD/;    # DVD and Staging-?-DVD
     }
     elsif ($filter eq 'VMX') {
-        return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
+        return $flavor !~ /DVD/;    # If not DVD it's VMX
     }
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
         return check_version($filter, get_var('VERSION'), qr/\d\.\d/);
     }
-    elsif ($filter =~ /caasp|microos/) {
-        return check_var('DISTRI', $filter);
-    }
-    elsif ($filter =~ /staging/) {
-        return get_var('FLAVOR') =~ /Staging-.-DVD/;
-    }
     else {
-        return check_var('FLAVOR', $filter);    # Specific FLAVOR selector
+        return $flavor eq $filter;    # Specific FLAVOR selector
     }
 }
 
@@ -295,7 +289,7 @@ sub is_sle {
 Returns true if called on a transactional server
 =cut
 sub is_transactional {
-    return 1 if is_caasp;
+    return 1 if is_microos;
     return check_var('SYSTEM_ROLE', 'serverro');
 }
 
@@ -532,7 +526,6 @@ configuration, otherwise returns false (0).
 
 =cut
 sub has_license_on_welcome_screen {
-    return 1 if is_caasp('caasp');
     return get_var('HASLICENSE') &&
       (((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
         || is_sle('<15')
@@ -595,4 +588,3 @@ Returns true if called in a leap to sle migration scenario
 sub is_leap_migration {
     return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
 }
-

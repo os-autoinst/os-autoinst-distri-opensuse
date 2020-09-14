@@ -17,7 +17,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_caasp);
+use version_utils qw(is_sle is_opensuse is_microos);
 
 my %role_hotkey = (
     gnome    => 's',
@@ -30,7 +30,7 @@ my %role_hotkey = (
 sub change_system_role {
     my ($system_role) = @_;
     # Since SLE 15 we do not have shortcuts for system roles anymore
-    if (is_sle('15+') || is_opensuse || is_caasp) {
+    if (is_sle('15+') || is_opensuse || is_microos) {
         if (check_var('VIDEOMODE', 'text')) {
             # Expect that no actions are done before and default system role is preselected
             send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role

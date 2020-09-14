@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils qw(is_caasp is_staging is_opensuse is_leap);
+use version_utils qw(is_microos is_staging is_opensuse is_leap);
 use transactional;
 use utils;
 
@@ -80,8 +80,7 @@ sub run {
     check_package(stage => 'in');
 
     # Find snapshot number for rollback
-    my $f    = is_caasp('<=4.0') ? 2 : 1;
-    my $snap = script_output "snapper list | tail -1 | cut -d'|' -f$f | tr -d ' *'";
+    my $snap = script_output "snapper list | tail -1 | cut -d'|' -f1 | tr -d ' *'";
 
     # Don't use tests requiring repos in staging
     unless (is_opensuse && is_staging) {
@@ -102,11 +101,10 @@ sub run {
     trup_call "pkg install" . rpmver('broken');
     check_reboot_changes;
     # Systems with repositories would downgrade on DUP
-    my $upcmd = is_caasp('caasp') ? 'dup' : 'up';
     if (is_leap) {
         record_info 'Broken packages test skipped';
     } else {
-        trup_call "cleanup $upcmd", 2;
+        trup_call "cleanup up", 2;
         check_reboot_changes 0;
     }
 

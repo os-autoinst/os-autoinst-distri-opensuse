@@ -21,7 +21,7 @@ use warnings;
 use ipmi_backend_utils;
 use testapi;
 use network_utils;
-use version_utils qw(is_caasp is_sle);
+use version_utils qw(is_microos is_sle);
 use y2_logs_helper 'get_available_compression';
 use utils qw(type_string_slow zypper_call);
 use lockapi;
@@ -626,7 +626,7 @@ sub post_fail_hook {
         $self->remount_tmp_if_ro;
         # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
         $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
-        return if is_caasp;
+        return if is_microos;
         $self->save_system_logs;
 
         # Collect yast2 installer  strace and gbd debug output if is still running

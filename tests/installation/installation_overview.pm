@@ -20,7 +20,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_caasp is_upgrade);
+use version_utils qw(is_microos is_upgrade);
 use Utils::Backends qw(is_remote_backend is_hyperv);
 use Test::Assert ':all';
 
@@ -64,7 +64,7 @@ sub ensure_ssh_unblocked {
 
 sub check_default_target {
     # Check the systemd target where scenario make it possible
-    return if (is_caasp || is_upgrade || is_hyperv ||
+    return if (is_microos || is_upgrade || is_hyperv ||
         get_var('REMOTE_CONTROLLER') || (get_var('BACKEND', '') =~ /spvm|pvm_hmc|ipmi/));
     # exclude non-desktop environment and scenarios with edition of package selection (bsc#1167736)
     return if (!get_var('DESKTOP') || get_var('PATTERNS'));
@@ -90,7 +90,7 @@ sub run {
     my ($self) = shift;
     # overview-generation
     # this is almost impossible to check for real
-    if (is_caasp && check_var('HDDSIZEGB', '10')) {
+    if (is_microos && check_var('HDDSIZEGB', '10')) {
         # boo#1099762
         assert_screen('installation-settings-overview-loaded-impossible-proposal');
     }

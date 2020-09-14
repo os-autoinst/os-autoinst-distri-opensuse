@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: General library for every system that uses transactional-updates
-# Like CaasP, MicroOS and transactional-server
+# Like MicroOS and transactional-server
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
 package transactional;
@@ -19,9 +19,9 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use caasp 'microos_reboot';
+use microos 'microos_reboot';
 use power_action_utils 'power_action';
-use version_utils qw(is_opensuse is_caasp);
+use version_utils qw(is_opensuse is_microos);
 use utils 'reconnect_mgmt_console';
 
 our @EXPORT = qw(
@@ -36,15 +36,12 @@ our @EXPORT = qw(
 
 # Download files needed for transactional update tests
 sub get_utt_packages {
-    # CaaSP needs an additional repo for testing
-    assert_script_run 'curl -O ' . data_url("caasp/utt.repo") unless is_opensuse;
-
-    # Different testfiles for SLE (CaaSP) and openSUSE (Kubic)
+    # Different testfiles for SUSE MicroOS and openSUSE MicroOS
     my $tarball = 'utt-';
     $tarball .= is_opensuse() ? 'opensuse' : 'sle';
     $tarball .= '-' . get_required_var('ARCH') . '.tgz';
 
-    assert_script_run 'curl -O ' . data_url("caasp/$tarball");
+    assert_script_run 'curl -O ' . data_url("microos/$tarball");
     assert_script_run "tar xzvf $tarball";
 }
 
@@ -67,7 +64,7 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if (is_caasp) {
+    if (is_microos) {
         microos_reboot $args{trigger};
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);

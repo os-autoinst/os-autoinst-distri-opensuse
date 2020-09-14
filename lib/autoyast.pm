@@ -359,7 +359,7 @@ sub create_report {
 
  Try to detect profile directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
  and returns its path.
- TODO: autoyast_{caasp,kvm,qam,xen}
+ TODO: autoyast_{kvm,qam,xen}
 
  $profile is the autoyast profile 'autoinst.xml'.
  $path is AutoYaST profile path

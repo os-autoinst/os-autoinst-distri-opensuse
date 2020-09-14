@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
-use version_utils qw(is_sle is_sles4sap is_caasp is_upgrade is_leap_migration);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 
@@ -375,7 +375,7 @@ sub skip_package_hub_if_necessary {
     my $skip_package_hub = 0;
     if (is_sle('15-SP2+') && $addon eq 'phub') {
         if (check_var('FLAVOR', 'Online')) {
-            record_info('Skip phub', 'For Online medium we need to skip Package Hub registration due to 
+            record_info('Skip phub', 'For Online medium we need to skip Package Hub registration due to
                 after registering this module, some packages not supported that comes from openSUSE
                 might conflict not allowing to have a predictable result - bsc#1172074');
         } elsif (check_var('FLAVOR', 'Full')) {

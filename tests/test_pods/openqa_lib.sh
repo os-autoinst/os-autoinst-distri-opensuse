@@ -101,21 +101,21 @@
 #   integers.
 #   Example: qa_check_version -gt 1.2.3 '^(\d+)\.(\d+)(?:\.(\d+))?'
 #
-# qa_is_caasp [$filter | $cmp $version]
-#   Checks for CAASP distribution. Optionally, you can also check for specific
-#   flavor or version of CAASP. $filter can be an arbitrary flavor string
+# qa_is_microos [$filter | $cmp $version]
+#   Checks for microos distribution. Optionally, you can also check for specific
+#   flavor or version of MicroOS. $filter can be an arbitrary flavor string
 #   or one of the predefined keywords: DVD VMX staging
-#   If you pass a string containing (lowercase) "caasp" or "microos" as
+#   If you pass a string containing (lowercase) "microos" as
 #   $filter, then $_OPENQA_ENV_DISTRI will be checked for that exact string.
 #   Checking for a specific version is done by passing the first two arguments
 #   for qa_check_version. Examples:
-#   qa_is_caasp VMX
-#   qa_is_caasp random_flavor
-#   qa_is_caasp -gt 3.1
+#   qa_is_microos VMX
+#   qa_is_microos random_flavor
+#   qa_is_microos -gt 3.1
 #
 # qa_is_jeos
 #   Checks for JeOS flavor
-#   
+#
 # qa_is_tumbleweed
 #   Check for OpenSUSE Tumbleweed flavor
 #
@@ -342,8 +342,8 @@ qa_check_version () {
 	_qa_wrap_function _qa_check_version "$@"
 }
 
-_qa_is_caasp () {
-	if ! [[ "x$_OPENQA_ENV_DISTRI" =~ caasp|microos ]]; then
+_qa_is_microos () {
+	if ! [[ "x$_OPENQA_ENV_DISTRI" =~ microos ]]; then
 		return 1
 	elif [ $# -le 0 ]; then
 		return 0
@@ -370,7 +370,7 @@ _qa_is_caasp () {
 		;;
 	esac
 
-	if [[ "x$1" =~ caasp|microos ]]; then
+	if [[ "x$1" =~ microos ]]; then
 		[ "x$_OPENQA_ENV_DISTRI" = "x$1" ]
 		return
 	elif [[ "x$1" =~ staging ]]; then
@@ -381,9 +381,9 @@ _qa_is_caasp () {
 	[ "x$_OPENQA_ENV_FLAVOR" = "x$1" ]
 }
 
-qa_is_caasp () {
+qa_is_microos () {
 	set +x
-	_qa_wrap_function _qa_is_caasp "$@"
+	_qa_wrap_function _qa_is_microos "$@"
 }
 
 qa_is_jeos () {

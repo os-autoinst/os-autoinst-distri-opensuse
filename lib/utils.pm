@@ -23,7 +23,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
@@ -1071,7 +1071,7 @@ openSUSE distris, except for Xen PV (bsc#1086243).
 
 =cut
 sub get_root_console_tty {
-    return (!is_sle('<15') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
+    return (!is_sle('<15') && !is_microos && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
 }
 
 =head2 get_x11_console_tty
@@ -1088,7 +1088,7 @@ sub get_x11_console_tty {
     my $new_gdm
       = !is_sle('<15')
       && !is_leap('<15.0')
-      && !is_caasp
+      && !is_microos
       && !check_var('VIRSH_VMM_FAMILY', 'hyperv')
       && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');

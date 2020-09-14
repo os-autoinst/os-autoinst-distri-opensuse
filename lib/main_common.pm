@@ -795,7 +795,7 @@ sub boot_hdd_image {
 
 sub load_common_installation_steps_tests {
     loadtest 'installation/await_install';
-    unless (get_var('REMOTE_CONTROLLER') || is_caasp || is_hyperv_in_gui) {
+    unless (get_var('REMOTE_CONTROLLER') || is_microos || is_hyperv_in_gui) {
         loadtest "installation/add_serial_console" if is_vmware;
         loadtest 'installation/logs_from_installation_system';
     }
@@ -881,8 +881,8 @@ sub load_inst_tests {
         if (is_sles4sap() and is_sle('15+') and check_var('SYSTEM_ROLE', 'default') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        # Kubic doesn't have a partitioning step
-        unless (is_caasp) {
+        # MicroOS doesn't have a partitioning step
+        unless (is_microos) {
             loadtest "installation/partitioning";
             if (defined(get_var("RAIDLEVEL"))) {
                 loadtest "installation/partitioning_raid";
@@ -954,7 +954,7 @@ sub load_inst_tests {
     }
 
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/installer_timezone" unless is_caasp;
+        loadtest "installation/installer_timezone" unless is_microos;
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
@@ -984,7 +984,7 @@ sub load_inst_tests {
         elsif (get_var('IMPORT_USER_DATA')) {
             loadtest 'installation/user_import';
         }
-        elsif (is_caasp 'microos') {
+        elsif (is_microos) {
             loadtest "installation/ntp_config_settings";
         } else {
             loadtest "installation/user_settings" unless check_var('SYSTEM_ROLE', 'hpc-node');

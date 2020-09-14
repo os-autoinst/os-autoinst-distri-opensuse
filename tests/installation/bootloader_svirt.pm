@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle is_vmware);
+use version_utils qw(is_jeos is_microos is_installcheck is_rescuesystem is_sle is_vmware);
 use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
@@ -280,7 +280,7 @@ sub run {
         $svirt->resume;
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to GRUB";
         # Do not boot OS from disk, select installation medium
-        if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_caasp) {
+        if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_microos) {
             type_string "echo -en '\\033[B' > \$pty\n";                                                   # key down
         }
         type_string "echo e > \$pty\n";                                                                   # edit

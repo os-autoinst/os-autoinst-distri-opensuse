@@ -40,7 +40,7 @@ use base 'y2_installbase';
 use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
-use version_utils qw(is_sle is_caasp is_released);
+use version_utils qw(is_sle is_microos is_released);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
@@ -52,8 +52,6 @@ my $stage              = 'stage1';
 my $maxtime            = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
 my $check_time         = 50;                                    #Period to check screen during stage 1 and 2
 
-# Downloading updates takes long time
-$maxtime = 5500 if is_caasp('qam');
 # Full install with updates can take extremely long time
 $maxtime = 5500 * get_var('TIMEOUT_SCALE', 1) if is_released;
 
@@ -148,8 +146,6 @@ sub run {
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
-    # bios-boot needle does not match if worker stalls during boot - poo#28648
-    push @needles, 'linux-login-casp' if is_caasp;
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
     push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || is_pvm;
@@ -219,12 +215,12 @@ sub run {
             # in order to avoid to match several times the same already processed warning
             next if scalar grep { match_has_tag($_) } @processed_warnings;
 
-            # Softfail only on sle, as timeout is there on CaaSP
+            # Softfail only on sle
             if (is_sle && check_screen('warning-partition-reduced', 0)) {
                 # See poo#19978, no timeout on partition warning, hence need to click OK button to soft-fail
                 record_info('bsc#1045470',
                     "There is no timeout on sle for reduced partition screen by default.\n"
-                      . "But there is timeout on CaaSP and if explicitly defined in profile. See bsc#1045470 for details.");
+                      . "See bsc#1045470 for details.");
                 send_key_until_needlematch 'create-partition-plans-finished', $cmd{ok};
                 next;
             }
@@ -339,8 +335,8 @@ sub run {
     # If we didn't see pxe, the reboot is going now
     $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
-    # CaaSP does not have second stage
-    return if is_caasp;
+    # MicroOS does not have second stage
+    return if is_microos;
     # Second stage starts here
     $maxtime = 1000;
     $timer   = 0;
