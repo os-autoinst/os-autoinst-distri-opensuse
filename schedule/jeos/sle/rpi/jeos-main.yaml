@@ -36,7 +36,6 @@ schedule:
   - console/yast2_bootloader
   - console/vim
   - console/firewall_enabled
-  - console/gpt_ptable
   - console/kdump_disabled
   - console/slp
   - console/sshd_running
