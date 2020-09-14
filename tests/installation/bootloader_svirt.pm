@@ -285,27 +285,27 @@ sub run {
         }
         type_string "echo e > \$pty\n";                                                                   # edit
 
-        if (is_jeos or is_caasp) {
-            my $max = is_sle('<15-sp2') ? 4 : 13;
-            for (1 .. $max) { type_string "echo -en '\\033[B' > \$pty\n"; }                               # four-times key down
-        }
-        else {
-            $cmdline .= 'linemode=0 ';                                                                    # workaround for bsc#1066919
-            for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }                                  # four-times key down
-        }
+        my $max = (!is_jeos) ? 2 : (is_sle '<15-sp1') ? 4 : 13;
+        type_string "echo -en '\\033[B' > \$pty\n" for (1 .. $max);                                       # $max-times key down
         type_string "echo -en '\\033[K' > \$pty\n";                                                       # end of line
-        type_string "echo -en ' $cmdline' > \$pty\n";
-        if (is_sle('12-SP2+') or is_caasp) {
-            type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
-            type_string "echo -en ' xen-fbfront.video=32,1024,768' > \$pty\n";
-            type_string "echo -en ' console=hvc console=tty ' > \$pty\n";                                         # set consoles
-        }
-        else {
-            type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";                                           # set kernel framebuffer
-            type_string "echo -en ' console=xvc console=tty' > \$pty\n";                                          # set consoles
+
+        if (is_jeos && is_sle('>=15-sp2')) {
+            record_soft_failure('bsc#1175514 cannot login to rescue when JeOS image is loaded as xen pv domain');
+            type_string "echo -en '\\010' > \$pty\n" for (1 .. length('console=ttyS0,115200 console=tty0 quiet'));
         }
 
-        type_string "echo -en '\\x18' > \$pty\n";                                                                 # send Ctrl-x to boot guest kernel
+        if (is_sle '12-SP2+') {
+            type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768' > \$pty\n";    # set kernel framebuffer
+            type_string "echo -en ' console=hvc console=tty' > \$pty\n";                                         # set consoles
+        }
+        else {
+            type_string "echo -en ' xenfb.video=4,1024,768 ' > \$pty\n";                                         # set kernel framebuffer
+            type_string "echo -en ' console=xvc console=tty ' > \$pty\n";                                        # set consoles
+            $cmdline .= 'linemode=0 ';                                                                           # workaround for bsc#1066919
+        }
+        type_string "echo -en ' $cmdline' > \$pty\n";
+
+        type_string "echo -en '\\x18' > \$pty\n";                                                                # send Ctrl-x to boot guest kernel
         save_screenshot;
     }
 
