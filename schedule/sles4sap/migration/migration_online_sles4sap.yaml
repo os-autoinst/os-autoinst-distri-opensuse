@@ -6,25 +6,24 @@ description: >
   This test does an online migration with SCC registration.
 vars:
   BOOT_HDD_IMAGE: '1'
-  DESKTOP: gnome
   FULL_UPDATE: '1'
-  HDDSIZEGB: '60'
-  HDD_1: sle-%HDDVERSION%-%ARCH%-sap-nw-noscc.qcow2
   INSTANCE_ID: '00'
   INSTANCE_SID: QAD
   INSTANCE_TYPE: ASCS
   MAX_JOB_TIME: '14400'
   MIGRATION_METHOD: zypper
   ONLINE_MIGRATION: '1'
-  ROOTONLY: '1'
   SCC_ADDONS: ha
   SCC_PROXY_URL: '%SCC_URL%'
   SCC_REGISTER: installation
-  SLES4SAP_MODE: sles4sap
-  SLE_PRODUCT: sles4sap
+  ORIGINAL_TARGET_VERSION: '%VERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
+  BOOTFROM: d
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: sle-%HDDVERSION%-%ARCH%-sap-nw-noscc.qcow2
 schedule:
   - migration/version_switch_origin_system
-  - installation/isosize
   - installation/bootloader
   - migration/online_migration/online_migration_setup
   - migration/online_migration/register_system
