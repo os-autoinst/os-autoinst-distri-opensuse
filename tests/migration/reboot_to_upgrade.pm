@@ -30,8 +30,9 @@ sub run {
 
     # Reboot from Installer media for upgrade
     # Aarch64 need BOOT_HDD_IMAGE=1 to keep the correct flow to boot from disk for x11/reboot_gnome.
+    # but in Aarch64 zdup migration we need to set it to 0, this will make it boot from hard disk.
     if (get_var('UPGRADE') || get_var('AUTOUPGRADE')) {
-        set_var('BOOT_HDD_IMAGE', 0) unless check_var('ARCH', 'aarch64');
+        set_var('BOOT_HDD_IMAGE', 0) unless (check_var('ARCH', 'aarch64') && !check_var('ZDUP', '1'));
     }
     assert_script_run "sync", 300;
     type_string "reboot\n";
