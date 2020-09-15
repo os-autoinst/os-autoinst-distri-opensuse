@@ -17,6 +17,8 @@ use utils "zypper_call";
 use virt_utils;
 use strict;
 use warnings;
+use Utils::Architectures qw(is_x86_64 is_aarch64);
+use version_utils 'is_sle';
 
 sub get_script_run {
     my $self = shift;
@@ -31,10 +33,8 @@ sub run {
     my $self = shift;
 
     #Install qa test repo
-    my $installed_product = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
-    my $upgrade_product   = get_required_var('UPGRADE_PRODUCT');
-    my ($upgrade_release) = lc($upgrade_product) =~ /sles-([0-9]+-sp[0-9]+)/;
-    if (check_var('ARCH', 'x86_64') && $installed_product =~ /12-sp5/img && $upgrade_product =~ /15-sp2/img) {
+    if ((is_x86_64 || is_aarch64) && is_sle('=12-SP5', get_var('VERSION_TO_INSTALL', get_var('VERSION', ''))) && is_sle('>=15-SP2')) {
+        my ($upgrade_release) = lc(get_required_var('UPGRADE_PRODUCT')) =~ /sles-([0-9]+-sp[0-9]+)/;
         my $qa_test_repo = 'http://dist.nue.suse.com/ibs/QA:/Head/SLE-' . uc($upgrade_release);
         script_run("zypper rm -n -y qa_lib_virtauto", 300);
         zypper_call("rr server-repo qa-test-repo");
