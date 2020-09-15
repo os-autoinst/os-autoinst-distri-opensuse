@@ -119,7 +119,7 @@ sub run {
     my ($self) = @_;
 
     #preparation
-    my $ip_out = $self->execute_script_run('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
+    my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('SRC_IP',   $ip_out);
     set_var('SRC_USER', "root");
     set_var('SRC_PASS', $password);
@@ -135,9 +135,9 @@ sub run {
     $self->{"package_name"} = "Guest Migration Test";
 
     # clean up logs from prevous tests
-    $self->execute_script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30) if !get_var('SKIP_GUEST_INSTALL');
-    $self->execute_script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/',                     30);
-    $self->execute_script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
+    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30) if !get_var('SKIP_GUEST_INSTALL');
+    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/',                     30);
+    script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
     $self->run_test($timeout, "", "yes", "yes", "$log_dirs", "$upload_log_name");
 }
