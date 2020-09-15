@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sle);
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
@@ -208,6 +209,11 @@ sub run {
     assert_screen 'yast2-migration-target-list-selected', 60;
     send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 20, 3;
     send_key "alt-n";
+    # in leap to sle migration, we need click trust for package-hub's import-untrusted-gpg-key
+    if (is_leap_migration) {
+        assert_screen 'import-untrusted-gpg-key', 60;
+        send_key 'alt-t';
+    }
     assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 500;
     if (match_has_tag 'yast2-migration-installupdate') {
         send_key 'alt-y';
