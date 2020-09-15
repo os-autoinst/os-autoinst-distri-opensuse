@@ -15,10 +15,10 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_caasp);
+use version_utils qw(is_sle is_microos);
 
 sub run {
-    return if is_caasp();
+    return if is_microos();
     assert_screen('release-notes-button', 60);
 
     # workaround for bsc#1014178

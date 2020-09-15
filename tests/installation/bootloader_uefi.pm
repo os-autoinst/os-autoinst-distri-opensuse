@@ -27,7 +27,7 @@
 # graphics mode and resolution, serial output, console/log redirection)
 # - Call specific_bootmenu_params (Autoyast options, network options, debug
 # options, installer specific options, fips enablement, kexec parameters, addon
-# products, DUD loading, external ISO) unless it is is_caasp or is_jeos
+# products, DUD loading, external ISO) unless it is is_microos or is_jeos
 # - Save bootloader parameters in a screenshot
 # - if "USE_SUPPORT_SERVER" is defined, wait for mutex to unlock before sending
 # "F10"
@@ -46,7 +46,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_caasp);
+use version_utils qw(is_jeos is_microos);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
@@ -107,7 +107,7 @@ sub run {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
         }
-        elsif (!is_jeos && !is_caasp('VMX')) {
+        elsif (!is_jeos && !is_microos('VMX')) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 3);
         }
     }
@@ -115,11 +115,11 @@ sub run {
     uefi_bootmenu_params;
     bootmenu_default_params;
     bootmenu_remote_target;
-    specific_bootmenu_params unless is_caasp || is_jeos;
+    specific_bootmenu_params unless is_microos || is_jeos;
 
-    # JeOS and CaaSP are never deployed with Linuxrc involved,
+    # JeOS and MicroOS are never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_caasp);
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_microos);
 
     # boot
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');

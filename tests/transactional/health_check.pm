@@ -15,7 +15,6 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use transactional qw(process_reboot trup_install trup_shell);
-use version_utils 'is_caasp';
 use utils;
 
 

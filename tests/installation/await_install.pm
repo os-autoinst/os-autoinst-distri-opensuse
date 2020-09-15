@@ -99,7 +99,7 @@ sub run {
     # upgrades are slower
     # our Hyper-V server is just too slow
     # SCC might mean we install everything from the slow internet
-    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_caasp('qam') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
+    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
         $timeout = 5500;
     }
     # aarch64 can be particularily slow depending on the hardware
@@ -194,7 +194,7 @@ sub run {
     }
 
     # Stop reboot countdown where necessary for e.g. uploading logs
-    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_caasp || (is_sle('=11-sp4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x'))) {
+    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_microos || (is_sle('=11-sp4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x'))) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.

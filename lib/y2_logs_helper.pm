@@ -2,7 +2,7 @@ package y2_logs_helper;
 use testapi;
 use strict;
 use warnings;
-use version_utils qw(is_sle is_caasp);
+use version_utils qw(is_sle);
 use ipmi_backend_utils;
 use network_utils;
 use utils 'zypper_call';

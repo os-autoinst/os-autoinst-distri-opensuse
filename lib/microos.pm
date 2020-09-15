@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-package caasp;
+package microos;
 
 use base Exporter;
 use Exporter;
@@ -15,7 +15,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_caasp';
+use version_utils 'is_microos';
 use power_action_utils 'power_action';
 
 our @EXPORT = qw(microos_reboot microos_login);
@@ -27,7 +27,7 @@ sub microos_login {
     # Workers installed using autoyast have no password - bsc#1030876
     return if get_var('AUTOYAST');
 
-    if (is_caasp 'VMX') {
+    if (is_microos 'VMX') {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
         my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';
         # First attempts to select tty2 are ignored - bsc#1035968
