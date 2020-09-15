@@ -34,8 +34,14 @@ sub run_image_tests {
     my $engine = shift;
     my @images = @_;
     foreach my $image (@images) {
-        test_container_image(image => $image, runtime => $engine);
-        script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
+        if ((check_var('ARCH', 's390x')) && ($image =~ /leap/)) {
+            record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
+        } elsif ((check_var('ARCH', 's390x')) && ($image =~ /centos/)) {
+            record_info("Skip centos image", "Missing centos container image for s390x.");
+        } else {
+            test_container_image(image => $image, runtime => $engine);
+            script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
+        }
     }
 }
 
