@@ -23,7 +23,7 @@ use virt_autotest::utils qw(is_xen_host);
 sub run {
     my ($self) = @_;
 
-    my $ip_out = $self->execute_script_run('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
+    my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('DST_IP',   $ip_out);
     set_var('DST_USER', "root");
     set_var('DST_PASS', $password);
@@ -44,9 +44,9 @@ sub run {
     #workaround end
 
     # clean up logs from prevous tests
-    $self->execute_script_run('[ -d /var/log/qa/ctcs2/ ] && rm -r /var/log/qa/ctcs2/*',                     30);
-    $self->execute_script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30);
-    $self->execute_script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
+    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/',                     30);
+    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30);
+    script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
     #mark ready state
     mutex_create('DST_READY_TO_START');
