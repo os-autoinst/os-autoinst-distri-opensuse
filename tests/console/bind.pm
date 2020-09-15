@@ -69,13 +69,13 @@ sub run {
     # no idea what is with rpz on SLE 12 SP3, remove it for now
     assert_script_run 'rm -rf rpz' if is_sle('<=12-SP3');
     # fix permissions and executables to run the testsuite
-    assert_script_run 'chown root:root -R .';
+    assert_script_run 'chown bernhard:root -R .';
     assert_script_run 'chmod +x *.sh *.pl';
     # setup loopback interfaces for testsuite
     assert_script_run 'sh ifconfig.sh up';
     assert_script_run 'ip a';
     my $timeout = is_sle('<=12-SP3') ? 1500 : 3500;
-    assert_script_run 'sh runall.sh', $timeout;
+    assert_script_run 'runuser -u bernhard -- sh runall.sh', $timeout;
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
     assert_script_run 'ip a';
