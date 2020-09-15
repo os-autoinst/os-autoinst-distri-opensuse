@@ -60,6 +60,8 @@ sub firstboot_timezone {
 sub firstboot_user {
     assert_screen 'local_user';
     enter_userinfo(username => get_var('YAST2_FIRSTBOOT_USERNAME'));
+    # In opensuse, we expect autologin at first boot, not in SLE.
+    wait_screen_change(sub { send_key 'alt-a'; },    7) if is_opensuse;
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
     await_password_check;
 }
