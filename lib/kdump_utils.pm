@@ -86,7 +86,7 @@ sub prepare_for_kdump {
     else {
         zypper_call('in yast2-kdump kdump crash');
     }
-    zypper_call('in mokutil') if is_jeos && get_var('UEFI');
+    zypper_call('in mokutil') if is_jeos && get_var('UEFI') && !check_var('ARCH', 'aarch64');
 
     return if ($test_type eq 'before');
 
