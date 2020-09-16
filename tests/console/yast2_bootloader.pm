@@ -44,6 +44,7 @@ sub run {
         wait_screen_change { send_key 'alt-i'; };
     }
     wait_serial("$module_name-0", timeout => $timeout) || die "'yast2 bootloader' didn't finish";
+    $self->clear_and_verify_console;
 }
 
 1;
