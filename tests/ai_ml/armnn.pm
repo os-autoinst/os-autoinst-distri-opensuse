@@ -17,6 +17,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
+use version_utils 'is_tumbleweed';
 
 sub armnn_get_images {
     assert_script_run('mkdir -p armnn/data');
@@ -155,11 +156,16 @@ sub run {
     cleanup_model_folder;
 
     # Test ONNX backend
-    record_info('ONNX', "ONNX backend");
-    armnn_onnx_test_prepare;
-    armnn_onnx_test_run;
-    armnn_onnx_test_run(backend => $_) for split(/,/, $armnn_backends);
-    cleanup_model_folder;
+    if (is_tumbleweed) {
+        # ArmNN does not support onnx 1.7.0 yet - https://github.com/ARM-software/armnn/issues/419
+        record_info('Skip ONNX', "ONNX >= 1.7.0 is not supported yet - See: https://github.com/ARM-software/armnn/issues/419");
+    } else {
+        record_info('ONNX', "ONNX backend");
+        armnn_onnx_test_prepare;
+        armnn_onnx_test_run;
+        armnn_onnx_test_run(backend => $_) for split(/,/, $armnn_backends);
+        cleanup_model_folder;
+    }
 
     # Test Caffe backend
     record_info('Caffe', "Caffe backend");
