@@ -25,6 +25,7 @@ use registration;
 use services::registered_addons 'full_registered_check';
 use strict;
 use warnings;
+use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
     my ($self) = @_;
@@ -83,6 +84,12 @@ sub run {
             services::registered_addons::full_registered_check;
         }
     }
+
+    if (check_var('DESKTOP', 'gnome') && get_var('WORKAROUND_BUGS') =~ 'boo1168992') {
+        record_soft_failure("Disable screensaver for boo#1168992");
+        turn_off_gnome_screensaver();
+    }
+
 }
 
 sub test_flags {
