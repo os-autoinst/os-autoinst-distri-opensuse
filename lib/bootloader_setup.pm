@@ -718,6 +718,11 @@ sub specific_bootmenu_params {
             if ($dud =~ /^(http|https|ftp):\/\//) {
                 push @params, "dud=$dud";
             }
+            elsif ($dud =~ /^ASSET_\d+$/) {
+                # In case dud is uploaded as an ASSET we need just filename
+                $dud = basename(get_required_var($dud));
+                push @params, 'dud=' . autoinst_url("/assets/other/$dud");
+            }
             else {
                 push @params, 'dud=' . data_url($dud);
             }

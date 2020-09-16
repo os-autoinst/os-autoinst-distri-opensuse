@@ -20,13 +20,18 @@ use warnings;
 use testapi;
 use repo_tools 'validate_repo_properties';
 use scheduler 'get_test_suite_data';
-use Test::Assert ':all';
 
 sub run {
-    my $test_data = get_test_suite_data();
+    my $test_data = get_test_suite_data;
     select_console 'root-console';
-    foreach my $expected_dud_repo (@{$test_data->{dud_repos}}) {
-        validate_repo_properties($expected_dud_repo);
+
+    foreach my $repo (keys %{$test_data->{dud_repos}}) {
+        validate_repo_properties({
+                URI => 'ftp://' . get_required_var('OPENQA_HOSTNAME') . '/' .
+                  get_required_var($repo),
+                Enabled     => $test_data->{dud_repos}->{$repo}->{Enabled},
+                Autorefresh => $test_data->{dud_repos}->{$repo}->{Autorefresh}
+        });
     }
     assert_script_run('zypper -v ref | grep "All repositories have been refreshed"', 120);
 }
