@@ -21,7 +21,7 @@ use warnings;
 use testapi;
 use microos 'microos_reboot';
 use power_action_utils 'power_action';
-use version_utils qw(is_opensuse is_microos);
+use version_utils qw(is_opensuse is_microos is_sle);
 use utils 'reconnect_mgmt_console';
 
 our @EXPORT = qw(
@@ -36,6 +36,9 @@ our @EXPORT = qw(
 
 # Download files needed for transactional update tests
 sub get_utt_packages {
+    # SLE needs an additional repo for testing
+    assert_script_run 'curl -O ' . data_url("microos/utt.repo") if is_sle;
+
     # Different testfiles for SUSE MicroOS and openSUSE MicroOS
     my $tarball = 'utt-';
     $tarball .= is_opensuse() ? 'opensuse' : 'sle';
