@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Architectures qw(is_aarch64 is_arm);
+use version_utils qw(is_sle is_leap);
 
 sub run {
     select_console 'root-console';
@@ -28,6 +29,11 @@ sub run {
 
     record_info('gpiochip', "$gpiochipX");
 
+    my $version = get_var('VERSION', '');
+    if (is_sle || is_leap('>15.2') || $version =~ /^Jump/) {
+        record_info('kernel extra', 'boo#1176090 install kernel-default-extra');
+        zypper_call 'in kernel-default-extra';
+    }
     # Create a fake $gpiochipX, with 32 lines
     assert_script_run("modprobe gpio_mockup gpio_mockup_ranges=-1,32");
     # Check that $gpiochipX is found, with 32 lines
