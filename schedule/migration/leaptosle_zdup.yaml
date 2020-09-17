@@ -6,7 +6,7 @@ schedule:
   - migration/record_disk_info
   - migration/reboot_to_upgrade
   - migration/version_switch_upgrade_target
-  - installation/setup_zdup
+  - installation/leap2sle_zdup
   - migration/version_switch_upgrade_target
   - boot/boot_to_desktop
   - boot/grub_test_snapshot
