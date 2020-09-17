@@ -89,7 +89,7 @@ sub run {
             return;
         }
         wait_screen_change { send_key 'alt-o' } if match_has_tag('inst-overview-error-found', 0);
-        while (check_screen([qw(confirmlicense startinstall activate_flag_not_set)], 5)) {
+        while (check_screen([qw(confirmlicense startinstall activate_flag_not_set)], 20)) {
             last if match_has_tag("startinstall");
             if (match_has_tag("confirmlicense")) {
                 send_key $cmd{acceptlicense};
