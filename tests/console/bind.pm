@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -55,7 +55,7 @@ sub run {
     assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -d --no-refresh $r;done';
     assert_script_run 'cd /usr/src/packages';
     # build the bind package with tests
-    assert_script_run 'rpmbuild -bc SPECS/bind.spec', 500;
+    assert_script_run 'rpmbuild -bc SPECS/bind.spec', 2000;
     assert_script_run 'cd /usr/src/packages/BUILD/bind-*/bin/tests/system && pwd';
     # replace build bind binaries with system bind binaries
     assert_script_run 'sed -i \'s/$TOP\/bin\/check\/named-checkconf/\/usr\/sbin\/named-checkconf/\' conf.sh';
@@ -69,13 +69,13 @@ sub run {
     # no idea what is with rpz on SLE 12 SP3, remove it for now
     assert_script_run 'rm -rf rpz' if is_sle('<=12-SP3');
     # fix permissions and executables to run the testsuite
-    assert_script_run 'chown root:root -R .';
+    assert_script_run 'chown bernhard:root -R .';
     assert_script_run 'chmod +x *.sh *.pl';
     # setup loopback interfaces for testsuite
     assert_script_run 'sh ifconfig.sh up';
     assert_script_run 'ip a';
-    my $timeout = is_sle('<=12-SP3') ? 1500 : 2500;
-    assert_script_run 'sh runall.sh', $timeout;
+    my $timeout = is_sle('<=12-SP3') ? 1500 : 3500;
+    assert_script_run 'runuser -u bernhard -- sh runall.sh', $timeout;
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
     assert_script_run 'ip a';
