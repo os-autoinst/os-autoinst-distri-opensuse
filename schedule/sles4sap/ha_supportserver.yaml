@@ -26,7 +26,6 @@ vars:
   SUPPORT_SERVER_ROLES: dhcp,dns,ntp,ssh,iscsi
   VIDEOMODE: text
   VIRTIO_CONSOLE: '0'
-  WORKER_CLASS: tap
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: openqa_support_server_sles12sp3.%ARCH%.qcow2
 schedule:
