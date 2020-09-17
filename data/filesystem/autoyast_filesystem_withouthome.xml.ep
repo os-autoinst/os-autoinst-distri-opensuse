@@ -6,7 +6,9 @@
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
+    % unless ($check_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
     <reg_server>{{SCC_URL}}</reg_server>
+    % }
     <addons config:type="list">
       <addon>
         <name>sle-module-basesystem</name>
@@ -33,6 +35,14 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ($get_var->('SCC_ADDONS') =~ /ltss/) {
+      <addon>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
     </addons>
   </suse_register>
   <bootloader>
