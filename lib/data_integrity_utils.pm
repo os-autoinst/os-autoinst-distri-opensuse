@@ -24,6 +24,7 @@ use warnings;
 use testapi;
 use File::Basename;
 use Digest::file 'digest_file_hex';
+use version_utils qw(is_vmware);
 
 our @EXPORT = qw(verify_checksum get_image_digest);
 
@@ -40,7 +41,7 @@ sub get_image_digest {
 
     my $digest;
     if (check_var('BACKEND', 'svirt')) {
-        $digest = console('svirt')->get_cmd_output("sha256sum $image_path");
+        $digest = console('svirt')->get_cmd_output("sha256sum $image_path", {domain => is_vmware() ? 'sshVMwareServer' : undef});
         # On Hyper-V the hash starts with '\'
         my $start = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1 : 0;
         $digest = substr $digest, $start, 64;    # extract SHA256 from the output
