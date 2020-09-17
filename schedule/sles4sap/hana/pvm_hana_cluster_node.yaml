@@ -31,7 +31,6 @@ description: >
 vars:
   AUTOMATED_REGISTER: 'false'
   DESKTOP: 'textmode'
-  DM_NEEDS_USERNAME: '1'
   HA_CLUSTER: '1'
   INSTANCE_ID: '00'
   INSTANCE_IP_CIDR: '10.0.2.200/24'
