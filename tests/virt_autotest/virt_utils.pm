@@ -25,6 +25,7 @@ use IO::File;
 use List::Util 'first';
 use proxymode;
 use version_utils 'is_sle';
+use virt_autotest::utils qw(is_xen_host);
 
 our @EXPORT
   = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console);
@@ -32,10 +33,18 @@ our @EXPORT
 sub enable_debug_logging {
 
     # turn on debug for libvirtd
+    # set log_level = 1 'debug'
+    # set log_levle = 3 'warning' for sles15sp3 XEN only as the log size is 100G (just a workaround)
     my $libvirtd_conf_file = "/etc/libvirt/libvirtd.conf";
     if (!script_run "ls $libvirtd_conf_file") {
-        script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
-        script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
+        if (is_sle('=15-SP3') && is_xen_host) {
+            script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 3/};\${x;/^\$/{s//log_level = 3/;H};x}' $libvirtd_conf_file";
+            script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"3:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"3:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
+        }
+        else {
+            script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
+            script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
+        }
         script_run "grep -e log_level -e log_outputs $libvirtd_conf_file";
         if (is_sle('<12')) {
             script_run 'rclibvirtd restart';
