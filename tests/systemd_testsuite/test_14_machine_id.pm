@@ -23,7 +23,7 @@ sub pre_run_hook {
 
 sub run {
     #run test
-    assert_script_run 'cd /var/opt/systemd-tests';
+    assert_script_run 'cd /usr/lib/systemd/tests';
     assert_script_run './run-tests.sh TEST-14-MACHINE-ID --run 2>&1 | tee /tmp/testsuite.log', 120;
     assert_script_run 'grep "PASS: ...TEST-14-MACHINE-ID" /tmp/testsuite.log';
 }
