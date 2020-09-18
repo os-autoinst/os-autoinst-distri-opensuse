@@ -33,7 +33,7 @@ sub run {
     my $self = shift;
 
     #Install qa test repo
-    if ((is_x86_64 || is_aarch64) && is_sle('=12-SP5', get_var('VERSION_TO_INSTALL', get_var('VERSION', ''))) && is_sle('>=15-SP2')) {
+    if ((is_x86_64 || is_aarch64) && is_sle('=12-SP5', get_var('VERSION_TO_INSTALL')) && is_sle('>=15-SP2', get_var('TARGET_DEVELOPING_VERSION'))) {
         my ($upgrade_release) = lc(get_required_var('UPGRADE_PRODUCT')) =~ /sles-([0-9]+-sp[0-9]+)/;
         my $qa_test_repo = 'http://dist.nue.suse.com/ibs/QA:/Head/SLE-' . uc($upgrade_release);
         script_run("zypper rm -n -y qa_lib_virtauto", 300);
