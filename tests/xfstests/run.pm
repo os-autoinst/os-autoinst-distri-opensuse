@@ -382,7 +382,7 @@ sub run {
     select_console('root-console');
 
     # Get wrapper
-    assert_script_run('wget --quiet ' . data_url('xfstests/wrapper.sh') . " -O $TEST_WRAPPER");
+    assert_script_run("curl -o $TEST_WRAPPER " . data_url('xfstests/wrapper.sh'));
     assert_script_run("chmod a+x $TEST_WRAPPER");
 
     # Get test list
