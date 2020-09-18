@@ -36,8 +36,10 @@ our @EXPORT = qw(
 
 # Download files needed for transactional update tests
 sub get_utt_packages {
-    # SLE needs an additional repo for testing
-    assert_script_run 'curl -O ' . data_url("microos/utt.repo") if is_sle;
+    # SLE and SUSE MicroOS need an additional repo for testing
+    unless (is_opensuse) {
+        assert_script_run 'curl -O ' . data_url("microos/utt.repo");
+    }
 
     # Different testfiles for SUSE MicroOS and openSUSE MicroOS
     my $tarball = 'utt-';
