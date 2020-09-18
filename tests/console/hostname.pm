@@ -31,8 +31,8 @@ use version_utils "is_sle";
 sub run {
     select_console 'root-console';
 
-    # Since 15SP1 DHCLIENT_SET_HOSTNAME must be disable bsc#1153402
-    file_content_replace('/etc/sysconfig/network/dhcp', 'DHCLIENT_SET_HOSTNAME="yes"' => 'DHCLIENT_SET_HOSTNAME="no"') if is_sle('15-SP1+');
+    # Prevent HOSTNAME from being reset by DHCP
+    file_content_replace('/etc/sysconfig/network/dhcp', 'DHCLIENT_SET_HOSTNAME="yes"' => 'DHCLIENT_SET_HOSTNAME="no"');
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
 }
