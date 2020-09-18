@@ -20,9 +20,6 @@ schedule:
     - microos/libzypp_config
     - microos/one_line_checks
     - microos/services_enabled
-    - update/zypper_clear_repos
-    - console/zypper_ar
-    - console/zypper_ref
     - transactional/filesystem_ro
     - transactional/transactional_update
     - transactional/rebootmgr
