@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,7 +12,7 @@
 # Libstorage-NG (ver.4) introduces some different shortcuts in comparing to the
 # ver.3. Also RAID creation wizard differs.
 #
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController;
 use strict;
@@ -26,6 +26,8 @@ use Installation::Partitioner::RolePage;
 use Installation::Partitioner::LibstorageNG::FormattingOptionsPage;
 use Installation::Partitioner::RaidTypePage;
 use Installation::Partitioner::RaidOptionsPage;
+use Installation::Partitioner::LibstorageNG::EditPartitionPage;
+use Installation::Partitioner::LibstorageNG::EncryptPage;
 
 sub new {
     my ($class, $args) = @_;
@@ -68,6 +70,13 @@ sub new {
                 filesystem_shortcut    => 'alt-f',
                 do_not_mount_shortcut  => 'alt-o'
         }),
+        EditPartitionPage => Installation::Partitioner::LibstorageNG::EditPartitionPage->new({
+                encrypt_checkbox => 'alt-e'
+        }),
+        EncryptPage => Installation::Partitioner::LibstorageNG::EncryptPage->new({
+                password_textfield        => 'alt-e',
+                password_verify_textfield => 'alt-v'
+        }),
         RaidTypePage    => Installation::Partitioner::RaidTypePage->new(),
         RaidOptionsPage => Installation::Partitioner::RaidOptionsPage->new({
                 chunk_size_shortcut => 'alt-u'
@@ -83,6 +92,16 @@ sub get_edit_formatting_options_page {
 sub get_edit_partition_size_page {
     my ($self) = @_;
     return $self->{EditPartitionSizePage};     # Same as get_formatting_options_edit_page
+}
+
+sub get_edit_partition_page {
+    my ($self) = @_;
+    return $self->{EditPartitionPage};
+}
+
+sub get_encrypt_page {
+    my ($self) = @_;
+    return $self->{EncryptPage};
 }
 
 sub add_raid_partition {
@@ -188,6 +207,28 @@ sub set_new_partition_size {
         $self->get_edit_partition_size_page()->enter_size($size);
     }
     $self->get_edit_partition_size_page()->press_next();
+}
+
+sub encrypt_partition {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{partitioner_table});
+    send_key('down');    # on the current proposal the disks are not unfolded so we find the partition table and move one step down
+    $self->get_expert_partitioner_page()->expand_item_in_system_view_table;
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{partition});
+    $self->get_expert_partitioner_page()->select_partitions_tab();
+    $self->get_expert_partitioner_page()->press_edit_partition_button;
+    $self->_encrypt_with_too_simple_password;
+    $self->get_expert_partitioner_page()->press_accept_button;
+}
+
+sub _encrypt_with_too_simple_password {
+    my ($self) = @_;
+    record_info "Encrypt partition";
+    $self->get_edit_partition_page()->select_enable_disk_encryption_checkbox();
+    $self->get_edit_partition_page()->press_next;
+    $self->get_encrypt_page()->enter_password();
+    $self->get_encrypt_page()->enter_password_confirmation();
+    $self->get_encrypt_page()->press_next();
 }
 
 1;

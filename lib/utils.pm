@@ -290,13 +290,15 @@ sub integration_services_check {
 
 Check whether the system under test has an encrypted partition and attempts to unlock it.
 C<$check_typed_password> will default to C<0>.
+C<$skip_decryption> defines explicitly that the module should not try to decrypt the disks even if B<ENCRYPTION> is defined somewhere else. In any case set the value to 0 to enable decryption. it will default to C<1>.
 
 =cut
 sub unlock_if_encrypted {
     my (%args) = @_;
     $args{check_typed_password} //= 0;
+    $args{skip_decryption}      //= 1;
 
-    return unless get_var("ENCRYPT");
+    return unless $args{skip_decryption} || get_var("ENCRYPT");
 
     if (get_var('S390_ZKVM')) {
         my $password = $testapi::password;
@@ -495,7 +497,7 @@ sub zypper_call {
     my $command          = shift;
     my %args             = @_;
     my $allow_exit_codes = $args{exitcode} || [0];
-    my $timeout          = $args{timeout}  || 700;
+    my $timeout          = $args{timeout} || 700;
     my $log              = $args{log};
     my $dumb_term        = $args{dumb_term} // is_serial_terminal;
 
@@ -920,7 +922,7 @@ sub addon_decline_license {
         if (check_screen 'next-button-is-active', 5) {
             send_key $cmd{next};
             assert_screen "license-refuse";
-            send_key 'alt-n';         # no, don't refuse agreement
+            send_key 'alt-n';    # no, don't refuse agreement
             wait_still_screen 2;
             send_key $cmd{accept};    # accept license
         }
