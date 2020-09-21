@@ -1,0 +1,205 @@
+#!/bin/bash
+
+# ****************************************************************************
+# Copyright (c) 2013 Unpublished Work of SUSE. All Rights Reserved.
+# 
+# THIS IS AN UNPUBLISHED WORK OF SUSE.  IT CONTAINS SUSE'S
+# CONFIDENTIAL, PROPRIETARY, AND TRADE SECRET INFORMATION.  SUSE
+# RESTRICTS THIS WORK TO SUSE EMPLOYEES WHO NEED THE WORK TO PERFORM
+# THEIR ASSIGNMENTS AND TO THIRD PARTIES AUTHORIZED BY SUSE IN WRITING.
+# THIS WORK IS SUBJECT TO U.S. AND INTERNATIONAL COPYRIGHT LAWS AND
+# TREATIES. IT MAY NOT BE USED, COPIED, DISTRIBUTED, DISCLOSED, ADAPTED,
+# PERFORMED, DISPLAYED, COLLECTED, COMPILED, OR LINKED WITHOUT SUSE'S
+# PRIOR WRITTEN CONSENT. USE OR EXPLOITATION OF THIS WORK WITHOUT
+# AUTHORIZATION COULD SUBJECT THE PERPETRATOR TO CRIMINAL AND  CIVIL
+# LIABILITY.
+# 
+# SUSE PROVIDES THE WORK 'AS IS,' WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTY, INCLUDING WITHOUT THE IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. SUSE, THE
+# AUTHORS OF THE WORK, AND THE OWNERS OF COPYRIGHT IN THE WORK ARE NOT
+# LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
+# WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+# ****************************************************************************
+
+#===============================================================================
+#           FILE: file_copy (to be changed) 
+#        VERSION: 0.1
+#         AUTHOR: ories@suse.de 
+#       REVIEWER: ories@suse.de 
+#        CREATED: 2006-04-24
+#
+#    DESCRIPTION: "create input file, create md5sum, copy input file in X jobs and do md5sum integrity check"
+#   REQUIREMENTS: ""
+#          USAGE: ./$FILE -h
+#===============================================================================
+
+function usage {
+	echo -e "${0##*/}:\t-d BASEDIR -h help -j JOBS -i ITERATIONS -s FILESIZE\n"
+	echo -e "\t -d existing base directory where tests will be run in"
+	echo -e "\t -h this output"
+	echo -e "\t -j number of parallel jobs"
+	echo -e "\t -i number of iterations, negative number indicates infinity iterations"
+	echo -e "\t -s file size for the input file in MegaByte"
+}
+
+function tidy_up {
+
+	if [ ! -z "$TESTDIR" ]; then 
+		rm -r $TESTDIR/
+	fi
+
+	logmsg "Cleaned $TESTDIR, log is located at $LOGFILE"
+	logmsg "Good bye and thans for using yet another test from SUSE QA"
+}
+
+function abort {
+	echo "Aborting... $@" | tee -a $LOGFILE
+	tidy_up
+	exit 1;
+}
+
+function logmsg {
+	echo $@ | tee -a $LOGFILE
+}
+
+# basic settings
+#LOGDIR="/usr/lib/ctcs2"
+LOGDIR="/tmp"
+LOGFILE=$LOGDIR/${0##*/}.$RANDOM.log
+TESTBASEDIR="/tmp"
+BASEFILE="input"
+DIRSUFFIX="/${0##*/}.XXXXXX"
+JOBS=10
+SIZE=400
+ITERATIONS=20
+PIDS=""
+
+# used to nicen code path, ct used as counter
+EXIT_CRIT="ct++"
+
+# set trap for signals
+trap abort 1 2 15
+
+while getopts d:hj:i:s: optchar; do
+
+	case "$optchar" in
+		d) TESTBASEDIR="$OPTARG" ;;
+       	h) usage; exit 1 ;;
+       	j) JOBS="$OPTARG" ;;
+	   	i) ITERATIONS="$OPTARG" ;; 	 
+		s) SIZE="$OPTARG" ;;
+        *) usage; exit 1 ;;
+   esac
+done
+        
+# sanity checks
+if [ ! -d "$TESTBASEDIR" ]; then
+	abort "Directory $TESTBASEDIR does not exist"
+fi
+
+if [ ! -w "$TESTBASEDIR" ]; then
+	abort "Directory $TESTBASEDIR not writeable"
+fi
+
+# create the TESTDIR
+TESTDIR="`mktemp -d $TESTBASEDIR/${0##*/}.XXXXXX`"
+if [ "$?" == "1" -o -z "$TESTDIR" ]; then
+	abort "Could not create $TESTBASEDIR/${0##*/}.XXXXXX"
+fi
+
+if (( ITERATIONS <= 0 )); then 
+	EXIT_CRIT="ct >=0"
+else
+	EXIT_CRIT="ct < $ITERATIONS"
+fi
+
+if (( JOBS <= 0 )); then
+	abort "Negative number of threads"
+fi
+
+DISKSPACE="`df $TESTBASEDIR | tail -n1 | awk '{print $4}'`"
+
+if  (( ( SIZE * JOBS ) > $DISKSPACE )); then
+	abort "not enough space on $TESTBASEDIR"
+fi
+
+# // sanity checks
+
+function create_input {
+	logmsg "Creating initial input file..."
+	dd if=/dev/urandom of=$TESTDIR/input bs=1048576 count=$SIZE
+
+
+	if [ "$?" != "0" ]; then
+		abort "Could not create $TESTDIR/input"
+	fi
+
+   	md5sum "$TESTDIR/$BASEFILE" > $TESTDIR/${BASEFILE}.md5sum || abort "could not create MD5SUM file"
+	# relative path
+	sed s\#$TESTDIR/\#\#g $TESTDIR/${BASEFILE}.md5sum
+
+	logmsg "ls -la $TESTDIR"
+	# a bit racy
+	ls -la $TESTDIR >> $LOGFILE
+	
+}
+
+function copy_file {
+
+	local id=$RANDOM
+	local targetdir=`mktemp -d "$TESTDIR/job.${id}.XXXXXX"` || abort "could not create temp dir"
+
+	logmsg "ID: $id - copying files"
+
+	cp $TESTDIR/$BASEFILE $TESTDIR/${BASEFILE}.md5sum $targetdir || abort "`df` failed to copy files"
+	logmsg "ID: $id - copy done"
+	logmsg "ID: $id - start integrity check"
+	md5sum -c $targetdir/${BASEFILE}.md5sum > /dev/null 2>&1 || abort "ID: $id - MD5SUM mismatch detected"
+	logmsg "ID: $id - finished integrity check"
+	rm -rf $targetdir	
+
+}	 
+
+function wait_for_proc {
+	local pids
+	local sleep_time
+
+	while [ "$PIDS" != "" ]; do
+		pids=""
+		sleep_time=0
+		for proc in $PIDS; do
+			kill -0 $proc > /dev/null 2>&1
+			if [ "$?" == "0" ]; then
+				pids="$proc $pids"
+				sleep_time=5
+			fi
+		done
+
+		PIDS="$pids"
+		sleep $sleep_time
+	done
+	logmsg "all process have finished `date`"
+}
+
+# now do it
+
+
+create_input
+
+for (( ct=0; $EXIT_CRIT; ct++ ));
+do
+	logmsg "Starting Iteration $ct - `date`"
+	for (( i=0; i<$JOBS; i++ )); do
+		copy_file &
+		PIDS="$PIDS $!"
+	done
+	wait_for_proc
+	sync
+done		
+
+tidy_up
+
+logmsg "Finished `date`"
+

@@ -1,0 +1,9 @@
+---
+description: 'Filesystem stress test for RPi. Maintainer: dheidler'
+name: 'jeos-fs_stress@aarch64 ( qemu )'
+schedule:
+  - jeos/firstrun
+  - jeos/record_machine_id
+  - console/force_scheduled_tasks
+  - jeos/diskusage
+  - console/fs_stress
