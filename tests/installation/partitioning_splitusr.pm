@@ -46,7 +46,7 @@ sub run {
     wait_screen_change { send_key $cmd{resize} };                          # Resize
     send_key 'alt-u';                                                      # Custom size
     send_key $cmd{size_hotkey} if is_storage_ng;
-    type_string '1.5G';
+    type_string '5G';
     send_key(is_storage_ng() ? $cmd{next} : 'ret');
     if (is_storage_ng) {
         # warning: / should be >= 10 GiB or disable snapshots
