@@ -30,7 +30,6 @@ use version_utils;
 use testapi;
 use DateTime;
 use Utils::Architectures 'is_s390x';
-use virt_utils;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file
   ssh_setup ssh_copy_id create_guest install_default_packages upload_y2logs ensure_online);
@@ -140,7 +139,8 @@ sub create_guest {
 sub install_default_packages {
     # Install nmap, ip, dig
     if (is_s390x()) {
-        lpar_cmd("zypper --non-interactive in nmap iputils bind-utils");
+        # Use static call to avoid cyclical imports
+        virt_utils::lpar_cmd("zypper --non-interactive in nmap iputils bind-utils");
     } else {
         zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 4, 102, 103, 106];
     }
