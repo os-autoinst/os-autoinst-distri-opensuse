@@ -20,11 +20,12 @@ vars:
   UPGRADE_TARGET_VERSION: '%VERSION%'
   HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
   BOOTFROM: d
+  TIMEOUT_SCALE: 2
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: sle-%HDDVERSION%-%ARCH%-sap-nw-noscc.qcow2
 schedule:
   - migration/version_switch_origin_system
-  - installation/bootloader
+  - installation/bootloader_start
   - migration/online_migration/online_migration_setup
   - migration/online_migration/register_system
   - migration/online_migration/zypper_patch

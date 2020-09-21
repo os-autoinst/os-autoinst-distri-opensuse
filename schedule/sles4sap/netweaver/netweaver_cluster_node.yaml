@@ -30,7 +30,6 @@ vars:
   AUTOMATED_REGISTER: false
   HA_CLUSTER: '1'
   NICTYPE: tap
-  WORKER_CLASS: tap
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
 schedule:

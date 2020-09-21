@@ -8,7 +8,6 @@ vars:
   NICTYPE: tap
   REGRESSION: remote
   REMOTE_DESKTOP_TYPE: win_client
-  WORKER_CLASS: tap
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: windows-10-x86_64-1511@64bit_win.qcow2
 schedule:

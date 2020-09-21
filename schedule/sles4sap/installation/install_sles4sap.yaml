@@ -8,7 +8,7 @@ description: >
 vars:
   DROP_PERSISTENT_NET_RULES: '1'
 schedule:
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration

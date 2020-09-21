@@ -39,7 +39,7 @@ vars:
   MULTIPATH_CONFIRM: 'yes'
 schedule:
   - '{{barrier_init}}'
-  - installation/bootloader
+  - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
