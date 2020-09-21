@@ -19,10 +19,11 @@ use base "installbasetest";
 use scheduler 'get_test_suite_data';
 use testapi;
 use validate_encrypt_utils;
+use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $test_data = get_test_suite_data();
-    select_console 'install-shell';
+    check_var('BACKEND', 'pvm_hmc') ? use_ssh_serial_console : select_console 'install-shell';
     my $status = parse_cryptsetup_status($test_data->{mapped_device});
     verify_cryptsetup_message($test_data->{device_status}->{message}, $status->{message});
     select_console 'installation';
