@@ -30,7 +30,7 @@ sub run {
             ensure_online($guest);
         } or do {
             my $err = $@;
-            record_info("$guest failure: $err");
+            record_info("$guest", "enure_online failure: $err");
         };
     }
 }

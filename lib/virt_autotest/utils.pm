@@ -173,7 +173,7 @@ sub import_guest {
 
         # Run unattended installation for selected guest
         my $virtinstall = "virt-install $extra_params --name $name --vcpus=4,maxvcpus=4 --memory=4096,maxmemory=4096 --cpu host";
-        $virtinstall .= " --graphics vnc --disk $disk --network network=default,mac=$macaddress --noautoconsole  --autostart --import";
+        $virtinstall .= " --graphics vnc --disk $disk --network network=default,mac=$macaddress,model=e1000 --noautoconsole  --autostart --import";
         assert_script_run $virtinstall;
     }
 }

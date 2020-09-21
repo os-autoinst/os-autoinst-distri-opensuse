@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Storage pool / volume test
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
@@ -25,10 +25,12 @@ sub run_test {
 
     record_info "Prepare";
     assert_script_run "mkdir -p /pool_testing";
-    assert_script_run "virsh pool-destroy testing || true";
-    assert_script_run "virsh pool-undefine testing || true";
-    assert_script_run "virsh vol-delete --pool testing $_-storage || true" foreach (keys %virt_autotest::common::guests);
-    assert_script_run "virsh vol-delete --pool testing $_-clone || true"   foreach (keys %virt_autotest::common::guests);
+    script_run "virsh pool-destroy testing";
+    script_run "virsh vol-delete --pool testing $_-storage" foreach (keys %virt_autotest::common::guests);
+    script_run "virsh vol-delete --pool testing $_-clone"   foreach (keys %virt_autotest::common::guests);
+    script_run "virsh pool-undefine testing";
+    # Ensure the new pool directory is empty
+    script_run('rm -f /pool_testing/*');
 
     record_info "Pool define";
     assert_script_run "virsh pool-define-as testing dir - - - - '/pool_testing'";
