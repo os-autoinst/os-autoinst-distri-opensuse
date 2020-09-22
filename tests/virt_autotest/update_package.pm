@@ -51,15 +51,15 @@ sub update_package {
 
 sub run {
     my $self = shift;
-    $self->update_package() unless is_sle('=15-SP2') && is_xen_host;    #workaroud: skip update package as there are conflicts on sles15sp2 XEN
-    if (!check_var('ARCH', 's390x')) {
+    #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
+    $self->update_package() unless ((is_sle('=15-SP2') && is_xen_host) || (is_registered_sles && is_aarch64));
+    unless ((is_registered_sles && is_aarch64) || is_s390x) {
         set_serial_console_on_vh('', '', 'xen') if is_xen_host;
         set_serial_console_on_vh('', '', 'kvm') if is_kvm_host;
     }
     update_guest_configurations_with_daily_build();
     # turn on debug for libvirtd & enable journal with previous reboot
     enable_debug_logging if is_x86_64;
-
 }
 
 sub test_flags {
