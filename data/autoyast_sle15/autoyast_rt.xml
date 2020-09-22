@@ -4,10 +4,14 @@
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
     <email/>
-    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_code>5ed98f8c543b5b75</reg_code>
     <install_updates config:type="boolean">true</install_updates>
-    <reg_server>{{SCC_URL}}</reg_server>
     <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
       <addon>
         <name>sle-module-server-applications</name>
         <version>{{VERSION}}</version>
@@ -23,10 +27,15 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      <addon>
+        <name>sle-module-rt</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
     </addons>
   </suse_register>
   <add-on>
-    <add_on_products config:type="list">
+ 	<add_on_products config:type="list">
 	  <listentry>
         <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SLERT/standard</media_url>
         <product>SLE_RT_TEST</product>
@@ -140,10 +149,15 @@
     </drive>
   </partitioning>
   <software>
-    <kernel>kernel-rt</kernel>   
+    <products config:type="list">
+      <product>SLE_RT</product>
+    </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <kernel>kernel-rt</kernel>
     <packages config:type="list">
-      <package>grub2</package>   
-      <package>sles-release</package>
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-development-tools-release</package>
+      <package>sle-module-basesystem-release</package>
       <package>cpuset</package>
     </packages>
     <patterns config:type="list">
@@ -158,9 +172,6 @@
       <pattern>x11</pattern>
       <pattern>x11_enhanced</pattern>
     </patterns>
-    <products config:type="list">
-      <product>SLES</product>
-    </products>
   </software>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
