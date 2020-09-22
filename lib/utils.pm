@@ -1400,6 +1400,7 @@ See L<https://github.com/torvalds/linux/blob/master/Documentation/admin-guide/sy
 sub show_tasks_in_blocked_state {
     # sending sysrqs doesn't work for svirt
     if (has_ttys) {
+        send_key 'alt-sysrq-t';
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i, 1);
