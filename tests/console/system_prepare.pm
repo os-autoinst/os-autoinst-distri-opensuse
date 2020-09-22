@@ -18,7 +18,7 @@
 use base 'consoletest';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_livecd is_tumbleweed);
+use version_utils qw(is_sle is_livecd is_tumbleweed is_gnome_next);
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
@@ -38,7 +38,7 @@ sub run {
     pkcon_quit unless check_var('DESKTOP', 'textmode');
 
     # on live media, increase the size of /run to 50% of RAM (workaround boo#1176709)
-    if (is_livecd && is_tumbleweed) {
+    if (is_livecd && is_tumbleweed || is_gnome_next) {
         record_soft_failure('bsc#1176709 - livecd runs out of storage on overlayfs');
         assert_script_run("mount -o remount,size=\$[\$(awk '/MemTotal/ {print \$2}' /proc/meminfo)/2]K /run");
     }
