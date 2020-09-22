@@ -45,10 +45,12 @@ sub run {
         verify_cryptsetup_properties($test_data->{cryptsetup}->{device_status}->{properties}, $status->{properties});
     }
     foreach my $dev (sort keys %{$devices}) {
+        # This does not solve the problem with the multi-disks for ppc64le-hmc-single-disk
+        my $backup_name = check_var("MACHINE", "ppc64le-hmc-single-disk") ? '/root/bkp_luks_header_cr_scsi' : $test_data->{$dev}->{backup_path};
         verify_restoring_luks_backups(
             encrypted_device_path => $devices->{$dev}->{encrypted_device},
             backup_file_info      => $test_data->{backup_file_info},
-            backup_path           => $test_data->{$dev}->{backup_path}
+            backup_path           => $backup_name
         );
     }
 }
