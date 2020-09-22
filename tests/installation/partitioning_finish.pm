@@ -20,8 +20,7 @@ use testapi;
 
 sub run {
     wait_still_screen();
-    wait_screen_change { send_key $cmd{next} };
-    send_key 'alt-n';
+    send_key $cmd{next}; 
     wait_still_screen();
     assert_screen "after-partitioning";
 }
