@@ -24,7 +24,7 @@ sub pre_run_hook {
 sub run {
     #run test
     assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-47-ISSUE-14566 --run 2>&1 | tee /tmp/testsuite.log', 60;
+    assert_script_run './run-tests.sh TEST-47-ISSUE-14566 --run 2>&1 | tee /tmp/testsuite.log', 120;
     assert_script_run 'grep "PASS: ...TEST-47-ISSUE-14566" /tmp/testsuite.log';
     script_run './run-tests.sh TEST-47-ISSUE-14566 --clean';
 }
