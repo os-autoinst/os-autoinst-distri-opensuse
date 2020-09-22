@@ -12,6 +12,7 @@
 
 use base 'consoletest';
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -19,13 +20,14 @@ use utils;
 
 sub run {
     # Fill the current pairs of hostname & address into /etc/hosts file
-    assert_script_run "echo '$virt_autotest::common::guests{$_}->{ip} $_ # virtualization' >> /etc/hosts" foreach (keys %virt_autotest::common::guests);
+    assert_script_run 'virsh list --all';
+    add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    # Check if SSH is open because of that means that the guest is installed
-    script_retry("sh -c 'if virsh list --all | grep $_ | grep \"shut off\"; then virsh start $_; exit 1; else nmap $_ -PN -p ssh | grep open; fi'", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
+    # Check that guests are online so we can continue and setup them
+    ensure_online $_, skip_ssh => 1, ping_delay => 45 foreach (keys %virt_autotest::common::guests);
 
-    # All guests should be now installed, show them
+    # All guests should be now installed and running
     assert_script_run 'virsh list --all';
     wait_still_screen 1;
 }

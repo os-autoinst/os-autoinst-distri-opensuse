@@ -40,7 +40,7 @@ use virt_autotest::utils;
 use virt_utils;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_libvirtd restart_network restore_guests restore_network
+  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network restore_guests restore_network
   destroy_vir_network restore_libvirt_default enable_libvirt_log upload_debug_log check_guest_status check_guest_module save_guest_ip test_network_interface hosts_backup hosts_restore);
 
 sub check_guest_module {
@@ -89,11 +89,13 @@ sub test_network_interface {
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
+
+        # Restart the network - the SSH connection may drop here, so no return code is checked.
         if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
             if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
-                assert_script_run("ssh root\@$guest service network restart", 300);
+                script_run("ssh root\@$guest service network restart", 300);
             } else {
-                assert_script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 300);
+                script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 300);
             }
         }
         script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 12, timeout => 90);
@@ -205,10 +207,6 @@ sub destroy_standalone {
     assert_script_run("source $cleanup_path", 60) if (script_run("[[ -f $cleanup_path ]]") == 0);
 }
 
-sub restart_libvirtd {
-    is_sle('=11-sp4') ? script_run("service libvirtd restart") : systemctl 'restart libvirtd';
-}
-
 sub restart_network {
     is_sle('=11-sp4') ? script_run("service network restart") : systemctl 'restart network';
 }
@@ -246,7 +244,7 @@ sub enable_libvirt_log {
     assert_script_run qq(echo 'log_level = 1
     log_filters="3:remote 4:event 3:json 3:rpc"
     log_outputs="1:file:/var/log/libvirt/libvirtd.log"' >> /etc/libvirt/libvirtd.conf);
-    is_sle('=11-sp4') ? script_run("service libvirtd restart") : systemctl 'restart libvirtd';
+    restart_libvirtd;
 }
 
 sub upload_debug_log {

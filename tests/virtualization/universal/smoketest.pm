@@ -55,7 +55,13 @@ sub run {
     # Run smoketests on guests
     smoketest('localhost');
     foreach my $guest (keys %virt_autotest::common::guests) {
-        ensure_online($guest);
+        # This should fix some common issues on the guests. If the procedure fails we still want to go on
+        eval {
+            ensure_online($guest);
+        } or do {
+            my $err = $@;
+            record_info("$guest failure: $err");
+        };
         smoketest($guest);
     }
 }

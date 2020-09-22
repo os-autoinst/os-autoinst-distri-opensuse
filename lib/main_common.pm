@@ -2732,8 +2732,14 @@ sub load_hypervisor_tests {
         loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
         loadtest "virtualization/universal/smoketest";            # Virtualization smoke test for hypervisor
         loadtest "virtualization/universal/stresstest";           # Perform stress tests on the guests
-        loadtest "console/perf";                                  # Run QAM perf test
-        loadtest "console/oprofile";                              # Run QAM oprofile test
+        loadtest "console/perf";
+        loadtest "console/oprofile" unless (get_var("REGRESSION", '') =~ /xen/);
+    }
+
+    if (check_var('VIRT_PART', 'windows')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virtualization/universal/download_image";       # Download Windows disk image(s)
+        loadtest "virtualization/universal/windows";              # Import and test Windows
     }
 }
 

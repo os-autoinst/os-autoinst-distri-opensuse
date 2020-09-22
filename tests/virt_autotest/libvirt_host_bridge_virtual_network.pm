@@ -94,7 +94,7 @@ sub post_fail_hook {
     virt_autotest::virtual_network_utils::upload_debug_log();
 
     #Restart libvirtd service
-    virt_autotest::virtual_network_utils::restart_libvirtd();
+    virt_autotest::utils::restart_libvirtd();
 
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();

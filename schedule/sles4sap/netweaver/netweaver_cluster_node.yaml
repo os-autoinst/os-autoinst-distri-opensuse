@@ -27,7 +27,6 @@ vars:
   USE_SUPPORT_SERVER: '1'
   HDD_SCC_REGISTERED: '1'
   VIRTIO_CONSOLE: '0'
-  AUTOMATED_REGISTER: false
   HA_CLUSTER: '1'
   NICTYPE: tap
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
@@ -44,11 +43,11 @@ schedule:
   - ha/iscsi_client
   - ha/watchdog
   - sles4sap/patterns
+  - '{{cluster_setup}}'
   - sles4sap/netweaver_network
   - sles4sap/netweaver_filesystems
   - sles4sap/netweaver_install
-  - '{{cluster_setup}}'
-  - sles4sap/hana_cluster
+  - sles4sap/netweaver_cluster
   - '{{sap_suse_cluster_connector}}'
   - ha/fencing
   - '{{boot_to_desktop}}'

@@ -46,6 +46,7 @@ sub run_test {
                 }
             }
             script_retry "ssh root\@$guest ip l | grep " . $virt_autotest::common::guests{$guest}->{macaddress}, delay => 60, retry => 3, timeout => 60;
+            assert_script_run "virsh domiflist $guest", 90;
             assert_script_run "virsh attach-interface --domain $guest --type bridge ${interface_model_option} --source br0 --mac " . $mac{$guest} . " --live " . ${persistent_config_option};
             assert_script_run "virsh domiflist $guest | grep br0";
             assert_script_run "ssh root\@$guest cat /proc/uptime | cut -d. -f1", 60;
