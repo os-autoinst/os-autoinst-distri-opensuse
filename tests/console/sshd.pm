@@ -83,7 +83,7 @@ sub run {
     sleep(1);
 
     # Check that we are really in the SSH session
-    assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
+    assert_script_run('echo $SSH_TTY | grep "\/dev\/pts\/"', timeout => 900);
     assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
     assert_script_run "whoami | grep $ssh_testman";
     assert_script_run "mkdir .ssh";
