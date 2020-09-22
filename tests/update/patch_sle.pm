@@ -315,6 +315,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
+    $self->export_logs();
     y2_installbase::save_upload_y2logs;
 }
 1;
