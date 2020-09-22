@@ -66,8 +66,6 @@ sub run {
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
 
     # install kmp packages
-    # temporary hotfix for slert15sp2
-    zypper_call 'ar --priority 110 http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/GA:/PUBLISH/images/repo/SLE-15-SP2-Module-RT-POOL-Media1/ RT_GA_IBS';
     zypper_call 'ref';
     zypper_call 'in lttng-tools *-kmp-rt', 500;
 
