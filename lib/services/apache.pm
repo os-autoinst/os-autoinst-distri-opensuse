@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -50,14 +50,13 @@ sub check_function {
 # check apache service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_apache_check {
-    my ($stage) = @_;
+    my ($stage, $type) = @_;
     $stage //= '';
     if ($stage eq 'before') {
         install_service();
-        enable_service();
-        start_service();
+        common_service_start('apache2', $type);
     }
-    check_service();
+    common_service_status('apache2', $type);
     check_function();
 }
 
