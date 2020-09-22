@@ -134,6 +134,11 @@ sub configure_service {
         test_conf_file_content => $test_conf_file_content,
         test_mount_dir         => $test_mount_dir);
 
+    if (script_run('test -f /etc/nsswitch.conf')) {
+        record_soft_failure('boo#20200812 openQA test fails in autofs - glibc-devel installs /usr/include/netdb.h which wrongly defines _PATH_NSSWITCH_CONF="/etc/nsswitch.conf" (/etc/nsswitch.conf was moved to /usr/etc/nsswitch.conf)');
+        assert_script_run 'cp /usr/etc/nsswitch.conf /etc/nsswitch.conf';
+    }
+
     systemctl 'restart autofs';
 }
 

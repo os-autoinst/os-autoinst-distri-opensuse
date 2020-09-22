@@ -45,7 +45,7 @@ our $sid;
 our $instance;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
-our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u sap.slice';
+our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u SAP.slice';
 
 =head2 ensure_serialdev_permissions_for_sap
 

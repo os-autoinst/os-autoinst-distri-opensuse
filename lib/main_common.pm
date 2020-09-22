@@ -577,7 +577,6 @@ sub load_jeos_tests {
         unless (get_var('INSTALL_LTP')) {
             loadtest "console/force_scheduled_tasks";
             loadtest "jeos/grub2_gfxmode";
-            loadtest 'jeos/revive_xen_domain' if check_var('VIRSH_VMM_FAMILY', 'xen');
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
         }
@@ -585,7 +584,8 @@ sub load_jeos_tests {
             loadtest "console/suseconnect_scc";
         }
 
-        replace_opensuse_repos_tests if is_repo_replacement_required;
+        replace_opensuse_repos_tests      if is_repo_replacement_required;
+        loadtest 'console/verify_efi_mok' if get_var('MOK_VERBOSITY');
     }
 }
 
@@ -795,7 +795,7 @@ sub boot_hdd_image {
 
 sub load_common_installation_steps_tests {
     loadtest 'installation/await_install';
-    unless (get_var('REMOTE_CONTROLLER') || is_caasp || is_hyperv_in_gui) {
+    unless (get_var('REMOTE_CONTROLLER') || is_microos || is_hyperv_in_gui) {
         loadtest "installation/add_serial_console" if is_vmware;
         loadtest 'installation/logs_from_installation_system';
     }
@@ -881,8 +881,8 @@ sub load_inst_tests {
         if (is_sles4sap() and is_sle('15+') and check_var('SYSTEM_ROLE', 'default') and !is_upgrade()) {
             loadtest "installation/sles4sap_product_installation_mode";
         }
-        # Kubic doesn't have a partitioning step
-        unless (is_caasp) {
+        # MicroOS doesn't have a partitioning step
+        unless (is_microos) {
             loadtest "installation/partitioning";
             if (defined(get_var("RAIDLEVEL"))) {
                 loadtest "installation/partitioning_raid";
@@ -954,7 +954,7 @@ sub load_inst_tests {
     }
 
     if (noupdatestep_is_applicable()) {
-        loadtest "installation/installer_timezone" unless is_caasp;
+        loadtest "installation/installer_timezone" unless is_microos;
         # the test should run only in scenarios, where installed
         # system is not being tested (e.g. INSTALLONLY etc.)
         # The test also won't work reliably when network is bridged (non-s390x svirt).
@@ -984,7 +984,7 @@ sub load_inst_tests {
         elsif (get_var('IMPORT_USER_DATA')) {
             loadtest 'installation/user_import';
         }
-        elsif (is_caasp 'microos') {
+        elsif (is_microos) {
             loadtest "installation/ntp_config_settings";
         } else {
             loadtest "installation/user_settings" unless check_var('SYSTEM_ROLE', 'hpc-node');
@@ -1720,6 +1720,7 @@ sub load_extra_tests_docker {
         loadtest "containers/container_diff";
     }
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
+    loadtest 'containers/registry';
     loadtest "containers/zypper_docker";
 }
 
@@ -1786,11 +1787,12 @@ sub load_rollback_tests {
 }
 
 sub load_extra_tests_filesystem {
-    loadtest "console/system_prepare";
     loadtest "console/lsof";
     loadtest "console/autofs";
     loadtest 'console/lvm';
     if (get_var("FILESYSTEM", "btrfs") eq "btrfs") {
+        loadtest 'console/snapper_undochange';
+        loadtest 'console/snapper_create';
         loadtest "console/snapper_jeos_cli" if is_jeos;
         loadtest "console/btrfs_autocompletion";
         if (get_var("NUMDISKS", 0) > 1) {
@@ -1804,8 +1806,6 @@ sub load_extra_tests_filesystem {
         }
         loadtest "console/btrfsmaintenance";
     }
-    loadtest 'console/snapper_undochange';
-    loadtest 'console/snapper_create';
     if (get_var('NUMDISKS', 0) > 1 && (is_sle('12-sp3+') || is_leap('42.3+') || is_tumbleweed)) {
         # On JeOS we use kernel-defaul-base and it does not have 'dm-thin-pool'
         # kernel module required by thin-LVM
@@ -1813,7 +1813,7 @@ sub load_extra_tests_filesystem {
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
     loadtest "console/udisks2" unless is_sle;
-    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64);
+    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
 }
 
 sub get_wicked_tests {
@@ -2441,6 +2441,16 @@ sub load_security_tests_check_kernel_config {
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
 }
 
+sub load_security_tests_pam {
+    load_security_console_prepare;
+
+    loadtest "security/pam/pam_basic_function";
+    loadtest "security/pam/pam_login";
+    loadtest "security/pam/pam_su";
+    loadtest "security/pam/pam_config";
+    loadtest "security/pam/pam_mount";
+}
+
 sub load_security_tests_tpm2 {
     if (is_sle('>=15-SP2')) {
         load_security_console_prepare;
@@ -2551,6 +2561,7 @@ sub load_security_tests {
       system_check
       check_kernel_config
       tpm2
+      pam
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.

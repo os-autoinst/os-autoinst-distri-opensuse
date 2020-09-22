@@ -1,0 +1,29 @@
+---
+name: sles4sap_gnome_saptune_v2_baremetal
+description: >
+  saptune_V2 tests SLES4SAP.
+vars:
+  MR_TEST: '%ARCH%'
+schedule:
+  - boot/boot_from_pxe
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/sles4sap_product_installation_mode
+  - installation/partitioning
+  - installation/partitioning_firstdisk
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/saptune/mr_test

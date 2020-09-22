@@ -16,23 +16,21 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
-
+use virt_autotest::utils qw(is_xen_host);
 use IPC::Run;
-sub ipmitool {
-    my ($cmd) = @_;
 
-    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
-    push(@cmd, split(/ /, $cmd));
-
-    my ($stdin, $stdout, $stderr, $ret);
-    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
-    chomp $stdout;
-    chomp $stderr;
-
-    bmwqemu::diag("IPMI: $stdout");
-    return $stdout;
+sub set_ssh_console_timeout_before_use {
+    reset_consoles;
+    select_console('root-console');
+    set_ssh_console_timeout('/etc/ssh/sshd_config', '28800');
+    reset_consoles;
+    select_console 'sol', await_console => 1;
+    send_key 'ret';
+    check_screen([qw(linux-login virttest-displaymanager)], 60);
+    save_screenshot;
+    send_key 'ret';
 }
 
 sub login_to_console {
@@ -48,7 +46,15 @@ sub login_to_console {
     }
 
     reset_consoles;
-    select_console 'sol', await_console => 0;
+    reset_consoles;
+    if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx') {
+        select_console 'sol', await_console => 1;
+        send_key 'ret';
+        ipmi_backend_utils::ipmitool 'chassis power reset';
+    }
+    else {
+        select_console 'sol', await_console => 0;
+    }
 
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
@@ -84,7 +90,7 @@ sub login_to_console {
     }
 
     if (!get_var("reboot_for_upgrade_step")) {
-        if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
+        if (is_xen_host) {
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
             send_key 'up';
             save_screenshot;
@@ -164,6 +170,8 @@ sub login_to_console {
         send_key 'ret';
     }
 
+    # Set ssh console timeout for thunderx machine
+    set_ssh_console_timeout_before_use if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx');
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 

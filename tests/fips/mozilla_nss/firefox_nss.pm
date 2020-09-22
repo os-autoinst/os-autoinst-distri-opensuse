@@ -63,12 +63,15 @@ sub run {
     send_key "tab";
     wait_still_screen 2;
 
-    send_key "alt-shift-d";        # Device Manager
+    # Change from "alt-shift-d" hotkey to needles match Security Device
+    # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
+    assert_and_click('firefox-click-security-device');
+
     assert_screen "firefox-device-manager";
 
-    send_key "alt-shift-f";        # Enable FIPS mode
+    send_key "alt-shift-f";    # Enable FIPS mode
     assert_screen "firefox-confirm-fips_enabled";
-    send_key "esc";                # Quit device manager
+    send_key "esc";            # Quit device manager
 
     quit_firefox;
     assert_screen "generic-desktop";
@@ -89,7 +92,11 @@ sub run {
     type_string "certificates";    # Search "Certificates" section
     send_key "tab";
     wait_still_screen 2;
-    send_key "alt-shift-d";        # Device Manager
+
+    # Change from "alt-shift-d" hotkey to needles match Security Device
+    # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
+    assert_and_click('firefox-click-security-device');
+
     assert_screen "firefox-device-manager";
     assert_screen "firefox-confirm-fips_enabled";
 

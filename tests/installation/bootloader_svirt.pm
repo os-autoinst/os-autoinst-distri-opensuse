@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_caasp is_installcheck is_rescuesystem is_sle is_vmware);
+use version_utils qw(is_jeos is_microos is_installcheck is_rescuesystem is_sle is_vmware);
 use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
@@ -57,14 +57,14 @@ sub run {
     my $arch       = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
     my $vmm_type   = get_required_var('VIRSH_VMM_TYPE');
-
-    my $svirt = select_console('svirt');
-    my $name  = $svirt->name;
+    my $svirt      = select_console('svirt');
+    my $name       = $svirt->name;
     my $repo;
+    my $vmware_openqa_datastore;
 
     # Clear datastore on VMware host
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        my $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
+        $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
         $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
     }
 
@@ -105,7 +105,7 @@ sub run {
     my $basedir = svirt_host_basedir();
     # This part of the path-to-image is missing on VMware
     my $share_factory = check_var('VIRSH_VMM_FAMILY', 'vmware') ? '' : 'share/factory/';
-    my $isodir        = "$basedir/openqa/${share_factory}iso $basedir/openqa/${share_factory}iso/fixed";
+    my $isodir        = "$basedir/openqa/${share_factory}iso/ $basedir/openqa/${share_factory}iso/fixed/";
     # In netinstall we don't have ISO media, for the rest we attach it, if it's defined
     if (my $isofile = get_var('ISO')) {
         my $isopath = search_image_on_svirt_host($svirt, $isofile, $isodir);
@@ -116,6 +116,7 @@ sub run {
                 dev_id => $dev_id
             });
         $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet
+        (undef, $isodir) = fileparse($isopath);
     }
     # Add addon media (if present at all)
     foreach my $n (1 .. 9) {
@@ -134,8 +135,20 @@ sub run {
     my $hdddir = "$basedir/openqa/${share_factory}hdd $basedir/openqa/${share_factory}hdd/fixed";
     my $size_i = get_var('HDDSIZEGB', '10');
     foreach my $n (1 .. get_var('NUMDISKS')) {
-        if (my $hdd = get_var('HDD_' . $n)) {
+        if (my $full_hdd = get_var('HDD_' . $n)) {
+            my $hdd     = basename($full_hdd);
             my $hddpath = search_image_on_svirt_host($svirt, $hdd, $hdddir);
+            if ($hddpath =~ m/vmdk\.xz$/) {
+                my $nfs_ro = $hddpath;
+                $hddpath = "$vmware_openqa_datastore/$hdd" =~ s/vmdk\.xz/vmdk/r;
+                # do nothing if the image is already unpacked in datastore
+                if ($svirt->run_cmd("test -e $hddpath", domain => 'sshVMwareServer')) {
+                    my $ret = $svirt->run_cmd("cp $nfs_ro $vmware_openqa_datastore", domain => 'sshVMwareServer');
+                    die "Image copy to datastore failed!\n" if $ret;
+                    $ret = $svirt->run_cmd("xz --decompress --keep --verbose $vmware_openqa_datastore/$hdd", domain => 'sshVMwareServer');
+                    die "Image decompress in datastore failed!\n" if $ret;
+                }
+            }
             $svirt->add_disk(
                 {
                     backingfile => 1,
@@ -155,7 +168,11 @@ sub run {
     }
 
     ## Verify checksum of the copied images
-    my $errors = verify_checksum('/var/lib/libvirt/images/');
+    my $location = '/var/lib/libvirt/images/';
+    if (is_vmware) {
+        $location = get_var('BOOT_HDD_IMAGE') ? $vmware_openqa_datastore : $isodir;
+    }
+    my $errors = verify_checksum $location;
     record_info("Checksum", $errors, result => 'fail') if $errors;
 
     # We need to use 'tablet' as a pointer device, i.e. a device
@@ -280,32 +297,32 @@ sub run {
         $svirt->resume;
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to GRUB";
         # Do not boot OS from disk, select installation medium
-        if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_caasp) {
+        if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_microos) {
             type_string "echo -en '\\033[B' > \$pty\n";                                                   # key down
         }
         type_string "echo e > \$pty\n";                                                                   # edit
 
-        if (is_jeos or is_caasp) {
-            my $max = is_sle('<15-sp2') ? 4 : 13;
-            for (1 .. $max) { type_string "echo -en '\\033[B' > \$pty\n"; }                               # four-times key down
-        }
-        else {
-            $cmdline .= 'linemode=0 ';                                                                    # workaround for bsc#1066919
-            for (1 .. 2) { type_string "echo -en '\\033[B' > \$pty\n"; }                                  # four-times key down
-        }
+        my $max = (!is_jeos) ? 2 : (is_sle '<15-sp1') ? 4 : 13;
+        type_string "echo -en '\\033[B' > \$pty\n" for (1 .. $max);                                       # $max-times key down
         type_string "echo -en '\\033[K' > \$pty\n";                                                       # end of line
-        type_string "echo -en ' $cmdline' > \$pty\n";
-        if (is_sle('12-SP2+') or is_caasp) {
-            type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768 ' > \$pty\n";    # set kernel framebuffer
-            type_string "echo -en ' xen-fbfront.video=32,1024,768' > \$pty\n";
-            type_string "echo -en ' console=hvc console=tty ' > \$pty\n";                                         # set consoles
-        }
-        else {
-            type_string "echo -en ' xenfb.video=4,1024,768' > \$pty\n";                                           # set kernel framebuffer
-            type_string "echo -en ' console=xvc console=tty' > \$pty\n";                                          # set consoles
+
+        if (is_jeos && is_sle('>=15-sp2')) {
+            record_soft_failure('bsc#1175514 cannot login to rescue when JeOS image is loaded as xen pv domain');
+            type_string "echo -en '\\010' > \$pty\n" for (1 .. length('console=ttyS0,115200 console=tty0 quiet'));
         }
 
-        type_string "echo -en '\\x18' > \$pty\n";                                                                 # send Ctrl-x to boot guest kernel
+        if (is_sle '12-SP2+') {
+            type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768' > \$pty\n";    # set kernel framebuffer
+            type_string "echo -en ' console=hvc console=tty' > \$pty\n";                                         # set consoles
+        }
+        else {
+            type_string "echo -en ' xenfb.video=4,1024,768 ' > \$pty\n";                                         # set kernel framebuffer
+            type_string "echo -en ' console=xvc console=tty ' > \$pty\n";                                        # set consoles
+            $cmdline .= 'linemode=0 ';                                                                           # workaround for bsc#1066919
+        }
+        type_string "echo -en ' $cmdline' > \$pty\n";
+
+        type_string "echo -en '\\x18' > \$pty\n";                                                                # send Ctrl-x to boot guest kernel
         save_screenshot;
     }
 

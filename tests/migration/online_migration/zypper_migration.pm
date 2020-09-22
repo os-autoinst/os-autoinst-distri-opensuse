@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_desktop_installed is_sles4sap);
+use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration);
 use Utils::Backends 'is_pvm';
 
 sub run {
@@ -37,6 +37,7 @@ sub run {
     my $zypper_migration_urlerror     = qr/URI::InvalidURIError/m;
     my $zypper_migration_reterror     = qr/^No migration available|Can't get available migrations/m;
 
+    my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
     script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     # migration process take long time
@@ -44,7 +45,7 @@ sub run {
     my $migration_checks = [
         $zypper_migration_target, $zypper_disable_repos,      $zypper_continue,               $zypper_migration_done,
         $zypper_migration_error,  $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
-        $zypper_migration_failed, $zypper_migration_license,  $zypper_migration_reterror
+        $zypper_migration_failed, $zypper_migration_license,  $zypper_migration_reterror,     $zypper_migration_signing_key
     ];
     my $zypper_migration_error_cnt = 0;
     my $out                        = wait_serial($migration_checks, $timeout);
@@ -87,6 +88,11 @@ sub run {
                 die 'Zypper migration failed';
             }
         }
+        elsif ($out =~ $zypper_migration_signing_key)
+        {
+            send_key 'a';
+            send_key 'ret';
+        }
         elsif ($out =~ $zypper_migration_fileconflict
             || $out =~ $zypper_migration_failed
             || $out =~ $zypper_migration_urlerror)
@@ -113,6 +119,14 @@ sub run {
         }
         $out = wait_serial($migration_checks, $timeout);
     }
+    # check if the migration success or not by checking the /etc/os-release file with the VERSION
+    my $target_version = get_var("VERSION");
+    assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
+
+    select_console('root-console', await_console => 0);
+    # wait long time for snapper to settle down
+    assert_screen 'root-console', 600;
+
     # We can't use 'keepconsole' here, because sometimes a display-manager upgrade can lead to a screen change
     # during restart of the X/GDM stack
     power_action('reboot', textmode => 1);
@@ -123,7 +137,7 @@ sub run {
     # with other than the SAP Administrator
     #
     # sometimes reboot takes longer time after online migration, give more time
-    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => is_sles4sap);
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => (is_sles4sap || is_leap_migration));
 }
 
 1;

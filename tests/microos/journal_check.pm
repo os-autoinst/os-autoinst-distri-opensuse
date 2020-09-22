@@ -7,14 +7,14 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Basic CaaSP journal tests
+# Summary: Basic MicroOS journal tests
 # Maintainer: Tomas Hehejik <thehejik@suse.com>
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use caasp;
+use microos;
 use version_utils 'is_opensuse';
 
 sub run {

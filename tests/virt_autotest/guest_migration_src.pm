@@ -20,6 +20,7 @@ use mmapi;
 use virt_utils;
 use Data::Dumper;
 use Utils::Architectures;
+use virt_autotest::utils qw(is_xen_host);
 
 sub get_script_run {
     my ($self) = @_;
@@ -28,8 +29,8 @@ sub get_script_run {
     my $dst_user = $self->get_var_from_parent('DST_USER');
     my $dst_pass = $self->get_var_from_parent('DST_PASS');
     handle_sp_in_settings_with_sp0("GUEST_LIST");
-    my $guests       = get_var("GUEST_LIST",       "");
-    my $hypervisor   = get_var("HOST_HYPERVISOR",  "kvm");
+    my $guests       = get_var("GUEST_LIST", "");
+    my $hypervisor   = (is_xen_host) ? 'xen' : 'kvm';
     my $test_time    = get_var("MAX_MIGRATE_TIME", "10800") - 90;
     my $args         = "-d $dst_ip -v $hypervisor -u $dst_user -p $dst_pass -i \"$guests\" -t $test_time";
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-guest-migrate-run " . $args;
@@ -83,51 +84,62 @@ sub analyzeResult {
     return $result;
 }
 
+#Mutex lock/unlock functionality
+sub set_mutex_lock {
+    my ($self, $lock_signal) = @_;
+
+    mutex_lock($lock_signal);
+    mutex_unlock($lock_signal);
+}
+
+sub post_execute_script_configuration {
+    my $self = shift;
+
+    #let dst host upload logs
+    set_var('SRC_TEST_DONE', 1);
+    bmwqemu::save_vars();
+    $self->set_mutex_lock('DST_UPLOAD_LOG_DONE');
+}
+
+sub post_execute_script_assertion {
+    my $self = shift;
+
+    #display test result
+    $self->{script_output} = script_output("cd /tmp; zcat $self->{compressed_log_name}.tar.gz | sed -n '/Executing check validation/,/[0-9]* fail [0-9]* succeed/p'");
+    save_screenshot;
+
+    my $output = $self->{script_output};
+
+    my $guest_migration_src_assert_pattern = "[1-9]{1,}[[:space:]]fail|[1-9]{1,}[[:space:]]internal_error";
+    script_output("shopt -s nocasematch;[[ ! \"$output\" =~ $guest_migration_src_assert_pattern ]]", type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+}
+
 sub run {
     my ($self) = @_;
 
     #preparation
-    my $ip_out = $self->execute_script_run('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
+    my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('SRC_IP',   $ip_out);
     set_var('SRC_USER', "root");
     set_var('SRC_PASS', $password);
     bmwqemu::save_vars();
 
     #wait for destination to be ready
-    mutex_lock('DST_READY_TO_START');
-    mutex_unlock('DST_READY_TO_START');
+    $self->set_mutex_lock('DST_READY_TO_START');
 
     #real test start
     my $timeout         = get_var("MAX_MIGRATE_TIME", "10800") - 30;
     my $log_dirs        = "/var/log/qa";
     my $upload_log_name = "guest-migration-src-logs";
+    $self->{"package_name"} = "Guest Migration Test";
 
     # clean up logs from prevous tests
-    $self->execute_script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30) if !get_var('SKIP_GUEST_INSTALL');
-    $self->execute_script_run('[ -d /var/log/qa/ctcs2/ ] && rm -r /var/log/qa/ctcs2/*',                     30);
-    $self->execute_script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
+    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30) if !get_var('SKIP_GUEST_INSTALL');
+    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/',                     30);
+    script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
-    $self->run_test($timeout, "", "no", "yes", "$log_dirs", "$upload_log_name");
-
-    #display test result
-    my $cmd                       = "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Executing check validation/,/[0-9]* fail [0-9]* succeed/p'";
-    my $guest_migrate_log_content = script_output("$cmd");
-    save_screenshot;
-
-    #upload junit log
-    $self->{"package_name"} = "Guest Migration Test";
-    $self->add_junit_log("$guest_migrate_log_content");
-
-    #let dst host upload logs
-    set_var('SRC_TEST_DONE', 1);
-    bmwqemu::save_vars();
-    mutex_lock('DST_UPLOAD_LOG_DONE');
-    mutex_unlock('DST_UPLOAD_LOG_DONE');
-
-    #mark test result
-    if ($guest_migrate_log_content =~ /0 succeed/m) {
-        die "Guest migration failed! It had unsuccessful migration cases!";
-    }
+    $self->run_test($timeout, "", "yes", "yes", "$log_dirs", "$upload_log_name");
 }
 
 1;

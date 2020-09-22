@@ -1,5 +1,5 @@
 ---
-name: sles4sap_wmp_hana_node1
+name: qam-sles4sap_wmp_hana_node2
 description: >
   SAP HANA and HanaSR test on SLES for SAP Applications with Workload Memory Protection
 vars:
@@ -7,10 +7,10 @@ vars:
   BOOT_HDD_IMAGE: '1'
   DM_NEEDS_USERNAME: '1'
   HA_CLUSTER: '1'
-  HA_CLUSTER_INIT: '1'
+  HA_CLUSTER_JOIN: '%CLUSTER_NAME%-node01'
   HDDSIZEGB_2: '131'
   HDD_SCC_REGISTERED: '1'
-  HOSTNAME: '%CLUSTER_NAME%-node01'
+  HOSTNAME: '%CLUSTER_NAME%-node02'
   INSTANCE_ID: '00'
   INSTANCE_IP_CIDR: '10.0.2.200/24'
   INSTANCE_SID: HA1
@@ -35,12 +35,10 @@ schedule:
   - sles4sap/patterns
   - sles4sap/hana_install
   - sles4sap/wmp_setup
-  - ha/ha_cluster_init
+  - ha/ha_cluster_join
   - sles4sap/hana_cluster
-  - sles4sap/sap_suse_cluster_connector
   - sles4sap/wmp_basic_test
   - ha/fencing
-  - boot/boot_to_desktop
   - ha/check_after_reboot
   - ha/check_logs
   - sles4sap/wmp_basic_test

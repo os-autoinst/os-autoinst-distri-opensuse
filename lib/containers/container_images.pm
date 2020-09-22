@@ -116,6 +116,7 @@ sub test_opensuse_based_image {
     } else {
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
+
     # zypper lr
     assert_script_run("$runtime run --rm $image zypper lr -s", 120);
     # zypper ref

@@ -1,7 +1,7 @@
 ---
 name: qam-minimal-base
 schedule:
-- '{{boot}}'
+- installation/bootloader_start
 - installation/welcome
 - installation/accept_license
 - installation/scc_registration
@@ -74,6 +74,8 @@ conditional_schedule:
       s390x:
         - boot/reconnect_mgmt_console
       x86_64:
+        - installation/grub_test
+      aarch64:
         - installation/grub_test
   glibc_sanity:
     ARCH:

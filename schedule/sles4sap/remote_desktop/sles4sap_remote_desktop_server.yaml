@@ -1,0 +1,17 @@
+---
+name: sles4sap_remote_desktop_server
+description: >
+  Server configuration for Remote Desktop Protocol (RDP) test.
+vars:
+  BOOTFROM: c
+  NETWORKS: fixed
+  NICTYPE: tap
+  REGRESSION: remote
+  REMOTE_DESKTOP_TYPE: xrdp_server
+  VIRTIO_CONSOLE: '0'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+schedule:
+  - boot/boot_to_desktop
+  - x11/window_system
+  - x11/remote_desktop/xrdp_server

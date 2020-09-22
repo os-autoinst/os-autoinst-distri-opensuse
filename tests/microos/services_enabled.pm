@@ -16,7 +16,6 @@ use warnings;
 use base "opensusebasetest";
 use utils;
 use testapi;
-use version_utils 'is_caasp';
 
 my %services_for = (
     default => [qw(sshd issue-generator issue-add-ssh-keys transactional-update.timer)],

@@ -1,0 +1,28 @@
+name:           suse_microos
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE MicroOS tests
+schedule:
+    - installation/bootloader
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/ntp_config_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/reboot_after_installation
+    - microos/disk_boot
+    - microos/networking
+    - microos/libzypp_config
+    - microos/one_line_checks
+    - microos/services_enabled
+    - transactional/filesystem_ro
+    - transactional/transactional_update
+    - transactional/rebootmgr
+    - transactional/health_check
+    - microos/journal_check
+    - shutdown/shutdown

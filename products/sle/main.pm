@@ -17,7 +17,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_caasp is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -101,10 +101,6 @@ sub cleanup_needles {
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
         unregister_needle_tags('ENV-JEOS-1');
-    }
-
-    if (!is_caasp) {
-        unregister_needle_tags('ENV-DISTRI-CASP');
     }
 
     if (get_var('OFW')) {
@@ -891,8 +887,7 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
-    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked') || get_var('PUBLIC_CLOUD'));
-
+    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked') || get_var('PUBLIC_CLOUD') || is_jeos);
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
@@ -1055,6 +1050,25 @@ else {
         }
         else {
             loadtest 'network/curl_client';
+        }
+    }
+    elsif (get_var('QAM_WIN2019_INSTALL')) {
+        set_var('INSTALLONLY', 1);
+        boot_hdd_image;
+        if (check_var('HOSTNAME', 'win2k19')) {
+            loadtest 'support_server/windows/win2019_install';
+            loadtest 'support_server/windows/win2019_config';
+            loadtest 'support_server/windows/win2019_config_AD';
+        }
+    }
+    elsif (get_var('QAM_SAMBA_AD')) {
+        boot_hdd_image;
+        if (check_var('HOSTNAME', 'client')) {
+            loadtest 'network/setup_multimachine';
+            loadtest 'network/samba/samba_adcli';
+        }
+        elsif (check_var('HOSTNAME', 'win2k19')) {
+            loadtest 'support_server/windows/win2019_boot';
         }
     }
     elsif (get_var('QAM_SMT')) {

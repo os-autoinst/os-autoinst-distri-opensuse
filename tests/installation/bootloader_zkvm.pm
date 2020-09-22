@@ -96,6 +96,9 @@ sub post_fail_hook {
     reset_consoles;
     select_console 'svirt';
 
+    upload_logs("/tmp/os-autoinst-openQA-SUT-" . get_var("VIRSH_INSTANCE") . "-stderr.log", failok => 1);
+    type_string "tail /tmp/os-autoinst-openQA-SUT-" . get_var("VIRSH_INSTANCE") . "-stderr.log\n";
+
     # Enter Linuxrc extra mode
     type_line_svirt 'x', expect => 'Linuxrc extras';
 

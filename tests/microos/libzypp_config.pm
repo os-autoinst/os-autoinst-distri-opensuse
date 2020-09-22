@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check that zypper configuration is customized for CaaSP
+# Summary: Check that zypper configuration is customized for MicroOS
 # fate#321764
 # Maintainer: Martin Kravec <mkravec@suse.com>
 

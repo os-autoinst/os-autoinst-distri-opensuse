@@ -19,7 +19,6 @@ use utils;
 use mm_network;
 use lockapi;
 use mmapi;
-use version_utils 'is_sle';
 
 sub run {
     my $target_ip;
@@ -50,12 +49,7 @@ sub run {
     ensure_serialdev_permissions;
 
     if (check_var("REMOTE_CONTROLLER", "vnc")) {
-        if (is_sle()) {
-            select_console 'root-console';
-            send_key('alt-f7', wait_screen_change => 10);
-        } else {
-            select_console 'x11';
-        }
+        select_console 'x11';
         x11_start_program('xterm');
         type_string "vncviewer -fullscreen $lease_ip:1\n";
         # wait for password prompt

@@ -148,7 +148,12 @@ sub run {
 
     ensure_fullscreen;
 
-    assert_screen((is_sle('15+') && get_var('UPGRADE')) ? 'inst-welcome-no-product-list' : 'inst-welcome');
+    if (is_microos('suse') || (is_sle('15+') && get_var('UPGRADE'))) {
+        assert_screen('inst-welcome-no-product-list');
+    }
+    else {
+        assert_screen('inst-welcome');
+    }
     mouse_hide;
     wait_still_screen(3);
 

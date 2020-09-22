@@ -28,16 +28,16 @@ subtest 'check_version' => sub {
     ok !version_utils::check_version($_, '10.5.1'),       "check $_, 10.5.1" for qw(=10.4.9 <10.5.0);
 };
 
-subtest 'is_caasp' => sub {
-    use version_utils 'is_caasp';
+subtest 'is_microos' => sub {
+    use version_utils 'is_microos';
 
-    set_var('DISTRI', 'caasp');
+    set_var('DISTRI', 'microos');
 
-    ok is_caasp;
+    ok is_microos;
 
     set_var('DISTRI', undef);
 
-    ok !is_caasp;
+    ok !is_microos;
 };
 
 subtest 'is_leap' => sub {

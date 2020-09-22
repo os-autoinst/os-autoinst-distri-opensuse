@@ -30,7 +30,7 @@ use constant {
         qw(
           is_sle
           is_pre_15
-          is_caasp
+          is_microos
           is_gnome_next
           is_jeos
           is_krypton_argon
@@ -49,6 +49,7 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           is_public_cloud
+          is_leap_migration
           requires_role_selection
           check_version
           get_sles_release
@@ -194,38 +195,37 @@ sub check_version {
     croak "Unsupported version parameter for check_version: '$query'";
 }
 
-=head2 is_caasp
-
-Check if distribution is CaaSP or MicroOS with optional filter:
+=head2 is_microos
+Check if distribution is SUSE MicroOS or openSUSE MicroOS with optional filter:
 Media type: DVD (iso) or VMX (all disk images)
-Version: 1.0 | 2.0 | 2.0+
+Version: Tumbleweed | 15.2 (Leap) | 5.X, 6.X (SUSE)
 Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 =cut
-sub is_caasp {
-    my $filter = shift;
-    my $distri = get_var('DISTRI');
-    return 0 unless $distri && $distri =~ /caasp|microos/;
+sub is_microos {
+    my $filter  = shift;
+    my $distri  = get_var('DISTRI');
+    my $flavor  = get_var('FLAVOR');
+    my $version = get_var('VERSION');
+    return 0 unless $distri && $distri =~ /microos/;
     return 1 unless $filter;
 
+    # SUSE MicroOS will have versions 5.X, 6.X., the rest is openSUSE
+    my $type = $version =~ /^[56]\./ ? 'suse' : 'opensuse';
+    return $filter eq $type if ($filter =~ /opensuse|^suse/);
+
     if ($filter eq 'DVD') {
-        return get_var('FLAVOR') =~ /DVD/;    # DVD and Staging-?-DVD
+        return $flavor =~ /DVD/;    # DVD and Staging-?-DVD
     }
     elsif ($filter eq 'VMX') {
-        return get_var('FLAVOR') !~ /DVD/;    # If not DVD it's VMX
+        return $flavor !~ /DVD/;    # If not DVD it's VMX
     }
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
-        return ($filter =~ /\+$/) if check_var('VERSION', 'Tumbleweed');
-        return check_version($filter, get_var('VERSION'), qr/\d\.\d/);
-    }
-    elsif ($filter =~ /caasp|microos/) {
-        return check_var('DISTRI', $filter);
-    }
-    elsif ($filter =~ /staging/) {
-        return get_var('FLAVOR') =~ /Staging-.-DVD/;
+        return ($filter =~ /\+$/) if ($version eq 'Tumbleweed' && $type eq 'opensuse');
+        return check_version($filter, $version, qr/\d\.\d/);
     }
     else {
-        return check_var('FLAVOR', $filter);    # Specific FLAVOR selector
+        return $flavor eq $filter;    # Specific FLAVOR selector
     }
 }
 
@@ -269,7 +269,7 @@ Returns true if called on opensuse
 =cut
 sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
-    return 1 if check_var('DISTRI', 'microos');
+    return 1 if is_microos 'opensuse';
     return 0;
 }
 
@@ -294,7 +294,7 @@ sub is_sle {
 Returns true if called on a transactional server
 =cut
 sub is_transactional {
-    return 1 if is_caasp;
+    return 1 if is_microos;
     return check_var('SYSTEM_ROLE', 'serverro');
 }
 
@@ -531,7 +531,7 @@ configuration, otherwise returns false (0).
 
 =cut
 sub has_license_on_welcome_screen {
-    return 1 if is_caasp('caasp');
+    return 1 if is_microos 'suse';
     return get_var('HASLICENSE') &&
       (((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
         || is_sle('<15')
@@ -585,4 +585,12 @@ Returns true if PUBLIC_CLOUD is set to 1
 
 sub is_public_cloud {
     return get_var('PUBLIC_CLOUD');
+}
+
+=head2 is_leap_migration
+
+Returns true if called in a leap to sle migration scenario
+=cut
+sub is_leap_migration {
+    return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
 }

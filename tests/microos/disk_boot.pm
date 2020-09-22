@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 
-use caasp "microos_login";
+use microos "microos_login";
 
 sub run {
     shift->wait_boot(bootloader_time => 300);

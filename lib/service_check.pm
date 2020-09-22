@@ -6,7 +6,7 @@ check service status or service function before and after migration
 
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -46,9 +46,10 @@ our @EXPORT = qw(
 );
 
 our $hdd_base_version;
-our $support_ver_def  = '12+';
+our $support_ver_def  = '11+';
 our $support_ver_12   = '=12';
 our $support_ver_ge15 = '15+';
+our $support_ver_ge12 = '12+';
 
 our %srv_check_results = (
     before_migration => 'PASS',
@@ -149,7 +150,7 @@ our $default_services = {
     apparmor => {
         srv_pkg_name       => 'apparmor',
         srv_proc_name      => 'apparmor',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge12,
         service_check_func => \&services::apparmor::full_apparmor_check
     },
     vsftp => {
@@ -215,18 +216,24 @@ sub install_services {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
+        my $service_type  = 'SystemV';
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check before migration");
         eval {
             if (is_sle($support_ver, $hdd_base_version)) {
+                if (check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
+                    $service_type = 'SystemV';
+                }
+                else {
+                    $service_type = 'Systemd';
+                }
                 if (exists $service->{$s}->{service_check_func}) {
-                    $service->{$s}->{service_check_func}->('before');
+                    $service->{$s}->{service_check_func}->('before', $service_type);
                     next;
                 }
                 zypper_call "in $srv_pkg_name";
-                systemctl 'enable ' . $srv_proc_name;
-                systemctl 'start ' . $srv_proc_name;
-                systemctl 'is-active ' . $srv_proc_name;
+                common_service_start($srv_proc_name, $service_type);
+                common_service_status($srv_proc_name, $service_type);
             }
         };
         if ($@) {
@@ -250,6 +257,7 @@ sub check_services {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
+        my $service_type  = 'Systemd';
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check after migration");
         eval {
@@ -257,11 +265,10 @@ sub check_services {
                 # service check after migration. if we've set up service check
                 # function, we don't need following actions to check the service.
                 if (exists $service->{$s}->{service_check_func}) {
-                    $service->{$s}->{service_check_func}->();
+                    $service->{$s}->{service_check_func}->('after', 'Systemd');
                     next;
                 }
-
-                systemctl 'is-active ' . $srv_proc_name;
+                common_service_status($srv_proc_name, $service_type);
             }
         };
         if ($@) {

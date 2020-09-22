@@ -23,7 +23,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_caasp is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
@@ -88,6 +88,9 @@ our @EXPORT = qw(
   create_btrfs_subvolume
   file_content_replace
   ensure_ca_certificates_suse_installed
+  is_efi_boot
+  common_service_start
+  common_service_status
 );
 
 =head1 SYNOPSIS
@@ -1070,7 +1073,7 @@ openSUSE distris, except for Xen PV (bsc#1086243).
 
 =cut
 sub get_root_console_tty {
-    return (!is_sle('<15') && !is_caasp && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
+    return (!is_sle('<15') && !is_microos && !check_var('VIRSH_VMM_TYPE', 'linux')) ? 6 : 2;
 }
 
 =head2 get_x11_console_tty
@@ -1087,7 +1090,7 @@ sub get_x11_console_tty {
     my $new_gdm
       = !is_sle('<15')
       && !is_leap('<15.0')
-      && !is_caasp
+      && !is_microos
       && !check_var('VIRSH_VMM_FAMILY', 'hyperv')
       && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');
@@ -1685,6 +1688,43 @@ sub ensure_ca_certificates_suse_installed {
         my $distversion = get_required_var("VERSION") =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
         zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
         zypper_call("in ca-certificates-suse");
+    }
+}
+
+# non empty */sys/firmware/efi/* must exist in UEFI mode
+sub is_efi_boot {
+    return !!script_output('test -d /sys/firmware/efi/ && ls -A /sys/firmware/efi/', proceed_on_failure => 1);
+}
+
+sub common_service_start {
+    my ($service, $type) = @_;
+
+    if ($type eq 'SystemV') {
+        script_run '/etc/init.d/' . $service . ' start';
+        script_run 'service ' . $service . ' status';
+        assert_script_run 'chkconfig ' . $service . ' on';
+    }
+    elsif ($type eq 'Systemd') {
+        systemctl 'enable ' . $service;
+        systemctl 'start ' . $service;
+    }
+    else {
+        die "Unsupported service type, please check it again.";
+    }
+}
+
+sub common_service_status {
+    my ($service, $type) = @_;
+
+    if ($type eq 'SystemV') {
+        assert_script_run 'chkconfig  --list | grep ' . $service;
+        assert_script_run 'service ' . $service . ' status | grep running';
+    }
+    elsif ($type eq 'Systemd') {
+        systemctl 'is-active ' . $service;
+    }
+    else {
+        die "Unsupported service type, please check it again.";
     }
 }
 

@@ -7,7 +7,7 @@ function help_usage() {
     echo "script usage: $(basename $0) [-s Start Monitor for guest console] [-e End of Monitor for guest console ] [-h help]"
 }
 
-monitor_log_file="/tmp/guest_console_monitor.log"
+monitor_log_file="/var/log/guest_console_monitor.log"
 #Quit if there are less than one argument
 if [ $# -eq 0 ];then
     help_usage | tee -a ${monitor_log_file}

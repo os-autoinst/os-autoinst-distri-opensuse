@@ -47,13 +47,22 @@ sub run_test {
     die('Please override this subroutine in children modules to run desired tests.');
 }
 
+sub prepare_run_test {
+    my $self = shift;
+
+    virt_utils::cleanup_host_and_guest_logs;
+    virt_utils::start_monitor_guest_console;
+}
+
 sub run {
     my ($self) = @_;
     script_run("rm -f /root/{commands_history,commands_failure}");
     assert_script_run("history -c");
+    $self->prepare_run_test;
     $self->{"start_run"} = time();
     $self->run_test;
     $self->{"stop_run"} = time();
+    virt_utils::stop_monitor_guest_console;
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
 }
@@ -134,19 +143,31 @@ sub analyzeResult {
         $self->{test_results}->{$uncheckpoint_failure_guest}->{$uncheckpoint_failure}->{status} = 'FAILED';
         $self->{test_results}->{$uncheckpoint_failure_guest}->{$uncheckpoint_failure}->{error}  = $uncheckpoint_failure_error;
     }
+
+    if ($status eq 'PASSED' and !defined $self->{test_results}) {
+        $self->{test_results}->{'ALL GUESTS'}->{'ALL TESTS'}->{status} = 'PASSED';
+        $self->{test_results}->{'ALL GUESTS'}->{'ALL TESTS'}->{error}  = 'NONE';
+    }
 }
 
 sub post_fail_hook {
     my ($self) = shift;
+
     $self->{"stop_run"} = time();
     assert_script_run("history -w /root/commands_history");
+    virt_utils::stop_monitor_guest_console;
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
-    virt_utils::upload_supportconfig_log;
+
+    virt_utils::collect_host_and_guest_logs;
+    upload_logs("/var/log/clean_up_virt_logs.log");
+    save_screenshot;
+    upload_logs("/var/log/guest_console_monitor.log");
+    save_screenshot;
+    script_run("rm -f -r /var/log/clean_up_virt_logs.log /var/log/guest_console_monitor.log");
+    save_screenshot;
     $self->upload_coredumps;
-    #(caller(0))[0] can help pass calling package name into called subroutine
-    virt_utils::upload_virt_logs("/var/log/libvirt", (caller(0))[0] . "-libvirt-logs");
-    $self->SUPER::post_fail_hook;
+    save_screenshot;
 }
 
 1;

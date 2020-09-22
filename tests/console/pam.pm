@@ -40,7 +40,7 @@ sub run {
     }
     zypper_call('install bats pam-test pam pam-config snapper perl');
     if (is_tumbleweed()) {
-        zypper_call('install pam-deprecated');
+        zypper_call('install pam-deprecated "group(wheel)"');
     }
 
     # create a snapshot for rollback

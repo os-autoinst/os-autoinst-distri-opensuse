@@ -75,6 +75,21 @@ sub analyzeResult {
     return $result;
 }
 
+sub post_execute_script_assertion {
+    my $self = shift;
+
+    # display test result
+    # print the test output to the openQA output
+    $self->{script_output} = script_output "cd /tmp; zcat $self->{compressed_log_name}.tar.gz | sed -n '/Overall guest upgrade result/,/[0-9]* fail [0-9]* succeed/p'";
+    save_screenshot;
+
+    my $output = $self->{script_output};
+    $output =~ s/"|'|`//g;
+    my $guest_upgrade_assert_pattern = "Overall[[:space:]]guest[[:space:]]upgrade[[:space:]]result[[:space:]]is:.*(Fail|Timeout).*Test[[:space:]]done";
+    script_output("shopt -s nocasematch;[[ ! \"$output\" =~ $guest_upgrade_assert_pattern ]]", type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+}
+
 sub run {
     my $self            = shift;
     my $timeout         = get_var('MAX_TEST_TIME', '36000') + 10;
@@ -85,18 +100,9 @@ sub run {
     # and it will be copied into guests to be used during guest upgrade test
     repl_module_in_sourcefile();
 
-    $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);
-
-    $self->run_test($timeout, '', 'no', 'yes', '/var/log/qa/', $upload_log_name);
-
-    # display test result
-    # print the test output to the openQA output
-    my $guest_upgrade_log_content = script_output "cd /tmp; zcat $upload_log_name.tar.gz | sed -n '/Overall guest upgrade result/,/[0-9]* fail [0-9]* succeed/p'";
-    save_screenshot;
-
-    # print the sub test junit log
     $self->{'package_name'} = 'Guest Upgrade Test';
-    $self->add_junit_log($guest_upgrade_log_content);
+    $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);
+    $self->run_test($timeout, '', 'yes', 'yes', '/var/log/qa/', $upload_log_name);
 }
 
 1;

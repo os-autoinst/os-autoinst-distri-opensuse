@@ -162,8 +162,8 @@ sub create_loop_device_by_rootsize {
         else {
             $filename = "test_dev";
         }
-        script_run("dd if=/dev/zero bs=$bsize count=$count of=$INST_DIR/$filename");
-        script_run("losetup -fP $INST_DIR/$filename");
+        assert_script_run("fallocate -l \$(($bsize * $count)) $INST_DIR/$filename", 300);
+        assert_script_run("losetup -fP $INST_DIR/$filename",                        300);
         $num += 1;
     }
     script_run("losetup -a");

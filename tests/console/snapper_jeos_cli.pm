@@ -41,7 +41,12 @@ sub rollback_and_reboot {
     assert_script_run("snapper rollback $rollback_id");
     assert_script_run("snapper list");
     power_action('reboot');
-    $self->wait_boot;
+    if (check_var('ARCH', 'aarch64')) {
+        $self->wait_boot(bootloader_time => 300);
+    }
+    else {
+        $self->wait_boot;
+    }
     select_console('root-console');
     assert_script_run("snapper list");
 }

@@ -53,6 +53,16 @@ sub analyzeResult {
     return $result;
 }
 
+sub post_execute_script_assertion {
+    my $self   = shift;
+    my $output = $self->{script_output};
+
+    $output =~ s/"|'|`//g;
+    my $guest_installation_assert_pattern = "Test[[:space:]]in[[:space:]]progress.*(fail|timeout).*Test[[:space:]]run[[:space:]]complete";
+    script_output("shopt -s nocasematch;[[ ! \"$output\" =~ $guest_installation_assert_pattern ]]", type_command => 0, proceed_on_failure => 0);
+    save_screenshot;
+}
+
 sub run {
     my $self = shift;
 

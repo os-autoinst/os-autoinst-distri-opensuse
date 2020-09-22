@@ -1,0 +1,6 @@
+name:    qam_rmt
+description:    >
+    Run rmt test for Maintenance Updates
+schedule:
+  - boot/boot_to_desktop
+  - x11/rmt/rmt_feature

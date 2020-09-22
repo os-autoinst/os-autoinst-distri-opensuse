@@ -34,12 +34,16 @@ sub run {
     }
 
     # install as many as SELinux related packages
-    my $pkgs
-      = "selinux-tools libselinux-devel libselinux1 libselinux1-32bit python3-selinux restorecond mcstrans libsepol1 libsepol-devel libsemanage1 libsemanage-devel checkpolicy setools-console";
-    zypper_call("in $pkgs", timeout => 3000);
-
-    if (is_sle('>=15')) {
-        zypper_call("in setools-console setools-devel setools-java setools-libs setools-tcl", timeout => 600);
+    my @pkgs = (
+        "selinux-tools",   "libselinux-devel", "libselinux1",       "libselinux1-32bit", "python3-selinux", "libsepol1",
+        "libsepol-devel",  "libsemanage1",     "libsemanage-devel", "checkpolicy",       "mcstrans",        "restorecond",
+        "setools-console", "setools-devel",    "setools-java",      "setools-libs",      "setools-tcl"
+    );
+    foreach my $pkg (@pkgs) {
+        my $results = script_run("zypper in -y $pkg", timeout => 300);
+        if ($results) {
+            record_soft_failure("workaround for bsc#1176660, $pkg is missing");
+        }
     }
 
     # for opensuse, e.g, Tumbleweed install selinux_policy pkgs as needed

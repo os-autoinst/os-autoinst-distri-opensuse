@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_caasp);
+use version_utils qw(is_sle is_opensuse is_microos);
 
 my %role_hotkey = (
     gnome    => 's',
@@ -30,7 +30,7 @@ my %role_hotkey = (
 sub change_system_role {
     my ($system_role) = @_;
     # Since SLE 15 we do not have shortcuts for system roles anymore
-    if (is_sle('15+') || is_opensuse || is_caasp) {
+    if (is_sle('15+') || is_opensuse || is_microos) {
         if (check_var('VIDEOMODE', 'text')) {
             # Expect that no actions are done before and default system role is preselected
             send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role
@@ -73,11 +73,15 @@ sub assert_system_role {
 }
 
 sub run {
-    return record_info(
-        "Skip screen",
-        "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available"
-    ) if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64'));
-    assert_system_role;
+    if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64')) {
+        record_info("Skip screen", "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available");
+    }
+    elsif (check_var('ARCH', 'aarch64') && is_sle('>=12-SP3') && is_sle('<15')) {
+        record_info("Skip screen", "System Role screen is  not displayed on aarch64 between 12SP3 and 12SP5");
+    }
+    else {
+        assert_system_role;
+    }
 }
 
 1;

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,10 +29,11 @@ sub run {
     my $zypper_dup_finish        = qr/^There are some running programs that might use files|ZYPPER-DONE/m;
     my $zypper_packagekit        = qr/^Tell PackageKit to quit\?/m;
     my $zypper_packagekit_again  = qr/^Try again\?/m;
-    my $zypper_repo_disabled     = qr/^Repository '[^']+' has been successfully disabled./m;
-    my $zypper_dup_fileconflict  = qr/^File conflicts .*^Continue\? \[y/ms;
-    my $zypper_retrieving        = qr/Retrieving: \S+/;
-    my $zypper_check_conflicts   = qr/Checking for file conflicts: \S+/;
+    # Check return message about disable all repos or all repos has been disabled
+    my $zypper_repo_disabled    = qr/^Repository '[^']+' has been successfully disabled.|Nothing to change for repository '[^']+'./m;
+    my $zypper_dup_fileconflict = qr/^File conflicts .*^Continue\? \[y/ms;
+    my $zypper_retrieving       = qr/Retrieving: \S+/;
+    my $zypper_check_conflicts  = qr/Checking for file conflicts: \S+/;
 
     # This is just for reference to know how the network was configured prior to the update
     script_run "ip addr show";

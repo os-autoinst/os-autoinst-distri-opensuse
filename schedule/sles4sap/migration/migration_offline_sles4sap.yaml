@@ -1,0 +1,47 @@
+---
+name: migration_offline_dvd_sles4sap
+description: >
+  Offline migration from installed SLES4SAP.
+
+  This test does an offline migration using the *DVD* media, with or without SCC registration.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: QAD
+  INSTANCE_TYPE: ASCS
+  MAX_JOB_TIME: '14400'
+  PATCH: '1'
+  UPGRADE: '1'
+  ORIGINAL_TARGET_VERSION: '%VERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
+  BOOTFROM: d
+  TIMEOUT_SCALE: 2
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: sle-%HDDVERSION%-%ARCH%-sap-nw-noscc.qcow2
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/sapconf
+  - sles4sap/saptune
+  - sles4sap/netweaver_test_instance

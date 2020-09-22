@@ -47,6 +47,7 @@ use constant {
           set_sshserial_dev
           unset_sshserial_dev
           use_ssh_serial_console
+          set_ssh_console_timeout
           )
     ]
 };
@@ -159,6 +160,15 @@ Returns true if the current instance is running as PowerVM backend 'spvm' or 'hm
 
 sub is_pvm {
     return check_var('BACKEND', 'spvm') || check_var('BACKEND', 'pvm_hmc');
+}
+
+#This subroutine takes absolute file path of sshd config file and desired ssh connection timeout as arguments
+#The ssh connection timeout is counted as seconds
+sub set_ssh_console_timeout {
+    my ($sshd_config_file, $sshd_timeout) = @_;
+    my $client_count_max = $sshd_timeout / 60;
+    script_run("sed -irnE 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
+    script_run("service sshd restart") if (script_run("systemctl restart sshd") ne '0');
 }
 
 1;

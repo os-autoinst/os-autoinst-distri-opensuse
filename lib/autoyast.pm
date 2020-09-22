@@ -63,10 +63,11 @@ sub expand_patterns {
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
             my @sle12;
-            push @sle12, qw(Minimal apparmor base documentation 32bit)                 if check_var('DESKTOP', 'textmode');
-            push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic 32bit) if check_var('DESKTOP', 'gnome');
-            push @sle12, qw(desktop-base desktop-gnome)                                if get_var('SCC_ADDONS') =~ m/we/;
-            push @sle12, qw(yast2)                                                     if is_sle('>=12-sp3');
+            push @sle12, qw(Minimal apparmor base documentation)                 if check_var('DESKTOP', 'textmode');
+            push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic) if check_var('DESKTOP', 'gnome');
+            push @sle12, qw(desktop-base desktop-gnome)                          if get_var('SCC_ADDONS') =~ m/we/;
+            push @sle12, qw(yast2)                                               if is_sle('>=12-sp3');
+            push @sle12, qw(32bit)                                               if !check_var('ARCH', 'aarch64') && get_var('DESKTOP') =~ /gnome|textmode/;
             return [@sle12];
         }
         # SLED12 has different patterns
@@ -359,7 +360,7 @@ sub create_report {
 
  Try to detect profile directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
  and returns its path.
- TODO: autoyast_{caasp,kvm,qam,xen}
+ TODO: autoyast_{kvm,qam,xen}
 
  $profile is the autoyast profile 'autoinst.xml'.
  $path is AutoYaST profile path
@@ -439,7 +440,9 @@ sub adjust_network_conf {
 sub expand_variables {
     my ($profile) = @_;
     # Expand other variables
-    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_REGCODE_WE SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS);
+    my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC
+      SCC_REGCODE_WE SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
+      REPO_SLE_MODULE_DEVELOPMENT_TOOLS);
     # Push more variables to expand from the job setting
     my @extra_vars = push @vars, split(/,/, get_var('AY_EXPAND_VARS', ''));
     if (get_var 'SALT_FORMULAS_PATH') {

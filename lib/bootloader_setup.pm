@@ -18,7 +18,7 @@ use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
 use utils;
-use version_utils qw(is_caasp is_jeos is_leap is_sle is_tumbleweed);
+use version_utils qw(is_microos is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
 use Utils::Backends 'is_pvm';
 
@@ -65,6 +65,7 @@ our @EXPORT = qw(
   remove_grub_cmdline_settings
   replace_grub_cmdline_settings
   mimic_user_to_import
+  tianocore_disable_secureboot
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -349,7 +350,7 @@ sub uefi_bootmenu_params {
         for (1 .. 10) { send_key "down"; }
     }
     else {
-        if (is_caasp && get_var('BOOT_HDD_IMAGE')) {
+        if (is_microos && get_var('BOOT_HDD_IMAGE')) {
             # skip healthchecker lines
             for (1 .. 5) { send_key "down"; }
         }
@@ -368,7 +369,7 @@ sub uefi_bootmenu_params {
         }
         sleep 5;
         for (1 .. 4) { send_key "down"; }
-        if (is_caasp && get_var('BOOT_HDD_IMAGE')) {
+        if (is_microos && get_var('BOOT_HDD_IMAGE')) {
             for (1 .. 7) { send_key "down"; }
         }
     }
@@ -437,11 +438,11 @@ sub bootmenu_default_params {
         push @params, "Y2DEBUG=1";
     }
     else {
-        # On JeOS and CaaSP we don't have YaST installer.
-        push @params, "Y2DEBUG=1" unless is_jeos || is_caasp;
+        # On JeOS and MicroOS we don't have YaST installer.
+        push @params, "Y2DEBUG=1" unless is_jeos || is_microos;
 
         # gfxpayload variable replaced vga option in grub2
-        if (!is_jeos && !is_caasp && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        if (!is_jeos && !is_microos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
             push @params, "vga=791";
             my $video = 'video=1024x768';
             $video .= '-16' if check_var('QEMUVGA', 'cirrus');
@@ -451,7 +452,7 @@ sub bootmenu_default_params {
     }
 
     if (!get_var("NICEVIDEO")) {
-        if (is_caasp) {
+        if (is_microos) {
             push @params, get_bootmenu_console_params $args{baud_rate};
         }
         elsif (!is_jeos) {
@@ -472,7 +473,7 @@ sub bootmenu_default_params {
     # we have to use something else.
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         push @params, get_hyperv_fb_video_resolution;
-        push @params, 'namescheme=by-label' unless is_jeos or is_caasp;
+        push @params, 'namescheme=by-label' unless is_jeos or is_microos;
     }
     type_boot_parameters(" @params ");
     return @params;
@@ -717,6 +718,11 @@ sub specific_bootmenu_params {
             if ($dud =~ /^(http|https|ftp):\/\//) {
                 push @params, "dud=$dud";
             }
+            elsif ($dud =~ /^ASSET_\d+$/) {
+                # In case dud is uploaded as an ASSET we need just filename
+                $dud = basename(get_required_var($dud));
+                push @params, 'dud=' . autoinst_url("/assets/other/$dud");
+            }
             else {
                 push @params, 'dud=' . data_url($dud);
             }
@@ -878,6 +884,33 @@ sub tianocore_enter_menu {
         send_key 'f2';
         sleep 0.1;
     }
+}
+
+sub tianocore_disable_secureboot {
+    my $basetest = shift;
+
+    assert_screen 'grub2';
+    send_key 'c';
+    sleep 2;
+    type_string "exit\n";
+    assert_screen 'tianocore-mainmenu';
+    # Select 'Boot manager' entry
+    send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
+    send_key 'ret';
+    send_key_until_needlematch('tianocore-devicemanager-sb-conf', 'down', 5, 5);
+    send_key 'ret';
+    send_key_until_needlematch('tianocore-devicemanager-sb-conf-attempt-sb', 'down', 5, 5);
+    send_key 'spc';
+    assert_screen 'tianocore-devicemanager-sb-conf-changed';
+    send_key 'ret';
+    assert_screen 'tianocore-devicemanager-sb-conf-attempt-sb';
+    send_key 'f10';
+    assert_screen 'tianocore-bootmanager-save-changes';
+    send_key 'Y';
+    send_key_until_needlematch 'tianocore-devicemanager',  'esc';
+    send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
+    send_key 'ret';
+    $basetest->wait_grub;
 }
 
 sub tianocore_select_bootloader {

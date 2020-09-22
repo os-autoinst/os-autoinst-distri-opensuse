@@ -1,0 +1,13 @@
+name:   leaptosle_zdup
+description:    >
+    This is for leap to sle zdup migration test
+schedule:
+  - boot/boot_to_desktop
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - installation/leap2sle_zdup
+  - migration/version_switch_upgrade_target
+  - boot/boot_to_desktop
+  - boot/grub_test_snapshot
+  - boot/snapper_rollback
