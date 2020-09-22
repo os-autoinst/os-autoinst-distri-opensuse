@@ -18,6 +18,7 @@
 
 use base "consoletest";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -32,7 +33,7 @@ sub run {
     assert_script_run "virsh autostart --disable $_" foreach (keys %virt_autotest::common::guests);
 
     record_info "LIBVIRTD", "Restart libvirtd and expect all guests to stay down";
-    systemctl 'restart libvirtd';
+    restart_libvirtd;
 }
 
 sub test_flags {

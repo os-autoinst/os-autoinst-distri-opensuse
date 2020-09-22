@@ -84,7 +84,7 @@ sub post_fail_hook {
     my ($self) = @_;
 
     #Restart libvirtd service
-    virt_autotest::virtual_network_utils::restart_libvirtd();
+    virt_autotest::utils::restart_libvirtd();
 
     #Destroy created virtual networks
     virt_autotest::virtual_network_utils::destroy_vir_network();

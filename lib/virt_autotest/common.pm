@@ -138,7 +138,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp2HVM => {
             name         => 'sles15sp2HVM',
             autoyast     => 'autoyast_xen/sles15sp2HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp2',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',           # sle15sp2 is unknown on 12.3
             macaddress   => '52:54:00:78:73:b0',
             ip           => '192.168.122.116',
             distro       => 'SLE_15',
@@ -147,7 +147,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp2PV => {
             name         => 'sles15sp2PV',
             autoyast     => 'autoyast_xen/sles15sp2PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp2',
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',      # sle15sp2 is unknown on 12.3
             macaddress   => '52:54:00:78:73:af',
             ip           => '192.168.122.115',
             distro       => 'SLE_15',
@@ -337,6 +337,35 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
 } else {
     %guests = ();
+}
+
+our %imports = ();    # imports are virtual machines that we don't install but just import. We test those separately.
+if (get_var("REGRESSION", '') =~ /xen/) {
+    %imports = (
+        win2k19 => {
+            name         => 'win2k19',
+            extra_params => '--connect xen:/// --hvm --os-type windows --os-variant win2k19',
+            disk         => '/var/lib/libvirt/images/win2k19.raw',
+            source       => '/mnt/virt_images/xen/win2k19.raw',
+            macaddress   => '52:54:00:78:73:66',
+            ip           => '192.168.122.66',
+            version      => 'Microsoft Windows Server 2019',
+        },
+    );
+} elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
+    %imports = (
+        win2k19 => {
+            name         => 'win2k19',
+            extra_params => '--os-type windows --os-variant win2k19',
+            disk         => '/var/lib/libvirt/images/win2k19.raw',
+            source       => '/mnt/virt_images/kvm/win2k19.raw',
+            macaddress   => '52:54:00:78:73:66',
+            ip           => '192.168.122.66',
+            version      => 'Microsoft Windows Server 2019',
+        },
+    );
+} else {
+    %imports = ();
 }
 
 1;
