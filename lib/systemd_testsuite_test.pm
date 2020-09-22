@@ -62,9 +62,9 @@ sub testsuiteinstall {
     zypper_call '--gpg-auto-import-keys ref';
     # use systemd from the repo of the qa package
     if (get_var('SYSTEMD_FROM_TESTREPO')) {
-        if (is_sle('>15-SP2')) { zypper_call 'rm systemd-bash-completion' };
+        if (is_sle('>15-SP2')) { zypper_call 'rm systemd-bash-completion' }
         zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1';
-        change_grub_config('=.*', '=9',       'GRUB_TIMEOUT');
+        change_grub_config('=.*', '=9', 'GRUB_TIMEOUT');
         grub_mkconfig;
         wait_screen_change { type_string "shutdown -r now\n" };
         if (check_var('ARCH', 's390x')) {
