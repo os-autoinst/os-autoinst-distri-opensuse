@@ -53,7 +53,10 @@ sub post_fail_hook {
     my ($self) = shift;
     reset_consoles;
     select_console('root-console');
-    $self->upload_y2logs if (check_var('offline_upgrade', 'yes'));
+    if (check_var('offline_upgrade', 'yes')) {
+        upload_logs("/root/autoupg.xml", failok => 1);
+        $self->upload_y2logs;
+    }
     $self->SUPER::post_fail_hook;
 }
 
