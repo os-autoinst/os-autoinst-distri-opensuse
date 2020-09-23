@@ -30,6 +30,12 @@
 	<!-- The default value of "Automatic Login" checkbox -->
 	<enable_autologin config:type="boolean">false</enable_autologin>
 
+    <!-- Configuration of the installation/firstboot layout -->
+	<installation_layout>
+		<mode>steps</mode>
+		<banner config:type="boolean">true</banner>
+	</installation_layout>
+
 	<!--
 	For more variables that can be in this section, look into the control file
 	(/etc/YaST2/control.xml or root directory of installation media)
