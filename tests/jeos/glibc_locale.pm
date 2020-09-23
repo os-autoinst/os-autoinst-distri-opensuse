@@ -112,6 +112,11 @@ sub run {
         RC_LANG        => (is_sle('15+') || is_opensuse) ? qr/^ *$/ : $lc_data{$lang_ref}
     };
 
+    if (is_sle '>=15-sp3') {
+        select_console('root-console');
+        zypper_call('in glibc-locale');
+    }
+
     ## Retrieve user's $LANG env variable after JeOS firstboot
     select_console('user-console');
     clear_console;
