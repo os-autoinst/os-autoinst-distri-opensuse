@@ -53,6 +53,9 @@ use constant {
           requires_role_selection
           check_version
           get_sles_release
+          is_carwos
+          is_carwos_qemu
+          is_carwos_hpad
           )
     ],
     BACKEND => [
@@ -587,4 +590,28 @@ Returns true if called in a leap to sle migration scenario
 =cut
 sub is_leap_migration {
     return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
+}
+
+=head2 is_carwos
+
+Returns true if DISTRI is carwos.
+=cut
+sub is_carwos {
+    return get_var('DISTRI', '') eq 'carwos';
+}
+
+=head2 is_carwos_qemu
+
+Returns true if DISTRI is carwos and FLAVOR is qemu.
+=cut
+sub is_carwos_qemu {
+    return is_carwos && get_var('FLAVOR', '') eq 'qemu';
+}
+
+=head2 is_carwos_hpad
+
+Returns true if DISTRI is carwos and FLAVOR is hpad.
+=cut
+sub is_carwos_hpad {
+    return is_carwos && get_var('FLAVOR', '') eq 'hpad';
 }

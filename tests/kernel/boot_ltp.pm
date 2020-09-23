@@ -19,7 +19,7 @@ use testapi;
 use LTP::WhiteList 'download_whitelist';
 use LTP::utils;
 use LTP::TestInfo 'testinfo';
-use version_utils 'is_jeos';
+use version_utils qw(is_jeos is_carwos_qemu is_carwos);
 use main_ltp qw(loadtest_kernel shutdown_ltp);
 use File::Basename 'basename';
 
@@ -37,6 +37,9 @@ sub run {
     elsif (is_jeos) {
         record_info('Loaded JeOS image', 'nothing to do...');
     }
+    elsif (is_carwos) {
+        record_info('Loaded Carwos', 'nothing to do...');
+    }
     else {
         record_info('INFO', 'normal boot or boot with params');
         # during install_ltp, the second boot may take longer than usual
@@ -44,6 +47,15 @@ sub run {
     }
 
     $self->select_serial_terminal;
+
+    if (is_carwos_qemu) {
+        assert_script_run("export TERM=dumb; stty cols 2048");
+        assert_script_run("ip link set eth0 up");
+        assert_script_run("ip addr add 10.0.2.15/24 dev eth0");
+        assert_script_run("ip route add default via 10.0.2.2");
+        assert_script_run("echo \"nameserver 10.0.2.3\" > /etc/resolv.conf");
+        assert_script_run("ping -c 1 10.0.2.2");
+    }
 
     download_whitelist if get_var('LTP_KNOWN_ISSUES');
 
@@ -57,7 +69,9 @@ sub run {
     upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
-    script_run('rpm -qi ' . ((is_jeos) ? 'kernel-default-base' : 'kernel-default') . " > $kernel_pkg_log 2>&1");
+    my $kernel_package = ((is_jeos) ? 'kernel-default-base' : 'kernel-default');
+    $kernel_package = 'kernel-rt' if is_carwos;
+    script_run("rpm -qi $kernel_package  > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
 
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
