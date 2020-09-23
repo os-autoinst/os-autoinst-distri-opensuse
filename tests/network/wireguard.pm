@@ -20,6 +20,17 @@ use utils;
 use lockapi;
 use mmapi 'wait_for_children';
 
+sub start_wgquick {
+    foreach my $dev (@_) {
+        # Start wg-quick with some debug output on failure
+        if (script_run("systemctl start wg-quick\@$dev") != 0) {
+            script_run("systemctl status wg-quick\@$dev");
+            script_run('journalctl -e');
+            die "wg-quick failed for $dev";
+        }
+    }
+}
+
 sub run {
     my $self = shift;
 
@@ -40,7 +51,7 @@ sub run {
     assert_script_run 'grep -i CONFIG_WIREGUARD /boot/config-$(uname -r)';
     assert_script_run 'modinfo wireguard';
 
-    zypper_call 'in wireguard-tools';
+    zypper_call 'in wireguard-tools iperf';
 
     assert_script_run 'which wg';
     assert_script_run 'umask 077';
@@ -63,19 +74,61 @@ sub run {
     barrier_wait 'VPN_ESTABLISHED';
     assert_script_run "ping -c10 $vpn_remote";
 
-    zypper_call 'in iperf';
-
     if (get_var('IS_MM_SERVER')) {
         assert_script_run "iperf3 --bind $vpn_local --server --daemon --port 5001";
         script_retry 'ss -lptn | grep 5001', delay => 3, retry => 3;
         mutex_create 'server_ready';
-        wait_for_children;
     } else {
         mutex_unlock 'server_ready';
         script_retry "iperf3 --bind $vpn_local --time 30 --client $vpn_remote --port 5001", timeout => 60, delay => 3, retry => 3;
     }
+    barrier_wait('IPERF_COMPLETED');
 
     assert_script_run 'ip link set down dev wg0';
+    assert_script_run 'ip link delete dev wg0';
+
+    ## Test wg-quick
+    assert_script_run('set -eo pipefail');
+    assert_script_run('cd /etc/wireguard');
+    if (get_var('IS_MM_SERVER')) {
+        # Prepare new keys
+        assert_script_run('wg genkey | tee server | wg pubkey > server.pub');
+        assert_script_run('wg genkey | tee client1 | wg pubkey > client1.pub');
+        assert_script_run('wg genkey | tee client2 | wg pubkey > client2.pub');
+        assert_script_run('ip a && ip r');
+        exec_and_insert_password("scp -o StrictHostKeyChecking=no server.pub client* $remote:/etc/wireguard/");
+        # Prepare configuration script
+        assert_script_run('echo -e "[Interface]\nPrivateKey = `cat /etc/wireguard/server`\nAddress = ' . "$vpn_local\n" . 'ListenPort = 51820\n" > /etc/wireguard/wg0.conf');
+        assert_script_run('echo -e "[Peer]\nPublicKey = `cat /etc/wireguard/client1.pub`\nAllowedIPs = 192.168.2.2\nPersistentKeepalive = 25\n" >> /etc/wireguard/wg0.conf');
+        assert_script_run('echo -e "[Peer]\nPublicKey = `cat /etc/wireguard/client2.pub`\nAllowedIPs = 192.168.2.3\nPersistentKeepalive = 25\n" >> /etc/wireguard/wg0.conf');
+        script_run('cat /etc/wireguard/wg0.conf');
+        start_wgquick("wg0");
+        script_run('echo "Server ready"');
+        barrier_wait('WG_QUICK_READY');
+        script_run('echo "Waiting for clients ... "');
+        barrier_wait('WG_QUICK_ENABLED');
+        script_retry("ping -c10 $vpn_remote", delay => 3, retry => 10);
+    } else {
+        script_run('echo "Waiting for server ... "');
+        barrier_wait('WG_QUICK_READY');
+        # client2
+        assert_script_run('echo -e "[Interface]\nPrivateKey = `cat /etc/wireguard/client2`\nAddress = 192.168.2.3\n" > /etc/wireguard/wg2.conf');
+        assert_script_run('echo -e "[Peer]\nPublicKey = `cat /etc/wireguard/server.pub`\nEndpoint=' . "$remote:51820\n" . '\nAllowedIPs = 192.168.2.0/24" >> /etc/wireguard/wg2.conf');
+        script_run('cat /etc/wireguard/wg2.conf');
+        start_wgquick("wg2");
+        script_retry("ping -c10 $vpn_remote", delay => 3, retry => 10);
+        assert_script_run('systemctl stop wg-quick@wg2');
+        # client1 - the server expects client1 to be online after WG_QUICK_ENABLED
+        assert_script_run('echo -e "[Interface]\nPrivateKey = `cat /etc/wireguard/client1`\nAddress = 192.168.2.2\n" > /etc/wireguard/wg1.conf');
+        assert_script_run('echo -e "[Peer]\nPublicKey = `cat /etc/wireguard/server.pub`\nEndpoint=' . "$remote:51820\n" . '\nAllowedIPs = 192.168.2.0/24" >> /etc/wireguard/wg1.conf');
+        script_run('cat /etc/wireguard/wg1.conf');
+        start_wgquick("wg1");
+        barrier_wait('WG_QUICK_ENABLED');
+        script_retry("ping -c10 $vpn_remote", delay => 3, retry => 10);
+    }
+    # Finish job
+    wait_for_children if (get_var('IS_MM_SERVER'));
+
 }
 
 1;
