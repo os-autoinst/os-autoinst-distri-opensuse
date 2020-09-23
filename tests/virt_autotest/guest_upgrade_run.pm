@@ -78,14 +78,14 @@ sub analyzeResult {
 sub post_execute_script_assertion {
     my $self = shift;
 
+    my $output = $self->{script_output};
     # display test result
     # print the test output to the openQA output
     $self->{script_output} = script_output "cd /tmp; zcat $self->{compressed_log_name}.tar.gz | sed -n '/Overall guest upgrade result/,/[0-9]* fail [0-9]* succeed/p'";
     save_screenshot;
-
-    my $output = $self->{script_output};
+    # Determine test result from test output directly
     $output =~ s/"|'|`//g;
-    my $guest_upgrade_assert_pattern = "Overall[[:space:]]guest[[:space:]]upgrade[[:space:]]result[[:space:]]is:.*(Fail|Timeout).*Test[[:space:]]done";
+    my $guest_upgrade_assert_pattern = "Test[[:space:]]in[[:space:]]progress.*(fail|timeout).*Test[[:space:]]run[[:space:]]complete";
     script_output("shopt -s nocasematch;[[ ! \"$output\" =~ $guest_upgrade_assert_pattern ]]", type_command => 0, proceed_on_failure => 0);
     save_screenshot;
 }
