@@ -11,7 +11,7 @@
 
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079
+# Tag: poo#47018, poo#58079, poo#71458
 
 use base "x11test";
 use strict;
@@ -21,7 +21,7 @@ use testapi;
 sub quit_firefox {
     send_key "alt-f4";
     if (check_screen("firefox-save-and-quit", 10)) {
-        send_key "ret";
+        assert_and_click('firefox-click-close-tabs');
     }
 }
 
@@ -69,16 +69,24 @@ sub run {
 
     assert_screen "firefox-device-manager";
 
-    send_key "alt-shift-f";    # Enable FIPS mode
+    # Add condition in FIPS_ENV_MODE & Remove hotkey
+    if (get_var('FIPS_ENV_MODE')) {
+        assert_and_click('firefox-click-enable-fips');
+        wait_still_screen 2;
+    }
+
+    # Enable FIPS mode
+    # Remove send_key "alt-shift-f";
     assert_screen "firefox-confirm-fips_enabled";
-    send_key "esc";            # Quit device manager
+    send_key "esc";    # Quit device manager
 
     quit_firefox;
     assert_screen "generic-desktop";
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
-    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled');
+    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled', match_timeout => 360);
+
     type_string $fips_password;
     send_key "ret";
     assert_screen "firefox-url-loaded";
