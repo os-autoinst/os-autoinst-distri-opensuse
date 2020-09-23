@@ -140,7 +140,7 @@ sub run {
     select_console('root-console');
     # it is expected that SLE12 has glibc preinstalled
     my @pkgs = qw(glibc-locale);
-    push @pkgs, 'glibc-lang' if (is_tumbleweed);
+    push @pkgs, 'glibc-lang' if (is_tumbleweed || is_sle('>15-sp2') || is_leap('>15.2'));
     zypper_call("install @pkgs") if (is_sle('15+') || is_opensuse);
 
     my $output = script_output("localectl list-locales | tee -a /dev/$serialdev | grep -E '$lang_new_short\.(UTF-8|utf8)'");
