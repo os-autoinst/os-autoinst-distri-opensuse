@@ -773,7 +773,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
-        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64) {
+        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
             loadtest "virt_autotest/set_config_as_glue";
             loadtest "virt_autotest/setup_dns_service";
             if (get_var("ENABLE_VIR_NET")) {
