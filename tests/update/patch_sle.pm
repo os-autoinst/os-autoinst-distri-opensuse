@@ -216,6 +216,8 @@ sub install_patterns {
     $pcm     = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
 
     for my $pt (@pt_list) {
+        # if pattern is set default, skip
+        next if ($pt =~ /default/);
         # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
         if ($pt =~ /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/) {
             next unless $pcm == 0;
