@@ -45,10 +45,9 @@ sub install_klp_product {
         $lp_module  = 'SLE-Live-Patching';
     }
 
-    #install kgraft product
-    zypper_call("ar http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/ kgraft-pool");
-    zypper_call("ar $release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/ kgraft-update");
-    zypper_call("ref");
+    # install kgraft product
+    zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/",                 name => "kgraft-pool");
+    zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
     zypper_call("mr -e kgraft-update");
 }
