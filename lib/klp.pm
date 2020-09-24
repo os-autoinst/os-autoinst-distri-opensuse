@@ -24,8 +24,9 @@ our @EXPORT = qw(
 );
 
 sub install_klp_product {
-    my $arch    = get_required_var('ARCH');
-    my $version = get_required_var('VERSION');
+    my $arch           = get_required_var('ARCH');
+    my $version        = get_required_var('VERSION');
+    my $livepatch_repo = get_var('REPO_SLE_MODULE_LIVE_PATCHING');
     my $release_override;
     my $lp_product;
     my $lp_module;
@@ -43,6 +44,10 @@ sub install_klp_product {
     else {
         $lp_product = 'sle-live-patching';
         $lp_module  = 'SLE-Live-Patching';
+    }
+
+    if ($livepatch_repo) {
+        zypper_ar("$utils::OPENQA_FTP_URL/$livepatch_repo", name => "repo-live-patching");
     }
 
     # install kgraft product
