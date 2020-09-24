@@ -1,6 +1,6 @@
 ---
 disks:
-  - name: dasda
+  - name: sda
     table_type: gpt
     allowed_unpartitioned: 0.00GB
     partitions:
@@ -13,6 +13,15 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: /
+      - role: data
+        partition_type: primary
+        validation_flag: 1
+        formatting_options:
+          should_format: 1
+          filesystem: xfs
+        mounting_options:
+          should_mount: 1
+          mount_point: /home
       - role: swap
         partition_type: primary
         validation_flag: 0

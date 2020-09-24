@@ -8,10 +8,9 @@ model: QEMU NVMe Ctrl
 namespace_count: 1
 nvm_block_size: 512
 nvm_ns: 0x1
-table_type: gpt
-partition_table_disk: nvme0n1
 disks:
   - name: nvme0n1
+    table_type: gpt
     allowed_unpartitioned: 0.00GB
     partitions:
       - role: operating-system
