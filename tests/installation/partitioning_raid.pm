@@ -500,7 +500,13 @@ sub check_warnings {
 sub enter_partitioning {
     # create partitioning
     if (is_storage_ng) {
-        send_key $cmd{expertpartitioner};
+        if (check_screen 'expert-partitioner-alt-x-button', 2) {
+            # bypass https://progress.opensuse.org/issues/59876
+            send_key 'alt-x';
+        }
+        else {
+            send_key $cmd{expertpartitioner};
+        }
         save_screenshot;
         rescan_devices;
     }
