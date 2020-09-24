@@ -1,8 +1,7 @@
 ---
-table_type: gpt
-partition_table_disk: vda
 disks:
   - name: vda
+    table_type: gpt
     allowed_unpartitioned: 0.00GB
     partitions:
       - role: operating-system

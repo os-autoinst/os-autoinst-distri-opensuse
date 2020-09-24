@@ -1,8 +1,7 @@
 ---
-table_type: msdos
-partition_table_disk: xvdb
 disks:
   - name: xvdb
+    table_type: msdos
     allowed_unpartitioned: 0.00GB
     partitions:
       - size: 9250Mib

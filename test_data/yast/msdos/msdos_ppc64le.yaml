@@ -1,8 +1,7 @@
 ---
-table_type: msdos
-partition_table_disk: vda
 disks:
   - name: vda
+    table_type: msdos
     allowed_unpartitioned: 0.00GB
     partitions:
       - size: 8Mib
