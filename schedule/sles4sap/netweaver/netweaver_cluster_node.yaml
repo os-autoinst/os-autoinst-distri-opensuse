@@ -28,7 +28,6 @@ vars:
   HDD_SCC_REGISTERED: '1'
   VIRTIO_CONSOLE: '0'
   HA_CLUSTER: '1'
-  NICTYPE: tap
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
 schedule:

@@ -5,7 +5,6 @@ description: >
 vars:
   BOOTFROM: c
   NETWORKS: fixed
-  NICTYPE: tap
   REGRESSION: remote
   REMOTE_DESKTOP_TYPE: win_client
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
