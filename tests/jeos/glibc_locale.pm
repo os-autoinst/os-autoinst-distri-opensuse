@@ -31,7 +31,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call clear_console ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_sle is_tumbleweed);
+use version_utils qw(is_opensuse is_sle is_tumbleweed is_leap);
 use power_action_utils qw(power_action);
 
 ## Define test data
