@@ -1,0 +1,22 @@
+---
+name: boot_into_snapshot_after_upgrade
+description: >
+    Maintainer: zluo
+    add boot_into_snapshot_after_upgrade
+schedule:
+    - installation/isosize
+    - installation/bootloader
+    - installation/welcome
+    - installation/upgrade_select
+    - installation/online_repos
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
+    - installation/opensuse_welcome
+    - installation/boot_into_snapshot

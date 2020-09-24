@@ -23,10 +23,17 @@ use base "opensusebasetest";
 
 sub run {
     my ($self) = @_;
-    assert_screen 'linux-login', 200;
-    select_console 'root-console';
-    # 1)
-    assert_script_run('touch /etc/NOWRITE;test ! -f /etc/NOWRITE');
+    # for scenarios BOOT_INTO_SNAPSHOT_AFTER_UPGRADE we just need to make sure that root-console is there because
+    # the system is already up and running. For ROLL-BACK it shouldn't check that current snapshot is writeable or not.
+    if (get_var('BOOT_INTO_SNAPSHOT_AFTER_UPGRADE')) {
+        select_console 'root-console';
+    }
+    else {
+        assert_screen 'linux-login', 200;
+        select_console 'root-console';
+        # 1)
+        assert_script_run('touch /etc/NOWRITE;test ! -f /etc/NOWRITE');
+    }
     # 1b) just debugging infos
     assert_script_run("snapper --iso list");
     assert_script_run("cat /etc/os-release");
