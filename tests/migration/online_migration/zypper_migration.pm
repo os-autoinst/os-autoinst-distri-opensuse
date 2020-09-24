@@ -39,7 +39,8 @@ sub run {
 
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
-    script_run("(zypper migration;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
+    my $option = (is_leap_migration) ? " --allow-vendor-change " : " ";
+    script_run("(zypper migration $option; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     # migration process take long time
     my $timeout          = 7200;
     my $migration_checks = [
