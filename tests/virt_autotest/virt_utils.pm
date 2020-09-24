@@ -33,20 +33,17 @@ our @EXPORT
 
 sub enable_debug_logging {
 
-    # turn on debug for libvirtd
-    # set log_level = 1 'debug'
-    # set log_levle = 3 'warning' for sles15sp3 XEN only as the log size is 100G (just a workaround)
+    #turn on debug and log filter for libvirtd
+    #set log_level = 1 'debug'
+    #the size of libvirtd with debug level and without any filter on sles15sp3 xen is over 100G,
+    #which consumes all the disk space. Now get comfirmation from virt developers,
+    #log filter is set to store component logs with different levels.
     my $libvirtd_conf_file = "/etc/libvirt/libvirtd.conf";
     if (!script_run "ls $libvirtd_conf_file") {
-        if (is_sle('=15-SP3') && is_xen_host) {
-            script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 3/};\${x;/^\$/{s//log_level = 3/;H};x}' $libvirtd_conf_file";
-            script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"3:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"3:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
-        }
-        else {
-            script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
-            script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
-        }
-        script_run "grep -e log_level -e log_outputs $libvirtd_conf_file";
+        script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
+        script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
+        script_run "sed -i '/log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $libvirtd_conf_file";
+        script_run "grep -e log_level -e log_outputs -e log_filters $libvirtd_conf_file";
         if (is_sle('<12')) {
             script_run 'rclibvirtd restart';
         }
