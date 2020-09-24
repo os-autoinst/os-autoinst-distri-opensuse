@@ -19,11 +19,11 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call clear_console);
-use version_utils 'is_sle';
-use rt_utils 'select_kernel';
-use File::Basename 'fileparse';
-use power_action_utils 'power_action';
-use Utils::Systemd 'systemctl';
+use version_utils qw(is_sle);
+use rt_utils qw(select_kernel);
+use File::Basename qw(fileparse);
+use power_action_utils qw(power_action);
+use Utils::Systemd qw(systemctl);
 
 sub run_lttng_demo_trace {
     my $trace = {
@@ -66,6 +66,11 @@ sub run {
     script_run 'sed -i s\'/^allow_unsupported_modules 0/allow_unsupported_modules 1/\' /etc/modprobe.d/10-unsupported-modules.conf';
 
     # install kmp packages
+    # Add build repo for slert15sp2+
+    if (script_run('zypper lr SLE_RT_IBS_REPO') && is_sle('>15-SP1')) {
+        my $version = get_var('VERSION');
+        zypper_call "ar -f -p 101 http://download.suse.de/ibs/SUSE:/SLE-$version:/Update:/Products:/SLERT/standard SLE_RT_IBS_REPO";
+    }
     zypper_call 'ref';
     zypper_call 'in lttng-tools *-kmp-rt', 500;
 
@@ -110,6 +115,10 @@ sub post_fail_hook {
     if ((script_run 'test -e /var/log/modprobe.out') == 0) {
         upload_logs '/var/log/modprobe.out';
     }
+}
+
+sub test_flags {
+    return {milestone => 1};
 }
 
 1;
