@@ -441,6 +441,7 @@ sub export_logs {
     my ($self) = shift;
     select_log_console;
     save_screenshot;
+    show_oom_info;
     $self->remount_tmp_if_ro;
     $self->problem_detection;
 
@@ -1235,7 +1236,6 @@ sub post_fail_hook {
     return if is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
 
     show_tasks_in_blocked_state;
-    show_oom_info;
 
     return if (get_var('NOLOGS'));
 
