@@ -3204,8 +3204,6 @@ sub load_kernel_baremetal_tests {
     }
     # make sure we always have the toolchain installed
     loadtest "toolchain/install";
-    loadtest "console/perf";
-    loadtest "console/oprofile";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
