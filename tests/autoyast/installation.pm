@@ -46,6 +46,7 @@ use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
+use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -71,18 +72,6 @@ sub save_and_upload_stage_logs {
     # save_y2logs is not present
     assert_script_run "tar czf /tmp/logs-stage.tar.bz2 /var/log";
     upload_logs "/tmp/logs-stage1-error$i.tar.bz2";
-}
-
-sub upload_autoyast_profile {
-    # Upload autoyast profile if file exists
-    if (script_run '! test -e /tmp/profile/autoinst.xml') {
-        upload_logs '/tmp/profile/autoinst.xml';
-    }
-    # Upload modified profile if pre-install script uses this feature
-    if (script_run '! test -e /tmp/profile/modified.xml') {
-        upload_logs '/tmp/profile/modified.xml';
-    }
-    save_screenshot;
 }
 
 sub handle_expected_errors {
@@ -409,6 +398,7 @@ sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
     $self->upload_autoyast_profile;
+    $self->upload_autoyast_schema;
 }
 
 1;
