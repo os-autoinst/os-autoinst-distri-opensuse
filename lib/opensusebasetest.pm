@@ -467,7 +467,6 @@ sub export_logs {
         script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
         upload_logs "/tmp/solverTestCase.tar.bz2 ";
     }
-    $self->investigate_yast2_failure();
 }
 
 =head2 export_logs_locale
