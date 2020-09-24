@@ -10,7 +10,17 @@ use Exporter 'import';
 use Utils::Architectures;
 
 
-our @EXPORT_OK = qw(select_conflict_resolution workaround_dependency_issues break_dependency verify_license_has_to_be_accepted accept_license verify_license_translations get_available_compression);
+our @EXPORT_OK = qw(
+  select_conflict_resolution
+  workaround_dependency_issues
+  break_dependency
+  verify_license_has_to_be_accepted
+  accept_license
+  verify_license_translations
+  get_available_compression
+  upload_autoyast_profile
+  upload_autoyast_schema
+);
 
 
 # select the conflict resolution for dependency issues
@@ -136,5 +146,44 @@ sub get_available_compression {
     return "";
 }
 
+=head2 upload_autoyast_profile
+
+    upload_autoyast_profile($self);
+
+Uploads autoyast profile used for the installation, as well as modified profile,
+in case feature to modify the profile dynamically was used.
+Non existing files will be ignored.
+=cut
+sub upload_autoyast_profile {
+    # Upload autoyast profile if file exists
+    if (script_run('test -e /tmp/profile/autoinst.xml') == 0) {
+        upload_logs '/tmp/profile/autoinst.xml';
+    }
+    # Upload cloned system profile if file exists
+    if (script_run('test -e /root/autoinst.xml') == 0) {
+        upload_logs '/root/autoinst.xml';
+    }
+    # Upload modified profile if pre-install script uses this feature
+    if (script_run('test -e /tmp/profile/modified.xml') == 0) {
+        upload_logs '/tmp/profile/modified.xml';
+    }
+    save_screenshot;
+}
+
+=head2 upload_autoyast_schema
+
+    upload_autoyast_schema($self);
+
+Uploads autoyast schema files shipped in the distribution as a tarball.
+If expected directory doesn't exist, no attempt to upload logs occurs.
+=cut
+sub upload_autoyast_schema {
+    my ($self) = @_;
+    my $xml_schema_path = "/usr/share/YaST2/schema/autoyast/rng";
+    # Upload schema files if directory exists
+    if (script_run("test -e $xml_schema_path") == 0) {
+        $self->tar_and_upload_log("$xml_schema_path/*.rng", '/tmp/autoyast_schema.tar.bz2');
+    }
+}
 
 1;
