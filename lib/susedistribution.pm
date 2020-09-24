@@ -715,7 +715,7 @@ sub activate_console {
     diag "activate_console, console: $console, type: $type";
     if ($type eq 'console') {
         # different handling for ssh consoles on s390x zVM
-        if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm |pvm_hmc/ || get_var('S390_ZKVM')) {
+        if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/ || get_var('S390_ZKVM')) {
             diag 'backend ipmi || spvm || pvm_hmc || s390x || zkvm';
             $user ||= 'root';
             handle_password_prompt;
