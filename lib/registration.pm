@@ -378,10 +378,11 @@ sub skip_package_hub_if_necessary {
             record_info('Skip phub', 'For Online medium we need to skip Package Hub registration due to
                 after registering this module, some packages not supported that comes from openSUSE
                 might conflict not allowing to have a predictable result - bsc#1172074');
+            $skip_package_hub = 1;
         } elsif (check_var('FLAVOR', 'Full')) {
             record_info('Skip phub', 'Skipping Package Hub for Full medium due to it is an Online product - bsc#1157659');
+            $skip_package_hub = 1;
         }
-        $skip_package_hub = 1;
     }
     return $skip_package_hub;
 }
