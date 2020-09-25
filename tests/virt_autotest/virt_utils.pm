@@ -107,6 +107,11 @@ sub repl_repo_in_sourcefile {
         my $newrepo   = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
         $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
+
+        #workaround: to use build #23.1 to install guest as bsc#1176593 autoyast issues exist in latest builds
+        #it should be removed after the bug is fixed and go in the build
+        $newrepo = "http://dist.suse.de/install/SLP/SLE-15-SP3-Full-Alpha2/" . get_var('ARCH') . "/DVD1/";
+
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         if (check_var('ARCH', 's390x')) {
@@ -140,6 +145,11 @@ sub repl_module_in_sourcefile {
     if ($version =~ /15-SP[2-9]/) {
         $daily_build_module .= get_var("REPO_0") . "/Module-\\2/";
         $daily_build_module =~ s/-Online-/-Full-/;
+
+        #workaround: to use build #23.1 to install guest as bsc#1176593 autoyast issues exist in latest builds
+        #it should be removed after the bug is fixed and go in the build
+        $daily_build_module = "http://dist.suse.de/install/SLP/SLE-15-SP3-Full-Alpha2/" . get_var('ARCH') . "/DVD1/Module-\\2/";
+
     }
     else {
         $daily_build_module .= "SLE-${version}-Module-\\2-POOL-" . get_required_var('ARCH') . "-Build" . get_required_var('BUILD') . "-Media1/";
