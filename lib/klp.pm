@@ -24,8 +24,9 @@ our @EXPORT = qw(
 );
 
 sub install_klp_product {
-    my $arch    = get_required_var('ARCH');
-    my $version = get_required_var('VERSION');
+    my $arch           = get_required_var('ARCH');
+    my $version        = get_required_var('VERSION');
+    my $livepatch_repo = get_var('REPO_SLE_MODULE_LIVE_PATCHING');
     my $release_override;
     my $lp_product;
     my $lp_module;
@@ -45,10 +46,13 @@ sub install_klp_product {
         $lp_module  = 'SLE-Live-Patching';
     }
 
-    #install kgraft product
-    zypper_call("ar http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/ kgraft-pool");
-    zypper_call("ar $release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/ kgraft-update");
-    zypper_call("ref");
+    if ($livepatch_repo) {
+        zypper_ar("$utils::OPENQA_FTP_URL/$livepatch_repo", name => "repo-live-patching");
+    }
+
+    # install kgraft product
+    zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/",                 name => "kgraft-pool");
+    zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
     zypper_call("mr -e kgraft-update");
 }
