@@ -9,5 +9,4 @@ cryptsetup:
       key_location: dm-crypt
       mode: read/write
 backup_file_info: 'LUKS encrypted file, ver 1 \[aes, xts-plain64, sha256\]'
-cr_test:
-  backup_path: '/root/bkp_luks_header_cr_test'
+backup_path: '/root/bkp_luks_header'

@@ -205,6 +205,7 @@ sub verify_restoring_luks_backups {
     validate_script_output("file $backup_path", sub { m/$backup_file_info/ });
     assert_script_run("cryptsetup -v --batch-mode luksHeaderRestore $mapped_dev_path" .
           " --header-backup-file $backup_path");
+    assert_script_run("rm -rf $backup_path");
 }
 
 1;
