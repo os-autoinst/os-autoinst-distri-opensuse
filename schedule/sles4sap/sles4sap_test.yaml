@@ -10,7 +10,6 @@ vars:
 schedule:
   - boot/boot_to_desktop
   - console/system_prepare
-  - sles4sap/migrate_sles_to_sles4sap
   - sles4sap/patterns
   - '{{module_to_test}}'
 conditional_schedule:
