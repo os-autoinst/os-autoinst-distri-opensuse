@@ -13,8 +13,9 @@
 
 use base "sles4sap";
 use testapi;
-use version_utils qw(is_staging is_sle);
+use version_utils qw(is_staging is_sle is_upgrade);
 use Utils::Architectures 'is_x86_64';
+use Utils::Systemd 'systemctl';
 use strict;
 use warnings;
 
@@ -85,6 +86,14 @@ sub run {
     $self->select_serial_terminal;
 
     assert_script_run("rpm -q sapconf");
+
+    if (is_upgrade()) {
+        # Stop & disable tuned service to avoid conflict with active saptune
+        systemctl "stop tuned";
+        systemctl "disable tuned";
+        systemctl "enable sapconf";
+        systemctl "start sapconf";
+    }
 
     my $default_profile = $1;
     record_info("Current profile", "Current default profile: $default_profile");

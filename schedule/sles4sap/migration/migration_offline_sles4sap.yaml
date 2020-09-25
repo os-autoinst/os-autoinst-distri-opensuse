@@ -42,6 +42,6 @@ schedule:
   - migration/post_upgrade
   - console/system_prepare
   - sles4sap/patterns
-  - sles4sap/sapconf
   - sles4sap/saptune
   - sles4sap/netweaver_test_instance
+  - sles4sap/sapconf
