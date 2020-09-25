@@ -130,19 +130,6 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
-  <runlevel>
-    <default>3</default>
-    <services config:type="list">
-      <service>
-        <service_name>nfs</service_name>
-        <service_status>enable</service_status>
-      </service>
-      <service>
-        <service_name>sshd</service_name>
-        <service_status>enable</service_status>
-      </service>
-    </services>
-  </runlevel>
   <scripts>
     <init-scripts config:type="list">
       <script>
