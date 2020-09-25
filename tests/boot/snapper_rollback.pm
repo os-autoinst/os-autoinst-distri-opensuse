@@ -18,12 +18,17 @@ use warnings;
 use migration 'check_rollback_system';
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
+use version_utils;
 
 sub run {
     my ($self) = @_;
-
-    if (!check_screen 'linux-login', 200) {
-        assert_screen 'displaymanager', 90;
+    if (is_leap_migration && check_var('DESKTOP', 'gnome')) {
+        assert_screen 'generic-desktop', 90;
+    }
+    else {
+        if (!check_screen 'linux-login', 200) {
+            assert_screen 'displaymanager', 90;
+        }
     }
     select_console 'root-console';
     # 1)
