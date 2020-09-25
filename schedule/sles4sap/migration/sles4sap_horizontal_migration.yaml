@@ -12,5 +12,5 @@ schedule:
   - console/system_prepare
   - sles4sap/migrate_sles_to_sles4sap
   - sles4sap/patterns
-  - sles4sap/sapconf
   - sles4sap/saptune
+  - sles4sap/sapconf
