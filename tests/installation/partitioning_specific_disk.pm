@@ -57,7 +57,7 @@ sub run {
 
     # Select device
     my $disk = get_required_var('SPECIFIC_DISK');
-    send_key 'tab';
+    send_key 'alt-s';
     send_key 'tab';
     send_key_until_needlematch("expert-partitioner-$disk", "down", 20, 2);
     send_key 'ret';
