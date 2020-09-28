@@ -459,9 +459,7 @@ sub export_logs {
     $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
 
     if ($utils::IN_ZYPPER_CALL) {
-        script_run("zypper -n patch --debug-solver --with-interactive -l");
-        script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
-        upload_logs "/tmp/solverTestCase.tar.bz2 ";
+        $self->upload_solvertestcase_logs();
     }
 }
 
@@ -490,6 +488,19 @@ Upload C</var/log/pk_backend_zypp>.
 sub upload_packagekit_logs {
     my ($self) = @_;
     upload_logs '/var/log/pk_backend_zypp';
+}
+
+=head2 upload_solvertestcase_logs
+
+ upload_solvertestcase_logs();
+
+Upload C</tmp/solverTestCase.tar.bz2>.
+
+=cut
+sub upload_solvertestcase_logs {
+    script_run("zypper -n patch --debug-solver --with-interactive -l");
+    script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
+    upload_logs "/tmp/solverTestCase.tar.bz2 ";
 }
 
 =head2 set_standard_prompt

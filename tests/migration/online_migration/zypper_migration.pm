@@ -141,4 +141,12 @@ sub run {
     $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => (is_sles4sap || is_leap_migration));
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    $self->select_serial_terminal;
+    script_run("pkill zypper");
+    $self->upload_solvertestcase_logs();
+}
+
 1;
