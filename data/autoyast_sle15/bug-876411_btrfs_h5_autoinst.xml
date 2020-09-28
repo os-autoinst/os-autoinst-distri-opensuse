@@ -95,8 +95,6 @@ find / -name YaST2-Second-Stage.service
       <timeout config:type="integer">-1</timeout>
     </global>
     <loader_type>grub2</loader_type>
-    <sections config:type="list">
-    </sections>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
@@ -753,7 +751,6 @@ find / -name YaST2-Second-Stage.service
     </services>
   </services-manager>
   <software>
-    <image/>
     <instsource/>
     <packages config:type="list">
       <package>dconf</package>

@@ -360,33 +360,6 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
-  <runlevel>
-    <default_target>graphical</default_target>
-    <services config:type="list">
-      <service>cron</service>
-      <service>getty@tty1</service>
-      <service>getty@tty2</service>
-      <service>getty@tty3</service>
-      <service>getty@tty4</service>
-      <service>getty@tty5</service>
-      <service>getty@tty6</service>
-      <service>haveged</service>
-      <service>irqbalance</service>
-      <service>kdump</service>
-      <service>nscd</service>
-      <service>postfix</service>
-      <service>purge-kernels</service>
-      <service>rsyslog</service>
-      <service>wicked</service>
-      <service>wickedd-auto4</service>
-      <service>wickedd-dhcp4</service>
-      <service>wickedd-dhcp6</service>
-      <service>wickedd-nanny</service>
-      <service>wickedd</service>
-      <service>YaST2-Firstboot</service>
-      <service>YaST2-Second-Stage</service>
-    </services>
-  </runlevel>
   <services-manager>
     <default_target>graphical</default_target>
     <services config:type="list">
@@ -415,7 +388,6 @@
     </services>
   </services-manager>
   <software>
-    <image/>
     <instsource/>
     <packages config:type="list">
       <package>at-spi2-atk-common</package>

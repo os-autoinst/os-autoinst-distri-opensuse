@@ -254,10 +254,6 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
-  <runlevel>
-    <default_target>graphical</default_target>
-    <services config:type="list"/>
-  </runlevel>
   <services-manager>
     <default_target>graphical</default_target>
     <services config:type="list"/>
