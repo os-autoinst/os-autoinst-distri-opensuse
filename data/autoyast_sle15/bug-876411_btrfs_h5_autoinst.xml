@@ -20,65 +20,6 @@
         </addon>
       </addons>
     </suse_register>
-    <scripts>
-      <chroot-scripts config:type="list">
-        <script>
-          <filename>3_chroot.sh</filename>
-          <interpreter>shell</interpreter>
-          <location/>
-          <feedback config:type="boolean">false</feedback>
-          <feedback_type>message</feedback_type>
-
-          <source><![CDATA[#!/bin/sh
-tee YaST2-Second-Stage.service <<EOT
-[Unit]
-Description=YaST2 Second Stage
-# If xinetd is enabled, make sure it's already running so we can stop it during
-# initialization of the VNC server
-After=apparmor.service local-fs.target plymouth-start.service
-Conflicts=plymouth-start.service
-Before=getty@tty1.service serial-getty@ttyS0.service serial-getty@ttyS1.service serial-getty@ttyS2.service
-Before=display-manager.service
-ConditionPathExists=/var/lib/YaST2/runme_at_boot
-
-[Service]
-Type=oneshot
-# PX_MODULE_PATH=""  ==>
-# Do not load libproxy modules (config_kde4 module crashes because of Qt4/Qt5
-# clash), empty path causes that the installed modules are not found. Sysconfig
-# and envvar extensions are still loaded, /etc/sysconfig/proxy values are still
-# used correctly (see bnc#866692 and bnc#866692 for details).
-Environment=TERM=linux PX_MODULE_PATH=""
-ExecStartPre=-/usr/bin/plymouth quit
-ExecStart=/usr/lib/YaST2/startup/YaST2.Second-Stage
-RemainAfterExit=yes
-TimeoutSec=0
-# Initialize tty1 in order to remove old YaST output and to show the cursor
-# again (bnc#1018037)
-ExecStartPost=/bin/sh -c '/usr/bin/printf "\033c" > /dev/tty1'
-ExecStartPost=/usr/bin/rm -f /var/lib/YaST2/runme_at_boot
-ExecStartPost=/usr/bin/systemctl restart systemd-vconsole-setup.service
-StandardInput=tty
-
-[Install]
-WantedBy=default.target
-
-EOT
-
-cp YaST2-Second-Stage.service /mnt/usr/lib/systemd/system/
-cat /mnt/usr/lib/systemd/system/YaST2-Second-Stage.service
-find / -name YaST2-Second-Stage.service
-
-
-        ]]></source>
-      <chrooted config:type="boolean">false</chrooted>
-
-      </script>
-    </chroot-scripts>
-
-
-
-  </scripts>
 
   <bootloader>
     <global>
