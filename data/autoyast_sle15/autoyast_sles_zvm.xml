@@ -53,6 +53,7 @@
     <cio_ignore config:type="boolean">false</cio_ignore>
     <mode>
       <confirm config:type="boolean">false</confirm>
+      <final_reboot config:type="boolean">true</final_reboot>
     </mode>
     <proposals config:type="list"/>
     <signature-handling>
@@ -66,7 +67,6 @@
     <storage>
       <start_multipath config:type="boolean">false</start_multipath>
     </storage>
-    <final_reboot config:type="boolean">true</final_reboot>
   </general>
   <groups config:type="list">
     <group>
@@ -641,7 +641,6 @@
     </services>
   </services-manager>
   <software>
-    <image/>
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
