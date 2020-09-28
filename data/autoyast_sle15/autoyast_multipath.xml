@@ -81,7 +81,6 @@ pre init scripts feature. See poo#20818.
       <append>mce=dont_log_ce edd=off consoleblank=0 rd.lvm.vg=system biosdevname=0 elevator=deadline</append>
       <boot_mbr>true</boot_mbr>
       <secure_boot>false</secure_boot>
-      <suse_btrfs config:type="boolean">false</suse_btrfs>
       <os_prober>false</os_prober>
       <terminal>console</terminal>
       <timeout config:type="integer">-1</timeout>
