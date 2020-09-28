@@ -74,9 +74,17 @@ sub ensure_unlocked_desktop {
     my $counter = 10;
 
     while ($counter--) {
-        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display);
+        my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         assert_screen \@tags, no_wait => 1;
+        if (match_has_tag 'oh-no-something-has-gone-wrong') {
+            # bsc#1159950 - gnome-session-failed is detected
+            # Note: usually happens on *big* hardware with lot of cpus/memory
+            record_soft_failure 'bsc#1159950 - [Build 108.1] openQA test fails in first_boot - gnome-session-failed is detected';
+            select_console 'root-console';               # Workaround command should be executed on a root console
+            script_run 'kill $(ps -ef | awk \'/[g]nome-session-failed/ { print $2 }\')';
+            select_console 'x11', await_console => 0;    # Go back to X11
+        }
         if (match_has_tag 'displaymanager') {
             if (check_var('DESKTOP', 'minimalx')) {
                 type_string "$username";
