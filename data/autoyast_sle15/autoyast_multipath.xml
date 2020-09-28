@@ -31,7 +31,6 @@ pre init scripts feature. See poo#20818.
       <final_reboot config:type="boolean">true</final_reboot>
     </mode>
     <storage>
-      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
       <start_multipath config:type="boolean">false</start_multipath>
     </storage>
     <signature-handling>
