@@ -22,6 +22,7 @@ use kernel 'remove_kernel_packages';
 use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
+use serial_terminal 'prepare_serial_console';
 use Utils::Backends 'use_ssh_serial_console';
 
 
@@ -300,7 +301,8 @@ sub boot_to_console {
         use_ssh_serial_console;
     }
     else {
-        select_console('root-console');
+        prepare_serial_console;
+        $self->select_serial_terminal;
     }
 }
 
