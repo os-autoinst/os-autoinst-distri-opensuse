@@ -39,6 +39,8 @@
 # - Disable/Enable rpm file caching for all the repositories.
 # - Disable/Enable rpm file caching for remote repositories
 # - Enter zypper shell and run the lr command | echo lr
+# - Check that zypper handles "provides" in a case-sensitive manner
+#   https://jira.suse.com/browse/SLE-16271
 # -
 # Maintainer: Marcelo Martins <mmartins@suse.cz>, Anna Minou <anna.minou@suse.com>
 # Tags: poo#51521, poo#49076
@@ -48,7 +50,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call);
-use version_utils qw(is_sle is_leap is_jeos);
+use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
 
 sub run {
     my $self = shift;
@@ -177,6 +179,24 @@ sub run {
 
     #Enter zypper shell and run the lr command | echo lr
     assert_script_run('echo lr |zypper shell');
+
+    if ((is_sle('>=15-SP3') || is_leap('>=15.3') || is_tumbleweed()) && check_var('ARCH', 'x86_64')) {
+        # - It is enough to test on x86_64.
+        # - MariaDB-server provides MariaDB
+        # - mariadb provides mariadb
+        # - MariaDB-server is delivered by MariaDB corporation and is not available from SLE software modules (scc.suse.com)
+        # - Fake packages are available in QA testing repositories
+        #   openSUSE Tumbleweed: https://build.opensuse.org/package/show/devel:openSUSE:QA:Tumbleweed/MariaDB-server-JIRA-SLE-16271
+        #   SLE15-SP3: https://build.suse.de/package/show/QA:Head/MariaDB-server-JIRA-SLE-16271
+        # https://jira.suse.com/browse/SLE-16271
+        my $qa_head_repo = get_var('QA_HEAD_REPO');
+        zypper_call("addrepo --refresh $qa_head_repo QA_HEAD_REPO");
+        zypper_call('--gpg-auto-import-keys refresh');
+        my $tmp_file = '/tmp/zypper-search-provides-mariadb.txt';
+        zypper_call('search --match-exact MariaDB-server');
+        assert_script_run("zypper --non-interactive search --provides --match-exact mariadb | tee $tmp_file");
+        record_soft_failure(q{https://jira.suse.com/browse/SLE-16271 - "--provides" behaves case-insensitive, MariaDB doesn't provide "mariadb"}) unless (script_run(qq{grep "| MariaDB-server " $tmp_file}) == 1);
+    }
 }
 
 1;
