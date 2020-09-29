@@ -44,7 +44,6 @@
       <vgamode/>
     </global>
     <loader_type>grub2</loader_type>
-    <sections config:type="list"/>
   </bootloader>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
@@ -268,7 +267,6 @@
     <packages config:type="list">
       <package>yast2-kdump</package>
     </packages>
-    <image/>
     <instsource/>
     <products config:type="list">
       <product>SLES</product>
