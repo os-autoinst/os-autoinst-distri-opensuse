@@ -1,8 +1,9 @@
 ---
-name:           create_hdd_transactional_server
-description:    >
-    Installation of a Transactional Server which uses a read-only root filesystem to
-    provide atomic, automatic updates of a system without interfering with the running system.
+name: create_hdd_transactional_server
+description: >
+    Installation of a Transactional Server which uses a read-only
+    root filesystem to provide atomic, automatic updates of a
+    system without interfering with the running system.
 vars:
     SCC_ADDONS: tsm
     HDDSIZEGB: 40
@@ -28,18 +29,37 @@ conditional_schedule:
         BACKEND:
             svirt:
             - shutdown/svirt_upload_assets
+    license_reg_scc_addon:
+        DISTRI:
+            sle:
+            - installation/accept_license
+            - installation/scc_registration
+            - installation/addon_products_sle
+    online_repos_inst_mode_logpackes:
+        DISTRI:
+            opensuse:
+            - installation/online_repos
+            - installation/installation_mode
+            - installation/logpackages
+    user_settings_root:
+        DISTRI:
+            sle:
+            - installation/user_settings_root
+    sle15_workarounds:
+        DISTRI:
+            sle:
+            - console/sle15_workarounds
 schedule:
     - installation/bootloader_start
     - installation/welcome
-    - installation/accept_license
-    - installation/scc_registration
-    - installation/addon_products_sle
+    - "{{license_reg_scc_addon}}"
+    - "{{online_repos_inst_mode_logpackes}}"
     - installation/system_role
     - installation/partitioning
     - installation/partitioning_finish
     - installation/installer_timezone
     - installation/user_settings
-    - installation/user_settings_root
+    - "{{user_settings_root}}"
     - installation/resolve_dependency_issues
     - installation/installation_overview
     - "{{kernel_cmd_parameters}}"
@@ -51,7 +71,7 @@ schedule:
     - "{{reconnect_mgmt_console}}"
     - "{{grub_test}}"
     - installation/first_boot
-    - console/sle15_workarounds
+    - "{{sle15_workarounds}}"
     - console/hostname
     - console/system_prepare
     - console/force_scheduled_tasks
