@@ -17,16 +17,65 @@ conditional_schedule:
                 - console/yast2_lan_device_settings
             x86_64:
                 - console/yast2_lan_device_settings
+    update_repos:
+        DISTRI:
+            opensuse:
+                - update/zypper_clear_repos
+                - console/zypper_ar
+                - console/zypper_ref
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+                - console/libvorbis
+                - console/ntp_client
+                - console/gdb
+                - console/perf
+                - console/salt
+                - console/machinery
+                - sysauth/sssd
+                - console/libgpiod
+                - console/libgcrypt
+                - console/gd
+                - console/valgrind
+                - console/wpa_supplicant
+                - appgeo/gdal
+                - console/rabbitmq
+                - console/rails
+                - console/oneclick_install
+                - console/pcre
+                - console/openqa_review
+                - console/zbar
+                - console/a2ps
+                - console/znc
+                - console/weechat
+                - console/nano
+                - console/steamcmd
+                - console/libqca2
+                - console/kdump_and_crash
+    validate_packages_and_patterns:
+        DISTRI:
+            sle:
+                - console/validate_packages_and_patterns
+    sle_tests:
+        DISTRI:
+            sle:
+                - console/supportutils
+                - console/zziplib
+                - console/vsftpd
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
+    - '{{update_repos}}'
     - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/zypper_info
-    - console/validate_packages_and_patterns
+    - '{{validate_packages_and_patterns}}'
     - console/zypper_extend
     - console/check_os_release
     - console/openvswitch
@@ -43,7 +92,6 @@ schedule:
     - console/cron
     - console/syslog
     - console/mta
-    - console/vsftpd
     - '{{yast2_lan_device_settings}}'
     - console/check_default_network_manager
     - console/git
@@ -64,7 +112,7 @@ schedule:
     - console/dstat
     - x11/evolution/evolution_prepare_servers
     - console/mutt
-    - console/supportutils
+    - '{{sle_tests}}'
     - console/mdadm
     - console/journalctl
     - console/quota
@@ -75,9 +123,8 @@ schedule:
     - '{{lshw}}'
     - console/kmod
     - console/suse_module_tools
-    - console/zziplib
     - console/firewalld
     - console/aaa_base
     - console/osinfo_db
-    - console/zypper_ref
+    - '{{opensuse_tests}}'
     - console/coredump_collect
