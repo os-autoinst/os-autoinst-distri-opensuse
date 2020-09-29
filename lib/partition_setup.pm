@@ -438,54 +438,47 @@ sub addboot {
     }
 }
 
-=head2 skip_select_first_hard_disk
-
- skip_select_first_hard_disk();
-
-Skip selecting first hard disk and return 0.
-Return 1 if no selection of hard disk is required or the first hard disk is already pre-selected.
-
-=cut
-sub skip_select_first_hard_disk {
-    return 1 if match_has_tag 'existing-partitions';          # no selection of hard-disk is required
-    if (match_has_tag('select-hard-disks-one-selected')) {    # first hd is already pre-selected
-        send_key $cmd{next};
-        return 1;
-    }
-    return 0;
-}
-
 =head2 select_first_hard_disk
 
  select_first_hard_disk();
 
 Select the first hard disk.
 
+The device should be [sv]da, other devices will be unselected. [sv]da device will also be
+force-selected at the end if needed (in some cases [sv]da is at the end of the list).
+
 =cut
 sub select_first_hard_disk {
-    my @tags = qw(existing-partitions hard-disk-dev-sdb-selected hard-disk-dev-sdc-selected hard-disk-dev-sdd-selected hard-disk-dev-non-sda-selected select-hard-disks-one-selected);
-    my $matched_needle = assert_screen \@tags;
-    return if skip_select_first_hard_disk;
+    # Try to handle most of the device type
+    my @tags    = 'existing-partitions';
+    my @devices = ('sdb' .. 'sdz', 'vdb' .. 'vdz', 'pmem0' .. 'pmem9');
+    foreach my $device (@devices) {
+        push @tags, "hard-disk-dev-$device-selected";
+    }
+    my $matched_needle = check_screen \@tags;           # save detected needle
+    return 1 if match_has_tag 'existing-partitions';    # no selection of hard-disk is required
+
     # SUT may have any number disks, only keep the first, unselect all other disks
     # In text mode, the needle has tag 'hard-disk-dev-non-sda-selected' and multiple hotkey_? tags as hints for unselecting
-    if (check_var('VIDEOMODE', 'text') && match_has_tag('hard-disk-dev-non-sda-selected')) {
-        foreach my $tag (@{$matched_needle->{needle}->{tags}}) {
-            if ($tag =~ /hotkey_([a-z])/) {
-                send_key 'alt-' . $1;    # Unselect non-first drive
+    if (check_var('VIDEOMODE', 'text')) {
+        my $checked_needle = check_screen 'hard-disk-dev-non-sda-selected';
+        if (defined $checked_needle) {
+            foreach my $tag (@{$checked_needle->{needle}->{tags}}) {
+                send_key 'alt-' . $1 if ($tag =~ /hotkey_([a-z])/);    # Unselect non-first drive
             }
         }
     }
     # Video mode directly matched the sdb-selected needle (old code) or can do the similar (ideal for multiple disks)
     else {
-        assert_and_click 'hard-disk-dev-sdb-selected' if match_has_tag('hard-disk-dev-sdb-selected');
-        assert_and_click 'hard-disk-dev-sdc-selected' if match_has_tag('hard-disk-dev-sdc-selected');
-        assert_and_click 'hard-disk-dev-sdd-selected' if match_has_tag('hard-disk-dev-sdd-selected');
-        if (match_has_tag('hard-disk-dev-non-sda-selected')) {
-            foreach my $tag (grep { $_ =~ /hard-disk-dev-([sv]d[a-z]|pmem[0-9])/ } @{$matched_needle->{needle}->{tags}}) {
-                assert_and_click "$tag-selected";
-            }
+        # Remove *all* non needed devices
+        # Not all possible devices are removed, but not sure that we will have more on QA servers
+        # We will also have to create new needle when needed
+        foreach my $device (@devices) {
+            assert_and_click "hard-disk-dev-$device-selected"
+              if ($matched_needle && $matched_needle->{needle}->has_tag("hard-disk-dev-$device-selected"));
         }
     }
+    # Check if sda is still/already selected, if not select it
     assert_screen [qw(select-hard-disks-one-selected hard-disk-dev-sda-not-selected)];
     assert_and_click 'hard-disk-dev-sda-not-selected' if match_has_tag('hard-disk-dev-sda-not-selected');
     save_screenshot;
@@ -543,19 +536,15 @@ sub take_first_disk_storage_ng {
                 send_key 'tab';
             }
             save_screenshot;
-            send_key $cmd{next};
-            if (check_screen([qw(filesystems-options partition-scheme)], 3)) {
-                send_key $cmd{next};
-            }
-            if (check_screen([qw(filesystems-options partition-scheme)], 3)) {
-                send_key $cmd{next};
-            }
-            assert_screen "after-partitioning";
+            send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
         }
         else {
             send_key $cmd{next};
             assert_screen 'partition-scheme';
         }
+    }
+    elsif (check_var('BACKEND', 'ipmi') && match_has_tag 'partition-scheme') {
+        send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
     }
 
     if (!check_var('BACKEND', 'ipmi') || check_var('VIDEOMODE', 'text')) {
