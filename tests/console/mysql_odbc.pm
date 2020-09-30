@@ -62,7 +62,7 @@ sub run {
     select_console 'root-console';
 
     # install requirements
-    my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc' : 'MyODBC-unixODBC';
+    my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc unixODBC' : 'MyODBC-unixODBC';
     zypper_call 'in mysql mariadb-client sudo ' . $odbc;
 
     # restart mysql server
