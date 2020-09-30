@@ -29,12 +29,15 @@ conditional_schedule:
         - console/yast2_lan_hostname
         - console/yast2_settings
         - console/yast2_dns_server
+        - console/yast2_nfs_server
         - console/yast2_nfs_client
         - console/yast2_snapper_ncurses
       aarch64:
         - console/yast2_lan
+        - console/yast2_nfs_server
       ppc64le:
         - console/yast2_lan
+        - console/yast2_nfs_server
       s390x:
         - console/yast2_rmt
         - console/yast2_ntpclient
@@ -42,5 +45,6 @@ conditional_schedule:
         - console/yast2_lan
         - console/yast2_lan_hostname
         - console/yast2_dns_server
+        - console/yast2_nfs_server
         - console/yast2_nfs_client
         - console/yast2_snapper_ncurses
