@@ -252,9 +252,14 @@ sub cleanup_registration {
     register_product();
 
 Wrapper for SUSEConnect -r <regcode>. Requires SCC_REGCODE variable.
+SUSEConnect --url with SMT/RMT server.
 =cut
 sub register_product {
-    assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
+    if (get_var('SMT_URL')) {
+        assert_script_run('SUSEConnect --url ' . get_var('SMT_URL') . ' ' . uc(get_var('SLE_PRODUCT')) . '/' . scc_version(get_var('HDDVERSION')) . '/' . get_var('ARCH'), 200);
+    } else {
+        assert_script_run('SUSEConnect -r ' . get_required_var('SCC_REGCODE'), 200);
+    }
 }
 
 sub register_addons_cmd {
