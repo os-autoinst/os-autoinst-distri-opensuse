@@ -14,6 +14,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_microos);
 
 sub run {
     select_console 'root-console';
@@ -32,8 +33,10 @@ sub run {
     my $varsize = script_output "findmnt -rnboSIZE -T/var";
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
 
-    # Verify that combustion ran (not on 15.2 yet)
-    validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/) unless check_var('VERSION', '15.2');
+    # Verify that combustion ran (not on Leap 15.2 and SUSE yet)
+    unless (is_microos('suse') || is_microos('15.2')) {
+        validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
+    }
 }
 
 1;
