@@ -156,8 +156,10 @@ sub run {
 
     ensure_serialdev_permissions;
 
-    select_console 'user-console';
+    my $console = select_console 'user-console';
     verify_user_info;
+    type_string "exit\n";
+    $console->reset();
 
     select_console 'root-console';
     if ($lang ne 'en_US') {
