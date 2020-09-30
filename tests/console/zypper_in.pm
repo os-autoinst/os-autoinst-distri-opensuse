@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 # Summary: Simple 'zypper in' test
 # - List download repositories ("zypper lr -d") and redirect to serial output
 # - If no specific package is defined, try to install "x3270" in sle or
-# "xdelta3" in openSUSE and "screen"
+#   "xdelta3" in openSUSE and "screen"
 # - Remove package using rpm -e
 # - Check if package was removed
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
