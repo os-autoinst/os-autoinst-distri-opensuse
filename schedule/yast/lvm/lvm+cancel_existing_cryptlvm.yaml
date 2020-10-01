@@ -12,6 +12,7 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
+  - console/validate_encrypted_partition_not_activated
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -30,3 +31,6 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
+  - console/validate_lvm
+test_data:
+  <<: !include test_data/yast/encryption/cryptlvm+cancel_existing.yaml
