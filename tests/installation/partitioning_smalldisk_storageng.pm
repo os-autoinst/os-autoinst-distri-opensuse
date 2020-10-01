@@ -25,7 +25,12 @@ sub run {
         return take_first_disk;
     }
 
-    select_console 'root-ssh';
+    if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/) {
+        select_console 'root-ssh';
+    }
+    else {
+        select_console 'root-console';
+    }
     my $lsblkcmd = q/echo "[$(lsblk -n -l -o SIZE,NAME -d -e 7,11 -b | sort -n | awk '(NR == 1) {print $2}')]"/;
     $lsblkcmd = q/echo "[$(lsblk -n -l -o SIZE,NAME,TYPE -e 7,11 -b | sort -n | awk '($3 == "mpath" && NR == 1) {print $2}')]"/
       if (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i));
