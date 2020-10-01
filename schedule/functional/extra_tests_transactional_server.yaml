@@ -1,0 +1,15 @@
+---
+name: extra_tests_transactional_server
+description: >
+    Maintainer: zluo
+    transactional server for Tumbleweed
+    boot transactional server as serverrole and run some transactional tests
+schedule:
+    - boot/boot_to_desktop
+    - update/zypper_clear_repos
+    - console/zypper_ar
+    - console/zypper_ref
+    - transactional/filesystem_ro
+    - transactional/transactional_update
+    - transactional/rebootmgr
+    - transactional/health_check
