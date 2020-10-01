@@ -16,9 +16,9 @@ use warnings;
 use testapi;
 use version_utils 'is_sle';
 
-sub set_scc_url {
+sub set_fake_scc_url {
     my $proxyscc = shift;
-    return unless ($proxyscc);
+    return unless ($proxyscc && get_var('BETA'));
 
     assert_screen 'yast2-wsl-firstboot-welcome';
     # Exit YaST2 Firstboot
@@ -106,7 +106,7 @@ sub run {
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         assert_and_click 'window-max';
         wait_still_screen stilltime => 3, timeout => 10;
-        set_scc_url(get_var('SCC_URL'));
+        set_fake_scc_url(get_var('SCC_URL'));
         send_key 'alt-n';
         # License handling
         license;
@@ -137,7 +137,7 @@ sub run {
         assert_screen 'wsl-image-ready-prompt', 120;
     }
 
-    unless (get_var('SCC_REGISTER', 0)) {
+    unless (get_var('BETA')) {
         become_root;
     }
 
