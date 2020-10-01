@@ -48,7 +48,7 @@ schedule:
   - installation/addon_products_sle
   - '{{sles4sap15_product}}'
   - installation/partitioning
-  - installation/partitioning_firstdisk
+  - installation/partitioning_smalldisk_storageng
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings_root
