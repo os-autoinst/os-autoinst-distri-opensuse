@@ -81,6 +81,7 @@ use constant {
           has_license_on_welcome_screen
           has_license_to_accept
           uses_qa_net_hardware
+          has_test_issues
           )
     ]
 };
@@ -593,4 +594,28 @@ Returns true if called in a leap to sle migration scenario
 =cut
 sub is_leap_migration {
     return is_upgrade && get_var('ORIGIN_SYSTEM_VERSION') =~ /leap/;
+}
+
+=head2 has_test_issues
+
+Returns true if test issues are present (i.e. is update tests are present)
+
+=cut
+
+sub has_test_issues() {
+    if (is_opensuse) {
+        return 1 if (get_var('OS_TEST_ISSUES') ne "");
+    } elsif (is_sle) {
+        return 1 if (get_var('BASE_TEST_ISSUES') ne "");
+        return 1 if (get_var('CONTM_TEST_ISSUES') ne "");
+        return 1 if (get_var('DESKTOP_TEST_ISSUES') ne "");
+        return 1 if (get_var('LEGACY_TEST_ISSUES') ne "");
+        return 1 if (get_var('OS_TEST_ISSUES') ne "");
+        return 1 if (get_var('PYTHON2_TEST_ISSUES') ne "");
+        return 1 if (get_var('SCRIPT_TEST_ISSUES') ne "");
+        return 1 if (get_var('SDK_TEST_ISSUES') ne "");
+        return 1 if (get_var('SERVERAPP_TEST_ISSUES') ne "");
+        return 1 if (get_var('WE_TEST_ISSUES') ne "");
+    }
+    return 0;
 }
