@@ -69,8 +69,13 @@ sub run {
     script_run '. /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
-    # init
-    check_console_font if has_ttys();
+    # switch to root console and print the current console font to stdout
+    # make a use of selected root-console in check_console_font to apply
+    # the same environment changes as to root-virtio
+    if (has_ttys()) {
+        check_console_font;
+        script_run '. /etc/bash.bashrc.local';
+    }
 }
 
 sub post_fail_hook {

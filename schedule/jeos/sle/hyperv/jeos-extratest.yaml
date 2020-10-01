@@ -12,6 +12,7 @@ schedule:
     - installation/bootloader_hyperv
     - jeos/grub2
     - jeos/firstrun
+    - console/consoletest_setup
     - jeos/record_machine_id
     - console/system_prepare
     - console/force_scheduled_tasks
@@ -19,7 +20,6 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
-    - console/consoletest_setup
     - console/integration_services
     - console/zypper_lr_validate
     - console/zypper_ref
