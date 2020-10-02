@@ -180,8 +180,8 @@ sub run {
     #Enter zypper shell and run the lr command | echo lr
     assert_script_run('echo lr |zypper shell');
 
-    if ((is_sle('>=15-SP3') || is_leap('>=15.3') || is_tumbleweed()) && check_var('ARCH', 'x86_64')) {
-        # - It is enough to test on x86_64.
+    if (check_var('ARCH', 'x86_64') && !is_jeos && (is_sle('>=15-SP3') || is_leap('>=15.3') || is_tumbleweed())) {
+        # - It is enough to test it on x86_64.
         # - MariaDB-server provides MariaDB
         # - mariadb provides mariadb
         # - MariaDB-server is delivered by MariaDB corporation and is not available from SLE software modules (scc.suse.com)
