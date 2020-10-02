@@ -76,7 +76,7 @@ sub run {
     }
     assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
-        send_key "down";
+        send_key "down" if (!is_microos('suse'));
         send_key "ret";
         assert_screen "bootloader-grub2", $bootloader_timeout;
     }
@@ -107,11 +107,10 @@ sub run {
         if (get_var("PROMO") || get_var('LIVETEST') || get_var('LIVECD')) {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
         }
-        elsif (!is_jeos && !is_microos('VMX')) {
+        elsif (!is_jeos && !is_microos('VMX') && !is_microos('suse')) {
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 3);
         }
     }
-
     uefi_bootmenu_params;
     bootmenu_default_params;
     bootmenu_remote_target;
