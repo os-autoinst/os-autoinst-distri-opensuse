@@ -38,7 +38,7 @@ sub process_missing_special_partitions {
     if (is_storage_ng && check_var('ARCH', 's390x')) {    # s390x needs /boot/zipl on ext partition
         process_warning(warning => 'no-boot-zipl', key => 'alt-n');
     }
-    elsif (get_var('OFW')) {                              # ppc64le needs PReP /boot
+    elsif (check_var('ARCH', 'ppc64le')) {                # ppc64le needs PReP /boot
         process_warning(warning => 'no-prep-boot', key => 'alt-n');
     }
     elsif (get_var('UEFI')) {
