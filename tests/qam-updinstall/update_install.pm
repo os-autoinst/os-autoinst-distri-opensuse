@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,54 +16,44 @@
 #    6) try reboot
 #    7) all done
 #
-# Maintainer: Ondřej Súkup <osukup@suse.cz>
+# Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
 use base "opensusebasetest";
-
 use strict;
 use warnings;
 
 use utils;
 use power_action_utils qw(prepare_system_shutdown power_action);
-
+use List::Util qw(first pairmap uniq notall);
 use qam;
 use testapi;
 
-sub install_packages {
-    my $patch_info = shift;
-    my $pattern    = qr/\s+(\S+)(?!\.(src|nosrc))\.\S*\s<\s.*/;
-
-    # loop over packages in patchinfo and try installation
-    foreach my $line (split(/\n/, $patch_info)) {
-        if (my ($package) = $line =~ $pattern and $1 !~ /-patch-/) {
-            # uninstall conflicting packages to allow problemless install
-            my %conflict = (
-                'reiserfs-kmp-default'   => 'kernel-default-base',
-                'kernel-default'         => 'kernel-default-base',
-                'kernel-default-extra'   => 'kernel-default-base',
-                'kernel-default-base'    => 'kernel-default',
-                'kernel-azure'           => 'kernel-azure-base',
-                'kernel-azure-base'      => 'kernel-azure',
-                'kernel-rt'              => 'kernel-rt-base',
-                'kernel-rt-base'         => 'kernel-rt',
-                'kernel-xen'             => 'kernel-xen-base',
-                'kernel-xen-base'        => 'kernel-xen',
-                'xen-tools'              => 'xen-tools-domU',
-                'xen-tools-domU'         => 'xen-tools',
-                'p11-kit-nss-trust'      => 'mozilla-nss-certs',
-                'rmt-server-config'      => 'rmt-server-pubcloud',
-                'cluster-md-kmp-default' => 'kernel-default-base',
-                'dlm-kmp-default'        => 'kernel-default-base',
-                'gfs2-kmp-default'       => 'kernel-default-base',
-                'ocfs2-kmp-default'      => 'kernel-default-base'
-            );
-            zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
-            # go to next package if it's not provided by repos
-            record_info('Not present', "$package is added in patch") && next if (script_run("zypper -n se -t package -x $package") == 104);
-            # install package
-            zypper_call("in -l $package", timeout => 1500, exitcode => [0, 102, 103]);
-            save_screenshot;
-        }
+sub resolve_conflicts {
+    my $binary   = $_[0];
+    my %conflict = (
+        'reiserfs-kmp-default'   => 'kernel-default-base',
+        'kernel-default'         => 'kernel-default-base',
+        'kernel-default-extra'   => 'kernel-default-base',
+        'kernel-default-base'    => 'kernel-default',
+        'kernel-azure'           => 'kernel-azure-base',
+        'kernel-azure-base'      => 'kernel-azure',
+        'kernel-rt'              => 'kernel-rt-base',
+        'kernel-rt-base'         => 'kernel-rt',
+        'kernel-xen'             => 'kernel-xen-base',
+        'kernel-xen-base'        => 'kernel-xen',
+        'xen-tools'              => 'xen-tools-domU',
+        'xen-tools-domU'         => 'xen-tools',
+        'p11-kit-nss-trust'      => 'mozilla-nss-certs',
+        'rmt-server-config'      => 'rmt-server-pubcloud',
+        'cluster-md-kmp-default' => 'kernel-default-base',
+        'dlm-kmp-default'        => 'kernel-default-base',
+        'gfs2-kmp-default'       => 'kernel-default-base',
+        'ocfs2-kmp-default'      => 'kernel-default-base'
+    );
+    if (exists $conflict{$binary}) {
+        record_info "CONFLICT!", "$binary conflicts with $conflict{$binary}. Removing $conflict{$binary}.";
+        zypper_call("rm $conflict{$binary}", exitcode => [0, 104]) if (exists $conflict{$binary});
+        save_screenshot;
     }
 }
 
@@ -73,18 +63,6 @@ sub get_patch {
     my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { printf \$2 }'", type_command => 1);
     $patches =~ s/\r//g;
     return $patches;
-}
-
-sub get_patchinfos {
-    my ($patches) = @_;
-    my $patches_status = script_output("zypper -n info -t patch $patches", 200);
-    return $patches_status;
-}
-
-sub change_repos_state {
-    my ($repos, $state) = @_;
-    $repos =~ tr/,/ /;
-    zypper_call("mr --$state $repos");
 }
 
 sub get_installed_bin_version {
@@ -118,17 +96,6 @@ sub run {
 
     fully_patch_system;
 
-    set_var('MAINT_TEST_REPO', $repos);
-    add_test_repositories;
-
-    my $patches = get_patch($incident_id, $repos);
-
-    my $patch_infos = get_patchinfos($patches);
-
-    change_repos_state($repos, 'disable');
-
-    install_packages($patch_infos);
-
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
 
@@ -146,16 +113,71 @@ sub run {
     my @l3          = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
     my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
 
+    # Sort binaries into:
+    my @installable;     #Binaries already released that can already be installed.
+    my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
+
+    foreach my $b (@l2, @l3) {
+        if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
+            push(@new_binaries, $b);
+        } else {
+            push(@installable, $b);
+        }
+    }
+
+    # Remove binaries conflicting with the ones that are being tested.
+    resolve_conflicts($_) foreach (@installable);
+
+
+    # Install released version of installable binaries.
+    if (scalar(@installable)) {
+        zypper_call("in -l @installable", exitcode => [0, 102, 103], log => 'prepare.log', timeout => 1500);
+    }
+
     # Store the version of the installed binaries before the update.
     foreach (keys %bins) {
         $bins{$_}->{old} = get_installed_bin_version($_);
     }
 
-    change_repos_state($repos, 'enable');
+    set_var('MAINT_TEST_REPO', $repos);
+    add_test_repositories;
+
+    my $patches = get_patch($incident_id, $repos);
+
+    # Check if the patch was correctly configured.
+    # Get info about the patches included in the update.
+    my @patchinfo = split '\n', script_output("zypper -n info -t patch $patches", 200);
+    # Find the lines where the Conflict sections begins.
+    foreach (0 .. $#patchinfo) {
+        print "$_: $patchinfo[$_]\n";
+    }
+    my @conflict_indexes = grep { $patchinfo[$_] =~ /^Conflicts\D*(\d+)/ } 0 .. $#patchinfo;
+    print "conflict_indexes @conflict_indexes\n";
+    # Find the ranges where there are conflict sections.
+    my @ranges = map { $patchinfo[$_] =~ /Conflicts\D*(?<num>\d+)/; ($_ + 1, $_ + $+{num}) } @conflict_indexes;
+    print "ranges @ranges\n";
+    # Make a list of the conflicting binaries.
+    my @conflict_names = uniq pairmap { map { $_ =~ /^ {4}(.*?)\./; $1 } @patchinfo[$a .. $b] } @ranges;
+    # Get the l3 released binaries. Only installed binaries can conflict.
+    my @installable_l3 = grep { $bins{$_}->{supportstatus} eq 'l3' } @installable;
+    # If not all l3 released binaries are in the conflict binaries, fail.
+    if (notall { my $i = $_; defined(first { $installable_l3[$i] eq $_ } @conflict_names) } 0 .. $#installable_l3) {
+        record_info "Error", "Not all previously released l3 binaries exist in the patch. The update may have been misconfigured";
+        die;
+    }
+
+    # Patch binaries already installed.
     zypper_call("in -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
 
-    # After the update has been applied check the new version and based on that
-    # determine if the update was succesful.
+    # Install binaries newly added by the incident.
+    if (scalar @new_binaries) {
+        zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => 'new.log', timeout => 1500);
+    }
+
+
+    # After the patches have been applied and the new binaries have been
+    # installed, check the version again and based on that determine if the
+    # update was succesfull.
     foreach (keys %bins) {
         $bins{$_}->{new} = get_installed_bin_version($_);
     }
