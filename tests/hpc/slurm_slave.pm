@@ -29,9 +29,7 @@ sub run {
     # install slurm-node if sle15, not available yet for sle12
     zypper_call('in slurm-node') if is_sle '15+';
 
-    if (get_required_var('EXT_HPC_TESTS')) {
-        zypper_call('in openmpi3 pmix openmpi3-gnu-hpc');
-    }
+    zypper_call('in openmpi3 pmix');
 
     barrier_wait('CLUSTER_PROVISIONED');
     barrier_wait("SLURM_SETUP_DONE");

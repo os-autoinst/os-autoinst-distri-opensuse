@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,7 @@ use lockapi;
 use utils;
 use Data::Dumper;
 use Mojo::JSON;
+use version_utils 'is_sle';
 
 ## TODO: provide better parser for HPC specific tests
 sub validate_result {
@@ -98,6 +99,8 @@ sub run_tests {
         # this set-up allows both, ha and accounting tests
         push(@all_tests_results, run_accounting_tests());
         push(@all_tests_results, run_ha_tests());
+    } elsif ($slurm_conf =~ /basic/) {
+        push(@all_tests_results, run_non_slurm_tests());
     }
 
     pars_results(@all_tests_results);
@@ -445,6 +448,61 @@ sub run_accounting_ha_tests {
     ##TODO
 
     return @all_results;
+}
+
+##############################
+## Non-slurm specific tests ##
+##############################
+
+sub run_non_slurm_tests {
+    my @all_results;
+
+    if (is_sle('<15-SP2')) {
+        my %test01 = t01_non_slurm();
+        push(@all_results, \%test01);
+
+        my %test02 = t02_non_slurm();
+        push(@all_results, \%test02);
+    }
+
+    return @all_results;
+}
+
+sub t01_non_slurm {
+    my $name        = 'PMIx';
+    my $description = 'Basic PMIx test';
+    my $result      = 0;
+
+    zypper_call('in gcc pmix openmpi3 openmpi3-devel');
+
+    script_run('export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/openmpi3/lib64/');
+    script_run('wget --quiet ' . data_url('hpc/simple_mpi.c') . ' -O /tmp/simple_mpi.c');
+    script_run('/usr/lib64/mpi/gcc/openmpi3/bin/mpicc /tmp/simple_mpi.c -o /tmp/simple_mpi | tee /tmp/make.out');
+
+    my @cluster_nodes = hpcbase::cluster_names();
+
+    ## distribute the binary
+    foreach (@cluster_nodes) {
+        assert_script_run("scp -o StrictHostKeyChecking=no /tmp/simple_mpi root\@$_\:/tmp/simple_mpi");
+    }
+
+    $result = script_run('srun --mpi=pmix -N 3 /tmp/simple_mpi');
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
+}
+
+sub t02_non_slurm {
+    my $name        = 'PMIx v3';
+    my $description = 'Basic PMIx v3 test';
+    my $result      = 0;
+
+    my @cluster_nodes = hpcbase::cluster_names();
+
+    $result = script_run('srun --mpi=pmix_v3 -N 3 /tmp/simple_mpi');
+
+    my %results = generate_results($name, $description, $result);
+    return %results;
 }
 
 ###############################################
