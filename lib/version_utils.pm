@@ -223,7 +223,7 @@ sub is_microos {
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
         return ($filter =~ /\+$/) if ($version eq 'Tumbleweed' && $type eq 'opensuse');
-        return check_version($filter, $version, qr/\d\.\d/);
+        return check_version($filter, $version, qr/\d{1,}\.\d/);
     }
     else {
         return $flavor eq $filter;    # Specific FLAVOR selector
