@@ -30,7 +30,8 @@ sub run {
     zypper_call('in slurm-node') if is_sle '15+';
 
     if (get_required_var('EXT_HPC_TESTS')) {
-        zypper_call('in openmpi3 pmix openmpi3-gnu-hpc');
+        zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
+        zypper_call('in iputils python');
     }
 
     barrier_wait('CLUSTER_PROVISIONED');

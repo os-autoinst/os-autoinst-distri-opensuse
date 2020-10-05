@@ -186,6 +186,32 @@ sub mount_nfs {
     assert_script_run('mount -t nfs -o nfsvers=3 10.0.2.1:/nfs/shared /shared/slurm');
 }
 
+=head2 get_master_ip
+
+Check the IP of the master node
+
+=cut
+sub get_master_ip {
+    my ($self) = @_;
+
+    my $master_ip = script_output('hostname -I');
+
+    return $master_ip;
+}
+
+=head2 get_slave_ip
+
+Check the IP of the slave node
+
+=cut
+sub get_slave_ip {
+    my ($self) = @_;
+
+    my $slave_ip = script_output("ssh root\@slave-node00 \'hostname -I\'");
+    record_info('DEBUG1', "$slave_ip");
+    return $slave_ip;
+}
+
 =head2 prepare_user_and_group
 
 Creating slurm user and group with some pre-defined ID

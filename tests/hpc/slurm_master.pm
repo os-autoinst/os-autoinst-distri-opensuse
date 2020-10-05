@@ -447,26 +447,24 @@ sub run_accounting_ha_tests {
     return @all_results;
 }
 
-###############################################
-##        Extended tests for HPC cluster     ##
-##          Meant as fast moving tests       ##
-###############################################
+########################################################
+##        Extended&External tests for HPC             ##
+##          Meant as fast moving tests                ##
+########################################################
 
 sub extended_hpc_tests {
-    #install some tools needed for extended tests
-    zypper_call('in git gcc bc');
+    my ($master_ip, $slave_ip) = @_;
 
-    #ensure HPC cluster installs needed rpms
-    zypper_call('in openmpi3 openmpi3-gnu-hpc openmpi3-gnu-hpc-devel bc openmpi3-devel');
-    zypper_call('in pmix hypre_*-gnu-*-hpc* cpuid papi_*-hpc boost_*-gnu-hpc gsl_*-gnu-hpc petsc_*-gnu-*-hpc*');
-    script_run('export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/lib64/mpi/gcc/openmpi3/lib64/');
-    script_run('wget --quiet ' . data_url('hpc/simple_mpi.c') . ' -O /tmp/simple_mpi.c');
-    script_run('/usr/lib64/mpi/gcc/openmpi3/bin/mpicc /tmp/simple_mpi.c -o /tmp/simple_mpi | tee /tmp/make.out');
-    script_run('git clone https://github.com/schlad/havoxc_binary.git');
-    script_run('cd havoxc_binary');
-    script_run('wget --quiet ' . data_url('hpc/julog.sh') . ' -O julog.sh');
-    script_run('./havoxc.so', 180);
-    parse_extra_log('XUnit', './results/TEST-havoxc_so.xml');
+    # do all test preparations and setup
+    zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
+    zypper_call('in git-core twopence-shell-client bc iputils python');
+    assert_script_run('git -c http.sslVerify=false clone https://github.com/schlad/hpc-testing.git --branch HPC');
+
+    #execute tests
+    assert_script_run('cd hpc-testing');
+    record_info('DEBUG3', "$slave_ip");
+    assert_script_run("./hpc-test.sh $master_ip $slave_ip --in-vm -v", 360);
+    parse_extra_log('XUnit', './results/TEST-hpc-test.xml');
 }
 
 sub run {
@@ -526,7 +524,11 @@ sub run {
     # stability; use at your own risk
 
     if (get_required_var('EXT_HPC_TESTS')) {
-        extended_hpc_tests();
+        #hpc-testing gets IPs as args
+        my $master_ip = $self->get_master_ip();
+        my $slave_ip  = $self->get_slave_ip();
+        record_info('DEBUG2', "$slave_ip");
+        extended_hpc_tests($master_ip, $slave_ip);
     } else {
         run_tests($slurm_conf);
     }
