@@ -154,6 +154,7 @@ sub test_container_image {
     my %args    = @_;
     my $image   = $args{image};
     my $runtime = $args{runtime};
+    my $logfile = "/var/tmp/container_logs";
 
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
@@ -168,10 +169,16 @@ sub test_container_image {
     assert_script_run("$runtime container create --name 'testing' '$image' /bin/sh -c '$smoketest'");
     assert_script_run("$runtime container start 'testing'");
     assert_script_run("$runtime wait 'testing'", 90);
-    assert_script_run("$runtime container logs 'testing' > '/var/tmp/container_testing'");
+    assert_script_run("$runtime container logs 'testing' | tee '$logfile'");
     assert_script_run("$runtime container rm 'testing'");
-    assert_script_run("grep \"`uname -r`\" '/var/tmp/container_testing'");
-    assert_script_run("grep \"Heartbeat from $image\" '/var/tmp/container_testing'");
+    if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
+        upload_logs("$logfile");
+        die "Kernel smoke test failed for $image";
+    }
+    if (script_run("grep \"Heartbeat from $image\" '$logfile'") != 0) {
+        upload_logs("$logfile");
+        die "Heartbeat test failed for $image";
+    }
 }
 
 sub scc_apply_docker_image_credentials {
