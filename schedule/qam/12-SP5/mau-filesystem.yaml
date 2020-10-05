@@ -19,6 +19,7 @@ schedule:
 - console/snapper_undochange
 - console/snapper_create
 - console/snapper_thin_lvm
-- console/coredump_collect
+- network/cifs
 - console/udisks2
+- console/coredump_collect
 ...
