@@ -238,6 +238,7 @@ sub is_tumbleweed {
     # Tumbleweed and its stagings
     return 0 unless check_var('DISTRI', 'opensuse');
     return 1 if get_var('VERSION') =~ /Tumbleweed/;
+    return 1 if is_gnome_next;
     return get_var('VERSION') =~ /^Staging:/;
 }
 
