@@ -25,7 +25,7 @@ schedule:
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/hostname_inst
+  - '{{hostname_inst}}'
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
@@ -41,11 +41,21 @@ schedule:
   - '{{grub_test}}'
   - installation/first_boot
 conditional_schedule:
+  hostname_inst:
+    BACKEND:
+      qemu:
+        - installation/hostname_inst
+      svirt:
+        - installation/hostname_inst
   reconnect_mgmt_console:
     BACKEND:
       svirt:
         - boot/reconnect_mgmt_console
+      pvm_hmc:
+        - boot/reconnect_mgmt_console
   grub_test:
     BACKEND:
       qemu:
+        - installation/grub_test
+      pvm_hmc:
         - installation/grub_test
