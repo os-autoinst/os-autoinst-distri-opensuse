@@ -27,8 +27,12 @@ sub run {
 
     my ($image_names, $stable_names) = get_suse_container_urls();
 
-    ensure_ca_certificates_suse_installed() if (is_sle());
     install_podman_when_needed();
+
+    if (is_sle()) {
+        ensure_ca_certificates_suse_installed();
+        allow_selected_insecure_registries(runtime => 'podman');
+    }
 
     for my $i (0 .. $#$image_names) {
         test_container_image(image => $image_names->[$i], runtime => 'podman');

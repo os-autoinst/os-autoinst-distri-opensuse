@@ -23,7 +23,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
-use version_utils;
+use version_utils qw(is_sle is_tumbleweed is_leap);
 use registration;
 use containers::common;
 use containers::utils;
