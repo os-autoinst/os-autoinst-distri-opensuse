@@ -109,6 +109,12 @@ boot
 END_BOOTSCRIPT
 
     diag "setting iPXE bootscript to: $bootscript";
+
+    diag "===== autoyast $autoyast =====";
+    my $curl = `curl -s $autoyast`;
+    diag $curl;
+    diag "===== END bootscript $autoyast =====";
+
     my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";
 }
