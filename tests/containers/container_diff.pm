@@ -19,13 +19,15 @@ use warnings;
 use containers::common;
 use containers::container_images;
 use suse_container_urls 'get_suse_container_urls';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     install_docker_when_needed();
-    zypper_call("install container-diff") if (script_run("which container-diff") != 0);
+    allow_selected_insecure_registries(runtime => 'docker') if (is_sle());
+    zypper_call("install container-diff")                   if (script_run("which container-diff") != 0);
 
     my ($image_names, $stable_names) = get_suse_container_urls();
 
