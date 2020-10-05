@@ -397,7 +397,7 @@ sub reboot {
     if (check_var('BACKEND', 'ipmi')) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console;
-        $self->wait_boot(textmode => 1, nologin => 1);
+        $self->wait_boot(textmode => 1, nologin => get_var('NOAUTOLOGIN', '0'));
     }
     else {
         power_action('reboot', textmode => 1);
