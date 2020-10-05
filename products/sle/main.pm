@@ -177,7 +177,8 @@ if (get_var('HDD_1', '') =~ /\D*-11-\S*/) {
     set_var('FILESYSTEM', 'ext4');
 }
 
-set_var("WALLPAPER", '/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.jpg');
+my $wallpaper_extension = (is_sle('15-SP3+')) ? 'png' : 'jpg';
+set_var("WALLPAPER", "/usr/share/wallpapers/SLEdefault/contents/images/1280x1024.$wallpaper_extension");
 
 # set KDE and GNOME, ...
 set_var(uc(get_var('DESKTOP')), 1);
