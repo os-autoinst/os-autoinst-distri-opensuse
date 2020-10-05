@@ -34,7 +34,7 @@ sub run {
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
 
     # Verify that combustion ran (not on Leap 15.2 and SUSE yet)
-    unless (is_microos('suse') || is_microos('15.2')) {
+    unless (is_microos('suse') || is_microos('=15.2')) {
         validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
     }
 }
