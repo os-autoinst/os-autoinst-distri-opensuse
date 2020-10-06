@@ -22,7 +22,12 @@ use warnings;
 sub run {
     my ($self) = @_;
     power_action('reboot', textmode => 1);
-    $self->wait_boot;
+    if (check_var('ARCH', 'aarch64')) {
+        $self->wait_boot(bootloader_time => 300);
+    }
+    else {
+        $self->wait_boot;
+    }
     select_console 'root-console';
     ensure_serialdev_permissions;
     check_console_font;
