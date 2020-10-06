@@ -37,7 +37,7 @@ sub run {
         bsc_1118321         => '.*update-checker-migration.timer.*(Failed to parse calendar specification|Timer unit lacks value setting).*',
         bsc_1126272         => 'Failed unmounting \/\S+\.|-- Reboot --|pam_systemd.*Failed to release session',
         bsc_1127339         => 'kernel: efi: EFI_MEMMAP is not enabled',
-        bsc_000000_FEATURE  => 'health-checker/rebootmgr.sh check" failed|Machine didn\'t come up correct, do a rollback',
+        bsc_000000_FEATURE  => 'health-checker/fail.sh check" failed|Machine didn\'t come up correct, do a rollback',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
@@ -79,7 +79,7 @@ sub run {
             $failed = 1;
         }
     }
-    $self->result(is_opensuse() ? 'softfail' : 'fail') if $failed;
+    $self->result('fail') if $failed;
 }
 
 1;
