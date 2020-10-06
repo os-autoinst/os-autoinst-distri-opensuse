@@ -31,7 +31,6 @@
       <gfxtheme>/boot/grub2/themes/SLE/theme.txt</gfxtheme>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>true</os_prober>
-      <suse_btrfs>true</suse_btrfs>
       <terminal>gfxterm</terminal>
       <timeout config:type="integer">-1</timeout>
     </global>

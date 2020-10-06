@@ -34,9 +34,6 @@
     <mode>
       <confirm config:type="boolean">false</confirm>
     </mode>
-    <mouse>
-      <id>none</id>
-    </mouse>
     <signature-handling>
       <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
       <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>

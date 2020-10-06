@@ -25,7 +25,6 @@
       <gfxtheme>/boot/grub2/themes/SLE/theme.txt</gfxtheme>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>true</os_prober>
-      <suse_btrfs>true</suse_btrfs>
       <timeout config:type="integer">-1</timeout>
       <xen_kernel_append> splash=silent quiet showopts</xen_kernel_append>
     </global>
