@@ -42,9 +42,12 @@ sub run {
     systemctl 'is-enabled chronyd';
     systemctl 'is-active chronyd';
     systemctl 'status chronyd';
-    assert_script_run 'chronyc tracking';
     assert_script_run 'chronyc sources';
+    assert_script_run 'chronyc tracking';
+    assert_script_run 'chronyc makestep';
+    assert_script_run 'chronyc tracking';
     assert_script_run 'chronyc waitsync 40 0.01', 400;
+    assert_script_run 'chronyc tracking';
 }
 
 1;
