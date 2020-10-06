@@ -23,8 +23,9 @@ sub pre_run_hook {
 
 sub run {
     #run test
+    my $timeout = 600;
     assert_script_run 'cd /usr/lib/systemd/tests';
-    assert_script_run './run-tests.sh TEST-43-PRIVATEUSER-UNPRIV --run 2>&1 | tee /tmp/testsuite.log', 600;
+    assert_script_run './run-tests.sh TEST-43-PRIVATEUSER-UNPRIV --run 2>&1 | tee /tmp/testsuite.log', $timeout;
     assert_script_run 'grep "PASS: ...TEST-43-PRIVATEUSER-UNPRIV" /tmp/testsuite.log';
     script_run './run-tests.sh TEST-42-EXECSTOPPOST --clean';
 }

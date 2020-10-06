@@ -23,8 +23,9 @@ sub pre_run_hook {
 
 sub run {
     #run test
+    my $timeout = 900;
     assert_script_run 'cd /usr/lib/systemd/tests';
-    assert_script_run './run-tests.sh TEST-24-UNIT-TESTS --run 2>&1 | tee /tmp/testsuite.log', 60;
+    assert_script_run './run-tests.sh TEST-24-UNIT-TESTS --run 2>&1 | tee /tmp/testsuite.log', $timeout;
     assert_script_run 'grep "PASS: ...TEST-24-UNIT-TESTS" /tmp/testsuite.log';
 }
 
