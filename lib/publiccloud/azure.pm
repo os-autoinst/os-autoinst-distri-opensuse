@@ -16,7 +16,7 @@ use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON qw(decode_json encode_json);
 use Term::ANSIColor 2.01 'colorstrip';
 use Data::Dumper;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 
 has tenantid        => undef;
 has subscription    => undef;
@@ -223,7 +223,12 @@ sub on_terraform_apply_timeout {
             $tries = 0;
         };
         if ($@) {
-            type_string(qq(\c\\));
+            if (is_serial_terminal()) {
+                type_string(qq(\c\\));    # Send QUIT signal
+            }
+            else {
+                send_key('ctrl-\\');      # Send QUIT signal
+            }
         }
     }
 

@@ -12,7 +12,7 @@
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 package publiccloud::provider;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
 use Data::Dumper;
@@ -379,7 +379,12 @@ sub terraform_apply {
     assert_script_run($cmd, $terraform_timeout);
     my $ret = script_run('terraform apply -no-color -input=false myplan', $terraform_timeout);
     unless (defined $ret) {
-        type_string(qq(\c\\));        # Send QUIT signal
+        if (is_serial_terminal()) {
+            type_string(qq(\c\\));    # Send QUIT signal
+        }
+        else {
+            send_key('ctrl-\\');      # Send QUIT signal
+        }
         assert_script_run('true');    # make sure we have a prompt
         record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
         assert_script_run('cd ' . TERRAFORM_DIR);
@@ -437,7 +442,12 @@ sub terraform_destroy {
     }
     my $ret = script_run('terraform destroy -no-color -auto-approve', get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT));
     unless (defined $ret) {
-        type_string(qq(\c\\));        # Send QUIT signal
+        if (is_serial_terminal()) {
+            type_string(qq(\c\\));    # Send QUIT signal
+        }
+        else {
+            send_key('ctrl-\\');      # Send QUIT signal
+        }
         assert_script_run('true');    # make sure we have a prompt
         record_info('ERROR', 'Terraform destroy failed with timeout', result => 'fail');
         assert_script_run('cd ' . TERRAFORM_DIR);
