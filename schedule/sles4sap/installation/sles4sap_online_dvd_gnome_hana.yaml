@@ -3,7 +3,6 @@ name: sles4sap_online_dvd_gnome_hana
 description: >
   HANA tests for SLES4SAP with the hdblcm cli
 vars:
-  HANA: nfs://1c119.qa.suse.de/srv/nfs/sap/HANA2/SPS04rev46_0/%ARCH%
   HANA_PARTITIONING_BY: yast
   INSTANCE_ID: '00'
   INSTANCE_SID: NDB
