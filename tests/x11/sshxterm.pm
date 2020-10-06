@@ -26,7 +26,7 @@ sub run {
     my ($self) = @_;
     mouse_hide(1);
     x11_start_program('xterm');
-    type_string("ssh -XC root\@localhost xterm\n");
+    type_string("ssh -o StrictHostKeyChecking=no -XC root\@localhost xterm\n");
     assert_screen "ssh-second-xterm";
     $self->set_standard_prompt();
     $self->enter_test_text('ssh-X-forwarding', cmd => 1);
