@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,7 @@ use lockapi;
 use utils;
 use Data::Dumper;
 use Mojo::JSON;
+use version_utils 'is_sle';
 
 ## TODO: provide better parser for HPC specific tests
 sub validate_result {
@@ -128,7 +129,7 @@ sub run_basic_tests {
     my %test04 = t04_basic();
     push(@all_results, \%test04);
 
-    if (get_required_var('VERSION') =~ m/15-SP2/) {
+    if (is_sle('>15-SP2')) {
         my %test05 = t05_basic();
         push(@all_results, \%test05);
     }
@@ -217,7 +218,7 @@ sub t04_basic {
 }
 
 sub t05_basic {
-    my $name        = 'PMIx Support in SLURM and the MPI Libraries';
+    my $name        = 'PMIx Support in SLURM';
     my $description = 'Basic check if pmix is present. https://jira.suse.com/browse/SLE-10802';
     my $result      = 0;
 
