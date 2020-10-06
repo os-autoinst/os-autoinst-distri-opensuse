@@ -60,8 +60,10 @@ sub check_guest_module {
 sub save_guest_ip {
     my ($guest, %args) = @_;
     my $name = $args{name};
-    if (script_run("ping -c3 $guest") != 0) {
-        script_run "sed -i '/$guest/d' /etc/hosts";
+
+    # If we don't know guest's address or the address is wrong so the guest is not responding to ICMP
+    if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30) != 0) {
+        script_run "sed -i '/ $guest /d' /etc/hosts";
         assert_script_run "virsh domiflist $guest";
         my $mac_guest  = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
         my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
@@ -95,11 +97,21 @@ sub test_network_interface {
             if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
                 script_run("ssh root\@$guest service network restart", 300);
             } else {
-                script_run("ssh root\@$guest systemctl restart wickedd wickedd-dhcp4 wicked", 300);
+                script_run("ssh root\@$guest systemctl restart network", 300);
             }
         }
-        script_retry("ssh root\@$guest ifup $nic", delay => 30, retry => 12, timeout => 90);
+        # Exit the SSH master socket if open
+        script_run("ssh -O exit root\@$guest");
+        # Wait until guest's primary interface is back up
+        script_retry("ping -c3 $guest", delay => 6, retry => 30);
+        # Activate guest's secondary (tested) interface
+        script_retry("ssh root\@$guest ifup $nic", delay => 5, retry => 4);
     }
+
+    # See obtained IP addresses
+    script_run("virsh net-dhcp-leases $net");
+
+    # Show the IP address of secondary (tested) interface
     assert_script_run("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1");
     my $addr = script_output "ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1";
 

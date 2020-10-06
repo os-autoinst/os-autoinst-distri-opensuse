@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test basic VM guest management
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 
 use base "consoletest";
 use virt_autotest::common;
@@ -19,6 +19,17 @@ use testapi;
 use utils;
 
 sub run {
+    ## Ensure every guest has <on_reboot>restart</on_reboot>
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        my $filename = "$guest.xml";
+        assert_script_run("virsh dumpxml $guest > $filename");
+        if (script_run("! cat $filename | grep 'on_reboot' | grep -v 'restart'") != 0) {
+            record_info("$guest bsc#1153028", "Setting on_reboot=restart for $guest");
+            assert_script_run("sed -i '/\<on_reboot\>/c\  <on_reboot\>restart\</on_reboot\>/' $filename");
+            assert_script_run("virsh define $filename");
+        }
+        script_run("rm $filename");
+    }
     record_info '<on_reboot>', 'Check that every no guest has <on_reboot>destroy</on_reboot> but <on_reboot>restart</on_reboot>';
     if (script_run("find /etc/libvirt/ -name *.xml -exec grep on_reboot '{}' \\; | grep destroy") == 0) {
         record_soft_failure "bsc#1153028 - The on_reboot parameter is not set correctly";
