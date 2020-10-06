@@ -18,13 +18,14 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
-    select_console 'tunnel-console';
+    select_host_console();    # select console on the host, not the PC instance
 
     my $max_retries = 3;
     for (1 .. $max_retries) {

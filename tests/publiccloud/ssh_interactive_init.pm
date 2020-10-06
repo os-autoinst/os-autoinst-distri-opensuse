@@ -12,14 +12,14 @@
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
 use Mojo::Base 'publiccloud::basetest';
+use publiccloud::utils "select_host_console";
 use testapi;
 use utils;
 
 sub run {
     my ($self, $args) = @_;
 
-    # The tunnel-console will be ocupated by the SSH tunnel
-    select_console 'tunnel-console';
+    select_host_console();    # select console on the host, not the PC instance
 
     # Create public cloud instance
     my $provider = $self->provider_factory();
@@ -46,8 +46,9 @@ sub run {
     $instance->run_ssh_command(cmd => 'hostname');
     $instance->run_ssh_command(cmd => 'sudo sed -i "s/PasswordAuthentication/#PasswordAuthentication/" /etc/ssh/sshd_config; echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config');
     $instance->run_ssh_command(cmd => 'sudo sed -i "s/ChallengeResponseAuthentication/#ChallengeResponseAuthentication/" /etc/ssh/sshd_config; echo "ChallengeResponseAuthentication no" | sudo tee -a /etc/ssh/sshd_config');
-    $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd root');
-    $instance->run_ssh_command(cmd => 'sudo sed -i "s/PermitRootLogin no/PermitRootLogin yes/g" /etc/ssh/sshd_config');
+    # Skip setting root password for img_proof, because it expects the root password to NOT be set
+    $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd root') unless (get_var('PUBLIC_CLOUD_QAM') && get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS'));
+    $instance->run_ssh_command(cmd => 'sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
     $instance->run_ssh_command(cmd => "sudo mkdir -p /root/.ssh");
     $instance->run_ssh_command(cmd => "sudo chmod -R 700 /root/.ssh");
     $instance->run_ssh_command(cmd => 'sudo cp /home/' . $instance->username() . '/.ssh/authorized_keys /root/.ssh/');

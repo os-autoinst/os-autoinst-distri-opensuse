@@ -17,10 +17,12 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
-    select_console 'tunnel-console';
+
+    select_host_console();    # select console on the host, not the PC instance
 
     assert_script_run("mkdir ~/repos");
     assert_script_run("cd ~/repos");
@@ -36,11 +38,13 @@ sub run {
         my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
         $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
         if ($ret !~ /0|8/) {
-            die "wget error: The $maintrepo download failed with $ret return code.";
+            # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
+            record_soft_failure("Download failed (rc=$ret):\n$maintrepo");
+        } else {
+            assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
+            assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
+            assert_script_run("find $parent >> /tmp/repos.list.txt");
         }
-        assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
-        assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
-        assert_script_run("find $parent >> /tmp/repos.list.txt");
     }
 
     upload_logs('/tmp/repos.list.txt');

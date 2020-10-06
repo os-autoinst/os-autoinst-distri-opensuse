@@ -17,10 +17,11 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
-    select_console 'tunnel-console';
+    select_host_console();    # select console on the host, not the PC instance
 
     $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ref", timeout => 360);
     ssh_fully_patch_system($args->{my_instance}->public_ip);

@@ -17,13 +17,14 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
 
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
-    select_console 'tunnel-console';
+    select_host_console();    # select console on the host, not the PC instance
 
     assert_script_run("du -sh ~/repos");
     assert_script_run("rsync -va -e ssh ~/repos root@" . $args->{my_instance}->public_ip . ":'/tmp/repos'", timeout => 900);
