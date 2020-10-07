@@ -81,7 +81,7 @@
                     <size>400MiB</size>
                 </partition>
                 <partition>
-                    <raid_name>/dev/md/0</raid_name>
+                    <raid_name>/dev/md0</raid_name>
                     <size>10GiB</size>
                 </partition>
             </partitions>
@@ -93,13 +93,13 @@
             <use>all</use>
             <partitions config:type="list">
                 <partition>
-                    <raid_name>/dev/md/0</raid_name>
+                    <raid_name>/dev/md0</raid_name>
                 </partition>
             </partitions>
         </drive>
         <drive>
             <type config:type="symbol">CT_MD</type>
-            <device>/dev/md/0</device>
+            <device>/dev/md0</device>
             <disklabel>gpt</disklabel>
             <use>all</use>
             <raid_options>
