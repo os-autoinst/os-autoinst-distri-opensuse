@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_microos);
 use registration;
 
 sub run {
@@ -39,10 +39,12 @@ sub run {
 
     select_console('root-console');
     assert_script_run $cmd;
-    assert_script_run 'SUSEConnect --list-extensions';
-    assert_screen 'activated-with-suseconnect';
-    assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"';
-    assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'        \e\[1mWeb and Scripting Module\')"';
+    unless (is_microos('suse')) {
+        assert_script_run 'SUSEConnect --list-extensions';
+        assert_screen 'activated-with-suseconnect';
+        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"';
+        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'        \e\[1mWeb and Scripting Module\')"';
+    }
 
     # add modules
     if (is_sle '15+') {
