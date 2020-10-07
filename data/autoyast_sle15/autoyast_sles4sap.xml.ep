@@ -17,11 +17,10 @@
   </general>
   <networking>
     <dhcp_options>
-      <dhclient_client_id/>
       <dhclient_hostname_option>AUTO</dhclient_hostname_option>
     </dhcp_options>
     <dns>
-      <dhcp_hostname config:type="boolean">no</dhcp_hostname>
+      <dhcp_hostname config:type="boolean">false</dhcp_hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
       <write_hostname config:type="boolean">false</write_hostname>
     </dns>
@@ -64,8 +63,8 @@
     <ntp_sync>15</ntp_sync>
   </ntp-client>
   <firewall>
-    <enable_firewall>true</enable_firewall>
-    <start_firewall>true</start_firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
   </firewall>
   <report>
     <errors>
@@ -277,7 +276,6 @@
           <mountby config:type="symbol">device</mountby>
           <partition_id config:type="integer">142</partition_id>
           <partition_nr config:type="integer">1</partition_nr>
-          <raid_options/>
           <resize config:type="boolean">false</resize>
           <size>max</size>
         </partition>
@@ -299,7 +297,6 @@
           <mount>/hana/data</mount>
           <mountby config:type="symbol">device</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
           <resize config:type="boolean">false</resize>
           <size>23%</size>
         </partition>
@@ -311,7 +308,6 @@
           <mount>/hana/log</mount>
           <mountby config:type="symbol">device</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
           <resize config:type="boolean">false</resize>
           <size>12%</size>
         </partition>
@@ -323,7 +319,6 @@
           <mount>/hana/shared</mount>
           <mountby config:type="symbol">device</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
           <resize config:type="boolean">false</resize>
           <size>23%</size>
         </partition>
@@ -335,7 +330,6 @@
           <mount>/usr/sap</mount>
           <mountby config:type="symbol">device</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <raid_options/>
           <resize config:type="boolean">false</resize>
           <size>50G</size>
         </partition>
@@ -348,10 +342,7 @@
   <scripts>
     <init-scripts config:type="list">
       <script>
-        <feedback config:type="boolean">true</feedback>
         <debug config:type="boolean">true</debug>
-        <notification>Enabling Autostart of HANA HDB...</notification>
-        <interpreter>shell</interpreter>
 	<source><![CDATA[sed -i 's/^\(Autostart[[:blank:]]*=\).*/\1 1/' /hana/shared/{{INSTANCE_SID}}/profile/{{INSTANCE_SID}}_HDB{{INSTANCE_ID}}_$(hostname)]]></source>
       </script>
     </init-scripts>
