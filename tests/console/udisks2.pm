@@ -58,16 +58,25 @@ sub run {
     assert_script_run "dd if=/dev/zero of=udisk_test/testfile.data bs=512 count=10";
     assert_script_run "ls -l udisk_test/testfile.data";
     assert_script_run "mkisofs -o udisk_test.iso udisk_test/";
-    my $udloop_output = script_output("udisksctl loop-setup -r -f udisk_test.iso");
+    my $udloop_output = script_output("udisksctl loop-setup -r -f udisk_test.iso 2>&1", proceed_on_failure => 1);
 
-    die "Missing mapping info. Expected: Mapped value \nGot: /$udloop_output/"
-      unless $udloop_output =~ "Mapped";
+    if ($udloop_output =~ /^Error\ssetting\sup\sloop\sdevice.*Timed\sout\swaiting\sfor\sobject$/) {
+        record_soft_failure "boo#1177419  [Build 20201003] udisks2ctl randomly fails to set up loop device for /root/udisk_test.iso";
+    } elsif ($udloop_output =~ "Mapped") {
+        assert_script_run "losetup -j /root/udisk_test.iso | grep loop";
+    } else {
+        die "Missing mapping info. Expected: Mapped value \nGot: /$udloop_output/";
+    }
 
     # Gets device path from udisks loop-setup output
     my $device_path;
     for my $line (split /\n/, $udloop_output) {
         if ($line =~ /Mapped file\s+(.*?)\s+as\s(.*?)\./) {
             $device_path = $2;
+        }
+        # related to boo#1177419
+        if ($line =~ /Error\swaiting\sfor\sloop\sobject.*'(.*)':/) {
+            $device_path = $1;
         }
     }
 
