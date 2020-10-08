@@ -44,7 +44,6 @@ conditional_schedule:
                 - appgeo/gdal
                 - console/rabbitmq
                 - console/rails
-                - console/oneclick_install
                 - console/pcre
                 - console/openqa_review
                 - console/zbar

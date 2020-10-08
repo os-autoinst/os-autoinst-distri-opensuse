@@ -1577,7 +1577,6 @@ sub load_extra_tests_opensuse {
     return unless is_opensuse;
     loadtest "console/rabbitmq";
     loadtest "console/rails";
-    loadtest "console/oneclick_install" if is_tumbleweed;
     loadtest "console/pcre";
     loadtest "console/openqa_review";
     loadtest "console/zbar";
