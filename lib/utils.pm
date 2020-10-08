@@ -516,7 +516,8 @@ sub zypper_call {
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
-            } elsif (my $conflicts = script_output($search_conflicts)) {
+            } elsif (script_run('grep "Solverrun finished with an ERROR" /var/log/zypper.log') == 0) {
+                my $conflicts = script_output($search_conflicts);
                 record_info("Conflict", $conflicts, result => 'fail');
                 diag "Package conflicts found, not retrying anymore" if $conflicts;
                 last;
