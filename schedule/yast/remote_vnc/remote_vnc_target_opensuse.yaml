@@ -7,3 +7,4 @@ schedule:
   - installation/isosize
   - installation/bootloader
   - remote/remote_target
+  - console/validate_vnc_from_target
