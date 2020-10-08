@@ -2,8 +2,7 @@ name:           ibtest-master
 description:    >
     The master node for the infiniband testsuite (hpc-testing)
 vars:
-    AUTOYAST: autoyast_mlx_con5.xml
-    AUTOYAST_PREPARE_PROFILE: 1
+    DESKTOP: textmode
     DEVEL_TOOLS_REPO: https://download.opensuse.org/repositories/devel:/tools/SLE_15_SP2/devel:tools.repo
     GA_REPO: http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
     GRUB_TIMEOUT: 300
@@ -15,11 +14,26 @@ vars:
     IBTEST_ROLE: IBTEST_MASTER
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
+    IPXE_CONSOLE: ttyS1,115200
+    PATTERNS: base,minimal
     SCC_ADDONS: sdk
 schedule:
     - kernel/ibtests_barriers
-    - autoyast/prepare_profile
     - installation/ipxe_install
-    - console/suseconnect_scc
-    - toolchain/install
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/reboot_after_installation
     - kernel/ibtests

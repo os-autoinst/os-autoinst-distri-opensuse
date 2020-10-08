@@ -14,6 +14,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 
+use utils;
 use testapi;
 use bmwqemu;
 
@@ -75,7 +76,7 @@ sub set_bootscript {
     my $http_server = get_required_var('IPXE_HTTPSERVER');
     my $url         = "$http_server/v1/bootscript/script.ipxe/$ip";
     my $arch        = get_required_var('ARCH');
-    my $autoyast    = get_required_var('AUTOYAST');
+    my $autoyast    = get_var('AUTOYAST', '');
 
     my $kernel = get_required_var('MIRROR_HTTP');
     my $initrd = get_required_var('MIRROR_HTTP');
@@ -87,14 +88,21 @@ sub set_bootscript {
         $kernel .= "/boot/$arch/loader/linux";
         $initrd .= "/boot/$arch/loader/initrd";
     }
-    my $install = get_required_var('MIRROR_NFS');
+    my $install = get_required_var('MIRROR_HTTP');
     my $cmdline_extra;
 
     my $console = get_var('IPXE_CONSOLE');
 
     $cmdline_extra = "console=$console" if $console;
 
-    $cmdline_extra .= "root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
+    $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
+
+    if ($autoyast != '') {
+        $cmdline_extra .= " autoyast=$autoyast ";
+    } else {
+        $cmdline_extra .= " sshd=1 vnc=1 VNCPassword=$testapi::password sshpassword=$testapi::password ";    # trigger default VNC installation
+    }
+    $cmdline_extra .= ' plymouth.enable=0 ';
 
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
@@ -103,7 +111,7 @@ echo ++++++++++++ openQA ipxe boot ++++++++++++
 echo +    Host: $host
 echo ++++++++++++++++++++++++++++++++++++++++++
 
-kernel $kernel install=$install autoyast=$autoyast $cmdline_extra
+kernel $kernel install=$install $cmdline_extra
 initrd $initrd
 boot
 END_BOOTSCRIPT
@@ -144,18 +152,34 @@ sub run {
     set_pxe_boot;
     poweron_host;
 
-    select_console 'sol', await_console => 0;
+    # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
+    if (get_var('AUTOYAST')) {
+        select_console 'sol', await_console => 0;
+        # make sure to wait for a while befor changing the boot device again, in order to not change it too early
+        sleep 120;
+        if (check_var('IPXE_UEFI', '1')) {
+            # some machines need really long to boot into the installer, make sure
+            # we wait long enough so the bootscript was loaded
+            sleep 600;
+            set_bootscript_hdd;
+        }
+        assert_screen('linux-login', 1800);
+    } else {
+        select_console 'sol', await_console => 0;
+        sleep 120;
+        my $ssh_vnc_wait_time = 1200;
+        my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
+        my @tags              = ($ssh_vnc_tag);
+        if (check_screen(\@tags, $ssh_vnc_wait_time)) {
+            save_screenshot;
+            sleep 2;
+        }
+        save_screenshot;
+        select_console 'installation';
+        save_screenshot;
 
-    # make sure to wait for a while befor changing the boot device again, in order to not change it too early
-    sleep 120;
-
-    if (check_var('IPXE_UEFI', '1')) {
-        # some machines need really long to boot into the installer, make sure
-        # we wait long enough so the bootscript was loaded
-        sleep 600;
-        set_bootscript_hdd;
+        wait_still_screen;
     }
-    assert_screen('linux-login', 1800);
 }
 
 1;
