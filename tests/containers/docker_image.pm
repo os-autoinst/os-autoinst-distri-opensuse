@@ -35,11 +35,6 @@ sub run {
 
     install_docker_when_needed();
 
-    if (is_sle()) {
-        ensure_ca_certificates_suse_installed();
-        allow_selected_insecure_registries(runtime => 'docker');
-    }
-
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
     for my $i (0 .. $#$image_names) {

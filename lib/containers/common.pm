@@ -25,7 +25,24 @@ use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
-  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
+  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials install_podman_centos install_docker_centos);
+
+sub install_podman_centos {
+    if (script_run("which podman") != 0) {
+        assert_script_run "dnf -y install podman", timeout => 120;
+        save_screenshot;
+    }
+}
+
+sub install_docker_centos {
+    if (script_run("which docker") != 0) {
+        assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
+        # if podman installed allowerasing to solve conflicts
+        assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
+        systemctl "enable --now docker";
+        systemctl "status docker";
+    }
+}
 
 sub install_podman_when_needed {
     if (script_run("which podman") != 0) {

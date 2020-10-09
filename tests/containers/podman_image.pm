@@ -22,18 +22,9 @@ use suse_container_urls 'get_suse_container_urls';
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap);
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
-
     my ($image_names, $stable_names) = get_suse_container_urls();
-
     install_podman_when_needed();
-
-    if (is_sle()) {
-        ensure_ca_certificates_suse_installed();
-        allow_selected_insecure_registries(runtime => 'podman');
-    }
-
+    allow_selected_insecure_registries(runtime => 'podman');
     for my $i (0 .. $#$image_names) {
         test_container_image(image => $image_names->[$i], runtime => 'podman');
         build_container_image(image => $image_names->[$i], runtime => 'podman');
