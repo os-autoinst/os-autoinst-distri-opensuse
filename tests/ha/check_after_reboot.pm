@@ -16,22 +16,24 @@ use warnings;
 use testapi;
 use lockapi;
 use hacluster;
-use version_utils 'is_sles4sap';
-use utils 'systemctl';
+use version_utils qw(is_sles4sap);
+use utils qw(systemctl);
 
 sub run {
-    my $cluster_name = get_cluster_name;
+    my $cluster_name  = get_cluster_name;
+    my $node_to_fence = get_var('NODE_TO_FENCE', undef);
+    my $node_index    = !defined $node_to_fence ? 1 : 2;
     # In ppc64le and aarch64, workers are slower
     my $timeout_scale = get_var('TIMEOUT_SCALE', 2);
     $timeout_scale = 2 if ($timeout_scale < 2);
     set_var('TIMEOUT_SCALE', $timeout_scale) unless (check_var('ARCH', 'x86_64'));
 
     # Check cluster state *after* reboot
-    barrier_wait("CHECK_AFTER_REBOOT_BEGIN_$cluster_name");
+    barrier_wait("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE${node_index}");
 
     # We need to be sure to be root and, after fencing, the default console on node01 is not root
     # Only do this on node01, as node02 console is expected to be the root-console
-    if ((is_node(1) && !get_var('HDDVERSION')) || (is_node(2) && check_var('QDEVICE_TEST_ROLE', 'client'))) {
+    if ((is_node($node_index) && !get_var('HDDVERSION')) || (is_node(2) && check_var('QDEVICE_TEST_ROLE', 'client'))) {
         reset_consoles;
         select_console 'root-console';
     }
@@ -79,22 +81,16 @@ sub run {
 
     # Wait for resources to be started
     if (is_sles4sap) {
-        if (get_var('HA_CLUSTER_INIT') && check_var('CLUSTER_NAME', 'hana')) {
-            my $instance_id = get_required_var('INSTANCE_ID');
-            my $sid         = get_required_var('INSTANCE_SID');
-            my $sapadm      = lc($sid) . "adm";
-            my $node2       = choose_node(2);
-            if (check_var('AUTOMATED_REGISTER', 'false')) {
-                sleep bmwqemu::scale_timeout(300);
-                assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --name=NODE1 --remoteHost=$node2 --remoteInstance=$instance_id --replicationMode=sync --operationMode=logreplay'";
-                sleep 10;
-                assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", 300;
+        if (check_var('CLUSTER_NAME', 'hana') && check_var('AUTOMATED_REGISTER', 'false')) {
+            my $takeover_node = get_var('TAKEOVER_NODE');
+            if ($takeover_node ne get_hostname) {
+                check_cluster_state(proceed_on_failure => 1);
+                'sles4sap'->do_hana_takeover(node => $takeover_node, cluster => 1);
             }
         }
-        barrier_wait("HANA_RA_RESTART_$cluster_name") if check_var('CLUSTER_NAME', 'hana');
+        barrier_wait("HANA_RA_RESTART_${cluster_name}_NODE${node_index}") if check_var('CLUSTER_NAME', 'hana');
         wait_until_resources_started(timeout => 900);
-    }
-    else {
+    } else {
         wait_until_resources_started;
     }
 
@@ -102,11 +98,16 @@ sub run {
     check_cluster_state;
 
     # Synchronize all nodes
-    barrier_wait("CHECK_AFTER_REBOOT_END_$cluster_name");
-
-    barrier_wait("HAWK_FENCE_$cluster_name") if (check_var('HAWKGUI_TEST_ROLE', 'server'));
-
+    barrier_wait("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE${node_index}");
+    # Note: the following barriers aren't supposed to be used in multiple fencing tests
+    barrier_wait("HAWK_FENCE_$cluster_name")       if (check_var('HAWKGUI_TEST_ROLE', 'server'));
     barrier_wait("QNETD_TESTS_DONE_$cluster_name") if (check_var('QDEVICE_TEST_ROLE', 'client'));
+
+    # In case of HANA cluster we also have to test the failback/takeback after the first fencing
+    # Note: should be done here and not in fencing.pm, as cluster needs to be healthy before
+    if (check_var('CLUSTER_NAME', 'hana') && !defined $node_to_fence) {
+        set_var('NODE_TO_FENCE', choose_node(2));
+    }
 }
 
 1;

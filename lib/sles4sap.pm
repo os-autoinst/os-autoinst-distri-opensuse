@@ -1,3 +1,14 @@
+# SUSE's openQA tests
+#
+# Copyright (c) 2017-2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+#
+# Summary: Functions for SAP tests
+
 ## no critic (RequireFilenameMatchesPackage);
 package sles4sap;
 use base "opensusebasetest";
@@ -6,15 +17,15 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use hacluster 'pre_run_hook';
+use hacluster qw(pre_run_hook get_hostname);
 use isotovideo;
 use ipmi_backend_utils;
-use x11utils 'ensure_unlocked_desktop';
-use power_action_utils 'power_action';
-use Utils::Backends 'use_ssh_serial_console';
-use registration 'add_suseconnect_product';
-use version_utils 'is_sle';
-use utils 'zypper_call';
+use x11utils qw(ensure_unlocked_desktop);
+use power_action_utils qw(power_action);
+use Utils::Backends qw(use_ssh_serial_console);
+use registration qw(add_suseconnect_product);
+use version_utils qw(is_sle);
+use utils qw(zypper_call);
 
 our @EXPORT = qw(
   $instance_password
@@ -36,6 +47,8 @@ our @EXPORT = qw(
   test_stop
   test_start
   reboot
+  check_replication_state
+  do_hana_takeover
   install_libopenssl_legacy
 );
 
@@ -391,6 +404,51 @@ sub check_instance_state {
     die "Timed out waiting for SAP instance status to turn $uc_state" unless ($time_to_wait > 0);
 }
 
+=head2
+
+ check_replication_state();
+
+Check status of the HANA System Replication.
+Note: could only be run on active node.
+
+systemReplicationStatus.py return codes:
+ 10: No System Replication
+ 11: Error
+ 12: Unknown
+ 13: Initializing
+ 14: Syncing
+ 15: Active
+=cut
+sub check_replication_state {
+    my ($self) = @_;
+    my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
+    # Wait by default for 5 minutes
+    my $time_to_wait = 300;
+    my $cmd          = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
+
+    # Replication check can only be done on PRIMARY node
+    my $output = script_output($cmd, proceed_on_failure => 1);
+    return if $output !~ /mode:[\r\n]+PRIMARY/;
+
+    # Loop until ACTIVE state or timeout is reached
+    while ($time_to_wait > 0) {
+        my $is_active = script_run($cmd);
+
+        # Exit if replication is in state "Active"
+        last if $is_active eq '15';
+
+        $time_to_wait -= 10;
+        sleep 10;
+    }
+    die 'Timed out waiting for HANA System Replication to turn Active' unless ($time_to_wait > 0);
+}
+
+=head2 reboot
+
+ reboot();
+
+Restart the server and reconnect to the console right after.
+=cut
 sub reboot {
     my ($self) = @_;
 
@@ -404,6 +462,33 @@ sub reboot {
         $self->wait_boot(nologin => 1);
     }
     $self->select_serial_terminal;
+}
+
+=head2 do_hana_takeover
+
+ do_hana_takeover(node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster]);
+
+Do a takeover/failback on HANA cluster.
+
+Set C<$node> to the node where HANA is/should be the primary server.
+=cut
+sub do_hana_takeover {
+    # No need to do anything if AUTOMATED_REGISTER is set
+    return if check_var('AUTOMATED_REGISTER', 'true');
+    my ($self, %args) = @_;
+    my $current_node = get_hostname;
+    my $instance_id  = get_required_var('INSTANCE_ID');
+    my $sid          = get_required_var('INSTANCE_SID');
+    my $sapadm       = $self->set_sap_info($sid, $instance_id);
+
+    # Node name is mandatory
+    die 'Node name should be set' if !defined $args{node};
+
+    # Do the takeover/failback
+    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_takeover'" if defined $args{manual_takeover};
+    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --name=$current_node --remoteHost=$args{node} --remoteInstance=$instance_id --replicationMode=sync --operationMode=logreplay'";
+    sleep bmwqemu::scale_timeout(10);
+    assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", 300 if defined $args{cluster};
 }
 
 =head2 install_libopenssl_legacy
