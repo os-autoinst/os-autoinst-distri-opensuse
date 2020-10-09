@@ -93,6 +93,7 @@ sub run {
         assert_screen 'inst-network-hostname-dns-tab';
         assert_and_click 'inst-network-hostname-dhcp';
         assert_and_click 'inst-network-hostname-dhcp-modified';
+        assert_screen 'inst-network-hostname-dhcp-no';
     }
     send_key $cmd{next};
 }
