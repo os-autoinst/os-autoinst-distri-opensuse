@@ -19,6 +19,22 @@ use testapi;
 use utils;
 use klp;
 use power_action_utils 'power_action';
+use serial_terminal 'prepare_serial_console';
+use Utils::Architectures qw(is_s390x);
+
+sub do_reboot {
+    my $self = shift;
+
+    power_action('reboot', textmode => 1);
+    $self->wait_boot;
+
+    if (is_s390x) {
+        select_console('root-console');
+    } else {
+        prepare_serial_console;
+        $self->select_serial_terminal;
+    }
+}
 
 sub run {
     my $self = shift;
@@ -27,9 +43,7 @@ sub run {
 
     # Running in the same job as qa_test_klp, reboot to fix kernel state
     if (get_var('QA_TEST_KLP_REPO')) {
-        power_action('reboot', textmode => 1);
-        $self->wait_boot;
-        $self->select_serial_terminal;
+        $self->do_reboot;
     }
 
     my $output = script_output('uname -r');
@@ -51,9 +65,7 @@ sub run {
     verify_klp_pkg_installation($klp_pkg);
 
     # Reboot and check that the livepatch gets loaded again.
-    power_action('reboot', textmode => 1);
-    $self->wait_boot;
-    $self->select_serial_terminal;
+    $self->do_reboot;
     verify_klp_pkg_patch_is_active($klp_pkg);
 }
 
