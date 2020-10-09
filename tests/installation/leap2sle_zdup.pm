@@ -42,8 +42,11 @@ sub run {
     assert_script_run "SUSEConnect --list-extensions";
     register_product();
     register_addons_cmd("base,serverapp,legacy,desktop,phub");
-    zypper_call('dup --force-resolution', timeout => 1200);
+    zypper_call('dup --force-resolution', timeout => 1800);
     zypper_call "rm \$(zypper --no-refresh packages --orphaned | gawk '{print \$5}' | tail -n +5)";
+    if (is_desktop_installed) {
+        systemctl 'set-default graphical.target';
+    }
     power_action('reboot', keepconsole => 1, textmode => 1);
 }
 
