@@ -606,7 +606,7 @@ sub wait_grub {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $in_grub         = $args{in_grub}         // 0;
     my @tags;
-    push @tags, 'shim-key-management' unless get_var('DISABLE_SECUREBOOT');
+    push @tags, 'shim-key-management'           if get_var('CHECK_MOK_IMPORT');
     push @tags, 'bootloader-shim-verification'  if get_var('MOK_VERBOSITY');
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
     push @tags, 'grub2';
