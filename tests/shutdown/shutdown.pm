@@ -25,7 +25,9 @@ use power_action_utils 'power_action';
 use utils;
 
 sub run {
-    power_action('poweroff');
+    my $keep = check_var('ARCH', 's390x');
+    record_soft_failure "bsc#1177446 - polkit popup appears at first login, again" if $keep;
+    power_action('poweroff', keepconsole => $keep, textmode => $keep);
 }
 
 sub test_flags {
