@@ -23,6 +23,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
+use Utils::Architectures 'is_x86_64';
 
 sub run {
     select_console "root-console";
@@ -35,15 +36,15 @@ sub run {
 
     # install as many as SELinux related packages
     my @pkgs = (
-        "selinux-tools",   "libselinux-devel", "libselinux1",       "libselinux1-32bit", "python3-selinux", "libsepol1",
-        "libsepol-devel",  "libsemanage1",     "libsemanage-devel", "checkpolicy",       "mcstrans",        "restorecond",
-        "setools-console", "setools-devel",    "setools-java",      "setools-libs",      "setools-tcl"
+        "selinux-tools", "libselinux-devel",  "libselinux1",  "python3-selinux", "libsepol1",   "libsepol-devel",
+        "libsemanage1",  "libsemanage-devel", "checkpolicy",  "mcstrans",        "restorecond", "setools-console",
+        "setools-devel", "setools-java",      "setools-libs", "setools-tcl"
     );
     foreach my $pkg (@pkgs) {
-        my $results = script_run("zypper in -y $pkg", timeout => 300);
-        if ($results) {
-            record_soft_failure("workaround for bsc#1176660, $pkg is missing");
-        }
+        zypper_call("in $pkg");
+    }
+    if (is_x86_64) {
+        zypper_call("in libselinux1-32bit");
     }
 
     # for opensuse, e.g, Tumbleweed install selinux_policy pkgs as needed
