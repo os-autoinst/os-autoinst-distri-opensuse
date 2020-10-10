@@ -41,9 +41,11 @@ sub run {
     assert_screen("AppArmor-Settings-Profile-List-Show-Active-only");
 
     # Toggle profile modes and check "nscd" was changed from "enforcing" to "complain"
+    # Set to "complain"
     send_key "alt-c";
     assert_screen("AppArmor-Settings-Profile-toggled");
-    send_key "alt-c";
+    # Set to "enforce"
+    send_key "alt-e";
     assert_screen("AppArmor-Settings-Profile-List-Show-Active-only");
 
     # List all profiles
