@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <signature-handling>
+      <accept_unsigned_file         config:type="boolean">true</accept_unsigned_file>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_verification_failed   config:type="boolean">true</accept_verification_failed>
+      <accept_unknown_gpg_key       config:type="boolean">true</accept_unknown_gpg_key>
+      <import_gpg_key               config:type="boolean">true</import_gpg_key>
+      <accept_non_trusted_gpg_key   config:type="boolean">true</accept_non_trusted_gpg_key>
+    </signature-handling>
+  </general>
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email>
+    </email>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
+  <scripts>
+    <post-scripts config:type="list">
+      <script>
+        <filename>yast_clone.sh</filename>
+        <interpreter>shell</interpreter>
+        <location/>
+        <feedback config:type="boolean">false</feedback>
+        <source><![CDATA[#!/bin/sh
+rm /run/libstorage-ng/lock
+mv /var/run/zypp.pid /var/run/zypp.sav
+yast clone_system
+mv /var/run/zypp.sav /var/run/zypp.pid
+        ]]></source>
+      </script>
+    </post-scripts>
+    <init-scripts config:type="list">
+      <script>
+        <source><![CDATA[
+  chkconfig sshd on
+  rcsshd start
+]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
+  <networking>
+      <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <firewall>
+    <FW_CONFIGURATIONS_EXT>apache2 apache2-ssl</FW_CONFIGURATIONS_EXT>
+    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
+    <FW_SERVICES_EXT_TCP>8080</FW_SERVICES_EXT_TCP>
+    <FW_SERVICES_EXT_UDP>9090</FW_SERVICES_EXT_UDP>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <partitioning config:type="list">
+    <drive>
+      <partitions config:type="list">
+        <partition>
+          <partition_nr config:type="integer">1</partition_nr>
+          <lvm_group>system</lvm_group>
+          <partition_type>primary</partition_type>
+          <size>250G</size>
+        </partition>
+        <partition>
+          <partition_nr config:type="integer">2</partition_nr>
+          <lvm_group>system</lvm_group>
+          <partition_type>primary</partition_type>
+          <size>250G</size>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/system</device>
+      <initialize config:type="boolean">true</initialize>
+      <type t="symbol">CT_LVM</type>
+      <is_lvm_vg config:type="boolean">true</is_lvm_vg>
+      <partitions config:type="list">
+        <partition>
+          <lv_name>root_lv</lv_name>
+          <mount>/</mount>
+          <size>300G</size>
+        </partition>
+        <partition>
+          <lv_name>opt_lv</lv_name>
+          <mount>/opt</mount>
+          <size>200G</size>
+        </partition>
+        <partition>
+          <filesystem config:type="symbol">swap</filesystem>
+          <lv_name>swap_lv</lv_name>
+          <mount>swap</mount>
+          <size>auto</size>
+        </partition>
+      </partitions>
+      <pesize>4M</pesize>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <software>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>minimal_base</pattern>
+    </patterns>
+    <packages config:type="list">
+      <package>sudo</package>
+      <package>yast2-ntp-client</package>
+      <package>apache2</package>
+      <package>apache2-prefork</package>
+      <package>firewalld</package>
+    </packages>
+    <remove-packages config:type="list">
+      <package>zsh</package>
+    </remove-packages>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>vagrant</fullname>
+      <gid>100</gid>
+      <home>/home/vagrant</home>
+      <shell>/bin/bash</shell>
+      <uid>1000</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>vagrant</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>
