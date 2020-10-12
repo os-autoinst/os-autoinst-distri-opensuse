@@ -7,9 +7,12 @@ description: >
      - Firewall configuration
      - Subvolumes configuration
      - Passwords are set for the users in the profile
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_lvm.xml
+  AUTOYAST_VERIFY: autoyast_sle15/autoyast_lvm.list
 schedule:
-  - installation/isosize
-  - boot/boot_from_pxe
+  - autoyast/prepare_profile
+  - installation/bootloader_start
   - autoyast/installation
   - autoyast/console
   - autoyast/login
