@@ -38,8 +38,8 @@ sub run {
     # create the rootfs directory
     assert_script_run('mkdir rootfs');
 
-    # export busybox via Docker into the rootfs directory
-    assert_script_run('docker export $(docker create busybox) | tar -C rootfs -xvf -');
+    # export alpine via Docker into the rootfs directory (see bsc#1152508)
+    assert_script_run('docker export $(docker create alpine) | tar -C rootfs -xvf -');
 
     foreach my $runc (@runtimes) {
         record_info "$runc", "Testing $runc";
