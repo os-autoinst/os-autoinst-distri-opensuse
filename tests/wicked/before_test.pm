@@ -103,7 +103,6 @@ sub run {
             $resolv_options = ' --oldpackage' if (is_sle('<15'));
             ($repo_id) = ($wicked_repo =~ m!(^.*/)!s) if (is_sle('<=12-sp1'));
             zypper_call("in --from $repo_id $resolv_options --force -y --force-resolution  wicked wicked-service", log => 1);
-            record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
             validate_script_output('zypper ps  --print "%s"', qr/^\s*$/);
             if (my $commit_sha = get_var('WICKED_COMMIT_SHA')) {
                 validate_script_output(q(head -n 1 /usr/share/doc/packages/wicked/ChangeLog | awk '{print $2}'), qr/^$commit_sha$/);
@@ -121,6 +120,7 @@ sub run {
         $package_list .= ' gcc'                         if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
+        record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     }
 }
 
