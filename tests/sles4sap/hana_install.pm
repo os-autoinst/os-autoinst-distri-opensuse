@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(file_content_replace zypper_call);
+use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
 use POSIX 'ceil';
 
@@ -106,11 +107,26 @@ sub run {
         foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
         if ((check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) or !check_var('BACKEND', 'qemu')) {
             # We need 2.5 times $RAM + 50G for HANA installation.
-            my $device = $self->get_hana_device_from_system(($RAM * 2.5) + 50000);
-            record_info "Device: $device", "Will use device [$device] for HANA installation";
-            script_run "wipefs -f $device; [[ -b ${device}1 ]] && wipefs -f ${device}1; [[ -b ${device}-part1 ]] && wipefs -f ${device}-part1";
-            assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
-            $device .= is_multipath() ? '-part1' : '1';
+            my $device = get_var('HANA_INST_DEV', '');
+            if ($device) {
+                die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)\d+|);
+                my $disk = $1;
+                if (script_run "test -b $device") {
+                    # Need to create the partition if it does not exist
+                    my $lastsector = script_output "parted --machine --script $disk -- unit MB print | tail -1 | cut -d: -f3";
+                    $lastsector =~ /(\d+)MB/;
+                    $lastsector = $1 + 1;
+                    assert_script_run "parted --script $disk -- mkpart primary $lastsector -1";
+                    assert_script_run "test -b $device";    # Check partition was created successfully
+                }
+            }
+            else {
+                $device = $self->get_hana_device_from_system(($RAM * 2.5) + 50000);
+                record_info "Device: $device", "Will use device [$device] for HANA installation";
+                script_run "wipefs -f $device; [[ -b ${device}1 ]] && wipefs -f ${device}1; [[ -b ${device}-part1 ]] && wipefs -f ${device}-part1";
+                assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
+                $device .= is_multipath() ? '-part1' : '1';
+            }
             assert_script_run "pvcreate -y $device";
             assert_script_run "vgcreate -f vg_hana $device";
             foreach my $mounts (keys %mountpts) {
@@ -120,6 +136,25 @@ sub run {
                 assert_script_run "echo /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt} xfs defaults 0 0 >> /etc/fstab";
             }
         }
+    }
+    # Configure NVDIMM devices only when running on a BACKEND with NVDIMM
+    my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
+    if (get_var('NVDIMM')) {
+        my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
+        foreach my $i (0 .. ($nvddevs - 1)) {
+            assert_script_run "mkdir -p $pmempath/pmem$i";
+            assert_script_run "mkfs.xfs -f /dev/pmem$i";
+            assert_script_run "echo /dev/pmem$i $pmempath/pmem$i xfs defaults,noauto,dax 0 0 >> /etc/fstab";
+            assert_script_run "mount $pmempath/pmem$i";
+        }
+
+        assert_script_run 'mkdir -p /etc/systemd/system/systemd-udev-settle.service.d';
+        assert_script_run "curl -f -v " . autoinst_url .
+          '/data/sles4sap/udev-settle-override.conf -o /etc/systemd/system/systemd-udev-settle.service.d/00-override.conf';
+        systemctl 'daemon-reload';
+        systemctl 'restart systemd-udev-settle';
+
+        assert_script_run "chmod 0777 $pmempath -R";
     }
     assert_script_run "df -h";
 
@@ -142,14 +177,22 @@ sub run {
       "--datapath=$mountpts{hanadata}->{mountpt}/$sid",
       "--logpath=$mountpts{hanalog}->{mountpt}/$sid",
       "--sapmnt=$mountpts{hanashared}->{mountpt}";
+    push @hdblcm_args, "--pmempath=$pmempath", "--use_pmem" if get_var('NVDIMM');
     my $cmd = join(' ', $hdblcm, @hdblcm_args);
+    record_info 'hdblcm command', $cmd;
     assert_script_run $cmd, $tout;
 
     # Enable autostart of HANA HDB, otherwise DB will be down after the next reboot
-    # NOTE: not on HanaSR, as DB is managed by the cluster stack
-    unless (get_var('HA_CLUSTER')) {
+    # NOTE: not on HanaSR, as DB is managed by the cluster stack; nor on bare metal,
+    # as instance starts automatically faster and sles4sap::test_start() may fail
+    unless (get_var('HA_CLUSTER') or check_var('BACKEND', 'ipmi')) {
         my $hostname = script_output 'hostname';
         file_content_replace("$mountpts{hanashared}->{mountpt}/${sid}/profile/${sid}_HDB${instid}_${hostname}", '^Autostart[[:blank:]]*=.*' => 'Autostart = 1');
+    }
+
+    if (get_var('NVDIMM')) {
+        assert_script_run 'chown ' . lc($sid) . "adm:sapsys $pmempath $pmempath/pmem*";
+        assert_script_run "chmod 0755 $pmempath $pmempath/pmem*";
     }
 
     # Upload installations logs
