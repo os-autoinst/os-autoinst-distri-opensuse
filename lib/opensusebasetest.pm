@@ -914,8 +914,8 @@ sub handle_broken_autologin_boo1102563 {
     wait_screen_change { send_key 'alt-f4' };
 }
 
-sub handle_additional_polkit_windows_bsc1157928 {
-    record_soft_failure 'bsc#1157928 - deal with additional polkit windows';
+sub handle_additional_polkit_windows {
+    record_soft_failure 'bsc#1177446 - Polkit popup appears at first login, again';
     wait_still_screen(3);
     ensure_unlocked_desktop;
     # deal with potential followup authentication window which is not
@@ -977,7 +977,7 @@ sub wait_boot_past_bootloader {
         # Workaround for bsc#1169723
         push(@tags, 'guest-disable-display');
     }
-    # bsc#1157928 - deal with additional polkit windows
+    # bsc#1177446 - Polkit popup appears at first login, again
     if (is_sle && !is_sle('<=15-SP1')) {
         push(@tags, 'authentication-required-user-settings');
     }
@@ -999,8 +999,8 @@ sub wait_boot_past_bootloader {
     assert_screen \@tags, $check_interval;
     handle_emergency_if_needed;
 
-    handle_broken_autologin_boo1102563()          if match_has_tag('displaymanager');
-    handle_additional_polkit_windows_bsc1157928() if match_has_tag('authentication-required-user-settings');
+    handle_broken_autologin_boo1102563() if match_has_tag('displaymanager');
+    handle_additional_polkit_windows     if match_has_tag('authentication-required-user-settings');
     if (match_has_tag('guest-disable-display')) {
         record_soft_failure 'bsc#1169723 - [Build 174.1] openQA test fails in first_boot - Guest disabled display shown when boot up after migration';
         send_key 'ret';
