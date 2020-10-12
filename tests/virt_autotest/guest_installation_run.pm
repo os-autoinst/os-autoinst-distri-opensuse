@@ -34,6 +34,8 @@ sub get_script_run {
     handle_sp_in_settings_with_fcs("GUEST_PATTERN");
     my $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
     my $parallel_num  = get_var("PARALLEL_NUM",  "2");
+    record_soft_failure("SlE15-SP3 guests installation is blocked by bsc#1176834, we workaroud it by skipping guest autoyast validation in PR #745(https://github.com/SUSE/qa-automation/pull/745)") if ($guest_pattern =~ m/15-sp3/);
+
     $pre_test_cmd = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
 
     return $pre_test_cmd;
