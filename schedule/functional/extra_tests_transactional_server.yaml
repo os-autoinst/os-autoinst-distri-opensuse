@@ -9,6 +9,7 @@ schedule:
     - update/zypper_clear_repos
     - console/zypper_ar
     - console/zypper_ref
+    - console/update_alternatives
     - transactional/filesystem_ro
     - transactional/transactional_update
     - transactional/rebootmgr
