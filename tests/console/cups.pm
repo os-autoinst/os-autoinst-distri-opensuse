@@ -41,8 +41,8 @@ sub run {
     services::cups::check_service();
     services::cups::check_function();
 
-    disable_and_stop_service('cups.path');
-    disable_and_stop_service('cups.socket');
+    disable_and_stop_service('cups.path')   if (script_run('systemctl cat cups.path') == 0);
+    disable_and_stop_service('cups.socket') if (script_run('systemctl cat cups.socket') == 0);
     disable_and_stop_service('cups.service');
     validate_script_output '{ systemctl --no-pager status cups.service | cat; } || test $? -eq 3', sub { m/Active:\s*inactive/ };
 }
