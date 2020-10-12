@@ -18,15 +18,9 @@ use utils;
 
 sub run {
     my $self     = shift;
-    my $newlabel = 'Test';
+    my $newlabel = get_required_var('SPECIFIC_DISK') . '-' . get_required_var('DISTRI') . '-' . get_required_var('VERSION') . '-';
 
-    get_required_var('SPECIFIC_DISK') =~ /\d/;
-    $newlabel .= $& . '_';
-    get_required_var('MACHINE') =~ /[v|p]h\d{3}/;
-    $newlabel .= $& . '-';
-    $newlabel .= get_required_var('DISTRI') . '-' . get_required_var('VERSION') . '-';
-
-    # for mitigation test, disk label with build tag, while with Build number
+    # for mitigation test, add build tag or build number to disk label
     if (lc(get_var('MYBUILD')) =~ /alpha|beta|rc|gm/) {
         $newlabel .= get_var('MYBUILD');
     }
