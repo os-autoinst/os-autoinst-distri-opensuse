@@ -157,10 +157,13 @@ sub run {
     my @ranges = map { $patchinfo[$_] =~ /Conflicts\D*(?<num>\d+)/; ($_ + 1, $_ + $+{num}) } @conflict_indexes;
     print "ranges @ranges\n";
     # Make a list of the conflicting binaries.
-    my @conflict_names = uniq pairmap { map { $_ =~ /^ {4}(.*?)\./; $1 } @patchinfo[$a .. $b] } @ranges;
+    my @conflict_names = uniq pairmap {
+        map { $_ =~ /(^\s+(?<with_ext>\S*)(\.\S* <))|^\s+(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+    print "Conflict names: @conflict_names\n";
     # Get the l3 released binaries. Only installed binaries can conflict.
     my @installable_l3 = grep { $bins{$_}->{supportstatus} eq 'l3' } @installable;
     # If not all l3 released binaries are in the conflict binaries, fail.
+    print "\nInstallable @installable\n";
     if (notall { my $i = $_; defined(first { $installable_l3[$i] eq $_ } @conflict_names) } 0 .. $#installable_l3) {
         record_info "Error", "Not all previously released l3 binaries exist in the patch. The update may have been misconfigured";
         die;
