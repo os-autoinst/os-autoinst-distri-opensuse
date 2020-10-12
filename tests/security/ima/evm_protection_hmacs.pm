@@ -37,7 +37,7 @@ sub run {
     my $findret = script_output("/usr/bin/find / -fstype $fstype -type f -uid 0 -exec evmctl -a sha256 ima_hash '{}' \\;", 1800, proceed_on_failure => 1);
     # Allow "No such file" message for the files in /proc because they are mutable
     my @finds = split /\n/, $findret;
-    $_ =~ m/\/proc\/.*No such file/ or die "Failed to create security.evm for $_" foreach (@finds);
+    $_ =~ m/\/proc\/.*No such file|hash\(sha256\)/ or die "Failed to create security.evm for $_" foreach (@finds);
 
     validate_script_output "getfattr -m . -d $sample_app", sub {
         # Base64 armored security.evm and security.ima content (50 chars), we

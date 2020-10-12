@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ sub run {
         # Allow "No such file" message for the files in /proc because they are mutable
         my @finds = split /\n/, $findret;
         foreach my $f (@finds) {
-            $f =~ m/\/proc\/.*No such file/ or die "Failed to create security.evm for $f";
+            $f =~ m/\/proc\/.*No such file|name|uuid|generation|no xattr|hash|evm\/ima signature|^\w{530}$/ or die "Failed to create security.evm for $f";
         }
     }
 
