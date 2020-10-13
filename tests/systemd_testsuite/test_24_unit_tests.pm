@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Run test executed by TEST-15-DROPIN from upstream after openSUSE/SUSE patches.
+# Summary: Run test executed by TEST-24-UNIT-TESTS from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
 use base 'systemd_testsuite_test';
@@ -18,15 +18,15 @@ use testapi;
 sub pre_run_hook {
     my ($self) = @_;
     #prepare test
-    $self->testsuiteprepare('TEST-18-FAILUREACTION');
+    $self->testsuiteprepare('TEST-24-UNIT-TESTS');
 }
 
 sub run {
     #run test
-    my $timeout = 600;
+    my $timeout = 900;
     assert_script_run 'cd /usr/lib/systemd/tests';
-    assert_script_run './run-tests.sh TEST-18-FAILUREACTION --run 2>&1 | tee /tmp/testsuite.log', $timeout;
-    assert_script_run 'grep "PASS: ...TEST-18-FAILUREACTION" /tmp/testsuite.log';
+    assert_script_run './run-tests.sh TEST-24-UNIT-TESTS --run 2>&1 | tee /tmp/testsuite.log', $timeout;
+    assert_script_run 'grep "PASS: ...TEST-24-UNIT-TESTS" /tmp/testsuite.log';
 }
 
 sub test_flags {

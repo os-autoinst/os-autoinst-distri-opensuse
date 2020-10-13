@@ -23,8 +23,9 @@ sub pre_run_hook {
 
 sub run {
     #run test
-    assert_script_run 'cd /var/opt/systemd-tests';
-    assert_script_run './run-tests.sh TEST-41-ONESHOT-RESTART --run 2>&1 | tee /tmp/testsuite.log', 300;
+    my $timeout = 300;
+    assert_script_run 'cd /usr/lib/systemd/tests';
+    assert_script_run './run-tests.sh TEST-41-ONESHOT-RESTART --run 2>&1 | tee /tmp/testsuite.log', $timeout;
     assert_script_run 'grep "PASS: ...TEST-41-ONESHOT-RESTART" /tmp/testsuite.log';
     script_run './run-tests.sh TEST-41-ONESHOT-RESTART --clean';
 }

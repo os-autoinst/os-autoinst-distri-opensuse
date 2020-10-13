@@ -18,7 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     $self->testsuiteinstall;
-    assert_script_run('cd /var/opt/systemd-tests');
+    assert_script_run('cd /usr/lib/systemd/tests');
     assert_script_run('./run-tests.sh --prepare', 600);
 }
 
