@@ -173,7 +173,6 @@ sub run {
     until (match_has_tag('reboot-after-installation')
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
-          || match_has_tag('linux-login-casp')
           || match_has_tag('inst-bootmenu')
           || match_has_tag('lang_and_keyboard'))
     {
