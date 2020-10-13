@@ -70,9 +70,15 @@ sub run {
     my $key_file = 'enc_key';
     assert_script_run "mkdir -p $key_dir";
     assert_script_run "echo '$key' > $key_dir/$key_file";
-    assert_script_run(
-        "expect -c 'spawn cryptsetup luksAddKey $loopdev $key_dir/$key_file; \\
-expect \"Enter any existing passphrase: \"; send \"$key\\n\"; interact'"
+    script_run_interactive(
+        "cryptsetup luksAddKey $loopdev $key_dir/$key_file",
+        [
+            {
+                prompt => qr/Enter any existing passphrase.*/m,
+                string => "$key\n",
+            },
+        ],
+        100
     );
     assert_script_run(
         "expect -c 'spawn cryptsetup luksOpen $loopdev $loop_vol; \\
