@@ -116,6 +116,7 @@ sub go_to_patterns {
         send_key 'alt-s';
     }
     else {
+        assert_screen 'installation-settings-overview-loaded',  60;
         send_key_until_needlematch 'packages-section-selected', 'tab';
         send_key 'ret';
     }
