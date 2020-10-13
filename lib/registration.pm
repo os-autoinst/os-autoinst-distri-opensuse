@@ -195,27 +195,22 @@ sub add_suseconnect_product {
 
 =head2 ssh_add_suseconnect_product
 
-    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params]]]);
+    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params, [$timeout, [$retries, [$delay]]]]]]);
 
 Wrapper for SUSEConnect -p $name  over ssh.
 =cut
 sub ssh_add_suseconnect_product {
-    my ($remote, $name, $version, $arch, $params, $timeout, $retry) = @_;
+    my ($remote, $name, $version, $arch, $params, $timeout, $retries, $delay) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
     assert_script_run 'source /tmp/os-release';
     $version //= '${VERSION_ID}';
     $arch    //= '${CPU}';
     $params  //= '';
-    $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
     $timeout //= 300;
+    $retries //= 3;
+    $delay   //= 10;
 
-    my $result = script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
-    if ($result != 0 && $retry) {
-        if ($name =~ /PackageHub/) {
-            record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
-        }
-        assert_script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
-    }
+    script_retry("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", delay => $delay, retry => $retries, timeout => $timeout);
 }
 
 =head2 remove_suseconnect_product
