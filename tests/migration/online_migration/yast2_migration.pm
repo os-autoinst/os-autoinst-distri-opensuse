@@ -214,7 +214,7 @@ sub run {
         assert_screen 'import-untrusted-gpg-key', 60;
         send_key 'alt-t';
     }
-    assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 500;
+    assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 700;
     if (match_has_tag 'yast2-migration-installupdate') {
         send_key 'alt-y';
     }
