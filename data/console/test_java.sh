@@ -53,7 +53,8 @@ clean_up() {
 find_all_installed_java() {
     # Construct temp files which are needed in order to
     # determine how many java versions are installed along with their versions
-    rpm -qa | grep ^java- > $RPM_QUERY_JAVA
+    # ignore javadoc as per issue https://progress.opensuse.org/issues/72070
+    rpm -qa | grep ^java- | grep -v javadoc > $RPM_QUERY_JAVA
 
     # File that contains all the IBM Java installed in the system
     grep "^java-" $RPM_QUERY_JAVA | grep "\-ibm" | awk -F 'ibm' '{print $1 "ibm"}' | sort -r | uniq > $LIST_INSTALLED_IBM_VERSIONS
