@@ -70,13 +70,19 @@ sub run {
     select_console 'root-console';
     zypper_call("in yast2-dns-server bind", exitcode => [0, 102, 103, 106]);
     zypper_call("in bind-libs",             exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
+    #enables netconfig to always force a replace of modified file to avoid ncurse prompt.
+    assert_script_run(qq(sed -i 's/NETCONFIG_FORCE_REPLACE="no"/NETCONFIG_FORCE_REPLACE="yes"/' /etc/sysconfig/network/config));
 
     #Forward server and test lookup
     my $suseip = script_output("dig www.suse.com +short");
     $suseip =~ s/.*(\d+\.\d+\.\d+\.\d+).*/$1/s;
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");
+    #disable dnssec validation
+    assert_script_run("sed -i 's/#dnssec-validation auto/dnssec-validation no/' /etc/named.conf");
     systemctl("start named.service");
     validate_script_output('dig @localhost www.suse.com +short', sub { /\Q$suseip\E/ });
+
+    assert_script_run("sed -i 's/dnssec-validation no/#dnssec-validation auto/' /etc/named.conf");
     $self->cmd_handle("forwarders", "remove", ip => "10.0.2.3");
     record_soft_failure("bsc#1151138") if (systemctl("is-active named.service", ignore_failure => 1));
 
@@ -125,6 +131,7 @@ sub run {
     $self->cmd_handle("zones", "remove", name => "example.org",              zonetype => "master");
     $self->cmd_handle("zones", "remove", name => "100.168.192.in-addr.arpa", zonetype => "master");
     disable_and_stop_service('named.service');
+    assert_script_run(qq(sed -i 's/NETCONFIG_FORCE_REPLACE="yes"/NETCONFIG_FORCE_REPLACE="no"/' /etc/sysconfig/network/config));
 }
 
 1;
