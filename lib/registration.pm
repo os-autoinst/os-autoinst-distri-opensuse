@@ -20,7 +20,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key common_service_start);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
@@ -728,11 +728,12 @@ sub registration_bootloader_params {
 
 sub yast_scc_registration {
     my (%args) = @_;
-    # for leap to sle migration, we need to install yast2-registration
-    # before running yast2 registration module.
+    # For leap to sle migration, we need to install yast2-registration and rollback-helper
+    # and start/enable rollback.service before running yast2 registration module.
     my $client_module = 'scc';
     if (is_leap_migration) {
-        zypper_call('in yast2-registration');
+        zypper_call('in yast2-registration rollback-helper');
+        common_service_start('rollback', 'Systemd');
         $client_module = 'registration';
     }
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
