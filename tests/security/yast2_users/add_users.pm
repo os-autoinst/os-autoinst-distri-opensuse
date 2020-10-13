@@ -26,6 +26,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_tumbleweed';
 
 sub run {
     my $testuser = "testuser";
@@ -35,6 +36,7 @@ sub run {
     # Create a test user
     script_run("userdel -rf $testuser");
     assert_script_run("useradd -m -d \/home\/$testuser $testuser");
+    zypper_call("in expect");
     assert_script_run(
         "expect -c 'spawn passwd $testuser; expect \"New password:\"; send \"$pw\\n\"; expect \"Retype new password:\"; send \"$pw\\n\"; interact'");
 
@@ -70,6 +72,14 @@ sub run {
     assert_screen("Yast2-Users-Add-User-Data-CPW");
     type_string("$pw");
     send_key "alt-o";
+
+    # For Tumbleweed there is an extra window for "bernhard" automatic login
+    # and click "No"
+    if (is_tumbleweed) {
+        assert_screen("Yast2-Users-bernhard-automatic-login");
+        wait_screen_change { send_key "alt-n" };
+    }
+
     # There should be no this message in next window:
     # "The password is too long for the current encryption method."
     # "It will be truncated to 8 characters."
