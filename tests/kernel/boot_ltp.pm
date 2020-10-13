@@ -45,6 +45,11 @@ sub run {
 
     $self->select_serial_terminal;
 
+    if (get_var('SECUREBOOT')) {
+        my $sbstate = script_output('efivar -dn 8be4df61-93ca-11d2-aa0d-00e098032b8c-SecureBoot');
+        die 'SecureBoot is not enabled' if $sbstate !~ m/^[0-9]+/i || $sbstate == 0;
+    }
+
     download_whitelist if get_var('LTP_KNOWN_ISSUES');
 
     # check kGraft patch if KGRAFT=1
