@@ -402,11 +402,9 @@ sub upload_wicked_logs {
     script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
     eval {
-        select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
         upload_file("$dir_name.tar.gz", "$dir_name.tar.gz");
     };
     record_info('Failed to upload logs', $@, result => 'fail') if ($@);
-    $self->select_serial_terminal;
 }
 
 =head2 do_barrier
@@ -660,37 +658,53 @@ sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
 
+    select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
     $self->do_barrier('post_run');
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
         script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
         eval {
-            select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
             upload_file('/tmp/tcpdump' . $self->{name} . '.pcap', 'tcpdump' . $self->{name} . '.pcap');
         };
         record_info('Failed to upload tcp', $@, result => 'fail') if ($@);
-        $self->select_serial_terminal();
     }
     $self->upload_wicked_logs('post');
+    $self->select_serial_terminal();
+}
+
+
+sub type_marker {
+    my $marker = shift;
+    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
+    type_string($marker);
+    wait_serial($marker, undef, 0, no_regex => 1);
+    type_string("\n");
 }
 
 sub pre_run_hook {
     my ($self) = @_;
-    $self->select_serial_terminal();
     my $coninfo = '## START: ' . $self->{name};
-    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
-    type_string($coninfo);
-    wait_serial($coninfo, undef, 0, no_regex => 1);
-    type_string("\n");
+    $self->select_serial_terminal();
+    $self->type_marker($coninfo);
+
     if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1) {
         my $serial_terminal = check_var('ARCH', 'ppc64le') ? 'hvc2' : 'hvc1';
         add_serial_console($serial_terminal);
     }
+
+    if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1){
+        select_console('root-virtio-terminal1');
+        $self->type_marker('## START: ' . $self->{name});
+    }
+
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
-        script_run('tcpdump -s0 -U -w /tmp/tcpdump' . $self->{name} . '.pcap >& /dev/null & export CHECK_TCPDUMP_PID=$!');
+        script_run('tcpdump -s0 -U -w "/tmp/tcpdump' . $self->{name} . '.pcap" >& /dev/null & export CHECK_TCPDUMP_PID=$!');
         set_var('WICKED_TCPDUMP_PID', script_output('echo $CHECK_TCPDUMP_PID'));
     }
+
     $self->upload_wicked_logs('pre');
     $self->do_barrier('pre_run');
+
+    $self->select_serial_terminal();
 }
 
 sub post_fail_hook {
