@@ -22,7 +22,7 @@ our @EXPORT = qw(microos_reboot microos_login);
 
 # Assert login prompt and login as root
 sub microos_login {
-    assert_screen 'linux-login-casp', 150;
+    assert_screen 'linux-login-microos', 150;
 
     # Workers installed using autoyast have no password - bsc#1030876
     return if get_var('AUTOYAST');
@@ -36,7 +36,7 @@ sub microos_login {
 
     select_console 'root-console';
 
-    # Don't match linux-login-casp twice
+    # Don't match linux-login-microos twice
     assert_script_run 'clear';
 }
 
@@ -47,7 +47,7 @@ sub microos_reboot {
 
     # No grub bootloader on xen-pv
     # grub2 needle is unreliable (stalls during timeout) - poo#28648
-    assert_screen [qw(grub2 linux-login-casp)], 150;
+    assert_screen 'grub2', 150;
     send_key('ret') if match_has_tag('grub2');
 
     microos_login;
