@@ -397,19 +397,19 @@ sub test_x86_64 {
     assert_script_run 'cpupower idle-set -E';
     $self->reboot_wait;
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
-    assert_script_run "saptune apply note $note";
+    assert_script_run "saptune note apply $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_2";
-    assert_script_run "saptune revert note $note";
+    assert_script_run "saptune note revert $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
     assert_script_run "echo -e '[cpu]\\nenergy_perf_bias=powersave\\ngovernor=powersave\\nforce_latency=' > /etc/saptune/override/$note";
-    assert_script_run "saptune apply note $note";
+    assert_script_run "saptune note apply $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_3";
-    assert_script_run "saptune revert note $note";
+    assert_script_run "saptune note revert $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
     assert_script_run "echo -e '[cpu]\\nenergy_perf_bias=\\ngovernor=\\nforce_latency=\\n' > /etc/saptune/override/$note";
-    assert_script_run "saptune apply note $note";
+    assert_script_run "saptune note apply $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_4";
-    assert_script_run "saptune revert note $note";
+    assert_script_run "saptune note revert $note";
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1";
 }
 
