@@ -377,6 +377,18 @@ END_CMD
     type_string("$cmd\n");
 }
 
+sub reload_loop_device {
+    my $self = shift;
+    assert_script_run("losetup -fP test_dev");
+    my $scratch_amount = script_output("ls scratch_dev* | wc -l");
+    my $scratch_num    = 0;
+    while ($scratch_amount >= $scratch_num) {
+        assert_script_run("losetup -fP scratch_dev$scratch_num", 300);
+        $scratch_num += 1;
+    }
+    script_run('losetup -a');
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -456,6 +468,11 @@ sub run {
 
         # Add test status to STATUS_LOG file
         log_add($STATUS_LOG, $test, $status, $time);
+
+        # Reload loop device after a reboot
+        if (get_var('XFSTESTS_LOOP_DEVICE')) {
+            reload_loop_device;
+        }
 
         # Prepare for the next test
         heartbeat_start;
