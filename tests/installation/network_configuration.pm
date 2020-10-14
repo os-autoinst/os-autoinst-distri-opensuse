@@ -41,9 +41,19 @@ sub check_install_inf_settings {
     die "By default linuxrc should not specify a static hostname, but `/etc/install.inf::Hostname` is set to " . $install_inf_settings{Hostname} if ($install_inf_settings{Hostname});
 }
 
+sub get_etc_sysconfig_network_dhcp_settings {
+    my %sysconfig_network_dhcp = (
+        # linuxrc writes by default /etc/sysconfig/network/dhcp::DHCLIENT_SET_HOSTNAME="yes"
+        'DHCLIENT_SET_HOSTNAME' => script_output('grep "^DHCLIENT_SET_HOSTNAME=" /etc/sysconfig/network/dhcp') =~ s/DHCLIENT_SET_HOSTNAME="(\w*)"/$1/r
+    );
+
+    return %sysconfig_network_dhcp;
+}
+
 sub run {
     select_console('install-shell');
     check_install_inf_settings();
+    my %sysconfig_network_dhcp = get_etc_sysconfig_network_dhcp_settings();
     select_console 'installation';
 
     if (get_var 'OFFLINE_SUT') {
