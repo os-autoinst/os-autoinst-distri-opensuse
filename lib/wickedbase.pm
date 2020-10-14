@@ -673,7 +673,7 @@ sub post_run {
 
 
 sub type_marker {
-    my $marker = shift;
+    my ($self, $marker) = @_;
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
     type_string($marker);
     wait_serial($marker, undef, 0, no_regex => 1);
