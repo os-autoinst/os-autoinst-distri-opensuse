@@ -184,6 +184,11 @@ sub create_loop_device_by_rootsize {
     script_run('sync');
 }
 
+sub set_config {
+    my $self = shift;
+    script_run("echo 'export KEEP_DMESG=yes' >> $CONFIG_FILE");
+}
+
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
@@ -218,6 +223,7 @@ sub run {
             do_partition_for_xfstests(\%para);
         }
     }
+    set_config;
 }
 
 sub test_flags {
