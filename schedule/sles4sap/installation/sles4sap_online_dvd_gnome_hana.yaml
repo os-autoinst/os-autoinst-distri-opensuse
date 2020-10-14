@@ -10,6 +10,7 @@ schedule:
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
+  - '{{update_test_repo}}'
   - installation/addon_products_sle
   - installation/system_role
   - installation/sles4sap_product_installation_mode
@@ -38,3 +39,7 @@ conditional_schedule:
     NVDIMM:
       1:
         - console/ndctl
+  update_test_repo:
+    QAM_INCI:
+      1:
+        - installation/add_update_test_repo
