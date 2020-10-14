@@ -17,11 +17,9 @@
 # 4) Enable WSL feature
 # 5) Reboot
 # 6) Install WSL image
-# Maintainer: Martin Loviska <mloviska@suse.com>
+# Maintainer: qa-c <qa-c@suse.de>
 
-use base 'windowsbasetest';
-use strict;
-use warnings;
+use Mojo::Base qw(windowsbasetest);
 use testapi;
 use version_utils qw(is_sle is_opensuse);
 
@@ -33,6 +31,8 @@ q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppMod
         vm_platform => q{Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -NoRestart}
     }
 };
+
+my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
 
 sub run {
     my ($self)            = @_;
@@ -48,7 +48,7 @@ sub run {
     $self->open_powershell_as_admin;
     $self->run_in_powershell(
         cmd     => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
-        timeout => 500
+        timeout => 600
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
 
@@ -98,18 +98,44 @@ sub run {
         timeout => 120
     );
 
+    if (get_var('WSL2')) {
+        $self->run_in_powershell(
+            cmd     => $powershell_cmds->{enable_wsl_feature}->{vm_platform},
+            timeout => 120
+        );
+        $self->run_in_powershell(
+            cmd     => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
+            timeout => 120
+        );
+    }
+
     $self->reboot_or_shutdown(1);
     $self->wait_boot_windows;
 
     # 5) Install Linux in WSL
+    if (get_var('WSL2')) {
+        $self->open_powershell_as_admin;
+        $self->run_in_powershell(
+            cmd  => q{ii C:\\kernel.msi},
+            code => sub {
+                assert_screen 'wsl2-install-kernel-start';
+                send_key 'ret';
+                assert_screen 'wsl2-install-kernel-finished';
+                send_key 'ret';
+            }
+        );
+        $self->run_in_powershell(
+            cmd => q{wsl --set-default-version 2}
+        );
+        type_string "exit\n";
+    }
     $self->open_powershell_as_admin(no_serial => 1);
     $self->run_in_powershell(
-        cmd  => 'ii C:\\' . $wsl_appx_filename,
+        cmd  => qq{ii C:\\$wsl_appx_filename},
         code => sub {
             assert_and_click 'install-linux-in-wsl', timeout => 120;
         }
     );
-
 }
 
 1;
