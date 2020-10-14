@@ -25,52 +25,47 @@ use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
-  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials install_podman_centos install_docker_centos);
-
-sub install_podman_centos {
-    if (script_run("which podman") != 0) {
-        assert_script_run "dnf -y install podman", timeout => 120;
-        save_screenshot;
-    }
-}
-
-sub install_docker_centos {
-    if (script_run("which docker") != 0) {
-        assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
-        # if podman installed allowerasing to solve conflicts
-        assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
-        systemctl "enable --now docker";
-        systemctl "status docker";
-    }
-}
+  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
 
 sub install_podman_when_needed {
+    my $host_os = shift;
+    my @pkgs    = qw(podman);
     if (script_run("which podman") != 0) {
-        if (is_sle '>=15') {
-            add_suseconnect_product('sle-module-containers');
+        if ($host_os eq 'centos') {
+            assert_script_run "dnf -y install @pkgs", timeout => 160;
         }
-
-        my @pkgs = qw(podman);
-        push(@pkgs, 'podman-cni-config') if is_jeos();
-        push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
-        zypper_call "in @pkgs";
+        else {
+            add_suseconnect_product('sle-module-containers') if (is_sle '>=15');
+            push(@pkgs, 'podman-cni-config') if is_jeos();
+            push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
+            zypper_call "in @pkgs";
+        }
         assert_script_run('podman info');
     }
 }
 
 sub install_docker_when_needed {
+    my $host_os = shift;
+
     if (is_microos) {
         # Docker should be pre-installed in MicroOS
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
     }
     else {
         if (script_run("which docker") != 0) {
-            if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
-                add_suseconnect_product("sle-module-containers");
+            if ($host_os eq 'centos') {
+                assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
+                # if podman installed use flag "--allowerasing" to solve conflicts
+                assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
             }
+            else {
+                if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
+                    add_suseconnect_product("sle-module-containers");
+                }
 
-            # docker package can be installed
-            zypper_call('in docker', timeout => 900);
+                # docker package can be installed
+                zypper_call('in docker', timeout => 900);
+            }
         }
     }
 
