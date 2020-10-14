@@ -37,6 +37,8 @@ sub run {
         bsc_1118321         => '.*update-checker-migration.timer.*(Failed to parse calendar specification|Timer unit lacks value setting).*',
         bsc_1126272         => 'Failed unmounting \/\S+\.|-- Reboot --|pam_systemd.*Failed to release session',
         bsc_1127339         => 'kernel: efi: EFI_MEMMAP is not enabled',
+        bsc_1177693         => 'kernel: intel_powerclamp: CPU does not support MWAIT',
+        bsc_1177695         => 'kernel: parport_pc: `none\' invalid for parameter `dma\'',
         bsc_000000_FEATURE  => 'health-checker/fail.sh check" failed|Machine didn\'t come up correct, do a rollback',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
