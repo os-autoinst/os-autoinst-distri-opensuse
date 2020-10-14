@@ -19,6 +19,15 @@ use utils;
 sub run {
     my ($self, $args) = @_;
 
+    # If someone schedules a publiccloud run with a custom SCHEDULE this causes
+    # the test to break, because we need to pass $args via the main_common.pm.
+    # This check warns about this common pitfall when doing verification runs
+    if (!defined $args) {
+        my $msg = 'Note: Running publiccloud runs with a custom SCHEDULE is not yet supported';
+        record_info('ERROR', $msg, result => 'fail');
+        die($msg);
+    }
+
     select_host_console();    # select console on the host, not the PC instance
 
     # Create public cloud instance

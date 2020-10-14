@@ -20,7 +20,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key common_service_start);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key common_service_start script_retry);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_microos);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
