@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key common_service_start);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_microos);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 
@@ -626,6 +626,7 @@ sub fill_in_registration_data {
                 wait_screen_change { send_key(get_var('DISABLE_SLE_UPDATES') ? 'alt-n' : 'alt-y') };
                 # Remove tag from array not to match twice
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
+                last if is_microos('suse');    # SUSE MicroOS does not ask about modules to select
                 next;
             }
             elsif (match_has_tag('module-selection')) {
