@@ -25,7 +25,7 @@ sub run {
     assert_script_run "mount " . get_var('VIRT_IMAGE_PATH') . " /mnt/virt_images";
 
     # Pull images from server if necessary
-    zypper_call("install rsync") if (script_run("which rsync") != 0);
+    zypper_call("install rsync", exitcode => [0, 102, 103, 106]) if (script_run("which rsync") != 0);
     assert_script_run "if [ ! -f \"$virt_autotest::common::imports{$_}->{disk}\" ]; then rsync -v --progress $virt_autotest::common::imports{$_}->{source} $virt_autotest::common::imports{$_}->{disk}; fi", 600 foreach (keys %virt_autotest::common::imports);
 
     assert_script_run "umount /mnt/virt_images";

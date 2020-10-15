@@ -42,8 +42,13 @@ sub run {
             record_soft_failure("Download failed (rc=$ret):\n$maintrepo");
         } else {
             assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
-            assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
-            assert_script_run("find $parent >> /tmp/repos.list.txt");
+            if (script_run("ls $parent*.repo") == 0) {
+                assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
+                assert_script_run("find $parent >> /tmp/repos.list.txt");
+            } else {
+                record_soft_failure("No .repo file found in $parent. This directory will be removed.");
+                assert_script_run("rm -rf $parent");
+            }
         }
     }
 
