@@ -54,7 +54,6 @@ sub get_opensuse_registry_prefix {
 # If empty, no images available.
 sub get_suse_container_urls {
     my $version    = shift // get_required_var('VERSION');
-    my $totest     = get_var('CONTAINER_TOTEST', '');          # totest/
     my $dotversion = $version =~ s/-SP/./r;                    # 15 -> 15, 15-SP1 -> 15.1
     $dotversion = "${dotversion}.0" if $dotversion !~ /\./;    # 15 -> 15.0
 
@@ -65,13 +64,13 @@ sub get_suse_container_urls {
         my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
         if (!check_var('ARCH', 'aarch64')) {
-            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/${totest}images/suse/sles${nodashversion}";
+            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
             push @stable_names, "registry.suse.com/suse/sles${nodashversion}";
         }
     }
     elsif (is_sle(">=15", $version)) {
         my $lowerversion = lc $version;
-        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/${totest}images/suse/sle15:${dotversion}";
+        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
         push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_tumbleweed && get_opensuse_registry_prefix) {
