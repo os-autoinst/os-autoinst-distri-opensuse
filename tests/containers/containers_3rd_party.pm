@@ -38,6 +38,8 @@ sub run_image_tests {
             record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
         } elsif ((check_var('ARCH', 's390x')) && ($image =~ /centos/)) {
             record_info("Skip centos image", "Missing centos container image for s390x.");
+        } elsif ((check_var('ARCH', 's390x')) && ($image =~ /ubuntu/)) {
+            record_soft_failure("poo#72124 Ubuntu image (occasionaly) fails on s390x");
         } else {
             test_container_image(image => $image, runtime => $engine);
             script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
