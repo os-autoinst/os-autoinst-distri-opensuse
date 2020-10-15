@@ -83,14 +83,13 @@ sub test_bsc1152598 {
 
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
     assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
-    assert_script_run 'grep -q noop /sys/block/[sv]da/queue/scheduler 2>/dev/null && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
     assert_script_run "saptune note apply scheduler-test";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
     assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, none\n" > /etc/saptune/extra/scheduler-test.conf';
-    assert_script_run 'grep -q noop /sys/block/[sv]da/queue/scheduler 2>/dev/null && sed -i s/none/noop/ /etc/saptune/extra/scheduler-test.conf';
     assert_script_run 'saptune note apply scheduler-test';
+    assert_script_run "fgrep -q '[none]' /sys/block/sda/queue/scheduler";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
 }
@@ -288,10 +287,10 @@ sub test_override {
     my @overrides = ($note =~ m/^(1557506|1771258)$/) ? ("${note}-1", "${note}-2") : (${note});
 
     if ($note eq "1680803") {
-        # Ignore the tests for the scheduler if we can't set "noop" on /dev/sr0
+        # Ignore the tests for the scheduler if we can't set "none" on /dev/sr0
         assert_script_run(
             "if [ -f /sys/block/sr0/queue/scheduler ] ; then "
-              . "grep -q noop /sys/block/sr0/queue/scheduler || "
+              . "grep -q none /sys/block/sr0/queue/scheduler || "
               . "sed -i '/:scripts\\/nr_requests/s/^/#/' Pattern/$SLE/testpattern_note_${note}_a_override ; fi"
         );
     }
