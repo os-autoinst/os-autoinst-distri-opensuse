@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_tumbleweed);
 use Utils::Architectures 'is_x86_64';
 
 sub run {
@@ -30,6 +30,10 @@ sub run {
 
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
+    # program 'semanage' is in policycoreutils-python-utils pkgs on TW
+    if (is_tumbleweed) {
+        zypper_call("in policycoreutils-python-utils");
+    }
     if (!is_sle('>=15')) {
         assert_script_run('zypper -n in policycoreutils-python');
     }
@@ -41,7 +45,13 @@ sub run {
         "setools-devel", "setools-java",      "setools-libs", "setools-tcl"
     );
     foreach my $pkg (@pkgs) {
-        zypper_call("in $pkg");
+        my $results = script_run("zypper --non-interactive se $pkg");
+        if ($results) {
+            record_info("WARNING", "Package $pkg is missing, zypper search returns: $results");
+        }
+        else {
+            zypper_call("in $pkg");
+        }
     }
     if (is_x86_64) {
         zypper_call("in libselinux1-32bit");
