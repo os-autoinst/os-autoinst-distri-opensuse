@@ -1417,11 +1417,11 @@ Show logs about an out of memory process kill.
 =cut
 sub show_oom_info {
     if (script_run('dmesg | grep "Out of memory"') == 0) {
-        my $oom = script_output('dmesg | grep "Out of memory"');
+        my $oom = script_output('dmesg | grep "Out of memory"', proceed_on_failure => 1);
         if (has_ttys) {
             send_key 'alt-sysrq-m';
-            $oom .= "\n\n" . script_output('journalctl -kb | tac | grep -F -m1 -B1000 "sysrq: Show Memory" | tac');
-            $oom .= "\n\n% free -h\n" . script_output('free -h');
+            $oom .= "\n\n" . script_output('journalctl -kb | tac | grep -F -m1 -B1000 "sysrq: Show Memory" | tac', proceed_on_failure => 1);
+            $oom .= "\n\n% free -h\n" . script_output('free -h', proceed_on_failure => 1);
         }
         record_info('OOM KILL', $oom, result => 'fail');
     }
