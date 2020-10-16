@@ -59,17 +59,14 @@ sub _turnoff_gnome_screensaver_and_suspend {
     assert_script_run "gsettings set org.gnome.desktop.session idle-delay 0";
     assert_script_run "gsettings set org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type 'nothing'";
 }
-sub _switch_to_wicked_if_require {
-    my ($self) = shift;
-    return unless is_network_manager_default;
-    $self->use_wicked_network_manager;
-}
+
 sub run {
+    my ($self) = shift;
     _remove_installation_media_and_add_network_repos;
     # We use create_hdd
     if (!check_var('SUPPORT_SERVER_GENERATOR', 1)) {
         _install_packages;
-        _switch_to_wicked_if_require;
+        $self->use_wicked_network_manager      if is_network_manager_default;
         _turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
     }
 }
