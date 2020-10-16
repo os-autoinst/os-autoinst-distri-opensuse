@@ -25,6 +25,7 @@ sub pre_run_hook {
         assert_script_run("snapper set-config $param=$test_data->{snapper_config}->{$param}",
             fail_message => "Snapper configuration failed for parameter $param");
     }
+    $self->SUPER::pre_run_hook;
 }
 
 sub convert2numeric {

@@ -96,8 +96,8 @@ sub finish_remediate_validation {
 }
 
 sub pre_run_hook {
-
     select_console 'root-console';
+    $self->SUPER::pre_run_hook;
 }
 
 1;

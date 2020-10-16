@@ -480,6 +480,7 @@ sub pre_run_hook {
         1 if defined $testapi::selected_console;
         $prev_console = $testapi::selected_console;
     }
+    $self->SUPER::pre_run_hook;
 }
 
 sub post_run_hook {

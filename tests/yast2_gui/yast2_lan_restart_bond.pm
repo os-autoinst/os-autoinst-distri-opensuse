@@ -40,6 +40,7 @@ sub pre_run_hook {
     $network_settings->add_bond_slave();
     $network_settings->save_changes();
     wait_for_xterm_to_be_visible();
+    $self->SUPER::pre_run_hook;
 }
 
 sub run {
