@@ -67,7 +67,10 @@ sub process_reboot {
     $args{trigger}            //= 0;
     $args{automated_rollback} //= 0;
 
-    handle_first_grub if ($args{automated_rollback});
+    # MicroOS raw image's Grub might timeout after 10s before matching the needle
+    if ($args{automated_rollback} && get_var('FLAVOR') !~ 'MicroOS-Image') {
+        handle_first_grub if ($args{automated_rollback});
+    }
 
     if (is_microos) {
         microos_reboot $args{trigger};
