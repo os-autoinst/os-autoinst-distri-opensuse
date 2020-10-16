@@ -64,9 +64,9 @@ sub run_test {
         assert_script_run("virsh undefine $guest");
         assert_script_run("virsh define $guest.clone");
         assert_script_run("rm -rf $guest.clone");
-        assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone");
-        assert_script_run("virsh start $guest");
-        assert_script_run("virsh start $guest.clone");
+        assert_script_run("virt-clone -d --check all=on -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone");
+        assert_script_run("virsh --debug=0 start $guest");
+        assert_script_run("virsh --debug=0 start $guest.clone");
 
         if (is_sle('=11-sp4') && is_xen_host) {
             $affecter  = "--persistent";
