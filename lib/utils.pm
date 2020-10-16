@@ -93,6 +93,7 @@ our @EXPORT = qw(
   common_service_start
   common_service_status
   install_patterns
+  common_service_action
 );
 
 =head1 SYNOPSIS
@@ -1725,9 +1726,9 @@ sub common_service_start {
     my ($service, $type) = @_;
 
     if ($type eq 'SystemV') {
-        script_run '/etc/init.d/' . $service . ' start';
-        script_run 'service ' . $service . ' status';
         assert_script_run 'chkconfig ' . $service . ' on';
+        assert_script_run '/etc/init.d/' . $service . ' start';
+        assert_script_run 'service ' . $service . ' status';
     }
     elsif ($type eq 'Systemd') {
         systemctl 'enable ' . $service;
@@ -1746,6 +1747,7 @@ sub common_service_status {
         assert_script_run 'service ' . $service . ' status | grep running';
     }
     elsif ($type eq 'Systemd') {
+        systemctl 'is-enabled ' . $service;
         systemctl 'is-active ' . $service;
     }
     else {
@@ -1856,6 +1858,26 @@ sub install_patterns {
             $para = '--force-resolution' if get_var('FORCE_DEPS');
             zypper_call("in $para -t pattern $pt", timeout => 1800, exitcode => [0, 102, 103]);
         }
+    }
+}
+
+sub common_service_action {
+    my ($service, $type, $action) = @_;
+
+    if ($type eq 'SystemV') {
+        if ($action eq 'enable') {
+            assert_script_run 'chkconfig ' . $service . ' on';
+        } elsif ($action eq 'is-enabled') {
+            assert_script_run 'chkconfig ' . $service . ' | grep on';
+        } elsif ($action eq 'is-active') {
+            assert_script_run '/etc/init.d/' . $service . ' status | grep running';
+        } else {
+            assert_script_run '/etc/init.d/' . $service . ' ' . $action;
+        }
+    } elsif ($type eq 'Systemd') {
+        systemctl $action . ' ' . $service;
+    } else {
+        die "Unsupported service type, please check it again.";
     }
 }
 
