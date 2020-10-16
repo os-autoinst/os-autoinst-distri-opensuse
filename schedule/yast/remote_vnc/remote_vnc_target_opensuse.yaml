@@ -4,7 +4,6 @@ description: >
   Boot with vnc=1 parameter and wait for parallel job (remote_vnc_controller)  to
   install the system.
 schedule:
-  - installation/isosize
-  - installation/bootloader
+  - installation/bootloader_start
   - remote/remote_target
   - console/validate_vnc_from_target
