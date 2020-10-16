@@ -34,6 +34,16 @@ sub install_podman_when_needed {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
         }
+	elsif ($host_os eq 'ubuntu') {
+	    #assert_script_run ". /etc/os-release";
+	    my $version_id = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+	    record_info $version_id;
+	    assert_script_run "echo \"deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}/ /\" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list";
+	    assert_script_run "curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}/Release.key | sudo apt-key add -";
+	    assert_script_run "apt-get update";
+	    #assert_script_run "apt-get -y upgrade", timeout=>160;
+	    assert_script_run "apt-get -y install podman", timeout=>160;
+	}
         else {
             add_suseconnect_product('sle-module-containers') if (is_sle '>=15');
             push(@pkgs, 'podman-cni-config') if is_jeos();
@@ -58,6 +68,15 @@ sub install_docker_when_needed {
                 # if podman installed use flag "--allowerasing" to solve conflicts
                 assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
             }
+	    elsif ($host_os eq 'ubuntu') {
+		my $version_id = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+		assert_script_run "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -";
+		assert_script_run "add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable\"";
+		assert_script_run "apt-get update";
+		# Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+		assert_script_run "apt-cache policy docker-ce";
+		assert_script_run "apt-get -y install docker-ce", timeout=>260;
+	    }
             else {
                 if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
                     add_suseconnect_product("sle-module-containers");
