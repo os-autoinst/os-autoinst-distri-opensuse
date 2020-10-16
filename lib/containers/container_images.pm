@@ -69,6 +69,7 @@ sub build_with_zypper_docker {
         validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $pretty_version"/ });
     }
     else {
+        $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 
@@ -114,6 +115,7 @@ sub test_opensuse_based_image {
             script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
         }
     } else {
+        $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 

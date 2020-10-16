@@ -78,6 +78,11 @@ sub get_suse_container_urls {
         push @image_names,  "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
         push @stable_names, "docker.io/opensuse/tumbleweed";
     }
+    elsif ($version eq "Jump:15.2") {
+        # Jump 15.2 uses opensuse/leap:15.2.1, just hardcode this special case
+        push @image_names,  "registry.opensuse.org/opensuse/jump/15.2/images/totest/containers/opensuse/leap:15.2.1";
+        push @stable_names, "docker.io/opensuse/leap:15.2.1";
+    }
     elsif (is_leap(">15.0") && check_var('ARCH', 'x86_64')) {
         push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
         push @stable_names, "docker.io/opensuse/leap:${version}";
