@@ -523,11 +523,15 @@ EOF
 sub test_ayp_url {
     my $ayp_url = get_var('AUTOYAST');
     if ($ayp_url =~ /^http/) {
+        # replace default qemu gateway by loopback
+        $ayp_url =~ s/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/localhost/;
+
         if (head($ayp_url)) {
-            record_info("ayp url ok", "Autoyast profile url $ayp_url is reachable");
+            record_info("ayp url ok", "Autoyast profile url $ayp_url is reachable from the worker");
         } else {
-            record_info("Failure", "Autoyast profile url $ayp_url is unreachable");
+            record_info("Failure", "Autoyast profile url $ayp_url is unreachable from the worker");
         }
     }
 }
+
 1;
