@@ -129,7 +129,7 @@ sub run {
         $timeout -= 30;
         diag("left total await_install timeout: $timeout");
         if (!$ret) {
-            if (get_var('LIVECD')) {
+            if (get_var('LIVECD') || get_var('SUPPORT_SERVER')) {
                 # The workaround with mouse moving was added, because screen
                 # become disabled after some time without activity on aarch64.
                 # Mouse is moved by 10 pixels, waited for 1 second (this is
