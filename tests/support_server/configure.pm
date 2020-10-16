@@ -22,15 +22,14 @@ use warnings;
 use testapi;
 use utils;
 use y2_module_basetest;
+use version_utils 'is_opensuse';
 
 sub _remove_installation_media_and_add_network_repos {
     # this is supposed to run during SUPPORTSERVER_GENERATOR
     #
     # remove the installation media
-    my $script = "
-    zypper lr
-    zypper rr 1
-    ";
+    my $script = "zypper lr\n";
+    $script .= "zypper rr 1\n" unless is_opensuse;
     # optionally add network repos
     if (get_var("POOL_REPO")) {
         $script .= "zypper -n --no-gpg-checks ar --refresh '" . get_var("POOL_REPO") . "' pool\n";
@@ -80,4 +79,3 @@ sub test_flags {
 }
 
 1;
-
