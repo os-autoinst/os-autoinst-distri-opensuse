@@ -23,12 +23,10 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in systemd-network', exitcode => [0, 104]);
-
     assert_script_run 'ip a';
 
     if (is_opensuse) {
-        # check for systemd-networkd
+        zypper_call 'in systemd-network';
         systemctl 'is-enabled systemd-networkd', expect_false => 1;
         systemctl 'is-active systemd-networkd',  expect_false => 1;
         assert_script_run 'networkctl status';
