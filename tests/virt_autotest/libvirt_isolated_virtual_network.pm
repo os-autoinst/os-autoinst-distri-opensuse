@@ -63,11 +63,15 @@ sub run_test {
 
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest", module => "acpiphp");
+        assert_script_run("virsh list --all");
+        assert_script_run("sleep 600");
         assert_script_run("virsh attach-interface $guest network vnet_isolated --model $model --mac $mac --live $affecter", 60);
 
         #Wait for guests attached interface from virtual isolated network
         sleep 30;
         my $net = is_sle('=11-sp4') ? 'br123' : 'vnet_isolated';
+        assert_script_run("virsh list --all");
+        assert_script_run("sleep 600");
         test_network_interface($guest, mac => $mac, gate => $gate, isolated => 1, net => $net);
 
         assert_script_run("virsh detach-interface $guest --mac $mac $exclusive");
