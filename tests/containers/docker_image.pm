@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -15,42 +15,39 @@
 # - run some zypper commands
 # - commit the image
 # - remove the container, run it again and verify that the new image works
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: Pavel Dostál <pdostal@suse.cz>, qa-c team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base qw(consoletest);
 use testapi;
 use utils;
-use strict;
-use warnings;
 use containers::common;
 use containers::container_images;
 use suse_container_urls 'get_suse_container_urls';
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_public_cloud);
+use scheduler 'get_test_suite_data';
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
-
     my ($image_names, $stable_names) = get_suse_container_urls();
+    my $test_data = get_test_suite_data();
+    my $runtime   = "docker";
 
-    install_docker_when_needed();
-
-    if (is_sle()) {
-        ensure_ca_certificates_suse_installed();
-        allow_selected_insecure_registries(runtime => 'docker');
-    }
-
+    install_docker_when_needed($test_data->{host_os});
+    allow_selected_insecure_registries(runtime => $runtime);
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    for my $i (0 .. $#$image_names) {
-        test_container_image(image => $image_names->[$i], runtime => 'docker');
-        build_container_image(image => $image_names->[$i], runtime => 'docker');
-        test_opensuse_based_image(image => $image_names->[$i], runtime => 'docker');
-        build_with_zypper_docker(image => $image_names->[$i], runtime => 'docker');
+    for my $iname (@{$image_names}) {
+        test_container_image(image => $iname, runtime => $runtime);
+        build_container_image(image => $iname, runtime => $runtime);
+        unless ($test_data->{host_os}) {
+            test_opensuse_based_image(image => $iname, runtime => $runtime);
+            build_with_zypper_docker(image => $iname, runtime => $runtime);
+            scc_restore_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
+        }
+        else {
+            exec_on_container($iname, $runtime, 'cat /etc/os-release');
+        }
     }
-
-    scc_restore_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
-    clean_container_host(runtime => 'docker');
+    scc_restore_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE') && !$test_data->{host_os});
+    clean_container_host(runtime => $runtime);
 }
 
 1;

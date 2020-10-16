@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use version_utils;
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image);
+our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container);
 
 # Build any container image using a basic Dockerfile
 sub build_container_image {
@@ -129,6 +129,12 @@ sub test_opensuse_based_image {
     assert_script_run("$runtime rm refreshed", 120);
     # Verify the image works
     assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+}
+
+sub exec_on_container {
+    my ($image, $runtime, $command, $timeout) = @_;
+    $timeout //= 120;
+    assert_script_run("$runtime run --rm $image $command", $timeout);
 }
 
 1;

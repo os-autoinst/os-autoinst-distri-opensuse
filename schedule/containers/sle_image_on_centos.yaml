@@ -1,0 +1,11 @@
+name:         sle_image_on_centos
+description:  |
+    Run sle container on Centos
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - containers/host_configuration
+    - containers/podman_image
+    - containers/docker_image
+test_data:
+    host_os: centos
