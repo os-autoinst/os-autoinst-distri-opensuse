@@ -87,6 +87,10 @@ sub run {
     assert_screen("Yast2-Users-Add-User-Created");
     wait_screen_change { send_key "alt-o" };
 
+    # Enhence code for stability: avoid time racing
+    clear_console;
+    assert_screen("root-console-x11");
+
     # Exit x11 and turn to console
     send_key "alt-f4";
     assert_screen("generic-desktop");
