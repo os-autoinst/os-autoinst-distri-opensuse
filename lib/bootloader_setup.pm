@@ -561,7 +561,7 @@ sub select_installation_source {
     if ($m_protocol eq "http") {
         for (1 .. 2) {
             # just type enough backspaces
-            for (1 .. 32) { send_key "backspace" }
+            for (1 .. 34) { send_key "backspace" }
             send_key "tab";
         }
     }
