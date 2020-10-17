@@ -74,13 +74,19 @@ sub start_online_update {
         my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
         my $repo_arch   = get_required_var('ARCH');
         $repo_arch = 'ppc' if ($repo_arch =~ /ppc64|ppc64le/);
-        if ($repo_arch =~ /i586|i686|x86_64/) {
+        if (get_required_var('VERSION') =~ /^Jump/) {
+            $version =~ s/^jump://;
+            $update_name = 'jump/' . $version . '/oss';
             zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
         } else {
-            if (is_tumbleweed()) {
-                zypper_call("ar -f http://download.opensuse.org/ports/$repo_arch/update/tumbleweed repo-update");
+            if ($repo_arch =~ /i586|i686|x86_64/) {
+                zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");
             } else {
-                zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
+                if (is_tumbleweed()) {
+                    zypper_call("ar -f http://download.opensuse.org/ports/$repo_arch/update/tumbleweed repo-update");
+                } else {
+                    zypper_call("ar -f http://download.opensuse.org/ports/update/$update_name repo-update");
+                }
             }
         }
         select_console 'x11', await_console => 0;
