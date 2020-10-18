@@ -7,5 +7,3 @@ schedule:
     - containers/host_configuration
     - containers/podman_image
     - containers/docker_image
-test_data:
-    host_os: centos

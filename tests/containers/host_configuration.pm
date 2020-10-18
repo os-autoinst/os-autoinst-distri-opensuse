@@ -16,13 +16,12 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use utils;
-use scheduler 'get_test_suite_data';
+use version_utils 'check_host_os';
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $test_data = get_test_suite_data();
-    unless ($test_data->{host_os}) {
+    if (check_host_os('suse')) {
         ensure_ca_certificates_suse_installed();
     }
     else {

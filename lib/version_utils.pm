@@ -559,7 +559,7 @@ sub uses_qa_net_hardware {
 
 =head2 get_os_release
 
-Get SLE release version and service spack info from any running sles os without any dependencies
+Get SLE release version, service pack and distribution name info from any running sles os without any dependencies
 It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine
 The file can also be placed anywhere as long as it can be reached somehow by its absolute file path,
 which should be passed in as the second argument os_release_file, for example, "/etc/os-release"
@@ -571,15 +571,11 @@ sub get_os_release {
     my ($go_to_target, $os_release_file) = @_;
     $go_to_target    //= '';
     $os_release_file //= '/etc/os-release';
-    my $os_distri = script_output("grep -e \"^ID\\b\" ${os_release_file} | cut -c4- | tr -d '\"'");
-    my $os_release      = script_output("${go_to_target} grep -i version= ${os_release_file} | grep -iEo \"[0-9]{1,}(\\\.|\\\-)?(sp)?([0-9]{1,})?\"");
-    my $os_version      = '';
-    my $os_service_pack = '';
-    my $auxiliary_var     = '';
-    ($os_version,  $auxiliary_var)     = $os_release =~ /^(\d+)[\.|\-]?(sp)?.*$/img;
-    ($auxiliary_var, $os_service_pack) = $os_release =~ /^${os_version}[\.|\-]?(sp)?(\d+)$/img;
+    my %os_release = script_output("$go_to_target cat $os_release_file") =~ /^(\S+)="?([^"\r\n]+)"?$/gm;
+    %os_release = map { uc($_) => $os_release{$_} } keys %os_release;
+    my ($os_version, $os_service_pack) = split(/\.|-sp/i, $os_release{VERSION});
     $os_service_pack //= 0;
-    return $os_version, $os_service_pack, $os_distri;
+    return $os_version, $os_service_pack, $os_release{ID};
 }
 
 =head2 check_host_os
@@ -588,7 +584,7 @@ Identify running os without any dependencies parsing the I</etc/os-release>.
 
 =item C<distri_name>
 
-The expected distribution name to compare. It is B<suse> by default.
+The expected distribution name to compare.
 
 =item C<os_release_file>
 
@@ -600,7 +596,7 @@ Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
 =cut
 sub check_host_os {
     my ($distri_name, $os_release_file) = @_;
-    $distri_name    //= 'suse';
+    die "$distri_name is not given" unless $distri_name;
     $os_release_file //= '/etc/os-release';
     my $os_like_name = script_output("grep -e \"^ID_LIKE\\b\" ${os_release_file} | cut -c4- | tr -d '\"'");
     return ($os_like_name =~ /$distri_name/);
