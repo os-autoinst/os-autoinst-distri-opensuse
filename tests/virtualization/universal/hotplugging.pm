@@ -1,6 +1,6 @@
 # XEN regression tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,7 +22,7 @@ use version_utils;
 
 sub run_test {
     my ($self) = @_;
-    my ($sles_running_version, $sles_running_sp) = get_sles_release;
+    my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     my %mac = ();
     record_info "Virtual network", "Adding virtual network interface";

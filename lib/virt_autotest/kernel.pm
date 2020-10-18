@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2020 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ sub check_virt_kernel {
     my $suffix       = $args{suffix}   // '';
     my $log_file     = $args{log_file} // '/tmp/virt_kernel.txt';
     my $go_to_target = $target eq 'localhost' ? '' : "ssh root\@$target";
-    my ($sles_running_version, $sles_running_sp) = get_sles_release($go_to_target);
+    my ($sles_running_version, $sles_running_sp) = get_os_release($go_to_target);
 
     record_info "KERNEL $target$suffix", "We are now checking kernel on $target$suffix.";
     assert_script_run qq(echo -e "\\n# $target$suffix:" >> $log_file);
