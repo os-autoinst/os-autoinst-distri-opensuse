@@ -27,7 +27,16 @@ use utils;
 
 sub run {
     # check the kernel configuration file to make sure the parameter is there
-    validate_script_output "cat /boot/config-`uname -r`|grep CONFIG_STACKPROTECTOR", qr/CONFIG_STACKPROTECTOR_STRONG=y/;
+    if (!check_var('ARCH', 's390x')) {
+        validate_script_output "cat /boot/config-`uname -r`|grep CONFIG_STACKPROTECTOR", qr/CONFIG_STACKPROTECTOR_STRONG=y/;
+    }
+    else {
+        my $results = script_run("grep CONFIG_STACKPROTECTOR_STRONG=y /boot/config-`uname -r`");
+        if (!$results) {
+            die("Error: the kernel parameter is wrongly configured on s390x platform");
+        }
+    }
+
 }
 
 1;
