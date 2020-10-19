@@ -100,6 +100,8 @@ sub test_opensuse_based_image {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
+    $version = 'Tumbleweed' if ($version =~ /^Staging:/);
+
     # It is the right version
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
