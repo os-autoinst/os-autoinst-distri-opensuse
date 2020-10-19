@@ -58,8 +58,10 @@ sub run {
         set_serial_console_on_vh('', '', 'kvm') if is_kvm_host;
     }
     update_guest_configurations_with_daily_build();
+
     # turn on debug for libvirtd & enable journal with previous reboot
     enable_debug_logging if is_x86_64;
+
 }
 
 sub test_flags {
