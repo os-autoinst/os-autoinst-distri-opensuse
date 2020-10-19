@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use utils;
 use Utils::Backends qw(has_serial_over_ssh is_pvm is_hyperv);
+use Utils::Systemd;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
@@ -50,6 +51,20 @@ sub clear_and_verify_console {
 
     clear_console;
     assert_screen('cleared-console') unless is_serial_terminal();
+}
+
+=head2 pre_run_hook
+
+ pre_run_hook();
+
+This method will be called before each module is executed.
+Test modules (or their intermediate base classes) may overwrite
+this method, must call this baseclass method from the overwriting method.
+
+=cut
+sub pre_run_hook {
+    my ($self) = @_;
+    clear_started_systemd_services();
 }
 
 =head2 post_run_hook
@@ -416,6 +431,10 @@ sub export_logs_basic {
     $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
     $self->save_and_upload_log('dmesg',                          '/tmp/dmesg.log',   {screenshot => 1});
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
+
+    for my $service (get_started_systemd_services()) {
+        $self->save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.log", {screenshot => 1});
+    }
 }
 
 =head2 select_log_console

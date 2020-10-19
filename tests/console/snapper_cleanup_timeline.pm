@@ -18,6 +18,7 @@ use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub pre_run_hook {
+    my ($self) = @_;
     my $test_data = get_test_suite_data();
     select_console 'root-console';
     record_info("Configuration", "Configure snapper.");
