@@ -1555,6 +1555,7 @@ sub load_extra_tests_zypper {
     unless (is_jeos) {
         loadtest "console/zypper_info";
     }
+    loadtest "console/check_interactive_flag";
     # Check for availability of packages and the corresponding repository, as of now only makes sense for SLE
     loadtest 'console/validate_packages_and_patterns' if is_sle '12-sp2+';
     loadtest 'console/zypper_extend';
