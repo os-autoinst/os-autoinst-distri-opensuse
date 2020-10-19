@@ -4,6 +4,7 @@ description:    >
     SUSE MicroOS tests
 schedule:
     - microos/disk_boot
+    - transactional/disable_grub
     - console/suseconnect_scc
     - microos/networking
     - microos/libzypp_config
