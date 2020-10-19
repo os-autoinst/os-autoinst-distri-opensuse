@@ -39,6 +39,8 @@ sub compare_id {
 }
 
 sub run {
+    select_console 'root-console';
+
     if (script_run 'rpm -q health-checker') {
         trup_install 'health-checker';
         systemctl 'enable health-checker';
