@@ -214,15 +214,20 @@ sub is_microos {
     my $type = $version =~ /^[56]\./ ? 'suse' : 'opensuse';
     return $filter eq $type if ($filter =~ /opensuse|^suse/);
 
+    my $version_is_tw = ($version =~ /Tumbleweed/ || $version =~ /^Staging:/);
+
     if ($filter eq 'DVD') {
         return $flavor =~ /DVD/;    # DVD and Staging-?-DVD
     }
     elsif ($filter eq 'VMX') {
         return $flavor !~ /DVD/;    # If not DVD it's VMX
     }
+    elsif ($filter eq 'Tumbleweed') {
+        return $version_is_tw;
+    }
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
-        return ($filter =~ /\+$/) if ($version eq 'Tumbleweed' && $type eq 'opensuse');
+        return ($filter =~ /\+$/) if ($version_is_tw && $type eq 'opensuse');
         return check_version($filter, $version, qr/\d{1,}\.\d/);
     }
     else {
