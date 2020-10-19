@@ -22,7 +22,7 @@ sub run {
 
     # test 1
     # Installing and testing options -a -d -p
-    zypper_call 'in perf';
+    zypper_call('in perf', exitcode => [0, 102, 103, 106]) if (script_run("which perf") != 0);
     assert_script_run('perf stat -a -d -p 1 sleep 5');
     # test 2
     # Counting with perf stat
