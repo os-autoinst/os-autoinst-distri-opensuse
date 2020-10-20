@@ -18,6 +18,7 @@ use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub pre_run_hook {
+    my ($self) = @_;
     my $test_data = get_test_suite_data();
     select_console 'root-console';
     record_info("Configuration", "Configure snapper.");
@@ -25,6 +26,7 @@ sub pre_run_hook {
         assert_script_run("snapper set-config $param=$test_data->{snapper_config}->{$param}",
             fail_message => "Snapper configuration failed for parameter $param");
     }
+    $self->SUPER::pre_run_hook;
 }
 
 sub convert2numeric {

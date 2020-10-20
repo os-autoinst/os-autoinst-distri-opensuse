@@ -690,6 +690,7 @@ sub pre_run_hook {
         set_var('WICKED_TCPDUMP_PID', script_output('echo $CHECK_TCPDUMP_PID'));
     }
     $self->upload_wicked_logs('pre');
+    $self->SUPER::pre_run_hook;
     $self->do_barrier('pre_run');
 }
 
