@@ -127,6 +127,7 @@ sub install_runtime_dependencies_network {
 
     my @maybe_deps = qw(
       telnet-server
+      wireguard-tools
       xinetd
     );
     for my $dep (@maybe_deps) {
