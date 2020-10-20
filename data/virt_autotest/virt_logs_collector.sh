@@ -93,7 +93,7 @@ while { \${retry_times} > 0 } {
          }
          if { \${extra_logs} != {support_config} && \${extra_logs} != "" } {
             send "rm -f -r \${logs_folder}/*extra_logs*\r"
-            send "mkdir -p \${logs_folder}/guest_\${guest_transformed}_extra_logs;cp -r -f \${extra_logs} \${logs_folder}/guest_\${guest_transformed}_extra_logs\r"
+            send "mkdir -p \${logs_folder}/guest_\${guest_transformed}_extra_logs;cp --parent -r -f \${extra_logs} \${logs_folder}/guest_\${guest_transformed}_extra_logs\r"
          }
          expect {
             "~ #" {send "export ret=\\\$?;cd /tmp;(if \[\[ \\\$ret -ne 0 ]];then printenv USER;fi)\r"; exp_continue -continue_timer}
@@ -244,8 +244,8 @@ function collect_extra_logs_from_guest() {
            do
                  ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/guest_${guest_transformed}_extra_logs
                  ${sshpass_ssh_cmd} mkdir -p ${logs_folder}/guest_${guest_transformed}_extra_logs
-                 echo -e "${sshpass_ssh_cmd} cp -r -f ${extra_logs} ${logs_folder}/guest_${guest_transformed}_extra_logs"
-                 ${sshpass_ssh_cmd} cp -r -f ${extra_logs} ${logs_folder}/guest_${guest_transformed}_extra_logs
+                 echo -e "${sshpass_ssh_cmd} cp --parent -r -f ${extra_logs} ${logs_folder}/guest_${guest_transformed}_extra_logs"
+                 ${sshpass_ssh_cmd} cp --parent -r -f ${extra_logs} ${logs_folder}/guest_${guest_transformed}_extra_logs
                  ret_result=$?
                  if [[ ${ret_result} -eq 0 ]];then
                     echo -e "Successfully collected ${extra_logs} from guest ${guest_domain} via ssh."
@@ -274,12 +274,22 @@ function collect_extra_logs_from_guest() {
 #Collect any extra wanted logs from host. And provide more complete virtualization logs for SLE-11-SP4 and SLE-12 hosts.
 function collect_extra_logs_from_host() {
 	local logs_folder=$1
+	local target_domain=$2
+	shift
 	shift
 	local extra_logs=$@
 	local ret_result=0
 
+	if [[ ${target_domain} != "" ]];then
+	   local target_transformed=${target_domain//./_}
+	else
+	   local target_transformed=`hostname`
+	   target_transformed=${target_transformed//./_}
+	fi
+	local extra_logs_folder=${logs_folder}/host_${target_transformed}_extra_logs
+	mkdir -p ${extra_logs_folder}
 	if [[ ${extra_logs} != "" ]];then
-	   cp -f -r ${extra_logs} ${logs_folder}
+	   cp --parent -f -r ${extra_logs} ${extra_logs_folder}
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then
 	      echo -e "Successfully collected extra logs ${extra_logs} from host."
@@ -300,21 +310,21 @@ function collect_extra_logs_from_host() {
 	local xen_boot_log="${xen_log}/xen-boot.log"
 
 	if [[ ${release} -lt 12 ]];then
-	   cp -f -r ${libvirt_log} ${logs_folder}
+	   cp --parent -f -r ${libvirt_log} ${extra_logs_folder}
 	   ret_result=$(( ${ret_result} | $? ))
 	   if [[ `get_sles_hypervisor` == "XEN" ]];then
-	      cp -f -r ${xen_log} ${logs_folder}
+	      cp --parent -f -r ${xen_log} ${extra_logs_folder}
 	      ret_result=$(( ${ret_result} | $? ))
 	   fi
 	elif [[ ${release} -eq 12 ]];then
-           cp -f -r ${libvirt_boot_log} ${logs_folder}
+           cp --parent -f -r ${libvirt_boot_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
-           cp -f -r ${libvirt_qemu_log} ${logs_folder}
+           cp --parent -f -r ${libvirt_qemu_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
-           cp -f -r ${libvirtd_log} ${logs_folder}
+           cp --parent -f -r ${libvirtd_log} ${extra_logs_folder}
            ret_result=$(( ${ret_result} | $? ))
            if [[ `get_sles_hypervisor` == "XEN" ]];then
-              cp -f -r ${xen_boot_log} ${logs_folder}
+              cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
               ret_result=$(( ${ret_result} | $? ))
            fi           
 	fi
@@ -406,7 +416,7 @@ echo -e "collect_supportconfig ${virt_logs_folder} host | tee -a ${virt_logs_col
 collect_supportconfig ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
 echo -e "collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}"
-collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}
+collect_extra_logs_from_host ${virt_logs_folder} "" ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
 if [[ ${virt_guests_wanted} == "none" ]];then
    echo -e "Will not collect supportconfig from any guest.\n" | tee -a ${virt_logs_collecor_log}
