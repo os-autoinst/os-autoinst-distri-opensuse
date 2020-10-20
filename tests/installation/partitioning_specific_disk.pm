@@ -59,7 +59,13 @@ sub run {
     my $disk = get_required_var('SPECIFIC_DISK');
     send_key 'alt-s';
     send_key 'tab';
-    send_key_until_needlematch("expert-partitioner-$disk", "down", 20, 2);
+    for (1 ... 10) {
+        send_key 'down';
+        send_key_until_needlematch("expert-partitioner-label", "right", 50, 1);
+        if (check_screen "expert-partitioner-$disk", 2) {
+            last;
+        }
+    }
     send_key 'ret';
 
     # Edit device
