@@ -49,11 +49,16 @@ sub run {
         assert_screen "$name-connection-complete-dialog";
         assert_and_click "$name-join-channel";
 
+        assert_screen "$name-join-channel-select";
+        wait_still_screen 2;
         send_key "ctrl-a";
         send_key "delete";
+        wait_still_screen 2;
+
         type_string "#openqa-test_irc_from_openqa\n";
         assert_screen "$name-join-openqa-test_irc_from_openqa";
-        send_key "ret";
+        assert_and_click "$name-join-channel-OK";
+
     }
     assert_screen "$name-main-window";
     type_string "hello, this is openQA running $name with FIPS Enabled!\n";
