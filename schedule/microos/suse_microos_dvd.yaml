@@ -3,7 +3,7 @@ description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE MicroOS tests
 schedule:
-    - installation/bootloader
+    - installation/bootloader_start
     - installation/welcome
     - installation/accept_license
     - installation/scc_registration
