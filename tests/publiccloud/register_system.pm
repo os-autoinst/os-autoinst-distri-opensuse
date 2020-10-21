@@ -27,16 +27,8 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    my $max_retries = 3;
-    for (1 .. $max_retries) {
-        eval {
-            $args->{my_instance}->run_ssh_command(cmd => "sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420) unless (get_var('FLAVOR') =~ 'On-Demand');
-        };
-        last unless ($@);
-        diag "SUSEConnect failed: $@";
-        diag "Maybe the SCC or network is busy. Retry: $_ of $max_retries";
-    }
-    die "SCC registration on publiccloud failed (with retries)" if $@;
+    # note: ssh_script_retry dies on failure
+    $args->{my_instance}->retry_ssh_command("sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420, retry => 3) if (get_var('FLAVOR') =~ 'BYOS');
 
     for my $addon (@addons) {
         if (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
