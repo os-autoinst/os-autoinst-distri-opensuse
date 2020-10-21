@@ -95,11 +95,12 @@ sub run {
         # There is a dialog with packages that updates are available from
         # the official repo, do not use those as want to use not published repos only
         push(@tags, 'package-update-found') if is_opensuse;
+        # upgrades are slower
+        $timeout = 5500;
     }
-    # upgrades are slower
     # our Hyper-V server is just too slow
     # SCC might mean we install everything from the slow internet
-    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
         $timeout = 5500;
     }
     # aarch64 can be particularily slow depending on the hardware
