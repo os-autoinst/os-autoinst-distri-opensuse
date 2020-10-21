@@ -20,6 +20,7 @@ use version_utils 'is_tumbleweed';
 # Check Service State, enable it if necessary, set default zone to public
 sub pre_test {
     zypper_call('in firewalld');
+    zypper_call('info firewalld');
     record_info 'Check Service State';
     assert_script_run("if ! systemctl is-active -q firewalld; then systemctl start firewalld; fi");
     assert_script_run("firewall-cmd --set-default-zone=public");
