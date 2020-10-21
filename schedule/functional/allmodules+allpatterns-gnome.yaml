@@ -1,21 +1,13 @@
 ---
 name: allmodules+allpatterns-gnome
 description: >
-    Maintainer: zluo
-    Installation with all patterns and all modules without post-installation
-    test modules and it doesn't publish qcow2 image. Exclude modules not
-    designed to work with all other modules together
+    Maintainer: foursixnine.
+    Installation with all patterns selected for installation to check for
+    potential package conflicts, how the system handles big space usage, etc.
+    allpatterns installations can take longer, especially on non-x86_64
+    architectures. This test suite doesn't publish an HDD, and doesn't run
+    post-installation tests.
 conditional_schedule:
-    bootloader:
-        ARCH:
-            'x86_64':
-                - installation/bootloader
-            'ppc64le':
-                - installation/bootloader
-            'aarch64':
-                - installation/bootloader_uefi
-            's390x':
-                - installation/bootloader_zkvm
     grub_or_reconnect:
         ARCH:
             'x86_64':
@@ -27,7 +19,7 @@ conditional_schedule:
             's390x':
                 - boot/reconnect_mgmt_console
 schedule:
-    - '{{bootloader}}'
+    - installation/bootloader_start
     - installation/welcome
     - installation/accept_license
     - installation/scc_registration
