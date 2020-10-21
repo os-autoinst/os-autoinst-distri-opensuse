@@ -48,6 +48,7 @@ our $img_proof_tests = {
     'EC2-HVM-HPC-BYOS'     => $ec2_byos,
 
     GCE                => $gce_on_demand,
+    'GCE-Updates'      => $gce_on_demand,
     'GCE-BYOS'         => $gce_byos,
     'GCE-BYOS-Updates' => $gce_byos,
     'GCE-CHOST-BYOS'   => $gce_byos,
