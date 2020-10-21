@@ -91,6 +91,7 @@ our @EXPORT = qw(
   is_efi_boot
   common_service_start
   common_service_status
+  install_patterns
 );
 
 =head1 SYNOPSIS
@@ -1726,6 +1727,101 @@ sub common_service_status {
     }
     else {
         die "Unsupported service type, please check it again.";
+    }
+}
+
+#   Function: parse the output from script_output to get the pattern list
+#   Reason  : sometimes script_output with 'zypper pt -u' will cost a lot of time to return,
+#   which cause the console have some system message in the output. we need filt out these
+#   info before we process the result.
+#   parameters:
+#   $cmd   : the command line
+#   $start : the line that start with $start, which is we want
+#   return :  an array of pattern list
+sub get_pattern_list {
+    my ($cmd, $start) = @_;
+
+    my $pkg_name;
+    my @column   = ();
+    my @pkg_list = ();
+    my %seen     = ();
+    my @unique   = ();
+
+    my @pkg_lines = split(/\n/, script_output($cmd, 120));
+
+    foreach my $line (@pkg_lines) {
+        $line =~ s/^\s+|\s+$//g;
+        # In a regular expression, all chars between the \Q and \E are escaped.
+        next if ($line !~ m/^\Q$start\E/);
+        # filter out the spaces in each filed
+        @column = map { s/^\s*|\s*$//gr } split(/\|/, $line);
+        # pkg_name is the 2nd field seperated by '|'
+        $pkg_name = $column[1];
+        push @pkg_list, $pkg_name;
+    }
+
+    if (@pkg_list) {
+        # unique and sort the @pkg_list
+        %seen   = map { $_ => 1 } @pkg_list;
+        @unique = sort keys %seen;
+    }
+
+    return @unique;
+}
+
+=head2 install_patterns
+    install_patterns();
+
+This functions install extra patterns if var PATTERNS is set.
+
+=cut
+
+sub install_patterns {
+    my $pcm = 0;
+    my @pt_list;
+    my @pt_list_un;
+    my @pt_list_in;
+
+    @pt_list_in = get_pattern_list "zypper pt -i", "i";
+    # install all patterns from product.
+    if (check_var('PATTERNS', 'all')) {
+        @pt_list_un = get_pattern_list "zypper pt -u", "|";
+    }
+    # install certain pattern from parameter.
+    else {
+        @pt_list_un = split(/,/, get_var('PATTERNS'));
+    }
+
+    my %installed_pt = ();
+    foreach (@pt_list_in) {
+        # Remove pattern common-criteria if already installed, poo#73645
+        if ($_ =~ /common-criteria/) {
+            zypper_call("remove -t pattern $_");
+            next;
+        }
+        $installed_pt{$_} = 1;
+    }
+    @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
+    $pcm     = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
+
+    for my $pt (@pt_list) {
+        # if pattern is set default, skip
+        next if ($pt =~ /default/);
+        # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
+        if ($pt =~ /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/) {
+            next unless $pcm == 0;
+            $pt .= '*';
+            $pcm = 1;
+        }
+        # workround for bsc#1034541
+        if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
+            record_soft_failure 'bsc#1034541';
+            next;
+        }
+        # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
+        next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
+        zypper_call("in -t pattern $pt", timeout => 1800);
+
     }
 }
 
