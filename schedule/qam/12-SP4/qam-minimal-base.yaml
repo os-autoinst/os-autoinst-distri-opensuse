@@ -24,6 +24,7 @@ schedule:
 - '{{grub}}'
 - installation/first_boot
 - qa_automation/patch_and_reboot
+- console/dracut
 - locale/keymap_or_locale
 - console/system_prepare
 - console/check_network
