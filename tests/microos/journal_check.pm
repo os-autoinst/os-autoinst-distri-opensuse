@@ -39,6 +39,7 @@ sub run {
         bsc_1127339         => 'kernel: efi: EFI_MEMMAP is not enabled',
         bsc_1177693         => 'kernel: intel_powerclamp: CPU does not support MWAIT',
         bsc_1177695         => 'kernel: parport_pc: `none\' invalid for parameter `dma\'',
+        bsc_1178033         => 'kernel: ITS@0x8080000: Unable to locate ITS domain handle',
         bsc_000000_FEATURE  => 'health-checker/fail.sh check" failed|Machine didn\'t come up correct, do a rollback',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
