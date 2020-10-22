@@ -7,7 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: Validation module to check that partition is inactive.
+# Summary: Validation module to check that partition is not activated.
 # Covered scenarios:
 # - Validate that hard disk encryption(LUKS) is not activated on the configured partitioning
 #
@@ -22,10 +22,9 @@ use validate_encrypt_utils;
 use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
-    my $test_data = get_test_suite_data();
+    my $enc_disk_part = get_test_suite_data()->{enc_disk_part};
     check_var('BACKEND', 'pvm_hmc') ? use_ssh_serial_console : select_console 'install-shell';
-    my $status = parse_cryptsetup_status($test_data->{mapped_device});
-    verify_cryptsetup_message($test_data->{device_status}->{message}, $status->{message});
+    verify_locked_encrypted_partition($enc_disk_part);
     select_console 'installation';
 }
 

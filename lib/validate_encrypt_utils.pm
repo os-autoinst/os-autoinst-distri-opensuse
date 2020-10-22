@@ -36,6 +36,7 @@ our @EXPORT = qw(
   verify_cryptsetup_message
   verify_cryptsetup_properties
   verify_restoring_luks_backups
+  verify_locked_encrypted_partition
 );
 
 =head2 parse_devices_in_crypttab
@@ -206,6 +207,27 @@ sub verify_restoring_luks_backups {
     assert_script_run("cryptsetup -v --batch-mode luksHeaderRestore $mapped_dev_path" .
           " --header-backup-file $backup_path");
     assert_script_run("rm -rf $backup_path");
+}
+
+=head2 verify_locked_encrypted_partition
+
+  verify_locked_encrypted_partition($enc_disk_part);
+
+=over
+
+=item C<$enc_disk_part>
+  block device name of the encrypted disk partition, i.e.: sda1
+
+=back
+
+=cut
+sub verify_locked_encrypted_partition {
+    my $enc_disk_part = shift;
+    my @lines         = split(/\n/, script_output("lsblk -l -n /dev/$enc_disk_part"));
+    if ((scalar @lines > 1) && (grep { /crypt/ } @lines)) {
+        die "partition '/dev/$enc_disk_part' is already unlocked";
+    }
+    record_info('lock OK', "Encrypted partition '/dev/$enc_disk_part' still locked");
 }
 
 1;

@@ -34,5 +34,4 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
 test_data:
-  <<: !include test_data/yast/encryption/cryptlvm+cancel_existing.yaml
-  mapped_device: '/dev/mapper/cr-auto-1'
+  enc_disk_part: sda1
