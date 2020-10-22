@@ -54,7 +54,9 @@ sub get_remote_logs {
 sub switch_user {
     my ($self, $username) = @_;
     type_string("su - $username\n");
-    assert_screen 'user-nobody';
+    type_string(qq/PS1="# "\n/);
+    wait_serial(qr/PS1="# "/);
+    assert_script_run("whoami|grep $username");
 }
 
 =head2 master_node_names
