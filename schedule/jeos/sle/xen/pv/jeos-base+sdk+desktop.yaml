@@ -1,6 +1,6 @@
 description: 'Test suite verifies functionality and integration of Development-Tools (sdk) and Desktop-Applications (desktop) patterns'
 name: 'jeos_base+sdk+desktop_patterns'
-schedule:  
+schedule:
   - installation/bootloader_svirt
   - jeos/firstrun
   - jeos/record_machine_id
@@ -11,6 +11,8 @@ schedule:
   - jeos/build_key
   - console/suseconnect_scc
   - console/consoletest_setup
+  - console/textinfo
+  - jeos/kiwi_templates
   - console/zypper_ref
   - console/command_not_found
   - console/libvorbis
