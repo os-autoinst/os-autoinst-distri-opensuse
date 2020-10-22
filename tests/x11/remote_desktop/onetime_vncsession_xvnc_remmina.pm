@@ -33,11 +33,6 @@ sub run {
 
     # Start Remmina and login the remote server
     x11_start_program('remmina', target_match => 'remmina-launched');
-    # The remmmina news turned off screen appears since the remmina got updated in 15SP3
-    if (is_sle('15-SP3+')) {
-        assert_screen("remmina-news-turned-off", 60);
-        assert_and_click("remmina-close-news-turned-off");
-    }
 
     # The default host key is right Ctrl which is not supported by openQA
     # Change the host key to 'z'
