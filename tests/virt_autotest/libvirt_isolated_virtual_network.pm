@@ -49,6 +49,7 @@ sub run_test {
     my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
+        ensure_online $_, skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
             $affecter  = "--persistent";

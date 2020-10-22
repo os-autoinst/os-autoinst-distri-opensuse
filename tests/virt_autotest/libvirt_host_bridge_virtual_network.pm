@@ -57,6 +57,7 @@ sub run_test {
     my $gate = script_output "ip r s | grep 'default via ' | cut -d' ' -f3";
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "HOST BRIDGE NETWORK for $guest";
+        ensure_online $guest, skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
             $affecter  = "--persistent";
