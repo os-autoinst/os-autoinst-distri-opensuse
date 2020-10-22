@@ -47,6 +47,8 @@ sub check_guest_module {
     my ($guest, %args) = @_;
     my $module = $args{module};
     my $net    = $args{net} // "br123";
+    #Ensure guest is online before each virtual network test
+    ensure_online($guest);
     if (($guest =~ m/sles-?11/i) && ($module eq "acpiphp")) {
         save_guest_ip("$guest", name => $net);
         my $status = script_run("ssh root\@$guest \"lsmod | grep $module\"");
