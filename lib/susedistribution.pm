@@ -859,6 +859,10 @@ sub console_selected {
     # locked, display manager is waiting for login, etc.
     return ensure_unlocked_desktop if $args{tags} =~ /x11/;
     assert_screen($args{tags}, no_wait => 1, timeout => $args{timeout});
+    if (match_has_tag('workqueue_lockup')) {
+        record_soft_failure 'bsc#1126782';
+        send_key 'ret';
+    }
 }
 
 1;
