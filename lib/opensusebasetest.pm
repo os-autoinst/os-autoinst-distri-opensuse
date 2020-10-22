@@ -18,9 +18,10 @@ use warnings;
 use utils;
 use Utils::Backends qw(has_serial_over_ssh is_pvm is_hyperv);
 use Utils::Systemd;
+use Utils::Architectures 'is_aarch64';
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
+use version_utils;
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
@@ -858,6 +859,16 @@ sub grub_select {
     elsif (!get_var('S390_ZKVM')) {
         # confirm default choice
         send_key 'ret';
+        if (get_var('USE_SUPPORT_SERVER') && is_aarch64 && is_opensuse)
+        {
+            # On remote installations of openSUSE distris on aarch64, first key
+            # press doesn't always reach the SUT, so introducing the workaround
+            wait_still_screen;
+            if (check_screen('grub2')) {
+                record_info 'WARN', 'Return key did not reach the system, re-trying';
+                send_key 'ret';
+            }
+        }
     }
 }
 
