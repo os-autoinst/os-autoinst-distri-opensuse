@@ -219,12 +219,6 @@ sub handle_sp_in_settings_with_sp0 {
 sub update_guest_configurations_with_daily_build {
     repl_repo_in_sourcefile;
     repl_module_in_sourcefile;
-    #workaround of bsc#1177790
-    if (is_sle('=15-sp2') || is_sle('=15-sp3')) {
-        record_soft_failure("Guests installation is blocked by bsc#1177790, we workaroud it by using ip instead of domain name in medium URL in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/11226");
-        script_run "sed -i 's/openqa.suse.de/10.160.0.207/g' /usr/share/qa/virtautolib/data/sources.*";
-        save_screenshot;
-    }
     # qa_lib_virtauto pkg will handle replacing module url with module link in source.xx for sle15 and 15+
     # repl_guest_autoyast_addon_with_daily_build_module;
 }
