@@ -37,7 +37,7 @@ use testapi;
 use version_utils 'is_sle';
 
 my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/openSUSE-Leap-15.1-DVD-x86_64.iso";
-my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.0/iso/openSUSE-Leap-15.0-DVD-x86_64.iso";
+my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.2/iso/openSUSE-Leap-15.2-DVD-x86_64.iso";
 
 sub dl_location_switch {
     my ($tg) = @_;
