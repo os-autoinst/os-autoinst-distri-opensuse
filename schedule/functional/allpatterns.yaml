@@ -6,6 +6,9 @@ description:    >
     allpatterns installations can take longer, especially on non-x86_64
     architectures. This test suite doesn't publish an HDD, and doesn't run
     post-installation tests.
+
+    All SLE modules that are compatible between them can be selected by adding
+    the setting ENABLE_ALL_SCC_MODULES=1 to the test suite
 conditional_schedule:
     grub_or_reconnect:
         ARCH:
