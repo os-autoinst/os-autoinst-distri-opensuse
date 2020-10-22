@@ -83,6 +83,8 @@ sub run_test {
 sub post_fail_hook {
     my ($self) = @_;
 
+    $self->SUPER::post_fail_hook;
+
     #Restart libvirtd service
     virt_autotest::utils::restart_libvirtd();
 
@@ -94,9 +96,6 @@ sub post_fail_hook {
 
     #Restore Guest systems
     virt_autotest::virtual_network_utils::restore_guests();
-
-    #Upload debug log
-    virt_autotest::virtual_network_utils::upload_debug_log();
 }
 
 1;
