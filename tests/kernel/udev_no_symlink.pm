@@ -49,6 +49,7 @@ sub run {
     assert_script_run('journalctl -u detect-part-label-duplicates.service --no-pager | grep "Warning: a high number of partitions uses"');
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=primary" /run/udev/data | wc -l) -eq ' . $num_primary);
     assert_script_run('test $(grep -r "E:ID_PART_ENTRY_NAME=openqapart" /run/udev/data | wc -l) -eq ' . $num_openqapart);
+    script_run("ls -l /run/udev/links/*by-partlabel*{primary,logical}/*");
     assert_script_run('test $(ls -l /run/udev/links/*by-partlabel*{primary,logical}/* | wc -l) -eq 0');
     assert_script_run('test $(ls -l /run/udev/links/*by-partlabel*openqapart/* | wc -l) -eq ' . $num_openqapart);
     record_info('OK', 'No symlinks created for partitions with label "primary" and warning appeared');
