@@ -1,6 +1,6 @@
-name:         sle_image_on_centos
+name:         sle_image_on_ubuntu
 description:  |
-    Run sle container on Centos
+    Run sle container on Ubuntu
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop

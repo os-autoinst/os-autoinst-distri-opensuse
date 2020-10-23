@@ -34,6 +34,14 @@ sub install_podman_when_needed {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
         }
+        elsif ($host_os eq 'ubuntu') {
+            my $version_id  = script_output('(. /etc/os-release && echo $VERSION_ID)');
+            my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
+            assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
+            assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
+            assert_script_run "apt-get update",            timeout => 160;
+            assert_script_run "apt-get -y install podman", timeout => 220;
+        }
         else {
             add_suseconnect_product('sle-module-containers') if (is_sle '>=15');
             push(@pkgs, 'podman-cni-config') if is_jeos();
@@ -57,6 +65,15 @@ sub install_docker_when_needed {
                 assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
                 # if podman installed use flag "--allowerasing" to solve conflicts
                 assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
+            }
+            elsif ($host_os eq 'ubuntu') {
+                my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
+                assert_script_run "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -";
+                assert_script_run q(add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable");
+                assert_script_run "apt-get update", timeout => 160;
+                # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+                assert_script_run "apt-cache policy docker-ce";
+                assert_script_run "apt-get -y install docker-ce", timeout => 260;
             }
             else {
                 if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {

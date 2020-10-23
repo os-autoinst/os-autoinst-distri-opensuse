@@ -1,6 +1,6 @@
 # XEN regression tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,14 +24,14 @@ use virt_autotest::utils;
 sub run {
     my ($self) = @_;
     my $kernel_log = '/tmp/guests_kernel_results.txt';
-    my ($host_running_version, $host_running_sp) = get_sles_release();
+    my ($host_running_version, $host_running_sp) = get_os_release();
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
 
     my ($guest_running_version, $guest_running_sp);
     assert_script_run qq(echo -e "Guests before and after patching:" > $kernel_log);
     assert_script_run qq(echo -e "\\n\\nBefore:" >> $kernel_log);
     foreach my $guest (keys %virt_autotest::common::guests) {
-        ($guest_running_version, $guest_running_sp) = get_sles_release("ssh root\@$guest");
+        ($guest_running_version, $guest_running_sp) = get_os_release("ssh root\@$guest");
 
         record_info "$guest", "Adding test repositories and patching the $guest system";
         if ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp) {

@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ sub run {
 
     virt_autotest::utils::install_default_packages();
 
-    my ($sles_running_version, $sles_running_sp) = get_sles_release();
+    my ($sles_running_version, $sles_running_sp) = get_os_release();
     zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_" . $sles_running_version . "/SUSE:CA.repo", exitcode => [0, 4, 102, 103, 106]);
     zypper_call("in ca-certificates-suse", exitcode => [0, 102, 103, 106]);
 }

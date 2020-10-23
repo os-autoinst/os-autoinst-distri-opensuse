@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ use List::Util 'first';
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest::utils;
-use version_utils qw(is_sle get_sles_release);
+use version_utils qw(is_sle get_os_release);
 
 our @EXPORT
   = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
@@ -714,7 +714,7 @@ sub stop_monitor_guest_console {
 
 #Detect whether running sles is the developing version
 sub is_developing_sles {
-    my ($running_sles_rel, $running_sles_sp) = get_sles_release;
+    my ($running_sles_rel, $running_sles_sp) = get_os_release;
     my $developing_sles_version = get_required_var('VERSION');
     $developing_sles_version = get_required_var('TARGET_DEVELOPING_VERSION') if get_var('REPO_0_TO_INSTALL');
     my ($developing_sles_rel) = $developing_sles_version =~ /^(\d+).*/img;

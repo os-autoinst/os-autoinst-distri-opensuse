@@ -52,7 +52,8 @@ use constant {
           is_leap_migration
           requires_role_selection
           check_version
-          get_sles_release
+          get_os_release
+          check_host_os
           )
     ],
     BACKEND => [
@@ -561,9 +562,9 @@ sub uses_qa_net_hardware {
     return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
-=head2 get_sles_release
+=head2 get_os_release
 
-Get SLE release version and service spack info from any running sles os without any dependencies
+Get SLE release version, service pack and distribution name info from any running sles os without any dependencies
 It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine
 The file can also be placed anywhere as long as it can be reached somehow by its absolute file path,
 which should be passed in as the second argument os_release_file, for example, "/etc/os-release"
@@ -571,18 +572,39 @@ At the same time, connection method to the entity in which the file reside shoul
 firt argument go_to_target, for example, "ssh root at name or ip address" or "way to download the file"
 For use only on locahost, no argument needs to be specified
 =cut
-sub get_sles_release {
+sub get_os_release {
     my ($go_to_target, $os_release_file) = @_;
     $go_to_target    //= '';
     $os_release_file //= '/etc/os-release';
-    my $sles_release      = script_output("${go_to_target} cat ${os_release_file} | grep -i version= | grep -iEo \"[0-9]{1,}(\\\.|\\\-)?(sp)?([0-9]{1,})?\"");
-    my $sles_version      = '';
-    my $sles_service_pack = '';
-    my $auxiliary_var     = '';
-    ($sles_version,  $auxiliary_var)     = $sles_release =~ /^(\d+)[\.|\-]?(sp)?.*$/img;
-    ($auxiliary_var, $sles_service_pack) = $sles_release =~ /^${sles_version}[\.|\-]?(sp)?(\d+)$/img;
-    $sles_service_pack //= 0;
-    return $sles_version, $sles_service_pack;
+    my %os_release = script_output("$go_to_target cat $os_release_file") =~ /^(\S+)="?([^"\r\n]+)"?$/gm;
+    %os_release = map { uc($_) => $os_release{$_} } keys %os_release;
+    my ($os_version, $os_service_pack) = split(/\.|-sp/i, $os_release{VERSION});
+    $os_service_pack //= 0;
+    return $os_version, $os_service_pack, $os_release{ID};
+}
+
+=head2 check_host_os
+
+Identify running os without any dependencies parsing the I</etc/os-release>.
+
+=item C<distri_name>
+
+The expected distribution name to compare.
+
+=item C<os_release_file>
+
+The full path to the Operating system identification file.
+Default to I</etc/os-release>.
+
+Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
+
+=cut
+sub check_host_os {
+    my ($distri_name, $os_release_file) = @_;
+    die "$distri_name is not given" unless $distri_name;
+    $os_release_file //= '/etc/os-release';
+    my $os_like_name = script_output("grep -e \"^ID_LIKE\\b\" ${os_release_file} | cut -c4- | tr -d '\"'");
+    return ($os_like_name =~ /$distri_name/);
 }
 
 =head2 is_public_cloud

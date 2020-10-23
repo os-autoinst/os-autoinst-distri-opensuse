@@ -1,6 +1,6 @@
 # VM smoke tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ sub run {
     my ($sles_running_version, $sles_running_sp);
     foreach my $guest (keys %virt_autotest::common::guests) {
         # sysbench only available on SLE15+
-        ($sles_running_version, $sles_running_sp) = get_sles_release("ssh root\@$guest");
+        ($sles_running_version, $sles_running_sp) = get_os_release("ssh root\@$guest");
         if ($sles_running_version >= 15) {
             # Push test script to guest and execute it
             assert_script_run("scp /var/tmp/stresstest.sh root\@$guest:/var/tmp/stresstest.sh");

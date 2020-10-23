@@ -75,7 +75,7 @@ sub build_with_zypper_docker {
 
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
     assert_script_run("zypper-docker list-updates $image");
-    assert_script_run("zypper-docker up $image $derived_image");
+    assert_script_run("zypper-docker up $image $derived_image", timeout => 160);
 
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
     assert_script_run("zypper-docker list-updates $derived_image | grep 'No updates found'");
