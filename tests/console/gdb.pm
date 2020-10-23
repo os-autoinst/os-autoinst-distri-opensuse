@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(zypper_call);
-use version_utils qw(is_jeos is_sle);
+use version_utils qw(is_leap is_sle);
 
 sub wait_serial_or_die {
     my $feedback = shift;
@@ -34,7 +34,6 @@ sub wait_serial_or_die {
     }
 }
 
-
 sub run {
     my $self      = shift;
     my $test_deps = 'gcc glibc-devel gdb';
@@ -44,7 +43,7 @@ sub run {
     # except of sle, where it is provided by *sysvinit-tools* rpm
     # since sle(15-SP3+) *sysvinit-tools* is not preinstalled on JeOS
     # as systemd's dependency with *sysvinit-tools* was dropped
-    $test_deps .= ' sysvinit-tools' if is_sle('>15-sp2');
+    $test_deps .= ' sysvinit-tools' if (is_sle('>15-sp2') || is_leap('>15.2'));
     zypper_call("in $test_deps");
 
     #Test Case 1
