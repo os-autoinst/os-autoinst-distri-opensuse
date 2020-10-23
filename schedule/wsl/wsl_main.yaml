@@ -6,3 +6,4 @@ schedule:
   - wsl/boot_windows
   - wsl/prepare_wsl_feature
   - wsl/firstrun
+  - wsl/wsl_cmd_check

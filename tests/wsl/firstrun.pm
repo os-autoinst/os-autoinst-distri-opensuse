@@ -8,17 +8,20 @@
 # without any warranty.
 
 # Summary: Configure WSL users
-# Maintainer: Martin Loviska <mloviska@suse.com>
+# Maintainer: qa-c  <qa-c@suse.de>
 
-use base "windowsbasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(windowsbasetest);
 use testapi;
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
+use wsl qw(is_sut_reg);
+
+sub is_fake_scc_url_needed {
+    return get_var('SCC_URL') && get_var('BETA', 0);
+}
 
 sub set_fake_scc_url {
-    my $proxyscc = shift;
-    return unless ($proxyscc && get_var('BETA'));
+    return unless is_fake_scc_url_needed;
+    my $proxyscc = get_var('SCC_URL');
 
     assert_screen 'yast2-wsl-firstboot-welcome';
     # Exit YaST2 Firstboot
@@ -67,9 +70,10 @@ sub license {
     if (is_sle) {
         # license warning
         assert_screen 'wsl-license-not-accepted';
-        wait_screen_change(sub { send_key 'ret' }, 10);
+        send_key 'ret';
         # Accept license
-        wait_screen_change(sub { send_key 'alt-a' }, 10);
+        assert_screen 'wsl-license';
+        send_key 'alt-a';
         assert_screen 'license-accepted';
         send_key 'alt-n';
     }
@@ -77,7 +81,7 @@ sub license {
 
 sub register_via_scc {
     my $skip = shift;
-    assert_screen 'wsl-registration';
+    assert_screen 'wsl-registration', 120;
 
     unless (!!$skip) {
         wait_screen_change(sub { send_key 'alt-s' }, 10);
@@ -101,12 +105,12 @@ sub register_via_scc {
 
 sub run {
     # WSL installation is in progress
-    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 360;
+    assert_screen [qw(yast2-wsl-firstboot-welcome wsl-installing-prompt)], 420;
 
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         assert_and_click 'window-max';
         wait_still_screen stilltime => 3, timeout => 10;
-        set_fake_scc_url(get_var('SCC_URL'));
+        set_fake_scc_url();
         send_key 'alt-n';
         # License handling
         license;
@@ -137,15 +141,23 @@ sub run {
         assert_screen 'wsl-image-ready-prompt', 120;
     }
 
-    unless (get_var('BETA')) {
-        become_root;
+    # Nothing to do in WSL2 pts w/o serialdev support
+    # https://github.com/microsoft/WSL/issues/4322
+    if (get_var('WSL2')) {
+        type_string "exit\n";
+        return;
     }
+
+    become_root unless (get_var('BETA', 0) && is_sut_reg());
 
     assert_script_run 'cd ~';
     if (script_run "zypper ps") {
         record_soft_failure 'bsc#1170256 - [Build 3.136] zypper ps is missing lsof package';
     }
-
+    type_string "exit\n";
+    sleep 3;
+    save_screenshot;
+    type_string "exit\n" unless (get_var('BETA', 0) && is_sut_reg());
 }
 
 1;
