@@ -1,11 +1,13 @@
 # SUSE's openQA tests
-# Copyright (c) 2016-2019 SUSE LLC
+#
+# Copyright (c) 2016-2020 SUSE LLC
+#
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
+#
 # Summary: Functions for HA Cluster tests
-# Maintainer: Loic Devulder <ldevulder@suse.com>
 
 package hacluster;
 
@@ -33,6 +35,7 @@ our @EXPORT = qw(
   get_my_ip
   get_node_to_join
   get_node_number
+  get_node_index
   is_node
   add_to_known_hosts
   choose_node
@@ -127,6 +130,20 @@ sub get_my_ip {
 sub get_node_number {
     my $index = is_sle('15-sp2+') ? 2 : 1;
     return script_output "crm_mon -1 | awk '/ nodes configured/ { print \$$index }'";
+}
+
+=head2 get_node_index
+
+ get_node_index();
+
+Get the index number of the current node.
+=cut
+sub get_node_index {
+    my $node_index = get_hostname;
+
+    $node_index =~ s/.*([0-9][0-9])$/$1/;
+
+    return int($node_index);
 }
 
 sub is_node {
@@ -330,17 +347,22 @@ sub ha_export_logs {
 }
 
 sub check_cluster_state {
-    assert_script_run "$crm_mon_cmd";
-    assert_script_run "$crm_mon_cmd | grep -i 'no inactive resources'" if is_sle '12-sp3+';
-    assert_script_run 'crm_mon -1 | grep \'partition with quorum\'';
+    my %args = @_;
+
+    # We may want to check cluster state without stopping the test
+    my $cmd = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
+
+    $cmd->("$crm_mon_cmd");
+    $cmd->("$crm_mon_cmd | grep -i 'no inactive resources'") if is_sle '12-sp3+';
+    $cmd->('crm_mon -1 | grep \'partition with quorum\'');
     # In older versions, node names in crm node list output are followed by ": normal". In newer ones by ": member"
-    assert_script_run q/crm_mon -s | grep "$(crm node list | egrep -c ': member|: normal') nodes online"/;
+    $cmd->(q/crm_mon -s | grep "$(crm node list | egrep -c ': member|: normal') nodes online"/);
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
         script_run 'crm_verify -LV';
     }
     else {
-        assert_script_run 'crm_verify -LV';
+        $cmd->('crm_verify -LV');
     }
 }
 

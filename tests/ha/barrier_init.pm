@@ -33,12 +33,11 @@ sub run {
         die 'A valid number of nodes is mandatory' if ($num_nodes lt '2');
 
         # Create mutex for HA clusters
-        mutex_create 'csync2';
-        mutex_create 'cluster_restart';
+        mutex_create($_) foreach ('csync2', 'cluster_restart');
 
         # BARRIER_HA_ needs to also wait the support-server
         if (is_not_supportserver_scenario) {
-            mutex_create 'iscsi';
+            mutex_create 'iscsi';    # Mutex is already created in supportserver, no need to create it before
             barrier_create("BARRIER_HA_$cluster_name",                       $num_nodes);
             barrier_create("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name", $num_nodes);
             barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name",     $num_nodes);
@@ -50,30 +49,33 @@ sub run {
         }
 
         # Create barriers for HA clusters
-        barrier_create("CLUSTER_INITIALIZED_$cluster_name",         $num_nodes);
-        barrier_create("NODE_JOINED_$cluster_name",                 $num_nodes);
-        barrier_create("DLM_INIT_$cluster_name",                    $num_nodes);
-        barrier_create("DLM_GROUPS_CREATED_$cluster_name",          $num_nodes);
-        barrier_create("DLM_CHECKED_$cluster_name",                 $num_nodes);
-        barrier_create("DRBD_INIT_$cluster_name",                   $num_nodes);
-        barrier_create("DRBD_CREATE_CONF_$cluster_name",            $num_nodes);
-        barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name",        $num_nodes);
-        barrier_create("DRBD_CREATE_DEVICE_$cluster_name",          $num_nodes);
-        barrier_create("DRBD_CHECK_ONE_DONE_$cluster_name",         $num_nodes);
-        barrier_create("DRBD_CHECK_TWO_DONE_$cluster_name",         $num_nodes);
-        barrier_create("DRBD_DOWN_DONE_$cluster_name",              $num_nodes);
-        barrier_create("DRBD_MIGRATION_DONE_$cluster_name",         $num_nodes);
-        barrier_create("DRBD_REVERT_DONE_$cluster_name",            $num_nodes);
-        barrier_create("DRBD_RESOURCE_CREATED_$cluster_name",       $num_nodes);
-        barrier_create("DRBD_RESOURCE_RESTARTED_$cluster_name",     $num_nodes);
-        barrier_create("DRBD_SETUP_DONE_$cluster_name",             $num_nodes);
-        barrier_create("LOCK_INIT_$cluster_name",                   $num_nodes);
-        barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",       $num_nodes);
-        barrier_create("LOGS_CHECKED_$cluster_name",                $num_nodes);
-        barrier_create("CHECK_AFTER_REBOOT_BEGIN_$cluster_name",    $num_nodes);
-        barrier_create("CHECK_AFTER_REBOOT_END_$cluster_name",      $num_nodes);
-        barrier_create("CHECK_BEFORE_FENCING_BEGIN_$cluster_name",  $num_nodes);
-        barrier_create("CHECK_BEFORE_FENCING_END_$cluster_name",    $num_nodes);
+        barrier_create("CLUSTER_INITIALIZED_$cluster_name",     $num_nodes);
+        barrier_create("NODE_JOINED_$cluster_name",             $num_nodes);
+        barrier_create("DLM_INIT_$cluster_name",                $num_nodes);
+        barrier_create("DLM_GROUPS_CREATED_$cluster_name",      $num_nodes);
+        barrier_create("DLM_CHECKED_$cluster_name",             $num_nodes);
+        barrier_create("DRBD_INIT_$cluster_name",               $num_nodes);
+        barrier_create("DRBD_CREATE_CONF_$cluster_name",        $num_nodes);
+        barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name",    $num_nodes);
+        barrier_create("DRBD_CREATE_DEVICE_$cluster_name",      $num_nodes);
+        barrier_create("DRBD_CHECK_ONE_DONE_$cluster_name",     $num_nodes);
+        barrier_create("DRBD_CHECK_TWO_DONE_$cluster_name",     $num_nodes);
+        barrier_create("DRBD_DOWN_DONE_$cluster_name",          $num_nodes);
+        barrier_create("DRBD_MIGRATION_DONE_$cluster_name",     $num_nodes);
+        barrier_create("DRBD_REVERT_DONE_$cluster_name",        $num_nodes);
+        barrier_create("DRBD_RESOURCE_CREATED_$cluster_name",   $num_nodes);
+        barrier_create("DRBD_RESOURCE_RESTARTED_$cluster_name", $num_nodes);
+        barrier_create("DRBD_SETUP_DONE_$cluster_name",         $num_nodes);
+        barrier_create("LOCK_INIT_$cluster_name",               $num_nodes);
+        barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",   $num_nodes);
+        barrier_create("LOGS_CHECKED_$cluster_name",            $num_nodes);
+        # We have to create barriers for each nodes if we want to be able to fence *all* nodes
+        for (1 .. $num_nodes) {
+            barrier_create("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE$_",   $num_nodes);
+            barrier_create("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE$_",     $num_nodes);
+            barrier_create("CHECK_BEFORE_FENCING_BEGIN_${cluster_name}_NODE$_", $num_nodes);
+            barrier_create("CHECK_BEFORE_FENCING_END_${cluster_name}_NODE$_",   $num_nodes);
+        }
         barrier_create("CLUSTER_MD_INIT_$cluster_name",             $num_nodes);
         barrier_create("CLUSTER_MD_CREATED_$cluster_name",          $num_nodes);
         barrier_create("CLUSTER_MD_STARTED_$cluster_name",          $num_nodes);
@@ -144,7 +146,7 @@ sub run {
         }
 
         # Create barriers for SAP cluster
-        # Note: we always create these barries even if they are not used, mainly
+        # Note: we always create these barriers even if they are not used, mainly
         # because it's not easy to know at this stage that we are testing a SAP cluster...
         barrier_create("ASCS_INSTALLED_$cluster_name",       $num_nodes);
         barrier_create("ERS_INSTALLED_$cluster_name",        $num_nodes);
@@ -158,7 +160,11 @@ sub run {
         barrier_create("HANA_INIT_CONF_$cluster_name",       $num_nodes);
         barrier_create("HANA_CREATED_CONF_$cluster_name",    $num_nodes);
         barrier_create("HANA_LOADED_CONF_$cluster_name",     $num_nodes);
-        barrier_create("HANA_RA_RESTART_$cluster_name",      $num_nodes);
+        # We have to create barriers for each nodes if we want to be able to fence *all* nodes
+        for (1 .. $num_nodes) {
+            barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_",      $num_nodes);
+            barrier_create("HANA_REPLICATE_STATE_${cluster_name}_NODE$_", $num_nodes);
+        }
     }
 
     # Wait for all children to start

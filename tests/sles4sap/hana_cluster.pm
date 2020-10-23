@@ -56,7 +56,7 @@ sub run {
         }
         assert_script_run "scp -qr /usr/sap/$sid/SYS/global/security/rsecssfs/* root\@$node2:/usr/sap/$sid/SYS/global/security/rsecssfs/";
         assert_script_run qq(su - $sapadm -c "hdbsql -u system -p $sles4sap::instance_password -i $instance_id -d SYSTEMDB \\"BACKUP DATA FOR FULL SYSTEM USING FILE ('backup')\\""), 300;
-        assert_script_run "su - $sapadm -c 'hdbnsutil -sr_enable --name=NODE1'";
+        assert_script_run "su - $sapadm -c 'hdbnsutil -sr_enable --name=$node1'";
 
         # Synchronize the nodes
         barrier_wait "HANA_INIT_CONF_$cluster_name";
@@ -73,7 +73,7 @@ sub run {
 
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem HDB'";
         assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
-        assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --remoteHost=$node1 -remoteInstance=$instance_id --replicationMode=sync --name=NODE2 --operationMode=logreplay'";
+        $self->do_hana_takeover(node => $node1);
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
         assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
 
