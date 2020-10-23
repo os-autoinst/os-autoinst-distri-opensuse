@@ -28,7 +28,7 @@ sub run {
     validate_script_output("dracut --list-modules 2>&1", sub { m/.*Executing: \/usr\/bin\/dracut --list-modules\n(\w+|\n|-|d+)+/ });
 
     power_action('reboot', textmode => 1);
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 200);
 }
 
 1;
