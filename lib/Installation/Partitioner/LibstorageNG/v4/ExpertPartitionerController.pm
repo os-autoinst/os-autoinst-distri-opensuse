@@ -26,6 +26,7 @@ use Installation::Partitioner::RolePage;
 use Installation::Partitioner::LibstorageNG::FormattingOptionsPage;
 use Installation::Partitioner::RaidTypePage;
 use Installation::Partitioner::RaidOptionsPage;
+use Installation::Partitioner::LibstorageNG::EncryptionPasswordPage;
 
 sub new {
     my ($class, $args) = @_;
@@ -63,14 +64,19 @@ sub new {
                 do_not_mount_shortcut  => 'alt-u'
         }),
         EditFormattingOptionsPage => Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
-                do_not_format_shortcut => 'alt-t',
-                format_shortcut        => 'alt-a',
-                filesystem_shortcut    => 'alt-f',
-                do_not_mount_shortcut  => 'alt-o'
+                do_not_format_shortcut  => 'alt-t',
+                format_shortcut         => 'alt-a',
+                filesystem_shortcut     => 'alt-f',
+                do_not_mount_shortcut   => 'alt-o',
+                encrypt_device_shortcut => 'alt-e'
         }),
         RaidTypePage    => Installation::Partitioner::RaidTypePage->new(),
         RaidOptionsPage => Installation::Partitioner::RaidOptionsPage->new({
                 chunk_size_shortcut => 'alt-u'
+        }),
+        EncryptionPasswordPage => Installation::Partitioner::LibstorageNG::EncryptionPasswordPage->new({
+                enter_password_shortcut  => 'alt-e',
+                verify_password_shortcut => 'alt-v'
         })
     }, $class;
 }
@@ -83,6 +89,11 @@ sub get_edit_formatting_options_page {
 sub get_edit_partition_size_page {
     my ($self) = @_;
     return $self->{EditPartitionSizePage};     # Same as get_formatting_options_edit_page
+}
+
+sub get_encrypt_password_page {
+    my ($self) = @_;
+    return $self->{EncryptionPasswordPage};
 }
 
 sub add_raid_partition {
@@ -139,6 +150,26 @@ sub edit_partition_on_gpt_disk {
     $self->get_edit_formatting_options_page()->select_mount_device_radiobutton();
     $self->get_edit_formatting_options_page()->fill_in_mount_point_field($args->{mount_point});
     $self->get_edit_formatting_options_page()->press_next();
+}
+
+sub edit_partition_encrypt {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->go_top_in_system_view_table();
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{disk});
+    $self->get_expert_partitioner_page()->expand_item_in_system_view_table();
+    $self->get_expert_partitioner_page()->select_item_in_system_view_table($args->{partition});
+    $self->get_expert_partitioner_page()->press_edit_partition_button();
+    $self->get_edit_formatting_options_page()->check_encrypt_device_checkbox();
+    $self->get_edit_formatting_options_page()->press_next();
+    $self->set_encryption_password();
+}
+
+sub set_encryption_password {
+    my ($self) = @_;
+    $self->get_encrypt_password_page()->assert_password_page();
+    $self->get_encrypt_password_page()->enter_password();
+    $self->get_encrypt_password_page()->enter_password_verification();
+    $self->get_encrypt_password_page()->press_next();
 }
 
 sub clone_partition_table {
