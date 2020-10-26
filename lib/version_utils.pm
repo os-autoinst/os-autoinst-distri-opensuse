@@ -53,7 +53,7 @@ use constant {
           requires_role_selection
           check_version
           get_os_release
-          check_host_os
+          check_os_release
           )
     ],
     BACKEND => [
@@ -583,13 +583,17 @@ sub get_os_release {
     return $os_version, $os_service_pack, $os_release{ID};
 }
 
-=head2 check_host_os
+=head2 check_os_release
 
 Identify running os without any dependencies parsing the I</etc/os-release>.
 
 =item C<distri_name>
 
 The expected distribution name to compare.
+
+=item C<line>
+
+The line we'll be parsing and checking.
 
 =item C<os_release_file>
 
@@ -599,12 +603,13 @@ Default to I</etc/os-release>.
 Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
 
 =cut
-sub check_host_os {
-    my ($distri_name, $os_release_file) = @_;
-    die "$distri_name is not given" unless $distri_name;
+sub check_os_release {
+    my ($distri_name, $line, $os_release_file) = @_;
+    die '$distri_name is not given' unless $distri_name;
+    die '$line is not given'        unless $line;
     $os_release_file //= '/etc/os-release';
-    my $os_like_name = script_output("grep -e \"^ID_LIKE\\b\" ${os_release_file} | cut -c4- | tr -d '\"'");
-    return ($os_like_name =~ /$distri_name/);
+    my $os_like_name = script_output("grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
+    return ($os_like_name =~ /$distri_name/i);
 }
 
 =head2 is_public_cloud
