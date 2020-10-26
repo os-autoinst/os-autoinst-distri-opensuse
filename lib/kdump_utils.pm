@@ -19,6 +19,7 @@ use Utils::Architectures qw(is_ppc64le is_aarch64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 use utils 'ensure_serialdev_permissions';
+use maintenance_smelt qw(repo_is_not_active);
 
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
@@ -61,6 +62,7 @@ sub prepare_for_kdump_sle {
         # append _debug to the incident repo
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
             next unless $i;
+            next if repo_is_not_active($i);
             $i =~ s,/$,_debug/,;
             $counter++;
             zypper_call("--no-gpg-checks ar -f $i 'DEBUG_$counter'");
