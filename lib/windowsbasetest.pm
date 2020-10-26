@@ -47,7 +47,7 @@ sub open_powershell_as_admin {
     #If using windows server, and logged with Administrator, only open powershell
     if (get_var('QAM_WINDOWS_SERVER')) {
         send_key 'shift-a';
-        wait_screen_change { assert_and_click('window-max', timeout => 15) };
+        wait_screen_change { assert_and_click('window-max') };
         assert_screen 'windows_server_powershel_opened', 30;
     } else {
         send_key_until_needlematch 'user-acount-ctl-allow-make-changes', 'shift-a';
