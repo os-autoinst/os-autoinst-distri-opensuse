@@ -66,7 +66,9 @@ sub run_test {
         assert_script_run("rm -rf $guest.clone");
         assert_script_run("virt-clone -o $guest -n $guest.clone -f /var/lib/libvirt/images/$guest.clone");
         assert_script_run("virsh start $guest");
+        ensure_online $guest, skip_network => 1;
         assert_script_run("virsh start $guest.clone");
+        ensure_online "$guest.clone", skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
             $affecter  = "--persistent";
