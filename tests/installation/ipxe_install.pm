@@ -97,7 +97,7 @@ sub set_bootscript {
 
     $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
 
-    if ($autoyast != '') {
+    if ($autoyast ne '') {
         $cmdline_extra .= " autoyast=$autoyast ";
     } else {
         $cmdline_extra .= " sshd=1 vnc=1 VNCPassword=$testapi::password sshpassword=$testapi::password ";    # trigger default VNC installation
@@ -118,10 +118,12 @@ END_BOOTSCRIPT
 
     diag "setting iPXE bootscript to: $bootscript";
 
-    diag "===== autoyast $autoyast =====";
-    my $curl = `curl -s $autoyast`;
-    diag $curl;
-    diag "===== END bootscript $autoyast =====";
+    if ($autoyast ne '') {
+        diag "===== BEGIN autoyast $autoyast =====";
+        my $curl = `curl -s $autoyast`;
+        diag $curl;
+        diag "===== END autoyast $autoyast =====";
+    }
 
     my $response = HTTP::Tiny->new->request('POST', $url, {content => $bootscript, headers => {'content-type' => 'text/plain'}});
     diag "$response->{status} $response->{reason}\n";
@@ -166,7 +168,7 @@ sub run {
         assert_screen('linux-login', 1800);
     } else {
         select_console 'sol', await_console => 0;
-        sleep 120;
+        sleep 300;
         my $ssh_vnc_wait_time = 1200;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags              = ($ssh_vnc_tag);
