@@ -105,7 +105,7 @@ sub run {
         );
         $self->run_in_powershell(
             cmd     => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
-            timeout => 120
+            timeout => 300
         );
     }
 
