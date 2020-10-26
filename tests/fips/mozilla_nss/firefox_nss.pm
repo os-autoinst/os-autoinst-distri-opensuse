@@ -49,6 +49,7 @@ sub run {
     assert_and_click('firefox-master-password-checkbox');
     assert_screen('firefox-passwd-master_setting');
 
+    # Set the Master Password
     type_string $fips_password;
     send_key "tab";
     type_string $fips_password;
@@ -56,7 +57,6 @@ sub run {
     assert_screen "firefox-password-change-succeeded";
     send_key "ret";
     wait_still_screen 3;
-
     send_key "ctrl-f";
     send_key "ctrl-a";
     type_string "certificates";    # Search "Certificates" section
@@ -66,13 +66,11 @@ sub run {
     # Change from "alt-shift-d" hotkey to needles match Security Device
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
     assert_and_click('firefox-click-security-device');
-
     assert_screen "firefox-device-manager";
 
     # Add condition in FIPS_ENV_MODE & Remove hotkey
     if (get_var('FIPS_ENV_MODE')) {
-        assert_and_click('firefox-click-enable-fips');
-        wait_still_screen 2;
+        assert_and_click('firefox-click-enable-fips', timeout => 2);
     }
 
     # Enable FIPS mode
@@ -80,23 +78,27 @@ sub run {
     assert_screen "firefox-confirm-fips_enabled";
     send_key "esc";    # Quit device manager
 
+    # Close Firefox
     quit_firefox;
-    assert_screen "generic-desktop";
+    assert_screen("generic-desktop", 20);
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
-    x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled', match_timeout => 360);
-
+    # x11_start_program('firefox --setDefaultBrowser https://html5test.opensuse.org', target_match => 'firefox-fips-password-inputfiled', match_timeout => 180);
+    # Adjust the 2nd Firefox launch via xterm as workaround to avoid the race condition during password interaction while internet connection busy
+    x11_start_program('xterm');
+    mouse_hide(1);
+    type_string("firefox --setDefaultBrowser https://html5test.opensuse.org\n");
+    assert_screen("firefox-passowrd-typefield", 240);
     type_string $fips_password;
-    send_key "ret";
-    assert_screen "firefox-url-loaded";
+    assert_and_click "firefox-enter-password-OK";
+    assert_screen("firefox-url-loaded", 20);
 
     # Firfox Preferences
     send_key "alt-e";
     wait_still_screen 2;
     send_key "n";
     assert_screen('firefox-preferences');
-
     type_string "certificates";    # Search "Certificates" section
     send_key "tab";
     wait_still_screen 2;
@@ -104,12 +106,15 @@ sub run {
     # Change from "alt-shift-d" hotkey to needles match Security Device
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
     assert_and_click('firefox-click-security-device');
-
     assert_screen "firefox-device-manager";
     assert_screen "firefox-confirm-fips_enabled";
 
+    # Close Firefox
     quit_firefox;
-    assert_screen "generic-desktop";
+    assert_screen("generic-desktop", 20);
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
 1;
