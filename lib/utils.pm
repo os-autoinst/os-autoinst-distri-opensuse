@@ -1813,11 +1813,6 @@ sub install_patterns {
             $pt .= '*';
             $pcm = 1;
         }
-        # workround for bsc#1034541
-        if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
-            record_soft_failure 'bsc#1034541';
-            next;
-        }
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
         zypper_call("in -t pattern $pt", timeout => 1800);
