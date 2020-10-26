@@ -43,6 +43,7 @@ our $img_proof_tests = {
     'EC2-HVM'              => $ec2_on_demand,
     'EC2-HVM-ARM'          => $ec2_on_demand,
     'EC2-Updates'          => $ec2_on_demand,
+    'EC2-BYOS-Updates'     => $ec2_byos,
     'EC2-HVM-BYOS'         => $ec2_byos,
     'EC2-HVM-BYOS-Updates' => $ec2_byos,
     'EC2-HVM-HPC-BYOS'     => $ec2_byos,
