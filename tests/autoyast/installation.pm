@@ -323,8 +323,6 @@ sub run {
     # If we didn't see pxe, the reboot is going now
     $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
-    # MicroOS does not have second stage
-    return if is_microos;
     # Second stage starts here
     $maxtime = 1000;
     $timer   = 0;
