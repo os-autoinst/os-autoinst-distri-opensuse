@@ -6,9 +6,12 @@ description: >
      - Post installation script execution
      - Adding host entries to the /etc/hosts
      - ntp/chrony configuration
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_tftp.xml
+  AUTOYAST_VERIFY: autoyast_sle15/tftp.list
 schedule:
-  - installation/isosize
-  - boot/boot_from_pxe
+  - autoyast/prepare_profile
+  - installation/bootloader_start
   - autoyast/installation
   - autoyast/console
   - autoyast/login
