@@ -44,6 +44,7 @@ sub run {
     type_string("yast2 apparmor &\n");
     # Enter "Scan Audit logs" and check there should no records
     assert_and_click("AppArmor-Scan-Audit-logs");
+    send_key "alt-l";
     assert_screen("AppArmor-Scan-Audit-logs-no-records");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-o" };
@@ -71,6 +72,7 @@ sub run {
     type_string("yast2 apparmor &\n");
     # Enter "Scan Audit logs" and check there should have records
     assert_and_click("AppArmor-Scan-Audit-logs");
+    send_key "alt-l";
     assert_screen("AppArmor-Scan-Audit-logs-scan-records");
 
     # Audit the entry

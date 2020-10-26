@@ -51,6 +51,7 @@ sub run {
     # "marked as a program that should not have its own profile",
     # it should be failed
     assert_and_click("AppArmor-Manually-Add-Profile");
+    send_key "alt-l";
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file");
     send_key "alt-o";
@@ -65,6 +66,7 @@ sub run {
     # *NOT* "marked as a program that should not have its own profile",
     # it should be succeeded
     assert_and_click("AppArmor-Manually-Add-Profile");
+    send_key "alt-l";
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_bk");
     send_key "alt-o";
@@ -82,6 +84,7 @@ sub run {
     # Enter "yast2 apparmor" again
     type_string("yast2 apparmor &\n");
     assert_and_click("AppArmor-Manually-Add-Profile");
+    send_key "alt-l";
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_vsftpd");
     send_key "alt-o";
