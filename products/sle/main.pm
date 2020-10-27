@@ -42,6 +42,9 @@ sub is_new_installation {
 
 sub cleanup_needles {
     remove_common_needles;
+    for my $distri (qw(sle microos)) {
+        unregister_needle_tags("ENV-DISTRI-$distri") unless check_var('DISTRI', $distri);
+    }
     if ((get_var('VERSION', '') ne '15') && (get_var('BASE_VERSION', '') ne '15')) {
         unregister_needle_tags("ENV-VERSION-15");
     }
