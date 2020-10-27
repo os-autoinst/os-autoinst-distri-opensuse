@@ -1813,9 +1813,8 @@ sub install_patterns {
             $pt .= '*';
             $pcm = 1;
         }
-        # workround for bsc#1034541
+        # skip the installation of "SAP Application Server Base", poo#75058.
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
-            record_soft_failure 'bsc#1034541';
             next;
         }
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
