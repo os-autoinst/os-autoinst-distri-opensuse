@@ -52,7 +52,7 @@ sub update_package {
 sub run {
     my $self = shift;
     #workaroud: skip update package for registered aarch64 tests and because there are conflicts on sles15sp2 XEN
-    $self->update_package() unless ((is_sle('=15-SP2') && is_xen_host) || (is_registered_sles && is_aarch64));
+    $self->update_package() unless (is_registered_sles && is_aarch64);
     unless ((is_registered_sles && is_aarch64) || is_s390x) {
         set_serial_console_on_vh('', '', 'xen') if is_xen_host;
         set_serial_console_on_vh('', '', 'kvm') if is_kvm_host;
@@ -67,6 +67,7 @@ sub run {
         record_soft_failure("Guests installation is blocked by bsc#1177790, we workaroud it by disabling DNSSEC validation in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/11226");
         script_run "sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf";
         script_run "grep 'dnssec-validation' /etc/named.conf";
+        script_run "systemctl restart named";
         save_screenshot;
     }
 

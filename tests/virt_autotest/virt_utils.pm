@@ -44,12 +44,6 @@ sub enable_debug_logging {
         script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
         script_run "sed -i '/log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $libvirtd_conf_file";
         script_run "grep -e log_level -e log_outputs -e log_filters $libvirtd_conf_file";
-        if (is_sle('<12')) {
-            script_run 'rclibvirtd restart';
-        }
-        else {
-            script_run 'systemctl restart libvirtd';
-        }
     }
     save_screenshot;
 
@@ -70,6 +64,13 @@ sub enable_debug_logging {
     }
     save_screenshot;
 
+    #restart libvirtd to make debug level and coredump take effect
+    if (is_sle('<12')) {
+        script_run 'rclibvirtd restart';
+    }
+    else {
+        script_run 'systemctl restart libvirtd';
+    }
 }
 
 sub get_version_for_daily_build_guest {
