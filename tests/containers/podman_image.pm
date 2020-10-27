@@ -18,7 +18,7 @@ use utils;
 use containers::common;
 use containers::container_images;
 use suse_container_urls 'get_suse_container_urls';
-use version_utils qw(get_os_release check_host_os);
+use version_utils qw(get_os_release check_os_release);
 
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
@@ -29,7 +29,7 @@ sub run {
     for my $iname (@{$image_names}) {
         test_container_image(image => $iname, runtime => $runtime);
         build_container_image(image => $iname, runtime => $runtime);
-        if (check_host_os('suse')) {
+        if (check_os_release('suse', 'PRETTY_NAME')) {
             test_opensuse_based_image(image => $iname, runtime => $runtime);
         }
         else {
