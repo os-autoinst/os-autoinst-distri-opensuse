@@ -33,4 +33,4 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
 test_data:
-  <<: !include test_data/yast/encryption/cryptlvm+cancel_existing.yaml
+  enc_disk_part: vda2

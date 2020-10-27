@@ -35,4 +35,4 @@ schedule:
   - installation/boot_encrypt
   - installation/first_boot
 test_data:
-  <<: !include test_data/yast/encryption/cryptlvm+cancel_existing.yaml
+  enc_disk_part: sda1
