@@ -1396,6 +1396,10 @@ sub reconnect_mgmt_console {
             select_console 'novalink-ssh', await_console => 0;
         } elsif (check_var('BACKEND', 'pvm_hmc')) {
             select_console 'powerhmc-ssh', await_console => 0;
+            if ($args{grub_expected_twice}) {
+                check_screen 'grub2', 60;
+                wait_screen_change { send_key 'ret' };
+            }
         }
     }
     elsif (check_var('ARCH', 'x86_64')) {
