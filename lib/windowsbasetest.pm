@@ -55,7 +55,7 @@ sub open_powershell_as_admin {
         assert_and_click 'user-account-ctl-hidden' if match_has_tag('user-account-ctl-hidden');
         assert_and_click 'user-acount-ctl-yes';
         wait_still_screen stilltime => 2, timeout => 15;
-        assert_screen 'powershell-as-admin-window', 180;
+        assert_screen 'powershell-as-admin-window', 240;
         assert_and_click 'window-max';
         sleep 3;
         _setup_serial_device unless (exists $args{no_serial});
@@ -105,7 +105,7 @@ sub wait_boot_windows {
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
 
-    assert_screen 'windows-screensaver',        150;
+    assert_screen 'windows-screensaver',        300;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button
