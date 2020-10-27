@@ -17,13 +17,17 @@ use Utils::Backends qw(is_remote_backend);
 use utils qw(zypper_call systemctl);
 use testapi;
 use hacluster;
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
 
 sub run {
     # Some remote backends connect to the root-console via sshXtermVt or ipmiXtermVt,
     # which set DISPLAY and cause yast2 to show its graphical version. This unsets
     # DISPLAY so the terminal version is shown instead when testing in textmode
     assert_script_run 'unset DISPLAY' if (check_var('DESKTOP', 'textmode') && is_remote_backend());
+
+    # Restart udevd if hostname was changed. This is needed at least in 15-SP3+, but it should
+    # be safe for older versions as well. See comment 15 in bsc#1177927 for details
+    systemctl 'restart systemd-udevd' if get_var('HOSTNAME');
 
     # Save multipath wwids file as we may need it to blacklist iSCSI devices later
     my $mpconf = '/etc/multipath.conf';
