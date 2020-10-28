@@ -271,7 +271,7 @@ function collect_extra_logs_from_guest() {
         fi
 }
 
-#Collect any extra wanted logs from host. And provide more complete virtualization logs for SLE-11-SP4 and SLE-12 hosts.
+#Collect any extra wanted logs from host. And provide more complete virtualization logs for SLE-11-SP4 ,SLE-12 and SLE-15 hosts.
 function collect_extra_logs_from_host() {
 	local logs_folder=$1
 	local target_domain=$2
@@ -327,6 +327,15 @@ function collect_extra_logs_from_host() {
               cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
               ret_result=$(( ${ret_result} | $? ))
            fi           
+        elif [[ ${release} -eq 15 ]];then
+           cp --parent -f -r ${libvirt_boot_log} ${extra_logs_folder}
+           ret_result=$(( ${ret_result} | $? ))
+           cp --parent -f -r ${libvirt_qemu_log} ${extra_logs_folder}
+           ret_result=$(( ${ret_result} | $? ))
+           if [[ `get_sles_hypervisor` == "XEN" ]];then
+              cp --parent -f -r ${xen_boot_log} ${extra_logs_folder}
+              ret_result=$(( ${ret_result} | $? ))
+           fi
 	fi
 
 	return ${ret_result}
