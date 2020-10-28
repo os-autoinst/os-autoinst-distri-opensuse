@@ -18,6 +18,7 @@ use base 'bootbasetest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends 'is_pvm';
 use version_utils qw(is_upgrade is_sles4sap);
 
 sub run {
@@ -31,6 +32,8 @@ sub run {
     # needs additional time too.
     $timeout += 60 if get_var('PATCH') || get_var('ONLINE_MIGRATION');
     $timeout += 60 if get_var('ENCRYPT');
+    # Add additional 120s if the test suite is pvm
+    $timeout += 120 if is_pvm;
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
     # being prepared for upgrade, as it does not have an unprivileged user to test
     # with other than the SAP Administrator
