@@ -37,10 +37,8 @@ sub set_svirt_domain_elements {
             $cmdline .= "upgrade=1 ";
         }
 
-        if (my $autoyast = get_var('AUTOYAST')) {
-            $autoyast = data_url($autoyast) if $autoyast !~ /^slp$|:\/\//;
-            $cmdline .= " autoyast=" . $autoyast;
-            set_var('AUTOYAST', $autoyast);
+        if (get_var('AUTOYAST')) {
+            $cmdline .= ' ' . join(' ', autoyast_boot_params);
         }
 
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");

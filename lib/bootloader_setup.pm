@@ -26,6 +26,7 @@ use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_POR
 
 our @EXPORT = qw(
   add_custom_grub_entries
+  autoyast_boot_params
   boot_grub_item
   stop_grub_timeout
   boot_local_disk
