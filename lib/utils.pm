@@ -1781,7 +1781,14 @@ sub install_patterns {
     my @pt_list;
     my @pt_list_un;
     my @pt_list_in;
+    my $pcm_list = 0;
 
+    if (is_sle('15+')) {
+        $pcm_list = 'Amazon_Web_Services|Google_Cloud_Platform|Microsoft_Azure';
+    }
+    else {
+        $pcm_list = 'Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure';
+    }
     @pt_list_in = get_pattern_list "zypper pt -i", "i";
     # install all patterns from product.
     if (check_var('PATTERNS', 'all')) {
@@ -1802,13 +1809,13 @@ sub install_patterns {
         $installed_pt{$_} = 1;
     }
     @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
-    $pcm     = grep /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/, @pt_list_in;
+    $pcm     = grep /$pcm_list/, @pt_list_in;
 
     for my $pt (@pt_list) {
         # if pattern is set default, skip
         next if ($pt =~ /default/);
         # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
-        if ($pt =~ /Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure/) {
+        if ($pt =~ /$pcm_list/) {
             next unless $pcm == 0;
             $pt .= '*';
             $pcm = 1;
