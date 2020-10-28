@@ -46,12 +46,12 @@ sub run {
         my $local_images_list = script_output('docker images');
         die("docker image $testing_image not found") unless ($local_images_list =~ /opensuse\s*/);
         validate_script_output("zypper-docker images ls", sub { m/opensuse/ }, 180);
-        assert_script_run("zypper-docker list-updates $testing_image", timeout => 600);
-        assert_script_run("zypper-docker list-patches $testing_image", timeout => 600);
+        assert_script_run("zypper-docker list-updates $testing_image", timeout => 1200);
+        assert_script_run("zypper-docker list-patches $testing_image", timeout => 1200);
         # run a container and check zypper-docker's containers funcionalities
         assert_script_run("docker container run -d --name tmp_container $testing_image tail -f /dev/null");
         assert_script_run("zypper-docker ps",                                   timeout => 600);
-        assert_script_run("zypper-docker list-updates-container tmp_container", timeout => 600);
+        assert_script_run("zypper-docker list-updates-container tmp_container", timeout => 1200);
         assert_script_run("zypper-docker list-patches-container tmp_container", timeout => 600);
         # apply all the updates to a new_image
         assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
