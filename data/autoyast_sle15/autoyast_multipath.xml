@@ -597,18 +597,6 @@ fi
         </source>
       </script>
     </pre-scripts>
-    <chroot-scripts config:type="list">
-      <script>
-        <filename>cp-resolv.sh</filename>
-        <chrooted config:type="boolean">false</chrooted>
-        <interpreter>shell</interpreter>
-        <notification>Copying resolv.conf into chroot</notification>
-        <source><![CDATA[
-cp /etc/resolv.conf /mnt/etc
-]]>
-        </source>
-      </script>
-    </chroot-scripts>
   </scripts>
   <timezone>
     <hwclock>UTC</hwclock>
