@@ -642,7 +642,14 @@ sub fully_patch_system {
         handle_patch_11sp4_zvm();
     } else {
         # second run, full system update
-        zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+        my $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102], timeout => 6000);
+        if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
+            record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
+            my $para = '';
+            $para = '--force-resolution' if get_var('FORCE_DEPS');
+            zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
+            save_screenshot;
+        }
     }
 }
 
@@ -1819,8 +1826,13 @@ sub install_patterns {
         }
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
-        zypper_call("in -t pattern $pt", timeout => 1800);
-
+        my $ret = zypper_call("in -t pattern $pt", exitcode => [0, 4], timeout => 1800);
+        if (($ret == 4) && ($pt =~ /CFEngine/) && is_sle('>=12') && is_sle('<15')) {
+            record_soft_failure 'bsc#1175704 pattern:CFEngine-12-8.1.s390x requires patterns-adv-sys-mgmt-CFEngine, but this requirement cannot be provided';
+            my $para = '';
+            $para = '--force-resolution' if get_var('FORCE_DEPS');
+            zypper_call("in $para -t pattern $pt", timeout => 1800, exitcode => [0, 102, 103]);
+        }
     }
 }
 
