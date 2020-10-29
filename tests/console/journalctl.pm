@@ -47,6 +47,27 @@ sub check_syslog {
     return !is_tumbleweed && !is_jeos;
 }
 
+sub verify_journal {
+    # Run journalctl --verify and on failure check for 'File corruption detected'
+    # if that happens, run it again after waiting some time and softfailure to https://bugzilla.suse.com/show_bug.cgi?id=1178193
+    my $cmd = "journalctl --verify";
+    $cmd = 'journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`' unless skip_fss_check;
+
+    return if (script_run("$cmd 2>&1 | tee errs") == 0);
+    # Check for https://bugzilla.suse.com/show_bug.cgi?id=1171858, corruption bug when FSS is enabled
+    if (!skip_fss_check && script_run("grep 'tag/entry realtime timestamp out of synchronization' errs") == 0) {
+        record_soft_failure "bsc#1171858";
+        # Check for https://bugzilla.suse.com/show_bug.cgi?id=1178193, a race condition for `journalctl --verify`
+    } elsif (script_run("grep 'File corruption detected' errs") == 0) {
+        record_soft_failure("bsc#1178193 - Journal corruption race condition");
+        record_soft_failure("bsc#1178193") if (script_retry("$cmd", retry => 6, delay => 10, timeout => 10, die => 0) != 0);
+    } else {
+        assert_script_run("mv errs journalctl-verify-err.txt");
+        upload_logs('journalctl-verify-err.txt');
+        die "journalctl --verify failed";
+    }
+}
+
 sub reboot {
     my ($self) = @_;
     power_action('reboot', textmode => 1);
@@ -137,15 +158,9 @@ sub run {
     assert_script_run('journalctl --vacuum-size=100M');
     assert_script_run('journalctl --vacuum-time=1years');
     # Rotate once more and verify the journal afterwards
-    if (skip_fss_check) {
-        assert_script_run('journalctl --verify');
-        assert_script_run('journalctl --rotate');
-        assert_script_run('journalctl --verify');
-    } else {
-        record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
-        assert_script_run('journalctl --rotate');
-        record_soft_failure "bsc#1171858" if (script_run('journalctl --verify --verify-key=`cat /var/tmp/journalctl-setup-keys.txt`') != 0);
-    }
+    verify_journal();
+    assert_script_run('journalctl --rotate');
+    verify_journal();
 }
 
 sub cleanup {
