@@ -24,35 +24,40 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    assert_script_run("mkdir ~/repos");
-    assert_script_run("cd ~/repos");
+    # Trigger to skip the download to speed up verification runs
+    if (get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD') == 1) {
+        record_info('Skip download', 'Skipping download triggered by setting (QAM_PUBLICCLOUD_SKIP_DOWNLOAD = 1)');
+    } else {
+        assert_script_run("mkdir ~/repos");
+        assert_script_run("cd ~/repos");
 
-    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
-    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
-    assert_script_run('touch /tmp/repos.list.txt');
+        set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
+        my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+        assert_script_run('touch /tmp/repos.list.txt');
 
-    my $ret = 0;
-    for my $maintrepo (@repos) {
-        next if $maintrepo !~ m/^http/;
-        my ($parent) = $maintrepo =~ 'https?://(.*)$';
-        my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
-        $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
-        if ($ret !~ /0|8/) {
-            # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
-            record_soft_failure("Download failed (rc=$ret):\n$maintrepo");
-        } else {
-            assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
-            if (script_run("ls $parent*.repo") == 0) {
-                assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
-                assert_script_run("find $parent >> /tmp/repos.list.txt");
+        my $ret = 0;
+        for my $maintrepo (@repos) {
+            next if $maintrepo !~ m/^http/;
+            my ($parent) = $maintrepo =~ 'https?://(.*)$';
+            my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
+            $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
+            if ($ret !~ /0|8/) {
+                # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
+                record_soft_failure("Download failed (rc=$ret):\n$maintrepo");
             } else {
-                record_soft_failure("No .repo file found in $parent. This directory will be removed.");
-                assert_script_run("rm -rf $parent");
+                assert_script_run("echo -en '# $maintrepo:\\n\\n' >> /tmp/repos.list.txt");
+                if (script_run("ls $parent*.repo") == 0) {
+                    assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
+                    assert_script_run("find $parent >> /tmp/repos.list.txt");
+                } else {
+                    record_soft_failure("No .repo file found in $parent. This directory will be removed.");
+                    assert_script_run("rm -rf $parent");
+                }
             }
         }
-    }
 
-    upload_logs('/tmp/repos.list.txt');
+        upload_logs('/tmp/repos.list.txt');
+    }
     assert_script_run("cd ~/");
 }
 
