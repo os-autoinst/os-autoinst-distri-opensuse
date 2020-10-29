@@ -12,7 +12,6 @@
       <timeout config:type="integer">-1</timeout>
       <hiddenmenu>false</hiddenmenu>
     </global>
-    <loader_type>grub2</loader_type>
   </bootloader>
   <general>
     <mode>
