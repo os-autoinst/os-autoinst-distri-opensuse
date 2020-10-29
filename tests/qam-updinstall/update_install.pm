@@ -26,6 +26,7 @@ use utils;
 use power_action_utils qw(prepare_system_shutdown power_action);
 use List::Util qw(first pairmap uniq notall);
 use qam;
+use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 
 sub resolve_conflicts {

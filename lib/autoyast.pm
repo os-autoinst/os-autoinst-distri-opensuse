@@ -5,7 +5,7 @@ Provide translations for autoyast XML file
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,6 +28,7 @@ use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Path 'make_path';
 use LWP::Simple 'head';
+use maintenance_smelt qw(repo_is_not_active);
 
 use xml_utils;
 
@@ -173,7 +174,7 @@ sub expand_template {
     my $template  = Mojo::Template->new(vars => 1);
     my $vars      = {
         addons   => expand_addons,
-        repos    => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
+        repos    => [grep { !repo_is_not_active($_) } split(/,/, get_var('MAINT_TEST_REPO', ''))],
         patterns => expand_patterns,
         # pass reference to get_required_var function to be able to fetch other variables
         get_var => \&get_required_var,
