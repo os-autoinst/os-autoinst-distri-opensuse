@@ -36,8 +36,8 @@ use testapi;
 sub run {
     select_console 'root-console';
     my $test_data = get_test_suite_data();
-    my $devices   = parse_devices_in_crypttab();
     verify_crypttab_file_existence();
+    my $devices = parse_devices_in_crypttab();
     verify_number_of_encrypted_devices($test_data->{crypttab}->{num_devices_encrypted}, scalar keys %{$devices});
     foreach my $dev (sort keys %{$devices}) {
         my $status = parse_cryptsetup_status($dev);
