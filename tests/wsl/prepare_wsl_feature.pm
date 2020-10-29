@@ -127,9 +127,14 @@ sub run {
         $self->run_in_powershell(
             cmd => q{wsl --set-default-version 2}
         );
-        type_string "exit\n";
+        $self->run_in_powershell(
+            cmd  => q{$port.close()},
+            code => sub { }
+        );
+    } else {
+        $self->open_powershell_as_admin(no_serial => 1);
     }
-    $self->open_powershell_as_admin(no_serial => 1);
+
     $self->run_in_powershell(
         cmd  => qq{ii C:\\$wsl_appx_filename},
         code => sub {
