@@ -175,7 +175,7 @@ sub test_built_img {
     assert_script_run("$runtime run -dit -p 8888:5000 -v ~/templates:\/usr/src/app/templates myapp www.google.com");
     sleep 5;
     assert_script_run("$runtime ps -a");
-    assert_script_run('curl http://localhost:8888/ | grep "Networking test shall pass"');
+    script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
     assert_script_run("rm -rf /root/templates");
 }
 
