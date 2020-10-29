@@ -24,6 +24,7 @@ use testapi;
 use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow);
+use version_utils 'is_upgrade';
 
 our @EXPORT = qw(
   boot_pvm
@@ -125,23 +126,8 @@ sub prepare_pvm_installation {
     }
     assert_screen("run-yast-ssh", 300);
 
-    if (!get_var('UPGRADE')) {
-        # Delete partition table before starting installation
-        select_console('install-shell');
-
-        my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
-        for my $d (split('\n', $disks)) {
-            script_run "wipefs -a /dev/$d";
-            if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
-            {
-                create_encrypted_part(disk => $d);
-                if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
-                    mimic_user_to_import(disk => $d,
-                        passwd => get_var('ETC_PASSWD'),
-                        shadow => get_var('ETC_SHADOW'));
-                }
-            }
-        }
+    if (!is_upgrade) {
+        prepare_disks;
     }
     # Switch to installation console (ssh or vnc)
     select_console('installation');
