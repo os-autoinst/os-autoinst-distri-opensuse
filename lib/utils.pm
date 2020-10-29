@@ -528,7 +528,7 @@ sub zypper_call {
         }
         if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106 || $ret == 139 || $ret == 141)) {
             # remove maintenance update repo which was released
-            if (($ret == 106 || $ret == 4) && script_run(q[grep "Repository type can't be determined" /var/log/zypper.log]) == 0) {
+            if (($ret == 106 || $ret == 4) && script_run(q[grep -E "Repository type can't be determined|not found on medium" /var/log/zypper.log]) == 0) {
                 my @removed;
                 my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
                 while (defined(my $maintrepo = shift @repos)) {
