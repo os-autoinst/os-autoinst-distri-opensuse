@@ -40,11 +40,13 @@ sub run() {
     # version = Tumbleweed, Leap 15 etc
     my $version = get_required_var('VERSION');
     my $arch    = get_required_var('ARCH');
-    my $build   = get_required_var('BUILD');
+    my $arch_ext;
+    $arch_ext = "_$arch" if !is_x86_64();
+    my $build = get_required_var('BUILD');
 
     my %boxes = (
         # Tumbleweed.x86_64-1.0-{libvirt|virtualbox}-Snapshot20190704.vagrant.{libvirt|virtualbox}.box
-        libvirt => "$version.$arch-1.0-libvirt-Snapshot$build.vagrant.libvirt.box",
+        libvirt => "$version.$arch-1.0-libvirt$arch_ext-Snapshot$build.vagrant.libvirt.box",
     );
     # virtualbox is supported only on x86_64
     %boxes = (%boxes, virtualbox => "$version.$arch-1.0-virtualbox-Snapshot$build.vagrant.virtualbox.box") if $is_virtualbox_applicable;
