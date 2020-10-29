@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -69,7 +69,7 @@ sub run {
     assert_script_run 'docker-compose down', 180;
     assert_script_run 'cd';
 
-    remove_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+    assert_script_run('SUSEConnect --cleanup', 200) if is_sle();
     clean_container_host(runtime => 'docker');
 }
 
