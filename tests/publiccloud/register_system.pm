@@ -9,7 +9,7 @@
 
 # Summary: Register the remote system
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use Mojo::Base 'publiccloud::ssh_interactive_init';
 use version_utils;
@@ -18,28 +18,33 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::utils qw(select_host_console is_ondemand);
 
 sub run {
     my ($self, $args) = @_;
 
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
+    if (is_ondemand) {
+        # on OnDemand image we use `registercloudguest` to register and configure the repositories
+        $args->{my_instance}->retry_ssh_command("sudo registercloudguest", timeout => 420, retry => 3);
+    } else {
+        my @addons = split(/,/, get_var('SCC_ADDONS', ''));
 
-    select_host_console();    # select console on the host, not the PC instance
+        select_host_console();    # select console on the host, not the PC instance
 
-    # note: ssh_script_retry dies on failure
-    $args->{my_instance}->retry_ssh_command("sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420, retry => 3) if (get_var('FLAVOR') =~ 'BYOS');
+        # note: ssh_script_retry dies on failure
+        $args->{my_instance}->retry_ssh_command("sudo SUSEConnect -r " . get_required_var('SCC_REGCODE'), timeout => 420, retry => 3);
 
-    for my $addon (@addons) {
-        if (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
-            ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`') unless ($addon eq '');
-        } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
-            ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '${VERSION_ID}') unless ($addon eq '');
-        } else {
-            ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon)) unless ($addon eq '');
+        for my $addon (@addons) {
+            next if ($addon =~ /^\s+$/);
+            if (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
+                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`');
+            } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
+                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '${VERSION_ID}');
+            } else {
+                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon));
+            }
         }
     }
-
     $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr");
 }
 
