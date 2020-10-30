@@ -19,9 +19,6 @@ use utils;
 sub run {
     my ($self) = @_;
 
-    if ($self->script_run_container('node1', 'rpm -qi timezone') == 1) {
-        record_soft_failure("boo#1141597: Workaround: Disable EmitTimezone as timezone rpm didn't get installed as dependency");
-    }
     # Setup node1 (DHCP Server)
     $self->write_container_file(
         "node1", "/etc/systemd/network/50-static.network", "
@@ -37,8 +34,6 @@ DHCPServer=yes
 PoolOffset=100
 PoolSize=20
 EmitDNS=yes
-# workaround boo#1141597
-EmitTimezone=no
 DNS=8.8.8.8
 "
     );
