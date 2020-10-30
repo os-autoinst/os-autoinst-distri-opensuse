@@ -21,7 +21,7 @@ use testapi;
 use utils;
 use version_utils;
 
-our @EXPORT = qw(select_host_console);
+our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand);
 
 
 # Select console on the test host, regardless of the TUNNELED variable.
@@ -31,6 +31,22 @@ sub select_host_console() {
     } else {
         select_console('root-console');
     }
+}
+
+sub is_publiccloud() {
+    return (get_var('PUBLIC_CLOUD') == 1);
+}
+
+# Check if we are a BYOS test run
+sub is_byos() {
+    return is_publiccloud && get_var('FLAVOR') =~ 'BYOS';
+}
+
+# Check if we are a OnDemand test run
+sub is_ondemand() {
+    # By convention OnDemand images are not marked explicitly.
+    # Check all the other flavors, and if they don't match, it must be on_demand.
+    return is_publiccloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
 }
 
 1;
