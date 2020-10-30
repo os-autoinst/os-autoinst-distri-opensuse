@@ -102,8 +102,20 @@ sub run {
             my ($resolv_options, $repo_id) = (' --allow-vendor-change  --allow-downgrade ', 'wicked_repo');
             $resolv_options = ' --oldpackage' if (is_sle('<15'));
             ($repo_id) = ($wicked_repo =~ m!(^.*/)!s) if (is_sle('<=12-sp1'));
-            zypper_call("in --from $repo_id $resolv_options --force -y --force-resolution  wicked wicked-service", log => 1);
-            validate_script_output('zypper ps  --print "%s"', qr/^\s*$/);
+            zypper_call("in --from $repo_id $resolv_options --force -y --force-resolution  wicked wicked-service", log => 'zypper_in_wicked.log');
+            my ($zypper_in_output) = script_output('cat /tmp/zypper_in_wicked.log');
+            my @installed_packages;
+            for my $reg (('The following \d+ packages? (are|is) going to be upgraded:',
+                    'The following NEW packages? (are|is) going to be installed:',
+                    'The following \d+ packages? (are|is) going to be reinstalled:')) {
+                push(@installed_packages, split(/\s+/, $+{packages})) if ($zypper_in_output =~ m/(?s)($reg(?<packages>.*?))(?:\r*\n){2}/);
+            }
+            record_info('INSTALLED', join("\n", @installed_packages));
+            my @zypper_ps_progs = split(/\s+/, script_output('zypper ps  --print "%s"', qr/^\s*$/));
+            for my $ps_prog (@zypper_ps_progs) {
+                die("The following programm $ps_prog use deleted files") if grep { /$ps_prog/ } @installed_packages;
+            }
+            record_info("WARNING", "`zypper ps` return following programs:\n" . join("\n", @zypper_ps_progs), result => 'softfail') if @zypper_ps_progs;
             if (my $commit_sha = get_var('WICKED_COMMIT_SHA')) {
                 validate_script_output(q(head -n 1 /usr/share/doc/packages/wicked/ChangeLog | awk '{print $2}'), qr/^$commit_sha$/);
                 record_info('COMMIT', $commit_sha);
