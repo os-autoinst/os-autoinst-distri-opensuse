@@ -58,7 +58,7 @@ sub run {
     if (!get_var('SOFTFAIL_BSC1063638') && script_run("! [ -d /usr/share/btrfsmaintenance/ ]")) {
         assert_script_run('find /usr/share/btrfsmaintenance/ -type f -exec ln -fs /bin/true {} \;', timeout => 300);
     }
-    assert_script_run "sync";
+    assert_script_run 'sync', 600;
     settle_load;
 
     # return dmesg output to normal
