@@ -16,7 +16,7 @@ use strict;
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle package_version_cmp);
 use qam;
 use kernel 'remove_kernel_packages';
 use klp;
@@ -118,6 +118,36 @@ sub kgraft_state {
     save_screenshot;
 }
 
+sub override_shim {
+    my $version = shift;
+
+    my $shim_versions = {
+        '12-SP5' => [['4.12.14-122.26.1', '14-25.6.1']],
+        '15'     => [['4.12.14-150.52.1', '14-7.10.1']],
+        '15-SP1' => [['4.12.14-197.45.1', '15+git47-3.3.1']],
+        '15-SP2' => [['5.3.18-22.2',      '15+git47-3.3.1']]
+    };
+    my $version_list;
+
+    for my $sle (keys %$shim_versions) {
+        if (is_sle("=$sle")) {
+            $version_list = $shim_versions->{$sle};
+            last;
+        }
+    }
+
+    return if !defined $version_list;
+
+    for my $pair (@$version_list) {
+        if (package_version_cmp($version, $$pair[0]) <= 0) {
+            my $shim = 'shim-' . $$pair[1];
+            zypper_call("in -f $shim");
+            zypper_call("al $shim");
+            return;
+        }
+    }
+}
+
 sub install_lock_kernel {
     my $version = shift;
     # version numbers can be 'out of sync'
@@ -143,6 +173,13 @@ sub install_lock_kernel {
             '4.4.178-94.91.2'  => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
         }};
+
+    # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
+    # Machines with SecureBoot enabled will refuse to boot old kernels
+    # with latest shim. Downgrade shim to allow livepatch tests to boot.
+    if (get_var('SECUREBOOT') && get_var('KGRAFT')) {
+        override_shim($version);
+    }
 
     # remove all kernel related packages from system
     my @packages = remove_kernel_packages();
