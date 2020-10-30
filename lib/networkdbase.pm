@@ -83,6 +83,7 @@ sub setup_nspawn_container {
 [Exec]
 Boot=yes
 PrivateUsers=no
+Timezone=off
 
 [Files]
 PrivateUsersChown=no
