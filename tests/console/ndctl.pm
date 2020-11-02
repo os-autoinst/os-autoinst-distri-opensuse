@@ -24,7 +24,7 @@ sub run {
     assert_script_run 'ndctl destroy-namespace --force all';
     my $total = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
     foreach my $i (0 .. ($total - 1)) {
-        my $device = script_output 'ndctl create-namespace --force --mode=memory --map=dev';
+        my $device = script_output 'ndctl create-namespace --force --mode=fsdax';
         ($device) = $device =~ /\"blockdev\":\"(pmem\d+)\"/;
         assert_script_run "test -b /dev/$device";
         assert_script_run "wipefs -a /dev/$device";
