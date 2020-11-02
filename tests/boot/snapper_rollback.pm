@@ -26,7 +26,7 @@ sub run {
         assert_screen 'generic-desktop', 90;
     }
     else {
-        assert_screen [qw(linux-login displaymanager)], 200;
+        assert_screen [qw(linux-login displaymanager)], 300;
     }
     select_console 'root-console';
     # 1)
