@@ -24,6 +24,8 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils 'is_tumbleweed';
+
 
 sub run {
     my $self = shift;
@@ -36,9 +38,14 @@ sub run {
 
     assert_script_run "ovn-sbctl set-connection ptcp:6642";
 
-
-    my $ovn_encap_ip = script_output "ip addr show eth0 | awk '\$1 == \"inet\" {print \$2}' | cut -f1 -d/";
-    my $hostname     = script_output "hostname";
+    my $ovn_encap_ip = "";
+    if (is_tumbleweed) {
+        $ovn_encap_ip = script_output(q(ip address | awk '/inet/ && /\/24/ { split($2, ip, "/"); print ip[1] }'));
+    }
+    else {
+        $ovn_encap_ip = script_output(q(ip -4 address show eth0 | awk '/inet/ { split($2, ip, "/"); print ip[1] }'));
+    }
+    my $hostname = script_output "hostname";
 
     assert_script_run "ovs-vsctl set open_vswitch . external_ids:ovn-remote=tcp:localhost:6642  external_ids:ovn-encap-ip=$ovn_encap_ip external_ids:ovn-encap-type=geneve external_ids:system-id=$hostname";
 
