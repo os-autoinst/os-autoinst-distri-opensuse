@@ -1,0 +1,718 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>5ed98f8c543b5b75</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-development-tools</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-rt</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>  
+  <add-on>
+   <add_on_products config:type="list">
+    <listentry>
+     <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SLERT/standard</media_url>
+     <product>SLE_RT_TEST</product>
+     <alias>SLE_RT_IBS_REPO</alias>
+     <product_dir>/</product_dir>
+     <priority config:type="integer">85</priority>
+     <name>Latest RT packages from IBS</name>
+     <confirm_license config:type="boolean">false</confirm_license>
+     <ask_on_error config:type="boolean">false</ask_on_error>
+     <ask_user config:type="boolean">false</ask_user>
+     <selected config:type="boolean">true</selected>
+    </listentry>
+   </add_on_products>
+  </add-on>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <groups config:type="list">
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>100</gid>
+      <group_password>x</group_password>
+      <groupname>users</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>495</gid>
+      <group_password>x</group_password>
+      <groupname>utmp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>480</gid>
+      <group_password>x</group_password>
+      <groupname>polkitd</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>482</gid>
+      <group_password>x</group_password>
+      <groupname>sshd</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>497</gid>
+      <group_password>x</group_password>
+      <groupname>kmem</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>42</gid>
+      <group_password>x</group_password>
+      <groupname>trusted</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>65534</gid>
+      <group_password>x</group_password>
+      <groupname>nobody</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>493</gid>
+      <group_password>x</group_password>
+      <groupname>cdrom</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>484</gid>
+      <group_password>x</group_password>
+      <groupname>systemd-coredump</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>488</gid>
+      <group_password>x</group_password>
+      <groupname>lp</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>498</gid>
+      <group_password>x</group_password>
+      <groupname>wheel</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>494</gid>
+      <group_password>x</group_password>
+      <groupname>audio</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>490</gid>
+      <group_password>x</group_password>
+      <groupname>input</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>0</gid>
+      <group_password>x</group_password>
+      <groupname>root</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>496</gid>
+      <group_password>x</group_password>
+      <groupname>lock</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>65533</gid>
+      <group_password>x</group_password>
+      <groupname>nogroup</groupname>
+      <userlist>nobody</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>486</gid>
+      <group_password>x</group_password>
+      <groupname>video</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>499</gid>
+      <group_password>x</group_password>
+      <groupname>messagebus</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>15</gid>
+      <group_password>x</group_password>
+      <groupname>shadow</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>1</gid>
+      <group_password>x</group_password>
+      <groupname>bin</groupname>
+      <userlist>daemon</userlist>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>489</gid>
+      <group_password>x</group_password>
+      <groupname>kvm</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>487</gid>
+      <group_password>x</group_password>
+      <groupname>tape</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>485</gid>
+      <group_password>x</group_password>
+      <groupname>systemd-journal</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>483</gid>
+      <group_password>x</group_password>
+      <groupname>systemd-timesync</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>2</gid>
+      <group_password>x</group_password>
+      <groupname>daemon</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>481</gid>
+      <group_password>x</group_password>
+      <groupname>chrony</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>491</gid>
+      <group_password>x</group_password>
+      <groupname>disk</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>5</gid>
+      <group_password>x</group_password>
+      <groupname>tty</groupname>
+      <userlist/>
+    </group>
+    <group>
+      <encrypted config:type="boolean">true</encrypted>
+      <gid>492</gid>
+      <group_password>x</group_password>
+      <groupname>dialout</groupname>
+      <userlist/>
+    </group>
+  </groups>
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>127.0.0.1</host_address>
+        <names config:type="list">
+          <name>localhost</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>::1</host_address>
+        <names config:type="list">
+          <name>localhost ipv6-localhost ipv6-loopback</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>fe00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-localnet</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff00::0</host_address>
+        <names config:type="list">
+          <name>ipv6-mcastprefix</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::1</host_address>
+        <names config:type="list">
+          <name>ipv6-allnodes</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::2</host_address>
+        <names config:type="list">
+          <name>ipv6-allrouters</name>
+        </names>
+      </hosts_entry>
+      <hosts_entry>
+        <host_address>ff02::3</host_address>
+        <names config:type="list">
+          <name>ipv6-allhosts</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <login_settings/>
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <ntp_servers config:type="list"/>
+    <ntp_sync>manual</ntp_sync>
+  </ntp-client>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <disklabel>msdos</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>rw,relatime,space_cache</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+	  <resize config:type="boolean">false</resize>
+	  <size>max</size>
+          <subvolumes config:type="list">
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+            <subvolume>
+              <path>usr/local</path>
+            </subvolume>
+	  </subvolumes>
+          <subvolumes_prefix><![CDATA[]]></subvolumes_prefix>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/sdb</device>
+      <disklabel>msdos</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+	  <resize config:type="boolean">false</resize>
+	  <size>max</size>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <proxy>
+    <enabled config:type="boolean">false</enabled>
+    <ftp_proxy/>
+    <http_proxy/>
+    <https_proxy/>
+    <no_proxy>localhost,127.0.0.1</no_proxy>
+    <proxy_password/>
+    <proxy_user/>
+  </proxy>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">1</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">1</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">1</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">false</show>
+      <timeout config:type="integer">1</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>btrfsmaintenance-refresh</service>
+        <service>ca-certificates</service>
+        <service>cron</service>
+        <service>firewalld</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>getty@tty1</service>
+        <service>issue-generator</service>
+        <service>kbdsettings</service>
+        <service>kdump</service>
+        <service>kdump-early</service>
+        <service>wicked</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>serial-getty@ttyS0</service>
+        <service>sshd</service>
+      </enable>
+      <on_demand config:type="list"/>
+    </services>
+  </services-manager>
+  <software>
+    <products config:type="list">
+      <product>SLE_RT</product>
+    </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <kernel>kernel-rt</kernel>    
+    <packages config:type="list">
+      <package>sle-module-server-applications-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>sle-module-basesystem-release</package>
+      <package>cpuset</package>   
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>enhanced_base</pattern>    
+    </patterns>
+    <products config:type="list">
+      <product>SLE_RT</product>
+    </products>
+  </software>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <user_defaults>
+    <expire/>
+    <group>100</group>
+    <groups/>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <no_groups config:type="boolean">true</no_groups>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+    <umask>022</umask>
+  </user_defaults>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>user for rpcbind</fullname>
+      <gid>65534</gid>
+      <home>/var/lib/empty</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>482</uid>
+      <user_password>!</user_password>
+      <username>rpc</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$6$zv8hMi1NLKYz$4xNKPG/r3ldzphFMtvH6F8p1tHTIAoppcYP1FTbGPiAI66Y7ZeAO1.9mDzMZzoQ3YMEhRobk8s7m7xneW2xsX/</user_password>
+      <username>root</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Chrony Daemon</fullname>
+      <gid>481</gid>
+      <home>/var/lib/chrony</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>479</uid>
+      <user_password>!</user_password>
+      <username>chrony</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>Daemon</fullname>
+      <gid>2</gid>
+      <home>/sbin</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>2</uid>
+      <user_password>!</user_password>
+      <username>daemon</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>systemd Core Dumper</fullname>
+      <gid>484</gid>
+      <home>/</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>484</uid>
+      <user_password>!!</user_password>
+      <username>systemd-coredump</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>systemd Time Synchronization</fullname>
+      <gid>483</gid>
+      <home>/</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>483</uid>
+      <user_password>!!</user_password>
+      <username>systemd-timesync</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>bin</fullname>
+      <gid>1</gid>
+      <home>/bin</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>1</uid>
+      <user_password>!</user_password>
+      <username>bin</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>nobody</fullname>
+      <gid>65534</gid>
+      <home>/var/lib/nobody</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>65534</uid>
+      <user_password>!</user_password>
+      <username>nobody</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for polkitd</fullname>
+      <gid>480</gid>
+      <home>/var/lib/polkit</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>478</uid>
+      <user_password>!</user_password>
+      <username>polkitd</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>SSH daemon</fullname>
+      <gid>482</gid>
+      <home>/var/lib/sshd</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/false</shell>
+      <uid>481</uid>
+      <user_password>!</user_password>
+      <username>sshd</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>User for D-Bus</fullname>
+      <gid>499</gid>
+      <home>/run/dbus</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/usr/bin/false</shell>
+      <uid>499</uid>
+      <user_password>!</user_password>
+      <username>messagebus</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>NFS statd daemon</fullname>
+      <gid>65533</gid>
+      <home>/var/lib/nfs</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/sbin/nologin</shell>
+      <uid>480</uid>
+      <user_password>!</user_password>
+      <username>statd</username>
+    </user>
+  </users>
+</profile>

@@ -1,0 +1,7 @@
+schedule:
+  - autoyast/prepare_profile
+  - installation/ipxe_install
+  - console/suseconnect_scc
+  - toolchain/install
+  - kernel/install_ltp
+  - kernel/shutdown_ltp

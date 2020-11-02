@@ -165,7 +165,7 @@ sub run {
             sleep 600;
             set_bootscript_hdd;
         }
-        assert_screen('linux-login', 1800);
+        assert_screen('linux-login', 3600);
     } else {
         select_console 'sol', await_console => 0;
         sleep 300;

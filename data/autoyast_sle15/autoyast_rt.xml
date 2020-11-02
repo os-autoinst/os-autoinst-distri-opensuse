@@ -35,13 +35,13 @@
     </addons>
   </suse_register>
   <add-on>
-    <add_on_products config:type="list">
-      <listentry>
+ 	<add_on_products config:type="list">
+	  <listentry>
         <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SLERT/standard</media_url>
         <product>SLE_RT_TEST</product>
-        <alias>SLE_RT_IBS_REPO</alias>
+	    <alias>SLE_RT_IBS_REPO</alias>
         <product_dir>/</product_dir>
-        <priority config:type="integer">85</priority>
+	    <priority config:type="integer">85</priority>
 	    <name>Latest RT packages from IBS</name>
         <confirm_license config:type="boolean">false</confirm_license>
         <ask_on_error config:type="boolean">false</ask_on_error>
