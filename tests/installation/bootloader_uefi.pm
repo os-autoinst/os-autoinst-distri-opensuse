@@ -115,7 +115,7 @@ sub run {
     uefi_bootmenu_params;
     bootmenu_default_params;
     bootmenu_remote_target;
-    specific_bootmenu_params unless is_microos || is_jeos;
+    specific_bootmenu_params unless is_microos('opensuse') || is_jeos;
 
     # JeOS and MicroOS are never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.

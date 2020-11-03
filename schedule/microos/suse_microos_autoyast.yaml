@@ -3,7 +3,7 @@ description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE MicroOS tests
 vars:
-    AUTOYAST: autoyast_sle15/autoyast_microos_50_%ARCH%.xml
+    AUTOYAST: autoyast_sle15/autoyast_microos_50.xml
 schedule:
     - autoyast/prepare_profile
     - installation/bootloader_start
