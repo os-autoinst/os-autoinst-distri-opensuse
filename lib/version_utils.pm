@@ -54,6 +54,7 @@ use constant {
           check_version
           get_os_release
           check_os_release
+          package_version_cmp
           )
     ],
     BACKEND => [
@@ -650,5 +651,44 @@ sub has_test_issues() {
         return 1 if (get_var('SERVERAPP_TEST_ISSUES') ne "");
         return 1 if (get_var('WE_TEST_ISSUES') ne "");
     }
+    return 0;
+}
+
+=head2 package_version_cmp
+
+Compare two SUSE-style version strings. Returns an integer that is less than,
+equal to, or greater than zero if the first argument is less than, equal to,
+or greater than the second one, respectively.
+
+=cut
+
+sub package_version_cmp {
+    my ($ver1, $ver2) = @_;
+
+    my @chunks1   = split(/-/, $ver1);
+    my @chunks2   = split(/-/, $ver2);
+    my $chunk_cnt = $#chunks1 > $#chunks2 ? scalar @chunks1 : scalar @chunks2;
+
+    for (my $cid = 0; $cid < $chunk_cnt; $cid++) {
+        my @tokens1   = split(/\./, $chunks1[$cid] // '0');
+        my @tokens2   = split(/\./, $chunks2[$cid] // '0');
+        my $token_cnt = scalar @tokens1;
+        $token_cnt = scalar @tokens2 if $#tokens2 > $#tokens1;
+
+        for (my $tid = 0; $tid < $token_cnt; $tid++) {
+            my $tok1 = $tokens1[$tid] // '0';
+            my $tok2 = $tokens2[$tid] // '0';
+
+            if ($tok1 =~ m/^\d+$/ && $tok2 =~ m/^\d+$/) {
+                next if $tok1 == $tok2;
+                return $tok1 - $tok2;
+            } else {
+                next     if $tok1 eq $tok2;
+                return 1 if $tok1 gt $tok2;
+                return -1;
+            }
+        }
+    }
+
     return 0;
 }
