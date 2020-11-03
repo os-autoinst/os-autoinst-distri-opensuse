@@ -656,7 +656,7 @@ sub wait_grub {
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
-        if (get_var('ONLINE_MIGRATION') && check_var('BOOTFROM', 'd')) {
+        if (is_upgrade && check_var('BOOTFROM', 'd')) {
             assert_screen 'inst-bootmenu';
             # Select boot from HDD
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
