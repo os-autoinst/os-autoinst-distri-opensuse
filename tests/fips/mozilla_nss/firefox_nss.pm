@@ -89,9 +89,11 @@ sub run {
     x11_start_program('xterm');
     mouse_hide(1);
     type_string("firefox --setDefaultBrowser https://html5test.opensuse.org\n");
-    assert_screen("firefox-passowrd-typefield", 240);
-    type_string $fips_password;
-    assert_and_click "firefox-enter-password-OK";
+    assert_screen("firefox-passowrd-typefield", 120);
+
+    # Add max_interval while type password and extend time of click needle match
+    type_string($fips_password, max_interval => 2);
+    assert_and_click("firefox-enter-password-OK", 120);
     assert_screen("firefox-url-loaded", 20);
 
     # Firfox Preferences
