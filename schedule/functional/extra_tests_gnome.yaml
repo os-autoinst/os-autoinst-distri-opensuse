@@ -20,12 +20,30 @@ conditional_schedule:
                 - x11/keyboard_layout_gdm
             'x86_64':
                 - x11/keyboard_layout_gdm
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - x11/libqt5_qtbase
+                - x11/exiv2
+                - x11/seahorse
+                - x11/steam
+                - x11/chrome
+                - x11/multi_users_dm
+                - x11/wine
+                - x11/gnucash
+                - texlive/latexdiff
+                - appgeo/qgis
+                - x11/network/hwsim_wpa2_enterprise_setup
+                - x11/network/yast2_network_use_nm
+                - x11/network/NM_wpa2_enterprise
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
+    - x11/x11_setup
     - x11/vnc_two_passwords
+    - '{{opensuse_tests}}'
     - '{{user_defined_snapshot}}'
     - x11/remote_desktop/vino_screensharing_available
     - x11/rrdtool_x11
