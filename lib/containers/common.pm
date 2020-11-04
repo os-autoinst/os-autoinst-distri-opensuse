@@ -22,14 +22,15 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl);
+use containers::utils 'can_build_sle_base';
 use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
-  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
+  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials test_image_zyp_ref_and_verify);
 
 sub install_podman_when_needed {
-    my $host_os = shift;
-    my @pkgs    = qw(podman);
+    my ($host_os, $is_sle_host) = @_;
+    my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
@@ -43,7 +44,7 @@ sub install_podman_when_needed {
             assert_script_run "apt-get -y install podman", timeout => 220;
         }
         else {
-            add_suseconnect_product('sle-module-containers') if (is_sle '>=15');
+            add_suseconnect_product('sle-module-containers') if ($is_sle_host && is_sle '>=15');
             push(@pkgs, 'podman-cni-config') if is_jeos();
             push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
@@ -53,7 +54,7 @@ sub install_podman_when_needed {
 }
 
 sub install_docker_when_needed {
-    my $host_os = shift;
+    my ($host_os, $is_sle_host) = @_;
 
     if (is_microos) {
         # Docker should be pre-installed in MicroOS
@@ -76,7 +77,7 @@ sub install_docker_when_needed {
                 assert_script_run "apt-get -y install docker-ce", timeout => 260;
             }
             else {
-                if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
+                if (can_build_sle_base()) {
                     is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
                 }
 
@@ -208,6 +209,20 @@ sub test_container_image {
         upload_logs("$logfile");
         die "Heartbeat test failed for $image";
     }
+}
+
+sub test_image_zyp_ref_and_verify {
+    my ($image, $runtime) = @_;
+    # zypper lr
+    assert_script_run("$runtime run --rm $image zypper lr -s", 120);
+    # zypper ref
+    assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+    # Commit the image
+    assert_script_run("$runtime commit refreshed refreshed-image", 120);
+    # Remove it
+    assert_script_run("$runtime rm refreshed", 120);
+    # Verify the image works
+    assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
 }
 
 sub scc_apply_docker_image_credentials {

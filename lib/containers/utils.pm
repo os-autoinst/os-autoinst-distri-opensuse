@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use version_utils;
 
-our @EXPORT = qw(test_seccomp basic_container_tests set_up get_vars build_img test_built_img);
+our @EXPORT = qw(test_seccomp basic_container_tests set_up get_vars build_img test_built_img can_build_sle_base);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -177,6 +177,22 @@ sub test_built_img {
     assert_script_run("$runtime ps -a");
     script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
     assert_script_run("rm -rf /root/templates");
+}
+
+=head2 can_build_sle_base
+
+C<can_build_sle_base> should be used to identify if sle base image runs against a
+system that it does not support registration and SUSEConnect.
+In this case the build of the container engine is not going to work as the base images
+lacks of the repos.
+
+The call should return false if you try to test sle base container on osd but host is not sle
+true otherwise.
+
+=cut
+sub can_build_sle_base {
+    my $has_sle_registration = script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
+    return check_os_release('sles', 'ID') && $has_sle_registration;
 }
 
 1;
