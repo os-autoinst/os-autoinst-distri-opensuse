@@ -23,12 +23,12 @@ sub configure_remote_admin {
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'remote');
     # Remote Administration Settings
     assert_screen 'yast2_vnc_remote_administration';
-    return if check_var('ARCH', 's390x');
     send_key $remote_admin{allow_remote_admin_with_session};
     assert_screen 'yast2_vnc_allow_remote_admin_with_session';
     # Firewall Settings
-    assert_screen 'yast2_vnc_firewall_port_closed';
-    send_key $firewall_settings{open_port};
+    if (check_screen 'yast2_vnc_firewall_port_closed') {
+        send_key $firewall_settings{open_port};
+    }
     # Firewall Details
     assert_screen 'yast2_vnc_firewall_port_open';
     send_key $firewall_settings{details};
@@ -53,16 +53,12 @@ sub check_service_listening {
 sub test_setup {
     select_console 'root-console';
     assert_script_run("if ! systemctl -q is-active network; then systemctl -q start network; fi");
-    if (check_var('ARCH', 's390x') && !$is_older_product) {
-        add_suseconnect_product('sle-module-desktop-applications', undef, undef, undef, 180);
-    }
     zypper_call('in vncmanager xorg-x11' . ($is_older_product ? ' net-tools' : ''));
 }
 
 sub run {
     test_setup;
     configure_remote_admin;
-    return if check_var('ARCH', 's390x');    # exit here as port is already open for s390x
     check_service_listening;
 }
 
