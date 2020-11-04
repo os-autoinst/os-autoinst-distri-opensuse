@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::utils qw(select_host_console);
 
 sub run {
     my ($self, $args) = @_;
