@@ -118,6 +118,7 @@ sub run {
                     $lastsector = $1 + 1;
                     assert_script_run "parted --script $disk -- mkpart primary $lastsector -1";
                     assert_script_run "test -b $device";    # Check partition was created successfully
+                    script_run "wipefs -a -f $device";      # This is a new partition, but it could have traces of old tests. We do some cleanup
                 }
             }
             else {
@@ -127,6 +128,12 @@ sub run {
                 assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
                 $device .= is_multipath() ? '-part1' : '1';
             }
+            # Remove traces of LVM structures from previous tests before configuring
+            script_run 'lvremove -f vg_hana';
+            script_run 'vgremove -f vg_hana';
+            script_run "pvremove -f $device";
+            foreach (keys %mountpts) { script_run "dmsetup remove vg_hana-lv_$_"; }
+            # Now configure LVs and file systems for HANA
             assert_script_run "pvcreate -y $device";
             assert_script_run "vgcreate -f vg_hana $device";
             foreach my $mounts (keys %mountpts) {
