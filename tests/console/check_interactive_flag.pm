@@ -27,7 +27,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Get the maintenance updates of the corresponding packages
-    my $result = script_output q(zypper lp -a | grep -v 'zypper-' | awk '/libsolv/||/libzypp/||/zypper/||/PackageKit/ {print $3}');
+    my $result = script_output q(zypper lp -a | awk -F\| '(/libsolv/||/libzypp/||/zypper/||/PackageKit/) && !/zypper-/ { gsub(/ /,""); print $2}');
     my @patch_array = split ' ', $result;
 
     # Check that the creation date of the updates is after the year of 2020
