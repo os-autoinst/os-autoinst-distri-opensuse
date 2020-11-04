@@ -15,7 +15,7 @@ use warnings;
 use base 'y2_installbase';
 use testapi;
 use scheduler 'get_test_suite_data';
-use Test::Assert ':all';
+use filesystem_utils qw(get_partition_size get_used_partition_space);
 
 sub pre_run_hook {
     my ($self) = @_;
@@ -36,26 +36,22 @@ sub convert2numeric {
     return $str2convert;
 }
 
-sub get_used_disk_space {
-    my $used_space = script_output("df -h /  | awk \'NR==2 {print \$5}\'");
-    return convert2numeric($used_space);
-}
-
 sub run {
     my $test_data = get_test_suite_data();
     record_info("Check quota", "Verify that the percentage of root filesystem quota is less than 50%");
     my $qgroup_space = script_output("btrfs qgroup show --sync --si / | grep \"1/0\" | awk \'{print \$3}\'");
     $qgroup_space = convert2numeric($qgroup_space);
     my $space_limit = $test_data->{snapper_config}->{SPACE_LIMIT};
-    my $disk_size   = script_output("df -h /  | awk \'NR==2 {print \$2}\'");
-    $disk_size = convert2numeric($disk_size);
+    my $disk_size   = convert2numeric(get_partition_size("/"));
     die "Snapshots take more than " . $space_limit * 100 . "% of root disk space"
       if ($qgroup_space >= $space_limit * $disk_size);
 
+    # The cleanup timeline algorith will erase timeline snapshots if the free disk space is less than <FREE_LIMIT> %
     my $free_limit = $test_data->{snapper_config}->{FREE_LIMIT} * 100;
-    record_info("Space > $free_limit%", "Ensure that free space is more than $free_limit%. 
+    record_info("Free > $free_limit%", "Ensure that free disk space is more than $free_limit%. 
 	    Create a snapshot with timeline cleanup algorithm and make sure that it is not erased by the algorithm");
-    die "Free disk space is less than $free_limit%" if (get_used_disk_space() > 100 - $free_limit);
+    my $used_disk = convert2numeric(get_used_partition_space("/"));
+    die "Free disk space is less than $free_limit%" if ($used_disk > 100 - $free_limit);
     assert_script_run("snapper create --description \"timeline\" --cleanup-algorithm timeline",
         fail_message => "Timeline snapshot failed to be created");
     assert_script_run("snapper cleanup timeline",
@@ -63,11 +59,19 @@ sub run {
     assert_script_run("snapper ls | grep timeline",
         fail_message => "No timeline snapshot found");
 
-    record_info("Space < $free_limit%", "Fill up disk space and make sure that the created snapshot gets erased by 
+    record_info("Free < $free_limit%", "Fill up disk space and make sure that the created snapshot gets erased by 
 	    timeline cleanup algorithm");
-    assert_script_run("dd if=/dev/urandom of=/tmp/blob bs=10M count=3080", timeout => 900,
+    # Calculating the number of blocks that need to be written with random data, in order to
+    # fill up the disk more than (100 - $free_limit)%. Due to rounding up of "df -h" command,
+    # 10% is added to (100-FREE_LIMIT)% for safety reasons.
+    # block number = (space to fill up)/(block size)=((100 - FREE_LIMIT - used_disk + 10)% * disk_size)/block_size
+    # For the particular test, disk_size is in GB, we set block_size to 10M, so (% * GB)/10M = 1
+    my $block_number = (100 - $free_limit - $used_disk + 10) * $disk_size;
+    record_info("Fill up disk", "Filling up disk to " . (100 - $free_limit + 10) . "%");
+    assert_script_run("dd if=/dev/urandom of=/tmp/blob bs=10M count=$block_number", timeout => 1500,
         fail_message => "Failed to fill up disk space");
-    die "Free disk space is more than $free_limit%" if (get_used_disk_space() <= 100 - $free_limit);
+    $used_disk = convert2numeric(get_used_partition_space("/"));
+    die "Free disk space is more than $free_limit%" if ($used_disk <= 100 - $free_limit);
     assert_script_run("snapper cleanup timeline", fail_message => "Timeline cleanup algorithm failed to run");
     my $is_snapshot_erased = script_run "snapper ls | grep timeline";
     die "The cleanup algorithm didn't delete the snapshot as expected" unless $is_snapshot_erased;

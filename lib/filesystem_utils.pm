@@ -23,7 +23,8 @@ use testapi;
 
 our @EXPORT = qw(str_to_mb parted_print partition_num_by_start_end
   partition_num_by_type free_space mountpoint_to_partition
-  partition_table create_partition remove_partition format_partition);
+  partition_table create_partition remove_partition format_partition
+  get_partition_size get_used_partition_space);
 
 =head2 str_to_mb
 
@@ -229,6 +230,42 @@ sub format_partition {
     else {
         script_run("mkfs.$filesystem -f $part");
     }
+}
+
+=head2 df_command
+
+Returns the value of the "df -h" output in given column, for a given partition 
+
+  df_command([partition=>$partition , column=> $column])
+
+=cut
+sub df_command {
+    my $args = shift;
+    return script_output("df -h $args->{partition} | awk \'NR==2 {print \$$args->{column}}\'");
+}
+
+=head2 get_partition_size
+
+Return the value of the defined partition size
+
+  get_partition_size($partition)
+
+=cut
+sub get_partition_size {
+    my $partition = shift;
+    return df_command({partition => $partition, column => '2'});
+}
+
+=head2 get_used_partition_space
+
+Returns the value of used space of the defined partition
+
+  get_used_partition_space($partition)
+
+=cut
+sub get_used_partition_space {
+    my $partition = shift;
+    return df_command({partition => $partition, column => '5'});
 }
 
 1;
