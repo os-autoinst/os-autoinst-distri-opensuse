@@ -1,16 +1,25 @@
 ---
-description: 'Extratest JeOS test suite. Maintainer: ccret.'
-name: 'jeos-extratest@svirt-hyperv ( svirt )'
+description: 'Extratest JeOS test suite. Maintainer: qac'
+name: 'jeos-extratest'
 conditional_schedule:
-    ntp_test_module:
-        VERSION:
-            15-SP2:
-                - console/ntp_client
-            12-SP5:
-                - console/ntp
+    bootloader:
+        MACHINE:
+            'svirt-xen-pv':
+                - installation/bootloader_svirt
+            'svirt-xen-hvm':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            'svirt-hyperv-uefi':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'svirt-hyperv':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'svirt-vmware65':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
 schedule:
-    - installation/bootloader_hyperv
-    - jeos/grub2
+    - '{{bootloader}}'
     - jeos/firstrun
     - console/consoletest_setup
     - jeos/record_machine_id
@@ -20,14 +29,13 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
-    - console/integration_services
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/validate_packages_and_patterns
     - console/zypper_extend
     - console/check_os_release
     - console/timezone
-    - '{{ntp_test_module}}'
+    - console/ntp_client
     - console/sshd
     - console/rpm
     - console/openssl_alpn
@@ -46,4 +54,5 @@ schedule:
     - console/shells
     - console/dstat
     - console/journalctl
+    - console/procps
     - console/kdump_and_crash
