@@ -15,9 +15,8 @@ conditional_schedule:
             'svirt-hyperv':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
-            'uefi-virtio-vga':
-                - installation/bootloader_uefi
-            '64bit-virtio-vga':
+            'svirt-vmware65':
+                - installation/bootloader_svirt
                 - installation/bootloader_uefi
 schedule:
     - '{{bootloader}}'
