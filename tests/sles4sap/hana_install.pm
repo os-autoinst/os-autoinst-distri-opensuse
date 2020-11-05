@@ -88,6 +88,7 @@ sub run {
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
     my $full_size = ceil($RAM / 1024);                        # Use the ceil value of RAM in GB
     my $half_size = ceil($full_size / 2);
+    my $volgroup  = 'vg_hana';
     my %mountpts  = (
         hanadata   => {mountpt => '/hana/data',         size => "${full_size}g"},
         hanalog    => {mountpt => '/hana/log',          size => "${half_size}g"},
@@ -129,18 +130,18 @@ sub run {
                 $device .= is_multipath() ? '-part1' : '1';
             }
             # Remove traces of LVM structures from previous tests before configuring
-            script_run 'lvremove -f vg_hana';
-            script_run 'vgremove -f vg_hana';
+            script_run "lvremove -f $volgroup";
+            script_run "vgremove -f $volgroup";
             script_run "pvremove -f $device";
-            foreach (keys %mountpts) { script_run "dmsetup remove vg_hana-lv_$_"; }
+            foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
             # Now configure LVs and file systems for HANA
             assert_script_run "pvcreate -y $device";
-            assert_script_run "vgcreate -f vg_hana $device";
+            assert_script_run "vgcreate -f $volgroup $device";
             foreach my $mounts (keys %mountpts) {
-                assert_script_run "lvcreate -y -W y -n lv_$mounts --size $mountpts{$mounts}->{size} vg_hana";
-                assert_script_run "mkfs.xfs -f /dev/vg_hana/lv_$mounts";
-                assert_script_run "mount /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt}";
-                assert_script_run "echo /dev/vg_hana/lv_$mounts $mountpts{$mounts}->{mountpt} xfs defaults 0 0 >> /etc/fstab";
+                assert_script_run "lvcreate -y -W y -n lv_$mounts --size $mountpts{$mounts}->{size} $volgroup";
+                assert_script_run "mkfs.xfs -f /dev/$volgroup/lv_$mounts";
+                assert_script_run "mount /dev/$volgroup/lv_$mounts $mountpts{$mounts}->{mountpt}";
+                assert_script_run "echo /dev/$volgroup/lv_$mounts $mountpts{$mounts}->{mountpt} xfs defaults 0 0 >> /etc/fstab";
             }
         }
     }
