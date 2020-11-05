@@ -614,7 +614,6 @@
         <service>cio_ignore</service>
         <service>cron</service>
         <service>display-manager</service>
-        <service>iscsi</service>
         <service>issue-generator</service>
         <service>kbdsettings</service>
         <service>kdump-early</service>
