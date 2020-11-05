@@ -684,7 +684,7 @@ sub activate_console {
     my ($self, $console, %args) = @_;
 
     # Select configure serial and redirect to root-ssh instead
-    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/root-console$|install-shell|log-console/);
+    return use_ssh_serial_console if (get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ && $console =~ m/^(root-console|install-shell|log-console)$/);
     if ($console eq 'install-shell') {
         if (get_var("LIVECD")) {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
@@ -838,7 +838,7 @@ configure a timeout value different than default.
 =cut
 sub console_selected {
     my ($self, $console, %args) = @_;
-    if ((exists $testapi::testapi_console_proxies{'root-ssh'}) && $console eq 'root-console') {
+    if ((exists $testapi::testapi_console_proxies{'root-ssh'}) && $console =~ m/^(root-console|install-shell|log-console)$/) {
         $console = 'root-ssh';
         my $ret = query_isotovideo('backend_select_console', {testapi_console => $console});
         die $ret->{error} if $ret->{error};

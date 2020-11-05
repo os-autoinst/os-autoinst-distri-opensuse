@@ -23,7 +23,7 @@ use Utils::Backends 'use_ssh_serial_console';
 
 sub run {
     my $enc_disk_part = get_test_suite_data()->{enc_disk_part};
-    check_var('BACKEND', 'pvm_hmc') ? use_ssh_serial_console : select_console 'install-shell';
+    select_console 'install-shell';
     verify_locked_encrypted_partition($enc_disk_part);
     select_console 'installation';
 }
