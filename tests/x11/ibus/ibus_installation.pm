@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_tumbleweed';
 use x11utils 'handle_relogin';
 
 sub install_ibus {
@@ -23,7 +24,8 @@ sub install_ibus {
     become_root;
     pkcon_quit;
     wait_still_screen 1;
-    zypper_call('in ibus ibus-pinyin ibus-kkc ibus-hangul');
+    my $ibus_pinyin = is_tumbleweed() ? "ibus-libpinyin" : "ibus-pinyin";
+    zypper_call("in ibus $ibus_pinyin ibus-kkc ibus-hangul");
     assert_screen 'ibus_installed';
     send_key 'ctrl-d';
     send_key 'ctrl-d';
