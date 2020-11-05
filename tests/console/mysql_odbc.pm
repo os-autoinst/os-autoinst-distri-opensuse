@@ -81,7 +81,7 @@ sub run {
     assert_script_run 'odbcinst -s -q';
 
     # connect to odbc
-    assert_script_run 'isql mariadbodbc_mysql_dsn root x -b < query.sql';
+    assert_script_run 'isql mariadbodbc_mysql_dsn root x -b -v < query.sql';
     assert_screen 'mysql_odbc-isql';
 
     # reverting mysql password to blank, else other mysql tests fail
