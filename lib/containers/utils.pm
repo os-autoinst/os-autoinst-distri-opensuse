@@ -104,7 +104,7 @@ sub basic_container_tests {
     elsif (check_var('ARCH', 's390x')) {
         record_soft_failure("bsc#1165922 s390x control.xml has wrong repos");
     }
-    assert_script_run("$runtime container commit $container_name tw:saved");
+    assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
     # Network is working inside of the containers
     my $output = script_output("$runtime container run tw:saved curl -I google.de");

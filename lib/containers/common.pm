@@ -89,7 +89,7 @@ sub install_docker_when_needed {
     # docker daemon can be started
     systemctl('enable docker') if systemctl('is-enabled docker', ignore_failure => 1);
     systemctl('start docker')  if systemctl('is-active docker',  ignore_failure => 1);
-    systemctl('status docker');
+    systemctl('status docker', timeout => 120);
     assert_script_run('docker info');
 }
 
