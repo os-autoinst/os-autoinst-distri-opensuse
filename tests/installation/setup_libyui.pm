@@ -23,11 +23,21 @@ use warnings;
 use base "installbasetest";
 use testapi;
 
+use YuiRestClient;
+use YuiRestClient::App;
+use YuiRestClient::Http::HttpClient;
+
 sub run {
     record_info('PORT', "Used port for libyui: " . get_var('YUI_PORT'));
     assert_screen('startshell', timeout => 500);
     assert_script_run('extend libyui-rest-api');
     type_string "exit\n";
+    my $port = get_var('YUI_PORT');
+    my $host = get_var('YUI_SERVER');
+    my $app  = YuiRestClient::App->new({port => $port, host => $host});
+    # As we start installer, REST API is not instantly available
+    $app->connect(timeout => 500, interval => 10);
+    YuiRestClient::set_app($app);
 }
 
 1;

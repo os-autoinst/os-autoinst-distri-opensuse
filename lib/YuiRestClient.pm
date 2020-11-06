@@ -13,8 +13,9 @@ package YuiRestClient;
 use strict;
 use warnings;
 
-our $interval = 0.5;
+our $interval = 1;
 our $timeout  = 10;
+our $app;
 
 use constant API_VERSION => 'v1';
 
@@ -24,6 +25,14 @@ sub set_interval {
 
 sub set_timeout {
     $timeout = shift;
+}
+
+sub set_app {
+    $app = shift;
+}
+
+sub get_app {
+    return $app;
 }
 
 sub wait_until {
@@ -39,7 +48,7 @@ sub wait_until {
     while ($counter--) {
         eval { $result = $args{object}->() };
         return $result if $result;
-        sleep(1);
+        sleep($interval);
     }
 
     my $error = "Timed out: @{[$args{message}]}\n";

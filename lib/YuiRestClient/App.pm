@@ -15,6 +15,7 @@ use warnings;
 
 use YuiRestClient;
 use YuiRestClient::Http::HttpClient;
+use YuiRestClient::Http::WidgetController;
 
 sub new {
     my ($class, $args) = @_;
@@ -23,18 +24,21 @@ sub new {
         port              => $args->{port},
         host              => $args->{host},
         widget_controller =>
-          YuiRestClient::Http::WidgetController->new({port => $port, host => $host})
+          YuiRestClient::Http::WidgetController->new({
+                port => $args->{port}, host => $args->{host}
+          })
     }, $class;
-
 }
 
 sub connect {
-    my ($self) = @_;
+    my ($self, %args) = @_;
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(host => $self->{host}, port => $self->{port});
-    YuiRestClient::wait_until( object => sub {
-        my $response = YuiRestClient::Http::HttpClient::http_get($uri);
-        return 1 if $response;
-    }, message => 'bla1' );
+    YuiRestClient::wait_until(object => sub {
+            my $response = YuiRestClient::Http::HttpClient::http_get($uri);
+            return 1 if $response;
+        },
+        message => "Connection to YUI REST server failed",
+        %args);
 }
 
 1;
