@@ -163,7 +163,13 @@ sub run {
     send_key "alt-f4";
 
     handle_relogin;
-    assert_screen 'xterm';
+    assert_screen [qw(xterm xterm-without-focus)];
+    if (match_has_tag 'xterm-without-focus') {
+        record_soft_failure("poo#66099 - xterm not focused with GNOME 3.36+ https://gitlab.gnome.org/GNOME/mutter/-/issues/1207");
+        # focus it
+        click_lastmatch;
+        assert_screen 'xterm';
+    }
     send_key "alt-f4";
     wait_still_screen;
     send_key "ret";
