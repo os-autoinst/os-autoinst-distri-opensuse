@@ -20,6 +20,7 @@ use network_utils qw(iface setup_static_network);
 use serial_terminal;
 use main_common 'is_updates_tests';
 use repo_tools 'generate_version';
+use registration qw(add_suseconnect_product);
 
 sub run {
     my ($self, $ctx) = @_;
@@ -126,6 +127,10 @@ sub run {
             $repo_url = 'http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/' if (is_sle());
             zypper_ar($repo_url . generate_version('_') . '/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
             $package_list .= ' ndisc6';
+        }
+        if (check_var('WICKED', 'wlan')) {
+            add_suseconnect_product('PackageHub');
+            $package_list .= ' iw hostapd wpa_supplicant';
         }
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
