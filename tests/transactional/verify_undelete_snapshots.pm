@@ -35,7 +35,7 @@ sub run {
                                 creates snapshots and installs a package";
     assert_script_run("snapper create -d \"Disposable snapshot #1\"");
     get_utt_packages;
-    trup_call "ptf install" . rpmver('security');
+    trup_call "ptf install" . rpmver('trivial');
     my $last_snapshot_number = script_output("snapper create -p -d \"Disposable snapshot #2\"");
 
     my @snapshots_after_update = split /\n/, script_output('snapper list --disable-used-space');
