@@ -2447,6 +2447,7 @@ sub load_security_tests_check_kernel_config {
     load_security_console_prepare;
 
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
+    loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
 }
 
 sub load_security_tests_pam {
