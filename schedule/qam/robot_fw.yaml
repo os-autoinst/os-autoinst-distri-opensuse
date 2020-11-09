@@ -1,0 +1,8 @@
+---
+name:  robot_fw
+description: >
+ Test basics settings with the robot framework
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/robot_fw
