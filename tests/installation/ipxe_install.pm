@@ -17,28 +17,13 @@ use warnings;
 use utils;
 use testapi;
 use bmwqemu;
+use ipmi_backend_utils;
 
 use HTTP::Tiny;
 use IPC::Run;
 use Socket;
 use Time::HiRes 'sleep';
 
-sub ipmitool {
-    my ($cmd) = @_;
-
-    my @cmd = ('ipmitool', '-I', 'lanplus', '-H', $bmwqemu::vars{IPMI_HOSTNAME}, '-U', $bmwqemu::vars{IPMI_USER}, '-P', $bmwqemu::vars{IPMI_PASSWORD});
-    push(@cmd, split(/ /, $cmd));
-
-    my ($stdin, $stdout, $stderr, $ret);
-    print @cmd;
-    $ret = IPC::Run::run(\@cmd, \$stdin, \$stdout, \$stderr);
-    chomp $stdout;
-    chomp $stderr;
-
-    die join(' ', @cmd) . ": $stderr" unless ($ret);
-    bmwqemu::diag("IPMI: $stdout");
-    return $stdout;
-}
 
 sub poweroff_host {
     ipmitool("chassis power off");
@@ -77,23 +62,25 @@ sub set_bootscript {
     my $url         = "$http_server/v1/bootscript/script.ipxe/$ip";
     my $arch        = get_required_var('ARCH');
     my $autoyast    = get_var('AUTOYAST', '');
+    my $regurl      = get_var('SCC_URL');
+    my $console     = get_var('IPXE_CONSOLE');
+    my $install     = get_required_var('MIRROR_HTTP');
 
     my $kernel = get_required_var('MIRROR_HTTP');
     my $initrd = get_required_var('MIRROR_HTTP');
 
-    if ($arch eq "aarch64") {
-        $kernel .= "/boot/$arch/linux";
-        $initrd .= "/boot/$arch/initrd";
+    if ($arch eq 'aarch64') {
+        $kernel .= '/boot/aarch64/linux';
+        $initrd .= '/boot/aarch64/initrd';
     } else {
         $kernel .= "/boot/$arch/loader/linux";
         $initrd .= "/boot/$arch/loader/initrd";
     }
-    my $install = get_required_var('MIRROR_HTTP');
+
+
     my $cmdline_extra;
-
-    my $console = get_var('IPXE_CONSOLE');
-
-    $cmdline_extra = "console=$console" if $console;
+    $cmdline_extra .= " regurl=$regurl "   if $regurl;
+    $cmdline_extra .= " console=$console " if $console;
 
     $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
 
@@ -150,8 +137,8 @@ sub run {
     poweroff_host;
 
     set_bootscript;
-
     set_pxe_boot;
+
     poweron_host;
 
     # when we don't use autoyast, we need to also load the right test modules to perform the remote installation
@@ -164,8 +151,8 @@ sub run {
             # we wait long enough so the bootscript was loaded
             sleep 600;
             set_bootscript_hdd;
+            assert_screen('linux-login', 1800);
         }
-        assert_screen('linux-login', 1800);
     } else {
         select_console 'sol', await_console => 0;
         sleep 300;

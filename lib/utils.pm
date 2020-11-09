@@ -1406,7 +1406,7 @@ sub reconnect_mgmt_console {
     elsif (check_var('ARCH', 'x86_64')) {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
-            assert_screen [qw(qa-net-selection prague-pxe-menu)], 300;
+            assert_screen([qw(qa-net-selection prague-pxe-menu)], 300) unless get_var('IPXE_CONSOLE');
             # boot to hard disk is default
             send_key 'ret';
         }
