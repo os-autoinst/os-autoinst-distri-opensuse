@@ -77,7 +77,7 @@ sub install_docker_when_needed {
             }
             else {
                 if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
-                    add_suseconnect_product("sle-module-containers");
+                    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
                 }
 
                 # docker package can be installed
