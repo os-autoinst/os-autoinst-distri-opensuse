@@ -10,6 +10,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::Base;
+
 use strict;
 use warnings;
 
@@ -18,17 +19,43 @@ sub new {
 
     return bless {
         widget_controller => $args->{widget_controller},
-        filter => $args->{filter},
+        filter            => $args->{filter},
     }, $class;
 }
 
 sub action {
     my ($self, %args) = @_;
     # Inject filter parameters to the request
-    my $params = { %args, %$self->{filter} };
+    my $params = {%args, %{$self->{filter}}};
     $self->{widget_controller}->send_action($params);
 
     return $self;
+}
+
+sub exist {
+    my ($self) = @_;
+
+    eval { $self->find_widgets() };
+    return 0 if $@;
+    return 1;
+}
+
+sub property {
+    my ($self, $property) = @_;
+
+    my $res = $self->find_widgets();
+    # JSON always contains array if results, return first entry
+    if (ref $res eq 'ARRAY' && ref $res->[0] eq 'HASH') {
+        return $res->[0]->{$property};
+    }
+
+    return undef;
+}
+
+sub find_widgets {
+    my ($self) = @_;
+
+    return $self->{widget_controller}->find($self->{filter});
 }
 
 1;
