@@ -46,10 +46,12 @@ our @EXPORT = qw(
 );
 
 our $hdd_base_version;
-our $support_ver_def  = '11+';
+our $support_ver_def  = '12+';
 our $support_ver_12   = '=12';
 our $support_ver_ge15 = '15+';
 our $support_ver_ge12 = '12+';
+our $support_ver_ge11 = '11+';
+our $support_ver_lt15 = '<15';
 
 our %srv_check_results = (
     before_migration => 'PASS',
@@ -76,7 +78,7 @@ our $default_services = {
     ntp => {
         srv_pkg_name       => 'ntp',
         srv_proc_name      => 'ntpd',
-        support_ver        => $support_ver_12,
+        support_ver        => $support_ver_lt15,
         service_check_func => \&services::ntpd::full_ntpd_check
     },
     chrony => {
@@ -94,7 +96,7 @@ our $default_services = {
     apache => {
         srv_pkg_name       => 'apache2',
         srv_proc_name      => 'apache2',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::apache::full_apache_check
     },
     dhcpd => {
@@ -221,7 +223,7 @@ sub install_services {
         record_info($srv_pkg_name, "service check before migration");
         eval {
             if (is_sle($support_ver, $hdd_base_version)) {
-                if (check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
+                if ($hdd_base_version eq '11-SP4') {
                     $service_type = 'SystemV';
                 }
                 else {
@@ -232,8 +234,9 @@ sub install_services {
                     next;
                 }
                 zypper_call "in $srv_pkg_name";
-                common_service_start($srv_proc_name, $service_type);
-                common_service_status($srv_proc_name, $service_type);
+                common_service_action($srv_proc_name, $service_type, 'enable');
+                common_service_action($srv_proc_name, $service_type, 'start');
+                common_service_action($srv_proc_name, $service_type, 'is-active');
             }
         };
         if ($@) {
@@ -268,7 +271,7 @@ sub check_services {
                     $service->{$s}->{service_check_func}->('after', 'Systemd');
                     next;
                 }
-                common_service_status($srv_proc_name, $service_type);
+                common_service_action($srv_proc_name, $service_type, 'is-active');
             }
         };
         if ($@) {
