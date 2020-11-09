@@ -18,7 +18,7 @@
 use base 'consoletest';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_livecd is_tumbleweed);
+use version_utils 'is_sle';
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
@@ -36,12 +36,6 @@ sub run {
 
     # Make sure packagekit is not running, or it will conflict with SUSEConnect.
     pkcon_quit unless check_var('DESKTOP', 'textmode');
-
-    # on live media, increase the size of /run to 50% of RAM (workaround boo#1176709)
-    if (is_livecd && is_tumbleweed) {
-        record_soft_failure('bsc#1176709 - livecd runs out of storage on overlayfs');
-        assert_script_run("mount -o remount,size=\$[\$(awk '/MemTotal/ {print \$2}' /proc/meminfo)/2]K /run");
-    }
 
     # Register the modules after media migration, so it can do regession
     if (get_var('SCC_ADDONS') && get_var('MEDIA_UPGRADE') && (get_var('FLAVOR') =~ /Regression/)) {
