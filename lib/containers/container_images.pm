@@ -105,7 +105,9 @@ sub test_opensuse_based_image {
     # It is the right version
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
-        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $pretty_version"/ });
+        record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
+        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+            sub { /"SUSE Linux Enterprise Server $pretty_version"/ });
 
         if (is_sle('=12-SP3', $version)) {
             my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect';
