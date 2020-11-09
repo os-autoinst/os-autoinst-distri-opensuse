@@ -2561,6 +2561,9 @@ sub load_mitigation_tests {
     if (get_var('XEN_PV') or get_var('XEN_HVM')) {
         loadtest "cpu_bugs/xen_domu_mitigation_test";
     }
+    if (get_var('MITIGATION_PERF')) {
+        loadtest "cpu_bugs/mitigation_perf";
+    }
 }
 
 sub load_security_tests {
