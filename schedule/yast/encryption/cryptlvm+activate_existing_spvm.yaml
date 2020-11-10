@@ -15,6 +15,7 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
+  - console/validate_activation_encrypted_partition
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -35,3 +36,12 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
+test_data:
+  mapped_device: '/dev/mapper/cr-auto-1'
+  device_status:
+    message: 'is active.'
+    properties:
+      type: 'LUKS1'
+      cipher: 'aes-xts-plain64'
+      key_location: 'dm-crypt'
+      mode: 'read/write'
