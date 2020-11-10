@@ -170,4 +170,13 @@ sub post_fail_hook {
     save_screenshot;
 }
 
+sub get_free_mem {
+    if (check_var('SYSTEM_ROLE', 'xen')) {
+        # ensure the free memory size on xen host
+        my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
+        $mem = int($mem / 1024);
+        return $mem;
+    }
+}
+
 1;
