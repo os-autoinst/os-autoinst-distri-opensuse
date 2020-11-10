@@ -30,8 +30,8 @@ use Utils::Backends 'use_ssh_serial_console';
 sub first_azure_release {
     my $repo = shift;
 
-    remove_kernel_packages();
     fully_patch_system;
+    remove_kernel_packages();
 
     my @repos = split(",", $repo);
     while (my ($i, $val) = each(@repos)) {
