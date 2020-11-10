@@ -75,4 +75,32 @@ sub add_partition_on_gpt_disk {
     $self->_add_partition($args->{partition});
 }
 
+sub clone_partition_table {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk($args->{disk});
+    $self->get_expert_partitioner_page()->open_clone_partition_dialog();
+    $self->get_expert_partitioner_page()->select_all_disks_to_clone($args->{numdisks});
+    $self->get_expert_partitioner_page()->press_ok_clone();
+}
+
+sub add_raid_partition {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_raid();
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->_add_partition($args);
+}
+
+sub add_raid {
+    my ($self, $args) = @_;
+    my $raid_level            = $args->{raid_level};
+    my $device_selection_step = $args->{device_selection_step};
+    $self->get_expert_partitioner_page()->select_raid();
+    $self->get_expert_partitioner_page()->press_add_raid_button();
+    $self->get_raid_type_page()->set_raid_level($raid_level);
+    $self->get_raid_type_page()->select_devices_from_list($device_selection_step);
+    $self->get_raid_type_page()->press_next();
+    $self->get_raid_options_page()->press_next();
+    $self->add_raid_partition($args->{partition});
+}
+
 1;

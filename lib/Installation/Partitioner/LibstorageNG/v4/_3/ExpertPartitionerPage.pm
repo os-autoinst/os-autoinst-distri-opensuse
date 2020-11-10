@@ -31,28 +31,68 @@ sub new {
 sub init {
     my $self = shift;
 
-    $self->{btn_add_partition} = $self->{app}->button({id => '"Y2Partitioner::Widgets::PartitionAddButton"'});
+    $self->{btn_add_partition} = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
+    $self->{btn_add_raid}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
+    $self->{btn_accept}        = $self->{app}->button({label => 'Accept'});
+    $self->{menu_bar}          = $self->{app}->menucollection({id => 'menu_bar'});
+    $self->{tbl_devices}       = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
     $self->{tree_system_view}  = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
 
     return $self;
 }
 
-sub select_disk {
-    my ($self, $disk) = @_;
+sub select_item_in_system_view_table {
+    my ($self, $item) = @_;
 
     YuiRestClient::wait_until(object => sub {
             $self->{tree_system_view}->exist();
     }, message => 'Cannot access system view tree');
 
-    $self->{tree_system_view}->select('Hard Disks|' . $disk);
+    YuiRestClient::wait_until(object => sub {
+            $self->{tree_system_view}->select($item);
+    });
 
+    return $self;
+}
+
+sub open_clone_partition_dialog {
+    my ($self, $disk) = @_;
+
+    YuiRestClient::wait_until(object => sub {
+            $self->{tree_system_view}->exist();
+    }, message => 'Cannot access system view tree');
+    $self->select_item_in_system_view_table('Hard Disks');
+    # Cloning option is disabled if any partition is selected, so selecting disk
+    $self->{tbl_devices}->select(row => 0);
+    $self->{menu_bar}->select('&Device|&Clone Partitions to Another Device...');
     return $self;
 }
 
 sub press_add_partition_button {
     my ($self) = @_;
-    $self->{btn_add_partition}->click();
+    return $self->{btn_add_partition}->click();
+}
+
+sub press_add_raid_button {
+    my ($self) = @_;
+    return $self->{btn_add_raid}->click();
+}
+
+sub press_accept_button {
+    my ($self) = @_;
+    return $self->{btn_accept}->click();
+}
+
+sub select_disk {
+    my ($self, $disk) = @_;
+    $self->select_item_in_system_view_table('Hard Disks|' . $disk);
+    $self->{tbl_devices}->select(row => 0);
     return $self;
+}
+
+sub select_raid {
+    my ($self, $disk) = @_;
+    return $self->select_item_in_system_view_table('RAID');
 }
 
 1;
