@@ -27,12 +27,13 @@ use Installation::Partitioner::LibstorageNG::FormattingOptionsPage;
 use Installation::Partitioner::RaidTypePage;
 use Installation::Partitioner::RaidOptionsPage;
 use Installation::Partitioner::LibstorageNG::EncryptionPasswordPage;
+use YuiRestClient;
 
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
-        ExpertPartitionerPage     => Installation::Partitioner::LibstorageNG::v4::_3::ExpertPartitionerPage->new(),
+        ExpertPartitionerPage     => Installation::Partitioner::LibstorageNG::v4::_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()}),
         NewPartitionSizePage      => Installation::Partitioner::NewPartitionSizePage->new({
                 custom_size_shortcut => 'alt-o'
         }),
@@ -64,6 +65,14 @@ sub new {
                 verify_password_shortcut => 'alt-v'
         })
     }, $class;
+
+}
+
+sub add_partition_on_gpt_disk {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk($args->{disk});
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->_add_partition($args->{partition});
 }
 
 1;

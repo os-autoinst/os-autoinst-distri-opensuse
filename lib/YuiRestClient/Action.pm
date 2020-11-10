@@ -10,6 +10,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Action;
+
 use strict;
 use warnings;
 

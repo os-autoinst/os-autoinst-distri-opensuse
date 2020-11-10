@@ -16,6 +16,8 @@ use warnings;
 use YuiRestClient;
 use YuiRestClient::Http::HttpClient;
 use YuiRestClient::Http::WidgetController;
+use YuiRestClient::Widget::Button;
+use YuiRestClient::Widget::Tree;
 
 sub new {
     my ($class, $args) = @_;
@@ -39,6 +41,22 @@ sub connect {
         },
         message => "Connection to YUI REST server failed",
         %args);
+}
+
+sub button {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::Button->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub tree {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::Tree->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
 }
 
 1;
