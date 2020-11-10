@@ -197,7 +197,8 @@ sub handle_login {
 
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
-    send_key_until_needlematch('displaymanager', 'esc', 30, 3);
+    # Previously this pressed esc, but that makes the text field in SDDM lose focus
+    send_key_until_needlematch('displaymanager', 'shift', 30, 3);
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
             record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
@@ -218,11 +219,7 @@ sub handle_login {
             select_user_gnome($myuser);
         }
     }
-    assert_screen [qw(displaymanager-password-prompt displaymanager-unfocused-password-prompt)];
-    if (check_var('DESKTOP', 'kde') && match_has_tag('displaymanager-unfocused-password-prompt')) {
-        record_soft_failure('bsc#1122664 - password prompt is not focused');
-        wait_screen_change { assert_and_click 'displaymanager-password-prompt' };
-    }
+    assert_screen 'displaymanager-password-prompt';
     type_password;
     send_key 'ret';
 }
