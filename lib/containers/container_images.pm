@@ -109,15 +109,10 @@ sub test_opensuse_based_image {
         validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
             sub { /"SUSE Linux Enterprise Server $pretty_version"/ });
 
-        if (is_sle('=12-SP3', $version)) {
-            my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect';
-            assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin'";
-        } else {
-            my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-            assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
-            script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
-            script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
-        }
+        my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
+        assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
+        script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
+        script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
     } else {
         $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
