@@ -2505,6 +2505,9 @@ sub load_mitigation_tests {
     if (get_var('IPMI_TO_QEMU')) {
         loadtest "cpu_bugs/ipmi_to_qemu";
     }
+    if (get_var('IPMI_FAKE_SERVER')) {
+        loadtest "cpu_bugs/ipmi_fake_server";
+    }
     if (get_var('XEN_GRUB_SETUP')) {
         loadtest "cpu_bugs/xen_grub_setup";
     }
