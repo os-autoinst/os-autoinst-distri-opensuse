@@ -10,6 +10,10 @@ description:    >
     All SLE modules that are compatible between them can be selected by adding
     the setting ENABLE_ALL_SCC_MODULES=1 to the test suite
 conditional_schedule:
+    disk_activation:
+        ARCH:
+            's390x':
+                - installation/disk_activation
     grub_or_reconnect:
         ARCH:
             'x86_64':
@@ -24,6 +28,7 @@ schedule:
     - installation/bootloader_start
     - installation/welcome
     - installation/accept_license
+    - '{{disk_activation}}'
     - installation/scc_registration
     - installation/addon_products_sle
     - installation/system_role
