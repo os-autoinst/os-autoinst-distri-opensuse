@@ -25,4 +25,27 @@ sub select {
     return $self;
 }
 
+sub selected_item {
+    my ($self) = @_;
+
+    return $self->get_selected_node(items => $self->property('items'), path => '');
+}
+
+sub get_selected_node {
+    my ($self, %args) = @_;
+
+    foreach (@{$args{items}}) {
+        my $path = $args{path} . $_->{label};
+        if (defined $_->{selected} && $_->{selected} eq 'true') {
+            return $path;
+        }
+        if ($_->{children}) {
+            return $self->get_selected_node(items => $_->{children}, path => $path . '|');
+        }
+    }
+
+    return undef;
+}
+
+
 1;

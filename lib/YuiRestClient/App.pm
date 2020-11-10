@@ -17,6 +17,8 @@ use YuiRestClient;
 use YuiRestClient::Http::HttpClient;
 use YuiRestClient::Http::WidgetController;
 use YuiRestClient::Widget::Button;
+use YuiRestClient::Widget::MenuCollection;
+use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Tree;
 
 sub new {
@@ -51,9 +53,25 @@ sub button {
     });
 }
 
+sub table {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::Table->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
 sub tree {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Tree->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub menucollection {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::MenuCollection->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });
