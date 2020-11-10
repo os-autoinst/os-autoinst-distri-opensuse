@@ -17,6 +17,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use Term::ANSIColor 2.01 'colorstrip';
 use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
+use utils qw(script_output_retry);
 
 has tenantid        => undef;
 has subscription    => undef;
@@ -82,7 +83,8 @@ sub vault_create_credentials {
 
 sub resource_exist {
     my ($self) = @_;
-    my $output = script_output(q(az group list --query "[?name=='openqa-upload']"));
+    my $group  = $self->resource_group;
+    my $output = script_output_retry("az group show --name '$group' --output json", retry => 3, timeout => 30, delay => 10);
     return ($output ne '[]');
 }
 

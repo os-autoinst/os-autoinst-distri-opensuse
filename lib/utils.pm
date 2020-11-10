@@ -94,6 +94,7 @@ our @EXPORT = qw(
   common_service_status
   install_patterns
   common_service_action
+  script_output_retry
 );
 
 =head1 SYNOPSIS
@@ -1507,6 +1508,44 @@ sub script_retry {
     }
 
     return $ret;
+}
+
+=head2 script_output_retry
+
+ script_output_retry($cmd, [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
+
+Repeat command until expected result or timeout. Return the output of the command on success.
+
+C<$expect> refers to the expected command exit code and defaults to C<0>.
+
+C<$retry> refers to the number of retries and defaults to C<10>.
+
+C<$delay> is the time between retries and defaults to C<30>.
+
+The command must return within C<$timeout> seconds (default: 25).
+
+If the command doesn't return C<$expect> after C<$retry> retries,
+this function will die, if C<$die> is set.
+
+Example:
+
+ script_output_retry('ping -c1 -W1 machine', retry => 5);
+
+=cut
+sub script_output_retry {
+    my ($cmd, %args) = @_;
+    my $retry   = $args{retry}   // 10;
+    my $delay   = $args{delay}   // 30;
+    my $timeout = $args{timeout} // 30;
+    my $die     = $args{die}     // 1;
+
+    my $exec = "timeout " . ($timeout - 3) . " $cmd";
+    for (1 .. $retry) {
+        my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
+        return $ret if ($ret);
+        sleep $delay;
+    }
+    die("Waiting for Godot: $cmd") if $die;
 }
 
 =head2 script_run_interactive
