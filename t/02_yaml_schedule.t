@@ -46,4 +46,26 @@ subtest 'parse_yaml_test_data_using_yaml_data_setting' => sub {
     ok $testdata->{test_in_yaml_import_3} eq 'test_in_yaml_import_value_3', "Value in data file was overwritten by value in schedule file";
 };
 
+subtest 'parse_yaml_test_schedule_recursive_conditional' => sub {
+    use scheduler;
+    use testapi 'set_var';
+
+    my $schedule = $ypp->load_file(dirname(__FILE__) . '/data/test_schedule_recursive_conditional.yaml');
+    my @modules;
+    @modules = scheduler::parse_schedule($schedule);
+    ok $modules[0] eq 'bar/test0', "Basic scheduling";
+    ok $modules[1] eq 'bar/test3', "Basic scheduling";
+    set_var('VAR1', 'foo');
+    @modules = scheduler::parse_schedule($schedule);
+    ok $modules[0] eq 'bar/test0', "Basic scheduling";
+    ok $modules[1] eq 'foo/test1', "Conditional scheduling";
+    ok $modules[2] eq 'bar/test3', "Basic scheduling";
+    set_var('VAR2', 'foo');
+    @modules = scheduler::parse_schedule($schedule);
+    ok $modules[0] eq 'bar/test0', "Basic scheduling";
+    ok $modules[1] eq 'foo/test1', "Conditional scheduling";
+    ok $modules[2] eq 'foo/test2', "Recursive conditional scheduling";
+    ok $modules[3] eq 'bar/test3', "Basic scheduling";
+};
+
 done_testing;
