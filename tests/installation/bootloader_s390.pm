@@ -32,8 +32,7 @@ use version_utils qw(is_sle is_tumbleweed);
 # collapsing the lines - we have a limit of 10 lines
 sub try_merge_lines {
     my ($lines, $columns) = @_;
-    # the order of the parameters doesn't matter, so take the longest first
-    @$lines = sort { length($b) <=> length($a) } @$lines;
+
     for my $start_index (0 .. scalar(@$lines) - 1) {
         my $start = $lines->[$start_index];
         for my $end_index ($start_index + 1 .. scalar(@$lines) - 1) {
@@ -56,15 +55,28 @@ sub split_lines {
     my $columns = 72;
 
     my @lines = split(/ /, $params);
+    # the order of the parameters doesn't matter, so take the longest first
+    @lines = sort { length($b) <=> length($a) } @lines;
+    # Extract lines longer than 72 characters
+    my @too_long_lines;
+    while(length($lines[0]) > 72) {
+        push @too_long_lines, shift @lines;
+    }
     while (try_merge_lines(\@lines, $columns)) {
         # just keep trying!
     }
-
+    # When the parmfile is handed over to the kernel all lines are
+    # just concatenated. When a line has 72 characters and in the next
+    # line characters are in the first column, because both lines are
+    # concatenated you have a longer line.
+    for my $too_long_line (@too_long_lines) {
+        my @split_line = unpack("(A[72])*", $too_long_line);
+        push @lines, @split_line;
+    }
     $params = '';
     for my $line (@lines) {
         $params .= "String(\"$line \")\nNewline\n";
     }
-
     return $params;
 }
 
