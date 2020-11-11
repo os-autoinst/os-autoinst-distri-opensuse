@@ -23,8 +23,9 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
+    my $options = get_var('SUPPORTCOFIG_OPTIONS', '');
     assert_script_run "rm -rf nts_* scc_* ||:";
-    assert_script_run "supportconfig -t . -B test", 800;
+    assert_script_run "supportconfig $options -t . -B test", 2000;
 
     # bcc#1166774
     if (script_run("test -d scc_test") == 0) {
