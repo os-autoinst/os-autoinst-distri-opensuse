@@ -18,6 +18,7 @@ use YuiRestClient::Http::HttpClient;
 use YuiRestClient::Http::WidgetController;
 use YuiRestClient::Widget::Button;
 use YuiRestClient::Widget::MenuCollection;
+use YuiRestClient::Widget::SelectionBox;
 use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Tree;
 
@@ -53,6 +54,22 @@ sub button {
     });
 }
 
+sub menucollection {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::MenuCollection->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub selectionbox {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::SelectionBox->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
 sub table {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Table->new({
@@ -69,12 +86,6 @@ sub tree {
     });
 }
 
-sub menucollection {
-    my ($self, $filter) = @_;
-    return YuiRestClient::Widget::MenuCollection->new({
-            widget_controller => $self->{widget_controller},
-            filter            => $filter
-    });
-}
+
 
 1;
