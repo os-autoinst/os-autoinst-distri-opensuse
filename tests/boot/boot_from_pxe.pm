@@ -187,7 +187,7 @@ sub run {
                 assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
             }
         }
-        if (!is_upgrade) {
+        if (!is_upgrade && !get_var('KEEP_DISKS')) {
             prepare_disks;
         }
         save_screenshot;

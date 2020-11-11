@@ -126,7 +126,7 @@ sub prepare_pvm_installation {
     }
     assert_screen("run-yast-ssh", 300);
 
-    if (!is_upgrade) {
+    if (!is_upgrade && !get_var('KEEP_DISKS')) {
         prepare_disks;
     }
     # Switch to installation console (ssh or vnc)
