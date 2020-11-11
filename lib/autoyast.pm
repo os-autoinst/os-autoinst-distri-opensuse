@@ -179,7 +179,8 @@ sub expand_template {
         # pass reference to get_required_var function to be able to fetch other variables
         get_var => \&get_required_var,
         # pass reference to check_var
-        check_var => \&check_var
+        check_var => \&check_var,
+        is_ltss   => get_var('SCC_REGCODE_LTSS') ? '1' : '0'
     };
     my $output = $template->render($profile, $vars);
     return $output;
