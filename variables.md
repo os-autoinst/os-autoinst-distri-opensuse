@@ -154,6 +154,10 @@ XDMUSED | boolean | false | Indicates availability of xdm.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAML_TEST_DATA | string | | Defines yaml file containing test data.
 YAST2_FIRSTBOOT_USERNAME | string | | Defines username for the user to be created with YaST Firstboot
+YUI_PORT | integer | | Port being used for libyui REST API. See also YUI_SERVER and YUI_START_PORT.
+YUI_SERVER | string | | libyui REST API server name or ip address.
+YUI_START_PORT | integer | 39000 | Sets starting port for the libyui REST API, on qemu VNC port is then added to this port not to have conflicts.
+YUI_REST_API | boolean | false | Is used to setup environment for libyui REST API, as some parameters have to be set before the VM is started.
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)
