@@ -28,6 +28,7 @@ sub run {
     add_test_repositories;
     fully_patch_system;
     remove_ltss;
+    remove_espos;
     power_action('reboot', keepconsole => 1, textmode => 1);
     reconnect_mgmt_console if is_pvm;
 

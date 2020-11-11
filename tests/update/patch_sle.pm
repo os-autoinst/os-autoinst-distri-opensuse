@@ -94,6 +94,9 @@ sub patching_sle {
 
     #migration with LTSS is not possible, remove it before upgrade
     remove_ltss;
+
+    #migration with ESPOS is not possible, remove it before upgrade
+    remove_espos;
     if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
         # The system is registered.
         set_var('HDD_SCC_REGISTERED', 1);

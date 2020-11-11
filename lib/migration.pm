@@ -32,6 +32,7 @@ our @EXPORT = qw(
   setup_migration
   register_system_in_textmode
   remove_ltss
+  remove_espos
   disable_installation_repos
   record_disk_info
   check_rollback_system
@@ -114,6 +115,19 @@ sub remove_ltss {
             zypper_call 'rm sles-ltss-release-POOL';
         }
         set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
+    }
+}
+
+# Remove ESPOS product before migration
+# Also remove espos from SCC_ADDONS setting for registration in upgrade target
+sub remove_espos {
+    if (get_var('SCC_ADDONS', '') =~ /espos/) {
+        my $scc_addons = get_var_array('SCC_ADDONS');
+        record_info 'remove espos', 'got all updates from espos channel, now remove espos and drop it from SCC_ADDONS before migration';
+        if (check_var('SLE_PRODUCT', 'hpc')) {
+            remove_suseconnect_product('SLE_HPC-ESPOS');
+            set_var('SCC_ADDONS', join(',', grep { $_ ne 'espos' } @$scc_addons));
+        }
     }
 }
 
