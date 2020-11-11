@@ -33,7 +33,7 @@ sub run {
                 Autorefresh => $test_data->{dud_repos}->{$repo}->{Autorefresh}
         });
     }
-    assert_script_run('zypper -v ref | grep "All repositories have been refreshed"', 120);
+    assert_script_run('zypper ref', timeout => 180);
 }
 
 1;
