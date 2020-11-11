@@ -14,14 +14,14 @@
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4::_3::ExpertPartitionerController;
+package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use strict;
 use warnings;
 use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage;
-use Installation::Partitioner::LibstorageNG::v4::_3::ClonePartitionsDialog;
-use Installation::Partitioner::LibstorageNG::v4::_3::ExpertPartitionerPage;
+use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use Installation::Partitioner::NewPartitionSizePage;
 use Installation::Partitioner::RolePage;
 use Installation::Partitioner::LibstorageNG::FormattingOptionsPage;
@@ -34,8 +34,8 @@ sub new {
     my ($class, $args) = @_;
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
-        ExpertPartitionerPage     => Installation::Partitioner::LibstorageNG::v4::_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()}),
-        ClonePartitionsDialog     => Installation::Partitioner::LibstorageNG::v4::_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()}),
+        ExpertPartitionerPage     => Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()}),
+        ClonePartitionsDialog     => Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()}),
         NewPartitionSizePage      => Installation::Partitioner::NewPartitionSizePage->new({
                 custom_size_shortcut => 'alt-o'
         }),

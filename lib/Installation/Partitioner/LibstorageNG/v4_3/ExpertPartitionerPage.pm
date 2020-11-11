@@ -11,7 +11,7 @@
 # Page.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4::_3::ExpertPartitionerPage;
+package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use strict;
 use warnings;
 use testapi;
