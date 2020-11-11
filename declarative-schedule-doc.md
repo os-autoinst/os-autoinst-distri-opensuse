@@ -113,6 +113,7 @@ NOTE: Please, do not forget to wrap conditional schedule in quotes as `{` and `}
 
 **NOTE:**
  - [conditional_schedule](#conditional_schedule) does not allow at the moment to represent complex logic like combination of 'and' or 'or' and it does intend to do it due to potentially it would create the same problem that occurs with main.pm. Other kind of logic like a simple exclusion list could be feasible in the near future, for example "run for all except when this variable value is set to some specific value". Reusing of blocks needs to be re-thinked as well and what would be a readable syntax for this. At the moment if the scenario you intend to migrate has complex conditional logic it would require changes in your test modules.
+ - Nested conditional schedules (eg. referencing another conditional schedule from within a conditional schedule) are possible now.
  - The only section that is mandatory is [schedule](#schedule). The rest of the sections in the YAML file can be skipped.
 
 #### test_data

@@ -1,0 +1,14 @@
+conditional_schedule:
+    cond2:
+        VAR2:
+            'foo':
+                - foo/test2
+    cond1:
+        VAR1:
+            'foo':
+                - foo/test1
+                - '{{cond2}}'
+schedule:
+    - bar/test0
+    - '{{cond1}}'
+    - bar/test3
