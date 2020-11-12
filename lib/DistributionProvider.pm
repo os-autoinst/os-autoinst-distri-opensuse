@@ -41,7 +41,8 @@ sub provide {
     return Distribution::Sle::12->new()            if is_sle('12+');
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
-    return Distribution::Opensuse::Tumbleweed->new();
+    # Return 15sp2 as it stores the previous version of what was available
+    return Distribution::Sle::15sp2->new();
 }
 
 1;
