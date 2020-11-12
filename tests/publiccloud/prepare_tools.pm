@@ -80,7 +80,10 @@ sub run {
 
     # Install Azure cli
     install_in_venv('azure-cli', 'az');
-    record_info('Azure', script_output('az -v'));
+    my $azure_error = '/tmp/azure_error';
+    record_info('Azure', script_output('az -v 2>' . $azure_error));
+    script_run('cat ' . $azure_error);
+    assert_script_run('test ! -s ' . $azure_error);
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
