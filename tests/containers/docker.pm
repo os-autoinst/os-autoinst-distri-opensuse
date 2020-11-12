@@ -33,7 +33,7 @@ use utils;
 use strict;
 use warnings;
 use containers::common;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap get_os_release);
 use containers::utils;
 
 sub run {
@@ -43,7 +43,9 @@ sub run {
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
     my $dir        = "/root/DockerTest";
 
-    install_docker_when_needed();
+    my ($running_version, $sp, $host_distri) = get_os_release;
+
+    install_docker_when_needed($host_distri);
     test_seccomp();
 
     # Run basic docker tests

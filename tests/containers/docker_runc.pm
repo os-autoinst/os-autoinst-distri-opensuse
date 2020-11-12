@@ -19,7 +19,7 @@
 use base "consoletest";
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle get_os_release);
 use containers::common;
 use strict;
 use warnings;
@@ -28,12 +28,14 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    my ($running_version, $sp, $host_distri) = get_os_release;
+
     my @runtimes = ("docker-runc");
     push @runtimes, "runc" if !is_sle('=15');
 
     record_info 'Setup', 'Setup the environment';
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
-    install_docker_when_needed;
+    install_docker_when_needed($host_distri);
 
     # create the rootfs directory
     assert_script_run('mkdir rootfs');
@@ -59,7 +61,7 @@ sub run {
     assert_script_run("rm -rf rootfs");
 
     # install docker and docker-runc if needed
-    install_docker_when_needed;
+    install_docker_when_needed($host_distri);
 
     # remove leftover containers and images
     clean_container_host(runtime => 'docker');

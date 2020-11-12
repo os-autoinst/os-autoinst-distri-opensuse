@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
+use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud get_os_release check_os_release);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
@@ -43,7 +43,8 @@ sub install_podman_when_needed {
             assert_script_run "apt-get -y install podman", timeout => 220;
         }
         else {
-            add_suseconnect_product('sle-module-containers') if (is_sle '>=15');
+            # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
+            add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
             push(@pkgs, 'podman-cni-config') if is_jeos();
             push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
@@ -76,7 +77,8 @@ sub install_docker_when_needed {
                 assert_script_run "apt-get -y install docker-ce", timeout => 260;
             }
             else {
-                if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
+                # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
+                if ($host_os =~ 'sles' && script_run("SUSEConnect --status-text | grep Containers") != 0) {
                     is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
                 }
 

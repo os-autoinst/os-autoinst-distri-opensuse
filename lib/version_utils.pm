@@ -596,6 +596,10 @@ The expected distribution name to compare.
 
 The line we'll be parsing and checking.
 
+=item C<go_to_target>
+
+Command connecting to the SUT
+
 =item C<os_release_file>
 
 The full path to the Operating system identification file.
@@ -605,11 +609,12 @@ Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
 
 =cut
 sub check_os_release {
-    my ($distri_name, $line, $os_release_file) = @_;
+    my ($distri_name, $line, $go_to_target, $os_release_file) = @_;
     die '$distri_name is not given' unless $distri_name;
     die '$line is not given'        unless $line;
+    $go_to_target    //= '';
     $os_release_file //= '/etc/os-release';
-    my $os_like_name = script_output("grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
+    my $os_like_name = script_output("$go_to_target grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
     return ($os_like_name =~ /$distri_name/i);
 }
 

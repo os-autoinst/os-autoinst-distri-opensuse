@@ -30,7 +30,7 @@ use strict;
 use warnings;
 use registration;
 use containers::common;
-use version_utils qw(is_sle is_leap is_jeos);
+use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 
 sub run {
@@ -39,7 +39,9 @@ sub run {
 
     my $dir = "/root/DockerTest";
 
-    install_podman_when_needed();
+    my ($running_version, $sp, $host_distri) = get_os_release;
+
+    install_podman_when_needed($host_distri);
 
     # Run basic tests for podman
     basic_container_tests("podman");

@@ -97,7 +97,8 @@ sub run {
     #    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     #}
     # Host is used as server of libssh test
-    install_docker_when_needed;
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    install_docker_when_needed($host_distri);
     # zypper_call("--gpg-auto-import-keys in docker libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
     zypper_call("in libvirt-daemon-qemu qemu-kvm qemu-block-ssh");
     #  systemctl("start docker.service libvirtd.service sshd.service");
