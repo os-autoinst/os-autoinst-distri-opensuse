@@ -20,20 +20,20 @@ conditional_schedule:
                 - x11/keyboard_layout_gdm
             'x86_64':
                 - x11/keyboard_layout_gdm
-    steam:
+    x86_64_tests:
         ARCH:
             'x86_64':
                 - x11/steam
+                - x11/wine
+                - x11/chrome
     opensuse_tests:
         DISTRI:
             opensuse:
                 - x11/libqt5_qtbase
                 - x11/exiv2
                 - x11/seahorse
-                - '{{steam}}'
-                - x11/chrome
+                - '{{x86_64_tests}}'
                 - x11/multi_users_dm
-                - x11/wine
                 - x11/gnucash
                 - texlive/latexdiff
                 - appgeo/qgis
