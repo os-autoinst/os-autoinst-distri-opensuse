@@ -91,7 +91,7 @@ sub run {
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repos       = get_required_var('INCIDENT_REPO');
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
