@@ -30,7 +30,6 @@ use version_utils qw(is_opensuse is_leap is_tumbleweed);
 our @EXPORT = qw(is_network_manager_default
   continue_info_network_manager_default
   accept_warning_network_manager_default
-  workaround_suppress_lvm_warnings
   with_yast_env_variables
 );
 
@@ -86,24 +85,6 @@ sub accept_warning_network_manager_default {
     assert_screen 'yast2-lan-warning-network-manager';
     send_key $cmd{ok};
     assert_screen 'yast2_lan-global-tab';
-}
-
-=head2 workaround_suppress_lvm_warnings
-
- workaround_suppress_lvm_warnings();
-
-LVM is polluting stdout with leaked invocation warnings because of file descriptor 3 is assigned to /root/.bash_history.
-
-record_soft_failure if is 'is_tumbleweed' for issue 'bsc#1124481 - LVM is polluting stdout with leaked invocation warnings'.
-
-The workaround suppresses the warnings by setting the environment variable LVM_SUPPRESS_FD_WARNINGS.
-
-=cut
-sub workaround_suppress_lvm_warnings {
-    if (is_tumbleweed) {
-        record_soft_failure('bsc#1124481 - LVM is polluting stdout with leaked invocation warnings');
-        assert_script_run('export LVM_SUPPRESS_FD_WARNINGS=1');
-    }
 }
 
 sub post_fail_hook {
