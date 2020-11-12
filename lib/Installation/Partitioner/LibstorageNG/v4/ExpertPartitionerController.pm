@@ -30,55 +30,61 @@ use Installation::Partitioner::LibstorageNG::EncryptionPasswordPage;
 
 sub new {
     my ($class, $args) = @_;
-    my $self = bless {
-        SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
-        ExpertPartitionerPage     => Installation::Partitioner::LibstorageNG::ExpertPartitionerPage->new({
-                add_partition_shortcut     => 'alt-r',
-                resize_partition_shortcut  => 'alt-r',
-                edit_partition_shortcut    => 'alt-e',
-                add_raid_shortcut          => 'alt-d',
-                partition_table_shortcut   => 'alt-r',
-                avail_tgt_disks_shortcut   => 'alt-a',
-                ok_clone_shortcut          => 'alt-o',
-                select_msdos_shortcut      => 'alt-m',
-                select_gpt_shortcut        => 'alt-g',
-                modify_hard_disks_shortcut => 'alt-m',
-                press_yes_shortcut         => 'alt-y',
-                partitions_tab_shortcut    => 'alt-p',
-                select_primary_shortcut    => 'alt-p',
-                select_extended_shortcut   => 'alt-e'
-        }),
-        NewPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({
-                custom_size_shortcut => 'alt-o'
-        }),
-        EditPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({
-                custom_size_shortcut => 'alt-u'
-        }),
-        RolePage => Installation::Partitioner::RolePage->new({
-                raw_volume_shortcut => 'alt-r'
-        }),
-        FormattingOptionsPage => Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
-                do_not_format_shortcut => 'alt-t',
-                format_shortcut        => 'alt-r',
-                filesystem_shortcut    => 'alt-f',
-                do_not_mount_shortcut  => 'alt-u'
-        }),
-        EditFormattingOptionsPage => Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
-                do_not_format_shortcut  => 'alt-t',
-                format_shortcut         => 'alt-a',
-                filesystem_shortcut     => 'alt-f',
-                do_not_mount_shortcut   => 'alt-o',
-                encrypt_device_shortcut => 'alt-e'
-        }),
-        RaidTypePage    => Installation::Partitioner::RaidTypePage->new(),
-        RaidOptionsPage => Installation::Partitioner::RaidOptionsPage->new({
-                chunk_size_shortcut => 'alt-u'
-        }),
-        EncryptionPasswordPage => Installation::Partitioner::LibstorageNG::EncryptionPasswordPage->new({
-                enter_password_shortcut  => 'alt-e',
-                verify_password_shortcut => 'alt-v'
-        })
-    }, $class;
+    my $self = bless {}, $class;
+    return $self->init($args);
+}
+
+sub init {
+    my ($self, $args) = @_;
+    $self->{ExpertPartitionerPage} = Installation::Partitioner::LibstorageNG::ExpertPartitionerPage->new({
+            add_partition_shortcut     => 'alt-r',
+            resize_partition_shortcut  => 'alt-r',
+            edit_partition_shortcut    => 'alt-e',
+            add_raid_shortcut          => 'alt-d',
+            partition_table_shortcut   => 'alt-r',
+            avail_tgt_disks_shortcut   => 'alt-a',
+            ok_clone_shortcut          => 'alt-o',
+            select_msdos_shortcut      => 'alt-m',
+            select_gpt_shortcut        => 'alt-g',
+            modify_hard_disks_shortcut => 'alt-m',
+            press_yes_shortcut         => 'alt-y',
+            partitions_tab_shortcut    => 'alt-p',
+            select_primary_shortcut    => 'alt-p',
+            select_extended_shortcut   => 'alt-e'
+    });
+    $self->{SuggestedPartitioningPage} = Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new();
+    $self->{NewPartitionSizePage}      = Installation::Partitioner::NewPartitionSizePage->new({
+            custom_size_shortcut => 'alt-o'
+    });
+    $self->{EditPartitionSizePage} = Installation::Partitioner::NewPartitionSizePage->new({
+            custom_size_shortcut => 'alt-u'
+    });
+    $self->{RolePage} = Installation::Partitioner::RolePage->new({
+            raw_volume_shortcut => 'alt-r'
+    });
+    $self->{FormattingOptionsPage} = Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
+            do_not_format_shortcut => 'alt-t',
+            format_shortcut        => 'alt-r',
+            filesystem_shortcut    => 'alt-f',
+            do_not_mount_shortcut  => 'alt-u'
+    });
+    $self->{EditFormattingOptionsPage} = Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
+            do_not_format_shortcut  => 'alt-t',
+            format_shortcut         => 'alt-a',
+            filesystem_shortcut     => 'alt-f',
+            do_not_mount_shortcut   => 'alt-o',
+            encrypt_device_shortcut => 'alt-e'
+    });
+    $self->{RaidTypePage}    = Installation::Partitioner::RaidTypePage->new();
+    $self->{RaidOptionsPage} = Installation::Partitioner::RaidOptionsPage->new({
+            chunk_size_shortcut => 'alt-u'
+    });
+    $self->{EncryptionPasswordPage} = Installation::Partitioner::LibstorageNG::EncryptionPasswordPage->new({
+            enter_password_shortcut  => 'alt-e',
+            verify_password_shortcut => 'alt-v'
+    });
+
+    return $self;
 }
 
 sub get_edit_formatting_options_page {
