@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,11 +10,14 @@
 # Summary: The test module uses Expert Partitioning wizard on disks with GPT
 # partition table to create RAID using data driven pattern. Data is provided
 # by yaml scheduling file.
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
+
+use parent 'y2_installbase';
 
 use strict;
 use warnings;
-use parent 'installbasetest';
+
 use testapi;
 use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';

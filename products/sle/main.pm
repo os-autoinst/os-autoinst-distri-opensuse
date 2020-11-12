@@ -595,7 +595,10 @@ testapi::set_distribution(DistributionProvider->provide());
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
-return 1 if load_yaml_schedule;
+if (load_yaml_schedule) {
+    setup_yui_rest_api if get_var('YUI_REST_API');
+    return 1;
+}
 
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 

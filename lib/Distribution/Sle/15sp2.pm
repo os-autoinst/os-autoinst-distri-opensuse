@@ -7,17 +7,17 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class represents Tumbleweed distribution and provides access to
+# Summary: The class represents SLE 15 SP2 distribution and provides access to
 # its features.
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Distribution::Opensuse::Tumbleweed;
+package Distribution::Sle::15sp2;
 use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
-use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
+use Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController;
 use YaST::NetworkSettings::v4::NetworkSettingsController;
 
 sub get_partitioner {
@@ -25,7 +25,7 @@ sub get_partitioner {
 }
 
 sub get_expert_partitioner {
-    return Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController->new();
+    return Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController->new();
 }
 
 sub get_network_settings {

@@ -116,6 +116,7 @@ our @EXPORT = qw(
   rescuecdstep_is_applicable
   set_defaults_for_username_and_password
   setup_env
+  setup_yui_rest_api
   snapper_is_applicable
   ssh_key_import
   unregister_needle_tags
@@ -3222,6 +3223,20 @@ sub load_kernel_baremetal_tests {
     loadtest "toolchain/install";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
+}
+
+sub setup_yui_rest_api {
+    if (check_var('BACKEND', 'qemu')) {
+        # On qemu we connect to the worker using port forwarding
+        set_var('YUI_SERVER', 'localhost');
+        my $yuiport = get_var('YUI_START_PORT', 39000);
+        $yuiport += get_var('VNC') =~ /(?<vncport>\d+)/ ? $+{vncport} : int(rand(1000));
+        die "Cannot set port for YUI REST API" unless $yuiport;
+        set_var('YUI_PORT', $yuiport);
+        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
+              . " startshell=1 YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+        set_var('NICTYPE_USER_OPTIONS', "hostfwd=tcp::$yuiport-:$yuiport");
+    }
 }
 
 1;

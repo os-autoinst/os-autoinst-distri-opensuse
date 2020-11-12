@@ -123,7 +123,10 @@ logcurrentenv(
       LIVECD NETBOOT NOIMAGES SPLITUSR VIDEOMODE)
 );
 
-return 1 if load_yaml_schedule;
+if (load_yaml_schedule) {
+    setup_yui_rest_api if get_var('YUI_REST_API');
+    return 1;
+}
 
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 
