@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -136,8 +136,9 @@ sub samba_client_access {
     assert_screen("nautilus-sharedir-opened");
 
     # Do some operations, e.g., create a test folder then delete it
-    send_key "shift-ctrl-n";
-    wait_still_screen(2);
+    assert_and_click("nautilus-open-menu");
+    assert_and_click("nautilus-new-folder");
+    assert_screen("nautilus-folder-name-input-box");
     type_string("sub-testdir", wait_screen_changes => 10);
     send_key "ret";
     send_key_until_needlematch("nautilus-sharedir-delete", "delete", 5, 2);
