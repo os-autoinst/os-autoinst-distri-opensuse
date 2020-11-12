@@ -23,12 +23,24 @@ conditional_schedule:
                 - update/zypper_clear_repos
                 - console/zypper_ar
                 - console/zypper_ref
-    opensuse_tests:
-        DISTRI:
-            opensuse:
+    sound_tests:
+        ARCH:
+            x86_64:
                 - console/aplay
                 - console/soundtouch
                 - console/wavpack
+            aarch64:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+    steamcmd:
+        ARCH:
+            x86_64:
+                - console/steamcmd
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - '{{sound_tests}}'
                 - console/libvorbis
                 - console/ntp_client
                 - console/gdb
@@ -51,7 +63,7 @@ conditional_schedule:
                 - console/znc
                 - console/weechat
                 - console/nano
-                - console/steamcmd
+                - '{{steamcmd}}'
                 - console/libqca2
                 - console/kdump_and_crash
     validate_packages_and_patterns:
