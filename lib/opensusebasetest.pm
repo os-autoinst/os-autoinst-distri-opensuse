@@ -971,7 +971,7 @@ behave as if the env var NOAUTOLOGIN was set.
 sub wait_boot_past_bootloader {
     my ($self, %args) = @_;
     my $textmode     = $args{textmode};
-    my $ready_time   = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
+    my $ready_time   = $args{ready_time} // 500;
     my $nologin      = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
