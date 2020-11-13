@@ -269,11 +269,11 @@ sub format_dasd {
     }
 
     # bring DASD down again to test the activation during the installation
-    if (script_run('timeout --preserve-status 20 bash -x /sbin/dasd_configure 0.0.0150 0') != 0) {
+    if (script_run("timeout --preserve-status 20 bash -x /sbin/dasd_configure $dasd_path 0") != 0) {
         record_soft_failure('bsc#1151436');
         script_run('dasd_reload');
         assert_script_run('dmesg');
-        assert_script_run("bash -x /sbin/dasd_configure -f 0.0.0150 0");
+        assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
     }
 }
 
