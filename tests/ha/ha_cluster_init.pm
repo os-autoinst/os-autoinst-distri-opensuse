@@ -89,6 +89,9 @@ sub run {
     # This is an occasional issue with virtual machines.
     file_content_replace("$sbd_cfg", "SBD_DELAY_START=.*" => "SBD_DELAY_START=yes");
 
+    # Execute csync2 to synchronise the sysconfig sbd file
+    exec_csync;
+
     # Set wait_for_all option to 0 if we are in a two nodes cluster situation
     # We need to set it for reproducing the same behaviour we had with no-quorum-policy=ignore
     if (!check_var('TWO_NODES', 'no')) {
