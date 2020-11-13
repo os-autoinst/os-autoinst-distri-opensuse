@@ -314,7 +314,11 @@ sub run {
     }
 
     # format DASD before installation by default
-    format_dasd                if (check_var('FORMAT_DASD', 'pre_install'));
+    if (get_var('WORKAROUND_BUGS') =~ 'bsc1178790') {
+        record_soft_failure('bsc#1178790 - dasd_configure: Error: Could not write file /sys/bus/ccw/drivers/dasd-eckd/0.0.0150/online: Resource temporarily unavailable');
+    } elsif (check_var('FORMAT_DASD', 'pre_install')) {
+        format_dasd;
+    }
     create_encrypted_part_dasd if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
     select_console("installation");
