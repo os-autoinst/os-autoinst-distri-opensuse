@@ -323,7 +323,7 @@ sub copy_log {
 # Log: Copy junk.fsxops for fails fsx tests included in subtests
 sub copy_fsxops {
     my ($category, $num) = @_;
-    my $cmd = "if [ -e /mnt/test/junk.fsxops ]; then cp /mnt/test/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
+    my $cmd = "for i in `ls /mnt/test/junk*`; do cp \$i $LOG_DIR/$category/$num.`basename \$i`; done";
     script_run($cmd);
 }
 
