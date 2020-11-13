@@ -107,6 +107,9 @@ sub login {
     # after reboot and start typing the username before the console is actually
     # ready to accept it
     wait_serial(qr/login:\s*$/i, timeout => 5, quiet => 1);
+    # make sure that login prompt appears even when the console has been
+    # previously used
+    type_string(qq(\cd));
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
     send_key 'ret';
