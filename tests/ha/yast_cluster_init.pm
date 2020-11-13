@@ -113,11 +113,11 @@ sub run {
     diag 'Waiting for other nodes to configure csync2...';
     barrier_wait("CSYNC2_CONFIGURED_$cluster_name");
 
-    # Synchronize files with csync2
+    # Synchronise files with csync2
     exec_csync;
 
-    # Files are synchronized, pacemaker could be start in the other nodes
-    diag 'Waiting for other nodes to synchronize files...';
+    # Files are synchronised, pacemaker could be start in the other nodes
+    diag 'Waiting for other nodes to synchronise files...';
     barrier_wait("CSYNC2_SYNC_$cluster_name");
 
     # Waiting for the other nodes to join
@@ -131,7 +131,7 @@ sub run {
     assert_script_run "crm configure op_defaults timeout=600 record-pending=true";
     sleep 5;
 
-    # Synchronize files with csync2
+    # Synchronise files with csync2
     exec_csync;
     save_state;
 }
