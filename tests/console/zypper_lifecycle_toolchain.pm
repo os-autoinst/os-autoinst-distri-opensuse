@@ -34,8 +34,6 @@ sub run {
 
     select_console 'root-console';
     zypper_call("in sle-module-toolchain-release " . join(' ', keys %expiration), timeout => 1500);
-    script_run("zypper lifecycle");
-    script_run("zypper lifecycle " . join(' ', keys %expiration));
     for my $package (sort keys %expiration) {
         # Get lifecycle information for installed toolchain packages
         my $output = script_output "zypper lifecycle $package", 300;
