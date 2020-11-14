@@ -75,12 +75,14 @@ sub run {
     # Install ec2imgutils
     install_in_venv('ec2imgutils', 'ec2uploadimg');
     assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
-    # TODO: revert to 'ec2uploadimg --version' when it will be fixed
-    record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg -h'));
+    record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
     install_in_venv('azure-cli', 'az');
-    record_info('Azure', script_output('az -v'));
+    my $azure_error = '/tmp/azure_error';
+    record_info('Azure', script_output('az -v 2>' . $azure_error));
+    assert_script_run('cat ' . $azure_error);
+    assert_script_run('test ! -s ' . $azure_error);
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
