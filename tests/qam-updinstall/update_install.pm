@@ -168,10 +168,15 @@ sub run {
     my @installable_l3 = grep { $bins{$_}->{supportstatus} eq 'l3' } keys %installable;
     # If not all l3 released binaries are in the conflict binaries, fail.
     print "\nInstallable L3 @installable_l3\n";
-    if (notall { my $i = $_; defined(first { $installable_l3[$i] eq $_ } @conflict_names) } 0 .. $#installable_l3) {
-        record_info "Error", "Not all previously released l3 binaries exist in the patch. The update may have been misconfigured";
-        die;
+    my $onemissing;
+    for my $package (@installable_l3) {
+        my $hit = first { $package eq $_ } @conflict_names;
+        unless ($hit) {
+            $onemissing = 1;
+            record_info "Error", "$package is l3 but does not exist in the patch. The update may have been misconfigured";
+        }
     }
+    die if $onemissing;
 
     # Patch binaries already installed.
     zypper_call("in -l -t patch ${patches}", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1500);
