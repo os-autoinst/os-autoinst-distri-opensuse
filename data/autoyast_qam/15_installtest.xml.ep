@@ -11,7 +11,7 @@
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % if (!$check_var->('VERSION', '15') and $check_var->('ARCH', 'x86_64')) {
+      % if (!($check_var->('VERSION', '15') and $check_var->('ARCH', 'aarch64'))) {
       <listentry>
         <name>sle-module-containers:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-containers:<%= $get_var->('VERSION') %>::pool</alias>
