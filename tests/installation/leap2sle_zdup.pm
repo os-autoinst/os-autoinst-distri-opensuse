@@ -31,7 +31,8 @@ sub run {
     # We need to install rollback-helper and enable/start rollback.service
     # before creating a snapshot.
     zypper_call 'in rollback-helper';
-    common_service_start('rollback', 'Systemd');
+    systemctl("enable rollback");
+    systemctl("start rollback");
     # Create a snapshot with specified description to do snapper rollback
     assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
 

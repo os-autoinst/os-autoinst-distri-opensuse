@@ -54,9 +54,11 @@ sub full_apache_check {
     $stage //= '';
     if ($stage eq 'before') {
         install_service();
-        common_service_start('apache2', $type);
+        common_service_action('apache2', $type, 'enable');
+        common_service_action('apache2', $type, 'start');
     }
-    common_service_status('apache2', $type);
+    common_service_action('apache2', $type, 'is-enabled');
+    common_service_action('apache2', $type, 'is-active');
     check_function();
 }
 

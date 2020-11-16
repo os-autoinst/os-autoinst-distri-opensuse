@@ -90,8 +90,6 @@ our @EXPORT = qw(
   file_content_replace
   ensure_ca_certificates_suse_installed
   is_efi_boot
-  common_service_start
-  common_service_status
   install_patterns
   common_service_action
   script_output_retry
@@ -1763,39 +1761,6 @@ sub ensure_ca_certificates_suse_installed {
 # non empty */sys/firmware/efi/* must exist in UEFI mode
 sub is_efi_boot {
     return !!script_output('test -d /sys/firmware/efi/ && ls -A /sys/firmware/efi/', proceed_on_failure => 1);
-}
-
-sub common_service_start {
-    my ($service, $type) = @_;
-
-    if ($type eq 'SystemV') {
-        assert_script_run 'chkconfig ' . $service . ' on';
-        assert_script_run '/etc/init.d/' . $service . ' start';
-        assert_script_run 'service ' . $service . ' status';
-    }
-    elsif ($type eq 'Systemd') {
-        systemctl 'enable ' . $service;
-        systemctl 'start ' . $service;
-    }
-    else {
-        die "Unsupported service type, please check it again.";
-    }
-}
-
-sub common_service_status {
-    my ($service, $type) = @_;
-
-    if ($type eq 'SystemV') {
-        assert_script_run 'chkconfig  --list | grep ' . $service;
-        assert_script_run 'service ' . $service . ' status | grep running';
-    }
-    elsif ($type eq 'Systemd') {
-        systemctl 'is-enabled ' . $service;
-        systemctl 'is-active ' . $service;
-    }
-    else {
-        die "Unsupported service type, please check it again.";
-    }
 }
 
 #   Function: parse the output from script_output to get the pattern list
