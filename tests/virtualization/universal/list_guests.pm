@@ -28,9 +28,11 @@ sub run {
         # This should fix some common issues on the guests. If the procedure fails we still want to go on
         eval {
             ensure_online($guest);
+            record_info("$guest kernel", script_output("ssh \"$guest\" uname -r"));
+            1;
         } or do {
             my $err = $@;
-            record_info("$guest", "enure_online failure: $err");
+            record_soft_failure("enure_online failed for $guest: $err");
         };
     }
 }
