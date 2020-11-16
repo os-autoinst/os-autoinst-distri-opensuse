@@ -2,17 +2,33 @@ name:          UEFI_baremetal_basic
 description:    >
     basic installation testing on baremetal UEFI + install LTP
 vars:
-    AUTOYAST_PREPARE_PROFILE: 1
+    DESKTOP: textmode
     IPXE: 1
+    IPXE_CONSOLE: ttyS1,115200
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de:8080
     IPXE_UEFI: 1
     SCC_ADDONS: sdk
     LTP_BAREMETAL: 1
     INSTALL_LTP: from_repo
 schedule:
-    - autoyast/prepare_profile
     - installation/ipxe_install
-    - console/suseconnect_scc
-    - toolchain/install
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - boot/reconnect_mgmt_console
+    - installation/first_boot
     - kernel/install_ltp
     - kernel/shutdown_ltp

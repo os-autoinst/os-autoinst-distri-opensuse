@@ -146,13 +146,6 @@ sub run {
         select_console 'sol', await_console => 0;
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep 120;
-        if (check_var('IPXE_UEFI', '1')) {
-            # some machines need really long to boot into the installer, make sure
-            # we wait long enough so the bootscript was loaded
-            sleep 600;
-            set_bootscript_hdd;
-            assert_screen('linux-login', 1800);
-        }
     } else {
         select_console 'sol', await_console => 0;
         sleep 300;
@@ -164,6 +157,9 @@ sub run {
             sleep 2;
         }
         save_screenshot;
+
+        set_bootscript_hdd if get_var('IPXE_UEFI');
+
         select_console 'installation';
         save_screenshot;
 
