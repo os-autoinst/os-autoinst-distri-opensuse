@@ -13,6 +13,7 @@ use utils qw(
   type_string_slow
   type_string_very_slow
   zypper_call
+  handle_emergency
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
@@ -724,7 +725,7 @@ sub activate_console {
         else {
             my $nr = console_nr($console);
             $self->hyperv_console_switch($console, $nr);
-            my @tags = ("tty$nr-selected", "text-logged-in-$user");
+            my @tags = ("tty$nr-selected", "text-logged-in-$user", "emergency-shell");
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
@@ -747,6 +748,9 @@ sub activate_console {
             }
             elsif (match_has_tag('wsl-linux-prompt')) {
                 return;
+            }
+            elsif (match_has_tag('emergency-shell')) {
+                handle_emergency;
             }
         }
         assert_screen "text-logged-in-$user", 60;
