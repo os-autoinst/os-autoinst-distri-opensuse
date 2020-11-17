@@ -17,6 +17,7 @@ use testapi;
 use utils;
 
 sub run {
+    my $self = shift;
     # Install requirements
     select_console 'root-console';
     my $pkg_list = "parsec parsec-tool";
@@ -26,6 +27,9 @@ sub run {
     # Add user to 'parsec-clients' group and force relogin
     assert_script_run("usermod -a -G parsec-clients $testapi::username");
     select_console('user-console');
+    type_string("exit\n");
+    # Exit from serial_terminal before reseting consoles, as a workaround until https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/11405 get merged
+    $self->select_serial_terminal;
     type_string("exit\n");
     reset_consoles;
     select_console('user-console', ensure_tty_selected => 0, skip_setterm => 1);
