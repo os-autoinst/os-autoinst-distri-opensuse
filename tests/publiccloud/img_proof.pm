@@ -71,9 +71,9 @@ sub run {
         $self->{provider} = $args->{my_provider};    # required for cleanup
         select_host_console();
     } else {
+        $self->select_serial_terminal;
         $provider = $self->provider_factory();
         $instance = $provider->create_instance();
-        $self->select_serial_terminal;
     }
     if ($tests eq "default") {
         $tests = $img_proof_tests->{$flavor};
