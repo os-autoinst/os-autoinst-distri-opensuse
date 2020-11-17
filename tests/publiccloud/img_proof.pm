@@ -38,6 +38,7 @@ our $img_proof_tests = {
     'Azure-CHOST-BYOS'       => $azure_byos,
     'Azure-HPC'              => $azure_on_demand,
     'Azure-HPC-BYOS'         => $azure_byos,
+    'AZURE-Priority-Updates' => $azure_on_demand,
 
     'EC2-CHOST-BYOS'       => $ec2_byos_chost,
     'EC2-HVM'              => $ec2_on_demand,
