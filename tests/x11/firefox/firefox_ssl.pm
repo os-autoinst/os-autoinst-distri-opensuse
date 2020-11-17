@@ -80,7 +80,7 @@ sub run {
     wait_screen_change { send_key "esc" };
     send_key "ctrl-w";
 
-    $self->firefox_open_url('https://www.hongkongpost.gov.hk');
+    $self->firefox_open_url('https://untrusted-root.badssl.com/');
     assert_screen('firefox-ssl-connection_untrusted');
 
     # Exit
