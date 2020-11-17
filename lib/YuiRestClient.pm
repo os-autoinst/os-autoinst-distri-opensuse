@@ -13,11 +13,15 @@ package YuiRestClient;
 use strict;
 use warnings;
 
+use constant API_VERSION => 'v1';
+
+use testapi;
+use utils 'type_string_slow';
+use YuiRestClient::App;
+
 our $interval = 1;
 our $timeout  = 10;
 our $app;
-
-use constant API_VERSION => 'v1';
 
 sub set_interval {
     $interval = shift;
@@ -54,6 +58,20 @@ sub wait_until {
     my $error = "Timed out: @{[$args{message}]}\n";
     $error .= "\n$@" if $@;
     die $error;
+}
+
+sub setup_libyui {
+    record_info('PORT',   "Used port for libyui: " . get_var('YUI_PORT'));
+    record_info('SERVER', "Connecting to: " . get_var('YUI_SERVER'));
+    assert_screen('startshell', timeout => 500);
+    type_string_slow "extend libyui-rest-api\n";
+    type_string_slow "exit\n";
+    my $port = get_var('YUI_PORT');
+    my $host = get_var('YUI_SERVER');
+    my $app  = YuiRestClient::App->new({port => $port, host => $host});
+    # As we start installer, REST API is not instantly available
+    $app->connect(timeout => 500, interval => 10);
+    set_app($app);
 }
 
 1;

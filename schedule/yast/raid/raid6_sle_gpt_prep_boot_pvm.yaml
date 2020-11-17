@@ -9,8 +9,10 @@ vars:
   RAIDLEVEL: 6
   DESKTOP: textmode
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -27,6 +29,7 @@ schedule:
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
+  - installation/teardown_libyui
   - installation/reboot_after_installation
   - boot/reconnect_mgmt_console
   - installation/grub_test

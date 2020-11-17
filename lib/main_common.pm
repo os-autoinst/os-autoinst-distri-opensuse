@@ -3226,17 +3226,24 @@ sub load_kernel_baremetal_tests {
 }
 
 sub setup_yui_rest_api {
+    my $yuiport = get_var('YUI_START_PORT', 39000);
+    $yuiport += get_var('VNC') =~ /(?<vncport>\d+)/ ? $+{vncport} : int(rand(1000));
+    die "Cannot set port for YUI REST API" unless $yuiport;
+
+    set_var('YUI_PORT', $yuiport);
+    set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
+          . " startshell=1 YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+
+    my $server;
     if (check_var('BACKEND', 'qemu')) {
         # On qemu we connect to the worker using port forwarding
-        set_var('YUI_SERVER', 'localhost');
-        my $yuiport = get_var('YUI_START_PORT', 39000);
-        $yuiport += get_var('VNC') =~ /(?<vncport>\d+)/ ? $+{vncport} : int(rand(1000));
-        die "Cannot set port for YUI REST API" unless $yuiport;
-        set_var('YUI_PORT', $yuiport);
-        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
-              . " startshell=1 YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+        $server = 'localhost';
         set_var('NICTYPE_USER_OPTIONS', "hostfwd=tcp::$yuiport-:$yuiport");
+    } elsif (is_pvm) {
+        $server = get_var('SUT_IP');
     }
+    die "Cannot set libyui REST API server" unless $server;
+    set_var('YUI_SERVER', $server);
 }
 
 1;
