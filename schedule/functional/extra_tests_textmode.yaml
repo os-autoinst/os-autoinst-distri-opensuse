@@ -76,6 +76,10 @@ conditional_schedule:
                 - console/supportutils
                 - console/zziplib
                 - console/vsftpd
+    tumbleweed_tests:
+        VERSION:
+            'Tumbleweed':
+                - console/parsec
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -139,4 +143,5 @@ schedule:
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'
+    - '{{tumbleweed_tests}}'
     - console/coredump_collect
