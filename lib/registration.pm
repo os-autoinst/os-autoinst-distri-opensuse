@@ -87,6 +87,7 @@ our %ADDONS_REGCODE = (
     'sle-live-patching'        => get_var('SCC_REGCODE_LIVE'),
     'SLES-LTSS'                => get_var('SCC_REGCODE_LTSS'),
     'SUSE-Linux-Enterprise-RT' => get_var('SCC_REGCODE_RT'),
+    ESPOS                      => get_var('SCC_REGCODE_ESPOS'),
 );
 
 our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm live);
@@ -297,7 +298,7 @@ sub register_addons {
         last if (get_var('SMT_URL'));
         # change to uppercase to match variable
         $uc_addon = uc $addon;
-        my @addons_with_code = qw(geo live rt ltss ses);
+        my @addons_with_code = qw(geo live rt ltss ses espos);
         # WE doesn't need code on SLED
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP or in migrations to 12-SP5
@@ -410,6 +411,7 @@ sub process_scc_register_addons {
     #   tsm - Transactional Server Module
     #    we - Workstation
     #   wsm - Web and Scripting Module
+    # espos - Extended Service Pack Overlap Support
     if (get_var('SCC_ADDONS')) {
         if (check_screen('scc-beta-filter-checkbox', 5)) {
             if (is_sle('12-SP3+')) {
@@ -787,7 +789,8 @@ sub get_addon_fullname {
         wsm       => 'sle-module-web-scripting',
         python2   => 'sle-module-python2',
         phub      => 'PackageHub',
-        tsm       => 'sle-module-transactional-server'
+        tsm       => 'sle-module-transactional-server',
+        espos     => 'ESPOS',
     );
     return $product_list{"$addon"};
 }
