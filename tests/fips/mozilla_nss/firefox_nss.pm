@@ -6,21 +6,24 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
-
+#
 # Case #1560076 - FIPS: Firefox Mozilla NSS
-
+#
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
+#
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079, poo#71458
+# Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143
 
 use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use utils;
+use Utils::Architectures 'is_aarch64';
 
 sub quit_firefox {
     send_key "alt-f4";
-    if (check_screen("firefox-save-and-quit", 10)) {
+    if (check_screen("firefox-save-and-quit", 30)) {
         assert_and_click('firefox-click-close-tabs');
     }
 }
@@ -80,7 +83,30 @@ sub run {
 
     # Close Firefox
     quit_firefox;
-    assert_screen("generic-desktop", 20);
+
+    # Add more time for aarch64 due to worker performance problem
+    my $waittime = 60;
+    $waittime += 60 if is_aarch64;
+    assert_screen("generic-desktop", $waittime);
+
+    # Use the ps check if the bug happened bsc#1178552
+    # Add the ps to list which process is not closed while timeout
+    select_console 'root-console';
+
+    my $ret = script_run("ps -ef | grep firefox | grep childID | wc -l | grep '0'");
+    diag "---$ret---";
+    if ($ret == 1) {
+        script_run('ps -ef | grep firefox');
+        diag "---ret_pass---";
+        record_info('Firefox_ps', "Firefox process is already closed.");
+    }
+    else {
+        script_run('ps -ef | grep firefox | grep childID');
+        diag "---ret_fail---";
+        die 'firefox is not correctly closed';
+    }
+
+    select_console 'x11', await_console => 0;    # Go back to X11
 
     # "start_firefox" will be not used, since the master password is
     # required when firefox launching in FIPS mode
@@ -94,6 +120,16 @@ sub run {
     # Add max_interval while type password and extend time of click needle match
     type_string($fips_password, max_interval => 2);
     assert_and_click("firefox-enter-password-OK", 120);
+    wait_still_screen 10;
+
+    # Add a condition to avoid the password missed input
+    # Retype password again once the password missed input
+    # The problem frequently happaned in aarch64
+    if (match_has_tag('firefox-password-typefield-miss')) {
+        record_soft_failure "Firefox password is missing to input, see poo#77143";
+        type_string($fips_password, max_interval => 2);
+        send_key "ret";
+    }
     assert_screen("firefox-url-loaded", 20);
 
     # Firfox Preferences
