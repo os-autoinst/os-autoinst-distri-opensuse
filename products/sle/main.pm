@@ -33,6 +33,7 @@ use utils;
 use main_common;
 use main_pods;
 use known_bugs;
+use YuiRestClient;
 
 init_main();
 
@@ -596,7 +597,7 @@ $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures())
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 if (load_yaml_schedule) {
-    setup_yui_rest_api if get_var('YUI_REST_API');
+    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
     return 1;
 }
 

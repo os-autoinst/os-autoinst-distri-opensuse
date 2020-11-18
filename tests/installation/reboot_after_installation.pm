@@ -64,8 +64,8 @@ sub run {
         # socket end
         send_key 'alt-o';
     }
-    # Process exiting from startshell
-    if(YuiRestClient::is_libyui_rest_api && is_pvm) {
+    # Process exiting from the startshell
+    if (YuiRestClient::is_libyui_rest_api && is_pvm) {
         select_console 'powerhmc-ssh', await_console => 0;
         YuiRestClient::teardown_libyui();
     }

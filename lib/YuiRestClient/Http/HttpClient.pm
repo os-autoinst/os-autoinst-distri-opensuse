@@ -13,7 +13,6 @@ package YuiRestClient::Http::HttpClient;
 use strict;
 use warnings;
 
-use YuiRestClient;
 use Mojo::UserAgent;
 
 my $ua = Mojo::UserAgent->new;

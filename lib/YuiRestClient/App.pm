@@ -28,10 +28,10 @@ sub new {
     return bless {
         port              => $args->{port},
         host              => $args->{host},
+        timeout           => $args->{timeout},
+        interval          => $args->{interval},
         widget_controller =>
-          YuiRestClient::Http::WidgetController->new({
-                port => $args->{port}, host => $args->{host}
-          })
+          YuiRestClient::Http::WidgetController->new($args)
     }, $class;
 }
 

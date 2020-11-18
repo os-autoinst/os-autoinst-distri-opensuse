@@ -12,13 +12,12 @@
 package YuiRestClient::Wait;
 use strict;
 use warnings;
-use YuiRestClient;
 
 
 sub wait_until {
     my (%args) = @_;
-    $args{timeout}  //= $YuiRestClient::timeout;
-    $args{interval} //= $YuiRestClient::interval;
+    $args{timeout}  //= 10;
+    $args{interval} //= 1;
     $args{message}  //= '';
 
     die "No object passed to the method" unless $args{object};

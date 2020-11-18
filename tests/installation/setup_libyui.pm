@@ -25,6 +25,7 @@ use Utils::Backends 'is_pvm';
 
 use YuiRestClient;
 
+
 sub run {
     # We setup libyui in bootloader on powerVM
     return if is_pvm;
