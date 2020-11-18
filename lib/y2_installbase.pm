@@ -179,6 +179,7 @@ sub process_patterns {
     if (get_required_var('PATTERNS')) {
         if (check_var('PATTERNS', 'all') && !check_var('VIDEOMODE', 'text')) {
             $self->select_all_patterns_by_menu();
+            $self->deselect_pattern() if get_var('EXCLUDE_PATTERNS');
         }
         else {
             $self->select_specific_patterns_by_iteration();
@@ -224,6 +225,25 @@ sub select_all_patterns_by_menu {
     send_key 'alt-o';
     $self->accept3rdparty();
     assert_screen 'inst-overview';
+}
+
+=head2 deselect_pattern
+
+    deselect_pattern();
+
+Deselect patterns from already selected ones.
+=cut
+sub deselect_pattern {
+    my ($self) = @_;
+    my %patterns;    # set of patterns to be processed
+                     # fill with variable values
+    @patterns{split(/,/, get_var('EXCLUDE_PATTERNS'))} = ();
+    $self->go_to_patterns();
+    for my $p (keys %patterns) {
+        send_key_until_needlematch "$p-selected", 'down';
+        send_key ' ';    #deselect pattern
+        assert_screen 'on-pattern';
+    }
 }
 
 =head2 select_specific_patterns_by_iteration
