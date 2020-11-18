@@ -125,7 +125,8 @@ sub prepare_pvm_installation {
         die "Boot process restarted too many times" if ($boot_attempt > 3);
         return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
     }
-    if (get_var('YUI_REST_API')) {
+    # On powerVM we have to process startshell in bootloader
+    if (YuiRestClient::is_libyui_rest_api) {
         YuiRestClient::setup_libyui();
     }
 

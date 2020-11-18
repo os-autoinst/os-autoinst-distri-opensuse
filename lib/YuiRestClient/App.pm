@@ -13,9 +13,9 @@ package YuiRestClient::App;
 use strict;
 use warnings;
 
-use YuiRestClient;
 use YuiRestClient::Http::HttpClient;
 use YuiRestClient::Http::WidgetController;
+use YuiRestClient::Wait;
 use YuiRestClient::Widget::Button;
 use YuiRestClient::Widget::MenuCollection;
 use YuiRestClient::Widget::SelectionBox;
@@ -38,7 +38,7 @@ sub new {
 sub connect {
     my ($self, %args) = @_;
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(host => $self->{host}, port => $self->{port});
-    YuiRestClient::wait_until(object => sub {
+    YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
             return 1 if $response;
         },
@@ -85,7 +85,5 @@ sub tree {
             filter            => $filter
     });
 }
-
-
 
 1;

@@ -23,9 +23,12 @@ use warnings;
 use base "installbasetest";
 use testapi;
 
+use Utils::Backends 'is_pvm';
+use YuiRestClient;
+
 sub run {
-    assert_screen('startshell', timeout => 100);
-    type_string "exit\n";
+    return if is_pvm;
+    YuiRestClient::teardown_libyui();
 }
 
 1;

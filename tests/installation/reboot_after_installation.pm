@@ -22,7 +22,8 @@ use testapi;
 use utils;
 use mmapi;
 use power_action_utils 'power_action';
-use Utils::Backends 'has_ttys';
+use Utils::Backends qw(is_pvm has_ttys);
+use YuiRestClient;
 
 sub run {
     select_console 'installation' unless get_var('REMOTE_CONTROLLER');
@@ -62,6 +63,11 @@ sub run {
         # vanish immediately after the initial key press loosing the remote
         # socket end
         send_key 'alt-o';
+    }
+    # Process exiting from startshell
+    if(YuiRestClient::is_libyui_rest_api && is_pvm) {
+        select_console 'powerhmc-ssh', await_console => 0;
+        YuiRestClient::teardown_libyui();
     }
     if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
         # "Press ESC for boot menu"

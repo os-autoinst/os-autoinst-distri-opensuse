@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use YuiRestClient;
+use YuiRestClient::Wait;
 use YuiRestClient::Http::HttpClient;
 
 sub new {
@@ -35,7 +36,7 @@ sub find {
         params => $args
     );
 
-    YuiRestClient::wait_until(object => sub {
+    YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
             return $response->json if $response; }
     );
@@ -51,7 +52,7 @@ sub send_action {
         params => $args
     );
 
-    YuiRestClient::wait_until(object => sub {
+    YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_post($uri);
             return $response if $response; }
     );

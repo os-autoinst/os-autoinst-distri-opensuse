@@ -39,27 +39,6 @@ sub get_app {
     return $app;
 }
 
-sub wait_until {
-    my (%args) = @_;
-    $args{timeout}  //= $timeout;
-    $args{interval} //= $interval;
-    $args{message}  //= '';
-
-    die "No object passed to the method" unless $args{object};
-
-    my $counter = $args{timeout} / $args{interval};
-    my $result;
-    while ($counter--) {
-        eval { $result = $args{object}->() };
-        return $result if $result;
-        sleep($interval);
-    }
-
-    my $error = "Timed out: @{[$args{message}]}\n";
-    $error .= "\n$@" if $@;
-    die $error;
-}
-
 sub setup_libyui {
     record_info('PORT',   "Used port for libyui: " . get_var('YUI_PORT'));
     record_info('SERVER', "Connecting to: " . get_var('YUI_SERVER'));
@@ -72,6 +51,15 @@ sub setup_libyui {
     # As we start installer, REST API is not instantly available
     $app->connect(timeout => 500, interval => 10);
     set_app($app);
+}
+
+sub teardown_libyui {
+    assert_screen('startshell', timeout => 100);
+    type_string "exit\n";
+}
+
+sub is_libyui_rest_api {
+    return get_var('YUI_REST_API');
 }
 
 1;
