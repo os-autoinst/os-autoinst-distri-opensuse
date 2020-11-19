@@ -104,6 +104,7 @@ sub run_test {
         assert_script_run("virsh detach-interface $guest --mac $mac1 $exclusive");
         assert_script_run("virsh detach-interface $guest.clone --mac $mac2 $exclusive");
 
+        script_run "sed -i '/ $guest.clone /d' /etc/hosts";
         assert_script_run("virsh destroy $guest.clone");
         assert_script_run("virsh undefine $guest.clone");
         assert_script_run("rm -rf /var/lib/libvirt/images/$guest.clone");
