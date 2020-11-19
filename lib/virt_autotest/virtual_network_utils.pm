@@ -40,8 +40,28 @@ use virt_autotest::utils;
 use virt_utils;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network restore_guests restore_network
-  destroy_vir_network restore_libvirt_default enable_libvirt_log upload_debug_log check_guest_status check_guest_module save_guest_ip test_network_interface hosts_backup hosts_restore);
+  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log upload_debug_log check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup hosts_restore);
+
+sub check_guest_ip {
+    my ($guest, %args) = @_;
+    my $net = $args{net} // "br123";
+
+    # get some debug info about vm host network
+    script_run 'ip neigh';
+    script_run 'ip a';
+
+    # ensure guest is still alive
+    if (script_output("virsh domstate $guest") eq "running") {
+        script_run "sed -i '/ $guest /d' /etc/hosts";
+        my $mac_guest  = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
+        my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
+        script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+        my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
+        assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
+        assert_script_run "ping -c3 $guest";
+    }
+}
 
 sub check_guest_module {
     my ($guest, %args) = @_;
@@ -83,6 +103,8 @@ sub test_network_interface {
     my $isolated = $args{isolated} // 0;
     my $routed   = $args{routed}   // 0;
     my $target   = $args{target}   // script_output("dig +short openqa.suse.de");
+
+    check_guest_ip("$guest") if (is_sle('>15') && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
     save_guest_ip("$guest", name => $net);
 
