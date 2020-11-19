@@ -30,6 +30,9 @@ use virt_autotest::utils;
 
 sub run_test {
     my ($self) = @_;
+
+    # Except failur to ensure call post_fail_hook here
+    die "ensure call parent post_fail_hook for virsh snapshot management";
     #Snapshots are supported on KVM VM Host Servers only
     return unless is_kvm_host;
 

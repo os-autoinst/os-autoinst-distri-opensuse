@@ -89,4 +89,10 @@ sub run_test {
     }
 }
 
+sub post_fail_hook {
+    my $self = shift;
+
+    $self->SUPER::post_fail_hook;
+}
+
 1;
