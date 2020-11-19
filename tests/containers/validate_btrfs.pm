@@ -32,7 +32,7 @@ sub _sanity_test_btrfs {
     validate_script_output "df -h |grep var", sub { m/\/dev\/vda.+[1-6]\d?%/ };
     # /var is using its own partition which is size of 10G. Create file in the container
     # enough to fill up the partition up to ~99%
-    $rt->up('huge_image', cmd => 'fallocate -l 8.7G bigfile.stty');
+    $rt->up('huge_image', cmd => 'fallocate -l 9227483KiB bigfile.stty');
     # partition should be full
     validate_script_output "df -h |grep var",       sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=8.*GiB, used=8.*GiB/ };
@@ -64,7 +64,7 @@ sub _test_btrfs_device_mgmt {
     die("pull still works") if ($rt->pull("$tw") == 0);
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     validate_script_output "lsblk | grep vdb",              sub { m/vdb.+20G/ };
-    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2\s+size\s20.00GiB\sused\s0.00B.+\/dev\/vdb/ };
+    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2\s+size\s20.00GiB\sused\s1.00G.+\/dev\/vdb/ };
     $rt->pull($tw);
     assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) != \$(cat $btrfs_head)};
 }
