@@ -30,10 +30,13 @@ sub init {
     my $self = shift;
 
     $self->{btn_add_partition} = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
+    $self->{btn_lvm_add_vg}    = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
+    $self->{btn_lvm_add_lv}    = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
     $self->{btn_add_raid}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
     $self->{btn_accept}        = $self->{app}->button({label => 'Accept'});
     $self->{menu_bar}          = $self->{app}->menucollection({id => 'menu_bar'});
     $self->{tbl_devices}       = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
+    $self->{tbl_lvm_devices}   = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
     $self->{tree_system_view}  = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
 
     return $self;
@@ -70,6 +73,16 @@ sub press_add_partition_button {
     return $self->{btn_add_partition}->click();
 }
 
+sub press_add_volume_group_button {
+    my ($self) = @_;
+    return $self->{btn_lvm_add_vg}->click();
+}
+
+sub press_add_logical_volume_button {
+    my ($self) = @_;
+    return $self->{btn_lvm_add_lv}->click();
+}
+
 sub press_add_raid_button {
     my ($self) = @_;
     return $self->{btn_add_raid}->click();
@@ -90,6 +103,11 @@ sub select_disk {
 sub select_raid {
     my ($self, $disk) = @_;
     return $self->select_item_in_system_view_table('RAID');
+}
+
+sub select_lvm {
+    my ($self, $disk) = @_;
+    return $self->select_item_in_system_view_table('LVM Volume Groups');
 }
 
 1;
