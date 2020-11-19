@@ -366,9 +366,7 @@ sub run {
 
             zypper_call("rr qa-head");
             zypper_call("rm qa_lib_ctcs2 qa_test_ltp qa_test_newburn");
-            power_action('reboot', textmode => 1);
 
-            boot_to_console($self);
             verify_klp_pkg_patch_is_active($incident_klp_pkg);
         }
 
@@ -390,8 +388,10 @@ sub run {
         update_kernel($repo, $incident_id);
     }
 
-    power_action('reboot', textmode => 1);
-    $self->wait_boot if get_var('LTP_BAREMETAL');
+    if (!get_var('KGRAFT')) {
+        power_action('reboot', textmode => 1);
+        $self->wait_boot if get_var('LTP_BAREMETAL');
+    }
 }
 
 sub test_flags {
