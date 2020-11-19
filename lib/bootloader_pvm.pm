@@ -25,6 +25,7 @@ use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow);
 use version_utils 'is_upgrade';
+use YuiRestClient;
 
 our @EXPORT = qw(
   boot_pvm
@@ -124,6 +125,11 @@ sub prepare_pvm_installation {
         die "Boot process restarted too many times" if ($boot_attempt > 3);
         return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
     }
+    # On powerVM we have to process startshell in bootloader
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::setup_libyui();
+    }
+
     assert_screen("run-yast-ssh", 300);
 
     if (!is_upgrade && !get_var('KEEP_DISKS')) {

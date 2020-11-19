@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::ExpertPartitionerPage';
 
-use YuiRestClient;
+use YuiRestClient::Wait;
 
 sub new {
     my ($class, $args) = @_;
@@ -44,13 +44,8 @@ sub init {
 sub select_item_in_system_view_table {
     my ($self, $item) = @_;
 
-    YuiRestClient::wait_until(object => sub {
-            $self->{tree_system_view}->exist();
-    }, message => 'Cannot access system view tree');
-
-    YuiRestClient::wait_until(object => sub {
-            $self->{tree_system_view}->select($item);
-    });
+    $self->{tree_system_view}->exist();
+    $self->{tree_system_view}->select($item);
 
     return $self;
 }
@@ -58,9 +53,7 @@ sub select_item_in_system_view_table {
 sub open_clone_partition_dialog {
     my ($self, $disk) = @_;
 
-    YuiRestClient::wait_until(object => sub {
-            $self->{tree_system_view}->exist();
-    }, message => 'Cannot access system view tree');
+    $self->{tree_system_view}->exist();
     $self->select_item_in_system_view_table('Hard Disks');
     # Cloning option is disabled if any partition is selected, so selecting disk
     $self->{tbl_devices}->select(row => 0);
