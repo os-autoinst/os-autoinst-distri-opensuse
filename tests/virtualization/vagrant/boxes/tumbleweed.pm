@@ -25,6 +25,19 @@ use vagrant;
 use File::Basename;
 use Utils::Architectures 'is_x86_64';
 
+sub run_test_per_provider {
+    my ($version, $provider) = @_;
+    my $boxname = "$version-$provider";
+
+    # Test the box *only*: bring it up and destroy it immediately afterwards
+    assert_script_run("vagrant up $boxname --provider $provider", timeout => 1200);
+
+    # test if the box survives a reboot
+    assert_script_run("vagrant halt");
+    assert_script_run("vagrant up $boxname", timeout => 1200);
+
+    assert_script_run("vagrant destroy -f $boxname");
+}
 
 sub run() {
     my $is_virtualbox_applicable = is_x86_64();
@@ -73,28 +86,18 @@ sub run() {
     assert_script_run("mv Vagrantfile test_dir/");
     assert_script_run("pushd test_dir");
 
-    #
     # Grab the remaining test files and bring the boxes up, down and up again
     # be sure to clean them up afterwards
-    #
-    assert_script_run("wget --quiet " . data_url('virtualization/testfile.txt'));
-    assert_script_run("wget --quiet " . data_url('virtualization/provision.sh'));
-    assert_script_run("wget --quiet " . data_url('virtualization/ansible_playbook.yml'));
+    foreach ("testfile.txt", "prepare_repos.sh", "check_ip.sh", "ansible_playbook.yml") {
+        assert_script_run("wget --quiet " . data_url("virtualization/$_"));
+    }
 
     foreach my $provider (@providers) {
-        my $boxname = "$version-$provider";
-
-        # Test the box *only*: bring it up and destroy it immediately afterwards
-        assert_script_run("vagrant up $boxname --provider $provider --no-provision", timeout => 1200);
-
-        # now run the actual tests via the Ansible test playbook
-        assert_script_run("vagrant provision $boxname", timeout => 1200);
-
-        # test if the box survives a reboot
-        assert_script_run("vagrant halt");
-        assert_script_run("vagrant up $boxname", timeout => 1200);
-
-        assert_script_run("vagrant destroy -f $boxname");
+        run_test_per_provider($version, $provider);
+    }
+    assert_script_run("export BOX_STATIC_IP=1");
+    foreach my $provider (@providers) {
+        run_test_per_provider($version, $provider);
     }
 
     # cleanup after all the tests ran
