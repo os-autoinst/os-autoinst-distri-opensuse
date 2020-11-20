@@ -45,7 +45,7 @@ sub run {
             }
         }
     }
-    $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr");
+    $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr", rc_only => 1);
 }
 
 1;
