@@ -46,8 +46,7 @@ sub vsftd_setup_checker {
 sub vsftpd_firewall_checker {
     die "service configuration file is missing in firewalld" if script_run("[[ -e /usr/lib/firewalld/services/vsftpd.xml ]]");
     die "vsftpd is not enabled in firewalld"                 if script_run("firewall-cmd --list-services | grep vsftpd");
-    die "Port 21 is not opened"                              if script_run('iptables -L -n -v | grep "tcp dpt:21"');
-    die "Ports for passive ftp are not opened"               if script_run('iptables -L -n -v | grep "tcp dpts:30000:30100"');
+    die "Ports for passive ftp are not configured"           if script_run("firewall-cmd --permanent --service vsftpd --get-ports");
 }
 
 sub run {
