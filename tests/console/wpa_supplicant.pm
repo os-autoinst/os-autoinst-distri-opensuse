@@ -42,9 +42,8 @@ sub run {
         add_suseconnect_product(get_addon_fullname('phub'));
     }
     zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip';
-    assert_script_run 'cd /var/tmp';
-    assert_script_run 'curl -v -o wpa_supplicant-test.zip ' . data_url('wpa_supplicant/wpa_supplicant-test.zip');
-    assert_script_run 'unzip wpa_supplicant-test.zip';
+    assert_script_run 'cd $(mktemp -d)';
+    assert_script_run('curl -L -s ' . data_url('wpa_supplicant') . ' | cpio --make-directories --extract && cd data');
     record_info('Info', 'Running wpa_supplicant_test.sh');
     assert_script_run('bash -x ./wpa_supplicant_test.sh', timeout => 600);
     # unregister SDK
