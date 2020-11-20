@@ -24,15 +24,11 @@ sub run {
     zypper_call("in $pkg_list");
     systemctl 'start parsec';
 
-    # Add user to 'parsec-clients' group and force relogin
+    # Add user to 'parsec-clients' group
     assert_script_run("usermod -a -G parsec-clients $testapi::username");
     select_console('user-console');
-    type_string("exit\n");
-    # Exit from serial_terminal before reseting consoles, as a workaround until https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/11405 get merged
-    $self->select_serial_terminal;
-    type_string("exit\n");
-    reset_consoles;
-    select_console('user-console', ensure_tty_selected => 0, skip_setterm => 1);
+    # Use newgrp to get 'parsec-clients' group membership
+    type_string("newgrp parsec-clients\n");
 
     # Run tests as user with 'parsec-clients' permissions, with default config
     record_info('ping');
@@ -50,6 +46,9 @@ sub run {
     record_info('list-keys');
     assert_script_run 'parsec-tool list-keys';
     save_screenshot;
+
+    # exit from newgrp session
+    type_string("exit\n");
 
     # Clean-up
     select_console 'root-console';
