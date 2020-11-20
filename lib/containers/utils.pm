@@ -77,7 +77,7 @@ sub basic_container_tests {
 
     # Containers can be spawned
     #   - using 'run'
-    assert_script_run("$runtime container run --name test_1 hello-world | grep 'Hello from Docker\!'");
+    record_soft_failure('poo#76993') if (script_run("$runtime container run --name test_1 hello-world | grep 'Hello from Docker\!'"));
     #   - using 'create', 'start' and 'logs' (background container)
     record_soft_failure('poo#76993') if (script_run("$runtime container create --name test_2 alpine:$alpine_image_version /bin/echo Hello world") != 0);
     assert_script_run("$runtime container start test_2 | grep test_2");
