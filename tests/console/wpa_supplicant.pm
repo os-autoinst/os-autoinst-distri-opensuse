@@ -44,13 +44,18 @@ sub run {
     zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip';
     assert_script_run 'cd $(mktemp -d)';
     assert_script_run('curl -L -s ' . data_url('wpa_supplicant') . ' | cpio --make-directories --extract && cd data');
-    record_info('Info', 'Running wpa_supplicant_test.sh');
-    assert_script_run('bash -x ./wpa_supplicant_test.sh', timeout => 600);
+    assert_script_run('bash -x ./wpa_supplicant_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
     # unregister SDK
     if (is_sle && !main_common::is_updates_tests()) {
         remove_suseconnect_product(get_addon_fullname('phub'));
         record_info('Install-Info', 'Removed package hub repository');
     }
+}
+
+sub post_fail_hook {
+    # Upload logs if present
+    upload_logs("wicked.log")              if (script_run("stat wicked.log") == 0);
+    upload_logs("wpa-supplicant_test.txt") if (script_run("stat wpa-supplicant_test.txt") == 0);
 }
 
 1;
