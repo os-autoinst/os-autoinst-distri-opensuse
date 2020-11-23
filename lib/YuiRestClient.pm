@@ -17,7 +17,7 @@ use constant API_VERSION => 'v1';
 
 use testapi;
 use utils 'type_string_slow';
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_hyperv);
 use YuiRestClient::App;
 
 
@@ -41,18 +41,27 @@ sub get_app {
     return $app;
 }
 
-sub setup_libyui {
+sub connect_to_app {
     my $port = get_var('YUI_PORT');
     my $host = get_var('YUI_SERVER');
+    die "Cannot set libyui REST API server" unless $host;
     record_info('PORT',   "Used port for libyui: $port");
     record_info('SERVER', "Connecting to: $host");
-    assert_screen('startshell', timeout => 500);
-    type_string_slow "extend libyui-rest-api\n";
-    type_string_slow "exit\n";
     my $app = YuiRestClient::App->new({port => $port, host => $host, api_version => API_VERSION});
     # As we start installer, REST API is not instantly available
     $app->connect(timeout => 500, interval => 10);
     set_app($app);
+}
+
+sub process_start_shell {
+    assert_screen('startshell', timeout => 500);
+    type_string_slow "extend libyui-rest-api\n";
+    type_string_slow "exit\n";
+}
+
+sub setup_libyui {
+    process_start_shell;
+    connect_to_app;
 }
 
 sub teardown_libyui {
@@ -81,7 +90,7 @@ sub set_libyui_backend_vars {
     } elsif (is_pvm) {
         $server = get_var('SUT_IP');
     }
-    die "Cannot set libyui REST API server" unless $server;
+
     set_var('YUI_SERVER', $server);
 }
 

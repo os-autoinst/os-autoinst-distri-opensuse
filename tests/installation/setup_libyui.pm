@@ -21,14 +21,30 @@
 use strict;
 use warnings;
 use base "installbasetest";
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_hyperv);
 
+use testapi;
 use YuiRestClient;
+use YuiRestClient::Wait;
 
 sub run {
     # We setup libyui in bootloader on powerVM
     return if is_pvm;
-    YuiRestClient::setup_libyui();
+    YuiRestClient::process_start_shell();
+
+    if (is_hyperv) {
+        my $svirt = select_console('svirt');
+        my $name  = $svirt->name;
+        my $cmd   = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
+        my $ip    = YuiRestClient::Wait::wait_until(object => sub {
+                my $ip = $svirt->get_cmd_output($cmd);
+                return $+{ip} if ($ip =~ /(?<ip>(\d+\.){3}\d+)/i);
+        }, timeout => 500, interval => 30);
+        set_var('YUI_SERVER', $ip);
+        select_console('sut', await_console => 0);
+    }
+
+    YuiRestClient::connect_to_app();
 }
 
 1;
