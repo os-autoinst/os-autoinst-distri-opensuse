@@ -314,7 +314,7 @@ sub select_bootmenu_option {
 }
 
 sub get_extra_boot_params {
-    my @params = split ' ', get_var('EXTRABOOTPARAMS', '');
+    my @params = split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
     return @params;
 }
 
