@@ -20,6 +20,8 @@ use warnings;
 use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
+use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use YuiRestClient;
 
@@ -32,8 +34,10 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{ExpertPartitionerPage} = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
-    $self->{ClonePartitionsDialog} = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
+    $self->{ExpertPartitionerPage}        = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
+    $self->{ClonePartitionsDialog}        = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
+    $self->{CreatePartitionTablePage}     = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
+    $self->{DeletingCurrentDevicesDialog} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog->new({app => YuiRestClient::get_app()});
 
     return $self;
 }
@@ -43,6 +47,15 @@ sub get_clone_partition_dialog {
     return $self->{ClonePartitionsDialog};
 }
 
+sub get_create_new_partition_table_page {
+    my ($self) = @_;
+    return $self->{CreatePartitionTablePage};
+}
+
+sub get_deleting_current_devices_dialog {
+    my ($self) = @_;
+    return $self->{DeletingCurrentDevicesDialog};
+}
 
 sub add_partition_on_gpt_disk {
     my ($self, $args) = @_;
@@ -77,6 +90,14 @@ sub add_raid {
     $self->get_raid_type_page()->press_next();
     $self->get_raid_options_page()->press_next();
     $self->add_raid_partition($args->{partition});
+}
+
+sub create_new_partition_table {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk($args->{name});
+    $self->get_expert_partitioner_page()->select_create_partition_table();
+    $self->get_deleting_current_devices_dialog()->press_yes();
+    $self->get_create_new_partition_table_page()->press_next();
 }
 
 1;
