@@ -2,10 +2,15 @@
 disks:
   - name: sda
     partitions:
-      - size: 2mb
-        id: bios-boot
+      - size: 300mb
         role: raw-volume
-      - size: 8000mb
+        formatting_options:
+          should_format: 1
+          filesystem: fat
+        mounting_options:
+          should_mount: 1
+          mount_point: '/boot/efi'
+      - size: 12500mb
         role: raw-volume
         id: linux-raid
       - size: 100mb
@@ -13,10 +18,10 @@ disks:
         id: linux-raid
   - name: sdb
     partitions:
-      - size: 2mb
-        id: bios-boot
+      - size: 300mb
         role: raw-volume
-      - size: 8000mb
+        id: efi
+      - size: 12500mb
         role: raw-volume
         id: linux-raid
       - size: 100mb
@@ -24,10 +29,10 @@ disks:
         id: linux-raid
   - name: sdc
     partitions:
-      - size: 2mb
-        id: bios-boot
+      - size: 300mb
         role: raw-volume
-      - size: 8000mb
+        id: efi
+      - size: 12500mb
         role: raw-volume
         id: linux-raid
       - size: 100mb
@@ -35,15 +40,35 @@ disks:
         id: linux-raid
   - name: sdd
     partitions:
-      - size: 2mb
-        id: bios-boot
+      - size: 300mb
         role: raw-volume
-      - size: 8000mb
+        id: efi
+      - size: 12500mb
         role: raw-volume
         id: linux-raid
       - size: 100mb
         role: raw-volume
         id: linux-raid
+mds:
+  - raid_level: 1
+    chunk_size: 64
+    device_selection_step: 2
+    partition:
+      role: raw-volume
+      formatting_options:
+        should_format: 0
+      mounting_options:
+        should_mount: 0
+  - raid_level: 0
+    chunk_size: 64
+    device_selection_step: 1
+    partition:
+      role: operating-system
+      formatting_options:
+        should_format: 1
+        filesystem: swap
+      mounting_options:
+        should_mount: 1
 lvm:
   volume_groups:
     - name: vg-system
