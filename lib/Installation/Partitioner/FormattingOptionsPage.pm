@@ -25,6 +25,7 @@ use constant {
     PARTITION_ID_EFI_SYSTEM       => 'partition-selected-efi-type',
     PARTITION_ID_BIOS_BOOT        => 'partition-selected-bios-boot-type',
     PARTITION_ID_LINUX_RAID       => 'partition-selected-raid-type',
+    PARTITION_ID_LINUX_LVM        => 'partition-selected-lvm-type',
     ENCRYPT_DEVICE_OPTION_CHECKED => 'partition-encrypt'
 };
 
@@ -73,6 +74,9 @@ sub select_partition_id {
     }
     elsif ($partition_id eq 'linux-raid') {
         $partition_id_needle = PARTITION_ID_LINUX_RAID;
+    }
+    elsif ($partition_id eq 'linux-lvm') {
+        $partition_id_needle = PARTITION_ID_LINUX_LVM;
     }
     else {
         die "\"$partition_id\" Partition ID is not known.";
