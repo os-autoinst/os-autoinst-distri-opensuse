@@ -19,6 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
+use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
@@ -40,7 +41,12 @@ sub init {
     $self->{ClonePartitionsDialog}        = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
     $self->{CreatePartitionTablePage}     = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
     $self->{DeletingCurrentDevicesDialog} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog->new({app => YuiRestClient::get_app()});
-    $self->{AddVolumeGroupPage}    = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
+    $self->{AddVolumeGroupPage}           = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
+    $self->{AddLogicalVolumePage}         = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
+
+    $self->{EditPartitionSizePage} = Installation::Partitioner::NewPartitionSizePage->new({
+            custom_size_shortcut => 'alt-t'
+    });
 
     return $self;
 }
@@ -63,6 +69,11 @@ sub get_create_new_partition_table_page {
 sub get_deleting_current_devices_dialog {
     my ($self) = @_;
     return $self->{DeletingCurrentDevicesDialog};
+}
+
+sub get_add_logical_volume_page {
+    my ($self) = @_;
+    return $self->{AddLogicalVolumePage};
 }
 
 sub add_partition_on_gpt_disk {
@@ -118,6 +129,19 @@ sub add_volume_group {
     }
     $self->get_add_volume_group_page()->press_add_button();
     $self->get_add_volume_group_page()->press_next_button();
+}
+
+sub add_logical_volume {
+    my ($self, $args) = @_;
+    my $lv = $args->{logical_volume};
+    $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
+    $self->get_expert_partitioner_page()->press_add_logical_volume_button();
+    $self->get_add_logical_volume_page()->set_logical_volume_name($lv->{name});
+    $self->get_add_logical_volume_page()->press_next_button();
+    $self->set_new_partition_size($lv->{size});
+    $self->get_add_logical_volume_page()->select_role($lv->{role});
+    $self->get_add_logical_volume_page()->press_next_button();
+    $self->_finish_partition_creation;
 }
 
 1;

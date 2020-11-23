@@ -29,15 +29,16 @@ sub new {
 sub init {
     my $self = shift;
 
-    $self->{btn_add_partition} = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
-    $self->{btn_lvm_add_vg}    = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
-    $self->{btn_lvm_add_lv}    = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
-    $self->{btn_add_raid}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
-    $self->{btn_accept}        = $self->{app}->button({label => 'Accept'});
-    $self->{menu_bar}          = $self->{app}->menucollection({id => 'menu_bar'});
-    $self->{tbl_devices}       = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
-    $self->{tbl_lvm_devices}   = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
-    $self->{tree_system_view}  = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
+    $self->{btn_add_partition}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
+    $self->{btn_lvm_add_vg}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
+    $self->{btn_lvm_add_lv}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
+    $self->{btn_add_raid}           = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
+    $self->{btn_accept}             = $self->{app}->button({label => 'Accept'});
+    $self->{menu_bar}               = $self->{app}->menucollection({id => 'menu_bar'});
+    $self->{tbl_devices}            = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
+    $self->{tbl_lvm_devices}        = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
+    $self->{tree_system_view}       = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
+    $self->{btn_add_logical_volume} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
 
     return $self;
 }
@@ -108,6 +109,11 @@ sub select_raid {
 sub select_lvm {
     my ($self, $disk) = @_;
     return $self->select_item_in_system_view_table('LVM Volume Groups');
+}
+
+sub select_volume_group {
+    my ($self, $vg) = @_;
+    return $self->select_item_in_system_view_table('LVM Volume Groups|' . $vg);
 }
 
 1;
