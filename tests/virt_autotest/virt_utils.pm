@@ -23,13 +23,14 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use List::Util 'first';
+use LWP::Simple 'head';
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest::utils;
 use version_utils qw(is_sle get_os_release);
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log download_guest_assets is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
 
 sub enable_debug_logging {
 
@@ -317,8 +318,6 @@ sub generate_guest_asset_name {
       . lc(get_required_var('SYSTEM_ROLE')) . '_'
       . get_required_var('ARCH');
 
-    record_info('Guest asset info', "Guest asset name is : $composed_name");
-
     return $composed_name;
 }
 
@@ -326,12 +325,11 @@ sub get_guest_disk_name_from_guest_xml {
     my $guest = shift;
 
     # Our automation only supports single guest disk
-    my $disk_from_xml = script_output("virsh dumpxml $guest | sed -n \'/disk/,/\\\/disk/p\' | grep 'source file=' | grep -v iso");
+    my $disk_from_xml = script_output("virsh dumpxml $guest | sed -n \'/disk/,/\\\/disk/p\' | grep 'source file='");
     record_info('Guest disk config from xml', "Guest $guest disk_from_xml is: $disk_from_xml.");
     $disk_from_xml =~ /file='(.*)'/;
     $disk_from_xml = $1;
     die 'There is no guest disk file parsed out from guest xml configuration!' unless $disk_from_xml;
-    record_info('Guest disk name', "Guest $guest disk_from_xml is: $disk_from_xml.");
 
     return $disk_from_xml;
 }
@@ -348,6 +346,42 @@ sub compress_single_qcow2_disk {
     }
 }
 
+# get the guest list from the test suite settings
+sub get_guest_list {
+
+    #get the guest pattern from test suite settings
+    if (get_var('GUEST_PATTERN')) {
+        set_var('GUEST_LIST', get_var('GUEST_PATTERN'));
+    }
+    elsif (get_var('GUEST')) {
+        set_var('GUEST_LIST', get_var('GUEST'));
+    }
+    handle_sp_in_settings_with_fcs("GUEST_LIST");
+    my $guest_pattern = get_required_var("GUEST_LIST");
+
+    #parse the guest list from the pattern
+    return $guest_pattern if ($guest_pattern =~ /win/i);
+    my $qa_guest_config_file = "/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update";
+    my $hypervisor_type      = get_var('SYSTEM_ROLE', '');
+    my $guest_list = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vms_from_config_file $qa_guest_config_file $guest_pattern $hypervisor_type";
+    record_soft_failure("Not found guest pattern $guest_pattern in $qa_guest_config_file") if ($guest_list eq '');
+    return $guest_list;
+}
+
+# remove a vm listed via 'virsh list'
+sub remove_vm {
+    my $vm               = shift;
+    my $is_persistent_vm = script_output "virsh dominfo $vm | sed -n '/Persistent:/p' | awk '{print \$2}'";
+    my $vm_state         = script_output "virsh domstate $vm";
+    if ($vm_state ne "shut off") {
+        assert_script_run("virsh destroy $vm", 30);
+    }
+    if ($is_persistent_vm eq "yes") {
+        assert_script_run("virsh undefine $vm", 30);
+    }
+}
+
+
 sub upload_supportconfig_log {
     my $datetab = script_output("date '+%Y%m%d%H%M%S'");
     script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
@@ -360,55 +394,58 @@ sub upload_supportconfig_log {
 # Download guest image and xml from a NFS location to local
 # the image and xml is coming from a guest installation testsuite
 # need set SKIP_GUEST_INSTALL=1 in the test suite settings
+# return the account of the guests downloaded
 # only available on x86_64
 sub download_guest_assets {
 
     # guest_pattern is a string, like sles-11-sp4-64, may or may not with pv or fv given.
-    my ($guest_pattern, $vm_xml_dir) = @_;
-
-    # list the guests matched the pattern
-    my $qa_guest_config_file = "/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update";
-    my $hypervisor_type      = get_var('SYSTEM_ROLE', '');
-    my $install_guest_list = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vms_from_config_file $qa_guest_config_file $guest_pattern $hypervisor_type";
-    save_screenshot;
-    if ($install_guest_list eq '') {
-        record_soft_failure("Not found guest pattern $guest_pattern in $qa_guest_config_file");
-        return 1;
-    }
+    my ($expected_guests, $vm_xml_dir) = @_;
 
     # mount the remote NFS location of guest assets
     # OPENQA_URL="localhost" in local openQA instead of the IP, so the line below need to be turned on and set to the webUI IP when you are using local openQA
     # Tips: Using local openQA, you need "rcnfs-server start & vi /etc/exports; exportfs -r")
-    # set_var('OPENQA_URL', "your_ip");
+    # set OPENQA_URL="your_ip" on openQA web UI
     my $openqa_server = get_required_var('OPENQA_URL');
-    $openqa_server =~ s/^http:\/\///;
-    my $remote_export_dir = "/var/lib/openqa/factory/other/";
-    my $mount_point       = "/tmp/remote_guest";
+
+    # check if vm xml files have been uploaded
+    my @available_guests = ();
+    foreach my $guest (split "\n", $expected_guests) {
+        my $guest_asset = generate_guest_asset_name("$guest");
+        my $vm_disk_url = $openqa_server . "/assets/other/" . $guest_asset . '.disk';
+        $vm_disk_url =~ s#^(?!http://)(.*)$#http://$1#;    #add 'http://' at beginning if needed.
+        if (head($vm_disk_url)) {
+            push @available_guests, $guest;
+        }
+        else {
+            record_soft_failure("$vm_disk_url not found!");
+        }
+    }
+    return 0 unless @available_guests;
 
     # clean up vm stuff
+    my $mount_point = "/tmp/remote_guest";
     script_run "[ -d $mount_point ] && { if findmnt $mount_point; then umount $mount_point; rm -rf $mount_point; fi }";
     script_run "mkdir -p $mount_point";
     script_run "[ -d $vm_xml_dir ] && rm -rf $vm_xml_dir; mkdir -p $vm_xml_dir";
     my $disk_image_dir = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vm_disk_dir";
-    script_run "umount $disk_image_dir; rm -rf $disk_image_dir";
+    script_run "umount $disk_image_dir; rm -rf $disk_image_dir/*";
     script_run "[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/" if get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE');
-    save_screenshot;
 
     # tip: nfs4 is not supported on sles12sp4, so use '-t nfs' instead of 'nfs4' here.
+    $openqa_server =~ s/^http:\/\///;
+    my $remote_export_dir = "/var/lib/openqa/factory/other/";
     assert_script_run("mount -t nfs $openqa_server:$remote_export_dir $mount_point", 120);
-    save_screenshot;
 
     # copy guest images and xml files to local
     # test aborts if failing in copying all the guests
-    my $remote_guest_count = 0;
-    foreach my $guest (split "\n", $install_guest_list) {
+    my $guest_count = 0;
+    foreach my $guest (@available_guests) {
         my $guest_asset           = generate_guest_asset_name("$guest");
         my $remote_guest_xml_file = $guest_asset . '.xml';
         my $remote_guest_disk     = $guest_asset . '.disk';
 
         # download vm xml file
         my $rc = script_run("cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
-        save_screenshot;
         if ($rc) {
             record_soft_failure("Failed copying: $mount_point/$remote_guest_xml_file");
             next;
@@ -432,19 +469,25 @@ sub download_guest_assets {
         script_run "[ -d `dirname $local_guest_image` ] || mkdir -p `dirname $local_guest_image`";
         $rc = script_run("cp $mount_point/$remote_guest_disk $local_guest_image", 300);    #it took 75 seconds copy from vh016 to vh001
         script_run "ls -l $local_guest_image";
-        save_screenshot;
         if ($rc) {
             record_soft_failure("Failed to download: $remote_guest_disk");
             next;
         }
-        $remote_guest_count++;
+        $guest_count++;
     }
 
     # umount
     script_run("umount $mount_point");
-    save_screenshot;
 
-    return 1 if ($remote_guest_count == 0);
+    return $guest_count;
+}
+
+#Start the guest from the downloaded vm xml and vm disk file
+sub restore_downloaded_guests {
+    my ($guest, $vm_xml_dir) = @_;
+    record_info("Guest", "$guest");
+    my $vm_xml = "$vm_xml_dir/$guest.xml";
+    assert_script_run("virsh define $vm_xml", 30);
 }
 
 sub is_installed_equal_upgrade_major_release {
