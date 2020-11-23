@@ -798,6 +798,12 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "virt_autotest/virsh_external_snapshot";
         }
     }
+    elsif (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+        loadtest "virt_autotest/restore_guests";
+        loadtest "virt_autotest/set_config_as_glue";
+        loadtest "virt_autotest/setup_dns_service";
+        loadtest "virt_autotest/sriov_network_card_pci_passthrough";
+    }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
         loadtest "virt_autotest/host_upgrade_step2_run";

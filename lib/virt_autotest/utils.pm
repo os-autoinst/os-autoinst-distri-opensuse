@@ -93,6 +93,7 @@ sub check_guest {
 
 #ammend the output of the command to an existing log file
 #passing guest name or an remote IP as the 3rd parameter if running command in a remote machine
+#only support simple bash command so far, eg. '|' is not supported in $cmd.
 sub print_cmd_output_to_file {
     my ($cmd, $file, $machine) = @_;
 

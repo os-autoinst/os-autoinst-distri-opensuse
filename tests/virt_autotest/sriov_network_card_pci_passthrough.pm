@@ -21,10 +21,12 @@
 # Test flow:
 #    - search the SR-IOV Ethernet cards installed in host.
 #    - enable 8 vfs for each of them. 8 is set fixed, other values work as well.
-#    - choose one of the vfs randomly and pass it thru to the domain.
-#    - choose another vf randomly and pass it thru to the domain. Set $passthru_vf_count to other values in case you'd like to pass thru more vfs.
+#    - detach $passthru_vf_count(currently it is set 3) vfs randomly from host
+#    - hotplug one vf to the domain.
+#    - hot unplug the vf from the domain
+#    - hot plug the remaining vfs to the domain.
 #    - reboot the domain.
-#    - unplug the first vf from domain; then unplug all the others.
+#    - unplug these vfs from domain.
 #    - for each of the plugging/unplugging step above, check domain network status and host&guest status.
 # Maintainer: Julie CAO <JCao@suse.com>
 
@@ -72,9 +74,9 @@ sub run_test {
         prepare_guest($guest);
         save_network_device_status_logs($log_dir, $guest, "1-initial");
 
-        #passthrough 2 vf ethernet devices from host
+        #detach 3 vf ethernet devices from host
         my @vfs               = ();
-        my $passthru_vf_count = 2;    #the number of vfs to be passed through to guests
+        my $passthru_vf_count = 3;    #the number of vfs to be passed through to guests
         for (my $i = 0; $i < $passthru_vf_count; $i++) {
 
             my %vf;
@@ -92,51 +94,50 @@ sub run_test {
             #add the vf to the list of passthrough devices
             push @vfs, \%vf;
 
-            #plug the vf in guest
-            plugin_device($guest, $vfs[$i]);
-
-            #upload test specific logs
-            save_network_device_status_logs($log_dir, $guest, $i + 2 . "-after_hotplug_$vfs[$i]->{host_id}");
-
-            #check the networking of the plugged interface
-            #use br123 as ssh connection
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
-
         }
 
-        #reboot the guest
-        record_info("VM reboot", "$guest");
-        script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
-        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 2 . '-after_guest_reboot');
-        script_retry("nmap $guest -PN -p ssh | grep open", delay => 10, retry => 18, die => 1);
-
-        #check again the networking inside vm
-        for (my $i = 0; $i < $passthru_vf_count; $i++) {
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
-        }
+        #hotplug the first vf to vm
+        plugin_device($guest, $vfs[0]);
+        #upload test specific logs
+        save_network_device_status_logs($log_dir, $guest, "2-after_hotplug_$vfs[0]->{host_id}");
+        #check the networking of the plugged interface
+        #use br123 as ssh connection
+        test_network_interface($guest, gate => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
         assert_script_run("virsh nodedev-reattach $vfs[0]->{host_id}", 60);
         record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[0]->{host_id}");
-        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 3 . "-after_hot_unplug_$vfs[$0]->{host_id}");
+        save_network_device_status_logs($log_dir, $guest, "3-after_hot_unplug_$vfs[0]->{host_id}");
+
+        #plug the remaining vfs to vm
+        #test network after reboot as dhcp lease spends time
+        for (my $i = 1; $i < $passthru_vf_count; $i++) {
+            plugin_device($guest, $vfs[$i]);
+            save_network_device_status_logs($log_dir, $guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
+        }
+
+        #reboot the guest
+        record_info("VM reboot", "$guest");
+        script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
+        script_retry("nmap $guest -PN -p ssh | grep open", delay => 10, retry => 18, die => 1);
+        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 4 . '-after_guest_reboot');
 
         #check host and guest to make sure they work well
         check_host();
         check_guest($guest);
 
-        #check again the remaining vf(s) inside vm
+        #check the remaining vf(s) inside vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
         }
-        set_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH", 0);    #turn off the flag in case of affecting other tests
 
         #unplug the remaining vf(s) from vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             unplug_vf_from_vm($guest, $vfs[$i]);
             assert_script_run("virsh nodedev-reattach $vfs[$i]->{host_id}", 60);
             record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[$i]->{host_id}");
-            save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 3 + $i . "-after_hot_unplug_$vfs[$i]->{host_id}");
+            save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 4 + $i . "-after_hot_unplug_$vfs[$i]->{host_id}");
         }
         script_run "lspci | grep Ethernet";
         save_screenshot;
@@ -147,8 +148,10 @@ sub run_test {
 
     }
 
+    set_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH", 0);    #turn off the flag in case of affecting other tests
+
     #upload network device related logs
-    upload_virt_logs($log_dir, "logs.tar.gz");
+    upload_virt_logs($log_dir, "logs");
 }
 
 
@@ -341,6 +344,8 @@ sub plugin_device {
 sub unplug_vf_from_vm {
     my ($vm, $vf) = @_;
 
+    record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nbdf='$vf->{vm_bdf}'   mac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+
     #bring the nic down
     script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 60);
 
@@ -350,10 +355,7 @@ sub unplug_vf_from_vm {
     assert_script_run("virsh detach-device $vm $vf_xml_file --persistent", 60);
 
     #check if the nic is removed from vm
-    validate_script_output "ssh root\@$vm \"ip l show $vf->{vm_nic}\"", sub { /does not exist/ };
-
-    record_info("VF unpluged from vm", "$vf->{host_id} \nGuest: $vm \nbdf='$vf->{vm_bdf}'   mac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
-
+    assert_script_run(" ! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
 }
 
 #print logs for debugging
@@ -378,6 +380,7 @@ sub save_network_device_status_logs {
     #list pci devices in guest
     print_cmd_output_to_file("lspci",     $log_file, $vm);
     print_cmd_output_to_file("ip l show", $log_file, $vm);
+    print_cmd_output_to_file("lsmod",     $log_file, $vm) if is_xen_host;
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";
 
@@ -389,16 +392,15 @@ sub post_fail_hook {
     my $log_dir = "/tmp/sriov_pcipassthru";
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
-    my $vm_types           = "sles|win";
-    my $get_vm_hostnames   = "virsh list  --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
+    my $get_vm_hostnames   = "virsh list  --all | grep sle | awk \'{print \$2}\'";
     my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
     {
-        save_network_device_status_logs($log_dir, $_, "9_post_fail_hook");
+        save_network_device_status_logs($log_dir, $_, "post_fail_hook");
     }
 
-    upload_virt_logs($log_dir, "logs.tar.gz");
+    upload_virt_logs($log_dir, "network_device_status");
     $self->SUPER::post_fail_hook;
 
 }
