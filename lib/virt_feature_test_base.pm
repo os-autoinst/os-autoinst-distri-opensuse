@@ -42,6 +42,7 @@ use testapi;
 use utils;
 use virt_utils;
 use virt_autotest::common;
+use version_utils 'is_sle';
 
 sub run_test {
     die('Please override this subroutine in children modules to run desired tests.');
@@ -177,6 +178,22 @@ sub get_free_mem {
         $mem = int($mem / 1024);
         return $mem;
     }
+}
+
+sub get_active_pool_and_available_space {
+    # get some debug info about hard disk topology
+    script_run 'df -h';
+    script_run 'df -h /var/lib/libvirt/images/';
+    script_run 'lsblk -f';
+    # get some debug info about storage pool
+    script_run 'virsh pool-list --details';
+    # ensure the available disk space size for active pool
+    my $active_pool    = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
+    my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
+    my $pool_unit      = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
+    # default available pool unit as GiB
+    $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
+    return ($active_pool, $available_size);
 }
 
 1;
