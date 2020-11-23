@@ -92,7 +92,7 @@ sub _set_partition_options {
     my $formatting_options = $args->{formatting_options};
     my $mounting_options   = $args->{mounting_options};
 
-    # Ste partition id if provided
+    # Set partition id if provided
     if ($id) {
         $self->get_formatting_options_page()->select_partition_id($id);
     }

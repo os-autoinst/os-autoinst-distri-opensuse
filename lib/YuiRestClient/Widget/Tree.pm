@@ -47,5 +47,4 @@ sub get_selected_node {
     return undef;
 }
 
-
 1;

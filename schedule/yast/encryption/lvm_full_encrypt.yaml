@@ -1,8 +1,10 @@
 ---
-name: lvm-encrypt-separate-boot
+name: lvm-full-encrypt
 description: >
-  Same as lvm-full-encrypt, but with separate boot not encrypted partition, only
-  installation to not repeat everything again with small risk.
+  Installation with encrypted root and swap logical volumes and encrypted
+  boot partition outside of volume group as plain partition.
+  Partitioning is validated in the booted system after the installation,
+  including check for separate boot partition.
 vars:
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
