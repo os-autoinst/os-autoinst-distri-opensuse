@@ -19,7 +19,6 @@ vars:
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
 schedule:
-    - kernel/ibtests_barriers
     - installation/ipxe_install
     - installation/welcome
     - installation/accept_license
