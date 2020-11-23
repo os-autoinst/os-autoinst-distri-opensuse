@@ -18,6 +18,7 @@ use YuiRestClient::Http::WidgetController;
 use YuiRestClient::Wait;
 use YuiRestClient::Widget::Button;
 use YuiRestClient::Widget::MenuCollection;
+use YuiRestClient::Widget::RadioButton;
 use YuiRestClient::Widget::SelectionBox;
 use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Textbox;
@@ -58,6 +59,14 @@ sub button {
 sub menucollection {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::MenuCollection->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub radiobutton {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::RadioButton->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });
