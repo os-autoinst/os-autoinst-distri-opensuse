@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xe
+
 test_result_wrapper(){
   local VERSION=$1
   local FILE=$2
@@ -30,11 +32,12 @@ test_node_version(){
   local VERSION="$1"
 
   echo "Start testing node version $VERSION"
-  zypper -n si -D "nodejs$VERSION" > /dev/null 2>&1
-  zypper -n in --no-recommends "nodejs$VERSION" > /dev/null 2>&1
+  zypper -n si --repo node_sources -D "nodejs$VERSION" #> /dev/null 2>&1
 
-
-  local SOURCE_FILE
+  local SOURCE_FILE=""
+  #DEBUG TODO
+  cd /usr/src/packages/SOURCES/
+  ls -al
   SOURCE_FILE=$(cd /usr/src/packages/SOURCES/ && find . -type f -iname "node-v$VERSION*.tar.xz")
   SOURCE_FILE=${SOURCE_FILE:2} # strip ./ from name
 
@@ -65,8 +68,11 @@ test_node_version(){
 }
 
 main(){
+
+  local OS_VERSION="$1"
+
   # Install dependencies to apply source patches
-  zypper -n in quilt rpm-build > /dev/null 2>&1
+  zypper -n in quilt rpm-build #> /dev/null 2>&1
 
   # Make sure there are at least 2 nodejs versions available
   ###############     List all node packages  | get only nodejsX or nodejsXX | filter out rest|   sort    | unique |   keep   only   number | count ###
@@ -76,8 +82,18 @@ main(){
     exit 1
   fi
 
-  # Run test for each nodejs version found
+  # Get list of each nodejs version found from default repo
   NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | sort -h -r | uniq | tr -d ' '| tr -d 'nodejs')
+
+  # Install each nodejs version
+  for v in $NODE_VERSIONS; do
+    zypper -n in --no-recommends "nodejs$v" > /dev/null 2>&1
+  done
+
+  # Add sources repo to have latest source patches
+  zypper -n --gpg-auto-import-keys ar -f "http://download.suse.de/ibs/home:/adamm:/node_test/$OS_VERSION/" node_sources
+  zypper --gpg-auto-import-keys ref
+  # Run test for each nodejs version
   for v in $NODE_VERSIONS; do
     test_node_version $v
   done
@@ -115,5 +131,8 @@ node_flags=(
 FAILED_TEST_LIST="/tmp/failed_test_list"
 TEST_RESULT="ok"
 
-main
+main "$@"
+#TODO: must check for node versions AND install node BEFORE adding Adam's repo!!
 
+#TODO: set -e 
+#TODO: remove repo at end 

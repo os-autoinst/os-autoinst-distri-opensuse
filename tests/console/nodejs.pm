@@ -25,16 +25,17 @@ sub run {
     $self->select_serial_terminal;
 
     #On SLE, get the latest sources to make sure the test patches are up to date
-    if (is_sle) {
-      my $repo_url = 'http://download.suse.de/ibs/home:/adamm:/node_test/' . generate_version() . '/';
-      zypper_ar($repo_url, name => 'node', priority => 1);
-    }
-    #TODO: openSUSE
-
+    #if (is_sle) {
+      #      my $repo_url = 'http://download.suse.de/ibs/home:/adamm:/node_test/' . generate_version() . '/';
+      #zypper_ar($repo_url, name => 'node', priority => 1);
+      #}
+    my $os_version = generate_version();
+    #TODO: openSUSE, now assumes is SLE
+   
     # Get test script and run it
     assert_script_run 'wget --quiet ' . data_url('console/test_node.sh');
     assert_script_run 'chmod +x test_node.sh';
-    assert_script_run './test_node.sh', 900; 
+    assert_script_run './test_node.sh ' . $os_version, 900; 
 }
 
 
