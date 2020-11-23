@@ -11,7 +11,7 @@ description:    >
     the setting ENABLE_ALL_SCC_MODULES=1 to the test suite
 conditional_schedule:
     disk_activation:
-        ARCH:
+        BACKEND:
             's390x':
                 - installation/disk_activation
     grub_or_reconnect:
