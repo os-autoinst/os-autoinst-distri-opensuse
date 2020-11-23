@@ -1,9 +1,9 @@
 disks:
   - name: vda
     partitions:
-      - size: 2MiB
+      - size: 8MiB
         role: raw-volume
-        id: bios-boot
+        id: prep-boot
       - role: raw-volume
         id: linux-lvm
         encrypt_device: 1

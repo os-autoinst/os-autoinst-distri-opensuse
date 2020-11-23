@@ -1,9 +1,9 @@
 disks:
-  - name: vda
+  - name: sda
     partitions:
-      - size: 2MiB
+      - size: 8MiB
         role: raw-volume
-        id: bios-boot
+        id: prep-boot
       - role: raw-volume
         id: linux-lvm
         encrypt_device: 1
@@ -11,7 +11,7 @@ lvm:
   volume_groups:
   - name: vg-system
     devices:
-      - /dev/vda2
+      - /dev/sda2
     logical_volumes:
       - name: lv-swap
         size: 2000MiB
