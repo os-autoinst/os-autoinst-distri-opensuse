@@ -20,6 +20,8 @@ use version_utils 'is_opensuse';
 sub run {
     my $self = shift;
 
+    $self->select_serial_terminal;
+
     my $bug_pattern = {
         bsc_1062349         => '.*vbd.*xenbus_dev_probe on device.*',
         bsc_1022527_FEATURE => '.*wickedd.*ni_process_reap.*blocking waitpid.*',
