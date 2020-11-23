@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_vmware);
+use version_utils qw(is_sle is_opensuse is_vmware package_version_cmp);
 use Carp 'croak';
 
 our @EXPORT = qw(
@@ -81,12 +81,19 @@ sub reboot_x11 {
     my ($self) = @_;
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
-        if (is_tumbleweed) {
+        # Get gnome version
+        x11_start_program('xterm');
+        become_root;
+        my $gnome_version = script_output("rpm -q --queryformat '%{VERSION}' gnome-shell");
+        send_key("alt-f4");
+
+        # Change in reboot process was introduced with gnome 3.38.0
+        if (package_version_cmp($gnome_version, '3.38.0') < 0) {
+            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+        } else {
             assert_and_click('reboot-power-icon');
             assert_and_click('reboot-power-menu');
             assert_and_click('reboot-click-restart');
-        } else {
-            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
         }
         my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
         record_soft_failure 'poo#19082' if ($repetitions > 0);
