@@ -87,6 +87,8 @@ sub run {
             services::registered_addons::full_registered_check;
         }
     }
+
+    assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true' if get_var('COLLECT_COREDUMPS');
 }
 
 sub test_flags {
