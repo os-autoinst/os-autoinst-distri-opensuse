@@ -17,8 +17,6 @@ use warnings;
 use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::ExpertPartitionerPage';
 
-use YuiRestClient::Wait;
-
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
@@ -38,6 +36,12 @@ sub init {
     $self->{tbl_devices}       = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
     $self->{tree_system_view}  = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
 
+    return $self;
+}
+
+sub select_create_partition_table {
+    my ($self) = @_;
+    $self->{menu_bar}->select('&Device|Create New &Partition Table...');
     return $self;
 }
 
