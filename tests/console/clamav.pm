@@ -16,14 +16,14 @@
 # - check that clamdscan is able to recognize an EICAR virus pdf, txt and zip format
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: TC1595169, poo#46880, poo#65375
+# Tags: TC1595169, poo#46880, poo#65375, poo#80182
 
 use base "consoletest";
 use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_jeos is_opensuse);
+use version_utils qw(is_jeos is_opensuse is_sle);
 
 sub scan_and_parse {
     my $re       = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
@@ -40,6 +40,16 @@ sub run {
     $self->select_serial_terminal;
 
     zypper_call('in clamav vim');
+    zypper_call('info clamav');
+
+    # Check Clamav version
+    # Jira ID SLE-16780: upgrade Clamav SLE
+    my $current_ver = script_output("zypper info clamav | grep Version | cut -d':' -f2| cut -d'-' -f1");
+    record_info("Clamav_ver", "Current Clamav package version: $current_ver");
+
+    if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
+        record_soft_failure("jsc#16780: upgrade Clamav SLE feature is not yet released");
+    }
     # Initialize and download ClamAV database which needs time
     assert_script_run('freshclam', 700);
 
