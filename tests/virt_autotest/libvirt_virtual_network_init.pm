@@ -45,6 +45,13 @@ sub run_test {
         assert_script_run("test $MEM -ge 20", fail_message => "The SUT needs at least 20G FREE MEM for virtual network test");
     }
 
+    #After deployed guest systems, ensure active pool have at least
+    #60GiB available disk space on vm host for virtual network test
+    my ($ACTIVE_POOL_NAME, $AVAILABLE_POOL_SIZE) = $self->get_active_pool_and_available_space();
+    record_info('Detect Active POOL NAME:',    $ACTIVE_POOL_NAME);
+    record_info('Detect Available POOL SIZE:', $AVAILABLE_POOL_SIZE . 'GiB');
+    assert_script_run("test $AVAILABLE_POOL_SIZE -ge 60", fail_message => "The SUT needs at least 60GiB available space of active pool for virtual network test");
+
     #Need to reset up environemt - br123 for virt_atuo test due to after
     #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
     virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
