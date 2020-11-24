@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test WiFi setup with wicked (WPA-PSK with DHCP)
+# Summary: Test WiFi setup with wicked (Open with DHCP)
 # - WiFi Access point:
 #   - Use virtual wlan devices
 #   - AP with hostapd is running in network namespace
@@ -23,8 +23,7 @@
 use Mojo::Base 'wicked::wlan';
 use testapi;
 
-has ssid => 'Virtual WiFi PSK Secured';
-has psk  => 'TopSecretWifiPassphrase!';
+has ssid => 'Open Virutal WiFi';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -33,23 +32,14 @@ has hostapd_conf => q(
     country_code=DE
     ssid={{ssid}}
     channel=0
-    hw_mode=b
-    wpa=3
-    wpa_key_mgmt=WPA-PSK
-    wpa_pairwise=TKIP CCMP
-    wpa_passphrase={{psk}}
-    auth_algs=3
-    beacon_int=100
+    hw_mode=g
 );
 
 has ifcfg_wlan => q(
-    BOOTPROTO='dhcp'
     STARTMODE='auto'
-
+    BOOTPROTO='dhcp'
     WIRELESS_MODE='Managed'
-    WIRELESS_AUTH_MODE='psk'
     WIRELESS_ESSID='{{ssid}}'
-    WIRELESS_WPA_PSK='{{psk}}'
 );
 
 1;

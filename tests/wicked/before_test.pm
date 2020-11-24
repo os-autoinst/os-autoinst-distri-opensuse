@@ -20,7 +20,6 @@ use network_utils qw(iface setup_static_network);
 use serial_terminal;
 use main_common 'is_updates_tests';
 use repo_tools 'generate_version';
-use registration qw(add_suseconnect_product);
 
 sub run {
     my ($self, $ctx) = @_;
@@ -129,8 +128,7 @@ sub run {
             $package_list .= ' ndisc6';
         }
         if (check_var('WICKED', 'wlan')) {
-            add_suseconnect_product('PackageHub');
-            $package_list .= ' iw hostapd wpa_supplicant';
+            wicked::wlan::before_test();
         }
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');

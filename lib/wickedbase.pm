@@ -145,6 +145,8 @@ sub get_ip {
         dhcp_2nic    => ['10.20.30.',                 '10.20.30.12'],                 # dhcp_2nic in SUT, we don't know the last octect
         second_card  => ['10.0.3.11',                 '10.0.3.12'],
         gateway      => ['10.0.2.2',                  '10.0.2.2'],
+        wlan         => ['10.6.6.2',                  '10.6.6.1'],
+        wlan_dhcp    => ['10.6.6.10',                 '10.6.6.1'],
         ipv6         => ['fd00:dead:beef:',           'fd00:dead:beef:'],
         dhcp6        => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
         dns_advice   => ['fd00:dead:beef:6021::42',   'fd00:dead:beef:6021::42'],
