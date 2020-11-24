@@ -47,10 +47,8 @@ sub init {
         my $cloud_name = $self->conv_openqa_tf_name;
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
-        assert_script_run("cp pillar_examples/automatic/${_}/* salt/${_}_node/files/pillar/") foreach (qw(hana drbd));
         assert_script_run('cd');    # We need to ensure to be in the home directory
         assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
-        $self->create_ssh_key(ssh_private_key_file => TERRAFORM_DIR . '/salt/hana_node/files/sshkeys/cluster.id_rsa');
     }
     else {
         assert_script_run('curl ' . data_url("publiccloud/terraform/$file.tf") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
@@ -333,11 +331,11 @@ sub terraform_apply {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
         my $sap_media            = get_required_var('HANA');
         my $sap_regcode          = get_required_var('SCC_REGCODE_SLES4SAP');
-        my $ha_sap_repo          = get_required_var('HA_SAP_REPO');
         my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
         my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
         my $sle_version          = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
+        my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
         file_content_replace('terraform.tfvars',
             q(%MACHINE_TYPE%)         => $instance_type,
             q(%REGION%)               => $self->region,
@@ -631,6 +629,16 @@ This function implements a provider specifc start call for a given instance.
 sub start_instance
 {
     die('start_instance() isn\'t implemented');
+}
+
+=head2 get_state_from_instance
+
+This function implements a provider specifc get_state call for a given instance.
+
+=cut
+sub get_state_from_instance
+{
+    die('get_state_from_instance() isn\'t implemented');
 }
 
 1;

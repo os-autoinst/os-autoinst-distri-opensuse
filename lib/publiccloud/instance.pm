@@ -286,4 +286,16 @@ sub start
     return $self->wait_for_ssh(timeout => $args{timeout});
 }
 
+=head2 get_state
+
+    get_state();
+
+Get the status of the instance using the CSP api calls.
+=cut
+sub get_state
+{
+    my $self = shift;
+    return $self->provider->get_state_from_instance($self, @_);
+}
+
 1;
