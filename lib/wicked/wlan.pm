@@ -45,6 +45,12 @@ sub sut_ip {
     return $self->get_ip(type => $type, is_wicked_ref => 0);
 }
 
+# Test config, needed because of code duplication checks
+has hostapd_conf => "";
+has ifcfg_wlan   => "";
+has use_dhcp     => 1;
+has use_radius   => 0;
+
 sub sut_hw_addr {
     my $self = shift;
     $self->{sut_hw_addr} //= $self->get_hw_address($self->sut_ifc);
@@ -183,6 +189,27 @@ sub assert_connection {
 
     assert_script_run('ping -c 1 -I ' . $self->sut_ifc . ' ' . $self->ref_ip);
     $self->netns_exec('ping -c 1 -I ' . $self->ref_ifc . ' ' . $self->sut_ip);
+}
+
+sub run {
+    my $self = shift;
+    $self->select_serial_terminal;
+
+    # Setup ref
+    $self->netns_exec('ip addr add dev wlan0 ' . $self->ref_ip . '/24');
+    $self->restart_DHCP_server()                if ($self->use_dhcp());
+    $self->netns_exec('radiusd -d /etc/raddb/') if ($self->use_radius());
+
+    $self->write_cfg('hostapd.conf', $self->hostapd_conf());
+    $self->netns_exec('hostapd -B hostapd.conf');
+
+    # Setup sut
+    $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $self->ifcfg_wlan());
+    $self->wicked_command('ifup', $self->sut_ifc);
+
+    # Check
+    $self->assert_sta_connected();
+    $self->assert_connection();
 }
 
 sub test_flags {

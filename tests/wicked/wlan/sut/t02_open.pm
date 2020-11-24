@@ -25,7 +25,7 @@ use testapi;
 
 has ssid => 'Open Virutal WiFi';
 
-my $hostapd_conf = q(
+has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
     interface={{ref_ifc}}
     driver=nl80211
@@ -35,30 +35,11 @@ my $hostapd_conf = q(
     hw_mode=g
 );
 
-my $ifcfg_wlan = q(
+has ifcfg_wlan => q(
     STARTMODE='auto'
     BOOTPROTO='dhcp'
     WIRELESS_MODE='Managed'
     WIRELESS_ESSID='{{ssid}}'
 );
-
-sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
-    # Setup ref
-    $self->netns_exec('ip addr add dev wlan0 ' . $self->ref_ip . '/24');
-    $self->restart_DHCP_server();
-    $self->write_cfg('hostapd.conf', $hostapd_conf);
-    $self->netns_exec('hostapd -B hostapd.conf');
-
-    # Setup sut
-    $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $ifcfg_wlan);
-    $self->wicked_command('ifup', $self->sut_ifc);
-
-    # Check
-    $self->assert_sta_connected();
-    $self->assert_connection();
-}
 
 1;

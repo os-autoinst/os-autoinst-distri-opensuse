@@ -24,9 +24,10 @@
 use Mojo::Base 'wicked::wlan';
 use testapi;
 
-has ssid => 'EAP protected WLAN';
+has use_radius => 1;
+has ssid       => 'EAP protected WLAN';
 
-my $hostapd_conf = q(
+has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
     interface={{ref_ifc}}
     driver=nl80211
@@ -52,7 +53,7 @@ my $hostapd_conf = q(
     auth_server_shared_secret=testing123
 );
 
-my $ifcfg_wlan = q(
+has ifcfg_wlan => q(
     BOOTPROTO='dhcp'
     STARTMODE='auto'
 
@@ -73,25 +74,5 @@ my $ifcfg_wlan = q(
     WIRELESS_WPA_IDENTITY='{{eap_user}}'
     WIRELESS_WPA_PASSWORD='{{eap_password}}'
 );
-
-sub run {
-    my $self = shift;
-    $self->select_serial_terminal;
-
-    # Setup ref
-    $self->netns_exec('ip addr add dev wlan0 ' . $self->ref_ip . '/24');
-    $self->restart_DHCP_server();
-    $self->netns_exec('radiusd -d /etc/raddb/');
-    $self->write_cfg('hostapd.conf', $hostapd_conf);
-    $self->netns_exec('hostapd -B hostapd.conf');
-
-    # Setup sut
-    $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $ifcfg_wlan);
-    $self->wicked_command('ifup', $self->sut_ifc);
-
-    # Check
-    $self->assert_sta_connected();
-    $self->assert_connection();
-}
 
 1;
