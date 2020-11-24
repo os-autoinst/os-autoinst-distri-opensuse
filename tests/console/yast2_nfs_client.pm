@@ -54,7 +54,7 @@ sub run {
         assert_script_run 'mkdir -p /tmp/nfs/server';
         assert_script_run 'echo "success" > /tmp/nfs/server/file.txt';
         # Serve the share
-        assert_script_run 'echo "/tmp/nfs/server *(ro)" >> /etc/exports';
+        assert_script_run 'echo "/tmp/nfs/server *(ro,fsid=23)" >> /etc/exports';
         systemctl 'start nfs-server';
         assert_script_run "showmount -e localhost";
     }
