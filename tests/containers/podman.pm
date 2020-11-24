@@ -42,6 +42,7 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_podman_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => 'podman');
 
     # Run basic tests for podman
     basic_container_tests("podman");

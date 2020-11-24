@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Database for URLs of docker images to be tested
+# Summary: Database for URLs of container images to be tested
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
 package suse_container_urls;
@@ -75,20 +75,20 @@ sub get_suse_container_urls {
     }
     elsif (is_tumbleweed || is_microos("Tumbleweed")) {
         push @image_names,  "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
-        push @stable_names, "docker.io/opensuse/tumbleweed";
+        push @stable_names, "registry.opensuse.org/opensuse/tumbleweed";
     }
     elsif ($version eq "Jump:15.2") {
         # Jump 15.2 uses opensuse/leap:15.2.1, just hardcode this special case
         push @image_names,  "registry.opensuse.org/opensuse/jump/15.2/images/totest/containers/opensuse/leap:15.2.1";
-        push @stable_names, "docker.io/opensuse/leap:15.2.1";
+        push @stable_names, "registry.opensuse.org/opensuse/leap:15.2.1";
     }
     elsif (is_leap(">15.0") && check_var('ARCH', 'x86_64')) {
         push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "docker.io/opensuse/leap:${version}";
+        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif (is_leap(">15.0") && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'arm'))) {
         push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "docker.io/opensuse/leap:${version}";
+        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif (is_leap(">15.0") && check_var('ARCH', 'ppc64le')) {
         # No image set up yet :-(
