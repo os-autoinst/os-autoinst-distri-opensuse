@@ -19,12 +19,9 @@ use lockapi;
 
 
 sub run {
-    if (get_required_var('IBTEST_ROLE') eq 'IBTEST_MASTER') {
-        barrier_create('IBTEST_SETUP', 2);
-        barrier_create('IBTEST_BEGIN', 2);
-        barrier_create('IBTEST_DONE',  2);
-    }
-
+    barrier_create('IBTEST_SETUP', 2);
+    barrier_create('IBTEST_BEGIN', 2);
+    barrier_create('IBTEST_DONE',  2);
 }
 
 1;
