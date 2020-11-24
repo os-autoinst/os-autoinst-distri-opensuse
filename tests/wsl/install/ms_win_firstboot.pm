@@ -30,7 +30,7 @@ sub run {
     assert_and_click 'windows-select-personal-use', dclick => 1;
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-next';
-    assert_screen 'windows-signin-with-ms';
+    assert_screen 'windows-signin-with-ms', 60;
     assert_and_click 'windows-offline';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-limited-exp', timeout => 60;
