@@ -155,6 +155,10 @@ sub boot_hmc_pvm {
     my $lpar_id          = get_required_var('LPAR_ID');
     my $hmc              = select_console 'powerhmc-ssh';
 
+    # Print the machine details before anything else, Firmware name might be useful when reporting bugs
+    record_info("Details", "See the next screen to get details on $hmc_machine_name");
+    type_string "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'\n";
+
     # detach possibly attached terminals - might be left over
     type_string "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'\n";
     assert_screen 'pvm-vterm-closed';
