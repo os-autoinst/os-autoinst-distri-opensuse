@@ -1912,7 +1912,19 @@ sub common_service_action {
 }
 
 sub get_secureboot_status {
-    my $ret = script_output('efivar -dn 8be4df61-93ca-11d2-aa0d-00e098032b8c-SecureBoot');
+    my $sbvar = '8be4df61-93ca-11d2-aa0d-00e098032b8c-SecureBoot';
+    my $ret;
+
+    if (is_sle('<12-SP3')) {
+        $ret = script_output("efivar -pn $sbvar");
+
+        if ($ret =~ m/^Value:\s*^\d+\s+(\d+)/ms) {
+            $ret = $1;
+        }
+    } else {
+        $ret = script_output("efivar -dn $sbvar");
+    }
+
     die "Efivar returned invalid SecureBoot state $ret" if $ret !~ m/^[0-9]+/i;
     return $ret != 0;
 }
