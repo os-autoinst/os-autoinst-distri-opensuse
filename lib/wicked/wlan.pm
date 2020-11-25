@@ -17,7 +17,7 @@ use Mojo::Base 'wickedbase';
 use utils qw(random_string);
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
-use utils qw(zypper_call);
+use utils qw(zypper_call zypper_ar);
 use Mojo::File 'path';
 use File::Basename;
 use testapi;
@@ -92,7 +92,12 @@ sub before_test {
 
 sub prepare_packages {
     my $self = shift;
-    if (is_sle()) {
+    if (is_sle('<12-sp5')) {
+        die("Wicked WLAN testsuite not supported for SLE <12-sp5");
+    } elsif (is_sle('=12-sp5')) {
+        # PackageHub doesn't have hostapd for SLE-12-SP5
+        zypper_ar('https://download.opensuse.org/repositories/Base:/System/SLE_12_SP5/Base:System.repo', no_gpg_check => 1);
+    } elsif (is_sle()) {
         add_suseconnect_product('PackageHub');    # needed for hopstapd
     }
     zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim');
@@ -107,7 +112,15 @@ sub prepare_phys {
     assert_script_run('ip netns add ' . $self->netns_name);
     assert_script_run('ip netns list');
     assert_script_run('iw dev');
-    assert_script_run('iw phy ' . $self->ref_phy . ' set netns name ' . $self->netns_name);
+
+    my $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns name ' . $self->netns_name;
+    if (is_sle('<15')) {
+        my $output = script_output(sprintf(q(ip netns exec %s perl -MPOSIX -e '$0="netns_%s_dummy_process"; pause' & echo "BACKGROUND_PROCESS:-$!-"), $self->netns_name, $self->netns_name));
+        die("Failed to get netns dummy pid") unless ($output =~ m/BACKGROUND_PROCESS:-(\d+)-/);
+        $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns ' . $1;
+    }
+    assert_script_run($cmd_set_netns);
+
     assert_script_run('iw dev');
     $self->netns_exec('iw dev');
     $self->netns_exec('ip link set dev lo up');
