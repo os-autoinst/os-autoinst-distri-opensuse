@@ -37,7 +37,7 @@ sub run {
 
     install_docker_when_needed;
     add_suseconnect_product(get_addon_fullname('phub'))    if is_sle();
-    add_suseconnect_product(get_addon_fullname('python2')) if is_sle('<15-sp2');
+    add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
     record_info 'Test #1', 'Test: Installation';
     zypper_call("in docker-compose");
@@ -73,7 +73,7 @@ sub run {
 
     # De-registration is disabled for on-demand instances
     remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle() && !is_ondemand());
-    remove_suseconnect_product(get_addon_fullname('python2')) if is_sle('<15-sp2');
+    remove_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
     clean_container_host(runtime => 'docker');
 }
 
