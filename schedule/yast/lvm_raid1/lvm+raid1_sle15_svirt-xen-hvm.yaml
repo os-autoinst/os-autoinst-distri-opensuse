@@ -18,8 +18,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_raid
-  - installation/partitioning_finish
+  - installation/partitioning/setup_raid1_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
