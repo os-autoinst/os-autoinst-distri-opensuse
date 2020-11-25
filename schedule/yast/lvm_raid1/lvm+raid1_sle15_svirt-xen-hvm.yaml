@@ -8,7 +8,7 @@ vars:
   LVM: 1
   YUI_REST_API: 1
 test_data:
-  <<: !include test_data/yast/lvm_raid1/lvm+raid1_sle15_svirt-xen.yaml
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1_svirt-xen.yaml
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
