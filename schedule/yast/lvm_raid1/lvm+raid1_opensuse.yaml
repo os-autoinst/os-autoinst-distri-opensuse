@@ -6,19 +6,19 @@ description: >
 vars:
   RAIDLEVEL: 1
   LVM: 1
+  YUI_REST_API: 1
 test_data:
-  <<: !include test_data/yast/lvm_raid1/lvm+raid1_opensuse.yaml
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1.yaml
 schedule:
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_raid
-  - installation/partitioning_finish
+  - installation/partitioning/setup_raid1_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/resolve_dependency_issues
@@ -28,6 +28,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm_raid1
