@@ -1,4 +1,8 @@
 ---
+mds:
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1_mds.yaml
+lvm:
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1_lvm.yaml
 disks:
   - name: vda
     partitions:
@@ -44,36 +48,6 @@ disks:
       - size: 100mb
         role: raw-volume
         id: linux-raid
-mds:
-  - raid_level: 1
-    chunk_size: 64
-    device_selection_step: 2
-    partition:
-      role: raw-volume
-      formatting_options:
-        should_format: 0
-      mounting_options:
-        should_mount: 0
-  - raid_level: 0
-    chunk_size: 64
-    device_selection_step: 1
-    partition:
-      role: operating-system
-      formatting_options:
-        should_format: 1
-        filesystem: swap
-      mounting_options:
-        should_mount: 1
-lvm:
-  volume_groups:
-    - name: vg-system
-      devices:
-        - /dev/md0p1
-      logical_volumes:
-        - name: lv-root
-          role: operating-system
-  lvpath: /dev/root/root
-  pvname: /dev/md0p1
 raid1:
   disk_to_fail: /dev/vdd2
   level: raid1
