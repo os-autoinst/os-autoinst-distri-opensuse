@@ -57,6 +57,7 @@ our @EXPORT = qw(
 # We already have needles with names which are different we would use here
 # As it's only workaround, better not to create another set of needles.
 # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
+# Add nvidia compute module, refer to https://jira.suse.com/browse/SLE-16787
 our %SLE15_MODULES = (
     base      => 'Basesystem',
     sdk       => 'Development-Tools',
@@ -68,6 +69,7 @@ our %SLE15_MODULES = (
     pcm       => 'Public-Cloud',
     sapapp    => 'SAP-Applications',
     python2   => 'Python2',
+    nvidia    => 'NVIDIA-Compute',
 );
 
 # The expected modules of a default installation per product. Use them if they
@@ -91,7 +93,7 @@ our %ADDONS_REGCODE = (
 );
 
 our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm live);
-our @SLE15_ADDONS_WITH_LICENSE_NOINSTALL = qw(ha we);
+our @SLE15_ADDONS_WITH_LICENSE_NOINSTALL = qw(ha we nvidia);
 
 # Those modules' version is 12 for all of 12 sp products
 our @SLE12_MODULES = qw(
@@ -412,6 +414,7 @@ sub process_scc_register_addons {
     #    we - Workstation
     #   wsm - Web and Scripting Module
     # espos - Extended Service Pack Overlap Support
+    # nvidia- NVIDIA Compute Module
     if (get_var('SCC_ADDONS')) {
         if (check_screen('scc-beta-filter-checkbox', 5)) {
             if (is_sle('12-SP3+')) {
@@ -791,6 +794,7 @@ sub get_addon_fullname {
         phub      => 'PackageHub',
         tsm       => 'sle-module-transactional-server',
         espos     => 'ESPOS',
+        nvidia    => 'sle-module-NVIDIA-compute',
     );
     return $product_list{"$addon"};
 }
