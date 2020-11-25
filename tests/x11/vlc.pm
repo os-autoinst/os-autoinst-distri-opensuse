@@ -43,10 +43,6 @@ sub run {
         wait_still_screen(1);
         assert_and_click 'close_vlc';
     }
-
-    x11_start_program('vlc --no-autoscale --start-paused --start-time=19.5 data/Big_Buck_Bunny_8_seconds_bird_clip.ogv', target_match => 'vlc-playing');
-    assert_screen 'vlc-playing';
-    assert_and_click 'close_vlc';
 }
 
 1;
