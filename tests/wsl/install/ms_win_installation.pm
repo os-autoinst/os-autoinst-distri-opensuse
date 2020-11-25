@@ -54,7 +54,7 @@ sub run {
     send_key_until_needlematch 'windows-all-drivers-selected', 'shift-down';    # select all drivers
     send_key 'alt-n';
     assert_screen 'windows-partitions';
-    send_key 'alt-n';
+    assert_and_click 'windows-next-install';
     assert_screen 'windows-restart', 600;
     send_key 'alt-r';
 }
