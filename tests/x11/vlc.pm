@@ -43,6 +43,11 @@ sub run {
         wait_still_screen(1);
         assert_and_click 'close_vlc';
     }
+
+    if (!check_var('QEMUVGA', 'cirrus')) {
+        x11_start_program('vlc --no-autoscale --loop data/test.ogv', target_match => 'vlc-playing');
+        assert_and_click 'close_vlc';
+    }
 }
 
 1;
