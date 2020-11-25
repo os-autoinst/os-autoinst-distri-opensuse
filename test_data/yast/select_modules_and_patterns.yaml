@@ -1,0 +1,14 @@
+---
+software:
+  packages:
+    bash:
+      installed: 1
+  patterns:
+    yast2_basis:
+      installed: 1
+    yast2_desktop:
+      installed: 1
+    yast2_server:
+      installed: 1
+    devel_yast:
+      installed: 1
