@@ -66,7 +66,8 @@ sub build_with_zypper_docker {
     # zypper docker can only update image if version is same as SUT
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
-        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $pretty_version"/ });
+        my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
     }
     else {
         $version =~ s/^Jump://i;
@@ -105,9 +106,10 @@ sub test_opensuse_based_image {
     # It is the right version
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
+        my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
         record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
         validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
-            sub { /"SUSE Linux Enterprise Server $pretty_version"/ });
+            sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
         my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
         assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
