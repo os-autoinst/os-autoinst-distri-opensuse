@@ -27,7 +27,7 @@ use Utils::Backends 'is_pvm';
 use YuiRestClient;
 
 sub run {
-    return if is_pvm;
+    return if is_pvm || check_var('BACKEND', 'svirt');
     YuiRestClient::teardown_libyui();
 }
 
