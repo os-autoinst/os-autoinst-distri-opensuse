@@ -34,6 +34,7 @@ schedule:
   - '{{cluster_boot_mgmt}}'
   - ha/cluster_state_mgmt
   - migration/online_migration/zypper_migration
+  - '{{register_system}}'
   - migration/online_migration/post_migration
   - '{{cluster_boot_mgmt}}'
   - '{{console_reboot}}'
@@ -50,3 +51,7 @@ conditional_schedule:
     QAM_INCI:
       1:
         - console/console_reboot
+  register_system:
+    LTSS_TO_LTSS:
+      1:
+        - migration/online_migration/register_system
