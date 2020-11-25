@@ -27,6 +27,9 @@ use testapi;
 use YuiRestClient;
 use YuiRestClient::Wait;
 
+my $ip_regexp    = qr/(?<ip>(\d+\.){3}\d+)/i;
+my $boot_timeout = 500;
+
 sub run {
     # We setup libyui in bootloader on powerVM
     return if is_pvm;
@@ -38,10 +41,19 @@ sub run {
         my $cmd   = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
         my $ip    = YuiRestClient::Wait::wait_until(object => sub {
                 my $ip = $svirt->get_cmd_output($cmd);
-                return $+{ip} if ($ip =~ /(?<ip>(\d+\.){3}\d+)/i);
-        }, timeout => 500, interval => 30);
+                return $+{ip} if ($ip =~ $ip_regexp);
+        }, timeout => $boot_timeout, interval => 30);
         set_var('YUI_SERVER', $ip);
         select_console('sut', await_console => 0);
+    } elsif (check_var('BACKEND', 'svirt')) {
+        assert_screen('yast-still-running', $boot_timeout);
+        select_console('install-shell');
+        my $ip = YuiRestClient::Wait::wait_until(object => sub {
+                my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
+                return $+{ip} if ($ip =~ $ip_regexp);
+        });
+        set_var('YUI_SERVER', $ip);
+        select_console('installation');
     }
 
     YuiRestClient::connect_to_app();

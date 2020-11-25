@@ -6,11 +6,12 @@ description:    >
 vars:
   RAIDLEVEL: 1
   LVM: 1
+  YUI_REST_API: 1
 test_data:
   <<: !include test_data/yast/lvm_raid1/lvm+raid1_sle15_svirt-xen.yaml
 schedule:
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -29,6 +30,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm_raid1
