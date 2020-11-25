@@ -2,6 +2,10 @@
 
 function prepare() {
 	modprobe mac80211_hwsim
+	# Ensure there are no other processes running that disturb this test
+	systemctl disable --now wpa_supplicant || true
+	killall wpa_supplicant 2>/dev/null || true
+	killall hostapd 2>/dev/null || true
 }
 
 function cleanup() {
@@ -10,9 +14,10 @@ function cleanup() {
 		kill $hostapd_pid
 	fi
 	modprobe -r mac80211_hwsim
-	rm -f wifi_scan.txt networks.txt status.txt hostapd.log hostapd.com dnsmasq.log dhclinet.log wicked.log
+	rm -f wifi_scan.txt networks.txt status.txt hostapd.log hostapd.com dnsmasq.log dhclinet.log
 	rm -f /etc/sysconfig/network/ifcfg-wlan1
 	wpa_cli -i wlan1 terminate >/dev/null 2>/dev/null
+	ip netns pids wifi_master | xargs kill
 	ip netns del wifi_master
 }
 
@@ -93,10 +98,12 @@ ip addr del 192.168.202.2/24 dev wlan1
 echo "Checking wicked/dhcp on wifi interface ... "
 echo 'start dnsmasq' >>hostapd.com
 cp ifcfg-wlan1-dhcp /etc/sysconfig/network/ifcfg-wlan1
-echo "reloading wicked ... "
-systemctl reload wicked
+echo "Restarting wicked ... "
+systemctl restart wicked
+sleep 20
+systemctl status wicked
 echo "starting wicked ... "
-wicked --debug all ifup wlan1 > wicked.log 2>&1
+wicked --debug all ifup wlan1 --timeout 60 > wicked.log 2>&1
 echo "Assigned ip address(es):"
 ip a show dev wlan1 | grep inet
 ping -c 4 192.168.202.1
