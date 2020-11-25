@@ -1414,6 +1414,13 @@ sub reconnect_mgmt_console {
             send_key 'ret';
         }
     }
+    elsif (check_var('ARCH', 'aarch64')) {
+        if (check_var('BACKEND', 'ipmi')) {
+            select_console 'sol', await_console => 0;
+            # aarch64 baremetal machine takes longer to boot than 5 minutes
+            assert_screen([qw(qa-net-selection prague-pxe-menu)], 600) unless get_var('IPXE_CONSOLE');
+        }
+    }
     else {
         diag 'nothing special needed to reconnect management console';
     }
