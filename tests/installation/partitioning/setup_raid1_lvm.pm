@@ -28,23 +28,9 @@ sub run {
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
 
-    # Create partitions with the data from yaml scheduling file on first disk
-    # (see YAML_SCHEDULE openQA variable value).
-    my @disks      = @{$test_data->{disks}};
-    my $first_disk = $disks[0];
-    foreach my $partition (@{$first_disk->{partitions}}) {
-        $partitioner->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
-    }
+    # Setup RAID as per test data (see YAML_SCHEDULE and YAML_TEST_DATA openQA variables)
+    $partitioner->setup_raid($test_data);
 
-    # Clone partition table from first disk to all other disks
-    my @target_disks = map { $_->{name} } @disks[1 .. $#disks];
-    $partitioner->clone_partition_table({disk => $first_disk->{name}, target_disks => \@target_disks});
-
-    # Create RAID partitions with the data from yaml scheduling file
-    # (see YAML_SCHEDULE openQA variable value).
-    foreach my $md (@{$test_data->{mds}}) {
-        $partitioner->add_raid($md);
-    }
     # Add volume groups and logical volumes as per test data
     foreach my $vg (@{$test_data->{lvm}->{volume_groups}}) {
         $partitioner->add_volume_group($vg);

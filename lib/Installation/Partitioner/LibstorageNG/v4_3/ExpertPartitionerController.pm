@@ -147,4 +147,21 @@ sub add_logical_volume {
     $self->_finish_partition_creation;
 }
 
+sub setup_raid {
+    my ($self, $args) = @_;
+    # Create partitions with the data from yaml scheduling file on first disk
+    my @disks      = @{$args->{disks}};
+    my $first_disk = $disks[0];
+    foreach my $partition (@{$first_disk->{partitions}}) {
+        $self->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
+    }
+    # Clone partition table from first disk to all other disks
+    my @target_disks = map { $_->{name} } @disks[1 .. $#disks];
+    $self->clone_partition_table({disk => $first_disk->{name}, target_disks => \@target_disks});
+    # Create RAID partitions with the data from yaml scheduling file
+    foreach my $md (@{$args->{mds}}) {
+        $self->add_raid($md);
+    }
+}
+
 1;

@@ -228,4 +228,22 @@ sub set_new_partition_size {
     $self->get_edit_partition_size_page()->press_next();
 }
 
+sub setup_raid {
+    my ($self, $args) = @_;
+    # Create partitions with the data from yaml scheduling file on first disk
+    my $first_disk = $args->{disks}[0];
+    foreach my $partition (@{$first_disk->{partitions}}) {
+        $self->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
+    }
+
+    # Clone partition table from first disk to all other disks
+    my $numdisks = scalar(@{$args->{disks}}) - 1;
+    $self->clone_partition_table({disk => $first_disk->{name}, numdisks => $numdisks});
+
+    # Create RAID partitions with the data from yaml scheduling file
+    foreach my $md (@{$args->{mds}}) {
+        $self->add_raid($md);
+    }
+}
+
 1;
