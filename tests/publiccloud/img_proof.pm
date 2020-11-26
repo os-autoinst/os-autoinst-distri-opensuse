@@ -105,6 +105,8 @@ sub run {
         }
         $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
         upload_logs('/tmp/rpm_qa.txt');
+        $instance->run_ssh_command(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
+        upload_logs('/tmp/journalctl_b.txt');
     }
 }
 

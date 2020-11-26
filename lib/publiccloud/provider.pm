@@ -17,10 +17,10 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use Data::Dumper;
 use Mojo::JSON 'decode_json';
-use utils 'file_content_replace';
+use utils qw(file_content_replace script_retry);
 
 use constant TERRAFORM_DIR     => '/root/terraform';
-use constant TERRAFORM_TIMEOUT => 17 * 60;
+use constant TERRAFORM_TIMEOUT => 30 * 60;
 
 has key_id            => undef;
 has key_secret        => undef;
@@ -183,7 +183,7 @@ sub run_img_proof {
     die('Must provide an instance object') if (!$args{instance});
 
     $args{tests}       //= '';
-    $args{timeout}     //= 60 * 30;
+    $args{timeout}     //= 60 * 120;
     $args{results_dir} //= 'img_proof_results';
     $args{distro}      //= 'sles';
     $args{tests} =~ s/,/ /g;
@@ -352,7 +352,7 @@ sub terraform_apply {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
     }
-    assert_script_run('terraform init -no-color', $terraform_timeout);
+    script_retry('terraform init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
 
     my $cmd = 'terraform plan -no-color ';
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
@@ -376,7 +376,7 @@ sub terraform_apply {
     $cmd .= "-out myplan";
     record_info('TFM cmd', $cmd);
 
-    assert_script_run($cmd, $terraform_timeout);
+    script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
     my $ret = script_run('terraform apply -no-color -input=false myplan', $terraform_timeout);
     unless (defined $ret) {
         if (is_serial_terminal()) {
