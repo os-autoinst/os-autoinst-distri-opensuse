@@ -37,8 +37,8 @@ sub run {
 
     # OK => Close
     send_key "alt-o";
-    # Our Hyper-V host & aarch64 is slow when initrd is being re-generated
-    my $timeout = (is_hyperv || check_var('ARCH', 'aarch64')) ? 600 : 200;
+    # Our Hyper-V, s390x and aarch64 hosts are slow when initrd is being re-generated
+    my $timeout = (is_hyperv || check_var('ARCH', 'aarch64') || check_var('ARCH', 's390x')) ? 600 : 200;
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], $timeout);
     if (match_has_tag('yast2_bootloader-missing_package')) {
         wait_screen_change { send_key 'alt-i'; };
