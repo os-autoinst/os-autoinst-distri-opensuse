@@ -60,6 +60,9 @@ sub upload_image_logs {
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+
+    my ($running_version, $sp, $host_distri) = get_os_release;
+
     # Define test images here
     my @docker_images = ('alpine', 'opensuse/leap', 'opensuse/tumbleweed', 'debian', 'ubuntu', 'centos', 'fedora');
     my @podman_images = ('alpine', 'opensuse/leap', 'opensuse/tumbleweed', 'debian', 'ubuntu', 'centos', 'fedora');
@@ -70,7 +73,7 @@ sub run {
         record_info("Skip Docker", "Docker image tests skipped");
         script_run("echo 'INFO: Docker image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
-        install_docker_when_needed();
+        install_docker_when_needed($host_distri);
         run_image_tests('docker', @docker_images);
         clean_container_host(runtime => 'docker');
     }
@@ -80,7 +83,7 @@ sub run {
         script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
         # In SLE we need to add the Containers module
-        install_podman_when_needed();
+        install_podman_when_needed($host_distri);
         run_image_tests('podman', @podman_images);
         clean_container_host(runtime => 'podman');
     }

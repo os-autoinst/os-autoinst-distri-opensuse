@@ -25,7 +25,7 @@ use base "consoletest";
 use testapi;
 use registration;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle get_os_release);
 use containers::common;
 use publiccloud::utils 'is_ondemand';
 use strict;
@@ -35,7 +35,9 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    install_docker_when_needed;
+    my ($running_version, $sp, $host_distri) = get_os_release;
+
+    install_docker_when_needed($host_distri);
     add_suseconnect_product(get_addon_fullname('phub'))    if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 

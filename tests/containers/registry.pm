@@ -23,7 +23,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
-use version_utils qw(is_sle is_tumbleweed is_leap);
+use version_utils qw(is_sle is_tumbleweed is_leap get_os_release);
 use registration;
 use containers::common;
 use containers::utils;
@@ -62,6 +62,7 @@ sub registry_push_pull {
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+    my ($running_version, $sp, $host_distri) = get_os_release;
 
     # Package Hub is not enabled on 15-SP3 yet.
     return if is_sle '=15-SP3';
@@ -77,14 +78,14 @@ sub run {
     assert_script_run 'curl -s http://127.0.0.1:5000/v2/_catalog | grep repositories';
 
     # Run docker tests
-    install_docker_when_needed();
+    install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => 'docker');
     registry_push_pull(image => 'opensuse/tumbleweed', runtime => 'docker');
     clean_container_host(runtime => 'docker');
 
     # Run podman tests
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        install_podman_when_needed();
+        install_podman_when_needed($host_distri);
         allow_selected_insecure_registries(runtime => 'podman');
         registry_push_pull(image => 'opensuse/tumbleweed', runtime => 'podman');
         clean_container_host(runtime => 'podman');
