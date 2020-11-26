@@ -196,4 +196,13 @@ sub get_active_pool_and_available_space {
     return ($active_pool, $available_size);
 }
 
+sub get_virt_disk_and_available_space {
+    # ensure the available disk space size for virt disk - /var/lib/libvirt
+    my $virt_disk_name      = script_output 'lsblk -rnoPKNAME $(findmnt -nrvoSOURCE /var/lib/libvirt)';
+    my $virt_available_size = script_output("df -k | grep libvirt | awk '{print \$4}'");
+    # default available virt disk unit as GiB
+    $virt_available_size = int($virt_available_size / 1048576);
+    return ($virt_disk_name, $virt_available_size);
+}
+
 1;
