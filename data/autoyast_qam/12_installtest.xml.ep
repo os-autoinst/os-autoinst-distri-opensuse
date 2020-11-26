@@ -67,6 +67,30 @@
         <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Containers/12/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      % if ($check_var->('HA_QAM', '1')) {
+      <listentry>
+        <name>sle-ha:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-ha:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-HA/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-ha:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-ha:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-HA/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      % if ($check_var->('SAP_QAM', '1')) {
+      <listentry>
+        <name>sle-sap:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-sap:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Products/SLE-SAP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-sap:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-sap:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://download.suse.de/ibs/SUSE/Updates/SLE-SAP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
       <listentry>
         <name>sle-module-public-cloud:12::pool</name>
         <alias>sle-module-public-cloud:12::pool</alias>
