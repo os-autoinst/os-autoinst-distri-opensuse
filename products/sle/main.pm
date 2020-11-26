@@ -978,6 +978,7 @@ else {
         for my $test_group (@test_groups) {
             loadtest 'console/avocado_run', name => "$test_group";
         }
+
         return 1;
     }
     elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {
@@ -1052,6 +1053,30 @@ else {
         }
         else {
             loadtest 'console/rsync_client';
+        }
+    }
+    elsif (get_var('OVS')) {
+        set_var('INSTALLONLY', 1);
+        if (check_var('HOSTNAME', 'server')) {
+            barrier_create('ipsec_done',          2);
+            barrier_create('traffic_check_done',  2);
+            barrier_create('certificate_signed',  2);
+            barrier_create('ipsec1_done',         2);
+            barrier_create('traffic_check_done1', 2);
+            barrier_create('ipsec2_done',         2);
+            barrier_create('traffic_check_done2', 2);
+            barrier_create('cert_done',           2);
+            barrier_create('host2_cert_ready',    2);
+            barrier_create('cacert_done',         2);
+        }
+        loadtest 'installation/bootloader_start';
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        if (check_var('HOSTNAME', 'server')) {
+            loadtest 'console/ovs_server';
+        }
+        else {
+            loadtest 'console/ovs_client';
         }
     }
     elsif (get_var('QAM_CURL')) {
