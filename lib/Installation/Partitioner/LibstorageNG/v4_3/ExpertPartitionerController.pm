@@ -164,4 +164,18 @@ sub setup_raid {
     }
 }
 
+sub setup_lvm {
+    my ($self, $args) = @_;
+
+    foreach my $vg (@{$args->{volume_groups}}) {
+        $self->add_volume_group($vg);
+        foreach my $lv (@{$vg->{logical_volumes}}) {
+            $self->add_logical_volume({
+                    volume_group   => $vg->{name},
+                    logical_volume => $lv
+            });
+        }
+    }
+}
+
 1;

@@ -30,17 +30,8 @@ sub run {
 
     # Setup RAID as per test data (see YAML_SCHEDULE and YAML_TEST_DATA openQA variables)
     $partitioner->setup_raid($test_data);
-
-    # Add volume groups and logical volumes as per test data
-    foreach my $vg (@{$test_data->{lvm}->{volume_groups}}) {
-        $partitioner->add_volume_group($vg);
-        foreach my $lv (@{$vg->{logical_volumes}}) {
-            $partitioner->add_logical_volume({
-                    volume_group   => $vg->{name},
-                    logical_volume => $lv
-            });
-        }
-    }
+    # Setup lvm as per test data (see YAML_SCHEDULE and YAML_TEST_DATA openQA variables)
+    $partitioner->setup_lvm($test_data->{lvm});
 
     $partitioner->accept_changes_and_press_next();
 }
