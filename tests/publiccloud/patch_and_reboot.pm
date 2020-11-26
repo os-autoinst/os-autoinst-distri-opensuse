@@ -23,7 +23,7 @@ sub run {
     my ($self, $args) = @_;
     select_host_console();    # select console on the host, not the PC instance
 
-    $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ref", timeout => 360);
+    $args->{my_instance}->retry_ssh_command(cmd => "sudo zypper -n ref", timeout => 240, retry => 6);
     ssh_fully_patch_system($args->{my_instance}->public_ip);
     $args->{my_instance}->softreboot();
 }
