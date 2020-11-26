@@ -17,5 +17,5 @@ schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
-    - '{{tests_requiring_soundcard}}'
-    - console/libvorbis
+    - console/snapper_undochange
+    - console/btrfsmaintenance

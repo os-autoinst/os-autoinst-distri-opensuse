@@ -75,6 +75,7 @@ sub run {
     if (has_ttys()) {
         check_console_font;
         script_run '. /etc/bash.bashrc.local';
+        reset_consoles;
     }
 }
 
