@@ -97,7 +97,7 @@ sub run_test {
         }
 
         #hotplug the first vf to vm
-        plugin_device($guest, $vfs[0]);
+        plugin_vf_device($guest, $vfs[0]);
         #upload test specific logs
         save_network_device_status_logs($log_dir, $guest, "2-after_hotplug_$vfs[0]->{host_id}");
         #check the networking of the plugged interface
@@ -113,7 +113,7 @@ sub run_test {
         #plug the remaining vfs to vm
         #test network after reboot as dhcp lease spends time
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
-            plugin_device($guest, $vfs[$i]);
+            plugin_vf_device($guest, $vfs[$i]);
             save_network_device_status_logs($log_dir, $guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
 
@@ -159,7 +159,7 @@ sub run_test {
 sub prepare_host {
 
     #install required packages on host
-    zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
+    zypper_call '-t in pciutils nmap';                    #to run 'lspci' and 'nmap' command
 
     #check IOMMU on XEN is enabled
     if (is_xen_host()) {
@@ -276,7 +276,7 @@ sub detach_vf_from_host {
 
 
 #plugin a device to vm via libvirt
-sub plugin_device {
+sub plugin_vf_device {
     my ($vm, $vf) = @_;
 
     #get neccessary device config from host
@@ -392,8 +392,7 @@ sub post_fail_hook {
     my $log_dir = "/tmp/sriov_pcipassthru";
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
-    my $get_vm_hostnames   = "virsh list  --all | grep sle | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    my $vm_hostnames       = script_output "virsh list --all --name | grep sles";
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
     {

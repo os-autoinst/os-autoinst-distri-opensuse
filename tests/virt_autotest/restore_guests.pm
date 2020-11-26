@@ -13,7 +13,7 @@ sub run {
     my $downloaded_xml_dir = "/tmp/download_vm_xml";
 
     #clean up env
-    my $listed_guests = script_output "virsh list --all | sed -n '/^-/,\$p' | sed '1d;/Domain-0/d' | awk '{print \$2;}'";
+    my $listed_guests = script_output "virsh list --all --name | sed '/Domain-0/d'";
     foreach my $guest (split "\n", $listed_guests) {
         remove_vm($guest);
     }

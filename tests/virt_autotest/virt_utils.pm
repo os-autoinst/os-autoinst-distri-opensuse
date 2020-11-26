@@ -325,7 +325,7 @@ sub get_guest_disk_name_from_guest_xml {
     my $guest = shift;
 
     # Our automation only supports single guest disk
-    my $disk_from_xml = script_output("virsh dumpxml $guest | sed -n \'/disk/,/\\\/disk/p\' | grep 'source file='");
+    my $disk_from_xml = script_output("virsh dumpxml $guest | xmlstarlet sel -t -v //disk/source/\@file";
     record_info('Guest disk config from xml', "Guest $guest disk_from_xml is: $disk_from_xml.");
     $disk_from_xml =~ /file='(.*)'/;
     $disk_from_xml = $1;
