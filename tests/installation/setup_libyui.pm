@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Modules sets up the environment for using libyui REST API with the
+# Summary: Module to set up the environment for using libyui REST API with the
 # installer, which requires enabling libyui-rest-api packages.
 
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
@@ -24,7 +24,6 @@ use base "installbasetest";
 use Utils::Backends 'is_pvm';
 
 use YuiRestClient;
-
 
 sub run {
     # We setup libyui in bootloader on powerVM

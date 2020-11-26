@@ -19,8 +19,13 @@ use strict;
 use warnings;
 use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
+use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
+use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
+use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
+
 use YuiRestClient;
 
 sub new {
@@ -32,10 +37,23 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{ExpertPartitionerPage} = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
-    $self->{ClonePartitionsDialog} = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
+    $self->{ExpertPartitionerPage}        = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
+    $self->{ClonePartitionsDialog}        = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
+    $self->{CreatePartitionTablePage}     = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
+    $self->{DeletingCurrentDevicesDialog} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog->new({app => YuiRestClient::get_app()});
+    $self->{AddVolumeGroupPage}           = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
+    $self->{AddLogicalVolumePage}         = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
+
+    $self->{EditPartitionSizePage} = Installation::Partitioner::NewPartitionSizePage->new({
+            custom_size_shortcut => 'alt-t'
+    });
 
     return $self;
+}
+
+sub get_add_volume_group_page {
+    my ($self) = @_;
+    return $self->{AddVolumeGroupPage};
 }
 
 sub get_clone_partition_dialog {
@@ -43,6 +61,20 @@ sub get_clone_partition_dialog {
     return $self->{ClonePartitionsDialog};
 }
 
+sub get_create_new_partition_table_page {
+    my ($self) = @_;
+    return $self->{CreatePartitionTablePage};
+}
+
+sub get_deleting_current_devices_dialog {
+    my ($self) = @_;
+    return $self->{DeletingCurrentDevicesDialog};
+}
+
+sub get_add_logical_volume_page {
+    my ($self) = @_;
+    return $self->{AddLogicalVolumePage};
+}
 
 sub add_partition_on_gpt_disk {
     my ($self, $args) = @_;
@@ -77,6 +109,39 @@ sub add_raid {
     $self->get_raid_type_page()->press_next();
     $self->get_raid_options_page()->press_next();
     $self->add_raid_partition($args->{partition});
+}
+
+sub create_new_partition_table {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk($args->{name});
+    $self->get_expert_partitioner_page()->select_create_partition_table();
+    $self->get_deleting_current_devices_dialog()->press_yes();
+    $self->get_create_new_partition_table_page()->press_next();
+}
+
+sub add_volume_group {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_lvm();
+    $self->get_expert_partitioner_page()->press_add_volume_group_button();
+    $self->get_add_volume_group_page()->set_volume_group_name($args->{name});
+    foreach my $device (@{$args->{devices}}) {
+        $self->get_add_volume_group_page()->select_available_device($device);
+    }
+    $self->get_add_volume_group_page()->press_add_button();
+    $self->get_add_volume_group_page()->press_next_button();
+}
+
+sub add_logical_volume {
+    my ($self, $args) = @_;
+    my $lv = $args->{logical_volume};
+    $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
+    $self->get_expert_partitioner_page()->press_add_logical_volume_button();
+    $self->get_add_logical_volume_page()->set_logical_volume_name($lv->{name});
+    $self->get_add_logical_volume_page()->press_next_button();
+    $self->set_new_partition_size($lv->{size});
+    $self->get_add_logical_volume_page()->select_role($lv->{role});
+    $self->get_add_logical_volume_page()->press_next_button();
+    $self->_finish_partition_creation;
 }
 
 1;

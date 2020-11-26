@@ -1,12 +1,15 @@
 ---
-name: lvm-encrypt-separate-boot
+name: lvm-full-encrypt
 description: >
-  Same as lvm-full-encrypt, but with separate boot not encrypted partition, only
-  installation to not repeat everything again with small risk.
+  Installation with encrypted root and swap logical volumes and encrypted
+  boot partition outside of volume group as plain partition.
+  Partitioning is validated in the booted system after the installation,
+  including check for separate boot partition.
 vars:
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
   MAX_JOB_TIME: '14400'
+  YUI_REST_API: 1
 conditional_schedule:
   boot_encrypt_reconnect_mgmt_console:
     ARCH:
@@ -20,14 +23,14 @@ conditional_schedule:
         - installation/boot_encrypt
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_full_lvm
-  - installation/partitioning_finish
+  - installation/partitioning/encrypted_full_lvm
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/user_settings
@@ -40,6 +43,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - '{{boot_encrypt_reconnect_mgmt_console}}'
+  - installation/teardown_libyui
   - '{{grub_test_boot_encrypt}}'
   - installation/first_boot
   - console/hostname

@@ -11,6 +11,7 @@ vars:
   FULL_LVM_ENCRYPT: 1
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   MAX_JOB_TIME: '14400'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -19,8 +20,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_full_lvm
-  - installation/partitioning_finish
+  - installation/partitioning/encrypted_full_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root

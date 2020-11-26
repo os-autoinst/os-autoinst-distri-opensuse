@@ -1,23 +1,25 @@
 ---
-name: lvm-encrypt-separate-boot
+name: lvm-full-encrypt
 description: >
-  Same as lvm-full-encrypt, but with separate boot not encrypted partition,  only
-  installation to not repeat everything again with small risk.
+  Installation with encrypted root and swap logical volumes and encrypted
+  boot partition outside of volume group as plain partition.
+  Partitioning is validated in the booted system after the installation,
+  including check for separate boot partition.
 vars:
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
   MAX_JOB_TIME: '14400'
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_full_lvm
-  - installation/partitioning_finish
+  - installation/partitioning/encrypted_full_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/resolve_dependency_issues
@@ -27,6 +29,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
@@ -36,3 +39,24 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_lvm
   - console/validate_encrypt
+test_data:
+  disks:
+  - name: vda
+    partitions:
+      - size: 2MiB
+        role: raw-volume
+        id: bios-boot
+      - role: raw-volume
+        id: linux-lvm
+        encrypt_device: 1
+  lvm:
+    volume_groups:
+    - name: vg-system
+      devices:
+        - /dev/vda2
+      logical_volumes:
+        - name: lv-swap
+          size: 2000MiB
+          role: swap
+        - name: lv-root
+          role: operating-system

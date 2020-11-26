@@ -12,6 +12,7 @@ vars:
   UNENCRYPTED_BOOT: 1
   ENCRYPT: 1
   FULL_LVM_ENCRYPT: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -20,8 +21,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_full_lvm
-  - installation/partitioning_finish
+  - installation/partitioning/encrypted_full_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root

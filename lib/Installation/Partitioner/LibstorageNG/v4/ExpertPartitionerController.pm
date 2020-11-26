@@ -63,10 +63,11 @@ sub init {
             raw_volume_shortcut => 'alt-r'
     });
     $self->{FormattingOptionsPage} = Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
-            do_not_format_shortcut => 'alt-t',
-            format_shortcut        => 'alt-r',
-            filesystem_shortcut    => 'alt-f',
-            do_not_mount_shortcut  => 'alt-u'
+            do_not_format_shortcut  => 'alt-t',
+            format_shortcut         => 'alt-r',
+            filesystem_shortcut     => 'alt-f',
+            do_not_mount_shortcut   => 'alt-u',
+            encrypt_device_shortcut => 'alt-e'
     });
     $self->{EditFormattingOptionsPage} = Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
             do_not_format_shortcut  => 'alt-t',

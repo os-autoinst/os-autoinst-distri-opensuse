@@ -91,8 +91,9 @@ sub _set_partition_options {
     my $id                 = $args->{id};
     my $formatting_options = $args->{formatting_options};
     my $mounting_options   = $args->{mounting_options};
+    my $encrypt_device     = $args->{encrypt_device};
 
-    # Ste partition id if provided
+    # Set partition id if provided
     if ($id) {
         $self->get_formatting_options_page()->select_partition_id($id);
     }
@@ -120,6 +121,14 @@ sub _set_partition_options {
             $self->get_formatting_options_page()->select_do_not_mount_device_radiobutton();
         }
     }
+    if ($encrypt_device) {
+        $self->get_formatting_options_page()->check_encrypt_device_checkbox();
+        $self->get_formatting_options_page()->press_next();
+        $self->get_encrypt_password_page()->assert_password_page();
+        $self->get_encrypt_password_page()->enter_password();
+        $self->get_encrypt_password_page()->enter_password_verification();
+        $self->get_encrypt_password_page()->press_next();
+    }
 }
 
 sub _add_partition {
@@ -129,7 +138,7 @@ sub _add_partition {
     $self->_set_partition_role($args->{role});
     $self->_set_partition_options($args);
     # This method is different for different versions of storage
-    $self->_finish_partition_creation();
+    $self->_finish_partition_creation() unless $args->{encrypt_device};
 }
 
 1;

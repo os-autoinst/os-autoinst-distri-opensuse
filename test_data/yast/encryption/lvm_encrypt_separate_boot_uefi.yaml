@@ -1,9 +1,15 @@
 disks:
   - name: vda
     partitions:
-      - size: 2MiB
+      - size: 300mb
         role: raw-volume
-        id: bios-boot
+        id: efi
+        formatting_options:
+          should_format: 1
+          filesystem: fat
+        mounting_options:
+          should_mount: 1
+          mount_point: /boot/efi
       - size: 500MiB
         role: operating-system
         formatting_options:
