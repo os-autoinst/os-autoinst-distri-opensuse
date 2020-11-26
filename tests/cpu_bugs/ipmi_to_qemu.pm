@@ -37,9 +37,15 @@ my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-D
 sub run {
     my $self = shift;
     my $current_dist;
+    my $sles_running_version;
+    my $sles_running_sp;
     script_run("systemctl disable apparmor.service");
     script_run("aa-teardown");
-    my ($sles_running_version, $sles_running_sp) = get_os_release();
+    if (get_var("DIST_FOR_REPO")) {
+        ($sles_running_version, $sles_running_sp) = split(/sp/i, get_var("DIST_FOR_REPO"));
+    } else {
+        ($sles_running_version, $sles_running_sp) = get_os_release();
+    }
     if ($sles_running_sp gt '0') {
         $current_dist = sprintf("SLE_%s_SP%s", $sles_running_version, $sles_running_sp);
     } else {
