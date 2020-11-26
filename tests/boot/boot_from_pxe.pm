@@ -143,6 +143,12 @@ sub run {
         # 'ssh=1' and 'sshd=1' are equal, both together don't work
         # so let's just set the password here
         $cmdline .= "sshpassword=$testapi::password ";
+
+        # add extra parameter if needed, such as workaround
+        if (get_var("EXTRA_PXE_CMDLINE")) {
+            $cmdline .= get_var("EXTRA_PXE_CMDLINE") . ' ';
+        }
+
         type_string_slow $cmdline;
     }
 
