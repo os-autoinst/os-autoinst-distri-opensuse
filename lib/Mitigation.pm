@@ -299,25 +299,15 @@ sub check_sysfs {
         foreach my $sysfs_name_item (@{$self->{sysfs_name}}) {
             assert_script_run('cat ' . $syspath . $sysfs_name_item);
             if (@_ == 2) {
-                my $ret = script_run(
+                assert_script_run(
                     'cat ' . $syspath . $sysfs_name_item . '| grep ' . '"' . $self->{sysfs}->{$value}->{$sysfs_name_item} . '"');
-                if (defined $ret and $ret != 0) {
-                    my $real_output = script_output('cat ' . $syspath . $sysfs_name_item);
-                    record_soft_failure("ERROR/BUG please check sysfs output for: " . $syspath . $sysfs_name_item .
-                          " EXPECT: \"" . $self->{sysfs}->{$value}->{$sysfs_name_item} . "\",ACTUAL: \"" . $real_output . "\"");
-                }
             }
         }
     } else {
         assert_script_run('cat ' . $syspath . $self->sysfs_name());
         if (@_ == 2) {
-            my $ret = script_run(
+            assert_script_run(
                 'cat ' . $syspath . $self->sysfs_name() . '| grep ' . '"' . $self->sysfs($value) . '"');
-            if (defined $ret and $ret != 0) {
-                my $real_output = script_output('cat ' . $syspath . $self->sysfs_name());
-                record_soft_failure("ERROR/BUG please check sysfs output for: " . $syspath . $self->sysfs_name() .
-                      " EXPECT: \"" . $self->sysfs($value) . "\",ACTUAL: \"" . $real_output . "\"");
-            }
         }
     }
 }
