@@ -85,9 +85,12 @@ sub add_partition_on_gpt_disk {
 
 sub clone_partition_table {
     my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_disk($args->{disk});
-    $self->get_expert_partitioner_page()->open_clone_partition_dialog();
-    $self->get_clone_partition_dialog()->select_all_disks();
+    $self->get_expert_partitioner_page()->open_clone_partition_dialog($args->{disk});
+    if ($args->{target_disks}) {
+        $self->get_clone_partition_dialog()->select_disks(@{$args->{target_disks}});
+    } else {
+        $self->get_clone_partition_dialog()->select_all_disks();
+    }
     $self->get_clone_partition_dialog()->press_ok();
 }
 

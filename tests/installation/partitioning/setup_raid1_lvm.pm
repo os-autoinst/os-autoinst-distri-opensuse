@@ -30,14 +30,15 @@ sub run {
 
     # Create partitions with the data from yaml scheduling file on first disk
     # (see YAML_SCHEDULE openQA variable value).
-    my $first_disk = $test_data->{disks}[0];
+    my @disks      = @{$test_data->{disks}};
+    my $first_disk = $disks[0];
     foreach my $partition (@{$first_disk->{partitions}}) {
         $partitioner->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
     }
 
     # Clone partition table from first disk to all other disks
-    my $numdisks = scalar(@{$test_data->{disks}}) - 1;
-    $partitioner->clone_partition_table({disk => $first_disk->{name}, numdisks => $numdisks});
+    my @target_disks = map { $_->{name} } @disks[1 .. $#disks];
+    $partitioner->clone_partition_table({disk => $first_disk->{name}, target_disks => \@target_disks});
 
     # Create RAID partitions with the data from yaml scheduling file
     # (see YAML_SCHEDULE openQA variable value).
