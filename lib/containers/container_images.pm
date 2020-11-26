@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use version_utils;
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image);
+our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container);
 
 # Build any container image using a basic Dockerfile
 sub build_container_image {
@@ -66,15 +66,17 @@ sub build_with_zypper_docker {
     # zypper docker can only update image if version is same as SUT
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
-        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $pretty_version"/ });
+        my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
     }
     else {
+        $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
     assert_script_run("zypper-docker list-updates $image");
-    assert_script_run("zypper-docker up $image $derived_image");
+    assert_script_run("zypper-docker up $image $derived_image", timeout => 160);
 
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
     assert_script_run("zypper-docker list-updates $derived_image | grep 'No updates found'");
@@ -99,21 +101,22 @@ sub test_opensuse_based_image {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
+    $version = 'Tumbleweed' if ($version =~ /^Staging:/);
+
     # It is the right version
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
-        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server $pretty_version"/ });
+        my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+        record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
+        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+            sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
-        if (is_sle('=12-SP3', $version)) {
-            my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect';
-            assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin'";
-        } else {
-            my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-            assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
-            script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
-            script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
-        }
+        my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
+        assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
+        script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
+        script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
     } else {
+        $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 
@@ -127,6 +130,12 @@ sub test_opensuse_based_image {
     assert_script_run("$runtime rm refreshed", 120);
     # Verify the image works
     assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+}
+
+sub exec_on_container {
+    my ($image, $runtime, $command, $timeout) = @_;
+    $timeout //= 120;
+    assert_script_run("$runtime run --rm $image $command", $timeout);
 }
 
 1;

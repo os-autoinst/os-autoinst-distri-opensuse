@@ -1,15 +1,34 @@
 name:           allpatterns
 description:    >
-    Maintainer: slindomansilla.
+    Maintainer: foursixnine.
     Installation with all patterns selected for installation to check for
     potential package conflicts, how the system handles big space usage, etc.
     allpatterns installations can take longer, especially on non-x86_64
-    architectures.
+    architectures. This test suite doesn't publish an HDD, and doesn't run
+    post-installation tests.
+
+    All SLE modules that are compatible between them can be selected by adding
+    the setting ENABLE_ALL_SCC_MODULES=1 to the test suite
+conditional_schedule:
+    disk_activation:
+        BACKEND:
+            's390x':
+                - installation/disk_activation
+    grub_or_reconnect:
+        ARCH:
+            'x86_64':
+                - installation/grub_test
+            'ppc64le':
+                - installation/grub_test
+            'aarch64':
+                - installation/grub_test
+            's390x':
+                - boot/reconnect_mgmt_console
 schedule:
-    - installation/isosize
-    - installation/bootloader
+    - installation/bootloader_start
     - installation/welcome
     - installation/accept_license
+    - '{{disk_activation}}'
     - installation/scc_registration
     - installation/addon_products_sle
     - installation/system_role
@@ -26,49 +45,5 @@ schedule:
     - installation/await_install
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
-    - installation/grub_test
+    - '{{grub_or_reconnect}}'
     - installation/first_boot
-    - console/system_prepare
-    - console/check_network
-    - console/system_state
-    - console/prepare_test_data
-    - console/consoletest_setup
-    - locale/keymap_or_locale
-    - console/force_scheduled_tasks
-    - console/textinfo
-    - console/hostname
-    - console/installation_snapshots
-    - console/x_vt
-    - console/zypper_lr
-    - console/zypper_ref
-    - console/ncurses
-    - console/curl_https
-    - console/salt
-    - console/glibc_sanity
-    - console/zypper_in
-    - console/zypper_log
-    - console/yast2_bootloader
-    - console/firewall_enabled
-    - console/sshd
-    - console/ssh_cleanup
-    - console/mtab
-    - console/zypper_lifecycle
-    - console/orphaned_packages_check
-    - console/consoletest_finish
-    - x11/desktop_runner
-    - x11/xterm
-    - locale/keymap_or_locale_x11
-    - x11/sshxterm
-    - update/prepare_system_for_update_tests
-    - update/updates_packagekit_gpk
-    - update/check_system_is_updated
-    - x11/gnome_control_center
-    - x11/gnome_terminal
-    - x11/gedit
-    - x11/firefox
-    - x11/glxgears
-    - x11/nautilus
-    - x11/desktop_mainmenu
-    - x11/reboot_gnome
-    - shutdown/cleanup_before_shutdown
-    - shutdown/shutdown

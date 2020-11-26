@@ -24,8 +24,11 @@ sub run {
     # Record libgpiod version
     record_info('Version', script_output('gpiodetect --version | head -n1'));
 
-    # ARM qemu has already gpiochip0 [ARMH0061:00] (8 lines) for ACPI
-    my $gpiochipX = (is_aarch64 || is_arm) ? 'gpiochip1' : 'gpiochip0';
+    # ARM qemu _may_ have already gpiochip0 [ARMH0061:00] (8 lines) for ACPI (depends on qemu version)
+    my $gpiochipX = 'gpiochip0';
+    if (script_run('gpioinfo | grep gpiochip0') == 0) {
+        $gpiochipX = 'gpiochip1';
+    }
 
     record_info('gpiochip', "$gpiochipX");
 

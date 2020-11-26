@@ -55,50 +55,22 @@ local vmguest=$1
 
 expect -c "
 set timeout 60
-
-##hide echo
-log_user 0
-spawn -noecho virsh console ${vmguest}
+spawn virsh console ${vmguest}
 
 #wait connection
 sleep 3
 send \"\r\n\r\n\r\n\"
 
-#condition expect
-expect {
-        \"*login:\" {
-                send \"root\r\"
-                exp_continue
-        }
-        -nocase \"password:\" {
-                send \"novell\r\"
-                exp_continue
-        }
-        \"*:~ #\" {
-                send -- \"ip route get 1\r\"
-        }
-        timeout {
-                send -- \"exit\r\"
-                exp_continue        
-        }                 
-}
-
 ## -1 means never timeout
 set timeout -1
 
-expect -re {dev.*\s([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})[^0-9]}
-
-if {![info exists expect_out(1,string)]} {
-        puts \"Match did not happen :(\"
+#Match non-empty output
+expect \".*\S.*\" {set output \$expect_out(buffer);puts \"\$output\n\";exp_continue -continue_timer}
 }
-set output \$expect_out(buffer)
-expect eof
-
-puts \"\$output\"
 "
-
 }
 
+#Please use "cat path_to_guest_console_log" to view pretty guest console output. Text editor may just show raw characters.
 function open_console() {
 
     #open guest console

@@ -1,4 +1,4 @@
 ---
 <<: !include test_data/yast/minimal+role_minimal_defaults.yaml
-default_target: graphical.target
+default_target: multi-user.target
 device: sda

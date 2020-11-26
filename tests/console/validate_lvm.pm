@@ -15,14 +15,14 @@ use warnings;
 use base "opensusebasetest";
 use testapi;
 use utils;
-use y2_module_basetest 'workaround_suppress_lvm_warnings';
 use Test::Assert ':all';
 use Mojo::JSON 'decode_json';
 use List::Util 'sum';
 
 sub pre_run_hook {
+    my ($self) = @_;
     select_console('root-console');
-    workaround_suppress_lvm_warnings;
+    $self->SUPER::pre_run_hook;
 }
 
 sub run {

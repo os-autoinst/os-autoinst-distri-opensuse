@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,14 +10,14 @@
 # Summary: The class represents Tumbleweed distribution and provides access to
 # its features.
 
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Distribution::Opensuse::Tumbleweed;
 use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
-use Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController;
+use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use YaST::NetworkSettings::v4::NetworkSettingsController;
 
 sub get_partitioner {
@@ -25,7 +25,7 @@ sub get_partitioner {
 }
 
 sub get_expert_partitioner {
-    return Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController->new();
+    return Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController->new();
 }
 
 sub get_network_settings {

@@ -59,8 +59,10 @@ sub run {
     my ($self) = @_;
     if (is_sle '15+') {
         select_console 'root-console';
-        zypper_call("in gnome-packagekit", timeout => 90);
-        record_soft_failure 'bsc#1081584';
+        if (script_run 'rpm -q "gnome-packagekit"') {
+            zypper_call("in gnome-packagekit", timeout => 90);
+            record_soft_failure 'bsc#1081584';
+        }
     }
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;

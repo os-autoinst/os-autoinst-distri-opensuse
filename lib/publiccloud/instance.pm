@@ -39,7 +39,7 @@ Timeout can be set by C<timeout> or 90 sec by default.
 C<<proceed_on_failure=>1>> allows to proceed with validation when C<cmd> is
 failing (return non-zero exit code)
 By default, the command is passed in single quotes to SSH.
-To avoid quoting us C<<no_quote=>1>>.
+To avoid quoting use C<<no_quote=>1>>.
 With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
 C<<$instance->ssh_opts>>.
 Use argument C<username> to specify a different username then
@@ -47,7 +47,8 @@ C<<$instance->username()>>.
 Use argument C<rc_only> to only check for the return code of the command.
 =cut
 sub run_ssh_command {
-    my ($self, %args) = @_;
+    my $self = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     die('Argument <cmd> missing') unless ($args{cmd});
     $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
     $args{username} //= $self->username();
@@ -55,6 +56,7 @@ sub run_ssh_command {
     $args{quiet}    //= 1;
     $args{no_quote} //= 0;
     my $rc_only = $args{rc_only} // 0;
+    my $timeout = $args{timeout};
 
     my $cmd = $args{cmd};
     unless ($args{no_quote}) {
@@ -62,8 +64,8 @@ sub run_ssh_command {
         $cmd = "'$cmd'";
     }
 
-    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s',
-        $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    $ssh_cmd = "timeout $timeout $ssh_cmd" if ($timeout > 0);
     record_info('SSH CMD', $ssh_cmd);
 
     delete($args{cmd});
@@ -75,6 +77,10 @@ sub run_ssh_command {
         # Run the command and don't wait for it - no output nor returncode here
         script_run($ssh_cmd, %args);
     } elsif ($rc_only) {
+        # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
+        $args{timeout} += 2;
+        # Pipe both the standard and error output serial for debug purposes
+        $ssh_cmd .= " 2>&1 | tee $serialdev";
         # Run the command and return only the returncode here
         my $ret = script_run($ssh_cmd, %args);
         die("Timeout on $ssh_cmd") unless (defined($ret));
@@ -83,6 +89,36 @@ sub run_ssh_command {
         # Run the command, wait for it and return the output
         return script_output($ssh_cmd, %args);
     }
+}
+
+=head2 retry_ssh_command
+
+    ssh_script_retry(command[, retry => 3][, delay => 10][, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0]);
+
+Run a C<command> via ssh in the given PC instance until it succeeds or
+the given number of retries is exhausted and an exception is thrown.
+Timeout can be set by C<timeout> or 90 sec by default.
+By default, the command is passed in single quotes to SSH.
+To avoid quoting use C<<no_quote=>1>>.
+With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
+C<<$instance->ssh_opts>>.
+Use argument C<username> to specify a different username then
+C<<$instance->username()>>.
+=cut
+sub retry_ssh_command {
+    my ($self, $cmd, %args) = @_;
+    $cmd = $args{cmd} if (!defined $cmd && $args{cmd});
+    $args{rc_only} = 1;
+    $args{timeout} //= 90;    # Timeout before we cancel the command
+    my $tries = delete $args{retry} // 3;
+    my $delay = delete $args{delay} // 10;
+
+    for (my $try = 0; $try < $tries; $try++) {
+        my $rc = $self->run_ssh_command($cmd, %args);
+        return $rc if (defined $rc && $rc == 0);
+        sleep($delay);
+    }
+    die "Waiting for Godot: " . $cmd;
 }
 
 =head2 scp

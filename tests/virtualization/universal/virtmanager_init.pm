@@ -14,10 +14,11 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: This test connects to hypervisor and check our VMs
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base "consoletest";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -28,6 +29,14 @@ sub run {
     my ($self) = @_;
 
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
+
+    # Ensure additional devices are removed (if present).
+    # This is necessary for restarting the virtmanager tests, as we assume the state is clear.
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        next if ($guest == "");
+        remove_additional_nic($guest, "00:16:3e:32");
+        remove_additional_disks($guest);
+    }
 
     #x11_start_program 'virt-manager';
     type_string "virt-manager\n";

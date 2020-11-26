@@ -1,0 +1,36 @@
+---
+description: 'Test suite verifies functionality of packages present in Package Hub (phub) module'
+name: 'jeos-base+phub'
+conditional_schedule:
+    bootloader:
+        MACHINE:
+            svirt-xen-pv:
+                - installation/bootloader_svirt
+            svirt-xen-hvm:
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            svirt-hyperv-uefi:
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            svirt-hyperv:
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            svirt-vmware65:
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+schedule:
+    - '{{bootloader}}'
+    - jeos/firstrun
+    - jeos/record_machine_id
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - jeos/grub2_gfxmode
+    - jeos/diskusage
+    - jeos/build_key
+    - console/suseconnect_scc
+    - console/machinery
+    - sysauth/sssd
+    - containers/docker_compose
+    - network/cifs
+    - console/orphaned_packages_check
+    - console/repo_orphaned_packages_check

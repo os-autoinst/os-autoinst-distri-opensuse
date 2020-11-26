@@ -39,6 +39,7 @@ conditional_schedule:
         - console/yast2_lan
         - console/yast2_nfs_server
       s390x:
+        - console/yast2_vnc
         - console/yast2_rmt
         - console/yast2_ntpclient
         - console/yast2_tftp

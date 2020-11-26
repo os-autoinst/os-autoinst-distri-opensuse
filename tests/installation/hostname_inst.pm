@@ -27,8 +27,15 @@ sub run {
     # 'install' is the default hostname if no hostname is get from environment
     # but, we may expect a different hostname (linuxrc, hostname, real DHCP server pushing a hostname)
     # from setting EXPECTED_INSTALL_HOSTNAME
-    my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME', get_var('NICTYPE_USER_OPTIONS', 'install'));
-    $expected_install_hostname =~ s/hostname=//;
+    my $expected_install_hostname = get_var('EXPECTED_INSTALL_HOSTNAME');
+    if (!$expected_install_hostname) {
+        if (get_var('NICTYPE_USER_OPTIONS') =~ m/hostname=(?<hostname>\w+)/) {
+            $expected_install_hostname = $+{hostname};
+        } else {
+            $expected_install_hostname = 'install';
+        }
+    }
+
     # Before SLE15-SP2, yast didn't take during installation the hostname by DHCP
     # See fate#319639
     if (is_sle('<15-SP2') && (script_run(qq{test "\$(hostname)" == "linux"}) == 0)) {

@@ -1555,6 +1555,7 @@ sub load_extra_tests_zypper {
     unless (is_jeos) {
         loadtest "console/zypper_info";
     }
+    loadtest "console/check_interactive_flag";
     # Check for availability of packages and the corresponding repository, as of now only makes sense for SLE
     loadtest 'console/validate_packages_and_patterns' if is_sle '12-sp2+';
     loadtest 'console/zypper_extend';
@@ -1697,6 +1698,7 @@ sub load_extra_tests_console {
     loadtest 'console/valgrind'       unless is_sle('<=12-SP3');
     loadtest 'console/sssd_samba'     unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
     loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
+    loadtest "console/parsec" if is_tumbleweed;
 }
 
 sub load_extra_tests_sdk {
@@ -1812,9 +1814,9 @@ sub load_extra_tests_filesystem {
         loadtest 'console/snapper_thin_lvm' unless is_jeos;
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
-    loadtest "console/udisks2" unless is_sle('<=15-SP2');
-    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
-    loadtest "network/cifs";
+    loadtest "console/udisks2" unless (is_sle('<=15-SP2') || get_var('VIRSH_VMM_FAMILY') =~ /xen/);
+    loadtest "console/zfs"  if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
+    loadtest "network/cifs" if (is_sle('>=15-sp3') || is_opensuse);
 }
 
 sub get_wicked_tests {
@@ -2446,6 +2448,7 @@ sub load_security_tests_check_kernel_config {
     load_security_console_prepare;
 
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
+    loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
 }
 
 sub load_security_tests_pam {
@@ -2502,6 +2505,9 @@ sub load_mitigation_tests {
     }
     if (get_var('IPMI_TO_QEMU')) {
         loadtest "cpu_bugs/ipmi_to_qemu";
+    }
+    if (get_var('IPMI_FAKE_SERVER')) {
+        loadtest "cpu_bugs/ipmi_fake_server";
     }
     if (get_var('XEN_GRUB_SETUP')) {
         loadtest "cpu_bugs/xen_grub_setup";

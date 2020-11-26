@@ -28,6 +28,7 @@ use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
+use maintenance_smelt qw(repo_is_not_active);
 
 our @EXPORT = qw(
   check_console_font
@@ -89,8 +90,9 @@ our @EXPORT = qw(
   file_content_replace
   ensure_ca_certificates_suse_installed
   is_efi_boot
-  common_service_start
-  common_service_status
+  install_patterns
+  common_service_action
+  script_output_retry
 );
 
 =head1 SYNOPSIS
@@ -516,7 +518,8 @@ sub zypper_call {
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
-            } elsif (my $conflicts = script_output($search_conflicts)) {
+            } elsif (script_run('grep "Solverrun finished with an ERROR" /var/log/zypper.log') == 0) {
+                my $conflicts = script_output($search_conflicts);
                 record_info("Conflict", $conflicts, result => 'fail');
                 diag "Package conflicts found, not retrying anymore" if $conflicts;
                 last;
@@ -524,7 +527,21 @@ sub zypper_call {
             next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
         if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106 || $ret == 139 || $ret == 141)) {
-            if (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
+            # remove maintenance update repo which was released
+            if (($ret == 106 || $ret == 4) && script_run(q[grep -E "Repository type can't be determined|not found on medium" /var/log/zypper.log]) == 0) {
+                my @removed;
+                my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
+                while (defined(my $maintrepo = shift @repos)) {
+                    next if $maintrepo =~ /^\s*$/;
+                    my $id = repo_is_not_active($maintrepo);
+                    # id can repeat due to different product, next if repo was removed
+                    next if (grep(/$id/, @removed));
+                    push @removed, $id;
+                    # remove all repositories containing ID, ignore failure as removed repo can be in list again as MAINT_TEST_REPO is not altered
+                    script_run(qq[zypper rr \$(zypper lr -u|awk 'BEGIN {ORS=" "};/$id/{print\$1}')], 0) if $id =~ /\d{3}\d+/;
+                }
+            }
+            elsif (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
                 record_soft_failure 'Zypper exiting on SIGPIPE received during package download bsc#1145521';
             }
             else {
@@ -641,7 +658,14 @@ sub fully_patch_system {
         handle_patch_11sp4_zvm();
     } else {
         # second run, full system update
-        zypper_call('patch --with-interactive -l', exitcode => [0, 102], timeout => 6000);
+        my $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102], timeout => 6000);
+        if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
+            record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
+            my $para = '';
+            $para = '--force-resolution' if get_var('FORCE_DEPS');
+            zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
+            save_screenshot;
+        }
     }
 }
 
@@ -1026,7 +1050,11 @@ some basic logging information to the serial output.
 sub handle_emergency {
     if (match_has_tag('emergency-shell')) {
         # get emergency shell logs for bug, scp doesn't work
+        type_password;
+        send_key 'ret';
         script_run "cat /run/initramfs/rdsosreport.txt > /dev/$serialdev";
+        script_run "echo \"\n--------------Beginning of journalctl--------------\n\" > /dev/$serialdev";
+        script_run "journalctl --no-pager -o short-precise > /dev/$serialdev";
         die "hit emergency shell";
     }
     elsif (match_has_tag('emergency-mode')) {
@@ -1372,14 +1400,25 @@ sub reconnect_mgmt_console {
             select_console 'novalink-ssh', await_console => 0;
         } elsif (check_var('BACKEND', 'pvm_hmc')) {
             select_console 'powerhmc-ssh', await_console => 0;
+            if ($args{grub_expected_twice}) {
+                check_screen 'grub2', 60;
+                wait_screen_change { send_key 'ret' };
+            }
         }
     }
     elsif (check_var('ARCH', 'x86_64')) {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
-            assert_screen [qw(qa-net-selection prague-pxe-menu)], 300;
+            assert_screen([qw(qa-net-selection prague-pxe-menu)], 300) unless get_var('IPXE_CONSOLE');
             # boot to hard disk is default
             send_key 'ret';
+        }
+    }
+    elsif (check_var('ARCH', 'aarch64')) {
+        if (check_var('BACKEND', 'ipmi')) {
+            select_console 'sol', await_console => 0;
+            # aarch64 baremetal machine takes longer to boot than 5 minutes
+            assert_screen([qw(qa-net-selection prague-pxe-menu)], 600) unless get_var('IPXE_CONSOLE');
         }
     }
     else {
@@ -1417,11 +1456,11 @@ Show logs about an out of memory process kill.
 =cut
 sub show_oom_info {
     if (script_run('dmesg | grep "Out of memory"') == 0) {
-        my $oom = script_output('dmesg | grep "Out of memory"');
+        my $oom = script_output('dmesg | grep "Out of memory"', proceed_on_failure => 1);
         if (has_ttys) {
             send_key 'alt-sysrq-m';
-            $oom .= "\n\n" . script_output('journalctl -kb | tac | grep -F -m1 -B1000 "sysrq: Show Memory" | tac');
-            $oom .= "\n\n% free -h\n" . script_output('free -h');
+            $oom .= "\n\n" . script_output('journalctl -kb | tac | grep -F -m1 -B1000 "sysrq: Show Memory" | tac', proceed_on_failure => 1);
+            $oom .= "\n\n% free -h\n" . script_output('free -h', proceed_on_failure => 1);
         }
         record_info('OOM KILL', $oom, result => 'fail');
     }
@@ -1478,6 +1517,44 @@ sub script_retry {
     }
 
     return $ret;
+}
+
+=head2 script_output_retry
+
+ script_output_retry($cmd, [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
+
+Repeat command until expected result or timeout. Return the output of the command on success.
+
+C<$expect> refers to the expected command exit code and defaults to C<0>.
+
+C<$retry> refers to the number of retries and defaults to C<10>.
+
+C<$delay> is the time between retries and defaults to C<30>.
+
+The command must return within C<$timeout> seconds (default: 25).
+
+If the command doesn't return C<$expect> after C<$retry> retries,
+this function will die, if C<$die> is set.
+
+Example:
+
+ script_output_retry('ping -c1 -W1 machine', retry => 5);
+
+=cut
+sub script_output_retry {
+    my ($cmd, %args) = @_;
+    my $retry   = $args{retry}   // 10;
+    my $delay   = $args{delay}   // 30;
+    my $timeout = $args{timeout} // 30;
+    my $die     = $args{die}     // 1;
+
+    my $exec = "timeout " . ($timeout - 3) . " $cmd";
+    for (1 .. $retry) {
+        my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
+        return $ret if ($ret);
+        sleep $delay;
+    }
+    die("Waiting for Godot: $cmd") if $die;
 }
 
 =head2 script_run_interactive
@@ -1697,34 +1774,137 @@ sub is_efi_boot {
     return !!script_output('test -d /sys/firmware/efi/ && ls -A /sys/firmware/efi/', proceed_on_failure => 1);
 }
 
-sub common_service_start {
-    my ($service, $type) = @_;
+#   Function: parse the output from script_output to get the pattern list
+#   Reason  : sometimes script_output with 'zypper pt -u' will cost a lot of time to return,
+#   which cause the console have some system message in the output. we need filt out these
+#   info before we process the result.
+#   parameters:
+#   $cmd   : the command line
+#   $start : the line that start with $start, which is we want
+#   return :  an array of pattern list
+sub get_pattern_list {
+    my ($cmd, $start) = @_;
 
-    if ($type eq 'SystemV') {
-        script_run '/etc/init.d/' . $service . ' start';
-        script_run 'service ' . $service . ' status';
-        assert_script_run 'chkconfig ' . $service . ' on';
+    my $pkg_name;
+    my @column   = ();
+    my @pkg_list = ();
+    my %seen     = ();
+    my @unique   = ();
+
+    my @pkg_lines = split(/\n/, script_output($cmd, 120));
+
+    foreach my $line (@pkg_lines) {
+        $line =~ s/^\s+|\s+$//g;
+        # In a regular expression, all chars between the \Q and \E are escaped.
+        next if ($line !~ m/^\Q$start\E/);
+        # filter out the spaces in each filed
+        @column = map { s/^\s*|\s*$//gr } split(/\|/, $line);
+        # pkg_name is the 2nd field seperated by '|'
+        $pkg_name = $column[1];
+        push @pkg_list, $pkg_name;
     }
-    elsif ($type eq 'Systemd') {
-        systemctl 'enable ' . $service;
-        systemctl 'start ' . $service;
+
+    if (@pkg_list) {
+        # unique and sort the @pkg_list
+        %seen   = map { $_ => 1 } @pkg_list;
+        @unique = sort keys %seen;
+    }
+
+    return @unique;
+}
+
+=head2 install_patterns
+    install_patterns();
+
+This functions install extra patterns if var PATTERNS is set.
+
+=cut
+
+sub install_patterns {
+    my $pcm = 0;
+    my @pt_list;
+    my @pt_list_un;
+    my @pt_list_in;
+    my $pcm_list = 0;
+
+    if (is_sle('15+')) {
+        $pcm_list = 'Amazon_Web_Services|Google_Cloud_Platform|Microsoft_Azure';
     }
     else {
-        die "Unsupported service type, please check it again.";
+        $pcm_list = 'Amazon-Web-Services|Google-Cloud-Platform|Microsoft-Azure';
+    }
+    @pt_list_in = get_pattern_list "zypper pt -i", "i";
+    # install all patterns from product.
+    if (check_var('PATTERNS', 'all')) {
+        @pt_list_un = get_pattern_list "zypper pt -u", "|";
+    }
+    # install certain pattern from parameter.
+    else {
+        @pt_list_un = split(/,/, get_var('PATTERNS'));
+    }
+
+    my %installed_pt = ();
+    foreach (@pt_list_in) {
+        # Remove pattern common-criteria if already installed, poo#73645
+        if ($_ =~ /common-criteria/) {
+            zypper_call("remove -t pattern $_");
+            next;
+        }
+        $installed_pt{$_} = 1;
+    }
+    @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
+    $pcm     = grep /$pcm_list/, @pt_list_in;
+
+    for my $pt (@pt_list) {
+        # if pattern is set default, skip
+        next if ($pt =~ /default/);
+        # Cloud patterns are conflict by each other, only install cloud pattern from single vender.
+        if ($pt =~ /$pcm_list/) {
+            next unless $pcm == 0;
+            $pt .= '*';
+            $pcm = 1;
+        }
+        # skip the installation of "SAP Application Server Base", poo#75058.
+        if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
+            next;
+        }
+        # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
+        next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
+        my $ret = zypper_call("in -t pattern $pt", exitcode => [0, 4], timeout => 1800);
+        if ($ret == 4) {
+            if (($pt =~ /CFEngine/) && is_sle('>=12') && is_sle('<15')) {
+                record_soft_failure 'bsc#1175704 pattern:CFEngine-12-8.1.s390x requires patterns-adv-sys-mgmt-CFEngine, but this requirement cannot be provided';
+                my $para = '';
+                $para = '--force-resolution' if get_var('FORCE_DEPS');
+                zypper_call("in $para -t pattern $pt", timeout => 1800, exitcode => [0, 102, 103]);
+            }
+            else {
+                script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
+                my $msg = "'zypper -n in -t pattern $pt failed with code $ret";
+                $msg .= "\n\nRelated zypper logs:\n";
+                $msg .= script_output('cat /tmp/zlog.txt');
+                die $msg;
+            }
+        }
     }
 }
 
-sub common_service_status {
-    my ($service, $type) = @_;
+sub common_service_action {
+    my ($service, $type, $action) = @_;
 
     if ($type eq 'SystemV') {
-        assert_script_run 'chkconfig  --list | grep ' . $service;
-        assert_script_run 'service ' . $service . ' status | grep running';
-    }
-    elsif ($type eq 'Systemd') {
-        systemctl 'is-active ' . $service;
-    }
-    else {
+        if ($action eq 'enable') {
+            assert_script_run 'chkconfig ' . $service . ' on';
+        } elsif ($action eq 'is-enabled') {
+            assert_script_run 'chkconfig ' . $service . ' | grep on';
+        } elsif ($action eq 'is-active') {
+            assert_script_run '/etc/init.d/' . $service . ' status | grep running';
+        } else {
+            assert_script_run '/etc/init.d/' . $service . ' ' . $action;
+        }
+    } elsif ($type eq 'Systemd') {
+        systemctl $action . ' ' . $service;
+    } else {
         die "Unsupported service type, please check it again.";
     }
 }

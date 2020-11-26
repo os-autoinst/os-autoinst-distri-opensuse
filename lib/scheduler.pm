@@ -51,7 +51,16 @@ sub parse_schedule {
     my ($schedule) = shift;
     my @scheduled;
     for my $module (@{$schedule->{schedule}}) {
-        push(@scheduled, $module) && next unless ($module =~ s/\{\{(.*)\}\}/$1/);
+        push(@scheduled, parse_schedule_module($schedule, $module));
+
+    }
+    return @scheduled;
+}
+
+sub parse_schedule_module {
+    my ($schedule, $module) = @_;
+    my @scheduled;
+    if ($module =~ s/\{\{(.*)\}\}/$1/) {
         # Module is scheduled conditionally. Need to be parsed. Get condition hash
         my $condition = $schedule->{conditional_schedule}->{$module};
         # Iterate over variables in the condition
@@ -59,8 +68,11 @@ sub parse_schedule {
             next unless my $val = get_var($var);
             # If value of the variable matched the conditions
             # Iterate over the list of the modules to be loaded
-            push(@scheduled, $_) for (@{$condition->{$var}->{$val}});
+            push(@scheduled, parse_schedule_module($schedule, $_)) for (@{$condition->{$var}->{$val}});
         }
+    }
+    else {
+        push(@scheduled, $module);
     }
     return @scheduled;
 }

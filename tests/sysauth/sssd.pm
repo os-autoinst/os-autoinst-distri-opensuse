@@ -36,13 +36,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    if (is_sle) {
-        assert_script_run 'source /etc/os-release';
-        if (is_sle '>=15') {
-            add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-            add_suseconnect_product('sle-module-legacy');
-        }
-    }
+    add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle('>=15');
 
     # Install test subjects and test scripts
     my @test_subjects = qw(
@@ -52,14 +46,23 @@ sub run {
     );
 
     # for sle 12 we still use and support python2
-    push @test_subjects, 'python-pam'         if is_sle('<15');
-    push @test_subjects, 'python3-python-pam' if is_sle('15+') || is_opensuse;
-
-    if (check_var('DESKTOP', 'textmode')) {    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
-        zypper_call "in psmisc";
+    if (is_sle('<15')) {
+        add_suseconnect_product('sle-module-legacy');
+        push @test_subjects, 'python-pam';
+    } else {
+        push @test_subjects, 'python3-python-pam';
     }
-    zypper_call "refresh";
-    zypper_call "in @test_subjects";
+    # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
+    push @test_subjects, 'psmisc' if check_var('DESKTOP', 'textmode');
+
+    my $ret = zypper_call "refresh", exitcode => [0, 4];
+    if ($ret == 4) {
+        record_soft_failure 'bsc#1152524 - [Build 18.1] openQA test fails whenever package hub repo is added: Valid metadata not found at specified URL';
+    }
+    $ret = zypper_call "in @test_subjects", exitcode => [0, 106];
+    if ($ret == 106) {
+        record_soft_failure 'bsc#1152524 - [Build 18.1] openQA test fails whenever package hub repo is added: Valid metadata not found at specified URL';
+    }
     assert_script_run "cd; curl -L -v " . autoinst_url . "/data/lib/version_utils.sh > /usr/local/bin/version_utils.sh";
     assert_script_run "cd; curl -L -v " . autoinst_url . "/data/sssd-tests > sssd-tests.data && cpio -id < sssd-tests.data && mv data sssd && ls sssd";
 

@@ -32,7 +32,7 @@ use DateTime;
 use Utils::Architectures 'is_s390x';
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file
-  ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd);
+  ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic);
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -154,8 +154,9 @@ sub create_guest {
         send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
-        assert_script_run "qemu-img create -f qcow2 /var/lib/libvirt/images/xen/$name.qcow2 20G", 180;
-        script_run "( virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$name.qcow2 --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --wait -1 --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$name.txt 2>&1 & )";
+        my $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
+        assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
+        script_run "( virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$name.qcow2 --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --wait -1 --events on_reboot=restart --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$name.txt 2>&1 & )";
     }
 }
 
@@ -191,32 +192,37 @@ sub install_default_packages {
 sub ensure_online {
     my ($guest, %args) = @_;
 
-    my $hypervisor = $args{HYPERVISOR}    // "192.168.122.1";
-    my $dns_host   = $args{DNS_TEST_HOST} // "suse.de";
-    my $skip_ssh   = $args{skip_ssh}      // 0;
-    my $ping_delay = $args{ping_delay}    // 15;
-    my $ping_retry = $args{ping_retry}    // 60;
+    my $hypervisor   = $args{HYPERVISOR}    // "192.168.122.1";
+    my $dns_host     = $args{DNS_TEST_HOST} // "suse.de";
+    my $skip_ssh     = $args{skip_ssh}      // 0;
+    my $skip_network = $args{skip_network}  // 0;
+    my $ping_delay   = $args{ping_delay}    // 15;
+    my $ping_retry   = $args{ping_retry}    // 60;
+
     # Ensure guest is running
     # Only xen/kvm support to reboot guest at the moment
     if (is_xen_host || is_kvm_host) {
-        if (script_run("virsh list --all | grep '$guest' | grep running") != 0) {
+        if (script_run("virsh list | grep '$guest'") != 0) {
             assert_script_run("virsh start '$guest'");
+            script_retry("ping -c 1 '$guest'", delay => 10, retry => 30);
         }
     }
-    die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => $ping_delay, retry => $ping_retry) != 0);
-    # Wait for ssh to come up
-    die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
-    unless ($skip_ssh == 1) {
-        die "$guest not ssh-reachable" if (script_run("ssh $guest uname") != 0);
-        # Ensure default route is set
-        if (script_run("ssh $guest ip r s | grep default") != 0) {
-            assert_script_run("ssh $guest ip r a default via $hypervisor");
-        }
-        die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 1 $hypervisor", delay => 1, retry => 10) != 0);
-        # Check also if name resolution works - restart libvirtd if not
-        if (script_run("ssh $guest ping -c 1 -w 120 $dns_host") != 0) {
-            restart_libvirtd;
-            die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 1 -w 120 $dns_host", delay => 1, retry => 10) != 0);
+    unless ($skip_network == 1) {
+        die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => $ping_delay, retry => $ping_retry) != 0);
+        unless ($skip_ssh == 1) {
+            # Wait for ssh to come up
+            die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
+            die "$guest not ssh-reachable"  if (script_run("ssh $guest uname") != 0);
+            # Ensure default route is set
+            if (script_run("ssh $guest ip r s | grep default") != 0) {
+                assert_script_run("ssh $guest ip r a default via $hypervisor");
+            }
+            die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 3 $hypervisor", delay => 1, retry => 10, timeout => 90) != 0);
+            # Check also if name resolution works - restart libvirtd if not
+            if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
+                restart_libvirtd;
+                die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 3 -w 120 $dns_host", delay => 1, retry => 10, timeout => 180) != 0);
+            }
         }
     }
 }
@@ -241,6 +247,29 @@ sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
     assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+}
+
+# Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
+sub remove_additional_disks {
+    my $guest   = $_[0];
+    my $pattern = $_[1] // "x?vd[b-z]";
+
+    return if ($guest == 0);
+    my $cmd = 'for i in `virsh domblklist ' . "'$guest'" . ' | grep ' . "'$pattern'" . ' | awk "{print $1}"`; do virsh detach-disk ' . "'$guest' " . '"$i"; done';
+    return script_run($cmd);
+}
+
+# Remove additional network interfaces from $guest. The NIC needs to be identified by it's mac address of mac address prefix (e.g. '00:16:3f:32')
+# returns the status code of the remove command
+sub remove_additional_nic {
+    my $guest      = $_[0] // '';
+    my $mac_prefix = $_[1] // '';
+
+    return                       if ($guest == 0);
+    die "mac_prefix not defined" if ($mac_prefix == 0);
+
+    my $cmd = 'for i in `virsh domiflist ' . "'$guest'" . ' | grep ' . "'$mac_prefix'" . ' | awk "{print $5}"`; do virsh detach-interface ' . "'$guest'" . ' bridge --mac "$i"; done';
+    return script_run($cmd);
 }
 
 1;

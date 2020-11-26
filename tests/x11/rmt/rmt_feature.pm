@@ -44,6 +44,26 @@ sub run {
         assert_script_run("rmt-cli products disable $i") if ($i =~ /\d{4}/);
     }
 
+    # enable multiple products with product name at the same time in different way
+    assert_script_run("rmt-cli product enable SLES/12.3/x86_64 sle-module-live-patching/15/x86_64");
+    assert_script_run("rmt-cli product list | grep SLES/12.3/x86_64");
+    assert_script_run("rmt-cli product list | grep sle-module-live-patching/15/x86_64");
+    assert_script_run("rmt-cli product enable SLES/12.5/x86_64,sle-we/15.2/x86_64");
+    assert_script_run("rmt-cli product list | grep SLES/12.5/x86_64");
+    assert_script_run("rmt-cli product list | grep sle-we/15.2/x86_64");
+    assert_script_run("rmt-cli product enable 'SLES/12.5/ppc64le sle-module-containers/15.1/s390x'");
+    assert_script_run("rmt-cli product list | grep SLES/12.5/ppc64le");
+    assert_script_run("rmt-cli product list | grep sle-module-containers/15.1/s390x");
+    assert_script_run("rmt-cli product enable 'SLES/12.4/aarch64,sle-module-live-patching/15.2/ppc64le'");
+    assert_script_run("rmt-cli product list | grep SLES/12.4/aarch64");
+    assert_script_run("rmt-cli product list | grep sle-module-live-patching/15.2/ppc64le");
+
+    # disable the products enabled above in different way
+    assert_script_run("rmt-cli product disable SLES/12.3/x86_64 sle-module-live-patching/15/x86_64");
+    assert_script_run("rmt-cli product disable SLES/12.5/x86_64,sle-we/15.2/x86_64");
+    assert_script_run("rmt-cli product disable 'SLES/12.5/ppc64le sle-module-containers/15.1/s390x'");
+    assert_script_run("rmt-cli product disable 'SLES/12.4/aarch64,sle-module-live-patching/15.2/ppc64le'");
+
     # enable product with product ID 1798-Web and Scripting Module/15.1/x86_64
     # 1973-Web and Scripting Module/15.2/aarch64 1974-Web and Scripting Module/15.2/ppc64le
     assert_script_run("rmt-cli product enable 1798 1973 1974");

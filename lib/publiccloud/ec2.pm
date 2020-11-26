@@ -137,6 +137,7 @@ sub upload_img {
           . "--ssh-key-pair '" . $self->ssh_key . "' "
           . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA upload image' "
+          . "--wait-count 3 "
           . ($sec_group     ? "--security-group-ids '" . $sec_group . "' " : '')
           . ($vpc_subnet    ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
           . ($ami_id        ? "--ec2-ami '" . $ami_id . "' "               : '')

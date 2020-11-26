@@ -95,11 +95,12 @@ sub run {
         # There is a dialog with packages that updates are available from
         # the official repo, do not use those as want to use not published repos only
         push(@tags, 'package-update-found') if is_opensuse;
+        # upgrades are slower
+        $timeout = 5500;
     }
-    # upgrades are slower
     # our Hyper-V server is just too slow
     # SCC might mean we install everything from the slow internet
-    if (get_var('UPGRADE') || check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
         $timeout = 5500;
     }
     # aarch64 can be particularily slow depending on the hardware
@@ -129,7 +130,7 @@ sub run {
         $timeout -= 30;
         diag("left total await_install timeout: $timeout");
         if (!$ret) {
-            if (get_var('LIVECD')) {
+            if (get_var('LIVECD') || get_var('SUPPORT_SERVER')) {
                 # The workaround with mouse moving was added, because screen
                 # become disabled after some time without activity on aarch64.
                 # Mouse is moved by 10 pixels, waited for 1 second (this is

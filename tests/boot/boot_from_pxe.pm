@@ -17,11 +17,12 @@ use strict;
 use warnings;
 use lockapi;
 use testapi;
-use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params);
+use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks);
 use registration 'registration_bootloader_cmdline';
 use utils 'type_string_slow';
 use Utils::Backends 'is_remote_backend';
 use Utils::Architectures qw(is_aarch64 is_orthos_machine is_supported_suse_domain);
+use version_utils 'is_upgrade';
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -185,6 +186,9 @@ sub run {
                 send_key "ret";
                 assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
             }
+        }
+        if (!is_upgrade && !get_var('KEEP_DISKS')) {
+            prepare_disks;
         }
         save_screenshot;
         select_console 'installation';

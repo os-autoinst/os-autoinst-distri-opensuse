@@ -30,7 +30,7 @@ sub run {
     assert_and_click 'windows-select-personal-use', dclick => 1;
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-next';
-    assert_screen 'windows-signin-with-ms';
+    assert_screen 'windows-signin-with-ms', 60;
     assert_and_click 'windows-offline';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-limited-exp', timeout => 60;
@@ -75,17 +75,21 @@ sub run {
     assert_and_click 'windows-dont-use-adID';
     assert_and_click 'windows-accept';
 
-    assert_screen 'windows-enable-more-devices';
-    assert_and_click 'windows-no';
     assert_screen 'windows-make-cortana-personal-assistant';
     assert_and_click 'windows-accept';
 
-    assert_screen([qw(windows-desktop windows-first-boot networks-popup-be-discoverable)], 600);
+    assert_screen([qw(windows-desktop windows-edge-decline networks-popup-be-discoverable)], 600);
 
     if (match_has_tag 'network-popup-be-discoverable') {
         assert_and_click 'network-discover-yes';
         wait_screen_change(sub { send_key 'ret' }, 10);
     }
+
+    if (match_has_tag 'windows-edge-decline') {
+        assert_and_click 'windows-edge-decline';
+    }
+
+    assert_screen 'windows-desktop';
 
     # setup stable lock screen background
     $self->use_search_feature('lock screen settings');

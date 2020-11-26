@@ -41,7 +41,7 @@ expect {
 }
 
 #submatch for output
-expect -re {dev.*\s([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})[^0-9]}
+expect -re {dev.*([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})[^0-9]}
 
 if {![info exists expect_out(1,string)]} {
         puts \"Match did not happen :(\"

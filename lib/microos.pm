@@ -24,9 +24,6 @@ our @EXPORT = qw(microos_reboot microos_login);
 sub microos_login {
     assert_screen 'linux-login-microos', 150;
 
-    # Workers installed using autoyast have no password - bsc#1030876
-    return if get_var('AUTOYAST');
-
     if (is_microos 'VMX') {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
         my $key = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 'alt-f2' : 'ctrl-alt-f2';

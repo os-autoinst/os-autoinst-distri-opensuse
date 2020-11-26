@@ -24,6 +24,8 @@ use testapi qw(script_run assert_script_run);
 
 our @EXPORT = qw(
   disable_and_stop_service
+  get_started_systemd_services
+  clear_started_systemd_services
   systemctl
 );
 
@@ -32,6 +34,8 @@ our @EXPORT = qw(
 C<Utils::Systemd> - Library for systemd related functionality
 
 =cut
+
+my %started_systemd_services;
 
 =head2 disable_and_stop_service
 
@@ -65,11 +69,33 @@ sub systemctl {
     croak "systemctl(): no command specified" if ($command =~ /^ *$/);
     my $expect_false  = $args{expect_false} ? '! ' : '';
     my @script_params = ("${expect_false}systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
+    if ($command =~ /^(re)?start ([^ ]+)/) {
+        my $unit_name = $2;
+        $started_systemd_services{$unit_name} = 1;
+    }
     if ($args{ignore_failure}) {
         script_run($script_params[0], $args{timeout});
     } else {
         assert_script_run(@script_params);
     }
+}
+
+=head2 get_started_systemd_services
+
+Return list of started systemd services
+
+=cut
+sub get_started_systemd_services {
+    return keys(%started_systemd_services);
+}
+
+=head2 clear_started_systemd_services
+
+Clear the list of started systemd services
+
+=cut
+sub clear_started_systemd_services {
+    %started_systemd_services = ();
 }
 
 1;

@@ -48,7 +48,10 @@ sub run {
     my $smb_remote = get_var("CIFS_TEST_REMOTE") // "currywurst.qam.suse.de";
     $self->select_serial_terminal;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # samba-client requires package hub
-    zypper_call('in cifs-utils samba-client nmap');
+    my $ret = zypper_call('in cifs-utils samba-client nmap', exitcode => [0, 106]);
+    if ($ret == 106) {
+        record_soft_failure 'bsc#1152524 - [Build 18.1] openQA test fails whenever package hub repo is added: Valid metadata not found at specified URL';
+    }
     # Use local samba server, if defined or if defined SMB server is not accessible
     my $is_local = get_var("CIFS_TEST_REMOTE") eq 'local';
     if ($is_local || script_run("nmap -p 139,445 $smb_remote | grep open") != 0) {
@@ -98,11 +101,15 @@ sub cleanup() {
 }
 
 sub post_fail_hook {
+    my $self = shift;
     cleanup();
+    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
+    my $self = shift;
     cleanup();
+    $self->SUPER::post_run_hook;
 }
 
 1;

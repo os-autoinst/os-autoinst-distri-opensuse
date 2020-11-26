@@ -75,11 +75,6 @@ sub run {
     # Ensure that ntp service is activated/started
     activate_ntp;
 
-    # Configure SBD_DELAY_START to yes
-    # This may be necessary if your cluster nodes reboot so fast that the
-    # other nodes are still waiting in the fence acknowledgement phase.
-    # This is an occasional issue with virtual machines.
-    file_content_replace("$sbd_cfg", "SBD_DELAY_START=.*" => "SBD_DELAY_START=yes");
 
     # Initialize the cluster with diskless or shared storage SBD (default)
     $fencing_opt = '-S' if (get_var('USE_DISKLESS_SBD'));
@@ -87,6 +82,15 @@ sub run {
 
     # If we failed to initialize the cluster with 'ha-cluster-init', trying again with crm in debug mode
     cluster_init('crm-debug-mode', $fencing_opt, $unicast_opt, $qdevice_opt) if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
+
+    # Configure SBD_DELAY_START to yes
+    # This may be necessary if your cluster nodes reboot so fast that the
+    # other nodes are still waiting in the fence acknowledgement phase.
+    # This is an occasional issue with virtual machines.
+    file_content_replace("$sbd_cfg", "SBD_DELAY_START=.*" => "SBD_DELAY_START=yes");
+
+    # Execute csync2 to synchronise the sysconfig sbd file
+    exec_csync;
 
     # Set wait_for_all option to 0 if we are in a two nodes cluster situation
     # We need to set it for reproducing the same behaviour we had with no-quorum-policy=ignore

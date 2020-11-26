@@ -288,6 +288,7 @@ sub pre_run_hook {
     }
 
     $self->{serial_failures} = \@pattern_list;
+    $self->SUPER::pre_run_hook;
 }
 
 sub run {

@@ -26,23 +26,19 @@ use utils;
 use power_action_utils qw(prepare_system_shutdown power_action);
 use List::Util qw(first pairmap uniq notall);
 use qam;
+use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 
-sub resolve_conflicts {
-    my $binary   = $_[0];
+sub has_conflict {
+    my $binary   = shift;
     my %conflict = (
         'reiserfs-kmp-default'   => 'kernel-default-base',
         'kernel-default'         => 'kernel-default-base',
         'kernel-default-extra'   => 'kernel-default-base',
-        'kernel-default-base'    => 'kernel-default',
         'kernel-azure'           => 'kernel-azure-base',
-        'kernel-azure-base'      => 'kernel-azure',
         'kernel-rt'              => 'kernel-rt-base',
-        'kernel-rt-base'         => 'kernel-rt',
         'kernel-xen'             => 'kernel-xen-base',
-        'kernel-xen-base'        => 'kernel-xen',
         'xen-tools'              => 'xen-tools-domU',
-        'xen-tools-domU'         => 'xen-tools',
         'p11-kit-nss-trust'      => 'mozilla-nss-certs',
         'rmt-server-config'      => 'rmt-server-pubcloud',
         'cluster-md-kmp-default' => 'kernel-default-base',
@@ -50,11 +46,7 @@ sub resolve_conflicts {
         'gfs2-kmp-default'       => 'kernel-default-base',
         'ocfs2-kmp-default'      => 'kernel-default-base'
     );
-    if (exists $conflict{$binary}) {
-        record_info "CONFLICT!", "$binary conflicts with $conflict{$binary}. Removing $conflict{$binary}.";
-        zypper_call("rm $conflict{$binary}", exitcode => [0, 104]) if (exists $conflict{$binary});
-        save_screenshot;
-    }
+    return $conflict{$binary};
 }
 
 sub get_patch {
@@ -90,7 +82,7 @@ sub run {
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repos       = get_required_var('INCIDENT_REPO');
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
@@ -114,24 +106,36 @@ sub run {
     my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
 
     # Sort binaries into:
-    my @installable;     #Binaries already released that can already be installed.
+    my %installable;     #Binaries already released that can already be installed.
     my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
 
     foreach my $b (@l2, @l3) {
         if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
             push(@new_binaries, $b);
         } else {
-            push(@installable, $b);
+            $installable{$b} = 1;
         }
     }
 
-    # Remove binaries conflicting with the ones that are being tested.
-    resolve_conflicts($_) foreach (@installable);
-
+    for my $package (sort keys %installable) {
+        # check if we already skipped it
+        next unless defined $installable{$package};
+        # Remove binaries conflicting with the ones that are being tested.
+        my $conflict = has_conflict($package);
+        next unless $conflict;
+        if ($installable{$conflict}) {
+            record_info "CONFLICT!", "$package conflicts with $conflict. Skipping $conflict.";
+            delete $installable{$conflict};
+        } else {
+            record_info "CONFLICT!", "$package conflicts with $conflict. Removing $conflict.";
+            zypper_call("rm $conflict", exitcode => [0, 104]);
+            save_screenshot;
+        }
+    }
 
     # Install released version of installable binaries.
-    if (scalar(@installable)) {
-        zypper_call("in -l @installable", exitcode => [0, 102, 103], log => 'prepare.log', timeout => 1500);
+    if (scalar(keys %installable)) {
+        zypper_call("in -l " . join(' ', keys %installable), exitcode => [0, 102, 103], log => 'prepare.log', timeout => 1500);
     }
 
     # Store the version of the installed binaries before the update.
@@ -161,12 +165,14 @@ sub run {
         map { $_ =~ /(^\s+(?<with_ext>\S*)(\.\S* <))|^\s+(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
     print "Conflict names: @conflict_names\n";
     # Get the l3 released binaries. Only installed binaries can conflict.
-    my @installable_l3 = grep { $bins{$_}->{supportstatus} eq 'l3' } @installable;
+    my @installable_l3 = grep { $bins{$_}->{supportstatus} eq 'l3' } keys %installable;
     # If not all l3 released binaries are in the conflict binaries, fail.
-    print "\nInstallable @installable\n";
-    if (notall { my $i = $_; defined(first { $installable_l3[$i] eq $_ } @conflict_names) } 0 .. $#installable_l3) {
-        record_info "Error", "Not all previously released l3 binaries exist in the patch. The update may have been misconfigured";
-        die;
+    print "\nInstallable L3 @installable_l3\n";
+    for my $package (@installable_l3) {
+        my $hit = first { $package eq $_ } @conflict_names;
+        unless ($hit) {
+            record_info "Error", "$package is l3 but does not exist in the patch. The update may have been misconfigured";
+        }
     }
 
     # Patch binaries already installed.

@@ -34,12 +34,14 @@ use y2lan_restart_common qw(initialize_y2lan open_network_settings check_network
 my $network_settings;
 
 sub pre_run_hook {
+    my ($self) = @_;
     initialize_y2lan;
     open_network_settings;
     $network_settings = $testapi::distri->get_network_settings();
     $network_settings->add_bridged_device();
     $network_settings->save_changes();
     wait_for_xterm_to_be_visible();
+    $self->SUPER::pre_run_hook;
 }
 
 sub run {

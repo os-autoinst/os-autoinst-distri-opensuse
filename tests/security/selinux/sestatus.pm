@@ -28,6 +28,7 @@ use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
+    my $selinux_config_file = "/etc/selinux/config";
     select_console "root-console";
 
     # SELinux by default
@@ -37,8 +38,12 @@ sub run {
     add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', update_grub => 1);
 
     # control (enable) the status of SELinux on the system
-    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
-    assert_script_run("echo 'SELINUX=permissive' >> /etc/selinux/config");
+    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' $selinux_config_file");
+    assert_script_run("echo 'SELINUX=permissive' >> $selinux_config_file");
+
+    # set SELINUXTYPE=minimum
+    assert_script_run("sed -i -e 's/^SELINUXTYPE=/#SELINUXTYPE=/' $selinux_config_file");
+    assert_script_run("echo 'SELINUXTYPE=minimum' >> $selinux_config_file");
 
     # reboot the vm and reconnect the console
     power_action("reboot", textmode => 1);

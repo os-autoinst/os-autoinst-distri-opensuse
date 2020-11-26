@@ -28,6 +28,7 @@ sub run {
     assert_script_run("uname -a");
 
     assert_script_run("cat /etc/os-release");
+    script_run("ec2metadata --api latest --document") if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2'));
 
     assert_script_run("ps aux | nl");
 

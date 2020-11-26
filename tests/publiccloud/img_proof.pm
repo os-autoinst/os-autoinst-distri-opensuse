@@ -29,22 +29,28 @@ our $gce_byos      = 'test_sles_wait_on_registration,test_sles,test_sles_gce';
 our $gce_on_demand = 'test_sles_wait_on_registration,test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
 
 our $img_proof_tests = {
-    'Azure-BYOS'         => $azure_byos,
-    'AZURE-BYOS-Updates' => $azure_byos,
-    'Azure-Basic'        => $azure_on_demand,
-    'Azure-Standard'     => $azure_on_demand,
-    'Azure-CHOST-BYOS'   => $azure_byos,
-    'Azure-HPC'          => $azure_on_demand,
-    'Azure-HPC-BYOS'     => $azure_byos,
+    'Azure-BYOS'             => $azure_byos,
+    'AZURE-BYOS-Updates'     => $azure_byos,
+    'Azure-Basic'            => $azure_on_demand,
+    'AZURE-Basic-Updates'    => $azure_on_demand,
+    'Azure-Standard'         => $azure_on_demand,
+    'AZURE-Standard-Updates' => $azure_on_demand,
+    'Azure-CHOST-BYOS'       => $azure_byos,
+    'Azure-HPC'              => $azure_on_demand,
+    'Azure-HPC-BYOS'         => $azure_byos,
+    'AZURE-Priority-Updates' => $azure_on_demand,
 
     'EC2-CHOST-BYOS'       => $ec2_byos_chost,
     'EC2-HVM'              => $ec2_on_demand,
     'EC2-HVM-ARM'          => $ec2_on_demand,
+    'EC2-Updates'          => $ec2_on_demand,
+    'EC2-BYOS-Updates'     => $ec2_byos,
     'EC2-HVM-BYOS'         => $ec2_byos,
     'EC2-HVM-BYOS-Updates' => $ec2_byos,
     'EC2-HVM-HPC-BYOS'     => $ec2_byos,
 
     GCE                => $gce_on_demand,
+    'GCE-Updates'      => $gce_on_demand,
     'GCE-BYOS'         => $gce_byos,
     'GCE-BYOS-Updates' => $gce_byos,
     'GCE-CHOST-BYOS'   => $gce_byos,
@@ -65,9 +71,9 @@ sub run {
         $self->{provider} = $args->{my_provider};    # required for cleanup
         select_host_console();
     } else {
+        $self->select_serial_terminal;
         $provider = $self->provider_factory();
         $instance = $provider->create_instance();
-        $self->select_serial_terminal;
     }
     if ($tests eq "default") {
         $tests = $img_proof_tests->{$flavor};

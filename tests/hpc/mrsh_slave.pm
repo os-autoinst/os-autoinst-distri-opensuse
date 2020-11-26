@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,6 +22,9 @@ use utils;
 
 sub run {
     my $self = shift;
+
+    # make sure that nobody has permissions for $serialdev to get openQA work properly
+    assert_script_run("chmod 666 /dev/$serialdev");
 
     # install mrsh
     zypper_call('in mrsh mrsh-server');

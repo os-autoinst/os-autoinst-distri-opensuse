@@ -116,7 +116,7 @@ sub run {
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
     setup_static_mm_network($setup_nis_nfs_x11{client_address});
-    zypper_call 'in yast2-nis-server';
+    zypper_call 'in yast2-nis-server yast2-nfs-client';
 
     # we have to stop the firewall, see bsc#999873 and bsc#1083487#c36
     systemctl 'stop ' . $self->firewall;

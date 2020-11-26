@@ -27,7 +27,6 @@ CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test mo
 CHECK_RELEASENOTES_ORIGIN | boolean | false | Loads `installation/releasenotes_origin` test module.
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
 CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium fails to visualize error in the test module and not just put this information in the autoinst log file.
-CONTAINER_TOTEST | string | | The string can be "totest/" or "", depending on the URL of the image in the container image registry.
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
 DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dependecy_issues will be scheduled or not before certain modules which need it.
@@ -76,6 +75,7 @@ INSTLANG | string | en_US | Installation locale settings.
 IPXE | boolean | false | Indicates ipxe boot.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
+KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snaphots support, e.g. ipmi, powerVM, zVM 
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 LAPTOP |||
 LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
@@ -154,6 +154,10 @@ XDMUSED | boolean | false | Indicates availability of xdm.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAML_TEST_DATA | string | | Defines yaml file containing test data.
 YAST2_FIRSTBOOT_USERNAME | string | | Defines username for the user to be created with YaST Firstboot
+YUI_PORT | integer | | Port being used for libyui REST API. See also YUI_SERVER and YUI_START_PORT.
+YUI_SERVER | string | | libyui REST API server name or ip address.
+YUI_START_PORT | integer | 39000 | Sets starting port for the libyui REST API, on qemu VNC port is then added to this port not to have conflicts.
+YUI_REST_API | boolean | false | Is used to setup environment for libyui REST API, as some parameters have to be set before the VM is started.
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)

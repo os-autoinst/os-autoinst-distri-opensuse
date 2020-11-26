@@ -40,10 +40,13 @@ sub setup {
     assert_script_run "echo [mariadbodbc_mysql] > /etc/unixODBC/odbcinst.ini";
     assert_script_run "echo Description=ODBC for MySQL >> /etc/unixODBC/odbcinst.ini";
 
-    my $lib = (!is_sle('<15') && !is_leap('<15.0')) ? 'libmaodbc' : 'libmyodbc5';
-    assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/' . $lib . '.so >> /etc/unixODBC/odbcinst.ini';
+    if (is_sle('<15') || is_leap('<15.0')) {
+        assert_script_run 'echo Driver=$(rpm --eval "%_libdir")/libmyodbc5.so >> /etc/unixODBC/odbcinst.ini';
+    } else {
+        assert_script_run 'echo Driver=$(rpm -ql mariadb-connector-odbc | grep -E libmaodbc.so\$) >> /etc/unixODBC/odbcinst.ini';
+    }
 
-    assert_script_run 'echo Setup=$(rpm --eval "%_libdir")/libodbcmyS.so >> /etc/unixODBC/odbcinst.ini';
+    assert_script_run 'echo Setup=$(rpm --eval "%_libdir")/unixODBC/libodbcmyS.so >> /etc/unixODBC/odbcinst.ini';
     assert_script_run "echo UsageCount=2 >> /etc/unixODBC/odbcinst.ini";
 
     # create the 'odbcTEST' database with table 'test' and insert one element
@@ -62,7 +65,7 @@ sub run {
     select_console 'root-console';
 
     # install requirements
-    my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc' : 'MyODBC-unixODBC';
+    my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc unixODBC' : 'MyODBC-unixODBC';
     zypper_call 'in mysql mariadb-client sudo ' . $odbc;
 
     # restart mysql server
@@ -81,7 +84,7 @@ sub run {
     assert_script_run 'odbcinst -s -q';
 
     # connect to odbc
-    assert_script_run 'isql mariadbodbc_mysql_dsn root x -b < query.sql';
+    assert_script_run 'isql mariadbodbc_mysql_dsn root x -b -v < query.sql';
     assert_screen 'mysql_odbc-isql';
 
     # reverting mysql password to blank, else other mysql tests fail

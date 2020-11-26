@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -44,15 +44,16 @@ sub run {
     # make sure that nobody has permissions for $serialdev to get openQA work properly
     assert_script_run("chmod 666 /dev/$serialdev");
 
-    select_console('root-console');
     # run mrlogin, mrcp, and mrsh (as normal and local user, e.g. nobody)
     $self->switch_user('nobody');
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("mrsh-slave%02d", $node);
         type_string("mrlogin ${node_name} \n");
-        assert_screen("mrlogin");
-        send_key('ctrl-d');
-        assert_screen("mrlogout");
+        sleep(1);
+        assert_script_run('hostname|grep mrsh-slave01');
+        type_string("exit\n");
+        sleep(1);
+        assert_script_run('hostname|grep mrsh-master');
         assert_script_run("mrsh ${node_name}  rm -f /tmp/hello");
         assert_script_run("echo \"Hello world!\" >/tmp/hello");
         assert_script_run("mrcp /tmp/hello ${node_name}:/tmp/hello");

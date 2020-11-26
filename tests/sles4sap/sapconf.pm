@@ -20,7 +20,7 @@ use strict;
 use warnings;
 
 sub run_developers_tests {
-    my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/master/archive.tar.gz';
+    my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/sapconf_v5/archive.tar.gz';
     my $log        = '/tmp/sapconf_test.log';
 
     # Download and unpack the test scripts supplied by the developers
@@ -33,7 +33,7 @@ sub run_developers_tests {
     }
 
     # Run script as is and upload results
-    $ret = script_run 'cd sapconf-test-master-*';
+    $ret = script_run 'cd sapconf-test-*';
     unless (defined $ret and $ret == 0) {
         record_info 'Script not found', 'sapconf-test-master-* directory not found in the developer test package';
         return;

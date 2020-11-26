@@ -33,7 +33,7 @@ sub exiv2_info_test {
         expected_output_exiv2_info_iso       => "ISO speed       : 100",
         expected_output_exiv2_info_metering  => "Metering mode   : Multi-spot",
         expected_output_exiv2_info_copyright => "Copyright       : SUSE Inc",
-        expected_output_exiv2_info_comment   => "Exif comment    : Test caption label",
+        expected_output_exiv2_info_comment   => "Exif comment    : (charset=Ascii )?Test caption label",
     );
 
     # Partial excerpts from the exiv2 -pt output from test image file
@@ -50,7 +50,7 @@ sub exiv2_info_test {
         expected_output_exiv2_ptinfo_max_aperture     => "Exif.Photo.MaxApertureValue                  SRational   1  F1.3",
         expected_output_exiv2_ptinfo_lightsource      => "Exif.Photo.LightSource                       SLong       1  Daylight",
         expected_output_exiv2_ptinfo_focal_length     => "Exif.Photo.FocalLength                       SRational   1  50.0 mm",
-        expected_output_exiv2_ptinfo_user_comment     => "Exif.Photo.UserComment                       Undefined  26  Test caption label",
+        expected_output_exiv2_ptinfo_user_comment     => "Exif.Photo.UserComment                       Undefined  26  (charset=Ascii )?Test caption label",
         expected_output_exiv2_ptinfo_subject_distance => "Exif.Photo.SubjectDistanceRange              SLong       1  Close view",
         expected_output_exiv2_ptinfo_jpeg_format      => "Exif.Thumbnail.JPEGInterchangeFormat         Long        1  818",
     );

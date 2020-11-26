@@ -47,13 +47,17 @@ sub open_powershell_as_admin {
     #If using windows server, and logged with Administrator, only open powershell
     if (get_var('QAM_WINDOWS_SERVER')) {
         send_key 'shift-a';
-        wait_screen_change { assert_and_click('window-max', timeout => 15) };
+        wait_screen_change { assert_and_click('window-max') };
         assert_screen 'windows_server_powershel_opened', 30;
     } else {
-        send_key_until_needlematch 'user-acount-ctl-allow-make-changes', 'shift-a';
+        send_key_until_needlematch ['user-account-ctl-hidden', 'user-acount-ctl-allow-make-changes'], 'shift-a';
+        assert_screen(['user-account-ctl-hidden', 'user-acount-ctl-allow-make-changes'], 120);
+        mouse_set(500, 500);
+        assert_and_click 'user-account-ctl-hidden' if match_has_tag('user-account-ctl-hidden');
         assert_and_click 'user-acount-ctl-yes';
+        mouse_hide();
         wait_still_screen stilltime => 2, timeout => 15;
-        assert_screen 'powershell-as-admin-window', 180;
+        assert_screen 'powershell-as-admin-window', 240;
         assert_and_click 'window-max';
         sleep 3;
         _setup_serial_device unless (exists $args{no_serial});
@@ -103,12 +107,12 @@ sub wait_boot_windows {
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
 
-    assert_screen 'windows-screensaver',        150;
+    assert_screen 'windows-screensaver',        300;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button
 
-    assert_screen 'windows-desktop', 120;
+    assert_screen 'windows-desktop', 240;
 }
 
 sub windows_server_login_Administrator {

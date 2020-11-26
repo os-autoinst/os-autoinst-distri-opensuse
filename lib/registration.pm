@@ -20,7 +20,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key common_service_start);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key script_retry);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_microos);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
@@ -87,6 +87,7 @@ our %ADDONS_REGCODE = (
     'sle-live-patching'        => get_var('SCC_REGCODE_LIVE'),
     'SLES-LTSS'                => get_var('SCC_REGCODE_LTSS'),
     'SUSE-Linux-Enterprise-RT' => get_var('SCC_REGCODE_RT'),
+    ESPOS                      => get_var('SCC_REGCODE_ESPOS'),
 );
 
 our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm live);
@@ -195,27 +196,22 @@ sub add_suseconnect_product {
 
 =head2 ssh_add_suseconnect_product
 
-    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params]]]);
+    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params, [$timeout, [$retries, [$delay]]]]]]);
 
 Wrapper for SUSEConnect -p $name  over ssh.
 =cut
 sub ssh_add_suseconnect_product {
-    my ($remote, $name, $version, $arch, $params, $timeout, $retry) = @_;
+    my ($remote, $name, $version, $arch, $params, $timeout, $retries, $delay) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
     assert_script_run 'source /tmp/os-release';
     $version //= '${VERSION_ID}';
     $arch    //= '${CPU}';
     $params  //= '';
-    $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
     $timeout //= 300;
+    $retries //= 3;
+    $delay   //= 10;
 
-    my $result = script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
-    if ($result != 0 && $retry) {
-        if ($name =~ /PackageHub/) {
-            record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
-        }
-        assert_script_run("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", $timeout);
-    }
+    script_retry("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", delay => $delay, retry => $retries, timeout => $timeout);
 }
 
 =head2 remove_suseconnect_product
@@ -302,7 +298,7 @@ sub register_addons {
         last if (get_var('SMT_URL'));
         # change to uppercase to match variable
         $uc_addon = uc $addon;
-        my @addons_with_code = qw(geo live rt ltss ses);
+        my @addons_with_code = qw(geo live rt ltss ses espos);
         # WE doesn't need code on SLED
         push @addons_with_code, 'we' unless (check_var('SLE_PRODUCT', 'sled'));
         # HA doesn't need code on SLES4SAP or in migrations to 12-SP5
@@ -415,6 +411,7 @@ sub process_scc_register_addons {
     #   tsm - Transactional Server Module
     #    we - Workstation
     #   wsm - Web and Scripting Module
+    # espos - Extended Service Pack Overlap Support
     if (get_var('SCC_ADDONS')) {
         if (check_screen('scc-beta-filter-checkbox', 5)) {
             if (is_sle('12-SP3+')) {
@@ -734,7 +731,8 @@ sub yast_scc_registration {
     my $client_module = 'scc';
     if (is_leap_migration) {
         zypper_call('in yast2-registration rollback-helper');
-        common_service_start('rollback', 'Systemd');
+        systemctl("enable rollback");
+        systemctl("start rollback");
         $client_module = 'registration';
     }
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
@@ -791,7 +789,8 @@ sub get_addon_fullname {
         wsm       => 'sle-module-web-scripting',
         python2   => 'sle-module-python2',
         phub      => 'PackageHub',
-        tsm       => 'sle-module-transactional-server'
+        tsm       => 'sle-module-transactional-server',
+        espos     => 'ESPOS',
     );
     return $product_list{"$addon"};
 }

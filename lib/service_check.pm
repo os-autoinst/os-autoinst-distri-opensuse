@@ -29,6 +29,7 @@ use services::apparmor;
 use services::dhcpd;
 use nfs_common;
 use services::registered_addons;
+use services::hpcpackage_remain;
 use services::ntpd;
 use services::cups;
 use services::rpcbind;
@@ -46,10 +47,12 @@ our @EXPORT = qw(
 );
 
 our $hdd_base_version;
-our $support_ver_def  = '11+';
+our $support_ver_def  = '12+';
 our $support_ver_12   = '=12';
 our $support_ver_ge15 = '15+';
 our $support_ver_ge12 = '12+';
+our $support_ver_ge11 = '11+';
+our $support_ver_lt15 = '<15';
 
 our %srv_check_results = (
     before_migration => 'PASS',
@@ -57,6 +60,12 @@ our %srv_check_results = (
 );
 
 our $default_services = {
+    hpcpackage_remain => {
+        srv_pkg_name       => 'hpcpackage_remain',
+        srv_proc_name      => 'hpcpackage_remain',
+        support_ver        => $support_ver_ge15,
+        service_check_func => \&services::hpcpackage_remain::full_pkgcompare_check
+    },
     registered_addons => {
         srv_pkg_name       => 'registered_addons',
         srv_proc_name      => 'registered_addons',
@@ -76,7 +85,7 @@ our $default_services = {
     ntp => {
         srv_pkg_name       => 'ntp',
         srv_proc_name      => 'ntpd',
-        support_ver        => $support_ver_12,
+        support_ver        => $support_ver_lt15,
         service_check_func => \&services::ntpd::full_ntpd_check
     },
     chrony => {
@@ -94,7 +103,7 @@ our $default_services = {
     apache => {
         srv_pkg_name       => 'apache2',
         srv_proc_name      => 'apache2',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::apache::full_apache_check
     },
     dhcpd => {
@@ -187,6 +196,8 @@ sub _is_applicable {
         record_soft_failure 'bsc#1163000 - System does not come back after crash on s390x';
         return 0;
     }
+    # This feature is used only by hpc
+    return 0 if ($srv_pkg_name eq 'hpcpackage_remain' && !check_var('SLE_PRODUCT', 'hpc'));
     if (get_var('EXCLUDE_SERVICES')) {
         my %excluded = map { $_ => 1 } split(/\s*,\s*/, get_var('EXCLUDE_SERVICES'));
         return 0 if $excluded{$srv_pkg_name};
@@ -221,7 +232,7 @@ sub install_services {
         record_info($srv_pkg_name, "service check before migration");
         eval {
             if (is_sle($support_ver, $hdd_base_version)) {
-                if (check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
+                if ($hdd_base_version eq '11-SP4') {
                     $service_type = 'SystemV';
                 }
                 else {
@@ -232,8 +243,9 @@ sub install_services {
                     next;
                 }
                 zypper_call "in $srv_pkg_name";
-                common_service_start($srv_proc_name, $service_type);
-                common_service_status($srv_proc_name, $service_type);
+                common_service_action($srv_proc_name, $service_type, 'enable');
+                common_service_action($srv_proc_name, $service_type, 'start');
+                common_service_action($srv_proc_name, $service_type, 'is-active');
             }
         };
         if ($@) {
@@ -268,7 +280,7 @@ sub check_services {
                     $service->{$s}->{service_check_func}->('after', 'Systemd');
                     next;
                 }
-                common_service_status($srv_proc_name, $service_type);
+                common_service_action($srv_proc_name, $service_type, 'is-active');
             }
         };
         if ($@) {

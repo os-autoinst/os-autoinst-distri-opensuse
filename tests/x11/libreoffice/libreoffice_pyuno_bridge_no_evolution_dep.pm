@@ -40,7 +40,7 @@ sub run {
     send_key 'down';
     assert_and_click 'ooffice-writer-libreofficemacros';
     wait_still_screen(2);
-    type_string "python\n";
+    type_string "py\n";
 
     assert_and_click 'ooffice-python-samples';
     wait_still_screen(2);

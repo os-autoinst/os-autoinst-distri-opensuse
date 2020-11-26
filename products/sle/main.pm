@@ -33,6 +33,7 @@ use utils;
 use main_common;
 use main_pods;
 use known_bugs;
+use YuiRestClient;
 
 init_main();
 
@@ -42,6 +43,9 @@ sub is_new_installation {
 
 sub cleanup_needles {
     remove_common_needles;
+    for my $distri (qw(sle microos)) {
+        unregister_needle_tags("ENV-DISTRI-$distri") unless check_var('DISTRI', $distri);
+    }
     if ((get_var('VERSION', '') ne '15') && (get_var('BASE_VERSION', '') ne '15')) {
         unregister_needle_tags("ENV-VERSION-15");
     }
@@ -592,7 +596,10 @@ testapi::set_distribution(DistributionProvider->provide());
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
-return 1 if load_yaml_schedule;
+if (load_yaml_schedule) {
+    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    return 1;
+}
 
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 
@@ -769,8 +776,8 @@ elsif (get_var("VIRT_AUTOTEST")) {
         }
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
-        loadtest "virt_autotest/reboot_and_wait_up_normal";
-        loadtest "virt_autotest/download_guest_assets" if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
+        loadtest "virt_autotest/reboot_and_wait_up_normal" if get_var('REPO_0_TO_INSTALL');
+        loadtest "virt_autotest/download_guest_assets"     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";

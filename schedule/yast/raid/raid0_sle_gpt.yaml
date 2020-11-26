@@ -5,8 +5,10 @@ description:    >
   them for RAID 0.
 vars:
   RAIDLEVEL: 0
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -25,6 +27,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/hostname

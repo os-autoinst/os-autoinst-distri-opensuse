@@ -24,6 +24,8 @@ use testapi;
 use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow);
+use version_utils 'is_upgrade';
+use YuiRestClient;
 
 our @EXPORT = qw(
   boot_pvm
@@ -123,25 +125,15 @@ sub prepare_pvm_installation {
         die "Boot process restarted too many times" if ($boot_attempt > 3);
         return (bootloader_pvm::prepare_pvm_installation $boot_attempt);
     }
+    # On powerVM we have to process startshell in bootloader
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::setup_libyui();
+    }
+
     assert_screen("run-yast-ssh", 300);
 
-    if (!get_var('UPGRADE')) {
-        # Delete partition table before starting installation
-        select_console('install-shell');
-
-        my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
-        for my $d (split('\n', $disks)) {
-            script_run "wipefs -a /dev/$d";
-            if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
-            {
-                create_encrypted_part(disk => $d);
-                if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
-                    mimic_user_to_import(disk => $d,
-                        passwd => get_var('ETC_PASSWD'),
-                        shadow => get_var('ETC_SHADOW'));
-                }
-            }
-        }
+    if (!is_upgrade && !get_var('KEEP_DISKS')) {
+        prepare_disks;
     }
     # Switch to installation console (ssh or vnc)
     select_console('installation');
@@ -162,6 +154,10 @@ sub boot_hmc_pvm {
     my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
     my $lpar_id          = get_required_var('LPAR_ID');
     my $hmc              = select_console 'powerhmc-ssh';
+
+    # Print the machine details before anything else, Firmware name might be useful when reporting bugs
+    record_info("Details", "See the next screen to get details on $hmc_machine_name");
+    type_string "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'\n";
 
     # detach possibly attached terminals - might be left over
     type_string "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'\n";

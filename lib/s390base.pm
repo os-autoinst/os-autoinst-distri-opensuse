@@ -104,6 +104,7 @@ sub pre_run_hook {
     assert_script_run('mkdir logs');
     assert_script_run("chmod +x ./*.sh");
     save_screenshot;
+    $self->SUPER::pre_run_hook;
 }
 
 1;

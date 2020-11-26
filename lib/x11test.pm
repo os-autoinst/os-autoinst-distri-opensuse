@@ -322,13 +322,15 @@ sub send_meeting_request {
     }
     wait_still_screen(2);
     send_key 'f12';
-    if (check_screen 'evolution_mail-auth', 3) {
-        assert_and_click('evolution_mail-auth-unfocused') if check_screen('evolution_mail-auth-unfocused', 5);
+    wait_still_screen(2);
+    assert_and_click('evolution_mail-auth-unfocused') if check_screen('evolution_mail-auth-unfocused', 2);
+    assert_screen ['evolution_mail-auth', 'evolution_mail-max-window'];
+    if (match_has_tag "evolution_mail-auth") {
         send_key "alt-a";    #disable keyring option
         send_key "alt-p";
         type_password $mail_passwd;
-        wait_still_screen(2, 2);
         send_key "ret";
+        assert_screen "evolution_mail-max-window";
     }
     assert_screen [qw(evolution_mail-save_meeting_dialog evolution_mail-send_meeting_dialog evolution_mail-meeting_error_handle evolution_mail-max-window)];
     if (match_has_tag "evolution_mail-save_meeting_dialog") {

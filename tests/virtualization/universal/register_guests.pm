@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ sub run {
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Registrating $guest against SMT";
-        my ($sles_running_version, $sles_running_sp) = get_sles_release("ssh root\@$guest");
+        my ($sles_running_version, $sles_running_sp) = get_os_release("ssh root\@$guest");
         if ($sles_running_version >= 12) {
             assert_script_run("ssh root\@$guest SUSEConnect -r " . get_var('SCC_REGCODE') . " -e " . get_var("SCC_EMAIL"));
         }

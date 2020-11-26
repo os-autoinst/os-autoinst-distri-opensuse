@@ -38,6 +38,13 @@ use version_utils 'is_sle';
 sub run_test {
     my ($self) = @_;
 
+    if (is_xen_host) {
+        #Ensure that there is enough free memory on xen host for virtual network test
+        my $MEM = $self->get_free_mem();
+        record_info('Detect FREE MEM', $MEM . 'G');
+        assert_script_run("test $MEM -ge 20", fail_message => "The SUT needs at least 20G FREE MEM for virtual network test");
+    }
+
     #Need to reset up environemt - br123 for virt_atuo test due to after
     #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
     virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
@@ -83,6 +90,8 @@ sub run_test {
 sub post_fail_hook {
     my ($self) = @_;
 
+    $self->SUPER::post_fail_hook;
+
     #Restart libvirtd service
     virt_autotest::utils::restart_libvirtd();
 
@@ -94,9 +103,6 @@ sub post_fail_hook {
 
     #Restore Guest systems
     virt_autotest::virtual_network_utils::restore_guests();
-
-    #Upload debug log
-    virt_autotest::virtual_network_utils::upload_debug_log();
 }
 
 1;

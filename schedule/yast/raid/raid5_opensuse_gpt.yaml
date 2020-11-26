@@ -5,9 +5,10 @@ description:    >
   them for RAID 5.
 vars:
   RAIDLEVEL: 5
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/online_repos
   - installation/installation_mode
@@ -24,6 +25,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/hostname

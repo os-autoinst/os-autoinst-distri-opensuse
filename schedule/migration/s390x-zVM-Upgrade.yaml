@@ -20,3 +20,50 @@ schedule:
   - console/system_prepare
   - console/consoletest_setup
   - console/zypper_lr
+  - '{{regression_tests}}'
+conditional_schedule:
+  regression_tests:
+    REGRESSIONTEST:
+      1:
+        - console/system_prepare
+        - console/check_network
+        - console/system_state
+        - console/prepare_test_data
+        - console/consoletest_setup
+        - locale/keymap_or_locale
+        - console/check_upgraded_service
+        - console/supportutils
+        - console/force_scheduled_tasks
+        - console/textinfo
+        - console/hostname
+        - console/upgrade_snapshots
+        - console/zypper_lr
+        - console/check_system_info
+        - console/zypper_ref
+        - console/ncurses
+        - console/yast2_lan
+        - console/curl_https
+        - console/salt
+        - console/zypper_in
+        - console/yast2_i
+        - console/yast2_bootloader
+        - console/firewall_enabled
+        - console/sshd
+        - console/ssh_cleanup
+        - console/mtab
+        - console/mysql_srv
+        - console/rsync
+        - console/http_srv
+        - console/apache
+        - console/dns_srv
+        - console/postgresql_server
+        - console/shibboleth
+        - console/pcre
+        - console/php7
+        - console/php7_mysql
+        - console/php7_postgresql
+        - console/apache_ssl
+        - console/apache_nss
+        - console/zypper_lifecycle
+        - console/orphaned_packages_check
+        - x11/reboot_gnome

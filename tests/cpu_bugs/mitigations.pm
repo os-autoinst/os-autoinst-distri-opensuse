@@ -32,15 +32,15 @@ my %mitigations_list =
     sysfs_name => ["itlb_multihit", "l1tf", "mds", "meltdown", "spec_store_bypass", "spectre_v1", "spectre_v2", "tsx_async_abort"],
     sysfs      => {
         auto => {
-            itlb_multihit => "KVM: Mitigation: Split huge pages",
+            itlb_multihit => "KVM: Mitigation: VMX disabled",
             spectre_v1    => "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
         },
         'auto,nosmt' => {
-            itlb_multihit => "KVM: Mitigation: Split huge pages",
+            itlb_multihit => "KVM: Mitigation: VMX disabled",
             spectre_v1    => "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
         },
         off => {
-            itlb_multihit => "KVM: Vulnerable",
+            itlb_multihit => "KVM: Mitigation: VMX disabled",
             spectre_v1    => "Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers",
         },
     },
@@ -193,9 +193,9 @@ sub run {
             $mitigations_list{sysfs}->{off}->{'itlb_multihit'}          = "Not affected";
             $mitigations_list{sysfs}->{'auto,nosmt'}->{'itlb_multihit'} = "Not affected";
         } else {
-            $mitigations_list{sysfs}->{off}->{'itlb_multihit'}          = "KVM: Vulnerable";
-            $mitigations_list{sysfs}->{auto}->{'itlb_multihit'}         = "KVM: Vulnerable";
-            $mitigations_list{sysfs}->{'auto,nosmt'}->{'itlb_multihit'} = "KVM: Vulnerable";
+            $mitigations_list{sysfs}->{off}->{'itlb_multihit'}          = "KVM: Mitigation: VMX unsupported";
+            $mitigations_list{sysfs}->{auto}->{'itlb_multihit'}         = "KVM: Mitigation: VMX unsupported";
+            $mitigations_list{sysfs}->{'auto,nosmt'}->{'itlb_multihit'} = "KVM: Mitigation: VMX unsupported";
         }
     }
 

@@ -1,0 +1,22 @@
+name:           suse_microos
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE MicroOS tests
+vars:
+    AUTOYAST: autoyast_sle15/autoyast_microos_50.xml
+schedule:
+    - autoyast/prepare_profile
+    - installation/bootloader_start
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - microos/networking
+    - microos/libzypp_config
+    - microos/one_line_checks
+    - microos/services_enabled
+    - transactional/filesystem_ro
+    - transactional/transactional_update
+    - transactional/rebootmgr
+    - transactional/health_check
+    - microos/journal_check
+    - shutdown/shutdown

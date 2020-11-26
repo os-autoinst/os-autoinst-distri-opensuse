@@ -17,9 +17,11 @@ use strict;
 use warnings;
 use utils;
 use Utils::Backends qw(has_serial_over_ssh is_pvm is_hyperv);
+use Utils::Systemd;
+use Utils::Architectures 'is_aarch64';
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
-use version_utils qw(is_sle is_leap is_upgrade is_aarch64_uefi_boot_hdd is_tumbleweed is_jeos is_sles4sap is_desktop_installed);
+use version_utils;
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
@@ -50,6 +52,20 @@ sub clear_and_verify_console {
 
     clear_console;
     assert_screen('cleared-console') unless is_serial_terminal();
+}
+
+=head2 pre_run_hook
+
+ pre_run_hook();
+
+This method will be called before each module is executed.
+Test modules (or their intermediate base classes) may overwrite
+this method, must call this baseclass method from the overwriting method.
+
+=cut
+sub pre_run_hook {
+    my ($self) = @_;
+    clear_started_systemd_services();
 }
 
 =head2 post_run_hook
@@ -416,6 +432,10 @@ sub export_logs_basic {
     $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
     $self->save_and_upload_log('dmesg',                          '/tmp/dmesg.log',   {screenshot => 1});
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
+
+    for my $service (get_started_systemd_services()) {
+        $self->save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.log", {screenshot => 1});
+    }
 }
 
 =head2 select_log_console
@@ -636,7 +656,7 @@ sub wait_grub {
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
-        if (get_var('ONLINE_MIGRATION') && check_var('BOOTFROM', 'd')) {
+        if (is_upgrade && check_var('BOOTFROM', 'd')) {
             assert_screen 'inst-bootmenu';
             # Select boot from HDD
             send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
@@ -839,6 +859,16 @@ sub grub_select {
     elsif (!get_var('S390_ZKVM')) {
         # confirm default choice
         send_key 'ret';
+        if (get_var('USE_SUPPORT_SERVER') && is_aarch64 && is_opensuse)
+        {
+            # On remote installations of openSUSE distris on aarch64, first key
+            # press doesn't always reach the SUT, so introducing the workaround
+            wait_still_screen;
+            if (check_screen('grub2')) {
+                record_info 'WARN', 'Return key did not reach the system, re-trying';
+                send_key 'ret';
+            }
+        }
     }
 }
 
@@ -941,7 +971,7 @@ behave as if the env var NOAUTOLOGIN was set.
 sub wait_boot_past_bootloader {
     my ($self, %args) = @_;
     my $textmode     = $args{textmode};
-    my $ready_time   = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
+    my $ready_time   = $args{ready_time} // 500;
     my $nologin      = $args{nologin};
     my $forcenologin = $args{forcenologin};
 

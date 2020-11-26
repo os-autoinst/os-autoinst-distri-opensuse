@@ -5,7 +5,9 @@ description:    >
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
+    - containers/host_configuration
     - containers/podman_image
     - containers/docker_image
+    - containers/validate_btrfs
     # - containers/container_diff
     # Re-enable after 15-SP3 GA

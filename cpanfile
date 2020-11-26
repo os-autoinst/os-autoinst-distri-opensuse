@@ -7,6 +7,7 @@
 
 requires 'Archive::Tar';
 requires 'Carp';
+requires 'Code::DRY';
 requires 'Config::Tiny';
 requires 'Cwd';
 requires 'Data::Dump';

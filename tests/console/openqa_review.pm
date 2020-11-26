@@ -17,6 +17,8 @@ use testapi;
 use utils;
 
 sub run {
+    select_console 'root-console';
+
     zypper_call('in python3-openqa_review');
     assert_script_run 'openqa-review --help';
 }

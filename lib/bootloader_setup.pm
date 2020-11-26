@@ -26,6 +26,7 @@ use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_POR
 
 our @EXPORT = qw(
   add_custom_grub_entries
+  autoyast_boot_params
   boot_grub_item
   stop_grub_timeout
   boot_local_disk
@@ -66,6 +67,7 @@ our @EXPORT = qw(
   replace_grub_cmdline_settings
   mimic_user_to_import
   tianocore_disable_secureboot
+  prepare_disks
 );
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
@@ -561,7 +563,7 @@ sub select_installation_source {
     if ($m_protocol eq "http") {
         for (1 .. 2) {
             # just type enough backspaces
-            for (1 .. 32) { send_key "backspace" }
+            for (1 .. 34) { send_key "backspace" }
             send_key "tab";
         }
     }
@@ -1328,6 +1330,34 @@ sub mimic_user_to_import {
 sub type_boot_parameters {
     my (@params) = @_;
     type_string(" @params ", max_interval => check_var('TYPE_BOOT_PARAMS_FAST', 1) ? undef : utils::VERY_SLOW_TYPING_SPEED);
+}
+
+=head2 prepare_disks
+
+    prepare_disks
+
+Wipe existing disks and create encrypted partitions if needed for the test.
+Is handy for the bare metal setups and LPARs where we can have traces of
+previous installation.
+
+=cut
+sub prepare_disks {
+    # Delete partition table before starting installation
+    select_console('install-shell');
+
+    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
+    for my $d (split('\n', $disks)) {
+        script_run "wipefs -a /dev/$d";
+        if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
+        {
+            create_encrypted_part(disk => $d);
+            if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
+                mimic_user_to_import(disk => $d,
+                    passwd => get_var('ETC_PASSWD'),
+                    shadow => get_var('ETC_SHADOW'));
+            }
+        }
+    }
 }
 
 1;

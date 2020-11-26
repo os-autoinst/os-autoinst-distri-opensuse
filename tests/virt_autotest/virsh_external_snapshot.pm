@@ -36,8 +36,7 @@ sub run_test {
 
     my $vm_types           = "sles|win";
     my $wait_script        = "30";
-    my $get_vm_hostnames   = "virsh list --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my $vm_hostnames       = script_output("virsh list --all --name", $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array) {
         if (script_run("virsh list --all | grep $_ | grep shut") != 0) { script_run "virsh destroy $_", 90;
@@ -47,14 +46,15 @@ sub run_test {
     #Wait for forceful shutdown of active guests
     sleep 60;
 
-    my $get_vm_hostnames_inactive   = "virsh list --inactive | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
-    my $vm_hostnames_inactive       = script_output($get_vm_hostnames_inactive, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my $vm_hostnames_inactive       = script_output("virsh list --inactive --name", $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_inactive_array = split(/\n+/, $vm_hostnames_inactive);
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         my $type = check_guest_disk_type($guest);
         next if ($type == 1);
         record_info "virsh-snapshot", "Creating External Snapshot of guest's disk";
+        script_run("rm -f /var/lib/libvirt/images/$guest.{disk-only,memspec,diskspec}");    # ensure the files do not exist already
+
         my $vm_target_dev     = script_output("virsh domblklist $guest --details | awk '/disk/{ print \$3 }' | head -n1");
         my $pre_snapshot_cmd  = "virsh snapshot-create-as $guest";
         my $diskspec_diskonly = "$vm_target_dev,snapshot=external,file=/var/lib/libvirt/images/$guest.disk-only";

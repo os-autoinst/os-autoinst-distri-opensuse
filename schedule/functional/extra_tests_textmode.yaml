@@ -23,12 +23,24 @@ conditional_schedule:
                 - update/zypper_clear_repos
                 - console/zypper_ar
                 - console/zypper_ref
-    opensuse_tests:
-        DISTRI:
-            opensuse:
+    sound_tests:
+        ARCH:
+            x86_64:
                 - console/aplay
                 - console/soundtouch
                 - console/wavpack
+            aarch64:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+    steamcmd:
+        ARCH:
+            x86_64:
+                - console/steamcmd
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - '{{sound_tests}}'
                 - console/libvorbis
                 - console/ntp_client
                 - console/gdb
@@ -51,7 +63,7 @@ conditional_schedule:
                 - console/znc
                 - console/weechat
                 - console/nano
-                - console/steamcmd
+                - '{{steamcmd}}'
                 - console/libqca2
                 - console/kdump_and_crash
     validate_packages_and_patterns:
@@ -64,6 +76,10 @@ conditional_schedule:
                 - console/supportutils
                 - console/zziplib
                 - console/vsftpd
+    tumbleweed_tests:
+        VERSION:
+            'Tumbleweed':
+                - console/parsec
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -78,6 +94,7 @@ schedule:
     - console/zypper_extend
     - console/check_os_release
     - console/openvswitch
+    - console/ovn
     - console/pam
     - console/shar
     - console/sshd
@@ -126,4 +143,5 @@ schedule:
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'
+    - '{{tumbleweed_tests}}'
     - console/coredump_collect

@@ -24,6 +24,8 @@ sub run {
     if (is_sle) {
         systemctl 'enable chronyd';
         systemctl 'start chronyd';
+        # bsc#1179022 avoid '503 No such source' error while chrony does pick responding sources after start
+        assert_script_run 'until chronyc activity|grep "0 sources doing burst.*online"; do sleep 1; echo "waiting for ntp sources response"; done';
     }
 
     # ensure that ntpd is neither installed nor enabled nor active

@@ -27,6 +27,7 @@ use registration;
 use utils;
 use version_utils 'is_sle';
 use containers::common;
+use publiccloud::utils 'is_ondemand';
 use strict;
 use warnings;
 
@@ -35,7 +36,8 @@ sub run {
     $self->select_serial_terminal;
 
     install_docker_when_needed;
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+    add_suseconnect_product(get_addon_fullname('phub'))    if is_sle();
+    add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
     record_info 'Test #1', 'Test: Installation';
     zypper_call("in docker-compose");
@@ -69,7 +71,9 @@ sub run {
     assert_script_run 'docker-compose down', 180;
     assert_script_run 'cd';
 
-    remove_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+    # De-registration is disabled for on-demand instances
+    remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle() && !is_ondemand());
+    remove_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
     clean_container_host(runtime => 'docker');
 }
 

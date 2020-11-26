@@ -26,6 +26,8 @@ use utils;
 use version_utils qw(is_jeos is_gnome_next is_krypton_argon is_leap is_tumbleweed is_rescuesystem is_desktop_installed is_opensuse is_sle is_staging);
 use main_common;
 use known_bugs;
+use YuiRestClient;
+
 init_main();
 
 sub cleanup_needles {
@@ -123,7 +125,10 @@ logcurrentenv(
       LIVECD NETBOOT NOIMAGES SPLITUSR VIDEOMODE)
 );
 
-return 1 if load_yaml_schedule;
+if (load_yaml_schedule) {
+    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    return 1;
+}
 
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 

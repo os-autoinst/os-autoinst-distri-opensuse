@@ -54,6 +54,7 @@ sub load_feature_tests {
     }
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
         loadtest 'containers/podman';
+        loadtest 'containers/podman_image';
     }
 }
 

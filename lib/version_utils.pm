@@ -52,7 +52,9 @@ use constant {
           is_leap_migration
           requires_role_selection
           check_version
-          get_sles_release
+          get_os_release
+          check_os_release
+          package_version_cmp
           )
     ],
     BACKEND => [
@@ -214,15 +216,20 @@ sub is_microos {
     my $type = $version =~ /^[56]\./ ? 'suse' : 'opensuse';
     return $filter eq $type if ($filter =~ /opensuse|^suse/);
 
+    my $version_is_tw = ($version =~ /Tumbleweed/ || $version =~ /^Staging:/);
+
     if ($filter eq 'DVD') {
         return $flavor =~ /DVD/;    # DVD and Staging-?-DVD
     }
     elsif ($filter eq 'VMX') {
         return $flavor !~ /DVD/;    # If not DVD it's VMX
     }
+    elsif ($filter eq 'Tumbleweed') {
+        return $version_is_tw;
+    }
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
-        return ($filter =~ /\+$/) if ($version eq 'Tumbleweed' && $type eq 'opensuse');
+        return ($filter =~ /\+$/) if ($version_is_tw && $type eq 'opensuse');
         return check_version($filter, $version, qr/\d{1,}\.\d/);
     }
     else {
@@ -556,9 +563,9 @@ sub uses_qa_net_hardware {
     return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
 }
 
-=head2 get_sles_release
+=head2 get_os_release
 
-Get SLE release version and service spack info from any running sles os without any dependencies
+Get SLE release version, service pack and distribution name info from any running sles os without any dependencies
 It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine
 The file can also be placed anywhere as long as it can be reached somehow by its absolute file path,
 which should be passed in as the second argument os_release_file, for example, "/etc/os-release"
@@ -566,18 +573,44 @@ At the same time, connection method to the entity in which the file reside shoul
 firt argument go_to_target, for example, "ssh root at name or ip address" or "way to download the file"
 For use only on locahost, no argument needs to be specified
 =cut
-sub get_sles_release {
+sub get_os_release {
     my ($go_to_target, $os_release_file) = @_;
     $go_to_target    //= '';
     $os_release_file //= '/etc/os-release';
-    my $sles_release      = script_output("${go_to_target} cat ${os_release_file} | grep -i version= | grep -iEo \"[0-9]{1,}(\\\.|\\\-)?(sp)?([0-9]{1,})?\"");
-    my $sles_version      = '';
-    my $sles_service_pack = '';
-    my $auxiliary_var     = '';
-    ($sles_version,  $auxiliary_var)     = $sles_release =~ /^(\d+)[\.|\-]?(sp)?.*$/img;
-    ($auxiliary_var, $sles_service_pack) = $sles_release =~ /^${sles_version}[\.|\-]?(sp)?(\d+)$/img;
-    $sles_service_pack //= 0;
-    return $sles_version, $sles_service_pack;
+    my %os_release = script_output("$go_to_target cat $os_release_file") =~ /^(\S+)="?([^"\r\n]+)"?$/gm;
+    %os_release = map { uc($_) => $os_release{$_} } keys %os_release;
+    my ($os_version, $os_service_pack) = split(/\.|-sp/i, $os_release{VERSION});
+    $os_service_pack //= 0;
+    return $os_version, $os_service_pack, $os_release{ID};
+}
+
+=head2 check_os_release
+
+Identify running os without any dependencies parsing the I</etc/os-release>.
+
+=item C<distri_name>
+
+The expected distribution name to compare.
+
+=item C<line>
+
+The line we'll be parsing and checking.
+
+=item C<os_release_file>
+
+The full path to the Operating system identification file.
+Default to I</etc/os-release>.
+
+Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
+
+=cut
+sub check_os_release {
+    my ($distri_name, $line, $os_release_file) = @_;
+    die '$distri_name is not given' unless $distri_name;
+    die '$line is not given'        unless $line;
+    $os_release_file //= '/etc/os-release';
+    my $os_like_name = script_output("grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
+    return ($os_like_name =~ /$distri_name/i);
 }
 
 =head2 is_public_cloud
@@ -618,5 +651,44 @@ sub has_test_issues() {
         return 1 if (get_var('SERVERAPP_TEST_ISSUES') ne "");
         return 1 if (get_var('WE_TEST_ISSUES') ne "");
     }
+    return 0;
+}
+
+=head2 package_version_cmp
+
+Compare two SUSE-style version strings. Returns an integer that is less than,
+equal to, or greater than zero if the first argument is less than, equal to,
+or greater than the second one, respectively.
+
+=cut
+
+sub package_version_cmp {
+    my ($ver1, $ver2) = @_;
+
+    my @chunks1   = split(/-/, $ver1);
+    my @chunks2   = split(/-/, $ver2);
+    my $chunk_cnt = $#chunks1 > $#chunks2 ? scalar @chunks1 : scalar @chunks2;
+
+    for (my $cid = 0; $cid < $chunk_cnt; $cid++) {
+        my @tokens1   = split(/\./, $chunks1[$cid] // '0');
+        my @tokens2   = split(/\./, $chunks2[$cid] // '0');
+        my $token_cnt = scalar @tokens1;
+        $token_cnt = scalar @tokens2 if $#tokens2 > $#tokens1;
+
+        for (my $tid = 0; $tid < $token_cnt; $tid++) {
+            my $tok1 = $tokens1[$tid] // '0';
+            my $tok2 = $tokens2[$tid] // '0';
+
+            if ($tok1 =~ m/^\d+$/ && $tok2 =~ m/^\d+$/) {
+                next if $tok1 == $tok2;
+                return $tok1 - $tok2;
+            } else {
+                next     if $tok1 eq $tok2;
+                return 1 if $tok1 gt $tok2;
+                return -1;
+            }
+        }
+    }
+
     return 0;
 }

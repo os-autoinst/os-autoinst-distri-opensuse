@@ -43,7 +43,7 @@ sub log_create {
 
 sub collect_version {
     my $file = shift;
-    my $cmd  = "(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests; uname -r) | tee $file";
+    my $cmd  = "(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests; uname -r; rpm -qi kernel-default) | tee $file";
     script_run($cmd);
 }
 

@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_vmware);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_vmware);
 use Carp 'croak';
 
 our @EXPORT = qw(
@@ -81,15 +81,21 @@ sub reboot_x11 {
     my ($self) = @_;
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
-        send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+        if (is_tumbleweed) {
+            assert_and_click('reboot-power-icon');
+            assert_and_click('reboot-power-menu');
+            assert_and_click('reboot-click-restart');
+        } else {
+            send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
+        }
         my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
         record_soft_failure 'poo#19082' if ($repetitions > 0);
-
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
+
             assert_screen 'shutdown-auth';
-            wait_still_screen(3);                                               # 981299#c41
+            wait_still_screen(3);                                                   # 981299#c41
             type_string $testapi::password, max_interval => 5;
-            wait_still_screen(3);                                               # 981299#c41
+            wait_still_screen(3);                                                   # 981299#c41
             if (get_var('REBOOT_DEBUG')) {
                 wait_screen_change {
                     # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option

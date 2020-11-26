@@ -95,9 +95,9 @@ sub run {
     assert_script_run "echo '$build_file_xml' >> build.xml";
 
     # Check that ant builds succesfully
-    assert_script_run "ant";
+    assert_script_run "ant --noconfig";
     # Check that ant runs the application succesfully
-    assert_script_run 'ant run| grep "Hello World"';
+    assert_script_run 'ant --noconfig run| grep "Hello World"';
 }
 
 1;

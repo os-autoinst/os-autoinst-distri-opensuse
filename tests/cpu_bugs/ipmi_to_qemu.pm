@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,7 @@ use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use testapi;
 use utils;
-use version_utils 'get_sles_release';
+use version_utils 'get_os_release';
 my $cliect_ini_url    = get_var('CLIENT_INI');
 my $webui_hostname    = get_var('WEBUI_HOSTNAME');
 my $nfs_hostname      = get_var('NFS_HOSTNAME');
@@ -39,7 +39,7 @@ sub run {
     my $current_dist;
     script_run("systemctl disable apparmor.service");
     script_run("aa-teardown");
-    my ($sles_running_version, $sles_running_sp) = get_sles_release();
+    my ($sles_running_version, $sles_running_sp) = get_os_release();
     if ($sles_running_sp gt '0') {
         $current_dist = sprintf("SLE_%s_SP%s", $sles_running_version, $sles_running_sp);
     } else {

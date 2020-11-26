@@ -4,10 +4,6 @@ description: >
     Parent job produces autoyast profile after successful completion.
     This test uses generated profile to do autoyast installation.
 schedule:
-  # Registration section is required for SLES only
-  - '{{inject_registration}}'
-  # Called on BACKEND: qemu
-  - '{{isosize}}'
   - installation/bootloader_start
   - autoyast/installation
   # On Tumbleweed process Welcome pop-up screen
@@ -35,10 +31,6 @@ schedule:
   - console/zypper_log
   - console/orphaned_packages_check
 conditional_schedule:
-  isosize:
-    BACKEND:
-      qemu:
-        - installation/isosize
   reconnect_mgmt_console:
     ARCH:
       s390x:
@@ -56,7 +48,3 @@ conditional_schedule:
     VERSION:
       Tumbleweed:
         - installation/opensuse_welcome
-  inject_registration:
-    DISTRI:
-      sle:
-        - autoyast/prepare_cloned_profile

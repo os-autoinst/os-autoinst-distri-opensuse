@@ -1,3 +1,0 @@
-mapped_device: '/dev/mapper/cr-auto-2'
-device_status:
-  message: 'is inactive.'

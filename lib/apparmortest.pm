@@ -697,6 +697,7 @@ sub pre_run_hook {
     select_console 'root-console';
     systemctl('restart auditd');
     systemctl('restart apparmor');
+    $self->SUPER::pre_run_hook;
 }
 
 =head2 post_fail_hook

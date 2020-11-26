@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,16 +23,18 @@ use warnings;
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';
+use Utils::Architectures qw(is_aarch64);
 
 sub settle_load {
     my $loop = 'read load dummy < /proc/loadavg  ; top -n1 -b| head -n30 ; test "${load/./}" -lt $limit && break ; sleep 5';
     script_run "limit=10; for c in `seq 1 200`; do $loop; done; echo TOP-DONE > /dev/$serialdev", 0;
     my $before = time;
-    wait_serial('TOP-DONE', 1005) || die 'load not settled';
+    wait_serial('TOP-DONE', is_aarch64() ? 1500 : 1005) || die 'load not settled';
     # JeOS is different to SLE general as it extends the appliance's disk on first boot,
     # so the balance is a different challenge to SLE. Elapsed time is not necessary a key
     # measure here, responsiveness of the system is.
     record_soft_failure 'bsc#1063638' if (time - $before) > (is_jeos() ? 180 : 70) && get_var('SOFTFAIL_BSC1063638');
+    record_soft_failure 'bsc#1178761' if ((time - $before) > 1005);
 }
 
 sub run {

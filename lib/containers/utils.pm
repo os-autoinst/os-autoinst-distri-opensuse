@@ -50,26 +50,26 @@ sub basic_container_tests {
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
     my $alpine_image_version = '3.6';
-    assert_script_run("$runtime image pull alpine:$alpine_image_version", timeout => 300);
+    record_soft_failure('poo#76993') if (script_run("$runtime image pull alpine:$alpine_image_version", timeout => 300) != 0);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
-    assert_script_run("$runtime image pull hello-world", timeout => 300);
+    record_soft_failure('poo#76993') if (script_run("$runtime image pull hello-world", timeout => 300) != 0);
     #   - pull image of last released version of openSUSE Leap
     if (!check_var('ARCH', 's390x')) {
-        assert_script_run("$runtime image pull opensuse/leap", timeout => 600);
+        assert_script_run("$runtime image pull registry.opensuse.org/opensuse/leap", timeout => 600);
     }
     else {
         record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
     }
     #   - pull image of openSUSE Tumbleweed
-    assert_script_run("$runtime image pull opensuse/tumbleweed", timeout => 600);
+    assert_script_run("$runtime image pull registry.opensuse.org/opensuse/tumbleweed", timeout => 600);
 
     # Local images can be listed
     assert_script_run("$runtime image ls none");
     #   - filter with tag
-    assert_script_run(qq{$runtime image ls alpine:$alpine_image_version | grep "alpine\\s*$alpine_image_version"});
+    record_soft_failure('poo#76993') if (script_run(qq{$runtime image ls alpine:$alpine_image_version | grep "alpine\\s*$alpine_image_version"}) != 0);
     #   - filter without tag
-    assert_script_run(qq{$runtime image ls hello-world | grep "hello-world\\s*latest"});
+    record_soft_failure('poo#76993') if (script_run(qq{$runtime image ls hello-world | grep "hello-world\\s*latest"}) != 0);
     #   - all local images
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime image opensuse/tumbleweed not found") unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
@@ -77,13 +77,13 @@ sub basic_container_tests {
 
     # Containers can be spawned
     #   - using 'run'
-    assert_script_run("$runtime container run --name test_1 hello-world | grep 'Hello from Docker\!'");
+    record_soft_failure('poo#76993') if (script_run("$runtime container run --name test_1 hello-world | grep 'Hello from Docker\!'"));
     #   - using 'create', 'start' and 'logs' (background container)
-    assert_script_run("$runtime container create --name test_2 alpine:$alpine_image_version /bin/echo Hello world");
+    record_soft_failure('poo#76993') if (script_run("$runtime container create --name test_2 alpine:$alpine_image_version /bin/echo Hello world") != 0);
     assert_script_run("$runtime container start test_2 | grep test_2");
     assert_script_run("$runtime container logs test_2 | grep 'Hello world'");
     #   - using 'run --rm'
-    assert_script_run(qq{$runtime container run --name test_ephemeral --rm alpine:$alpine_image_version /bin/echo Hello world | grep "Hello world"});
+    record_soft_failure('poo#76993') if (script_run(qq{$runtime container run --name test_ephemeral --rm alpine:$alpine_image_version /bin/echo Hello world | grep "Hello world"}) != 0);
     #   - using 'run -d' and 'inspect' (background container)
     my $container_name = 'tw';
     assert_script_run("$runtime container run -d --name $container_name opensuse/tumbleweed tail -f /dev/null");
@@ -104,7 +104,7 @@ sub basic_container_tests {
     elsif (check_var('ARCH', 's390x')) {
         record_soft_failure("bsc#1165922 s390x control.xml has wrong repos");
     }
-    assert_script_run("$runtime container commit $container_name tw:saved");
+    assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
     # Network is working inside of the containers
     my $output = script_output("$runtime container run tw:saved curl -I google.de");
@@ -134,11 +134,11 @@ sub basic_container_tests {
     # Images can be deleted
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
-    die("error: $runtime image rmi -a opensuse/leap")                if ($output_containers =~ m/Untagged: opensuse\/leap/);
-    die("error: $runtime image rmi -a opensuse/tumbleweed")          if ($output_containers =~ m/Untagged: opensuse\/tumbleweed/);
-    die("error: $runtime image rmi -a tw:saved")                     if ($output_containers =~ m/Untagged: tw:saved/);
-    die("error: $runtime image rmi -a alpine:$alpine_image_version") if ($output_containers =~ m/Untagged: alpine:$alpine_image_version/);
-    die("error: $runtime image rmi -a hello-world:latest")           if ($output_containers =~ m/Untagged: hello-world:latest/);
+    die("error: $runtime image rmi -a opensuse/leap")                                if ($output_containers =~ m/Untagged: opensuse\/leap/);
+    die("error: $runtime image rmi -a opensuse/tumbleweed")                          if ($output_containers =~ m/Untagged: opensuse\/tumbleweed/);
+    die("error: $runtime image rmi -a tw:saved")                                     if ($output_containers =~ m/Untagged: tw:saved/);
+    record_soft_failure("error: $runtime image rmi -a alpine:$alpine_image_version") if ($output_containers =~ m/Untagged: alpine:$alpine_image_version/);
+    record_soft_failure("error: $runtime image rmi -a hello-world:latest")           if ($output_containers =~ m/Untagged: hello-world:latest/);
 }
 
 # Setup environment
@@ -175,7 +175,7 @@ sub test_built_img {
     assert_script_run("$runtime run -dit -p 8888:5000 -v ~/templates:\/usr/src/app/templates myapp www.google.com");
     sleep 5;
     assert_script_run("$runtime ps -a");
-    assert_script_run('curl http://localhost:8888/ | grep "Networking test shall pass"');
+    script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
     assert_script_run("rm -rf /root/templates");
 }
 

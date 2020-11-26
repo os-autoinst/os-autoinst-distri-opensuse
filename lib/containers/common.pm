@@ -28,39 +28,68 @@ our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_sel
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
 
 sub install_podman_when_needed {
+    my $host_os = shift;
+    my @pkgs    = qw(podman);
     if (script_run("which podman") != 0) {
-        if (is_sle '>=15') {
-            add_suseconnect_product('sle-module-containers');
+        if ($host_os eq 'centos') {
+            assert_script_run "dnf -y install @pkgs", timeout => 160;
         }
-
-        my @pkgs = qw(podman);
-        push(@pkgs, 'podman-cni-config') if is_jeos();
-        push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
-        zypper_call "in @pkgs";
+        elsif ($host_os eq 'ubuntu') {
+            my $version_id  = script_output('(. /etc/os-release && echo $VERSION_ID)');
+            my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
+            assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
+            assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
+            assert_script_run "apt-get update",            timeout => 160;
+            assert_script_run "apt-get -y install podman", timeout => 220;
+        }
+        else {
+            add_suseconnect_product('sle-module-containers') if (is_sle '>=15');
+            push(@pkgs, 'podman-cni-config') if is_jeos();
+            push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
+            zypper_call "in @pkgs";
+        }
         assert_script_run('podman info');
     }
 }
 
 sub install_docker_when_needed {
+    my $host_os = shift;
+
     if (is_microos) {
         # Docker should be pre-installed in MicroOS
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
     }
     else {
         if (script_run("which docker") != 0) {
-            if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
-                add_suseconnect_product("sle-module-containers");
+            if ($host_os eq 'centos') {
+                assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
+                # if podman installed use flag "--allowerasing" to solve conflicts
+                assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
             }
+            elsif ($host_os eq 'ubuntu') {
+                my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
+                assert_script_run "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -";
+                assert_script_run q(add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable");
+                assert_script_run "apt-get update", timeout => 160;
+                # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
+                assert_script_run "apt-cache policy docker-ce";
+                assert_script_run "apt-get -y install docker-ce", timeout => 260;
+            }
+            else {
+                if (is_sle() && script_run("SUSEConnect --status-text | grep Containers") != 0) {
+                    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
+                }
 
-            # docker package can be installed
-            zypper_call('in docker', timeout => 900);
+                # docker package can be installed
+                zypper_call('in docker', timeout => 900);
+            }
         }
     }
 
     # docker daemon can be started
     systemctl('enable docker') if systemctl('is-enabled docker', ignore_failure => 1);
     systemctl('start docker')  if systemctl('is-active docker',  ignore_failure => 1);
-    systemctl('status docker');
+    systemctl('status docker', timeout => 120);
     assert_script_run('docker info');
 }
 
