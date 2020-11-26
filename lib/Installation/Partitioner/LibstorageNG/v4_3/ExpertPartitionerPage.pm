@@ -65,6 +65,9 @@ sub open_clone_partition_dialog {
     $self->select_disk($disk) if $disk;
     # Cloning option is disabled if any partition is selected, so selecting disk
     $self->{tbl_devices}->select(row => 0);
+    # This is workaround, because row selection doesn't enable clone item in menu bar
+    send_key("end");
+    send_key("home");
     $self->{menu_bar}->select('&Device|&Clone Partitions to Another Device...');
     return $self;
 }
