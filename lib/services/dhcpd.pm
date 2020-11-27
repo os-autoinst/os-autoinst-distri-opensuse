@@ -17,6 +17,7 @@ use testapi;
 use utils;
 use strict;
 use warnings;
+my $service_type = 'Systemd';
 
 sub install_service {
     # dhcp contains common files while dhcp-server is for server.
@@ -27,14 +28,24 @@ sub install_service {
 # Assume that we are using a 24 bit netmask.
 sub get_subnet_3 {
     my ($iface) = @_;
-    my $ip      = script_output("ip -br -4 addr | grep $iface | sed 's/\\s\\+/:/g' | cut -d ':' -f 3 | cut -d '/' -f 1", type_command => 1);
-    my @arr     = split(/\./, $ip);
+    my $ip;
+    if ($service_type eq 'Systemd') {
+        $ip = script_output("ip -br -4 addr | grep $iface | sed 's/\\s\\+/:/g' | cut -d ':' -f 3 | cut -d '/' -f 1", type_command => 1);
+    } else {
+        $ip = script_output("ip -4 addr | grep $iface | grep -v $iface: | cut -d '/' -f1 | awk \'{print \$2}\'", type_command => 1);
+    }
+    my @arr = split(/\./, $ip);
     return join(".", @arr[0 .. 2]);
 }
 
 sub config_service {
     # Get first active network interface name.
-    my $iface    = script_output("ip -br -4 addr | grep -v '^lo' | grep 'UP' | head -n 1 | cut -d ' ' -f 1", type_command => 1);
+    my $iface;
+    if ($service_type eq 'Systemd') {
+        $iface = script_output("ip -br -4 addr | grep -v '^lo' | grep 'UP' | head -n 1 | cut -d ' ' -f 1", type_command => 1);
+    } else {
+        $iface = script_output("ip -4 addr | grep -v 'lo:' | grep -w UP | cut -d ' ' -f2 | sed s/://g", type_command => 1);
+    }
     my $subnet_3 = get_subnet_3($iface);
     # Setting dhcpd range in /etc/dhcpd.conf.
     type_string("echo '# Configuration for dhcpd test.' > /etc/dhcpd.conf\n");
@@ -48,27 +59,28 @@ sub config_service {
 }
 
 sub enable_service {
-    systemctl('enable dhcpd');
+    common_service_action 'dhcpd', $service_type, 'enable';
 }
 
 sub start_service {
-    systemctl('start dhcpd');
+    common_service_action 'dhcpd', $service_type, 'start';
 }
 
 sub stop_service {
-    systemctl('stop dhcpd');
+    common_service_action 'dhcpd', $service_type, 'stop';
 }
 
 sub check_service {
-    systemctl('is-enabled dhcpd');
-    systemctl('is-active dhcpd');
+    common_service_action 'dhcpd', $service_type, 'is-enabled';
+    common_service_action 'dhcpd', $service_type, 'is-active';
 }
 
 # Check dhcp service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_dhcpd_check {
-    my ($stage) = @_;
+    my ($stage, $type) = @_;
     $stage //= '';
+    $service_type = $type;
     if ($stage eq 'before') {
         install_service();
         config_service();

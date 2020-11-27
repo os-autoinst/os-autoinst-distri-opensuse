@@ -109,13 +109,13 @@ our $default_services = {
     dhcpd => {
         srv_pkg_name       => 'dhcp-server',
         srv_proc_name      => 'dhcpd',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::dhcpd::full_dhcpd_check
     },
     bind => {
         srv_pkg_name  => 'bind',
         srv_proc_name => 'named',
-        support_ver   => $support_ver_def
+        support_ver   => $support_ver_ge11
     },
     snmp => {
         srv_pkg_name  => 'net-snmp',
@@ -149,12 +149,12 @@ our $default_services = {
     radvd => {
         srv_pkg_name  => 'radvd',
         srv_proc_name => 'radvd',
-        support_ver   => $support_ver_def
+        support_ver   => $support_ver_ge11
     },
     cron => {
         srv_pkg_name  => 'cron',
         srv_proc_name => 'cron',
-        support_ver   => $support_ver_def
+        support_ver   => $support_ver_ge11
     },
     apparmor => {
         srv_pkg_name       => 'apparmor',
@@ -234,6 +234,8 @@ sub install_services {
             if (is_sle($support_ver, $hdd_base_version)) {
                 if ($hdd_base_version eq '11-SP4') {
                     $service_type = 'SystemV';
+                    # Enable IPv6 forwarding on sle11sp4
+                    script_run('echo 1 > /proc/sys/net/ipv6/conf/all/forwarding') if ($srv_pkg_name eq 'radvd');
                 }
                 else {
                     $service_type = 'Systemd';
