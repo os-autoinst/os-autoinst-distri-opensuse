@@ -38,15 +38,7 @@ sub run {
         });
     }
 
-    my $volume_group = $test_data->{lvm}->{volume_groups}[0];
-    $partitioner->add_volume_group($volume_group);
-
-    foreach my $logical_volume (@{$volume_group->{logical_volumes}}) {
-        $partitioner->add_logical_volume({
-                volume_group   => $volume_group->{name},
-                logical_volume => $logical_volume
-        });
-    }
+    $partitioner->setup_lvm($test_data->{lvm});
     $partitioner->accept_changes_and_press_next();
 }
 

@@ -65,9 +65,13 @@ sub run {
         send_key 'alt-o';
     }
     # Process exiting from the startshell
-    if (YuiRestClient::is_libyui_rest_api && is_pvm) {
-        select_console 'powerhmc-ssh', await_console => 0;
-        YuiRestClient::teardown_libyui();
+    if (YuiRestClient::is_libyui_rest_api) {
+        if (is_pvm) {
+            select_console 'powerhmc-ssh', await_console => 0;
+            YuiRestClient::teardown_libyui();
+        } elsif (check_var('BACKEND', 'svirt')) {
+            YuiRestClient::teardown_libyui();
+        }
     }
     if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
         # "Press ESC for boot menu"

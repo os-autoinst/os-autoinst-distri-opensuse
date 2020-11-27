@@ -30,6 +30,8 @@ sub run {
 
     # Setup RAID as per test data (see YAML_SCHEDULE and YAML_TEST_DATA openQA variables)
     $partitioner->setup_raid($test_data);
+    # Setup lvm as per test data (see YAML_SCHEDULE and YAML_TEST_DATA openQA variables)
+    $partitioner->setup_lvm($test_data->{lvm});
 
     $partitioner->accept_changes_and_press_next();
 }

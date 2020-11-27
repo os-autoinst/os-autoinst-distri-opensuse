@@ -85,9 +85,12 @@ sub add_partition_on_gpt_disk {
 
 sub clone_partition_table {
     my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_disk($args->{disk});
-    $self->get_expert_partitioner_page()->open_clone_partition_dialog();
-    $self->get_clone_partition_dialog()->select_all_disks();
+    $self->get_expert_partitioner_page()->open_clone_partition_dialog($args->{disk});
+    if ($args->{target_disks}) {
+        $self->get_clone_partition_dialog()->select_disks(@{$args->{target_disks}});
+    } else {
+        $self->get_clone_partition_dialog()->select_all_disks();
+    }
     $self->get_clone_partition_dialog()->press_ok();
 }
 
@@ -142,6 +145,37 @@ sub add_logical_volume {
     $self->get_add_logical_volume_page()->select_role($lv->{role});
     $self->get_add_logical_volume_page()->press_next_button();
     $self->_finish_partition_creation;
+}
+
+sub setup_raid {
+    my ($self, $args) = @_;
+    # Create partitions with the data from yaml scheduling file on first disk
+    my @disks      = @{$args->{disks}};
+    my $first_disk = $disks[0];
+    foreach my $partition (@{$first_disk->{partitions}}) {
+        $self->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
+    }
+    # Clone partition table from first disk to all other disks
+    my @target_disks = map { $_->{name} } @disks[1 .. $#disks];
+    $self->clone_partition_table({disk => $first_disk->{name}, target_disks => \@target_disks});
+    # Create RAID partitions with the data from yaml scheduling file
+    foreach my $md (@{$args->{mds}}) {
+        $self->add_raid($md);
+    }
+}
+
+sub setup_lvm {
+    my ($self, $args) = @_;
+
+    foreach my $vg (@{$args->{volume_groups}}) {
+        $self->add_volume_group($vg);
+        foreach my $lv (@{$vg->{logical_volumes}}) {
+            $self->add_logical_volume({
+                    volume_group   => $vg->{name},
+                    logical_volume => $lv
+            });
+        }
+    }
 }
 
 1;

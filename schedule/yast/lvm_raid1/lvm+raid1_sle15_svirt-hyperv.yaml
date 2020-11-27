@@ -6,19 +6,19 @@ description: >
 vars:
   RAIDLEVEL: 1
   LVM: 1
+  YUI_REST_API: 1
 test_data:
-  <<: !include test_data/yast/lvm_raid1/lvm+raid1_sle15_svirt-hyperv.yaml
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1_hyperv.yaml
 schedule:
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_raid
-  - installation/partitioning_finish
+  - installation/partitioning/setup_raid1_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
@@ -28,6 +28,7 @@ schedule:
   - installation/start_install
   - installation/await_install
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm_raid1

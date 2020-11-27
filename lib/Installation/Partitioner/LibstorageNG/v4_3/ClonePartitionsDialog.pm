@@ -37,13 +37,30 @@ sub init {
     return $self;
 }
 
+sub select_disks {
+    my ($self, @disks) = @_;
+
+    my @available = $self->{lst_target_disks}->items();
+
+    foreach my $disk (@disks) {
+        # Find list item which matches wanted disk
+        if (my ($lst_item) = grep $_ =~ $disk, @available) {
+            $self->{lst_target_disks}->select($lst_item);
+        }
+        else {
+            die "$disk cannot be found in the list of target disks";
+        }
+    }
+    return $self;
+}
+
 sub select_all_disks {
     my ($self) = @_;
 
     my @disks = $self->{lst_target_disks}->items();
     #Select all disks
-    foreach (@disks) {
-        $self->{lst_target_disks}->select($_);
+    foreach my $disk (@disks) {
+        $self->{lst_target_disks}->select($disk);
     }
     return $self;
 }
