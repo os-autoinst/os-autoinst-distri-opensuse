@@ -1,0 +1,24 @@
+---
+name: mau-extratests-docker-publiccloud
+description: |
+  Run mau-extratests-docker on public cloud instances
+schedule:
+  - boot/boot_to_desktop
+  - publiccloud/download_repos
+  - publiccloud/ssh_interactive_init
+  - publiccloud/register_system
+  - publiccloud/transfer_repos
+  - publiccloud/patch_and_reboot
+  - publiccloud/img_proof
+  - publiccloud/ssh_interactive_start
+  - publiccloud/instance_overview
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - containers/podman
+  - containers/docker
+  - containers/docker_runc
+  - containers/containers_3rd_party
+  - containers/registry
+  - containers/zypper_docker
+  - publiccloud/ssh_interactive_end
