@@ -43,6 +43,12 @@ sub init {
     return $self;
 }
 
+sub open_resize_device {
+    my ($self) = @_;
+    $self->{menu_bar}->select('&Device|&Resize...');
+    return $self;
+}
+
 sub select_create_partition_table {
     my ($self) = @_;
     $self->{menu_bar}->select('&Device|Create New &Partition Table...');
@@ -118,6 +124,14 @@ sub select_lvm {
 sub select_volume_group {
     my ($self, $vg) = @_;
     return $self->select_item_in_system_view_table('LVM Volume Groups|' . $vg);
+}
+
+sub select_disk_device_in_table {
+    my ($self, $args) = @_;
+    my $dev = "/dev/$args->{disk}|$args->{disk}$args->{nr}";
+    $self->{tbl_devices}->select(value => $dev);
+    send_key('down');
+    send_key('up');
 }
 
 1;

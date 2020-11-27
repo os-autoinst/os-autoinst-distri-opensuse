@@ -17,14 +17,15 @@
 package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use strict;
 use warnings;
-use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
-use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
+use Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
+use Installation::Partitioner::LibstorageNG::v4_3::ResizePage;
 
 use YuiRestClient;
 
@@ -37,16 +38,14 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{ExpertPartitionerPage}        = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
-    $self->{ClonePartitionsDialog}        = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
-    $self->{CreatePartitionTablePage}     = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
-    $self->{DeletingCurrentDevicesDialog} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog->new({app => YuiRestClient::get_app()});
-    $self->{AddVolumeGroupPage}           = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
-    $self->{AddLogicalVolumePage}         = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
-
-    $self->{EditPartitionSizePage} = Installation::Partitioner::NewPartitionSizePage->new({
-            custom_size_shortcut => 'alt-t'
-    });
+    $self->{ExpertPartitionerPage}         = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
+    $self->{ClonePartitionsDialog}         = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
+    $self->{CreatePartitionTablePage}      = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
+    $self->{DeletingCurrentDevicesWarning} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning->new({app => YuiRestClient::get_app()});
+    $self->{SmallForSnapshotsWarning}      = Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning->new({app => YuiRestClient::get_app()});
+    $self->{AddVolumeGroupPage}            = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
+    $self->{AddLogicalVolumePage}          = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
+    $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
 
     return $self;
 }
@@ -66,9 +65,14 @@ sub get_create_new_partition_table_page {
     return $self->{CreatePartitionTablePage};
 }
 
-sub get_deleting_current_devices_dialog {
+sub get_deleting_current_devices_warning {
     my ($self) = @_;
-    return $self->{DeletingCurrentDevicesDialog};
+    return $self->{DeletingCurrentDevicesWarning};
+}
+
+sub get_small_for_snapshots_warning {
+    my ($self) = @_;
+    return $self->{SmallForSnapshotsWarning};
 }
 
 sub get_add_logical_volume_page {
@@ -76,9 +80,14 @@ sub get_add_logical_volume_page {
     return $self->{AddLogicalVolumePage};
 }
 
+sub get_resize_page {
+    my ($self) = @_;
+    return $self->{ResizePage};
+}
+
 sub add_partition_on_gpt_disk {
     my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_disk($args->{disk});
+    $self->get_expert_partitioner_page()->select_disk($args->{disk}) if $args->{disk};
     $self->get_expert_partitioner_page()->press_add_partition_button();
     $self->_add_partition($args->{partition});
 }
@@ -118,7 +127,7 @@ sub create_new_partition_table {
     my ($self, $args) = @_;
     $self->get_expert_partitioner_page()->select_disk($args->{name});
     $self->get_expert_partitioner_page()->select_create_partition_table();
-    $self->get_deleting_current_devices_dialog()->press_yes();
+    $self->get_deleting_current_devices_warning()->press_yes();
     $self->get_create_new_partition_table_page()->press_next();
 }
 
@@ -176,6 +185,25 @@ sub setup_lvm {
             });
         }
     }
+}
+
+sub set_new_partition_size {
+    my ($self, $size) = @_;
+    $self->get_resize_page()->set_custom_size($size);
+    $self->get_resize_page()->press_next();
+}
+
+sub resize_partition {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk_device_in_table({
+            disk => $args->{disk},
+            nr   => $part->{nr}
+    });
+    $self->get_expert_partitioner_page()->open_resize_device();
+    $self->get_resize_page()->set_custom_size($part->{size});
+    $self->get_resize_page()->press_next();
+    $self->get_small_for_snapshots_warning()->press_yes();
 }
 
 1;

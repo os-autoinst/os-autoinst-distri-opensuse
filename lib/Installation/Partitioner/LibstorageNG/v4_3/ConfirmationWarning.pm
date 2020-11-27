@@ -8,14 +8,12 @@
 # without any warranty.
 
 # Summary: The class introduces methods in Expert Partitioner to handle
-# confirmation dialog for deleting current devices.
+# a generic confirmation warning..
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesDialog;
+package Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning;
 use strict;
 use warnings;
-
-use YuiRestClient;
 
 sub new {
     my ($class, $args) = @_;

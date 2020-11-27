@@ -20,11 +20,12 @@ use scheduler 'get_test_suite_data';
 
 sub run {
     my $test_data = get_test_suite_data();
+    my $disk      = $test_data->{disks}[0]->{name};
     my ($root_part, $usr_part) = @{$test_data->{disks}[0]->{partitions}};
 
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner('current');
-    $partitioner->resize_partition($root_part);
+    $partitioner->resize_partition({disk => $disk, partition => $root_part});
     $partitioner->add_partition_on_gpt_disk({partition => $usr_part});
     $partitioner->accept_changes_and_press_next();
 }
