@@ -80,9 +80,9 @@ sub run_ssh_command {
         # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
         $args{timeout} += 2;
         # Pipe both the standard and error output serial for debug purposes
-        $ssh_cmd .= " 2>&1 | tee $serialdev";
+        $ssh_cmd .= " 2>&1 | tee /dev/$serialdev";
         # Run the command and return only the returncode here
-        my $ret = script_run($ssh_cmd, %args);
+        my $ret = script_run($ssh_cmd, %args, quiet => 0);
         die("Timeout on $ssh_cmd") unless (defined($ret));
         return $ret;
     } else {
@@ -106,15 +106,16 @@ Use argument C<username> to specify a different username then
 C<<$instance->username()>>.
 =cut
 sub retry_ssh_command {
-    my ($self, $cmd, %args) = @_;
-    $cmd = $args{cmd} if (!defined $cmd && $args{cmd});
+    my $self = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     $args{rc_only} = 1;
     $args{timeout} //= 90;    # Timeout before we cancel the command
     my $tries = delete $args{retry} // 3;
     my $delay = delete $args{delay} // 10;
+    my $cmd   = delete $args{cmd};
 
     for (my $try = 0; $try < $tries; $try++) {
-        my $rc = $self->run_ssh_command($cmd, %args);
+        my $rc = $self->run_ssh_command(cmd => $cmd, %args);
         return $rc if (defined $rc && $rc == 0);
         sleep($delay);
     }

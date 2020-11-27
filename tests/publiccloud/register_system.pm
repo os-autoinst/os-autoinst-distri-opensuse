@@ -45,7 +45,8 @@ sub run {
             }
         }
     }
-    $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr", rc_only => 1);
+    record_info('LR', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr || true"));
+    record_info('LS', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls || true"));
 }
 
 1;
