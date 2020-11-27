@@ -74,8 +74,8 @@ sub run {
     assert_script_run 'cd';
 
     # De-registration is disabled for on-demand instances
-    remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle() && !is_ondemand());
-    remove_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
+    remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle()          && !is_ondemand());
+    remove_suseconnect_product(get_addon_fullname('python2')) if (is_sle('=15-sp1') && !is_ondemand());
     clean_container_host(runtime => 'docker');
 }
 
