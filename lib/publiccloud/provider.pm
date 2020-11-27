@@ -229,9 +229,12 @@ sub run_img_proof {
 Retrieves the CSP image id if exists, otherwise exception is thrown.
 The given C<$img_url> is optional, if not present it retrieves from
 PUBLIC_CLOUD_IMAGE_LOCATION.
+If PUBLIC_CLOUD_IMAGE_ID is set, then this value will be used
 =cut
 sub get_image_id {
     my ($self, $img_url) = @_;
+    my $predefined_id = get_var('PUBLIC_CLOUD_IMAGE_ID');
+    return $predefined_id if ($predefined_id);
     $img_url //= get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
     $self->{image_cache} //= {};
