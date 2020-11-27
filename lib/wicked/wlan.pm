@@ -16,8 +16,8 @@ package wicked::wlan;
 use Mojo::Base 'wickedbase';
 use utils qw(random_string);
 use version_utils qw(is_sle);
-use registration qw(add_suseconnect_product);
-use utils qw(zypper_call zypper_ar);
+use repo_tools qw(add_qa_head_repo generate_version);
+use utils qw(zypper_call);
 use Mojo::File 'path';
 use File::Basename;
 use testapi;
@@ -92,13 +92,9 @@ sub before_test {
 
 sub prepare_packages {
     my $self = shift;
-    if (is_sle('<12-sp5')) {
-        die("Wicked WLAN testsuite not supported for SLE <12-sp5");
-    } elsif (is_sle('=12-sp5')) {
-        # PackageHub doesn't have hostapd for SLE-12-SP5
-        zypper_ar('https://download.opensuse.org/repositories/Base:/System/SLE_12_SP5/Base:System.repo', no_gpg_check => 1);
-    } elsif (is_sle()) {
-        add_suseconnect_product('PackageHub');    # needed for hopstapd
+    if (is_sle()) {
+        set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
+        add_qa_head_repo();
     }
     zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim');
     # make sure, we do not run these deamons, as we need to run them in network namespace
