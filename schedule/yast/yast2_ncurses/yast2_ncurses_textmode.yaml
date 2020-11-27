@@ -12,6 +12,7 @@ schedule:
   - console/yast2_bootloader
   - console/yast2_lan_device_settings
   - "{{yast_nfs_server}}"
+  - console/yast2_kdump
 conditional_schedule:
   bootloader_start:
     BACKEND:
