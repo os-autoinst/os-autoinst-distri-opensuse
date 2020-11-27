@@ -53,20 +53,19 @@ sub run {
     assert_screen 'expert-partitioner-setup';
     wait_still_screen 3;
 
-    rescan_devices;
 
     # Select device
     my $disk = get_required_var('SPECIFIC_DISK');
-    send_key 'alt-s';
     send_key 'tab';
-    for (1 ... 10) {
+    send_key 'tab';
+    send_key 'tab';
+    for (1 ... 20) {
         send_key 'down';
         send_key_until_needlematch("expert-partitioner-label", "right", 50, 1);
         if (check_screen "expert-partitioner-$disk", 2) {
             last;
         }
     }
-    send_key 'ret';
 
     # Edit device
     send_key 'alt-e';
@@ -86,8 +85,7 @@ sub run {
 
     # Expert partition finish
     send_key(is_storage_ng() ? 'alt-n' : 'alt-f');
-    assert_screen 'expert-partitioner-finish';
-    send_key 'alt-a';
+    send_key 'alt-p';
     if (check_screen("expert-partitioner-Warning_popup", 5)) {
         send_key 'alt-y';
     }
