@@ -1,0 +1,8 @@
+name:           sle_image_on_opensuse_host
+description:    >
+  Test for SLE base image in opensuse
+schedule:
+  - boot/boot_to_desktop
+  - containers/host_configuration
+  - containers/podman_image
+  - containers/docker_image
