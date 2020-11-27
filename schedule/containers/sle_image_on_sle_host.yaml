@@ -1,13 +1,18 @@
 name:           sle_image_on_sle_host
 description:    >
-    Maintainer: jalausuch@suse.com, qa-c@suse.de.
-    Extra tests about software in containers module
+  Maintainer: jalausuch@suse.com, qa-c@suse.de.
+  Extra tests about software in containers module
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - containers/host_configuration
-    - containers/podman_image
-    - containers/docker_image
-    - containers/validate_btrfs
-    # - containers/container_diff
-    # Re-enable after 15-SP3 GA
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - containers/host_configuration
+  - containers/podman_image
+  - containers/docker_image
+  - '{{validate_btrfs}}'
+  # - containers/container_diff
+  # Re-enable after 15-SP3 GA
+conditional_schedule:
+  validate_btrf:
+    ARCH:
+      x86_64:
+        - containers/validate_btrfs
