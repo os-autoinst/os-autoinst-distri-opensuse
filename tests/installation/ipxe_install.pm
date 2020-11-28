@@ -137,7 +137,7 @@ sub run {
     poweroff_host;
 
     set_bootscript;
-    set_pxe_boot;
+    set_pxe_boot unless get_var('IPXE_UEFI');
 
     poweron_host;
 
