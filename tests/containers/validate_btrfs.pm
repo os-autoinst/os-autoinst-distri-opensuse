@@ -32,7 +32,7 @@ sub _sanity_test_btrfs {
     validate_script_output "df -h |grep var", sub { m/\/dev\/vda.+[1-6]\d?%/ };
     # /var is using its own partition which is size of 10G. Create file in the container
     # enough to fill up the partition up to ~99%
-    $rt->up('huge_image', cmd => 'fallocate -l 9227483KiB bigfile.stty');
+    $rt->up('huge_image', cmd => 'fallocate -l 9152000KiB bigfile.stty');
     # partition should be full
     validate_script_output "df -h |grep var",       sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=8.*GiB, used=8.*GiB/ };
@@ -42,7 +42,7 @@ sub _test_btrfs_balancing {
     my ($dev_path) = shift;
     assert_script_run qq(btrfs balance start --full-balance $dev_path), timeout => 600;
     assert_script_run "btrfs fi show $dev_path/btrfs";
-    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+1.\d+G.+\/dev\/vdb/ };
+    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+9.\d+G.+\/dev\/vdb/ };
 }
 
 sub _test_btrfs_thin_partitioning {
@@ -57,16 +57,16 @@ sub _test_btrfs_thin_partitioning {
 
 sub _test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
-    my $tw         = 'registry.suse.de/home/favogt/jumpmeta/images_tw/opensuse/tumbleweed:latest';
+    my $container  = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
     # Due to disk space this should fail
     record_info "test";
-    die("pull still works") if ($rt->pull("$tw") == 0);
+    die("pull still works") if ($rt->pull("$container") == 0);
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     validate_script_output "lsblk | grep vdb",              sub { m/vdb.+20G/ };
     validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2\s+size\s20.00GiB\sused\s1.00G.+\/dev\/vdb/ };
-    $rt->pull($tw);
-    assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) != \$(cat $btrfs_head)};
+    $rt->pull($container);
+    assert_script_run qq{test \$(ls -t $dev_path/btrfs/subvolumes/ | head -n 1) != \$(cat $btrfs_head)};
 }
 
 sub run {
