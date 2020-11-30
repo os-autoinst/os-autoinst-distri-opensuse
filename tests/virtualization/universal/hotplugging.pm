@@ -231,6 +231,10 @@ sub clean_guest {
 }
 
 sub post_fail_hook {
+    my ($self) = @_;
+
+    # Call parent post_fail_hook to collect logs on failure
+    $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
     clean_guest($_) foreach (keys %virt_autotest::common::guests);
 }
