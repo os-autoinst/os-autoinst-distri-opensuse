@@ -37,7 +37,7 @@ my $hard_disks = qr/((v|s)d(a|b|c|d)\D+.*){4}/s;
 # 4 ext4 partitions mounted on /boot, with new lsblk output partitions are listed only once
 my $ext4_boot = qr/(md1(p1)?.+ext4.+\/boot.*){4}|(md1(p1)?.+ext4.+\/boot.*){1}/s;
 # Unique vfat partition in first disk (mounted on /boot/efi)
-my $vfat_efi = qr/(vd(b|c|d))1.*vfat.*\/boot\/efi/s;
+my $vfat_efi = qr/(vd(a|b|c|d))1.*vfat.*\/boot\/efi/s;
 #
 # Define blocks of expected data for raid configuration in different products and architectures
 #
