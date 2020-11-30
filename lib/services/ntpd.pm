@@ -54,8 +54,8 @@ sub stop_service {
 }
 
 sub check_service {
-    common_service_action($service_name, $service_type, 'is-enabled');
     common_service_action($service_name, $service_type, 'is-active');
+    common_service_action($service_name, $service_type, 'is-enabled');
 }
 
 sub check_function {
@@ -73,7 +73,7 @@ sub full_ntpd_check {
     $service_type = $type;
     $service_name = ($service_type eq 'SystemV') ? 'ntp' : 'ntpd';
     $stage //= '';
-    if ($stage eq 'before') {
+    if ((get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4') || $stage eq 'before') {
         install_service();
         config_service();
         enable_service();

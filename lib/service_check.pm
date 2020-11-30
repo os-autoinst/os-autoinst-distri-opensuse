@@ -137,7 +137,7 @@ our $default_services = {
     autofs => {
         srv_pkg_name       => 'autofs',
         srv_proc_name      => 'autofs',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&full_autofs_check
     },
     cups => {
