@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -68,6 +68,9 @@ sub run {
     if (YuiRestClient::is_libyui_rest_api) {
         if (is_pvm) {
             select_console 'powerhmc-ssh', await_console => 0;
+            YuiRestClient::teardown_libyui();
+        } elsif (get_var('S390_ZKVM')) {
+            select_console 'svirt';
             YuiRestClient::teardown_libyui();
         } elsif (check_var('BACKEND', 'svirt')) {
             YuiRestClient::teardown_libyui();
