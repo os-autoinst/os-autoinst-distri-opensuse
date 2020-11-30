@@ -36,7 +36,8 @@ sub init {
     $self->{tb_size}        = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvSize::CustomSizeInput"'});
     $self->{rb_custom_size} = $self->{app}->radiobutton({id => 'custom_size'});
     $self->{btn_next}       = $self->{app}->button({id => 'next'});
-
+    $self->{rb_thin_pool}   = $self->{app}->radiobutton({id => 'thin_pool'});
+    $self->{rb_thin_volume} = $self->{app}->radiobutton({id => 'thin'});
     return $self;
 }
 
@@ -64,6 +65,15 @@ sub select_role {
 sub press_next_button {
     my ($self) = @_;
     return $self->{btn_next}->click();
+}
+
+sub set_logical_volume_type {
+    my ($self, $type) = @_;
+    if ($type eq 'thin_pool') {
+        $self->{rb_thin_pool}->select();
+    } elsif ($type eq 'thin_volume') {
+        $self->{rb_thin_volume}->select();
+    }
 }
 
 1;

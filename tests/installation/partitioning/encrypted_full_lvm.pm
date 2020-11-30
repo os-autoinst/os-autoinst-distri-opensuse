@@ -8,8 +8,8 @@
 # without any warranty.
 #
 # Summary: The test module uses Expert Partitioning wizard on disks with GPT
-# partition table to perform an encrypted full lvm installation using data
-# driven pattern. Data is provided by yaml scheduling file.
+# partition table to perform installation using data driven pattern. Data is
+# provided by yaml scheduling file.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
