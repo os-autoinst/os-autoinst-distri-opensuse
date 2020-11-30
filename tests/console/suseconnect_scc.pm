@@ -33,7 +33,7 @@ sub run {
     my $cmd        = "SUSEConnect -r $reg_code";
     my $scc_addons = get_var('SCC_ADDONS', '');
 
-    if ($reg_code !~ /^INTERNAL-USE-ONLY.*/i) {
+    if ($reg_code !~ /^INTERNAL-USE-ONLY.*/i || is_microos) {
         $cmd .= ' --url ' . (get_required_var 'SCC_URL');
     }
 
