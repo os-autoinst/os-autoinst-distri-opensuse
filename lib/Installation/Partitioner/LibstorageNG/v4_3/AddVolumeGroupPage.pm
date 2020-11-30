@@ -60,6 +60,7 @@ sub select_available_device {
 
 sub set_volume_group_name {
     my ($self, $vg_name) = @_;
+    $self->{txtbox_vg_name}->exist();
     return $self->{txtbox_vg_name}->set($vg_name);
 }
 
