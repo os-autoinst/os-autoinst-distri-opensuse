@@ -10,6 +10,7 @@ schedule:
 - autoyast/repos
 - autoyast/clone
 - autoyast/logs
+- console/force_scheduled_tasks
 - autoyast/autoyast_reboot
 - '{{grub}}'
 - installation/first_boot
@@ -20,7 +21,6 @@ schedule:
 - console/prepare_test_data
 - console/consoletest_setup
 - locale/keymap_or_locale
-- console/force_scheduled_tasks
 - console/textinfo
 - console/hostname
 - console/installation_snapshots
