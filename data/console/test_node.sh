@@ -1,24 +1,26 @@
 #!/bin/bash
 
-set -xe
+set -e
 
 test_result_wrapper(){
   local VERSION=$1
   local FILE=$2
 
   local NODE="/usr/bin/node$VERSION"
-  local GLOBAL_FLAGS="--expose_gc --expose-internals"
-
   local OUTPUT="/tmp/test_output"
 
-  # Run the test (using custom flags if present) and save the output, print it only if it fails
-  echo "Running $NODE $GLOBAL_FLAGS $FILE ${node_flags[$VERSION $FILE]}"
-  $NODE $GLOBAL_FLAGS $FILE ${node_flags[$VERSION $FILE]} > $OUTPUT 2>&1
-  if [ $? -ne 0 ]; then
-    # Update global vars to track failed tests
+  # Run the test (using common and custom flags if present) and save the output
+  echo "Running $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]}$FILE"
+  set +e
+  $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]} $FILE > $OUTPUT 2>&1
+  RESULT=$?
+  set -e
+
+  # If test failed, keep track of failure and print out its output
+  if [ $RESULT -ne 0 ]; then
     TEST_RESULT="failed"
     echo "Node v$VERSION Test $FILE" >> $FAILED_TEST_LIST
-    # Print info about failure
+
     echo "FAILED"
     echo "Test Output:"
     cat $OUTPUT
@@ -31,13 +33,12 @@ test_result_wrapper(){
 test_node_version(){
   local VERSION="$1"
 
-  echo "Start testing node version $VERSION"
-  zypper -n si --repo node_sources -D "nodejs$VERSION" #> /dev/null 2>&1
+  echo "Starting to test node version $VERSION"
+
+  # Get latest sources to make sure tests contain correct patches
+  zypper -n --no-gpg-check si --repo node_sources -D "nodejs$VERSION" #> /dev/null 2>&1
 
   local SOURCE_FILE=""
-  #DEBUG TODO
-  cd /usr/src/packages/SOURCES/
-  ls -al
   SOURCE_FILE=$(cd /usr/src/packages/SOURCES/ && find . -type f -iname "node-v$VERSION*.tar.xz")
   SOURCE_FILE=${SOURCE_FILE:2} # strip ./ from name
 
@@ -56,6 +57,7 @@ test_node_version(){
     quilt setup "../SPECS/nodejs$VERSION.spec"
     pushd "$SOURCE_DIR"
       quilt push -a
+      # Run all test-crypto and test-tls available
       for f in $(find test \( -path \*sequential\* -or -path \*parallel\* \) \( -name test-crypto-\* -or -name test-tls-\* \)); do
         test_result_wrapper $VERSION $f
       done
@@ -74,29 +76,22 @@ main(){
   # Install dependencies to apply source patches
   zypper -n in quilt rpm-build #> /dev/null 2>&1
 
-  # Make sure there are at least 2 nodejs versions available
-  ###############     List all node packages  | get only nodejsX or nodejsXX | filter out rest|   sort    | unique |   keep   only   number | count ###
-  NUM_NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | sort -h -r | uniq | tr -d ' '| tr -d 'nodejs'| wc -l)
-  if (( NUM_NODE_VERSIONS < 2 )); then
-    echo "Expected more than 2 nodejs versions available. Found $NUM_NODE_VERSIONS"
-    exit 1
-  fi
-
   # Get list of each nodejs version found from default repo
-  NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | sort -h -r | uniq | tr -d ' '| tr -d 'nodejs')
+  local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq)
+  local NODE_LATEST_VERSION=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq | tail -n1)
 
-  # Install each nodejs version
   for v in $NODE_VERSIONS; do
-    zypper -n in --no-recommends "nodejs$v" > /dev/null 2>&1
+   echo "Found node version: $v" 
   done
+  echo "Will test only latest version: $NODE_LATEST_VERSION" 
+
+  # Install latest nodejs version
+  zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION" > /dev/null 2>&1
 
   # Add sources repo to have latest source patches
   zypper -n --gpg-auto-import-keys ar -f "http://download.suse.de/ibs/home:/adamm:/node_test/$OS_VERSION/" node_sources
-  zypper --gpg-auto-import-keys ref
-  # Run test for each nodejs version
-  for v in $NODE_VERSIONS; do
-    test_node_version $v
-  done
+
+  test_node_version $NODE_LATEST_VERSION
     
   # Fail if at least one test has failed. Print list of failed tests
   if [ "$TEST_RESULT" != "ok" ]; then
@@ -116,7 +111,7 @@ main(){
 declare -A node_flags
 node_flags=(
   ["10 test/parallel/test-tls-cli-max-version-1.2.js"]="--tls-max-v1.2"
-  ["10 test/parallel/test-tls-cli-min-version-1.0.js"]="--tls-min-v1.0"
+  ["10 test/parallel/test-tls-cli-min-version-1.0.js"]="--tls-min-v1.0 --tls-min-v1.1"
   ["10 test/parallel/test-tls-cli-min-version-1.1.js"]="--tls-min-v1.1"
   ["10 test/parallel/test-tls-cli-min-version-1.2.js"]="--tls-min-v1.2"
   ["10 test/parallel/test-tls-cnnic-whitelist.js"]="--use-bundled-ca"
@@ -126,13 +121,12 @@ node_flags=(
   ["10 test/parallel/test-crypto-dh-leak.js"]="--noconcurrent-recompilation"
 )
 
+# Common flags to use on each test
+GLOBAL_FLAGS="--expose_gc --expose-internals"
 
 # Use global variables to keep track if test some test fail and which one
 FAILED_TEST_LIST="/tmp/failed_test_list"
 TEST_RESULT="ok"
 
 main "$@"
-#TODO: must check for node versions AND install node BEFORE adding Adam's repo!!
 
-#TODO: set -e 
-#TODO: remove repo at end 
