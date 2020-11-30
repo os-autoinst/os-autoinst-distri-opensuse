@@ -24,7 +24,10 @@ sub run {
     select_console 'root-console';
     zypper_call 'in dialog';
     script_run 'dialog --yesno "test for boo#1054448" 3 20', 0;
-    assert_screen 'ncurses-simple-dialog';
+    assert_screen([qw(ncurses-simple-dialog ncurses-simple-dialog-broken-poo63026)]);
+    if (match_has_tag 'ncurses-simple-dialog-broken-poo63026') {
+        die "poo#63026: Console misconfigured, ncurses UI broken!\n";
+    }
     send_key 'ret';
     clear_console;
     if (match_has_tag 'boo#1054448') {
