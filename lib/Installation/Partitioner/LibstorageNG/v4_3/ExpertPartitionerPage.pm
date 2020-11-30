@@ -94,6 +94,7 @@ sub press_add_raid_button {
 
 sub press_accept_button {
     my ($self) = @_;
+    $self->{btn_accept}->exist();
     return $self->{btn_accept}->click();
 }
 
