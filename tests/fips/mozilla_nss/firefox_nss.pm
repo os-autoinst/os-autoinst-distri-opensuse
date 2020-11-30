@@ -125,7 +125,7 @@ sub run {
     # Add a condition to avoid the password missed input
     # Retype password again once the password missed input
     # The problem frequently happaned in aarch64
-    if (match_has_tag('firefox-password-typefield-miss')) {
+    if (check_screen('firefox-password-typefield-miss')) {
         record_soft_failure "Firefox password is missing to input, see poo#77143";
         type_string($fips_password, max_interval => 2);
         send_key "ret";
