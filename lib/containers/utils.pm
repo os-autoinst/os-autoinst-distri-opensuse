@@ -44,49 +44,55 @@ sub test_seccomp {
 sub basic_container_tests {
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
+    my $registry             = get_var('REGISTRY', 'docker.io');
+    my $alpine_image_version = '3.6';
+    my $alpine               = "$registry/library/alpine:$alpine_image_version";
+    my $hello_world          = "$registry/library/hello-world";
+    my $leap                 = "registry.opensuse.org/opensuse/leap";
+    my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
 
-    # Search and pull images from the Docker Hub
+    # Test search feature
     validate_script_output("$runtime search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
+
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
-    my $alpine_image_version = '3.6';
-    record_soft_failure('poo#76993') if (script_run("$runtime image pull alpine:$alpine_image_version", timeout => 300) != 0);
+    assert_script_run("$runtime image pull $alpine", timeout => 300);
     #   - pull typical docker demo image without tag. Should be latest.
     #   - https://store.docker.com/images/hello-world
-    record_soft_failure('poo#76993') if (script_run("$runtime image pull hello-world", timeout => 300) != 0);
+    assert_script_run("$runtime image pull $hello_world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
     if (!check_var('ARCH', 's390x')) {
-        assert_script_run("$runtime image pull registry.opensuse.org/opensuse/leap", timeout => 600);
+        assert_script_run("$runtime image pull $leap", timeout => 600);
     }
     else {
         record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
     }
     #   - pull image of openSUSE Tumbleweed
-    assert_script_run("$runtime image pull registry.opensuse.org/opensuse/tumbleweed", timeout => 600);
+    assert_script_run("$runtime image pull $tumbleweed", timeout => 600);
 
     # Local images can be listed
     assert_script_run("$runtime image ls none");
     #   - filter with tag
-    record_soft_failure('poo#76993') if (script_run(qq{$runtime image ls alpine:$alpine_image_version | grep "alpine\\s*$alpine_image_version"}) != 0);
+    assert_script_run(qq{$runtime image ls $alpine | grep "alpine\\s*$alpine_image_version"});
     #   - filter without tag
-    record_soft_failure('poo#76993') if (script_run(qq{$runtime image ls hello-world | grep "hello-world\\s*latest"}) != 0);
+    assert_script_run(qq{$runtime image ls $hello_world | grep "hello-world\\s*latest"});
     #   - all local images
     my $local_images_list = script_output("$runtime image ls");
-    die("$runtime image opensuse/tumbleweed not found") unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
-    die("$runtime image opensuse/leap not found") if (!check_var('ARCH', 's390x') && !$local_images_list =~ /opensuse\/leap\s*latest/);
+    die("$runtime image $tumbleweed not found") unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
+    die("$runtime image $leap not found") if (!check_var('ARCH', 's390x') && !$local_images_list =~ /opensuse\/leap\s*latest/);
 
     # Containers can be spawned
     #   - using 'run'
-    record_soft_failure('poo#76993') if (script_run("$runtime container run --name test_1 hello-world | grep 'Hello from Docker\!'"));
+    assert_script_run("$runtime container run --name test_1 $hello_world | grep 'Hello from Docker\!'");
     #   - using 'create', 'start' and 'logs' (background container)
-    record_soft_failure('poo#76993') if (script_run("$runtime container create --name test_2 alpine:$alpine_image_version /bin/echo Hello world") != 0);
+    assert_script_run("$runtime container create --name test_2 $alpine /bin/echo Hello world");
     assert_script_run("$runtime container start test_2 | grep test_2");
     assert_script_run("$runtime container logs test_2 | grep 'Hello world'");
     #   - using 'run --rm'
-    record_soft_failure('poo#76993') if (script_run(qq{$runtime container run --name test_ephemeral --rm alpine:$alpine_image_version /bin/echo Hello world | grep "Hello world"}) != 0);
+    assert_script_run(qq{$runtime container run --name test_ephemeral --rm $alpine /bin/echo Hello world | grep "Hello world"});
     #   - using 'run -d' and 'inspect' (background container)
     my $container_name = 'tw';
-    assert_script_run("$runtime container run -d --name $container_name opensuse/tumbleweed tail -f /dev/null");
+    assert_script_run("$runtime container run -d --name $container_name $tumbleweed tail -f /dev/null");
     assert_script_run("$runtime container inspect --format='{{.State.Running}}' $container_name | grep true");
     my $output_containers = script_output("$runtime container ls -a");
     die('error: missing container test_1') unless ($output_containers =~ m/test_1/);
@@ -111,7 +117,7 @@ sub basic_container_tests {
     die("network is not working inside of the container tw:saved") unless ($output =~ m{Location: http://www\.google\.de/});
 
     # Using an init process as PID 1
-    assert_script_run "$runtime run --rm --init opensuse/tumbleweed ps --no-headers -xo 'pid args' | grep '1 .*init'";
+    assert_script_run "$runtime run --rm --init $tumbleweed ps --no-headers -xo 'pid args' | grep '1 .*init'";
 
     if (script_run('command -v man') == 0) {
         assert_script_run("man -P cat $runtime build | grep '$runtime-build - Build'");
@@ -134,18 +140,17 @@ sub basic_container_tests {
     # Images can be deleted
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
-    die("error: $runtime image rmi -a opensuse/leap")                                if ($output_containers =~ m/Untagged: opensuse\/leap/);
-    die("error: $runtime image rmi -a opensuse/tumbleweed")                          if ($output_containers =~ m/Untagged: opensuse\/tumbleweed/);
-    die("error: $runtime image rmi -a tw:saved")                                     if ($output_containers =~ m/Untagged: tw:saved/);
-    record_soft_failure("error: $runtime image rmi -a alpine:$alpine_image_version") if ($output_containers =~ m/Untagged: alpine:$alpine_image_version/);
-    record_soft_failure("error: $runtime image rmi -a hello-world:latest")           if ($output_containers =~ m/Untagged: hello-world:latest/);
+    die("error: $runtime image rmi -a $leap")                               if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
+    die("error: $runtime image rmi -a $tumbleweed")                         if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
+    die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
+    record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
+    record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
 }
 
 # Setup environment
 sub set_up {
     my $dir = shift;
     die "You must define the directory!" unless $dir;
-
     assert_script_run("mkdir -p $dir/BuildTest");
     assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
     assert_script_run "curl -f -v " . data_url('containers/Dockerfile') . " > $dir/BuildTest/Dockerfile";
@@ -158,9 +163,11 @@ sub build_img {
     die "You must define the directory!" unless $dir;
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
-
+    my $registry = get_var('REGISTRY', 'docker.io');
     assert_script_run("cd $dir");
-    assert_script_run("$runtime pull python:3", timeout => 300);
+    record_info('Dockerfile', script_output('cat ./BuildTest/Dockerfile'));
+    assert_script_run("$runtime image pull $registry/library/python:3", timeout => 300);
+    assert_script_run("$runtime tag $registry/library/python:3 python:3");
     assert_script_run("$runtime build -t myapp BuildTest");
     assert_script_run("$runtime images| grep myapp");
 }

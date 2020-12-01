@@ -41,7 +41,9 @@ sub run {
     assert_script_run('mkdir rootfs');
 
     # export alpine via Docker into the rootfs directory (see bsc#1152508)
-    assert_script_run('docker export $(docker create alpine) | tar -C rootfs -xvf -');
+    my $registry = get_var('REGISTRY', 'docker.io');
+    my $alpine   = "$registry/library/alpine:3.6";
+    assert_script_run('docker export $(docker create ' . $alpine . ') | tar -C rootfs -xvf -');
 
     foreach my $runc (@runtimes) {
         record_info "$runc", "Testing $runc";

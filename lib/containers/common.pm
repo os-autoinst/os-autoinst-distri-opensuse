@@ -100,6 +100,7 @@ sub allow_selected_insecure_registries {
     my %args    = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
+    my $registry = get_var('REGISTRY', 'docker.io');
 
     assert_script_run "echo $runtime ...";
     if ($runtime =~ /docker/) {
@@ -107,12 +108,13 @@ sub allow_selected_insecure_registries {
         assert_script_run("mkdir -p /etc/docker");
         assert_script_run('cat /etc/docker/daemon.json; true');
         assert_script_run(
-            'echo "{ \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\"] }" > /etc/docker/daemon.json');
+            'echo "{ \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
         systemctl('restart docker');
     } elsif ($runtime =~ /podman/) {
         assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
         assert_script_run "chmod 644 /etc/containers/registries.conf";
+        assert_script_run("sed -i 's/REGISTRY/$registry/' /etc/containers/registries.conf");
     } else {
         die "You must define the runtime!";
     }

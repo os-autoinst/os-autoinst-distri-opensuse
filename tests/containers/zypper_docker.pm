@@ -37,7 +37,7 @@ sub run {
     # install zypper-docker and verify installation
     zypper_call('in zypper-docker');
     validate_script_output("zypper-docker -h", sub { m/zypper-docker - Patching Docker images safely/ }, 180);
-    my $testing_image = 'opensuse/leap';
+    my $testing_image = 'registry.opensuse.org/opensuse/leap';
 
     # Leap container image is missing in s390x
     if ((check_var('ARCH', 's390x')) && ($testing_image =~ /leap/)) {

@@ -75,7 +75,7 @@ INSTLANG | string | en_US | Installation locale settings.
 IPXE | boolean | false | Indicates ipxe boot.
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
-KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snaphots support, e.g. ipmi, powerVM, zVM 
+KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snaphots support, e.g. ipmi, powerVM, zVM
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
 LAPTOP |||
 LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
@@ -112,7 +112,8 @@ PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package ma
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
 QA_TESTSUITE | string | | Comma or semicolon separated a list of the automation cases' name, and these cases will be installed and triggered if you call "start_testrun" function from qa_run.pm
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
-REBOOT_TIMEOUT | integer | Set and handle reboot timeout available in YaST installer. 0 disables the timeout and needs explicit reboot confirmation.
+REBOOT_TIMEOUT | integer | 0 | Set and handle reboot timeout available in YaST installer. 0 disables the timeout and needs explicit reboot confirmation.
+REGISTRY | string | docker.io | Registry to pull third-party container images from
 REGRESSION | string | | Define scope of regression testing, including ibus, gnome, documentation and other.
 REMOTE_REPOINST | boolean | | Use linuxrc features to install OS from specified repository (install) while booting installer from DVD (instsys)
 REPO_* | string | | Url pointing to the mirrored repo. REPO_0 contains installation iso.

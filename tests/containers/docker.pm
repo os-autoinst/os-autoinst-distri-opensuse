@@ -47,6 +47,7 @@ sub run {
 
     install_docker_when_needed($host_distri);
     test_seccomp();
+    allow_selected_insecure_registries(runtime => 'docker');
 
     # Run basic docker tests
     basic_container_tests("docker");
