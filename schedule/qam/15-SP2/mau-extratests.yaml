@@ -26,6 +26,7 @@ schedule:
 - console/git
 - console/cups
 - console/java
+- console/nodejs
 - console/sqlite3
 - console/gdb
 - console/perf
