@@ -21,7 +21,7 @@ use version_utils qw(is_storage_ng is_sle);
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 
-our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot boot_local_disk_arm_huawei ipmitool);
+our @EXPORT = qw(set_serial_console_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -366,26 +366,6 @@ sub set_serial_console_on_vh {
         umount_installation_disk("$mount_point");
     }
 
-}
-
-#Huawei arm machines require password login after "boot from local disk" is selected.
-#Before the desired grub menu is shown, you need to navigate into the boot menu and
-#select the "sles" boot item.
-sub boot_local_disk_arm_huawei {
-    assert_screen('input-password-huawei', 180);
-    type_string_slow "Huawei12#\$";
-    send_key 'ret';
-    assert_screen('default-password-huawei', 180);
-    send_key 'ret';
-
-    assert_screen('setup-menu-huawei', 180);
-    save_screenshot;
-    send_key_until_needlematch('exit-menu-huawei', 'right', 10, 5);
-    save_screenshot;
-    send_key_until_needlematch('boot-sles-huawei', 'down', 10, 5);
-    save_screenshot;
-    send_key 'ret';
-    save_screenshot;
 }
 
 #ipmitool to perform server management
