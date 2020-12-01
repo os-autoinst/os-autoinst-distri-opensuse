@@ -148,6 +148,7 @@ sub systemd_time_to_sec
 sub extract_analyze {
     my $string = shift;
     my $res    = {};
+    ($string) = split(/\r?\n/, $string, 2);
     $string =~ s/Startup finished in\s*//;
     $string =~ s/=(.+)$/+$1 (overall)/;
     for my $time (split(/\s*\+\s*/, $string)) {
@@ -180,7 +181,7 @@ sub do_systemd_analyze {
     # Wait for guest register, before calling syastemd-analyze
     $instance->wait_for_guestregister();
     while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
-        $output = $instance->run_ssh_command(cmd => 'systemd-analyze', quiet => 1, proceed_on_failure => 1);
+        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', quiet => 1, proceed_on_failure => 1);
         sleep 5;
     }
 
