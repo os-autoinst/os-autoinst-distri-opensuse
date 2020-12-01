@@ -1,7 +1,7 @@
 ---
 root:
   disk: vda
-  existing_partition: vda2
+  partition: vda2
   mount_point: /
   fs_type: ext4
   # Sizes should be preferably expressed in human readable binary units (eg GiB)
@@ -9,12 +9,12 @@ root:
   # readable binary unit (*ibits).
   # part_size is the size we input in partitioner, lsblk_expected_size_output
   # is what we'll use for validation.
-  part_size: 11GiB
+  size: 11GiB
   lsblk_expected_size_output: 11G
 swap:
   disk: vda
-  existing_partition: vda3
+  partition: vda3
   fs_type: swap
   skip: 1
-  part_size: 2GiB
+  size: 2GiB
   lsblk_expected_size_output: 2G
