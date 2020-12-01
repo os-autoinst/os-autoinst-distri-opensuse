@@ -359,7 +359,13 @@ sub terraform_apply {
 
     my $cmd = 'terraform plan -no-color ';
     if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        $cmd .= "-var 'image_id=" . $image . "' ";
+        # Some auxiliary variables, requires for fine control and public cloud provider specifics
+        for my $key (keys %{$args{vars}}) {
+            my $value = $args{vars}->{$key};
+            $value =~ s/'/'"'"'/;    # ensure values are escaped properly
+            $cmd .= sprintf(q(-var '%s=%s' ), $key, $value);
+        }
+        $cmd .= "-var 'image_id=" . $image . "' " if ($image);
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
         $cmd .= "-var 'type=" . $instance_type . "' ";
         $cmd .= "-var 'region=" . $self->region . "' ";
