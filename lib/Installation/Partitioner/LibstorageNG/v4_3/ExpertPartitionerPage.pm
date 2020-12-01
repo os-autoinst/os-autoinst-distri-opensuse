@@ -30,6 +30,7 @@ sub init {
     my $self = shift;
 
     $self->{btn_add_partition}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
+    $self->{btn_edit_partition}     = $self->{app}->button({id    => '"Y2Partitioner::Widgets::BlkDeviceEditButton"'});
     $self->{btn_lvm_add_vg}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
     $self->{btn_lvm_add_lv}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
     $self->{btn_add_raid}           = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
@@ -81,6 +82,11 @@ sub open_clone_partition_dialog {
 sub press_add_partition_button {
     my ($self) = @_;
     return $self->{btn_add_partition}->click();
+}
+
+sub press_edit_partition_button {
+    my ($self) = @_;
+    return $self->{btn_edit_partition}->click();
 }
 
 sub press_add_volume_group_button {
