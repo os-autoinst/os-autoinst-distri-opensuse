@@ -9,7 +9,6 @@ schedule:
   - publiccloud/register_system
   - publiccloud/transfer_repos
   - publiccloud/patch_and_reboot
-  - publiccloud/img_proof
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
   - console/system_prepare
