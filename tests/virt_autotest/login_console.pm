@@ -72,9 +72,6 @@ sub login_to_console {
         }
     }
 
-    my $sut_machine = get_var('SUT_IP', 'nosutip');
-    boot_local_disk_arm_huawei if (is_remote_backend && check_var('ARCH', 'aarch64') && ($sut_machine =~ /huawei/img));
-
     if (!check_screen([qw(grub2 grub1 prague-pxe-menu)], 210)) {
         ipmitool("chassis power reset");
         reset_consoles;
@@ -131,28 +128,6 @@ sub login_to_console {
             #grub may not showup after upgrade because default GRUB_TERMINAL setting
             #when fixed in separate PR, will uncomment following line
             #assert_screen([qw(grub2 grub1)], 120);
-            my $upgrade_machine = get_var('SUT_IP', 'nosutip');
-            if (is_remote_backend && check_var('ARCH', 'aarch64') && ($upgrade_machine =~ /huawei/img)) {
-                wait_still_screen 10;
-                boot_local_disk_arm_huawei;
-            }
-            my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
-            ($host_installed_version) = $host_installed_version =~ /^(\d+)/im;
-            my $host_upgrade_version  = get_required_var('UPGRADE_PRODUCT');    #format sles-15-sp0
-            my ($host_upgrade_relver) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
-            my ($host_upgrade_spver)  = $host_upgrade_version =~ /sp(\d+)$/im;
-            if (($host_installed_version eq '11') && (($host_upgrade_relver eq '15' && $host_upgrade_spver eq '0') || ($host_upgrade_relver eq '12' && $host_upgrade_spver eq '5'))) {
-                assert_screen('sshd-server-started-config', 180);
-                use_ssh_serial_console;
-                save_screenshot;
-                #start system first configuration after finishing upgrading from sles-11-sp4
-                type_string("yast.ssh\n");
-                assert_screen('will-linux-login', $timeout);
-                select_console('sol', await_console => 0);
-                save_screenshot;
-                send_key 'ret';
-                save_screenshot;
-            }
         }
         #setup vars
         set_var("reboot_for_upgrade_step", undef);
