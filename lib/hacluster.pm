@@ -73,6 +73,22 @@ our $prev_console;
 our $join_timeout    = bmwqemu::scale_timeout(60);
 our $default_timeout = bmwqemu::scale_timeout(30);
 
+# Private functions
+sub _just_the_ip {
+    my $node_ip = shift;
+    if ($node_ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
+        return $1;
+    }
+    return 0;
+}
+
+sub _test_var_defined {
+    my $var = shift;
+
+    die 'A command in ' . (caller(1))[3] . ' did not return a defined value!' unless defined $var;
+}
+
+# Public functions
 sub exec_csync {
     # Sometimes we need to run csync2 twice to have all the files updated!
     assert_script_run 'csync2 -vxF ; sleep 2 ; csync2 -vxF';
@@ -104,14 +120,6 @@ sub get_hostname {
 
 sub get_node_to_join {
     return get_required_var('HA_CLUSTER_JOIN');
-}
-
-sub _just_the_ip {
-    my $node_ip = shift;
-    if ($node_ip =~ /(\d+\.\d+\.\d+\.\d+)/) {
-        return $1;
-    }
-    return 0;
 }
 
 sub get_ip {
@@ -188,14 +196,16 @@ sub is_package_installed {
     my $package = shift;
     my $ret     = script_run "rpm -q $package";
 
-    return (defined $ret and $ret == 0);
+    _test_var_defined $ret;
+    return ($ret == 0);
 }
 
 sub check_rsc {
     my $rsc = shift;
     my $ret = script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'";
 
-    return (defined $ret and $ret == 0);
+    _test_var_defined $ret;
+    return ($ret == 0);
 }
 
 sub ensure_process_running {
@@ -214,7 +224,8 @@ sub ensure_process_running {
     }
 
     # script_run need to be defined to ensure a correct exit code
-    return defined $ret;
+    _test_var_defined $ret;
+    return $ret;
 }
 
 sub ensure_resource_running {
@@ -233,7 +244,8 @@ sub ensure_resource_running {
     }
 
     # script_run need to be defined to ensure a correct exit code
-    return defined $ret;
+    _test_var_defined $ret;
+    return $ret;
 }
 
 sub ensure_dlm_running {
@@ -246,7 +258,8 @@ sub write_tag {
     my $rsc_tag = '/tmp/' . get_cluster_name . '.rsc';
     my $ret     = script_run "echo $tag > $rsc_tag";
 
-    return (defined $ret and $ret == 0);
+    _test_var_defined $ret;
+    return ($ret == 0);
 }
 
 sub read_tag {
@@ -397,7 +410,7 @@ sub wait_until_resources_started {
         }
 
         # script_run need to be defined to ensure a correct exit code
-        die 'Cluster/resources check did not exit properly' if !defined $ret;
+        _test_var_defined $ret;
     }
 }
 
@@ -457,7 +470,7 @@ sub get_lun {
 sub check_device_available {
     my ($dev, $tout) = @_;
     my $ret;
-    my $tries = $tout ? int($tout / 2) : 10;
+    my $tries = bmwqemu::scale_timeout($tout ? int($tout / 2) : 10);
 
     die "Must provide a device for check_device_available" unless (defined $dev);
 
@@ -465,8 +478,9 @@ sub check_device_available {
         --$tries;
         sleep 2;
     }
-    die "Test timed out while checking $dev"   unless (defined $ret);
-    die "Nonexistent $dev after $tout seconds" unless ($tries > 0 or $ret == 0);
+
+    _test_var_defined $ret;
+    die "Device $dev not found" unless ($tries > 0 or $ret == 0);
     return $ret;
 }
 
