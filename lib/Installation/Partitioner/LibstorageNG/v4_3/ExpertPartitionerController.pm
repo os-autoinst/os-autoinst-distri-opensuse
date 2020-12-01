@@ -204,6 +204,24 @@ sub resize_partition {
     $self->get_resize_page()->set_custom_size($part->{size});
     $self->get_resize_page()->press_next();
     $self->get_small_for_snapshots_warning()->press_yes();
+
+sub resize_partition_on_gpt_disk {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $args->{partition}});
+    $self->get_expert_partitioner_page()->open_resize_device();
+    $self->get_resize_page()->set_custom_size($args->{size});
+    $self->get_resize_page()->press_next();
+}
+
+sub edit_partition_on_gpt_disk {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $args->{partition}});
+    $self->get_expert_partitioner_page()->press_edit_partition_button();
+    $self->get_edit_formatting_options_page()->select_format_device_radiobutton($args->{skip});
+    $self->get_edit_formatting_options_page()->select_filesystem($args->{fs_type}, $args->{skip});
+    $self->get_edit_formatting_options_page()->select_mount_device_radiobutton();
+    $self->get_edit_formatting_options_page()->fill_in_mount_point_field($args->{mount_point});
+    $self->get_edit_formatting_options_page()->press_next();
 }
 
 1;
