@@ -12,7 +12,7 @@ test_result_wrapper(){
   # Run the test (using common and custom flags if present) and save the output
   echo "Running $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]}$FILE"
   set +e
-  $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]} $FILE > $OUTPUT 2>&1
+  $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]} $FILE &> $OUTPUT
   RESULT=$?
   set -e
 
@@ -36,14 +36,13 @@ test_node_version(){
   echo "Starting to test node version $VERSION"
 
   # Get latest sources to make sure tests contain correct patches
-  zypper -n --no-gpg-checks si --repo node_sources -D "nodejs$VERSION" #> /dev/null 2>&1
+  zypper -n --no-gpg-checks si --repo node_sources -D "nodejs$VERSION"
 
   local SOURCE_FILE=""
   SOURCE_FILE=$(cd /usr/src/packages/SOURCES/ && find . -type f -iname "node-v$VERSION*.tar.xz")
   SOURCE_FILE=${SOURCE_FILE:2} # strip ./ from name
 
-  if [ -z "$SOURCE_FILE" ]
-  then
+  if [ -z "$SOURCE_FILE" ]; then
     echo "Can't find the sources of nodejs$VERSION"
     exit 1
   fi
@@ -74,19 +73,19 @@ main(){
   local OS_VERSION="$1"
 
   # Install dependencies to apply source patches and run tests
-  zypper -n in quilt rpm-build openssl-1_1 #> /dev/null 2>&1
+  zypper -n in quilt rpm-build openssl-1_1
 
   # Get list of each nodejs version found from default repo
   local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq)
   local NODE_LATEST_VERSION=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq | tail -n1)
 
   for v in $NODE_VERSIONS; do
-   echo "Found node version: $v" 
+    echo "Found node version: $v"
   done
   echo "Will test only latest version: $NODE_LATEST_VERSION" 
 
   # Install latest nodejs version
-  zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION" > /dev/null 2>&1
+  zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION"
 
   # Add sources repo to have latest source patches
   zypper -n --gpg-auto-import-keys ar -f "http://download.suse.de/ibs/home:/adamm:/node_test/$OS_VERSION/" node_sources
