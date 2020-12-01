@@ -117,6 +117,12 @@ sub select_disk {
     return $self;
 }
 
+sub select_disk_partition {
+    my ($self, $args) = @_;
+    $self->select_disk($args->{disk});
+    $self->{tbl_devices}->select(value => '/dev/' . $args->{disk} . '|' . $args->{partition});
+}
+
 sub select_raid {
     my ($self, $disk) = @_;
     return $self->select_item_in_system_view_table('RAID');
