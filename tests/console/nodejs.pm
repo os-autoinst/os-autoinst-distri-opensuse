@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: NodeJS test to run specific checks availalble on the source code 
+# Summary: NodeJS test to run specific checks availalble on the source code
 #          about TLS to avoid regressions due to OpenSSL updates.
 #          The test will:
 #          - Check the latest nodejs package available and install it
@@ -22,7 +22,6 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils;
 use repo_tools 'generate_version';
 
 sub run {
@@ -35,8 +34,8 @@ sub run {
     # Get test script and run it
     assert_script_run 'wget --quiet ' . data_url('console/test_node.sh');
     assert_script_run 'chmod +x test_node.sh';
-    assert_script_run './test_node.sh ' . $os_version, 900; 
-    
+    assert_script_run "./test_node.sh $os_version", 900;
+
     # Remove the repo used to download node latest sources from ibs
     zypper_call("rr node_sources");
 }
