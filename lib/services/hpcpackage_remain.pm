@@ -35,14 +35,12 @@ sub list_pkg {
     my ($name) = @_;
     $name //= '';
     my $pkg = script_output("rpm -qa | tee -a /tmp/$name", proceed_on_failure => 1, timeout => 180);
-    diag $pkg;
 }
 
 sub install_pkg {
     my $version = get_var('HDDVERSION');
     # Install all 'library wrappers' (packages matching -hpc, not having a version number with '_' after their name)
     my @pkginstall = split('\n', script_output q[zypper search -r SLE-Module-HPC] . $version . q[-Pool -r SLE-Module-HPC] . $version . q[-Updates | cut -d '|' -f 2 | sed -e 's/ *//g' | grep -E '.*-hpc.*' | grep -vE 'system|module|suse' |  grep -vE '.*_[[:digit:]]+_[[:digit:]]+.*gnu|.*_[[:digit:]]+_[[:digit:]]+.*-hpc' | grep -vE '.*-static$' | grep -vE '.*hpc-macros.*'], proceed_on_failure => 1, timeout => 180);
-    diag @pkginstall;
     for (my $i = 1; $i < @pkginstall; $i = $i + 1) {
         zypper_call("in $pkginstall[$i]");
     }
@@ -53,17 +51,34 @@ sub compare_pkg {
     $list1 //= '';
     $list2 //= '';
     # Make a list of installed packages and diff against list from installed packages
-    @diffpkg = split('\n', script_output("diff $list1 $list2 | grep -E '^>' | cut -d' ' -f2 |  grep -E '.*-hpc.*' |   grep -vE 'system|module|suse' |  grep -E '.*_[[:digit:]]+_[[:digit:]]+.*-gnu|.*_[[:digit:]]+_[[:digit:]]+.*-hpc' |  grep -vE '.*-static\$' | tee /tmp/diffpkg.txt", proceed_on_failure => 1, timeout => 180));
+    @diffpkg = split('\n', script_output("diff $list1 $list2 | grep -E '^>' | cut -d' ' -f2 |  grep -E '.*-hpc.*' |   grep -vE 'system|module|suse' |  grep -E '.*_[[:digit:]]+_[[:digit:]]+.*-gnu|.*_[[:digit:]]+_[[:digit:]]+.*-hpc' |  grep -vE '.*-static\$'", proceed_on_failure => 1, timeout => 180));
+}
+
+# The release number needs to be stripped off of the package name
+sub del_num {
+    my @list = @_;
+    my @ls1;
+    my $arch = get_var('ARCH');
+    foreach my $i (@list) {
+        if ($i =~ /$arch|noarch/) {
+            my @pkgls = split(/-/, $i);
+            pop(@pkgls);
+            $i = join('-', @pkgls);
+        }
+        push @ls1, $i;
+    }
+    return @ls1;
 }
 
 # Confirm all packages in the list generated remain installed
 sub check_pkg {
     my @pkglist = split('\n', script_output("rpm -qa", proceed_on_failure => 1, timeout => 180));
-    my %hash_a  = map { $_ => 1 } @pkglist;
-    my %hash_b  = map { $_ => 1 } @diffpkg;
-    diag 'After: ' . Dumper(\@pkglist);
-    diag @diffpkg;
-    my @b_only = grep { !$hash_a{$_} } @diffpkg;
+    diag "Before migration: " . Dumper(\@diffpkg);
+    diag "After migration:" . Dumper(\@pkglist);
+    my @after  = del_num(@pkglist);
+    my @before = del_num(@diffpkg);
+    my %hash_a = map  { $_ => 1 } @after;
+    my @b_only = grep { !$hash_a{$_} } @before;
     if (@b_only) {
         die "After migration, some packages are miss: " . Dumper(\@b_only);
     }
