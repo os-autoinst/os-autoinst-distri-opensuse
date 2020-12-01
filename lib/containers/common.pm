@@ -22,7 +22,8 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud get_os_release check_os_release);
+use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
+use containers::utils 'can_build_sle_base';
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
   test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials);
@@ -78,7 +79,7 @@ sub install_docker_when_needed {
             }
             else {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                if ($host_os =~ 'sles' && script_run("SUSEConnect --status-text | grep Containers") != 0) {
+                if (can_build_sle_base && script_run("SUSEConnect --status-text | grep Containers") != 0) {
                     is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
                 }
 
