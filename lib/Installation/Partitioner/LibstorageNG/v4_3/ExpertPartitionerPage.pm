@@ -121,6 +121,8 @@ sub select_disk_partition {
     my ($self, $args) = @_;
     $self->select_disk($args->{disk});
     $self->{tbl_devices}->select(value => '/dev/' . $args->{disk} . '|' . $args->{partition});
+    send_key('up');
+    send_key('down');
 }
 
 sub select_raid {
