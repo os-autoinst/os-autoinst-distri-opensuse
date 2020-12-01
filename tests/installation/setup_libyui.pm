@@ -31,8 +31,8 @@ my $ip_regexp    = qr/(?<ip>(\d+\.){3}\d+)/i;
 my $boot_timeout = 500;
 
 sub run {
-    # We setup libyui in bootloader on powerVM
-    return if is_pvm;
+    # We setup libyui in bootloader on PowerVM and s390x zKVM
+    return if (is_pvm || get_var('S390_ZKVM'));
     YuiRestClient::process_start_shell();
 
     if (is_hyperv) {

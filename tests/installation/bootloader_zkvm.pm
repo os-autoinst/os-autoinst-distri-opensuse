@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,7 +21,8 @@ use warnings;
 use bootloader_setup;
 use registration;
 use testapi;
-use utils qw(OPENQA_FTP_URL type_line_svirt);
+use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
+use YuiRestClient;
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -84,6 +85,8 @@ sub run {
             type_string("TERM=linux yast.ssh\n") && record_soft_failure('bsc#1054448');
         }
         else {
+            # On s390x zKVM we have to process startshell in bootloader
+            YuiRestClient::setup_libyui() if YuiRestClient::is_libyui_rest_api;
             wait_serial(' Starting YaST2 ', 300) || die "yast didn't start";
             select_console('installation');
         }

@@ -23,11 +23,12 @@ use warnings;
 use base "installbasetest";
 use testapi;
 
-use Utils::Backends 'is_pvm';
+use Utils::Backends 'is_remote_backend';
 use YuiRestClient;
 
 sub run {
-    return if is_pvm || check_var('BACKEND', 'svirt');
+    # We setup libyui in bootloader on remote backends
+    return if is_remote_backend;
     YuiRestClient::teardown_libyui();
 }
 

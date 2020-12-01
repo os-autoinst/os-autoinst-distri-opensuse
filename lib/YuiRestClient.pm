@@ -16,10 +16,9 @@ use warnings;
 use constant API_VERSION => 'v1';
 
 use testapi;
-use utils 'type_string_slow';
+use utils qw(type_string_slow type_line_svirt save_svirt_pty);
 use Utils::Backends qw(is_pvm is_hyperv);
 use YuiRestClient::App;
-
 
 our $interval = 1;
 our $timeout  = 10;
@@ -54,9 +53,16 @@ sub connect_to_app {
 }
 
 sub process_start_shell {
-    assert_screen('startshell', timeout => 500);
-    type_string_slow "extend libyui-rest-api\n";
-    type_string_slow "exit\n";
+    if (get_var('S390_ZKVM')) {
+        wait_serial('ATTENTION: Starting shell', 120) || die "start shell didn't show up";
+        save_svirt_pty;
+        type_line_svirt 'extend libyui-rest-api';
+        type_line_svirt 'exit';
+    } else {
+        assert_screen('startshell', timeout => 500);
+        type_string_slow "extend libyui-rest-api\n";
+        type_string_slow "exit\n";
+    }
 }
 
 sub setup_libyui {
@@ -65,8 +71,14 @@ sub setup_libyui {
 }
 
 sub teardown_libyui {
-    assert_screen('startshell', timeout => 100);
-    type_string_slow "exit\n";
+    if (get_var('S390_ZKVM')) {
+        wait_serial('ATTENTION: Starting shell', 120) || die "start shell didn't show up";
+        save_svirt_pty;
+        type_line_svirt "exit";
+    } else {
+        assert_screen('startshell', timeout => 100);
+        type_string_slow "exit\n";
+    }
 }
 
 sub is_libyui_rest_api {
@@ -89,6 +101,8 @@ sub set_libyui_backend_vars {
         set_var('NICTYPE_USER_OPTIONS', "hostfwd=tcp::$yuiport-:$yuiport");
     } elsif (is_pvm) {
         $server = get_var('SUT_IP');
+    } elsif (get_var('S390_ZKVM')) {
+        $server = get_var('VIRSH_GUEST');
     }
 
     set_var('YUI_SERVER', $server);
