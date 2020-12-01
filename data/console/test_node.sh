@@ -36,7 +36,7 @@ test_node_version(){
   echo "Starting to test node version $VERSION"
 
   # Get latest sources to make sure tests contain correct patches
-  zypper -n --no-gpg-check si --repo node_sources -D "nodejs$VERSION" #> /dev/null 2>&1
+  zypper -n --no-gpg-checks si --repo node_sources -D "nodejs$VERSION" #> /dev/null 2>&1
 
   local SOURCE_FILE=""
   SOURCE_FILE=$(cd /usr/src/packages/SOURCES/ && find . -type f -iname "node-v$VERSION*.tar.xz")
@@ -73,8 +73,8 @@ main(){
 
   local OS_VERSION="$1"
 
-  # Install dependencies to apply source patches
-  zypper -n in quilt rpm-build #> /dev/null 2>&1
+  # Install dependencies to apply source patches and run tests
+  zypper -n in quilt rpm-build openssl-1_1 #> /dev/null 2>&1
 
   # Get list of each nodejs version found from default repo
   local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq)

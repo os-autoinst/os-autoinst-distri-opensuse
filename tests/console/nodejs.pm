@@ -23,11 +23,14 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use repo_tools 'generate_version';
 
 sub run {
     #Preparation
     my $self = shift;
     $self->select_serial_terminal;
+
+    my $os_version = generate_version();
 
     # Get test script and run it
     assert_script_run 'wget --quiet ' . data_url('console/test_node.sh');
