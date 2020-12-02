@@ -4,6 +4,7 @@ description:    >
   accept warning about root device too small for snapshots
   and create new partition for /usr.
 vars:
+  HDDSIZEGB: 40
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -35,8 +36,8 @@ test_data:
   disks:
     - name: vda
       partitions:
-      - nr: 2
-        size: 5GiB
+      - name: vda2
+        size: 18GiB
       - role: raw-volume
         formatting_options:
           should_format: 1

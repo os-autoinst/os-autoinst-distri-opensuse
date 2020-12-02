@@ -21,11 +21,15 @@ sub run {
     my $test_data   = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
+    my $disk       = $test_data->{disks}[0]->{name};
+    my @partitions = @{$test_data->{disks}[0]->{partitions}};
+    my $root_part  = $partitions[0];
+
     record_info("Resize root");
-    $partitioner->resize_partition_on_gpt_disk($test_data->{root});
-    for my $part (keys %$test_data) {
-        record_info("Edit $part", "$$test_data{$part}->{existing_partition}");
-        $partitioner->edit_partition_on_gpt_disk($$test_data{$part});
+    $partitioner->resize_partition({disk => $disk, partition => $root_part});
+    for my $part (@partitions) {
+        record_info("Edit $part->{name}", "$part");
+        $partitioner->edit_partition_on_gpt_disk({disk => $disk, partition => $part});
     }
     $partitioner->accept_changes_and_press_next();
 }

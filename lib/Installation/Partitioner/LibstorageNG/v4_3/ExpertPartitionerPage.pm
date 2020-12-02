@@ -140,12 +140,4 @@ sub select_volume_group {
     return $self->select_item_in_system_view_table('LVM Volume Groups|' . $vg);
 }
 
-sub select_disk_device_in_table {
-    my ($self, $args) = @_;
-    my $dev = "/dev/$args->{disk}|$args->{disk}$args->{nr}";
-    $self->{tbl_devices}->select(value => $dev);
-    send_key('down');
-    send_key('up');
-}
-
 1;
