@@ -36,7 +36,7 @@ sub registry_push_pull {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    # Pull $image from default registry
+    # Pull $image
     assert_script_run "$runtime pull $image",            600;
     assert_script_run "$runtime images | grep '$image'", 60;
 
@@ -80,14 +80,15 @@ sub run {
     # Run docker tests
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => 'docker');
-    registry_push_pull(image => 'opensuse/tumbleweed', runtime => 'docker');
+    my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
+    registry_push_pull(image => $tumbleweed, runtime => 'docker');
     clean_container_host(runtime => 'docker');
 
     # Run podman tests
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
         install_podman_when_needed($host_distri);
         allow_selected_insecure_registries(runtime => 'podman');
-        registry_push_pull(image => 'opensuse/tumbleweed', runtime => 'podman');
+        registry_push_pull(image => $tumbleweed, runtime => 'podman');
         clean_container_host(runtime => 'podman');
     }
 }
