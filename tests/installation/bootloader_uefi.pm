@@ -117,9 +117,9 @@ sub run {
     bootmenu_remote_target;
     specific_bootmenu_params unless is_microos('opensuse') || is_jeos;
 
-    # JeOS and MicroOS are never deployed with Linuxrc involved,
+    # JeOS is never deployed with Linuxrc involved,
     # so 'regurl' does not apply there.
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless (is_jeos or is_microos);
+    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos;
 
     # boot
     mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
