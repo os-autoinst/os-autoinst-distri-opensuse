@@ -70,7 +70,7 @@ sub get_product_shortcuts {
             : 'i',
             sled => 'x',
             sles4sap => is_ppc64le() ? 'i'
-            : (is_sle('15-SP2+') && is_x86_64()) ? 't'
+            : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
             rt  => is_x86_64() ? 't' : undef
