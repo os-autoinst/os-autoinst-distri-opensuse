@@ -30,10 +30,12 @@ sub new {
 sub init {
     my $self = shift;
 
-    $self->{tb_lv_name} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvInfo::NameWidget"'});
-    $self->{rb_system}  = $self->{app}->radiobutton({id => 'system'});
-    $self->{rb_swap}    = $self->{app}->radiobutton({id => 'swap'});
-    $self->{btn_next}   = $self->{app}->button({id => 'next'});
+    $self->{tb_lv_name}     = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvInfo::NameWidget"'});
+    $self->{rb_system}      = $self->{app}->radiobutton({id => 'system'});
+    $self->{rb_swap}        = $self->{app}->radiobutton({id => 'swap'});
+    $self->{tb_size}        = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvSize::CustomSizeInput"'});
+    $self->{rb_custom_size} = $self->{app}->radiobutton({id => 'custom_size'});
+    $self->{btn_next}       = $self->{app}->button({id => 'next'});
 
     return $self;
 }
@@ -41,6 +43,12 @@ sub init {
 sub set_logical_volume_name {
     my ($self, $lv_name) = @_;
     return $self->{tb_lv_name}->set($lv_name);
+}
+
+sub set_custom_size {
+    my ($self, $size) = @_;
+    $self->{rb_custom_size}->select();
+    return $self->{tb_size}->set($size);
 }
 
 sub select_role {
