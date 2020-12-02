@@ -190,11 +190,9 @@ sub test_built_img {
 
 C<can_build_sle_base> should be used to identify if sle base image runs against a
 system that it does not support registration and SUSEConnect.
-In this case the build of the container engine is not going to work as the base images
-lacks of the repos.
+In this case the build of the base image is not going to work as it lacks the repositories
 
-The call should return false if you try to test sle base container on osd but host is not sle
-true otherwise.
+The call should return false if the test is run on a non-sle host.
 
 =cut
 sub can_build_sle_base {
