@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,8 @@ use utils;
 sub run {
     my ($self) = @_;
 
-    my $aa_tmp_prof = "/tmp/apparmor.d";
+    my $aa_tmp_prof   = "/tmp/apparmor.d";
+    my $test_binfiles = "/usr/bin/pam*";
 
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
 
@@ -49,6 +50,14 @@ sub run {
             \}/sxx
     };
 
+    # Check the test files exist, double check to avoid perfomance issue
+    my $ret = script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
+    if ($ret) {
+        # If failed try sync and then check again
+        assert_script_run "sync";
+        assert_script_run "ls -1 $test_binfiles > tee /dev/$serialdev";
+    }
+
     script_run_interactive(
         "aa-autodep -d $aa_tmp_prof /usr/bin/pam*",
         [
@@ -61,7 +70,13 @@ sub run {
     );
 
     # Output generated profiles list to serial console
-    assert_script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+    # Check the new genrated test files exist, double check to avoid perfomance issue
+    $ret = script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+    if ($ret) {
+        # If failed then try sync and then check again
+        assert_script_run "sync";
+        assert_script_run "ls -1 $aa_tmp_prof/*pam* > tee /dev/$serialdev";
+    }
 
     assert_script_run "aa-disable -d $aa_tmp_prof usr.sbin.nscd";
     $self->aa_tmp_prof_clean("$aa_tmp_prof");

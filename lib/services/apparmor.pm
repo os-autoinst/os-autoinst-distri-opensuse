@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,7 +39,13 @@ sub start_service {
 sub check_service {
     # SLE12-SP2 doesn't support systemctl to enable apparmor
     if (is_sle('12-SP3+', get_var('HDDVERSION'))) {
-        systemctl 'is-enabled apparmor.service';
+        # Do double check to avoid perfomance issue
+        my $ret = script_run 'systemctl --no-pager is-enabled apparmor.service';
+        if ($ret) {
+            # If failed try sync and then check again
+            assert_script_run 'sync';
+            systemctl 'is-enabled apparmor.service';
+        }
     }
     systemctl 'is-active apparmor';
 }
