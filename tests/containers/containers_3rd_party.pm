@@ -64,8 +64,15 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     # Define test images here
-    my @docker_images = ('alpine', 'opensuse/leap', 'opensuse/tumbleweed', 'debian', 'ubuntu', 'centos', 'fedora');
-    my @podman_images = ('alpine', 'opensuse/leap', 'opensuse/tumbleweed', 'debian', 'ubuntu', 'centos', 'fedora');
+    my $ex_reg = get_var('REGISTRY', 'docker.io');
+    my @images = (
+        "registry.opensuse.org/opensuse/leap",
+        "registry.opensuse.org/opensuse/tumbleweed",
+        "$ex_reg/library/alpine",
+        "$ex_reg/library/debian",
+        "$ex_reg/library/ubuntu",
+        "$ex_reg/library/centos",
+        "$ex_reg/library/fedora");
 
     script_run('echo "Container base image tests:" > /var/tmp/containers_3rd_party_log.txt');
     # Run docker tests
@@ -74,7 +81,8 @@ sub run {
         script_run("echo 'INFO: Docker image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
         install_docker_when_needed($host_distri);
-        run_image_tests('docker', @docker_images);
+        allow_selected_insecure_registries(runtime => 'docker');
+        run_image_tests('docker', @images);
         clean_container_host(runtime => 'docker');
     }
     # Run podman tests
@@ -84,7 +92,8 @@ sub run {
     } else {
         # In SLE we need to add the Containers module
         install_podman_when_needed($host_distri);
-        run_image_tests('podman', @podman_images);
+        allow_selected_insecure_registries(runtime => 'podman');
+        run_image_tests('podman', @images);
         clean_container_host(runtime => 'podman');
     }
 }
