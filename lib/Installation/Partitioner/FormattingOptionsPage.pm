@@ -114,6 +114,7 @@ sub fill_in_mount_point_field {
     assert_screen(FORMATTING_OPTIONS_PAGE);
     send_key('alt-m');
     type_string($mount_point);
+    send_key('delete');    # to avoid autocomplete
 }
 
 sub check_encrypt_device_checkbox {
