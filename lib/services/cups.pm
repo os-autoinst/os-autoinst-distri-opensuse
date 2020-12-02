@@ -18,31 +18,46 @@ use utils;
 use strict;
 use warnings;
 
+my $service_type = 'Systemd';
+
 sub install_service {
     zypper_call("in cups", exitcode => [0, 102, 103]);
 }
 
 sub config_service {
-    script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
-    validate_script_output 'cupsd -t', sub { m/is OK/ };
+    if ($service_type eq 'Systemd') {
+        script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
+        validate_script_output 'cupsd -t', sub { m/is OK/ };
+    } else {
+        # Allow new printers to be added using device URIs "file:/filename"
+        script_run 'echo FileDevice Yes >> /etc/cups/cupsd.conf';
+        assert_script_run 'cupsd';
+    }
 }
 
 sub enable_service {
-    systemctl 'enable cups.service';
+    common_service_action 'cups', $service_type, 'enable';
 }
 
 sub start_service {
-    systemctl 'start cups.service';
+    common_service_action 'cups', $service_type, 'start';
 }
 
 # check service is running and enabled
 sub check_service {
-    systemctl 'is-enabled cups.service';
-    systemctl 'is-active cups';
+    common_service_action 'cups', $service_type, 'is-enabled';
+    common_service_action 'cups', $service_type, 'is-active';
 }
 
 # check cups function
 sub check_function {
+    # if we migrated from sle11sp4, we need change the configure file.
+    if ((get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4') && ($service_type eq 'Systemd')) {
+        record_soft_failure("bsc#1180148, cups configure file was not upgraded");
+        script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
+        validate_script_output 'cupsd -t', sub { m/is OK/ };
+        common_service_action 'cups', $service_type, 'restart';
+    }
     # Add printers
     record_info "lpadmin",                                          "Try to add printers and enable them";
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ };
@@ -65,8 +80,8 @@ sub check_function {
         assert_script_run "cancel -a $printer";
     }
 
-    systemctl 'restart cups.service';
-    validate_script_output 'systemctl --no-pager status cups.service | cat', sub { m/Active:\s*active/ };
+    common_service_action 'cups', $service_type, 'restart';
+    common_service_action 'cups', $service_type, 'is-active';
 
     # Do the printing
     record_info "lp, lpq", "Printing jobs";
@@ -78,7 +93,9 @@ sub check_function {
 
     # Check logs
     record_info "access_log", "Access log should containt successful job submits";
-    assert_script_run 'grep "Send-Document successful-ok" /var/log/cups/access_log';
+    my $check_str = "Send-Document";
+    $check_str = "Print-Job" if ($service_type eq 'SystemV');
+    assert_script_run 'grep "$check_str successful-ok" /var/log/cups/access_log';
 
     # Check error log
     my $error_log = "/var/log/cups/error_log";
@@ -99,8 +116,8 @@ sub check_function {
 # check apache service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_cups_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my ($stage, $type) = @_;
+    $service_type = $type;
     if ($stage eq 'before') {
         install_service();
         config_service();

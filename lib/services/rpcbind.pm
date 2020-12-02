@@ -18,6 +18,9 @@ use utils;
 use strict;
 use warnings;
 
+my $service_type = 'Systemd';
+my $nfs_server   = 'nfs-server';
+
 sub install_service {
     # rpcbind needs nfs-server for testing.
     zypper_call('in rpcbind');
@@ -35,23 +38,23 @@ sub config_service {
 }
 
 sub enable_service {
-    systemctl('enable rpcbind');
-    systemctl('enable nfs-server');
+    common_service_action('rpcbind',   $service_type, 'enable');
+    common_service_action($nfs_server, $service_type, 'enable');
 }
 
 sub start_service {
-    systemctl('start rpcbind');
-    systemctl('start nfs-server');
+    common_service_action('rpcbind',   $service_type, 'start');
+    common_service_action($nfs_server, $service_type, 'start');
 }
 
 sub stop_service {
-    systemctl('stop rpcbind');
-    systemctl('stop nfs-server');
+    common_service_action('rpcbind',   $service_type, 'stop');
+    common_service_action($nfs_server, $service_type, 'stop');
 }
 
 sub check_service {
-    systemctl('is-enabled rpcbind');
-    systemctl('is-active rpcbind');
+    common_service_action('rpcbind', $service_type, 'is-enabled');
+    common_service_action('rpcbind', $service_type, 'is-active');
 }
 
 sub check_function {
@@ -69,8 +72,10 @@ sub check_function {
 # Check rpcbind service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_rpcbind_check {
-    my ($stage) = @_;
+    my ($stage, $type) = @_;
     $stage //= '';
+    $service_type = $type;
+    $nfs_server   = 'nfsserver' if ($type eq 'SystemV');
     if ($stage eq 'before') {
         install_service();
         config_service();
