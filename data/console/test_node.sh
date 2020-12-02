@@ -87,6 +87,8 @@ main(){
   # Install latest nodejs version
   zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION"
 
+  # Trap for cleanup of repo
+  trap 'zypper -n rr node_sources' EXIT
   # Add sources repo to have latest source patches
   zypper -n --gpg-auto-import-keys ar -f "http://download.suse.de/ibs/home:/adamm:/node_test/$OS_VERSION/" node_sources
 

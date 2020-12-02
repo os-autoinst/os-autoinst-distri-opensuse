@@ -35,9 +35,6 @@ sub run {
     assert_script_run 'wget --quiet ' . data_url('console/test_node.sh');
     assert_script_run 'chmod +x test_node.sh';
     assert_script_run "./test_node.sh $os_version", 900;
-
-    # Remove the repo used to download node latest sources from ibs
-    zypper_call("rr node_sources");
 }
 
 
