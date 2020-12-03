@@ -62,7 +62,7 @@ test-yaml-valid:
 	@# now because yamllint complains about a lot of existing files
 	$(eval YAMLS=$(shell sh -c "git ls-files schedule/ test_data/ | grep '/.*\.y.\?ml$$'"))
 	export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid $(YAMLS);\
-	$(eval CHANGED_YAMLS=$(shell sh -c "git --no-pager diff --diff-filter=dr --name-only master | grep '\(schedule\|test_data\)/.*\.y.\?ml$$'"))
+	$(eval CHANGED_YAMLS=$(shell sh -c "git --no-pager diff --diff-filter=dr --name-only FETCH_HEAD `git merge-base FETCH_HEAD origin/master` | grep '\(schedule\|test_data\)/.*\.y.\?ml$$'"))
 	if test -n "$(CHANGED_YAMLS)"; then \
 	  which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
 	  yamllint -c .yamllint $(CHANGED_YAMLS);\
@@ -72,7 +72,7 @@ test-yaml-valid:
 
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
-	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code $$(git merge-base master HEAD) | grep '^schedule/*'`
+	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code FETCH_HEAD $$(git merge-base FETCH_HEAD origin/master) | grep '^schedule/*'`
 
 .PHONY: test-metadata
 test-metadata:
@@ -84,9 +84,9 @@ test-metadata-changed:
 
 .PHONY: test-merge
 test-merge:
-	@REV=$$(git merge-base FETCH_HEAD master 2>/dev/null) ;\
+	@REV=$$(git merge-base FETCH_HEAD origin/master 2>/dev/null) ;\
 	if test -n "$$REV"; then \
-	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD master 2>/dev/null` | grep 'tests.*pm') ;\
+	  FILES=$$(git diff --name-only FETCH_HEAD `git merge-base FETCH_HEAD origin/master 2>/dev/null` | grep 'tests.*pm') ;\
 	  for file in $$FILES; do if test -f $$file; then \
 	    tools/check_metadata $$file || touch failed; \
 	    git --no-pager grep wait_idle $$file && touch failed; \
@@ -130,9 +130,9 @@ perlcritic: tools/lib/
 .PHONY: test-unused-modules-changed
 test-unused-modules-changed:
 	@echo "[make] Unused modules check called over modified/new files only. For a full run use make test-unused-modules-full"
-	tools/detect_unused_modules -m `git --no-pager diff --name-only --diff-filter=d $$(git merge-base master HEAD) | grep '^tests/*' | grep -v '^tests/test_pods/'`
-	tools/detect_unused_modules -m `git --no-pager diff --unified=0 $$(git merge-base master HEAD) products/* | grep -oP "^-.*loadtest.*[\"']\K[^\"'].+(?=[\"'])"`
-	tools/detect_unused_modules -m `git --no-pager diff --unified=0 $$(git merge-base master HEAD) schedule/* | grep -oP "^-\s+- [\"']?\K.*(?=[\"']?)" | grep -v '{{'`
+	tools/detect_unused_modules -m `git --no-pager diff --name-only --diff-filter=d FETCH_HEAD $$(git merge-base FETCH_HEAD origin/master) | grep '^tests/*' | grep -v '^tests/test_pods/'`
+	tools/detect_unused_modules -m `git --no-pager diff --unified=0 FETCH_HEAD $$(git merge-base FETCH_HEAD origin/master) products/* | grep -oP "^-.*loadtest.*[\"']\K[^\"'].+(?=[\"'])"`
+	tools/detect_unused_modules -m `git --no-pager diff --unified=0 FETCH_HEAD $$(git merge-base FETCH_HEAD origin/master) schedule/* | grep -oP "^-\s+- [\"']?\K.*(?=[\"']?)" | grep -v '{{'`
 
 .PHONY: test-unused-modules
 test-unused-modules:
@@ -140,7 +140,7 @@ test-unused-modules:
 
 .PHONY: test-deleted-renamed-referenced-files
 test-deleted-renamed-referenced-files:
-	tools/test_deleted_renamed_referenced_files `git diff --name-only --exit-code --diff-filter=DR $$(git merge-base master HEAD) | grep '^test*'`
+	tools/test_deleted_renamed_referenced_files `git diff --name-only --exit-code --diff-filter=DR FETCH_HEAD $$(git merge-base FETCH_HEAD origin/master) | grep '^test*'`
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
