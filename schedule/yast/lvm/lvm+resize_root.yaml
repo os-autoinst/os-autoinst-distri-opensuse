@@ -42,10 +42,18 @@ schedule:
   - console/consoletest_finish
   - console/validate_modify_existing_partition
 test_data:
+  disks:
+    - name: vda
+      partitions:
+        - name: root
+          size: 45G
+          formatting_options:
+            filesystem: btrfs
+          mounting_options:
+            mount_point: /
   root:
     disk: current-volume-management
     existing_partition: root
     mount_point: /
     expert_partitioner_from: current
     part_size: 45GiB
-    lsblk_expected_size_output: 45G
