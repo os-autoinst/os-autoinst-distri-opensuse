@@ -79,6 +79,7 @@ use constant {
           is_server
           is_transactional
           is_livecd
+          is_quarterly_iso
           has_product_selection
           has_license_on_welcome_screen
           has_license_to_accept
@@ -696,4 +697,12 @@ sub package_version_cmp {
     }
 
     return 0;
+}
+
+=head2 is_quarterly_iso
+
+Returns true if called in quaterly iso testing
+=cut
+sub is_quarterly_iso {
+    return 1 if get_var('FLAVOR', '') =~ /QR/;
 }
