@@ -3,8 +3,11 @@ name: modify_existing_partition
 description: >
   Installation where we modify some pre-existing partitions. Must depend on some
   create_hdd test suite.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -23,6 +26,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - '{{reconnect_mgmt_console}}'
   - '{{grub_test}}'
   - installation/first_boot

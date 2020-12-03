@@ -191,14 +191,22 @@ sub setup_lvm {
 sub resize_partition {
     my ($self, $args) = @_;
     my $part = $args->{partition};
-    $self->get_expert_partitioner_page()->select_disk_device_in_table({
-            disk => $args->{disk},
-            nr   => $part->{nr}
-    });
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
     $self->get_expert_partitioner_page()->open_resize_device();
     $self->get_resize_page()->set_custom_size($part->{size});
     $self->get_resize_page()->press_next();
-    $self->get_small_for_snapshots_warning()->press_yes();
+}
+
+sub edit_partition_on_gpt_disk {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
+    $self->get_expert_partitioner_page()->press_edit_partition_button();
+    $self->get_edit_formatting_options_page()->select_format_device_radiobutton($part->{formatting_options}->{skip});
+    $self->get_edit_formatting_options_page()->select_filesystem($part->{formatting_options}->{filesystem}, $part->{formatting_options}->{skip});
+    $self->get_edit_formatting_options_page()->select_mount_device_radiobutton();
+    $self->get_edit_formatting_options_page()->fill_in_mount_point_field($part->{mounting_options}->{mount_point});
+    $self->get_edit_formatting_options_page()->press_next();
 }
 
 1;

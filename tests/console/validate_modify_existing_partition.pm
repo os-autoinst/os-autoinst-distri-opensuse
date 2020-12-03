@@ -22,23 +22,26 @@ sub run {
 
     select_console "root-console";
 
-    foreach my $part (keys %$test_data) {
-        record_info("Check $test_data->{$part}->{fs_type}", "Verify that the partition filesystem is $test_data->{$part}->{fs_type}");
+    my @partitions = @{$test_data->{disks}[0]->{partitions}};
+    foreach my $part (@partitions) {
+        record_info("Check $part->{name}", "Verify that the partition filesystem is $part->{formatting_options}->{filesystem}");
 
-        my $fstype;
-        if ($test_data->{$part}->{fs_type} eq "swap") {
+        my $actual_fstype;
+        my $expected_fstype = $part->{formatting_options}->{filesystem};
+        if ($expected_fstype eq "swap") {
             # We cannot use df for swap, it is not actually mounted. lsblk shows [SWAP] in output if swap is on, but we have to process it.
-            $fstype = lc(script_output("lsblk | grep $test_data->{$part}->{existing_partition} | sed 's/.* //;s/[][]//g'"));
+            $actual_fstype = lc(script_output("lsblk | grep $part->{name} | sed 's/.* //;s/[][]//g'"));
         }
         else {
-            $fstype = script_output("df -PT $test_data->{$part}->{mount_point} | grep -v \"Filesystem\" | awk '{print \$2}'");
+            $actual_fstype = script_output("df -PT $part->{mounting_options}->{mount_point} | grep -v \"Filesystem\" | awk '{print \$2}'");
         }
-        assert_matches(qr/$test_data->{$part}->{fs_type}/, $fstype, "$test_data->{$part}->{fs_type} does not match with $fstype");
+        assert_matches(qr/$expected_fstype/, $actual_fstype,
+            "$expected_fstype does not match with $actual_fstype");
 
-        record_info("Check size", "Verify that the partition size is $test_data->{$part}->{part_size}");
-        my $partsize = script_output("lsblk | grep $test_data->{$part}->{existing_partition} | awk '{print \$4}'");
+        record_info("Check size", "Verify that the partition size is $part->{size}");
+        my $partsize = script_output("lsblk | grep $part->{name} | awk '{print \$4}'");
 
-        assert_equals($test_data->{$part}->{lsblk_expected_size_output}, $partsize);
+        assert_equals($part->{size}, $partsize);
     }
 }
 
