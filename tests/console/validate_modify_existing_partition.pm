@@ -22,7 +22,21 @@ sub run {
 
     select_console "root-console";
 
-    my @partitions = @{$test_data->{disks}[0]->{partitions}};
+    my @partitions = ();
+    # Module is used to validate logical volumes too, so if no plain partitions
+    if (ref $test_data->{disks} eq 'ARRAY') {
+        foreach my $disk (@{$test_data->{disks}}) {
+            push @partitions, @{$disk->{partitions}};
+        }
+    }
+    if (ref $test_data->{volume_groups} eq 'ARRAY') {
+        foreach my $vg (@{$test_data->{volume_groups}}) {
+            push @partitions, @{$vg->{logical_volumes}};
+        }
+    }
+
+    die "No test data provided to validate" unless @partitions;
+
     foreach my $part (@partitions) {
         record_info("Check $part->{name}", "Verify that the partition filesystem is $part->{formatting_options}->{filesystem}");
 

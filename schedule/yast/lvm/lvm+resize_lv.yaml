@@ -40,19 +40,8 @@ schedule:
   - console/consoletest_finish
   - console/validate_modify_existing_partition
 test_data:
-  disks:
-    - name: vda
-      partitions:
-        - name: root
-          size: 45G
-          formatting_options:
-            filesystem: btrfs
-          mounting_options:
-            mount_point: /
   volume_groups:
     - name: system
-      devices:
-        - /dev/md0p1
       logical_volumes:
         - name: root
           size: 45G
