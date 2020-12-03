@@ -42,9 +42,9 @@ schedule:
   - console/consoletest_finish
   - console/validate_modify_existing_partition
 test_data:
-  disks:
-    - name: vda
-      partitions:
+  volume_groups:
+    - name: system
+      logical_volumes:
         - name: root
           size: 45G
           formatting_options:
