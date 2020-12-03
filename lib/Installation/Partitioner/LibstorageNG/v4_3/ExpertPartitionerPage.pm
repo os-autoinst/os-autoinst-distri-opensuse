@@ -140,4 +140,10 @@ sub select_volume_group {
     return $self->select_item_in_system_view_table('LVM Volume Groups|' . $vg);
 }
 
+sub select_logical_volume {
+    my ($self, $args) = @_;
+    $self->select_volume_group($args->{vg});
+    $self->{tbl_lvm_devices}->select(value => '/dev/' . $args->{vg} . '|' . $args->{lv});
+}
+
 1;
