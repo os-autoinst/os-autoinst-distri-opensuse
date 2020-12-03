@@ -80,7 +80,7 @@ sub run_ssh_command {
         # Increase the hard timeout for script_run, otherwise our 'timeout $args{timeout} ...' has no effect
         $args{timeout} += 2;
         # Pipe both the standard and error output serial for debug purposes
-        $ssh_cmd .= " 2>&1 | tee /dev/$serialdev";
+        $ssh_cmd .= " >/dev/$serialdev 2>&1";
         # Run the command and return only the returncode here
         my $ret = script_run($ssh_cmd, %args, quiet => 0);
         die("Timeout on $ssh_cmd") unless (defined($ret));
