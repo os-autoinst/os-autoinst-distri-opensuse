@@ -216,14 +216,10 @@ sub full_autofs_check {
         check_function();
     }
     else {
-        if (get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4') {
-            check_service();
-        } else {
-            configure_service();
-            check_service();
-            check_function();
-            do_cleanup();
-        }
+        check_service();
+        return (get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4');
+        check_function();
+        do_cleanup();
     }
 }
 
