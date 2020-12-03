@@ -66,7 +66,28 @@ our @EXPORT = qw(
   activate_ntp
 );
 
-# Global variables
+=head1 SYNOPSIS
+
+Library with common methods and default values for High Availability
+Extension (HA or HAE) tests.
+
+=cut
+
+=head2 Global Variables
+
+=over
+
+=item * B<$default_timeout>: default scaled timeout for most operations with SUT
+
+=item * B<$join_timeout>: default scaled timeout for C<ha-cluster-join> calls
+
+=item * B<$softdog_timeout>: default scaled timeout for the B<softdog> watchdog
+
+=item * B<$crm_mon_cmd>: crm_mon (crm monitoring) command
+
+=back
+
+=cut
 our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
@@ -89,10 +110,32 @@ sub _test_var_defined {
 }
 
 # Public functions
+
+=head2 exec_csync
+
+ exec_csync();
+
+Runs C<csync2 -vxF> in the SUT, to sync files from SUT to other nodes in the
+cluster. Sometimes it is expected that the first call to C<csync2 -vxF> fails,
+so this method will run the command twice.
+
+=cut
+
 sub exec_csync {
     # Sometimes we need to run csync2 twice to have all the files updated!
     assert_script_run 'csync2 -vxF ; sleep 2 ; csync2 -vxF';
 }
+
+=head2 add_file_in_csync
+
+ add_file_in_csync( value => '/path/to/file', [ conf_file => '/path/to/csync2.cfg' ] );
+
+Adds F</path/to/file> to a csync2 configuration file in SUT. Path to add must be passed
+with the named argument B<value>, while csync2 configuration file can be passed on the
+named argument B<conf_file> (defaults to F</etc/csync2/csync2.cfg>). Returns true on
+success or croaks if command execution fails in SUT.
+
+=cut
 
 sub add_file_in_csync {
     my %args      = @_;
@@ -110,17 +153,57 @@ sub add_file_in_csync {
     return 1;
 }
 
+=head2 get_cluster_name
+
+ get_cluster_name();
+
+Returns the cluster name, as defined in the B<CLUSTER_NAME> setting. Croaks if the
+setting is not defined, as it is a mandatory setting for HA tests.
+
+=cut
+
 sub get_cluster_name {
     return get_required_var('CLUSTER_NAME');
 }
+
+=head2 get_hostname
+
+ get_hostname();
+
+Returns the hostname, as defined in the B<HOSTNAME> setting. Croaks if the setting
+is not defined, as it is a mandatory setting for HA tests.
+
+=cut
 
 sub get_hostname {
     return get_required_var('HOSTNAME');
 }
 
+=head2 get_node_to_join
+
+ get_node_to_join();
+
+Returns the hostname of the node to join, as defined in the B<HA_CLUSTER_JOIN>
+setting. Croaks if the setting is not defined, as this setting is mandatory for
+all nodes that run C<ha-cluster-join>. As such, avoid scheduling tests that
+call this method on nodes that would run C<ha-cluster-init> instead.
+
+=cut
+
 sub get_node_to_join {
     return get_required_var('HA_CLUSTER_JOIN');
 }
+
+=head2 get_ip
+
+ get_ip( $node_hostname );
+
+Returns the IP address of a node given its hostname, either by calling the
+C<host> command in SUT (which in turns would do a DNS query on tests using
+support server), or by searching for the host entry in SUT's F</etc/hosts>.
+Returns 0 on failure.
+
+=cut
 
 sub get_ip {
     my $node_hostname = shift;
@@ -129,11 +212,27 @@ sub get_ip {
     return _just_the_ip($node_ip);
 }
 
+=head2 get_my_ip
+
+ get_my_ip();
+
+Returns the IP address of SUT or 0 if the address cannot be determined. Special case of C<get_ip()>.
+
+=cut
+
 sub get_my_ip {
     my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
     my $node_ip   = script_output "ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
     return _just_the_ip($node_ip);
 }
+
+=head2 get_node_number
+
+ get_node_number();
+
+Returns the number of nodes configured in the cluster.
+
+=cut
 
 sub get_node_number {
     my $index = is_sle('15-sp2+') ? 2 : 1;
@@ -144,8 +243,12 @@ sub get_node_number {
 
  get_node_index();
 
-Get the index number of the current node.
+Returns the index number of the SUT. This information is taken from the
+node hostnames, so be sure to define proper hostnames in the tests settings,
+for example B<alpha-node01>, B<alpha-node02>, etc.
+
 =cut
+
 sub get_node_index {
     my $node_index = get_hostname;
 
@@ -153,6 +256,16 @@ sub get_node_index {
 
     return int($node_index);
 }
+
+=head2 is_node
+
+ is_node( $node_number );
+
+Checks whether SUT is the node identified by B<$node_number>. Returns true or false.
+This information is matched against the node hostname, so be sure to define proper
+hostnames in the tests settings, for example B<alpha-node01>, B<alpha-node02>, etc.
+
+=cut
 
 sub is_node {
     my $node_number = shift;
@@ -165,12 +278,31 @@ sub is_node {
     return ($hostname =~ /$node_number$/);
 }
 
+=head2 add_to_known_hosts
+
+ add_to_known_hosts( $host );
+
+Adds B<$host> to the F<.ssh/known_hosts> file of the current user in SUT.
+Croaks if any of the commands to do so fail.
+
+=cut
+
 sub add_to_known_hosts {
     my $host_to_add = shift;
     assert_script_run "mkdir -p ~/.ssh";
     assert_script_run "chmod 700 ~/.ssh";
     assert_script_run "ssh-keyscan -H $host_to_add >> ~/.ssh/known_hosts";
 }
+
+=head2 choose_node
+
+ choose_node( $node_number );
+
+Returns the hostname of the node identified by B<$node_number>. This information
+relies on the node hostnames, so be sure to define proper hostnames in the tests
+settings, for example B<alpha-node01>, B<alpha-node02>, etc.
+
+=cut
 
 sub choose_node {
     my $node_number  = shift;
@@ -186,11 +318,28 @@ sub choose_node {
     return $tmp_hostname;
 }
 
+=head2 save_state
+
+ save_state();
+
+Prints the cluster configuration and cluster status in SUT, and saves the
+screenshot.
+
+=cut
+
 sub save_state {
     script_run 'yes | crm configure show', $default_timeout;
     assert_script_run "$crm_mon_cmd",      $default_timeout;
     save_screenshot;
 }
+
+=head2 is_package_installed
+
+ is_package_installed( $package );
+
+Checks if B<$package> is installed in SUT. Returns true or false.
+
+=cut
 
 sub is_package_installed {
     my $package = shift;
@@ -200,6 +349,15 @@ sub is_package_installed {
     return ($ret == 0);
 }
 
+=head2 check_rsc
+
+ check_rsc( $resource );
+
+Checks if cluster resource B<$resource> is configured in the cluster. Returns
+true or false. 
+
+=cut
+
 sub check_rsc {
     my $rsc = shift;
     my $ret = script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'";
@@ -207,6 +365,15 @@ sub check_rsc {
     _test_var_defined $ret;
     return ($ret == 0);
 }
+
+=head2 ensure_process_running
+
+ ensure_process_running( $process );
+
+Checks for up to B<$default_timeout> seconds whether process B<$process> is
+running in SUT. Returns 0 if process is running or croaks on timeout.
+
+=cut
 
 sub ensure_process_running {
     my $process   = shift;
@@ -228,6 +395,16 @@ sub ensure_process_running {
     return $ret;
 }
 
+=head2 ensure_resource_running
+
+ ensure_resource_running( $resource, $regexp );
+
+Checks for up to B<$default_timeout> seconds in the output of
+C<crm resource status $resource> if a resource B<$resource> is configured in
+the cluster; uses B<$regexp> to check. Returns 0 on success or croaks on timeout.
+
+=cut
+
 sub ensure_resource_running {
     my ($rsc, $regex) = @_;
     my $starttime = time;
@@ -248,10 +425,29 @@ sub ensure_resource_running {
     return $ret;
 }
 
+=head2 ensure_dlm_running
+
+ ensure_dlm_running();
+
+Checks that the C<dlm> resource is running in the cluster, and that its
+associated process (B<dlm_controld>) is running in SUT. Returns 0 if
+process is running or croaks on error.
+
+=cut
+
 sub ensure_dlm_running {
     die 'dlm is not running' unless check_rsc "dlm";
     return ensure_process_running 'dlm_controld';
 }
+
+=head2 write_tag
+
+ write_tag( $tag );
+
+Create a cluster-specific file in F</tmp/> of the SUT with B<$tag> as its content.
+Returns 0 on success or croaks on failure.
+
+=cut
 
 sub write_tag {
     my $tag     = shift;
@@ -262,17 +458,43 @@ sub write_tag {
     return ($ret == 0);
 }
 
+=head2 read_tag
+
+ read_tag();
+
+Read the content of the cluster-specific file created in F</tmp/> with
+C<write_tag()>. Returns the content of the file or croaks on failure.
+
+=cut
+
 sub read_tag {
     my $rsc_tag = '/tmp/' . get_cluster_name . '.rsc';
 
     return script_output "cat $rsc_tag 2>/dev/null";
 }
 
+=head2 block_device_real_path
+
+ block_device_real_path( $device );
+
+Returns the real path of the block device specified by B<$device> as shown
+by C<realpath -ePL>, or croak on failure.
+
+=cut
+
 sub block_device_real_path {
     my $lun = shift;
 
     return script_output "realpath -ePL $lun";
 }
+
+=head2 lvm_add_filter
+
+ lvm_add_filter( $type, $filter );
+
+Add filter B<$filter> of type B<$type> to F</etc/lvm/lvm.conf>.
+
+=cut
 
 sub lvm_add_filter {
     my ($type, $filter) = @_;
@@ -281,12 +503,28 @@ sub lvm_add_filter {
     assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;\\[[[:blank:]]*;\\[ \"$type|$filter|\", ;' $lvm_conf";
 }
 
+=head2 lvm_remove_filter
+
+ lvm_remove_filter( $filter );
+
+Remove filter B<$filter> from F</etc/lvm/lvm.conf>.
+
+=cut
+
 sub lvm_remove_filter {
     my $filter   = shift;
     my $lvm_conf = '/etc/lvm/lvm.conf';
 
     assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;$filter;;' $lvm_conf";
 }
+
+=head2 rsc_cleanup
+
+ rsc_cleanup( $resource );
+
+Execute a C<crm resource cleanup> on the resource identified by B<$resource>.
+
+=cut
 
 sub rsc_cleanup {
     my $rsc = shift;
@@ -301,6 +539,17 @@ sub rsc_cleanup {
         assert_script_run "crm_resource -R -r $rsc";
     }
 }
+
+=head2 ha_export_logs
+
+ ha_export_logs();
+
+Upload HA-relevant logs from SUT. These include: crm configuration, cluster
+bootstrap log, corosync configuration, B<hb_report>, list of installed packages,
+list of iSCSI devices, F</etc/mdadm.conf>, support config and B<y2logs>. If available,
+logs from the B<HAWK> test, from B<CTS> and from B<HANA> are also included.
+
+=cut
 
 sub ha_export_logs {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
@@ -359,6 +608,21 @@ sub ha_export_logs {
     }
 }
 
+=head2 check_cluster_state
+
+ check_cluster_state( [ proceed_on_failure => 1 ] );
+
+Check state of the cluster. This will call B<$crm_mon_cmd> to check the current
+status of the cluster, check for inactive resources and for S<partition with quorum>
+in the output of B<$crm_mon_cmd>, check the reported number of nodes in the output
+of C<crm node list> and B<$crm_mon_cmd> is the same and run C<crm_verify -LV>.
+
+With the named argument B<proceed_on_failure> set to 1, the method will use
+B<script_run()> and attempt to run all commands in SUT without checking for errors.
+Without it, the method uses B<assert_script_run()> and will croak on failure.
+
+=cut
+
 sub check_cluster_state {
     my %args = @_;
 
@@ -379,7 +643,18 @@ sub check_cluster_state {
     }
 }
 
-# Wait for resources to be started
+=head2 wait_until_resources_started
+
+ wait_until_resources_started( [ timeout => $timeout ] );
+
+Wait for resources to be started. Runs C<crm cluster wait_for_startup> in SUT as well
+as other verifications on newer versions of SLES (12-SP3+), for up to B<$timeout> seconds
+for each command. Timeout must be specified by the named argument B<timeout> (defaults
+to 120 seconds). This timeout is scaled by the factor specified in the B<TIMEOUT_SCALE>
+setting. Croaks on timeout.
+
+=cut
+
 # If changing this, remember to also change wait_until_resources_started in tests/publiccloud/sles4sap.pm
 sub wait_until_resources_started {
     my %args    = @_;
@@ -413,6 +688,17 @@ sub wait_until_resources_started {
         _test_var_defined $ret;
     }
 }
+
+=head2 get_lun
+
+ get_lun( [ use_once => $bool ] );
+
+Returns a LUN from the LUN list file stored in the support server or in the support
+NFS share in scenarios without support server. If the named argument B<use_once>
+is passed and set to true (defaults to true), the returned LUN will be removed from
+the file, so it will not be selected again. Croaks on failure.
+
+=cut
 
 # This function returns the first available LUN
 sub get_lun {
@@ -466,7 +752,15 @@ sub get_lun {
     return $lun;
 }
 
-# This method checks for the presence of a device in the system for up to a defined timeout (defaults to 20seconds)
+=head2 check_device_available
+
+ check_device_available( $device, [ $timeout ] );
+
+Checks for the presence of a device in the SUT for up to a defined timeout
+(defaults to 20 seconds). Returns 0 on success, or croaks on failure.
+
+=cut
+
 sub check_device_available {
     my ($dev, $tout) = @_;
     my $ret;
@@ -484,6 +778,19 @@ sub check_device_available {
     return $ret;
 }
 
+=head2 set_lvm_config
+
+ set_lvm_config( $lvm_config_file, [ use_lvmetad => $val1, locking_type => $val2, use_lvmlockd => $val3, ... ] );
+
+Configures the LVM parameters/values pairs passed as a HASH into the LVM configuration
+file specified by the first argument B<$lvm_config_file>. These LVM parameters are
+usually B<use_lvmetad>, B<locking_type> and B<use_lvmlockd> but any other existing
+parameter from the LVM configuration file is also valid. Parameters that do not exist
+in the LVM configuration file in SUT will be ignored. Returns 0 on success or croaks
+on failure.
+
+=cut
+
 sub set_lvm_config {
     my ($lvm_conf, %args) = @_;
     my $cmd;
@@ -495,6 +802,16 @@ sub set_lvm_config {
 
     script_run "grep -E '^[[:blank:]]*use_lvmetad|^[[:blank:]]*locking_type|^[[:blank:]]*use_lvmlockd' $lvm_conf";
 }
+
+=head2 add_lock_mgr
+
+ add_lock_mgr( $lock_manager );
+
+Configures a B<$lock_manager> resource in the cluster configuration on SUT.
+B<$lock_mgr> usually is either B<clvmd> or B<lvmlockd>, but any other cluster
+primitive could work as well.
+
+=cut
 
 sub add_lock_mgr {
     my ($lock_mgr) = @_;
@@ -546,6 +863,17 @@ sub test_flags {
     return {milestone => 1, fatal => 1};
 }
 
+=head2 is_not_maintenance_update
+
+ is_not_maintenance_update( $package );
+
+Checks if the package specified in B<$package> is not targeted by a maintenance
+update. Returns true if the package is not targeted, i.e., package name does not
+appear in the B<BUILD> setting and the B<MAINTENANCE> setting is active, or false
+in all other cases.
+
+=cut
+
 sub is_not_maintenance_update {
     my $package = shift;
     # Allow to skip an openQA module if package is not targeted by maintenance update
@@ -555,6 +883,14 @@ sub is_not_maintenance_update {
     }
     return 0;
 }
+
+=head2 activate_ntp
+
+ activate_ntp();
+
+Enables NTP service in SUT.
+
+=cut
 
 sub activate_ntp {
     my $ntp_service = is_sle('15+') ? 'chronyd' : 'ntpd';
