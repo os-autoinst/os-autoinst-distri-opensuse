@@ -45,10 +45,28 @@
       loop: "{{ ssh_host_keys.files }}"
       register: ssh_host_keys_stat
 
+    - name: update all packages via 'zypper up'
+      zypper:
+        name: '*'
+        state: latest
+
     - name: try to install etags
       zypper:
         name:
           - etags
+      # zypper in etags is often enough broken on ARM
+      ignore_errors: "{{ (ansible_architecture == 'aarch64') | bool}}"
+
+    - name: "try to install the development patterns on openSUSE (these get
+             installed by vagrant sometimes to update the guest additions)"
+      zypper:
+        name:
+          - devel_C_C++
+          - devel_basis
+          - devel_kernel
+        type: pattern
+        state: present
+      when: '"openSUSE" in ansible_distribution'
 
     - assert:
         that:
