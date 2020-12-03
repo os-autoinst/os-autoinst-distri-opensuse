@@ -100,6 +100,10 @@ sub install_package {
     }
 
     virt_autotest::utils::install_default_packages();
+
+    ###Install required package for window guest installation on xen host
+    if (get_var('GUEST_LIST') =~ /^win-.*/ && (is_xen_host)) { zypper_call '--no-refresh --no-gpg-checks in mkisofs' }
+
 }
 
 sub run {
