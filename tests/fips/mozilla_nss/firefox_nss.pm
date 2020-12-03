@@ -153,6 +153,6 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {fatal => 1, milestone => 1};
 }
 1;
