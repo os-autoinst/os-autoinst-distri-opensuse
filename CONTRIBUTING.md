@@ -91,6 +91,10 @@ and additionally the following rules:
   Keep in mind that the text in the github pull request description is only
   visible on github, not in the git log which can be considered permanent
   information storage.
+* Add comments to the source code if the code is not self-explanatory:
+  Comments in the source code should describe the choices made, to answer the
+  question "why is the code like this". The git commit message should describe
+  "why did we change it".
 * Consider "multi-tag `assert_screen` with `match_has_tag`": Please use a
   multi-tag `assert_screen` with `match_has_tag` instead of `check_screen`
   with non-zero timeout to prevent introducing any timing dependant behaviour,
