@@ -73,12 +73,13 @@ and additionally the following rules:
   an explanation why the behaviour should differ. You can try to negate the logic
   check. As alternative consider the approach documented in
   [ui-framework-documentation.md](ui-framework-documentation.md)
-* Consider a corresponding Tumbleweed test: Because of
+* Support openSUSE Tumbleweed as primary product: Because of
   [Factory First](https://opensource.suse.com/suse-open-source-policy)
-  we should test against Tumbleweed by default (with exceptions for special
-  packages, of course). So please check if your code changes work with a current
-  Tumbleweed snapshot and then add to the according schedule for Tumbleweed
-  tests, e.g. main.pm
+  Tumbleweed is the default test target. So ensure and test that your code
+  changes work with a current Tumbleweed snapshot and then add to the
+  according schedule for Tumbleweed tests, e.g. in schedule/ or main.pm.
+  Exceptions are any special SLE-specific behaviour or packages not in
+  Tumbleweed or the case not being relevant otherwise.
 * Avoid "dead code": Don't add disabled code as nobody but you will understand
   why this is not active. Better leave it out and keep in your local git
   repository, either in `git stash` or a temporary "WIP"-commit.
