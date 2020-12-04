@@ -13,6 +13,8 @@ jobs:
             perl-version: 5.26
           - test: unit
             perl-version: 5.26
+          - test: compile
+            perl-version: 5.18
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
     steps:
