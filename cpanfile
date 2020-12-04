@@ -5,7 +5,6 @@
 # - os-autoinst-distri-opensuse-deps in devel:openQA will get updated immediately
 # - os-autoinst-distri-opensuse-deps in Factory will get updated with next openQA submit
 
-requires 'Archive::Tar';
 requires 'Carp';
 requires 'Code::DRY';
 requires 'Config::Tiny';

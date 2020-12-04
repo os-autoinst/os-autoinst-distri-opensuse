@@ -20,7 +20,6 @@ use base 'Exporter';
 use Exporter;
 use testapi qw(check_var get_required_var get_var);
 use autotest;
-use Archive::Tar;
 use utils;
 use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
