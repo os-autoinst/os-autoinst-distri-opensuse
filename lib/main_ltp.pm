@@ -19,30 +19,18 @@ package main_ltp;
 use base 'Exporter';
 use Exporter;
 use testapi qw(check_var get_required_var get_var);
-use autotest;
 use utils;
 use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
 use Utils::Backends 'is_pvm';
 use version_utils 'is_opensuse';
+use LTP::utils qw(loadtest_kernel shutdown_ltp);
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
 # use warnings;
 
 our @EXPORT_OK = qw(
   load_kernel_tests
-  loadtest_kernel
-  shutdown_ltp
 );
-
-sub loadtest_kernel {
-    my ($test, %args) = @_;
-    autotest::loadtest("tests/kernel/$test.pm", %args);
-}
-
-sub shutdown_ltp {
-    loadtest_kernel('proc_sys_dump') if get_var('PROC_SYS_DUMP');
-    loadtest_kernel('shutdown_ltp', @_);
-}
 
 sub load_kernel_tests {
     if (get_var('LTP_BAREMETAL') && get_var('INSTALL_LTP')) {

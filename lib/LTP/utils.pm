@@ -22,13 +22,29 @@ use base Exporter;
 use strict;
 use warnings;
 use testapi;
+use autotest;
 use LTP::WhiteList 'download_whitelist';
 use LTP::TestInfo 'testinfo';
 use version_utils 'is_jeos';
-use main_ltp qw(loadtest_kernel shutdown_ltp);
 use File::Basename 'basename';
 
-our @EXPORT = qw(prepare_ltp_env schedule_tests init_ltp_tests);
+our @EXPORT = qw(
+  loadtest_kernel
+  shutdown_ltp
+  prepare_ltp_env
+  schedule_tests
+  init_ltp_tests
+);
+
+sub loadtest_kernel {
+    my ($test, %args) = @_;
+    autotest::loadtest("tests/kernel/$test.pm", %args);
+}
+
+sub shutdown_ltp {
+    loadtest_kernel('proc_sys_dump') if get_var('PROC_SYS_DUMP');
+    loadtest_kernel('shutdown_ltp', @_);
+}
 
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
