@@ -5,8 +5,8 @@ success=1
 for FILE in $FILES; do
     if [ -f "$FILE" ] 
     then
-        # if file exists it means it was renamed, and then original file name is retrieved by git log
-        FILE=$(git log --follow -p $FILE | grep 'rename from test' | awk '{print $3}')
+        # if file exists it means it was renamed, and then previous file name is retrieved by git log
+        FILE=$(git log --follow -p $FILE | grep 'rename from test' | awk '{print $3}' | head -n 1)
     fi
     if [ -n "$(echo $FILE | grep '\.pm$')" ] 
     then
@@ -19,7 +19,8 @@ for FILE in $FILES; do
         file_to_verify="$FILE" 
         target_paths='schedule/'
     fi
-    if MATCHED_SCHEDULE_FILES="$(grep --recursive --ignore-case --files-with-matches "${file_to_verify}\b" $target_paths)"
+    if [[ -n  $file_to_verify ]] && [[ MATCHED_SCHEDULE_FILES="$(grep --recursive --ignore-case \
+       --files-with-matches "${file_to_verify}\b" $target_paths)" ]]
     then
         echo "\"$file_to_verify\" was removed or renamed, but it is still used in: \
               \n$MATCHED_SCHEDULE_FILES\n"
