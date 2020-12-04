@@ -118,3 +118,19 @@ Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new con
 [1]: https://open.qa/docs/#_cloning_existing_jobs_openqa_clone_job
 [2]: https://open.qa/docs/#_triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request
 [3]: https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY
+
+
+### Handling separate product codebases or versions
+
+This test distribution manages to support older SLE products as well as
+openSUSE Tumbleweed to give the widest span. By default test code should keep
+support for all currently supported product versions in mind and where
+necessary introduce conditional code (e.g. "if/else") to support all relevant
+products, variants and versions.
+
+Consider introducing a branch in version control only if a corresponding
+product is also handled in the same way. For example an older SLE version
+going to LTSS or ELTSS is a good point in time. In general it is likely still
+less effort to keep everything in master and just separate with functional
+conditions to manage the differences. Otherwise there would need to be a
+diligent process of backporting new features, extended test coverage, etc.
