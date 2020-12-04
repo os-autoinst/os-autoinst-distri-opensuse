@@ -1,5 +1,7 @@
 #!/bin/bash
-
+#This script can be executed multiple times consecutively to facilitate establishing dns domain name access to virtual machines even virtual machine ip changes
+#The ability of consecutive multiple runs is achieved by detecting signature "$0" written to various configuration files by this script, so the backup original configuration 
+#files can be restored before executing this script again. In order to do so, please make sure the way in which this script is called is always the same every time
 #Usage and help info for the script
 help_usage(){
         echo "script usage: $(basename $0) [-f DNS forward domain name is mandatory(testvirt.net)] [-r DNS reverse domain name is mandatory(123.168.192)] [-s DNS server ip is mandatory (192.168.123.1)] [-h help]"
