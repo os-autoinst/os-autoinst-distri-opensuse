@@ -48,7 +48,7 @@ sub run {
     record_info("Clamav_ver", "Current Clamav package version: $current_ver");
 
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
-        record_soft_failure("jsc#16780: upgrade Clamav SLE feature is not yet released");
+        record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
     }
     # Initialize and download ClamAV database which needs time
     assert_script_run('freshclam', 700);
