@@ -109,13 +109,16 @@ sub test_network_interface {
     save_guest_ip("$guest", name => $net);
 
     # Configure the network interface to use DHCP configuration
+    #flag SRIOV test as it need not restart network service
+    my $is_sriov_test = "false";
+    $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+    if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || $is_sriov_test eq "true") {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
 
         # Restart the network - the SSH connection may drop here, so no return code is checked.
-        if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+        if ($is_sriov_test ne "true") {
             if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
                 script_run("ssh root\@$guest service network restart", 300);
             } else {
@@ -131,7 +134,7 @@ sub test_network_interface {
     }
 
     # See obtained IP addresses
-    script_run("virsh net-dhcp-leases $net");
+    script_run("virsh net-dhcp-leases $net") unless $is_sriov_test eq "true";
 
     # Show the IP address of secondary (tested) interface
     assert_script_run("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1");

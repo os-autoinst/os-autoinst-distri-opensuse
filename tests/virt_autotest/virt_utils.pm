@@ -307,6 +307,17 @@ sub upload_virt_logs {
 sub generate_guest_asset_name {
     my $guest = shift;
 
+    #get build number
+    my $build_num;
+    #for clone job, get build number from SCC proxy which is set in Media
+    if (get_var('CASEDIR')) {
+        get_var('SCC_URL') =~ /^http.*all-([\d\.]*)\.proxy\.*/;
+        $build_num = $1;
+    }
+    else {
+        $build_num = get_required_var('BUILD');
+    }
+
     my $composed_name
       = 'guest_'
       . $guest
@@ -314,7 +325,7 @@ sub generate_guest_asset_name {
       . get_required_var('DISTRI') . '-'
       . get_required_var('VERSION')
       . '_build'
-      . get_required_var('BUILD') . '_'
+      . $build_num . '_'
       . lc(get_required_var('SYSTEM_ROLE')) . '_'
       . get_required_var('ARCH');
 
@@ -348,6 +359,8 @@ sub compress_single_qcow2_disk {
 sub get_guest_list {
 
     #get the guest pattern from test suite settings
+    #GUEST_PATTERN, GUEST_LIST, or GUEST_LIST is used in different test suites,
+    #thus I use GUEST_LIST uniformly.
     if (get_var('GUEST_PATTERN')) {
         set_var('GUEST_LIST', get_var('GUEST_PATTERN'));
     }
