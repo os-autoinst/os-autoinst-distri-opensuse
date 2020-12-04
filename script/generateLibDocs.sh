@@ -50,9 +50,3 @@ for docfile in $(cd lib ; grep -rs ^=head * | grep .pm | cut -d. -f1 | sort -u) 
 done
 
 echo "</ul></ul>" >> docs/index.html
-
-if [ "${ret_val}" != "0" ] ; then
-    exit 0
-else
-    exit 1
-fi
