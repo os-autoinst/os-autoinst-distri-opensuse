@@ -62,7 +62,6 @@ sub run_test {
 
     #get/set nessisary variables for test
     my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
-    set_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH", 1);    #to differenciate virtual network tests
 
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
@@ -148,8 +147,6 @@ sub run_test {
 
     }
 
-    set_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH", 0);    #turn off the flag in case of affecting other tests
-
     #upload network device related logs
     upload_virt_logs($log_dir, "logs");
 }
@@ -159,16 +156,16 @@ sub run_test {
 sub prepare_host {
 
     #install required packages on host
-    zypper_call '-t in pciutils nmap';                    #to run 'lspci' and 'nmap' command
+    zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
 
-    #check IOMMU on XEN is enabled
-    if (is_xen_host()) {
-        assert_script_run "xl dmesg | grep IOMMU | grep -i enabled";
+    #check VT-d is supported in Intel x86_64 machines
+    if (script_run("grep Intel /proc/cpuinfo") == 0) {
+        assert_script_run "dmesg | grep -E \"DMAR:.*IOMMU enabled\"";
     }
 }
 
 
-#get the BDF the PF device on host
+#get the BDF of the PF device on host
 sub find_sriov_ethernet_devices {
 
     #get the BDF of the ethernet devices with SR-IOV
@@ -177,7 +174,10 @@ sub find_sriov_ethernet_devices {
     my @sriov_devices;
     foreach (@nic_devices) {
         if ((script_run "lspci -v -s $_ | grep -q 'SR-IOV'") == 0) {
-            push @sriov_devices, $_;
+            #only those vfs whose pv can be brought up can be passed through to guest vms
+            my $nic = script_output "ls -l /sys/class/net |grep $_ | awk '{print \$9}'";
+            script_run "echo \"BOOTPROTO='dhcp'\nSTARTMODE='auto'\" > /etc/sysconfig/network/ifcfg-$nic";
+            push @sriov_devices, $_ if (script_run("ifup $nic") == 0);
         }
     }
     return @sriov_devices;
@@ -187,26 +187,13 @@ sub find_sriov_ethernet_devices {
 sub enable_vf {
     my @pfs = @_;
 
-    # get the network device drivers
-    my @drivers = ();
-    my $driver  = "";
+    #enable VFs for SR-IOV PFs by modifying SYS PCI
+    #modifying SYS PCI is much better than passing max_vfs=8 in reloading network device drivers
+    #as no network break is required anymore(ie. no sol console is needed or no worries about ip/nic change),
+    #also modifying SYS PCI allows to enable specified PFs
     foreach my $pf (@pfs) {
-        $driver = script_output "lspci -v -s $pf | sed -n '/Kernel modules/p' | sed 's/.*Kernel modules: *//'";
-        push @drivers, $driver if (!grep /^$driver$/, @drivers);
-    }
-
-    #set max_vfs and reload driver
-    #should not enable vf repeatedly, so skip enabling in local test for debugging
-    foreach my $driver (@drivers) {
-        assert_script_run("[ `lsmod | grep $driver | wc -l` -gt 0 ] && rmmod $driver", 60);
-        assert_script_run("modprobe --first-time $driver max_vfs=8",                   60);
-    }
-
-    #bring up the SR-IOV device
-    foreach my $pf (@pfs) {
-        my $nic = script_output "ls -l /sys/class/net |grep $pf | awk '{print \$9}'";
-        assert_script_run "echo \"BOOTPROTO='dhcp'\nSTARTMODE='manual'\" > /etc/sysconfig/network/ifcfg-$nic";
-        assert_script_run("ifup $nic", 60);    #about 15s
+        #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
+        assert_script_run("echo 7 > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
     }
 
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
@@ -335,7 +322,7 @@ sub plugin_vf_device {
     $vf->{vm_bdf} =~ /[a-z\d]+:[a-z\d]+[.:][a-z\d]+/;    #bdf has different format in guests on KVM and XEN
     assert_script_run "ssh root\@$vm \"lspci -vvv -s $vf->{vm_bdf}\"";
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_addrss='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 
 }
 

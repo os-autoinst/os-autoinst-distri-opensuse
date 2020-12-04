@@ -129,11 +129,17 @@ sub setup_console_in_grub {
             die "Host Hypervisor is not xen or kvm";
         }
 
+        #enable Intel VT-d for SR-IOV test running on intel SUTs
+        my $intel_option = "";
+        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
+            $intel_option = "intel_iommu=on";
+        }
+
         $cmd
           = "cp $grub_cfg_file ${grub_cfg_file}.org "
           . "\&\& sed -ri '/($bootmethod\\s*.*$search_pattern)/ "
           . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-          . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
+          . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5 $intel_option/;}; "
           . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
           . "' $grub_cfg_file";
         assert_script_run($cmd);
