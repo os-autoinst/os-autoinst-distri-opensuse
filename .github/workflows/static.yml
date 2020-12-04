@@ -1,4 +1,4 @@
-name: Static and unit checks
+name: PR CI
 
 on: pull_request
 
@@ -32,3 +32,18 @@ jobs:
         git fetch origin master
         git checkout cpanfile
         make test
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Generate documentation
+      id: generate
+      run: script/generateLibDocs.sh
+      continue-on-error: true
+    - name: Deploy documentation
+      if: ${{ success() }} &&  ${{ steps.generate.outcome }} == 'success')
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+        publish_branch: gh-pages
