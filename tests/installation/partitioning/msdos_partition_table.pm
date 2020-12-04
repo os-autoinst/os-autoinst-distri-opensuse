@@ -23,7 +23,7 @@ sub run {
     $partitioner->run_expert_partitioner;
     foreach my $disk (@{$test_data->{disks}}) {
         $partitioner->create_new_partition_table({disk => $disk->{name},
-                table_type => $disk->{table_type}});
+                table_type => $disk->{table_type}, accept_deleting_current_devices_warning => 1});
         foreach my $partition (@{$disk->{partitions}}) {
             $partitioner->add_partition_msdos({disk => $disk->{name},
                     partition => $partition});

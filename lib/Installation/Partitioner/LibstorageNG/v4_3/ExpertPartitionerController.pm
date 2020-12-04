@@ -23,6 +23,8 @@ use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
 use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
+use Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::ModifiedDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ResizePage;
@@ -42,6 +44,8 @@ sub init {
     $self->{ClonePartitionsDialog}         = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
     $self->{CreatePartitionTablePage}      = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
     $self->{DeletingCurrentDevicesWarning} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning->new({app => YuiRestClient::get_app()});
+    $self->{ErrorDialog}                   = Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog->new({app => YuiRestClient::get_app()});
+    $self->{ModifiedDevicesWarning}        = Installation::Partitioner::LibstorageNG::v4_3::ModifiedDevicesWarning->new({app => YuiRestClient::get_app()});
     $self->{SmallForSnapshotsWarning}      = Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning->new({app => YuiRestClient::get_app()});
     $self->{AddVolumeGroupPage}            = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
     $self->{AddLogicalVolumePage}          = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
@@ -85,6 +89,16 @@ sub get_resize_page {
     return $self->{ResizePage};
 }
 
+sub get_error_dialog {
+    my ($self) = @_;
+    return $self->{ErrorDialog};
+}
+
+sub get_modified_devices_warning {
+    my ($self) = @_;
+    return $self->{ModifiedDevicesWarning};
+}
+
 sub add_partition_on_gpt_disk {
     my ($self, $args) = @_;
     $self->get_expert_partitioner_page()->select_disk($args->{disk}) if $args->{disk};
@@ -101,6 +115,14 @@ sub clone_partition_table {
         $self->get_clone_partition_dialog()->select_all_disks();
     }
     $self->get_clone_partition_dialog()->press_ok();
+}
+
+sub cancel_changes {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->press_cancel_button();
+    if ($args->{accept_modified_devices_warning}) {
+        $self->get_modified_devices_warning()->press_yes();
+    }
 }
 
 sub add_raid_partition {
@@ -127,7 +149,9 @@ sub create_new_partition_table {
     my ($self, $args) = @_;
     $self->get_expert_partitioner_page()->select_disk($args->{name});
     $self->get_expert_partitioner_page()->select_create_partition_table();
-    $self->get_deleting_current_devices_warning()->press_yes();
+    if ($args->{accept_deleting_current_devices_warning}) {
+        $self->get_deleting_current_devices_warning()->press_yes();
+    }
     $self->get_create_new_partition_table_page()->press_next();
 }
 
@@ -221,6 +245,16 @@ sub edit_partition_on_gpt_disk {
     $self->get_edit_formatting_options_page()->select_mount_device_radiobutton();
     $self->get_edit_formatting_options_page()->fill_in_mount_point_field($part->{mounting_options}->{mount_point});
     $self->get_edit_formatting_options_page()->press_next();
+}
+
+sub confirm_error_dialog {
+    my ($self) = @_;
+    $self->get_error_dialog()->press_ok();
+}
+
+sub get_error_dialog_text {
+    my ($self) = @_;
+    $self->get_error_dialog()->text();
 }
 
 1;

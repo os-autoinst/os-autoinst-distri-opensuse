@@ -28,11 +28,6 @@ sub run {
         assert_screen([qw(select-hard-disks partition-scheme)]);
         select_first_hard_disk if match_has_tag 'select-hard-disks';
     }
-
-    if (get_var('PARTITIONING_WARNINGS')) {
-        assert_screen 'proposal-will-overwrite-manual-changes';
-        send_key 'alt-y';
-    }
     if (is_storage_ng) {
         assert_screen [qw(partition-scheme existing-partitions)];
         if (match_has_tag 'existing-partitions') {
