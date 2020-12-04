@@ -2,13 +2,13 @@ language: perl
 matrix:
   include:
   - name: "openSUSE/SUSE production perl version, only compile check"
-    perl: "5.18"
+    perl: "5.26"
     env: TESTS=compile
   - name: "testing perl version, static checks"
-    perl: "5.26"
+    perl: "5.32"
     env: TESTS=static
   - name: "testing perl version, unit tests"
-    perl: "5.26"
+    perl: "5.32"
     env: TESTS=unit
 env:
   global:
