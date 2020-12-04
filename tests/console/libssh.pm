@@ -128,7 +128,7 @@ sub run {
     validate_script_output("curl -s scp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t",             sub { m/libssh_testcase001/ });
     validate_script_output('curl -s sftp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
     validate_script_output('curl -s scp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa',  sub { m/libssh_testcase001/ });
-    validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15'); #libssh is not supported by libvirt for sle12
+    validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15-sp1'); #libssh is not supported by libvirt for sle12 and sle15sp1
     validate_script_output('virsh -c "qemu+libssh2://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ });
     #Switch back to host
     type_string("exit\n", wait_still_screen => 3);
