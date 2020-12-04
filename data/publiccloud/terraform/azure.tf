@@ -22,6 +22,14 @@ variable "image_id" {
     default = ""
 }
 
+variable "offer" {
+    default=""
+}
+
+variable "sku" {
+    default="gen1"
+}
+
 variable "extra-disk-size" {
     default = "100"
 }
@@ -126,6 +134,7 @@ resource "azurerm_image" "image" {
     name                      = "${azurerm_resource_group.openqa-group.name}-disk1"
     location                  = var.region
     resource_group_name       = azurerm_resource_group.openqa-group.name
+    count = var.image_id != "" ? 1 : 0
 
     os_disk {
         os_type = "Linux"
@@ -144,7 +153,11 @@ resource "azurerm_virtual_machine" "openqa-vm" {
     count                 = var.instance_count
 
     storage_image_reference {
-        id = azurerm_image.image.id
+        id = var.image_id != "" ? azurerm_image.image.0.id : ""
+        publisher = var.image_id != "" ? "" : "SUSE"
+        offer     = var.image_id != "" ? "" : var.offer
+        sku       = var.image_id != "" ? "" : var.sku
+        version   = var.image_id != "" ? "" : "latest"
     }
 
     storage_os_disk {

@@ -88,6 +88,14 @@ sub resource_exist {
     return ($output ne '[]');
 }
 
+sub get_image_id {
+    my ($self, $img_url) = @_;
+    $img_url //= get_var('PUBLIC_CLOUD_IMAGE_LOCATION');
+    # Very special case for Azure. Ignore the image id and only use OFFER and SKU
+    return "" if ((!$img_url) && get_var('PUBLIC_CLOUD_AZURE_OFFER') && get_var('PUBLIC_CLOUD_AZURE_SKU'));
+    return $self->SUPER::get_image_id($img_url);
+}
+
 sub find_img {
     my ($self, $name) = @_;
 
@@ -193,6 +201,17 @@ sub img_proof {
     }
 
     return $self->run_img_proof(%args);
+}
+
+sub terraform_apply {
+    my ($self, %args) = @_;
+    $args{vars} //= {};
+    my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER");
+    my $sku   = get_var("PUBLIC_CLOUD_AZURE_SKU");
+    $args{vars}->{offer} = $offer if ($offer);
+    $args{vars}->{sku}   = $sku   if ($sku);
+
+    $self->SUPER::terraform_apply(%args);
 }
 
 sub on_terraform_apply_timeout {
