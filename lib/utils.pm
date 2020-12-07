@@ -93,6 +93,8 @@ our @EXPORT = qw(
   install_patterns
   common_service_action
   script_output_retry
+  get_secureboot_status
+  assert_secureboot_status
 );
 
 =head1 SYNOPSIS
@@ -1907,6 +1909,32 @@ sub common_service_action {
     } else {
         die "Unsupported service type, please check it again.";
     }
+}
+
+sub get_secureboot_status {
+    my $sbvar = '8be4df61-93ca-11d2-aa0d-00e098032b8c-SecureBoot';
+    my $ret;
+
+    if (is_sle('<12-SP3')) {
+        $ret = script_output("efivar -pn $sbvar");
+
+        if ($ret =~ m/^Value:\s*^\d+\s+(\d+)/ms) {
+            $ret = $1;
+        }
+    } else {
+        $ret = script_output("efivar -dn $sbvar");
+    }
+
+    die "Efivar returned invalid SecureBoot state $ret" if $ret !~ m/^[0-9]+/i;
+    return $ret != 0;
+}
+
+sub assert_secureboot_status {
+    my $expected = shift;
+
+    my $state    = get_secureboot_status;
+    my $statestr = $state ? 'on' : 'off';
+    die "Error: SecureBoot is $statestr" if $state xor $expected;
 }
 
 1;

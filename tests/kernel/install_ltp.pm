@@ -20,7 +20,6 @@ use testapi;
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
-use main_ltp 'loadtest_kernel';
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use serial_terminal 'prepare_serial_console';
@@ -283,13 +282,14 @@ sub setup_network {
 sub run {
     my $self       = shift;
     my $inst_ltp   = get_var 'INSTALL_LTP';
+    my $cmd_file   = get_var('LTP_COMMAND_FILE');
     my $grub_param = 'ignore_loglevel';
 
     if ($inst_ltp !~ /(repo|git)/i) {
         die 'INSTALL_LTP must contain "git" or "repo"';
     }
 
-    if (!get_var('LTP_BAREMETAL') && !is_jeos) {
+    if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos) {
         $self->wait_boot;
     }
 
@@ -346,9 +346,13 @@ sub run {
 
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command
     # file
-    if (get_var('LTP_COMMAND_FILE') || get_var('LTP_INSTALL_REBOOT')) {
+    if (get_var('LTP_INSTALL_REBOOT')) {
         power_action('reboot', textmode => 1) unless is_jeos;
         loadtest_kernel 'boot_ltp';
+    } elsif ($cmd_file) {
+        assert_secureboot_status(1) if get_var('SECUREBOOT');
+        init_ltp_tests($cmd_file);
+        schedule_tests($cmd_file);
     }
 }
 
@@ -365,7 +369,10 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return {fatal => 1};
+    my %ret = (fatal => 1);
+
+    $ret{milestone} = 1 if get_var('LTP_COMMAND_FILE');
+    return \%ret;
 }
 
 1;
