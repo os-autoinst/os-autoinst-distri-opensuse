@@ -1,0 +1,3 @@
+crypttab:
+  num_devices_encrypted: 1
+<<: !include test_data/yast/encryption/default_enc.yaml
