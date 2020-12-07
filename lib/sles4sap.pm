@@ -52,6 +52,16 @@ our @EXPORT = qw(
   install_libopenssl_legacy
 );
 
+=head1 SYNOPSIS
+
+Package with common methods and default values for tests on SLES for
+SAP Applications.
+
+This package inherits from B<opensusebasetest> and should be used as
+a class.
+
+=cut
+
 our $prev_console;
 our $sapadmin;
 our $sid;
@@ -67,7 +77,9 @@ Derived from 'ensure_serialdev_permissions' function available in 'utils'.
 Grant user permission to access serial port immediately as well as persisting
 over reboots. Used to ensure that testapi calls like script_run work for the
 test user as well as root.
+
 =cut
+
 sub ensure_serialdev_permissions_for_sap {
     my ($self) = @_;
     # ownership has effect immediately, group change is for effect after
@@ -76,6 +88,17 @@ sub ensure_serialdev_permissions_for_sap {
     my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
     assert_script_run "grep '^${serial_group}:.*:${sapadmin}\$' /etc/group || (chown $sapadmin /dev/$testapi::serialdev && gpasswd -a $sapadmin $serial_group)";
 }
+
+=head2 fix_path
+
+ $self->fix_path( $uri );
+
+Given the path to a CIFS or NFS share in B<$uri>, this method will format the path
+so it can be used directly by B<mount(8)>. Returns an array with the protocol name (cifs
+or nfs) as the first element, and the formatted path as the second element. Croaks if
+an unsupported protocol is passed in B<$uri> or if it cannot be parsed.
+
+=cut
 
 sub fix_path {
     my ($self, $var) = @_;
@@ -92,11 +115,31 @@ sub fix_path {
     return ($proto, $path);
 }
 
+=head2 set_ps_cmd
+
+ $self->set_ps_cmd( $procname );
+
+Sets in the class instance the B<ps> command to be used to check for the presence
+of SAP processes in the SUT. Returns the value of the internal variable B<$ps_cmd>.
+
+=cut
+
 sub set_ps_cmd {
     my ($self, $procname) = @_;
-    $ps_cmd = 'ps auxw | grep ' . $procname . ' | grep -vw grep';
+    $ps_cmd = 'ps auxw | grep ' . $procname . ' | grep -vw grep' if ($procname);
     return $ps_cmd;
 }
+
+=head2 set_sap_info
+
+ $self->set_sap_info( $SID, $instance_number );
+
+SAP software relies on 2 identifiers, the system id (SID) which is a 3-character
+identifier, and the instance number. This method receives both via positional
+arguments, and sets the internal variables for B<$sid>, B<$instance> and B<$sapadmin>
+accordingly. Returns the value of B<$sapadmin>.
+
+=cut 
 
 sub set_sap_info {
     my ($self, $sid_env, $instance_env) = @_;
@@ -105,6 +148,15 @@ sub set_sap_info {
     $sapadmin = lc($sid_env) . 'adm';
     return ($sapadmin);
 }
+
+=head2 user_change
+
+ $self->user_change();
+
+Switch user in SUT to the SAP admin account, and grant serialdev
+permissions to the SAP admin user.
+
+=cut
 
 sub user_change {
     # Allow SAP Admin user to inform status via $testapi::serialdev
@@ -128,6 +180,15 @@ sub user_change {
     $testapi::distri->{serial_term_prompt} = "$serial_term_prompt";
 }
 
+=head2 reset_user_change
+
+ $self->reset_user_change();
+
+Exit from the SAP admin account in SUT and change serialdev
+permissions accordingly.
+
+=cut
+
 sub reset_user_change {
     # Close the window
     type_string "exit\n";
@@ -139,6 +200,14 @@ sub reset_user_change {
     ensure_serialdev_permissions;
 }
 
+=head2 get_total_mem
+
+ $self->get_total_mem();
+
+Returns the total memory configured in SUT.
+
+=cut
+
 sub get_total_mem {
     return get_required_var('QEMURAM') if (check_var('BACKEND', 'qemu'));
     my $mem = script_output q@grep ^MemTotal /proc/meminfo | awk '{print $2}'@;
@@ -146,10 +215,28 @@ sub get_total_mem {
     return $mem;
 }
 
+=head2 is_saptune_installed
+
+ is_saptune_installed();
+
+Checks if the B<saptune> package is installed in SUT. Returns true or false.
+
+=cut
+
 sub is_saptune_installed {
     my $ret = script_run "rpm -q saptune";
     return (defined $ret and $ret == 0);
 }
+
+=head2 prepare_profile
+
+ $self->prepare_profile( $profile );
+
+Configures with B<saptune> (if available in SUT) or B<sapconf> the SUT according to
+a profile passed as argument. B<$profile> must be either B<HANA> or B<NETWEAVER>.
+Croaks on failure.
+
+=cut
 
 sub prepare_profile {
     my ($self, $profile) = @_;
@@ -237,6 +324,23 @@ sub prepare_profile {
     }
 }
 
+=head2 copy_media
+
+ $self->copy_media( $proto, $path, $timeout, $target );
+
+Copies installation media in SUT from the share identified by B<$proto> and
+B<$path> into the target directory B<$target>. B<$timeout> specifies how long
+to wait for the copy to complete.
+
+After installation files are copied, this method will also verify the existence
+of a F<checksum.md5sum> file in the target directory and use it to check for the
+integrity of the copied files. This test can be skipped by setting to a
+true value the B<DISABLE_CHECKSUM> setting in the test.
+
+The method will croak if any of the commands sent to SUT fail.
+
+=cut
+
 sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
 
@@ -262,10 +366,27 @@ sub copy_media {
     assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
 }
 
+=head2 add_hostname_to_hosts
+
+ $self->add_hostname_to_hosts();
+
+Adds the IP address and the hostname of SUT to F</etc/hosts>. Croaks on failure.
+
+=cut
+
 sub add_hostname_to_hosts {
     my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
     assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
 }
+
+=head2 test_pids_max
+
+ $self->test_pids_max();
+
+Checks in SUT that the SAP admin user has no limits in the number of processes
+and threads that it can create.
+
+=cut
 
 sub test_pids_max {
     # UserTasksMax should be set to "infinity" in /etc/systemd/logind.conf.d/sap.conf
@@ -281,6 +402,18 @@ sub test_pids_max {
     record_soft_failure "bsc#1031355" if ($rc1 or $rc2);
 }
 
+=head2 test_forkbomb
+
+ $self->test_forkbomb();
+
+Runs a script in SUT to create as many processes as possible, both as the SAP
+administrator and as root, and verifies that the SAP admin can create
+as many as 99% of the amount of processes that root can. Croaks if any of the
+commands sent to SUT fail, and record a soft failure if the SAP admin
+user cannot create as many processes as root.
+
+=cut
+
 sub test_forkbomb {
     my $script = 'forkbomb.pl';
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$script -o /tmp/$script; chmod +x /tmp/$script";
@@ -292,10 +425,27 @@ sub test_forkbomb {
     record_soft_failure "bsc#1031355" if ($user_procs < $root_procs * 0.99);
 }
 
+=head2 test_version_info
+
+ $self->test_version_info();
+
+Runs a B<sapcontrol> command with function B<GetVersionInfo> in SUT. Croaks on failure.
+
+=cut
+
 sub test_version_info {
     my $output = script_output "sapcontrol -nr $instance -function GetVersionInfo";
     die "sapcontrol: GetVersionInfo API failed\n\n$output" unless ($output =~ /GetVersionInfo[\r\n]+OK/);
 }
+
+=head2 test_instance_properties
+
+ $self->test_instance_properties();
+
+Runs a B<sapcontrol> command with function B<GetInstanceProperties> and verifies that
+the reported properties match with the SID stored in the class instance. Croaks on failure.
+
+=cut
 
 sub test_instance_properties {
     my $output = script_output "sapcontrol -nr $instance -function GetInstanceProperties | grep ^SAP";
@@ -304,6 +454,15 @@ sub test_instance_properties {
     $output =~ /SAPSYSTEMNAME, Attribute, ([A-Z][A-Z0-9]{2})/m;
     die "sapcontrol: SAP administrator [$sapadmin] does not match with System SID [$1]" if ($1 ne $sid);
 }
+
+=head2 test_stop
+
+ $self->test_stop();
+
+Tests with B<sapcontrol> and functions B<Stop> and B<StopService> that the instance
+and services are succesfully stopped. Croaks on failure.
+
+=cut
 
 sub test_stop {
     my ($self) = @_;
@@ -320,6 +479,15 @@ sub test_stop {
     # Check if service is correctly stopped
     $self->check_service_state('stop');
 }
+
+=head2 test_start
+
+ $self->test_start();
+
+Tests with B<sapcontrol> and functions B<Start> and B<StartService> that the instance
+and services are succesfully started. Croaks on failure.
+
+=cut
 
 sub test_start {
     my ($self) = @_;
@@ -342,6 +510,19 @@ sub test_start {
     # Show list of processes
     script_run $ps_cmd;
 }
+
+=head2 check_service_state
+
+ $self->check_service_state( $state );
+
+Checks in the process table of SUT for B<sapstartsrv> up to the number of seconds
+specified in the B<WAIT_INSTANCE_STOP_TIME> setting (defaults to 300, with a maximum
+permitted value of 600). The B<$state> argument can be either B<start> or B<stop>,
+and it controls whether this method waits for the process to appear in the process
+table after service was started, or disappear from the process table after service was
+stopped. Croaks on failure.
+
+=cut
 
 sub check_service_state {
     my ($self, $state) = @_;
@@ -370,6 +551,20 @@ sub check_service_state {
 
     die "Timed out waiting for SAP service status to turn $state" unless ($time_to_wait > 0);
 }
+
+=head2 check_instance_state
+
+ $self->check_instance_state( $state );
+
+Uses B<sapcontrol> functions B<GetSystemInstanceList> and B<GetProcessList> to
+check for up to the number of seconds defined in the B<WAIT_INSTANCE_STOP_TIME>
+setting (defaults to 300, with a maximum permitted value of 600), whether the
+instance is in the state specified by the B<$state> argument. This argument can
+be either B<green> or B<gray>, and it controls whether this method waits for the
+instance to turn to green status after a start or to turn to gray status after a
+stop. Croaks on failure.
+
+=cut
 
 sub check_instance_state {
     my ($self, $state) = @_;
@@ -404,21 +599,26 @@ sub check_instance_state {
     die "Timed out waiting for SAP instance status to turn $uc_state" unless ($time_to_wait > 0);
 }
 
-=head2
+=head2 check_replication_state
 
- check_replication_state();
+ $self->check_replication_state();
 
-Check status of the HANA System Replication.
-Note: could only be run on active node.
+Check status of the HANA System Replication by running the
+B<systemReplicationStatus.py> script in SUT. Waits for 5 minutes for
+HANA System Replication to be in Active state or croaks on timeout.
 
-systemReplicationStatus.py return codes:
+Note: can only be run on active node in the cluster.
+
+B<systemReplicationStatus.py> return codes are:
  10: No System Replication
  11: Error
  12: Unknown
  13: Initializing
  14: Syncing
  15: Active
+
 =cut
+
 sub check_replication_state {
     my ($self) = @_;
     my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
@@ -445,10 +645,12 @@ sub check_replication_state {
 
 =head2 reboot
 
- reboot();
+ $self->reboot();
 
-Restart the server and reconnect to the console right after.
+Restart the SUT and reconnect to the console right after.
+
 =cut
+
 sub reboot {
     my ($self) = @_;
 
@@ -466,12 +668,19 @@ sub reboot {
 
 =head2 do_hana_takeover
 
- do_hana_takeover(node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster]);
+ $self->do_hana_takeover( node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster] );
 
-Do a takeover/failback on HANA cluster.
+Do a takeover/takeback on a HANA cluster.
 
-Set C<$node> to the node where HANA is/should be the primary server.
+Set B<$node> to the node where HANA is/should be the primary server.
+
+Set B<$manual_takeover> to true, so the method performs a manual rather than an automatic
+takeover. Defaults to false.
+
+Set B<$cluster> to true so the method runs also a C<crm resource cleanup>. Defaults to false.
+
 =cut
+
 sub do_hana_takeover {
     # No need to do anything if AUTOMATED_REGISTER is set
     return if check_var('AUTOMATED_REGISTER', 'true');
@@ -493,12 +702,19 @@ sub do_hana_takeover {
 
 =head2 install_libopenssl_legacy
 
- install_libopenssl_legacy($hana_path);
+ $self->install_libopenssl_legacy( $hana_path );
 
-Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
+Install B<libopenssl1_0_0> for older (<SPS03) HANA versions on SLE15+
 
-Set C<$hana_path> to the HANA installation media.
+Set B<$hana_path> to the path where the HANA installation media is
+located; this path should contain information on the HANA version to
+install, so prepare it thinking on this. For example:
+F<nfs://sap.sources.host.local/HANA2-SPS5rev52/>. This method will then
+determine the HANA version from B<$hana_path> and decide based on the
+SLES and HANA versions whether B<libopenssl1_0_0> must be installed.
+
 =cut
+
 sub install_libopenssl_legacy {
     my ($self, $hana_path) = @_;
 
@@ -514,10 +730,12 @@ sub install_libopenssl_legacy {
 
 =head2 upload_hana_install_log
 
- upload_hana_install_log();
+ $self->upload_hana_install_log();
 
-Upload HANA installation logs.
+Package and upload HANA installation logs from SUT.
+
 =cut
+
 sub upload_hana_install_log {
     script_run 'tar -Jcf /tmp/hana_install.log.tar.xz /var/adm/autoinstall/logs /var/tmp/hdb*';
     upload_logs '/tmp/hana_install.log.tar.xz';
@@ -525,10 +743,12 @@ sub upload_hana_install_log {
 
 =head2 upload_nw_install_log
 
- upload_nw_install_log();
+ $self->upload_nw_install_log();
 
-Upload NW installation logs.
+Upload NetWeaver installation logs from SUT.
+
 =cut
+
 sub upload_nw_install_log {
     my ($self) = @_;
 
