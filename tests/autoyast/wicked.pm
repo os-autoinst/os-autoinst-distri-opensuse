@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2016 SUSE LLC
+# Copyright (C) 2015-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,10 +41,11 @@ sub run {
     type_string "systemctl status wickedd.service\n";
     type_string "echo `wicked show all |cut -d ' ' -f 1` END | tee /dev/$serialdev\n";
     my $iflist = wait_serial("END", 10);
-    $iflist =~ s/\bEND\b//g;
-    $iflist =~ s/\blo\b//g;
-    $iflist =~ s/^\s*//g;
-    $iflist =~ s/\s*$//g;
+    # For poo#70453, to filter network link from mixed info of the output of wicked cmd
+    # we need substr output string from serial. Ex: 'lo0 eth0 END' -> 'eth0'
+    ($iflist) =~ s/(.*lo\s)(.*)(\sEND.*)/$2/s;
+    $iflist   =~ s/^\s*//g;
+    $iflist   =~ s/\s*$//g;
 
     my $up = 1;
     for my $if (split(/\s+/, $iflist)) {
