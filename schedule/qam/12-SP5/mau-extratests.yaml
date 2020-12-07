@@ -24,7 +24,6 @@ schedule:
 - console/git
 - console/cups
 - console/java
-- console/golang
 - console/sqlite3
 - console/ant
 - console/perf
