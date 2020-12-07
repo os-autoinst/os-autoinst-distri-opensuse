@@ -7,12 +7,10 @@ description: |
 vars:
   DESKTOP: textmode
   HDDSIZEGB: 50
-  LVM: 1
-  RESIZE_ROOT_VOLUME: 1
-  SEPARATE_HOME: 0
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -20,8 +18,7 @@ schedule:
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/lvm_no_separate_home
-  - installation/partitioning_resize_root
-  - installation/partitioning_finish
+  - installation/partitioning/resize_existing_lv
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
@@ -32,6 +29,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/system_prepare
@@ -51,9 +49,3 @@ test_data:
             filesystem: btrfs
           mounting_options:
             mount_point: /
-  root:
-    disk: current-volume-management
-    existing_partition: root
-    mount_point: /
-    expert_partitioner_from: current
-    part_size: 45GiB

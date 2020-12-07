@@ -142,8 +142,8 @@ sub select_volume_group {
 
 sub select_logical_volume {
     my ($self, $args) = @_;
-    $self->select_volume_group($args->{vg});
-    $self->{tbl_lvm_devices}->select(value => '/dev/' . $args->{vg} . '|' . $args->{lv});
+    $self->select_volume_group($args->{volume_group});
+    $self->{tbl_lvm_devices}->select(value => '/dev/' . $args->{volume_group} . '|' . $args->{logical_volume});
     send_key('up');
     send_key('down');
 }

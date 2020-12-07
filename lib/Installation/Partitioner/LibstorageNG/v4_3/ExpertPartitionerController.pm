@@ -200,6 +200,17 @@ sub resize_partition {
     $self->get_resize_page()->press_next();
 }
 
+sub resize_logical_volume {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_logical_volume({
+            volume_group   => $args->{volume_group},
+            logical_volume => $args->{logical_volume}
+    });
+    $self->get_expert_partitioner_page()->open_resize_device();
+    $self->get_resize_page()->set_custom_size($args->{size});
+    $self->get_resize_page()->press_next();
+}
+
 sub edit_partition_on_gpt_disk {
     my ($self, $args) = @_;
     my $part = $args->{partition};
