@@ -149,12 +149,15 @@ sub add_logical_volume {
     $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
     $self->get_expert_partitioner_page()->press_add_logical_volume_button();
     $self->get_add_logical_volume_page()->set_logical_volume_name($lv->{name});
+    $self->get_add_logical_volume_page()->set_logical_volume_type($lv->{type}) if $lv->{type};
     $self->get_add_logical_volume_page()->press_next_button();
     $self->get_add_logical_volume_page()->set_custom_size($lv->{size}) if $lv->{size};
     $self->get_add_logical_volume_page()->press_next_button();
-    $self->get_add_logical_volume_page()->select_role($lv->{role});
-    $self->get_add_logical_volume_page()->press_next_button();
-    $self->_finish_partition_creation;
+    unless ($lv->{type} eq 'thin_pool') {
+        $self->get_add_logical_volume_page()->select_role($lv->{role});
+        $self->get_add_logical_volume_page()->press_next_button();
+        $self->_finish_partition_creation;
+    }
 }
 
 sub setup_raid {

@@ -1,24 +1,12 @@
 ---
-name: lvm-encrypt-separate-boot
+name: lvm_thin_provisioning
 description: >
-  Same as lvm-full-encrypt, but with separate boot not encrypted partition, only
-  installation to not repeat everything again with small risk.
+  Complete OS deployment with unencrypted LVM drive management. Test creates
+  2 LVM and BIOS boot partitions. Thin pool and thin lv reside on the second
+  LVM partition, where /home (XFS) is being mounted. Partitioning is validated
+  in the booted system after the installation.
 vars:
-  UNENCRYPTED_BOOT: 1
-  ENCRYPT: 1
-  FULL_LVM_ENCRYPT: 1
-  YUI_REST_API: 1
-conditional_schedule:
-  boot_encrypt_reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - installation/boot_encrypt
-        - boot/reconnect_mgmt_console
-  grub_test_boot_encrypt:
-    BACKEND:
-      qemu:
-        - installation/grub_test
-        - installation/boot_encrypt
+  YUI_REST_API: '1'
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
@@ -40,13 +28,24 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - '{{boot_encrypt_reconnect_mgmt_console}}'
+  # Called on BACKEND: svirt
+  - '{{reconnect_mgmt_console}}'
   - installation/teardown_libyui
-  - '{{grub_test_boot_encrypt}}'
+  # Called on BACKEND: qemu
+  - '{{grub_test}}'
   - installation/first_boot
-  - console/hostname
   - console/system_prepare
+  - console/sle15_workarounds
+  - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
-  - console/validate_lvm
-  - console/validate_encrypt
+  - console/lvm_thin_check
+conditional_schedule:
+  reconnect_mgmt_console:
+    BACKEND:
+      svirt:
+        - boot/reconnect_mgmt_console
+  grub_test:
+    BACKEND:
+      qemu:
+        - installation/grub_test

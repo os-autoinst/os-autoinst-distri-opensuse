@@ -20,7 +20,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning/encrypted_full_lvm
+  - installation/partitioning/setup_lvm
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
