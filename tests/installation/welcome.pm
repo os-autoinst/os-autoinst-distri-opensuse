@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -105,6 +105,9 @@ sub run {
     # Add tag to check for https://progress.opensuse.org/issues/30823 "test is
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
+    # repo key expired bsc#1179654
+    record_soft_failure 'bsc#1179654';
+    push @welcome_tags, 'expired-gpg-key' if is_sle('=15');
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
     while ($iterations++ < scalar(@welcome_tags)) {
@@ -137,6 +140,9 @@ sub run {
         if (match_has_tag 'linuxrc-dhcp-question') {
             send_key 'tab' if (match_has_tag 'linuxrc-dhcp-question-no');
             send_key 'ret';
+        }
+        if (match_has_tag 'expired-gpg-key') {
+            send_key 'alt-y';
         }
     }
 
