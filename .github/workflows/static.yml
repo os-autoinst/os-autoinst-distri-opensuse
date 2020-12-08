@@ -1,0 +1,37 @@
+name: PR CI
+
+on: pull_request
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    name: "Running ${{ matrix.test }} tests with perl v${{ matrix.perl-version }}"
+    strategy:
+      matrix:
+        include:
+          - test: static
+            perl-version: 5.32
+          - test: unit
+            perl-version: 5.32
+          - test: compile
+            perl-version: 5.26
+    container:
+      image: perldocker/perl-tester:${{ matrix.perl-version }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: apt-get -y install yamllint libdbus-1-dev libssh2-1-dev parallel
+    - name: Setup perl
+      run: |
+        echo "requires 'Code::DRY';" >> cpanfile
+        echo "requires 'Date::Parse';" >> cpanfile
+        echo "requires 'Regexp::Common';" >> cpanfile
+        echo "requires 'Perl::Tidy', '== 20201001';" >> cpanfile
+        make prepare
+    - name: Run ${{ matrix.test }} tests
+      env:
+        TESTS: ${{ matrix.test }}
+      run: |
+        git fetch origin master
+        git checkout cpanfile
+        make test
