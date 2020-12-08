@@ -21,7 +21,7 @@ use testapi;
   add_raid($self, $args);
 
 Create RAID with provided parameters:
-$args->{partition}` contains hash reference with parameters for the partiotion,
+$args->{partition}` contains hash reference with parameters for the partition,
 see C<_add_partition>.
 $args->{raid_level} defines wanted raid level.
 
@@ -52,7 +52,7 @@ sub run_expert_partitioner();
 
 Add partition to the disk with gpt partition table.
 $args->{disk} contains name of the disk, where partition should be added.
-$args->{partition}`contains hash reference with parameters for the partiotion,
+$args->{partition}`contains hash reference with parameters for the partition,
 see C<_add_partition>.
 
 =cut

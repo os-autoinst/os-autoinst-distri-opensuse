@@ -23,6 +23,8 @@ use YuiRestClient::Widget::SelectionBox;
 use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Textbox;
 use YuiRestClient::Widget::Tree;
+use YuiRestClient::Widget::RichText;
+use YuiRestClient::Widget::Label;
 
 sub new {
     my ($class, $args) = @_;
@@ -99,6 +101,22 @@ sub textbox {
 sub tree {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Tree->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub richtext {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::RichText->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub label {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::Label->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });

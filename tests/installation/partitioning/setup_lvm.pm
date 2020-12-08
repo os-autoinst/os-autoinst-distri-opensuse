@@ -29,7 +29,7 @@ sub run {
     $partitioner->run_expert_partitioner('current');
 
     my $disk = $test_data->{disks}[0];
-    $partitioner->create_new_partition_table($disk);
+    $partitioner->create_new_partition_table({$disk, accept_deleting_current_devices_warning => 1});
 
     foreach my $partition (@{$disk->{partitions}}) {
         $partitioner->add_partition_on_gpt_disk({
