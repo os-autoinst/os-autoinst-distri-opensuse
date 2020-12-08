@@ -18,6 +18,7 @@ use testapi;
 use utils;
 
 sub run {
+    select_console 'x11';
     mouse_hide;
     ensure_installed 'chromium';
 
