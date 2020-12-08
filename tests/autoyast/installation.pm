@@ -157,6 +157,10 @@ sub run {
         push(@needles, 'autoyast-license');
     }
 
+    # repo key expired bsc#1179654
+    record_soft_failure 'bsc#1179654';
+    push @needles, 'expired-gpg-key' if is_sle('=15');
+
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
     push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
@@ -292,6 +296,9 @@ sub run {
         elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
             @needles = grep { $_ ne 'linuxrc-start-shell-after-installation' } @needles;
             type_string "exit\n";
+        }
+        elsif (match_has_tag 'expired-gpg-key') {
+            send_key 'alt-y';
         }
     }
 
