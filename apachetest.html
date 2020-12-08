@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/apachetest.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#Apache-tests">Apache tests</a>
+    <ul>
+      <li><a href="#setup_apache2">setup_apache2</a></li>
+      <li><a href="#setup_pgsqldb">setup_pgsqldb</a></li>
+      <li><a href="#destroy_pgsqldb">destroy_pgsqldb</a></li>
+      <li><a href="#test_pgsqldb">test_pgsqldb</a></li>
+      <li><a href="#test_mysql">test_mysql</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/apachetest.pm</h1>
+
+<h1 id="Apache-tests">Apache tests</h1>
+
+<p>Apache tests for various scenarios</p>
+
+<h2 id="setup_apache2">setup_apache2</h2>
+
+<pre><code> setup_apache2(mode =&gt; $mode);</code></pre>
+
+<p>Setup Apache service in different mode. Possible values for <code>$mode</code> are: SSL, NSS, NSSFIPS and PHP7</p>
+
+<pre><code> setup_apache2(mode =&gt; &#39;SSL&#39;);</code></pre>
+
+<h2 id="setup_pgsqldb">setup_pgsqldb</h2>
+
+<pre><code> setup_pgsqldb();</code></pre>
+
+<p>Set up a postgres data base</p>
+
+<h2 id="destroy_pgsqldb">destroy_pgsqldb</h2>
+
+<pre><code> destroy_pgsqldb();</code></pre>
+
+<p>Destroy a postgres data base</p>
+
+<h2 id="test_pgsqldb">test_pgsqldb</h2>
+
+<pre><code> test_pgsqldb();</code></pre>
+
+<p>Set up a postgres database and configure for:</p>
+
+<ul>
+
+<li><p>PHP can access PostgreSQL by using password authentication.</p>
+
+</li>
+<li><p>Comment out default configuration.</p>
+
+</li>
+<li><p>Allow postgres to access the database with password authentication</p>
+
+</li>
+<li><p>Configure the PHP code to read table &#39;test&#39; from the &#39;openQAdb&#39; database (created in &#39;console/postgresql...&#39; test) and insert a new element into the same table</p>
+
+</li>
+<li><p>Access the website and verify that it can read the database</p>
+
+</li>
+<li><p>Verify that PHP successfully wrote the element in the database</p>
+
+</li>
+<li><p>Add sudo rights to switch postgresql version and run script to determine oldest and latest version</p>
+
+</li>
+<li><p>Upgrade db from oldest version to latest version</p>
+
+</li>
+<li><p>Verify enties from imported dvdrental db before and after dump and restore</p>
+
+</li>
+</ul>
+
+<h2 id="test_mysql">test_mysql</h2>
+
+<pre><code> test_mysql();</code></pre>
+
+<p>Create the &#39;openQAdb&#39; database with table &#39;test&#39; and insert one element</p>
+
+
+</body>
+
+</html>
+
+

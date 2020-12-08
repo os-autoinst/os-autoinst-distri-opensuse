@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/db_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#influxdb_push_data">influxdb_push_data</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/db_utils.pm</h1>
+
+<h2 id="influxdb_push_data">influxdb_push_data</h2>
+
+<pre><code>    influxdb_push_data($url, $db, $data [, quiet =&gt; 1])</code></pre>
+
+<p>Builds an influx-db query and write it to the given database specified with <code>url</code> and <code>db</code> for the Influx DB name. <code>data</code> is a hash containing the table name in Influx DB, the tags and the values to plot.</p>
+
+<p>Example of data: $data = { table =&gt; &#39;my_db_table_name&#39;, tags =&gt; { BUILD =&gt; &#39;42&#39;, KERNEL =&gt; &#39;4.12.14-lp151.28.20-default&#39;}, values =&gt; { io_reads&#39; =&gt; 1337, io_writes =&gt; 1338 } }</p>
+
+
+</body>
+
+</html>
+
+

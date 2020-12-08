@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Utils/Systemd.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#Utils::Systemd">Utils::Systemd</a>
+    <ul>
+      <li><a href="#disable_and_stop_service">disable_and_stop_service</a></li>
+      <li><a href="#systemctl">systemctl</a></li>
+      <li><a href="#get_started_systemd_services">get_started_systemd_services</a></li>
+      <li><a href="#clear_started_systemd_services">clear_started_systemd_services</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Utils/Systemd.pm</h1>
+
+<h1 id="Utils::Systemd">Utils::Systemd</h1>
+
+<p><code>Utils::Systemd</code> - Library for systemd related functionality</p>
+
+<h2 id="disable_and_stop_service">disable_and_stop_service</h2>
+
+<pre><code>    disable_and_stop_service($service_name[, mask_service =&gt; $mask_service][, ignore_failure =&gt; $ignore_failure]);</code></pre>
+
+<p>Disable and stop the service <code>$service_name</code>. Mask it if <i>$mask_service</i> evaluates to true. Default: false Raise a failure if <i>$ignore_failure</i> evaluates to true. Default: false</p>
+
+<h2 id="systemctl">systemctl</h2>
+
+<p>Wrapper around systemctl call to be able to add some useful options.</p>
+
+<p>Please note that return code of this function is handle by &#39;script_run&#39; or &#39;assert_script_run&#39; function, and as such, can be different.</p>
+
+<h2 id="get_started_systemd_services">get_started_systemd_services</h2>
+
+<p>Return list of started systemd services</p>
+
+<h2 id="clear_started_systemd_services">clear_started_systemd_services</h2>
+
+<p>Clear the list of started systemd services</p>
+
+
+</body>
+
+</html>
+
+

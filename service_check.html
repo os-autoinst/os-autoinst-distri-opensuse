@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/service_check.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#service_check">service_check</a>
+    <ul>
+      <li><a href="#check_services">check_services</a></li>
+      <li><a href="#instal_services">instal_services</a></li>
+      <li><a href="#check_services1">check_services</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/service_check.pm</h1>
+
+<h1 id="service_check">service_check</h1>
+
+<p>check service status or service function before and after migration</p>
+
+<h2 id="check_services">check_services</h2>
+
+<p>_is_applicable($srv_pkg_name); Return false if the service test should be skipped.</p>
+
+<p>By default it checks the service package name against a comma-separated blacklist in <code>EXCLUDE_SERVICES</code> variable and returns false if it is found there.</p>
+
+<p>If <code>INCLUDE_SERVICES</code> is set it will only return true for modules matching the whitelist specified in a comma-separated list in <code>INCLUDE_SERVICES</code> matching service package name.</p>
+
+<h2 id="instal_services">instal_services</h2>
+
+<pre><code> install_services($service);</code></pre>
+
+<p>Install services, details of default services are defined in $default_services:</p>
+
+<p>registered_addons, susefirewall, ntp, chrony, postfix, apache, dhcpd, bind, snmp, rpcbind, autofs, cups, radvd, cron, apparmor, vsftp, kdump</p>
+
+<p>Check service before migration, zypper install service package, enable, start and check service status</p>
+
+<h2 id="check_services1">check_services</h2>
+
+<pre><code> check_services($service);</code></pre>
+
+<p>check service status after migration</p>
+
+
+</body>
+
+</html>
+
+

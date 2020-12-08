@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/data_integrity_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#data_integrity_utils">data_integrity_utils</a>
+    <ul>
+      <li><a href="#get_image_digest">get_image_digest</a></li>
+      <li><a href="#verify_checksum">verify_checksum</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/data_integrity_utils.pm</h1>
+
+<h1 id="data_integrity_utils">data_integrity_utils</h1>
+
+<p>Library to verify image data integrity by comparing SHA256 checksums</p>
+
+<h2 id="get_image_digest">get_image_digest</h2>
+
+<pre><code> get_image_digest($image_path);</code></pre>
+
+<p>Returns image digest. Image path <code>$image_path</code> is the parameter which is used to get image digest. Digest retrieval is platform-specific depends.</p>
+
+<h2 id="verify_checksum">verify_checksum</h2>
+
+<pre><code> verify_checksum($dir_path);</code></pre>
+
+<p>Verify image data integrity by comparing SHA256 checksums. Directory path <code>$dir_path</code> is the parameter which is a part of image path &#39;$image_path&#39; if exists.</p>
+
+<p>Returns error message in case of failure, empty string in case of success.</p>
+
+
+</body>
+
+</html>
+
+

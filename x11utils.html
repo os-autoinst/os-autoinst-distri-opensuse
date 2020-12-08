@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/x11utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#X11_UTILS">X11_UTILS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#desktop_runner_hotkey">desktop_runner_hotkey</a></li>
+      <li><a href="#"></a></li>
+      <li><a href="#ensure_fullscreen">ensure_fullscreen</a></li>
+      <li><a href="#handle_login">handle_login</a></li>
+      <li><a href="#handle_logout">handle_logout</a></li>
+      <li><a href="#handle_relogin">handle_relogin</a></li>
+      <li><a href="#select_user_gnome">select_user_gnome</a></li>
+      <li><a href="#turn_off_kde_screensaver">turn_off_kde_screensaver</a></li>
+      <li><a href="#turn_off_gnome_screensaver">turn_off_gnome_screensaver</a></li>
+      <li><a href="#turn_off_gnome_suspend">turn_off_gnome_suspend</a></li>
+      <li><a href="#turn_off_screensaver">turn_off_screensaver</a></li>
+      <li><a href="#untick_welcome_on_next_startup">untick_welcome_on_next_startup</a></li>
+      <li><a href="#workaround_broken_opensuse_welcome_window">workaround_broken_opensuse_welcome_window</a></li>
+      <li><a href="#handle_welcome_screen">handle_welcome_screen</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/x11utils.pm</h1>
+
+<h1 id="X11_UTILS">X11_UTILS</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code> use lib::x11utils;</code></pre>
+
+<h2 id="desktop_runner_hotkey">desktop_runner_hotkey</h2>
+
+<pre><code> desktop_runner_hotkey();</code></pre>
+
+<p>Returns the hotkey for the desktop runner according to the used desktop</p>
+
+<h2 id=""></h2>
+
+<pre><code> ensure_unlocked_desktop();</code></pre>
+
+<p>if stay under tty console for long time, then check screen lock is necessary when switch back to x11 all possible options should be handled within loop to get unlocked desktop</p>
+
+<h2 id="ensure_fullscreen">ensure_fullscreen</h2>
+
+<pre><code> ensure_fullscreen($tag);</code></pre>
+
+<p><code>tag</code> can contain a needle name and is optional, it defaults to yast2-windowborder</p>
+
+<h2 id="handle_login">handle_login</h2>
+
+<pre><code> handle_login($myuser, $user_selected);</code></pre>
+
+<p>Log the user in using the displaymanager. When <code>$myuser</code> is set, this user will be used for login. Otherwise the function will default to <code>$username</code>. For displaymanagers (like gnome) where the user needs to be selected from a menu <code>$user_selected</code> tells the function that the desired user has already been selected before this function was called.</p>
+
+<p>Example:</p>
+
+<pre><code>  handle_login(&#39;user1&#39;, 1);</code></pre>
+
+<h2 id="handle_logout">handle_logout</h2>
+
+<pre><code> handle_logout();</code></pre>
+
+<p>Handles the logout from the desktop</p>
+
+<h2 id="handle_relogin">handle_relogin</h2>
+
+<pre><code> handle_relogin();</code></pre>
+
+<p>First logs out and the log in via <code>handle_logout()</code> and <code>handle_login()</code></p>
+
+<h2 id="select_user_gnome">select_user_gnome</h2>
+
+<pre><code> select_user_gnome([$myuser]);</code></pre>
+
+<p>Handle the case when user is not selected in login screen, on gnome. <code>$myuser</code> specifies the username to switch to. If not set, it will default to <code>$username</code>.</p>
+
+<h2 id="turn_off_kde_screensaver">turn_off_kde_screensaver</h2>
+
+<pre><code> turn_off_kde_screensaver();</code></pre>
+
+<p>Turns off the screensaver on KDE</p>
+
+<h2 id="turn_off_gnome_screensaver">turn_off_gnome_screensaver</h2>
+
+<pre><code>  turn_off_gnome_screensaver()</code></pre>
+
+<p>Disable screensaver in gnome. To be called from a command prompt, for example an xterm window.</p>
+
+<h2 id="turn_off_gnome_suspend">turn_off_gnome_suspend</h2>
+
+<pre><code>  turn_off_gnome_suspend()</code></pre>
+
+<p>Disable suspend in gnome. To be called from a command prompt, for example an xterm window.</p>
+
+<h2 id="turn_off_screensaver">turn_off_screensaver</h2>
+
+<pre><code> turn_off_screensaver();</code></pre>
+
+<p>Turns off the screensaver depending on desktop environment</p>
+
+<h2 id="untick_welcome_on_next_startup">untick_welcome_on_next_startup</h2>
+
+<pre><code> untick_welcome_on_next_startup();</code></pre>
+
+<p>untick welcome page on next startup.</p>
+
+<h2 id="workaround_broken_opensuse_welcome_window">workaround_broken_opensuse_welcome_window</h2>
+
+<pre><code> workaround_broken_opensuse_welcome_window();</code></pre>
+
+<p>Kill broken opensuse-welcome window and restart it properly to workaround boo#1170586.</p>
+
+<h2 id="handle_welcome_screen">handle_welcome_screen</h2>
+
+<pre><code> handle_welcome_screen([timeout =&gt; $timeout]);</code></pre>
+
+<p>openSUSE Welcome window should be auto-launched. Disable auto-launch on next boot and close application. Also handle workarounds when needed.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/known_bugs.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#KNOWN_BUGS">KNOWN_BUGS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#create_list_of_serial_failures">create_list_of_serial_failures</a></li>
+      <li><a href="#create_list_of_autoinst_failures">create_list_of_autoinst_failures</a></li>
+      <li><a href="#create_list_of_journal_failures">create_list_of_journal_failures</a></li>
+      <li><a href="#upload_journal">upload_journal</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/known_bugs.pm</h1>
+
+<h1 id="KNOWN_BUGS">KNOWN_BUGS</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p><code>use lib::known_bugs</code></p>
+
+<p>Allows detection of known errors on the serial console</p>
+
+<p>As we have reocurring problems that can be easily detected on serial level we have decided to detect and show them in opneQA to ease up review and where possible only softfail to not lose the whole test suite</p>
+
+<h2 id="create_list_of_serial_failures">create_list_of_serial_failures</h2>
+
+<p>Returns the list of known bug patterns on the serial logs <code>my $list = create_list_of_serial_failures();</code> This will be used in main.pm to initialize the backend with that list: <code>$testapi::distri-</code>set_expected_serial_failures($list);&gt;</p>
+
+<p>To add a known bug simply copy and adapt the following line: <code>push @$serial_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39; }&gt;</p>
+
+<h2 id="create_list_of_autoinst_failures">create_list_of_autoinst_failures</h2>
+
+<p>To add a known bug simply copy and adapt the following line: <code>push @$autoinst_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39; };&gt; type=soft will force the testmodule result to softfail type=hard will just emit a soft fail message but the module will do a normal fail</p>
+
+<h2 id="create_list_of_journal_failures">create_list_of_journal_failures</h2>
+
+<p>To add a known bug simply copy and adapt the following line: <code>push @$journal_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39; };&gt; type=soft will force the testmodule result to softfail type=hard will just emit a soft fail message but the module will do a normal fail</p>
+
+<h2 id="upload_journal">upload_journal</h2>
+
+<p>Checks the journal for known patterns defined in $journal_failures Do not touch unless you know what you&#39;re doing</p>
+
+
+</body>
+
+</html>
+
+

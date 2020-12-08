@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/filesystem_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#str_to_mb">str_to_mb</a></li>
+      <li><a href="#parted_print">parted_print</a></li>
+      <li><a href="#partition_num_by_start_end">partition_num_by_start_end</a></li>
+      <li><a href="#partition_num_by_type">partition_num_by_type</a></li>
+      <li><a href="#free_space">free_space</a></li>
+      <li><a href="#mountpoint_to_partition">mountpoint_to_partition</a></li>
+      <li><a href="#partition_table">partition_table</a></li>
+      <li><a href="#create_partition">create_partition</a></li>
+      <li><a href="#remove_partition">remove_partition</a></li>
+      <li><a href="#format_partition">format_partition</a></li>
+      <li><a href="#df_command">df_command</a></li>
+      <li><a href="#get_partition_size">get_partition_size</a></li>
+      <li><a href="#get_used_partition_space">get_used_partition_space</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/filesystem_utils.pm</h1>
+
+<h2 id="str_to_mb">str_to_mb</h2>
+
+<p>Format number and unit from KB, MB, GB, TB to MB</p>
+
+<h2 id="parted_print">parted_print</h2>
+
+<p>Print dev partition info by MB</p>
+
+<h2 id="partition_num_by_start_end">partition_num_by_start_end</h2>
+
+<p>Get partition number by given device partition start and end</p>
+
+<h2 id="partition_num_by_type">partition_num_by_type</h2>
+
+<p>Get the first parition number by given device and partition/FS type. e.g. extended, xfs Return -1 when not find</p>
+
+<h2 id="free_space">free_space</h2>
+
+<p>Get all information (start, end, size) about the bigest free space Return a hash contain start, end and size</p>
+
+<h2 id="mountpoint_to_partition">mountpoint_to_partition</h2>
+
+<p>Get partition by mountpoint, e.g. give /home get /dev/sda3</p>
+
+<h2 id="partition_table">partition_table</h2>
+
+<p>Get partition table information by giving device</p>
+
+<h2 id="create_partition">create_partition</h2>
+
+<p>Create a new partition by giving device, partition type and partition size part_type (extended|logical|primary)</p>
+
+<h2 id="remove_partition">remove_partition</h2>
+
+<p>Remove a partition by given partition name, e.g /dev/sdb5</p>
+
+<h2 id="format_partition">format_partition</h2>
+
+<p>Format partition to target filesystem</p>
+
+<h2 id="df_command">df_command</h2>
+
+<p>Returns the value of the &quot;df -h&quot; output in given column, for a given partition</p>
+
+<pre><code>  df_command([partition=&gt;$partition , column=&gt; $column])</code></pre>
+
+<h2 id="get_partition_size">get_partition_size</h2>
+
+<p>Return the value of the defined partition size</p>
+
+<pre><code>  get_partition_size($partition)</code></pre>
+
+<h2 id="get_used_partition_space">get_used_partition_space</h2>
+
+<p>Returns the value of used space of the defined partition</p>
+
+<pre><code>  get_used_partition_space($partition)</code></pre>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/suseconnect_register.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#suseconnect_register">suseconnect_register</a>
+    <ul>
+      <li><a href="#suseconnect_registration">suseconnect_registration</a></li>
+      <li><a href="#command_register">command_register</a></li>
+      <li><a href="#assert_module">assert_module</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/suseconnect_register.pm</h1>
+
+<h1 id="suseconnect_register">suseconnect_register</h1>
+
+<p>Register base product &amp; extensions with SUSEConnect</p>
+
+<h2 id="suseconnect_registration">suseconnect_registration</h2>
+
+<pre><code> suseconnect_registration();</code></pre>
+
+<p>Register base prodcut and extensions without reg code</p>
+
+<h2 id="command_register">command_register</h2>
+
+<pre><code> command_register($version, $addon, $addon_regcode);</code></pre>
+
+<p>Register sles and it&#39;s extension with or without reg code. The variables used for registion are product version <code>$version</code>, extension name <code>$addon</code> and it&#39;s extension registration code <code>$addon_regcode</code>.</p>
+
+<p>Precompile regexes, handle zdup migration and resolve potential conflict by zypper for extension or just register a bare system</p>
+
+<h2 id="assert_module">assert_module</h2>
+
+<pre><code> assert_module();</code></pre>
+
+<p>check there are modules in the addon list</p>
+
+
+</body>
+
+</html>
+
+

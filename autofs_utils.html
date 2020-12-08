@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/autofs_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#autofs_utils">autofs_utils</a>
+    <ul>
+      <li><a href="#setup_autofs_server">setup_autofs_server</a></li>
+      <li><a href="#check_autofs_service">check_autofs_service</a></li>
+      <li><a href="#install_service">install_service</a></li>
+      <li><a href="#enable_service">enable_service</a></li>
+      <li><a href="#start_service">start_service</a></li>
+      <li><a href="#check_service">check_service</a></li>
+      <li><a href="#configure_service">configure_service</a></li>
+      <li><a href="#check_function">check_function</a></li>
+      <li><a href="#do_cleanup">do_cleanup</a></li>
+      <li><a href="#full_autofs_check">full_autofs_check</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/autofs_utils.pm</h1>
+
+<h1 id="autofs_utils">autofs_utils</h1>
+
+<p><code>autofs_utils</code> - Functions for setup autofs server and check autofs service</p>
+
+<h2 id="setup_autofs_server">setup_autofs_server</h2>
+
+<pre><code> setup_autofs_server([autofs_map_file =&gt; $autofs_map_file], [autofs_conf_file =&gt; $autofs_conf_file], [test_mount_dir =&gt; $test_mount_dir], [test_conf_file =&gt; $test_conf_file], [test_conf_file_content =&gt; $test_conf_file_content]);</code></pre>
+
+<p>Set up an autofs server by using scripts</p>
+
+<h2 id="check_autofs_service">check_autofs_service</h2>
+
+<pre><code> check_autofs_service();</code></pre>
+
+<p>Check autofs service by starting and stopping service</p>
+
+<h2 id="install_service">install_service</h2>
+
+<pre><code> install_service();</code></pre>
+
+<p>Install autofs package</p>
+
+<h2 id="enable_service">enable_service</h2>
+
+<pre><code> enable_service();</code></pre>
+
+<p>Enable service autofs</p>
+
+<h2 id="start_service">start_service</h2>
+
+<pre><code> install_service();</code></pre>
+
+<p>Start service autofs</p>
+
+<h2 id="check_service">check_service</h2>
+
+<pre><code> check_service();</code></pre>
+
+<p>Check service autofs</p>
+
+<h2 id="configure_service">configure_service</h2>
+
+<pre><code> configure_service([$stage]);</code></pre>
+
+<p>Configure service autofs by assert_script_run, check and restart autofs.</p>
+
+<p>The argument <code>$stage</code> has the value <code>function</code>, some iso and autofs related rpms will get installed for sle15+ and jeos. It is optional and will be default to an empty string. Also <code>check_autofs_service()</code> will be called.</p>
+
+<h2 id="check_function">check_function</h2>
+
+<pre><code> check_function();</code></pre>
+
+<p>Check iso which is mounted to test directory</p>
+
+<h2 id="do_cleanup">do_cleanup</h2>
+
+<pre><code> do_cleanup();</code></pre>
+
+<p>Save files into <code>$autofs_conf_file</code>, restart autofs and clean up files</p>
+
+<h2 id="full_autofs_check">full_autofs_check</h2>
+
+<pre><code> full_autofs_check([$stage]);</code></pre>
+
+<p>Run checks of autofs by call following functions:</p>
+
+<ul>
+
+<li><p>install_service();</p>
+
+</li>
+<li><p>enable_service();</p>
+
+</li>
+<li><p>start_service();</p>
+
+</li>
+<li><p>configure_service();</p>
+
+</li>
+<li><p>check_service();</p>
+
+</li>
+<li><p>check_function();</p>
+
+</li>
+</ul>
+
+
+</body>
+
+</html>
+
+

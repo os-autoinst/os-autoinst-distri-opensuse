@@ -1,0 +1,144 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/susedistribution.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SUSEDISTRIBUTION">SUSEDISTRIBUTION</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#handle_password_prompt">handle_password_prompt</a></li>
+      <li><a href="#init">init</a></li>
+      <li><a href="#init_cmd">init_cmd</a></li>
+      <li><a href="#init_desktop_runner">init_desktop_runner</a></li>
+      <li><a href="#x11_start_program">x11_start_program</a></li>
+      <li><a href="#ensure_installed">ensure_installed</a></li>
+      <li><a href="#script_sudo">script_sudo</a></li>
+      <li><a href="#set_standard_prompt">set_standard_prompt</a></li>
+      <li><a href="#become_root">become_root</a></li>
+      <li><a href="#init_consoles">init_consoles</a></li>
+      <li><a href="#ensure_user">ensure_user</a></li>
+      <li><a href="#hyperv_console_switch">hyperv_console_switch</a></li>
+      <li><a href="#console_nr">console_nr</a></li>
+      <li><a href="#activate_console">activate_console</a></li>
+      <li><a href="#console_selected">console_selected</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/susedistribution.pm</h1>
+
+<h1 id="SUSEDISTRIBUTION">SUSEDISTRIBUTION</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Base class implementation of distribution class necessary for testapi</p>
+
+<h2 id="handle_password_prompt">handle_password_prompt</h2>
+
+<p>Types the password in a password prompt</p>
+
+<h2 id="init">init</h2>
+
+<p>TODO needs to be documented</p>
+
+<h2 id="init_cmd">init_cmd</h2>
+
+<p>TODO needs to be documented</p>
+
+<h2 id="init_desktop_runner">init_desktop_runner</h2>
+
+<p>Starts the desktop runner for <code>x11_start_program</code></p>
+
+<h2 id="x11_start_program">x11_start_program</h2>
+
+<pre><code>  x11_start_program($program [, timeout =&gt; $timeout ] [, no_wait =&gt; 0|1 ] [, valid =&gt; 0|1 [, target_match =&gt; $target_match ] [, match_timeout =&gt; $match_timeout ] [, match_no_wait =&gt; 0|1 ] [, match_typed =&gt; 0|1 ]]);</code></pre>
+
+<p>Start the program <code>$program</code> in an X11 session using the <i>desktop-runner</i> and looking for a target screen to match.</p>
+
+<p>The timeout for <code>check_screen</code> for <i>desktop-runner</i> can be configured with optional <code>$timeout</code>. Specify <code>no_wait</code> to skip the <code>wait_still_screen</code> after the typing of <code>$program</code>. Overwrite <code>valid</code> with a false value to exit after <i>desktop-runner</i> executed without checking for the result. <code>valid=1</code> is especially useful when the used <i>desktop-runner</i> has an auto-completion feature which can cause high load while typing potentially causing the subsequent <code>ret</code> to fail. By default <code>x11_start_program</code> looks for a screen tagged with the value of <code>$program</code> with <code>assert_screen</code> after executing the command to launch <code>$program</code>. The tag(s) can be customized with the parameter <code>$target_match</code>. <code>$match_timeout</code> can be specified to configure the timeout on that internal <code>assert_screen</code>. Specify <code>match_no_wait</code> to forward the <code>no_wait</code> option to the internal <code>assert_screen</code>. If user wants to assert that command was typed correctly in the <i>desktop-runner</i> she can pass needle tag using <code>match_typed</code> parameter. This will check typed text and retry once in case of typos or unexpected results (see poo#25972).</p>
+
+<p>The combination of <code>no_wait</code> with <code>valid</code> and <code>target_match</code> is the preferred solution for the most efficient approach by saving time within tests.</p>
+
+<p>In case of KDE plasma krunner provides a suggestion list which can take a bit of time to be computed therefore the logic is slightly different there, for example longer waiting time, looking for the computed suggestions list before accepting and a default timeout for the target match of 90 seconds versus just using the default of <code>assert_screen</code> itself. For other desktop environments we keep the old check for the runner border.</p>
+
+<p>This method is overwriting the base method in os-autoinst.</p>
+
+<h2 id="ensure_installed">ensure_installed</h2>
+
+<p>Ensure that a package is installed</p>
+
+<h2 id="script_sudo">script_sudo</h2>
+
+<p>Execute the given command as sudo</p>
+
+<h2 id="set_standard_prompt">set_standard_prompt</h2>
+
+<pre><code>  set_standard_prompt([$user] [[, os_type] [, skip_set_standard_prompt]])</code></pre>
+
+<p><code>$user</code> and <code>os_type</code> affect prompt sign. <code>skip_set_standard_prompt</code> options skip the entire routine.</p>
+
+<h2 id="become_root">become_root</h2>
+
+<p>Log in as root in the current console</p>
+
+<h2 id="init_consoles">init_consoles</h2>
+
+<p>Initialize the consoles needed during our tests</p>
+
+<h2 id="ensure_user">ensure_user</h2>
+
+<p>Make sure the right user is logged in, e.g. when using remote shells</p>
+
+<h2 id="hyperv_console_switch">hyperv_console_switch</h2>
+
+<pre><code>    hyperv_console_switch($console, $nr)</code></pre>
+
+<p>On Hyper-V console switch from one console to another is not possible with the general &#39;Ctrl-Alt-Fx&#39; binding as the combination is lost somewhere in VNC-to-RDP translation. For VT-to-VT switch we use &#39;Alt-Fx&#39; binding, however this is not enough for X11-to-VT switch, which requires the missing &#39;Ctrl&#39;. However, in X11 we can use `chvt` command to do the switch for us.</p>
+
+<p>This is expected to be executed either from activate_console(), or from console_selected(), test variable <code>CONSOLE_JUST_ACTIVATED</code> works as a mutually exclusive lock.</p>
+
+<p>Requires <code>console</code> name, an actual VT number <code>nr</code> is optional.</p>
+
+<h2 id="console_nr">console_nr</h2>
+
+<pre><code>    console_nr($console)</code></pre>
+
+<p>Return console VT number with regards to it&#39;s name.</p>
+
+<h2 id="activate_console">activate_console</h2>
+
+<pre><code>  activate_console($console [, [ensure_tty_selected =&gt; 0|1] [, skip_set_standard_prompt =&gt; 0|1] [, skip_setterm =&gt; 0|1] [, timeout =&gt; $timeout]])</code></pre>
+
+<p>Callback whenever a console is selected for the first time. Accepts arguments provided to select_console().</p>
+
+<p><code>skip_set_standard_prompt</code> and <code>skip_setterm</code> arguments skip respective routines, e.g. if you want select_console() without addition console setup. Then, at some point, you should set it on your own.</p>
+
+<p>Option <code>ensure_tty_selected</code> ensures TTY is selected.</p>
+
+<p><code>timeout</code> is set on the internal <code>assert_screen</code> call and can be set to configure a timeout value different than default.</p>
+
+<h2 id="console_selected">console_selected</h2>
+
+<pre><code>    console_selected($console [, await_console =&gt; $await_console] [, tags =&gt; $tags ] [, ignore =&gt; $ignore ] [, timeout =&gt; $timeout ]);</code></pre>
+
+<p>Overrides <code>select_console</code> callback from <code>testapi</code>. Waits for console by calling assert_screen on <code>tags</code>, by default the name of the selected console.</p>
+
+<p><code>await_console</code> is set to 1 by default. Can be set to 0 to skip the check for the console. Call for example <code>select_console(&#39;root-console&#39;, await_console =</code> 0)&gt; if there should be no checking for the console to be shown. Useful when the check should or must be test module specific.</p>
+
+<p><code>ignore</code> can be overridden to not check on certain consoles. By default the known uncheckable consoles are already ignored.</p>
+
+<p><code>timeout</code> is set on the internal <code>assert_screen</code> call and can be set to configure a timeout value different than default.</p>
+
+
+</body>
+
+</html>
+
+

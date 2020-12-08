@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/registration.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#scc_version">scc_version</a></li>
+      <li><a href="#add_suseconnect_product">add_suseconnect_product</a></li>
+      <li><a href="#ssh_add_suseconnect_product">ssh_add_suseconnect_product</a></li>
+      <li><a href="#remove_suseconnect_product">remove_suseconnect_product</a></li>
+      <li><a href="#cleanup_registration">cleanup_registration</a></li>
+      <li><a href="#register_product">register_product</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/registration.pm</h1>
+
+<h2 id="scc_version">scc_version</h2>
+
+<pre><code>    scc_version([$version]);</code></pre>
+
+<p>Helper for parsing SLE RC version into integer. It replaces SLE version in format X-SPY into X.Y.</p>
+
+<h2 id="add_suseconnect_product">add_suseconnect_product</h2>
+
+<pre><code>    add_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
+
+<p>Wrapper for SUSEConnect -p $name.</p>
+
+<h2 id="ssh_add_suseconnect_product">ssh_add_suseconnect_product</h2>
+
+<pre><code>    ssh_add_suseconnect_product($remote, $name, [$version, [$arch, [$params, [$timeout, [$retries, [$delay]]]]]]);</code></pre>
+
+<p>Wrapper for SUSEConnect -p $name over ssh.</p>
+
+<h2 id="remove_suseconnect_product">remove_suseconnect_product</h2>
+
+<pre><code>    remove_suseconnect_product($name, [$version, [$arch, [$params]]]);</code></pre>
+
+<p>Wrapper for SUSEConnect -d $name.</p>
+
+<h2 id="cleanup_registration">cleanup_registration</h2>
+
+<pre><code>    cleanup_registration();</code></pre>
+
+<p>Wrapper for SUSEConnect --cleanup. Resets proxy SCC url if job has SCC_URL variable set.</p>
+
+<h2 id="register_product">register_product</h2>
+
+<pre><code>    register_product();</code></pre>
+
+<p>Wrapper for SUSEConnect -r &lt;regcode&gt;. Requires SCC_REGCODE variable. SUSEConnect --url with SMT/RMT server.</p>
+
+
+</body>
+
+</html>
+
+

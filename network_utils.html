@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/network_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#network_utils">network_utils</a>
+    <ul>
+      <li><a href="#setup_static_network">setup_static_network</a></li>
+      <li><a href="#iface">iface</a></li>
+      <li><a href="#can_upload_logs">can_upload_logs</a></li>
+      <li><a href="#recover_network">recover_network</a></li>
+      <li><a href="#ifc_exists">ifc_exists</a></li>
+      <li><a href="#ifc_is_up">ifc_is_up</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/network_utils.pm</h1>
+
+<h1 id="network_utils">network_utils</h1>
+
+<p>Functional methods to operate on network</p>
+
+<h2 id="setup_static_network">setup_static_network</h2>
+
+<pre><code> setup_static_network(ip =&gt; &#39;10.0.2.15&#39;, gw =&gt; &#39;10.0.2.1&#39;);</code></pre>
+
+<p>Configure static IP on SUT with setting up default GW. Also doing test ping to 10.0.2.2 to check that network is alive Set DNS server defined via required variable <code>STATIC_DNS_SERVER</code></p>
+
+<h2 id="iface">iface</h2>
+
+<pre><code> iface([$quantity]);</code></pre>
+
+<p>Return first NIC which is not loopback</p>
+
+<h2 id="can_upload_logs">can_upload_logs</h2>
+
+<pre><code> can_upload_logs([$gw]);</code></pre>
+
+<p>Returns if can ping worker host gateway</p>
+
+<h2 id="recover_network">recover_network</h2>
+
+<pre><code> recover_network([ip =&gt; $ip] [, gw =&gt; $gw]);</code></pre>
+
+<p>Recover network with static config if is feasible, returns if can ping GW. Main use case is post_fail_hook, to be able to upload logs.</p>
+
+<p>Accepts following parameters :</p>
+
+<p><code>ip</code> =&gt; allowing to specify certain IP which would be used for recovery in case skiped &#39;10.0.2.15/24&#39; will be used as fallback.</p>
+
+<p><code>gw</code> =&gt; allowing to specify default gateway. Fallback to worker IP in case nothing specified.</p>
+
+<h2 id="ifc_exists">ifc_exists</h2>
+
+<pre><code> ifc_exists([$ifc]);</code></pre>
+
+<p>Return if ifconfig exists.</p>
+
+<h2 id="ifc_is_up">ifc_is_up</h2>
+
+<pre><code> ifc_is_up([$ifc]);</code></pre>
+
+<p>Return only if network status is UP.</p>
+
+
+</body>
+
+</html>
+
+

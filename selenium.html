@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/selenium.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#openQA---selenium-webdriver-support">openQA - selenium webdriver support</a></li>
+</ul><h1>lib/selenium.pm</h1>
+
+<h1 id="openQA---selenium-webdriver-support">openQA - selenium webdriver support</h1>
+
+<p>This Selenium module exports subroutines helpers to integrate <code>Selenium::Remote::Driver</code> into openQA tests</p>
+
+<p>Note: Selenium module works only when openvswitch networking is used!</p>
+
+<p>Chromedriver and chromium are installed on SUT, firewall is enabled. OpenQA worker then initiate connection to SUT and returns <code>Selenium::Remote::Driver</code> to be used in tests.</p>
+
+<p>Usage:</p>
+
+<pre><code>  use selenium;
+  add_chromium_repos;   # for SLES12
+
+  install_chromium;
+  enable_selenium_port;
+
+  my $driver = selenium_driver;
+  ...</code></pre>
+
+
+</body>
+
+</html>
+
+

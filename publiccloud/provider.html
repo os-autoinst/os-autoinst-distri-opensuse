@@ -1,0 +1,160 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/publiccloud/provider.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#init">init</a></li>
+      <li><a href="#conv_openqa_tf_name">conv_openqa_tf_name</a></li>
+      <li><a href="#find_img">find_img</a></li>
+      <li><a href="#upload_image">upload_image</a></li>
+      <li><a href="#img_proof">img_proof</a></li>
+      <li><a href="#parse_img_proof_output">parse_img_proof_output</a></li>
+      <li><a href="#create_ssh_key">create_ssh_key</a></li>
+      <li><a href="#run_img_proof">run_img_proof</a></li>
+      <li><a href="#get_image_id">get_image_id</a></li>
+      <li><a href="#create_instance">create_instance</a></li>
+      <li><a href="#create_instances">create_instances</a></li>
+      <li><a href="#on_terraform_apply_timeout">on_terraform_apply_timeout</a></li>
+      <li><a href="#on_terraform_destroy_timeout">on_terraform_destroy_timeout</a></li>
+      <li><a href="#terraform_apply">terraform_apply</a></li>
+      <li><a href="#terraform_destroy">terraform_destroy</a></li>
+      <li><a href="#vault_login">__vault_login</a></li>
+      <li><a href="#vault_login1">vault_login</a></li>
+      <li><a href="#vault_api">__vault_api</a></li>
+      <li><a href="#vault_api1">vault_api</a></li>
+      <li><a href="#vault_get_secrets">vault_get_secrets</a></li>
+      <li><a href="#vault_revoke">vault_revoke</a></li>
+      <li><a href="#cleanup">cleanup</a></li>
+      <li><a href="#stop_instance">stop_instance</a></li>
+      <li><a href="#start_instance">start_instance</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/publiccloud/provider.pm</h1>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="init">init</h2>
+
+<p>Needs provider specific credentials, e.g. key_id, key_secret, region.</p>
+
+<h2 id="conv_openqa_tf_name">conv_openqa_tf_name</h2>
+
+<p>Does the conversion between <code>PUBLIC_CLOUD_PROVIDER</code> and Terraform providers name.</p>
+
+<h2 id="find_img">find_img</h2>
+
+<p>Retrieves the image-id by given image <code>name</code>.</p>
+
+<h2 id="upload_image">upload_image</h2>
+
+<p>Upload a image to the CSP. Required parameter is the location of the <code>image</code> file. UEFI images are supported by giving the optional parameter <code>type</code> = &#39;uefi&#39;. This is only supported on GCE at the momment.</p>
+
+<p>Retrieves the image-id after upload or die.</p>
+
+<h2 id="img_proof">img_proof</h2>
+
+<pre><code>  img_proof(instance_type =&gt; &lt;string&gt;, cleanup =&gt; &lt;bool&gt;, tests =&gt; &lt;string&gt;, timeout =&gt; &lt;seconds&gt;, results_dir =&gt; &lt;string&gt;, distro =&gt; &lt;string&gt;);</code></pre>
+
+<p>Call img-proof tool and retrieves a hashref as result. Do not die if img-proof call exit with error. $result_hash = { instance =&gt; &lt;publiccloud:instance&gt;, # instance object logfile =&gt; &lt;string&gt;, # the pytest logfile results =&gt; &lt;string&gt;, # json results file tests =&gt; &lt;int&gt;, # total number of tests pass =&gt; &lt;int&gt;, # successful tests skip =&gt; &lt;int&gt;, # skipped tests fail =&gt; &lt;int&gt;, # number of failed tests error =&gt; &lt;int&gt;, # number of errors };</p>
+
+<h2 id="parse_img_proof_output">parse_img_proof_output</h2>
+
+<p>Parse the output from img-proof command and retrieves instance-id, ip and logfile names.</p>
+
+<h2 id="create_ssh_key">create_ssh_key</h2>
+
+<p>Creates an ssh keypair in a given file path by $args{ssh_private_key_file}</p>
+
+<h2 id="run_img_proof">run_img_proof</h2>
+
+<p>called by childs within img-proof function</p>
+
+<h2 id="get_image_id">get_image_id</h2>
+
+<pre><code>    get_image_id([$img_url]);</code></pre>
+
+<p>Retrieves the CSP image id if exists, otherwise exception is thrown. The given <code>$img_url</code> is optional, if not present it retrieves from PUBLIC_CLOUD_IMAGE_LOCATION. If PUBLIC_CLOUD_IMAGE_ID is set, then this value will be used</p>
+
+<h2 id="create_instance">create_instance</h2>
+
+<p>Creates an instance on the public cloud provider. Retrieves a publiccloud::instance object.</p>
+
+<p><code>image</code> defines the image_id to create the instance. <code>instance_type</code> defines the flavor of the instance. If not specified, it will load it from PUBLIC_CLOUD_INSTANCE_TYPE.</p>
+
+<h2 id="create_instances">create_instances</h2>
+
+<p>Creates multiple instances on the public cloud provider. Retrieves an array of publiccloud::instance objects.</p>
+
+<p><code>image</code> defines the image_id to create the instance. <code>instance_type</code> defines the flavor of the instance. If not specified, it will load it from PUBLIC_CLOUD_INSTANCE_TYPE.</p>
+
+<h2 id="on_terraform_apply_timeout">on_terraform_apply_timeout</h2>
+
+<p>This method can be overwritten by child classes to do some special cleanup task if &#39;apply&#39; fails. Terraform was already terminated using the QUIT signal and openqa has a valid shell. The working directory is always the terraform directory, where the statefile and the *.tf is placed.</p>
+
+<h2 id="on_terraform_destroy_timeout">on_terraform_destroy_timeout</h2>
+
+<p>This method can be overwritten by child classes to do some special cleanup task if &#39;destroy&#39; fails. Terraform was already terminated using the QUIT signal and openqa has a valid shell. The working directory is always the terraform directory, where the statefile and the *.tf is placed.</p>
+
+<h2 id="terraform_apply">terraform_apply</h2>
+
+<p>Calls terraform tool and applies the corresponding configuration .tf file</p>
+
+<h2 id="terraform_destroy">terraform_destroy</h2>
+
+<p>Destroys the current terraform deployment</p>
+
+<h2 id="vault_login">__vault_login</h2>
+
+<p>Login to vault using <code>_SECRET_PUBLIC_CLOUD_REST_USER</code> and <code>_SECRET_PUBLIC_CLOUD_REST_PW</code>. The retrieved VAULT_TOKEN is stored in this instance and used for further <code>publiccloud::provider::vault_api()</code> calls.</p>
+
+<h2 id="vault_login1">vault_login</h2>
+
+<p>Wrapper arround <code>&lt;$self-</code>vault_login()&gt;&gt; to have retry capability.</p>
+
+<h2 id="vault_api">__vault_api</h2>
+
+<p>Invoke a vault API call. It use _SECRET_PUBLIC_CLOUD_REST_URL as base url. Depending on the method (get|post) you can pass additional data as json.</p>
+
+<h2 id="vault_api1">vault_api</h2>
+
+<p>Wrapper around <code>&lt;$self-</code>vault_api()&gt;&gt; to get retry capability.</p>
+
+<h2 id="vault_get_secrets">vault_get_secrets</h2>
+
+<pre><code>  my $data = $csp-&gt;vault_get_secrets(&#39;/azure/creds/openqa-role&#39;)</code></pre>
+
+<p>This is a wrapper around <code>vault_api()</code> to retrieve secrets from aws, gce or azure secret engine. It prepend <code>&#39;/v1/&#39; + $NAMESPACE</code> to the given path before sending the request. It stores lease_id and also adjust the token-live-time.</p>
+
+<h2 id="vault_revoke">vault_revoke</h2>
+
+<p>Revoke a previous retrieved credential</p>
+
+<h2 id="cleanup">cleanup</h2>
+
+<p>This method is called called after each test on failure or success.</p>
+
+<h2 id="stop_instance">stop_instance</h2>
+
+<p>This function implements a provider specifc stop call for a given instance.</p>
+
+<h2 id="start_instance">start_instance</h2>
+
+<p>This function implements a provider specifc start call for a given instance.</p>
+
+
+</body>
+
+</html>
+
+

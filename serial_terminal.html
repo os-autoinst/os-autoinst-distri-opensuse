@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/serial_terminal.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#add_serial_console">add_serial_console</a></li>
+      <li><a href="#prepare_serial_console">prepare_serial_console</a></li>
+      <li><a href="#get_login_message">get_login_message</a></li>
+      <li><a href="#login">login</a></li>
+      <li><a href="#download_file">download_file</a></li>
+      <li><a href="#upload_file-upload_file-src-dst-chunk_size-cz-chunk_retry-cr">upload_file upload_file($src, $dst, [, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr]);</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/serial_terminal.pm</h1>
+
+<h2 id="add_serial_console">add_serial_console</h2>
+
+<pre><code>    add_serial_console($console);</code></pre>
+
+<p>Adds $console to /etc/securetty (unless already in file), enables systemd service and start it. It requires selecting root console before.</p>
+
+<h2 id="prepare_serial_console">prepare_serial_console</h2>
+
+<pre><code>    prepare_serial_console();</code></pre>
+
+<p>Wrapper for add_serial_console.</p>
+
+<h2 id="get_login_message">get_login_message</h2>
+
+<pre><code>   get_login_message();</code></pre>
+
+<p>Get login message printed by OS at the end of the boot. Suitable for testing whether boot has been finished:</p>
+
+<p>wait_serial(get_login_message(), 300);</p>
+
+<h2 id="login">login</h2>
+
+<pre><code>   login($user);</code></pre>
+
+<p>Enters root&#39;s name and password to login. Also sets the prompt to something static without ANSI escape sequences (i.e. a single #) and changes the terminal width.</p>
+
+<h2 id="download_file">download_file</h2>
+
+<pre><code>  download_file($src, $dst [, force =&gt; $force][, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr])</code></pre>
+
+<p>Download a file from worker to SUT using the current serial terminal. The file is split into chunks <code>chunk_size</code> and each chunk is verified with checksum. If a chunk fails, the upload will be retried up to <code>chunk_retry</code> times, before giving up. To overwrite destination use <code>force</code>. This function die on any failure.</p>
+
+<h2 id="upload_file-upload_file-src-dst-chunk_size-cz-chunk_retry-cr">upload_file upload_file($src, $dst, [, chunk_size =&gt; $cz][, chunk_retry =&gt; $cr]);</h2>
+
+<p>Upload a file from SUT to the worker using the current serial terminal. The file is parted into chunks <code>chunk_size</code> and each chunk gets is verified with checksum. If a chunk fail we retry it <code>chunk_retry</code> times, before give up. The file is placed in the <code>ulogs/</code> directory of the worker.</p>
+
+<p>This function die on any failure.</p>
+
+
+</body>
+
+</html>
+
+

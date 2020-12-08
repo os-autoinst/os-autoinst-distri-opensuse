@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/publiccloud/azure.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#decode_azure_json">decode_azure_json</a></li>
+      <li><a href="#my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/publiccloud/azure.pm</h1>
+
+<h2 id="decode_azure_json">decode_azure_json</h2>
+
+<pre><code>    my $json_obj = decode_azure_json($str);</code></pre>
+
+<p>Helper function to decode json string, retrieved from <code>az</code>, into a json object. Due to https://github.com/Azure/azure-cli/issues/9903 we need to strip all color codes from that string first.</p>
+
+<h2 id="my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</h2>
+
+<p>Extract resource group and vm name from full instance id which looks like <code>/subscriptions/c011786b-59d7-4817-880c-7cd8a6ca4b19/resourceGroups/openqa-suse-de-1ec3f5a05b7c0712/providers/Microsoft.Compute/virtualMachines/openqa-suse-de-1ec3f5a05b7c0712</code></p>
+
+
+</body>
+
+</html>
+
+

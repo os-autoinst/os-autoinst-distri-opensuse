@@ -1,0 +1,324 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/version_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#VERSION_UTILS">VERSION_UTILS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#is_jeos">is_jeos</a></li>
+      <li><a href="#is_vmware">is_vmware</a></li>
+      <li><a href="#is_krypton_argon">is_krypton_argon</a></li>
+      <li><a href="#is_gnome_next">is_gnome_next</a></li>
+      <li><a href="#is_installcheck">is_installcheck</a></li>
+      <li><a href="#is_rescuesystem">is_rescuesystem</a></li>
+      <li><a href="#is_virtualization_server">is_virtualization_server</a></li>
+      <li><a href="#is_livecd">is_livecd</a></li>
+      <li><a href="#check_version">check_version</a></li>
+      <li><a href="#is_microos-Check-if-distribution-is-SUSE-MicroOS-or-openSUSE-MicroOS-with-optional-filter:-Media-type:-DVD-iso-or-VMX-all-disk-images-Version:-Tumbleweed-15.2-Leap-5.X-6.X-SUSE-Flavor:-DVD-MS-HyperV-XEN-KVM-and-Xen">is_microos Check if distribution is SUSE MicroOS or openSUSE MicroOS with optional filter: Media type: DVD (iso) or VMX (all disk images) Version: Tumbleweed | 15.2 (Leap) | 5.X, 6.X (SUSE) Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..</a></li>
+      <li><a href="#is_tumbleweed">is_tumbleweed</a></li>
+      <li><a href="#is_leap">is_leap</a></li>
+      <li><a href="#is_opensuse">is_opensuse</a></li>
+      <li><a href="#is_sle">is_sle</a></li>
+      <li><a href="#is_transactional">is_transactional</a></li>
+      <li><a href="#is_sles4migration">is_sles4migration</a></li>
+      <li><a href="#is_sles4sap">is_sles4sap</a></li>
+      <li><a href="#is_sles4sap_standard">is_sles4sap_standard</a></li>
+      <li><a href="#is_rt">is_rt</a></li>
+      <li><a href="#is_hpc">is_hpc</a></li>
+      <li><a href="#is_released">is_released</a></li>
+      <li><a href="#is_staging">is_staging</a></li>
+      <li><a href="#is_storage_ng">is_storage_ng</a></li>
+      <li><a href="#is_upgrade">is_upgrade</a></li>
+      <li><a href="#is_sle12_hdd_in_upgrade">is_sle12_hdd_in_upgrade</a></li>
+      <li><a href="#is_desktop_installed">is_desktop_installed</a></li>
+      <li><a href="#is_system_upgrading">is_system_upgrading</a></li>
+      <li><a href="#is_pre15">is_pre15</a></li>
+      <li><a href="#is_aarch64_uefi_boot_hdd">is_aarch64_uefi_boot_hdd</a></li>
+      <li><a href="#is_server">is_server</a></li>
+      <li><a href="#install_this_version">install_this_version</a></li>
+      <li><a href="#install_to_other_at_least">install_to_other_at_least</a></li>
+      <li><a href="#is_using_system_role">is_using_system_role</a></li>
+      <li><a href="#is_using_system_role_first_flow">is_using_system_role_first_flow</a></li>
+      <li><a href="#requires_role_selection">requires_role_selection</a></li>
+      <li><a href="#has_product_selection">has_product_selection</a></li>
+      <li><a href="#has_license_on_welcome_screen">has_license_on_welcome_screen</a></li>
+      <li><a href="#has_license_to_accept">has_license_to_accept</a></li>
+      <li><a href="#uses_qa_net_hardware">uses_qa_net_hardware</a></li>
+      <li><a href="#get_os_release">get_os_release</a></li>
+      <li><a href="#check_os_release">check_os_release</a></li>
+      <li><a href="#is_public_cloud">is_public_cloud</a></li>
+      <li><a href="#is_leap_migration">is_leap_migration</a></li>
+      <li><a href="#has_test_issues">has_test_issues</a></li>
+      <li><a href="#package_version_cmp">package_version_cmp</a></li>
+      <li><a href="#is_quarterly_iso">is_quarterly_iso</a></li>
+    </ul>
+  </li>
+  <li><a href="#POD-ERRORS">POD ERRORS</a></li>
+</ul><h1>lib/version_utils.pm</h1>
+
+<h1 id="VERSION_UTILS">VERSION_UTILS</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Contains all the functions related to version checking</p>
+
+<h2 id="is_jeos">is_jeos</h2>
+
+<p>Returns true if called on jeos</p>
+
+<h2 id="is_vmware">is_vmware</h2>
+
+<p>Returns true if called on vmware</p>
+
+<h2 id="is_krypton_argon">is_krypton_argon</h2>
+
+<p>Returns true if called on krypton or argon</p>
+
+<h2 id="is_gnome_next">is_gnome_next</h2>
+
+<p>Returns true if called on Gnome-Live</p>
+
+<h2 id="is_installcheck">is_installcheck</h2>
+
+<p>Returns true if &#39;INSTALLCHECK&#39; is set</p>
+
+<h2 id="is_rescuesystem">is_rescuesystem</h2>
+
+<p>Returns true if called on a rescue system</p>
+
+<h2 id="is_virtualization_server">is_virtualization_server</h2>
+
+<p>Returns true if called on a virutalization server</p>
+
+<h2 id="is_livecd">is_livecd</h2>
+
+<p>Returns true if executed on a live cd</p>
+
+<h2 id="check_version">check_version</h2>
+
+<p>Usage: check_version(&#39;&gt;15.0&#39;, get_var(&#39;VERSION&#39;), &#39;\d{2}&#39;) Query format: [= &gt; &lt; &gt;= &lt;=] version [+] (Example: &lt;=12-sp3 =12-sp1 &lt;4.0 &gt;=15 3.0+) Check agains: product version to check against - probably get_var(&#39;VERSION&#39;) Regex format: checks query version format (Example: /\d{2}\.\d/)#</p>
+
+<h2 id="is_microos-Check-if-distribution-is-SUSE-MicroOS-or-openSUSE-MicroOS-with-optional-filter:-Media-type:-DVD-iso-or-VMX-all-disk-images-Version:-Tumbleweed-15.2-Leap-5.X-6.X-SUSE-Flavor:-DVD-MS-HyperV-XEN-KVM-and-Xen">is_microos Check if distribution is SUSE MicroOS or openSUSE MicroOS with optional filter: Media type: DVD (iso) or VMX (all disk images) Version: Tumbleweed | 15.2 (Leap) | 5.X, 6.X (SUSE) Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..</h2>
+
+<h2 id="is_tumbleweed">is_tumbleweed</h2>
+
+<p>Returns true if called on tumbleweed</p>
+
+<h2 id="is_leap">is_leap</h2>
+
+<p>Check if distribution is Leap with optional filter for: Version: &lt;=42.2 =15.0 &gt;15.0 &gt;=42.3 15.0+</p>
+
+<h2 id="is_opensuse">is_opensuse</h2>
+
+<p>Returns true if called on opensuse</p>
+
+<h2 id="is_sle">is_sle</h2>
+
+<p>Check if distribution is SLE with optional filter for: Version: &lt;=12-sp3 =12-sp1 &gt;11-sp1 &gt;=15 15+ (&gt;=15 and 15+ are equivalent)</p>
+
+<h2 id="is_transactional">is_transactional</h2>
+
+<p>Returns true if called on a transactional server</p>
+
+<h2 id="is_sles4migration">is_sles4migration</h2>
+
+<p>Returns true if called in a migration scenario</p>
+
+<h2 id="is_sles4sap">is_sles4sap</h2>
+
+<p>Returns true if called in a SAP test</p>
+
+<h2 id="is_sles4sap_standard">is_sles4sap_standard</h2>
+
+<p>Returns true if called in an SAP standard test</p>
+
+<h2 id="is_rt">is_rt</h2>
+
+<p>Returns true if called on a real time system</p>
+
+<h2 id="is_hpc">is_hpc</h2>
+
+<p>Returns true if called in an HPC test</p>
+
+<h2 id="is_released">is_released</h2>
+
+<p>Returns true if called on a released build</p>
+
+<h2 id="is_staging">is_staging</h2>
+
+<p>Returns true if called in staging</p>
+
+<h2 id="is_storage_ng">is_storage_ng</h2>
+
+<p>Returns true if storage_ng is used</p>
+
+<h2 id="is_upgrade">is_upgrade</h2>
+
+<p>Returns true in upgrade scenarios</p>
+
+<h2 id="is_sle12_hdd_in_upgrade">is_sle12_hdd_in_upgrade</h2>
+
+<p>Returns true if called in SLES12 upgrade scenario</p>
+
+<h2 id="is_desktop_installed">is_desktop_installed</h2>
+
+<p>Returns true if a desktop is installed</p>
+
+<h2 id="is_system_upgrading">is_system_upgrading</h2>
+
+<p>#TODO this should be documented</p>
+
+<h2 id="is_pre15">is_pre15</h2>
+
+<p>Returns if system is older than SLE or Leap 15</p>
+
+<h2 id="is_aarch64_uefi_boot_hdd">is_aarch64_uefi_boot_hdd</h2>
+
+<p>Returns true if system is aarch64 with uefi and shall boot an hdd image</p>
+
+<h2 id="is_server">is_server</h2>
+
+<p>Returns true if executed on a server pattern, SLES4SAP or SLES4MIGRATION</p>
+
+<h2 id="install_this_version">install_this_version</h2>
+
+<p>Returns true if INSTALL_TO_OTHERS is not set</p>
+
+<h2 id="install_to_other_at_least">install_to_other_at_least</h2>
+
+<p>Check the real version of the test machine is at least some value, rather than the VERSION variable It is for version checking for tests with variable &quot;INSTALL_TO_OTHERS&quot;.</p>
+
+<h2 id="is_using_system_role">is_using_system_role</h2>
+
+<p>system_role selection during installation was added as a new feature since sles12sp2 so system_role.pm should be loaded for all tests that actually install to versions over sles12sp2 no matter with or without INSTALL_TO_OTHERS tag On SLE 15 SP0 we unconditionally have system roles screen SLE 15 SP1: * Has system roles only if more than one is available, meaning either registered or with all packages DVD; * RT Product has only one (minimal) role. On microos, leap 15.1+, TW we have it instead of desktop selection screen</p>
+
+<h2 id="is_using_system_role_first_flow">is_using_system_role_first_flow</h2>
+
+<p>On leap 15.0 we have desktop selection first, and everywhere, where we have system roles</p>
+
+<h2 id="requires_role_selection">requires_role_selection</h2>
+
+<p>If there is only one role, there is no selection offered</p>
+
+<h2 id="has_product_selection">has_product_selection</h2>
+
+<pre><code>    has_product_selection;</code></pre>
+
+<p>Identify cases when Installer has to show Product Selection screen.</p>
+
+<p>Starting with SLE 15, all products are distributed using one medium, and Product to install has to be chosen explicitly.</p>
+
+<p>Though, there are some exceptions (like s390x on Sle15 SP0) when there is only one Product, so that License agreement is shown directly, skipping the Product selection step. Also, Product Selection screen is not shown during upgrade. on SLE 15+, zVM preparation test shouldn&#39;t show Product Selection screen.</p>
+
+<p>Returns true (1) if Product Selection step has to be shown for the certain configuration, otherwise returns false (0).</p>
+
+<h2 id="has_license_on_welcome_screen">has_license_on_welcome_screen</h2>
+
+<pre><code>    has_license_on_welcome_screen;</code></pre>
+
+<p>Identify cases when License Agreement has to be shown on Welcome screen and should be accepted there.</p>
+
+<p>Returns true (1) if License Agreement has to be shown on Welcome screen for the certain configuration, otherwise returns false (0).</p>
+
+<h2 id="has_license_to_accept">has_license_to_accept</h2>
+
+<p>Returns true if the system has a license that needs to be accepted</p>
+
+<h2 id="uses_qa_net_hardware">uses_qa_net_hardware</h2>
+
+<p>Returns true if the SUT uses qa net hardware</p>
+
+<h2 id="get_os_release">get_os_release</h2>
+
+<p>Get SLE release version, service pack and distribution name info from any running sles os without any dependencies It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine The file can also be placed anywhere as long as it can be reached somehow by its absolute file path, which should be passed in as the second argument os_release_file, for example, &quot;/etc/os-release&quot; At the same time, connection method to the entity in which the file reside should be passed in as the firt argument go_to_target, for example, &quot;ssh root at name or ip address&quot; or &quot;way to download the file&quot; For use only on locahost, no argument needs to be specified</p>
+
+<h2 id="check_os_release">check_os_release</h2>
+
+<p>Identify running os without any dependencies parsing the <i>/etc/os-release</i>.</p>
+
+<dl>
+
+<dt id="distri_name"><code>distri_name</code></dt>
+<dd>
+
+<p>The expected distribution name to compare.</p>
+
+</dd>
+<dt id="line"><code>line</code></dt>
+<dd>
+
+<p>The line we&#39;ll be parsing and checking.</p>
+
+</dd>
+<dt id="go_to_target"><code>go_to_target</code></dt>
+<dd>
+
+<p>Command connecting to the SUT</p>
+
+</dd>
+<dt id="os_release_file"><code>os_release_file</code></dt>
+<dd>
+
+<p>The full path to the Operating system identification file. Default to <i>/etc/os-release</i>.</p>
+
+<p>Returns 1 (true) if the ID_LIKE variable contains <code>distri_name</code>.</p>
+
+</dd>
+</dl>
+
+<h2 id="is_public_cloud">is_public_cloud</h2>
+
+<p>Returns true if PUBLIC_CLOUD is set to 1</p>
+
+<h2 id="is_leap_migration">is_leap_migration</h2>
+
+<p>Returns true if called in a leap to sle migration scenario</p>
+
+<h2 id="has_test_issues">has_test_issues</h2>
+
+<p>Returns true if test issues are present (i.e. is update tests are present)</p>
+
+<h2 id="package_version_cmp">package_version_cmp</h2>
+
+<p>Compare two SUSE-style version strings. Returns an integer that is less than, equal to, or greater than zero if the first argument is less than, equal to, or greater than the second one, respectively.</p>
+
+<h2 id="is_quarterly_iso">is_quarterly_iso</h2>
+
+<p>Returns true if called in quaterly iso testing</p>
+
+<h1 id="POD-ERRORS">POD ERRORS</h1>
+
+<p>Hey! <b>The above document had some coding errors, which are explained below:</b></p>
+
+<dl>
+
+<dt id="Around-line-592">Around line 592:</dt>
+<dd>
+
+<p>&#39;=item&#39; outside of any &#39;=over&#39;</p>
+
+</dd>
+<dt id="Around-line-622">Around line 622:</dt>
+<dd>
+
+<p>You forgot a &#39;=back&#39; before &#39;=head2&#39;</p>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

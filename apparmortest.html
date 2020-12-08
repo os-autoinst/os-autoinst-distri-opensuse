@@ -1,0 +1,193 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/apparmortest.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#Apparmor-Tests">Apparmor Tests</a>
+    <ul>
+      <li><a href="#aa_tmp_prof_prepare">aa_tmp_prof_prepare</a></li>
+      <li><a href="#aa_tmp_prof_verify">aa_tmp_prof_verify</a></li>
+      <li><a href="#aa_tmp_prof_clean">aa_tmp_prof_clean</a></li>
+      <li><a href="#get_named_profiled">get_named_profiled</a></li>
+      <li><a href="#aa_status_stdout_check">aa_status_stdout_check</a></li>
+      <li><a href="#ip_fetch">ip_fetch</a></li>
+      <li><a href="#setup_mail_server_postfix_dovecot">setup_mail_server_postfix_dovecot</a></li>
+      <li><a href="#send_mail_smtp">send_mail_smtp</a></li>
+      <li><a href="#Retrieve-email-with-POP3">Retrieve email with POP3</a></li>
+      <li><a href="#retrieve_mail_imap">retrieve_mail_imap</a></li>
+      <li><a href="#mariadb_setup">mariadb_setup</a></li>
+      <li><a href="#adminer_setup">adminer_setup</a></li>
+      <li><a href="#adminer_database_delete">adminer_database_delete</a></li>
+      <li><a href="#upload_logs_mail">upload_logs_mail</a></li>
+      <li><a href="#pre_run_hook">pre_run_hook</a></li>
+      <li><a href="#post_fail_hook">post_fail_hook</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/apparmortest.pm</h1>
+
+<h1 id="Apparmor-Tests">Apparmor Tests</h1>
+
+<p>Apparmor tests</p>
+
+<h2 id="aa_tmp_prof_prepare">aa_tmp_prof_prepare</h2>
+
+<pre><code> aa_tmp_prof_prepare();</code></pre>
+
+<p>Prepare apparmor profile directory</p>
+
+<h2 id="aa_tmp_prof_verify">aa_tmp_prof_verify</h2>
+
+<pre><code> aa_tmp_prof_verify();</code></pre>
+
+<p>Verify that program can start with temporary profiles and then restore to the enforce status with normal profiles</p>
+
+<h2 id="aa_tmp_prof_clean">aa_tmp_prof_clean</h2>
+
+<pre><code> aa_tmp_prof_clean();</code></pre>
+
+<p>Remove appamor temporary profiles</p>
+
+<h2 id="get_named_profiled">get_named_profiled</h2>
+
+<pre><code> get_named_profiled();</code></pre>
+
+<p>Get the named profile for an executable program</p>
+
+<h2 id="aa_status_stdout_check">aa_status_stdout_check</h2>
+
+<pre><code> aa_status_stdout_check();</code></pre>
+
+<p>Check the output of aa-status: if a given profile belongs to a given mode</p>
+
+<h2 id="ip_fetch">ip_fetch</h2>
+
+<pre><code> ip_fetch();</code></pre>
+
+<p>Fetch ip details</p>
+
+<h2 id="setup_mail_server_postfix_dovecot">setup_mail_server_postfix_dovecot</h2>
+
+<pre><code> setup_mail_server_postfix_dovecot();</code></pre>
+
+<p>Set up mail server with Postfix and Dovecot:</p>
+
+<ul>
+
+<li><p>1. Setting Postfix for outgoing mail by: setting hostname and domain, restart rcnetwork services, double check the setting</p>
+
+</li>
+<li><p>2. Setting mail sender/recipient as needed</p>
+
+</li>
+<li><p>3. Setting Postfix for outgoing mail (SMTP server with Postfix) by: install Postfix by using zypper_call, start Postfix service, set &quot;/etc/postfix/main.cf&quot; file, output the setting for reference, restart Postfix service, output the status for reference</p>
+
+</li>
+<li><p>4. Setting Dovecot for ingoing mail by: set the config files $testfile, restart Dovecot service, output the status for reference</p>
+
+</li>
+</ul>
+
+<h2 id="send_mail_smtp">send_mail_smtp</h2>
+
+<pre><code> send_mail_smtp();</code></pre>
+
+<p>Send mail with telnet SMTP by using script_run_interactive</p>
+
+<h2 id="Retrieve-email-with-POP3">Retrieve email with POP3</h2>
+
+<pre><code> retrieve_mail_pop3</code></pre>
+
+<p>Retrieve email with POP3 by using script_run_interactive</p>
+
+<h2 id="retrieve_mail_imap">retrieve_mail_imap</h2>
+
+<pre><code> retrieve_mail_imap();</code></pre>
+
+<p>Retrieve email with IMAP by using script_run_interactive</p>
+
+<h2 id="mariadb_setup">mariadb_setup</h2>
+
+<pre><code> mariadb_setup();</code></pre>
+
+<p>Set up Mariadb and test account by using zypper_call, assert_script_run, script_run_interactive</p>
+
+<h2 id="adminer_setup">adminer_setup</h2>
+
+<pre><code> adminer_setup();</code></pre>
+
+<p>Set up Web environment for running Adminer by:</p>
+
+<ul>
+
+<li><p>use assert_script_run to enable php5 andphp7, restart apache2 and mysql</p>
+
+</li>
+<li><p>download Adminer and copy it to directory /srv/www/htdocs/adminer/</p>
+
+</li>
+<li><p>test Adminer</p>
+
+</li>
+<li><p>clean and start Firefox</p>
+
+</li>
+<li><p>exit x11 and turn to console</p>
+
+</li>
+<li><p>exit xterm</p>
+
+</li>
+<li><p>send &quot;ret&quot; key in case of any pop up message</p>
+
+</li>
+</ul>
+
+<h2 id="adminer_database_delete">adminer_database_delete</h2>
+
+<pre><code> adminer_database_delete();</code></pre>
+
+<p>Log in Adminer, seletct &quot;test&quot; database and delete it</p>
+
+<ul>
+
+<li><p>do some operations on web, e.g., log in, select/delete a database</p>
+
+</li>
+<li><p>exit x11 and turn to console</p>
+
+</li>
+</ul>
+
+<h2 id="upload_logs_mail">upload_logs_mail</h2>
+
+<pre><code> upload_logs_mail();</code></pre>
+
+<p>Upload mail warn, err and info logs for reference</p>
+
+<h2 id="pre_run_hook">pre_run_hook</h2>
+
+<pre><code> pre_run_hook();</code></pre>
+
+<p>Restart auditd and apparmor in root-console</p>
+
+<h2 id="post_fail_hook">post_fail_hook</h2>
+
+<pre><code> post_fail_hook();</code></pre>
+
+<p>Run post_fail_hook and upload audit logs</p>
+
+
+</body>
+
+</html>
+
+

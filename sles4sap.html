@@ -1,0 +1,223 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</a></li>
+      <li><a href="#fix_path">fix_path</a></li>
+      <li><a href="#set_ps_cmd">set_ps_cmd</a></li>
+      <li><a href="#set_sap_info">set_sap_info</a></li>
+      <li><a href="#user_change">user_change</a></li>
+      <li><a href="#reset_user_change">reset_user_change</a></li>
+      <li><a href="#get_total_mem">get_total_mem</a></li>
+      <li><a href="#is_saptune_installed">is_saptune_installed</a></li>
+      <li><a href="#prepare_profile">prepare_profile</a></li>
+      <li><a href="#copy_media">copy_media</a></li>
+      <li><a href="#add_hostname_to_hosts">add_hostname_to_hosts</a></li>
+      <li><a href="#test_pids_max">test_pids_max</a></li>
+      <li><a href="#test_forkbomb">test_forkbomb</a></li>
+      <li><a href="#test_version_info">test_version_info</a></li>
+      <li><a href="#test_instance_properties">test_instance_properties</a></li>
+      <li><a href="#test_stop">test_stop</a></li>
+      <li><a href="#test_start">test_start</a></li>
+      <li><a href="#check_service_state">check_service_state</a></li>
+      <li><a href="#check_instance_state">check_instance_state</a></li>
+      <li><a href="#check_replication_state">check_replication_state</a></li>
+      <li><a href="#reboot">reboot</a></li>
+      <li><a href="#do_hana_takeover">do_hana_takeover</a></li>
+      <li><a href="#install_libopenssl_legacy">install_libopenssl_legacy</a></li>
+      <li><a href="#upload_hana_install_log">upload_hana_install_log</a></li>
+      <li><a href="#upload_nw_install_log">upload_nw_install_log</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Package with common methods and default values for tests on SLES for SAP Applications.</p>
+
+<p>This package inherits from <b>opensusebasetest</b> and should be used as a class.</p>
+
+<h2 id="ensure_serialdev_permissions_for_sap">ensure_serialdev_permissions_for_sap</h2>
+
+<p>Derived from &#39;ensure_serialdev_permissions&#39; function available in &#39;utils&#39;.</p>
+
+<p>Grant user permission to access serial port immediately as well as persisting over reboots. Used to ensure that testapi calls like script_run work for the test user as well as root.</p>
+
+<h2 id="fix_path">fix_path</h2>
+
+<pre><code> $self-&gt;fix_path( $uri );</code></pre>
+
+<p>Given the path to a CIFS or NFS share in <b>$uri</b>, this method will format the path so it can be used directly by <b>mount(8)</b>. Returns an array with the protocol name (cifs or nfs) as the first element, and the formatted path as the second element. Croaks if an unsupported protocol is passed in <b>$uri</b> or if it cannot be parsed.</p>
+
+<h2 id="set_ps_cmd">set_ps_cmd</h2>
+
+<pre><code> $self-&gt;set_ps_cmd( $procname );</code></pre>
+
+<p>Sets in the class instance the <b>ps</b> command to be used to check for the presence of SAP processes in the SUT. Returns the value of the internal variable <b>$ps_cmd</b>.</p>
+
+<h2 id="set_sap_info">set_sap_info</h2>
+
+<pre><code> $self-&gt;set_sap_info( $SID, $instance_number );</code></pre>
+
+<p>SAP software relies on 2 identifiers, the system id (SID) which is a 3-character identifier, and the instance number. This method receives both via positional arguments, and sets the internal variables for <b>$sid</b>, <b>$instance</b> and <b>$sapadmin</b> accordingly. Returns the value of <b>$sapadmin</b>.</p>
+
+<h2 id="user_change">user_change</h2>
+
+<pre><code> $self-&gt;user_change();</code></pre>
+
+<p>Switch user in SUT to the SAP admin account, and grant serialdev permissions to the SAP admin user.</p>
+
+<h2 id="reset_user_change">reset_user_change</h2>
+
+<pre><code> $self-&gt;reset_user_change();</code></pre>
+
+<p>Exit from the SAP admin account in SUT and change serialdev permissions accordingly.</p>
+
+<h2 id="get_total_mem">get_total_mem</h2>
+
+<pre><code> $self-&gt;get_total_mem();</code></pre>
+
+<p>Returns the total memory configured in SUT.</p>
+
+<h2 id="is_saptune_installed">is_saptune_installed</h2>
+
+<pre><code> is_saptune_installed();</code></pre>
+
+<p>Checks if the <b>saptune</b> package is installed in SUT. Returns true or false.</p>
+
+<h2 id="prepare_profile">prepare_profile</h2>
+
+<pre><code> $self-&gt;prepare_profile( $profile );</code></pre>
+
+<p>Configures with <b>saptune</b> (if available in SUT) or <b>sapconf</b> the SUT according to a profile passed as argument. <b>$profile</b> must be either <b>HANA</b> or <b>NETWEAVER</b>. Croaks on failure.</p>
+
+<h2 id="copy_media">copy_media</h2>
+
+<pre><code> $self-&gt;copy_media( $proto, $path, $timeout, $target );</code></pre>
+
+<p>Copies installation media in SUT from the share identified by <b>$proto</b> and <b>$path</b> into the target directory <b>$target</b>. <b>$timeout</b> specifies how long to wait for the copy to complete.</p>
+
+<p>After installation files are copied, this method will also verify the existence of a <i>checksum.md5sum</i> file in the target directory and use it to check for the integrity of the copied files. This test can be skipped by setting to a true value the <b>DISABLE_CHECKSUM</b> setting in the test.</p>
+
+<p>The method will croak if any of the commands sent to SUT fail.</p>
+
+<h2 id="add_hostname_to_hosts">add_hostname_to_hosts</h2>
+
+<pre><code> $self-&gt;add_hostname_to_hosts();</code></pre>
+
+<p>Adds the IP address and the hostname of SUT to <i>/etc/hosts</i>. Croaks on failure.</p>
+
+<h2 id="test_pids_max">test_pids_max</h2>
+
+<pre><code> $self-&gt;test_pids_max();</code></pre>
+
+<p>Checks in SUT that the SAP admin user has no limits in the number of processes and threads that it can create.</p>
+
+<h2 id="test_forkbomb">test_forkbomb</h2>
+
+<pre><code> $self-&gt;test_forkbomb();</code></pre>
+
+<p>Runs a script in SUT to create as many processes as possible, both as the SAP administrator and as root, and verifies that the SAP admin can create as many as 99% of the amount of processes that root can. Croaks if any of the commands sent to SUT fail, and record a soft failure if the SAP admin user cannot create as many processes as root.</p>
+
+<h2 id="test_version_info">test_version_info</h2>
+
+<pre><code> $self-&gt;test_version_info();</code></pre>
+
+<p>Runs a <b>sapcontrol</b> command with function <b>GetVersionInfo</b> in SUT. Croaks on failure.</p>
+
+<h2 id="test_instance_properties">test_instance_properties</h2>
+
+<pre><code> $self-&gt;test_instance_properties();</code></pre>
+
+<p>Runs a <b>sapcontrol</b> command with function <b>GetInstanceProperties</b> and verifies that the reported properties match with the SID stored in the class instance. Croaks on failure.</p>
+
+<h2 id="test_stop">test_stop</h2>
+
+<pre><code> $self-&gt;test_stop();</code></pre>
+
+<p>Tests with <b>sapcontrol</b> and functions <b>Stop</b> and <b>StopService</b> that the instance and services are succesfully stopped. Croaks on failure.</p>
+
+<h2 id="test_start">test_start</h2>
+
+<pre><code> $self-&gt;test_start();</code></pre>
+
+<p>Tests with <b>sapcontrol</b> and functions <b>Start</b> and <b>StartService</b> that the instance and services are succesfully started. Croaks on failure.</p>
+
+<h2 id="check_service_state">check_service_state</h2>
+
+<pre><code> $self-&gt;check_service_state( $state );</code></pre>
+
+<p>Checks in the process table of SUT for <b>sapstartsrv</b> up to the number of seconds specified in the <b>WAIT_INSTANCE_STOP_TIME</b> setting (defaults to 300, with a maximum permitted value of 600). The <b>$state</b> argument can be either <b>start</b> or <b>stop</b>, and it controls whether this method waits for the process to appear in the process table after service was started, or disappear from the process table after service was stopped. Croaks on failure.</p>
+
+<h2 id="check_instance_state">check_instance_state</h2>
+
+<pre><code> $self-&gt;check_instance_state( $state );</code></pre>
+
+<p>Uses <b>sapcontrol</b> functions <b>GetSystemInstanceList</b> and <b>GetProcessList</b> to check for up to the number of seconds defined in the <b>WAIT_INSTANCE_STOP_TIME</b> setting (defaults to 300, with a maximum permitted value of 600), whether the instance is in the state specified by the <b>$state</b> argument. This argument can be either <b>green</b> or <b>gray</b>, and it controls whether this method waits for the instance to turn to green status after a start or to turn to gray status after a stop. Croaks on failure.</p>
+
+<h2 id="check_replication_state">check_replication_state</h2>
+
+<pre><code> $self-&gt;check_replication_state();</code></pre>
+
+<p>Check status of the HANA System Replication by running the <b>systemReplicationStatus.py</b> script in SUT. Waits for 5 minutes for HANA System Replication to be in Active state or croaks on timeout.</p>
+
+<p>Note: can only be run on active node in the cluster.</p>
+
+<p><b>systemReplicationStatus.py</b> return codes are: 10: No System Replication 11: Error 12: Unknown 13: Initializing 14: Syncing 15: Active</p>
+
+<h2 id="reboot">reboot</h2>
+
+<pre><code> $self-&gt;reboot();</code></pre>
+
+<p>Restart the SUT and reconnect to the console right after.</p>
+
+<h2 id="do_hana_takeover">do_hana_takeover</h2>
+
+<pre><code> $self-&gt;do_hana_takeover( node =&gt; $node [, manual_takeover =&gt; $manual_takeover] [, cluster =&gt; $cluster] );</code></pre>
+
+<p>Do a takeover/takeback on a HANA cluster.</p>
+
+<p>Set <b>$node</b> to the node where HANA is/should be the primary server.</p>
+
+<p>Set <b>$manual_takeover</b> to true, so the method performs a manual rather than an automatic takeover. Defaults to false.</p>
+
+<p>Set <b>$cluster</b> to true so the method runs also a <code>crm resource cleanup</code>. Defaults to false.</p>
+
+<h2 id="install_libopenssl_legacy">install_libopenssl_legacy</h2>
+
+<pre><code> $self-&gt;install_libopenssl_legacy( $hana_path );</code></pre>
+
+<p>Install <b>libopenssl1_0_0</b> for older (&lt;SPS03) HANA versions on SLE15+</p>
+
+<p>Set <b>$hana_path</b> to the path where the HANA installation media is located; this path should contain information on the HANA version to install, so prepare it thinking on this. For example: <i>nfs://sap.sources.host.local/HANA2-SPS5rev52/</i>. This method will then determine the HANA version from <b>$hana_path</b> and decide based on the SLES and HANA versions whether <b>libopenssl1_0_0</b> must be installed.</p>
+
+<h2 id="upload_hana_install_log">upload_hana_install_log</h2>
+
+<pre><code> $self-&gt;upload_hana_install_log();</code></pre>
+
+<p>Package and upload HANA installation logs from SUT.</p>
+
+<h2 id="upload_nw_install_log">upload_nw_install_log</h2>
+
+<pre><code> $self-&gt;upload_nw_install_log();</code></pre>
+
+<p>Upload NetWeaver installation logs from SUT.</p>
+
+
+</body>
+
+</html>
+
+

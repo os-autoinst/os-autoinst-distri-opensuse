@@ -1,0 +1,86 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/hpcbase.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#enable_and_start">enable_and_start</a></li>
+      <li><a href="#master_node_names">master_node_names</a></li>
+      <li><a href="#slave_node_names">slave_node_names</a></li>
+      <li><a href="#cluster_names">cluster_names</a></li>
+      <li><a href="#distribute_munge_key">distribute_munge_key</a></li>
+      <li><a href="#distribute_slurm_conf">distribute_slurm_conf</a></li>
+      <li><a href="#generate_and_distribute_ssh">generate_and_distribute_ssh</a></li>
+      <li><a href="#check_nodes_availability">check_nodes_availability</a></li>
+      <li><a href="#mount_nfs">mount_nfs</a></li>
+      <li><a href="#get_master_ip">get_master_ip</a></li>
+      <li><a href="#get_slave_ip">get_slave_ip</a></li>
+      <li><a href="#prepare_user_and_group">prepare_user_and_group</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/hpcbase.pm</h1>
+
+<h2 id="enable_and_start">enable_and_start</h2>
+
+<p>Enables and starts given systemd service</p>
+
+<h2 id="master_node_names">master_node_names</h2>
+
+<p>Prepare master node names, so those names could be reused, for instance in config preparation, munge key distribution, etc. The naming follows general pattern of master-slave</p>
+
+<h2 id="slave_node_names">slave_node_names</h2>
+
+<p>Prepare compute node names, so those names could be reused, for instance in config preparation, munge key distribution, etc. The naming follows general pattern of master-slave</p>
+
+<h2 id="cluster_names">cluster_names</h2>
+
+<p>Prepare all node names, so those names could be reused</p>
+
+<h2 id="distribute_munge_key">distribute_munge_key</h2>
+
+<p>Distributes munge kyes across all cluster nodes</p>
+
+<h2 id="distribute_slurm_conf">distribute_slurm_conf</h2>
+
+<p>Distributes slurm config across all cluster nodes</p>
+
+<h2 id="generate_and_distribute_ssh">generate_and_distribute_ssh</h2>
+
+<p>Generates and distributes ssh keys across all cluster nodes</p>
+
+<h2 id="check_nodes_availability">check_nodes_availability</h2>
+
+<p>Checks if all listed HPC cluster nodes are available (ping)</p>
+
+<h2 id="mount_nfs">mount_nfs</h2>
+
+<p>Ensure correct dir is created, and correct NFS dir is mounted on SUT</p>
+
+<h2 id="get_master_ip">get_master_ip</h2>
+
+<p>Check the IP of the master node</p>
+
+<h2 id="get_slave_ip">get_slave_ip</h2>
+
+<p>Check the IP of the slave node</p>
+
+<h2 id="prepare_user_and_group">prepare_user_and_group</h2>
+
+<p>Creating slurm user and group with some pre-defined ID</p>
+
+
+</body>
+
+</html>
+
+

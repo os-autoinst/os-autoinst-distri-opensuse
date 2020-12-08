@@ -1,0 +1,65 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/s390base.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#s390base">s390base</a>
+    <ul>
+      <li><a href="#execute_script">execute_script</a></li>
+      <li><a href="#upload_logs_and_cleanup">upload_logs_and_cleanup</a></li>
+      <li><a href="#post_fail_hook">post_fail_hook</a></li>
+      <li><a href="#post_run_hook">post_run_hook</a></li>
+      <li><a href="#pre_run_hook">pre_run_hook</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/s390base.pm</h1>
+
+<h1 id="s390base">s390base</h1>
+
+<p>Helper functions for s390 console tests</p>
+
+<h2 id="execute_script">execute_script</h2>
+
+<pre><code> execute_script($script, $scriptargs, $timeout);</code></pre>
+
+<p>Execute <code>$script</code> with arguments <code>$scriptargs</code> and upload STDERR and STDOUT as script logs. The maximum execution time of the script is defined by <code>$timeout</code>.</p>
+
+<h2 id="upload_logs_and_cleanup">upload_logs_and_cleanup</h2>
+
+<pre><code>  upload_logs_and_cleanup</code></pre>
+
+<p>Collect and upload logs for investigation. cleanup test suite files.</p>
+
+<h2 id="post_fail_hook">post_fail_hook</h2>
+
+<pre><code>  post_fail_hook();</code></pre>
+
+<p>Executed when a module fails.</p>
+
+<h2 id="post_run_hook">post_run_hook</h2>
+
+<pre><code> post_run_hook();</code></pre>
+
+<p>Executed when a module finishes.</p>
+
+<h2 id="pre_run_hook">pre_run_hook</h2>
+
+<pre><code>  pre_run_hook();</code></pre>
+
+<p>Executed before method run. Fetch the testcase and common libraries from openQA server.</p>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Utils/Backends.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#Backends">Backends</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#use_ssh_serial_console">use_ssh_serial_console</a></li>
+      <li><a href="#is_remote_backend">is_remote_backend</a></li>
+      <li><a href="#has_ttys">has_ttys</a></li>
+      <li><a href="#has_serial_over_ssh">has_serial_over_ssh</a></li>
+      <li><a href="#is_hyperv">is_hyperv</a></li>
+      <li><a href="#is_hyperv_in_gui">is_hyperv_in_gui</a></li>
+      <li><a href="#is_svirt_except_s390x">is_svirt_except_s390x</a></li>
+      <li><a href="#is_pvm">is_pvm</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Utils/Backends.pm</h1>
+
+<h1 id="Backends">Backends</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>use Utils::Backends It defines various functions that allows to check for different backend or console types. It exports <code>CONSOLES</code> and <code>BACKEND</code></p>
+
+<h2 id="use_ssh_serial_console">use_ssh_serial_console</h2>
+
+<p>Selects the root-ssh and saves it to SERIALDEV</p>
+
+<h2 id="is_remote_backend">is_remote_backend</h2>
+
+<p>Returns true if the current instance is running as remote backend</p>
+
+<h2 id="has_ttys">has_ttys</h2>
+
+<p>Returns true if the current instance is using ttys</p>
+
+<h2 id="has_serial_over_ssh">has_serial_over_ssh</h2>
+
+<p>Returns true if the current instance is using a serial through ssh</p>
+
+<h2 id="is_hyperv">is_hyperv</h2>
+
+<p>Returns true if the current instance is running as hyperv backend</p>
+
+<h2 id="is_hyperv_in_gui">is_hyperv_in_gui</h2>
+
+<p>Returns true if the current instance is running as hyperv gui backend</p>
+
+<h2 id="is_svirt_except_s390x">is_svirt_except_s390x</h2>
+
+<p>Returns true if the current instance is running as svirt backend except s390x</p>
+
+<h2 id="is_pvm">is_pvm</h2>
+
+<p>Returns true if the current instance is running as PowerVM backend &#39;spvm&#39; or &#39;hmc_pvm&#39;</p>
+
+
+</body>
+
+</html>
+
+

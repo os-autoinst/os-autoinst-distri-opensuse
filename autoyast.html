@@ -1,0 +1,152 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/autoyast.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#autoyast">autoyast</a>
+    <ul>
+      <li><a href="#expand_patterns">expand_patterns</a></li>
+      <li><a href="#get_product_version">get_product_version</a></li>
+      <li><a href="#expand_addons">expand_addons</a></li>
+      <li><a href="#expand_template">expand_template</a></li>
+      <li><a href="#init_autoyast_profile">init_autoyast_profile</a></li>
+      <li><a href="#validate_autoyast_profile">validate_autoyast_profile</a></li>
+      <li><a href="#detect_profile_directory">detect_profile_directory</a></li>
+      <li><a href="#expand_version">expand_version</a></li>
+      <li><a href="#adjust_network_conf">adjust_network_conf</a></li>
+      <li><a href="#expand_variables">expand_variables</a></li>
+      <li><a href="#upload_profile">upload_profile</a></li>
+      <li><a href="#inject_registration">inject_registration</a></li>
+      <li><a href="#test_ayp_url">test_ayp_url</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/autoyast.pm</h1>
+
+<h1 id="autoyast">autoyast</h1>
+
+<p>Provide translations for autoyast XML file</p>
+
+<h2 id="expand_patterns">expand_patterns</h2>
+
+<pre><code> expand_patterns();</code></pre>
+
+<p>Expand patterns for sle12 and sle15. Returns a list of patterns to be installed.</p>
+
+<h2 id="get_product_version">get_product_version</h2>
+
+<pre><code> get_product_version();</code></pre>
+
+<p>Return product version from SCC and product name, so-called unversioned products like asmm, contm, lgm, tcm, wsm if product version number lower than 15</p>
+
+<h2 id="expand_addons">expand_addons</h2>
+
+<pre><code> expand_addons();</code></pre>
+
+<p>Returns hash of all <code>SCC_ADDONS</code> with name, version and architecture.</p>
+
+<h2 id="expand_template">expand_template</h2>
+
+<pre><code> expand_template($profile);</code></pre>
+
+<p>Expand and returns template including autoyast profile and it&#39;s varialbes like addons, repos, patterns, get_var</p>
+
+<p>$profile is the autoyast profile &#39;autoinst.xml&#39;.</p>
+
+<h2 id="init_autoyast_profile">init_autoyast_profile</h2>
+
+<pre><code> init_autoyast_profile();</code></pre>
+
+<p>Initialize or create a new autoyast profile by &#39;yast2 clone_system&#39; if doesn&#39;t exist and returns the path of autoyast profile</p>
+
+<h2 id="validate_autoyast_profile">validate_autoyast_profile</h2>
+
+<pre><code>  validate_autoyast_profile($profile);</code></pre>
+
+<p>Validate AutoYaST profile traversing yaml test data $profile is the root node in the test data</p>
+
+<p>Expected yaml data should mimic structure of xml file for AutoYaST profile, so hashes and arrays in the yaml should represent nodes in the xml file.</p>
+
+<p>In case of list in xml, yaml structure should be represented as an array, so it would be able to generate expression to check that element on the list met expectations. If a hash is used instead, it will validate its inner value but it will not check size of the list.</p>
+
+<p>To identify an element in a list (as they are not ordered) on xml via xpath it has been added an special field in yaml named &#39;unique_key&#39; which value is the name of the selected property to search the element on the list. When that property is not a direct child (in other words, it is not at the same level in the yaml) it should be specify in yaml &#39;unique_value&#39; to specify the value expected for that inner/nested property (it is verbose but avoid to search every time in the whole yaml tree). For instance:</p>
+
+<p>- drive: unique_key: mount unique_value: / ... partitions: - partition: unique_key: label ... label: root_multi_btrfs mount: /</p>
+
+<p>In the example, the tester chose &#39;mount&#39; node/value to distinguish this &#39;drive&#39; from other &#39;drive&#39; nodes in the xml. In order to distinguish that particular &#39;partition&#39; node only &#39;unique_key&#39; was required because label is a direct child of &#39;partition&#39; node in the xml.</p>
+
+<p>Finally, creates a report at the end with errors (both yaml and execution errors) and overall expressions executed.</p>
+
+<h2 id="detect_profile_directory">detect_profile_directory</h2>
+
+<pre><code> detect_profile_directory(profile =&gt; $profile, path =&gt; $path)
+
+ Try to detect profile directory (autoyast_opensuse/, autoyast_sle{12,15}/, autoyast_sles11/)
+ and returns its path.
+ TODO: autoyast_{kvm,qam,xen}
+
+ $profile is the autoyast profile &#39;autoinst.xml&#39;.
+ $path is AutoYaST profile path</code></pre>
+
+<h2 id="expand_version">expand_version</h2>
+
+<pre><code> expand_version($profile);
+
+ Expand VERSION, as e.g. 15-SP1 has to be mapped to 15.1
+
+ $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+
+<h2 id="adjust_network_conf">adjust_network_conf</h2>
+
+<pre><code> adjust_network_conf($profile);
+
+ For s390x and svirt backends need to adjust network configuration
+
+ $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+
+<h2 id="expand_variables">expand_variables</h2>
+
+<pre><code> expand_variables($profile);
+
+ Expand variables from job settings which do not require further processing
+
+ $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+
+<h2 id="upload_profile">upload_profile</h2>
+
+<pre><code> upload_profile(profile =&gt; $profile, path =&gt; $path)
+
+ Upload modified profile
+ Update url
+ Update path
+ Make available profile in job logs
+
+ $profile is the AutoYaST profile &#39;autoinst.xml&#39;.
+ $path is AutoYaST profile path</code></pre>
+
+<h2 id="inject_registration">inject_registration</h2>
+
+<pre><code> inject_registration($profile);
+
+ $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
+
+<h2 id="test_ayp_url">test_ayp_url</h2>
+
+<pre><code> test_ayp_url();
+
+ Test if the autoyast profile url is reachable, before the autoyast installation begins.</code></pre>
+
+
+</body>
+
+</html>
+
+

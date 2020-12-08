@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/y2_module_guitest.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#y2_module_guitest.pm">y2_module_guitest.pm</a>
+    <ul>
+      <li><a href="#launch_yast2_module_x11">launch_yast2_module_x11</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/y2_module_guitest.pm</h1>
+
+<h1 id="y2_module_guitest.pm">y2_module_guitest.pm</h1>
+
+<p>This module provides subroutine to launch YaST2 module in GUI test.</p>
+
+<h2 id="launch_yast2_module_x11">launch_yast2_module_x11</h2>
+
+<pre><code> launch_yast2_module_x11([$module] [, target_match =&gt; $target_match] [, match_timeout =&gt; $match_timeout]);</code></pre>
+
+<p>Launch a yast configuration module <code>$module</code> or the yast control center if <code>$module</code> is empty.</p>
+
+<p>Calls <code>assert_screen</code> on <code>$target_match</code>, defaults to <code>yast2-$module-ui</code>.</p>
+
+<p>Optional <code>$match_timeout</code> can be specified as a timeout on the <code>assert_screen</code> call on <code>$target_match</code>. <code>$maximize_window</code> option allows to maximize application window using shortcut.</p>
+
+
+</body>
+
+</html>
+
+

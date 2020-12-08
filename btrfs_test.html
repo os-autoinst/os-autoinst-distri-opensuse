@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/btrfs_test.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#set_playground_disk">set_playground_disk</a></li>
+      <li><a href="#snapper_nodbus_setup">snapper_nodbus_setup</a></li>
+      <li><a href="#snapper_nodbus_restore">snapper_nodbus_restore</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/btrfs_test.pm</h1>
+
+<h2 id="set_playground_disk">set_playground_disk</h2>
+
+<p>Returns disk without a partition table for filesystem experiments. Sets the test variable <code>PLAYGROUNDDISK</code>, on first invocation of the function.</p>
+
+<h2 id="snapper_nodbus_setup">snapper_nodbus_setup</h2>
+
+<p>In `snapper --no-dbus` test we need DBus to be disabled on SLES12SP3 and Leap 42.3 systemd allows DBus to be disabled. On Tumbleweed this is not possible and the simplest way to get DBus-less environment is to enter rescue.target via systemctl.</p>
+
+<h2 id="snapper_nodbus_restore">snapper_nodbus_restore</h2>
+
+<p>Restore environment to default.target. Console root-console has to be reset, because move from rescue to default target, logs us out. Die if DBus is active at this point, it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` testing.</p>
+
+
+</body>
+
+</html>
+
+
