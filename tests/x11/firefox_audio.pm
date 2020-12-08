@@ -25,6 +25,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
+    select_console 'x11';
     start_audiocapture;
     x11_start_program('firefox ' . data_url('1d5d9dD.oga'), target_match => [qw(command-not-found test-firefox_audio-1)], match_timeout => 90);
     #  re-try for typing issue, see https://progress.opensuse.org/issues/54401
