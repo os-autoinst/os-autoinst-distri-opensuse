@@ -1,0 +1,4 @@
+disks:
+  - name: sda
+errors:
+  no_root: There is no device mounted at '/'

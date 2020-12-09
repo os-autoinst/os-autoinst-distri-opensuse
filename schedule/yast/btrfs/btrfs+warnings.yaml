@@ -61,8 +61,3 @@ conditional_schedule:
         - installation/grub_test
       pvm_hmc:
         - installation/grub_test
-test_data:
-  disks:
-    - name: vda
-  errors:
-    no_root: There is no device mounted at '/'
