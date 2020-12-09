@@ -257,4 +257,13 @@ sub get_error_dialog_text {
     $self->get_error_dialog()->text();
 }
 
+sub edit_partition_encrypt {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $args->{partition}});
+    $self->get_expert_partitioner_page()->press_edit_partition_button();
+    $self->get_edit_formatting_options_page()->check_encrypt_device_checkbox();
+    $self->get_edit_formatting_options_page()->press_next();
+    $self->set_encryption_password();
+}
+
 1;

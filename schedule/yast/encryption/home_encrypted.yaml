@@ -2,8 +2,11 @@
 name: home_encrypted
 description: >
   Test interactive installation with encrypted home partition.
+vars:
+  YUI_REST_API: '1'
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -20,6 +23,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
@@ -40,6 +44,8 @@ test_data:
         mode: read/write
   backup_file_info: 'LUKS encrypted file, ver 1 \[aes, xts-plain64, sha256\]'
   backup_path: '/root/bkp_luks_header_cr_home'
-  partitions_to_encrypt:
-    - disk: vda
-      partition: vda3
+  disks:
+    - name: vda
+      partitions:
+        - name: vda3
+          encrypt_device: 1
