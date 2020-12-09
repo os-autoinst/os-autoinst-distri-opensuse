@@ -80,6 +80,9 @@ schedule:
   - ha/fencing
   - '{{boot_to_desktop}}'
   - ha/check_after_reboot
+  - ha/fencing
+  - '{{boot_to_desktop_non_init}}'
+  - ha/check_after_reboot
   - ha/check_logs
 conditional_schedule:
   multipath:
@@ -101,8 +104,14 @@ conditional_schedule:
       1:
         - sles4sap/sap_suse_cluster_connector
   boot_to_desktop:
-    HA_CLUSTER_INIT:
-      1:
+    HA_CLUSTER_SETUP:
+      init:
+        - boot/reconnect_mgmt_console
+        - installation/grub_test
+        - installation/first_boot
+  boot_to_desktop_non_init:
+    HA_CLUSTER_SETUP:
+      join:
         - boot/reconnect_mgmt_console
         - installation/grub_test
         - installation/first_boot
