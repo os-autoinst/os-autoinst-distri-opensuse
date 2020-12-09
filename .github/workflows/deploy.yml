@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Generate documentation
+    - name: CI: Generate documentation
       run: script/generateLibDocs.sh
-    - name: Deploy documentation
+    - name: CI: Deploy documentation
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
