@@ -63,8 +63,8 @@ sub run {
     enable_debug_logging if is_x86_64;
 
     #workaround of bsc#1177790
+    #disable DNSSEC validation as it is turned on by default but the forwarders donnot support it, refer to bsc#1177790
     if (is_sle('>=12-sp5')) {
-        record_soft_failure("Guests installation is blocked by bsc#1177790, we workaroud it by disabling DNSSEC validation in https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/11226");
         script_run "sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf";
         script_run "grep 'dnssec-validation' /etc/named.conf";
         script_run "systemctl restart named";
