@@ -24,7 +24,7 @@ sub run {
     my @gnucash_tags = qw(gnucash gnucash-tip-close gnucash-assistant-close);
     x11_start_program('gnucash', target_match => \@gnucash_tags);
     if (match_has_tag('gnucash-tip-close')) {
-        send_key 'esc';
+        click_lastmatch();
         assert_screen([qw(gnucash gnucash-assistant-close)]);
     }
     if (match_has_tag('gnucash-assistant-close')) {
@@ -32,7 +32,7 @@ sub run {
         assert_and_click 'gnucash-assistant-show-again-no';
         assert_screen([qw(gnucash gnucash-tip-close)]);
         if (match_has_tag('gnucash-tip-close')) {
-            send_key 'esc';
+            click_lastmatch();
         }
     }
     # < gnucash 3.3
