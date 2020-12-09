@@ -883,15 +883,17 @@ sub handle_grub {
     return if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt') || check_var('KEEP_GRUB_TIMEOUT', '1'));
     $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
     if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
-        wait_screen_change { send_key 'e' };
-        for (1 .. $linux_boot_entry) { send_key 'down' }
+        unless (is_sle('=11-SP4')) {
+            wait_screen_change { send_key 'e' };
+            for (1 .. $linux_boot_entry) { send_key 'down' }
+        }
         wait_screen_change { send_key 'end' };
         send_key_until_needlematch(get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET'), 'left', 1000) if get_var('EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET');
         for (1 .. get_var('EXTRABOOTPARAMS_DELETE_CHARACTERS', 0)) { send_key 'backspace' }
         bmwqemu::fctinfo("Adding boot params '$boot_params'");
         type_string_very_slow " $boot_params ";
         save_screenshot;
-        send_key 'ctrl-x';
+        is_sle('=11-SP4') ? send_key 'ret' : send_key 'ctrl-x';
     }
     else {
         grub_select;
