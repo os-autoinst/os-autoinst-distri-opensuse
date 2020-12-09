@@ -158,7 +158,7 @@ sub run {
     }
 
     # repo key expired bsc#1179654
-    record_soft_failure 'bsc#1179654';
+    record_soft_failure 'bsc#1179654' if is_sle('=15');
     push @needles, 'expired-gpg-key' if is_sle('=15');
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
