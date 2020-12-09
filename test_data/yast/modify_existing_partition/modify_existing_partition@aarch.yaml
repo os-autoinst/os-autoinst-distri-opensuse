@@ -1,9 +1,31 @@
 ---
-boot-uefi:
-  disk: 'vda'
-  existing_partition: 'vda1'
-  mount_point: '/boot/efi'
-  fs_type: 'fat'
-  skip: 1
-  part_size: '256MiB'
-  lsblk_expected_size_output: '256M'
+disks:
+- name: vda
+  partitions:
+  - name: vda2
+    size: 11G
+    role: raw-volume
+    formatting_options:
+      should_format: 1
+      filesystem: ext4
+    mounting_options:
+      should_mount: 1
+      mount_point: /
+  - name: vda1
+    size: 256M
+    role: raw-volume
+    formatting_options:
+      should_format: 1
+      filesystem: fat
+    mounting_options:
+      should_mount: 1
+      mount_point: /boot/efi
+  - name: vda3
+    size: 2G
+    role: raw-volume
+    formatting_options:
+      should_format: 1
+      filesystem: swap
+    mounting_options:
+      should_mount: 1
+      mount_point: swap
