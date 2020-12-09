@@ -393,6 +393,15 @@ sub ssh_vm_cmd {
 sub script_output_from_vm {
     my ($cmd, $qa_password, $vm_ip_addr) = @_;
     my $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+    for (1 .. 3) {
+        if ($output) {
+            return $output;
+        } else {
+            sleep 2;
+            $output = script_output("sshpass -p ${qa_password} ssh -o StrictHostKeyChecking=no -qy root\@${vm_ip_addr} \"$cmd\"", proceed_on_failure => 1);
+        }
+    }
+    record_info('ERROR', "Failed to get output from guest.");
     return $output;
 }
 
@@ -403,7 +412,11 @@ sub config_and_reboot {
         ssh_vm_cmd("grub2-mkconfig -o /boot/grub2/grub.cfg", $qa_password, $vm_ip_addr);
     }
     record_info('INFO', "Generate domu kernel parameters.");
-    ssh_vm_cmd("poweroff", $qa_password, $vm_ip_addr);
+    #ssh_vm_cmd("poweroff", $qa_password, $vm_ip_addr);
+    ssh_vm_cmd("sync", $qa_password, $vm_ip_addr);
+
+    script_run("virsh destroy \"${vm_domain_name}\"");
+    sleep 2;
     script_run('virsh list --all');
     script_run("virsh start \"${vm_domain_name}\"");
 
