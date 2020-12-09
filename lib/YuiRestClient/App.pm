@@ -17,14 +17,15 @@ use YuiRestClient::Http::HttpClient;
 use YuiRestClient::Http::WidgetController;
 use YuiRestClient::Wait;
 use YuiRestClient::Widget::Button;
+use YuiRestClient::Widget::CheckBox;
+use YuiRestClient::Widget::Label;
 use YuiRestClient::Widget::MenuCollection;
 use YuiRestClient::Widget::RadioButton;
+use YuiRestClient::Widget::RichText;
 use YuiRestClient::Widget::SelectionBox;
 use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Textbox;
 use YuiRestClient::Widget::Tree;
-use YuiRestClient::Widget::RichText;
-use YuiRestClient::Widget::Label;
 
 sub new {
     my ($class, $args) = @_;
@@ -58,6 +59,22 @@ sub button {
     });
 }
 
+sub checkbox {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::CheckBox->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub label {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::Label->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
 sub menucollection {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::MenuCollection->new({
@@ -69,6 +86,14 @@ sub menucollection {
 sub radiobutton {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::RadioButton->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub richtext {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::RichText->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });
@@ -101,22 +126,6 @@ sub textbox {
 sub tree {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Tree->new({
-            widget_controller => $self->{widget_controller},
-            filter            => $filter
-    });
-}
-
-sub richtext {
-    my ($self, $filter) = @_;
-    return YuiRestClient::Widget::RichText->new({
-            widget_controller => $self->{widget_controller},
-            filter            => $filter
-    });
-}
-
-sub label {
-    my ($self, $filter) = @_;
-    return YuiRestClient::Widget::Label->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });
