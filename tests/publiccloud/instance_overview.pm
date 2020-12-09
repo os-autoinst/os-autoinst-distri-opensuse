@@ -19,16 +19,23 @@ use warnings;
 use testapi;
 use strict;
 use utils;
+use publiccloud::utils;
+use publiccloud::ssh_interactive;
 
 sub run {
     my ($self, $args) = @_;
+    # Preserve args for post_fail_hook
+    $self->{provider} = $args->{my_provider};
     select_console 'root-console';
 
     script_run("hostname -f");
     assert_script_run("uname -a");
 
     assert_script_run("cat /etc/os-release");
-    script_run("ec2metadata --api latest --document") if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2'));
+    if (is_ec2) {
+        script_run("ec2metadata --api latest --document | tee ec2metadata.txt");
+        upload_logs("ec2metadata.txt");
+    }
 
     assert_script_run("ps aux | nl");
 
@@ -52,7 +59,21 @@ sub run {
     upload_logs('/var/log/zypper.log');
 
     assert_script_run("SUSEConnect --status-text");
-    zypper_call("lr");
+    zypper_call("lr -d");
+}
+
+sub test_flags {
+    return {fatal => 1};
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    # Destroy the public cloud instance
+    ssh_interactive_leave();
+    select_console('tunnel-console', await_console => 0);
+    send_key "ctrl-c";
+    send_key "ret";
+    $self->{provider}->cleanup();
 }
 
 1;
