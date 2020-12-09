@@ -12,7 +12,7 @@ disks:
       should_mount: 1
       mount_point: /
   - name: vda1
-    size: 256M
+    size: 128M
     role: raw-volume
     formatting_options:
       should_format: 1
