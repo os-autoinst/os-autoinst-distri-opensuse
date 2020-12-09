@@ -1,11 +1,11 @@
-name: PR CI
+name: PR Checks
 
 on: pull_request
 
 jobs:
   static:
     runs-on: ubuntu-latest
-    name: "Running ${{ matrix.test }} tests with perl v${{ matrix.perl-version }}"
+    name: "CI: Running ${{ matrix.test }} tests with perl v${{ matrix.perl-version }}"
     strategy:
       matrix:
         include:
