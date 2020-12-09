@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 sub install_service {
-    zypper_call('in apache2');
+    zypper_call('in apache2 apache2-utils');
 }
 
 sub enable_service {
