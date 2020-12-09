@@ -106,7 +106,7 @@ sub run {
     # stuck in linuxrc asking if dhcp should be used"
     push @welcome_tags, 'linuxrc-dhcp-question';
     # repo key expired bsc#1179654
-    record_soft_failure 'bsc#1179654';
+    record_soft_failure 'bsc#1179654' if is_sle('=15');
     push @welcome_tags, 'expired-gpg-key' if is_sle('=15');
 
     # Process expected pop-up windows and exit when welcome/beta_war is shown or too many iterations
