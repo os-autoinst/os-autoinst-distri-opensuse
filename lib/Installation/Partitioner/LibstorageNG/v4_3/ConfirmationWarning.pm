@@ -25,13 +25,19 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_yes} = $self->{app}->button({id => 'yes'});
+    $self->{btn_yes}     = $self->{app}->button({id => 'yes'});
+    $self->{lbl_warning} = $self->{app}->label({type => 'YLabel'});
     return $self;
 }
 
 sub press_yes {
     my ($self) = @_;
     return $self->{btn_yes}->click();
+}
+
+sub text {
+    my ($self) = @_;
+    return $self->{lbl_warning}->text();
 }
 
 1;
