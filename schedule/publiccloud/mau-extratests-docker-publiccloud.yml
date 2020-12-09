@@ -2,6 +2,13 @@
 name: mau-extratests-docker-publiccloud
 description: |
   Run mau-extratests-docker on public cloud instances
+conditional_schedule:
+  podman:
+    VERSION:
+      15-SP1:
+        - containers/podman
+      15-SP2:
+        - containers/podman
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
@@ -14,7 +21,7 @@ schedule:
   - console/system_prepare
   - console/prepare_test_data
   - console/consoletest_setup
-  - containers/podman
+  - '{{podman}}'
   - containers/docker
   - containers/docker_runc
   - containers/containers_3rd_party
