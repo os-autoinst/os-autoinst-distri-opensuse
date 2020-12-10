@@ -126,6 +126,16 @@ sub terraform_apply {
     return $self->SUPER::terraform_apply(%args);
 }
 
+
+# In GCE we need to account for project name, if given
+sub get_image_id {
+    my ($self, $img_url) = @_;
+    my $image   = $self->SUPER::get_image_id($img_url);
+    my $project = get_var('PUBLIC_CLOUD_IMAGE_PROJECT');
+    $image = "$project/$image" if ($project);
+    return $image;
+}
+
 sub describe_instance
 {
     my ($self, $instance) = @_;
