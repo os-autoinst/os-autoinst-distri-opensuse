@@ -44,8 +44,12 @@ sub first_azure_release {
 }
 
 sub prepare_azure {
+    my $self = shift;
+
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    power_action('reboot', textmode => 1);
+    boot_to_console($self);
 }
 
 sub update_kernel {
@@ -380,7 +384,7 @@ sub run {
             first_azure_release($repo);
         }
         else {
-            prepare_azure;
+            $self->prepare_azure;
             update_kernel($repo, $incident_id);
         }
     }
