@@ -16,7 +16,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils qw(systemctl zypper_call);
-use version_utils qw(is_tumbleweed is_sle);
+use version_utils qw(is_sle is_leap);
 
 # Check Service State, enable it if necessary, set default zone to public
 sub pre_test {
@@ -41,8 +41,8 @@ sub test2 {
     record_info 'Test #2', 'Test Temporary Rules';
     assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
 
-    # Check if it's tumbleweed or Leap/SLE and run the correct test accordingly
-    if (is_tumbleweed || is_sle('15-SP3+')) {
+    # Default is for Tumbleweed and newer SLE/Leap
+    if (!is_sle('<15-SP3') && !is_leap('<15.3')) {
         assert_script_run("firewall-cmd --zone=public --add-port=25/tcp");
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
 
@@ -88,8 +88,8 @@ sub test3 {
 
     assert_script_run("firewall-cmd --reload");
 
-    # Check if it's tumbleweed or Leap/SLE and run the correct test accordingly
-    if (is_tumbleweed || is_sle('15-SP3+')) {
+    # Default is for Tumbleweed and newer SLE/Leap
+    if (!is_sle('<15-SP3') && !is_leap('<15.3')) {
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 110 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
         assert_script_run("iptables -C IN_public_allow -p icmp -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
@@ -169,7 +169,8 @@ sub test7 {
 
     assert_script_run("firewall-cmd --zone=public --add-service=smtp --timeout=30");
 
-    if (is_tumbleweed || is_sle('15-SP3+')) {
+    # Default is for Tumbleweed and newer SLE/Leap
+    if (!is_sle('<15-SP3') && !is_leap('<15.3')) {
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
     }
     else {
