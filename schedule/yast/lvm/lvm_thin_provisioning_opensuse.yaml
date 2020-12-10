@@ -30,7 +30,8 @@ schedule:
   - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
-  - installation/opensuse_welcome
+  # On Tumbleweed process Welcome pop-up screen
+  - '{{opensuse_welcome}}'
   - console/system_prepare
   - console/hostname
   - console/force_scheduled_tasks
@@ -41,3 +42,8 @@ schedule:
   - console/lvm_thin_check
 test_data:
   <<: !include test_data/yast/lvm_thin_provisioning/lvm_thin_provisioning.yaml
+conditional_schedule:
+  opensuse_welcome:
+    VERSION:
+      Tumbleweed:
+        - installation/opensuse_welcome
