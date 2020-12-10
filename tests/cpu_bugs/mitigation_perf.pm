@@ -31,8 +31,8 @@ sub get_perf_exec_cmd {
     $exec_cmd .= " --host=" . $host;
     $exec_cmd .= " --hypervisor=" . $hyper_type;
     $exec_cmd .= " --qaset-runid=" . $qaset_runid;
-    $exec_cmd .= " --product-ver=" . $prd_ver;
-    $exec_cmd .= " --release-ver=" . $rls_ver;
+    $exec_cmd .= " --product-ver=" . lc($prd_ver);
+    $exec_cmd .= " --release-ver=" . lc($rls_ver);
 
     if (check_var('NETTEST', '1')) {
         $exec_cmd .= " --nettest";
@@ -120,6 +120,7 @@ sub run {
     my $logfile             = 'screenlog_' . get_var('HYPER_TYPE') . '.' . get_var('HOST');
     my $svirt               = select_console('svirt', await_console => 0);
     my $ret                 = $svirt->run_cmd('test -d ' . $miti_perf_code_path);
+    my $ipmi_host           = get_var("IPMI_HOST");
     if ($ret != 0) {
         $svirt->run_cmd('git clone ' . $miti_perf_code_path);
     } else {
@@ -132,6 +133,8 @@ sub run {
     if ($ret == 0) {
         $svirt->run_cmd('rm -rf ' . $logfile);
     }
+    $svirt->run_cmd("ipmitool -H " . $ipmi_host . " -U root -P susetesting -I lanplus power on");
+    sleep 60;
     $svirt->run_cmd($perf_exec_cmd);
     for (;;) {
         $svirt->run_cmd("screen -wipe");
