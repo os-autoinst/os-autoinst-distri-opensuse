@@ -38,11 +38,15 @@ sub run {
     validate_script_output("pgrep 1", sub { m/\d+/ });
     validate_script_output("pmap 1",  sub { m/1:\s+(.*systemd|init)/ });
     validate_script_output("pwdx 1",  sub { m/1:\s+\// });
-    validate_script_output("vmstat",  sub { m/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+)\n.*\n(\s+|\d+)+/ });
-    validate_script_output("w", sub { m/\d+:\d+:\d+\sup\s+(\d+|:)+(\s\w+|),\s+\d\s\w+,\s+load average:.*\nUSER\s+TTY\s+FROM\s+LOGIN@\s+IDLE\s+JCPU\s+PCPU\s+WHAT(\n.*)+/ });
+    validate_script_output("vmstat",
+        qr/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+).*(\s+|\d+)+/s);
+    validate_script_output("w",
+        qr/\d+:\d+:\d+\sup\s+(\d+|:)+(\s\w+|),\s+\d\s\w+,\s+load average:.*USER\s+TTY\s+FROM\s+LOGIN@\s+IDLE\s+JCPU\s+PCPU\s+WHAT.*\w+/s);
     validate_script_output("sysctl kernel.random", sub { m/kernel\.random\.\w+\s=\s((\d+|\w+)|-)+/ });
-    validate_script_output("ps -p 1",              sub { m/PID\sTTY\s+TIME\sCMD\n\s+1\s\?\s+\d+:\d+:\d+\s(systemd|init)/ });
-    validate_script_output("top -b -n 1", sub { m/top - \d+:\d+:\d+ up\s+((\d+:\d+)|(\d+ \w+)|(\d+ \w+,\s+\d+:\d+)),\s+\d+ \w+,\s+load average: \d+.\d+, \d+.\d+, \d+.\d+\nTasks:\s+\d+ total,\s+\d+ running,\s+\d+ sleeping(.*|\n)+/ });
+    validate_script_output("ps -p 1",
+        qr/PID\sTTY\s+TIME\sCMD\s+1\s\?\s+\d+:\d+:\d+\s(systemd|init)/);
+    validate_script_output("top -b -n 1",
+qr/top - \d+:\d+:\d+ up\s+((\d+:\d+)|(\d+ \w+)|(\d+ \w+,\s+\d+:\d+)),\s+\d+ \w+,\s+load average: \d+.\d+, \d+.\d+, \d+.\d+\s+Tasks:\s+\d+\s+total,\s+\d+\s+running,\s+\d+\s+sleeping.*top/s);
 }
 
 1;
