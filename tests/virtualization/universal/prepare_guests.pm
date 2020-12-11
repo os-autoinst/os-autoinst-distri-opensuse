@@ -22,6 +22,7 @@ use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
+    $self->select_serial_terminal;
 
     # Ensure additional package is installed
     zypper_call '-t in libvirt-client iputils nmap';
@@ -60,7 +61,15 @@ sub run {
 
     script_run 'history -a';
     script_run('cat ~/virt-install* | grep ERROR', 30);
-    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (get_var("REGRESSION", '') =~ /xen/);
+    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (is_xen_host());
+
+    collect_virt_system_logs();
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    collect_virt_system_logs();
+    $self->SUPER::post_fail_hook;
 }
 
 1;

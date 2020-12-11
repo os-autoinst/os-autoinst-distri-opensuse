@@ -11,7 +11,7 @@
 # Summary: Tests, if the machine is up and running
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
@@ -37,7 +37,7 @@ my %cves = (
     "CVE-2018-12207" => "No eXcuses/iTLB Multihit",
 );
 
-sub run {
+sub run_test {
     my $self = shift;
     $self->select_serial_terminal;
 

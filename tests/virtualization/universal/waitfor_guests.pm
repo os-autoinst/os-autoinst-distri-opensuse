@@ -33,4 +33,10 @@ sub run {
     wait_still_screen 1;
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    collect_virt_system_logs();
+    $self->SUPER::post_fail_hook;
+}
+
 1;

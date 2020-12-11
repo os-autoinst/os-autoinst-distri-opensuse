@@ -19,6 +19,7 @@ use utils;
 
 sub run {
     my $self = shift;
+    $self->select_serial_terminal;
 
     ensure_default_net_is_active();
 

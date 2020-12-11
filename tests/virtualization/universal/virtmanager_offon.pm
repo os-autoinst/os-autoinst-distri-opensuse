@@ -17,7 +17,7 @@
 # Summary: This test turns all VMs off and then on again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ use testapi;
 use utils;
 use virtmanager;
 
-sub run {
+sub run_test {
     my ($self) = @_;
 
     #x11_start_program 'virt-manager';

@@ -31,8 +31,10 @@ use testapi;
 use DateTime;
 use Utils::Architectures 'is_s390x';
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host check_host check_guest print_cmd_output_to_file
-  ssh_setup ssh_copy_id create_guest import_guest install_default_packages upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks remove_additional_nic);
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
+  check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
+  upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
+  remove_additional_nic collect_virt_system_logs);
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -155,9 +157,21 @@ sub create_guest {
         send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
-        my $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
+        my ($autoyastURL, $diskformat, $virtinstall);
+        $autoyastURL = data_url($autoyast);
+        $diskformat  = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
+
         assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
-        script_run "( virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --disk /var/lib/libvirt/images/xen/$name.qcow2 --network network=default,mac=$macaddress --noautoconsole --vnc --autostart --location=$location --wait -1 --events on_reboot=restart --extra-args 'autoyast=" . data_url($autoyast) . "' >> virt-install_$name.txt 2>&1 & )";
+        assert_script_run "sync",                                                                             180;
+        script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
+
+        $virtinstall = "virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --vnc";
+        $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
+        $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
+        $virtinstall .= " --events on_reboot=restart --extra-args 'autoyast=$autoyastURL'";
+        script_run "( $virtinstall >> ~/virt-install_$name.txt 2>&1 & )";
+
+        script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     }
 }
 
@@ -271,6 +285,38 @@ sub remove_additional_nic {
 
     my $cmd = 'for i in `virsh domiflist ' . "'$guest'" . ' | grep ' . "'$mac_prefix'" . ' | awk "{print $5}"`; do virsh detach-interface ' . "'$guest'" . ' bridge --mac "$i"; done';
     return script_run($cmd);
+}
+
+sub collect_virt_system_logs {
+    if (script_run("test -f /var/log/libvirt/libvirtd.log") == 0) {
+        upload_logs("/var/log/libvirt/libvirtd.log");
+    } else {
+        record_info "File /var/log/libvirt/libvirtd.log does not exist.";
+    }
+
+    if (script_run("test -d /var/log/libvirt/libxl/") == 0) {
+        assert_script_run 'tar czvf /tmp/libxl.tar.gz /var/log/libvirt/libxl/';
+        upload_asset '/tmp/libxl.tar.gz';
+    } else {
+        record_info "Directory /var/log/libvirt/libxl/ does not exist.";
+    }
+
+    if (script_run("test -d /var/log/xen/") == 0) {
+        assert_script_run 'tar czvf /tmp/xen.tar.gz /var/log/xen/';
+        upload_asset '/tmp/xen.tar.gz';
+    } else {
+        record_info "Directory /var/log/xen/ does not exist.";
+    }
+
+    assert_script_run("journalctl -b > /tmp/journalctl-b.txt");
+    upload_logs("/tmp/journalctl-b.txt");
+
+    assert_script_run 'virsh list --all';
+
+    assert_script_run 'mkdir -p /tmp/dumpxml';
+    assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
+    assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
+    upload_asset '/tmp/dumpxml.tar.gz';
 }
 
 1;

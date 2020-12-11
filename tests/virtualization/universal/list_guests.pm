@@ -9,7 +9,7 @@
 # Summary: List every guest and ensure they are online
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
@@ -17,8 +17,9 @@ use warnings;
 use testapi;
 use utils;
 
-sub run {
+sub run_test {
     my $self = shift;
+    $self->select_serial_terminal;
 
     ensure_default_net_is_active();
 

@@ -17,7 +17,7 @@
 # Summary: This test connects to hypervisor and check our VMs
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
@@ -26,8 +26,9 @@ use testapi;
 use utils;
 use virtmanager;
 
-sub run {
+sub run_test {
     my ($self) = @_;
+    select_console 'root-console';
 
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 

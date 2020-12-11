@@ -19,11 +19,11 @@
 
 use base "consoletest";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
 use utils;
-use virt_autotest::utils;
 
 sub run {
     foreach my $guest (keys %virt_autotest::common::guests) {

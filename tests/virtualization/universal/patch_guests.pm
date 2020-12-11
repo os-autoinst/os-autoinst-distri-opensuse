@@ -11,7 +11,7 @@
 # Summary: Apply patches to the all of our guests and reboot them
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base 'consoletest';
 use warnings;
 use strict;
 use testapi;
@@ -32,9 +32,10 @@ sub run {
     assert_script_run qq(echo -e "Guests before and after patching:" > $kernel_log);
     assert_script_run qq(echo -e "\\n\\nBefore:" >> $kernel_log);
     foreach my $guest (keys %virt_autotest::common::guests) {
-        ($guest_running_version, $guest_running_sp) = get_os_release("ssh root\@$guest");
+        record_info "$guest", "Probing the guest, adding test repositories and patching the system";
+        ensure_online $guest foreach (keys %virt_autotest::common::guests);
 
-        record_info "$guest", "Adding test repositories and patching the $guest system";
+        ($guest_running_version, $guest_running_sp) = get_os_release("ssh root\@$guest");
         if ($host_running_version == $guest_running_version && $host_running_sp == $guest_running_sp) {
             ssh_add_test_repositories "$guest";
 

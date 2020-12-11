@@ -42,6 +42,7 @@ use testapi;
 use utils;
 use virt_utils;
 use virt_autotest::common;
+use virt_autotest::utils;
 use version_utils 'is_sle';
 
 sub run_test {
@@ -51,19 +52,24 @@ sub run_test {
 sub prepare_run_test {
     my $self = shift;
 
+    script_run("rm -f /root/{commands_history,commands_failure}");
+    assert_script_run("history -c");
+
     virt_utils::cleanup_host_and_guest_logs;
     virt_utils::start_monitor_guest_console;
 }
 
 sub run {
     my ($self) = @_;
-    script_run("rm -f /root/{commands_history,commands_failure}");
-    assert_script_run("history -c");
-    $self->prepare_run_test;
+
+    $self->prepare_run_test if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
+
     $self->{"start_run"} = time();
     $self->run_test;
     $self->{"stop_run"} = time();
-    virt_utils::stop_monitor_guest_console;
+
+    virt_utils::stop_monitor_guest_console if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
+
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
 }
@@ -156,9 +162,10 @@ sub post_fail_hook {
 
     $self->{"stop_run"} = time();
     assert_script_run("history -w /root/commands_history");
-    virt_utils::stop_monitor_guest_console;
+    virt_utils::stop_monitor_guest_console() if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
+    collect_virt_system_logs();
 
     virt_utils::collect_host_and_guest_logs;
     upload_logs("/var/log/clean_up_virt_logs.log");

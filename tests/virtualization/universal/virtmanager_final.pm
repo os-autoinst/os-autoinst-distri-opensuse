@@ -17,7 +17,7 @@
 # Summary: This test turns just check all VMs
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -25,7 +25,8 @@ use testapi;
 use utils;
 use virtmanager;
 
-sub run {
+sub run_test {
+    select_console 'root-console';
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
     #x11_start_program 'virt-manager';
