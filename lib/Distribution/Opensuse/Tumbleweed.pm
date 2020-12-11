@@ -18,7 +18,7 @@ use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
-use YaST::NetworkSettings::v4::NetworkSettingsController;
+use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
@@ -29,7 +29,7 @@ sub get_expert_partitioner {
 }
 
 sub get_network_settings {
-    return YaST::NetworkSettings::v4::NetworkSettingsController->new();
+    return YaST::NetworkSettings::v4_3::NetworkSettingsController->new();
 }
 
 1;
