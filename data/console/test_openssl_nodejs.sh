@@ -135,6 +135,7 @@ skip_test=(
   ["14 test/sequential/test-tls-securepair-client.js"]="SLE_12_SP5"
   ["14 test/sequential/test-tls-session-timeout.js"]="SLE_12_SP5"
   ["10 test/parallel/test-crypto-dh.js"]="SLE_15"
+  ["10 test/parallel/test-crypto-dh.js"]="SLE_15_SP1"
 )
 
 # Common flags to use on each test
