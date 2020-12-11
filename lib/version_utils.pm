@@ -578,9 +578,20 @@ sub get_os_release {
     my ($go_to_target, $os_release_file) = @_;
     $go_to_target    //= '';
     $os_release_file //= '/etc/os-release';
-    my %os_release = script_output("$go_to_target cat $os_release_file") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
-    %os_release = map { uc($_) => $os_release{$_} } keys %os_release;
-    my ($os_version, $os_service_pack) = split(/\.|-sp/i, $os_release{VERSION});
+
+    my %os_release;
+    my $sep = (is_vmware || is_hyperv) ? "\r\n" : "\n";
+
+    foreach my $line (split(/$sep/, script_output("$go_to_target cat $os_release_file"))) {
+        bmwqemu::diag("Parsing $line from $os_release_file");
+        if ($line =~ /^([^#]\S+)="?([^"\r\n]+)"?$/g) {
+            bmwqemu::diag("get_os_release: key=$1");
+            bmwqemu::diag("get_os_release: value=$2");
+            $os_release{uc($1)} = $2;
+        }
+    }
+
+    my ($os_version, $os_service_pack) = /(\d{1,2})\.(\d)/ =~ $os_release{VERSION_ID};
     $os_service_pack //= 0;
     return $os_version, $os_service_pack, $os_release{ID};
 }
