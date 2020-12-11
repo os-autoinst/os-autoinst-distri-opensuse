@@ -18,12 +18,16 @@ test_result_wrapper(){
 
   # If test failed, keep track of failure and print out its output
   if [ $RESULT -ne 0 ]; then
-    TEST_RESULT="failed"
-    echo "Node v$VERSION Test $FILE" >> $FAILED_TEST_LIST
-
     echo "FAILED"
     echo "Test Output:"
     cat $OUTPUT
+
+    if [ "${skip_test[$VERSION $FILE]}X" = "${OS_VERSION}X" ]; then
+      echo "Test was in the exclusion list. Failed result will be SKIPPED."
+      echo "Node v$VERSION Test $FILE" >> $SKIPPED_TEST_LIST
+    else
+      echo "Node v$VERSION Test $FILE" >> $FAILED_TEST_LIST
+    fi
   else
     echo "OK"
   fi
@@ -34,9 +38,6 @@ test_node_version(){
   local VERSION="$1"
 
   echo "Starting to test node version $VERSION"
-
-  # Get latest sources to make sure tests contain correct patches
-  zypper -n --no-gpg-checks si --repo node_sources -D "nodejs$VERSION"
 
   local SOURCE_FILE=""
   SOURCE_FILE=$(cd /usr/src/packages/SOURCES/ && find . -type f -iname "node-v$VERSION*.tar.xz")
@@ -70,32 +71,36 @@ test_node_version(){
 
 main(){
 
-  local OS_VERSION="$1"
+  OS_VERSION="$1"
 
   # Install dependencies to apply source patches and run tests
   zypper -n in quilt rpm-build openssl-1_1
 
   # Get list of each nodejs version found from default repo
-  local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq)
-  local NODE_LATEST_VERSION=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h | uniq | tail -n1)
+  local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u)
+  local NODE_LATEST_VERSION=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u | tail -n1)
 
   for v in $NODE_VERSIONS; do
     echo "Found node version: $v"
   done
   echo "Will test only latest version: $NODE_LATEST_VERSION" 
 
-  # Install latest nodejs version
+  # Install latest nodejs version and sources
   zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION"
-
-  # Trap for cleanup of repo
-  trap 'zypper -n rr node_sources' EXIT
-  # Add sources repo to have latest source patches
-  zypper -n --gpg-auto-import-keys ar -f "http://download.suse.de/ibs/home:/adamm:/node_test/$OS_VERSION/" node_sources
+  zypper -n si -D "nodejs$NODE_LATEST_VERSION"
 
   test_node_version $NODE_LATEST_VERSION
-    
+
+  # Print out info in case of skipped tests
+  if [ -s "$SKIPPED_TEST_LIST" ]; then
+    echo "Some tests have been skipped:"
+    cat $SKIPPED_TEST_LIST
+    echo ""
+    echo "Please look for 'SKIPPED' in the serial_terminal log for the full trace"
+  fi
+
   # Fail if at least one test has failed. Print list of failed tests
-  if [ "$TEST_RESULT" != "ok" ]; then
+  if [ -s "$FAILED_TEST_LIST" ]; then
     echo "Some tests have failed:"
     cat $FAILED_TEST_LIST
     echo ""
@@ -122,12 +127,23 @@ node_flags=(
   ["10 test/parallel/test-crypto-dh-leak.js"]="--noconcurrent-recompilation"
 )
 
+# Hashmap of tests that need to be skipped for a specific SLE version
+# Usage:   ["$VERSION $FILE"]="SLE_VERSION"
+# Example: ["14 tests/directory/mytest.js"]="SLE_15"
+declare -A skip_test
+skip_test=(
+  ["14 test/sequential/test-tls-securepair-client.js"]="SLE_12_SP5"
+  ["14 test/sequential/test-tls-session-timeout.js"]="SLE_12_SP5"
+  ["10 test/parallel/test-crypto-dh.js"]="SLE_15"
+)
+
 # Common flags to use on each test
 GLOBAL_FLAGS="--expose_gc --expose-internals"
 
 # Use global variables to keep track if test some test fail and which one
 FAILED_TEST_LIST="/tmp/failed_test_list"
-TEST_RESULT="ok"
+SKIPPED_TEST_LIST="/tmp/skipped_test_list"
 
+OS_VERSION=""
 main "$@"
 

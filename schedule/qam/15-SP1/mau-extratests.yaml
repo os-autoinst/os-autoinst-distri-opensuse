@@ -25,7 +25,7 @@ schedule:
 - console/cups
 - console/java
 - console/golang
-- console/nodejs
+- console/openssl_nodejs
 - console/sqlite3
 - console/gdb
 - console/perf

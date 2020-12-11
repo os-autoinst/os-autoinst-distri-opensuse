@@ -24,7 +24,7 @@ schedule:
 - console/git
 - console/cups
 - console/java
-- console/nodejs
+- console/openssl_nodejs
 - console/sqlite3
 - console/ant
 - console/gdb

@@ -7,14 +7,12 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: NodeJS test to run specific checks availalble on the source code
-#          about TLS to avoid regressions due to OpenSSL updates.
+# Summary: OpenSSL update regression test using NodeJS tls and crypto tests
 #          The test will:
-#          - Check the latest nodejs package available and install it
-#          - Download latest sources of the package from IBS
+#          - Check the latest nodejs package and sources available and install it
 #          - Apply patches to the sources
 #          - Run the crypto and tls tests.
-#          - List eventually failed test in the end
+#          - List eventually skipped and failed test
 # Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
 
 use base 'consoletest';
@@ -23,6 +21,8 @@ use warnings;
 use testapi;
 use utils;
 use repo_tools 'generate_version';
+use version_utils qw(is_sle);
+use registration qw(add_suseconnect_product);
 
 sub run {
     #Preparation
@@ -30,12 +30,9 @@ sub run {
     $self->select_serial_terminal;
 
     my $os_version = generate_version();
-
-    # Get test script and run it
-    assert_script_run 'wget --quiet ' . data_url('console/test_node.sh');
-    assert_script_run 'chmod +x test_node.sh';
-    assert_script_run "./test_node.sh $os_version", 900;
+    assert_script_run 'wget --quiet ' . data_url('console/test_openssl_nodejs.sh');
+    assert_script_run 'chmod +x test_openssl_nodejs.sh';
+    assert_script_run "./test_openssl_nodejs.sh $os_version", 900;
 }
-
 
 1;
