@@ -81,7 +81,7 @@ sub process_reboot {
         }
         if (!check_var('ARCH', 's390x') && $args{expected_grub}) {
             # Replace by wait_boot if possible
-            assert_screen 'grub2', 100;
+            assert_screen 'grub2', 150;
             wait_screen_change { send_key 'ret' };
         }
         assert_screen 'linux-login', 200;
