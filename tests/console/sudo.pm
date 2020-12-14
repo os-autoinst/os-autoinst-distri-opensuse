@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sudo expect
 # Summary: sudo test
 #          - single command
 #          - I/O redirection

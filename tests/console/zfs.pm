@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zfs util-linux
 # Summary: Tests the functionality of the zfs filesystem
 # - Install zfs and load the module
 # - Format three disks and assemble a raidz ('tank')

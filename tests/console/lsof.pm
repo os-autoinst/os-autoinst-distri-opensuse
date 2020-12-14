@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: netcat lsof psmisc
 # Summary: Test lsof command
 # - Install netcat, lsof and psmisc
 # - Run lsof alone

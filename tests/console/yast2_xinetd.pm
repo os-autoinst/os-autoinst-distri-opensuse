@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xinetd yast2-inetd
 # Summary: yast2_xinetd checks start and stop of verious server components and add or delete server components
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dracut
 # Summary: Run dracut testsuite
 # - Test suitable only for dracut 0.44 (SLE12SP2+)
 # - Fetches a tarball containing patches to be applied to dracut tests

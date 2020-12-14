@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper coreutils
 # Summary: Snapshot creation and rollback on JeOS
 # Maintainer: Ciprian Cret <ccret@suse.com>
 

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: ipsec-tools iproute2
 # Summary: Test Racoon host-to-host scenario
 # Maintainer: Ben Chou <bchou@suse.com>
 

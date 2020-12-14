@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-http-server apache2
 # Summary: Dependency install, create server, start/stop, enable extra modules.
 # HTTP Server Wizard:
 # Step 1: Needle main window: used port and used adress/IP;

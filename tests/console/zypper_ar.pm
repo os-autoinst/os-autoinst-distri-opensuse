@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Add repos from corresponding mirror only if do not exist
 # Maintainer: Max Lin <mlin@suse.com>
 

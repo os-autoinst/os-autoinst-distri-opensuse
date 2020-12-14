@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-metapackage-handler
 # Summary: Test OneClickInstallCLI and OneClickInstallUI
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

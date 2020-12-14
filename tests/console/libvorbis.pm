@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: vorbis-tools libvorbis0
 # Summary: Test basic functionality of libvorbis audio compression format.
 # - Install vorbis-tools libvorbis0
 # - Download sample from datadir

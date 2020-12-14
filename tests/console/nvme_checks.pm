@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: nvme-cli
 # Summary: Smoke tests for NVM Express.
 #
 # - Install nvme-cli which is a tool to manage NVM Express

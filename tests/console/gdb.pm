@@ -7,6 +7,7 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
+# Package: gcc glibc-devel gdb sysvinit-tools
 # Summary: Basic GDB test. (Breakpoints/backtraces/attaching)
 # - Add sdk repository if necessary
 # - Install gcc glibc-devel gdb

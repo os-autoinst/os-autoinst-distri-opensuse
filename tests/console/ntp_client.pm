@@ -5,6 +5,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: chrony ntp
 # Summary: Check for NTP clients
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 

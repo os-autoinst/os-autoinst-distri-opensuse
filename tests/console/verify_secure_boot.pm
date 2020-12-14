@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: coreutils
 # Summary: Verify that secure boot is set as expected.
 # Maintainer: Sofia Syrianidou <ssyrianidou@suse.com>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: tftp yast2-tftp-server
 # Summary: configure and test tftp server
 # FTP Server Wizard
 # Step 1: Install package and dependencies;

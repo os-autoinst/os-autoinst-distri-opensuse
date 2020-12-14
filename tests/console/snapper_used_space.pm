@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper btrfsprogs
 # Summary: Display of used space per snapshot
 # Tags: poo#17848
 # - Check if quota is enabled

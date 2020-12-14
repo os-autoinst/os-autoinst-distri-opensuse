@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: ndctl
 # Summary: install ndctl. Destroy and configure NVDIMM namespaces
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 

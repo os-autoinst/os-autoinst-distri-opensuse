@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: git-core
 # Case 1525281  - FIPS: git
 # Summary: To check  whether can be successful via ssh or https protocol by using git
 # - Create ssh key and copy to root

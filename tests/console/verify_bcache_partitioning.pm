@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: bcache-tools
 # Summary: Validate bcache in writethrough
 # Usually the caching device is a fast device (ssd). In this scenario a rotational device is used.
 # The whole second disk is used as a caching device with /home mounted as a backing partition.

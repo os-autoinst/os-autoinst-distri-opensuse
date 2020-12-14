@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsprogs
 # Summary: Btrfs quota group limit tests improvements
 #	 Creating qgroups in a hierarchy for multiple subvolumes,
 #	 putting data into them and then running btrfsck on the hard disk

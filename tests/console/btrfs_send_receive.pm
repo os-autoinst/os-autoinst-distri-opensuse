@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsprogs
 # Summary: Btrfs send & receive snapshots
 # - Creates a btrfs subvolume in /root/sr
 # - Prepares an external disk volume, formats with btrfs and mounts at /mnt/sr

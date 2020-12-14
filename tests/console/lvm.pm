@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2 xfsprogs
 # Summary: it covers basic lvm commands
 # pvcreate vgcreate lvcreate
 # pvdisplay vgdisplay lvdisplay

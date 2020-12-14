@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt vhostmd
 # Summary: Simple vhostmd test
 # - Install libvirt and vhostmd
 # - Start libvirtd (and check status)

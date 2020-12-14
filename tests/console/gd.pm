@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gd
 # Summary: gd regression test
 #   * Convert gif image to a gd2 image
 #   * Convert gif image to a compressed gd2 image

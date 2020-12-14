@@ -9,6 +9,7 @@
 
 # Case 1560070  - FIPS: systemd journald FSS
 
+# Package: systemd
 # Summary: Add Case 1463314-FIPS:systemd-journald test
 #    Systemd depend on libgcrypt for journald's FSS(Forward Secure Sealing) function
 #    It is only needed to test journald's key generation and verification function

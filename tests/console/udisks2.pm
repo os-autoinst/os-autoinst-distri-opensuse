@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: cdrkit-cdrtools-compat udisks2 util-linux mkisofs
 # Summary: Simple tests for udisks2 using udisksctl checking status,
 # block device information and loop-setup.
 # Maintainer: Michael Grifalconi <mgrifalconi@suse.com>

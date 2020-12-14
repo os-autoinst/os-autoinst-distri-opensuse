@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dialog
 # Summary: Ensure simple ncurses applications can start and look correct
 # - Install dialog
 # - Run "dialog --yesno "test for boo#1054448"

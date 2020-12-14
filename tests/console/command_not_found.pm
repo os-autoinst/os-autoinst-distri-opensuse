@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: command-not-found
 # Summary: check that command-not-found works as intended
 # - as a normal user, check that command-not-found works
 # - if in textmode or on SLE-15+, prepare the systembefore executing the command

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: curl libcurl4
 # Summary: Test curl fallback from IPv6 to IPv4
 # - switch to normal user
 # - curl a website

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: machinery
 # Summary: Add simple machinery test thanks to greygoo (#1592)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

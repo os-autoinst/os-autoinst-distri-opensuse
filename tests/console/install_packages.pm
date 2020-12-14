@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: perl-solv perl-Data-Dump zypper libzypp
 # Summary: new test that installs configured packages
 # Maintainer: Stephan Kulow <coolo@suse.com>
 

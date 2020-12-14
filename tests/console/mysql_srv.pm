@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: mysql
 # Summary: simple mysql server startup test
 # - Install mysql
 # - Check mysql service status

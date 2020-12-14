@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: parted
 # Summary: Verify that disks have a GPT partition label
 # Maintainer: Michal Nowak <mnowak@suse.com>
 

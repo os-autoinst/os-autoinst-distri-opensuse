@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rsync
 # Summary: running rsync server, client tries to list and download files
 #  - setup rsync server
 #  - make files for downloading

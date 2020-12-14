@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: bash-completion btrfsprogs
 # Summary: Bash autocompletion for btrfs
 # - Installs bash-completion package in case jeos
 # - Call compare_commands with btrfs commands wth "short" (tabbed) version and

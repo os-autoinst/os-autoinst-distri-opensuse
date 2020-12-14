@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: cups
 # Summary: Test basic capabilities of cups
 # - check 'cupsd -t' output
 # - enable and start cups.service

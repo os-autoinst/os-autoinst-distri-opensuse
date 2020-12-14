@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper
 # Summary: snapper without DBus service running tests / POO#15944 FATE#321049
 # - Run snapper create for the following options:
 #   - Types 'single', 'command', 'pre' and 'post'

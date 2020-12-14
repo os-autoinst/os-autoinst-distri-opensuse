@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-ntp-client ntpd chronyd
 # Summary: yast2_ntpclient test
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 

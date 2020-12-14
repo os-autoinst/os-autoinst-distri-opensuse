@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 # Description: Basic Java test
+# Package: java-11-openjdk* java-1_* java-*
 # Summary: It installs every Java version which is available into
 #          the repositories and then it performs a series of basic
 #          tests, such as verifying the version, compile and run

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package:  rabbitmq-server python3-pika
 # Summary: rabbitmq test suite based on
 #  https://www.rabbitmq.com/tutorials/tutorial-one-python.html
 #  Solely added because someone added "rabbitmq" to the Leap42.2 test plan :-)

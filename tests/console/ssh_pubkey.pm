@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssh
 # Summary: Add openssh test cases for FIPS testing
 #    Test Case 1525228: FIPS: openssh
 #

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Only do very basic zypper lr test and show repos for easy investigation
 # - Prints output of zypper lr --uri to serial console.
 # Maintainer: Rodion Iafarov <riafarov@suse.com>

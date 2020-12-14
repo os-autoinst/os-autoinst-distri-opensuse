@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dstat
 # Summary: To check whether dstat runs
 # Maintainer: Michael Vetter <mvetter@suse.com>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper btrfsprogs
 # Summary: Snapper cleanup test based on FATE#312751
 # - In case of upgrade or BOOT_TO_SNAPSHOT not set
 #   - Run snapper setup-quota

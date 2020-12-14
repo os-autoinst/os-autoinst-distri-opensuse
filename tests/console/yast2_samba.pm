@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: samba yast2-samba-server yast2-auth-server
 # Summary: YaST2 Samba functionality
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: systemd
 # Summary: Test module to verify that actual default target corresponds to the
 # expected one.
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>

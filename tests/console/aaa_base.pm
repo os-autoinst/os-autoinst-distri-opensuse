@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: aaa_base
 # Summary: test that uses some aaa_base binaries command line tools to regression test.
 # - Creates directory /tmp/aaa_base_test
 # - Changes to /tmp/aaa_base_test directory

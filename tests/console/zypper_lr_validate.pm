@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Validate SLE zypper repositories
 # - List download repositories and outputs to serial device
 # - Calls validate_repos_sle (checks system variables, SLE channels table,

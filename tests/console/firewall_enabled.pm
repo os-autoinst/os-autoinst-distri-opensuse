@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: firewalld
 # Summary: Ensure firewall is running
 # - Check firewalld status by running "firewall-cmd --state"
 # - Or check SuSEfirewall2 status by running "SuSEfirewall2 status"

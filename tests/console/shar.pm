@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: sharutils diffutils
 # Summary: This will test the shar (SHELL ARCHIVE) tool
 # Maintainer: Dominik Heidler <dominik@heidler.eu>
 

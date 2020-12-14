@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: ucode-intel ucode-amd
 # Summary: Test microcode update on bare-metal (ipmi backend)
 #          Install ucode package if not installed
 # Maintainer: Jozef Pupava <jpupava@suse.com>

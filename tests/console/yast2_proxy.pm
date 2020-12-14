@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: squid yast2-squid yast2-proxy
 # Summary: Test that squid proxy can be started after setup with YaST
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 

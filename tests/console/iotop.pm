@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iotop
 # Summary: Test iotop
 # - Check basic functionality of iotop
 # - Run iotop in background and create some load

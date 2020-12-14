@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: parsec parsec-tool
 # Summary: Test parsec service with parsec-tool
 # Maintainer: Guillaume Gardet <guillaume@opensuse.org>
 

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssh expect netcat-openbsd psmisc shadow coreutils
 # Summary: Test to verify sshd starts and accepts connections.
 #  We need this test to succeed for followup tests using ssh localhost
 #  This regression test has also an interactive part (in VirtIO console)

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-nfs-client nfs-client
 # Summary: yast2_nfs_client module
 #   Ensures that it works with the current version of nfs-client (it got broken
 #   with the conversion from init.d to systemd services)

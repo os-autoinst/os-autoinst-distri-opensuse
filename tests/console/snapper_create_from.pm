@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper btrfsprogs
 # Summary: Test snapper create when branching from a different snapshot.
 # `snapper` is used for creating the snapshots used by transactional-update and
 # not only can create a snapshot of the currently active one, but also has available

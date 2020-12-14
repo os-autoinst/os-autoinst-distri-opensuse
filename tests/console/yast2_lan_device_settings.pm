@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-network
 # Summary: Device setup test for yast2-lan/yast2-network
 # - Sets static IP address
 # - Sets dynamic IP address

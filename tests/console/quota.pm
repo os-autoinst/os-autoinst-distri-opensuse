@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: quota quota-nfs coreutils e2fsprogs
 # Summary: test that uses quota command line tool to test
 # This test consists on quota, configuring and use a regular user to test quota .
 # If succeed, the test passes, proving that the connection is working.

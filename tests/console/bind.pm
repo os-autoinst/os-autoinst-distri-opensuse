@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libopenssl-devel libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6
+# bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython
 # Summary: bind upstream testsuite
 #          prepare, build, fix broken tests and execute testsuite
 # - Register and add correct products by calling "handle_bind_source_dependencies.sh"

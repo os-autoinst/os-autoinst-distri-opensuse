@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: alsa-utils
 # Summary: Test audio using aplay.
 # - stop packagekit daemon and install alsa-utils and alsa, checks output
 # for # "Installing:.*alsa" or "'alsa' is already installed"

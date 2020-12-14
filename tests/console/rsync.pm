@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: rsync coreutils
 # Summary: This module creates files that are synced afterwards using rsync.
 # - Install rsync (if not jeos)
 # - Create two test directories and populate with files, scripts and compressed

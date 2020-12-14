@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: php7 php7-pgsql postgresql*-contrib sudo unzip
 # Summary: PHP7 code that interacts locally with PostgreSQL
 #   This tests creates a PostgreSQL database and inserts an element.
 #   Then, PHP reads the elements and writes a new one in the database.
