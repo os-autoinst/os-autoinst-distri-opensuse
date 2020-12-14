@@ -44,7 +44,7 @@ sub run {
 
     # Check Clamav version
     # Jira ID SLE-16780: upgrade Clamav SLE
-    my $current_ver = script_output("zypper info clamav | grep Version | cut -d':' -f2| cut -d'-' -f1");
+    my $current_ver = script_output("rpm -q --qf '%{version}' clamav");
     record_info("Clamav_ver", "Current Clamav package version: $current_ver");
 
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
