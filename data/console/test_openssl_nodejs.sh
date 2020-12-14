@@ -22,7 +22,7 @@ test_result_wrapper(){
     echo "Test Output:"
     cat $OUTPUT
 
-    if [ "${skip_test[$VERSION $FILE]}X" = "${OS_VERSION}X" ]; then
+    if [ "${skip_test[$VERSION $FILE $OS_VERSION]}X" = "skipX" ]; then
       echo "Test was in the exclusion list. Failed result will be SKIPPED."
       echo "Node v$VERSION Test $FILE" >> $SKIPPED_TEST_LIST
     else
@@ -129,14 +129,14 @@ node_flags=(
 )
 
 # Hashmap of tests that need to be skipped for a specific SLE version
-# Usage:   ["$VERSION $FILE"]="SLE_VERSION"
-# Example: ["14 tests/directory/mytest.js"]="SLE_15"
+# Usage:   ["$VERSION $FILE" "$OS_VERSION"]="skip"
+# Example: ["14 tests/directory/mytest.js SLE_15"]="skip"
 declare -A skip_test
 skip_test=(
-  ["14 test/sequential/test-tls-securepair-client.js"]="SLE_12_SP5"
-  ["14 test/sequential/test-tls-session-timeout.js"]="SLE_12_SP5"
-  ["10 test/parallel/test-crypto-dh.js"]="SLE_15"
-  ["10 test/parallel/test-crypto-dh.js"]="SLE_15_SP1"
+  ["14 test/sequential/test-tls-securepair-client.js SLE_12_SP5"]="skip"
+  ["14 test/sequential/test-tls-session-timeout.js SLE_12_SP5"]="skip"
+  ["10 test/parallel/test-crypto-dh.js SLE_15"]="skip"
+  ["10 test/parallel/test-crypto-dh.js SLE_15_SP1"]="skip"
 )
 
 # Common flags to use on each test
