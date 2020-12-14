@@ -72,6 +72,7 @@ test_node_version(){
 main(){
 
   OS_VERSION="$1"
+  echo "OS_VERSION: $OS_VERSION"
 
   # Install dependencies to apply source patches and run tests
   zypper -n in quilt rpm-build openssl-1_1

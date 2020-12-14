@@ -21,8 +21,6 @@ use warnings;
 use testapi;
 use utils;
 use repo_tools 'generate_version';
-use version_utils qw(is_sle);
-use registration qw(add_suseconnect_product);
 
 sub run {
     #Preparation
