@@ -30,7 +30,7 @@ sub run {
     my $is_set_in_etc_host = sub { return script_run('grep ' . shift . ' /etc/hosts') == 0 };
 
     select_console 'root-console';
-    assert_script_run "zypper -n in yast2-network";    # make sure yast2 lan module is installed
+    zypper_call "in yast2-network";    # make sure yast2 lan module is installed
 
     # for debugging purposes only
     script_run('ip a');
