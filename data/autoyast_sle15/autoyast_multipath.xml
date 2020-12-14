@@ -28,7 +28,6 @@ pre init scripts feature. See poo#20818.
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>
-      <final_reboot config:type="boolean">true</final_reboot>
     </mode>
     <storage>
       <start_multipath config:type="boolean">false</start_multipath>
