@@ -3,7 +3,7 @@ name: autoyast_multipath
 description: >
   Test suite is based on profile received from our beta customers.
   It contains multipath and profile is edited during runtime using pre init
-  scripts feature. See poo#20818. 
+  scripts feature. See poo#20818.
 vars:
   AUTOYAST_PREPARE_PROFILE: '1'
 schedule:
@@ -15,6 +15,7 @@ schedule:
   - autoyast/wicked
   - autoyast/repos
   - autoyast/clone
+  - autoyast/verify_cloned_profile
   - autoyast/logs
   - autoyast/autoyast_reboot
   - installation/grub_test
@@ -22,3 +23,11 @@ schedule:
   - console/validate_multipath
 test_data:
   <<: !include test_data/yast/multipath.yaml
+  profile:
+    general:
+      storage:
+        start_multipath: 'true'
+    services-manager:
+      services:
+        enable:
+          service: multipathd
