@@ -116,6 +116,9 @@ sub run {
     # unload firewall. MPI- and libfabric-tests require too many open ports
     systemctl("stop " . opensusebasetest::firewall);
 
+    # wait for both machines to boot up before we continue
+    barrier_wait('IBTEST_SETUP');
+
     # create a ssh key if we don't have one
     script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
     # distribute the ssh key to the machines
@@ -124,7 +127,6 @@ sub run {
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
 
-    barrier_wait('IBTEST_SETUP');
 
     if ($role eq 'IBTEST_MASTER') {
         ibtest_master;
