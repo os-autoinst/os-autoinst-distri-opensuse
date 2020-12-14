@@ -21,9 +21,11 @@ use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerContro
 use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
 use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog;
+use Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ModifiedDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
@@ -42,6 +44,7 @@ sub init {
     $self->SUPER::init($args);
     $self->{ExpertPartitionerPage}         = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
     $self->{ClonePartitionsDialog}         = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarning}           = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning->new({app => YuiRestClient::get_app()});
     $self->{CreatePartitionTablePage}      = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
     $self->{DeletingCurrentDevicesWarning} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning->new({app => YuiRestClient::get_app()});
     $self->{ErrorDialog}                   = Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog->new({app => YuiRestClient::get_app()});
@@ -50,7 +53,14 @@ sub init {
     $self->{AddVolumeGroupPage}            = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
     $self->{AddLogicalVolumePage}          = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
     $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
-
+    $self->{FormattingOptionsPage}         = Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage->new({
+            do_not_format_shortcut  => 'alt-t',
+            format_shortcut         => 'alt-r',
+            filesystem_shortcut     => 'alt-f',
+            do_not_mount_shortcut   => 'alt-u',
+            encrypt_device_shortcut => 'alt-e',
+            app                     => YuiRestClient::get_app()
+    });
     return $self;
 }
 
@@ -62,6 +72,11 @@ sub get_add_volume_group_page {
 sub get_clone_partition_dialog {
     my ($self) = @_;
     return $self->{ClonePartitionsDialog};
+}
+
+sub get_confirmation_warning {
+    my ($self) = @_;
+    return $self->{ConfirmationWarning};
 }
 
 sub get_create_new_partition_table_page {
@@ -255,6 +270,16 @@ sub confirm_error_dialog {
 sub get_error_dialog_text {
     my ($self) = @_;
     $self->get_error_dialog()->text();
+}
+
+sub get_warning_text {
+    my ($self) = @_;
+    $self->get_confirmation_warning()->text();
+}
+
+sub confirm_warning {
+    my ($self) = @_;
+    $self->get_confirmation_warning()->press_yes();
 }
 
 sub edit_partition_encrypt {

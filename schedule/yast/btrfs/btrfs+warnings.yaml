@@ -23,6 +23,7 @@ schedule:
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/warning/no_root
+  - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone

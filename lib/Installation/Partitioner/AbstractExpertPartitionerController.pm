@@ -104,6 +104,9 @@ sub _set_partition_options {
             if ($formatting_options->{filesystem}) {
                 $self->get_formatting_options_page()->select_filesystem($formatting_options->{filesystem});
             }
+            if ($formatting_options->{enable_snapshots}) {
+                $self->get_formatting_options_page()->enable_snapshots();
+            }
         }
         else {
             $self->get_formatting_options_page()->select_do_not_format_device_radiobutton();
