@@ -306,7 +306,7 @@ if [[ "$1" != "--transactional-server" ]]; then
     done
 else 
     echo -e "\n-----------------------------------------------------------------------------------------------------------------"
-    echo "Skip java/javac/plugin update alternative and some tests because of read-only file system on transactional server.
+    echo "Skip java/javac/plugin update alternative and some tests because of read-only file system on transactional server."
     echo "see also jsc#SLE-9101"
     echo "-----------------------------------------------------------------------------------------------------------------"
     compile_hello_world
