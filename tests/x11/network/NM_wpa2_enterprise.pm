@@ -33,13 +33,14 @@ sub run {
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;
-    assert_screen [qw(network_manager-network_connected network_manager-wrong_card_selected)];
-    if (match_has_tag 'network_manager-wrong_card_selected') {
-        record_soft_failure 'boo#1079320';
-        assert_and_click 'network_manager-wrong_card_selected';
-        assert_screen 'network_manager-network_connected';
+    assert_screen [qw(network_manager-network_connected network-connection-failed)], timeout => 100;
+    if (match_has_tag 'network-connection-failed') {
+        record_soft_failure 'Activation of network failed, see boo#1180053';
     }
-    assert_and_click 'network_manager-close-click';
+    else {
+        assert_screen 'network_manager-network_connected';
+        assert_and_click 'network_manager-close-click';
+    }
 }
 
 sub connect_to_network {
