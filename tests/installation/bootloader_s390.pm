@@ -273,9 +273,7 @@ sub format_dasd {
         record_soft_failure('bsc#1151436');
         script_run('dasd_reload');
         assert_script_run('dmesg');
-        assert_script_run('export ZDEV_DEBUG=1');
-        assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
-        assert_script_run('for i in /proc/[0-9]* ; do echo ; cat $i/comm ; cat $i/stack ; done >> DASDBugInformation.log');
+        assert_script_run('export ZDEV_DEBUG=1; bash -x /sbin/dasd_configure -f $dasd_path 0; for i in /proc/[0-9]* ; do echo ; cat $i/comm ; cat $i/stack ; done >> DASDBugInformation.log');
     }
 }
 
