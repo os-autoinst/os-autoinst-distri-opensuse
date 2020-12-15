@@ -8,6 +8,7 @@ BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
 use utils;
+use Utils::Architectures qw(is_aarch64);
 use main_common;
 
 init_main();
@@ -34,6 +35,7 @@ sub load_boot_from_dvd_tests {
 sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'microos/disk_boot';
+    loadtest 'installation/system_workarounds' if is_aarch64;
     loadtest 'microos/networking';
 }
 
