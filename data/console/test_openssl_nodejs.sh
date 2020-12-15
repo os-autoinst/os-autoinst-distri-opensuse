@@ -10,7 +10,7 @@ test_result_wrapper(){
   local OUTPUT="/tmp/test_output"
 
   # Run the test (using common and custom flags if present) and save the output
-  echo "Running $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]}$FILE"
+  echo "Running $NODE_FULL_VERSION $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]}$FILE"
   set +e
   $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]} $FILE &> $OUTPUT
   RESULT=$?
@@ -22,11 +22,11 @@ test_result_wrapper(){
     echo "Test Output:"
     cat $OUTPUT
 
-    if [ "${skip_test[$VERSION $FILE $OS_VERSION]}X" = "skipX" ]; then
+    if [ "${skip_test[$NODE_FULL_VERSION $FILE $OS_VERSION]}X" = "skipX" ]; then
       echo "Test was in the exclusion list. Failed result will be SKIPPED."
-      echo "Node v$VERSION Test $FILE" >> $SKIPPED_TEST_LIST
+      echo "Node v$NODE_FULL_VERSION Test $FILE" >> $SKIPPED_TEST_LIST
     else
-      echo "Node v$VERSION Test $FILE" >> $FAILED_TEST_LIST
+      echo "Node v$NODE_FULL_VERSION Test $FILE" >> $FAILED_TEST_LIST
     fi
   else
     echo "OK"
@@ -75,7 +75,11 @@ main(){
   echo "OS_VERSION: $OS_VERSION"
 
   # Install dependencies to apply source patches and run tests
-  zypper -n in quilt rpm-build openssl-1_1
+  zypper -n in quilt rpm-build
+
+  if [ "$OS_VERSION" = "SLE_12_SP5"]; then
+    zypper -n in openssl-1_1
+  fi
 
   # Get list of each nodejs version found from default repo
   local NODE_VERSIONS=$(zypper -n search nodejs | egrep -i 'nodejs[0-9]{1,2} ' | cut -d'|' -f 2 | tr -d ' '| tr -d 'nodejs' | sort -h -u)
@@ -88,6 +92,8 @@ main(){
 
   # Install latest nodejs version and sources
   zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION"
+  NODE_FULL_VERSION=$(rpm -q nodejs${NODE_LATEST_VERSION} --qf '%{version}-%{release}')
+
   zypper -n si -D "nodejs$NODE_LATEST_VERSION"
 
   test_node_version $NODE_LATEST_VERSION
@@ -133,10 +139,10 @@ node_flags=(
 # Example: ["14 tests/directory/mytest.js SLE_15"]="skip"
 declare -A skip_test
 skip_test=(
-  ["14 test/sequential/test-tls-securepair-client.js SLE_12_SP5"]="skip"
-  ["14 test/sequential/test-tls-session-timeout.js SLE_12_SP5"]="skip"
-  ["10 test/parallel/test-crypto-dh.js SLE_15"]="skip"
-  ["10 test/parallel/test-crypto-dh.js SLE_15_SP1"]="skip"
+  ["14.15.1-6.3.1 test/sequential/test-tls-securepair-client.js SLE_12_SP5"]="skip"
+  ["14.15.1-6.3.1 test/sequential/test-tls-session-timeout.js SLE_12_SP5"]="skip"
+  ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15"]="skip"
+  ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15_SP1"]="skip"
 )
 
 # Common flags to use on each test
@@ -147,5 +153,6 @@ FAILED_TEST_LIST="/tmp/failed_test_list"
 SKIPPED_TEST_LIST="/tmp/skipped_test_list"
 
 OS_VERSION=""
+NODE_FULL_VERSION=""
 main "$@"
 
