@@ -25,6 +25,7 @@ use utils qw(pkcon_quit zypper_call);
 use version_utils qw(is_sle is_leap is_opensuse);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common 'is_updates_tests';
+use transactional 'check_reboot_changes';
 
 sub run {
     my ($self) = @_;
@@ -39,14 +40,27 @@ sub run {
     # java-10-openjdk & java-1_8_0-ibm  -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
     $cmd .= (is_sle('15+') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
-    zypper_call($cmd, timeout => 2000);
+    $cmd = 'transactional-update --continue pkg install --no-confirm java-*' if (check_var('TRANSACTIONAL_SERVER', '1'));
 
-    if (script_run 'rpm -q wget') {
-        zypper_call 'in wget';
+    if (check_var('TRANSACTIONAL_SERVER', '1')) {
+        select_console 'root-console';
+        assert_script_run("$cmd", 2000);
+        check_reboot_changes;
+        reset_consoles;
+        select_console('root-console', 200);
+    }
+    else {
+        zypper_call($cmd, timeout => 2000);
+        zypper_call 'in wget' if (script_run 'rpm -q wget');
     }
     assert_script_run 'wget --quiet ' . data_url('console/test_java.sh');
     assert_script_run 'chmod +x test_java.sh';
-    assert_script_run './test_java.sh';
+    if (check_var('TRANSACTIONAL_SERVER', '1')) {
+        assert_script_run './test_java.sh --transactional-server';
+    }
+    else {
+        assert_script_run './test_java.sh';
+    }
     # if !QAM test suite then cleanup test suite environment
     unless (is_updates_tests || is_opensuse) {
         remove_suseconnect_product('sle-module-legacy');

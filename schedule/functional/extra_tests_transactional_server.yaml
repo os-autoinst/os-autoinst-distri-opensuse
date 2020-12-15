@@ -10,6 +10,7 @@ schedule:
     - console/zypper_ar
     - console/zypper_ref
     - console/update_alternatives
+    - console/java
     - transactional/filesystem_ro
     - transactional/transactional_update
     - transactional/rebootmgr
