@@ -88,7 +88,7 @@ sub ibtest_master {
 
     # do all test preparations and setup
     zypper_ar(get_required_var('DEVEL_TOOLS_REPO'), no_gpg_check => 1);
-    zypper_call('in git-core twopence-shell-client bc iputils python');
+    zypper_call('in git-core twopence-shell-client bc iputils python', exitcode => [0, 65, 107]);
 
     # pull in the testsuite
     assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch");
