@@ -403,6 +403,28 @@ sub init_consoles {
         }
     }
 
+    if (get_var('SUT_IP') || get_var('VIRSH_GUEST')) {
+        my $hostname = get_var('SUT_IP', get_var('VIRSH_GUEST'));
+
+        $self->add_console(
+            'root-serial-ssh',
+            'ssh-serial',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => 'root'
+            });
+
+        $self->add_console(
+            'user-serial-ssh',
+            'ssh-serial',
+            {
+                hostname => $hostname,
+                password => $testapi::password,
+                user     => $testapi::username
+            });
+    }
+
     # svirt backend, except s390x ARCH
     if (is_svirt_except_s390x) {
         my $hostname = get_var('VIRSH_GUEST');
@@ -846,7 +868,7 @@ sub console_selected {
     }
     $args{await_console} //= 1;
     $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary};
+    $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
     $args{timeout}       //= 30;
 
     if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
