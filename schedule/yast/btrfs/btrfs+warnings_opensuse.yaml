@@ -18,6 +18,7 @@ schedule:
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/warning/no_root
+  - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -35,19 +36,19 @@ schedule:
   - installation/opensuse_welcome
   - console/system_prepare
 test_data:
-disks:
-  - name: vda
-    partitions:
-      snapshots_small_root:
-        size: 9GiB
-        role: operating-system
-        formatting_options:
-          should_format: 1
-          enable_snapshots: 1
-        mounting_options:
-          should_mount: 1
-          mount_point: /
-errors:
-  no_root: There is no device mounted at '/'
-warnings:
-  snapshots_small_root: Your root device is very small for snapshots
+  disks:
+    - name: vda
+      partitions:
+        snapshots_small_root:
+          size: 9GiB
+          role: operating-system
+          formatting_options:
+            should_format: 1
+            enable_snapshots: 1
+          mounting_options:
+            should_mount: 1
+            mount_point: /
+  errors:
+    no_root: There is no device mounted at '/'
+  warnings:
+    snapshots_small_root: Your root device is very small for snapshots
