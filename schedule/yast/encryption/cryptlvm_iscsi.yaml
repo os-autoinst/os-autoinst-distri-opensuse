@@ -35,7 +35,6 @@ schedule:
   - installation/boot_encrypt
   - installation/first_boot
   - console/system_prepare
-  - console/sle15_workarounds
   - console/hostname
   - console/force_scheduled_tasks
   - installation/validation/ibft

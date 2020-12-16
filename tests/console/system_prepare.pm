@@ -13,6 +13,7 @@
 # - Register modules if SCC_ADDONS, MEDIA_UPGRADE and in Regression flavor
 # are defined
 # - If system is vmware, set resolution to 1024x768 (and write to grub)
+# - Stop and disable packagekit
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'consoletest';
@@ -89,6 +90,9 @@ sub run {
     }
 
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true' if get_var('COLLECT_COREDUMPS');
+
+    # stop and disable PackageKit
+    quit_packagekit;
 }
 
 sub test_flags {

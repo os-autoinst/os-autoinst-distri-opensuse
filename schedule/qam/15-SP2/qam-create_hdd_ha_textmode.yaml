@@ -24,20 +24,15 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - '{{system_prepare}}'
+  - console/system_prepare
   - '{{patch_and_reboot_inci}}'
   - '{{patch_and_reboot_test_repo}}'
-  - console/sle15_workarounds
   - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
 conditional_schedule:
-  system_prepare:
-    QAM_INCI:
-      1:
-        - console/system_prepare
   patch_and_reboot_inci:
     QAM_INCI:
       1:
