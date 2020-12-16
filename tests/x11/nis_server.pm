@@ -46,8 +46,10 @@ sub nis_server_configuration {
     send_key 'tab';                              # jump to NIS domain name
     type_string $setup_nis_nfs_x11{nis_domain};
     assert_screen 'nis-server-master-server-setup-nis-domain';
-    wait_screen_change { send_key 'alt-a' };
+    # Focus on the dialog is lost sporadically, clicking somewhere solves it
+    assert_and_click 'nis-server-master-server-setup';
     # unselect active slave NIS server exists checkbox
+    wait_screen_change { send_key 'alt-a' };
     assert_screen 'nis-master-server-setup-finished';
     send_key 'alt-o';                            # other global setting button
                                                  # NIS Master Server Details Setup
