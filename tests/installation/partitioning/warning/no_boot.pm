@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Verify "There is no device mounted at '/'" Error Dialog is
-# shown when saving partitioner settings with no root mounted.
+# Summary: Verify Warning Dialog for missed boot partition is
+# shown when saving partitioner settings with no boot partition.
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
@@ -28,16 +28,17 @@ sub run {
     $partitioner->run_expert_partitioner();
     $partitioner->add_partition_on_gpt_disk({
             disk      => $disk->{name},
-            partition => $disk->{partitions}->{snapshots_small_root}
+            partition => $disk->{partitions}->{no_boot}
     });
+    $partitioner->accept_changes();
 
-    assert_matches(qr/$test_data->{warnings}->{snapshots_small_root}/, $partitioner->get_warning_label_text(),
-        "'Root is too small for snapshots' Warning Dialog did not appear, while it is expected.");
+    assert_matches(qr/$test_data->{warnings}->{no_boot}/, $partitioner->get_warning_rich_text(),
+        "Warning Dialog for missed boot partition did not appear, while it is expected.");
 }
 
 sub post_run_hook {
     save_screenshot;
-    $partitioner->confirm_warning();
+    $partitioner->decline_warning();
     $partitioner->cancel_changes({accept_modified_devices_warning => 1});
 }
 

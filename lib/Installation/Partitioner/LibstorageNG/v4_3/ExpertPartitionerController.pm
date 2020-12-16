@@ -22,6 +22,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
 use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning;
+use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningRichText;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
 use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog;
@@ -45,6 +46,7 @@ sub init {
     $self->{ExpertPartitionerPage}         = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
     $self->{ClonePartitionsDialog}         = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
     $self->{ConfirmationWarning}           = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarningRichText}   = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
     $self->{CreatePartitionTablePage}      = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
     $self->{DeletingCurrentDevicesWarning} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning->new({app => YuiRestClient::get_app()});
     $self->{ErrorDialog}                   = Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog->new({app => YuiRestClient::get_app()});
@@ -77,6 +79,11 @@ sub get_clone_partition_dialog {
 sub get_confirmation_warning {
     my ($self) = @_;
     return $self->{ConfirmationWarning};
+}
+
+sub get_confirmation_warning_rich_text {
+    my ($self) = @_;
+    return $self->{ConfirmationWarningRichText};
 }
 
 sub get_create_new_partition_table_page {
@@ -272,14 +279,24 @@ sub get_error_dialog_text {
     $self->get_error_dialog()->text();
 }
 
-sub get_warning_text {
+sub get_warning_label_text {
     my ($self) = @_;
     $self->get_confirmation_warning()->text();
+}
+
+sub get_warning_rich_text {
+    my ($self) = @_;
+    $self->get_confirmation_warning_rich_text()->text();
 }
 
 sub confirm_warning {
     my ($self) = @_;
     $self->get_confirmation_warning()->press_yes();
+}
+
+sub decline_warning {
+    my ($self) = @_;
+    $self->get_confirmation_warning()->press_no();
 }
 
 sub edit_partition_encrypt {
