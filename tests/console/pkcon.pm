@@ -40,7 +40,7 @@ sub run {
     script_run("pkcon install $pkgname --allow-reinstall --allow-downgrade -y");
 
     # restore previous state for packagekit service
-    pkcon_quit;
+    quit_packagekit;
 }
 
 1;

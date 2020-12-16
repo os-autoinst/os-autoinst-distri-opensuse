@@ -22,7 +22,7 @@ use x11utils 'handle_relogin';
 sub install_ibus {
     x11_start_program("xterm");
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     wait_still_screen 1;
     my $ibus_pinyin = is_tumbleweed() ? "ibus-libpinyin" : "ibus-pinyin";
     zypper_call("in ibus $ibus_pinyin ibus-kkc ibus-hangul");

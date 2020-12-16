@@ -26,7 +26,7 @@ use utils;
 
 sub run() {
     select_console('root-console');
-    pkcon_quit;
+    quit_packagekit;
 
     # add repository and install groupwise
     zypper_call("ar http://download.suse.de/ibs/SUSE:/Factory:/Head:/Internal/standard/ groupwise_repo");

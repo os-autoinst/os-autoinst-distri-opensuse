@@ -34,7 +34,7 @@ sub run {
     x11_start_program('xterm');
 
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     zypper_call "in ImageMagick";
     type_string "exit\n";
 

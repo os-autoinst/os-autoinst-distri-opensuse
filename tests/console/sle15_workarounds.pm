@@ -20,14 +20,14 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use utils 'pkcon_quit';
+use utils 'quit_packagekit';
 use version_utils 'is_sle';
 
 sub run {
     return unless is_sle('15+');
     select_console('root-console');
     # Stop packagekit
-    pkcon_quit;
+    quit_packagekit;
 }
 
 1;

@@ -20,7 +20,7 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    pkcon_quit;
+    quit_packagekit;
 
     # add specific repository which contains the package
     if (get_var('PACKAGE_REPO')) {

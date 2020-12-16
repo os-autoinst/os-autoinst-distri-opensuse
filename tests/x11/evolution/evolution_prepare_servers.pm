@@ -29,7 +29,7 @@ sub run() {
     my $self = shift;
     $self->select_serial_terminal;
 
-    pkcon_quit;
+    quit_packagekit;
 
     if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
         my $dovecot_repo = get_required_var("DOVECOT_REPO");

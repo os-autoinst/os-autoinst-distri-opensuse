@@ -27,7 +27,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Disable packagekit
-    pkcon_quit;
+    quit_packagekit;
 
     # Is HA pattern needed?
     push @sappatterns, 'ha_sles' if get_var('HA_CLUSTER');

@@ -21,7 +21,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils qw(pkcon_quit zypper_call);
+use utils qw(quit_packagekit zypper_call);
 use version_utils qw(is_sle is_leap is_opensuse);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common 'is_updates_tests';
@@ -31,7 +31,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     # Make sure that PackageKit is not running
-    pkcon_quit;
+    quit_packagekit;
     # if !QAM test suite then register Legacy module
     (is_updates_tests || is_opensuse) || add_suseconnect_product('sle-module-legacy');
     # Supported Java versions for sle15sp2

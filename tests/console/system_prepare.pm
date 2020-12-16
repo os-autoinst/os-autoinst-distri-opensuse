@@ -36,7 +36,7 @@ sub run {
 
     if (!check_var('DESKTOP', 'textmode')) {
         # Make sure packagekit is not running, or it will conflict with SUSEConnect.
-        pkcon_quit;
+        quit_packagekit;
         # poo#77134 wait for packagekit related zypper process to exit
         assert_script_run 'until ! pgrep zypper; do sleep 1; done';
     }

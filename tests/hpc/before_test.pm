@@ -23,7 +23,7 @@ sub run {
     $self->select_serial_terminal;
 
     # disable packagekitd
-    pkcon_quit();
+    quit_packagekit();
 
     # Stop firewall
     systemctl 'stop ' . $self->firewall;

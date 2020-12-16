@@ -8,7 +8,7 @@ use utils qw(
   ensure_serialdev_permissions
   get_root_console_tty
   get_x11_console_tty
-  pkcon_quit
+  quit_packagekit
   save_svirt_pty
   type_string_slow
   type_string_very_slow
@@ -294,7 +294,7 @@ sub x11_start_program {
 sub _ensure_installed_zypper_fallback {
     my ($self, $pkglist) = @_;
     $self->become_root;
-    pkcon_quit;
+    quit_packagekit;
     zypper_call "in $pkglist";
     type_string "exit\n";
 }
@@ -311,7 +311,7 @@ sub ensure_installed {
     testapi::x11_start_program('xterm');
     $self->become_root;
     ensure_serialdev_permissions;
-    pkcon_quit;
+    quit_packagekit;
     zypper_call "in $pkglist";
     wait_still_screen 1;
     send_key("alt-f4");    # close xterm

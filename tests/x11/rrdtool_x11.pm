@@ -42,7 +42,7 @@ sub run {
     select_console 'x11';
     x11_start_program('xterm');
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     # create a tmp dir/files to work
     assert_script_run "mkdir /tmp/rrdtool; cd /tmp/rrdtool";
     # install requirements

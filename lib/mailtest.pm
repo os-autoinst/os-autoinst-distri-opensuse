@@ -52,7 +52,7 @@ sub prepare_mail_server {
     $mail_server_name = get_var("MAIL_SERVER_NAME", "mail.openqa.suse");
 
     # Stop PackageKit
-    pkcon_quit;
+    quit_packagekit;
 
     # Configure network for mail server (multi-machine test)
     if (get_var('MAIL_SERVER')) {
@@ -76,7 +76,7 @@ sub prepare_mail_client {
     $mail_server_ip   = get_var("MAIL_SERVER_IP");
 
     # Stop PackageKit
-    pkcon_quit;
+    quit_packagekit;
 
     # Configure network for mail client (multi-machine test)
     if (get_var('MAIL_CLIENT')) {

@@ -81,7 +81,7 @@ sub prepare_for_kdump {
     $test_type //= '';
 
     # disable packagekitd
-    pkcon_quit;
+    quit_packagekit;
     if ($test_type eq 'before') {
         zypper_call('in yast2-kdump kdump');
     }

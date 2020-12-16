@@ -28,7 +28,7 @@ use x11utils 'ensure_unlocked_desktop';
 
 sub run {
     select_console('root-console');
-    pkcon_quit;
+    quit_packagekit;
 
     # install piglit testsuite from distribution repository (Tumbleweed) or from defined
     # PIGLIT_REPO (SLES)
