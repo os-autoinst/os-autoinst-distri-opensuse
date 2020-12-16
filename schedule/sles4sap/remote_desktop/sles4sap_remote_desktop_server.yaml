@@ -12,5 +12,4 @@ vars:
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
 schedule:
   - boot/boot_to_desktop
-  - x11/window_system
   - x11/remote_desktop/xrdp_server
