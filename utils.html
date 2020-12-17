@@ -44,7 +44,7 @@
       <li><a href="#assert_and_click_until_screen_change">assert_and_click_until_screen_change</a></li>
       <li><a href="#handle_livecd_reboot_failure">handle_livecd_reboot_failure</a></li>
       <li><a href="#assert_screen_with_soft_timeout">assert_screen_with_soft_timeout</a></li>
-      <li><a href="#pkcon_quit">pkcon_quit</a></li>
+      <li><a href="#quit_packagekit">quit_packagekit</a></li>
       <li><a href="#addon_decline_license">addon_decline_license</a></li>
       <li><a href="#addon_license">addon_license</a></li>
       <li><a href="#addon_products_is_applicable">addon_products_is_applicable</a></li>
@@ -320,9 +320,9 @@
 
 <pre><code> assert_screen_with_soft_timeout(&#39;registration-found&#39;, timeout =&gt; 300, soft_timeout =&gt; 60, bugref =&gt; &#39;bsc#123456&#39;);</code></pre>
 
-<h2 id="pkcon_quit">pkcon_quit</h2>
+<h2 id="quit_packagekit">quit_packagekit</h2>
 
-<pre><code> pkcon_quit();</code></pre>
+<pre><code> quit_packagekit();</code></pre>
 
 <p>Stop and mask packagekit service and wait until it is really dead. This is needed to prevent access conflicts to the RPM database.</p>
 
