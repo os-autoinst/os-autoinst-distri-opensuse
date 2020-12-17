@@ -1,0 +1,6 @@
+<<: !include test_data/yast/btrfs/common/btrfs+warnings_disks.yaml
+errors:
+  no_root: There is no device mounted at '/'
+warnings:
+  snapshots_small_root: Your root device is very small for snapshots
+  no_boot: Missing device with size equal or bigger than 2 MiB and partition id prep
