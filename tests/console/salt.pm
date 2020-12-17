@@ -25,7 +25,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call pkcon_quit systemctl);
+use utils qw(zypper_call quit_packagekit systemctl);
 use version_utils qw(is_jeos is_opensuse);
 use registration 'add_suseconnect_product';
 
@@ -43,7 +43,7 @@ sub run {
     }
 
     select_console 'root-console';
-    pkcon_quit;
+    quit_packagekit;
     zypper_call('in salt-master salt-minion');
     my $cmd = <<'EOF';
 systemctl start salt-master

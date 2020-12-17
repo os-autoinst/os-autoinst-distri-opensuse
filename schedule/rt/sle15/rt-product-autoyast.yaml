@@ -19,6 +19,5 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/system_prepare
-  - console/sle15_workarounds
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown

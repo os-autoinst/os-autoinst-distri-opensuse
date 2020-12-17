@@ -52,7 +52,7 @@ sub run {
     my $patches = '';
     $patches = get_patches($incident_id, $repo) if $incident_id;
 
-    pkcon_quit;
+    quit_packagekit;
     zypper_call("ref");
     zypper_call("pt");
     save_screenshot;

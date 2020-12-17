@@ -19,7 +19,7 @@ use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
-    pkcon_quit;
+    quit_packagekit;
     if (script_run('zypper se puppet') == 104 && is_sle('15+')) {
         return record_soft_failure 'bsc#1092498 - puppet disappeared from packagehub or was never added';
     }

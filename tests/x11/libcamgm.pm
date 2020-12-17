@@ -42,7 +42,7 @@ sub run {
     # Create a Root CA
     x11_start_program("xterm");
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     wait_still_screen 1;
     zypper_call("in libcamgm100 perl-camgm yast2-ca-management");
     wait_still_screen 2;

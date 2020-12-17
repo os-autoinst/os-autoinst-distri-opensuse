@@ -35,7 +35,7 @@ sub run {
 
     # become root, disable packagekit and install all needed packages
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     zypper_call "in ghostscript ghostscript-x11";
 
     # special case for gv which is not installed on all flavors

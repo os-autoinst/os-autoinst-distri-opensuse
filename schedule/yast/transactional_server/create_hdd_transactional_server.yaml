@@ -45,10 +45,6 @@ conditional_schedule:
         DISTRI:
             sle:
             - installation/user_settings_root
-    sle15_workarounds:
-        DISTRI:
-            sle:
-            - console/sle15_workarounds
 schedule:
     - installation/bootloader_start
     - installation/welcome
@@ -71,7 +67,6 @@ schedule:
     - "{{reconnect_mgmt_console}}"
     - "{{grub_test}}"
     - installation/first_boot
-    - "{{sle15_workarounds}}"
     - console/hostname
     - console/system_prepare
     - console/force_scheduled_tasks

@@ -48,7 +48,7 @@ sub setup_system {
 
 sub tell_packagekit_to_quit {
     # tell the PackageKit daemon to stop in order to next load with new libzypp
-    # this is different from pkcon_quit
+    # this is different from quit_packagekit
     x11_start_program('xterm');
     script_run("pkcon quit");
     send_key("ctrl-d");

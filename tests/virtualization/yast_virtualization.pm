@@ -21,7 +21,7 @@ sub run {
     x11_start_program('xterm');
     send_key 'alt-f10';
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     if (script_run('zypper se -i yast2-vm') == 104) {
         record_soft_failure 'bsc#1083398 - YaST2-virtualization provides wrong components for SLED';
         zypper_call 'in yast2-vm';

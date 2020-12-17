@@ -80,7 +80,7 @@ sub run {
 
     #prepare
     become_root;
-    pkcon_quit;
+    quit_packagekit;
     zypper_call "in exiv2";
 
     #Get assets to local directory

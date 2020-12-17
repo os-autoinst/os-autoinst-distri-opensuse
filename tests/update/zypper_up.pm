@@ -20,7 +20,7 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    pkcon_quit;
+    quit_packagekit;
     fully_patch_system;
     assert_script_run("rpm -q libzypp zypper");
 

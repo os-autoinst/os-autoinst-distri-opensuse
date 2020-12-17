@@ -29,7 +29,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    pkcon_quit;
+    quit_packagekit;
 
     capture_state('between-after');
 

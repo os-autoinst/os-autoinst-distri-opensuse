@@ -52,7 +52,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Disable PackageKit
-    pkcon_quit;
+    quit_packagekit;
 
     install_xfstests_from_ibs;
     script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';

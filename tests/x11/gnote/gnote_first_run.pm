@@ -24,7 +24,7 @@ use version_utils 'is_tumbleweed';
 sub run {
     if (is_tumbleweed) {
         select_console('root-console');
-        pkcon_quit;
+        quit_packagekit;
         zypper_call('in gnote');
         select_console('x11');
     }

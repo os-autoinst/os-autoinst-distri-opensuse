@@ -37,7 +37,6 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
-  - console/sle15_workarounds
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks

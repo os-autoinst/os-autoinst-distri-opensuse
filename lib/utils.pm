@@ -55,7 +55,7 @@ our @EXPORT = qw(
   is_bridged_networking
   set_bridged_networking
   assert_screen_with_soft_timeout
-  pkcon_quit
+  quit_packagekit
   systemctl
   addon_decline_license
   addon_license
@@ -923,15 +923,15 @@ sub assert_screen_with_soft_timeout {
     return assert_screen $mustmatch, $args{timeout} - $args{soft_timeout};
 }
 
-=head2 pkcon_quit
+=head2 quit_packagekit
 
- pkcon_quit();
+ quit_packagekit();
 
 Stop and mask packagekit service and wait until it is really dead.
 This is needed to prevent access conflicts to the RPM database.
 
 =cut
-sub pkcon_quit {
+sub quit_packagekit {
     script_run("systemctl mask packagekit; systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done");
 }
 

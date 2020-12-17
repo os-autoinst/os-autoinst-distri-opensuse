@@ -32,7 +32,6 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/system_prepare
-  - console/sle15_workarounds
   - '{{test_sles4sap}}'
   - '{{scc_deregister}}'
   - '{{generate_image}}'

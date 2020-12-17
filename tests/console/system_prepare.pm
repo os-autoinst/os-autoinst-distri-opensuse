@@ -13,6 +13,7 @@
 # - Register modules if SCC_ADDONS, MEDIA_UPGRADE and in Regression flavor
 # are defined
 # - If system is vmware, set resolution to 1024x768 (and write to grub)
+# - Stop and disable packagekit
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
 use base 'consoletest';
@@ -36,7 +37,7 @@ sub run {
 
     if (!check_var('DESKTOP', 'textmode')) {
         # Make sure packagekit is not running, or it will conflict with SUSEConnect.
-        pkcon_quit;
+        quit_packagekit;
         # poo#77134 wait for packagekit related zypper process to exit
         assert_script_run 'until ! pgrep zypper; do sleep 1; done';
     }
@@ -89,6 +90,9 @@ sub run {
     }
 
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true' if get_var('COLLECT_COREDUMPS');
+
+    # stop and disable PackageKit
+    quit_packagekit;
 }
 
 sub test_flags {

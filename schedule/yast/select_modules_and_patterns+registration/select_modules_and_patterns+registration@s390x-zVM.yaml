@@ -37,7 +37,6 @@ schedule:
   - boot/reconnect_mgmt_console
   - installation/first_boot
   - console/check_resume
-  - console/sle15_workarounds
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks

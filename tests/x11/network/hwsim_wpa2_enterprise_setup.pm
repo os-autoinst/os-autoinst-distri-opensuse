@@ -34,7 +34,7 @@ sub run {
 sub install_packages {
     my $required_packages = 'NetworkManager hostapd';
     type_string "# installing required packages\n";
-    pkcon_quit;
+    quit_packagekit;
     zypper_call("in $required_packages");
 }
 

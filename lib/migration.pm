@@ -45,7 +45,7 @@ sub setup_sle {
 
     # Stop packagekitd
     if (is_sle('12+')) {
-        pkcon_quit;
+        quit_packagekit;
     }
     else {
         assert_script_run "chmod 444 /usr/sbin/packagekitd";

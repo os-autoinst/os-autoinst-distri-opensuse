@@ -39,7 +39,7 @@ sub setup {
 
     $self->select_serial_terminal;
     # Disable packagekit
-    pkcon_quit;
+    quit_packagekit;
     # saptune is not installed by default on SLES4SAP 12 on ppc64le and in textmode profile
     zypper_call "-n in saptune" if ((is_ppc64le() and is_sle('<15')) or check_var('DESKTOP', 'textmode'));
     # Install mr_test dependencies

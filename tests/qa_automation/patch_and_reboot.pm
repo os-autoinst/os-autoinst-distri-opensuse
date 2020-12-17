@@ -35,7 +35,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    pkcon_quit unless check_var('DESKTOP', 'textmode');
+    quit_packagekit unless check_var('DESKTOP', 'textmode');
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
 
