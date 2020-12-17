@@ -47,7 +47,7 @@ sub run {
 
     # for sle 12 we still use and support python2
     if (is_sle('<15')) {
-        add_suseconnect_product('sle-module-legacy');
+        add_suseconnect_product('sle-module-legacy') unless get_var('PUBLIC_CLOUD');
         push @test_subjects, 'python-pam';
     } else {
         push @test_subjects, 'python3-python-pam';
