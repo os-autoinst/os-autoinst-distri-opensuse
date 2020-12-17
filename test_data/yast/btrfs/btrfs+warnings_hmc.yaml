@@ -1,24 +1,8 @@
 disks:
   - name: sda
-    partitions:
-      snapshots_small_root:
-        size: 11GiB
-        role: operating-system
-        formatting_options:
-          should_format: 1
-          enable_snapshots: 1
-        mounting_options:
-          should_mount: 1
-          mount_point: /
-      no_boot:
-        role: operating-system
-        formatting_options:
-          should_format: 1
-        mounting_options:
-          should_mount: 1
-          mount_point: /
+    <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
 errors:
-  no_root: There is no device mounted at '/'
+  <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
-  snapshots_small_root: Your root device is very small for snapshots
+  <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
   no_boot: Missing device with size equal or bigger than 2 MiB and partition id prep
