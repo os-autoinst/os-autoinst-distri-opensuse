@@ -8,9 +8,8 @@ schedule:
   - containers/host_configuration
   - containers/podman_image
   - containers/docker_image
+  - containers/container_diff
   - '{{validate_btrfs}}'
-  # - containers/container_diff
-  # Re-enable after 15-SP3 GA
 conditional_schedule:
   validate_btrf:
     ARCH:
