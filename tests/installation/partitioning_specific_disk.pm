@@ -59,7 +59,7 @@ sub run {
     send_key 'tab';
     send_key 'tab';
     send_key 'tab';
-    for (1 ... 20) {
+    for (1 ... 100) {
         send_key 'down';
         send_key_until_needlematch("expert-partitioner-label", "right", 50, 1);
         if (check_screen "expert-partitioner-$disk", 2) {
