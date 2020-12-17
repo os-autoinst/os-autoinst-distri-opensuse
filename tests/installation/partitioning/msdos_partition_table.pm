@@ -22,11 +22,13 @@ sub run {
     my $partitioner = $testapi::distri->get_expert_partitioner;
     $partitioner->run_expert_partitioner;
     foreach my $disk (@{$test_data->{disks}}) {
-        $partitioner->create_new_partition_table({disk => $disk->{name},
-                table_type => $disk->{table_type}, accept_deleting_current_devices_warning => 1});
+        $partitioner->create_new_partition_table({name => $disk->{name},
+                table_type => $disk->{table_type}, accept_deleting_current_devices_warning => 0});
         foreach my $partition (@{$disk->{partitions}}) {
-            $partitioner->add_partition_msdos({disk => $disk->{name},
-                    partition => $partition});
+            $partitioner->add_partition_msdos({
+                    disk           => $disk->{name},
+                    partition      => $partition,
+                    partition_type => $partition->{partition_type}});
         }
     }
     $partitioner->accept_changes_and_press_next;

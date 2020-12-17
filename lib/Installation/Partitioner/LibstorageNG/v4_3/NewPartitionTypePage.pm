@@ -7,15 +7,12 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces methods to create new partition table with
-# Expert Partitioner.
+# Summary: Page to handle partition type (exteded, primary) for msdos partitions
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
+package Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage;
 use strict;
 use warnings;
-
-use YuiRestClient;
 
 sub new {
     my ($class, $args) = @_;
@@ -27,20 +24,20 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{rb_msdos_part_table} = $self->{app}->radiobutton({id => '"msdos"'});
-    $self->{rb_gpt_part_table}   = $self->{app}->radiobutton({id => '"gpt"'});
-    $self->{btn_next}            = $self->{app}->button({id => 'next'});
+    $self->{btn_next}    = $self->{app}->button({id => 'next'});
+    $self->{rb_primary}  = $self->{app}->radiobutton({id => '"primary"'});
+    $self->{rb_extended} = $self->{app}->radiobutton({id => '"extended"'});
     return $self;
+}
+
+sub select_new_partition_type {
+    my ($self, $partition_type) = @_;
+    return ($partition_type eq 'primary') ? $self->{rb_primary}->select() : $self->{rb_extended}->select();
 }
 
 sub press_next {
     my ($self) = @_;
     return $self->{btn_next}->click();
-}
-
-sub select_partition_table_type {
-    my ($self, $table_type) = @_;
-    return ($table_type eq 'msdos') ? $self->{rb_msdos_part_table}->select() : $self->{rb_gpt_part_table}->select();
 }
 
 1;

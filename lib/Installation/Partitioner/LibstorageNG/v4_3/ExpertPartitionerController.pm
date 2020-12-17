@@ -31,6 +31,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::ModifiedDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ResizePage;
+use Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage;
 
 use YuiRestClient;
 
@@ -55,6 +56,7 @@ sub init {
     $self->{AddVolumeGroupPage}            = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
     $self->{AddLogicalVolumePage}          = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
     $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
+    $self->{NewPartitionTypePage}          = Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage->new({app => YuiRestClient::get_app()});
     $self->{FormattingOptionsPage}         = Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage->new({
             do_not_format_shortcut  => 'alt-t',
             format_shortcut         => 'alt-r',
@@ -64,6 +66,11 @@ sub init {
             app                     => YuiRestClient::get_app()
     });
     return $self;
+}
+
+sub get_new_partition_type_page {
+    my ($self) = @_;
+    return $self->{NewPartitionTypePage};
 }
 
 sub get_add_volume_group_page {
@@ -128,6 +135,15 @@ sub add_partition_on_gpt_disk {
     $self->_add_partition($args->{partition});
 }
 
+sub add_partition_msdos {
+    my ($self, $args) = @_;
+    $self->get_expert_partitioner_page()->select_disk($args->{disk}) if $args->{disk};
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->get_new_partition_type_page()->select_new_partition_type($args->{partition_type});
+    $self->get_new_partition_type_page()->press_next();
+    $self->add_new_partition($args->{partition});
+}
+
 sub clone_partition_table {
     my ($self, $args) = @_;
     $self->get_expert_partitioner_page()->open_clone_partition_dialog($args->{disk});
@@ -174,6 +190,7 @@ sub create_new_partition_table {
     if ($args->{accept_deleting_current_devices_warning}) {
         $self->get_deleting_current_devices_warning()->press_yes();
     }
+    $self->get_create_new_partition_table_page()->select_partition_table_type($args->{table_type});
     $self->get_create_new_partition_table_page()->press_next();
 }
 

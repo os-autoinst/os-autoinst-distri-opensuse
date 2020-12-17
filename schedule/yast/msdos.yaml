@@ -2,8 +2,11 @@
 name:           msdos
 description:    >
   Test for installation on msdos partition table.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -21,6 +24,7 @@ schedule:
   - installation/await_install
   - '{{installation/logs_from_installation_system}}'
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - '{{reconnect_mgmt_console}}'
   - installation/first_boot
   - console/validate_fs_table
