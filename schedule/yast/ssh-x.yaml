@@ -31,6 +31,8 @@ schedule:
   # Called on powerVM BACKEND
   - '{{grub_test}}'
   - installation/first_boot
+  - installation/validation/validate_sshd_reachable
+  - console/sshd
 conditional_schedule:
   disk_activation:
     BACKEND:
