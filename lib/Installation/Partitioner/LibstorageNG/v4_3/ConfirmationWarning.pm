@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -44,6 +44,34 @@ sub press_no {
 sub text {
     my ($self) = @_;
     return $self->{lbl_warning}->text();
+}
+
+sub confirm_warning_only_use_if_familiar {
+    my ($self) = @_;
+    $self->ensure_correct_text(
+        qr/Only use this program if you are familiar with partitioning hard disks/);
+    $self->press_yes();
+}
+
+sub confirm_warning_delete_partition {
+    my ($self, $part_name) = @_;
+    $self->ensure_correct_text(qr/Really delete \/dev\/$part_name?/);
+    $self->press_yes();
+}
+
+sub confirm_warning_delete_volume_group {
+    my ($self, $vg) = @_;
+    $self->ensure_correct_text(
+        qr/Really delete volume group \"$vg\" and all related logical volumes?/);
+    $self->press_yes();
+}
+
+sub ensure_correct_text {
+    my ($self, $expected) = @_;
+    if (my $text = $self->text() !~ $expected) {
+        die "Unexpected warning found: text on warning does not match:\n" .
+          "text: $text\nregex:$expected";
+    }
 }
 
 1;

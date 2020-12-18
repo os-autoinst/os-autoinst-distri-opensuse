@@ -1,0 +1,148 @@
+# SUSE's openQA tests
+#
+# Copyright © 2021 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved. This file is offered as-is,
+# without any warranty.
+#
+# Summary: This test will check that creating, resizing, encrypting and
+#          deleting a partition, a volume group and some logical volumes work as
+#          intended.
+# - Starts yast2 storage and select /dev/vdb device
+# - Create a custom partition on /dev/vdb (200MiB, ext4)
+# - Encrypt the partition created (password "susetesting")
+# - Validate the partition creating by parsing the output of fdisk -l | grep
+# "/dev/vdb1" inside a xterm
+# - Starts yast2 storage and select /dev/vdb device
+# - Select /dev/vdb1, select custom size and resize it to 170MiB
+# - Validate the partition creating by parsing the output of fdisk -l | grep
+# "/dev/vdb1" inside a xterm
+# - Starts yast2 storage again, select /dev/vdb and delete partition created.
+# Checks if device is unpartitioned afterwards.
+# - Starts yast2 storage
+# - Create a new VG "vgtest" on /dev/vdb
+# - Inside "vgtest", create lv1, type: xfs
+# - Inside "vgtest", create lv2, type: ext3, encrypt that partition with
+# password "susetesting"
+# - Inside "vgtest", create lv3, type btrfs, encrypt partition unless is SLE12SP4
+# - Inside "vgtest", create lv4, type raw
+# - Start xterm, run "lvdisplay /dev/vgtest/lv<number>" for each partition
+# - Close xterm, start a new yast2 storage and delete all partitions created
+#
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
+
+use base "y2_module_guitest";
+use strict;
+use warnings;
+use testapi;
+use YuiRestClient;
+use scheduler 'get_test_suite_data';
+
+my $partitioner;
+my $test_data;
+
+sub pre_run_hook {
+    $partitioner = $testapi::distri->get_expert_partitioner();
+    $test_data   = get_test_suite_data();
+}
+
+sub open_expert_partitioner {
+    my ($self) = shift;
+    $self->launch_yast2_module_x11('storage', extra_vars => get_var('YUI_PARAMS'));
+    YuiRestClient::connect_to_app_running_system();
+    $partitioner->confirm_warning_only_use_if_familiar();
+}
+
+sub add_custom_partition {
+    my ($self) = shift;
+    my $disk = $test_data->{disks}[0];
+    $self->open_expert_partitioner;
+    $partitioner->add_partition_on_gpt_disk({
+            disk      => $disk->{name},
+            partition => $disk->{partitions}[0]
+    });
+    $partitioner->show_summary_and_accept_changes();
+}
+
+sub verify_custom_partition {
+    my $index     = shift // 0;
+    my $partition = $test_data->{disks}[0]->{partitions}[$index];
+    my $name      = "/dev/$partition->{name}";
+    my $size      = $partition->{size} =~ s/iB//r;
+
+    x11_start_program('xterm');
+    become_root;
+    wait_still_screen 3;
+    validate_script_output("fdisk -l | grep $name",
+        sub { m/$name\s+\d+\s+\d+\s+\d+\s+$size.*/ });
+    send_key "ctrl-d";
+    wait_screen_change { send_key "ctrl-d" };
+}
+
+sub resize_custom_partition {
+    my ($self) = shift;
+    $self->open_expert_partitioner;
+    $partitioner->resize_partition({
+            disk      => $test_data->{disks}[0]->{name},
+            partition => $test_data->{disks}[0]->{partitions}[1]
+    });
+    $partitioner->show_summary_and_accept_changes();
+}
+
+sub verify_resized_partition {
+    verify_custom_partition(1);
+}
+
+sub delete_resized_partition {
+    my ($self) = shift;
+    $self->open_expert_partitioner;
+    $partitioner->delete_partition({
+            disk      => $test_data->{disks}[0]->{name},
+            partition => $test_data->{disks}[0]->{partitions}[1]
+    });
+    $partitioner->show_summary_and_accept_changes();
+}
+
+sub add_logical_volumes {
+    my ($self) = shift;
+    $self->open_expert_partitioner;
+    $partitioner->setup_lvm($test_data->{lvm});
+    $partitioner->show_summary_and_accept_changes();
+}
+
+sub verify_logical_volumes {
+    x11_start_program('xterm');
+    become_root;
+    wait_still_screen 3;
+    my $vg = $test_data->{lvm}->{volume_groups}[0];
+    assert_script_run "lvdisplay /dev/$vg->{name}/$_->{name}" for @{$vg->{logical_volumes}};
+    send_key "ctrl-d";
+    wait_screen_change { send_key "ctrl-d" };
+}
+
+sub delete_volume_group {
+    my ($self) = shift;
+    $self->open_expert_partitioner;
+    my $vg = $test_data->{lvm}->{volume_groups}[0];
+
+    $partitioner->delete_volume_group($vg->{name});
+    $partitioner->show_summary_and_accept_changes();
+}
+
+sub run {
+    my ($self) = shift;
+    select_console "x11";
+
+    $self->add_custom_partition;
+    verify_custom_partition;
+    $self->resize_custom_partition;
+    verify_resized_partition;
+    $self->delete_resized_partition;
+    $self->add_logical_volumes;
+    verify_logical_volumes;
+    $self->delete_volume_group;
+}
+
+1;
