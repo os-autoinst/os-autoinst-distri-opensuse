@@ -24,7 +24,7 @@ sub run {
         assert_script_run "rpm -q $pkg->{name} | grep $pkg->{fullname}";
     }
     # perl -c will give a "only used once" message
-    # here and this makes the travis ci tests fail.
+    # here and this makes the ci tests fail.
     1 if defined $lock_package::locked_pkg_info;
 }
 
