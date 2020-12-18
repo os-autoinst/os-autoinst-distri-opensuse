@@ -50,3 +50,4 @@ test_data:
   warnings:
     snapshots_small_root: Your root device is very small for snapshots
     no_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
+    bios_boot_small_for_bootloader: A partition of type BIOS Boot Partition is needed to install the bootloader
