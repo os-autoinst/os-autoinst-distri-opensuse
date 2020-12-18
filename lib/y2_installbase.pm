@@ -212,12 +212,12 @@ available patterns.
 =cut
 sub select_all_patterns_by_menu {
     my ($self) = @_;
-    # move mouse on patterns and open menu
-    mouse_set 100, 400;
-    mouse_click 'right';
-    wait_still_screen 3;
+    # Ensure mouse on certain pattern then right click
+    assert_and_click("minimal-system", button => 'right');
+    assert_screen 'selection-menu';
     # select action on all patterns
     wait_screen_change { send_key 'a'; };
+    assert_screen 'all-select-install';
     # confirm install
     wait_screen_change { send_key 'ret'; };
     mouse_hide;
