@@ -23,6 +23,7 @@ schedule:
   - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning/warning/no_boot
   - installation/partitioning/warning/boot_small_for_kernel
+  - installation/partitioning/warning/bios_boot_small_for_bootloader
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone

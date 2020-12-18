@@ -1,33 +1,43 @@
-partitions:
-  snapshots_small_root:
+snapshots_small_root:
+  size: 11GiB
+  role: operating-system
+  formatting_options:
+    should_format: 1
+    enable_snapshots: 1
+  mounting_options:
+    should_mount: 1
+    mount_point: /
+no_boot:
+  role: operating-system
+  formatting_options:
+    should_format: 1
+  mounting_options:
+    should_mount: 1
+    mount_point: /
+boot_small_for_kernel:
+  - role: operating-system
     size: 11GiB
-    role: operating-system
-    formatting_options:
-      should_format: 1
-      enable_snapshots: 1
-    mounting_options:
-      should_mount: 1
-      mount_point: /
-  no_boot:
-    role: operating-system
     formatting_options:
       should_format: 1
     mounting_options:
       should_mount: 1
       mount_point: /
-  boot_small_for_kernel:
-    - role: operating-system
-      size: 11GiB
-      formatting_options:
-        should_format: 1
-      mounting_options:
-        should_mount: 1
-        mount_point: /
-    - role: operating-system
-      size: 40mb
-      formatting_options:
-        should_format: 1
-        filesystem: ext2
-      mounting_options:
-        should_mount: 1
-        mount_point: '/boot'
+  - role: operating-system
+    size: 40mb
+    formatting_options:
+      should_format: 1
+      filesystem: ext2
+    mounting_options:
+      should_mount: 1
+      mount_point: '/boot'
+bios_boot_small_for_bootloader:
+  - role: operating-system
+    size: 11GiB
+    formatting_options:
+      should_format: 1
+    mounting_options:
+      should_mount: 1
+      mount_point: /
+  - role: raw-volume
+    size: 1mb
+    id: bios-boot

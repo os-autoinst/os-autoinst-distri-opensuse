@@ -1,8 +1,10 @@
 disks:
   - name: vda
-    <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+    partitions:
+      <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
 errors:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
   no_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
+  bios_boot_small_for_bootloader: A partition of type BIOS Boot Partition is needed to install the bootloader
