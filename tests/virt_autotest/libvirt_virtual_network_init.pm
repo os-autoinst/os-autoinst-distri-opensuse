@@ -52,6 +52,12 @@ sub run_test {
     record_info('Detect Available POOL SIZE:', $AVAILABLE_POOL_SIZE . 'GiB');
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge 60", fail_message => "The SUT needs at least 60GiB available space of active pool for virtual network test");
 
+    #Ensure DHCPD Service Config
+    my $dhcpd_config = "/etc/dhcpd.conf";
+    record_info("DHCPD Service Config", script_output("cat $dhcpd_config"));
+    script_run("service dhcpd restart") if (script_run("systemctl restart dhcpd") ne '0');
+    save_screenshot;
+
     #Need to reset up environemt - br123 for virt_atuo test due to after
     #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
     virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));

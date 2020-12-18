@@ -187,14 +187,14 @@ sub run_test {
     my ($self) = @_;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
-    if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST")) {
-        record_info("DNS Setup", "SLE 15+ host may have more strict rules on dhcp assigned ip conflict prevention, so guest ip may change");
-        my $dns_bash_script_url = data_url("virt_autotest/setup_dns_service.sh");
-        script_output("curl -s -o ~/setup_dns_service.sh $dns_bash_script_url", 180, type_command => 0, proceed_on_failure => 0);
-        script_output("chmod +x ~/setup_dns_service.sh && ~/setup_dns_service.sh -f testvirt.net -r 123.168.192 -s 192.168.123.1", 180, type_command => 0, proceed_on_failure => 0);
-        upload_logs("/var/log/virt_dns_setup.log");
-        save_screenshot;
-    }
+#    if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST")) {
+#        record_info("DNS Setup", "SLE 15+ host may have more strict rules on dhcp assigned ip conflict prevention, so guest ip may change");
+#        my $dns_bash_script_url = data_url("virt_autotest/setup_dns_service.sh");
+#        script_output("curl -s -o ~/setup_dns_service.sh $dns_bash_script_url", 180, type_command => 0, proceed_on_failure => 0);
+#        script_output("chmod +x ~/setup_dns_service.sh && ~/setup_dns_service.sh -f testvirt.net -r 123.168.192 -s 192.168.123.1", 180, type_command => 0, proceed_on_failure => 0);
+#        upload_logs("/var/log/virt_dns_setup.log");
+#        save_screenshot;
+#    }
 
     # 1. Add network interfaces
     my %mac = ();

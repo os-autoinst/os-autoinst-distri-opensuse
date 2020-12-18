@@ -104,7 +104,7 @@ sub test_network_interface {
     my $routed   = $args{routed}   // 0;
     my $target   = $args{target}   // script_output("dig +short openqa.suse.de");
 
-    check_guest_ip("$guest") if (is_sle('>15') && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
+    #check_guest_ip("$guest") if (is_sle('>15') && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
     save_guest_ip("$guest", name => $net);
 

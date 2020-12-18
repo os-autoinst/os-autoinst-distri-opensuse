@@ -104,6 +104,17 @@ sub install_package {
     ###Install required package for window guest installation on xen host
     if (get_var('GUEST_LIST') =~ /^win-.*/ && (is_xen_host)) { zypper_call '--no-refresh --no-gpg-checks in mkisofs' }
 
+    my $shared_script = "/usr/share/qa/qa_test_virtualization/shared/standalone";
+    if (script_run("[[ -f $shared_script ]]") == 0) {
+        assert_script_run 'sed -i \'179a default-lease-time 28800;\' /usr/share/qa/qa_test_virtualization/shared/standalone';
+        assert_script_run 'sed -i \'180a max-lease-time 28800;\' /usr/share/qa/qa_test_virtualization/shared/standalone';
+        assert_script_run("sed -i 's/1800/28800/' /usr/share/qa/qa_test_virtualization/shared/standalone");
+        assert_script_run("sed -i 's/4800/28800/' /usr/share/qa/qa_test_virtualization/shared/standalone");
+        record_info("Standalone script", script_output("cat $shared_script"));
+        script_run("service dhcpd restart") if (script_run("systemctl restart dhcpd") ne '0');
+        save_screenshot;
+    }
+
 }
 
 sub run {

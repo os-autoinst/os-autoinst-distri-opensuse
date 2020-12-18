@@ -45,6 +45,10 @@ sub run_test {
     upload_logs "vnet_isolated.xml";
     assert_script_run("rm -rf vnet_isolated.xml");
 
+    #Ensure DHCPD Service Config
+    my $dhcpd_config = "/etc/dhcpd.conf";
+    record_info("DHCPD Service Config", script_output("cat $dhcpd_config"));
+
     my ($mac, $model, $affecter, $exclusive);
     my $gate = '192.168.127.1';    # This host exists but should not work as a gate in the ISOLATED NETWORK
     foreach my $guest (keys %virt_autotest::common::guests) {
