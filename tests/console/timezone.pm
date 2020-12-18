@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: timezone coreutils
 # Summary: Check that it's possible to dump a zone data and to set a
 #          custom rule for a given zone.
 # - Check if timezone is installed

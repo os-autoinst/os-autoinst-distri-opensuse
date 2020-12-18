@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssh
 # Summary: console test pre setup, performing actions required to run tests
 # which are supposed to be reverted e.g. stoping and disabling packagekit and so on
 # Permanent changes are now executed in system_prepare module

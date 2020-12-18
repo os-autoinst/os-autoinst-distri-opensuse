@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: curl
 # Summary: ensure curl is able to successfully connect to a https site
 #          without certificate errors.
 # - switch to normal user

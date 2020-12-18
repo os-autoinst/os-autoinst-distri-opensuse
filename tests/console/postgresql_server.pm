@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: postgresql-server sudo
 # Summary: Postgres tests
 # - Install postgresql-server sudo
 # - Start postgresql service

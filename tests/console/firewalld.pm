@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: firewalld
 # Summary: Test FirewallD basic usage
 # Maintainer: Alexandre Makoto Tanno <atanno@suse.com>
 

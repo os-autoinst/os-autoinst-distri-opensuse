@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libzzip-0-13 zziplib-devel zip
 # Summary: test that uses zip command line tool to regression test.
 # If succeed, the test passes without error.
 # - Add SDK repository if necessary (devel package necessary for test)

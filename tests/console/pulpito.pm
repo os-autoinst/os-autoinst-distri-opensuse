@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: firefox
 # Summary: Run pulpito the teuthology result webpage and tear down openstack when test passed
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 

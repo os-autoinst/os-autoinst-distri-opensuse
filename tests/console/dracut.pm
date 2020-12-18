@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dracut
 # Summary: Test dracut installation and verify that it works as expected
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 

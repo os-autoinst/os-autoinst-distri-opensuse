@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-nfs-client nfs-client nfs4-acl-tools
 # Summary: yast2_nfs4_client module
 #   This is the client side of yast2_nfs4_server module.
 #   This uses the yast2 nfs-client module with NFS4 strictly enabled.

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-bootloader
 # Summary: Basic test for yast2 bootloader
 # - Install yast2-bootloader
 # - Launch yast2 bootloader

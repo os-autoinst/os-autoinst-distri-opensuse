@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rpm aaa_base
 # Summary: Test functionality of the rpm tool:
 #  * List all packages
 #  * Simple query for a package

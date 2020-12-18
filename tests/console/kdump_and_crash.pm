@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: kernel-default-debuginfo yast2-kdump kdump crash mokutil
 # Summary: Run 'crash' utility on a kernel memory dump
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 

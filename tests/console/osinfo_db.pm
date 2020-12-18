@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: osinfo-db libosinfo
 # Summary: Regression test osinfo-db:
 # use osinfo-query tool to query the OS database;
 # - List all OSes in the database;

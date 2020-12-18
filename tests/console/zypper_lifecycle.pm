@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: test for 'zypper lifecycle'
 # - Run "zypper lifecycle" and parse its output for some header and links
 # - Runs a series of checks to determine a suitable package to validade

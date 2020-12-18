@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: apache2 apache2-mod_php72 php72-php72-curl
 # Summary: Test various apche2 basic scenarios
 #  * Test the default vhost after installation
 #  * Test custom vhost domain, custom vhost port

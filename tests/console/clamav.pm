@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: clamav
 # Summary: check freshclam and clamscan against some fake virus samples
 # - refresh the database using freshclam
 # - change user vscan to root in clamd.conf (clamd runs as root)

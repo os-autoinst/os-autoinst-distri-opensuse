@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: alsa alsa-utils wavpack
 # Summary: Test basic functionality of wavpack audio compression format.
 # - Add SDK repository
 # - Install alsa, alsa-utils and wavpac

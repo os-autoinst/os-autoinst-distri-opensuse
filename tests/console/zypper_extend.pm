@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: zypper
 # Summary: This is a zypper extend regression tests. poo#51521.
 #   This test is based on https://gitlab.suse.de/ONalmpantis/scripts/blob/master/zypper_regression_test.sh.
 # - Combination of search commands for a package (star)

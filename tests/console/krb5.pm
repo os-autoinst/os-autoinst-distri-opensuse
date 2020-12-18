@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: krb5 krb5-server krb5-client
 # Summary: MIT kerberus 5 test (krb5)
 # Maintainer: Sergio Rafael Lemke <slemke@suse.cz>
 

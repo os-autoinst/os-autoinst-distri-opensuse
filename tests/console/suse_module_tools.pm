@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: mokutil pesign-obs-integration
 # Summary: Testing functionality of modhash and modsign-verify commands.
 # A random module from available loadable modules on the system is picked
 # for testing purposes.

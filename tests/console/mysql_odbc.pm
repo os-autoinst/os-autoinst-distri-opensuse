@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: mysql mariadb-client sudo mariadb-connector-odbc unixODBC MyODBC-unixODBC
 # Summary: test that uses isql command line tool to interact with unixODBC
 # plugin
 # This test consists on a MySQL/MariaDB database and a unixODBC plugin. It

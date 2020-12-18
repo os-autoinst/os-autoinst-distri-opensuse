@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gcc-c++ pcre-devel
 # Summary: Test pcre and applications using it
 # - Install gcc-c++ pcre-devel
 # - Download testfiles from autoinst_url

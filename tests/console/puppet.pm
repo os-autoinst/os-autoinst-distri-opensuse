@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: puppet
 # Summary: Test installation of puppet master and slave on the same host
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 

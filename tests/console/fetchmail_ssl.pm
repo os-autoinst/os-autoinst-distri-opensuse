@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: postfix fetchmail
 # Summary: Test fetchmail works with SSL enabled
 # Note: fetchmail connects to a remote mail server (running dovecot)
 #   and fetch mails to localhost, then deliver mails (by postfix) to

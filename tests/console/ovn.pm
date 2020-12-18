@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvswitch ovn ovn-central ovn-devel ovn-docker ovn-host ovn-vtep
+# iproute2
 # Summary: Basic OVN (Open Virtual Network) test
 #
 #   This test does the following

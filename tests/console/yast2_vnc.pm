@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: vncmanager xorg-x11
 # Summary: Configure remote administration with yast2 vnc
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

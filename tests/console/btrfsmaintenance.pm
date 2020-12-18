@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsmaintenance
 # Summary: Check btrfsmaintenance for functionality
 # - run btrfs-balance.sh and btrfs-scrub.sh
 # - Check if btrfsmaintenance-refresh.service is present and started properly

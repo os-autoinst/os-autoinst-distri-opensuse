@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-snapper snapper
 # Summary: yast2 snapper test for ncurses
 # Maintainer: Lemon <leli@suse.com>
 

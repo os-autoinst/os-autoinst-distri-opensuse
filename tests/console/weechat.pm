@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: weechat
 # Summary: Test basic weechat start and stop
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

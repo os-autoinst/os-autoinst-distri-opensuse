@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: procps
 # Summary: test sysctl because it can go wrong https://bugzilla.opensuse.org/show_bug.cgi?id=1077746
 # - Run 'sysctl -w vm.swappiness=59'
 # - Check /proc/sys/vm/swappiness and validate value "59"

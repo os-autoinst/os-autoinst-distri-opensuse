@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: wget
 # Summary: Test curl fallback from IPv6 to IPv4
 # - Install wget
 # - Test that wget is installed

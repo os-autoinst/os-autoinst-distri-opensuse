@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: SUSEConnect
 # Summary: Test SUSEConnect by registering system, module and deregistration.
 # - De-register system using SUSEConnect (-d, --cleanup,  --status-text)
 # - Register product using SCC_REGCODE code

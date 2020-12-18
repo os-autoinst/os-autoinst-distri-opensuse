@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gcc valgrind curl
 # Summary: valgrind test
 #          compile a test program and run valgrind to detect memory leaks on it
 # - compile test program with gcc

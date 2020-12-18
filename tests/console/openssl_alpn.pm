@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssl
 # Summary: Test ALPN support in openssl
 # - Run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365
 #   -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"' and create

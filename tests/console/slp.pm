@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openslp-server
 # Summary: Test functionality of the openSLP package
 #  * Install the openslp and openslp-server package
 #  * Enable, start and inspect the systemd unit

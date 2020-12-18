@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gpg2 haveged
 # Summary: gpg key generation, passphrase test, encrypt file and support fips test
 # - Install haveged if necessary
 # - Generate gpg key pair using pre determined data (using gpg itself or openqa

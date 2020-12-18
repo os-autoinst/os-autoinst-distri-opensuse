@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: tcsh zsh bash shadow util-linux
 # Summary: Test all officially SLE supported shells
 # - Install tcsh and zsh (when supported)
 # - Run ksh -c "print hello" | grep hello (when supported)

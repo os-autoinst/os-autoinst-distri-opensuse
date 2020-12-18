@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: shibboleth-sp apache2 curl
 # Summary: Shibboleth SSO test
 # - Install shibboleth-sp apache2
 # - Enable shib module on apache2

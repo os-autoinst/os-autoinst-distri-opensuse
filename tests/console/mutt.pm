@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: mutt wget
 # Summary: Test basic capabilities of mutt
 # - Install mutt and wget (if necessary)
 # - Check if mutt has built in support for imap and smtp

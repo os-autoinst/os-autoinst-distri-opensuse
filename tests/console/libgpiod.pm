@@ -3,6 +3,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libgpiod
 # Summary: Test libgpiod
 #  More information can be found on https://en.opensuse.org/openSUSE:GPIO
 # Maintainer: Guillaume Gardet <guillaume@opensuse.org>

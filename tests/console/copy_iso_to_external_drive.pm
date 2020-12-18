@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: parted e2fsprogs
 # Summary: Copy the installation ISO to an external drive
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 # Tags: boo#1040749

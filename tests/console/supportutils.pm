@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: supportutils
 # Summary: Test is files created by supportconfig are readable and contain some basic data.
 # - Delete any previously existing supportconfig data
 # - Run supportconfig -t . -B test

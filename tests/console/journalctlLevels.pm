@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: systemd util-linux-systemd
 # Summary: Test to check that the logs with the custom error level are inserted
 # in the journal
 # Maintainer: Ivan Lausuch <ilausuch@suse.de>

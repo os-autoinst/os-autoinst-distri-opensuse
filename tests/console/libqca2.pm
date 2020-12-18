@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libqca-qt5 libqca-qt5-devel libqca2 libqca2-devel
 # Summary: test qcatool commands
 # - check program version
 # - list plugins

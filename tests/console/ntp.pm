@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: ntp
 # Summary: Basics ntp test - add ntp servers, obtain time
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 

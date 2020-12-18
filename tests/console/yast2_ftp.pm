@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: vsftpd yast2-ftp-server openssl
 # Summary: Check yast ftp-server options and ability to start vsftpd with ssl support
 # FTP Server Wizard
 # Step 1: Installs the package and dependencies;

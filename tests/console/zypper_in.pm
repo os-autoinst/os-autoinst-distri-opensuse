@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Simple 'zypper in' test
 # - List download repositories ("zypper lr -d") and redirect to serial output
 # - If no specific package is defined, try to install "x3270" in sle or

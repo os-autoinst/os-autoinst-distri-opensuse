@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rmt-server yast2-rmt
 # Summary: Test for the yast2-rmt module
 # Maintainer: Jonathan Rivrain <JRivrain@suse.com>
 

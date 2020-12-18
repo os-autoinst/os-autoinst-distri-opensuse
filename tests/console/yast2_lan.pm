@@ -9,6 +9,7 @@
 # without any warranty.
 
 
+# Package: yast2-network hostname iproute2
 # Summary: yast2 lan functionality test https://bugzilla.novell.com/show_bug.cgi?id=600576
 # - Install yast2-network
 # - Launch yast2 lan

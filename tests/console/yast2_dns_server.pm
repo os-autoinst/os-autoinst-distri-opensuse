@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-dns-server bind
 # Summary: Ensure that all combinations of running/stopped and active/inactive can be set for yast2 dns-server
 # Maintainer: jeriveramoya <jeriveramoya@suse.com>
 

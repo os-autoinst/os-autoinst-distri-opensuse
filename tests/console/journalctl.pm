@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: systemd
 # Summary: Test basic journalctl functionality
 # - assert bsc#1063066 is not present (Verify "man -P cat journalctl" for broken man page format)
 # - setup persistent journal

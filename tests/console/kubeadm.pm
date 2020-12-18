@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: kubernetes-*-kubeadm kubernetes*-client
 # Summary: Test kubeadm to bootstrap single node k8s cluster. Intended for use in Kubic (only place where k8s is supported)
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>, Richard Brown <rbrown@suse.com>
 

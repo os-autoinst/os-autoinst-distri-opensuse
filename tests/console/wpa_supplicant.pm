@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: wpa_supplicant hostapd iw dnsmasq unzip
 # Summary: Test wpa_supplicant on virtual wifi interfaces
 #  - Setup virtual wlan interfaces
 #  - Wifi access point:

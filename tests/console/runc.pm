@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: runc skopeo umoci
 # Summary: Test runc installation and basic usage
 #    Cover the following aspects of umoci:
 #      * Installation of runc

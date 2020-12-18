@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Ensure zypper can refresh repos and enable them if the install
 # medium used was a dvd
 # - Enable install dvd

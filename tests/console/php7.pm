@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: php7 php-json
 # Summary: Simple PHP7 code hosted locally
 #   This test requires the Web and Scripting module on SLE.
 # - Setup apache2 to use php7 modules

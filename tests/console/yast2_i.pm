@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-packager
 # Summary: Install packages using yast2.
 # - Remove package from "$PACKAGETOINSTALL_RECOMMENDED" or yast2-nfs-client and nfs-client
 # - Install yast2-packager

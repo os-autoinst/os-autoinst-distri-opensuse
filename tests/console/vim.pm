@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: vim
 # Summary: Test vim editor display including syntax highlighting
 # - Check if vim is installed
 # - Check if vim-data is installed (should not be on JeOS (cexcept openSUSE

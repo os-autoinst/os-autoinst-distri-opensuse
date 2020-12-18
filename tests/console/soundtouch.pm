@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: soundtouch alsa-utils
 # Summary: Using soundstretch to change original track and check the result, changing:
 # - rate
 # - tempo and pitch

@@ -9,6 +9,7 @@
 #
 # Testopia case_id 1454736
 #
+# Package: wget unzip
 # Summary: Basic tests for unzip
 #    1. Unzip (basic usage)
 #    2. Unzip into a new directory

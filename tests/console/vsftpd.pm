@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: vsftpd expect
 # Summary: vsftpd QAM regression testsuite
 #          not testing SSL now due to https://bugzilla.suse.com/show_bug.cgi?id=1116571
 # - If system is server, create a lock ("barrier") for sshd service
