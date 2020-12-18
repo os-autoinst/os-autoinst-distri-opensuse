@@ -17,44 +17,61 @@ use Mojo::File 'path';
 use Mojo::JSON;
 use publiccloud::utils "select_host_console";
 
+# for not released versions we need to exclude :
+# * test_sles_kernel_version - test checking CONFIG_SUSE_PATCHLEVEL correctness but during chat with kernel devs it was clarified that they don't care about this variable till release
+# * test_sles_multipath_off - TODO : simply not exists in current version of publiccloud_tools image used
+our $test_sles_for_dev = ',test_soft_reboot,test_sles_license,test_sles_root_pass,test_hard_reboot,test_sles_hostname,test_sles_haveged,test_sles_lscpu,test_sles_motd';
+# for not released versions we need to exclude :
+# * test_sles_repos - not released version repo names have initially names omit 'Beta/Snapshot' titles. This test trying
+# to compare repo name with VERSION which has 'Beta/Snapshot' so test will always fail
+our $test_sles_on_demand_for_dev = ',test_sles_wait_on_registration,test_refresh,test_sles_smt_reg,test_sles_guestregister';
 
-our $azure_byos      = 'test_sles,test_sles_azure';
-our $azure_on_demand = 'test_sles_wait_on_registration,test_sles,test_sles_on_demand,test_sles_azure';
+our $azure_byos_updates      = 'test_sles,test_sles_azure';
+our $azure_on_demand_updates = 'test_sles_wait_on_registration,test_sles,test_sles_on_demand,test_sles_azure';
 
-our $ec2_byos       = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
-our $ec2_byos_chost = 'test_sles,test_sles_ec2';
-our $ec2_on_demand  = 'test_sles_wait_on_registration,test_sles,test_sles_ec2,test_sles,test_sles_on_demand,test_sles_ec2_on_demand';
+our $azure_byos      = 'test_sles_azure' . $test_sles_for_dev;
+our $azure_on_demand = 'test_sles_wait_on_registration,test_sles_azure' . $test_sles_on_demand_for_dev;
 
-our $gce_byos      = 'test_sles_wait_on_registration,test_sles,test_sles_gce';
-our $gce_on_demand = 'test_sles_wait_on_registration,test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
+our $ec2_byos_updates      = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
+our $ec2_on_demand_updates = 'test_sles_wait_on_registration,test_sles,test_sles_ec2,test_sles,test_sles_on_demand,test_sles_ec2_on_demand';
+
+our $ec2_byos       = 'test_sles_ec2,test_sles_ec2_byos' . $test_sles_for_dev;
+our $ec2_byos_chost = 'test_sles_ec2' . $test_sles_for_dev;
+our $ec2_on_demand  = 'test_sles_wait_on_registration,test_sles_ec2,test_sles,test_sles_ec2_on_demand' . $test_sles_for_dev . $test_sles_on_demand_for_dev;
+
+our $gce_byos_updates      = 'test_sles_wait_on_registration,test_sles,test_sles_gce';
+our $gce_on_demand_updates = 'test_sles_wait_on_registration,test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
+
+our $gce_byos = 'test_sles_wait_on_registration,test_sles_gce' . $test_sles_for_dev;
+our $gce_on_demand = 'test_sles_wait_on_registration,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_gce' . $test_sles_for_dev . $test_sles_on_demand_for_dev;
 
 our $img_proof_tests = {
     'Azure-BYOS'             => $azure_byos,
-    'AZURE-BYOS-Updates'     => $azure_byos,
+    'AZURE-BYOS-Updates'     => $azure_byos_updates,
     'Azure-Basic'            => $azure_on_demand,
-    'AZURE-Basic-Updates'    => $azure_on_demand,
+    'AZURE-Basic-Updates'    => $azure_on_demand_updates,
     'Azure-Standard'         => $azure_on_demand,
-    'AZURE-Standard-Updates' => $azure_on_demand,
+    'AZURE-Standard-Updates' => $azure_on_demand_updates,
     'Azure-CHOST-BYOS'       => $azure_byos,
     'Azure-HPC'              => $azure_on_demand,
     'Azure-HPC-BYOS'         => $azure_byos,
-    'AZURE-Priority-Updates' => $azure_on_demand,
+    'AZURE-Priority-Updates' => $azure_on_demand_updates,
 
     'EC2-CHOST-BYOS'       => $ec2_byos_chost,
     'EC2-HVM'              => $ec2_on_demand,
     'EC2-HVM-ARM'          => $ec2_on_demand,
-    'EC2-Updates'          => $ec2_on_demand,
-    'EC2-ARM-Updates'      => $ec2_on_demand,
-    'EC2-BYOS-Updates'     => $ec2_byos,
-    'EC2-BYOS-ARM-Updates' => $ec2_byos,
+    'EC2-Updates'          => $ec2_on_demand_updates,
+    'EC2-ARM-Updates'      => $ec2_on_demand_updates,
+    'EC2-BYOS-Updates'     => $ec2_byos_updates,
+    'EC2-BYOS-ARM-Updates' => $ec2_byos_updates,
     'EC2-HVM-BYOS'         => $ec2_byos,
-    'EC2-HVM-BYOS-Updates' => $ec2_byos,
+    'EC2-HVM-BYOS-Updates' => $ec2_byos_updates,
     'EC2-HVM-HPC-BYOS'     => $ec2_byos,
 
     GCE                => $gce_on_demand,
-    'GCE-Updates'      => $gce_on_demand,
+    'GCE-Updates'      => $gce_on_demand_updates,
     'GCE-BYOS'         => $gce_byos,
-    'GCE-BYOS-Updates' => $gce_byos,
+    'GCE-BYOS-Updates' => $gce_byos_updates,
     'GCE-CHOST-BYOS'   => $gce_byos,
 };
 
