@@ -658,6 +658,26 @@ sub check_ipv6 {
     die "There were errors during test" if $errors || $dns_failure;
 }
 
+sub run_test_shell_script
+{
+    my ($self, $title, $script_cmd) = @_;
+    my $output = script_output($script_cmd . ' && echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1);
+    my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
+    $self->record_console_test_result($title, $output, result => $result);
+}
+
+sub record_console_test_result {
+    my ($self, $title, $content, %args) = @_;
+    $args{result} //= 'failed';
+    $title =~ s/:/_/g;
+    my $details  = $self->record_testresult($args{result});
+    my $filename = $self->next_resultname('txt', $title);
+    $details->{_source} = 'parser';
+    $details->{text}    = $filename;
+    $details->{title}   = $title;
+    $self->write_resultfile($filename, $content);
+}
+
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
