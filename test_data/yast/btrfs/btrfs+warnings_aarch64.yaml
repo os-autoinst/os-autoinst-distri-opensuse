@@ -1,8 +1,10 @@
 disks:
   - name: vda
-    <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+    partitions:
+      <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
 errors:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
   no_boot: Missing device for /boot/efi with size equal or bigger than 256 MiB and filesystem vfat
+  bios_boot_small_for_bootloader: Missing device for /boot/efi with size equal or bigger than 256 MiB and filesystem vfat
