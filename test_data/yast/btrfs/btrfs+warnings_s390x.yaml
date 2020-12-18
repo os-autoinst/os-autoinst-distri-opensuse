@@ -1,6 +1,8 @@
-<<: !include test_data/yast/btrfs/common/btrfs+warnings_disks.yaml
+disks:
+  - name: vda
+    <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
 errors:
-  no_root: There is no device mounted at '/'
+  <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
-  snapshots_small_root: Your root device is very small for snapshots
+  <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
   no_boot: Missing device for /boot/zipl with size equal or bigger than 100 MiB and filesystem ext2, ext3, ext4, xfs
