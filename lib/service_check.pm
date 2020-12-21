@@ -39,14 +39,12 @@ use kdump_utils;
 use version_utils 'is_sle';
 
 our @EXPORT = qw(
-  $hdd_base_version
   $default_services
   %srv_check_results
   install_services
   check_services
 );
 
-our $hdd_base_version;
 our $support_ver_def  = '12+';
 our $support_ver_12   = '=12';
 our $support_ver_ge15 = '15+';
@@ -131,7 +129,7 @@ our $default_services = {
     rpcbind => {
         srv_pkg_name       => 'rpcbind',
         srv_proc_name      => 'rpcbind',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::rpcbind::full_rpcbind_check
     },
     autofs => {
@@ -143,7 +141,7 @@ our $default_services = {
     cups => {
         srv_pkg_name       => 'cups',
         srv_proc_name      => 'cups',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::cups::full_cups_check
     },
     radvd => {
@@ -222,7 +220,6 @@ Check service before migration, zypper install service package, enable, start an
 =cut
 sub install_services {
     my ($service) = @_;
-    $hdd_base_version = get_var('HDDVERSION');
     foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
@@ -231,8 +228,8 @@ sub install_services {
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check before migration");
         eval {
-            if (is_sle($support_ver, $hdd_base_version)) {
-                if ($hdd_base_version eq '11-SP4') {
+            if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
+                if (check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
                     $service_type = 'SystemV';
                     # Enable IPv6 forwarding on sle11sp4
                     script_run('echo 1 > /proc/sys/net/ipv6/conf/all/forwarding') if ($srv_pkg_name eq 'radvd');
@@ -275,7 +272,7 @@ sub check_services {
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check after migration");
         eval {
-            if (is_sle($support_ver, $hdd_base_version)) {
+            if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
                 # service check after migration. if we've set up service check
                 # function, we don't need following actions to check the service.
                 if (exists $service->{$s}->{service_check_func}) {
