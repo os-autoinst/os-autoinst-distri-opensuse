@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright (C) 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,6 +32,8 @@ sub run {
     # needs additional time too.
     $timeout += 60 if get_var('PATCH') || get_var('ONLINE_MIGRATION');
     $timeout += 60 if get_var('ENCRYPT');
+    # Poo#81176, add additional 60s if ARCH is ppc64le
+    $timeout += 60 if get_var('ARCH', 'ppc64le');
     # Add additional 120s if the test suite is pvm
     $timeout += 120 if is_pvm;
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
