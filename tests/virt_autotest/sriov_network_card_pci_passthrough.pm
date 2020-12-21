@@ -82,10 +82,15 @@ sub run_test {
 
             #detach the vf from host
             $vf{host_bdf} = $host_vfs[int(rand($#host_vfs + 1))];
-            for (my $j = 0; $j < $i; $j++) {
+            my $j = 0;
+            while ($j < $i) {
+                #select another vf if the vf has been in the list which is going to be detached
                 if ($vf{host_bdf} eq $vfs[$j]->{host_bdf}) {
                     $vf{host_bdf} = $host_vfs[int(rand($#host_vfs + 1))];
                     $j = 0;
+                }
+                else {
+                    $j++;
                 }
             }
             $vf{host_id} = detach_vf_from_host($vf{host_bdf});
