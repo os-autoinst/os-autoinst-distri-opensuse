@@ -19,7 +19,7 @@
     <add-on>
         <add_on_products config:type="list">
             <listentry>
-                <media_url>http://download.suse.de/ibs/Devel:/PubCloud:/CI/SLE_15</media_url>
+                <media_url>https://download.opensuse.org/repositories/Cloud:/Tools:/CI:/15SP2/SLE_15_SP2/</media_url>
                 <product>public_cloud_devel</product>
                 <alias>Public Cloud Devel</alias>
                 <product_dir>/</product_dir>
