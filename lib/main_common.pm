@@ -2278,16 +2278,18 @@ sub load_security_tests_crypt_tool {
 }
 
 sub load_security_tests_crypt_krb5kdc {
-    set_var('SECTEST_DVD_SRC', 1);
-    load_security_console_prepare;
+
+    loadtest "console/consoletest_setup";
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
 
     loadtest "security/krb5/krb5_crypt_prepare";
     loadtest "security/krb5/krb5_crypt_setup_kdc";
 }
 
 sub load_security_tests_crypt_krb5server {
-    set_var('SECTEST_DVD_SRC', 1);
-    load_security_console_prepare;
+
+    loadtest "console/consoletest_setup";
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
 
     loadtest "security/krb5/krb5_crypt_prepare";
     loadtest "security/krb5/krb5_crypt_setup_server";
@@ -2296,8 +2298,9 @@ sub load_security_tests_crypt_krb5server {
 }
 
 sub load_security_tests_crypt_krb5client {
-    set_var('SECTEST_DVD_SRC', 1);
-    load_security_console_prepare;
+
+    loadtest "console/consoletest_setup";
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
 
     loadtest "security/krb5/krb5_crypt_prepare";
     loadtest "security/krb5/krb5_crypt_setup_client";
