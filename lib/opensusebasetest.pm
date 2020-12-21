@@ -11,7 +11,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface tianocore_disable_secureboot);
+use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface tianocore_disable_secureboot tianocore_select_bootloader);
 use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
@@ -726,6 +726,21 @@ sub wait_grub_to_boot_on_local_disk {
     boot_local_disk;
     my @tags = qw(grub2 tianocore-mainmenu);
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+
+    # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
+    if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && check_var('ARCH', 'x86_64') && get_var('UEFI')) {
+        if (!check_screen(\@tags, 15)) {
+            record_soft_failure 'bsc#1180080';
+            wait_screen_change { send_key 'e' };
+            wait_screen_change { send_key 'f2' };
+            type_string "exit";
+            wait_screen_change { send_key 'ret' };
+            tianocore_select_bootloader;
+            send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
+            send_key "ret";
+            return;
+        }
+    }
 
     assert_screen(\@tags, 15);
     if (match_has_tag('tianocore-mainmenu')) {
