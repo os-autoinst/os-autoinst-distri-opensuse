@@ -84,6 +84,9 @@ sub prepare_for_kdump {
     quit_packagekit;
     if ($test_type eq 'before') {
         zypper_call('in yast2-kdump kdump');
+        # In service check, sometimes the system's console font will failed
+        # to set the correct font, we need to reset it here.
+        check_console_font;
     }
     else {
         zypper_call('in yast2-kdump kdump crash');
