@@ -742,7 +742,8 @@ sub wait_grub_to_boot_on_local_disk {
         }
     }
 
-    assert_screen(\@tags, 15);
+    # We need to wait more time for aarch64's tianocore-mainmenu
+    (check_var('ARCH', 'aarch64')) ? assert_screen(\@tags, 30) : assert_screen(\@tags, 15);
     if (match_has_tag('tianocore-mainmenu')) {
         opensusebasetest::handle_uefi_boot_disk_workaround();
         check_screen('encrypted-disk-password-prompt', 10);
