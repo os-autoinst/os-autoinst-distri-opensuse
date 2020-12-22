@@ -273,7 +273,9 @@ sub format_dasd {
         record_soft_failure('bsc#1151436');
         script_run('dasd_reload');
         assert_script_run('dmesg');
-        assert_script_run("bash -x /sbin/dasd_configure -f $dasd_path 0");
+        assert_script_run("ZDEV_DEBUG=1 bash -x /sbin/dasd_configure -f $dasd_path 0");
+        script_run('for i in /proc/[0-9]*; do echo ; cat $i/comm; cat $i/stack; done >> /var/log/DASDBugInformation.log');
+        upload_logs('/var/log/DASDBugInformation.log', log_name => "DASDBugInformation.log");
     }
 }
 
