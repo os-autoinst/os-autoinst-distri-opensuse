@@ -1,0 +1,9 @@
+name:           suse_microos
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE MicroOS tests
+schedule:
+    - microos/disk_boot
+    - console/suseconnect_scc
+    - containers/containers_3rd_party
+    - containers/podman
