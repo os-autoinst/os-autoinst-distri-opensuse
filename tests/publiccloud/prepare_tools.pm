@@ -96,7 +96,7 @@ sub run {
     record_info('img-proof', script_output('img-proof --version'));
 
     # Install Terraform from repo
-    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP1/systemsmanagement:terraform.repo');
+    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP2/systemsmanagement:terraform.repo');
     zypper_call('--gpg-auto-import-keys -q in terraform');
     record_info('Terraform', script_output('terraform -v'));
 
