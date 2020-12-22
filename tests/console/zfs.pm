@@ -26,25 +26,41 @@ use utils;
 use version_utils;
 use power_action_utils 'power_action';
 
-sub install_zfs {
-    # TODO: Replace -G (--no-gpgcheck) with something more sane
+sub get_repository() {
     if (is_tumbleweed) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo');
-    } elsif (is_leap("=15.1")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.1/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
+    } elsif (is_leap("=15.3")) {
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.3/filesystems.repo';
     } elsif (is_leap("=15.2")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.2/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.2/filesystems.repo';
+    } elsif (is_leap("=15.1")) {
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.1/filesystems.repo';
+    } elsif (is_sle("=15.3")) {
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP3/filesystems.repo';
     } elsif (is_sle("=15.2")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_15_SP2/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP2/filesystems.repo';
     } elsif (is_sle("=15.1")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo';
     } elsif (is_sle("=12.5")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo';
     } elsif (is_sle("=12.4")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_12_SP4/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP4/filesystems.repo';
     } else {
         die "Unsupported version";
     }
+}
+
+# Check if the repository is available and enabled
+sub check_available {
+    my $repo = shift;
+    return script_run("curl '$repo' | grep 'enabled=1'") == 0;
+}
+
+sub install_zfs {
+    my $repo = get_repository();
+    die "Sorry, zfs repository for this distribution is not (yet) available" unless (check_available($repo));
+    # TODO: Replace -G (--no-gpgcheck) with something more sane
+    zypper_call("addrepo -fG $repo");
     zypper_call('refresh');
     zypper_call('install zfs');
 }
