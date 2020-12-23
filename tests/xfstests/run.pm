@@ -389,6 +389,15 @@ sub reload_loop_device {
     script_run('losetup -a');
 }
 
+# Umount TEST_DEV and SCRATCH_DEV
+sub umount_xfstests_dev {
+    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null')    if get_var('XFSTESTS_TEST_DEV');
+    script_run('umount ' . get_var('XFSTESTS_SCRATCH_DEV') . ' &> /dev/null') if get_var('XFSTESTS_SCRATCH_DEV');
+    if (get_var('XFSTESTS_SCRATCH_DEV_POOL')) {
+        script_run("umount $_ &> /dev/null") foreach (split ' ', get_var('XFSTESTS_SCRATCH_DEV_POOL'));
+    }
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -421,6 +430,8 @@ sub run {
         if (exists($BLACKLIST{$test})) {
             next;
         }
+
+        umount_xfstests_dev;
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
