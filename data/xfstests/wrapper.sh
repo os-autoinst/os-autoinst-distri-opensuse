@@ -71,16 +71,6 @@ fi
 
 pushd "$XFSTESTS_DIR" &> /dev/null
 
-# Umount /mnt/test and /mnt/scratch
-umount $TEST_DEV &> /dev/null
-if [[ -n "$SCRATCH_DEV_POOL" ]]; then
-    for device in $SCRATCH_DEV_POOL; do
-        umount $device &> /dev/null
-    done
-else
-    umount $SCRATCH_DEV
-fi
-
 # Run test
 log_file="/tmp/xfstests-$(echo "$1" | tr '/' '_').tmp"
 ./$(basename "$PROG") -d "$1" | tee "$log_file"

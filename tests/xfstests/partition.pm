@@ -123,14 +123,17 @@ sub do_partition_for_xfstests {
     script_run('mkdir /mnt/test /mnt/scratch');
     # Setup configure file xfstests/local.config
     script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
+    set_var('XFSTESTS_TEST_DEV', $test_dev);
     script_run("echo 'export TEST_DIR=/mnt/test' >> $CONFIG_FILE");
     script_run("echo 'export SCRATCH_MNT=/mnt/scratch' >> $CONFIG_FILE");
     if ($para{amount} == 1) {
         script_run("echo 'export SCRATCH_DEV=$scratch_dev[0]' >> $CONFIG_FILE");
+        set_var('XFSTESTS_SCRATCH_DEV', $scratch_dev[0]);
     }
     else {
         my $SCRATCH_DEV_POOL = join(' ', @scratch_dev);
         script_run("echo 'export SCRATCH_DEV_POOL=\"$SCRATCH_DEV_POOL\"' >> $CONFIG_FILE");
+        set_var('XFSTESTS_SCRATCH_DEV_POOL', $SCRATCH_DEV_POOL);
     }
     # Sync
     script_run('sync');
@@ -172,13 +175,16 @@ sub create_loop_device_by_rootsize {
     script_run('mkdir /mnt/test /mnt/scratch');
     # Setup configure file xfstests/local.config
     script_run("echo 'export TEST_DEV=/dev/loop0' >> $CONFIG_FILE");
+    set_var('XFSTESTS_TEST_DEV', '/dev/loop0');
     script_run("echo 'export TEST_DIR=/mnt/test' >> $CONFIG_FILE");
     script_run("echo 'export SCRATCH_MNT=/mnt/scratch' >> $CONFIG_FILE");
     if ($amount == 1) {
         script_run("echo 'export SCRATCH_DEV=/dev/loop1' >> $CONFIG_FILE");
+        set_var('XFSTESTS_SCRATCH_DEV', '/dev/loop1');
     }
     else {
         script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5\"' >> $CONFIG_FILE");
+        set_var('XFSTESTS_SCRATCH_DEV_POOL', '/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5');
     }
     # Sync
     script_run('sync');
