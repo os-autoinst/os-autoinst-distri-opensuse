@@ -51,9 +51,9 @@ sub check_service {
 
 # check cups function
 sub check_function {
-    # if we migrated from sle11sp4, we need change the configure file.
+    # if we migrated from sle11sp4, we need to change the configure file.
+    # bsc#1180148, cups configure file was not upgraded.
     if ((get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4') && ($service_type eq 'Systemd')) {
-        record_soft_failure("bsc#1180148, cups configure file was not upgraded");
         script_run 'echo FileDevice Yes >> /etc/cups/cups-files.conf';
         validate_script_output 'cupsd -t', sub { m/is OK/ };
         common_service_action 'cups', $service_type, 'restart';
