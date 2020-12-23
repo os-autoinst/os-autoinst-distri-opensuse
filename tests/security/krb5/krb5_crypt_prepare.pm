@@ -1,4 +1,4 @@
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2020 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 #
 # Summary: Prepare environment for cryptographic function testing of krb5
 # Maintainer: Ben Chou <bchou@suse.com>
-# Ticket: poo#51560
+# Ticket: poo#51560, poo#81236
 
 use base "consoletest";
 use strict;
@@ -98,6 +98,8 @@ EOF
     (is_sle('<15')) ? systemctl('stop SuSEfirewall2') : systemctl('stop firewalld');
 
     # Prepare krb5 application and config files
+    zypper_call('ref');
+    zypper_call('lr -u');
     zypper_call('in krb5 krb5-server krb5-client');
     assert_script_run("echo 'export KRB5CCNAME=/root/kcache' >> /etc/profile.d/krb5.sh");    # Make ticket permanent
     assert_script_run("source /etc/profile.d/krb5.sh");
