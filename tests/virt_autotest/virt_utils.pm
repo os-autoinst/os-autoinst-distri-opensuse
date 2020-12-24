@@ -691,11 +691,14 @@ sub perform_guest_restart {
 #Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
 sub collect_host_and_guest_logs {
     my ($guest_wanted, $host_extra_logs, $guest_extra_logs) = @_;
+    $guest_wanted     //= '';
+    $host_extra_logs  //= '';
+    $guest_extra_logs //= '';
 
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
     script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 3600 / get_var('TIMEOUT_SCALE', 1), type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
     my $logs_fetching_script_url = data_url("virt_autotest/fetch_logs_from_guest.sh");
@@ -716,6 +719,7 @@ sub collect_host_and_guest_logs {
 #Please refer to clean_up_virt_logs.sh data/virt_autotest for its detailed functionality, implementation and usage
 sub cleanup_host_and_guest_logs {
     my ($extra_logs_to_cleanup) = @_;
+    $extra_logs_to_cleanup //= '';
 
     #Clean dhcpd and named services up explicity
     if (get_var('VIRT_AUTOTEST')) {

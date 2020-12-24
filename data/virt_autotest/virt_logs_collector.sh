@@ -61,6 +61,8 @@ set logs_folder [lindex \$argv 3]
 set extra_logs [lindex \$argv 4]
 set retry_times 3
 set ret_result 1
+set fail_string sad_to_fail
+set pass_string glad_go_pass
 
 while { \${retry_times} > 0 } {
       if { \${hypervisor} == {KVM} } {
@@ -83,21 +85,22 @@ while { \${retry_times} > 0 } {
       }
 
       if { \${ret_result} == 0 } {
-         set timeout 600
+         set timeout 1200
          expect "~ #"
          send "mkdir -p \${logs_folder};export time_stamp=\`date \'+%Y%m%d%H%M%S\'\`\r"
          expect "~ #"
          if { \${extra_logs} == {support_config} } {
             send "rm -f -r \${logs_folder}/*supportconfig*\r"
-            send "supportconfig -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
+            send "supportconfig -y -A -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
          }
          if { \${extra_logs} != {support_config} && \${extra_logs} != "" } {
             send "rm -f -r \${logs_folder}/*extra_logs*\r"
             send "mkdir -p \${logs_folder}/guest_\${guest_transformed}_extra_logs;cp --parent -r -f \${extra_logs} \${logs_folder}/guest_\${guest_transformed}_extra_logs\r"
          }
          expect {
-            "~ #" {send "export ret=\\\$?;cd /tmp;(if \[\[ \\\$ret -ne 0 ]];then printenv USER;fi)\r"; exp_continue -continue_timer}
-            "root" {puts "Can not collect \${extra_logs} from \${guest_domain}\r"; set ret_result 1;  exp_continue -continue_timer}
+            "~ #" {send "export ret=\\\$?;cd /tmp;(if \[\[ \\\$ret -ne 0 ]];then echo \${fail_string};else echo \${pass_string};fi)\r"; exp_continue -continue_timer}
+            "sad_to_fail" {puts "Can not collect \${extra_logs} from \${guest_domain}\r"; set ret_result 1;  exp_continue -continue_timer}
+            "glad_go_pass" {puts "Finished collecting \${extra_logs} from \${guest_domain}\r"; set ret_result 0;  exp_continue -continue_timer}
             "tmp #" {send "cd ~\r"; send "exit\r"}
          }
       }
@@ -171,8 +174,8 @@ function collect_supportconfig() {
 	do	
     	   local time_stamp=`date '+%Y%m%d%H%M%S'`
 	   ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
-	   echo -e "${sshpass_ssh_cmd} supportconfig -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
-	   ${sshpass_ssh_cmd} supportconfig -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	   echo -e "${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	   ${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then
 	      echo -e "Successfully collected supportconfig from ${target_type} ${target_domain} via ssh."
