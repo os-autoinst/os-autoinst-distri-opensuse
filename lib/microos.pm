@@ -44,7 +44,7 @@ sub microos_reboot {
 
     # No grub bootloader on xen-pv
     # grub2 needle is unreliable (stalls during timeout) - poo#28648
-    assert_screen 'grub2', 150;
+    assert_screen 'grub2', 300;
     send_key('ret') if match_has_tag('grub2');
 
     microos_login;
