@@ -27,7 +27,7 @@ sub run {
     power_action('reboot', keepconsole => 1, textmode => 1);
     reset_consoles;
     reconnect_mgmt_console if is_pvm;
-    $self->wait_grub(bootloader_time => 200);
+    $self->wait_grub(bootloader_time => 250);
     # To keep the screen at grub page
     # Refer https://progress.opensuse.org/issues/49040
     stop_grub_timeout;
