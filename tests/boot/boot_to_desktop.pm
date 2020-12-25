@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright (C) 2012-2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Backends 'is_pvm';
-use version_utils qw(is_upgrade is_sles4sap);
+use version_utils qw(is_upgrade is_sles4sap is_sle);
 
 sub run {
     my ($self) = @_;
@@ -32,6 +32,12 @@ sub run {
     # needs additional time too.
     $timeout += 60 if get_var('PATCH') || get_var('ONLINE_MIGRATION');
     $timeout += 60 if get_var('ENCRYPT');
+    # For bsc#1180313, can't stop wicked during reboot make system need more time
+    # to wait bootloader, add additional 60s when ARCH is ppc64le.
+    if (check_var('ARCH', 'ppc64le') && is_sle && get_required_var('FLAVOR') =~ /Migration/ && get_var('ZDUP') && check_var('HDDVERSION', '15-SP1')) {
+        record_soft_failure 'Bug 1180313 - [Build 114.1] openQA test fails in boot_to_desktop#1 - failed to stop wicked during system reboot after online migration from SLES15SP1 to SLES15SP3';
+        $timeout += 60;
+    }
     # Add additional 120s if the test suite is pvm
     $timeout += 120 if is_pvm;
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
