@@ -55,7 +55,7 @@ sub run {
 
         # Allow "No such file" message for the files in /proc because they are mutable
         my @finds = split /\n/, $findret;
-        $_ =~ m/\/proc\/.*No such file/ or die "Failed to create security.ima for $_" foreach (@finds);
+        $_ =~ m/\/proc\/.*No such file|evm\/ima signature|hash\(sha256\)|^\w{530}$/ or die "Failed to create security.ima for $_" foreach (@finds);
     }
 
     validate_script_output "getfattr -m security.ima -d $sample_app", sub {
