@@ -749,7 +749,9 @@ sub activate_console {
                 return;
             }
         }
-        assert_screen "text-logged-in-$user", 60;
+        # For poo#81016, need enlarge wait time for aarch64.
+        my $waittime = check_var('ARCH', 'aarch64') ? 120 : 60;
+        assert_screen "text-logged-in-$user", $waittime;
         unless ($args{skip_set_standard_prompt}) {
             $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
             assert_screen $console;
