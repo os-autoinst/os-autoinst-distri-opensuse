@@ -1,0 +1,18 @@
+---
+name: autoyast_cryptlvm+activate_existing
+description: >
+    Conduct autoyast installation activating encrypted partitions
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_reuse-encrypted.xml
+  ENCRYPT_ACTIVATE_EXISTING: '1'
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_encrypt
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+  - autoyast/logs

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,11 +24,11 @@ use validate_encrypt_utils;
 
 sub run {
     my $test_data = get_test_suite_data();
-    select_console 'install-shell';
-    my $status = parse_cryptsetup_status($test_data->{mapped_device});
-    verify_cryptsetup_message($test_data->{device_status}->{message}, $status->{message});
-    verify_cryptsetup_properties($test_data->{device_status}->{properties}, $status->{properties});
-    select_console 'installation';
+    validate_activation_encrypted_partition({
+            mapped_device => $test_data->{mapped_device},
+            device_status => $test_data->{device_status}->{message},
+            properties    => $test_data->{device_status}->{properties}
+    });
 }
 
 1;

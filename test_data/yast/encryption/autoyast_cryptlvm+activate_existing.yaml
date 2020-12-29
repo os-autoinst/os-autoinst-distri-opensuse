@@ -1,0 +1,42 @@
+mapped_device: '/dev/mapper/cr-auto-1'
+profile:
+  partitioning:
+    - drive:
+        unique_key: device
+        device: /dev/system0
+    - drive:
+        unique_key: device
+        device: /dev/vda
+        disklabel: gpt
+        partitions:
+          - partition:
+              unique_key: partition_nr
+              partition_nr: 1
+          - partition:
+              unique_key: partition_nr
+              partition_nr: 2
+              crypt_method: luks1
+              loop_fs: 'true'
+disks:
+  - name: vda
+    partitions:
+      - size: 2MiB
+        role: raw-volume
+        id: bios-boot
+      - role: raw-volume
+        id: linux-lvm
+        encrypt_device: 1
+lvm:
+  volume_groups:
+  - name: vg-system
+    devices:
+      - /dev/vda2
+    logical_volumes:
+      - name: lv-swap
+        size: 2000MiB
+        role: swap
+      - name: lv-root
+        role: operating-system
+crypttab:
+  num_devices_encrypted: 1
+<<: !include test_data/yast/encryption/default_enc.yaml
