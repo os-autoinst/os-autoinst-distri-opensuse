@@ -33,7 +33,8 @@ sub full_run {
     assert_script_run("/usr/share/qa/qaset/qaset reset");
     assert_script_run("/usr/share/qa/qaset/run/performance-run.upload_Beijing");
     while (1) {
-        if (script_run("cat /var/log/qaset/control/NEXT_RUN | grep '_'") == 0) {
+        if ((script_run("cat /var/log/qaset/control/NEXT_RUN | grep '_'") == 0) ||
+            (script_run("ps ax | grep [r]untest") == 0)) {
             last;
         }
         if ($time_out == 0) {
