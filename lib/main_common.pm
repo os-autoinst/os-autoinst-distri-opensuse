@@ -2379,6 +2379,15 @@ sub load_security_tests_yast2_users {
     loadtest "security/yast2_users/add_users";
 }
 
+sub load_security_tests_lynis {
+    load_security_console_prepare;
+
+    loadtest "security/lynis/lynis_setup";
+    loadtest "security/lynis/lynis_perform_system_audit";
+    loadtest "security/lynis/lynis_analyze_system_audit";
+    loadtest "security/lynis/lynis_harden_index";
+}
+
 sub load_security_tests_openscap {
     # ALWAYS run following tests in sequence because of the dependencies
 
@@ -2595,6 +2604,7 @@ sub load_security_tests {
       tpm2
       pam
       grub_auth
+      lynis
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
