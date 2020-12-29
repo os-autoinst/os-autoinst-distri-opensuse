@@ -31,10 +31,23 @@ sub setup_environment {
     my $ver_path          = "/root";
 
     assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
-    assert_script_run(
-        "/usr/share/qa/qaset/bin/deploy_performance.sh $runid $mitigation_switch"
-    );
-    assert_script_run("cat /root/qaset/qaset-setup.log");
+    if (get_var("HANA_PERF")) {
+        assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $runid $mitigation_switch");
+        assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
+        if (my $qaset_config = get_var("QASET_CONFIG")) {
+            my @fields = split(/;/, $qaset_config);
+            if (scalar @fields > 0) {
+                foreach my $qaset_config (@fields) {
+                    assert_script_run("echo ${qaset_config} >> /root/qaset/config");
+                }
+            }
+        }
+    } else {
+        assert_script_run(
+            "/usr/share/qa/qaset/bin/deploy_performance.sh $runid $mitigation_switch"
+        );
+        assert_script_run("cat /root/qaset/qaset-setup.log");
+    }
 }
 
 sub run {
