@@ -80,6 +80,7 @@ conditional_schedule:
         VERSION:
             'Tumbleweed':
                 - console/parsec
+                - console/systemd_rpm_macros
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
