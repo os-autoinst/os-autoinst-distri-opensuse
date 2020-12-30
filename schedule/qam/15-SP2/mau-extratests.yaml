@@ -58,6 +58,7 @@ schedule:
 - console/procps
 - '{{lshw}}'
 - console/iotop
+- console/systemd_rpm_macros
 - console/kmod
 - console/suse_module_tools
 - console/zziplib
