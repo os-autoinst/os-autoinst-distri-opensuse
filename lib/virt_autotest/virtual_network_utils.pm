@@ -40,7 +40,10 @@ use virt_autotest::utils;
 use virt_utils;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log upload_debug_log check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup hosts_restore);
+  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
+  restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
+  check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
+  hosts_restore get_free_mem get_active_pool_and_available_space);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -307,6 +310,31 @@ sub check_guest_status {
         }
     }
 
+}
+
+sub get_free_mem {
+    if (check_var('SYSTEM_ROLE', 'xen')) {
+        # ensure the free memory size on xen host
+        my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
+        $mem = int($mem / 1024);
+        return $mem;
+    }
+}
+
+sub get_active_pool_and_available_space {
+    # get some debug info about hard disk topology
+    script_run 'df -h';
+    script_run 'df -h /var/lib/libvirt/images/';
+    script_run 'lsblk -f';
+    # get some debug info about storage pool
+    script_run 'virsh pool-list --details';
+    # ensure the available disk space size for active pool
+    my $active_pool    = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
+    my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
+    my $pool_unit      = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
+    # default available pool unit as GiB
+    $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
+    return ($active_pool, $available_size);
 }
 
 1;
