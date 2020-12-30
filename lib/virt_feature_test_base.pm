@@ -171,38 +171,4 @@ sub post_fail_hook {
     save_screenshot;
 }
 
-sub get_free_mem {
-    if (check_var('SYSTEM_ROLE', 'xen')) {
-        # ensure the free memory size on xen host
-        my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
-        $mem = int($mem / 1024);
-        return $mem;
-    }
-}
-
-sub get_active_pool_and_available_space {
-    # get some debug info about hard disk topology
-    script_run 'df -h';
-    script_run 'df -h /var/lib/libvirt/images/';
-    script_run 'lsblk -f';
-    # get some debug info about storage pool
-    script_run 'virsh pool-list --details';
-    # ensure the available disk space size for active pool
-    my $active_pool    = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
-    my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
-    my $pool_unit      = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
-    # default available pool unit as GiB
-    $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
-    return ($active_pool, $available_size);
-}
-
-sub get_virt_disk_and_available_space {
-    # ensure the available disk space size for virt disk - /var/lib/libvirt
-    my $virt_disk_name      = script_output 'lsblk -rnoPKNAME $(findmnt -nrvoSOURCE /var/lib/libvirt)';
-    my $virt_available_size = script_output("df -k | grep libvirt | awk '{print \$4}'");
-    # default available virt disk unit as GiB
-    $virt_available_size = int($virt_available_size / 1048576);
-    return ($virt_disk_name, $virt_available_size);
-}
-
 1;
