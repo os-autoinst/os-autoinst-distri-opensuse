@@ -2273,6 +2273,12 @@ sub load_security_tests_crypt_tool {
     loadtest "console/openvswitch_ssl";
 }
 
+sub load_security_tests_crypt_libtool {
+    load_security_console_prepare;
+
+    loadtest "fips/libtool/liboauth";
+}
+
 sub load_security_tests_crypt_krb5kdc {
 
     loadtest "console/consoletest_setup";
@@ -2572,7 +2578,7 @@ sub load_mitigation_tests {
 sub load_security_tests {
     my @security_tests = qw(
       fips_setup crypt_core crypt_web crypt_kernel crypt_x11 crypt_firefox crypt_tool
-      crypt_krb5kdc crypt_krb5server crypt_krb5client
+      crypt_libtool crypt_krb5kdc crypt_krb5server crypt_krb5client
       ipsec mmtest
       apparmor apparmor_profile yast2_apparmor yast2_users selinux
       openscap
