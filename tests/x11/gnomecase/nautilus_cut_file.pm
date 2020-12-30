@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus
 # Summary: testcase 4158-1249067 move a file with nautilus
 # - Launch nautilus
 # - Create a test file called "newfile"

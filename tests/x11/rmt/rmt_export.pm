@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: xterm rmt-server mariadb yast2-rmt
 # Summary: setup one RMT server, sync, enable, mirror and list
 # products. Then export RMT data to one folder. Wait another RMT
 # Server to import those data

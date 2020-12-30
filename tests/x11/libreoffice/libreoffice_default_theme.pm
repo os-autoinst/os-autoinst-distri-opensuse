@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice
 # Summary: LibreOffice: Default icon theme verification
 # - Start ooffice
 # - Open options menu and check

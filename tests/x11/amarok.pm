@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: amarok
 # Summary: Basic amarok test with sound check
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

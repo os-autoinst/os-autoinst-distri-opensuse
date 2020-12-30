@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnome-control-center
 # Summary: Test for gnome-control-center, with panel
 # - Login user if necessary
 # - Start gnome-control-center and check if it is running

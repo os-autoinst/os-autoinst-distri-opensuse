@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnote
 # Summary: Test function search all notes
 # - Launch gnote and check
 # - Select All notes

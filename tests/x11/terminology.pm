@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: terminology
 # Summary: Test enlightenment terminal emulator 'terminology'
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 

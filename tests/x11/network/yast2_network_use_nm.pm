@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-network
 # Summary: Ensure using NetworkManager as system network manager
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306

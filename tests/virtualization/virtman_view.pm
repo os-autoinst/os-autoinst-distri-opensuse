@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: virt-manager
 # Summary: Basic test of virtman features
 # Maintainer: Antoine <aginies@suse.com>
 

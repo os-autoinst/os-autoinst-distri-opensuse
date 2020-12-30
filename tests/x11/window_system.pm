@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: systemd
 # Summary: Show information about current session (window system)
 # - Check current session type
 # - Select graphic console (x11), unless DESKTOP is set to textmode

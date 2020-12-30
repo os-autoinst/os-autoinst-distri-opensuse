@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gdm gnome-settings-daemon
 # Summary: in GNOME, change password for current user and check that it's
 # accepted everywhere. Create then a new user and login with it.
 # - change password for current user

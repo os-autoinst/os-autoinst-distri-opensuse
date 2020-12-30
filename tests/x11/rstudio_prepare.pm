@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: xterm rstudio MozillaFirefox git-core
 # Summary: Install the rstudio base package and Firefox
 # Maintainer: Dan Čermák <dcermak@suse.com>
 

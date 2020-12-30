@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: vagrant-sshfs vagrant-sshfs-testsuite rpm
 # Summary: Test for the vagrant-sshfs plugin
 # Maintainer: dancermak <dcermak@suse.com>
 

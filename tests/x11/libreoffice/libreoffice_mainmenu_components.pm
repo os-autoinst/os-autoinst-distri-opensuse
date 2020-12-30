@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice libreoffice-base libreoffice-calc libreoffice-draw
+# libreoffice-impress libreoffice-writer
 # Summary: Case 1503827 - LibreOffice: Launch application components from system menu
 # - Open menu button -> office menu
 #   - Launch libreoffice and check

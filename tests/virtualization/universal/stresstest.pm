@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: openssh
 # Summary: Perform some stress tests on VM
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 

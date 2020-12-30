@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm smt yast2-smt
 # Summary: Disconnected SMT internal
 # Maintainer: Wei Gao <wegao@suse.com>
 

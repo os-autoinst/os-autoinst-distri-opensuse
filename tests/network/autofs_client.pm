@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: autofs nfs-client
 # Summary: It waits until a nfs server is ready and mounts a dir from that one.
 #          It also mounts another dir to check nfsidmap functionality.
 # - Calls check_autofs_service (start/stop/restart/status autofs)

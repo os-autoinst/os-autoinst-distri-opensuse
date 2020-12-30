@@ -9,6 +9,7 @@
 #
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 #
+# Package: MozillaFirefox
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
 # Maintainer: Ben Chou <bchou@suse.com>

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm virt-top
 # Summary: Test 'virt-top'
 # Maintainer: aginies <aginies@suse.com>
 

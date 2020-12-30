@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: evince
 # Summary: Evince find feature
 # - Start evince and open test pdf from datadir
 # - Type CTRL-F and check

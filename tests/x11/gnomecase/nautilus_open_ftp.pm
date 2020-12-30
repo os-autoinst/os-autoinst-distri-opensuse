@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus
 # Summary: Test nautilus open ftp
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: tc#1436143

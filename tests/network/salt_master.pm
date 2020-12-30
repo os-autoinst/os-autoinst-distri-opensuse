@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: salt-master salt-minion sysstat
 # Summary: Test Salt stack on two machines. Here we test mainly the
 #  master but minion is also present just for having more of those.
 # - Install salt-master

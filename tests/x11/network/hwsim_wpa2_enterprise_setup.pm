@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: NetworkManager hostapd openssl
 # Summary: Sets up the mac80211_hwsim module and configures hostapd/NM to create a wpa2 enterprise test infrastructure
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306

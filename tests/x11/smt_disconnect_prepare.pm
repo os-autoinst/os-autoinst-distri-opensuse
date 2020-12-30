@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nfs-kernel-server nfs-client iproute2 SUSEConnect
 # Summary: Do some prepare for internal and external SMT on disconnect SMT case
 # Maintainer: Wei Gao <wegao@suse.com>
 

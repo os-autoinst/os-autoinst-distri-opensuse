@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: openssl
 # Summary: FIPS : openssl should only list FIPS approved cryptographic functions
 #                 while system is working in fips mode
 #

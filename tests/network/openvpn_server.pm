@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvpn easy-rsa iputils
 # Summary: Test OpenVPN on two machines - this one is the server.
 #  * Shared key is generated, server configured and started
 #  * After client connects, both sides perform ping, then disconnect

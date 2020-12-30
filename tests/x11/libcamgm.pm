@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2 libcamgm100 perl-camgm yast2-ca-management xterm
 # Summary: Test libcamgm via Yast2 CA management module(yast2 ca_mgm)
 # Maintainer: Ben Chou <bchou@suse.com>
 

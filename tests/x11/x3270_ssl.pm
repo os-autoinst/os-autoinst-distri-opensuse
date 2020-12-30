@@ -8,6 +8,7 @@
 # without any warranty.
 #
 # Testopia Case#1595207 - FIPS: x3270
+# Package: x3270 openssl
 # Summary: x3270 for SSL support testing, with openssl s_server running on local system
 #
 # Maintainer: Ben Chou <bchou@suse.com>

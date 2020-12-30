@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dolphin
 # Summary: Start dolphin and do some file operations
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 

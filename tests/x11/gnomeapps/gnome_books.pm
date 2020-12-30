@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnome-books
 # Summary: GNOME Books - Minimal Test
 # Maintainer: Dominique Leuenberger <dimstar@suse.de>>
 

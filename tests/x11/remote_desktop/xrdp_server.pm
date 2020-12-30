@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: xterm firewalld xrdp gnome-session-core
 # Summary: Remote Login: Windows access SLES over RDP
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388

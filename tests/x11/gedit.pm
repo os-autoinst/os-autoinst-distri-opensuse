@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gedit
 # Summary: Basic functionality of gedit
 # - Launch gedit and check if it is running
 # - Type "If you can see this text gedit is working." and check

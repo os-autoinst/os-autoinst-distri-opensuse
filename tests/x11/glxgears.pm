@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: Mesa-demo-x
 # Summary: glxgears can start
 # - Handle installing of Mesa-demo-x (if necessary)
 # - Launch glxgears and check if it is running

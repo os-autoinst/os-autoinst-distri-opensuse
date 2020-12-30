@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm glib2-tools nautilus
 # Summary: Case 1503753: Gnome - Some types of files should
 #  be opened by corresponding applications
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>

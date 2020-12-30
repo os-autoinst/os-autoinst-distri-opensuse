@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm MozillaFirefox
 # Summary: Case#1479412: Firefox: Private Browsing
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

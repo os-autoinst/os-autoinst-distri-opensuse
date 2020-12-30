@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm glib2-tools evolution
 # Summary: Case #1503857: Evolution First time launch and setup assistant
 # - Cleanup evolution config files and start application
 # - Handle evolution first time wizard

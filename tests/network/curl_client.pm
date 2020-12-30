@@ -7,6 +7,7 @@
 # # notice and this notice are preserved.  This file is offered as-is,
 # # without any warranty.
 #
+# Package: curl
 # Summary: Test regression to curl.
 #  this test curl with http, https, ldap, ftp and ntlm auth
 #  poo#51536

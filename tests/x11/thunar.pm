@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: thunar
 # Summary: Open thunar and navigate the root directory
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

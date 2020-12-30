@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: openssl
 # Summary: openssl 1.1.1 supports and negotiates by default the new TLS 1.3 protocol.
 #          Applications that leave everything to the openssl library will automatically
 #          start to negotiate the TLS 1.3 protocol. However, many packages have their

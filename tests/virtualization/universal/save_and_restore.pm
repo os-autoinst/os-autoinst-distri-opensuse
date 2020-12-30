@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client nmap
 # Summary: Test if the guests can be saved and restored
 # Maintainer: Jan Baier <jbaier@suse.cz>
 

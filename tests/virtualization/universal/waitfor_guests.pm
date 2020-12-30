@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client
 # Summary: Wait for guests so they finish the installation
 # Maintainer: Jan Baier <jbaier@suse.cz>
 

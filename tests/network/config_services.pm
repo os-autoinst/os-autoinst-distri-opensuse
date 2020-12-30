@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: apache2 openldap2 vsftpd dovecot openssl postfix
 # Summary: Test preparing services to use with multimachine scenarios.
 #  At least confiugre:
 #   - http - A basic http support with apache2

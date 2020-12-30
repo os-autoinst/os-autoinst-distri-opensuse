@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: brasero
 # Summary: Brasero launch and about
 # - Run brasero (installs it if necessary)
 # - Call help and about and check the window

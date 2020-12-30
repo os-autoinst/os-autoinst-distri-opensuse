@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gdm gnome-terminal nautilus
 # Summary: Add a case for gdm session switch
 #    openSUSE has shipped SLE-Classic since Leap 42.2, this case will test
 #    gdm session switch among sle-classic, gnome-classic, icewm and gnome.

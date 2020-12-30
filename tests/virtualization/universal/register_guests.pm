@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: openssl SUSEConnect ca-certificates-suse
 # Summary: Register all guests against local SMT server
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 

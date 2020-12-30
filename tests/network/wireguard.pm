@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: systemd wireguard-tools iperf iproute2 openssh
 # Summary: Connect two machines using wireguard VPN
 #  Run iperf3 speed test inside the tunnel for verification
 # Maintainer: Pavel Dostál <pdostal@suse.cz>

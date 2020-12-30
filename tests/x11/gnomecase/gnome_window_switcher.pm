@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus gedit totem
 # Summary: Case 1503968 - Gnome: Window Switcher works with ALT+TAB
 # - Launch nautilus and minimize
 # - Launch gedit and minimize

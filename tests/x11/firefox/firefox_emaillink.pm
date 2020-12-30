@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm MozillaFirefox
 # Summary: Firefox emaillink test (Case#1436117)
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm MozillaFirefox
 # Summary: Firefox PDF reader test (Case#1436081)
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-
+# Package: xterm chrome-chrome-stable
 # Summary: GOOGLE Chrome: attempt to install and run google chrome
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 

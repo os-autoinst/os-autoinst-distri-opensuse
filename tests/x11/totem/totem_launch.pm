@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: totem
 # Summary: Totem launch
 # - Install totem if necessary
 # - Launch totem

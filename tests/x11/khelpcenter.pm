@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: khelpcenter
 # Summary: Ensure KDE help center starts up properly
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

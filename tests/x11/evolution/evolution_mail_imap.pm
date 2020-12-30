@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: evolution
 # Summary: Test Case #1503768: Evolution: send and receive email via IMAP
 # - Setup imap account on evolution with credentials from internal_account_A
 # - Send an email to internal_account_A with subject as current date and random

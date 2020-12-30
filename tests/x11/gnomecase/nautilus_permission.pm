@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus
 # Summary: case 1436125-use nautilus to change file permissions
 # - Create a test file called "newfile"
 # - Launch nautilus

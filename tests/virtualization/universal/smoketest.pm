@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: openssh binutils util-linux
 # Summary: Tests, if the machine is up and running
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 

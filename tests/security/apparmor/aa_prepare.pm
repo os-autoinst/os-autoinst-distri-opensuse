@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: patterns-base-apparmor apparmor-parser
 # Summary: Make sure apparmor is installed and running for later testing by
 # installing apparmor pattern.
 # - installs apparmor pattern

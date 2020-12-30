@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: salt-minion sysstat procps
 # Summary: Test Salt stack on two machines. This machine is running
 #  salt-minion only and here we test the end result of master operations.
 # - Install salt-minion

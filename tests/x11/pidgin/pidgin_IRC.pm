@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: pidgin
 # Summary: Pidgin: IRC
 # - Launch pidgin
 # - Create a new account, type IRC, nickname "susetesting"

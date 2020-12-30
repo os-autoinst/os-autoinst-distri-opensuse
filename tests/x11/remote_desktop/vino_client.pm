@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: vinagre
 # Summary: Remote Login: client for VNC connections with vino
 #          server: vino_server.pm
 #          client: vino_client.pm
