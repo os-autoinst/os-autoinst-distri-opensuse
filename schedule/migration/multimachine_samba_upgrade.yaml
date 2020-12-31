@@ -1,0 +1,16 @@
+name:   multimachine_samba_upgrade
+description:    >
+    This is for samba upgrade migration
+schedule:
+  - migration/version_switch_origin_system
+  - installation/isosize
+  - installation/bootloader
+  - migration/online_migration/online_migration_setup
+  - migration/online_migration/register_system
+  - migration/online_migration/zypper_patch
+  - network/setup_multimachine
+  - network/samba/samba_adcli
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - migration/online_migration/yast2_migration
+  - migration/online_migration/post_migration
