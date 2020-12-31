@@ -739,9 +739,11 @@ sub yast_scc_registration {
         $client_module = 'registration';
     }
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
+    # For Aarch64 if the worker run with heavy loads, it will
+    # timeout in nearly 120 seconds. So we set it to 150.
     assert_screen_with_soft_timeout(
         'scc-registration',
-        timeout      => 90,
+        timeout      => (check_var('ARCH', 'aarch64')) ? 150 : 90,
         soft_timeout => 30,
         bugref       => 'wait longer time to start yast2 scc in case of multiple jobs start to execute it in parallel on a same worker'
     );
