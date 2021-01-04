@@ -62,14 +62,6 @@ sub run {
     # Wait until cluster-md device is created
     barrier_wait("CLUSTER_MD_CREATED_$cluster_name");
 
-    # We need to start the cluster-md device on all nodes but node01, as it still has the device started
-    if (!is_node(1)) {
-        assert_script_run "mdadm -A $clustermd_device \"$clustermd_lun_01\" \"$clustermd_lun_02\"", $default_timeout;
-    }
-
-    # Wait until cluster-md device is started
-    barrier_wait("CLUSTER_MD_STARTED_$cluster_name");
-
     if (is_node(1)) {
         # Create cluster-md resource
         assert_script_run
