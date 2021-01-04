@@ -2028,7 +2028,6 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_downloading";
     loadtest "x11/firefox/firefox_changesaving";
     loadtest "x11/firefox/firefox_fullscreen";
-    loadtest "x11/firefox/firefox_flashplayer";
     loadtest "x11/firefox/firefox_localfiles";
     loadtest "x11/firefox/firefox_headers";
     loadtest "x11/firefox/firefox_pdf";
