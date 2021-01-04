@@ -18,6 +18,9 @@ use login_console;
 use ipmi_backend_utils;
 use base "proxymode";
 use power_action_utils 'power_action';
+use ipmi_backend_utils;
+use Utils::Architectures;
+use virt_autotest::utils;
 
 sub reboot_and_wait_up {
     my $self           = shift;
@@ -39,17 +42,33 @@ sub reboot_and_wait_up {
     else {
         #leave ssh console and switch to sol console
         switch_from_ssh_to_sol_console(reset_console_flag => 'off');
-        #login
-        #The timeout can't be too small since autoyast installation
-        assert_screen "text-login", 600;
-        type_string "root\n";
-        assert_screen "password-prompt";
-        type_password;
-        send_key('ret');
-        assert_screen "text-logged-in-root";
 
-        #type reboot
-        type_string("reboot\n");
+        my ($package_name, $file_name, $line_num) = caller;
+        diag("The package $package_name defined from file $file_name called me at line $line_num");
+        my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION'));
+        my ($host_installed_rel)   = $host_installed_version =~ /^(\d+)/im;
+        my ($host_installed_sp)    = $host_installed_version =~ /sp(\d+)$/im;
+        my $host_upgrade_version   = get_var('UPGRADE_PRODUCT', '');
+        my ($host_upgrade_rel)     = $host_upgrade_version =~ /sles-(\d+)-sp/i;
+        my ($host_upgrade_sp)      = $host_upgrade_version =~ /sp(\d+)$/im;
+        if ($package_name eq 'reboot_and_wait_up_upgrade' and is_kvm_host and is_x86_64 and ($host_installed_rel eq '15' and $host_installed_sp eq '2') and ($host_upgrade_rel eq '15' and $host_upgrade_sp eq '3')) {
+            record_soft_failure("bsc#1156315 irqbalance warning messages prevent needles being asserted in sol console");
+            diag("bsc#1156315 irqbalance warning messages prevent needles being asserted in sol console. Reboot host by using ipmitool directly.");
+            ipmi_backend_utils::ipmitool 'chassis power reset';
+        }
+        else {
+            #login
+            #The timeout can't be too small since autoyast installation
+            assert_screen "text-login", 600;
+            type_string "root\n";
+            assert_screen "password-prompt";
+            type_password;
+            send_key('ret');
+            assert_screen "text-logged-in-root";
+
+            #type reboot
+            type_string("reboot\n");
+        }
         #switch to sut console
         reset_consoles;
 
