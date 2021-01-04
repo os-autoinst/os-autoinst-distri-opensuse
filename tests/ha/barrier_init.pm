@@ -78,7 +78,6 @@ sub run {
         }
         barrier_create("CLUSTER_MD_INIT_$cluster_name",             $num_nodes);
         barrier_create("CLUSTER_MD_CREATED_$cluster_name",          $num_nodes);
-        barrier_create("CLUSTER_MD_STARTED_$cluster_name",          $num_nodes);
         barrier_create("CLUSTER_MD_RESOURCE_CREATED_$cluster_name", $num_nodes);
         barrier_create("CLUSTER_MD_CHECKED_$cluster_name",          $num_nodes);
         barrier_create("HAWK_INIT_$cluster_name",                   $num_nodes);
