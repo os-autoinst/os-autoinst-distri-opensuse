@@ -113,9 +113,9 @@ if (match_has_tag('yast2_missing_package')) {
 * All code needs to be tidy, for this use `make prepare` the first time you
   set up your local environment, use `make tidy` or `tools/tidy` locally to
   ensure your new code adheres to our coding style.
-* Every pull request is tested by the travis CI for different perl versions,
+* Every pull request is tested by our CI system for different perl versions,
   if something fails, run `make test` (don't forget to `make prepare` if your setup is new)
-  but the travis results are available too, in case they need to be investigated further
+  but the CI results are available too, in case they need to be investigated further
 * Whenever possible, [provide a verification run][1] of a job that runs the code [provided in the pull request][2]
 
 Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new contributions.

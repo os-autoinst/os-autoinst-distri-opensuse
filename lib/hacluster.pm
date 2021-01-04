@@ -829,7 +829,7 @@ sub pre_run_hook {
         $prev_console = $autotest::selected_console;
     } else {
         # perl -c will give a "only used once" message
-        # here and this makes the travis ci tests fail.
+        # here and this makes the ci tests fail.
         1 if defined $testapi::selected_console;
         $prev_console = $testapi::selected_console;
     }
