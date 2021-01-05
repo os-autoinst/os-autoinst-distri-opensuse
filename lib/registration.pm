@@ -52,6 +52,7 @@ our @EXPORT = qw(
   %ADDONS_REGCODE
   @SLE15_ADDONS_WITHOUT_LICENSE
   @SLE12_MODULES
+  @SLE15_MODULES
 );
 
 # We already have needles with names which are different we would use here
@@ -103,6 +104,11 @@ our @SLE12_MODULES = qw(
   sle-module-toolchain
   sle-module-web-scripting
   sle-module-public-cloud
+);
+
+# Those modules' version is 15 for all of 15 sp products
+our @SLE15_MODULES = qw(
+  sle-module-NVIDIA-compute
 );
 
 # Method to determine if a short name references a module based on what's defined
@@ -273,7 +279,7 @@ sub register_addons_cmd {
         my $name = get_addon_fullname($addon);
         if (length $name) {
             record_info($name, "Register $name");
-            if (grep(/$name/, @SLE12_MODULES) and is_sle('<15')) {
+            if ((grep(/$name/, @SLE12_MODULES) and is_sle('<15')) || (grep(/$name/, @SLE15_MODULES) and is_sle('15+'))) {
                 my @ver = split(/\./, scc_version());
                 add_suseconnect_product($name, $ver[0], undef, undef, 300, 1);
             }
