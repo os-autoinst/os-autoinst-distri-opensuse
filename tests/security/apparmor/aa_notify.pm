@@ -50,7 +50,7 @@ sub run {
 
     assert_script_run "echo > $audit_log";
 
-    validate_script_output "aa-notify -l", sub { m/^$/ };
+    validate_script_output "aa-notify -l", sub { m/^(AppArmor\sdenials:\s+0\s+\(since.*)?$/ };
 
     # Make it failed intentionally to get some audit messages
     assert_script_run "sed -i '/\\/etc\\/nscd.conf/d' $tmp_prof/usr.sbin.nscd";
