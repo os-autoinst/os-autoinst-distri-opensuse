@@ -34,6 +34,9 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_dud_addon_repos
   - console/orphaned_packages_check
 test_data:
