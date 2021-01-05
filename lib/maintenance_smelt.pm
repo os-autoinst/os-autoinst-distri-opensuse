@@ -13,6 +13,7 @@ use strict;
 use warnings;
 use testapi;
 use List::Util qw(first);
+use Mojo::UserAgent;
 
 use base "Exporter";
 use Exporter;
@@ -22,10 +23,7 @@ our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules re
 
 sub query_smelt {
     my $graphql = $_[0];
-    my $api_url = "--request POST https://smelt.suse.de/graphql/";
-    my $header  = '--header "Content-Type: application/json"';
-    my $data    = qq( --data '{"query": "$graphql"}');
-    return qx(curl $api_url $header $data 2>/dev/null );
+    return Mojo::UserAgent->new->post("https://smelt.suse.de/graphql/" => json => {query => "$graphql"})->result->body;
 }
 
 sub get_incident_packages {
@@ -43,7 +41,7 @@ sub get_packagebins_in_modules {
     # in different modules.
     my ($self) = @_;
     my ($package_name, $module_ref) = ($self->{package_name}, $self->{modules});
-    my $response = qx(curl "https://smelt.suse.de/api/v1/basic/maintained/$package_name/" 2>/dev/null);
+    my $response = Mojo::UserAgent->new->get("https://smelt.suse.de/api/v1/basic/maintained/$package_name/")->result->body;
     my $graph    = JSON->new->utf8->decode($response);
     # Get the modules to which this package provides binaries.
     my @existing_modules = grep { exists($graph->{$_}) } @{$module_ref};
