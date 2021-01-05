@@ -14,6 +14,7 @@
 # - Format a single disk ('dozer')
 # - Test disk failure in raidz
 # - Test snapshot handling (create, delete, rename, rollback)
+# - Test .zfs/snapshot for correct snapshots
 # - Test snapshot transfer (tank->dozer)
 # - Test if the module and filesystems survive a reboot
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
@@ -26,25 +27,41 @@ use utils;
 use version_utils;
 use power_action_utils 'power_action';
 
-sub install_zfs {
-    # TODO: Replace -G (--no-gpgcheck) with something more sane
+sub get_repository() {
     if (is_tumbleweed) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo');
-    } elsif (is_leap("=15.1")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.1/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
+    } elsif (is_leap("=15.3")) {
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.3/filesystems.repo';
     } elsif (is_leap("=15.2")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.2/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.2/filesystems.repo';
+    } elsif (is_leap("=15.1")) {
+        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.1/filesystems.repo';
+    } elsif (is_sle("=15.3")) {
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP3/filesystems.repo';
     } elsif (is_sle("=15.2")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_15_SP2/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP2/filesystems.repo';
     } elsif (is_sle("=15.1")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo';
     } elsif (is_sle("=12.5")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo';
     } elsif (is_sle("=12.4")) {
-        zypper_call('addrepo -fG https://download.opensuse.org/repositories/filesystems/SLE_12_SP4/filesystems.repo');
+        return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP4/filesystems.repo';
     } else {
         die "Unsupported version";
     }
+}
+
+# Check if the repository is available and enabled
+sub check_available {
+    my $repo = shift;
+    return script_run("curl -f '$repo' | grep 'enabled=1'") == 0;
+}
+
+sub install_zfs {
+    my $repo = get_repository();
+    die "Sorry, zfs repository is not (yet) available for this distribution" unless (check_available($repo));
+    # TODO: Replace -G (--no-gpgcheck) with something more sane
+    zypper_call("addrepo -fG $repo");
     zypper_call('refresh');
     zypper_call('install zfs');
 }
@@ -142,15 +159,24 @@ sub run {
     assert_script_run('zfs list -t snapshot | grep "tank@third"');
     # Mount snapshots
     assert_script_run('mkdir -p /mnt/tank/{initial,second}');
-    assert_script_run('mount -o ro -t zfs tank@initial /mnt/tank/initial');
+    # Note: zfs snapshots are mounted ro by default
+    assert_script_run('mount -t zfs tank@initial /mnt/tank/initial');
+    assert_script_run('! touch /mnt/tank/initial/no_touch');    # test if zfs snapshots are mounted ro by default
     assert_script_run('zfs clone -o mountpoint=/mnt/tank/second tank@second tank/2nd_second');
     assert_script_run('stat /mnt/tank/initial/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
     assert_script_run('cd /mnt/tank/initial/; md5sum -c /var/tmp/Big_Buck_Bunny_8_seconds_bird_clip.ogv.md5sum');
     assert_script_run('! stat /mnt/tank/initial/test_unzip.zip');
     assert_script_run('! stat /mnt/tank/second/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
     assert_script_run('stat /mnt/tank/second/test_unzip.zip');
+    # Check also if snapshots are in the .zfs/snapshot directory
     assert_script_run('cd');
     assert_script_run('umount /mnt/tank/{initial,second}');
+    assert_script_run('ls -al /tank/.zfs/snapshot/');
+    assert_script_run('ls -al /tank/.zfs/snapshot/initial/');
+    assert_script_run('stat /tank/.zfs/snapshot/initial/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
+    assert_script_run('! stat /tank/.zfs/snapshot/initial/test_unzip.zip');
+    assert_script_run('stat /tank/.zfs/snapshot/second/test_unzip.zip');
+    assert_script_run('! stat /tank/.zfs/snapshot/second/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
     # Test holding snapshots and delete snapshots
     assert_script_run('zfs hold keep tank@initial');
     assert_script_run('zfs hold keep tank@second');
@@ -197,7 +223,7 @@ sub run {
     assert_script_run("lsmod | grep zfs");
     assert_script_run("systemctl status zfs.target | grep 'active'");
     assert_script_run("systemctl status zfs-share | grep 'active'");
-    # Since zpool by default only searches for disk, we need to point it to the right files
+    # Since zpool by default only searches for disks but not files, we need to point it to the disk files manually
     assert_script_run("zpool import -d /var/tmp/tank_a.img -d /var/tmp/tank_b.img -d /var/tmp/tank_c.img tank");
     assert_script_run('zpool list | grep "tank"');
     assert_script_run("zpool import -d /var/tmp/dozer.img dozer");
@@ -217,6 +243,8 @@ sub run {
     assert_script_run('cd');
     assert_script_run('zfs umount tank');
     assert_script_run('! stat /tank/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
+    # Celebrate successful test run :-)
+    script_run("echo -e 'Congarts! zfs test completed sucessfully\n.~~~~.\ni====i_\n|cccc|_)\n|cccc|   hjw\n -==-'");
 }
 
 sub post_fail_hook {
