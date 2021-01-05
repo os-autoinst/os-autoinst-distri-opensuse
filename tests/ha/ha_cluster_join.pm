@@ -41,6 +41,10 @@ sub run {
     assert_screen 'ha-cluster-join-password', $join_timeout;
     type_password;
     send_key 'ret';
+    if (check_var('TWO_NODES', 'no') && check_screen('ha-cluster-join-3nodes-password', 60)) {
+        type_password;
+        send_key 'ret';
+    }
     wait_serial("ha-cluster-join-finished-0", $join_timeout);
 
     # Indicate that the other nodes have joined the cluster
