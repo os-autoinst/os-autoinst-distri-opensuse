@@ -1224,7 +1224,7 @@ sub select_serial_terminal {
         } else {
             $console = $root ? 'root-virtio-terminal' : 'virtio-terminal';
         }
-    } elsif (get_var('SUT_IP') || get_var('VIRSH_GUEST')) {
+    } elsif (get_var('SUT_IP')) {
         $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
     } elsif ($backend eq 'svirt') {
         if (check_var('SERIAL_CONSOLE', 0)) {
