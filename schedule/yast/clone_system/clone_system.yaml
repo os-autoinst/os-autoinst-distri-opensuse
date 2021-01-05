@@ -23,4 +23,3 @@ conditional_schedule:
   uefi_bootmenu:
     ARCH:
       aarch64:
-        - boot/uefi_bootmenu
