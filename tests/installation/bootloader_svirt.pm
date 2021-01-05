@@ -306,11 +306,6 @@ sub run {
         type_string "echo -en '\\033[B' > \$pty\n" for (1 .. $max);                                       # $max-times key down
         type_string "echo -en '\\033[K' > \$pty\n";                                                       # end of line
 
-        if (is_jeos && is_sle('>=15-sp2')) {
-            record_soft_failure('bsc#1175514 cannot login to rescue when JeOS image is loaded as xen pv domain');
-            type_string "echo -en '\\010' > \$pty\n" for (1 .. length('console=ttyS0,115200 console=tty0 quiet'));
-        }
-
         if (is_sle '12-SP2+') {
             type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768' > \$pty\n";    # set kernel framebuffer
             type_string "echo -en ' console=hvc console=tty' > \$pty\n";                                         # set consoles
