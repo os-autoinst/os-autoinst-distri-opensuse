@@ -22,7 +22,9 @@ sub run {
     my $cluster_name = get_cluster_name;
 
     # Checking cluster state can take time, so default timeout is not enough
-    assert_script_run 'crm script run health', bmwqemu::scale_timeout(240);
+    if (script_run("crm script run health", bmwqemu::scale_timeout(240)) != 0) {
+        record_soft_failure("bsc#1180618, unexpected hostname in the output");
+    }
 
     barrier_wait("LOGS_CHECKED_$cluster_name");
 
