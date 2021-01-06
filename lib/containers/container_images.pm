@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,8 +21,10 @@ use utils;
 use strict;
 use warnings;
 use version_utils;
+use Test::Assert 'assert_true';
+use version;
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container);
+our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container ensure_container_rpm_updates);
 
 # Build any container image using a basic Dockerfile
 sub build_container_image {
@@ -151,6 +153,24 @@ sub test_opensuse_based_image {
         # Verify the image works
         assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
     }
+}
+
+sub ensure_container_rpm_updates {
+    my $diff_file   = shift;
+    my $regex2match = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
+    my $context     = script_output "cat $diff_file";
+    open(my $data, '<', \$context) or die "problem with $diff_file argument", $!;
+    while (my $line = <$data>) {
+        if ($line =~ $regex2match) {
+            # Use of Dotted-Decimal-Versions. Do not remove 'v' prefix
+            my $updated_v = version->parse("v$+{update_version}");
+            my $stable_v  = version->parse("v$+{stable_version}");
+            record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
+            assert_true($updated_v > $stable_v, "$+{package} $stable_v is not updated to $updated_v");
+        }
+    }
+
+    close($data);
 }
 
 sub exec_on_container {
