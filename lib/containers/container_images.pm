@@ -21,7 +21,6 @@ use utils;
 use strict;
 use warnings;
 use version_utils;
-use Test::Assert 'assert_true';
 use version;
 
 our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container ensure_container_rpm_updates);
@@ -156,9 +155,10 @@ sub test_opensuse_based_image {
 }
 
 sub ensure_container_rpm_updates {
-    my $diff_file   = shift;
-    my $regex2match = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
-    my $context     = script_output "cat $diff_file";
+    my $diff_file     = shift;
+    my $regex2match   = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
+    my $regex2zerorpm = qr/^Version differences: None$/;
+    my $context       = script_output "cat $diff_file";
     open(my $data, '<', \$context) or die "problem with $diff_file argument", $!;
     while (my $line = <$data>) {
         if ($line =~ $regex2match) {
@@ -166,10 +166,13 @@ sub ensure_container_rpm_updates {
             my $updated_v = version->parse("v$+{update_version}");
             my $stable_v  = version->parse("v$+{stable_version}");
             record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
-            assert_true($updated_v > $stable_v, "$+{package} $stable_v is not updated to $updated_v");
+            die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
+        }
+        elsif ($line =~ $regex2zerorpm) {
+            record_info("No Update found", "no updates found between rpm versions");
+            last;
         }
     }
-
     close($data);
 }
 
