@@ -35,13 +35,6 @@ sub run {
     file_content_replace('/etc/sysconfig/network/dhcp', 'DHCLIENT_SET_HOSTNAME="yes"' => 'DHCLIENT_SET_HOSTNAME="no"');
 
     set_hostname(get_var('HOSTNAME', 'susetest'));
-
-    # We have to reconnect to be sure that the new hostname is used
-    unless (get_var('SET_CUSTOM_PROMPT')) {
-        send_key 'ctrl-d';
-        reset_consoles;
-        select_console 'root-console';
-    }
 }
 
 sub test_flags {
