@@ -149,6 +149,10 @@ sub setup_console_in_grub {
         save_screenshot;
 
         if (!script_run('grep HPE /sys/class/dmi/id/board_vendor') == 0) {
+            $cmd = "sed -ri '/^terminal.*\$/ {:mylabel; n; s/^terminal.*\$//;b mylabel;}' $grub_cfg_file";
+            assert_script_run($cmd);
+            $cmd = "sed -ri '/^[[:space:]]*\$/d' $grub_cfg_file";
+            assert_script_run($cmd);
             $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
             assert_script_run($cmd);
         }
