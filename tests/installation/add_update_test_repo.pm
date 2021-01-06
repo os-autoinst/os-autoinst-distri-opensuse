@@ -52,8 +52,8 @@ sub run() {
         if (check_screen('addon-menu-active')) {
             # go back to registration and forward to addons
             send_key 'alt-b';
-            wait_still_screen(2);
-            send_key 'alt-n';
+            wait_still_screen(3);
+            send_key_until_needlematch([qw(inst-addon addon-products)], 'alt-n', 3, 2);
         }
     }
 }
