@@ -16,4 +16,4 @@ schedule:
     - installation/first_boot
     - console/validate_yast2_firstboot_configuration
 test_data:
-  <<: !include test_data/yast/firstboot/yast2_firstboot.yaml
+    <<: !include test_data/yast/firstboot/yast2_firstboot.yaml
