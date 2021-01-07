@@ -1,4 +1,4 @@
-# Copyright © 2015-2020 SUSE LLC
+# Copyright © 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
+use validate_encrypt_utils "validate_activation_encrypted_partition";
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -228,6 +229,14 @@ sub run {
             die "installation ends in linuxrc";
         }
         elsif (match_has_tag('autoyast-confirm')) {
+            if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+                validate_activation_encrypted_partition({
+                        mapped_device => $test_data->{mapped_device},
+                        device_status => $test_data->{device_status}->{message},
+                        properties    => $test_data->{device_status}->{properties}
+                });
+            }
+
             # select network (second entry)
             send_key "ret";
 
@@ -336,7 +345,7 @@ sub run {
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard encrypted-disk-password-prompt);
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
@@ -381,6 +390,9 @@ sub run {
         }
         elsif (match_has_tag('opensuse-welcome')) {
             return;             # Popup itself is processed in opensuse_welcome module
+        }
+        elsif (match_has_tag('encrypted-disk-password-prompt')) {
+            return;
         }
     }
     # ssh console was activated at this point of time, so need to reset

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ our @EXPORT = qw(
   verify_cryptsetup_properties
   verify_restoring_luks_backups
   verify_locked_encrypted_partition
+  validate_activation_encrypted_partition
 );
 
 =head2 parse_devices_in_crypttab
@@ -228,6 +229,15 @@ sub verify_locked_encrypted_partition {
         die "partition '/dev/$enc_disk_part' is already unlocked";
     }
     record_info('lock OK', "Encrypted partition '/dev/$enc_disk_part' still locked");
+}
+
+sub validate_activation_encrypted_partition {
+    my ($args) = @_;
+    select_console 'install-shell';
+    my $status = parse_cryptsetup_status($args->{mapped_device});
+    verify_cryptsetup_message($args->{message}, $status->{message});
+    verify_cryptsetup_properties($args->{properties}, $status->{properties});
+    select_console 'installation';
 }
 
 1;
