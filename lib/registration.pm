@@ -473,8 +473,16 @@ sub process_scc_register_addons {
         wait_still_screen 2;
         # Process addons licenses
         accept_addons_license @scc_addons;
-        while (check_screen('import-untrusted-gpg-key', 60)) {
-            handle_untrusted_gpg_key;
+        # Process GPG keys
+        my @gpg_key_needles = qw(import-untrusted-gpg-key);
+        # Repo key expired bsc#1180619
+        push @gpg_key_needles, 'expired-gpg-key' if is_sle('=15');
+        while (check_screen([@gpg_key_needles], 60)) {
+            handle_untrusted_gpg_key if match_has_tag('import-untrusted-gpg-key');
+            if (match_has_tag('expired-gpg-key')) {
+                record_soft_failure 'bsc#1180619';
+                send_key 'alt-y';
+            }
         }
         # Press next only if entered reg code for any addon
         if (register_addons @scc_addons) {
@@ -585,6 +593,8 @@ sub fill_in_registration_data {
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
+        # Repo key expired bsc#1180619
+        push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen(\@tags, timeout => 360);
@@ -634,6 +644,11 @@ sub fill_in_registration_data {
             }
             elsif (match_has_tag('inst-addon')) {
                 return;
+            }
+            elsif (match_has_tag('expired-gpg-key')) {
+                record_soft_failure 'bsc#1180619';
+                send_key 'alt-y';
+                next;
             }
             elsif (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
                 send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
