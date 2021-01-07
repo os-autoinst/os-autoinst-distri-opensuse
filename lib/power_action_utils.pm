@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_vmware);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_vmware is_jeos);
 use Carp 'croak';
 
 our @EXPORT = qw(
@@ -332,8 +332,9 @@ sub power_action {
             console('svirt')->start_serial_grab;
         }
         # When 'sut' is ready, select it
+        # GRUB's serial terminal configuration relies on installation/add_serial_console.pm
         if (is_vmware && $action eq 'reboot') {
-            wait_serial('GNU GRUB', 180) || die 'GRUB not found on serial console';
+            die 'GRUB not found on serial console' unless (is_jeos || wait_serial('GNU GRUB', 180));
             select_console('sut');
         }
     }
