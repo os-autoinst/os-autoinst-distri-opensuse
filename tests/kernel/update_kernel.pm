@@ -338,12 +338,7 @@ sub install_kotd {
 sub boot_to_console {
     my ($self) = @_;
     $self->wait_boot unless check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL');
-    if (check_var('BACKEND', 'ipmi')) {
-        use_ssh_serial_console;
-    }
-    else {
-        select_console('root-console');
-    }
+    $self->select_serial_terminal;
 }
 
 sub run {
