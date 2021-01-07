@@ -69,6 +69,7 @@ schedule:
 - console/libqca2
 - console/gd
 - console/valgrind
+- console/python_scientific
 - '{{wpa_supplicant}}'
 - console/coredump_collect
 conditional_schedule:

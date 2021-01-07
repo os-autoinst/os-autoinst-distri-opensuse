@@ -69,6 +69,7 @@ schedule:
 - console/gd
 - console/valgrind
 - console/sssd_samba
+- console/python_scientific
 - '{{wpa_supplicant}}'
 - console/coredump_collect
 conditional_schedule:
