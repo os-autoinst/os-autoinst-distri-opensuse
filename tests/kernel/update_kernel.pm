@@ -337,13 +337,21 @@ sub install_kotd {
 
 sub boot_to_console {
     my ($self) = @_;
-    $self->wait_boot unless check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL');
+
+    select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
+    $self->wait_boot;
     $self->select_serial_terminal;
 }
 
 sub run {
     my $self = shift;
-    boot_to_console($self);
+
+    if (check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL')) {
+        # System is already booted after installation, just switch terminal
+        $self->select_serial_terminal;
+    } else {
+        boot_to_console($self);
+    }
 
     my $repo        = get_var('KOTD_REPO');
     my $incident_id = undef;
