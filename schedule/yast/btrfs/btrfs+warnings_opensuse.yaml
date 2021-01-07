@@ -43,7 +43,8 @@ schedule:
 test_data:
   disks:
     - name: vda
-      <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+      partitions:
+        <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
   errors:
     no_root: There is no device mounted at '/'
     boot_small_for_kernel: The device mounted at '/boot' does not have enough space to contain a kernel
