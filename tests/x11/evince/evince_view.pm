@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: evince
 # Summary: Evince: View
 # - Launch evince and open test.pdf from datadir
 # - Send F11 (full screen) and check

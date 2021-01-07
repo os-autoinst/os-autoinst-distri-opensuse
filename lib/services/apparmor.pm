@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: apparmor-parser patterns-base-apparmor apparmor-utils
 # Summary: Package for apparmor service tests
 #
 # Maintainer: Huajian Luo <hluo@suse.com>

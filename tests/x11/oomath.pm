@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice-math
 # Summary: Test formula rendering in oomath
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # - Launch oomath

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: openssl
 # Summary: FIPS: openssl_fips_cipher
 #          In fips mode, openssl only works with the FIPS
 #          approved Cihper algorithms: AES and DES3

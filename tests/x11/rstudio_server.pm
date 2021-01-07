@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: rstudio-server MozillaFirefox xterm
 # Summary: Basic test of RStudio Server
 # Maintainer: Dan Čermák <dcermak@suse.com>
 

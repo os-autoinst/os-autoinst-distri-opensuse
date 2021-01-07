@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: plasma-browser-integration MozillaFirefox
 # Summary: Test plasma-browser-integration in firefox
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 

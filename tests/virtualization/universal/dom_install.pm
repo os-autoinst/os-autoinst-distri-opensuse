@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: vhostmd vm-dump-metrics
 # Summary: Prepare the dom0 metrics environment
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 

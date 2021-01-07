@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Very basic firefox test opening an html-test
 # - Start firefox with url "https://html5test.opensuse.org"
 # - Open about window and check

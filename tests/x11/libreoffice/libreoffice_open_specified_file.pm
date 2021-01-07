@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice
 # Summary: Case 1503881 - Verify LibreOffice opens specified file types correctly
 # - Download and uncompress libreoffise sample files from datadir
 # - Launch libreoffice

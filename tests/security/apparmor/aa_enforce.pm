@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: apparmor-utils
 # Summary: Enforce a disabled profile with aa-enforce.
 # - restarts apparmor
 # - disables nscd by running aa-disable /usr/sbin/nscd

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: novell-groupwise-gwclient
 # Summary: Groupwise client check
 # - Stop packagekit service
 # - Add groupwise repository

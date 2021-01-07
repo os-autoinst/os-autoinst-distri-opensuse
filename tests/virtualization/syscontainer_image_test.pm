@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client zypper
 # Summary: tests running system containers images with libvirt-lxc
 # Maintainer: Cédric Bosdonnat <cbosdonnat@suse.de>
 

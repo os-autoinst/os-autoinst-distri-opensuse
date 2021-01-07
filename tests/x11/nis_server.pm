@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rpcbind nfs-client yast2-nis-server yast2-nfs-server
 # Summary: NIS server-client test
 #    https://progress.opensuse.org/issues/9900
 # Maintainer: Jozef Pupava <jpupava@suse.com>

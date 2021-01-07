@@ -5,6 +5,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: rsync
 # Summary: Download disk image
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 

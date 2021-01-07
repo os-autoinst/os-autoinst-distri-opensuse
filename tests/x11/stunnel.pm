@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm stunnel tigervnc
 # Summary: client part of VNC wrapped with stunnel
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: TC1595152

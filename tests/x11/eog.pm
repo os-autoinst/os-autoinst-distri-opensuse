@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: eog
 # Summary: eye of gnome image viewer
 # - Installs eog if necessary
 # - Launch eog

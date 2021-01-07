@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: GraphicsMagick
 # Summary: GraphicMagick testsuite
 # Maintainer: Ivan Lausuch <ilausuch@suse.com>
 

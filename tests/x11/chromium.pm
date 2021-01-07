@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: chromium
 # Summary: Basic test of chromium visiting an html-test
 # Maintainer: Stephan Kulow <coolo@suse.de>
 

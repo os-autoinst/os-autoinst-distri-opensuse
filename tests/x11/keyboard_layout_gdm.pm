@@ -8,6 +8,7 @@
 # without any warranty.
 
 
+# Package: gdm yast2
 # Summary: Test if gnome login manager honors keyboard layout changes
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 

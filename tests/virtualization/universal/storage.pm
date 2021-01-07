@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client
 # Summary: Storage pool / volume test
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: hexchat
 # Summary: FIPS : hexchat_ssl
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#49139 , poo#49136 , poo#52796

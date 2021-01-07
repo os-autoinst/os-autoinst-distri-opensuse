@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus libreoffice
 # Summary: LibreOffice: Open supported file types by double click (tc#1503778)
 # - Download sample files from datadir
 # - Launch nautilus, open directory containing test files

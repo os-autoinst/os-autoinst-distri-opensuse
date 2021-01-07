@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Test audio playback in firefox
 #  Depending on if firefox has been started in before firefox might behave
 #  different but should always show the play controls which the test is

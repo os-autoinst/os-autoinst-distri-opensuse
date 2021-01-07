@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: openssh coreutils ca-certificates-suse
 # Summary: This test connects to hypervisor using SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 

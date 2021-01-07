@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: screen apparmor-utils audit nscd
 # Summary: Test the profile generation utility of Apparmor using aa-genprof.
 # - Starts auditd
 # - Creates a temporary profile dir in /tmp

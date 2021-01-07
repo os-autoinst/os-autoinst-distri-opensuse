@@ -5,6 +5,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client openssh
 # Summary: List every guest and ensure they are online
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 

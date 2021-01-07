@@ -11,6 +11,7 @@
 # and succeed to sign/verify message.
 # According to FIPS 186-4, approved DSA key sizes: 1024/2048/3072
 #
+# Package: openssl
 # Summary: Add RSA/DSA public key tests for openssl-fips
 #          For RSA public key, test 2048/3072/4096 bits key pair generation,
 #          file encrypt/decrypt and message signing/verification.

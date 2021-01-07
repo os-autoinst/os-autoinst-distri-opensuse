@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xorg-x11-Xvnc ncurses-utils xterm tigervnc xev
 # Summary: Check VNC Secondary viewonly password
 # - Stop vncmanager
 # - Create custom passwords (one for readonly, other for # read/write)

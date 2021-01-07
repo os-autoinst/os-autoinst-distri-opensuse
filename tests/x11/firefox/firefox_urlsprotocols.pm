@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm MozillaFirefox
 # Summary: Firefox: URLs with various protocols (Case#1436118)
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

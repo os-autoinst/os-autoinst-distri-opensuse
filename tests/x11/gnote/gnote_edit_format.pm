@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnote
 # Summary: test gnote note format
 # - Launch gnome, create a new note and check
 # - Type "opensuse" and CTRL-H to turn highlight on

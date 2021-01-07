@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xfce4-terminal
 # Summary: Basic functionality of xfce4 terminal
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

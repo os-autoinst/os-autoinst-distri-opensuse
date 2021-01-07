@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnome-tweaks gnome-tweak-tool
 # Summary: GNOME Tweak Tool
 # - Launch gnome-tweaks and check
 # - In case of fail, try gnome-tweak-tool

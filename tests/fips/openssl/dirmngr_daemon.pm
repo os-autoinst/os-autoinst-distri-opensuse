@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: gpg2
 # Summary: Test dirmngr daemon and valid/revoked certificate
 #
 # Maintainer: Ben Chou <bchou@suse.com>

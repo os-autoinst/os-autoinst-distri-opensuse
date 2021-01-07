@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: evolution
 # Summary: tc# 1503817: Evolution: Imap Meeting
 #   This is used for tc# 1503817, Send the meeting request by evolution and the
 #   receiver will get the meeting request with imap protocol.

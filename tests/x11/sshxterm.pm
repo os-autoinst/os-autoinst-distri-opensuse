@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm openssh
 # Summary: Ensure ssh X-forwarding is working
 # - Launch xterm
 # - Run "SSH_AUTH_SOCK=0 ssh -XC root@localhost xterm"

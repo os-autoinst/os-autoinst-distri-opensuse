@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice-writer
 # Summary: Case 1503978 - LibreOffice: pyuno bridge
 # - Launch oowriter
 # - Open tools menu and select option "Run macros"

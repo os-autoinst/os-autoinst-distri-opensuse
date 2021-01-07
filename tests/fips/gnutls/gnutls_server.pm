@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: gnutls
 # Summary: SLES15SP2 FIPS certification, we need to certify gnutls and libnettle
 #          In this case, will configure GnuTLS server
 # Maintainer: rfan1 <richard.fan@suse.com>

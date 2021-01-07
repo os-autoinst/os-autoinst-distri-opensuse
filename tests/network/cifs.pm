@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: samba samba-client cifs-utils nmap coreutils util-linux
 # Summary: Test samba client and CIFS mount
 # * Test smbclient directory listing
 # * Test mounting a CIFS filesystem (with different versions)

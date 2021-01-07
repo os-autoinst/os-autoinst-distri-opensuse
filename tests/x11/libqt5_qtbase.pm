@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libqt5-qttools yast2-installation gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel
 # Summary: libqt5-qtbase: testing of the qtbase libraries
 # - Install and launch Qt Designer
 # - Create default UI elements, run design preview

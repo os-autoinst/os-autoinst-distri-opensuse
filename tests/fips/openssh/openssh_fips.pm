@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssh expect
 # Summary: FIPS: openssh
 #    Involve the existing openssh test case: sshd.pm
 #

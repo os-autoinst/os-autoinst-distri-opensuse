@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: awesome
 # Summary: Other Desktop Environments: Awesome Window Manager
 #          Update the openQA internal configuration after the DE has been installed
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>

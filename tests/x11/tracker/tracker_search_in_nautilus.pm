@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus gedit
 # Summary: tracker search in nautilus
 # - Launch nautilus
 # - Send ctrl-f and type "newfile" on search box

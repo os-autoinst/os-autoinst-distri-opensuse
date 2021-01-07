@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnote
 # Summary: Test link in note
 # - Start gnote with a new note and check
 # - Type "Start Here"

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: audit nscd apparmor-utils
 # Summary: Display information about logged AppArmor messages
 # - Restart auditd
 # - Create temporary apparmor profile on /tmp

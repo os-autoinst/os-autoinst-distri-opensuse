@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: tigervnc xterm dhcp-client
 # Summary: Remote Login: One-time VNC Session failed due to a previous graphical session
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586208

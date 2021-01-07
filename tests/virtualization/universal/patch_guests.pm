@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: openssh rpm nmap systemd-sysvinit libvirt-client
 # Summary: Apply patches to the all of our guests and reboot them
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 

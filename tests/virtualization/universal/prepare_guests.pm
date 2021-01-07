@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client iputils nmap xen-tools
 # Summary: Installation of HVM and PV guests
 # Maintainer: Jan Baier <jbaier@suse.cz>
 

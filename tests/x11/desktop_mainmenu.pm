@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lxde xfce
 # Summary: Test that desktop main menu shows up (support multiple DEs/WMs)
 # - open main menu and check that it matches the needle
 # Maintainer: Oliver Kurz <okurz@suse.de>

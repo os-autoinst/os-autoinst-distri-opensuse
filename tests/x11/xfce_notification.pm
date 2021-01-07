@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libnotify-tools
 # Summary: Test xfce4-notifyd with a notification
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

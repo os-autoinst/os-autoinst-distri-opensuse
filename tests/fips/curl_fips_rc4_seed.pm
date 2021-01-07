@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: curl libcurl4
 # Summary: Test curl RC4 and SEED ciphers with fips enabled
 #    This is new curl test case for fips related.
 #    Both RC4 and SEED are not approved cipher by FIPS140-2.

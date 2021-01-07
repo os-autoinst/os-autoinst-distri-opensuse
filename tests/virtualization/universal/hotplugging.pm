@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: bridge-utils libvirt-client openssh qemu-tools util-linux
 # Summary: Virtual network and virtual block device hotplugging
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>, Jan Baier <jbaier@suse.cz>
 

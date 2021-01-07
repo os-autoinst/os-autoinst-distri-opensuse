@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: tracker
 # Summary: start preference of tracker
 # Maintainer: nick wang <nwang@suse.com>
 # Tags: tc#1436344

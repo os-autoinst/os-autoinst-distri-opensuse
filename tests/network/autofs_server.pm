@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nfs-kernel-server nfs-client
 # Summary: It shares a dir via nfs for autofs testing, and another dir
 #          for testing nfsidmap functionality.
 # - If opensuse, enables repository 1 (zypper modifyrepo -e 1) and refresh

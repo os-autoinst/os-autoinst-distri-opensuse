@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: rstudio-desktop
 # Summary: Basic test of RStudio Desktop
 # Maintainer: Dan Čermák <dcermak@suse.com>
 

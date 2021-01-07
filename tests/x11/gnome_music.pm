@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnome-music
 # Summary: Gnome music startup
 # - Launch gnome-music and check if it is running
 # - Close gnome-music

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: apparmor-utils
 # Summary: Single testcase for AppArmor that guesses basic profile requirements
 # for nscd and pam using aa_autodep.
 # - Create a temporary profile for nscd in "/tmp/apparmor.d" using

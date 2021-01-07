@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: curl
 # Summary: validate kiwi online build status from buildsystem
 # - checks if system is at login screen
 # - login using user root and password

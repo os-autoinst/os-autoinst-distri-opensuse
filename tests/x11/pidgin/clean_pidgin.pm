@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xterm zypper
 # Summary: Cleanup before testing pidgin
 # - remove pidgin package
 # - ensure that package was really removed
