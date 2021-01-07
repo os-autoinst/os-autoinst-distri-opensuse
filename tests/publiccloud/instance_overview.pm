@@ -70,9 +70,7 @@ sub post_fail_hook {
     my ($self) = @_;
     # Destroy the public cloud instance
     ssh_interactive_leave();
-    select_console('tunnel-console', await_console => 0);
-    send_key "ctrl-c";
-    send_key "ret";
+    select_host_console();
     $self->{provider}->cleanup();
 }
 
