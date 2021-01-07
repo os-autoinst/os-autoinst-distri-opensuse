@@ -27,23 +27,23 @@ our $test_sles_for_dev = ',test_soft_reboot,test_sles_license,test_sles_root_pas
 our $test_sles_on_demand_for_dev = ',test_sles_wait_on_registration,test_refresh,test_sles_smt_reg,test_sles_guestregister';
 
 our $azure_byos_updates      = 'test_sles,test_sles_azure';
-our $azure_on_demand_updates = 'test_sles_wait_on_registration,test_sles,test_sles_on_demand,test_sles_azure';
+our $azure_on_demand_updates = 'test_sles,test_sles_on_demand,test_sles_azure';
 
 our $azure_byos      = 'test_sles_azure' . $test_sles_for_dev;
-our $azure_on_demand = 'test_sles_wait_on_registration,test_sles_azure' . $test_sles_on_demand_for_dev;
+our $azure_on_demand = 'test_sles_azure' . $test_sles_on_demand_for_dev;
 
 our $ec2_byos_updates      = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
-our $ec2_on_demand_updates = 'test_sles_wait_on_registration,test_sles,test_sles_ec2,test_sles,test_sles_on_demand,test_sles_ec2_on_demand';
+our $ec2_on_demand_updates = 'test_sles,test_sles_ec2,test_sles_on_demand,test_sles_ec2_on_demand';
 
 our $ec2_byos       = 'test_sles_ec2,test_sles_ec2_byos' . $test_sles_for_dev;
 our $ec2_byos_chost = 'test_sles_ec2' . $test_sles_for_dev;
 our $ec2_on_demand  = 'test_sles_ec2,test_sles_ec2_on_demand' . $test_sles_for_dev . $test_sles_on_demand_for_dev;
 
-our $gce_byos_updates      = 'test_sles_wait_on_registration,test_sles,test_sles_gce';
-our $gce_on_demand_updates = 'test_sles_wait_on_registration,test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
+our $gce_byos_updates      = 'test_sles,test_sles_gce';
+our $gce_on_demand_updates = 'test_sles,test_update,test_sles_on_demand,test_sles_gce';
 
-our $gce_byos      = 'test_sles_wait_on_registration,test_sles_gce' . $test_sles_for_dev;
-our $gce_on_demand = 'test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_gce' . $test_sles_for_dev . $test_sles_on_demand_for_dev;
+our $gce_byos      = 'test_sles_gce' . $test_sles_for_dev;
+our $gce_on_demand = 'test_update,test_sles_gce' . $test_sles_for_dev . $test_sles_on_demand_for_dev;
 
 our $img_proof_tests = {
     'Azure-BYOS'             => $azure_byos,
