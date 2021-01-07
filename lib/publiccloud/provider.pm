@@ -462,7 +462,7 @@ sub terraform_destroy {
         assert_script_run('cd ' . TERRAFORM_DIR);
         $self->on_terraform_destroy_timeout();
     }
-    record_info('ERROR', 'Terraform exited with' . $ret, result => 'fail') if ($ret != 0);
+    record_info('ERROR', 'Terraform exited with ' . $ret, result => 'fail') if ($ret != 0);
 }
 
 =head2 __vault_login
