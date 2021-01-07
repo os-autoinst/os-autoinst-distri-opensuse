@@ -370,6 +370,31 @@ else {
             loadtest "network/wireguard";
             return 1;
         }
+        if (get_var('OVS')) {
+            set_var('INSTALLONLY', 1);
+            if (check_var('HOSTNAME', 'server')) {
+                barrier_create('ipsec_done',          2);
+                barrier_create('traffic_check_done',  2);
+                barrier_create('certificate_signed',  2);
+                barrier_create('ipsec1_done',         2);
+                barrier_create('traffic_check_done1', 2);
+                barrier_create('ipsec2_done',         2);
+                barrier_create('traffic_check_done2', 2);
+                barrier_create('cert_done',           2);
+                barrier_create('host2_cert_ready',    2);
+                barrier_create('cacert_done',         2);
+            }
+            loadtest 'installation/bootloader_start';
+            loadtest 'network/setup_multimachine';
+            if (check_var('HOSTNAME', 'server')) {
+                loadtest 'console/ovs_server';
+            }
+            else {
+                loadtest 'console/ovs_client';
+            }
+            return 1;
+        }
+
         if (get_var("REMOTE_CONTROLLER")) {
             loadtest "remote/remote_controller";
             load_inst_tests();
