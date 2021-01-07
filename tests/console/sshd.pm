@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,6 +30,7 @@ use strict;
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap);
+use services::sshd;
 
 sub run {
     my $self = shift;
@@ -63,8 +64,7 @@ sub run {
     systemctl 'status sshd';
 
     # Check that the daemons listens on right addresses/ports
-    assert_script_run q(ss -pnl4 | egrep 'tcp.*LISTEN.*:22.*sshd');
-    assert_script_run q(ss -pnl6 | egrep 'tcp.*LISTEN.*:22.*sshd');
+    services::sshd::check_sshd_port();
 
     # create a new user to test sshd
     my $changepwd = $ssh_testman . ":" . $ssh_testman_passwd;
