@@ -32,7 +32,7 @@ use power_action_utils 'power_action';
 
 # Heartbeat variables
 my $HB_INTVL     = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 40;
+my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 200;
 my $HB_PATN      = '<heartbeat>';
 my $HB_DONE      = '<done>';
 my $HB_DONE_FILE = '/opt/test.done';
