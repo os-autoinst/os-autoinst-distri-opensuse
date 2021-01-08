@@ -1,42 +1,79 @@
-# Launch SLES-HAE of SLES4SAP cluster nodes
+# No bastion connection
+bastion_enabled = false
 
-# Instance type to use for the cluster nodes
-hana_vm_size = "%MACHINE_TYPE%"
-
-# Disk type for HANA
-hana_data_disk_type = "Premium_LRS"
-
-# Caching used for HANA disk
-hana_data_disk_caching = "ReadWrite"
-
-# Number of nodes in the cluster
-hana_count = "2"
+# Enable all some pre deployment steps (disabled by default)
+pre_deployment = true
 
 # Region where to deploy the configuration
 az_region = "%REGION%"
 
-# Installation type
-# Value can be all, skip-hana, skip-cluster
-init_type = "all"
+# Use an already existing resource group
+#resource_group_name = "my-resource-group"
+
+# Use an already existing virtual network
+#vnet_name = "my-vnet"
+
+# Use an already existing subnet in this virtual network
+#subnet_name = "my-subnet"
+
+# vnet address range in CIDR notation
+# Only used if the vnet is created by terraform or the user doesn't have read permissions in this
+# resource. To use the current vnet address range set the value to an empty string
+# To define custom ranges
+#vnet_address_range = "10.74.0.0/16"
+#subnet_address_range = "10.74.1.0/24"
+# Or to use already existing address ranges
+#vnet_address_range = ""
+#subnet_address_range = ""
+
+# HANA configuration (this example shows the demo option values.Find more options in the README file)
+# VM size to use for the cluster nodes
+#hana_vm_size = "Standard_E4s_v3"
+
+# Number of nodes in the cluster
+hana_count = "2"
+
+# Instance number for the HANA database. 00 by default.
+hana_instance_number = "00"
+
+# Network options
+#hana_enable_accelerated_networking = false
+
+# Disk configuration
+#hana_data_disks_configuration = {
+#  disks_type       = "Premium_LRS,Premium_LRS,Premium_LRS,Premium_LRS,Premium_LRS,Premium_LRS"
+#  disks_size       = "512,512,512,512,64,1024"
+#  caching          = "ReadOnly,ReadOnly,ReadOnly,ReadOnly,ReadOnly,None"
+#  writeaccelerator = "false,false,false,false,false,false"
+#  luns             = "0,1,2#3#4#5"
+#  names            = "datalog#shared#usrsap#backup"
+#  lv_sizes         = "70,100#100#100#100"
+#  paths            = "/hana/data,/hana/log#/hana/shared#/usr/sap#/hana/backup"
+#}
 
 # SLES4SAP image information
 # If custom uris are enabled public information will be omitted
 # Custom sles4sap image
+#sles4sap_uri = "/path/to/your/image"
 sles4sap_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Custom iscsi server image
-# iscsi_srv_uri = "/path/to/your/iscsi/image"
+#iscsi_srv_uri = "/path/to/your/iscsi/image"
+#iscsi_srv_uri = "https://openqa.blob.core.windows.net/sle-images/SLES15-SP2-SAP-BYOS.x86_64-0.9.14-Azure-Build2.3.vhd"
+iscsi_srv_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
 # Custom monitoring server image
-# monitoring_uri = "/path/to/your/monitoring/image"
+#monitoring_uri = "/path/to/your/monitoring/image"
 
 # Custom drbd nodes image
+#drbd_image_uri = "/path/to/your/monitoring/image"
+#drbd_image_uri = "https://openqa.blob.core.windows.net/sle-images/SLES15-SP2-SAP-BYOS.x86_64-0.9.14-Azure-Build2.3.vhd"
 drbd_image_uri = "https://openqa.blob.core.windows.net/sle-images/%SLE_IMAGE%"
 
-# Public SLES4SAP image
+# Public sles4sap image
 hana_public_publisher = "SUSE"
 hana_public_offer     = "SLES-SAP-BYOS"
-hana_public_sku       = "15"
+hana_public_sku       = "12-sp4"
 hana_public_version   = "latest"
 
 # Public iscsi server image
@@ -60,11 +97,11 @@ drbd_public_version   = "latest"
 # Admin user
 admin_user = "azureuser"
 
+# SSH Public key to configure access to the remote instances
+public_key_location = "~/.ssh/id_rsa.pub"
+
 # Private SSH Key location
 private_key_location = "~/.ssh/id_rsa"
-
-# SSH public key file
-public_key_location = "~/.ssh/id_rsa.pub"
 
 # Azure storage account name
 storage_account_name = "%STORAGE_ACCOUNT_NAME%"
@@ -74,50 +111,77 @@ storage_account_key = "%STORAGE_ACCOUNT_KEY%"
 
 # Azure storage account path where HANA installation master is located
 hana_inst_master = "%HANA_BUCKET%"
+# Or you can combine the `hana_inst_master with` `hana_platform_folder` variable.
+#hana_inst_master = "//YOUR_STORAGE_ACCOUNT_NAME.file.core.windows.net/path/to/your/hana/installation/master
+# Specify the path to already extracted HANA platform installation media, relative to hana_inst_master mounting point.
+# This will have preference over hana archive installation media
+#hana_platform_folder = "51053381"
+
+# Or specify the path to the HANA installation archive file in either of SAR, RAR, ZIP, EXE formats, relative to the 'hana_inst_media' mounting point
+# For multipart RAR archives, you only need to provide the first part EXE file name.
+# If using hana sar archive, please also provide the compatible version of sapcar executable to extract the sar archive
+# HANA installation archives be extracted to path specified at hana_extract_dir (optional, by default /sapmedia/HANA)
+#hana_archive_file = "IMDB_SERVER.SAR"
+#hana_sapcar_exe = "SAPCAR"
+#hana_extract_dir = "/sapmedia/HDBSERVER"
 
 # Local folder where HANA installation master will be mounted
 hana_inst_folder = "/root/hana_inst_media/"
 
-# Device used by node where HANA will be installed
-hana_disk_device = "/dev/sdc"
+# SBD related variables
+# In order to enable SBD, an ISCSI server is needed as right now is the unique option
+# All the clusters will use the same mechanism
+# In order to enable the iscsi machine creation sbd_enabled must be set to true for any of the clusters
 
-# Device used by the iSCSI server to provide LUNs
-iscsidev = "/dev/sdc"
-
-# IP address of the iSCSI server
+# IP address of the iSCSI server. If it's not set the address will be auto generated from the provided vnet address range
 iscsi_srv_ip = "10.74.1.14"
+# Number of LUN (logical units) to serve with the iscsi server. Each LUN can be used as a unique sbd disk
+iscsi_lun_count = 3
+# Disk size in GB used to create the LUNs and partitions to be served by the ISCSI service
+iscsi_disk_size = 4
 
 # Path to a custom ssh public key to upload to the nodes
 # Used for cluster communication for example
-cluster_ssh_pub = "salt://hana_node/files/sshkeys/cluster.id_rsa.pub"
+cluster_ssh_pub = "salt://sshkeys/cluster.id_rsa.pub"
 
 # Path to a custom ssh private key to upload to the nodes
 # Used for cluster communication for example
-cluster_ssh_key = "salt://hana_node/files/sshkeys/cluster.id_rsa"
+cluster_ssh_key = "salt://sshkeys/cluster.id_rsa"
 
-# Each host IP address (sequential order).
-# example : host_ips = ["10.0.1.0", "10.0.1.1"]
-host_ips = ["10.74.1.11", "10.74.1.12"]
+# Enable system replication and HA cluster
+hana_ha_enabled = true
 
-# Each drbd cluster host IP address (sequential order).
-# example : drbd_host_ips = ["10.0.1.10", "10.0.1.11"]
-drbd_ips = ["10.74.1.21", "10.74.1.22"]
+# Each host IP address (sequential order). If it's not set the addresses will be auto generated from the provided vnet address range
+hana_ips = ["10.74.1.11", "10.74.1.12"]
+hana_cluster_vip = "10.74.1.13"
 
-# Enable drbd cluster
-drbd_enabled = true
+# Enable SBD for the hana cluster
+hana_cluster_sbd_enabled = true
 
-# HA packages repository
-ha_sap_deployment_repo = "%HA_SAP_REPO%/SLE_%SLE_VERSION%"
+# Enable Active/Active HANA setup (read-only access in the secondary instance)
+#hana_active_active = true
+
+# Repository url used to install HA/SAP deployment packages"
+# The latest RPM packages can be found at:
+# https://download.opensuse.org/repositories/network:/ha-clustering:/Factory/{YOUR OS VERSION}
+# Contains the salt formulas rpm packages.
+# To auto detect the SLE version
+#ha_sap_deployment_repo = "http://download.opensuse.org/repositories/network:/ha-clustering:/Factory/"
+# Specific SLE version used in all the created machines
+#ha_sap_deployment_repo = "http://download.opensuse.org/repositories/network:/ha-clustering:/Factory/SLE_15/"
+ha_sap_deployment_repo = "%HA_SAP_REPO%"
 
 # Optional SUSE Customer Center Registration parameters
 #reg_code = "<<REG_CODE>>"
 #reg_email = "<<your email>>"
+reg_code = "%SCC_REGCODE_SLES4SAP%"
+
+# For any sle12 version the additional module sle-module-adv-systems-management/12/x86_64 is mandatory if reg_code is provided
 #reg_additional_modules = {
 #    "sle-module-adv-systems-management/12/x86_64" = ""
 #    "sle-module-containers/12/x86_64" = ""
 #    "sle-ha-geo/12.4/x86_64" = "<<REG_CODE>>"
 #}
-reg_code = "%SCC_REGCODE_SLES4SAP%"
 
 # Cost optimized scenario
 #scenario_type: "cost-optimized"
@@ -131,27 +195,74 @@ reg_code = "%SCC_REGCODE_SLES4SAP%"
 # Monitoring variables
 
 # Enable the host to be monitored by exporters
-monitoring_enabled = false
+#monitoring_enabled = true
 
-# IP address of the machine where prometheus and grafana are running
+# IP address of the machine where Prometheus and Grafana are running. If it's not set the address will be auto generated from the provided vnet address range
 #monitoring_srv_ip = "10.74.1.13"
+
+# Enable drbd cluster
+drbd_enabled = true
+
+# Each drbd cluster host IP address (sequential order). If it's not set the addresses will be auto generated from the provided vnet address range
+drbd_ips = ["10.74.1.21", "10.74.1.22"]
+drbd_cluster_vip = "10.74.1.23"
+
+# Enable SBD for the drbd cluster
+drbd_cluster_sbd_enabled = true
 
 # Netweaver variables
 
 #netweaver_enabled = true
+# If the addresses are not set they will be auto generated from the provided vnet address range
 #netweaver_ips = ["10.74.1.30", "10.74.1.31", "10.74.1.32", "10.74.1.33"]
 #netweaver_virtual_ips = ["10.74.1.35", "10.74.1.36", "10.74.1.37", "10.74.1.38"]
+
+# Enabling this option will create a ASCS/ERS HA available cluster
+#netweaver_ha_enabled = true
+# Application servers number. The 1st one will be a PAS instance, and the rest AAS servers
+#netweaver_app_server_count = 2
+
+# VM sizes
+#netweaver_xscs_vm_size = Standard_D2s_v3
+#netweaver_app_vm_size = Standard_D2s_v3
+
+# Set the Netweaver product id for HA (this is just an example)
+#netweaver_product_id = NW750.HDB.ABAPHA
+# Fon non HA
+#netweaver_product_id = NW750.HDB.ABAP
+
+# Enable SBD for the netweaver cluster
+#netweaver_cluster_sbd_enabled = true
+
+# This storage account must contain the next software (select the version you want to install of course)
+#SWPM - `IND:SLTOOLSET:2.0:SWPM:*:LINUX_X86_64:*x`
+#Netweaver export - `SAP:NETWEAVER:750:DVD_EXPORT:SAP NetWeaver 750 Installation Export DVD 1/1:D51050829_2`
+#HANA Platform- `HDB:HANA:2.0:LINUX_X86_64:SAP HANA PLATFORM EDITION 2.0::BD51053787`
+#Sapexe folder files:
+#igsexe_23-20007790.sar  igshelper_4-10010245.sar  SAPEXE_501-80002573.SAR  SAPEXEDB_501-80002572.SAR  SAPHOSTAGENT45_45-20009394.SAR
+
 #netweaver_storage_account_key = "YOUR_STORAGE_ACCOUNT_KEY"
 #netweaver_storage_account_name = "YOUR_STORAGE_ACCOUNT_NAME"
 #netweaver_storage_account = "//YOUR_STORAGE_ACCOUNT_NAME.file.core.windows.net/path/to/your/nw/installation/master"
+# Netweaver installation required folders
+# SAP SWPM installation folder, relative to the netweaver_storage_account mounting point
+#netweaver_swpm_folder     =  "your_swpm"
+# Or specify the path to the sapcar executable & SWPM installer sar archive, relative to the netweaver_storage_account mounting point
+# The sar archive will be extracted to path specified at netweaver_extract_dir under SWPM directory (optional, by default /sapmedia/NW/SWPM)
+#netweaver_sapcar_exe = "your_sapcar_exe_file_path"
+#netweaver_swpm_sar = "your_swpm_sar_file_path"
+# Folder where needed SAR executables (sapexe, sapdbexe) are stored, relative to the netweaver_storage_account mounting point
+#netweaver_sapexe_folder   =  "kernel_nw75_sar"
+# Additional media archives or folders (added in start_dir.cd), relative to the netweaver_storage_account mounting point
+#netweaver_additional_dvds = ["dvd1", "dvd2"]
 
 # QA variables
 
 # Define if the deployment is using for testing purpose
 # Disable all extra packages that do not come from the image
 # Except salt-minion (for the moment) and salt formulas
-# true or false
-qa_mode = true
+# true or false (default)
+#qa_mode = false
 
 # Execute HANA Hardware Configuration Check Tool to bench filesystems
 # qa_mode must be set to true for executing hwcct

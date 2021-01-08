@@ -21,8 +21,7 @@ use testapi;
 use utils;
 use version_utils;
 
-our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2);
-
+our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
 
 # Select console on the test host, regardless of the TUNNELED variable.
 sub select_host_console() {
@@ -48,9 +47,20 @@ sub is_ondemand() {
     # Check all the other flavors, and if they don't match, it must be on_demand.
     return is_publiccloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
 }
+
 # Check if we are on an AWS test run
 sub is_ec2() {
     return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+}
+
+# Check if we are on an Azure test run
+sub is_azure() {
+    return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+}
+
+# Check if we are on an GCP test run
+sub is_gce() {
+    return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
 }
 
 1;
