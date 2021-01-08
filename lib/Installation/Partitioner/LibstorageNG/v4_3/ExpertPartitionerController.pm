@@ -78,6 +78,12 @@ sub get_add_volume_group_page {
     return $self->{AddVolumeGroupPage};
 }
 
+sub get_expert_partitioner_page {
+    my ($self) = @_;
+    $self->{ExpertPartitionerPage}->is_shown();
+    return $self->{ExpertPartitionerPage};
+}
+
 sub get_clone_partition_dialog {
     my ($self) = @_;
     return $self->{ClonePartitionsDialog};
