@@ -33,7 +33,8 @@ sub run {
 
         # Handle default credentials for ssh login
         $testapi::password = $default_password;
-        $self->select_serial_terminal;
+        # 'root-ssh' console will wait for SUT to be reachable from ssh
+        select_console('root-ssh');
     }
     else {
         # Login with default credentials (root:linux)
