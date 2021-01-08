@@ -52,7 +52,7 @@ sub open_expert_partitioner {
     my ($self) = shift;
     $self->launch_yast2_module_x11('storage', extra_vars => get_var('YUI_PARAMS'));
     YuiRestClient::connect_to_app_running_system();
-    $partitioner->confirm_warning_only_use_if_familiar();
+    $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
 }
 
 sub add_custom_partition {

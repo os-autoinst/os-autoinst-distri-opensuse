@@ -35,6 +35,8 @@ use Installation::Partitioner::LibstorageNG::v4_3::ResizePage;
 use Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage;
 use Installation::Partitioner::LibstorageNG::v4_3::SummaryPage;
 
+use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
+
 use YuiRestClient;
 
 sub new {
@@ -73,7 +75,8 @@ sub init {
             enter_password_shortcut  => get_var('BOOT_HDD_IMAGE') ? 'alt-t' : 'alt-e',
             verify_password_shortcut => 'alt-v'
     });
-    $self->{SummaryPage} = Installation::Partitioner::LibstorageNG::v4_3::SummaryPage->new({app => YuiRestClient::get_app()});
+    $self->{SummaryPage}                   = Installation::Partitioner::LibstorageNG::v4_3::SummaryPage->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarningController} = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController->new;
     return $self;
 }
 
@@ -95,6 +98,11 @@ sub get_clone_partition_dialog {
 sub get_confirmation_warning {
     my ($self) = @_;
     return $self->{ConfirmationWarning};
+}
+
+sub get_confirmation_warning_controller {
+    my ($self) = @_;
+    return $self->{ConfirmationWarningController};
 }
 
 sub get_confirmation_warning_rich_text {
@@ -224,7 +232,7 @@ sub delete_volume_group {
     my ($self, $vg) = @_;
     $self->get_expert_partitioner_page()->select_volume_group($vg);
     $self->get_expert_partitioner_page()->press_delete_volume_group_button();
-    $self->get_confirmation_warning()->confirm_warning_delete_volume_group($vg);
+    $self->get_confirmation_warning_controller()->confirm_delete_volume_group($vg);
 }
 
 sub add_logical_volume {
@@ -290,7 +298,7 @@ sub delete_partition {
     my $part = $args->{partition};
     $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
     $self->get_expert_partitioner_page()->press_delete_partition_button();
-    $self->confirm_warning_delete_partition($part->{name});
+    $self->get_confirmation_warning_controller()->confirm_delete_partition($part->{name});
 }
 
 sub resize_logical_volume {
@@ -353,16 +361,6 @@ sub edit_partition_encrypt {
     $self->get_edit_formatting_options_page()->check_encrypt_device_checkbox();
     $self->get_edit_formatting_options_page()->press_next();
     $self->set_encryption_password();
-}
-
-sub confirm_warning_only_use_if_familiar {
-    my ($self) = @_;
-    $self->get_confirmation_warning()->confirm_warning_only_use_if_familiar();
-}
-
-sub confirm_warning_delete_partition {
-    my ($self, $part_name) = @_;
-    $self->get_confirmation_warning()->confirm_warning_delete_partition($part_name);
 }
 
 sub show_summary_and_accept_changes {
