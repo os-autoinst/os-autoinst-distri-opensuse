@@ -47,7 +47,7 @@ use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
-use validate_encrypt_utils "validate_activation_encrypted_partition";
+use validate_encrypt_utils "validate_encrypted_volume_activation";
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -230,7 +230,7 @@ sub run {
         }
         elsif (match_has_tag('autoyast-confirm')) {
             if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
-                validate_activation_encrypted_partition({
+                validate_encrypted_volume_activation({
                         mapped_device => $test_data->{mapped_device},
                         device_status => $test_data->{device_status}->{message},
                         properties    => $test_data->{device_status}->{properties}

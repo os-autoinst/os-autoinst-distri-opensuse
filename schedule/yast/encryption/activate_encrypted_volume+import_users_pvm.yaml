@@ -1,28 +1,28 @@
 ---
 description: >
-  Conduct installation trying to reuse encrypted partitions (bsc#993247). Using
-  pre-partitioned disk image to validate encrypted partitions activation. For
-  zVM we activate DASD disk which we format in from of the installation and create
-  encrypted partition on it, similarly to powerVM.
-name: cryptlvm+activate_existing
+  Conduct installation activating encrypted partitions and importing users created
+  in that installation. Using pre-partitioned disk image to validate encrypted
+  partitions activation and that we can re-ecnrypt the disk.
+  Separate schedule is used because on powerVM we simulate existing users on the
+  encrypted partition by injecting /etc/passwd and /etc/shadow files.
+name: activate_encrypted_volume+import_users
 vars:
   ENCRYPT_ACTIVATE_EXISTING: 1
-  FORMAT_DASD: pre_install
+  ETC_PASSWD: "bernhard:x:1000:100:bernhard:/home/bernhard:/bin/bash"
+  ETC_SHADOW: "bernhard:$6$ZQ2QptdwejF6$QAEuGvFZJCsyA0oWlrFsWXcMSNcgkU4y3oVPGHhoOjuEHU7BhKAm8DN5L8FnwQlngmNheB.vZqyz1HripbwKL0:18435:0:99999:7:::"
 schedule:
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
-  - installation/disk_activation
   - installation/scc_registration
   - installation/encrypted_volume_activation
-  - console/validate_activation_encrypted_partition
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
   - installation/partitioning/encrypt_lvm_reuse_existing
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/user_settings
+  - installation/user_import
   - installation/user_settings_root
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -30,8 +30,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/boot_encrypt
   - boot/reconnect_mgmt_console
+  - installation/grub_test
   - installation/first_boot
-test_data:
-  <<: !include test_data/yast/encryption/cryptlvm+activate_existing.yaml
+  - console/validate_user_login_textmode

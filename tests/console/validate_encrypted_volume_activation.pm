@@ -24,7 +24,7 @@ use validate_encrypt_utils;
 
 sub run {
     my $test_data = get_test_suite_data();
-    validate_activation_encrypted_partition({
+    validate_encrypted_volume_activation({
             mapped_device => $test_data->{mapped_device},
             device_status => $test_data->{device_status}->{message},
             properties    => $test_data->{device_status}->{properties}

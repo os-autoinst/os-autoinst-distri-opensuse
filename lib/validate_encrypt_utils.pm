@@ -37,7 +37,7 @@ our @EXPORT = qw(
   verify_cryptsetup_properties
   verify_restoring_luks_backups
   verify_locked_encrypted_partition
-  validate_activation_encrypted_partition
+  validate_encrypted_volume_activation
 );
 
 =head2 parse_devices_in_crypttab
@@ -231,7 +231,7 @@ sub verify_locked_encrypted_partition {
     record_info('lock OK', "Encrypted partition '/dev/$enc_disk_part' still locked");
 }
 
-sub validate_activation_encrypted_partition {
+sub validate_encrypted_volume_activation {
     my ($args) = @_;
     select_console 'install-shell';
     my $status = parse_cryptsetup_status($args->{mapped_device});
