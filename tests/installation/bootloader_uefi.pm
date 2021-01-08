@@ -55,11 +55,14 @@ sub run {
     # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
     # Case setting also need BOOT_MENU=1 to support it
     if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && check_var('ARCH', 'x86_64')) {
-        record_soft_failure 'bsc#1180080';
-        tianocore_select_bootloader;
-        send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
-        send_key "ret";
-        return;
+        # Skip workaround on specific scenaio which call this module after migration
+        if (!check_screen('bootloader-grub2', 0, no_wait => 1)) {
+            record_soft_failure 'bsc#1180080';
+            tianocore_select_bootloader;
+            send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
+            send_key "ret";
+            return;
+        }
     }
 
     if (get_var("IPXE")) {
