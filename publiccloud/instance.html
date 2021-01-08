@@ -23,6 +23,7 @@
       <li><a href="#softreboot">softreboot</a></li>
       <li><a href="#stop">stop</a></li>
       <li><a href="#start">start</a></li>
+      <li><a href="#get_state">get_state</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/instance.pm</h1>
@@ -80,6 +81,12 @@
 <pre><code>    start([timeout =&gt; ?]);</code></pre>
 
 <p>Start the instance and check SSH connectivity. Return the number of seconds till the SSH port was available.</p>
+
+<h2 id="get_state">get_state</h2>
+
+<pre><code>    get_state();</code></pre>
+
+<p>Get the status of the instance using the CSP api calls.</p>
 
 
 </body>
