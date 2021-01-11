@@ -40,6 +40,7 @@ use constant {
           is_hyperv_in_gui
           is_svirt_except_s390x
           is_pvm
+          is_xen_pv
           )
     ],
     CONSOLES => [
@@ -140,6 +141,16 @@ Returns true if the current instance is running as hyperv gui backend
 
 sub is_hyperv_in_gui {
     return is_hyperv && !check_var('VIDEOMODE', 'text');
+}
+
+=head2 is_xen_pv
+
+Returns true if the current VM runs in Xen host in paravirtual mode 
+
+=cut
+
+sub is_xen_pv {
+    return check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux');
 }
 
 =head2 is_svirt_except_s390x

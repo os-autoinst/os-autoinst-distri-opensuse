@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 use utils;
 use registration;
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_xen_pv);
 use Utils::Architectures qw(is_ppc64le is_aarch64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
@@ -113,6 +113,20 @@ sub prepare_for_kdump {
     zypper_call("mr -d $opensuse_debug_repos");
 }
 
+sub handle_warning_not_supported {
+    my $warning = shift;
+
+    if ($warning eq 'yast2-kdump-not-supported') {
+        send_key 'ret';
+        assert_screen 'yast2-kdump-cannot-read-mem';
+        send_key 'ret';
+    } elsif ($warning eq 'yast2-kdump-cannot-read-mem') {
+        send_key 'ret';
+    } else {
+        die "Unknown warning message\n";
+    }
+}
+
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
     # restart info will appear only when change has been done
@@ -121,7 +135,18 @@ sub activate_kdump {
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
     my $module_name  = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
-    assert_screen([qw(yast2-kdump-disabled yast2-kdump-enabled)], 200);
+    my @initial_tags = qw(yast2-kdump-disabled yast2-kdump-enabled);
+    push(@initial_tags,
+        (is_sle('>=15-sp3')) ? 'yast2-kdump-not-supported' : 'yast2-kdump-cannot-read-mem') if (is_xen_pv);
+
+    assert_screen(\@initial_tags, 200);
+    if (match_has_tag('yast2-kdump-not-supported') || match_has_tag('yast2-kdump-cannot-read-mem')) {
+        handle_warning_not_supported(pop(@initial_tags));
+        assert_screen(\@initial_tags, 200);
+        send_key 'alt-c';
+        wait_serial("$module_name-16") || die "'yast2 kdump' didn't finish";
+        return 16;
+    }
     if (match_has_tag('yast2-kdump-disabled')) {
         # enable kdump
         send_key('alt-u');
@@ -218,7 +243,7 @@ sub configure_service {
     }
 
     prepare_for_kdump($test_type);
-    activate_kdump;
+    return 16 if (activate_kdump == 16);
 
     # restart to activate kdump
     power_action('reboot', keepconsole => is_pvm);

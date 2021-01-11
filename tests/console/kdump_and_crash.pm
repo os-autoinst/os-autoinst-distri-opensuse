@@ -20,7 +20,10 @@ use kdump_utils;
 
 sub run {
     select_console('root-console');
-    kdump_utils::configure_service('function');
+    if (kdump_utils::configure_service('function') == 16) {
+        record_info 'Not supported', 'Kdump is not supported in a PV DomU';
+        return;
+    }
     kdump_utils::check_function('function');
 }
 
