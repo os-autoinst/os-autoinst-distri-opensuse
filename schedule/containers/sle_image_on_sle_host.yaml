@@ -11,7 +11,7 @@ schedule:
   - containers/container_diff
   - '{{validate_btrfs}}'
 conditional_schedule:
-  validate_btrf:
+  validate_btrfs:
     ARCH:
       x86_64:
         - containers/validate_btrfs
