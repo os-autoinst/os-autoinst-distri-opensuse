@@ -1064,6 +1064,7 @@ sub load_console_server_tests {
         loadtest "console/php7";
         loadtest "console/php7_mysql";
         loadtest "console/php7_postgresql";
+        loadtest "console/php7_timezone";
     }
     # TODO test on openSUSE https://progress.opensuse.org/issues/31972
     loadtest "console/apache_ssl" if is_sle;
