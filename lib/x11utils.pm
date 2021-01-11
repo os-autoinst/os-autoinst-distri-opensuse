@@ -76,7 +76,7 @@ sub ensure_unlocked_desktop {
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
-        assert_screen \@tags, no_wait => 1;
+        check_screen \@tags, no_wait => 1;
         if (match_has_tag 'oh-no-something-has-gone-wrong') {
             # bsc#1159950 - gnome-session-failed is detected
             # Note: usually happens on *big* hardware with lot of cpus/memory
