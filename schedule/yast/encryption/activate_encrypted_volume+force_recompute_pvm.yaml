@@ -5,7 +5,7 @@ description: >
   partitions activation and that we can re-ecnrypt the disk.
   For powerVM we have to disable plymouth, so edit_optional_kernel_cmd_parameters
   module is scheduled and OPT_KERNEL_PARAMS variable is set.
-name: cryptlvm+activate_existing+force_recompute
+name: activate_encrypted_volume+force_recompute
 vars:
   ENCRYPT: 1
   ENCRYPT_ACTIVATE_EXISTING: 1

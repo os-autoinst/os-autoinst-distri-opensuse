@@ -1,5 +1,5 @@
 ---
-name: autoyast_cryptlvm+activate_existing
+name: autoyast_activate_encrypted_volume
 description: >
     Conduct autoyast installation activating encrypted partitions
 vars:
