@@ -22,5 +22,7 @@ Please, refer to [Contributing Guide](https://github.com/os-autoinst/os-autoinst
 
 ## License
 
-Most files are minimal copyleft, but some more complex tests are GPL. So please
-check the license within the files.
+Most files are licensed under a minimal copyleft conforming to the [FSF All
+Permissive License](https://spdx.org/licenses/FSFAP.html), but some more
+complex tests are licensed under the  GPL. So please check the license within
+the files.
