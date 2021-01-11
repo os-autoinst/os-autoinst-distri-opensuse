@@ -55,15 +55,18 @@ If C<daemon> is enabled then container will run in the detached mode. Otherwise 
 interactive mode.
 if C<cmd> found then it will execute the given command into the container.
 The container is always removed after exit.
+if C<keep_container> is 1 the container is not removed after creation. Default to get removed
+when it exits or when the daemon exits
 
 =cut
 sub up {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
-    my $mode   = $args{daemon} ? '-d'    : '-it';
-    my $remote = $args{cmd}    ? 'sh -c' : '';
-    my $ret    = $self->_rt_script_run(sprintf qq(run --rm %s %s %s '%s'), $mode, $image_name, $remote, $args{cmd});
-    record_info "Remote run on $image_name", $args{cmd};
+    my $mode           = $args{daemon}         ? '-d'    : '-it';
+    my $remote         = $args{cmd}            ? 'sh -c' : '';
+    my $keep_container = $args{keep_container} ? ''      : '--rm';
+    my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s %s '%s'), $keep_container, $mode, $image_name, $remote, $args{cmd});
+    record_info "Remote run on $image_name", "options $keep_container $mode $image_name $remote $args{cmd}";
     return $ret;
 }
 
