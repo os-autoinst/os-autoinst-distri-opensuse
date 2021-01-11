@@ -42,8 +42,8 @@ use apachetest qw(setup_apache2 setup_pgsqldb test_pgsql destroy_pgsqldb postgre
 use Utils::Systemd 'systemctl';
 
 sub run {
-    select_console 'root-console';
-
+    my $self = shift;
+    $self->select_serial_terminal;
     # ensure apache2 + php7 installed and running
     setup_apache2(mode => 'PHP7');
 
