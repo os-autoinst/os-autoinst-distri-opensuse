@@ -21,7 +21,8 @@ use apachetest;
 use utils 'clear_console';
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     clear_console;
     setup_apache2(mode => 'SSL');
 }

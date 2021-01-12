@@ -35,7 +35,8 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use apachetest;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     setup_apache2(mode => 'PHP7');
     # install requirements
     zypper_call "in php7-mysql mysql sudo";
