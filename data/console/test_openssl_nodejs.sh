@@ -77,7 +77,7 @@ main(){
   # Install dependencies to apply source patches and run tests
   zypper -n in quilt rpm-build
 
-  if [ "$OS_VERSION" = "SLE_12_SP5"]; then
+  if [ "$OS_VERSION" = "SLE_12_SP5" ]; then
     zypper -n in openssl-1_1
   fi
 
