@@ -24,6 +24,7 @@ schedule:
   - installation/partitioning/warning/no_boot
   - installation/partitioning/warning/boot_small_for_kernel
   - installation/partitioning/warning/bios_boot_small_for_bootloader
+  - installation/partitioning/warning/uefi_small
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -46,9 +47,9 @@ test_data:
       partitions:
         <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
   errors:
-    no_root: There is no device mounted at '/'
-    boot_small_for_kernel: The device mounted at '/boot' does not have enough space to contain a kernel
+    <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
   warnings:
-    snapshots_small_root: Your root device is very small for snapshots
+    <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
     no_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
     bios_boot_small_for_bootloader: A partition of type BIOS Boot Partition is needed to install the bootloader
+    uefi_small: A partition of type BIOS Boot Partition is needed to install the bootloader
