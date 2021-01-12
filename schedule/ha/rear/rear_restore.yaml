@@ -1,0 +1,17 @@
+---
+name: rear_restore
+description: >
+  Restore ReaR backup files.
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-%DESKTOP%.qcow2
+schedule:
+  - ha/rear_restore
+  - '{{scc_deregister}}'
+conditional_schedule:
+  scc_deregister:
+    SCC_DEREGISTER:
+      1:
+        - console/scc_deregistration
