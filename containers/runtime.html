@@ -32,7 +32,7 @@
 
 <h2 id="up">up</h2>
 
-<p>Run a container. <code>image_name</code> is required and can be the image id, the name or name with tag. If <code>daemon</code> is enabled then container will run in the detached mode. Otherwise will be in the interactive mode. if <code>cmd</code> found then it will execute the given command into the container. The container is always removed after exit.</p>
+<p>Run a container. <code>image_name</code> is required and can be the image id, the name or name with tag. If <code>daemon</code> is enabled then container will run in the detached mode. Otherwise will be in the interactive mode. if <code>cmd</code> found then it will execute the given command into the container. The container is always removed after exit. if <code>keep_container</code> is 1 the container is not removed after creation. Default to get removed when it exits or when the daemon exits</p>
 
 <h2 id="pull">pull</h2>
 
