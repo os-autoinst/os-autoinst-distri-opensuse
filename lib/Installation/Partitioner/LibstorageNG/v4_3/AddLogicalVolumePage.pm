@@ -54,6 +54,7 @@ sub set_custom_size {
 
 sub select_role {
     my ($self, $role) = @_;
+    $role //= '';
     if ($role eq 'operating-system') {
         $self->{rb_system}->select();
     }

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,6 +17,7 @@
 package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use strict;
 use warnings;
+use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
@@ -32,6 +33,9 @@ use Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ResizePage;
 use Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage;
+use Installation::Partitioner::LibstorageNG::v4_3::SummaryPage;
+
+use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
 
 use YuiRestClient;
 
@@ -58,13 +62,21 @@ sub init {
     $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
     $self->{NewPartitionTypePage}          = Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage->new({app => YuiRestClient::get_app()});
     $self->{FormattingOptionsPage}         = Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage->new({
-            do_not_format_shortcut  => 'alt-t',
-            format_shortcut         => 'alt-r',
-            filesystem_shortcut     => 'alt-f',
-            do_not_mount_shortcut   => 'alt-u',
-            encrypt_device_shortcut => 'alt-e',
+            do_not_format_shortcut => 'alt-t',
+            format_shortcut        => 'alt-r',
+            filesystem_shortcut    => 'alt-f',
+            do_not_mount_shortcut  => 'alt-u',
+            # workaround to be fixed when using fully libyui
+            encrypt_device_shortcut => get_var('BOOT_HDD_IMAGE') ? 'alt-y' : 'alt-e',
             app                     => YuiRestClient::get_app()
     });
+    $self->{EncryptionPasswordPage} = Installation::Partitioner::LibstorageNG::EncryptionPasswordPage->new({
+            # workaround to be fixed when using fully libyui
+            enter_password_shortcut  => get_var('BOOT_HDD_IMAGE') ? 'alt-t' : 'alt-e',
+            verify_password_shortcut => 'alt-v'
+    });
+    $self->{SummaryPage}                   = Installation::Partitioner::LibstorageNG::v4_3::SummaryPage->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarningController} = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController->new;
     return $self;
 }
 
@@ -86,6 +98,11 @@ sub get_clone_partition_dialog {
 sub get_confirmation_warning {
     my ($self) = @_;
     return $self->{ConfirmationWarning};
+}
+
+sub get_confirmation_warning_controller {
+    my ($self) = @_;
+    return $self->{ConfirmationWarningController};
 }
 
 sub get_confirmation_warning_rich_text {
@@ -126,6 +143,11 @@ sub get_error_dialog {
 sub get_modified_devices_warning {
     my ($self) = @_;
     return $self->{ModifiedDevicesWarning};
+}
+
+sub get_summary_page {
+    my ($self) = @_;
+    return $self->{SummaryPage};
 }
 
 sub add_partition_on_gpt_disk {
@@ -206,9 +228,17 @@ sub add_volume_group {
     $self->get_add_volume_group_page()->press_next_button();
 }
 
+sub delete_volume_group {
+    my ($self, $vg) = @_;
+    $self->get_expert_partitioner_page()->select_volume_group($vg);
+    $self->get_expert_partitioner_page()->press_delete_volume_group_button();
+    $self->get_confirmation_warning_controller()->confirm_delete_volume_group($vg);
+}
+
 sub add_logical_volume {
     my ($self, $args) = @_;
-    my $lv = $args->{logical_volume};
+    my $lv   = $args->{logical_volume};
+    my $type = $lv->{type} // '';
     $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
     $self->get_expert_partitioner_page()->press_add_logical_volume_button();
     $self->get_add_logical_volume_page()->set_logical_volume_name($lv->{name});
@@ -216,11 +246,11 @@ sub add_logical_volume {
     $self->get_add_logical_volume_page()->press_next_button();
     $self->get_add_logical_volume_page()->set_custom_size($lv->{size}) if $lv->{size};
     $self->get_add_logical_volume_page()->press_next_button();
-    unless ($lv->{type} eq 'thin_pool') {
-        $self->get_add_logical_volume_page()->select_role($lv->{role});
-        $self->get_add_logical_volume_page()->press_next_button();
-        $self->_finish_partition_creation;
-    }
+    return if $type eq 'thin_pool';
+    $self->get_add_logical_volume_page()->select_role($lv->{role});
+    $self->get_add_logical_volume_page()->press_next_button();
+    $self->_set_partition_options($lv);
+    $self->_finish_partition_creation() unless $lv->{encrypt_device};
 }
 
 sub setup_raid {
@@ -261,6 +291,14 @@ sub resize_partition {
     $self->get_expert_partitioner_page()->open_resize_device();
     $self->get_resize_page()->set_custom_size($part->{size});
     $self->get_resize_page()->press_next();
+}
+
+sub delete_partition {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
+    $self->get_expert_partitioner_page()->press_delete_partition_button();
+    $self->get_confirmation_warning_controller()->confirm_delete_partition($part->{name});
 }
 
 sub resize_logical_volume {
@@ -323,6 +361,12 @@ sub edit_partition_encrypt {
     $self->get_edit_formatting_options_page()->check_encrypt_device_checkbox();
     $self->get_edit_formatting_options_page()->press_next();
     $self->set_encryption_password();
+}
+
+sub show_summary_and_accept_changes {
+    my ($self) = @_;
+    $self->get_expert_partitioner_page()->press_next_button();
+    $self->get_summary_page()->press_next_button();
 }
 
 1;

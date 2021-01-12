@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -31,7 +31,9 @@ sub init {
 
     $self->{btn_add_partition}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
     $self->{btn_edit_partition}     = $self->{app}->button({id    => '"Y2Partitioner::Widgets::BlkDeviceEditButton"'});
+    $self->{btn_delete_partition}   = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionDeleteButton"'});
     $self->{btn_lvm_add_vg}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
+    $self->{btn_lvm_delete_vg}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgDeleteButton"'});
     $self->{btn_lvm_add_lv}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
     $self->{btn_add_raid}           = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
     $self->{btn_accept}             = $self->{app}->button({label => 'Accept'});
@@ -41,6 +43,7 @@ sub init {
     $self->{tbl_lvm_devices}        = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
     $self->{tree_system_view}       = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
     $self->{btn_add_logical_volume} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
+    $self->{btn_next}               = $self->{app}->button({id => 'next'});
 
     return $self;
 }
@@ -90,9 +93,19 @@ sub press_edit_partition_button {
     return $self->{btn_edit_partition}->click();
 }
 
+sub press_delete_partition_button {
+    my ($self) = @_;
+    return $self->{btn_delete_partition}->click();
+}
+
 sub press_add_volume_group_button {
     my ($self) = @_;
     return $self->{btn_lvm_add_vg}->click();
+}
+
+sub press_delete_volume_group_button {
+    my ($self) = @_;
+    return $self->{btn_lvm_delete_vg}->click();
 }
 
 sub press_add_logical_volume_button {
@@ -114,6 +127,11 @@ sub press_accept_button {
 sub press_cancel_button {
     my ($self) = @_;
     $self->{btn_cancel}->click();
+}
+
+sub press_next_button {
+    my ($self) = @_;
+    $self->{btn_next}->click();
 }
 
 sub select_disk {
