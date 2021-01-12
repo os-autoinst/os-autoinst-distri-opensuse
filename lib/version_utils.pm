@@ -580,6 +580,7 @@ sub get_os_release {
     $os_release_file //= '/etc/os-release';
     my %os_release = script_output("$go_to_target cat $os_release_file") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
     %os_release = map { uc($_) => $os_release{$_} } keys %os_release;
+    ($os_release{VERSION}) = $os_release{VERSION} =~ /(^\d+\S*\d*)/im;
     my ($os_version, $os_service_pack) = split(/\.|-sp/i, $os_release{VERSION});
     $os_service_pack //= 0;
     return $os_version, $os_service_pack, $os_release{ID};
