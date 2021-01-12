@@ -15,6 +15,7 @@ package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
+use publiccloud::utils "is_byos";
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
@@ -114,14 +115,47 @@ sub upload_img {
 
     die("Create key-pair failed") unless ($self->create_keypair($self->prefix . time, 'QA_SSH_KEY.pem'));
 
+    # AMI of image to use for helper VM to create/build the image on CSP.
+    my $helper_ami_id = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');
+
+    # in case AMI for helper VM is not provided in job settings fallback to predefined hash
+    unless (defined($helper_ami_id)) {
+
+        # AMI is region specific also we need to use different AMI's for on-demand/BYOS uploads
+        my $ami_id_hash = {
+            # suse-sles-15-sp2-byos-v20201211-hvm-ssd-x86_64
+            'us-west-1-byos' => 'ami-02b1a98531379c966',
+            # suse-sles-15-sp2-v20201211-hvm-ssd-x86_64
+            'us-west-1' => 'ami-05c558c169cfe8d99',
+            # suse-sles-15-sp2-byos-v20201211-hvm-ssd-x86_64
+            'us-west-2-byos' => 'ami-0b167c7e41ab53cb1',
+            # suse-sles-15-sp2-v20201211-hvm-ssd-x86_64
+            'us-west-2' => 'ami-0174313b5af8423d7',
+            # suse-sles-15-sp2-byos-v20201211-hvm-ssd-x86_64
+            'eu-central-1-byos' => 'ami-09740eee15629d44f',
+            # suse-sles-15-sp2-v20201211-hvm-ssd-x86_64
+            'eu-central-1' => 'ami-09e8a19c9eda495b3',
+            # suse-sles-15-sp2-v20201211-hvm-ssd-arm64
+            'eu-central-1-arm64' => 'ami-00f2e594abc782530'
+        };
+
+        my $ami_id_key = $self->region;
+        $ami_id_key .= '-byos'  if is_byos();
+        $ami_id_key .= '-arm64' if check_var('PUBLIC_CLOUD_ARCH', 'arm64');
+        $helper_ami_id = $ami_id_hash->{$ami_id_key} if exists($ami_id_hash->{$ami_id_key});
+    }
+
+    die('Unable to detect AMI for helper VM') unless (defined($helper_ami_id));
+
     my ($img_name)    = $file =~ /([^\/]+)$/;
     my $img_arch      = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
     my $sec_group     = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
     my $vpc_subnet    = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
-    my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE');
-    # Used for helper VM to create/build the image on CSP. When uploading a on-demand image, this ID should point
-    # to and on-demand image. If not specified, the id gets read from ec2utils.conf file.
-    my $ami_id = get_var('PUBLIC_CLOUD_EC2_UPLOAD_AMI');
+    my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE', 't2.micro');
+
+    # ec2uploadimg will fail without this file, but we can have it empty
+    # because we passing all needed info via params anyway
+    assert_script_run('echo " " > /root/.ec2utils.conf');
 
     assert_script_run("ec2uploadimg --access-id '" . $self->key_id
           . "' -s '" . $self->key_secret . "' "
@@ -130,7 +164,7 @@ sub upload_img {
           . "--machine '" . $img_arch . "' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
-          . ($img_name =~ /byos/i ? '' : '--use-root-swap ')
+          . (is_byos() ? '' : '--use-root-swap ')
           . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->region . "' "
@@ -138,10 +172,11 @@ sub upload_img {
           . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA upload image' "
           . "--wait-count 3 "
-          . ($sec_group     ? "--security-group-ids '" . $sec_group . "' " : '')
-          . ($vpc_subnet    ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
-          . ($ami_id        ? "--ec2-ami '" . $ami_id . "' "               : '')
-          . ($instance_type ? "--type '" . $instance_type . "' "           : '')
+          . "--ec2-ami '" . $helper_ami_id . "' "
+          . "--type '" . $instance_type . "' "
+          . "--user '" . $self->username . "' "
+          . ($sec_group  ? "--security-group-ids '" . $sec_group . "' " : '')
+          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
           . "'$file'",
         timeout => 60 * 60
     );
