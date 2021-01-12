@@ -29,6 +29,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
+use filesystem_utils qw(format_partition);
 
 # Heartbeat variables
 my $HB_INTVL     = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
@@ -387,6 +388,7 @@ sub reload_loop_device {
         $scratch_num += 1;
     }
     script_run('losetup -a');
+    format_partition("$INST_DIR/test_dev", $FSTYPE);
 }
 
 # Umount TEST_DEV and SCRATCH_DEV
