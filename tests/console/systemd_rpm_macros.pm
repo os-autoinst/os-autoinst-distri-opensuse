@@ -9,7 +9,7 @@
 
 # Summary: systemd-rpm-macros test
 #          - call a list of macros to make sure they are available (list taken from manual testing report)
-#          - if Tumbleweed or SLE >= 12-sp4, also download sources and install multipath-tools to run some macros
+#          - if Tumbleweed or SLE >= 15, also download sources and install multipath-tools to run some macros
 #
 # Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
 
@@ -40,12 +40,9 @@ sub run {
     assert_script_run 'chmod +x test_systemd_rpm_macros.sh';
     assert_script_run "./test_systemd_rpm_macros.sh", 900;
 
-    # Test build of multipath-tools on tw, or SLE >= 12.4
+    # Test build of multipath-tools on tw, or SLE >= 15
     if (is_sle '>=15') {
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-        build_mt();
-    } elsif (is_sle '>=12-sp4') {
-        add_suseconnect_product('sle-sdk');
         build_mt();
     } elsif (is_tumbleweed) {
         zypper_call("ar -f http://download.opensuse.org/source/tumbleweed/repo/oss/ my-source-repo");
