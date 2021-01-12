@@ -132,15 +132,20 @@ sub add_vcpu {
     die "Setting vcpus failed" unless (set_vcpus($guest, 2));
     assert_script_run("ssh root\@$guest nproc | grep 2", 60);
     # Add 1 CPU
-    die "Increasing vcpus failed" unless (set_vcpus($guest, 3));
-    if (get_var('VIRT_AUTOTEST') && is_kvm_host && ($sles_running_version eq '15' && $sles_running_sp eq '2')) {
-        record_soft_failure 'bsc#1170026 vCPU hotplugging damages ' . $guest if (script_retry("ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60, die => 0) != 0);
-        #$self->{test_results}->{$guest}->{"bsc#1170026 vCPU hotplugging damages this guest $guest"}->{status} = 'SOFTFAILED' if ($vcpu_nproc != 0);
-    } else {
-        script_retry("ssh root\@$guest nproc | grep 3", delay => 60, retry => 3, timeout => 60);
+    if ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
+        record_soft_failure('bsc#1180350 Failed to set live vcpu count on fv guest on 15-SP3 Xen host');
     }
-    # Reset CPU count to two
-    die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
+    else {
+        die "Increasing vcpus failed" unless (set_vcpus($guest, 3));
+        if (get_var('VIRT_AUTOTEST') && is_kvm_host && ($sles_running_version eq '15' && $sles_running_sp eq '2')) {
+            record_soft_failure 'bsc#1170026 vCPU hotplugging damages ' . $guest if (script_retry("ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60, die => 0) != 0);
+            #$self->{test_results}->{$guest}->{"bsc#1170026 vCPU hotplugging damages this guest $guest"}->{status} = 'SOFTFAILED' if ($vcpu_nproc != 0);
+        } else {
+            script_retry("ssh root\@$guest nproc | grep 3", delay => 60, retry => 3, timeout => 60);
+        }
+        # Reset CPU count to two
+        die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
+    }
 }
 
 # Returns the guest memory in M
