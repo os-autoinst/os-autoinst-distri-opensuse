@@ -48,6 +48,14 @@ sub init {
     return $self;
 }
 
+sub is_shown {
+    my ($self) = @_;
+    # Check for menu bar to be existing on Expert Partitioner Page.
+    # The menu bar is chosen as the element that allows to identify that Expert Partitioner Page is opened,
+    # as the page does not have any unique header.
+    $self->{menu_bar}->exist();
+}
+
 sub open_resize_device {
     my ($self) = @_;
     $self->{menu_bar}->select('&Device|&Resize...');
