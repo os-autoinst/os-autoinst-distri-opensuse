@@ -2480,6 +2480,19 @@ sub load_security_tests_pam {
     loadtest "security/pam/pam_mount";
 }
 
+sub load_security_tests_create_swtpm_hdd {
+    load_security_console_prepare;
+
+    loadtest "security/create_swtpm_hdd/build_hdd";
+}
+
+sub load_security_tests_swtpm {
+    load_security_console_prepare;
+
+    loadtest "security/swtpm/swtpm_env_setup";
+    loadtest "security/swtpm/swtpm_verify";
+}
+
 sub load_security_tests_grub_auth {
     load_security_console_prepare;
 
@@ -2603,6 +2616,8 @@ sub load_security_tests {
       check_kernel_config
       tpm2
       pam
+      create_swtpm_hdd
+      swtpm
       grub_auth
       lynis
     );
