@@ -74,12 +74,6 @@ sub firstboot_root {
 }
 
 sub firstboot_hostname {
-    if (check_screen('bsc1173298', 30)) {
-        record_soft_failure "bsc#1173298";
-        send_key $cmd{ok};
-        wait_screen_change(sub { send_key $cmd{next}; }, 7);
-        return;
-    }
     assert_screen 'hostname';
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
