@@ -29,10 +29,11 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
+use filesystem_utils qw(format_partition);
 
 # Heartbeat variables
 my $HB_INTVL     = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 40;
+my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 200;
 my $HB_PATN      = '<heartbeat>';
 my $HB_DONE      = '<done>';
 my $HB_DONE_FILE = '/opt/test.done';
@@ -379,14 +380,15 @@ END_CMD
 
 sub reload_loop_device {
     my $self = shift;
-    assert_script_run("losetup -fP test_dev");
-    my $scratch_amount = script_output("ls scratch_dev* | wc -l");
-    my $scratch_num    = 0;
+    assert_script_run("losetup -fP $INST_DIR/test_dev");
+    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
+    my $scratch_num    = 1;
     while ($scratch_amount >= $scratch_num) {
-        assert_script_run("losetup -fP scratch_dev$scratch_num", 300);
+        assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
         $scratch_num += 1;
     }
     script_run('losetup -a');
+    format_partition("$INST_DIR/test_dev", $FSTYPE);
 }
 
 # Umount TEST_DEV and SCRATCH_DEV
