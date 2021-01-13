@@ -1477,6 +1477,7 @@ sub load_extra_tests_openqa_bootstrap {
     unless (get_var 'BOOTSTRAP_CONTAINER') {
         loadtest 'openqa/webui/test_results';
     }
+    loadtest 'openqa/containers/openqa_webui';
 }
 
 sub load_extra_tests_desktop {
