@@ -30,8 +30,6 @@ sub select_host_console() {
     } else {
         select_console('root-console');
     }
-    send_key "ctrl-c";
-    send_key "ret";
 }
 
 sub is_publiccloud() {
