@@ -30,6 +30,7 @@ sub firstboot_language_keyboard {
     mouse_hide(1);
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
+        send_key 'ret' if check_var('DESKTOP', 'textmode');
         assert_screen $shortcuts->{$_} . '_selected';
     }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
@@ -92,6 +93,10 @@ sub run {
         die "Client '$client' is not defined in the module, please check test_data" unless defined(&{"$client"});
         my $client_method = \&{"$client"};
         $client_method->($self);
+    }
+    if (check_var('DESKTOP', 'textmode') && check_screen("linux-login", 10)) {
+        record_soft_failure "bsc#1180840 - the client inst_congratulate is missing";
+        return;
     }
     assert_screen 'installation_completed';
     send_key $cmd{finish};
