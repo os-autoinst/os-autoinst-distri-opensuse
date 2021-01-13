@@ -28,4 +28,4 @@ lvm:
         type: thin_pool
       - name: lv-home
         type: thin_volume
-        id: data
+        role: data
