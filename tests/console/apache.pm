@@ -175,15 +175,10 @@ sub run {
     assert_script_run 'htpasswd -s -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
 
     # Paste the .htaccess file
-    assert_script_run "echo 'AuthType Basic
-    AuthName \"only joe must get in!\"
-    AuthUserFile /srv/www/vhosts/localhost/authtest/.htpasswd
-    Require valid-user' > /srv/www/vhosts/localhost/authtest/.htaccess";
+    assert_script_run('curl -o /srv/www/vhosts/localhost/authtest/.htaccess ' . data_url('console/apache_.htaccess'));
 
     # Paste the config file
-    assert_script_run "echo '<Directory \"/srv/www/vhosts/localhost/authtest\">
-    AllowOverride AuthConfig
-    </Directory>' > /etc/apache2/conf.d/authtest.conf";
+    assert_script_run('curl -o /etc/apache2/conf.d/authtest.conf ' . data_url('console/apache_authtest.conf'));
 
     # Start the webserver and test the password access
     systemctl 'start apache2';
