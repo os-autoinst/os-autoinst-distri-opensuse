@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Check sles4sap settings with and without tuning using robot framework.
+# Summary: Check the sles4sap "from scratch" settings (without saptune/sapconf) using the robot framework.
 #          This test is configured to be used with a 2 GB RAM system.
 #          Some values depend of the hardware configuration.
 # Maintainer: Julien Adamek <jadamek@suse.com>
@@ -34,12 +34,10 @@ sub run {
     assert_script_run "cd robotframework-$robot_fw_version";
     assert_script_run "$python_bin setup.py install";
 
-    # Disable specific tuning if we are testing SLES
-    if (check_var('SLE_PRODUCT', 'sles')) {
-        assert_script_run "systemctl disable sapconf";
-        $self->reboot;
-        select_console 'root-console';
-    }
+    # Disable extra tuning for testing "from scratch" system
+    assert_script_run "systemctl disable sapconf";
+    $self->reboot;
+    select_console 'root-console';
 
     # Execute each test and upload its results
     assert_script_run "cd $test_repo";
