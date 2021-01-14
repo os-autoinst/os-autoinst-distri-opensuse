@@ -148,8 +148,7 @@ sub run {
         sleep 120;
     } else {
         select_console 'sol', await_console => 0;
-        sleep 300;
-        my $ssh_vnc_wait_time = 1200;
+        my $ssh_vnc_wait_time = 1500;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags              = ($ssh_vnc_tag);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
