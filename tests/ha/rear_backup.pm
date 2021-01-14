@@ -19,6 +19,7 @@ use utils qw(file_content_replace quit_packagekit zypper_call);
 sub run {
     my ($self)     = @_;
     my $hostname   = get_var('HOSTNAME', 'susetest');
+    my $arch       = get_required_var('ARCH');
     my $backup_url = get_required_var('BACKUP_URL');
     my $timeout    = bmwqemu::scale_timeout(300);
 
@@ -52,8 +53,10 @@ sub run {
         assert_script_run('rear -d -D mkbackup', timeout => $timeout);
     }
 
-    # Upload ISO image
-    upload_asset("/var/lib/rear/output/rear-$hostname.iso", 1);
+    # Upload ISO image (as a public image)
+    my $iso_image = "/var/lib/rear/output/rear-${hostname}";
+    assert_script_run("mv ${iso_image}.iso ${iso_image}-${arch}.iso");
+    upload_asset("${iso_image}-${arch}.iso", 1);
 }
 
 sub test_flags {

@@ -31,3 +31,4 @@ schedule:
   - console/hostname
   - console/consoletest_setup
   - ha/rear_backup
+  - console/scc_deregistration
