@@ -164,6 +164,8 @@ sub run {
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
     push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
+    # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
+    push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
@@ -179,7 +181,8 @@ sub run {
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('inst-bootmenu')
-          || match_has_tag('lang_and_keyboard'))
+          || match_has_tag('lang_and_keyboard')
+          || match_has_tag('encrypted-disk-password-prompt'))
     {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
