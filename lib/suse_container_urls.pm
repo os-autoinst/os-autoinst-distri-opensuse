@@ -73,6 +73,13 @@ sub get_suse_container_urls {
         push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
         push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
     }
+    elsif (is_microos('suse')) {
+        push @image_names,
+          "registry.suse.com/suse/sle15:15.0",
+          "registry.suse.com/suse/sle15:15.1",
+          "registry.suse.com/suse/sle15:15.2",
+          "registry.suse.com/suse/sle15:15.3";
+    }
     elsif (is_tumbleweed || is_microos("Tumbleweed")) {
         push @image_names,  "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
         push @stable_names, "registry.opensuse.org/opensuse/tumbleweed";

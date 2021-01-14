@@ -7,3 +7,4 @@ schedule:
     - console/suseconnect_scc
     - containers/containers_3rd_party
     - containers/podman
+    - containers/podman_image
