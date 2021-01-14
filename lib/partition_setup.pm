@@ -451,7 +451,7 @@ force-selected at the end if needed (in some cases [sv]da is at the end of the l
 sub select_first_hard_disk {
     # Try to handle most of the device type
     my @tags    = 'existing-partitions';
-    my @devices = ('sdb' .. 'sdz', 'vdb' .. 'vdz', 'pmem0' .. 'pmem9');
+    my @devices = ('sdb' .. 'sdz', 'vdb' .. 'vdz', 'pmem0' .. 'pmem9', 'nvme0n1');
     foreach my $device (@devices) {
         push @tags, "hard-disk-dev-$device-selected";
     }
