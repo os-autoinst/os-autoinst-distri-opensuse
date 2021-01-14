@@ -70,7 +70,6 @@ sub firstboot_user {
 sub firstboot_root {
     assert_screen 'root_user', 60;
     enter_rootinfo;
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
 sub firstboot_hostname {
@@ -87,10 +86,6 @@ sub run {
         die "Client '$client' is not defined in the module, please check test_data" unless defined(&{"$client"});
         my $client_method = \&{"$client"};
         $client_method->($self);
-    }
-    if (check_var('DESKTOP', 'textmode') && check_screen("linux-login", 10)) {
-        record_soft_failure "bsc#1180840 - the client inst_congratulate is missing";
-        return;
     }
     assert_screen 'installation_completed';
     send_key $cmd{finish};
