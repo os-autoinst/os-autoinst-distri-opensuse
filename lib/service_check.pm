@@ -6,7 +6,7 @@ check service status or service function before and after migration
 
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -35,6 +35,7 @@ use services::cups;
 use services::rpcbind;
 use autofs_utils;
 use services::postfix;
+use services::firewall;
 use kdump_utils;
 use version_utils 'is_sle';
 
@@ -71,9 +72,10 @@ our $default_services = {
         service_check_func => \&services::registered_addons::full_registered_check
     },
     susefirewall => {
-        srv_pkg_name  => 'SuSEfirewall2',
-        srv_proc_name => 'SuSEfirewall2',
-        support_ver   => $support_ver_12
+        srv_pkg_name       => 'SuSEfirewall2',
+        srv_proc_name      => 'SuSEfirewall2',
+        support_ver        => $support_ver_lt15,
+        service_check_func => \&services::firewall::full_firewall_check
     },
     firewall => {
         srv_pkg_name  => 'firewalld',
