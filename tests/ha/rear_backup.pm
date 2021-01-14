@@ -10,7 +10,7 @@
 # Summary: Install ReaR packages and create a ReaR backup on an NFS server
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use base 'rear';
 use strict;
 use warnings;
 use testapi;
@@ -49,18 +49,16 @@ sub run {
         my $local_conf = '/etc/rear/local.conf';
         assert_script_run("curl -f -v " . data_url('ha/rear_local.conf') . " -o $local_conf");
         file_content_replace("$local_conf", q(%BACKUP_URL%) => $backup_url);
-        upload_logs("$local_conf", failok => 1);    # Upload the configuration file
         assert_script_run('rear -d -D mkbackup', timeout => $timeout);
     }
+
+    # Upload the logs
+    $self->upload_rear_logs;
 
     # Upload ISO image (as a public image)
     my $iso_image = "/var/lib/rear/output/rear-${hostname}";
     assert_script_run("mv ${iso_image}.iso ${iso_image}-${arch}.iso");
     upload_asset("${iso_image}-${arch}.iso", 1);
-}
-
-sub test_flags {
-    return {fatal => 1};
 }
 
 1;
