@@ -40,7 +40,6 @@ sub run {
     select_console 'root-console';
 
     # Execute each test and upload its results
-    assert_script_run "mkdir -p $test_repo";
     assert_script_run "cd $test_repo";
     foreach my $robot_test (split /\n/, script_output "ls $test_repo") {
         record_info("$robot_test", "Starting $robot_test");
