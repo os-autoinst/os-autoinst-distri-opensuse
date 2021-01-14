@@ -10,18 +10,11 @@
 # Summary: Restore a ReaR backup
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use base 'rear';
 use strict;
 use warnings;
 use testapi;
 use power_action_utils 'power_action';
-
-sub upload_rear_logs {
-    # Create tarball with logfiles and upload it
-    my $logfile = '/tmp/rear-recover-logs.tar.bz2';
-    script_run("tar cjf $logfile /var/log/rear/rear-*.log /var/lib/rear/layout/* /var/lib/rear/recovery/*");
-    upload_logs("$logfile", failok => 1);
-}
 
 sub run {
     my ($self) = @_;
@@ -34,10 +27,10 @@ sub run {
     $self->wait_boot_past_bootloader;
 
     # Restore the OS backup
-    set_var('LIVETEST', 1);                               # Because there is no password in Rear miniOS
+    set_var('LIVETEST', 1);                               # Because there is no password in ReaR miniOS
     select_console('root-console', skip_setterm => 1);    # Serial console is not configured in ReaR miniOS
     assert_script_run('export USER_INPUT_TIMEOUT=5; rear -d -D recover');
-    upload_rear_logs;
+    $self->upload_rear_logs;
     set_var('LIVETEST', 0);
 
     # Reboot into the restored OS
@@ -47,16 +40,6 @@ sub run {
     # Test login to ensure that the based OS configuration is correctly restored
     $self->select_serial_terminal;
     assert_script_run('cat /etc/os-release ; uname -a');
-}
-
-sub post_fail_hook {
-    my ($self) = shift;
-    upload_rear_logs;
-    $self->SUPER::post_fail_hook unless get_var('LIVETEST', 0);
-}
-
-sub test_flags {
-    return {fatal => 1};
 }
 
 1;
