@@ -24,7 +24,7 @@ use utils qw(clear_console zypper_call);
 sub run {
     select_console 'root-console';
     zypper_call 'in dialog';
-    script_run 'dialog --yesno "test for boo#1054448" 3 20', 0;
+    script_run 'dialog --yesno "test for boo#1054448" 3 20';
     assert_screen 'ncurses-simple-dialog';
     send_key 'ret';
     clear_console;
