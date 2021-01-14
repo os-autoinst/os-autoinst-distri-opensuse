@@ -26,6 +26,7 @@ schedule:
   - installation/partitioning/warning/bios_boot_small_for_bootloader
   - installation/partitioning/warning/uefi_small
   - installation/partitioning/warning/prep_small
+  - installation/partitioning/warning/zipl_small
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -53,8 +54,6 @@ test_data:
     <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
     no_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
     bios_boot_small_for_bootloader: A partition of type BIOS Boot Partition is needed to install the bootloader
-<<<<<<< HEAD
     uefi_small: A partition of type BIOS Boot Partition is needed to install the bootloader
-=======
     prep_small: A partition of type BIOS Boot Partition is needed to install the bootloader
->>>>>>> 15942c42f (Test warning when PReP boot is too small)
+    zipl_small: A partition of type BIOS Boot Partition is needed to install the bootloader

@@ -10,3 +10,4 @@ warnings:
   bios_boot_small_for_bootloader: Missing device for /boot/zipl with size equal or bigger than 100 MiB and filesystem ext2, ext3, ext4, xfs
   uefi_small: Missing device for /boot/zipl with size equal or bigger than 100 MiB and filesystem ext2, ext3, ext4, xfs
   prep_small: Missing device for /boot/zipl with size equal or bigger than 100 MiB and filesystem ext2, ext3, ext4, xfs
+  zipl_small: Missing device for /boot/zipl with size equal or bigger than 100 MiB and filesystem ext2, ext3, ext4, xfs
