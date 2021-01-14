@@ -18,6 +18,8 @@ use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
+use version_utils 'is_upgrade';
+use bootloader_setup 'prepare_disks';
 
 use HTTP::Tiny;
 use IPC::Run;
@@ -154,6 +156,7 @@ sub run {
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
+            prepare_disks if (!is_upgrade && !get_var('KEEP_DISKS'));
         }
         save_screenshot;
 
