@@ -13,6 +13,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive;
+use publiccloud::utils;
 use testapi;
 use utils;
 
@@ -21,15 +22,7 @@ sub run {
     select_console 'root-console';
 
     ssh_interactive_leave();
-
-    # Find the PID of the SSH tunnel and kill it
-    #assert_script_run("ps --no-headers ao 'pid:1,cmd:1' | grep '[s]sh'");
-    #assert_script_run("kill -9 `ps --no-headers ao 'pid:1,cmd:1' | grep '[s]sh -t -R' | cut -d' ' -f1`");
-
-    # Destroy the public cloud instance
-    select_console 'tunnel-console', await_console => 0;
-    send_key "ctrl-c";
-    send_key "ret";
+    select_host_console(await_console => 0);
     $args->{my_provider}->cleanup();
 }
 

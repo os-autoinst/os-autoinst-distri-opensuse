@@ -24,12 +24,15 @@ use version_utils;
 our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
 
 # Select console on the test host, regardless of the TUNNELED variable.
-sub select_host_console() {
+sub select_host_console {
+    my (@args) = @_;
     if (check_var('TUNNELED', '1')) {
-        select_console('tunnel-console');
+        select_console('tunnel-console', @args);
     } else {
-        select_console('root-console');
+        select_console('root-console', @args);
     }
+    send_key "ctrl-c";
+    send_key "ret";
 }
 
 sub is_publiccloud() {
