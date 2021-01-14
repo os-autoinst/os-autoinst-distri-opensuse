@@ -44,6 +44,9 @@ sub select_role_radiobutton {
     if ($role eq 'data') {
         send_key('alt-d');
     }
+    if ($role eq 'efi') {
+        send_key('alt-e');
+    }
 }
 
 sub press_next {
