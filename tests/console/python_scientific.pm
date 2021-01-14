@@ -41,10 +41,11 @@ sub run {
         register_product();
         add_suseconnect_product(get_addon_fullname('phub'));
     }
-    zypper_call 'in python3 python3-numpy python3-scipy';
+    my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
+    zypper_call "in python3 python3-numpy $scipy";
     # Run python scripts
     run_python_script('python3-numpy-test.py');
-    run_python_script('python3-scipy-test.py');
+    run_python_script('python3-scipy-test.py') unless is_sle('<15-sp1');
 }
 
 sub cleanup() {
