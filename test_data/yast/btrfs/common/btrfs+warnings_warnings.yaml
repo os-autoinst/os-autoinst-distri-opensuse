@@ -1,1 +1,2 @@
 snapshots_small_root: Your root device is very small for snapshots
+rootfs_small: Missing device for / with size equal or bigger than 3 GiB and filesystem ext2, ext3, ext4, btrfs, xfs

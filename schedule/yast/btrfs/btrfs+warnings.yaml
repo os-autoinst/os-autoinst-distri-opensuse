@@ -27,6 +27,7 @@ schedule:
   - installation/partitioning/warning/uefi_small
   - installation/partitioning/warning/prep_small
   - installation/partitioning/warning/zipl_small
+  - installation/partitioning/warning/rootfs_small
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone

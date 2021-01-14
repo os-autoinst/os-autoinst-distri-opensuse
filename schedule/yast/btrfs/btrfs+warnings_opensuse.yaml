@@ -27,6 +27,7 @@ schedule:
   - installation/partitioning/warning/uefi_small
   - installation/partitioning/warning/prep_small
   - installation/partitioning/warning/zipl_small
+  - installation/partitioning/warning/rootfs_small
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -48,6 +49,18 @@ test_data:
     - name: vda
       partitions:
         <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+        rootfs_small:
+          - role: raw-volume
+            size: 2mb
+            id: bios-boot
+          - role: operating-system
+            size: 4GiB
+            formatting_options:
+              should_format: 1
+              filesystem: xfs
+            mounting_options:
+              should_mount: 1
+              mount_point: /
   errors:
     <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
   warnings:
@@ -57,3 +70,4 @@ test_data:
     uefi_small: A partition of type BIOS Boot Partition is needed to install the bootloader
     prep_small: A partition of type BIOS Boot Partition is needed to install the bootloader
     zipl_small: A partition of type BIOS Boot Partition is needed to install the bootloader
+    rootfs_small: Missing device for / with size equal or bigger than 5 GiB and filesystem ext2, ext3, ext4, btrfs, xfs

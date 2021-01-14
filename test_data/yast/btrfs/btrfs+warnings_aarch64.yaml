@@ -2,6 +2,22 @@ disks:
   - name: vda
     partitions:
       <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+      rootfs_small:
+        - role: efi
+          size: 128mb
+          formatting_options:
+            should_format: 1
+          mounting_options:
+            should_mount: 1
+            mount_point: /boot/efi
+        - role: operating-system
+          size: 2GiB
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+          mounting_options:
+            should_mount: 1
+            mount_point: /
 errors:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
