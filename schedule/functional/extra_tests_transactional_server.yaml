@@ -2,12 +2,10 @@
 name: extra_tests_transactional_server
 description: >
     Maintainer: zluo
-    transactional server for Tumbleweed
+    transactional server for SLES 15-SP3
     boot transactional server as serverrole and run some transactional tests
 schedule:
     - boot/boot_to_desktop
-    - update/zypper_clear_repos
-    - console/zypper_ar
     - console/zypper_ref
     - console/update_alternatives
     - console/java
