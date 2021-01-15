@@ -1,0 +1,114 @@
+#!/bin/sh -e
+[ "$1" = "-h" ] || [ "$1" = "--help" ] && echo "Setup a working openQA installation, automating the steps mentioned in the 'custom installation' documentation section. Supports to immediately clone an existing job simply by supplying 'openqa-clone-job' parameters directly for a quickstart" && exit
+
+set -x
+
+dbname="${dbname:="openqa"}"
+dbuser="${dbuser:="geekotest"}"
+
+# add extra repos for leap
+# shellcheck disable=SC1091
+. /etc/os-release
+if [ "$NAME" = "openSUSE Leap" ]; then
+    zypper -n addrepo -p 90 obs://devel:openQA devel:openQA
+    zypper -n addrepo -p 91 "obs://devel:openQA:Leap:${VERSION}" "devel:openQA:Leap:${VERSION}"
+    zypper -n  --gpg-auto-import-keys refresh
+fi
+
+
+# install packages
+zypper -n install --no-recommends openQA-single-instance qemu-arm qemu-ppc qemu-x86 qemu-tools sudo os-autoinst-distri-opensuse-deps
+
+if [ "$(uname -m)" = "aarch64" ]; then
+    zypper -n install --no-recommends qemu-uefi-aarch64
+fi
+
+# this was split into a separate package on newer dist versions - so install it if available
+if zypper -n search -x qemu-hw-display-virtio-gpu ; then
+    zypper -n install --no-recommends qemu-hw-display-virtio-gpu
+fi
+if zypper -n search -x qemu-hw-display-virtio-gpu-pci ; then
+    zypper -n install --no-recommends qemu-hw-display-virtio-gpu-pci
+fi
+
+
+# setup database
+systemctl enable --now postgresql
+su postgres -c "/usr/share/openqa/script/setup-db" $dbuser $dbname
+
+# setup webserver and fake-auth
+setup=/usr/share/openqa/script/configure-web-proxy
+(command -v $setup && sh -ex $setup) || (curl -s https://raw.githubusercontent.com/os-autoinst/openQA/master/script/configure-web-proxy | bash -ex)
+sed -i -e 's/#*.*method.*=.*$/method = Fake/' /etc/openqa/openqa.ini
+
+
+if ping -c1 download.suse.de. && (! rpm -q ca-certificates-suse) ; then
+    # add internal CA if executed within suse network
+    if ! zypper info ca-certificates-suse | grep -q ':' ; then
+        # add suse ca repo if needed
+        # use this way of adding the repo to be distro agnostic
+        zypper -n addrepo obs://SUSE:CA SUSE:CA
+        sed -i -e 's#download.opensuse.org/repositories#download.suse.de/ibs#' /etc/zypp/repos.d/SUSE:CA.repo
+        sed -i -e 's/https/http/' /etc/zypp/repos.d/SUSE:CA.repo
+        zypper -n --gpg-auto-import-keys refresh
+    fi
+    zypper -n install --no-recommends -ly ca-certificates-suse
+fi
+
+# fetch tests and needles
+if ping -c1 gitlab.suse.de. ; then
+    # use faster local mirror if run from within SUSE network
+    export needles_giturl="https://gitlab.suse.de/openqa/os-autoinst-needles-opensuse-mirror.git"
+fi
+/usr/share/openqa/script/fetchneedles
+if [ ! -e /var/lib/openqa/tests/sle ] ; then
+    ln -s opensuse /var/lib/openqa/tests/sle
+fi
+
+if ping -c1 gitlab.suse.de. ; then
+    sles_needles_giturl="https://gitlab.suse.de/openqa/os-autoinst-needles-sles.git"
+    sles_needles_directory="/var/lib/openqa/tests/opensuse/products/sle/needles"
+    # clone SLE needles if run from within SUSE network
+    if [ ! -d $sles_needles_directory ]; then
+        echo "cloning $sles_needles_giturl shallow. Call 'git fetch --unshallow' for full history"
+                git clone --depth 1 "$sles_needles_giturl" "$sles_needles_directory"
+        fi
+    chown -R $dbuser: /var/lib/openqa/tests/opensuse/products/sle/needles
+fi
+
+
+# ensure that the hostname is mapped to 127.0.0.1 (needed for livehandler)
+grep -q "$(hostname)" /etc/hosts || echo "127.0.0.1 $(hostname)" >> /etc/hosts
+
+
+# start daemons
+systemctl enable --now apache2
+systemctl enable --now openqa-webui
+systemctl enable --now openqa-scheduler
+
+# wait for webui to become available
+while ! curl -sI http://localhost/ | grep 200 ; do
+    sleep 3
+done
+
+# create api key
+curl http://localhost/login # create demo user (id=2)
+API_KEY=$(hexdump -n 8 -e '2/4 "%08X" 1 "\n"' /dev/random)
+API_SECRET=$(hexdump -n 8 -e '2/4 "%08X" 1 "\n"' /dev/random)
+echo "INSERT INTO api_keys (key, secret, user_id, t_created, t_updated) VALUES ('${API_KEY}', '${API_SECRET}', 2, NOW(), NOW());" | su postgres -c "psql $dbname"
+
+cat >> /etc/openqa/client.conf <<EOF
+[localhost]
+key = ${API_KEY}
+secret = ${API_SECRET}
+EOF
+
+
+# start worker
+systemctl enable --now openqa-worker@1
+
+# clone job if job ID is given passing extra arguments as well
+# e.g.: openqa-bootstrap --from openqa.opensuse.org 12345 SCHEDULE=tests/boot/boot_to_desktop,tests/x11/kontact
+if [ $# -ne 0 ]; then
+    openqa-clone-job "$@"
+fi

@@ -25,7 +25,11 @@ sub run {
     }
 
     zypper_call('in openQA-bootstrap');
-    assert_script_run('/usr/share/openqa/script/openqa-bootstrap', 4000);
+    assert_script_run("wget -q " . data_url('openqa-bootstrap'));
+    #assert_script_run('wget https://w3.suse.de/~dheidler/openqa-bootstrap', 4000);
+    assert_script_run('chmod +x openqa-bootstrap', 4000);
+    assert_script_run('./openqa-bootstrap', 4000);
+    #assert_script_run('/usr/share/openqa/script/openqa-bootstrap', 4000);
 }
 
 sub test_flags {
