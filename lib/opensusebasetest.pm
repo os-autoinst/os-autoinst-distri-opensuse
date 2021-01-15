@@ -467,7 +467,8 @@ sub export_logs {
     $self->export_logs_basic;
 
     # Just after the setup: let's see the network configuration
-    $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
+    $self->save_and_upload_log("ip addr show",         "/tmp/ip-addr-show.log");
+    $self->save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.log");
 
     save_screenshot;
 
