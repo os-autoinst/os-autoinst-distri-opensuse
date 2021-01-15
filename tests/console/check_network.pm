@@ -31,6 +31,7 @@ sub run {
     }
     # check the network configuration
     script_run "ip addr show";
+    script_run "cat /etc/resolv.conf";
 }
 
 1;
