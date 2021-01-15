@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Verify Warning Dialog when /boot/efi partition has too small
+# Summary: Verify Warning Dialog when root partition has too small
 # size.
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
@@ -26,7 +26,7 @@ sub run {
     $partitioner = $testapi::distri->get_expert_partitioner();
 
     $partitioner->run_expert_partitioner();
-    foreach my $partition (@{$disk->{partitions}->{uefi_small}}) {
+    foreach my $partition (@{$disk->{partitions}->{rootfs_small}}) {
         $partitioner->add_partition_on_gpt_disk({
                 disk      => $disk->{name},
                 partition => $partition
@@ -34,8 +34,8 @@ sub run {
     }
     $partitioner->accept_changes();
 
-    assert_matches(qr/$test_data->{warnings}->{missing_boot}/, $partitioner->get_warning_rich_text(),
-        "Warning Dialog for missing boot partition did not appear, while it is expected.");
+    assert_matches(qr/$test_data->{warnings}->{rootfs_small}/, $partitioner->get_warning_rich_text(),
+        "Warning Dialog for too small root partition did not appear, while it is expected.");
 }
 
 sub post_run_hook {
