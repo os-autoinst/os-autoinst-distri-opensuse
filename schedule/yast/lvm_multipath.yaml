@@ -1,0 +1,44 @@
+---
+name:           lvm_multipath
+description:    >
+  Textmode installation test for lvm partitioning with no spearate home, on multipath with lvm validation.
+vars:
+  DESKTOP: textmode
+  MULTIPATH: 1
+  LVM: 1
+  SEPARATE_HOME: 0
+  HDDMODEL: scsi-hd
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/multipath
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/lvm_no_separate_home
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_multipath
+  - console/validate_lvm
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+test_data:
+  <<: !include test_data/yast/multipath.yaml
