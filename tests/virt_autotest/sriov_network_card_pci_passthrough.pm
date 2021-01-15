@@ -55,7 +55,7 @@ sub run_test {
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
     if (@host_pfs == ()) {
-        $self->{test_results}->{host}->{"Error: there is no SR-IOV ethernet devices in the host!"}->{status} = 'FAILED';
+        $self->{test_results}->{host}->{"Error: there are not SR-IOV ethernet devices in the host, or no carrier for them!"}->{status} = 'FAILED';
         return 1;
     }
     record_info("Find SR-IOV devices", "@host_pfs");
@@ -125,7 +125,7 @@ sub run_test {
         record_info("VM reboot", "$guest");
         script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 10, retry => 18, die => 1);
-        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 4 . '-after_guest_reboot');
+        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 3 . '-after_guest_reboot');
 
         #check host and guest to make sure they work well
         check_host();
@@ -167,6 +167,9 @@ sub prepare_host {
     if (script_run("grep Intel /proc/cpuinfo") == 0) {
         assert_script_run "dmesg | grep -E \"DMAR:.*IOMMU enabled\"";
     }
+
+    #enable pciback debug logs
+    script_run "echo \"module xen_pciback +p\" > /sys/kernel/debug/dynamic_debug/control" if is_xen_host;
 }
 
 
@@ -216,7 +219,7 @@ sub prepare_guest {
     assert_script_run "virsh undefine $vm";
 
     #extra process for XEN hypervisor
-    if (is_xen_host()) {
+    if (is_xen_host) {
 
         #enable pci-passthrough and set model for pv guest.
         #refer to bug #1167217 for the reason
@@ -235,6 +238,12 @@ sub prepare_guest {
         #disable memory ballooning for fv guest as it is not supported
         if (is_fv_guest($vm)) {
             assert_script_run "sed -i '/<currentMemory/d' $vm.xml";
+        }
+
+        #enable udev debug logs
+        my $udev_conf_file = "/etc/udev/udev.conf";
+        if (script_run("ssh root\@$vm \"ls $udev_conf_file\"") == 0) {
+            script_run "ssh root\@$vm \"sed -i '/udev_log *=/{h;s/^[# ]*udev_log *=.*\$/udev_log=debug/};\${x;/^\$/{s//udev_log=debug/;H};x}' $udev_conf_file";
         }
 
     }
@@ -364,15 +373,15 @@ sub save_network_device_status_logs {
     print_cmd_output_to_file("virsh domiflist $vm", $log_file);
 
     #save udev rules from guest
-    script_run "echo -e \"\n# ssh root\@$vm 'cat /etc/udev/rules.d/'\" >> $log_file";
-    if ((script_run "ssh root\@$vm 'ls /etc/udev/rules.d/'") == 0) {
-        script_run "[ -d rules.d/ ] && rm -rf rules.d/; scp -r root\@$vm:/etc/udev/rules.d/ .; ls rules.d/ >> $log_file; cat rules.d/* >> $log_file";
+    print_cmd_output_to_file("ls -l /etc/udev/rules.d/70-persistent-net.rules", $log_file, $vm);
+    if ((script_run "ssh root\@$vm 'ls /etc/udev/rules.d/70-persistent-net.rules'") == 0) {
+        print_cmd_output_to_file("cat /etc/udev/rules.d/70-persistent-net.rules", $log_file, $vm);
     }
 
     #list pci devices in guest
-    print_cmd_output_to_file("lspci",     $log_file, $vm);
-    print_cmd_output_to_file("ip l show", $log_file, $vm);
-    print_cmd_output_to_file("lsmod",     $log_file, $vm) if is_xen_host;
+    print_cmd_output_to_file("lspci", $log_file, $vm);
+    print_cmd_output_to_file("ip a",  $log_file, $vm);
+    print_cmd_output_to_file("lsmod", $log_file, $vm) if is_xen_host;
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";
 
