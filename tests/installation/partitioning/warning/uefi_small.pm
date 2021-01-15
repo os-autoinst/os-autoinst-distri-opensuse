@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -34,7 +34,7 @@ sub run {
     }
     $partitioner->accept_changes();
 
-    assert_matches(qr/$test_data->{warnings}->{uefi_small}/, $partitioner->get_warning_rich_text(),
+    assert_matches(qr/$test_data->{warnings}->{missing_boot}/, $partitioner->get_warning_rich_text(),
         "Warning Dialog for missing boot partition did not appear, while it is expected.");
 }
 

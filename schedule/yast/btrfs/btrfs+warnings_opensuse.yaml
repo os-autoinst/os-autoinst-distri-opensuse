@@ -65,9 +65,5 @@ test_data:
     <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
   warnings:
     <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
-    no_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
-    bios_boot_small_for_bootloader: A partition of type BIOS Boot Partition is needed to install the bootloader
-    uefi_small: A partition of type BIOS Boot Partition is needed to install the bootloader
-    prep_small: A partition of type BIOS Boot Partition is needed to install the bootloader
-    zipl_small: A partition of type BIOS Boot Partition is needed to install the bootloader
+    missing_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
     rootfs_small: Missing device for / with size equal or bigger than 5 GiB and filesystem ext2, ext3, ext4, btrfs, xfs

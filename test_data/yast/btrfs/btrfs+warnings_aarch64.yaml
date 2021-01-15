@@ -22,8 +22,4 @@ errors:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
-  no_boot: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
-  bios_boot_small_for_bootloader: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
-  uefi_small: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
-  prep_small: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
-  zipl_small: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
+  missing_boot: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat

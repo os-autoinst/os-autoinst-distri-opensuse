@@ -18,8 +18,4 @@ errors:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
 warnings:
   <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
-  no_boot: Missing device with size equal or bigger than 2 MiB and partition id prep
-  bios_boot_small_for_bootloader: Missing device with size equal or bigger than 2 MiB and partition id prep
-  uefi_small: Missing device with size equal or bigger than 2 MiB and partition id prep
-  prep_small: Missing device with size equal or bigger than 2 MiB and partition id prep
-  zipl_small: Missing device with size equal or bigger than 2 MiB and partition id prep
+  missing_boot: Missing device with size equal or bigger than 2 MiB and partition id prep
