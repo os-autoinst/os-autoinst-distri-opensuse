@@ -46,6 +46,7 @@ use opensusebasetest 'firewall';
 use registration 'scc_version';
 use iscsi;
 use version_utils 'is_opensuse';
+use virt_autotest::utils qw(is_vmware_virtualization is_hyperv_virtualization);
 
 my $pxe_server_set       = 0;
 my $http_server_set      = 0;
@@ -566,7 +567,10 @@ sub setup_nfs_server {
 }
 
 sub run {
-    configure_static_network('10.0.2.1/24');
+    # Persist DHCP configuration for VMware & HyperV virtualization smoketests
+    unless (is_vmware_virtualization || is_hyperv_virtualization) {
+        configure_static_network('10.0.2.1/24');
+    }
 
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;

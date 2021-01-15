@@ -29,6 +29,8 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    script_run("SUSEConnect -r " . get_var('SCC_REGCODE'), timeout => 420);
+
     assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
     assert_script_run "rm /etc/zypp/repos.d/TEST* || true";
     zypper_call '-t in nmap iputils bind-utils', exitcode => [0, 102, 103, 106];
