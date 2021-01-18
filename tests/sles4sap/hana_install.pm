@@ -99,7 +99,7 @@ sub run {
     # Partition disks for Hana
     if (check_var('HANA_PARTITIONING_BY', 'yast')) {
         my $yast_partitioner = is_sle('15+') ? 'sap_create_storage_ng' : 'sap_create_storage';
-        assert_script_run "yast $yast_partitioner /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml", 120;
+        assert_script_run "yast $yast_partitioner /usr/share/YaST2/data/y2sap/hana_partitioning.xml", 120;
     }
     else {
         # If running on QEMU and with a second disk configured, then configure
