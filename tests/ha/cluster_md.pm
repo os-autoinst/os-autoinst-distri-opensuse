@@ -19,8 +19,7 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my ($self) = @_;
-    my $mdadm_conf = '/etc/mdadm.conf';
+    my $mdadm_conf         = '/etc/mdadm.conf';
     my $clustermd_lun_01   = get_lun(use_once => 0);
     my $clustermd_lun_02   = get_lun(use_once => 0);
     my $clustermd_rsc      = 'cluster_md';
@@ -74,20 +73,6 @@ sub run {
 
     # Wait until cluster-md resource is created
     barrier_wait("CLUSTER_MD_RESOURCE_CREATED_$cluster_name");
-
-    # Currently we are seeing a sporadic issue in osd with nodes getting fenced during
-    # cluster_md setup right after the resource is created. So far this issue cannot be
-    # reproduced manually, and test passes with no issues in the development environment.
-    # Worse still, the nature of the failure prevents openQA from gathering logs. The
-    # following lines attempt to work around the issue
-    if (check_screen('grub2')) {
-        my $timeout = get_var('UEFI') ? 140 : 80;
-        record_soft_failure 'poo#80532 -- Unexpected node fence';
-        $self->wait_boot(bootloader_time => $timeout, nologin => 1);
-        reset_consoles;
-        select_console 'root-console';
-        ha_export_logs;
-    }
 
     # Wait for the resource to appear before testing the device
     # Otherwise sporadic failure can happen
