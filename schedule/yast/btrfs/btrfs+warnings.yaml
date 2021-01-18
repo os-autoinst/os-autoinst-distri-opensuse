@@ -24,7 +24,6 @@ schedule:
   - installation/partitioning/warning/no_boot
   - installation/partitioning/warning/boot_small_for_kernel
   - installation/partitioning/warning/bios_boot_small_for_bootloader
-  - installation/partitioning/warning/uefi_small
   - installation/partitioning/warning/prep_small
   - installation/partitioning/warning/zipl_small
   - installation/partitioning/warning/rootfs_small
