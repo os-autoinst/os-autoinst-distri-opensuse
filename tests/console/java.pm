@@ -28,20 +28,31 @@ use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common 'is_updates_tests';
 use transactional 'check_reboot_changes';
 
+my $transactional = get_var('TRANSACTIONAL_SERVER');
+my $arch          = get_var('ARCH');
+# Transform the format of the version, e.g. from 15-SP3 to 15.3
+my $version    = get_var('VERSION');
+my $version_id = (split('-', $version))[0] . '.' . (split('P', (split('-', $version))[1]))[1];
+
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     # Make sure that PackageKit is not running
     quit_packagekit;
     # if !QAM test suite then register Legacy module
-    (is_updates_tests || is_opensuse) || add_suseconnect_product('sle-module-legacy');
+    if ($transactional == 1) {
+        assert_script_run("transactional-update register -p sle-module-legacy/$version_id/$arch");
+    }
+    else {
+        (is_updates_tests || is_opensuse) || add_suseconnect_product('sle-module-legacy');
+    }
     # Supported Java versions for sle15sp2
     # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP2/#development-java-versions
     # java-11-openjdk                   -> Basesystem
     # java-10-openjdk & java-1_8_0-ibm  -> Legacy
     my $cmd = 'install --auto-agree-with-licenses ';
     $cmd .= (is_sle('15+') || is_leap) ? 'java-11-openjdk* java-1_*' : 'java-*';
-    $cmd = 'transactional-update --continue pkg install --no-confirm java-*' if (check_var('TRANSACTIONAL_SERVER', '1'));
+    $cmd = 'transactional-update --continue pkg install --auto-agree-with-licenses --no-confirm java-*' if (check_var('TRANSACTIONAL_SERVER', '1'));
 
     if (check_var('TRANSACTIONAL_SERVER', '1')) {
         select_console 'root-console';
@@ -64,8 +75,14 @@ sub run {
     }
     # if !QAM test suite then cleanup test suite environment
     unless (is_updates_tests || is_opensuse) {
-        remove_suseconnect_product('sle-module-legacy');
-        (script_run 'rpm -qa | grep java-1_') || zypper_call('rm java-1_*');
+        if ($transactional == 1) {
+            assert_script_run("transactional-update register -d -p sle-module-legacy/$version_id/$arch");
+            (script_run 'rpm -qa | grep java-1_') || (script_run 'transactional-update pkg remove --no-confirm java-1_*');
+        }
+        else {
+            remove_suseconnect_product('sle-module-legacy');
+            (script_run 'rpm -qa | grep java-1_') || zypper_call('rm java-1_*');
+        }
     }
 }
 
