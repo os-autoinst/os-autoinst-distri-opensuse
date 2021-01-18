@@ -39,9 +39,10 @@ Possible values for C<$mode> are: SSL, NSS, NSSFIPS and PHP7
 
 =cut
 sub setup_apache2 {
-    my %args     = @_;
-    my $mode     = uc $args{mode} || "";
-    my @packages = qw(apache2 hostname);
+    my %args = @_;
+    my $mode = uc $args{mode} || "";
+    # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
+    my @packages = qw(apache2 /bin/hostname);
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
