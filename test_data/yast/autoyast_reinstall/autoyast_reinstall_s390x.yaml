@@ -10,6 +10,23 @@ file_system:
   /: btrfs
 swap: 1
 profile:
+  suse_register:
+    addons:
+      - addon:
+          unique_key: name
+          name: sle-module-server-applications
+      - addon:
+          unique_key: name
+          name: sle-module-desktop-applications
+      - addon:
+          unique_key: name
+          name: sle-module-basesystem
+      - addon:
+          unique_key: name
+          name: sle-module-web-scripting
+    do_registration: 'true'
+    install_updates: 'false'
+    slp_discovery: 'false'
   partitioning:
     - drive:
         unique_key: device
