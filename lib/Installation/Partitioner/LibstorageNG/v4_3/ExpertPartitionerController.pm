@@ -60,6 +60,7 @@ sub init {
     $self->{AddVolumeGroupPage}            = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
     $self->{AddLogicalVolumePage}          = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
     $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
+    $self->{RolePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RolePage->new({app => YuiRestClient::get_app()});
     $self->{NewPartitionTypePage}          = Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage->new({app => YuiRestClient::get_app()});
     $self->{FormattingOptionsPage}         = Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage->new({
             do_not_format_shortcut => 'alt-t',
@@ -139,6 +140,11 @@ sub get_add_logical_volume_page {
 sub get_resize_page {
     my ($self) = @_;
     return $self->{ResizePage};
+}
+
+sub get_role_page {
+    my ($self) = @_;
+    return $self->{RolePage};
 }
 
 sub get_error_dialog {
