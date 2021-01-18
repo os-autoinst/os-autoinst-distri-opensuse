@@ -94,4 +94,9 @@ sub run {
     }
 }
 
+sub post_fail_hook {
+    select_console 'log-console';
+    shift->export_logs_basic;
+}
+
 1;
