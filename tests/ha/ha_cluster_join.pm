@@ -13,10 +13,26 @@
 use base 'opensusebasetest';
 use strict;
 use warnings;
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi;
 use hacluster;
-use utils 'zypper_call';
+use utils qw(zypper_call);
+
+sub wait_for_password_prompt {
+    my %args = @_;
+    $args{timeout} //= $default_timeout;
+    $args{failok}  //= 0;
+    die((caller(0))[3] . ' expects a needle tag or ref in the "needle => $tag" arg') unless $args{needle};
+    if (is_serial_terminal()) {
+        die "Timed out while waiting for password prompt" unless (wait_serial(qr/Password:\s*$/i));
+    }
+    elsif ($args{failok}) {
+        return (check_screen $args{needle}, $args{timeout});
+    }
+    else {
+        assert_screen $args{needle}, $args{timeout};
+    }
+}
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -37,11 +53,13 @@ sub run {
 
     # Try to join the HA cluster through first node
     assert_script_run "ping -c1 $node_to_join";
-    type_string "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? > /dev/$serialdev\n";
-    assert_screen 'ha-cluster-join-password', $join_timeout;
+    # Status redirection is not needed if running on serial terminal
+    my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
+    type_string "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? $redirection\n";
+    wait_for_password_prompt(needle => 'ha-cluster-join-password', timeout => $join_timeout);
     type_password;
     send_key 'ret';
-    if (check_var('TWO_NODES', 'no') && check_screen('ha-cluster-join-3nodes-password', 60)) {
+    if (check_var('TWO_NODES', 'no') && wait_for_password_prompt(needle => 'ha-cluster-join-3nodes-password', timeout => 60, failok => 1)) {
         type_password;
         send_key 'ret';
     }

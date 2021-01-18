@@ -40,13 +40,15 @@ sub cluster_init {
 
     # Clear the console to correctly catch the password needle if needed
     clear_console if !is_serial_terminal();
+    # No need to send status to serial terminal if running on serial terminal
+    my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
 
     if ($init_method eq 'ha-cluster-init') {
-        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
+        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection\n";
         type_qnetd_pwd if get_var('QDEVICE');
     }
     elsif ($init_method eq 'crm-debug-mode') {
-        type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
+        type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection\n";
         type_qnetd_pwd                      if get_var('QDEVICE');
         die "Cluster initialization failed" if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
     }
