@@ -28,8 +28,13 @@ sub run_python_script {
     assert_script_run("chmod a+rx '$script'");
     assert_script_run("./$script 2>&1 | tee $logfile");
     if (script_run("grep 'Softfail' $logfile") == 0) {
-        my $failmsg = script_output("grep 'Softfail' '$logfile'");
-        record_soft_failure("$failmsg");
+        # bsc#1180605 is only relevant for SLE > 15-SP2.
+        if (script_run("grep 'Softfail' $logfile | grep 'bsc#1180605'") == 0 && is_sle("<=15-SP2")) {
+            record_info("scipy-fft", "scipy-fft module not available for SLE <= 15-SP2");
+        } else {
+            my $failmsg = script_output("grep 'Softfail' '$logfile'");
+            record_soft_failure("$failmsg");
+        }
     }
 }
 
