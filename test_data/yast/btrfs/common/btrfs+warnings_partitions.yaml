@@ -41,21 +41,6 @@ bios_boot_small_for_bootloader:
   - role: raw-volume
     size: 1mb
     id: bios-boot
-uefi_small:
-  - role: operating-system
-    size: 11GiB
-    formatting_options:
-      should_format: 1
-    mounting_options:
-      should_mount: 1
-      mount_point: /
-  - role: efi
-    size: 100mb
-    formatting_options:
-      should_format: 1
-    mounting_options:
-      should_mount: 1
-      mount_point: /boot/efi
 prep_small:
   - role: operating-system
     size: 11GiB
