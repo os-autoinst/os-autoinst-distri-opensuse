@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 FILES="${@}"
 success=1
@@ -19,7 +19,7 @@ for FILE in $FILES; do
         file_to_verify="$FILE" 
         target_paths='schedule/'
     fi
-    if [[ -n  $file_to_verify ]] && [[ MATCHED_SCHEDULE_FILES="$(grep --recursive --ignore-case \
+    if [[ -n $file_to_verify ]] && [[ MATCHED_SCHEDULE_FILES="$(grep --recursive --ignore-case \
        --files-with-matches "${file_to_verify}\b" $target_paths)" ]]
     then
         echo "\"$file_to_verify\" was removed or renamed, but it is still used in: \
