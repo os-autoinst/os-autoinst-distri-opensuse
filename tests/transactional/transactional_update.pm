@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use version_utils qw(is_microos is_staging is_opensuse is_leap);
+use version_utils qw(is_staging is_opensuse is_leap);
 use transactional;
 use utils;
 

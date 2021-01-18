@@ -21,7 +21,7 @@ use warnings;
 use testapi;
 use microos 'microos_reboot';
 use power_action_utils 'power_action';
-use version_utils qw(is_opensuse is_microos is_sle);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
 use Utils::Backends 'is_pvm';
 
@@ -72,7 +72,7 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if (is_microos) {
+    if (is_microos || is_sle_micro) {
         microos_reboot $args{trigger};
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);

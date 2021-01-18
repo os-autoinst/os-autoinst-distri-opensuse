@@ -31,6 +31,7 @@ use constant {
           is_sle
           is_pre_15
           is_microos
+          is_sle_micro
           is_gnome_next
           is_jeos
           is_krypton_argon
@@ -200,9 +201,10 @@ sub check_version {
 }
 
 =head2 is_microos
-Check if distribution is SUSE MicroOS or openSUSE MicroOS with optional filter:
+
+Check if distribution is openSUSE MicroOS with optional filter:
 Media type: DVD (iso) or VMX (all disk images)
-Version: Tumbleweed | 15.2 (Leap) | 5.X, 6.X (SUSE)
+Version: Tumbleweed | 15.2 (Leap)
 Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 =cut
 sub is_microos {
@@ -212,10 +214,6 @@ sub is_microos {
     my $version = get_var('VERSION');
     return 0 unless $distri && $distri =~ /microos/;
     return 1 unless $filter;
-
-    # SUSE MicroOS will have versions 5.X, 6.X., the rest is openSUSE
-    my $type = $version =~ /^[56]\./ ? 'suse' : 'opensuse';
-    return $filter eq $type if ($filter =~ /opensuse|^suse/);
 
     my $version_is_tw = ($version =~ /Tumbleweed/ || $version =~ /^Staging:/);
 
@@ -230,12 +228,20 @@ sub is_microos {
     }
     elsif ($filter =~ /\d\.\d\+?$/) {
         # If we use '+' it means "this or newer", which includes tumbleweed
-        return ($filter =~ /\+$/) if ($version_is_tw && $type eq 'opensuse');
+        return ($filter =~ /\+$/) if $version_is_tw;
         return check_version($filter, $version, qr/\d{1,}\.\d/);
     }
     else {
         return $flavor eq $filter;    # Specific FLAVOR selector
     }
+}
+
+=head2 is_sle_micro
+
+Check if distribution is SUSE Linux Enterprise Micro
+=cut
+sub is_sle_micro {
+    return check_var('DISTRI', 'sle-micro');
 }
 
 =head2 is_tumbleweed
@@ -279,7 +285,7 @@ Returns true if called on opensuse
 =cut
 sub is_opensuse {
     return 1 if check_var('DISTRI', 'opensuse');
-    return 1 if is_microos 'opensuse';
+    return 1 if check_var('DISTRI', 'microos');
     return 0;
 }
 
@@ -541,7 +547,7 @@ configuration, otherwise returns false (0).
 
 =cut
 sub has_license_on_welcome_screen {
-    return 1 if is_microos 'suse';
+    return 1 if is_sle_micro;
     return get_var('HASLICENSE') &&
       (((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
         || is_sle('<15')

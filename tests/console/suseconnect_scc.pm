@@ -24,7 +24,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils qw(is_sle is_microos);
+use version_utils qw(is_sle is_sle_micro);
 use registration;
 
 sub run {
@@ -34,13 +34,13 @@ sub run {
     my $cmd        = "SUSEConnect -r $reg_code";
     my $scc_addons = get_var('SCC_ADDONS', '');
 
-    if ($reg_code !~ /^INTERNAL-USE-ONLY.*/i || is_microos) {
+    if ($reg_code !~ /^INTERNAL-USE-ONLY.*/i || is_sle_micro) {
         $cmd .= ' --url ' . (get_required_var 'SCC_URL');
     }
 
     select_console('root-console');
     assert_script_run $cmd;
-    unless (is_microos('suse')) {
+    unless (is_sle_micro) {
         assert_script_run 'SUSEConnect --list-extensions';
         assert_screen 'activated-with-suseconnect';
         assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"';
