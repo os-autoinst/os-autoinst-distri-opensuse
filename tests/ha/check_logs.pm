@@ -32,7 +32,14 @@ sub run {
     ha_export_logs;
 
     # Looking for segfault during the test
-    record_soft_failure "bsc#1132123" if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))');
+    if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))') {
+        if (script_run '(( $(egrep -sR iscsiadm.+segfault /var/log | wc -l) == 0 ))') {
+            record_soft_failure "bsc#1181052 - segfault on iscsiadm";
+        }
+        else {
+            die "segfault detected in the system! Aborting";
+        }
+    }
 }
 
 # Specific test_flags for this test module
