@@ -534,7 +534,7 @@ sub __vault_api {
     } elsif ($method eq 'post') {
         $res = $ua->post($url =>
               {'X-Vault-Token' => $self->vault_token()} =>
-              json                                      => $data)->result;
+              json => $data)->result;
     } else {
         die("Unknown method $method");
     }

@@ -1013,7 +1013,7 @@ sub wait_boot_past_bootloader {
     }
 
     $self->handle_displaymanager_login(ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin);
-    return                                                                             if $args{nologin};
+    return if $args{nologin};
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;

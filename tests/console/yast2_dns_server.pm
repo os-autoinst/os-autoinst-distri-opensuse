@@ -126,7 +126,7 @@ sub run {
     systemctl 'is-active named',  expect_false => 1;
     systemctl 'is-enabled named', expect_false => 1;
 
-    return if $older_products;    # only for new products as cancel do not revert changes in services status
+    return if $older_products;                                 # only for new products as cancel do not revert changes in services status
     record_info '5th run',         '[tree-based interface] -> service in same status than previous run';
     script_run 'yast2 dns-server', 0;
     continue_info_network_manager_default;

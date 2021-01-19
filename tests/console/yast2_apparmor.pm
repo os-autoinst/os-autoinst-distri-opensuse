@@ -97,7 +97,7 @@ sub run {
           yast2_apparmor_profile_mode_configuration_toggle
           yast2_apparmor_profile_mode_configuration_show_all
           yast2_apparmor_profile_mode_not_visible
-    )];
+          )];
     if (match_has_tag 'yast2_apparmor_profile_mode_not_visible') {
         record_soft_failure 'bsc#1127714 - yast2_apparmor does not display mode column when profile name is too long';
         send_key_until_needlematch 'yast2_apparmor_profile_mode_configuration_show_all', 'tab';

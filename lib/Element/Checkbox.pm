@@ -104,9 +104,9 @@ Example:
 
 sub set_state {
     my ($self, %args) = @_;
-    my $state          = $args{state};
-    my $shortcut       = $args{shortcut};
-    my $checked_needle = $args{checked_needle},
+    my $state              = $args{state};
+    my $shortcut           = $args{shortcut};
+    my $checked_needle     = $args{checked_needle},
       my $unchecked_needle = $args{unchecked_needle};
 
     # Check if the checkbox already in the required state. If so, just skip.
