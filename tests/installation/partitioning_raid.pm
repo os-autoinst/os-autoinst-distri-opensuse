@@ -125,7 +125,7 @@ sub addraid {
         send_key $cmd{next};
     }
     assert_screen 'partition-role';
-    send_key "alt-o";        # Operating System
+    send_key "alt-o";    # Operating System
     wait_screen_change { send_key $cmd{next} };
 }
 

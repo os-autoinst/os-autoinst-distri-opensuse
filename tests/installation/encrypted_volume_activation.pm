@@ -28,7 +28,7 @@ my $after_cancel_tags = [
     qw(
       enable-multipath scc-registration
       inst-instmode addon-products
-      )];
+    )];
 
 sub run {
     assert_screen 'encrypted_volume_activation_prompt';

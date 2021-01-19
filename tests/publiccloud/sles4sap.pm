@@ -230,7 +230,7 @@ sub run {
                 unless ($instance->run_ssh_command(cmd => 'systemctl --no-pager status pacemaker | grep -iq \'Active: inactive (dead)\'', rc_only => 1)) {
                     record_soft_failure 'bsc#1179838 - [ha-sap-terraform-deployments_v6] Pacemaker doesn\'t start correctly after a STONITH';
                     $self->run_cmd(cmd => 'systemctl --no-pager restart pacemaker', quiet => 1);
-                    sleep 30;                                                                            # We need to wait a "little" before
+                    sleep 30;    # We need to wait a "little" before
                 }
 
                 $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout);

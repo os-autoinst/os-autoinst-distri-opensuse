@@ -31,7 +31,7 @@ use scheduler 'get_test_suite_data';
 sub _check_basic_installation {
     my $nvm_test_data = shift;
     assert_script_run("lspci -nn | grep -i nvm");
-    assert_script_run("test -d $nvm_test_data->{nvme_sys_path}", fail_message => "$nvm_test_data->{nvme_sys_path} not found as block device");
+    assert_script_run("test -d $nvm_test_data->{nvme_sys_path}",        fail_message => "$nvm_test_data->{nvme_sys_path} not found as block device");
     assert_script_run("test -c /dev/$nvm_test_data->{nvm_char_device}", fail_message => "/dev/$nvm_test_data->{nvme_char_device} not found as character device");
 
     my @nvm_partitions = split(/\n/, script_output("ls /dev/$nvm_test_data->{nvm_disk}*"));

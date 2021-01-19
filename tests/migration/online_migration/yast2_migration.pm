@@ -139,18 +139,18 @@ sub run {
                 assert_screen ['addon-yast2-patterns', 'package-conflict-resolution'];
                 last if match_has_tag 'addon-yast2-patterns';
                 if (match_has_tag 'package-conflict-resolution') {
-                    wait_screen_change { send_key 'alt-2' };                        # 1 can end in unresolvable loop
+                    wait_screen_change { send_key 'alt-2' };    # 1 can end in unresolvable loop
                     wait_screen_change { send_key 'spc' };
                     wait_screen_change { send_key 'alt-o' };
                 }
                 # wait for next screen, wait_screen_change is sometimes too fast
                 wait_still_screen 3;
             }
-            send_key 'alt-a';                                                       # accept
+            send_key 'alt-a';    # accept
             assert_screen 'addon-products', 90;
         }
         wait_still_screen 2;
-        send_key 'alt-o';                                                           # ok
+        send_key 'alt-o';        # ok
         wait_serial('yast2-addon-done-0') || die 'yast2 add-on failed';
     }
 
@@ -161,7 +161,7 @@ sub run {
       we SUSE_Linux_Enterprise_Workstation_Extension_
     );
     for my $addon (split(/,/, get_var('MIGRATION_REMOVE_ADDONS'))) {
-        zypper_call "rs $service{$addon}\t";                                        # remove service
+        zypper_call "rs $service{$addon}\t";    # remove service
     }
 
     script_run("yast2 migration; echo yast2-migration-done-\$? > /dev/$serialdev", 0);
@@ -205,7 +205,7 @@ sub run {
         }
     }
     assert_screen 'yast2-migration-target';
-    send_key "alt-p";                                       # focus on the item of possible migration targets
+    send_key "alt-p";    # focus on the item of possible migration targets
     assert_screen 'yast2-migration-target-list-selected', 60;
     send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 20, 3;
     send_key "alt-n";
