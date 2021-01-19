@@ -22,15 +22,15 @@ jobs:
       run: apt-get -y install yamllint libdbus-1-dev libssh2-1-dev parallel
     - name: Setup perl
       run: |
-        echo "requires 'Code::DRY';" >> cpanfile
-        echo "requires 'Date::Parse';" >> cpanfile
-        echo "requires 'Regexp::Common';" >> cpanfile
-        echo "requires 'Perl::Tidy', '== 20210111';" >> cpanfile
+        # Prefix with space to bypass ./tools/update_spec
+        echo " requires 'Code::DRY';" >> cpanfile
+        echo " requires 'Date::Parse';" >> cpanfile
+        echo " requires 'Regexp::Common';" >> cpanfile
+        echo " requires 'Perl::Tidy', '== 20210111';" >> cpanfile
         make prepare
     - name: Run ${{ matrix.test }} tests
       env:
         TESTS: ${{ matrix.test }}
       run: |
         git fetch origin master
-        git checkout cpanfile
         make test
