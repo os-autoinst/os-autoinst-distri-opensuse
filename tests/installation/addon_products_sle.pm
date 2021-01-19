@@ -228,7 +228,7 @@ sub run {
                     assert_screen "addon-license-beta";
                 }
                 wait_still_screen 2;
-                send_key 'alt-a';                                  # yes, agree
+                send_key 'alt-a';    # yes, agree
                 wait_still_screen 2;
                 send_key $cmd{next};
                 assert_screen 'addon-products', 90;
@@ -236,9 +236,9 @@ sub run {
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
             }
-            send_key "tab";                                        # select addon-products-$addon
-            wait_still_screen 10;                                  # wait until repo is added and list is initialized
-            if (check_var('VIDEOMODE', 'text')) {                  # textmode need more tabs, depends on add-on count
+            send_key "tab";                          # select addon-products-$addon
+            wait_still_screen 10;                    # wait until repo is added and list is initialized
+            if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";

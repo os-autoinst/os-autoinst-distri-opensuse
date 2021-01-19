@@ -109,7 +109,7 @@ sub run() {
         send_key 'alt-o';
     }
     else {
-        send_key 'alt-o';                                                # close it now even when config is not valid
+        send_key 'alt-o';    # close it now even when config is not valid
     }    # check error message for 'nis server not found'
 }
 1;

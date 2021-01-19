@@ -53,7 +53,7 @@ sub run {
     }
     wait_still_screen(2);
     if (check_var('VIDEOMODE', 'text')) {
-        send_key 'tab';          # select tab area
+        send_key 'tab';    # select tab area
     }
 
     # no release-notes for WE and all modules

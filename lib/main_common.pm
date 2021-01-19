@@ -169,7 +169,7 @@ sub set_defaults_for_username_and_password {
     $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
 
     if (get_var("LIVETEST") && (get_var("LIVECD") || get_var("PROMO"))) {
-        $testapi::username = "linux";       # LiveCD account
+        $testapi::username = "linux";    # LiveCD account
         $testapi::password = "";
     }
 }
@@ -1695,7 +1695,7 @@ sub load_extra_tests_console {
     loadtest "console/gd";
     loadtest 'console/valgrind'          unless is_sle('<=12-SP3');
     loadtest 'console/sssd_samba'        unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
-    loadtest 'console/wpa_supplicant'    unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
+    loadtest 'console/wpa_supplicant'    unless (!is_x86_64    || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
     loadtest 'console/python_scientific' unless (is_sle("<15"));
     loadtest "console/parsec" if is_tumbleweed;
 }
@@ -2697,33 +2697,33 @@ sub load_hypervisor_tests {
 
     if (check_var('VIRT_PART', 'save_and_restore')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
-        loadtest 'virtualization/universal/save_and_restore';               # Try to save and restore the state of the guest
+        loadtest "virtualization/universal/list_guests";         # List all guests and ensure they are running
+        loadtest 'virtualization/universal/save_and_restore';    # Try to save and restore the state of the guest
     }
 
     if (check_var('VIRT_PART', 'guest_management')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
-        loadtest 'virtualization/universal/guest_management';               # Try to shutdown, start, suspend and resume the guest
+        loadtest "virtualization/universal/list_guests";         # List all guests and ensure they are running
+        loadtest 'virtualization/universal/guest_management';    # Try to shutdown, start, suspend and resume the guest
     }
 
     if (check_var('VIRT_PART', 'dom_metrics')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";         # List all guests and ensure they are running
 
-        loadtest 'virtualization/universal/virsh_stop';                     # Stop libvirt guests
-        loadtest 'virtualization/universal/xl_create';                      # Clone guests using the xl Xen tool
-        loadtest 'virtualization/universal/dom_install';                    # Install vhostmd and vm-dump-metrics
-        loadtest 'virtualization/universal/dom_metrics';                    # Collect some sample metrics
-        loadtest 'virtualization/universal/xl_stop';                        # Stop guests created by the xl Xen tool
-        loadtest 'virtualization/universal/virsh_start';                    # Start virsh guests again
+        loadtest 'virtualization/universal/virsh_stop';          # Stop libvirt guests
+        loadtest 'virtualization/universal/xl_create';           # Clone guests using the xl Xen tool
+        loadtest 'virtualization/universal/dom_install';         # Install vhostmd and vm-dump-metrics
+        loadtest 'virtualization/universal/dom_metrics';         # Collect some sample metrics
+        loadtest 'virtualization/universal/xl_stop';             # Stop guests created by the xl Xen tool
+        loadtest 'virtualization/universal/virsh_start';         # Start virsh guests again
     }
 
     if (check_var('VIRT_PART', 'hotplugging')) {
         loadtest "virt_autotest/login_console";
-        loadtest "virtualization/universal/list_guests";                    # List all guests and ensure they are running
+        loadtest "virtualization/universal/list_guests";         # List all guests and ensure they are running
 
-        loadtest 'virtualization/universal/hotplugging';                    # Try to change properties of guests
+        loadtest 'virtualization/universal/hotplugging';         # Try to change properties of guests
     }
 
     if (check_var('VIRT_PART', 'networking')) {

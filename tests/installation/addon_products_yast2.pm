@@ -145,7 +145,7 @@ sub run {
         }
     }
     else {
-        send_key 'alt-n';                                           # done
+        send_key 'alt-n';    # done
     }
 }
 

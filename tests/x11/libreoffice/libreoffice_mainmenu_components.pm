@@ -132,15 +132,15 @@ sub run {
             assert_screen 'ooimpress-launched';
         }
         elsif (match_has_tag 'ooimpress-select-a-template') {
-            send_key 'alt-f4';                         # close impress template window
+            send_key 'alt-f4';    # close impress template window
             assert_screen 'ooimpress-launched';
         }
-        send_key "ctrl-q";                             #close impress
+        send_key "ctrl-q";        #close impress
 
         $self->open_mainmenu();
-        assert_and_click 'mainmenu-office-writer';     #open writer
+        assert_and_click 'mainmenu-office-writer';    #open writer
         assert_screen 'test-ooffice-1';
-        send_key "ctrl-q";                             #close writer
+        send_key "ctrl-q";                            #close writer
     }
 
     # launch components from Activities overview
@@ -165,7 +165,7 @@ sub run {
     select_base_and_cleanup;
 
     $self->open_overview();
-    type_string "calc";                                                             #open calc
+    type_string "calc";    #open calc
     assert_and_click 'overview-office-calc';
     assert_screen 'test-oocalc-1', 60;
     if (!match_has_tag('ooffice-tip-of-the-day')) {

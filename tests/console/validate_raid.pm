@@ -97,7 +97,7 @@ sub prepare_test_data {
     }
     elsif (check_var('ARCH', 'x86_64') && is_sle('<15')) {
         @partitioning = (
-            $btrfs, $ext4_boot, $swap,
+            $btrfs,      $ext4_boot, $swap,
             $hard_disks, $linux_raid_member_3_arrays,
         );
         # Additional RAID array (update num_raid_arrays to regenerate regex)
