@@ -18,7 +18,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_sle_micro);
 
 our @EXPORT = qw(
   get_opensuse_registry_prefix
@@ -73,7 +73,7 @@ sub get_suse_container_urls {
         push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
         push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
     }
-    elsif (is_microos('suse')) {
+    elsif (is_sle_micro) {
         push @image_names,
           "registry.suse.com/suse/sle15:15.0",
           "registry.suse.com/suse/sle15:15.1",

@@ -22,7 +22,7 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_leap is_microos is_opensuse is_jeos is_public_cloud);
+use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud);
 use containers::utils 'can_build_sle_base';
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
@@ -57,7 +57,7 @@ sub install_podman_when_needed {
 sub install_docker_when_needed {
     my $host_os = shift;
 
-    if (is_microos) {
+    if (is_microos || is_sle_micro) {
         # Docker should be pre-installed in MicroOS
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
     }

@@ -14,7 +14,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_microos);
+use version_utils qw(is_microos is_sle_micro);
 
 sub run {
     select_console 'root-console';
@@ -34,7 +34,7 @@ sub run {
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
 
     # Verify that combustion ran (not on Leap 15.2 and SUSE yet)
-    unless (is_microos('suse') || is_microos('=15.2')) {
+    unless (is_sle_micro || is_microos('=15.2')) {
         validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
     }
 }

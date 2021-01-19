@@ -1,7 +1,7 @@
-name:           suse_microos
+name:           sle_micro_dvd
 description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
-    SUSE MicroOS tests
+    SUSE Linux Enterprise Micro tests
 schedule:
     - installation/bootloader_start
     - installation/welcome
