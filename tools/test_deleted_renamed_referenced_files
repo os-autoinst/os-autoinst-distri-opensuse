@@ -17,13 +17,12 @@ for FILE in $FILES; do
     elif [ -n "$(echo $FILE | grep '\.ya\?ml$')" ] 
     then
         file_to_verify="$FILE" 
-        target_paths='schedule/'
+        target_paths='schedule/ test_data/'
     fi
-    if [[ -n $file_to_verify ]] && [[ MATCHED_SCHEDULE_FILES="$(grep --recursive --ignore-case \
-       --files-with-matches "${file_to_verify}\b" $target_paths)" ]]
+    MATCHED_REFERENCE_FILES="$(grep --recursive --ignore-case --files-with-matches "${file_to_verify}\b" $target_paths)"
+    if [[ -n $file_to_verify ]] && [ -n "$(echo $MATCHED_REFERENCE_FILES | grep '\(\.ya\?ml$\|\.pm\)')" ]
     then
-        echo "\"$file_to_verify\" was removed or renamed, but it is still used in: \
-              \n$MATCHED_SCHEDULE_FILES\n"
+        echo -e "\"$file_to_verify\" was removed or renamed, but it is still used in:\n$MATCHED_REFERENCE_FILES" 
         success=0
     fi
 done
