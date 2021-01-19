@@ -18,7 +18,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_sle_micro);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_micro);
 
 our @EXPORT = qw(
   get_opensuse_registry_prefix
