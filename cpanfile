@@ -11,6 +11,7 @@ requires 'Config::Tiny';
 requires 'Cwd';
 requires 'Data::Dump';
 requires 'Data::Dumper';
+requires 'DateTime';
 requires 'Digest::file';
 requires 'Exporter';
 requires 'File::Basename';
