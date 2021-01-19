@@ -24,6 +24,8 @@ use utils qw(clear_console zypper_call);
 sub run {
     select_console 'root-console';
     zypper_call 'in dialog';
+    #poo 88033, we need to clean up console before issue command.
+    clear_console;
     script_run 'dialog --yesno "test for boo#1054448" 3 20';
     assert_screen 'ncurses-simple-dialog';
     send_key 'ret';
