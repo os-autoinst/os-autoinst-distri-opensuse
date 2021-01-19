@@ -31,11 +31,10 @@ use testapi;
 use utils;
 
 sub run {
-    select_console "x11";
-    x11_start_program('xterm');
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # become root, disable packagekit and install all needed packages
-    become_root;
     quit_packagekit;
     zypper_call "in ghostscript ghostscript-x11";
 
@@ -51,6 +50,7 @@ sub run {
     my $reference = "alphabet.pdf";
 
     # download ghostscript converter script and test if download succeeded
+    # type_string_slow("wget " . data_url("ghostscript/$gs_script") . "\n");
     assert_script_run "wget " . data_url("ghostscript/$gs_script");
     assert_script_run "test -s $gs_script";
 
@@ -66,6 +66,9 @@ sub run {
 
     # display one reference pdf on screen and check if it looks correct
     # skip this when there is no gv installed
+    select_console "x11";
+    x11_start_program('xterm');
+
     if (!$gv_missing) {
         script_run "gv $reference", 0;
         assert_screen "ghostview_alphabet";
