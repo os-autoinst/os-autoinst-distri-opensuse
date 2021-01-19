@@ -112,7 +112,7 @@ sub test_network_interface {
     #flag SRIOV test as it need not restart network service
     my $is_sriov_test = "false";
     $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || $is_sriov_test eq "true") {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
