@@ -185,9 +185,9 @@ sub exclude_grouplist {
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name !~ /^\!/);
         $group_name = substr($group_name, 1);
-        my $cmd = "awk '/$group_name/ {printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/$FSTYPE/group > tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$FSTYPE/group | awk '{printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
-        $cmd = "awk '/$group_name/ {printf \"generic/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/generic/group >> tmp.group";
+        $cmd = "awk '/$group_name/' $INST_DIR/tests/generic/group | awk '{printf \"generic/\"}{printf \$1}{printf \",\"}' >> tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
