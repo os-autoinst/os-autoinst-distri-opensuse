@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,6 +19,7 @@
 use base 'consoletest';
 use testapi;
 use utils;
+use zypper;
 use version_utils 'is_sle';
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
@@ -38,8 +39,8 @@ sub run {
     if (!check_var('DESKTOP', 'textmode')) {
         # Make sure packagekit is not running, or it will conflict with SUSEConnect.
         quit_packagekit;
-        # poo#77134 wait for packagekit related zypper process to exit
-        assert_script_run 'until ! pgrep zypper; do sleep 1; done';
+        # poo#87850 wait the zypper processes in background to finish and release the lock.
+        wait_quit_zypper;
     }
 
     # Register the modules after media migration, so it can do regession
