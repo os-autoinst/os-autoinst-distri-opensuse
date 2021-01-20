@@ -16,10 +16,21 @@ use y2_logs_helper qw(accept_license verify_license_has_to_be_accepted);
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call clear_console);
+use utils "zypper_call";
 use installation_user_settings qw(await_password_check enter_userinfo enter_rootinfo);
 use version_utils qw(is_sle is_opensuse);
 use scheduler 'get_test_suite_data';
+
+sub bsc1180954_missing_module {
+    my $missing_module = shift;
+    if (check_screen('missing_module')) {
+        record_soft_failure "bsc#1180954 - Missing module in firsboot.xml spawns a report-a-bug pop-up";
+        select_console('install-shell');
+        zypper_call("in $missing_module");
+        select_console('installation');
+        send_key "alt-y";
+    }
+}
 
 sub firstboot_language_keyboard {
     my $shortcuts = {
@@ -70,6 +81,7 @@ sub firstboot_user {
 sub firstboot_root {
     assert_screen 'root_user', 60;
     enter_rootinfo;
+    bsc1180954_missing_module('yast2-registration');
 }
 
 sub firstboot_hostname {
