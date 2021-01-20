@@ -22,7 +22,6 @@ use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
-use serial_terminal 'prepare_serial_console';
 use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
@@ -292,8 +291,6 @@ sub run {
     if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos) {
         $self->wait_boot;
     }
-
-    prepare_serial_console;
 
     $self->select_serial_terminal;
 
