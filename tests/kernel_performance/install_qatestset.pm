@@ -50,7 +50,20 @@ sub setup_environment {
     }
 }
 
+sub os_update {
+    my $update_repo_url  = shift;
+    my $zypper_repo_path = "/etc/zypp/repos.d";
+
+    assert_script_run("wget -N -P $zypper_repo_path $update_repo_url 2>&1");
+    zypper_call("--gpg-auto-import-keys ref");
+    zypper_call("dup");
+}
+
+
 sub run {
+    if (my $hana_perf_os_update = get_var("HANA_PERF_OS_UPDATE")) {
+        os_update($hana_perf_os_update);
+    }
     install_pkg;
     setup_environment;
     power_action('poweroff', keepconsole => 1, textmode => 1);
