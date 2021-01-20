@@ -153,10 +153,10 @@ sub get_guest_memory {
     my $guest = shift;
     # Try dmidecode
     my $memory = 0;
-    $memory = eval { script_output("ssh $guest dmidecode --type 17 | grep Size | awk -F ':' '{print $2}' | awk -F ' ' '{print $1}'") } if (!is_xen_host);
+    $memory = eval { script_output("ssh $guest dmidecode --type 17 | grep Size | awk -F ':' '{print \$2}' | awk -F ' ' '{print \$1}'") } if (!is_xen_host);
     if (!defined($memory) || $memory <= 0) {
         # Use free as fallback which is less accurate but OK for our test cases
-        $memory = script_output("ssh $guest free | grep Mem | awk '{print \$2}'");
+        $memory = script_output('ssh $guest free | grep Mem | awk {print $2}"');
     }
     return $memory;
 }
@@ -170,8 +170,7 @@ sub set_guest_memory {
     sleep 5;
     # Memory reposts are not precise, we allow for a +/-10% acceptance range
     my $guestmemory = get_guest_memory($guest);
-    # openQA reports a syntax error
-    #return (0.9 * $memory <= $guestmemory <= 1.1 * $memory);
+    # openQA reports a syntax error here: return (0.9 * $memory <= $guestmemory <= 1.1 * $memory);
     return (0.9 * $memory <= $guestmemory) && ($guestmemory <= 1.1 * $memory);
 }
 

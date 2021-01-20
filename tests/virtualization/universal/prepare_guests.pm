@@ -48,14 +48,25 @@ sub run {
     # Show all guests
     assert_script_run 'virsh list --all';
     wait_still_screen 1;
+    save_screenshot;
 
     # Install every defined guest
     create_guest $_, 'virt-install' foreach (values %virt_autotest::common::guests);
 
     ## Ensure every guest has <on_reboot>restart</on_reboot>
+    assert_script_run('curl -v -o ensure_reboot_policy.sh ' . data_url('virtualization/ensure_reboot_policy.sh'));
+    assert_script_run('chmod 0755 ensure_reboot_policy.sh');
     foreach my $guest (keys %virt_autotest::common::guests) {
-        if (script_run("! virsh dumpxml $guest | grep 'on_reboot' | grep -v 'restart'") != 0) {
-            record_info("$guest bsc#1153028", "Setting on_reboot=restart failed for $guest");
+        if (script_run("! ./ensure_reboot_policy.sh $guest") != 0) {
+            record_soft_failure("$guest bsc#1153028\nSetting on_reboot=restart failed for $guest");
+        }
+    }
+    ## Add a PCIe root port and a PCIe to PCI bridge for hotplugging
+    assert_script_run('curl -v -o add_pcie_hotplugging.sh ' . data_url('virtualization/add_pcie_hotplugging.sh'));
+    assert_script_run('chmod 0755 add_pcie_hotplugging.sh');
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        if (script_run("./add_pcie_hotplugging $guest")) {
+            record_soft_failure("Failed to add PCIe2PCI bridge for $guest\nThis prevents bsc#1175218");
         }
     }
 
