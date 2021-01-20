@@ -30,7 +30,7 @@ sub firstboot_language_keyboard {
     mouse_hide(1);
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
-        send_key 'ret' if check_var('DESKTOP', 'textmode');
+        wait_screen_change(sub { send_key 'ret' }) if check_var('DESKTOP', 'textmode');
         assert_screen $shortcuts->{$_} . '_selected';
     }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
