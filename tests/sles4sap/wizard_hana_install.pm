@@ -16,7 +16,8 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(file_content_replace type_string_slow);
-use x11utils 'turn_off_gnome_screensaver';
+use x11utils qw(turn_off_gnome_screensaver);
+use version_utils qw(package_version_cmp);
 
 sub run {
     my ($self) = @_;
@@ -41,6 +42,9 @@ sub run {
 
     # Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
     $self->install_libopenssl_legacy($path);
+
+    # Get package version
+    my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' sap-installation-wizard");
 
     if (check_var('DESKTOP', 'textmode')) {
         script_run "yast2 sap-installation-wizard; echo yast2-sap-installation-wizard-status-\$? > /dev/$serialdev", 0;
@@ -67,8 +71,10 @@ sub run {
     assert_screen 'sap-wizard-copying-media',     120;
     assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
     send_key $cmd{next};
-    assert_screen 'sap-wizard-additional-repos';
-    send_key $cmd{next};
+    if (package_version_cmp($wizard_package_version, '4.3.0') <= 0) {
+        assert_screen 'sap-wizard-additional-repos';
+        send_key $cmd{next};
+    }
     assert_screen 'sap-wizard-hana-system-parameters';
     send_key 'alt-s';                                          # SAP SID
     send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');
