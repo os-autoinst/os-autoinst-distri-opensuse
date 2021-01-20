@@ -59,11 +59,16 @@ sub check_available {
 
 sub install_zfs {
     my $repo = get_repository();
-    die "Sorry, zfs repository is not (yet) available for this distribution" unless (check_available($repo));
+    if (!check_available($repo)) {
+        my $msg = "Sorry, zfs repository is not (yet) available for this distribution";
+        record_soft_failure($msg);
+        return 0;
+    }
     # TODO: Replace -G (--no-gpgcheck) with something more sane
     zypper_call("addrepo -fG $repo");
     zypper_call('refresh');
     zypper_call('install zfs');
+    return 1;
 }
 
 sub prepare_disks {
@@ -111,7 +116,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
     select_console 'root-console';
-    install_zfs();
+    return unless (install_zfs());    # Possible softfailure if module is not yet available (e.g. new Leap version)
     assert_script_run('modprobe zfs');
     prepare_disks();
 
