@@ -82,9 +82,6 @@ sub prepare_parmfile {
     my $params = '';
     $params .= " " . get_var('S390_NETWORK_PARAMS');
     $params .= " " . get_var('EXTRABOOTPARAMS');
-    if ((is_sle('>=15-SP2') || is_tumbleweed()) && get_var('WORKAROUND_BUGS') =~ 'bsc1156047') {
-        $params .= ' hvc_iucv=8';
-    }
 
     $params .= remote_install_bootmenu_params;
 
