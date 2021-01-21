@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,7 @@
 # Summary: Page to handle partition type (exteded, primary) for msdos partitions
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage;
+package Installation::Partitioner::LibstorageNG::v4_3::MsdosPartitionTypePage;
 use strict;
 use warnings;
 
@@ -30,9 +30,19 @@ sub init {
     return $self;
 }
 
-sub select_new_partition_type {
-    my ($self, $partition_type) = @_;
-    return ($partition_type eq 'primary') ? $self->{rb_primary}->select() : $self->{rb_extended}->select();
+sub set_type {
+    my ($self, $type) = @_;
+    $self->select_type($type) if $type;
+    $self->press_next();
+}
+
+sub select_type {
+    my ($self, $type) = @_;
+    my %types = (
+        primary  => $self->{rb_primary},
+        extended => $self->{rb_extended}
+    );
+    return $types{$type}->select();
 }
 
 sub press_next {
