@@ -45,22 +45,14 @@ sub instance_log_args
 sub run {
     my ($self)   = @_;
     my $arch     = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_repo = get_var('LTP_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version("-") . '/' . $arch . '/');
+    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
     my $REG_CODE = get_required_var('SCC_REGCODE');
 
     $self->select_serial_terminal;
 
-    my $ltp_rpm         = get_ltp_rpm($ltp_repo);
-    my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
-    my $remote_rpm_path = '/tmp/' . $ltp_rpm;
-    record_info('LTP RPM', $ltp_repo . $ltp_rpm);
-    assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
-
     my $provider = $self->provider_factory();
     my $instance = $self->{my_instance} = $provider->create_instance();
     $instance->wait_for_guestregister();
-
-    $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path);
 
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
@@ -68,12 +60,26 @@ sub run {
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
 
+    # in repo with LTP rpm is internal we need to manually upload package to VM
+    if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
+        my $ltp_rpm         = get_ltp_rpm($ltp_repo);
+        my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
+        my $remote_rpm_path = '/tmp/' . $ltp_rpm;
+        record_info('LTP RPM', $ltp_repo . $ltp_rpm);
+        assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
+        $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path) if (get_var('LTP_RPM_MANUAL_UPLOAD'));
+        $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
+    }
+    else {
+        $instance->run_ssh_command(cmd => 'sudo zypper -q addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
+        $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp',                              timeout => 600);
+    }
+
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
     # Install ltp from package on remote
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE, timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
-    $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
-    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh',                                       timeout => 300);
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE,          timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
+    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh', timeout => 300);
 
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 
