@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 # Doc: https://en.opensuse.org/YaST_Firstboot
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
-use base 'y2_installbase';
+use base 'y2_module_guitest';
 use y2_logs_helper qw(accept_license verify_license_has_to_be_accepted);
 use strict;
 use warnings;
@@ -96,6 +96,10 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
     # upload YaST2 Firstboot configuration file
     upload_logs('/etc/YaST2/firstboot.xml', log_name => "firstboot.xml.conf");
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;
