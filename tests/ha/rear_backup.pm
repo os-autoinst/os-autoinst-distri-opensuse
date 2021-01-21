@@ -49,7 +49,19 @@ sub run {
         my $local_conf = '/etc/rear/local.conf';
         assert_script_run("curl -f -v " . data_url('ha/rear_local.conf') . " -o $local_conf");
         file_content_replace("$local_conf", q(%BACKUP_URL%) => $backup_url);
-        assert_script_run('rear -d -D mkbackup', timeout => $timeout);
+        my $backup_rc = script_run('rear -d -D mkbackup', timeout => $timeout);
+        die 'Unexpected error in mkbackup command' unless defined $backup_rc;
+        unless ($backup_rc == 0) {
+            # Check for bsc#1180946
+            my $var_rc = script_run("grep 'MODULES[[:blank:]]*=' $local_conf");
+            die 'Unexpected error in grep command' unless defined $var_rc;
+            unless ($var_rc == 0) {
+                record_soft_failure('bsc#1180946 - [Build 124.5] openQA test fails in rear_backup with "ERROR: unix exists but no module file?"');
+                assert_script_run("echo \"MODULES=( 'all_modules' )\" >> $local_conf");
+            }
+            # Retry the mkbackup command
+            assert_script_run('rear -d -D mkbackup', timeout => $timeout);
+        }
     }
 
     # Upload the logs
