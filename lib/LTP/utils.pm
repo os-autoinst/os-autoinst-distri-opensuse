@@ -176,8 +176,6 @@ sub schedule_tests {
         format      => 'result_array:v2',
         environment => {},
         results     => []};
-    my $cmd_pattern = get_var('LTP_COMMAND_PATTERN') || '.*';
-    my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
     my $environment = {
         product     => get_var('DISTRI') . ':' . get_var('VERSION'),
         revision    => get_var('BUILD'),
@@ -211,18 +209,7 @@ sub schedule_tests {
         loadtest_kernel 'ltp_init_lvm';
     }
 
-    for my $name (split(/,/, $cmd_file)) {
-        if ($name eq 'openposix') {
-            parse_openposix_runfile($name,
-                read_runfile('/root/openposix-test-list'),
-                $cmd_pattern, $cmd_exclude, $test_result_export);
-        }
-        else {
-            parse_runtest_file($name, read_runfile("/opt/ltp/runtest/$name"),
-                $cmd_pattern, $cmd_exclude, $test_result_export);
-        }
-    }
-
+    parse_runfiles($cmd_file, $test_result_export);
     shutdown_ltp(run_args => testinfo($test_result_export));
 }
 
@@ -253,6 +240,25 @@ sub parse_runtest_file {
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
                 loadtest_kernel('run_ltp', name => $test->{name}, run_args => $tinfo);
             }
+        }
+    }
+}
+
+sub parse_runfiles {
+    my ($cmd_file, $test_result_export) = @_;
+
+    my $cmd_pattern = get_var('LTP_COMMAND_PATTERN') || '.*';
+    my $cmd_exclude = get_var('LTP_COMMAND_EXCLUDE') || '$^';
+
+    for my $name (split(/,/, $cmd_file)) {
+        if ($name eq 'openposix') {
+            parse_openposix_runfile($name,
+                read_runfile('/root/openposix-test-list'),
+                $cmd_pattern, $cmd_exclude, $test_result_export);
+        }
+        else {
+            parse_runtest_file($name, read_runfile("/opt/ltp/runtest/$name"),
+                $cmd_pattern, $cmd_exclude, $test_result_export);
         }
     }
 }
