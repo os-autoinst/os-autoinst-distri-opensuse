@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-rdp xrdp
 # Summary: this test checks that YaST2's RDP module is behaving
 #          correctly in cmdline mode  and verifying that RDP service
 #          has been successfully set.

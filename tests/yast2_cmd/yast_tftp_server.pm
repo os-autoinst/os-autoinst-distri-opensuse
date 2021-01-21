@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: tftp yast2-tftp-server
 # Summary: this test checks that YaST's tftp-server module are
 #          setup, enabled and disabled correctly in cmd mode.
 # - Install yast2-tftp-server tftp

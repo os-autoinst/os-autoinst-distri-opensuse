@@ -10,6 +10,7 @@
 # All of cases is based on the reference:
 # https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_admin.html#id-1.3.3.6.13.6.34
 #
+# Package: yast2-users yast2-nis-client ypbind yp-tools
 # Summary: manages user accounts
 #     Requirement: external NIS server "wotan.suse.de"
 #     Key Steps:

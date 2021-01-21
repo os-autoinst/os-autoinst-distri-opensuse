@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Package: gnome-control-center vino xterm systemd
+# Package: gnome-control-center vino systemd
 # Summary: Test if the Screen Sharing GNOME Desktop functionality works
 #   We currently need to install vino package for that
 # - Launch "gnome-control-center sharing"

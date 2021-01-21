@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Package: xterm dhcp-client remmina
+# Package: dhcp-client remmina
 # Summary: Remote Login: One-time VNC Session with remmina and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1610354

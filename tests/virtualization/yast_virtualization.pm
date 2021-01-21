@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm yast2-vm
+# Package: yast2-vm
 # Summary: Add virtualization hypervisor components to an installed system
 # Maintainer: aginies <aginies@suse.com>
 

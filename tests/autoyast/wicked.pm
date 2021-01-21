@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: wicked systemd iproute2 hwinfo
 # Summary: wicked script for more logs if eth0 is not up
 # - Check wickedd status
 # - Send network interface list to serial output

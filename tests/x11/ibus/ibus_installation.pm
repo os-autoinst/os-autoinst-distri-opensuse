@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm ibus ibus-libpinyin ibus-pinyin ibus-kkc ibus-hangul
+# Package: ibus ibus-libpinyin ibus-pinyin ibus-kkc ibus-hangul
 # gnome-terminal
 # Summary: ibus installation
 # Maintainer: Gao Zhiyuan <zgao@suse.com>

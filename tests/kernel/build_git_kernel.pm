@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel
+# make dracut
 # Summary: build, install and boot a custom, upstream kernel tree
 #          from an arbitrary git tree
 #

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: systemd-sysvinit
 # Summary: Reboot for autoyast scenarios
 # - Call power_action reboot, with options "keepconsole => 1" and "textmode =>
 # 1"

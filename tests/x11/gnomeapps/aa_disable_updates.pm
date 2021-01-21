@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm glib2-tools
+# Package: glib2-tools
 # Summary: Disable GNOME Software wanting to auto-update the system
 # Maintainer: Dominique Leuenberger <dimstar@suse.de>>
 

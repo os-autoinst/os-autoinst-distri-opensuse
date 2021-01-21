@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Package: xterm dhcp-client xorg-x11-server-extra
+# Package: dhcp-client xorg-x11-server-extra
 # Summary: Remote Login: XDMCP with xdm and icewm configured
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586204

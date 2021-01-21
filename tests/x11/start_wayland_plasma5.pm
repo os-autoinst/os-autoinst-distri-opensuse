@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: plasma5-session-wayland xterm
+# Package: plasma5-session-wayland
 # Summary: Prepare for wayland and log out of X11 and into wayland
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 

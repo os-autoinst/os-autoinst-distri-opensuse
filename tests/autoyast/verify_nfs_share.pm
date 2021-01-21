@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 #
+# Package: nfs-client
 # Summary: Validate nfs share is mounted after is enabled in AutoYaST installation.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 

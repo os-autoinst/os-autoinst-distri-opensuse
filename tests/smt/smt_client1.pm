@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: smt-client SUSEConnect
 # Summary: run smt client, register to smt server
 # - Install smt client
 # - Clean SUSEConnect registration

@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm ghostscript ghostscript-x11 gv
+# Package: ghostscript ghostscript-x11 gv
 # Summary: Add ghostscript test
 #    This test downloads a script that converts all the .ps images in
 #    the examples to .pdf files. If one (or more) were not converted

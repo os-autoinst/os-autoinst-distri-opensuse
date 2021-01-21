@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nfs-client yast2-instserver lftp xinetd vsftpd openslp-server yast2-nfs-server nfs-client apache2
 # Summary: test yast2-instserver using HTTP, FTP and NFS
 # - ensure that all needed packages are installed
 # - setup instserver using HTTP

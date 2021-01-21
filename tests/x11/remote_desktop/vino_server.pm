@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Package: xterm yast2-firewall gnome-control-center vino
+# Package: yast2-firewall gnome-control-center vino
 # Summary: Remote Login: vino server for VNC connections
 #          server: vino_server.pm
 #          client: vino_client.pm

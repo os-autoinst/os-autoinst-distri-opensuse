@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: zypper xfstests fio
 # Summary: Install xfstests
 # - Stop packagekit service
 # - Add qa-head repository

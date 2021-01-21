@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm yast2-rmt rmt-server
+# Package: yast2-rmt rmt-server
 # Summary: Add rmt configuration test and disconnect RMT test
 #    test basic configuration via rmt-wizard, test disconnect RMT
 #    via import RMT data and repos from an existing RMT server,

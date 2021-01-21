@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-storage-ng util-linux
 # Summary: This test will check that creating, resizing, encrypting and
 #          deleting a partition, a volume group and some logical volumes work as
 #          intended.

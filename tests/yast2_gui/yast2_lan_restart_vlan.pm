@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-network
 # Summary: The test verifies that network is not restarted if no changes were
 # made to the configuration of VLAN device but "Ok" button was pressed in
 # Network Settings. Related tasks: fate#318787 poo#11450

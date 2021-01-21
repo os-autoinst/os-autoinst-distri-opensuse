@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2
 # Summary: Test YaST2 module for software management
 # Maintainer: Max Lin <mlin@suse.com>
 

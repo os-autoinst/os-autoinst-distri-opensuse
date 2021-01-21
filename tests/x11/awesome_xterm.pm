@@ -1,4 +1,4 @@
-# Package: awesome xterm
+# Package: awesome
 # Summary: Test for xterm started in awesome window manager
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 # Tags: poo#9522

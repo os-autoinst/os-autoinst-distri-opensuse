@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm gnome-tweaks gnome-tweak-tool dconf-editor
+# Package: gnome-tweaks gnome-tweak-tool dconf-editor
 # Summary: testcase 5255-1503973: Gnome: Applications starts on login
 # - Checks if machine is at a generic desktop
 # - Launches a xterm

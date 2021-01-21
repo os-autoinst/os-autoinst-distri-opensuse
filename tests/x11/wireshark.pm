@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm wireshark
+# Package: wireshark
 # Summary: Wireshark test
 #  Start:
 #   - start wireshark in fullscreen

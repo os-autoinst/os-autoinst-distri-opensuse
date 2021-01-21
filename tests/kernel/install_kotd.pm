@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: kernel-default
 # Summary: Module installs the KOTD (kernel of the day) and then reboots.
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 

@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm yast2
+# Package: yast2
 # Summary: YaST logic on Network Restart while no config changes were made
 # - Launch xterm as root, stop firewalld
 # - Put network in debug mode (DEBUG="yes" on /etc/sysconfig/network/config)

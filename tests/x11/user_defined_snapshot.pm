@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm yast2-snapper grub2
+# Package: yast2-snapper grub2
 # Summary: Show user defined comments in grub2 menu for snapshots
 # - Launch yast2 snapper
 # - Create a new snapshot, name "grub_comment", user_data

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: parted systemd
 # Summary: bsc#1089761, SUSE-RU-2018:2620-1
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>

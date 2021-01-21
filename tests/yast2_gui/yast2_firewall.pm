@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-firewall yast2-http-server apache2 apache2-prefork firewalld
 # Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>

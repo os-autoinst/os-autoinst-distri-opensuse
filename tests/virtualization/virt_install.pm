@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm virt-install tigervnc
+# Package: virt-install tigervnc
 # Summary: 'virt-install' test
 # Maintainer: aginies <aginies@suse.com>
 

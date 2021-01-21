@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-security
 # Summary: this test checks that YaST2's Security module is behaving
 #          correctly by changing some values and verifying that they
 #          have been successfully set.

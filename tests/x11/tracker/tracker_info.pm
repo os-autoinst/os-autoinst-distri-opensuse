@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm tracker
+# Package: tracker
 # Summary: Tracker: tracker info for file
 # - Launch a xterm
 # - Run "tracker info newpl.pl" or "tracker-info newpl.pl" if older than

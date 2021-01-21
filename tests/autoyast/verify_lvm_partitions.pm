@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 #
+# Package: lvm2
 # Summary: Verify lvm partitions after autoyast installation
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

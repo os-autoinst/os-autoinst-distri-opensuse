@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Package: xterm dhcp-client MozillaFirefox
+# Package: dhcp-client MozillaFirefox
 # Summary: Remote Login: One-time VNC Session with Jave applet and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586207
