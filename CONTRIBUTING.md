@@ -16,6 +16,14 @@ Please, find up-to-date documentation references on the official [openQA project
 If you are looking for a task to start with, check out the [openQA Tests](https://progress.opensuse.org/projects/openqatests/issues/)
 Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
+## How to get this repository working
+
+Upon setting up a new openQA instance, it's also necessary to install some aditional dependencies that are inherent to this repository,
+for which there are two ways:
+
+* In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
+* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps`
+
 #### Relevant documentation
 
 * All openQA documentation in a single [html page](https://open.qa/docs/)
