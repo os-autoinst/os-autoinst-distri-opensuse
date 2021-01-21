@@ -42,6 +42,7 @@
           <package>grub2</package>
           <package>sles-release</package>
           <package>yast2-firstboot</package>
+          <package>yast2-registration</package>
         </packages>
         <patterns config:type="list">
           <pattern>apparmor</pattern>
