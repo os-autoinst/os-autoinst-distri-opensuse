@@ -34,7 +34,7 @@ use Utils::Architectures 'is_s390x';
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs);
+  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests);
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -324,6 +324,29 @@ sub collect_virt_system_logs {
     assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
     assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
     upload_asset '/tmp/dumpxml.tar.gz';
+}
+
+# Shutdown all guests. Wait until they are shutdown
+sub shutdown_guests {
+    ## Reboot the guest to ensure the settings are applied
+    # Shutdown and start the guest because some might have the on_reboot=destroy policy still applied
+    script_run("virsh shutdown $_") foreach (keys %virt_autotest::common::guests);
+    # Wait until guests are terminated
+    # Note: Domain-0 is for xen, but it does not hurt to exclude this also in KVM runs.
+    script_retry("virsh list | grep -v Domain-0 | grep running", delay => 3, retry => 30, expect => 1);
+}
+
+sub wait_guest_online {
+    my $guest = shift;
+    # Wait until guest is reachable via ssh
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 60, retry => 60);
+}
+
+# Start all guests and waits until they are online
+sub start_guests {
+    script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
+    # Wait until ssh is ready for guest
+    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 }
 
 1;
