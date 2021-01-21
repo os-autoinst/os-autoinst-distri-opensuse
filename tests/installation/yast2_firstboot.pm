@@ -77,6 +77,11 @@ sub firstboot_hostname {
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
+sub firstboot_registration {
+    assert_screen 'system_registered';
+    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+}
+
 sub run {
     my $self      = shift;
     my $test_data = get_test_suite_data();
