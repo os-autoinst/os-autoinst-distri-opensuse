@@ -11,7 +11,7 @@
 # Doc: https://en.opensuse.org/YaST_Firstboot
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
-use base 'y2_module_guitest';
+use base 'y2_module_basetest';
 use y2_logs_helper qw(accept_license verify_license_has_to_be_accepted);
 use strict;
 use warnings;
