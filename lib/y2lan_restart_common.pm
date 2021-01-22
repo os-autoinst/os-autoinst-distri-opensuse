@@ -27,6 +27,7 @@ use version_utils qw(is_sle is_leap);
 use y2_module_basetest qw(accept_warning_network_manager_default is_network_manager_default);
 use y2_module_consoletest;
 use Test::Assert ':all';
+use x11utils "start_root_shell_in_xterm";
 
 our @EXPORT = qw(
   check_etc_hosts_update
@@ -59,9 +60,7 @@ Initialize yast2 lan. Stop firewalld. Ensure firewalld is stopped. Enable DEBUG.
 =cut
 sub initialize_y2lan
 {
-    select_console 'x11';
-    x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
-    become_root;
+    start_root_shell_in_xterm();
     # make sure that firewalld is stopped, or we have later pops for firewall activation warning
     # or timeout for command 'ip a' later
     if ((is_sle('15+') or is_leap('15.0+')) and script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=inactive")) {

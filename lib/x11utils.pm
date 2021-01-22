@@ -39,6 +39,7 @@ our @EXPORT = qw(
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
   untick_welcome_on_next_startup
+  start_root_shell_in_xterm
   workaround_boo1170586
 );
 
@@ -389,6 +390,19 @@ sub handle_welcome_screen {
     assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203)], $args{timeout});
     workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
+}
+
+=head2 start_root_shell_in_xterm
+
+    start_root_shell_in_xterm()
+    
+Start a root shell in xterm.
+
+=cut
+sub start_root_shell_in_xterm {
+    select_console 'x11';
+    x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
+    become_root;
 }
 
 1;
