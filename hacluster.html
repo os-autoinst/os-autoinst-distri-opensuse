@@ -41,6 +41,7 @@
       <li><a href="#rsc_cleanup">rsc_cleanup</a></li>
       <li><a href="#ha_export_logs">ha_export_logs</a></li>
       <li><a href="#check_cluster_state">check_cluster_state</a></li>
+      <li><a href="#wait_until_resources_stopped">wait_until_resources_stopped</a></li>
       <li><a href="#wait_until_resources_started">wait_until_resources_started</a></li>
       <li><a href="#get_lun">get_lun</a></li>
       <li><a href="#check_device_available">check_device_available</a></li>
@@ -231,6 +232,12 @@
 <p>Check state of the cluster. This will call <b>$crm_mon_cmd</b> to check the current status of the cluster, check for inactive resources and for <span style="white-space: nowrap;">partition with quorum</span> in the output of <b>$crm_mon_cmd</b>, check the reported number of nodes in the output of <code>crm node list</code> and <b>$crm_mon_cmd</b> is the same and run <code>crm_verify -LV</code>.</p>
 
 <p>With the named argument <b>proceed_on_failure</b> set to 1, the method will use <b>script_run()</b> and attempt to run all commands in SUT without checking for errors. Without it, the method uses <b>assert_script_run()</b> and will croak on failure.</p>
+
+<h2 id="wait_until_resources_stopped">wait_until_resources_stopped</h2>
+
+<pre><code> wait_until_resources_stopped( [ timeout =&gt; $timeout, minchecks =&gt; $tries ] );</code></pre>
+
+<p>Wait for resources to be stopped. Runs <b>$crm_mon_cmd</b> until there are no resources in <b>stopping</b> state or up to <b>$timeout</b> seconds. Timeout must be specified by the named argument <b>timeout</b> (defaults to 120 seconds). This timeout is scaled by the factor specified in the <b>TIMEOUT_SCALE</b> setting. The named argument <b>minchecks</b> (defaults to 3, can be disabled with 0) provides a minimum number of times to check independently of the return status; this helps avoid race conditions where the method checks before the HA stack starts to stop the resources. Croaks on timeout.</p>
 
 <h2 id="wait_until_resources_started">wait_until_resources_started</h2>
 
