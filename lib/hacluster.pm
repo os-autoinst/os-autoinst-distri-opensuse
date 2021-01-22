@@ -53,6 +53,7 @@ our @EXPORT = qw(
   rsc_cleanup
   ha_export_logs
   check_cluster_state
+  wait_until_resources_stopped
   wait_until_resources_started
   get_lun
   check_device_available
@@ -643,6 +644,42 @@ sub check_cluster_state {
     }
 }
 
+=head2 wait_until_resources_stopped
+
+ wait_until_resources_stopped( [ timeout => $timeout, minchecks => $tries ] );
+
+Wait for resources to be stopped. Runs B<$crm_mon_cmd> until there are no resources
+in B<stopping> state or up to B<$timeout> seconds. Timeout must be specified by the
+named argument B<timeout> (defaults to 120 seconds). This timeout is scaled by the
+factor specified in the B<TIMEOUT_SCALE> setting.  The named argument B<minchecks>
+(defaults to 3, can be disabled with 0) provides a minimum number of times to check
+independently of the return status; this helps avoid race conditions where the method
+checks before the HA stack starts to stop the resources. Croaks on timeout.
+
+=cut
+
+sub wait_until_resources_stopped {
+    my %args      = @_;
+    my $timeout   = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $ret       = undef;
+    my $starttime = time;
+    my $minchecks = $args{minchecks} // 3;
+
+    do {
+        $ret = script_run "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*stopping')", $default_timeout;
+        # script_run need to be defined to ensure a correct exit code
+        _test_var_defined $ret;
+        my $timerun = time - $starttime;
+        --$minchecks if ($minchecks);
+        if ($timerun < $timeout) {
+            sleep 5;
+        }
+        else {
+            die "Cluster/resources did not stop within $timeout seconds";
+        }
+    } while ($minchecks || $ret);
+}
+
 =head2 wait_until_resources_started
 
  wait_until_resources_started( [ timeout => $timeout ] );
@@ -663,8 +700,8 @@ sub wait_until_resources_started {
     my $ret     = undef;
 
     # Some CRM options can only been added on recent versions
-    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'"                           if is_sle '12-sp3+';
-    push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')" if is_sle '12-sp3+';
+    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'" if is_sle '12-sp3+';
+    push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')";
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
