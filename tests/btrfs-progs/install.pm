@@ -34,7 +34,11 @@ sub install_dependencies {
       libblkid-devel
       zlib-devel
       libext2fs-devel
+      libmount-devel
     );
+    if (get_var('BTRFS_PROGS_DEPS')) {
+        @deps = split(/,/, get_var('BTRFS_PROGS_DEPS'));
+    }
     zypper_call('in ' . join(' ', @deps));
 }
 
