@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use base "Exporter";
 use Exporter;
 
 
-our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules repo_is_not_active);
+our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules);
 
 sub query_smelt {
     my $graphql = $_[0];
@@ -56,14 +56,6 @@ sub get_packagebins_in_modules {
     # Return a hash of hashes, hashed by name. The values are hashes with the keys 'name', 'supportstatus' and
     # 'package'.
     return map { $_->{name} => $_ } @arr;
-}
-
-sub repo_is_not_active {
-    my $repo = $_[0];
-    $repo =~ m".+Maintenance\:\/(\d+)";
-    my $id     = $1;
-    my $status = query_smelt("{incidents(incidentId: $id){edges{node{status {name}}}}}");
-    record_info("$id", "$id have been released") && return $id if $status =~ /\Qstatus":{"name":"done"\E/;
 }
 
 1;

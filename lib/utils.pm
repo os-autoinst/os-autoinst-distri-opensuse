@@ -28,7 +28,6 @@ use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
-use maintenance_smelt qw(repo_is_not_active);
 
 our @EXPORT = qw(
   check_console_font
@@ -530,21 +529,7 @@ sub zypper_call {
             next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
         if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106 || $ret == 139 || $ret == 141)) {
-            # remove maintenance update repo which was released
-            if (($ret == 106 || $ret == 8 || $ret == 4) && script_run(q[grep -E "Repository type can't be determined|not found on medium" /var/log/zypper.log]) == 0) {
-                my @removed;
-                my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
-                while (defined(my $maintrepo = shift @repos)) {
-                    next if $maintrepo =~ /^\s*$/;
-                    my $id = repo_is_not_active($maintrepo);
-                    # id can repeat due to different product, next if repo was removed
-                    next if (grep(/$id/, @removed));
-                    push @removed, $id;
-                    # remove all repositories containing ID, ignore failure as removed repo can be in list again as MAINT_TEST_REPO is not altered
-                    script_run(qq[zypper rr \$(zypper lr -u|awk 'BEGIN {ORS=" "};/$id/{print\$1}')], 0) if $id =~ /\d{3}\d+/;
-                }
-            }
-            elsif (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
+            if (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
                 record_soft_failure 'Zypper exiting on SIGPIPE received during package download bsc#1145521';
             }
             else {

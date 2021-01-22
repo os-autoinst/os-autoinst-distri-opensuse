@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,6 @@ use utils qw(zypper_call);
 use JSON;
 use List::Util qw(max);
 use version_utils 'is_sle';
-use maintenance_smelt qw(repo_is_not_active);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
@@ -89,7 +88,6 @@ sub add_test_repositories {
     @repos = split(',', $oldrepo) if ($oldrepo);
 
     for my $var (@repos) {
-        next if repo_is_not_active($var);
         zypper_call("--no-gpg-checks ar -f -n 'TEST_$counter' $var 'TEST_$counter'");
         $counter++;
     }
