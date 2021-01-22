@@ -1,0 +1,8 @@
+clients:
+  - firstboot_language_keyboard
+  - firstboot_welcome
+  - firstboot_licenses
+  - firstboot_timezone
+  - firstboot_user
+  - firstboot_root
+  - firstboot_registration
