@@ -62,10 +62,16 @@ mv /var/run/zypp.sav /var/run/zypp.pid
       <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
   <firewall>
-    <FW_CONFIGURATIONS_EXT>apache2 apache2-ssl</FW_CONFIGURATIONS_EXT>
-    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
-    <FW_SERVICES_EXT_TCP>8080</FW_SERVICES_EXT_TCP>
-    <FW_SERVICES_EXT_UDP>9090</FW_SERVICES_EXT_UDP>
+    <zones config:type="list">
+      <zone>
+        <name>external</name>
+        <services config:type="list">
+          <service>http</service>
+          <service>https</service>
+        </services>
+      </zone>
+    </zones>
+    <log_denied_packets>off</log_denied_packets>
     <enable_firewall config:type="boolean">false</enable_firewall>
     <start_firewall config:type="boolean">false</start_firewall>
   </firewall>
