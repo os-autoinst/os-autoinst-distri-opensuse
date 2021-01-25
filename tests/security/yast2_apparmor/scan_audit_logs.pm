@@ -1,4 +1,4 @@
-# Copyright (C) 2020 SUSE LLC
+# Copyright (C) 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ sub run {
     # Enter "yast2 apparmor"
     type_string("yast2 apparmor &\n");
     # Enter "Scan Audit logs" and check there should no records
-    assert_and_click("AppArmor-Scan-Audit-logs");
+    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
     send_key "alt-l";
     assert_screen("AppArmor-Scan-Audit-logs-no-records");
     # Exit "yast2 apparmor"
@@ -71,7 +71,7 @@ sub run {
     # Enter "yast2 apparmor" and verify apparmor can revise the profile based on former violation
     type_string("yast2 apparmor &\n");
     # Enter "Scan Audit logs" and check there should have records
-    assert_and_click("AppArmor-Scan-Audit-logs");
+    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
     send_key "alt-l";
     assert_screen("AppArmor-Scan-Audit-logs-scan-records");
 

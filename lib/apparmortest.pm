@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2020 SUSE LLC
+# Copyright (C) 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -646,7 +646,7 @@ sub yast2_apparmor_setup {
 # Yast2 Apparmor: check apparmor is enabled
 sub yast2_apparmor_is_enabled {
     type_string("yast2 apparmor &\n");
-    assert_screen("AppArmor-Configuration-Settings");
+    assert_screen("AppArmor-Configuration-Settings", timeout => 180);
     send_key "alt-l";
     assert_screen("AppArmor-Settings-Enable-Apparmor");
 }
