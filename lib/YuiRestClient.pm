@@ -95,8 +95,9 @@ sub teardown_libyui {
         save_svirt_pty;
         type_line_svirt "exit";
     } else {
-        assert_screen('startshell', timeout => 100);
-        type_string_slow "exit\n";
+        check_screen('startshell', timeout => 100);
+        # Putting new line to avoid issues if anything was put there (see poo#81034)
+        type_string_slow "\nexit\n";
     }
 }
 
