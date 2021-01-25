@@ -22,10 +22,11 @@ sub run {
     my $self = shift;
 
     assert_and_click "start";
-    type_string "remote access";
+    type_string "allow remote connections";
     assert_screen "start_menu-remote_access-controlpanel";
     send_key "ret";
 
+    assert_and_click "show-settings";
     assert_and_click "allow-remote-connections";
     assert_screen "allow-connections-with-nla-enabled";
 
@@ -35,6 +36,7 @@ sub run {
     }
 
     assert_and_click "system-properties-ok";
+    assert_and_click "close-settings";
 
     mutex_create 'win_server_ready';
     wait_for_children;
