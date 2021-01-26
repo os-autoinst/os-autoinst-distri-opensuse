@@ -16,7 +16,8 @@
 #    - path: /etc/chrony.conf
 #      entries:
 #        - pool ntp.suse.de iburst
-# NOTE: grep -P is used for validation, therefore can be used in entries
+# NOTE: grep -P is used for validation, therefore perl regexp syntax can be
+#       used in the entries
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_module_consoletest';
