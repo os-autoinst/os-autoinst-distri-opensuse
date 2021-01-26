@@ -35,14 +35,14 @@ sub run {
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    # Check that guests are online so we can continue and setup them
-    ensure_online $_, skip_ssh => 1, ping_delay => 45 foreach (keys %virt_autotest::common::guests);
-
     ## Reboot the guest to ensure the settings are applied
     # Do a shutdown and start here because some guests might not reboot because of the on_reboot=destroy policy
     shutdown_guests();
     ensure_reboot_policy("$_") foreach (keys %virt_autotest::common::guests);
     start_guests();
+
+    # Check that guests are online so we can continue and setup them
+    ensure_online $_, skip_ssh => 1, ping_delay => 45 foreach (keys %virt_autotest::common::guests);
 
     # All guests should be now installed and running
     assert_script_run 'virsh list --all';

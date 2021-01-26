@@ -151,12 +151,13 @@ sub add_vcpu {
 # Returns the guest memory in M
 sub get_guest_memory {
     my $guest = shift;
-    # Try dmidecode
+    # Try dmidecode first and use free as fallback.
+    # Free is less accurate but OK for our test cases
     my $memory = 0;
     $memory = eval { script_output("ssh $guest dmidecode --type 17 | grep Size | awk -F ':' '{print \$2}' | awk -F ' ' '{print \$1}'") } if (!is_xen_host);
     if (!defined($memory) || $memory <= 0) {
-        # Use free as fallback which is less accurate but OK for our test cases
-        $memory = script_output('ssh $guest free | grep Mem | awk {print $2}"');
+        # Note: Free omits the kernel memory, we coursly account for it by adding 200MB
+        $memory = script_output('ssh $guest free | grep Mem | awk {print $2}"') + 200000;
     }
     return $memory;
 }
@@ -182,8 +183,8 @@ sub change_vmem {
         record_info('Skip memory hotplugging on outdated before-12-SP3 SLES product because immature memory handling situations');
         return;
     }
-    return if (is_xen_host && $guest =~ m/hvm/i);    # not supported on HVM guest
-    set_guest_memory($guest, 2048);
+    return                                                                      if (is_xen_host && $guest =~ m/hvm/i);    # not supported on HVM guest
+    record_soft_failure("Memory check failed (2048M) - Please check manually!") if (!set_guest_memory($guest, 2048));
     record_soft_failure("Memory check failed (3072M) - Please check manually!") if (!set_guest_memory($guest, 3072));
     record_soft_failure("Memory check failed (2048M) - Please check manually!") if (!set_guest_memory($guest, 2048));
 }

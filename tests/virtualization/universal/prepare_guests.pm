@@ -71,6 +71,9 @@ sub add_pci_bridge {
         # Check if settings are applied correctly in the xml
         assert_script_run("cat $xml | grep 'controller' | grep 'pcie-root-port'");
         assert_script_run("cat $xml | grep 'controller' | grep 'pcie-to-pci-bridge'");
+    } else {
+        my $msg = "Unknown machine type";
+        record_soft_failure($msg);
     }
 
     # Apply xml settings to VM. Note: They will be applied after reboot.

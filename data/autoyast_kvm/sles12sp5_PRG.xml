@@ -911,6 +911,7 @@
       <package>glibc</package>
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
+      <package>qemu-guest-agent</package>
     </packages>
     <patterns config:type="list">
       <pattern>32bit</pattern>

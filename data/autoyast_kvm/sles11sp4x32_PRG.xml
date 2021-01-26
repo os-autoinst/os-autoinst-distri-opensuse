@@ -721,6 +721,7 @@
       <package>yast2-schema</package>
       <package>yast2-trans-en_US</package>
       <package>yudit</package>
+      <package>qemu-guest-agent</package>
     </packages>
     <patterns config:type="list">
       <pattern>Minimal</pattern>

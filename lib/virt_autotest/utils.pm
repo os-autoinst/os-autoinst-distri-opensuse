@@ -332,14 +332,16 @@ sub shutdown_guests {
     # Shutdown and start the guest because some might have the on_reboot=destroy policy still applied
     script_run("virsh shutdown $_") foreach (keys %virt_autotest::common::guests);
     # Wait until guests are terminated
-    # Note: Domain-0 is for xen, but it does not hurt to exclude this also in KVM runs.
+    # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in KVM runs.
     script_retry("virsh list | grep -v Domain-0 | grep running", delay => 3, retry => 30, expect => 1);
 }
 
 sub wait_guest_online {
     my $guest = shift;
+    # Wait until guest is reachable via ping
+    script_retry("ping -c 1 $guest", delay => 5, retry => 60);
     # Wait until guest is reachable via ssh
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 60, retry => 60);
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 5, retry => 60);
 }
 
 # Start all guests and waits until they are online
