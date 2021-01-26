@@ -47,17 +47,12 @@ sub run {
     # new user to test sshd
     my $ssh_testman        = "sshboy";
     my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in1';
-    assert_script_run('echo -e "Match User ' . $ssh_testman . '\n\tPasswordAuthentication yes" >> /etc/ssh/sshd_config') if (get_var('PUBLIC_CLOUD'));
 
-    zypper_call('in expect');
+    # Allow password authentication for $ssh_testman
+    assert_script_run(qq(echo -e "Match User $ssh_testman\\n\\tPasswordAuthentication yes" >> /etc/ssh/sshd_config)) if (get_var('PUBLIC_CLOUD'));
 
-    # 'nc' is not installed by default on JeOS
-    if (script_run("which nc")) {
-        zypper_call("in netcat-openbsd");
-    }
-    if (script_run("which killall")) {
-        zypper_call("in psmisc");
-    }
+    # Install software needed for this test module
+    zypper_call("in netcat-openbsd expect psmisc");
 
     # Stop the firewall if it's available
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
@@ -97,44 +92,54 @@ sub run {
     script_run("exit", 0);
     assert_script_run "whoami | grep root";
 
-    # Generate RSA key for SSH and copy it to our new user's profile
+    # Generate RSA key for root and the user
     assert_script_run "ssh-keygen -t rsa -P '' -C 'root\@localhost' -f ~/.ssh/id_rsa";
     assert_script_run "su -c \"ssh-keygen -t rsa -P '' -C '$ssh_testman\@localhost' -f /home/$ssh_testman/.ssh/id_rsa\" $ssh_testman";
-    assert_script_run "install -m 0644 -o $ssh_testman ~/.ssh/id_rsa.pub /home/$ssh_testman/.ssh/authorized_keys";
-    assert_script_run "cat /home/$ssh_testman/.ssh/id_rsa.pub >> /home/$ssh_testman/.ssh/authorized_keys";
 
-    # Test non-interactive SSH and after that remove RSA keys
+    # Make sure user has both public keys in authorized_keys
+    assert_script_run "su -c \"cp /home/$ssh_testman/.ssh/{id_rsa.pub,authorized_keys}\"";
+    assert_script_run "cat ~/.ssh/id_rsa.pub >> /home/$ssh_testman/.ssh/authorized_keys";
+
+    # Test non-interactive SSH
     assert_script_run "ssh -4v $ssh_testman\@localhost bash -c 'whoami | grep $ssh_testman'";
 
     # Port forwarding (bsc#1131709 bsc#1133386)
-    assert_script_run "( ssh -NL 4242:localhost:22 $ssh_testman\@localhost & )";
-    assert_script_run "( ssh -NR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost & )";
+    assert_script_run "echo 'sshd.pm: Testing port forwarding' | logger";
+    assert_script_run "( ssh -vNL 4242:localhost:22 $ssh_testman\@localhost & )";
+    assert_script_run "( ssh -vNR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost & )";
     assert_script_run 'until ss -tulpn|grep sshd|egrep "4242|5252";do sleep 1;done';
+
+    # Scan public keys on forwarded ports
     assert_script_run "ssh-keyscan -p 4242 localhost >> ~/.ssh/known_hosts";
     assert_script_run "ssh-keyscan -p 5252 localhost >> ~/.ssh/known_hosts";
 
-    assert_script_run "ssh -p 4242 $ssh_testman\@localhost whoami";
-    assert_script_run "ssh -p 5252 $ssh_testman\@localhost whoami";
-    assert_script_run "ssh -p 4242 $ssh_testman\@localhost 'ssh-keyscan -p 22 localhost 127.0.0.1 ::1 >> ~/.ssh/known_hosts'";
-    assert_script_run "ssh -p 4242 $ssh_testman\@localhost 'ssh-keyscan -p 4242 localhost 127.0.0.1 ::1 >> ~/.ssh/known_hosts'";
-    assert_script_run "ssh -p 4242 $ssh_testman\@localhost 'ssh-keyscan -p 5252 localhost 127.0.0.1 ::1 >> ~/.ssh/known_hosts'";
+    # Connect to forwarded ports
+    assert_script_run "ssh -v -p 4242 $ssh_testman\@localhost whoami";
+    assert_script_run "ssh -v -p 5252 $ssh_testman\@localhost whoami";
 
-    assert_script_run "ssh -p 4242 -tt $ssh_testman\@localhost ssh -tt $ssh_testman\@localhost whoami";
-    assert_script_run "ssh -t -o ProxyCommand='ssh $ssh_testman\@localhost nc localhost 4242' $ssh_testman\@localhost whoami";
+    # Copy the list of known hosts to $ssh_testman's .ssh directory
+    assert_script_run "install -m 0400 -o $ssh_testman ~/.ssh/known_hosts /home/$ssh_testman/.ssh/known_hosts";
+
+    # Test SSH command within SSH command
+    assert_script_run "ssh -v -p 4242 -tt $ssh_testman\@localhost ssh -tt $ssh_testman\@localhost whoami";
+
+    # Test ProxyCommand option
+    assert_script_run "ssh -v -t -o ProxyCommand='ssh -v $ssh_testman\@localhost nc localhost 4242' $ssh_testman\@localhost whoami";
+
+    # Test JumpHost option
     if (is_leap('15.0+') || is_tumbleweed || is_sle('15+')) {
-        assert_script_run("ssh -J $ssh_testman\@localhost:4242 $ssh_testman\@localhost whoami");
+        assert_script_run("ssh -v -J $ssh_testman\@localhost:4242 $ssh_testman\@localhost whoami");
     }
 
     # SCP (poo#46937)
+    assert_script_run "echo 'sshd.pm: Testing SCP subsystem' | logger";
     assert_script_run "scp -4v $ssh_testman\@localhost:/etc/resolv.conf /tmp";
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/{group,passwd}' /tmp";
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
 
     # poo#80716 Test all available ciphers, key exchange algorithms, host key algorithms and mac algorithms.
+    assert_script_run "echo 'sshd.pm: Testing cryptographic policies' | logger";
     test_cryptographic_policies(remote_user => $ssh_testman);
-
-    assert_script_run "killall -u $ssh_testman || true";
-    wait_still_screen 3;
 
     # Restore ~/.ssh generated in consotest_setup
     # poo#68200. Confirm the ~/.ssh_bck directory is exist in advance and then restore, in order to avoid the null restore
@@ -144,9 +149,14 @@ sub run {
     # Restore the /etc/ssh/sshd_config
     assert_script_run 'cp /etc/ssh/sshd_config{_before,}';
 
+    # Kill $ssh_testman to stop all SSH sessions
+    assert_script_run "killall -u $ssh_testman || true";
+    wait_still_screen 3;
+
     record_info("Restart sshd", "Restart sshd.service");
     systemctl("restart sshd");
 
+    # Clear the remains from background commands
     clear_console if !is_serial_terminal;
 }
 
@@ -181,6 +191,25 @@ sub test_cryptographic_policies() {
     foreach my $policy (@policies) {
         $policy->test_algorithms(remote_user => $remote_user);
     }
+}
+
+sub check_journal {
+    # bsc#1175310 bsc#1181308 - Detect serious errors as they can be invisible because sshd may silently recover
+    if (script_run("journalctl -b -u sshd.service | grep -A6 -B24 'segfault\\|fatal'") == 0) {
+        die("Please check the journalctl! Segfault or fatal journal entry detected.");
+    }
+}
+
+sub post_run_hook {
+    my $self = shift;
+    check_journal();
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    check_journal();
+    $self->SUPER::post_fail_hook;
 }
 
 sub test_flags {
