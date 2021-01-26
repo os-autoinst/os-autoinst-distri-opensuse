@@ -30,6 +30,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
 
+    send_key 'ctrl-z';
     script_run 'ls -lah /boot/';
     script_run 'tar -cvJf /tmp/crash_saved.tar.xz -C /var/crash .';
     upload_logs '/tmp/crash_saved.tar.xz';
