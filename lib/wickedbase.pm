@@ -40,8 +40,8 @@ This function saves the command and the stdout and stderr to a file to be upload
 =cut
 sub wicked_command {
     my ($self, $action, $iface) = @_;
-    my $cmd = '/usr/sbin/wicked --log-target syslog ' . $action . ' ' . $iface;
-    assert_script_run(q(echo -e "\n# ") . $cmd . ' >> /tmp/wicked_serial.log');
+    my $cmd = '/usr/sbin/wicked --log-target syslog --debug all ' . $action . ' ' . $iface;
+    assert_script_run('echo -e "\n# $(date -Isecond)\n# "' . $cmd . ' >> /tmp/wicked_serial.log');
     record_info('wicked cmd', $cmd);
     assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
     assert_script_run(q(echo -e "\n# ip addr" >> /tmp/wicked_serial.log));
