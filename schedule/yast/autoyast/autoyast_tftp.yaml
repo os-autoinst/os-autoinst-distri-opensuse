@@ -8,7 +8,6 @@ description: >
      - ntp/chrony configuration
 vars:
   AUTOYAST: autoyast_sle15/autoyast_tftp.xml
-  AUTOYAST_VERIFY: autoyast_sle15/tftp.list
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
