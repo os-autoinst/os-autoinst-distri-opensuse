@@ -17,7 +17,7 @@
 # Summary: This test removed aditional HV from our VMs
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ use testapi;
 use utils;
 use virtmanager;
 
-sub run {
+sub run_test {
     my ($self) = @_;
 
     #x11_start_program 'virt-manager';

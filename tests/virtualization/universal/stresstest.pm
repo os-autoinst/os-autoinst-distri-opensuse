@@ -11,7 +11,7 @@
 # Summary: Perform some stress tests on VM
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -19,7 +19,7 @@ use testapi;
 use utils;
 use version_utils;
 
-sub run {
+sub run_test {
     my $self = shift;
     $self->select_serial_terminal;
     # Fetch the test script to local host, before distributing it to the guests

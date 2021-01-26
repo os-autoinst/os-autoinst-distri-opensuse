@@ -36,23 +36,30 @@ sub check_virt_kernel {
     my $target       = $args{target}   // 'localhost';
     my $suffix       = $args{suffix}   // '';
     my $log_file     = $args{log_file} // '/tmp/virt_kernel.txt';
-    my $go_to_target = $target eq 'localhost' ? '' : "ssh root\@$target";
-    my ($sles_running_version, $sles_running_sp) = get_os_release($go_to_target);
+    my $go_to_target = $target eq 'localhost'                ? ''              : "ssh root\@$target";
+    my $bootlog      = (script_run("which journalctl") == 0) ? "journalctl -b" : "dmesg";
 
     record_info "KERNEL $target$suffix", "We are now checking kernel on $target$suffix.";
     assert_script_run qq(echo -e "\\n# $target$suffix:" >> $log_file);
 
+    # Print the Welcome message containng the system version
+    assert_script_run("$go_to_target grep -i ^welcome /etc/issue | tee -a $log_file");
+
+    # Print the detected hypervisor (may be empty)
+    script_run("$go_to_target $bootlog | grep -i 'Hypervisor Detected' | tee -a $log_file");
+
+    # Print the system information
     assert_script_run("$go_to_target uname -a | tee -a $log_file");
+
+    # Print the uptime
     assert_script_run("$go_to_target uptime | tee -a $log_file");
+
+    # Print the list of repositories
     script_run("$go_to_target zypper lr -d | tee -a $log_file");
 
-    if ($sles_running_version >= 12) {
-        assert_script_run("$go_to_target journalctl -b | tee /tmp/journalctl-b-$target$suffix.txt");
-        upload_logs("/tmp/journalctl-b-$target$suffix.txt");
-    } else {
-        assert_script_run("$go_to_target dmesg | tee /tmp/dmesg-$target$suffix.txt");
-        upload_logs("/tmp/dmesg-$target$suffix.txt");
-    }
+    # Upload all the logs from the current boot
+    assert_script_run("$go_to_target $bootlog | tee /tmp/bootlog-$target$suffix.txt");
+    upload_logs("/tmp/bootlog-$target$suffix.txt");
 
     my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack\\|buffer' | grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|firmware\\|calibration\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST\\|xapic not enabled\\|Firmware\\|missing monitors config\\|perfctr\\|mitigation\\|vesa\\|ram buffer\\|microcode\\|frame\\|nmi\\|pci-dma\\|pm-timer\\|tsc\\|drm\\|hv_vmbus\\|floppy\\|fd0\\|nmi\\|x2apic\\|show_stack\\|dump_stack\\|pstore\\|pagetables\\|page allocation failure\\|amd64_edac_mod\\|FW version\\|Failed to check link status'";
     if (script_run("$go_to_target $dmesg") != 1) {

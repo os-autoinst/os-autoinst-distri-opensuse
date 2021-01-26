@@ -17,7 +17,7 @@
 # Summary: Register all guests against local SMT server
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ use testapi;
 use utils;
 use version_utils;
 
-sub run {
+sub run_test {
     my ($self) = @_;
 
     foreach my $guest (keys %virt_autotest::common::guests) {
