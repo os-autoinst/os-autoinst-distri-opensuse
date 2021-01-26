@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: eog xterm rrdtool
+# Package: eog rrdtool
 # Summary: Regression test for rrdtool
 # - created, update rrd file
 # - fetch data from file

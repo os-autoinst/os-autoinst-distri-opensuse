@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: tuned
 # Summary: Regression test for tuned daemon
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 # Tags: https://jira.suse.com/browse/SLE-6514

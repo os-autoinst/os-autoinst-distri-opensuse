@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: autoconf automake gcc git-core make
 # Summary: Tests for kernel live patching infrastructure
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 

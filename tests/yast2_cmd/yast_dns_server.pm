@@ -10,6 +10,7 @@
 # All of cases is based on the reference:
 # https://documentation.suse.com/sles/15-SP1/single-html/SLES-admin/#id-1.3.3.6.13.6.11
 #
+# Package: yast2-dns-server bind bind-libs
 # Summary: Create DNS forwarder and DNS server, verify lookup.
 #
 # 1. Create a sub to handle command and verify it result

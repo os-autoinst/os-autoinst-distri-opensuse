@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: kernel-azure kernel-devel dracut kmod-compat qa_lib_ctcs2 qa_test_ltp
+# qa_test_newburn kernel-default
 # Summary: This module installs maint update under test for kernel/kgraft to ltp work image
 # Maintainer: Ondřej Súkup osukup@suse.cz
 

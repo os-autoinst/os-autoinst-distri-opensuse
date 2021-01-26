@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: iproute2 systemd PackageKit zypper yast2 tar bzip2
 # Summary: Verify network and repos are available
 # - Check status of all network interfaces
 # - Stop packagekit service

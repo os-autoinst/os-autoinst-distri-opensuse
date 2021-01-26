@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: yast2-sysconfig
 # Summary: yast sysconfig in cli, clears, details, lists and sets the
 #          variables in /etc/sysconfig.
 # Maintainer: Jun Wang <jgwang@suse.com>

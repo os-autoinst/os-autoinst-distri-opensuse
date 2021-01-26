@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: util-linux btrfs-progs e2fsprogs
 # Summary: Test verifies installation using autoyast_sle_12_btrfs.xml profile
 # configuration for btrfs partitions. Verify subvolumes stcructure, mount options
 # subvolume attributes configured in profile.

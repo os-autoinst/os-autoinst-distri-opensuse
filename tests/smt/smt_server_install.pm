@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: mariadb smt systemd yast2-smt SUSEConnect
 # Summary: installation of smt server
 # - Install smt package
 # - Configure smt server

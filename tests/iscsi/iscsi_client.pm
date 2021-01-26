@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-iscsi-client open-iscsi lsscsi util-linux e2fsprogs
 # Summary: Test suite for iSCSI server and client
 #    Multimachine testsuites, server test creates iscsi target and client test uses it
 # - Configure a static network and test connectivity

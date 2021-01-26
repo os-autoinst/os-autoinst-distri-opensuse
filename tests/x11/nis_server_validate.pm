@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm make shadow
+# Package: make shadow
 # Summary: Validate YaST configuration functionality for NIS
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

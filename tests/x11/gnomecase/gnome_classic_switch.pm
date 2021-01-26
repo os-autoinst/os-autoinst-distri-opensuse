@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: gdm gnome-terminal xterm
+# Package: gdm gnome-terminal
 # Summary: Gnome: switch between gnome(now default is sle-classic) and gnome-classic
 # - On display manager, switch to gnome classic
 # - Launch gnome-terminal

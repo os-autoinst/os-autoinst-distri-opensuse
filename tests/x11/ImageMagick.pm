@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm ImageMagick
+# Package: ImageMagick
 # Summary: Add ImageMagick test
 #    This test creates, displays, and evaluates 200+ images utilizing
 #    various convertion options of ImageMagick.

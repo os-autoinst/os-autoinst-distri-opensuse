@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: fio util-linux
 # Summary: This modules verifies we have correct spreading of NVMe
 # interrupts across all NUMA nodes, especially when the number of
 # nodes exceeds the number of queues the device has.

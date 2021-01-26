@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-country
 # Summary: this test checks that YaST Command Line Keyboard module is behaving
 #          correctly by changing keyboard layout and verifying that
 #          they have been successfully set.

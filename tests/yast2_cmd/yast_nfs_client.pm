@@ -10,6 +10,7 @@
 # All of cases is based on the reference:
 # https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_admin.html#id-1.3.3.6.13.6.21
 #
+# Package: nfs-client yast2-nfs-client nfs-kernel-server yast2-nfs-server
 # Summary: setup a nfs client
 #     Key Steps:
 #       - sets up a nfs service on localhost

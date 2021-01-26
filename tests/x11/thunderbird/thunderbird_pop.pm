@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: MozillaThunderbird xterm
+# Package: MozillaThunderbird
 # Summary: send an email using SMTP and receive it using POP
 # - Kill thunderbird, erase all config files
 # - Launch thunderbird

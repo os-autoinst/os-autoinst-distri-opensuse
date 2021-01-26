@@ -7,6 +7,9 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvswitch python-devel python2-libxml2-python libopenssl1_1
+# insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm python-libxml2
+# libopenssl1_0_0 libstdc++-devel createrepo rpm-build kernel-syms tk
 # Summary: Mellanox OFED package installation
 # This package is not ready for SLE15 yet, there is an available
 # package for SLE12-SP3 which is able to build the needed RPMs

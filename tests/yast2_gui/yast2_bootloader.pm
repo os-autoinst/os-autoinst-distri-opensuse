@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-bootloader
 # Summary: YaST2 UI test bootloader checks boot code option, kernel parameters,
 #	graphical console, bootloader option, foreign OS and protect boot loader
 #    Make sure those yast2 modules can opened properly. We can add more

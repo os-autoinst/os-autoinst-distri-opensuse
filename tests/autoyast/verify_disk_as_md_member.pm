@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: util-linux
 # Summary: Validate partitioning for autoyast installation when using disks as
 #          Multiple Device member. Uses two devices.
 #          The test verifies that the following configuration of the installed

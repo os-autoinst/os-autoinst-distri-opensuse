@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-nfs-server nfs-kernel-server
 # Summary: Configure nfs-server services in yast command line mode,
 #          including add, delete, set and summary.
 

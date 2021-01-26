@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: git-core twopence-shell-client bc iputils python
 # Summary: run InfiniBand test suite hpc-testing
 #
 # Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>

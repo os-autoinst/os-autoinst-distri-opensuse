@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: util-linux SUSEConnect
 # Summary: Validate autoyast_ext4 profile.
 #          * Verify registration (only 15+)
 #          * Verify partitioning: ext4 and swap

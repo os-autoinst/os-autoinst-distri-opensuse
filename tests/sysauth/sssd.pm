@@ -8,6 +8,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sssd sssd-krb5 sssd-krb5-common sssd-ldap sssd-tools openldap2 openldap2-client
+# krb5 krb5-client krb5-server krb5-plugin-kdb-ldap python-pam python3-python-pam psmisc
 # Summary: Test the integration between SSSD and its various backends - file database, LDAP, and Kerberos
 # - If distro is sle >= 15, add Packagehub and sle-module-legacy products
 # - Install sssd, sssd-krb5, sssd-krb5-common, sssd-ldap, sssd-tools, openldap2,

@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: xterm tracker
+# Package: tracker
 # Summary: Tracker: search from command line
 # - Launch xterm
 # - Run "tracker-search newfile" if version is older than SLE12SP2

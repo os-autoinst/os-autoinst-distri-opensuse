@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
-# Package: xterm dhcp-client openssh gedit gnome-control-center
+# Package: dhcp-client openssh gedit gnome-control-center
 # Summary: Remote Login: X11 forwarding over OpenSSH
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586202

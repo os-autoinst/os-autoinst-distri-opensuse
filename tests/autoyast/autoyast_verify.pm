@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: curl
 # Summary: common framework to run verification scripts for systems
 #          installed with autoyast
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
