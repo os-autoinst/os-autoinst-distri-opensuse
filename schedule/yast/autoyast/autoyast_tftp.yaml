@@ -16,7 +16,7 @@ schedule:
   - autoyast/console
   - autoyast/login
   - autoyast/wicked
-  - autoyast/autoyast_verify
+  - console/verify_tftp
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs
