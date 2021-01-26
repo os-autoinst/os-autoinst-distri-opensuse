@@ -17,9 +17,15 @@ schedule:
   - autoyast/login
   - autoyast/wicked
   - console/verify_tftp
+  - console/verify_etc_hosts
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs
   - autoyast/autoyast_reboot
   - installation/grub_test
   - installation/first_boot
+test_data:
+  hostname_entries:
+    - name: new.entry.de
+      ip: 10.226.154.19
+      aliases: h999uz
