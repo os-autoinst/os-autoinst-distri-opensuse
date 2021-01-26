@@ -33,7 +33,7 @@ sub run {
     my $test_data = get_test_suite_data();
     # Accumulate errors for all checks
     my $errors = '';
-    foreach my $file (@config_files) {
+    foreach my $file (@{$test_data->{configuration_files}}) {
         foreach my $entry (@{$file->{entries}}) {
             if (script_run("grep -P \"$entry\" $file->{path}") != 0) {
                 $errors .= "Entry '$entry' is not found in '$file->{path}'.\n";
@@ -42,6 +42,13 @@ sub run {
     }
 
     die "Configuration files validation failed:\n$errors" if $errors;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    # Upload all configurations files which were validated
+    upload_logs for (@{get_test_suite_data()->{configuration_files}});
 }
 
 1;
