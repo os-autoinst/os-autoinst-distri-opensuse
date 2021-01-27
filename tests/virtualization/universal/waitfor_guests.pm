@@ -35,7 +35,10 @@ sub run {
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    ## Reboot the guest to ensure the settings are applied
+    # Wait for guests to be installed, i.e. when all are shutdown (20 minutes)
+    script_retry("virsh list | grep -v Domain-0 | grep running", delay => 5, retry => 240, expect => 1);
+
+    ## Ensure the reboot policy is set to 'restart'. This needs to happen on shutdown guest
     # Do a shutdown and start here because some guests might not reboot because of the on_reboot=destroy policy
     shutdown_guests();
     ensure_reboot_policy("$_") foreach (keys %virt_autotest::common::guests);

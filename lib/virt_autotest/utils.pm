@@ -34,7 +34,7 @@ use Utils::Architectures 'is_s390x';
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests);
+  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online);
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -168,7 +168,7 @@ sub create_guest {
         $virtinstall = "virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
-        $virtinstall .= " --events on_reboot=restart --extra-args 'autoyast=$autoyastURL'";
+        $virtinstall .= " --events on_reboot=destroy --extra-args 'autoyast=$autoyastURL'";
         script_run "( $virtinstall >> ~/virt-install_$name.txt 2>&1 & )";
 
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
@@ -324,6 +324,12 @@ sub collect_virt_system_logs {
     assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
     assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
     upload_asset '/tmp/dumpxml.tar.gz';
+}
+
+# Check if guest is online by checking if the ssh port is open
+sub is_guest_online {
+    my $guest = shift;
+    return script_run("nmap $guest -PN -p ssh | grep open") == 0;
 }
 
 # Shutdown all guests. Wait until they are shutdown
