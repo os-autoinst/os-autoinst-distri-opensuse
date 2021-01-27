@@ -17,6 +17,8 @@ schedule:
   - autoyast/wicked
   - console/verify_tftp
   - console/verify_config_files
+  - console/verify_y2log_entries
+  - console/verify_shadow
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs
