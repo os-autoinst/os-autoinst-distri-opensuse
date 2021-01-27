@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2020 SUSE LLC
+# Copyright (C) 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ use warnings;
 
 use testapi;
 use utils;
+use zypper;
 use registration;
 use qam 'remove_test_repositories';
 use version_utils qw(is_sle is_sles4sap);
@@ -51,6 +52,8 @@ sub setup_sle {
         assert_script_run "chmod 444 /usr/sbin/packagekitd";
     }
 
+    # poo#87850 wait the zypper processes in background to finish and release the lock.
+    wait_quit_zypper;
     # Change serial dev permissions
     ensure_serialdev_permissions;
 
