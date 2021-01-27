@@ -26,7 +26,10 @@ sub run {
         foreach my $partition (@{$disk->{partitions}}) {
             if ($partition->{encrypt_device}) {
                 record_info("Encrypt $partition->{name}", "Encrypting $partition->{name} from disk $disk->{name}");
-                $partitioner->edit_partition_encrypt({disk => $disk->{name}, partition => $partition->{name}});
+                $partitioner->edit_partition_gpt({
+                        disk      => $disk->{name},
+                        partition => $partition
+                });
             }
         }
     }

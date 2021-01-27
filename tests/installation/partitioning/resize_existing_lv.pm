@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: modify and resize existing logical volume on a pre-configured disk.
+# Summary: Modify and resize existing logical volume on a pre-configured disk.
 # Maintainer: QE YaST <qa-sle-yast@suse.com>
 
 use strict;
@@ -25,8 +25,8 @@ sub run {
         foreach my $lv (@{$vg->{logical_volumes}}) {
             $partitioner->resize_logical_volume({
                     volume_group   => $vg->{name},
-                    logical_volume => $lv->{name},
-                    size           => $lv->{size}
+                    logical_volume => $lv,
+
             });
         }
     }

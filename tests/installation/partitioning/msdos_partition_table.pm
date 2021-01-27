@@ -26,9 +26,9 @@ sub run {
                 table_type => $disk->{table_type}, accept_deleting_current_devices_warning => 0});
         foreach my $partition (@{$disk->{partitions}}) {
             $partitioner->add_partition_msdos({
-                    disk           => $disk->{name},
-                    partition      => $partition,
-                    partition_type => $partition->{partition_type}});
+                    disk      => $disk->{name},
+                    partition => $partition
+            });
         }
     }
     $partitioner->accept_changes_and_press_next;
