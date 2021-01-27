@@ -32,3 +32,6 @@ test_data:
       entries:
         - pool ntp.suse.de iburst
         - driftfile /var/lib/chrony/drift
+  y2log:
+    - entry_text: 'Could not process these unsupported profile sections: \["autofs", "restore"\]'
+      fail_message: 'No warnings for unsupported profile sections in y2log'
