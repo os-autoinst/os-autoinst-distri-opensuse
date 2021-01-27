@@ -491,7 +491,6 @@ sub load_autoyast_tests {
     loadtest("autoyast/console");
     loadtest("autoyast/login");
     loadtest("autoyast/wicked");
-    loadtest("autoyast/autoyast_verify")                      if get_var("AUTOYAST_VERIFY");
     loadtest('autoyast/' . get_var("AUTOYAST_VERIFY_MODULE")) if get_var("AUTOYAST_VERIFY_MODULE");
     if (get_var("SUPPORT_SERVER_GENERATOR")) {
         loadtest("support_server/configure");
