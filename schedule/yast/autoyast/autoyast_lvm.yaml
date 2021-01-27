@@ -9,17 +9,19 @@ description: >
      - Passwords are set for the users in the profile
 vars:
   AUTOYAST: autoyast_sle15/autoyast_lvm.xml
-  AUTOYAST_VERIFY: autoyast_sle15/autoyast_lvm.list
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - autoyast/console
   - autoyast/login
+  - console/verify_shadow
+  - console/verify_shrinking
+  - console/verify_snapper
+  - console/verify_firewall_services
   - console/validate_lvm
   - autoyast/verify_lvm_partitions
   - autoyast/wicked
-  - autoyast/autoyast_verify
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs

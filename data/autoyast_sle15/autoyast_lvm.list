@@ -1,6 +1,0 @@
-lvm.sh                   # creates lvm partitions
-firewall.sh              # sets firewall with existing network (keep_install_network) (bnc#897129)
-installation_snapshot.sh # snapshot has been created
-btrfs_snapshots.sh       # creates @/. snapshots on LVM (bnc#935858)
-set_passwords.sh         # password are set (bsc#973639, bsc#974220, bsc#971804 and bsc#965852)
-shrink_partitions.sh     # shrink partitions and logical volumes (bsc#1078418)
