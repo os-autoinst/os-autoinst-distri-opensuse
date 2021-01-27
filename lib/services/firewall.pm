@@ -30,13 +30,14 @@ sub install_service {
 }
 
 sub susefirewall2_to_firewalld {
-    my $timeout = 180;
+    my $timeout = 360;
+    $timeout = 1200 if check_var('ARCH', 'aarch64');
     assert_script_run('susefirewall2-to-firewalld -c',                                     timeout => $timeout);
-    assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => $timeout);
+    assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
     # On some platforms such as Aarch64, the 'firewalld restart'
     # can't finish in the default timeout.
-    systemctl 'restart firewalld', timeout => $timeout;
-    script_run('iptables -S', timeout => $timeout);
+    systemctl 'restart firewalld', timeout => 60;
+    script_run('iptables -S', timeout => 60);
 }
 
 sub enable_service {
