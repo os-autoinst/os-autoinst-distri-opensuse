@@ -14,9 +14,10 @@ use strict;
 use warnings;
 use parent 'y2_module_consoletest';
 use testapi;
+use utils;
 
 sub run {
-    validate_script_output("systemctl is-active firewalld",                        sub { /inactive/ });
+    systemctl 'is-active firewalld', expect_false => 1;
     validate_script_output("firewall-offline-cmd --zone=external --list-services", sub { /http https/ });
 
 }
