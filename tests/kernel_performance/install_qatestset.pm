@@ -61,6 +61,7 @@ sub os_update {
 
 
 sub run {
+    select_console 'root-console';
     if (my $hana_perf_os_update = get_var("HANA_PERF_OS_UPDATE")) {
         os_update($hana_perf_os_update);
     }
