@@ -29,6 +29,7 @@
       <li><a href="#untick_welcome_on_next_startup">untick_welcome_on_next_startup</a></li>
       <li><a href="#workaround_broken_opensuse_welcome_window">workaround_broken_opensuse_welcome_window</a></li>
       <li><a href="#handle_welcome_screen">handle_welcome_screen</a></li>
+      <li><a href="#start_root_shell_in_xterm">start_root_shell_in_xterm</a></li>
     </ul>
   </li>
 </ul><h1>lib/x11utils.pm</h1>
@@ -126,6 +127,13 @@
 <pre><code> handle_welcome_screen([timeout =&gt; $timeout]);</code></pre>
 
 <p>openSUSE Welcome window should be auto-launched. Disable auto-launch on next boot and close application. Also handle workarounds when needed.</p>
+
+<h2 id="start_root_shell_in_xterm">start_root_shell_in_xterm</h2>
+
+<pre><code>    start_root_shell_in_xterm()
+    </code></pre>
+
+<p>Start a root shell in xterm.</p>
 
 
 </body>
