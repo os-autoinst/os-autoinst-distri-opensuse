@@ -17,13 +17,7 @@ profile:
           name: sle-module-server-applications
       - addon:
           unique_key: name
-          name: sle-module-desktop-applications
-      - addon:
-          unique_key: name
           name: sle-module-basesystem
-      - addon:
-          unique_key: name
-          name: sle-module-development-tools
     do_registration: 'true'
     install_updates: 'false'
     slp_discovery: 'false'
