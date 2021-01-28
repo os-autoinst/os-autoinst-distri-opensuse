@@ -1,0 +1,38 @@
+---
+name: create_hdd_transactional_server_opensuse
+description: >
+  Installation of a Transactional Server which uses a read-only
+  root filesystem to provide atomic, automatic updates of a
+  system without interfering with the running system.
+vars:
+  SCC_ADDONS: tsm
+  HDDSIZEGB: 40
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - update/zypper_clear_repos
+  - console/zypper_ar
+  - console/zypper_ref
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
