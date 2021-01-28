@@ -1,5 +1,0 @@
-tftp.sh                # tftp is running correctly
-host.sh                # host is in /etc/hosts (bsc#870998)
-unsupported_modules.sh # unsupported YaST modules were reported (bsc#925381)
-set_passwords.sh       # password are set (bsc#973639, bsc#974220, bsc#971804 and bsc#965852)
-ntp_conf.sh            # setting written to /etc/ntp.conf (bnc#1040350)

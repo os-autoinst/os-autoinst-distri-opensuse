@@ -8,7 +8,6 @@ description: >
      - ntp/chrony configuration
 vars:
   AUTOYAST: autoyast_sle15/autoyast_tftp.xml
-  AUTOYAST_VERIFY: autoyast_sle15/tftp.list
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
@@ -16,10 +15,25 @@ schedule:
   - autoyast/console
   - autoyast/login
   - autoyast/wicked
-  - autoyast/autoyast_verify
+  - console/verify_tftp
+  - console/verify_config_files
+  - console/verify_y2log_entries
+  - console/verify_shadow
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs
   - autoyast/autoyast_reboot
   - installation/grub_test
   - installation/first_boot
+test_data:
+  configuration_files:
+    - path: /etc/hosts
+      entries:
+        - '10.226.154.19\tnew.entry.de h999uz'
+    - path: /etc/chrony.conf
+      entries:
+        - pool ntp.suse.de iburst
+        - driftfile /var/lib/chrony/drift
+  y2log:
+    - entry_text: 'Could not process these unsupported profile sections: \["autofs", "restore"\]'
+      fail_message: 'No warnings for unsupported profile sections in y2log'

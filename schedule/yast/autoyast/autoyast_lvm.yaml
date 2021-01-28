@@ -16,7 +16,7 @@ schedule:
   - autoyast/console
   - autoyast/login
   - console/verify_shadow
-  - console/verify_shrinking
+  - console/verify_y2log_entries
   - console/verify_snapper
   - console/verify_firewall_services
   - console/validate_lvm
@@ -68,3 +68,6 @@ test_data:
       - root_lv
       - opt_lv
       - swap_lv
+  y2log:
+    - entry_text: 'Some additional space'
+      fail_message: 'no warnings for partition shrinking in y2log'
