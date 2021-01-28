@@ -16,6 +16,10 @@ use warnings;
 use testapi;
 
 sub run {
+    # check the network configuration
+    script_run "ip addr show";
+    script_run "cat /etc/resolv.conf";
+
     # ping
     assert_script_run 'ping -c 1 127.0.0.1';
     assert_script_run 'ping -c 1 ::1';
