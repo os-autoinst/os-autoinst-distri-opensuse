@@ -13,3 +13,4 @@ schedule:
     - boot/boot_to_desktop
     - '{{runtime_test}}'
     - rancher/rancher_ui
+    - rancher/rancher_ui_selenium
