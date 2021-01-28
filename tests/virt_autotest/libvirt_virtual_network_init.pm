@@ -85,10 +85,17 @@ sub run_test {
         virt_autotest::utils::ssh_copy_id($guest);
         #Prepare the new guest network interface files for libvirt virtual network
         assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
+        #Enable guest wicked debugging
+        assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_DEBUG=.*/WICKED_DEBUG=\\\"all\\\"/g' /etc/sysconfig/network/config\"";
+        assert_script_run "ssh root\@$guest 'grep WICKED_DEBUG /etc/sysconfig/network/config'";
+        assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\\\"debug\\\"/g' /etc/sysconfig/network/config\"";
+        assert_script_run "ssh root\@$guest 'grep WICKED_LOG_LEVEL /etc/sysconfig/network/config'";
         if ($guest =~ m/sles-?11/i) {
             assert_script_run("ssh root\@$guest service network restart", 90);
+            assert_script_run("ssh root\@$guest service wickedd restart", 90);
         } else {
             assert_script_run("time ssh -v root\@$guest systemctl restart network", 120);
+            assert_script_run("time ssh -v root\@$guest systemctl restart wickedd", 120);
         }
     }
 
