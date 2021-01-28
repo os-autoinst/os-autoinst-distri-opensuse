@@ -42,10 +42,7 @@ sub patching_sle {
         if (is_sle('12-SP2+')) {
             set_var('HDD_SP2ORLATER', 1);
         }
-        # disable existing repos temporary
-        zypper_call "lr";
-        zypper_call "mr --disable --all";
-        save_screenshot;
+        disable_installation_repos;
         # Set SCC_PROXY_URL if needed
         set_scc_proxy_url if ((check_var('HDDVERSION', get_var('ORIGINAL_TARGET_VERSION')) && is_upgrade()));
         sle_register("register");
@@ -106,16 +103,6 @@ sub patching_sle {
     }
     else {
         sle_register("unregister");
-    }
-
-    # RMT didn't mirror all repos, cannot use enable all
-    if (!get_var("SMT_URL")) {
-        zypper_call("mr --enable --all");
-    }
-
-    # Disable old repositories during AutoYaST driven upgrade
-    if (get_var('AUTOUPGRADE')) {
-        disable_installation_repos;
     }
 
     # Restore the old value of VIDEOMODE and SCC_REGISTER

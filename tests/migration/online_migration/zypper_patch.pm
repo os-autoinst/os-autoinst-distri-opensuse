@@ -25,6 +25,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
+    disable_installation_repos;
     add_test_repositories;
     fully_patch_system;
     install_patterns() if (get_var('PATTERNS'));

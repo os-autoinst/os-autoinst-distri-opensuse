@@ -19,6 +19,7 @@ use migration;
 
 sub run {
     select_console 'root-console';
+    disable_installation_repos;
     minimal_patch_system(version_variable => 'HDDVERSION');
     remove_ltss;
 }
