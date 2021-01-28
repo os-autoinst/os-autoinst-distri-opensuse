@@ -1496,12 +1496,21 @@ sub script_retry {
     my $die     = $args{die}     // 1;
 
     my $ret;
+
+    my $exec = "timeout $timeout $cmd";
+    # Exclamation mark needs to be moved before the timeout command, if present
+    if (substr($cmd, 0, 1) eq "!") {
+        $cmd = substr($cmd, 1);
+        $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
+        $exec = "! timeout $timeout $cmd";
+    }
     for (1 .. $retry) {
-        $ret = script_run "timeout " . ($timeout - 3) . " $cmd", $timeout;
+        # timeout for script_run must be larger than for the 'timeout ...' command
+        $ret = script_run($exec, ($timeout + 3));
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
-        sleep $delay;
+        sleep $delay                   if ($delay > 0);
     }
 
     return $ret;
