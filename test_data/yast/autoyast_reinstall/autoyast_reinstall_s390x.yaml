@@ -21,9 +21,6 @@ profile:
       - addon:
           unique_key: name
           name: sle-module-basesystem
-      - addon:
-          unique_key: name
-          name: sle-module-web-scripting
     do_registration: 'true'
     install_updates: 'false'
     slp_discovery: 'false'
