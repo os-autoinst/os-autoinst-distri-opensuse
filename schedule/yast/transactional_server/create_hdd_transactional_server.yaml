@@ -29,33 +29,18 @@ conditional_schedule:
         BACKEND:
             svirt:
             - shutdown/svirt_upload_assets
-    license_reg_scc_addon:
-        DISTRI:
-            sle:
-            - installation/accept_license
-            - installation/scc_registration
-            - installation/addon_products_sle
-    online_repos_inst_mode_logpackes:
-        DISTRI:
-            opensuse:
-            - installation/online_repos
-            - installation/installation_mode
-            - installation/logpackages
-    user_settings_root:
-        DISTRI:
-            sle:
-            - installation/user_settings_root
 schedule:
     - installation/bootloader_start
     - installation/welcome
-    - "{{license_reg_scc_addon}}"
-    - "{{online_repos_inst_mode_logpackes}}"
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
     - installation/system_role
     - installation/partitioning
     - installation/partitioning_finish
     - installation/installer_timezone
     - installation/user_settings
-    - "{{user_settings_root}}"
+    - installation/user_settings_root
     - installation/resolve_dependency_issues
     - installation/installation_overview
     - "{{kernel_cmd_parameters}}"
