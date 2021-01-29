@@ -33,8 +33,8 @@ use Utils::Architectures 'is_s390x';
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
-  upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online);
+  upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
+  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown);
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -168,8 +168,9 @@ sub create_guest {
         $virtinstall = "virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
-        $virtinstall .= " --events on_reboot=destroy --extra-args 'autoyast=$autoyastURL'";
-        script_run "( $virtinstall >> ~/virt-install_$name.txt 2>&1 & )";
+        $virtinstall .= " --events on_reboot=destroy --extra-args 'autoyast=$autoyastURL usessh=0 ssh=0'";
+        # Note: true is required because openQA adds ""; echo ... > /dev/serial" after the & and bash does not allow empty commands
+        assert_script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";
 
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     }
@@ -204,6 +205,7 @@ sub install_default_packages {
     }
 }
 
+# ensure_online($guest) - Ensures the given guests is started and fixes some common network issues
 sub ensure_online {
     my ($guest, %args) = @_;
 
@@ -220,7 +222,7 @@ sub ensure_online {
     if (is_xen_host || is_kvm_host) {
         if (script_run("virsh list | grep '$guest'") != 0) {
             assert_script_run("virsh start '$guest'");
-            script_retry("ping -c 1 '$guest'", delay => 10, retry => 30);
+            wait_guest_online($guest);
         }
     }
     unless ($skip_network == 1) {
@@ -326,34 +328,41 @@ sub collect_virt_system_logs {
     upload_asset '/tmp/dumpxml.tar.gz';
 }
 
-# Check if guest is online by checking if the ssh port is open
+# is_guest_online($guest) check if the given guests is online by probing for an open ssh port
 sub is_guest_online {
     my $guest = shift;
     return script_run("nmap $guest -PN -p ssh | grep open") == 0;
 }
 
-# Shutdown all guests. Wait until they are shutdown
+# wait_guest_online($guest, [$timeout]) waits until the given guests is online by probing for an open ssh port
+sub wait_guest_online {
+    my $guest   = shift;
+    my $retries = shift // 300;
+    # Wait until guest is reachable via ssh
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 1, retry => $retries);
+}
+
+# Shutdown all guests and wait until they are shutdown
 sub shutdown_guests {
     ## Reboot the guest to ensure the settings are applied
     # Shutdown and start the guest because some might have the on_reboot=destroy policy still applied
     script_run("virsh shutdown $_") foreach (keys %virt_autotest::common::guests);
     # Wait until guests are terminated
-    # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in KVM runs.
-    script_retry("virsh list | grep -v Domain-0 | grep running", delay => 3, retry => 30, expect => 1);
+    wait_guests_shutdown();
 }
 
-sub wait_guest_online {
-    my $guest = shift;
-    # Wait until guest is reachable via ping
-    script_retry("ping -c 1 $guest", delay => 5, retry => 60);
-    # Wait until guest is reachable via ssh
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 5, retry => 60);
+# wait_guests_shutdown([$timeout]) waits for all guests to be shutdown
+sub wait_guests_shutdown {
+    my $retries = shift // 240;
+    # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
+    script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries);
 }
 
-# Start all guests and waits until they are online
+# Start all guests and wait until they are online
 sub start_guests {
-    script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
-    # Wait until ssh is ready for guest
+    assert_script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
+    # Wait for guests to show up as running
+    script_retry("virsh list | grep $_ | grep running", delay => 5, retry => 10) foreach (keys %virt_autotest::common::guests);
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 }
 
