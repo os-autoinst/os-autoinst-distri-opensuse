@@ -5,7 +5,6 @@ description: >
   root filesystem to provide atomic, automatic updates of a
   system without interfering with the running system.
 vars:
-  SCC_ADDONS: tsm
   HDDSIZEGB: 40
 schedule:
   - installation/bootloader_start
