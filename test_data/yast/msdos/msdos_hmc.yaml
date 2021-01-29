@@ -29,8 +29,7 @@ disks:
         mounting_options:
           should_mount: 1
           mount_point: /home
-      - size: max
-        role: swap
+      - role: swap
         partition_type: primary
         validation_flag: 0
         formatting_options:

@@ -26,7 +26,7 @@ sub run {
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner('current');
     $partitioner->resize_partition({disk => $disk, partition => $root_part});
-    $partitioner->add_partition_on_gpt_disk({partition => $usr_part});
+    $partitioner->add_partition_on_gpt_disk({disk => $disk, partition => $usr_part});
     $partitioner->accept_changes_and_press_next();
 }
 

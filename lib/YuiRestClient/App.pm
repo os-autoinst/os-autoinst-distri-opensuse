@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,6 +18,7 @@ use YuiRestClient::Http::WidgetController;
 use YuiRestClient::Wait;
 use YuiRestClient::Widget::Button;
 use YuiRestClient::Widget::CheckBox;
+use YuiRestClient::Widget::ComboBox;
 use YuiRestClient::Widget::Label;
 use YuiRestClient::Widget::MenuCollection;
 use YuiRestClient::Widget::RadioButton;
@@ -62,6 +63,14 @@ sub button {
 sub checkbox {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::CheckBox->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub combobox {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::ComboBox->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });
