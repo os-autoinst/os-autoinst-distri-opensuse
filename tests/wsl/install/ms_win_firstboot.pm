@@ -31,6 +31,7 @@ sub run {
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-next';
     assert_screen 'windows-signin-with-ms', 60;
+    wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-offline';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-limited-exp', timeout => 60;
@@ -58,6 +59,9 @@ sub run {
         sleep 3;
         assert_and_click 'windows-next';
     }
+
+    # transition between security questions form and privacy setting might take longer
+    wait_still_screen stilltime => 5, timeout => 20, similarity_level => 43;
 
     foreach my $tag (qw(
         windows-dont-use-speech-recognition
