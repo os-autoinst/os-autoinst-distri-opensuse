@@ -72,7 +72,8 @@ sub snapper_cleanup {
 }
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {
         assert_script_run "snapper setup-quota";

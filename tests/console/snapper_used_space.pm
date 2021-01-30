@@ -80,7 +80,8 @@ sub query_space_several_snapshot {
 }
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     die 'Quota must be enabled on btrfs for this test' if (script_run('snapper get-config | grep QGROUP') != 0);
     ensure_size_displayed;
     query_space_single_snapshot;
