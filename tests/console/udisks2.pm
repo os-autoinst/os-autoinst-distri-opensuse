@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -44,7 +44,7 @@ sub run {
                     push @tested_devices, $current_test_device;
 
                     # Check if udisks2 output is valid (contains a sections for Block and Partition Table/or available).
-                    validate_script_output("udisksctl info --block-device /dev/$current_test_device", sub { m/UDisks2.*Block.*(HintPartitionable:\s+true|PartitionTable).*/s });
+                    validate_script_output("udisksctl info --block-device /dev/$current_test_device|tee", sub { m/UDisks2.*Block.*(HintPartitionable:\s+true|PartitionTable).*/s });
                 }
             }
         }

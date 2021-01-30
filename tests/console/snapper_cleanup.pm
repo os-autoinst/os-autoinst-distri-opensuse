@@ -48,6 +48,7 @@ sub snapper_cleanup {
     assert_script_run "btrfs filesystem show --mbytes /";
 
     for (1 .. $scratch_size_gb) { assert_script_run("$snap_create", 500); }
+    assert_script_run('sync');
     script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
     assert_script_run("snapper cleanup number",  300);    # cleanup created snapshots
     assert_script_run("btrfs quota rescan -w /", 90);
