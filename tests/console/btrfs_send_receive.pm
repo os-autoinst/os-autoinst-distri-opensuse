@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -55,7 +55,7 @@ sub compare_data {
 # poo#11792
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Set up
     assert_script_run "mkdir $src";
