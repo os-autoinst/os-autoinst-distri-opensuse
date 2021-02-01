@@ -22,10 +22,11 @@ use strict;
 use warnings;
 use version_utils;
 use version;
+use containers::utils;
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container ensure_container_rpm_updates);
+our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app);
 
-# Build any container image using a basic Dockerfile
+# Build any container image using a basic Dockerfile. Not applicable for buildah builds
 sub build_container_image {
     my %args    = @_;
     my $image   = $args{image};
@@ -51,6 +52,14 @@ sub build_container_image {
     assert_script_run("$runtime images");
 }
 
+sub test_containered_app {
+    my ($runtime, $container) = @_;
+    my $dir = "/root/containerapp";
+    set_up($dir, "Dockerfile.python");
+    build_img($dir, $runtime);
+    test_built_img($runtime);
+}
+
 # Build a sle container image using zypper_docker
 sub build_with_zypper_docker {
     my %args          = @_;
@@ -65,7 +74,7 @@ sub build_with_zypper_docker {
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($host_version,  $host_sp,  $host_id)  = get_os_release();
-    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --rm $image");
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
 
     # The zypper-docker works only on openSUSE or on SLE based image on SLE host
     unless (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
@@ -77,7 +86,8 @@ sub build_with_zypper_docker {
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
         my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
-        validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'", sub { /PRETTY_NAME="SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
+        validate_script_output("$runtime run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'",
+            sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
     }
     else {
         $version =~ s/^Jump://i;
@@ -98,7 +108,6 @@ sub build_with_zypper_docker {
     test_opensuse_based_image(image => $derived_image, runtime => $runtime);
 }
 
-# Testing openSUSE based images
 sub test_opensuse_based_image {
     my %args    = @_;
     my $image   = $args{image};
@@ -110,9 +119,15 @@ sub test_opensuse_based_image {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    my ($host_version,  $host_sp,  $host_id)  = get_os_release();
-    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
+    my ($host_version, $host_sp, $host_id) = get_os_release();
+    my ($image_version, $image_sp, $image_id);
 
+    if ($runtime =~ /docker|podman/) {
+        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
+    }
+    else {
+        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
+    }
     record_info "Host",  "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
     record_info "Image", "Image has '$image_version', '$image_sp', '$image_id' in /etc/os-release";
 
@@ -123,25 +138,56 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            validate_script_output("$runtime container run --entrypoint '/bin/bash' --rm $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
-                sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
+            if ($runtime =~ /docker|podman/) {
+                # zypper-docker changes the layout of the image
+                validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
+            }
+            else {
+                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
+            }
+
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
             my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-            assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
-            script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
-            script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
-        } else {
+            if ($runtime =~ /buildah/) {
+                assert_script_run "$runtime run -t $image -- $plugin -v";
+                script_run "$runtime run -t $image -- $plugin lp", 420;
+                script_run "$runtime run -t $image -- $plugin lm", 420;
+            } else {
+                assert_script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
+                script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
+                script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
+            }
+        }
+        else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
         }
-    } else {
+    }
+    else {
         $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 
     # Zypper is supported only on openSUSE or on SLE based image on SLE host
     if (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
-        # zypper lr
-        assert_script_run("$runtime run --rm $image zypper lr -s", 120);
+        test_zypper_on_container($runtime, $image);
+    }
+}
+
+sub test_zypper_on_container {
+    my ($runtime, $image) = @_;
+    # zypper lr
+    assert_script_run("$runtime run $image zypper lr -s", 120);
+    if ($runtime =~ /buildah/) {
+        # zypper ref
+        assert_script_run("$runtime run $image -- zypper -v ref | grep \"All repositories have been refreshed\"", 120);
+        # Create new image and remove the working container
+        assert_script_run("$runtime commit --rm $image refreshed", 120);
+        # Verify the new image works
+        assert_script_run("$runtime run \$($runtime from refreshed) -- zypper -v ref | grep \"All repositories have been refreshed\" ", 120);
+    }
+    else {
         # zypper ref
         assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
         # Commit the image

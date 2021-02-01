@@ -46,7 +46,7 @@ sub _test_btrfs_thin_partitioning {
     $rt->build($dockerfile_path, 'thin_image');
     # validate that new subvolume has been created. This should be improved.
     assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) == \$(cat $btrfs_head)};
-    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=1.*GiB, used=\d+.+[KM]iB/ };
+    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=[12].*GiB, used=\d+.+[KM]iB/ };
 }
 
 sub _test_btrfs_device_mgmt {
@@ -54,9 +54,10 @@ sub _test_btrfs_device_mgmt {
     my $container  = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
     record_info "test btrfs";
+    script_run("df -h");
     # /var is using its own partition which is size of 10G. Create file in the container
     # enough to fill up the partition up to ~99%
-    $rt->up('huge_image', keep_container => 1, cmd => 'fallocate -l 9152000KiB bigfile.txt');
+    $rt->up('huge_image', keep_container => 1, cmd => 'fallocate -l 9149000KiB bigfile.txt');
     validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     # partition should be full
     validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=8.*GiB, used=8.*GiB/ };

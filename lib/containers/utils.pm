@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -149,11 +149,15 @@ sub basic_container_tests {
 
 # Setup environment
 sub set_up {
-    my $dir = shift;
+    my ($dir, $file) = @_;
+    $file //= 'Dockerfile';
+    record_info "$file";
     die "You must define the directory!" unless $dir;
     assert_script_run("mkdir -p $dir/BuildTest");
     assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
-    assert_script_run "curl -f -v " . data_url('containers/Dockerfile') . " > $dir/BuildTest/Dockerfile";
+    record_info('app.py', script_output("cat $dir/BuildTest/app.py"));
+    assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
+    record_info('Dockerfile', script_output("cat $dir/BuildTest/Dockerfile"));
     assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
 }
 
@@ -164,11 +168,19 @@ sub build_img {
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
     my $registry = get_var('REGISTRY', 'docker.io');
+
     assert_script_run("cd $dir");
-    record_info('Dockerfile', script_output('cat ./BuildTest/Dockerfile'));
-    assert_script_run("$runtime image pull $registry/library/python:3", timeout => 300);
-    assert_script_run("$runtime tag $registry/library/python:3 python:3");
-    assert_script_run("$runtime build -t myapp BuildTest");
+    if ($runtime =~ /docker|podman/) {
+        assert_script_run("$runtime image pull $registry/library/python:3", timeout => 300);
+        assert_script_run("$runtime tag $registry/library/python:3 python:3");
+        assert_script_run("$runtime build -t myapp BuildTest");
+    }
+    elsif ($runtime =~ /buildah/) {
+        assert_script_run("$runtime bud -t myapp BuildTest");
+    }
+    else {
+        die "Unsupported runtime: $runtime";
+    }
     assert_script_run("$runtime images| grep myapp");
 }
 
