@@ -2471,6 +2471,12 @@ sub load_security_tests_pam {
     loadtest "security/pam/pam_mount";
 }
 
+sub load_security_tests_grub_auth {
+    load_security_console_prepare;
+
+    loadtest "security/grub_auth/grub_authorization";
+}
+
 sub load_security_tests_tpm2 {
     if (is_sle('>=15-SP2')) {
         load_security_console_prepare;
@@ -2588,6 +2594,7 @@ sub load_security_tests {
       check_kernel_config
       tpm2
       pam
+      grub_auth
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
