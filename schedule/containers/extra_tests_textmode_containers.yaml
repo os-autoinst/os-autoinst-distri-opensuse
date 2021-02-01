@@ -14,7 +14,6 @@ conditional_schedule:
                 - containers/container_diff
 schedule:
     - installation/bootloader_start
-    - boot/boot_to_desktop
     - containers/podman
     - '{{podman_image}}'
     - containers/docker
