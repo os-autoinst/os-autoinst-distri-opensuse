@@ -135,8 +135,8 @@ sub clean_container_host {
         assert_script_run("$runtime rm --all");
         assert_script_run("$runtime rmi --all --force");
     } else {
-        assert_script_run("$runtime stop \$($runtime ps -q)", 180) if script_output("$runtime ps -q | wc -l") != '0';
-        assert_script_run("$runtime system prune -a -f",      180);
+        assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
+        assert_script_run("$runtime system prune -a -f",             180);
     }
 }
 
@@ -234,6 +234,7 @@ sub test_container_image {
             upload_logs("$logfile");
             die "Heartbeat test failed for $image";
         }
+        assert_script_run "rm $logfile";
     }
 }
 

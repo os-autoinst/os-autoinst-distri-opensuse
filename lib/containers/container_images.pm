@@ -25,7 +25,8 @@ use version;
 use containers::utils;
 
 our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker
-  test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app);
+  test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app
+  test_zypper_on_container verify_userid_on_container);
 
 # Build any container image using a basic Dockerfile. Not applicable for buildah builds
 sub build_container_image {
@@ -36,7 +37,7 @@ sub build_container_image {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    my $dir = "/root/sle_base_image/docker_build";
+    my $dir = "~/sle_base_image/docker_build";
 
     record_info("Building $image", "Building $image using $runtime");
 
@@ -185,6 +186,33 @@ sub test_opensuse_based_image {
     }
 }
 
+sub verify_userid_on_container {
+    my ($runtime, $image) = @_;
+    record_info "host uid", script_output "echo \$UID";
+
+    record_info "root default user", "rootless mode process runs with the default container user(root)";
+    my $cid = script_output "$runtime run -d --rm --name test1 $image sleep infinity";
+    validate_script_output "$runtime top $cid user huser", sub { /root\s+1000/ };
+    validate_script_output "$runtime top $cid capeff",     sub { /setuid/i };
+
+    record_info "non-root user", "process runs under the range of subuids assigned for regular user";
+    $cid = script_output "$runtime run -d --rm --name test2 --user 1000 $image sleep infinity";
+    validate_script_output "$runtime top $cid user huser", sub { /1000\s+200999/ };
+    validate_script_output "$runtime top $cid capeff",     sub { /none/ };
+
+    record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
+    $cid = script_output "$runtime run -d --rm --userns keep-id $image sleep infinity";
+    # Remove once the softfail removed. it is just checks the user's mapped uid
+    validate_script_output "$runtime exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
+    if (is_sle) {
+        validate_script_output "$runtime top $cid user huser", sub { /bernhard\s+bernhard/ };
+        validate_script_output "$runtime top $cid capeff",     sub { /setuid/i };
+    }
+    else {
+        record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
+    }
+}
+
 sub test_zypper_on_container {
     my ($runtime, $image) = @_;
 
@@ -216,6 +244,7 @@ sub test_zypper_on_container {
         # Verify the image works
         assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
     }
+    record_info "zypper test completed";
 }
 
 sub ensure_container_rpm_updates {
