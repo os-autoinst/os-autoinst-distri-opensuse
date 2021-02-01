@@ -21,7 +21,7 @@ use version_utils 'is_sle';
 sub run {
     my ($self)           = @_;
     my $robot_fw_version = '3.2.2';
-    my $test_repo        = "/robot/tests/" . get_var('SLE_PRODUCT') . "-" . get_var('VERSION');
+    my $test_repo        = "/robot/tests/sles-" . get_var('VERSION');
     my $robot_tar        = "robot.tar.gz";
     my $python_bin       = is_sle('15+') ? 'python3' : 'python';
 
@@ -35,9 +35,11 @@ sub run {
     assert_script_run "$python_bin setup.py install";
 
     # Disable extra tuning for testing "from scratch" system
-    assert_script_run "systemctl disable sapconf";
-    $self->reboot;
-    select_console 'root-console';
+    if (check_var('SLE_PRODUCT', 'sles4sap')) {
+        assert_script_run "systemctl disable sapconf";
+        $self->reboot;
+        select_console 'root-console';
+    }
 
     # Execute each test and upload its results
     assert_script_run "cd $test_repo";
