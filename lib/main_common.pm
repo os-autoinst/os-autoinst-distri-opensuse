@@ -2346,6 +2346,7 @@ sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
     loadtest "security/apparmor/aa_notify";
+    loadtest "security/apparmor/aa_disable";
 }
 
 sub load_security_tests_apparmor_profile {
