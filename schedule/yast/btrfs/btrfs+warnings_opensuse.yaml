@@ -41,8 +41,14 @@ schedule:
   - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
-  - installation/opensuse_welcome
+  # On Tumbleweed process Welcome pop-up screen
+  - '{{opensuse_welcome}}'
   - console/system_prepare
+conditional_schedule:
+  opensuse_welcome:
+    VERSION:
+      Tumbleweed:
+        - installation/opensuse_welcome
 test_data:
   disks:
     - name: vda
