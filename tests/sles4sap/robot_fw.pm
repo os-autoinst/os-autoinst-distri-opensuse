@@ -16,7 +16,9 @@ use base "sles4sap";
 use testapi;
 use strict;
 use warnings;
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
+use utils qw(zypper_call);
+use hacluster qw(is_package_installed);
 
 sub run {
     my ($self)           = @_;
@@ -32,6 +34,7 @@ sub run {
     # Install the robot framework
     assert_script_run "unzip /robot/bin/robotframework-$robot_fw_version.zip";
     assert_script_run "cd robotframework-$robot_fw_version";
+    zypper_call "in $python_bin-setuptools" unless is_package_installed("$python_bin-setuptools");
     assert_script_run "$python_bin setup.py install";
 
     # Disable extra tuning for testing "from scratch" system
