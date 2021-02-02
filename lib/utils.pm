@@ -1329,7 +1329,7 @@ can be set to 1.
 =cut
 sub reconnect_mgmt_console {
     my (%args) = @_;
-    $args{timeout}             //= 300;
+    $args{timeout}             //= 500;
     $args{grub_expected_twice} //= 0;
 
     if (check_var('ARCH', 's390x')) {
