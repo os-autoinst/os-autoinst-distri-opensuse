@@ -73,9 +73,22 @@ sub run {
 
         assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StopSystem HDB'";
         assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: false' ; do sleep 1 ; done", 120;
-        $self->do_hana_takeover(node => $node1);
-        assert_script_run "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
-        assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
+        $self->do_hana_sr_register(node => $node1);
+        sleep bmwqemu::scale_timeout(10);
+        my $start_cmd = "su - $sapadm -c 'sapcontrol -nr $instance_id -function StartSystem HDB'";
+        assert_script_run $start_cmd;
+        my $looptime = 90;
+        while (script_run "su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true'") {
+            sleep bmwqemu::scale_timeout(1);
+            --$looptime;
+            last if ($looptime <= 0);
+        }
+        if ($looptime <= 0) {
+            # sr_state is not online after 90 seconds. Start system again and retry
+            assert_script_run $start_cmd;
+            sleep bmwqemu::scale_timeout(10);
+            assert_script_run "until su - $sapadm -c 'hdbnsutil -sr_state' | grep -q 'online: true' ; do sleep 1 ; done";
+        }
 
         # Synchronize the nodes
         barrier_wait "HANA_CREATED_CONF_$cluster_name";

@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use hacluster qw(pre_run_hook get_hostname);
+use hacluster qw(pre_run_hook get_hostname save_state wait_until_resources_started);
 use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
@@ -26,6 +26,7 @@ use Utils::Backends qw(use_ssh_serial_console);
 use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
+use Utils::Systemd qw(systemctl);
 
 our @EXPORT = qw(
   $instance_password
@@ -48,6 +49,7 @@ our @EXPORT = qw(
   test_start
   reboot
   check_replication_state
+  do_hana_sr_register
   do_hana_takeover
   install_libopenssl_legacy
 );
@@ -666,6 +668,33 @@ sub reboot {
     $self->select_serial_terminal;
 }
 
+=head2 do_hana_sr_register
+
+ $self->do_hana_sr_register( node => $node );
+
+Register current HANA node to the node specified by the named argument B<node>. With the named
+argument B<proceed_on_failure> set to 1, method will use B<script_run> and return the return
+value of the B<script_run> call even if sr_register command fails, otherwise B<assert_script_run>
+is used and the method croaks on failure. 
+
+=cut
+
+sub do_hana_sr_register {
+    my ($self, %args) = @_;
+    my $current_node = get_hostname;
+    my $instance_id  = get_required_var('INSTANCE_ID');
+    my $sid          = get_required_var('INSTANCE_SID');
+    my $sapadm       = $self->set_sap_info($sid, $instance_id);
+
+    # Node name is mandatory
+    die 'Node name should be set' if !defined $args{node};
+
+    # We may want to check cluster state without stopping the test
+    my $cmd = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
+
+    return ($cmd->("su - $sapadm -c 'hdbnsutil -sr_register --name=$current_node --remoteHost=$args{node} --remoteInstance=$instance_id --replicationMode=sync --operationMode=logreplay'"));
+}
+
 =head2 do_hana_takeover
 
  $self->do_hana_takeover( node => $node [, manual_takeover => $manual_takeover] [, cluster => $cluster] );
@@ -685,17 +714,25 @@ sub do_hana_takeover {
     # No need to do anything if AUTOMATED_REGISTER is set
     return if check_var('AUTOMATED_REGISTER', 'true');
     my ($self, %args) = @_;
-    my $current_node = get_hostname;
-    my $instance_id  = get_required_var('INSTANCE_ID');
-    my $sid          = get_required_var('INSTANCE_SID');
-    my $sapadm       = $self->set_sap_info($sid, $instance_id);
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $sid         = get_required_var('INSTANCE_SID');
+    my $sapadm      = $self->set_sap_info($sid, $instance_id);
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
 
     # Do the takeover/failback
     assert_script_run "su - $sapadm -c 'hdbnsutil -sr_takeover'" if defined $args{manual_takeover};
-    assert_script_run "su - $sapadm -c 'hdbnsutil -sr_register --name=$current_node --remoteHost=$args{node} --remoteInstance=$instance_id --replicationMode=sync --operationMode=logreplay'";
+    my $res = $self->do_hana_sr_register(node => $args{node}, proceed_on_failure => 1);
+    if (defined $res && $res != 0) {
+        record_info "System not ready", "HANA has not finished starting as master/slave in the HA stack";
+        wait_until_resources_started(timeout => 900);
+        save_state;
+        $self->check_replication_state;
+        script_run 'SAPHanaSR-showAttr';
+        script_run 'egrep "expected_votes|two_node" /etc/corosync/corosync.conf';
+        $self->do_hana_sr_register(node => $args{node});
+    }
     sleep bmwqemu::scale_timeout(10);
     assert_script_run "crm resource cleanup rsc_SAPHana_${sid}_HDB$instance_id", 300 if defined $args{cluster};
 }
