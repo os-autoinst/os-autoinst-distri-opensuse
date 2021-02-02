@@ -35,6 +35,7 @@
       <li><a href="#check_instance_state">check_instance_state</a></li>
       <li><a href="#check_replication_state">check_replication_state</a></li>
       <li><a href="#reboot">reboot</a></li>
+      <li><a href="#do_hana_sr_register">do_hana_sr_register</a></li>
       <li><a href="#do_hana_takeover">do_hana_takeover</a></li>
       <li><a href="#install_libopenssl_legacy">install_libopenssl_legacy</a></li>
       <li><a href="#upload_hana_install_log">upload_hana_install_log</a></li>
@@ -182,6 +183,12 @@
 <pre><code> $self-&gt;reboot();</code></pre>
 
 <p>Restart the SUT and reconnect to the console right after.</p>
+
+<h2 id="do_hana_sr_register">do_hana_sr_register</h2>
+
+<pre><code> $self-&gt;do_hana_sr_register( node =&gt; $node );</code></pre>
+
+<p>Register current HANA node to the node specified by the named argument <b>node</b>. With the named argument <b>proceed_on_failure</b> set to 1, method will use <b>script_run</b> and return the return value of the <b>script_run</b> call even if sr_register command fails, otherwise <b>assert_script_run</b> is used and the method croaks on failure.</p>
 
 <h2 id="do_hana_takeover">do_hana_takeover</h2>
 
