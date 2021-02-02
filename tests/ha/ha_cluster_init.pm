@@ -49,8 +49,14 @@ sub cluster_init {
     }
     elsif ($init_method eq 'crm-debug-mode') {
         type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection\n";
-        type_qnetd_pwd                      if get_var('QDEVICE');
-        die "Cluster initialization failed" if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
+        type_qnetd_pwd if get_var('QDEVICE');
+        if (!wait_serial("ha-cluster-init-finished-0", $join_timeout)) {
+            # ha-cluster-init failed in debug mode. Wait some seconds and attempt to start pacemaker
+            # in case this was due to a transient error
+            sleep bmwqemu::scale_timeout(3);
+            assert_script_run 'systemctl start pacemaker';
+            assert_script_run 'systemctl --no-pager status pacemaker';
+        }
     }
 }
 
