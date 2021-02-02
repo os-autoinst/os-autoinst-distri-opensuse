@@ -1,0 +1,28 @@
+# Leap and TW require at least 5GiB of disk space for the root partition as on 64 bit
+# SLES requires only 3GiB for the same scenario
+disks:
+  - name: vda
+    partitions:
+      <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+      rootfs_small:
+        - role: efi-boot
+          size: 128mb
+          formatting_options:
+            should_format: 1
+          mounting_options:
+            should_mount: 1
+            mount_point: /boot/efi
+        - role: operating-system
+          size: 4GiB
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+          mounting_options:
+            should_mount: 1
+            mount_point: /
+errors:
+  <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
+warnings:
+  <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
+  rootfs_small: Missing device for / with size equal or bigger than 5 GiB and filesystem ext2, ext3, ext4, btrfs, xfs
+  missing_boot: Missing device for /boot/efi with size equal or bigger than 128 MiB and filesystem vfat
