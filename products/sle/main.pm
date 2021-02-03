@@ -1236,6 +1236,10 @@ else {
             set_var('INSTALLONLY', 1);
             loadtest "x11/nis_client";
         }
+        if (get_var('WIREGUARD_SERVER') || get_var("WIREGUARD_CLIENT")) {
+            load_wireguard_tests;
+            return 1;
+        }
     }
     elsif (get_var("REMOTE_TARGET")) {
         load_boot_tests();

@@ -124,6 +124,7 @@ our @EXPORT = qw(
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
   load_wicked_create_hdd
+  load_wireguard_tests
 );
 
 sub init_main {
@@ -3234,6 +3235,20 @@ sub load_kernel_baremetal_tests {
     loadtest "toolchain/install";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
+}
+
+sub load_wireguard_tests {
+    set_var('INSTALLONLY', 1);
+    if (get_var('IS_MM_SERVER')) {
+        barrier_create 'SETUP_DONE',       2;
+        barrier_create 'KEY_TRANSFERED',   2;
+        barrier_create 'VPN_ESTABLISHED',  2;
+        barrier_create 'IPERF_COMPLETED',  2;
+        barrier_create 'WG_QUICK_READY',   2;
+        barrier_create 'WG_QUICK_ENABLED', 2;
+    }
+    loadtest "network/setup_multimachine";
+    loadtest "network/wireguard";
 }
 
 1;
