@@ -665,7 +665,12 @@ sub hyperv_console_switch {
     # If we are in VT, 'Alt-Fx' switch already worked
     return if check_screen('any-console', 10);
     # We are in X11 and wan't to switch to VT
-    testapi::x11_start_program('xterm');
+    if (check_var('DESKTOP', 'textmode') && check_var('VIDEOMODE', 'text')) {
+        testapi::assert_still_screen { type_string "xinit /usr/bin/xterm -- :1 &\n" };
+        testapi::mouse_set(10, 10);
+    } else {
+        testapi::x11_start_program('xterm');
+    }
     self->distribution::script_sudo("exec chvt $nr; exit", 0);
 }
 
