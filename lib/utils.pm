@@ -1333,8 +1333,7 @@ sub reconnect_mgmt_console {
     $args{grub_expected_twice} //= 0;
 
     if (check_var('ARCH', 's390x')) {
-        my $login_ready = qr/Welcome to /;
-        $login_ready .= is_sle() ? qr/SUSE Linux Enterprise Server.*\(s390x\)/ : qr/openSUSE Tumbleweed/;
+        my $login_ready = serial_terminal::get_login_message();
         console('installation')->disable_vnc_stalls;
 
         # different behaviour for z/VM and z/KVM
