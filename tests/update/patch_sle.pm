@@ -167,6 +167,7 @@ sub sle_register {
         }
         else {
             # Erase all local files created from a previous executed registration
+            assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf") if (get_var('SLE11_USE_SCC'));
             assert_script_run('suse_register -E');
             # Register SLE 11 to SMT server
             my $smt_url = get_var('SMT_URL', '');
@@ -182,7 +183,6 @@ sub sle_register {
             elsif (get_var('SLE11_USE_SCC')) {
                 my $reg_code = get_required_var('NCC_REGCODE');
                 my $reg_mail = get_var('NCC_MAIL');               # email address is not mandatory for SCC
-                assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf");
                 if (get_var('NCC_REGCODE_SDK')) {
                     my $reg_code_sdk = get_required_var('NCC_REGCODE_SDK');
                     zypper_call("ar http://schnell.suse.de/SLE11/SLE-11-SP4-SDK-GM/s390x/DVD1/ sdk");
