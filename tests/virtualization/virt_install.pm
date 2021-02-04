@@ -15,9 +15,13 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_sle is_leap);
 
 sub run {
     ensure_installed('virt-install');
+    # This test runs qemu with gpu-pci (depends on openQA config), so install the required deps
+    ensure_installed('qemu-hw-display-virtio-gpu qemu-hw-display-virtio-gpu-pci') unless is_sle('<15-sp3') or is_leap('<15.3');
+
     x11_start_program('xterm');
     become_root;
     script_run('virt-install --name TESTING --memory 512 --disk none --boot cdrom --graphics vnc &', 0);
