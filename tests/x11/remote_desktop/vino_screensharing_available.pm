@@ -31,6 +31,7 @@ use strict;
 use warnings;
 use testapi;
 use x11utils 'handle_relogin';
+use version_utils 'is_tumbleweed';
 
 sub run {
     select_console 'x11';
@@ -65,11 +66,12 @@ sub run {
     }
 
     # Ensure that screen sharing is available, on X11 only (wayland is not supported) - boo#1137569
+    # (But Wayland now supported for TW after 20210119 snapshot)
     x11_start_program('xterm');
     assert_script_run("loginctl");
     my $is_wayland = (script_run('loginctl show-session $(loginctl | grep $(whoami) | awk \'{print $1 }\') -p Type | grep wayland') == 0);
     send_key 'alt-f4';
-    if ($is_wayland) {
+    if ($is_wayland && !is_tumbleweed) {
         assert_screen 'without_screensharing';
         record_soft_failure 'boo#1137569 - screen sharing not yet supported on wayland';
     } else {
