@@ -24,7 +24,8 @@ use version_utils;
 use version;
 use containers::utils;
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app);
+our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker
+  test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app);
 
 # Build any container image using a basic Dockerfile. Not applicable for buildah builds
 sub build_container_image {
@@ -53,10 +54,22 @@ sub build_container_image {
 }
 
 sub test_containered_app {
-    my ($runtime, $container) = @_;
+    my %args       = @_;
+    my $runtime    = $args{runtime};
+    my $dockerfile = $args{dockerfile};
+
+    die "You must define the runtime!"    unless $runtime;
+    die "You must define the Dockerfile!" unless $dockerfile;
+
     my $dir = "/root/containerapp";
-    set_up($dir, "Dockerfile.python");
-    build_img($dir, $runtime);
+
+    # Setup the environment
+    container_set_up("$dir", $dockerfile);
+
+    # Build the image
+    build_img("$dir", $runtime);
+
+    # Run the built image
     test_built_img($runtime);
 }
 
@@ -88,8 +101,7 @@ sub build_with_zypper_docker {
         my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
         validate_script_output("$runtime run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'",
             sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
-    }
-    else {
+    } else {
         $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
@@ -122,11 +134,10 @@ sub test_opensuse_based_image {
     my ($host_version, $host_sp, $host_id) = get_os_release();
     my ($image_version, $image_sp, $image_id);
 
-    if ($runtime =~ /docker|podman/) {
-        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
-    }
-    else {
+    if ($runtime =~ /buildah/) {
         ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
+    } else {
+        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
     }
     record_info "Host",  "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
     record_info "Image", "Image has '$image_version', '$image_sp', '$image_id' in /etc/os-release";
@@ -138,13 +149,12 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            if ($runtime =~ /docker|podman/) {
+            if ($runtime =~ /buildah/) {
+                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
+            } else {
                 # zypper-docker changes the layout of the image
                 validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
-                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
-            }
-            else {
-                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
                     sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
             }
 
@@ -159,12 +169,10 @@ sub test_opensuse_based_image {
                 script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
                 script_run "$runtime container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
             }
-        }
-        else {
+        } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
         }
-    }
-    else {
+    } else {
         $version =~ s/^Jump://i;
         validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
@@ -177,23 +185,32 @@ sub test_opensuse_based_image {
 
 sub test_zypper_on_container {
     my ($runtime, $image) = @_;
+
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
     # zypper lr
     assert_script_run("$runtime run $image zypper lr -s", 120);
+
     if ($runtime =~ /buildah/) {
         # zypper ref
         assert_script_run("$runtime run $image -- zypper -v ref | grep \"All repositories have been refreshed\"", 120);
+
         # Create new image and remove the working container
         assert_script_run("$runtime commit --rm $image refreshed", 120);
+
         # Verify the new image works
         assert_script_run("$runtime run \$($runtime from refreshed) -- zypper -v ref | grep \"All repositories have been refreshed\" ", 120);
-    }
-    else {
+    } else {
         # zypper ref
         assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+
         # Commit the image
         assert_script_run("$runtime commit refreshed refreshed-image", 120);
+
         # Remove it
         assert_script_run("$runtime rm refreshed", 120);
+
         # Verify the image works
         assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
     }
@@ -212,8 +229,7 @@ sub ensure_container_rpm_updates {
             my $stable_v  = version->parse("v$+{stable_version}");
             record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
             die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
-        }
-        elsif ($line =~ $regex2zerorpm) {
+        } elsif ($line =~ $regex2zerorpm) {
             record_info("No Update found", "no updates found between rpm versions");
             last;
         }

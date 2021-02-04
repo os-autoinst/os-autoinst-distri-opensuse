@@ -25,8 +25,9 @@ use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud);
 use containers::utils 'can_build_sle_base';
 
-our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries clean_container_host
-  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials install_buildah_when_needed);
+our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
+  clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
+  scc_restore_docker_image_credentials install_buildah_when_needed);
 
 sub install_podman_when_needed {
     my $host_os = shift;
@@ -34,16 +35,14 @@ sub install_podman_when_needed {
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
-        }
-        elsif ($host_os eq 'ubuntu') {
+        } elsif ($host_os eq 'ubuntu') {
             my $version_id  = script_output('(. /etc/os-release && echo $VERSION_ID)');
             my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
             assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
             assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
             assert_script_run "apt-get update",            timeout => 160;
             assert_script_run "apt-get -y install podman", timeout => 220;
-        }
-        else {
+        } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
             push(@pkgs, 'podman-cni-config') if is_jeos();
@@ -60,15 +59,13 @@ sub install_docker_when_needed {
     if (is_microos || is_sle_micro) {
         # Docker should be pre-installed in MicroOS
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
-    }
-    else {
+    } else {
         if (script_run("which docker") != 0) {
             if ($host_os eq 'centos') {
                 assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
                 # if podman installed use flag "--allowerasing" to solve conflicts
                 assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
-            }
-            elsif ($host_os eq 'ubuntu') {
+            } elsif ($host_os eq 'ubuntu') {
                 my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
                 assert_script_run "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -";
                 assert_script_run q(add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable");
@@ -76,8 +73,7 @@ sub install_docker_when_needed {
                 # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
                 assert_script_run "apt-cache policy docker-ce";
                 assert_script_run "apt-get -y install docker-ce", timeout => 260;
-            }
-            else {
+            } else {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
                 if (can_build_sle_base && script_run("SUSEConnect --status-text | grep Containers") != 0) {
                     is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
@@ -98,7 +94,7 @@ sub install_docker_when_needed {
 
 sub install_buildah_when_needed {
     my $host_os = shift;
-    my @pkgs    = qw(buildah podman);
+    my @pkgs    = qw(buildah);
     if (script_run("which buildah") != 0) {
         # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
         add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
@@ -122,7 +118,7 @@ sub allow_selected_insecure_registries {
             'echo "{ \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
         systemctl('restart docker');
-    } elsif ($runtime =~ /podman|buildah/) {
+    } elsif ($runtime =~ /podman/) {
         assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
         assert_script_run "chmod 644 /etc/containers/registries.conf";
         assert_script_run("sed -i 's/REGISTRY/$registry/' /etc/containers/registries.conf");
@@ -138,8 +134,7 @@ sub clean_container_host {
     if ($runtime =~ /buildah/) {
         assert_script_run("$runtime rm --all");
         assert_script_run("$runtime rmi --all --force");
-    }
-    else {
+    } else {
         assert_script_run("$runtime stop \$($runtime ps -q)", 180) if script_output("$runtime ps -q | wc -l") != '0';
         assert_script_run("$runtime system prune -a -f",      180);
     }
@@ -220,8 +215,7 @@ sub test_container_image {
         my $container = script_output("buildah from $image");
         record_info $container;
         assert_script_run("buildah run $container $smoketest");
-    }
-    else {
+    } else {
         # Pull the image if necessary
         if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
             assert_script_run("$runtime pull $image", timeout => 300);

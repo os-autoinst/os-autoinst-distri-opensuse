@@ -35,6 +35,7 @@ use warnings;
 use containers::common;
 use version_utils qw(is_sle is_leap get_os_release);
 use containers::utils;
+use containers::container_images;
 
 sub run {
     my ($self) = @_;
@@ -50,16 +51,10 @@ sub run {
     allow_selected_insecure_registries(runtime => 'docker');
 
     # Run basic docker tests
-    basic_container_tests("docker");
+    basic_container_tests(runtime => "docker");
 
-    # Set up environment for building a new image
-    set_up("$dir");
-
-    # Build the image
-    build_img("$dir", "docker");
-
-    # Run the built image
-    test_built_img("docker");
+    # Build an image from Dockerfile and test it
+    test_containered_app(runtime => 'docker', dockerfile => 'Dockerfile');
 
     # Clean container
     clean_container_host(runtime => "docker");
