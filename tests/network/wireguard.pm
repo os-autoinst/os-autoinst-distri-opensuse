@@ -35,6 +35,15 @@ sub start_wgquick {
 sub run {
     my $self = shift;
 
+    if (get_var('IS_MM_SERVER')) {
+        barrier_create 'SETUP_DONE',       2;
+        barrier_create 'KEY_TRANSFERED',   2;
+        barrier_create 'VPN_ESTABLISHED',  2;
+        barrier_create 'IPERF_COMPLETED',  2;
+        barrier_create 'WG_QUICK_READY',   2;
+        barrier_create 'WG_QUICK_ENABLED', 2;
+    }
+
     $self->select_serial_terminal;
     barrier_wait 'SETUP_DONE';
 

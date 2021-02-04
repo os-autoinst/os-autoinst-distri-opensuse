@@ -1,0 +1,9 @@
+name:           wireguard
+description:    >
+    Maintainer: dheidler.
+    Wireguard test
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - network/wireguard
