@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2020 SUSE LLC
+# Copyright (C) 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ sub run {
         systemctl 'enable chronyd';
         systemctl 'start chronyd';
         # bsc#1179022 avoid '503 No such source' error while chrony does pick responding sources after start
-        assert_script_run 'until chronyc activity|grep "0 sources doing burst.*online"; do sleep 1; echo "waiting for ntp sources response"; done';
+        script_run qq(timeout 85 bash -c 'until chronyc activity|grep "0 sources doing burst.*online"; do sleep 1; echo "waiting for ntp sources response"; done' -k);
     }
 
     # ensure that ntpd is neither installed nor enabled nor active
