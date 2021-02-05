@@ -24,7 +24,7 @@ use mmapi;
 our $master;
 our $slave;
 
-sub upload_logs {
+sub upload_ibtest_logs {
     my $self = shift;
 
     $self->save_and_upload_log('dmesg',                   '/tmp/dmesg.log',         {screenshot => 0});
@@ -47,7 +47,7 @@ sub ibtest_slave {
     zypper_call('in iputils python');
     barrier_wait('IBTEST_BEGIN');
     barrier_wait('IBTEST_DONE');
-    $self->upload_logs;
+    $self->upload_ibtest_logs;
 }
 
 sub ibtest_master {
@@ -97,7 +97,7 @@ sub ibtest_master {
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
 
-    $self->upload_logs;
+    $self->upload_ibtest_logs;
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_SETUP');
@@ -149,7 +149,7 @@ sub post_fail_hook {
         parse_extra_log('XUnit', '/tmp/results.xml');
     }
 
-    $self->upload_logs;
+    $self->upload_ibtest_logs;
 
     barrier_wait('IBTEST_DONE');
     wait_for_children;
@@ -178,7 +178,7 @@ we assume it is "64bit-mlx_con5". See the schedule/kernel/ibtest-master.yaml and
 schedule/kernel/ibtest-slave.yaml for more details.
 
 =head2 openQA test suites
-As the test is executed on two hosts, two test suites should be created. Please note: 
+As the test is executed on two hosts, two test suites should be created. Please note:
 most settings are now defined in the YAML schedule.
 
 =head3 ibtest-master
@@ -189,26 +189,26 @@ PARALLEL_WITH=ibtest-master
 YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
 
 =head3 additional configuration variables
-These are only effective, when defined for the master job. Leave them at their 
+These are only effective, when defined for the master job. Leave them at their
 defaults unless you know what you are doing.
 
 IBTEST_TIMEOUT
- Test timeout in seconds. 
+ Test timeout in seconds.
  Default: 3600 (1 hour)
 IBTEST_ONLY_PHASE
- integer value. Only run the defined phase. 
+ integer value. Only run the defined phase.
  Not set by default.
 IBTEST_START_PHASE
- integer value. Start with specified phase. 
+ integer value. Start with specified phase.
  Default: 0
 IBTEST_END_PHASE
- integer value. End with specified phase. 
+ integer value. End with specified phase.
  Default: 999
 IBTEST_MPI_FLAVOURS
- Comma separated list of MPI flavours to test. 
+ Comma separated list of MPI flavours to test.
  Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
 IBTEST_IPOIB_MODES
- Comma separated list of IPoIB modes to test 
+ Comma separated list of IPoIB modes to test
  Default: connected,datagram
 IBTEST_VERBOSE
  Set this variable to enable verbose mode
