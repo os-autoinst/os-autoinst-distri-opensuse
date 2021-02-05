@@ -17,12 +17,11 @@ schedule:
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
-  - installation/resolve_dependency_issues
   - installation/installation_overview
   - '{{disable_grub_timeout}}'
   - installation/start_install
   - installation/await_install
-  - '{{installation/logs_from_installation_system}}'
+  - '{{logs_from_installation_system}}'
   - installation/reboot_after_installation
   - installation/teardown_libyui
   - '{{reconnect_mgmt_console}}'
@@ -30,46 +29,38 @@ schedule:
   - console/validate_fs_table
 conditional_schedule:
   disable_grub_timeout:
-    MACHINE:
-      64bit:
+    ARCH:
+      s390x:
         - installation/disable_grub_timeout
-      ppc64le-hmc-single-disk:
-        - installation/edit_optional_kernel_cmd_parameters
+    BACKEND:
+      qemu:
         - installation/disable_grub_timeout
-      s390x-kvm-sle12:
+      pvm_hmc:
         - installation/disable_grub_timeout
-      svirt-xen-hvm:
-        - installation/disable_grub_timeout
-      svirt-hyperv:
+    VIRSH_VMM_TYPE:
+      hvm:
         - installation/disable_grub_timeout
   logs_from_installation_system:
-    MACHINE:
-      64bit:
+    ARCH:
+      s390x:
         - installation/logs_from_installation_system
-      ppc64le:
+    BACKEND:
+      qemu:
         - installation/logs_from_installation_system
-      ppc64le-hmc-single-disk:
-        - installation/logs_from_installation_system
-      s390x-kvm-sle12:
-        - installation/logs_from_installation_system
-      svirt-xen-hvm:
-        - installation/logs_from_installation_system
-      svirt-xen-pv:
+      pvm_hmc:
         - installation/logs_from_installation_system
   reconnect_mgmt_console:
-    MACHINE:
-      64bit:
+    ARCH:
+      s390x:
+        - boot/reconnect_mgmt_console
+    BACKEND:
+      qemu:
         - installation/grub_test
-      ppc64le:
-        - installation/grub_test
-      ppc64le-hmc-single-disk:
+      pvm_hmc:
         - boot/reconnect_mgmt_console
         - installation/grub_test
-      s390x-kvm-sle12:
-        - boot/reconnect_mgmt_console
-      svirt-xen-hvm:
-        - installation/grub_test
-      svirt-hyperv:
+    VIRSH_VMM_TYPE:
+      hvm:
         - installation/grub_test
 test_data:
   <<: !include test_data/yast/msdos/msdos.yaml
