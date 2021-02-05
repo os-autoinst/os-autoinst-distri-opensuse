@@ -1,9 +1,8 @@
 name:         sle_image_on_ubuntu
 description:  |
-    Run sle container on Ubuntu
+  Run sle container on Ubuntu
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - containers/host_configuration
-    - containers/podman_image
-    - containers/docker_image
+  - boot/boot_to_desktop
+  - containers/host_configuration
+  - containers/podman_image
+  - containers/docker_image

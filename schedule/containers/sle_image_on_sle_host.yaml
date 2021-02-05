@@ -2,8 +2,17 @@ name:           sle_image_on_sle_host
 description:    >
   Maintainer: jalausuch@suse.com, qa-c@suse.de.
   Extra tests about software in containers module
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+  validate_btrfs:
+    ARCH:
+      x86_64:
+        - containers/validate_btrfs
 schedule:
-  - installation/bootloader_start
+  - '{{boot}}'
   - boot/boot_to_desktop
   - containers/host_configuration
   - containers/podman_image
@@ -11,8 +20,3 @@ schedule:
   - containers/docker_image
   - containers/container_diff
   - '{{validate_btrfs}}'
-conditional_schedule:
-  validate_btrfs:
-    ARCH:
-      x86_64:
-        - containers/validate_btrfs
