@@ -65,23 +65,25 @@ sub run {
         assert_screen('installation-settings-overview-loaded');
     }
 
-    # Check that installation is blocked (expected behavior)
-    assert_screen 'inst-overview-blocked';
-    send_key 'alt-i';
-    assert_screen 'startinstall-blocked';
-    send_key 'alt-o';
-    assert_screen 'inst-overview-blocked';
+    if ($blocker_packages) {
+        # Check that installation is blocked (expected behavior)
+        assert_screen 'inst-overview-blocked';
+        send_key 'alt-i';
+        assert_screen 'startinstall-blocked';
+        send_key 'alt-o';
+        assert_screen 'inst-overview-blocked';
 
-    $self->go_to_patterns();
-    $self->go_to_search_packages();
-    for my $package_name (split(/,/, $blocker_packages)) {
-        $self->search_package($package_name);
-        $self->toogle_package($package_name, '+');
-    }
-    $self->back_to_overview_from_packages();
+        $self->go_to_patterns();
+        $self->go_to_search_packages();
+        for my $package_name (split(/,/, $blocker_packages)) {
+            $self->search_package($package_name);
+            $self->toogle_package($package_name, '+');
+        }
+        $self->back_to_overview_from_packages();
 
-    if (check_screen('inst-overview-blocked', 0)) {
-        die('Installation looks blocked. Is some blocker package not included in INSTALLATION_BLOCKED?');
+        if (check_screen('inst-overview-blocked', 0)) {
+            die('Installation looks blocked. Is some blocker package not included in INSTALLATION_BLOCKED?');
+        }
     }
 }
 
