@@ -41,6 +41,7 @@ use constant {
           is_svirt_except_s390x
           is_pvm
           is_xen_pv
+          is_ipmi
           )
     ],
     CONSOLES => [
@@ -171,6 +172,16 @@ Returns true if the current instance is running as PowerVM backend 'spvm' or 'hm
 
 sub is_pvm {
     return check_var('BACKEND', 'spvm') || check_var('BACKEND', 'pvm_hmc');
+}
+
+=head2 is_ipmi
+
+Returns true if the current instance is running as ipmi backend
+
+=cut
+
+sub is_ipmi {
+    return check_var('BACKEND', 'ipmi');
 }
 
 #This subroutine takes absolute file path of sshd config file and desired ssh connection timeout as arguments

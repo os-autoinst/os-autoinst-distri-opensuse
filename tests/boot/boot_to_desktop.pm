@@ -18,7 +18,7 @@ use base 'bootbasetest';
 use strict;
 use warnings;
 use testapi;
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_ipmi);
 use version_utils qw(is_upgrade is_sles4sap is_sle);
 
 sub run {
@@ -27,6 +27,9 @@ sub run {
     # We have tests that boot from HDD and wait for DVD boot menu's timeout, so
     # the timeout here must cover it. UEFI DVD adds some 60 seconds on top.
     my $timeout = get_var('UEFI') ? 140 : 80;
+    # Increase timeout on ipmi bare metal backend, firmware initialization takes
+    # a lot of time
+    $timeout += 300 if is_ipmi;
     # Add additional 60 seconds if the test suite is migration as reboot from
     # pre-migration system may take an additional time. Booting of encrypted disk
     # needs additional time too.

@@ -14,7 +14,7 @@ use warnings;
 use testapi;
 use utils;
 use registration;
-use Utils::Backends qw(is_pvm is_xen_pv);
+use Utils::Backends qw(is_pvm is_xen_pv is_ipmi);
 use Utils::Architectures qw(is_ppc64le is_aarch64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
@@ -283,7 +283,7 @@ sub check_function {
         assert_screen 'grub2', 180;
         wait_screen_change { send_key 'ret' };
     }
-    elsif (is_pvm) {
+    elsif (is_pvm || is_ipmi) {
         reconnect_mgmt_console;
     }
     else {
