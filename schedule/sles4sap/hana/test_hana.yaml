@@ -5,7 +5,7 @@ description: >
 vars:
   BOOTFROM: c
   BOOT_HDD_IMAGE: '1'
-  HANA: nfs://1c119.qa.suse.de/srv/nfs/sap/HANA2/SPS04rev46_0/%ARCH%
+  HANA: nfs://1c119.qa.suse.de/srv/nfs/sap/HANA2/SPS03rev3/%ARCH%
   HDDSIZEGB_2: '131'
   HDD_SCC_REGISTERED: '1'
   INSTANCE_ID: '00'
