@@ -33,6 +33,7 @@ use services::hpcpackage_remain;
 use services::ntpd;
 use services::cups;
 use services::rpcbind;
+use services::users;
 use autofs_utils;
 use services::postfix;
 use services::firewall;
@@ -59,6 +60,12 @@ our %srv_check_results = (
 );
 
 our $default_services = {
+    users => {
+        srv_pkg_name       => 'users',
+        srv_proc_name      => 'users',
+        support_ver        => $support_ver_ge12,
+        service_check_func => \&services::users::full_users_check
+    },
     hpcpackage_remain => {
         srv_pkg_name       => 'hpcpackage_remain',
         srv_proc_name      => 'hpcpackage_remain',
