@@ -21,7 +21,7 @@ sub run {
     my $hostname   = get_var('HOSTNAME', 'susetest');
     my $arch       = get_required_var('ARCH');
     my $backup_url = get_required_var('BACKUP_URL');
-    my $timeout    = bmwqemu::scale_timeout(300);
+    my $timeout    = bmwqemu::scale_timeout(600);
 
     # Disable packagekit and install ReaR
     get_var('USE_YAST_REAR') ? select_console 'root-console' : $self->select_serial_terminal;
