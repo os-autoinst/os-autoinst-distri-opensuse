@@ -95,7 +95,8 @@ and additionally the following rules:
   e.g. what issue is fixed, why this needs to change, to which versions of which
   product it applies, link to a bug or a feature entry, the choices you made,
   etc. Also see https://commit.style/ or http://chris.beams.io/posts/git-commit/
-  as a helpful guide how to write good commit messages.
+  as a helpful guide how to write good commit messages. And make code
+  reviewers fall in love with you :) https://mtlynch.io/code-review-love/
   Keep in mind that the text in the github pull request description is only
   visible on github, not in the git log which can be considered permanent
   information storage.
