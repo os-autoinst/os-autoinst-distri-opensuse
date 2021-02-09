@@ -30,6 +30,7 @@ sub run {
     services::rpcbind::check_install();
     services::rpcbind::config_service();
     services::rpcbind::enable_service();
+    services::rpcbind::check_enabled();
     services::rpcbind::start_service();
     services::rpcbind::check_service();
     services::rpcbind::check_function();

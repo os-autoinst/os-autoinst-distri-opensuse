@@ -52,6 +52,11 @@ sub stop_service {
     common_service_action($nfs_server, $service_type, 'stop');
 }
 
+sub check_enabled {
+    common_service_action('rpcbind',   $service_type, 'is-enabled');
+    common_service_action($nfs_server, $service_type, 'is-enabled');
+}
+
 sub check_service {
     common_service_action('rpcbind', $service_type, 'is-enabled');
     common_service_action('rpcbind', $service_type, 'is-active');
@@ -80,6 +85,7 @@ sub full_rpcbind_check {
         install_service();
         config_service();
         enable_service();
+        check_enabled();
         start_service();
     }
     check_service();
