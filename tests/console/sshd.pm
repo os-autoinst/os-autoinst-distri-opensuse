@@ -21,7 +21,7 @@
 #   * Local and remote port forwarding are tested
 #   * The SCP is tested by copying various files
 #
-# Maintainer: Pavel Dostál <pdostal@suse.cz>, George Gkioulis <ggkioulis@suse.com>
+# Maintainer: Pavel Dostál <pdostal@suse.cz>
 # Tags: poo#65375, poo#68200
 
 use warnings;
@@ -31,7 +31,6 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(systemctl exec_and_insert_password zypper_call random_string clear_console);
 use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap);
 use services::sshd;
-use ssh_crypto_policy;
 
 sub run {
     my $self = shift;
@@ -127,10 +126,6 @@ sub run {
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/{group,passwd}' /tmp";
     assert_script_run "scp -4v '$ssh_testman\@localhost:/etc/ssh/*.pub' /tmp";
 
-    # Test all available ciphers, key exchange algorithms, host key algorithms and mac algorithms.
-    # poo#80716
-    test_cryptographic_policies(remote_user => $ssh_testman);
-
     # Restore ~/.ssh generated in consotest_setup
     # poo#68200. Confirm the ~/.ssh_bck directory is exist in advance and then restore, in order to avoid the null restore
     assert_script_run 'rm -rf ~/.ssh';
@@ -139,37 +134,6 @@ sub run {
     assert_script_run "killall -u $ssh_testman || true";
     wait_still_screen 3;
     clear_console if !is_serial_terminal;
-}
-
-sub test_cryptographic_policies() {
-    my %args        = @_;
-    my $remote_user = $args{remote_user};
-
-    my @crypto_params = (["Ciphers", "cipher", "-c "], ["HostKeyAlgorithms", "key", "-o HostKeyAlgorithms="], ["KexAlgorithms", "kex", "-o kexalgorithms="], ["MACS", "mac", "-m "]);
-    my @policies;
-
-    # Create an array of the different cryptographic policies that will be tested
-    for my $i (0 .. $#crypto_params) {
-        my $obj = ssh_crypto_policy->new(name => $crypto_params[$i][0], query => $crypto_params[$i][1], cmd_option => $crypto_params[$i][2]);
-        push(@policies, $obj);
-    }
-
-    # Add all available algorithms to sshd_config
-    foreach my $policy (@policies) {
-        $policy->add_to_sshd_config();
-    }
-
-    my $sshd_config = script_output("cat /etc/ssh/sshd_config");
-    record_info("Restart sshd", $sshd_config);
-    systemctl("restart sshd");
-
-    # Add all the ssh public key hashes as known hosts
-    assert_script_run("ssh-keyscan -H localhost > ~/.ssh/known_hosts");
-
-    # Test all the policies
-    foreach my $policy (@policies) {
-        $policy->test_algorithms(remote_user => $remote_user);
-    }
 }
 
 sub test_flags {
