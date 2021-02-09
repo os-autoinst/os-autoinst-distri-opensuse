@@ -395,7 +395,7 @@ sub check_console_font {
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match, for migration, need wait root console
     my $flavor = get_var('FLAVOR');
-    select_console('root-console', await_console => ($flavor =~ /Migration/));
+    select_console('root-console', await_console => ($flavor =~ /Migration/) ? 1 : 0);
 
     # if this command failed, we're not in a console (e.g. in a svirt
     # ssh connection) and don't see the console font but the local
