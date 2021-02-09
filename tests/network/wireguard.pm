@@ -18,6 +18,8 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils 'is_sle';
+use registration;
 use lockapi;
 use mmapi 'wait_for_children';
 
@@ -56,6 +58,18 @@ sub run {
         $vpn_local  = '192.168.2.2';
         $vpn_remote = '192.168.2.1';
         $remote     = '10.0.2.101';
+    }
+
+    if (is_sle()) {
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_required_var('SCC_REGCODE_WE'), 300, 1);
+        # Workaround https://bugzilla.suse.com/show_bug.cgi?id=1181941
+        zypper_call '--gpg-auto-import-keys ref';
+        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
+        # Workaround https://bugzilla.suse.com/show_bug.cgi?id=1182004
+        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call 'in kernel-default-extra';
+        assert_script_run 'modprobe wireguard';
     }
 
     assert_script_run 'grep -i CONFIG_WIREGUARD /boot/config-$(uname -r)';
