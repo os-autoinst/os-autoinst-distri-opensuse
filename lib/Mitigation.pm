@@ -264,6 +264,14 @@ sub check_default_status {
     if ($ret eq 0) {
         remove_grub_cmdline_settings("mitigations=[a-z,]*");
     }
+    if (exists $self->{others_param_name}) {
+        foreach my $parameter_item (@{$self->{others_param_name}}) {
+            my $ret = script_run('grep "' . $parameter_item . '=[a-z,]*" /proc/cmdline');
+            if ($ret eq 0) {
+                remove_grub_cmdline_settings($parameter_item . "=[a-z,]*");
+            }
+        }
+    }
     reboot_and_wait($self, 150);
     foreach my $parameter_item (@{$self->{parameter}}) {
         my $ret = script_run('grep "' . $parameter_item . '=off" /proc/cmdline');
@@ -271,7 +279,14 @@ sub check_default_status {
             die "there are still have parameter will impacted our test";
         }
     }
-
+    if (exists $self->{others_param_name}) {
+        foreach my $parameter_item (@{$self->{others_param_name}}) {
+            my $ret = script_run('grep "' . $parameter_item . '=[a-z,]*" /proc/cmdline');
+            if ($ret eq 0) {
+                die "there are still have parameter will impacted our test";
+            }
+        }
+    }
 }
 
 #Check cpu flags exist or not.

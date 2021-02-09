@@ -44,6 +44,7 @@ my %mitigations_list =
             spectre_v1    => "Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers",
         },
     },
+    others_param_name => [],
     cmdline => ["auto,nosmt", "off", "auto"],
   );
 
@@ -99,6 +100,10 @@ sub run {
         die "Unable to get vulnerabilities instance, exit!" unless $obj;
         my $ret = $obj->vulnerabilities();
         if ($ret eq 1) {
+            if(exists $current_list->{parameter}) {
+                push @mitigations_list{others_param_name}, $current_list->{parameter};
+            }
+
             #off
             $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
             #auto
