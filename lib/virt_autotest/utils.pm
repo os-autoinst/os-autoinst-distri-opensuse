@@ -211,6 +211,7 @@ sub ensure_online {
     my $dns_host     = $args{DNS_TEST_HOST} // "suse.de";
     my $skip_ssh     = $args{skip_ssh}      // 0;
     my $skip_network = $args{skip_network}  // 0;
+    my $skip_ping    = $args{skip_ping}     // 0;
     my $ping_delay   = $args{ping_delay}    // 15;
     my $ping_retry   = $args{ping_retry}    // 60;
 
@@ -223,7 +224,10 @@ sub ensure_online {
         }
     }
     unless ($skip_network == 1) {
-        die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => $ping_delay, retry => $ping_retry) != 0);
+        # Check if we can ping guest
+        unless ($skip_ping == 1) {
+            die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => $ping_delay, retry => $ping_retry) != 0);
+        }
         unless ($skip_ssh == 1) {
             # Wait for ssh to come up
             die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
@@ -232,10 +236,13 @@ sub ensure_online {
             if (script_run("ssh $guest ip r s | grep default") != 0) {
                 assert_script_run("ssh $guest ip r a default via $hypervisor");
             }
-            die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 3 $hypervisor", delay => 1, retry => 10, timeout => 90) != 0);
+            # Check if we can ping hypervizor from the guest
+            unless ($skip_ping == 1) {
+                die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 3 $hypervisor", delay => 1, retry => 10, timeout => 90) != 0);
+            }
             # Check also if name resolution works - restart libvirtd if not
             if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
-                restart_libvirtd;
+                restart_libvirtd                        if (is_xen_host || is_kvm_host);
                 die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 3 -w 120 $dns_host", delay => 1, retry => 10, timeout => 180) != 0);
             }
         }
