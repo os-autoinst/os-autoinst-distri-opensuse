@@ -51,9 +51,9 @@ sub run {
     if (is_storage_ng) {
         # warning: / should be >= 10 GiB or disable snapshots
         assert_screen 'partition-splitusr-root-warning';
-        wait_screen_change { send_key 'alt-y' };              # accept warning for small /
+        wait_screen_change { send_key 'alt-y' };                           # accept warning for small /
         wait_screen_change { send_key 'alt-s' };
-        send_key_until_needlematch 'vda-selected', 'left';    # Select vda again
+        send_key_until_needlematch 'vda-selected', 'left';                 # Select vda again
     }
 
     # add /usr

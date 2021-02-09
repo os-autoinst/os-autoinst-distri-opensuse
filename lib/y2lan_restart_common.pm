@@ -261,7 +261,7 @@ sub set_network {
         assert_screen 'yast2_lan_static_ip_set';
     }
     else {
-        send_key 'alt-y';    # set back to DHCP
+        send_key 'alt-y';                                                       # set back to DHCP
         assert_screen 'yast2_lan_dhcp_set';
     }
     # Exit

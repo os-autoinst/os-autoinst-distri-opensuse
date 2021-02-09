@@ -169,7 +169,7 @@ sub set_defaults_for_username_and_password {
     $testapi::password = get_var("PASSWORD") if defined get_var("PASSWORD");
 
     if (get_var("LIVETEST") && (get_var("LIVECD") || get_var("PROMO"))) {
-        $testapi::username = "linux";    # LiveCD account
+        $testapi::username = "linux";       # LiveCD account
         $testapi::password = "";
     }
 }
@@ -1694,7 +1694,7 @@ sub load_extra_tests_console {
     loadtest "console/gd";
     loadtest 'console/valgrind'          unless is_sle('<=12-SP3');
     loadtest 'console/sssd_samba'        unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
-    loadtest 'console/wpa_supplicant'    unless (!is_x86_64    || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
+    loadtest 'console/wpa_supplicant'    unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
     loadtest 'console/python_scientific' unless (is_sle("<15"));
     loadtest "console/parsec" if is_tumbleweed;
 }

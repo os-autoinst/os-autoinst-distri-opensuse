@@ -62,7 +62,7 @@ sub run {
         };
         if (!defined($output)) {
             record_info("TIMEOUT ERROR", result => 'fail');
-            type_string(qq(\c\\));    # Send QUIT signal
+            type_string(qq(\c\\));              # Send QUIT signal
             $output = wait_serial(serial_term_prompt(), no_regex => 1, record_output => 1, timeout => 10);
             record_info("OUTPUT ON TIMEOUT", $output // 'undef');
             die("Ooops: this should not happen! Timeout appear, check serial_terminal.txt for last output\n" . $@);

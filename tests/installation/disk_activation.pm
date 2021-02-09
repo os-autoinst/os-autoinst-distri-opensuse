@@ -112,7 +112,7 @@ sub run {
                 } else {
                     send_key 'o';
                 }
-                assert_screen 'confirm-dasd-format';    # confirmation popup
+                assert_screen 'confirm-dasd-format';        # confirmation popup
                 send_key 'alt-y';
                 format_dasd;
             }

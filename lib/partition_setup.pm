@@ -271,9 +271,9 @@ sub addpart {
     if ($args{enable_snapshots} && $args{format} eq 'btrfs') {
         send_key_until_needlematch('partition-btrfs-snapshots-enabled', $cmd{enable_snapshots});
     }
-    if ($args{fsid}) {    # $args{fsid} will describe needle tag below
-        send_key 'alt-i';    # select File system ID
-        send_key 'home';     # start from the top of the list
+    if ($args{fsid}) {                                        # $args{fsid} will describe needle tag below
+        send_key 'alt-i';                                     # select File system ID
+        send_key 'home';                                      # start from the top of the list
 
         # Bug is applicable for pre storage-ng only
         if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text') && !is_storage_ng()) {
@@ -390,7 +390,7 @@ sub addlv {
     send_key $cmd{next};
     return if $args{thinpool};
     assert_screen 'partition-role';
-    send_key $partition_roles{$args{role}};    # swap role
+    send_key $partition_roles{$args{role}};                        # swap role
     send_key $cmd{next};
     assert_screen 'partition-format';
     # Add mount

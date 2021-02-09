@@ -36,7 +36,7 @@ sub run {
         x11_start_program('amarok -l ~/data/1d5d9dD.oga', target_match => 'test-amarok-3');
         assert_recorded_sound('DTMF-159D');
     }
-    send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
+    send_key "ctrl-q";       # really quit (alt-f4 just backgrounds)
 }
 
 1;
