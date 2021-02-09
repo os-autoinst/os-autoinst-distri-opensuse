@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Functionality concerning the testing of container images
-# Maintainer: George Gkioulis <ggkioulis@suse.de>
+# Maintainer: George Gkioulis <ggkioulis@suse.com>
 
 package containers::container_images;
 
