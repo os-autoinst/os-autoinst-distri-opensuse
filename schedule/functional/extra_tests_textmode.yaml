@@ -84,7 +84,6 @@ conditional_schedule:
                 - console/systemd_rpm_macros
 schedule:
     - installation/bootloader_start
-    - boot/boot_to_desktop
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
