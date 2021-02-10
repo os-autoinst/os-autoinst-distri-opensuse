@@ -15,15 +15,16 @@ use testapi;
 use utils;
 use registration;
 use Utils::Backends qw(is_pvm is_xen_pv is_ipmi);
-use Utils::Architectures qw(is_ppc64le is_aarch64);
+use Utils::Architectures qw(is_ppc64le is_aarch64 is_x86_64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 use utils 'ensure_serialdev_permissions';
 
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
-  activate_kdump activate_kdump_without_yast kdump_is_active
-  do_kdump configure_service check_function full_kdump_check);
+  activate_kdump activate_kdump_cli activate_kdump_without_yast
+  kdump_is_active do_kdump configure_service check_function
+  full_kdump_check);
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
@@ -173,6 +174,27 @@ sub activate_kdump {
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
 }
 
+# Activate kdump using yast command line interface
+sub activate_kdump_cli {
+    # Make sure fadump is disabled on PowerVM
+    assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
+
+    # Use kdumptool calibrate to get default memory settings
+    my $kdumptool_calibrate = script_output('kdumptool calibrate');
+    record_info('KDUMPTOOL CALIBRATE', $kdumptool_calibrate);
+    my $high_low = is_x86_64 ? 'High' : 'Low';
+    my ($calibrated_memory) = $kdumptool_calibrate =~ /\s$high_low:[ ]*(\d*)/;
+
+    # Set kernel crash memory from job variable or use kdumptool calibrate value
+    my $crash_memory = get_var('CRASH_MEMORY') ? get_var('CRASH_MEMORY') : $calibrated_memory;
+    record_info('CRASH MEMORY', $crash_memory);
+    assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
+    # Enable firmware assisted dump if needed
+    assert_script_run('yast2 kdump fadump enable', 180) if check_var('FADUMP');
+    assert_script_run('yast kdump show',           180);
+    systemctl('enable kdump');
+}
+
 sub activate_kdump_without_yast {
     # activate kdump by grub, need a reboot to start kdump
     my $cmd = "";
@@ -228,8 +250,9 @@ sub do_kdump {
 # For function test we need to install the debug kernel and activate kdump.
 #
 sub configure_service {
-    my ($test_type) = @_;
+    my ($test_type, %args) = @_;
     $test_type //= '';
+    $args{yast_interface} //= '';
 
     my $self = y2_module_consoletest->new();
     if ($test_type eq 'function') {
@@ -241,7 +264,11 @@ sub configure_service {
     }
 
     prepare_for_kdump($test_type);
-    return 16 if (activate_kdump == 16);
+    if ($args{yast_interface} eq 'cli') {
+        activate_kdump_cli;
+    } else {
+        return 16 if (activate_kdump == 16);
+    }
 
     # restart to activate kdump
     power_action('reboot', keepconsole => is_pvm);
@@ -308,14 +335,14 @@ sub check_function {
     # Test PoverVM specific scenario with disabled fadump on encrypted filesystem
     if (is_pvm && get_var('ENCRYPT') && get_var('FADUMP')) {
         # Disable fadump
-        assert_script_run('yast2 kdump fadump disable', 120);
-        assert_script_run('yast2 kdump show',           120);
+        assert_script_run('yast2 kdump fadump disable', 180);
+        assert_script_run('yast2 kdump show',           180);
         # Set print_delay to slow down kernel
         assert_script_run('echo 1000 > /proc/sys/kernel/printk_delay');
         # Restart system and check console
         power_action('reboot', keepconsole => 1);
         reconnect_mgmt_console;
-        assert_screen('system-reboot', timeout => 120, no_wait => 1);
+        assert_screen('system-reboot', timeout => 180, no_wait => 1);
         $self->wait_boot(bootloader_time => 300);
         select_console 'root-console';
     }
