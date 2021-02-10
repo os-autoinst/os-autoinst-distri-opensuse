@@ -1,0 +1,89 @@
+---
+name: autoyast_btrfs_quota
+description: >
+  AutoYaST installation with BTRFS subvolume quotas. Verifies quota limit on the installed system
+  and if its size corresponds to the configured quota limit during installation.
+vars:
+  AUTOYAST_PREPARE_PROFILE: 1
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/verify_btrfs_quota
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+test_data:
+  disks:
+    - partitions:
+      - mounting_options:
+          mount_point: '/'
+        subvolumes:
+          - subvolume:
+              path: var
+              quota: 1.00GiB
+          - subvolume:
+              path: usr/local
+              quota: 1.00GiB
+          - subvolume:
+              path: tmp
+              quota: 1.00GiB
+          - subvolume:
+              path: root
+              quota: 1.00GiB
+          - subvolume:
+              path: srv
+              quota: 1.00GiB
+          - subvolume:
+              path: opt
+              quota: 1.00GiB
+  profile:
+    partitioning:
+      - drive:
+          unique_key: device
+          device: /dev/vda
+          partitions:
+            - partition:
+                unique_key: mount
+                mount: swap
+            - partition:
+                unique_key: mount
+                mount: /
+                quotas: 'true'
+                subvolumes:
+                  - subvolume:
+                      unique_key: path
+                      path: var
+                      referenced_limit: '1 GiB'
+                  - subvolume:
+                      unique_key: path
+                      path: usr/local
+                      referenced_limit: '1 GiB'
+                  - subvolume:
+                      unique_key: path
+                      path: tmp
+                      referenced_limit: '1 GiB'
+                  - subvolume:
+                      unique_key: path
+                      path: root
+                      referenced_limit: '1 GiB'
+                  - subvolume:
+                      unique_key: path
+                      path: srv
+                      referenced_limit: '1 GiB'
+                  - subvolume:
+                      unique_key: path
+                      path: opt
+                      referenced_limit: '1 GiB'
+                  - subvolume:
+                      unique_key: path
+                      path: boot/grub2/i386-pc
+                  - subvolume:
+                      unique_key: path
+                      path: boot/grub2/x86_64-efi
+            - partition:
+                unique_key: partition_nr
+                partition_nr: 1
