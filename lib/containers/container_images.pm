@@ -57,6 +57,7 @@ sub test_containered_app {
     my %args       = @_;
     my $runtime    = $args{runtime};
     my $dockerfile = $args{dockerfile};
+    my $base       = $args{base};
 
     die "You must define the runtime!"    unless $runtime;
     die "You must define the Dockerfile!" unless $dockerfile;
@@ -64,12 +65,13 @@ sub test_containered_app {
     my $dir = "/root/containerapp";
 
     # Setup the environment
-    container_set_up("$dir", $dockerfile);
+    container_set_up("$dir", $dockerfile, $base);
 
     # Build the image
     build_img("$dir", $runtime);
 
     # Run the built image
+    $runtime = 'podman' if $runtime eq 'buildah';
     test_built_img($runtime);
 }
 

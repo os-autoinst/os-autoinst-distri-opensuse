@@ -49,7 +49,7 @@ sub run {
     basic_container_tests(runtime => "podman");
 
     # Build an image from Dockerfile and test it
-    test_containered_app(runtime => 'podman', dockerfile => 'Dockerfile');
+    test_containered_app(runtime => 'podman', dockerfile => 'Dockerfile.python3');
 
     # Clean container
     clean_container_host(runtime => "podman");

@@ -37,7 +37,11 @@ sub run {
         if (check_os_release('suse', 'PRETTY_NAME')) {
             # sle15-working-container is the default name given to a container. it is created in test_container_image
             test_opensuse_based_image(image => 'sle15-working-container', runtime => 'buildah');
-            allow_selected_insecure_registries(runtime => 'podman');
+            # Due to the steps from the test_opensuse_based_image previously,
+            # the image has been committed as refreshed
+            test_containered_app(runtime => 'buildah',
+                dockerfile => 'Dockerfile.suse',
+                base       => 'refreshed');
         }
     }
     scc_restore_docker_image_credentials();

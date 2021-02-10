@@ -149,21 +149,19 @@ sub basic_container_tests {
 
 # Setup environment
 sub container_set_up {
-    my ($dir, $file) = @_;
-
+    my ($dir, $file, $base) = @_;
     die "You must define the directory!"  unless $dir;
     die "You must define the Dockerfile!" unless $file;
+    my $basename_expected = script_run("grep baseimage_var $dir/BuildTest/$file");
+    die "Base image name is required for $file" if !$basename_expected && $base;
 
     record_info "Dockerfile: $file";
-
     assert_script_run("mkdir -p $dir/BuildTest");
-
     assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
     record_info('app.py', script_output("cat $dir/BuildTest/app.py"));
-
     assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
+    assert_script_run "sed -i 's,baseimage_var,$base,1' $dir/BuildTest/Dockerfile" if defined $base;
     record_info('Dockerfile', script_output("cat $dir/BuildTest/Dockerfile"));
-
     assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
     record_info('requirements.txt', script_output("cat $dir/BuildTest/requirements.txt"));
 }
