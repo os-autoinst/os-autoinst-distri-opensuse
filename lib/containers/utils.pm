@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use version_utils;
 
-our @EXPORT = qw(test_seccomp basic_container_tests set_up get_vars build_img test_built_img can_build_sle_base);
+our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -42,7 +42,8 @@ sub test_seccomp {
 }
 
 sub basic_container_tests {
-    my $runtime = shift;
+    my %args    = @_;
+    my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     my $registry             = get_var('REGISTRY', 'docker.io');
     my $alpine_image_version = '3.6';
@@ -63,8 +64,7 @@ sub basic_container_tests {
     #   - pull image of last released version of openSUSE Leap
     if (!check_var('ARCH', 's390x')) {
         assert_script_run("$runtime image pull $leap", timeout => 600);
-    }
-    else {
+    } else {
         record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
     }
     #   - pull image of openSUSE Tumbleweed
@@ -148,17 +148,24 @@ sub basic_container_tests {
 }
 
 # Setup environment
-sub set_up {
+sub container_set_up {
     my ($dir, $file) = @_;
-    $file //= 'Dockerfile';
-    record_info "$file";
-    die "You must define the directory!" unless $dir;
+
+    die "You must define the directory!"  unless $dir;
+    die "You must define the Dockerfile!" unless $file;
+
+    record_info "Dockerfile: $file";
+
     assert_script_run("mkdir -p $dir/BuildTest");
+
     assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
     record_info('app.py', script_output("cat $dir/BuildTest/app.py"));
+
     assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
     record_info('Dockerfile', script_output("cat $dir/BuildTest/Dockerfile"));
+
     assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
+    record_info('requirements.txt', script_output("cat $dir/BuildTest/requirements.txt"));
 }
 
 # Build the image
