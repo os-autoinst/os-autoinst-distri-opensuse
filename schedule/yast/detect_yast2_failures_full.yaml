@@ -1,11 +1,12 @@
-name:           RAID0_gpt
-description:    >
-  Configure RAID 0 on the disks with GPT partition tables using Expert Partitioner.
-  Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
-  them for RAID 0.
+---
+name: detect_yast2_failures
+description: >
+   Specific test displaying as much dialogs as possible to increase test coverage,
+   which would fail hard in case any yast2 failure is found in logs.
 vars:
-  RAIDLEVEL: 0
-  YUI_REST_API: 1
+  ASSERT_Y2LOGS:  '1'
+  RAIDLEVEL:  '0'
+  YUI_REST_API: '1'
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
@@ -26,19 +27,12 @@ schedule:
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
-  - console/upload_asset
   - installation/reboot_after_installation
   - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
-  - console/hostname
-  - console/system_prepare
-  - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
-  - console/validate_raid
 test_data:
   <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
-  asset_files: "/var/log/YaST2/y2log*"
   mds:
     - raid_level: 0
       chunk_size: 64

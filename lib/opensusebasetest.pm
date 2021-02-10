@@ -231,17 +231,19 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
 =head2 investigate_yast2_failure
 
- investigate_yast2_failure();
+ investigate_yast2_failure(logs_path => $logs_path);
 
-Inspect the YaST2 logfile checking for known issues.
+Inspect the YaST2 logfile checking for known issues. logs_path can be a directory where logs are saved
+e.g. /tmp. In that case the function will parse /tmp/var/log/YaST2/y2logs* files.
 
 =cut
 sub investigate_yast2_failure {
-    my ($self) = shift;
-
+    my ($self, %args) = @_;
+    my $logs_path = $args{logs_path} . '/var/log/YaST2';
+    record_info("logs path", "Parsing longs in $logs_path");
     my $error_detected;
     # first check if badlist exists which could be the most likely problem
-    if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
+    if (my $badlist = script_output "test -f $logs_path/badlist && cat $logs_path/badlist | tail -n 20 || true") {
         record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
         $error_detected = 1;
     }
@@ -370,8 +372,7 @@ sub investigate_yast2_failure {
     my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
-    my $logs_path   = '/var/log/YaST2/';
-    my $cmd_postfix = $logs_path . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
+    my $cmd_postfix = $logs_path . "/" . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
     # String to accumulate unknown detected issues
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
