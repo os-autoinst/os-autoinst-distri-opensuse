@@ -7,6 +7,7 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/scc_cleanup_reregister
   - console/yast2_lan
   - console/yast2_i
   - console/yast2_bootloader
