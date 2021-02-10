@@ -1,5 +1,5 @@
 ---
-kdump:
+configuration_files:
   - path: /etc/default/grub
     settings:
       GRUB_CMDLINE_LINUX_DEFAULT: '.*crashkernel=\d+M.*'

@@ -16,32 +16,22 @@
 #    - path: /etc/chrony.conf
 #      entries:
 #        - pool ntp.suse.de iburst
-# NOTE: grep -P is used for validation, therefore perl regexp syntax can be
-#       used in the entries
+# See lib/cfg_files_utils.pm
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_module_consoletest';
 use strict;
 use warnings;
-use testapi;
+
+use cfg_files_utils 'validate_cfg_file';
 use scheduler;
+use testapi;
 use utils;
 
 sub run {
     select_console 'root-console';
 
-    my $test_data = get_test_suite_data();
-    # Accumulate errors for all checks
-    my $errors = '';
-    foreach my $file (@{$test_data->{configuration_files}}) {
-        foreach my $entry (@{$file->{entries}}) {
-            if (script_run("grep -P \"$entry\" $file->{path}") != 0) {
-                $errors .= "Entry '$entry' is not found in '$file->{path}'.\n";
-            }
-        }
-    }
-
-    die "Configuration files validation failed:\n$errors" if $errors;
+    validate_cfg_file(get_test_suite_data()->{configuration_files});
 }
 
 sub post_fail_hook {
