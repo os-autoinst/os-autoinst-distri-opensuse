@@ -8,8 +8,6 @@
 # without any warranty.
 
 # Summary: Verify that "resume=" kernel parameter is absent in the list of default parameters on Sle15-SP2
-# for s390 see https://jira.suse.com/browse/SLE-6926
-# Only for s390.
 
 # Maintainer: Jonathan Rivrain <jrivrain@suse.com>
 
