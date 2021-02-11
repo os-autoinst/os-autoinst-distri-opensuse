@@ -1,21 +1,23 @@
 ---
-description: 'Main JeOS test suite. Maintainer: qa-c@suse.de'
-name: 'jeos-main'
+description: 'Main JeOS test suite. Maintainer: qa-c@suse.de.'
+name: 'jeos-main@64bit-virtio-vga ( qemu )'
 conditional_schedule:
     bootloader:
         MACHINE:
+            'svirt-xen-pv':
+                - installation/bootloader_svirt
             'svirt-xen-hvm':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
             'svirt-hyperv-uefi':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
-            'uefi-virtio-vga':
+            'svirt-hyperv':
+                - installation/bootloader_hyperv
                 - installation/bootloader_uefi
-    efi:
-        MOK_VERBOSITY:
-            '1':
-                - console/verify_efi_mok
+            'svirt-vmware65':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
@@ -26,7 +28,6 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
-    - '{{efi}}'
     - jeos/glibc_locale
     - console/check_network
     - console/system_state
@@ -62,6 +63,7 @@ schedule:
     - console/mtab
     - console/mysql_srv
     - console/rsync
+    - console/openvswitch
     - console/zypper_lifecycle
     - console/repo_orphaned_packages_check
     - console/orphaned_packages_check
