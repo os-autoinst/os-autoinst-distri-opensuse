@@ -18,7 +18,6 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);
-use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run_python_script {
     my $script  = shift;
@@ -41,11 +40,7 @@ sub run_python_script {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
-    if (is_sle) {
-        cleanup_registration();
-        register_product();
-        add_suseconnect_product(get_addon_fullname('phub'));
-    }
+
     my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
     zypper_call "in python3 python3-numpy $scipy";
     # Run python scripts
@@ -53,21 +48,13 @@ sub run {
     run_python_script('python3-scipy-test.py') unless is_sle('<15-sp1');
 }
 
-sub cleanup() {
-    if (is_sle) {
-        remove_suseconnect_product(get_addon_fullname('phub'));
-    }
-}
-
 sub post_fail_hook {
     my $self = shift;
-    cleanup();
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my $self = shift;
-    cleanup();
     $self->SUPER::post_run_hook;
 }
 
