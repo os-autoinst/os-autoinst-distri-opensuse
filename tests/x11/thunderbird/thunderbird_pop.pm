@@ -44,7 +44,7 @@ sub run {
     } else {
         $self->tb_setup_account('pop', $account);
 
-        my $mail_subject = $self->tb_send_message($account);
+        my $mail_subject = $self->tb_send_message('pop', $account);
         $self->tb_check_email($mail_subject);
 
         # exit Thunderbird
