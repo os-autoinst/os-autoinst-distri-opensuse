@@ -761,7 +761,7 @@ sub do_hana_takeover {
         wait_until_resources_started(timeout => 900);
         save_state;
         $self->check_replication_state;
-        script_run 'SAPHanaSR-showAttr';
+        $self->check_hanasr_attr;
         script_run 'egrep "expected_votes|two_node" /etc/corosync/corosync.conf';
         $self->do_hana_sr_register(node => $args{node});
     }
