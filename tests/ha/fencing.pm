@@ -30,7 +30,7 @@ sub run {
     # Give time for HANA to replicate the database
     if (check_var('CLUSTER_NAME', 'hana')) {
         'sles4sap'->check_replication_state;
-        assert_script_run 'SAPHanaSR-showAttr';
+        'sles4sap'->check_hanasr_attr;
         save_screenshot;
         barrier_wait("HANA_REPLICATE_STATE_${cluster_name}_NODE${node_index}");
     }

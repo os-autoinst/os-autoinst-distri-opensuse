@@ -49,6 +49,7 @@ our @EXPORT = qw(
   test_start
   reboot
   check_replication_state
+  check_hanasr_attr
   do_hana_sr_register
   do_hana_takeover
   install_libopenssl_legacy
@@ -630,7 +631,7 @@ sub check_replication_state {
 
     # Replication check can only be done on PRIMARY node
     my $output = script_output($cmd, proceed_on_failure => 1);
-    return if $output !~ /mode:[\r\n]+PRIMARY/;
+    return if $output !~ /mode:[\r\n\s]+PRIMARY/;
 
     # Loop until ACTIVE state or timeout is reached
     while ($time_to_wait > 0) {
@@ -643,6 +644,37 @@ sub check_replication_state {
         sleep 10;
     }
     die 'Timed out waiting for HANA System Replication to turn Active' unless ($time_to_wait > 0);
+}
+
+=head2 check_hanasr_attr
+
+ $self->check_hanasr_attr();
+
+Runs B<SAPHanaSR-showAttr> and checks in its output for up to a timeout
+specified in the named argument B<timeout> (defaults to 90 seconds) that
+the sync_state is B<SOK>. It also checks that no B<SFAIL> sync_status is
+present in the output. Finishes by printing the full output of
+B<SAPHanaSR-showAttr>. This method will only fail if B<SAPHanaSR-showAttr>
+returns a non-zero return value.
+
+=cut
+
+sub check_hanasr_attr {
+    my ($self, %args) = @_;
+    my $looptime = bmwqemu::scale_timeout($args{timeout} // 90);
+    my $out;
+
+    while ($out = script_output 'SAPHanaSR-showAttr') {
+        last if ($out =~ /SOK/ && $out !~ /SFAIL/);
+        sleep 5;
+        $looptime -= 5;
+        last if ($looptime <= 0);
+    }
+    record_info 'SOK not found', "sync_state is not in SOK after $args{timeout} seconds"
+      if ($looptime <= 0 && $out !~ /SOK/);
+    record_info 'SFAIL', "One of the HANA nodes still has SFAIL sync_state after $args{timeout} seconds"
+      if ($looptime <= 0 && $out =~ /SFAIL/);
+    record_info 'SAPHanaSR-showAttr', $out;
 }
 
 =head2 reboot
