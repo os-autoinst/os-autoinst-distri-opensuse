@@ -34,6 +34,7 @@
       <li><a href="#check_service_state">check_service_state</a></li>
       <li><a href="#check_instance_state">check_instance_state</a></li>
       <li><a href="#check_replication_state">check_replication_state</a></li>
+      <li><a href="#check_hanasr_attr">check_hanasr_attr</a></li>
       <li><a href="#reboot">reboot</a></li>
       <li><a href="#do_hana_sr_register">do_hana_sr_register</a></li>
       <li><a href="#do_hana_takeover">do_hana_takeover</a></li>
@@ -177,6 +178,12 @@
 <p>Note: can only be run on active node in the cluster.</p>
 
 <p><b>systemReplicationStatus.py</b> return codes are: 10: No System Replication 11: Error 12: Unknown 13: Initializing 14: Syncing 15: Active</p>
+
+<h2 id="check_hanasr_attr">check_hanasr_attr</h2>
+
+<pre><code> $self-&gt;check_hanasr_attr();</code></pre>
+
+<p>Runs <b>SAPHanaSR-showAttr</b> and checks in its output for up to a timeout specified in the named argument <b>timeout</b> (defaults to 90 seconds) that the sync_state is <b>SOK</b>. It also checks that no <b>SFAIL</b> sync_status is present in the output. Finishes by printing the full output of <b>SAPHanaSR-showAttr</b>. This method will only fail if <b>SAPHanaSR-showAttr</b> returns a non-zero return value.</p>
 
 <h2 id="reboot">reboot</h2>
 
