@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/cfg_files_utils.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#validate_cfg_file">validate_cfg_file</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/cfg_files_utils.pm</h1>
+
+<h2 id="validate_cfg_file">validate_cfg_file</h2>
+
+<pre><code>  validate_cfg_file($args)</code></pre>
+
+<p>Method validates content of the config file. Method allows to validate file by the line content or by providing key-pair values for the configuration files which use &quot;KEY=PAIR&quot; syntax.</p>
+
+<p>Following structure is expected for the input: configuration_files: - path: /etc/hosts entries: - &#39;10.226.154.19\tnew.entry.de h999uz&#39; - &#39;127.0.0.1\tlocalhost&#39; - path: /etc/sysconfig/kdump settings: KDUMP_DUMPLEVEL: 31 KDUMP_DUMPFORMAT: lzo</p>
+
+
+</body>
+
+</html>
+
+
