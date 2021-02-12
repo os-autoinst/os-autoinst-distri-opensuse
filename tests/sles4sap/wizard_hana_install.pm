@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(file_content_replace type_string_slow);
-use x11utils qw(turn_off_gnome_screensaver);
+use x11utils qw(turn_off_gnome_screensaver turn_off_gnome_suspend);
 use version_utils qw(package_version_cmp);
 
 sub run {
@@ -54,7 +54,8 @@ sub run {
         mouse_hide;                    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
-        type_string "killall xterm\n";
+        turn_off_gnome_suspend;        # Disable suspend
+        script_run 'exit', 0;
         assert_screen 'generic-desktop';
         x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
     }
