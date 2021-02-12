@@ -327,6 +327,10 @@ sub run {
         # see bsc#1062331, sound is not added to the yast2 pattern
         ensure_installed 'yast2-boot-server yast2-sound';
     }
+    elsif (is_tumbleweed) {
+        record_soft_failure('bsc#1182125', "yast2-online-update-frontend is not pre-installed on TW");
+        ensure_installed 'yast2-online-update-frontend';
+    }
     $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
     start_addon_products;
