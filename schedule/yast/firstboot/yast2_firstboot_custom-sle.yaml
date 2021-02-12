@@ -3,6 +3,7 @@ name:           yast2_fistboot_custom
 description:    >
     Variant of YaST2 Firstboot module using custom control file. Allows us to test different scenarios,
     and to see if the yast2-firstboot package remains stable whith an old, potentially deprecated control file.
+    It also allows to see if we can use custom parameters in /etc/sysconfig/firstboot
 vars:
     YAST2_FIRSTBOOT_USERNAME: firstbootuser
 schedule:
@@ -24,5 +25,5 @@ test_data:
         - firstboot_hostname
         - firstboot_timezone
         - firstboot_user
-        - firstboot_root
-    custom_control_file: "yast2/firstboot/firstboot_custom-sle.xml"
+    custom_control_file: "firstboot_custom-sle.xml"
+    sysconfig_firstboot: "sysconfig_firstboot"
