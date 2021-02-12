@@ -42,6 +42,9 @@ use constant {
           is_pvm
           is_xen_pv
           is_ipmi
+          is_qemu
+          is_svirt
+          is_image_backend
           )
     ],
     CONSOLES => [
@@ -182,6 +185,36 @@ Returns true if the current instance is running as ipmi backend
 
 sub is_ipmi {
     return check_var('BACKEND', 'ipmi');
+}
+
+=head2 is_qemu
+
+Returns true if the current instance is running as qemu backend
+
+=cut
+
+sub is_qemu {
+    return check_var('BACKEND', 'qemu');
+}
+
+=head2 is_svirt
+
+Returns true if the current instance is running as svirt backend
+
+=cut
+
+sub is_svirt {
+    return check_var('BACKEND', 'svirt');
+}
+
+=head2 is_image_backend
+
+Returns true if the current instance is running as qemu backend
+
+=cut
+
+sub is_image_backend {
+    return (is_qemu || is_svirt);
 }
 
 #This subroutine takes absolute file path of sshd config file and desired ssh connection timeout as arguments

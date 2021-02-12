@@ -25,6 +25,7 @@ use testapi;
 use serial_terminal 'prepare_serial_console';
 use utils;
 use version_utils;
+use Utils::Backends 'is_qemu';
 
 sub run {
     select_console('root-console');
@@ -51,7 +52,7 @@ END_SCRIPT
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
     # on several nodes, the dhcp clients use same id and cause conflicts on dhcpd server.
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         my $network_status = script_output('systemctl status network');
         # Do dhcp cleanup for wicked
         if ($network_status =~ /wicked/) {
