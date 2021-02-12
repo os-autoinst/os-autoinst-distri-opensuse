@@ -9,7 +9,7 @@
 
 # Package: rpm nmap libvirt-client
 # Summary: Apply patches to the running system
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;

@@ -1148,6 +1148,7 @@ DefaultPolicy default
       <package>e2fsprogs</package>
       <package>btrfsprogs</package>
       <package>SuSEfirewall2</package>
+      <package>qemu-guest-agent</package>
     </packages>
     <patterns config:type="list">
       <pattern>32bit</pattern>

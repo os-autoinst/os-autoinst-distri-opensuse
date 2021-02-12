@@ -55,13 +55,13 @@ sub check_virt_kernel {
     assert_script_run("$go_to_target uptime | tee -a $log_file");
 
     # Print the list of repositories
-    script_run("$go_to_target zypper lr -d | tee -a $log_file");
+    script_run("$go_to_target zypper lr -d");
 
     # Upload all the logs from the current boot
     assert_script_run("$go_to_target $bootlog | tee /tmp/bootlog-$target$suffix.txt");
     upload_logs("/tmp/bootlog-$target$suffix.txt");
 
-    my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack\\|buffer' | grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|firmware\\|calibration\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST\\|xapic not enabled\\|Firmware\\|missing monitors config\\|perfctr\\|mitigation\\|vesa\\|ram buffer\\|microcode\\|frame\\|nmi\\|pci-dma\\|pm-timer\\|tsc\\|drm\\|hv_vmbus\\|floppy\\|fd0\\|nmi\\|x2apic\\|show_stack\\|dump_stack\\|pstore\\|pagetables\\|page allocation failure\\|amd64_edac_mod\\|FW version\\|Failed to check link status'";
+    my $dmesg = "dmesg | grep -i 'fail\\|error\\|segmentation\\|stack\\|buffer' | grep -vi 'acpi\\|ERST\\|bar\\|mouse\\|vesafb\\|firmware\\|calibration\\|thermal\\|Correctable Errors\\|calibration failed\\|PM-Timer\\|dmi\\|irqstacks\\|auto-init\\|TSC ADJUST\\|xapic not enabled\\|Firmware\\|missing monitors config\\|perfctr\\|mitigation\\|vesa\\|ram buffer\\|microcode\\|frame\\|nmi\\|pci-dma\\|pm-timer\\|tsc\\|drm\\|hv_vmbus\\|floppy\\|fd0\\|nmi\\|x2apic\\|show_stack\\|dump_stack\\|pstore\\|pagetables\\|page allocation failure\\|amd64_edac_mod\\|FW version\\|Failed to check link status\\|task [0-9a-zA-Z]{4,16} task.stack: [0-9a-zA-Z]{4,16}\\|segfault at .* in libwicked.*.so'";
     if (script_run("$go_to_target $dmesg") != 1) {
         record_soft_failure "The $target needs to be checked manually!";
         assert_script_run("$go_to_target $dmesg | tee -a $log_file");

@@ -87,7 +87,7 @@ sub get_disk_image_name {
 }
 
 # Add a virtual disk to the given guest
-sub add_virtual_disk {
+sub test_add_virtual_disk {
     my $guest       = shift;
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
     my $disk_image  = get_disk_image_name($guest, $disk_format);
@@ -100,9 +100,17 @@ sub add_virtual_disk {
     if (try_attach("virsh attach-disk --domain $_ --source $disk_image --target ${domblk_target}")) {
         assert_script_run "virsh domblklist $guest | grep ${domblk_target}";
         # Skip lsblk check for VIRT_AUTOTEST KVM test suites after attaching raw disk due to uncertainty
-        if (!get_var('VIRT_AUTOTEST') && is_kvm_host) {
-            my $lsblk = script_run("ssh root\@$guest lsblk | grep va[b-z]", 60);
-            record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+        if (!get_var('VIRT_AUTOTEST')) {
+            if (is_kvm_host) {
+                my $lsblk = script_run("ssh root\@$guest lsblk | grep 'vd[b-z]'", 60);
+                record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
+            } elsif (is_xen_host) {
+                script_run("ssh root\@$guest lsblk");
+                record_soft_failure("poo#88460 Hotplugging disk check not yet implemented for xen host");
+            } else {
+                my $msg = "Unknown virtualization hosts";
+                record_soft_failure($msg);
+            }
         }
         assert_script_run("ssh root\@$guest lsblk");
         assert_script_run("virsh detach-disk $guest ${domblk_target}", 240);
@@ -118,7 +126,7 @@ sub set_vcpus {
 }
 
 # Add a virtual CPU to the given guest
-sub add_vcpu {
+sub test_add_vcpu {
     my $guest = shift;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
@@ -148,34 +156,40 @@ sub add_vcpu {
     }
 }
 
-# Returns the guest memory in M
+# Returns the guest memory in MB
 sub get_guest_memory {
-    my $guest = shift;
-    # Try dmidecode
+    my $guest        = shift;
+    my $kernelmemory = 200000;    # We account to kernel memory to measures which omit it by adding this amount to the measured value
+
     my $memory = 0;
-    $memory = eval { script_output("ssh $guest dmidecode --type 17 | grep Size | awk -F ':' '{print $2}' | awk -F ' ' '{print $1}'") } if (!is_xen_host);
-    if (!defined($memory) || $memory <= 0) {
-        # Use free as fallback which is less accurate but OK for our test cases
-        $memory = script_output("ssh $guest free | grep Mem | awk '{print \$2}'");
-    }
-    return $memory;
+    $memory = script_output("ssh $guest cat /proc/meminfo | grep MemTotal | awk '{print \$2}'", proceed_on_failure => 1);
+    return ($memory + $kernelmemory) / 1024 if (defined($memory) && $memory > 0);
+
+    # Fallback to use `free`
+    $memory = script_output("ssh $guest free | grep Mem | awk '{print \$2}'", proceed_on_failure => 1) + $kernelmemory;
+    return ($memory + $kernelmemory) / 1024 if (defined($memory) && $memory > 0);
+
+    return 0;
 }
 
 # Set memory of the given guest to the given size in MB
 sub set_guest_memory {
-    my ($guest, $memory) = @_;
+    my $guest      = shift;
+    my $memory     = shift;
+    my $min_memory = shift // 0.9 * $memory;    # acceptance range for memory check
+    my $max_memory = shift // 1.1 * $memory;    # acceptance range for memory check
+
     assert_script_run("virsh setmem --domain $guest --size $memory" . "M --live");
     assert_script_run("virsh dommemstat $guest");
     assert_script_run("ssh root\@$guest free", 60);
-    sleep 5;
-    # Memory reposts are not precise, we allow for a +/-10% acceptance range
+    sleep 5;                                    # give the VM some time to adjust
     my $guestmemory = get_guest_memory($guest);
-    # openQA reports a syntax error
-    #return (0.9 * $memory <= $guestmemory <= 1.1 * $memory);
-    return (0.9 * $memory <= $guestmemory) && ($guestmemory <= 1.1 * $memory);
+    # Memory reposts are not precise, we allow for a +/-10% acceptance range
+    my $within_tolerance = ($min_memory <= $guestmemory) && ($guestmemory <= $max_memory);
+    record_soft_failure("Set live memory failed - expected $memory but got $guestmemory") unless ($within_tolerance);
 }
 
-sub change_vmem {
+sub test_vmem_change {
     my $guest = shift;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
@@ -183,10 +197,10 @@ sub change_vmem {
         record_info('Skip memory hotplugging on outdated before-12-SP3 SLES product because immature memory handling situations');
         return;
     }
-    return if (is_xen_host && $guest =~ m/hvm/i);    # not supported on HVM guest
-    set_guest_memory($guest, 2048);
-    record_soft_failure("Memory check failed (3072M) - Please check manually!") if (!set_guest_memory($guest, 3072));
-    record_soft_failure("Memory check failed (2048M) - Please check manually!") if (!set_guest_memory($guest, 2048));
+    return if (is_xen_host && $guest =~ m/hvm/i);    # memory change not supported on HVM guest
+    set_guest_memory($guest, 2048, 1500, 2252);      # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G
+    set_guest_memory($guest, 3072, 2457, 3379);
+    set_guest_memory($guest, 2048, 1500, 2252);
 }
 
 sub run_test {
@@ -212,15 +226,15 @@ sub run_test {
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
     record_info "Disk", "Adding another raw disk";
     assert_script_run "mkdir -p /var/lib/libvirt/images/add/";
-    add_virtual_disk($_) foreach (keys %virt_autotest::common::guests);
+    test_add_virtual_disk($_) foreach (keys %virt_autotest::common::guests);
 
     # 3. Hotplugging of vCPUs
     record_info("CPU", "Changing the number of CPUs available");
-    add_vcpu($_) foreach (keys %virt_autotest::common::guests);
+    test_add_vcpu($_) foreach (keys %virt_autotest::common::guests);
 
     # 4. Live memory change of guests
     record_info "Memory", "Changing the amount of memory available";
-    change_vmem($_) foreach (keys %virt_autotest::common::guests);
+    test_vmem_change($_) foreach (keys %virt_autotest::common::guests);
 
     # Workaround to drop all live provisions of all vm guests
     if (get_var('VIRT_AUTOTEST') && is_kvm_host && (($sles_running_version eq '12' and $sles_running_sp eq '5') || ($sles_running_version eq '15' and $sles_running_sp eq '1'))) {

@@ -9,7 +9,7 @@
 
 # Package: libvirt-client iputils nmap xen-tools
 # Summary: Installation of HVM and PV guests
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;
@@ -19,6 +19,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+
 
 sub run {
     my $self = shift;
@@ -45,19 +46,12 @@ sub run {
     assert_script_run "virsh net-start default || true", 90;
     assert_script_run "virsh net-autostart default",     90;
 
-    # Show all guests
-    assert_script_run 'virsh list --all';
-    wait_still_screen 1;
+    # Remove existing guests, if present. This is needed for debugging runs, when we skip the installation
+    # and it will not hurt on a fresh hypervisor
+    script_run('for i in `virsh list --name --all`; do virsh destroy $i; virsh undefine $i; done');
 
-    # Install every defined guest
-    create_guest $_, 'virt-install' foreach (values %virt_autotest::common::guests);
-
-    ## Ensure every guest has <on_reboot>restart</on_reboot>
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        if (script_run("! virsh dumpxml $guest | grep 'on_reboot' | grep -v 'restart'") != 0) {
-            record_info("$guest bsc#1153028", "Setting on_reboot=restart failed for $guest");
-        }
-    }
+    # Install guests
+    create_guest($_, 'virt-install') foreach (values %virt_autotest::common::guests);
 
     script_run 'history -a';
     script_run('cat ~/virt-install* | grep ERROR', 30);
