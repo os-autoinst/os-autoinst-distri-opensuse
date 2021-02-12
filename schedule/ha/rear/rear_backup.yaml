@@ -2,8 +2,6 @@
 name: rear_backup
 description: >
   Generate backup files for ReaR tests.
-vars:
-  DROP_PERSISTENT_NET_RULES: '1'
 schedule:
   - installation/bootloader_start
   - installation/welcome

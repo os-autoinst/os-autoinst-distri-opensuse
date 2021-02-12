@@ -209,7 +209,7 @@ sub is_svirt {
 
 =head2 is_image_backend
 
-Returns true if the current instance is running as qemu backend
+Returns true if the current instance is running on backend with image support
 
 =cut
 
