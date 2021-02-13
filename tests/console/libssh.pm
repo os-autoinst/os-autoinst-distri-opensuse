@@ -38,6 +38,7 @@ use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
 use registration 'add_suseconnect_product';
 use containers::common 'install_docker_when_needed';
+use registration qw(add_suseconnect_product get_addon_fullname);
 
 # Build a custom container image with openssl, curl and virsh installed.
 # The container will be used as client of libssh
@@ -93,9 +94,12 @@ EOT
 
 sub run {
     select_console 'root-console';
-    #    unless (is_opensuse) {
-    #    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-    #}
+
+    # contm is not supported on LTSS products bsc#1181835
+    if (get_var('SCC_REGCODE_LTSS')) {
+        add_suseconnect_product(get_addon_fullname('contm'));
+    }
+
     # Host is used as server of libssh test
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_docker_when_needed($host_distri);
