@@ -62,6 +62,13 @@ sub qaset_config {
     assert_script_run("mkdir -p /root/qaset");
     my $testsuites = "\n\t" . join("\n\t", @list) . "\n";
     assert_script_run("echo 'SQ_TEST_RUN_LIST=($testsuites)' > /root/qaset/config");
+
+    if (is_sle('>=15')) {
+        # poo88597 We need an executable boot.local to avoid failing rc-local service test for sle15+
+        my $boot_local = "/etc/init.d/boot.local";
+        assert_script_run("echo '#!/bin/sh' > $boot_local");
+        assert_script_run("chmod +x $boot_local");
+    }
 }
 
 # Add qa head repo for kernel testing. If QA_SERVER_REPO is set,
