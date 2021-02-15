@@ -10,7 +10,7 @@
 # Summary: Test flatpak
 #   * Install flatpak
 #   * Run smoke test (flatpak --version)
-#   * Search for gimp and steam
+#   * Search for gimp and vlc (both are available on aarch64 as well)
 #   * Install gimp
 #   * Run gimp
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
@@ -32,8 +32,8 @@ sub run {
     die "flatpak list is not empty" if script_output("flatpak list") != "";
     assert_script_run('flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo');
     assert_script_run('flatpak search gimp | grep -i "org.gimp.GIMP"');
-    assert_script_run('flatpak search steam | grep -i "com.valvesoftware.Steam"');
-    assert_script_run('flatpak install -y org.gimp.GIMP');
+    assert_script_run('flatpak search vlc | grep -i "org.videolan.VLC"');
+    assert_script_run('flatpak install -y org.gimp.GIMP', timeout => 300);
     assert_script_run('flatpak list | grep -i gimp');
     # Run flatpak gimp and check if GUI is appearing
     select_console 'x11';
