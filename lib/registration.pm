@@ -185,6 +185,10 @@ sub add_suseconnect_product {
     $params  //= '';
     $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
 
+    # some modules on sle12 use major version e.g. containers module
+    my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
+    $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
+
     my $result = script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
     if ($result != 0 && $retry) {
         if ($name =~ /PackageHub/) {
