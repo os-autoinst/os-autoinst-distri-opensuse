@@ -20,6 +20,7 @@ description: >
 vars:
   BOOT_HDD_IMAGE: '1'
   DESKTOP: textmode
+  QEMU_DISABLE_SNAPSHOTS: '1'
   SUPPORT_SERVER: '1'
   SUPPORT_SERVER_ROLES: dhcp,dns,ntp,ssh,iscsi
   VIDEOMODE: text

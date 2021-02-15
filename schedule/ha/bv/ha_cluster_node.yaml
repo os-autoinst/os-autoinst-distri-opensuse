@@ -23,6 +23,7 @@ vars:
   HDD_SCC_REGISTERED: '1'
   VIRTIO_CONSOLE: '0'
   HA_CLUSTER: '1'
+  QEMU_DISABLE_SNAPSHOTS: '1'
   # Below setting must be defined in the openQA UI because macros for %VERSION%,
   # %ARCH% and %BUILD% are usually not defined yet when this file is being loaded
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
