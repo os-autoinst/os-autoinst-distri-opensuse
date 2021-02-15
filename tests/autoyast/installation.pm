@@ -343,7 +343,7 @@ sub run {
     $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
     # Second stage starts here
-    $maxtime = 1000;
+    $maxtime = 1000 * get_var('TIMEOUT_SCALE', 1);    # Max waiting time for stage 2
     $timer   = 0;
     $stage   = 'stage2';
 
