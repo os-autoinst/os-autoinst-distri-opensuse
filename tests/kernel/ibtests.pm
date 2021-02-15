@@ -19,21 +19,14 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use lockapi;
-
+use mmapi;
 
 our $master;
 our $slave;
 
-
 sub upload_ibtest_logs {
     my $self = shift;
-    my $role = get_required_var('IBTEST_ROLE');
 
-    if ($role eq 'IBTEST_MASTER') {
-        # remove non-printable characters
-        script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
-        parse_extra_log('XUnit', '/tmp/results.xml');
-    }
     $self->save_and_upload_log('dmesg',                   '/tmp/dmesg.log',         {screenshot => 0});
     $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
 
@@ -47,17 +40,18 @@ sub upload_ibtest_logs {
     $self->save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
     $self->save_and_upload_systemd_unit_log('rdma-ndd.service');
     $self->save_and_upload_systemd_unit_log('rdma-sriov.service');
-
 }
 
 sub ibtest_slave {
+    my $self = shift;
     zypper_call('in iputils python');
     barrier_wait('IBTEST_BEGIN');
-    # wait until test is finished
     barrier_wait('IBTEST_DONE');
+    $self->upload_ibtest_logs;
 }
 
 sub ibtest_master {
+    my $self               = shift;
     my $master             = get_required_var('IBTEST_IP1');
     my $slave              = get_required_var('IBTEST_IP2');
     my $hpc_testing        = get_var('IBTEST_GITTREE',   'https://github.com/SUSE/hpc-testing.git');
@@ -97,7 +91,13 @@ sub ibtest_master {
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
     barrier_wait('IBTEST_BEGIN');
+
     assert_script_run("./ib-test.sh $args $master $slave", $timeout);
+
+    script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
+    parse_extra_log('XUnit', '/tmp/results.xml');
+
+    $self->upload_ibtest_logs;
 
     barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_SETUP');
@@ -136,14 +136,24 @@ sub run {
         ibtest_slave;
     }
 
-    upload_ibtest_logs;
-
     power_action('poweroff');
 }
 
 sub post_fail_hook {
-    my $self = shift;
-    upload_ibtest_logs;
+    my $self  = shift;
+    my $slave = get_required_var('IBTEST_IP2');
+    my $role  = get_required_var('IBTEST_ROLE');
+
+    if ($role eq 'IBTEST_MASTER') {
+        script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
+        parse_extra_log('XUnit', '/tmp/results.xml');
+    }
+
+    $self->upload_ibtest_logs;
+
+    barrier_wait('IBTEST_DONE');
+    wait_for_children;
+
     $self->SUPER::post_fail_hook;
 }
 
@@ -168,7 +178,7 @@ we assume it is "64bit-mlx_con5". See the schedule/kernel/ibtest-master.yaml and
 schedule/kernel/ibtest-slave.yaml for more details.
 
 =head2 openQA test suites
-As the test is executed on two hosts, two test suites should be created. Please note: 
+As the test is executed on two hosts, two test suites should be created. Please note:
 most settings are now defined in the YAML schedule.
 
 =head3 ibtest-master
@@ -179,26 +189,26 @@ PARALLEL_WITH=ibtest-master
 YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
 
 =head3 additional configuration variables
-These are only effective, when defined for the master job. Leave them at their 
+These are only effective, when defined for the master job. Leave them at their
 defaults unless you know what you are doing.
 
 IBTEST_TIMEOUT
- Test timeout in seconds. 
+ Test timeout in seconds.
  Default: 3600 (1 hour)
 IBTEST_ONLY_PHASE
- integer value. Only run the defined phase. 
+ integer value. Only run the defined phase.
  Not set by default.
 IBTEST_START_PHASE
- integer value. Start with specified phase. 
+ integer value. Start with specified phase.
  Default: 0
 IBTEST_END_PHASE
- integer value. End with specified phase. 
+ integer value. End with specified phase.
  Default: 999
 IBTEST_MPI_FLAVOURS
- Comma separated list of MPI flavours to test. 
+ Comma separated list of MPI flavours to test.
  Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
 IBTEST_IPOIB_MODES
- Comma separated list of IPoIB modes to test 
+ Comma separated list of IPoIB modes to test
  Default: connected,datagram
 IBTEST_VERBOSE
  Set this variable to enable verbose mode
