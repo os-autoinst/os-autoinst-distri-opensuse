@@ -1,27 +1,31 @@
 name:           extra_tests_textmode_containers
 description:    >
-    Maintainer: jalausuch@suse.com, qa-c@suse.de.
-    Extra tests about software in containers module
+  Maintainer: qa-c@suse.de.
+  Extra tests about software in containers module
 conditional_schedule:
-    podman_image:
-        DISTRI:
-            'opensuse':
-                - containers/podman_image
-    docker_image:
-        DISTRI:
-            'opensuse':
-                - containers/docker_image
-                - containers/container_diff
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+  podman_image:
+    DISTRI:
+      'opensuse':
+        - containers/podman_image
+  docker_image:
+    DISTRI:
+      'opensuse':
+        - containers/docker_image
+        - containers/container_diff
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - containers/podman
-    - '{{podman_image}}'
-    - containers/docker
-    - '{{docker_image}}'
-    - containers/docker_runc
-    - containers/docker_compose
-    - containers/zypper_docker
-    - containers/containers_3rd_party
-    - containers/registry
-    - console/coredump_collect
+  - '{{boot}}'
+  - boot/boot_to_desktop
+  - containers/podman
+  - '{{podman_image}}'
+  - containers/docker
+  - '{{docker_image}}'
+  - containers/docker_runc
+  - containers/docker_compose
+  - containers/zypper_docker
+  - containers/containers_3rd_party
+  - containers/registry
+  - console/coredump_collect
