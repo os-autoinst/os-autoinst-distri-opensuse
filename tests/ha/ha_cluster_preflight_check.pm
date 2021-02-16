@@ -63,7 +63,7 @@ sub run {
             my $loop_count = bmwqemu::scale_timeout(15);    # Wait 1 minute (15*4) maximum, can be scaled with SCALE_TIMEOUT
             while (1) {
                 last if ($loop_count-- <= 0);
-                if (check_screen('bootloader-grub2', 0, no_wait => 1)) {
+                if (check_screen('grub2', 0, no_wait => 1)) {
                     # Wait for boot and reconnect to root console
                     $self->wait_boot;
                     $self->select_serial_terminal;
