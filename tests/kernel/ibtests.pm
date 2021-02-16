@@ -130,10 +130,10 @@ sub run {
 
 
     if ($role eq 'IBTEST_MASTER') {
-        ibtest_master;
+        $self->ibtest_master;
     }
     elsif ($role eq 'IBTEST_SLAVE') {
-        ibtest_slave;
+        $self->ibtest_slave;
     }
 
     power_action('poweroff');
