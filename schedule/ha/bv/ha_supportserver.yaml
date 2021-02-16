@@ -22,7 +22,6 @@ vars:
   DESKTOP: textmode
   QEMU_DISABLE_SNAPSHOTS: '1'
   SUPPORT_SERVER: '1'
-  SUPPORT_SERVER_ROLES: dhcp,dns,ntp,ssh,iscsi
   VIDEOMODE: text
   VIRTIO_CONSOLE: '0'
   # Below setting must be defined in the openQA UI because macros for %VERSION%,

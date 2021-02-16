@@ -1,0 +1,57 @@
+---
+name: migration_online_sles_ha
+description: >
+  Online migration from installed SLES with HA extension
+
+  This test does an online migration using zypper
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: 'textmode'
+  FULL_UPDATE: '1'
+  HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
+  INSTALLONLY: '1'
+  MAX_JOB_TIME: '14400'
+  MIGRATION_METHOD: 'zypper'
+  ONLINE_MIGRATION: '1'
+  ORIGINAL_TARGET_VERSION: '%VERSION%'
+  SCC_REGISTER: 'installation'
+  TIMEOUT_SCALE: '2'
+  UEFI_PFLASH_VARS: '%DISTRI%-%HDDVERSION%-%ARCH%-ha-%CLUSTER_NAME%-%HOSTNAME%-uefi-vars.qcow2'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - migration/version_switch_origin_system
+  - '{{bootloader}}'
+  - migration/online_migration/online_migration_setup
+  - migration/online_migration/register_system
+  - migration/online_migration/zypper_patch
+  - '{{remove_ltss}}'
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - migration/online_migration/zypper_migration
+  - migration/online_migration/post_migration
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{upload_zkvm}}'
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader_uefi
+      ppc64le:
+        - installation/bootloader
+      s390x:
+        - installation/bootloader_zkvm
+      x86_64:
+        - installation/bootloader
+  upload_zkvm:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+  remove_ltss:
+    LTSS:
+      1:
+        - migration/online_migration/register_without_ltss
