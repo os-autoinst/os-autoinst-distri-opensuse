@@ -1,0 +1,20 @@
+# baseimage_var is a placeholder of your base image
+# use base variable when you call test_containered_app
+FROM baseimage_var
+
+RUN zypper -n in python3 python3-pip curl
+
+# set a directory for the app
+WORKDIR /usr/src/app
+
+# copy all the files to the container
+COPY . .
+
+# install dependencies
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# tell the port number the container should expose
+EXPOSE 5000
+
+# run the command
+ENTRYPOINT ["python3", "./app.py"]

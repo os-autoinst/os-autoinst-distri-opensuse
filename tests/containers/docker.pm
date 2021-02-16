@@ -54,7 +54,7 @@ sub run {
     basic_container_tests(runtime => "docker");
 
     # Build an image from Dockerfile and test it
-    test_containered_app(runtime => 'docker', dockerfile => 'Dockerfile');
+    test_containered_app(runtime => 'docker', dockerfile => 'Dockerfile.python3');
 
     # Clean container
     clean_container_host(runtime => "docker");
