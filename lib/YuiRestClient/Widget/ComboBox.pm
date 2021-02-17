@@ -39,4 +39,12 @@ sub value {
     return $self->property('value');
 }
 
+# When combobox is enabled it does not have 'enabled' property. Only in case it is disabled, the property appears
+# and equals to 'false'.
+sub is_enabled {
+    my ($self) = @_;
+    my $is_enabled = $self->property('enabled');
+    return !defined $is_enabled || $is_enabled;
+}
+
 1;
