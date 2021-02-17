@@ -27,7 +27,7 @@ sub run {
         # or Super_L or Windows key
         x11_start_program('lxpanelctl menu', target_match => 'test-desktop_mainmenu-1');
     }
-    elsif (check_var("DESKTOP", "xfce") && !is_leap("<16.0")) {
+    elsif (check_var("DESKTOP", "xfce") && !is_leap("<15.3")) {
         send_key "super";
     }
     elsif (check_var("DESKTOP", "xfce")) {
