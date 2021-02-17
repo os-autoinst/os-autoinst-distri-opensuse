@@ -5,12 +5,12 @@
     <add_on_others config:type="list"/>
     <add_on_products config:type="list">
       <listentry>
-        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/]]></media_url>
         <product>Basesystem-Module 15.2-0</product>
         <product_dir>/Module-Basesystem</product_dir>
       </listentry>
       <listentry>
-        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/]]></media_url>
+        <media_url><![CDATA[http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/]]></media_url>
         <product>Server-Applications-Module 15.2-0</product>
         <product_dir>/Module-Server-Applications</product_dir>
       </listentry>

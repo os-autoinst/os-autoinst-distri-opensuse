@@ -124,7 +124,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',
             distro       => 'SLE_15',
-            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
         },
         sles15sp1PV => {
             name         => 'sles15sp1PV',
@@ -133,25 +133,25 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress   => '52:54:00:78:73:ac',
             ip           => '192.168.122.112',
             distro       => 'SLE_15',
-            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
         },
         sles15sp2HVM => {
             name         => 'sles15sp2HVM',
             autoyast     => 'autoyast_xen/sles15sp2HVM_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',           # sle15sp2 is unknown on 12.3
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',       # sle15sp2 is unknown on 12.3
             macaddress   => '52:54:00:78:73:b0',
             ip           => '192.168.122.116',
             distro       => 'SLE_15',
-            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp2PV => {
             name         => 'sles15sp2PV',
             autoyast     => 'autoyast_xen/sles15sp2PV_PRG.xml',
-            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',      # sle15sp2 is unknown on 12.3
+            extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',    # sle15sp2 is unknown on 12.3
             macaddress   => '52:54:00:78:73:af',
             ip           => '192.168.122.115',
             distro       => 'SLE_15',
-            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles12sp5HVM => {
             name         => 'sles12sp5HVM',
@@ -212,20 +212,20 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp1 => {
             name         => 'sles15sp1',
             autoyast     => 'autoyast_kvm/sles15sp1_PRG.xml',
-            extra_params => '--os-variant sles12',                                                          # problems after kernel upgrade
+            extra_params => '--os-variant sles12',                                                      # problems after kernel upgrade
             macaddress   => '52:54:00:78:73:ab',
             ip           => '192.168.122.111',
             distro       => 'SLE_15',
-            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
         },
         sles15sp2 => {
             name         => 'sles15sp2',
             autoyast     => 'autoyast_kvm/sles15sp2_PRG.xml',
-            extra_params => '--os-variant sles12',                                                     # problems after kernel upgrade (originally sle15sp2)
+            extra_params => '--os-variant sles12',                                                      # problems after kernel upgrade (originally sle15sp2)
             macaddress   => '52:54:00:78:73:af',
             ip           => '192.168.122.115',
             distro       => 'SLE_15',
-            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-LATEST/x86_64/DVD1/',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles12sp5 => {
             name         => 'sles12sp5',
