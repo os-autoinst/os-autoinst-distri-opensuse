@@ -130,26 +130,27 @@ sub get_ip {
     my $ips_hash =
       {
         #                       SUT                       REF
-        host         => ['10.0.2.11/15',              '10.0.2.10/15'],
-        host6        => ['fd00:deca:fbad:50::11/64',  'fd00:deca:fbad:50::10/64'],
-        gre1         => ['192.168.1.2',               '192.168.1.1'],
-        sit1         => ['2001:0db8:1234::000f',      '2001:0db8:1234::000e'],
-        tunl1        => ['3.3.3.11',                  '3.3.3.10'],
-        tun1         => ['192.168.2.11',              '192.168.2.10'],
-        tap1         => ['192.168.2.11',              '192.168.2.10'],
-        br0          => ['10.0.2.11',                 '10.0.2.10'],
-        vlan         => ['192.0.2.11/24',             '192.0.2.10/24'],
-        vlan_changed => ['192.0.2.111/24',            '192.0.2.110/24'],
-        macvtap      => ['10.0.2.18/15',              '10.0.2.17/15'],
-        bond         => ['10.0.2.18',                 '10.0.2.17'],
-        dhcp_2nic    => ['10.20.30.',                 '10.20.30.12'],                 # dhcp_2nic in SUT, we don't know the last octect
-        second_card  => ['10.0.3.11',                 '10.0.3.12'],
-        gateway      => ['10.0.2.2',                  '10.0.2.2'],
-        wlan         => ['10.6.6.2',                  '10.6.6.1'],
-        wlan_dhcp    => ['10.6.6.10',                 '10.6.6.1'],
-        ipv6         => ['fd00:dead:beef:',           'fd00:dead:beef:'],
-        dhcp6        => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
-        dns_advice   => ['fd00:dead:beef:6021::42',   'fd00:dead:beef:6021::42'],
+        host            => ['10.0.2.11/15',                       '10.0.2.10/15'],
+        host6           => ['fd00:deca:fbad:50::11/64',           'fd00:deca:fbad:50::10/64'],
+        gre1            => ['192.168.1.2',                        '192.168.1.1'],
+        sit1            => ['2001:0db8:1234::000f',               '2001:0db8:1234::000e'],
+        tunl1           => ['3.3.3.11',                           '3.3.3.10'],
+        tun1            => ['192.168.2.11',                       '192.168.2.10'],
+        tap1            => ['192.168.2.11',                       '192.168.2.10'],
+        br0             => ['10.0.2.11',                          '10.0.2.10'],
+        vlan            => ['192.0.2.11/24',                      '192.0.2.10/24'],
+        vlan_changed    => ['192.0.2.111/24',                     '192.0.2.110/24'],
+        macvtap         => ['10.0.2.18/15',                       '10.0.2.17/15'],
+        bond            => ['10.0.2.18',                          '10.0.2.17'],
+        dhcp_2nic       => ['10.20.30.',                          '10.20.30.12'],                 # dhcp_2nic in SUT, we don't know the last octect
+        second_card     => ['10.0.3.11',                          '10.0.3.12'],
+        gateway         => ['10.0.2.2',                           '10.0.2.2'],
+        wlan            => ['10.6.6.2',                           '10.6.6.1'],
+        wlan_dhcp       => ['10.6.6.10',                          '10.6.6.1'],
+        ipv6_preffix_48 => ['fd00:dead:beef:[a-z0-9\:]+/48',      'fd00:dead:beef::/48'],
+        ipv6_preffix_64 => ['fd00:dead:beef:1111:[a-z0-9\:]+/64', 'fd00:dead:beef:1111::/64'],
+        dhcp6           => ['fd00:dead:beef:6021:d::11',          'fd00:dead:beef:6021:d::10'],
+        dns_advice      => ['fd00:dead:beef:6021::42',            'fd00:dead:beef:6021::42'],
       };
     my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
     die "$args{type} not exists" unless $ip;
@@ -583,20 +584,22 @@ sub ifbind {
     record_info('ifbind', $cmd . "\n" . script_output($cmd));
 }
 
-sub check_ipv6 {
+sub setup_ipv6 {
     my ($self, $ctx) = @_;
-    my $gateway             = $self->get_ip(type => 'gateway');
-    my $ipv6_network_prefix = $self->get_ip(type => 'ipv6');
-    my $ipv6_dns            = $self->get_ip(type => 'dns_advice');
     $self->get_from_data('wicked/ifcfg/ipv6', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface());
     assert_script_run('rdisc6 ' . $ctx->iface());
     $self->wicked_command('ifdown', $ctx->iface());
     $self->wicked_command('ifup',   $ctx->iface());
-    my $errors = 0;
+}
+
+sub check_ipv6 {
+    my ($self, $ctx, $ipv6_network_prefix) = @_;
     my $tries  = 12;
     my $no_ip  = 1;
     my $output = '';
+    my $errors = 0;
+
     while ($tries > 0 && $no_ip) {
         $no_ip  = 0;
         $output = script_output('ip a s dev ' . $ctx->iface());
@@ -622,7 +625,18 @@ sub check_ipv6 {
         $errors = 1;
     }
 
-    $output = script_output('ip -6 r s');
+    if ($errors) {
+        record_info('ip a s dev ' . $ctx->iface(), $output);
+        die "There were errors with aquiring IP address";
+    }
+
+}
+
+sub check_ipv6_routing {
+    my ($self, $ctx) = @_;
+    my $gateway = $self->get_ip(type => 'gateway');
+    my $output  = script_output('ip -6 r s');
+    my $errors  = 0;
 
     unless ($output =~ /^default/m) {
         record_info('FAIL', 'no default route presented', result => 'fail');
@@ -636,26 +650,38 @@ sub check_ipv6 {
         $errors = 1;
     }
 
-    $tries = 12;
-    my $dns_failure = 1;
-    while ($tries > 0 && $dns_failure) {
-        $dns_failure = 0;
-        $output      = script_output('cat /etc/resolv.conf');
+    if ($errors) {
+        die "There were errors with IPv6 routing";
+    }
+
+}
+
+sub check_dns {
+    my ($self, $ctx) = @_;
+    my $ipv6_dns = $self->get_ip(type => 'dns_advice');
+    my $gateway  = $self->get_ip(type => 'gateway');
+    my $errors   = 0;
+    my $tries    = 12;
+    my $output   = '';
+
+    while ($tries > 0 && $errors) {
+        $errors = 0;
+        $output = script_output('cat /etc/resolv.conf');
 
         unless ($output =~ /^nameserver $gateway/m) {
             record_info('IPv4 DNS', 'IPv4 DNS is missing in resolv.conf');
-            $dns_failure = 1;
+            $errors = 1;
         }
 
         unless ($output =~ /^nameserver $ipv6_dns/m) {
             record_info('IPv6 DNS', 'IPv6 DNS is missing in resolv.conf');
-            $dns_failure = 1;
+            $errors = 1;
         }
         $tries -= 1;
         sleep(5);
     }
 
-    die "There were errors during test" if $errors || $dns_failure;
+    die "There were errors with DNS setup" if $errors;
 }
 
 sub run_test_shell_script

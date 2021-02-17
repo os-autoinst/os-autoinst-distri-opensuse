@@ -20,7 +20,10 @@ use lockapi;
 sub run {
     my ($self, $ctx) = @_;
     mutex_wait('radvdipv6t01');
-    $self->check_ipv6($ctx);
+    $self->setup_ipv6($ctx);
+    $self->check_ipv6($ctx, $self->get_ip(type => 'ipv6_preffix_48'));
+    $self->check_ipv6_routing($ctx);
+    $self->check_dns($ctx);
 
 }
 
