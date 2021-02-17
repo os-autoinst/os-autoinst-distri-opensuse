@@ -1,0 +1,69 @@
+---
+name: mau-extratests1
+descrition: First set of CLI extratests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/openvswitch
+  - console/pam
+  - console/sshd
+  - console/update_alternatives
+  - console/rpm
+  - console/slp
+  - console/journalctl
+  - console/journalctlLevels
+  - console/libvorbis
+  - console/krb5
+  - console/command_not_found
+  - console/openssl_alpn
+  - console/autoyast_removed
+  - console/cron
+  - console/syslog
+  - console/mta
+  - console/check_default_network_manager
+  - console/git
+  - console/clamav
+  - console/cups
+  - console/java
+  - console/sqlite3
+  - console/gdb
+  - console/perf
+  - console/sysctl
+  - console/sysstat
+  - '{{version_specific}}'
+  - console/coredump_collect
+conditional_schedule:
+  version_specific:
+    VERSION:
+      15-SP2:
+        - console/openssl_nodejs
+        - console/golang
+        - '{{arch_specific}}'
+      15-SP1:
+        - console/openssl_nodejs
+        - console/golang
+        - '{{arch_specific}}'
+      15:
+        - console/openssl_nodejs
+        - '{{arch_specific}}'
+      12-SP5:
+        - console/openssl_nodejs
+        - '{{arch_specific}}'
+  arch_specific:
+    ARCH:
+      x86_64:
+        - console/aplay
+        - console/wavpack
+        - '{{sle15}}'
+  sle15:
+    VERSION:
+      15-SP2:
+        - console/lshw
+      15-SP1:
+        - console/lshw
+      15:
+        - console/lshw
+...

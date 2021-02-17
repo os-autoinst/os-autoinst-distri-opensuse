@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -32,13 +32,10 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_opensuse);
-use registration "add_suseconnect_product";
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
-    add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle('>=15');
 
     # Install test subjects and test scripts
     my @test_subjects = qw(
@@ -49,7 +46,6 @@ sub run {
 
     # for sle 12 we still use and support python2
     if (is_sle('<15')) {
-        add_suseconnect_product('sle-module-legacy');
         push @test_subjects, 'python-pam';
     } else {
         push @test_subjects, 'python3-python-pam';

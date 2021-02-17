@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,20 +23,6 @@ use registration qw(add_suseconnect_product register_product);
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
-
-    if (is_sle) {
-        assert_script_run 'source /etc/os-release';
-        if (is_sle '>=15') {
-            add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-        }
-        else {
-            register_product();
-            if (script_run('SUSEConnect -p sle-module-adv-systems-management/12/${CPU}') == 67) {
-                record_soft_failure 'bsc#1124343 - ASMM Module not yet available for SLE12SP5';
-                return;
-            }
-        }
-    }
 
     if (zypper_call('in machinery', exitcode => [0, 4]) == 4) {
         if (is_sle) {
