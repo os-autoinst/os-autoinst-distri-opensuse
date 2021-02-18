@@ -52,7 +52,7 @@ sub run {
     # it should be failed
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
     send_key "alt-l";
-    assert_screen("AppArmor-Chose-a-program-to-generate-a-profile", timeout => 90);
+    send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 30, 3);
     type_string("$test_file");
     send_key "alt-o";
     assert_screen("AppArmor-generate-a-profile-Error");
