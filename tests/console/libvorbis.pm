@@ -21,12 +21,14 @@ use strict;
 use warnings;
 use utils;
 use version_utils 'is_sle';
+use registration 'add_suseconnect_product';
 
 sub run {
     # setup
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    add_suseconnect_product('sle-module-desktop-applications') if is_sle && !main_common::is_updates_tests();
     zypper_call 'in vorbis-tools libvorbis0';
     # download ogg sample
     assert_script_run 'curl -v -o sample.ogg ' . data_url('libvorbis/glass.ogg');
