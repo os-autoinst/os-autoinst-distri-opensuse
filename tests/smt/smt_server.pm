@@ -24,6 +24,12 @@ use lockapi;
 sub run {
     select_console 'root-console';
 
+    # check and start mariadb.service if it stopped. It stops sometimes and 'smt-repos' has then issue with connection
+    if ((script_run('systemctl is-active mariadb.service')) != 0) {
+        record_info 'stopped', 'mariadb is stopped';
+        systemctl 'start mariadb.service';
+    }
+
     assert_script_run 'smt-repos -m';
     validate_script_output 'SUSEConnect --status', sub { m/"identifier":"SLES","version":"12\.5","arch":"x86_64","status":"Registered"/ };
     validate_script_output 'smt-repos -o',         sub { m/SLES12-SP5-Updates/ };
