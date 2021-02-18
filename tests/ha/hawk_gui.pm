@@ -46,7 +46,10 @@ sub run {
     install_docker;
 
     # TODO: Use another namespace using team group name
-    my $docker_image = "registry.opensuse.org/home/rbranco/branches/opensuse/templates/images/tumbleweed/containers/hawk_test";
+    # Docker image source in https://github.com/ricardobranco777/hawk_test
+    # It will be eventually moved to https://github.com/ClusterLabs/hawk/e2e_test
+    my $docker_image = "registry.opensuse.org/home/rbranco/branches/opensuse/templates/images/15.2/containers/hawk_test:latest";
+
     assert_script_run("docker pull $docker_image", 240);
 
     # Rest of the test needs to be performed on the x11 console, but with the
@@ -64,7 +67,6 @@ sub run {
 
     # Run test
     my $browser    = 'firefox';
-    my $version    = get_required_var('VERSION');
     my $node1      = choose_node(1);
     my $node2      = choose_node(2);
     my $results    = "$path/$pyscr.results";
@@ -77,7 +79,7 @@ sub run {
     assert_script_run "mkdir -m 1777 $path";
     assert_script_run "xhost +";
     my $docker_cmd = "docker run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
-    $docker_cmd .= "$docker_image -b $browser -t $version -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
+    $docker_cmd .= "$docker_image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
     type_string "$docker_cmd | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode\n";
     assert_screen "hawk-$browser", 60;
 
