@@ -16,8 +16,9 @@ vars:
   ORIGINAL_TARGET_VERSION: '%VERSION%'
   SCC_REGISTER: 'installation'
   TIMEOUT_SCALE: '2'
-  UEFI_PFLASH_VARS: '%DISTRI%-%HDDVERSION%-%ARCH%-ha-%CLUSTER_NAME%-%HOSTNAME%-uefi-vars.qcow2'
   UPGRADE_TARGET_VERSION: '%VERSION%'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1, UEFI_PFLASH_VARS
 schedule:
   - migration/version_switch_origin_system
   - '{{bootloader}}'
