@@ -11,7 +11,8 @@ vars:
   HA_CLUSTER: '1'
   QEMU_DISABLE_SNAPSHOTS: '1'
   TIMEOUT_SCALE: '2'
-  UEFI_PFLASH_VARS: '%DISTRI%-%VERSION%-%ARCH%-Build%BUILD%-HA-BV-uefi-vars.qcow2'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1, UEFI_PFLASH_VARS
 schedule:
   - '{{boot_zkvm}}'
   - boot/boot_to_desktop
