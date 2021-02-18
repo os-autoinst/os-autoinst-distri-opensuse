@@ -12,3 +12,6 @@ software:
       installed: 1
     devel_yast:
       installed: 1
+validate_subvolumes:
+  - subvolume: home
+    mount_point: /

@@ -20,7 +20,8 @@ our @EXPORT = qw(
   validate_partition_creation
   validate_filesystem
   validate_read_write
-  validate_unpartitioned_space);
+  validate_unpartitioned_space
+  validate_subvolume);
 
 sub validate_partition_table {
     my $args = shift;
@@ -71,6 +72,14 @@ sub validate_unpartitioned_space {
             die "There is $+{unpartitioned} unpartitioned disk space." if ($+{unpartitioned} gt $args->{allowed_unpartitioned});
         }
     }
+}
+
+sub validate_subvolume {
+    my $args = shift;
+    record_info("Check $args->{subvolume}",
+        "Check if $args->{subvolume} subvolume exists in $args->{mount_point} partition");
+    assert_script_run("btrfs subvolume list $args->{mount_point} | grep $args->{subvolume}",
+        fail_message => "Subvolume $args->{subvolume} does not exist in $args->{mount_point} partition");
 }
 
 1;
