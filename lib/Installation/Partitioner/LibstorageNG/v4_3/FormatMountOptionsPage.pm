@@ -14,6 +14,7 @@
 package Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
 use strict;
 use warnings;
+use YuiRestClient::Wait;
 
 sub new {
     my ($class, $args) = @_;
@@ -50,7 +51,12 @@ sub enter_formatting_options {
 
 sub select_format {
     my ($self) = @_;
-    return $self->{rb_format_device}->select();
+    # Workaround with selecting 'Format Device' radio button until 'Filesystem' combobox is enabled.
+    # Needed to resolve sporadic issue on aarch64, that most likely happens due to workers slowness: poo#88524
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->{rb_format_device}->select();
+            return $self->{cb_filesystem}->is_enabled();
+    });
 }
 
 sub select_not_format {
