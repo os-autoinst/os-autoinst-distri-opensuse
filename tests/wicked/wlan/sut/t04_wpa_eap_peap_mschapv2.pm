@@ -66,9 +66,6 @@ has ifcfg_wlan => q(
     # Network settings
     WIRELESS_ESSID='{{ssid}}'
     WIRELESS_AUTH_MODE='eap'
-    WIRELESS_CLIENT_CERT='/etc/raddb/certs/client.crt'
-    WIRELESS_CLIENT_KEY='/etc/raddb/certs/client.key'
-    WIRELESS_CLIENT_KEY_PASSWORD='whatever'
     WIRELESS_EAP_AUTH='mschapv2'
     WIRELESS_EAP_MODE='PEAP'
     WIRELESS_MODE='Managed'
