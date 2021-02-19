@@ -20,3 +20,4 @@ schedule:
   - containers/docker_image
   - containers/container_diff
   - '{{validate_btrfs}}'
+  - containers/rootless_podman

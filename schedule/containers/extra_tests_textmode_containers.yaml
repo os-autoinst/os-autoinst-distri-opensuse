@@ -29,3 +29,4 @@ schedule:
   - containers/containers_3rd_party
   - containers/registry
   - console/coredump_collect
+  - containers/rootless_podman
