@@ -95,7 +95,7 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub save_and_upload_log {
     my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
-    upload_logs($file) unless $args->{noupload};
+    upload_logs($file, failok => 1) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
 }
 
@@ -113,7 +113,7 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub tar_and_upload_log {
     my ($self, $sources, $dest, $args) = @_;
     script_run("tar -jcv -f $dest $sources", $args->{timeout});
-    upload_logs($dest) unless $args->{noupload};
+    upload_logs($dest, failok => 1) unless $args->{noupload};
     save_screenshot() if $args->{screenshot};
 }
 
@@ -219,13 +219,13 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
     # VMware specific
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run('vm-support');
-        upload_logs('vm-*.*.tar.gz');
+        script_run('vm-support');
+        upload_logs('vm-*.*.tar.gz', failok => 1);
         clear_console;
     }
 
     script_run 'tar cvvJf problem_detection_logs.tar.xz *';
-    upload_logs('problem_detection_logs.tar.xz');
+    upload_logs('problem_detection_logs.tar.xz', failok => 1);
     type_string "popd\n";
 }
 
@@ -1266,7 +1266,7 @@ sub upload_coredumps {
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
-        upload_logs("coredump-info.log");
+        upload_logs("coredump-info.log", failok => 1);
         my $basedir = '/var/lib/systemd/coredump/';
         my @files   = split("\n", script_output("\\ls -1 $basedir | cat"));
         foreach my $file (@files) {
@@ -1308,9 +1308,9 @@ sub post_fail_hook {
     if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
         select_console 'root-console';
         my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
-        my $out           = script_output 'lvmdump';
+        my $out           = script_output('lvmdump', proceed_on_failure => 1);
         if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
-            upload_logs "$+{lvmdump_gzip}";
+            upload_logs("$+{lvmdump_gzip}", failok => 1);
         }
         $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
     }
