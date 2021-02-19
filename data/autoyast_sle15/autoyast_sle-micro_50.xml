@@ -29,6 +29,7 @@
     <patterns config:type="list">
       <pattern>basesystem</pattern>
       <pattern>microos-container_runtime</pattern>
+      <pattern>microos-selinux</pattern>
     </patterns>
   </software>
   <users config:type="list">
