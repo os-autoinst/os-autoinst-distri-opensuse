@@ -91,8 +91,10 @@ sub run {
     send_key(is_pre_15() ? 'alt-o' : 'alt-s');
     wait_still_screen(3);
     assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
-    wait_screen_change { send_key 'tab' };                              # focus on first element in the list
-    wait_screen_change { send_key(is_pre_15() ? 'alt-t' : 'alt-c') };
+    send_key 'tab';    # focus on first element in the list
+    wait_still_screen(3);
+    send_key(is_pre_15() ? 'alt-t' : 'alt-c');
+    wait_still_screen(3);
     assert_screen [qw(
           yast2_apparmor_profile_mode_configuration_toggle
           yast2_apparmor_profile_mode_configuration_show_all
