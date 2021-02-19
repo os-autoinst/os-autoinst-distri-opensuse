@@ -13,6 +13,7 @@ schedule:
   - migration/version_switch_origin_system
   - '{{online_migration_test}}'
   - '{{remove_ltss}}'
+  - installation/install_service
   - migration/version_switch_upgrade_target
   - migration/online_migration/pre_migration
   - '{{migration_method}}'
