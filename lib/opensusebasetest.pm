@@ -1257,20 +1257,23 @@ sub select_user_serial_terminal {
 
 =head2 upload_coredumps
 
- upload_coredumps();
+ upload_coredumps(%args);
 
-Upload all coredumps to logs
+Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
+errors during logs collection will be ignored, which is usefull for the
+post_fail_hook calls.
 =cut
 sub upload_coredumps {
+    my (%args) = @_;
     my $res = script_run("coredumpctl --no-pager", timeout => 10);
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
-        upload_logs("coredump-info.log", failok => 1);
+        upload_logs("coredump-info.log", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';
-        my @files   = split("\n", script_output("\\ls -1 $basedir | cat"));
+        my @files   = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
         foreach my $file (@files) {
-            upload_logs($basedir . $file);
+            upload_logs($basedir . $file, failok => $args{proceed_on_failure});
         }
     }
 }
@@ -1317,7 +1320,7 @@ sub post_fail_hook {
 
     if (get_var('COLLECT_COREDUMPS')) {
         select_console 'root-console';
-        $self->upload_coredumps;
+        $self->upload_coredumps(proceed_on_failure => 1);
     }
 
     if ($self->{in_wait_boot}) {
