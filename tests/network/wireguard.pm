@@ -44,7 +44,10 @@ sub run {
         barrier_create 'IPERF_COMPLETED',  2;
         barrier_create 'WG_QUICK_READY',   2;
         barrier_create 'WG_QUICK_ENABLED', 2;
+        mutex_create 'barrier_setup_done';
     }
+
+    mutex_wait 'barrier_setup_done';
 
     $self->select_serial_terminal;
     barrier_wait 'SETUP_DONE';
