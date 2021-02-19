@@ -42,6 +42,7 @@ sub run {
         bsc_1177693         => 'kernel: intel_powerclamp: CPU does not support MWAIT',
         bsc_1177695         => 'kernel: parport_pc: `none\' invalid for parameter `dma\'',
         bsc_1178033         => 'kernel: ITS@0x8080000: Unable to locate ITS domain handle',
+        bsc_1182500         => 'Failed to transition into init label \'system_u:system_r:init_t:s0\'',
         bsc_000000_FEATURE  => 'health-checker/fail.sh check" failed|Machine didn\'t come up correct, do a rollback',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
