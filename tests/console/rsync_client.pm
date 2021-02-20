@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,6 +26,7 @@ sub run {
     select_console 'user-console';
 
     #waiting for configuration of rsync server
+    mutex_wait 'barrier_setup_done';
     barrier_wait 'rsync_setup';
 
     assert_script_run 'export RSYNC_PASSWORD=424242';
