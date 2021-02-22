@@ -21,6 +21,7 @@ use version_utils qw(is_jeos is_microos is_installcheck is_rescuesystem is_sle i
 use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
+use network_utils qw(genmac);
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -236,11 +237,17 @@ sub run {
     if ($vmm_family eq 'kvm') {
         $iface_model = 'virtio';
     }
-    elsif ($vmm_family eq 'xen' && $vmm_type eq 'hvm') {
-        $iface_model = 'netfront';
+    elsif ($vmm_family eq 'xen') {
+        $ifacecfg{type}        = 'bridge';
+        $ifacecfg{source}      = {bridge  => 'br0'};
+        $ifacecfg{virtualport} = {type    => 'openvswitch'};
+        $ifacecfg{mac}         = {address => genmac('00:16:3e')};
+        $iface_model           = 'netfront';
     }
     elsif ($vmm_family eq 'vmware') {
         $iface_model = 'e1000';
+    } else {
+        die "Unsupported value of *VIRSH_VMM_FAMILY*\n";
     }
 
     if ($iface_model) {
@@ -289,7 +296,7 @@ sub run {
         $svirt->suspend;
         my $cmdline = '';
         $cmdline .= 'textmode=1 '                         if check_var('VIDEOMODE', 'text');
-        $cmdline .= 'rescue=1 '                           if is_installcheck || is_rescuesystem;          # rescue mode
+        $cmdline .= 'rescue=1 '                           if is_installcheck || is_rescuesystem;
         $cmdline .= get_var('EXTRABOOTPARAMS') . ' '      if get_var('EXTRABOOTPARAMS');
         $cmdline .= registration_bootloader_cmdline . ' ' if check_var('SCC_REGISTER', 'installation');
         type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
