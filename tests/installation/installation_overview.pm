@@ -47,9 +47,6 @@ sub ensure_ssh_unblocked {
 		send_key_until_needlematch 'ssh-service-enabled', 'tab';
             }
         }
-	#confirm installation after ssh enabled
-	send_key_until_needlematch 'confirm-installation', 'tab';
-        send_key 'ret';
 
         #performance ci need disable firewall
         if (get_var('DISABLE_FIREWALL')) {
@@ -67,6 +64,12 @@ sub ensure_ssh_unblocked {
             }
         }
     }
+}
+
+sub confirm_installation {
+    #confirm installation after ssh enabled
+    send_key_until_needlematch 'confirm-installation', 'tab';
+    send_key 'ret';
 }
 
 sub check_default_target {
@@ -111,6 +114,7 @@ sub run {
             }
         }
         ensure_ssh_unblocked;
+	confirm_installation;
         check_default_target;
     }
 }
