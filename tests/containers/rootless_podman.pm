@@ -10,9 +10,8 @@
 # Summary: Test rootless mode on podman.
 # - add a user on the /etc/subuid and /etc/subgid to allow automatically allocation subuid and subgid ranges.
 # - check uids allocated to user (inside the container are mapped on the host)
-# - give read access to the SUSE Customer Center credentials to call zypper from in the container
-#   proper way to add Access Control List is via `setfacl` which is not available so we just do
-#   `chmod` instead!! This grants the current user the required access rights
+# - give read access to the SUSE Customer Center credentials to call zypper from in the container.
+#   This grants the current user the required access rights
 # - Test rootless container:
 #   * container is launched with default root user
 #   * container is launched with existing user id
@@ -44,9 +43,8 @@ sub run {
     assert_script_run "usermod --add-subuids 200000-201000 --add-subgids 200000-201000 $user";
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "grep $user /etc/subgid", fail_message => "subgid range not assigned for $user";
-    # Workaround instead of
-    # "setfacl -m u:$user:r /etc/zypp/credentials.d/*"
-    assert_script_run "chmod -R 666 /etc/zypp/credentials.d/*" if is_sle;
+    # Set read bits for $user
+    assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
     ensure_serialdev_permissions;
     select_console "user-console";
 
@@ -59,8 +57,24 @@ sub run {
         verify_userid_on_container($runtime, $iname);
     }
     clean_container_host(runtime => $runtime);
+}
+
+sub post_run_hook {
+    my $self = shift;
     $self->select_serial_terminal();
-    assert_script_run "chmod -R 600 /etc/zypp/credentials.d/*" if is_sle;
+    assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*" if is_sle;
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
+    assert_script_run("tar -capf /tmp/proc_files.tar.xz /proc/self");
+    upload_logs("/tmp/proc_files.tar.xz");
+    if (is_sle) {
+        $self->save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
+        assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*";
+    }
 }
 
 1;
