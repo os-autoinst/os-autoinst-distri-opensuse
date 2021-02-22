@@ -20,6 +20,7 @@
       <li><a href="#recover_network">recover_network</a></li>
       <li><a href="#ifc_exists">ifc_exists</a></li>
       <li><a href="#ifc_is_up">ifc_is_up</a></li>
+      <li><a href="#genmac">genmac</a></li>
     </ul>
   </li>
 </ul><h1>lib/network_utils.pm</h1>
@@ -69,6 +70,12 @@
 <pre><code> ifc_is_up([$ifc]);</code></pre>
 
 <p>Return only if network status is UP.</p>
+
+<h2 id="genmac">genmac</h2>
+
+<p>Generate custom MAC address. Used for Xen domU testing, to define MAC address once for whole test suite lifecycle.</p>
+
+<pre><code> genmac([&#39;aa:bb:cc&#39;])</code></pre>
 
 
 </body>
