@@ -150,7 +150,7 @@ sub genmac {
     my @mac = split(/:/, shift);
     my $len = scalar(@mac);
     for (my $i = 0; $i < (6 - $len); $i++) {
-        push @mac, (sprintf("%02X", int(rand(255))));
+        push @mac, (sprintf("%02X", int(rand(254))));
     }
     return lc(join(':', @mac));
 }
