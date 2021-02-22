@@ -232,9 +232,9 @@
 
 <h2 id="upload_coredumps">upload_coredumps</h2>
 
-<pre><code> upload_coredumps();</code></pre>
+<pre><code> upload_coredumps(%args);</code></pre>
 
-<p>Upload all coredumps to logs</p>
+<p>Upload all coredumps to logs. In case `proceed_on_failure` key is set to true, errors during logs collection will be ignored, which is usefull for the post_fail_hook calls.</p>
 
 <h2 id="post_fail_hook">post_fail_hook</h2>
 
