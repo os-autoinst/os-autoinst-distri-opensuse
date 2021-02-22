@@ -31,6 +31,7 @@ sub run {
     assert_screen "network-allow-discovered";
     assert_and_click "network-discovered-yes";
 
+    sleep 5;
     type_string "netsh interface ip set dns Ethernet static 10.67.0.2";
     send_key "ret";
 
