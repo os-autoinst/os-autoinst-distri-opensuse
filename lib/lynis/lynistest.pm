@@ -51,7 +51,8 @@ our $testdir = "/tmp/";
 our $f_position_b = 0;
 our $f_position_c = 0;
 
-our $lynis_baseline_file_default = "baseline-lynis-audit-system-nocolors-sle15sp3-x86_64-snapshot7-textmode";
+my $var_str = get_var("VERSION", "15-SP3") . "-" . get_var("ARCH", "x86_64") . "-" . get_var("DESKTOP", "textmode");
+our $lynis_baseline_file_default = "baseline-lynis-audit-system-nocolors-" . "$var_str";
 our $lynis_baseline_file         = get_var("LYNIS_BASELINE_FILE", $lynis_baseline_file_default);
 
 our $lynis_audit_system_current_file = "lynis_audit_system_current_file";
@@ -268,6 +269,28 @@ sub compare_lynis_section_content {
         $s_new = "\\[.*$s_lynis.*\\]";
         $ret   = grep(/$s_new/, @section_current);
         if ($ret) {
+            # Filter out some exceptions allowed:
+            # "Boot_and_services": "[4C- Checking for password protection[23C [ WARNING ]"
+            # "Name services": "[4C- Checking /etc/hosts (hostname)[25C [ SUGGESTION ]"
+            # "Kernel: "[4CCPU support: No PAE or NoeXecute supported[15C [ NONE ]"
+            # "Initializing_program": "[2C- Program update status... [32C [ WARNING ]"
+            # "Networking": "[[4C- Minimal of 2 responsive nameservers^[[20C [ WARNING ]"
+            # "Ports and packages": "Using Zypper to find vulnerable packages[17C [ NONE ]"
+            my @exceptions = (
+                "Checking for password protection.*WARNING.*",
+                "Checking /etc/hosts .*hostname.*SUGGESTION.*",
+                "CPU support: No PAE or NoeXecute supported.*NONE.*",
+                "Program update status.*WARNING.*",
+                "Minimal of 2 responsive nameservers.*WARNING.*",
+                "Using Zypper to find vulnerable packages.*NONE.*"
+            );
+            for my $exception (@exceptions) {
+                if (grep(/$exception/, @section_current)) {
+                    $result = "ok";
+                    return $result;
+                }
+            }
+
             $result = "softfail";
             record_soft_failure("poo#78224, found $ret [ $s_lynis ] in current output");
         }
