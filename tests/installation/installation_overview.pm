@@ -41,6 +41,8 @@ sub ensure_ssh_unblocked {
             else {
                 send_key_until_needlematch 'ssh-blocked-selected', 'tab', 25;
                 send_key 'ret';
+                send_key_until_needlematch 'ssh-service-disabled', 'tab', 25;
+                send_key 'ret';
                 send_key_until_needlematch 'ssh-open', 'tab';
             }
         }
