@@ -44,7 +44,7 @@ sub ensure_ssh_unblocked {
                 send_key_until_needlematch 'ssh-open', 'tab';
                 send_key_until_needlematch 'ssh-service-disabled', 'tab', 28;
                 send_key 'ret';
-		send_key_until_needlematch 'ssh-service-enabled', 'tab';
+	        send_key_until_needlematch 'ssh-service-enabled', 'tab';
             }
         }
 
@@ -114,7 +114,7 @@ sub run {
             }
         }
         ensure_ssh_unblocked;
-	confirm_installation;
+        confirm_installation;
         check_default_target;
     }
 }
