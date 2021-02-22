@@ -579,6 +579,7 @@ sub load_jeos_tests {
             loadtest "jeos/grub2_gfxmode";
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
+            loadtest "console/integration_services" if is_hyperv || is_vmware;
         }
         if (is_sle) {
             loadtest "console/suseconnect_scc";
@@ -1080,7 +1081,6 @@ sub load_consoletests {
     loadtest "console/system_state";
     loadtest "console/prepare_test_data";
     loadtest "console/consoletest_setup";
-    loadtest 'console/integration_services' if is_hyperv || is_vmware;
 
     if (get_var('IBM_TESTS')) {
         # prepare tarballs for the testcase
