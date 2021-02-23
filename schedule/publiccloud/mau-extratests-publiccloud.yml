@@ -55,6 +55,6 @@ schedule:
   - console/aaa_base
   - console/osinfo_db
   - console/libgcrypt
-  - console/orphaned_packages_check
   - console/valgrind
+  - console/orphaned_packages_check
   - publiccloud/ssh_interactive_end
