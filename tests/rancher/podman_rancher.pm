@@ -23,6 +23,7 @@ use rancher::utils;
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+    assert_script_run("whoami");
 
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_podman_when_needed($host_distri);
