@@ -1723,7 +1723,7 @@ sub load_extra_tests_docker {
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
     loadtest 'containers/registry';
     loadtest "containers/zypper_docker";
-    loadtest "containers/rootless_podman";
+    loadtest "containers/rootless_podman" unless is_sle('<=12-SP5');
 }
 
 sub load_extra_tests_prepare {
