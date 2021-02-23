@@ -89,7 +89,7 @@ sub test_algorithms() {
 
     for my $algorithm (@{$self->{algorithm_array}}) {
         if (exists $failing_algorithms{$algorithm}) {
-            record_soft_failure("$algorithm ($self->{name}) fails with unexpected internal error");
+            record_soft_failure("$algorithm ($self->{name}) fails with unexpected internal error bsc#1182601");
             next;
         }
 
