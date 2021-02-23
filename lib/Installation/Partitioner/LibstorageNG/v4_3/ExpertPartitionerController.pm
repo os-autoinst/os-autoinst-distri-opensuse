@@ -308,7 +308,9 @@ sub add_raid {
     $self->get_expert_partitioner_page()->select_raid();
     $self->get_expert_partitioner_page()->press_add_raid_button();
     $self->get_raid_type_page()->set_raid_level($raid_level);
-    $self->get_raid_type_page()->select_devices_from_list($device_selection_step);
+    foreach my $device (@{$args->{devices}}) {
+        $self->get_raid_type_page()->select_available_device($device);
+    }
     $self->get_raid_type_page()->press_next();
     $self->get_raid_options_page()->select_chunk_size($chunk_size) if $chunk_size;
     $self->get_raid_options_page()->press_next();
