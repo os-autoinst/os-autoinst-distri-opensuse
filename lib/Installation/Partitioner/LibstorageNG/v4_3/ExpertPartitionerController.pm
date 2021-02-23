@@ -38,6 +38,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::PartitionIdFormatMountOptions
 use Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage;
 use Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
+use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
 
 use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
 
@@ -73,6 +74,7 @@ sub init {
     $self->{EncryptPartitionPage}              = Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage->new({app => YuiRestClient::get_app()});
     $self->{FormatMountOptionsPage}            = Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{LogicalVolumeSizePage}             = Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage->new({app => YuiRestClient::get_app()});
+    $self->{RaidTypePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -180,6 +182,11 @@ sub get_format_mount_options_page {
 sub get_logical_volume_size_page {
     my ($self) = @_;
     return $self->{LogicalVolumeSizePage};
+}
+
+sub get_raid_type_page {
+    my ($self) = @_;
+    return $self->{RaidTypePage};
 }
 
 sub add_partition {
