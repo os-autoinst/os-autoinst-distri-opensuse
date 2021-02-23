@@ -10,7 +10,7 @@
 # Summary: Database for URLs of container images to be tested
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-package suse_container_urls;
+package containers::urls;
 
 use base Exporter;
 use Exporter;

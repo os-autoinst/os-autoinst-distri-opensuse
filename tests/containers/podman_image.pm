@@ -17,7 +17,7 @@ use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
-use suse_container_urls 'get_suse_container_urls';
+use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
 
 sub run {

@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use containers::common;
 use containers::container_images;
-use suse_container_urls 'get_suse_container_urls';
+use containers::urls 'get_suse_container_urls';
 use version_utils qw(is_sle get_os_release);
 
 sub run {
