@@ -39,6 +39,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage;
 use Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
+use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
 
 use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
 
@@ -75,6 +76,7 @@ sub init {
     $self->{FormatMountOptionsPage}            = Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{LogicalVolumeSizePage}             = Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage->new({app => YuiRestClient::get_app()});
     $self->{RaidTypePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage->new({app => YuiRestClient::get_app()});
+    $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -189,6 +191,11 @@ sub get_raid_type_page {
     return $self->{RaidTypePage};
 }
 
+sub get_raid_options_page {
+    my ($self) = @_;
+    return $self->{RaidOptionsPage};
+}
+
 sub add_partition {
     my ($self, $args) = @_;
     my $table_type = $args->{table_type} // '';
@@ -297,11 +304,13 @@ sub add_raid {
     my ($self, $args) = @_;
     my $raid_level            = $args->{raid_level};
     my $device_selection_step = $args->{device_selection_step};
+    my $chunk_size            = $args->{chunk_size};
     $self->get_expert_partitioner_page()->select_raid();
     $self->get_expert_partitioner_page()->press_add_raid_button();
     $self->get_raid_type_page()->set_raid_level($raid_level);
     $self->get_raid_type_page()->select_devices_from_list($device_selection_step);
     $self->get_raid_type_page()->press_next();
+    $self->get_raid_options_page()->select_chunk_size($chunk_size) if $chunk_size;
     $self->get_raid_options_page()->press_next();
     $self->add_raid_partition($args->{partition});
 }
