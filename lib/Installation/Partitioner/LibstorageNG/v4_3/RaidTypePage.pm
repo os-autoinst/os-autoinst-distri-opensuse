@@ -45,7 +45,6 @@ sub init {
     return $self;
 }
 
-
 sub press_add_button {
     my ($self) = @_;
     return $self->{btn_add}->click();
@@ -71,18 +70,8 @@ sub set_raid_level {
 }
 
 sub select_available_device {
-    my ($self, $args) = @_;
-    return $self->{tbl_available_devices}->select(value => $args->{device});
-}
-
-sub select_devices_from_list {
-    my ($self, $step) = @_;
-
-    for (my $row = 0; $row < $step * 3; $row += $step) {
-        $self->{tbl_available_devices}->select(row => $row);
-    }
-
-    $self->press_add_button();
+    my ($self, $device) = @_;
+    return $self->{tbl_available_devices}->select(value => "/dev/$device");
 }
 
 1;
