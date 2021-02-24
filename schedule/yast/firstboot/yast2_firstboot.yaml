@@ -10,6 +10,7 @@ schedule:
     - console/consoletest_setup
     - console/hostname
     - installation/enable_y2_firstboot
+    - installation/setup_libyui_firstboot
     - autoyast/autoyast_reboot
     - installation/grub_test
     - installation/yast2_firstboot

@@ -50,13 +50,15 @@ sub firstboot_licenses {
 
 sub firstboot_welcome {
     my ($self, $custom_needle) = @_;
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'welcome' . $custom_needle;
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->press_next();
 }
 
 sub firstboot_timezone {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'inst-timezone';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->press_next();
 }
 
 sub firstboot_user {
@@ -74,17 +76,26 @@ sub firstboot_root {
 }
 
 sub firstboot_hostname {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'hostname';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->press_next();
 }
 
 sub firstboot_registration {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'system_registered';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->press_next();
+}
+
+sub firstboot_finish {
+    my ($self, $custom_needle) = @_;
+    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
+    send_key $cmd{finish};
 }
 
 sub run {
-    my $self          = shift;
+    my $self = shift;
+    YuiRestClient::connect_to_app();
     my $test_data     = get_test_suite_data();
     my $custom_needle = $test_data->{custom_control_file} ? "_custom" : undef;
     foreach my $client (@{$test_data->{clients}}) {
@@ -93,8 +104,6 @@ sub run {
         my $client_method = \&{"$client"};
         $client_method->($self, $custom_needle);
     }
-    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
-    send_key $cmd{finish};
 }
 
 sub post_fail_hook {

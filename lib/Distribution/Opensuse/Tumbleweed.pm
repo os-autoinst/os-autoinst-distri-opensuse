@@ -23,6 +23,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use Installation::SystemRole::SystemRoleController;
 use YaST::SystemSettings::SystemSettingsController;
+use YaST::Firstboot::FirstbootController;
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
@@ -50,6 +51,10 @@ sub get_system_settings {
 
 sub get_suggested_partitioning() {
     return Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController->new();
+}
+
+sub get_firstboot {
+    return YaST::Firstboot::FirstbootController->new();
 }
 
 1;
