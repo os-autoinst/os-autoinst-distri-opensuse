@@ -26,6 +26,8 @@ sub run() {
 
     assert_screen 'inst-addon';
     send_key 'alt-k';    # install with a maint update repo
+
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
 
     while (defined(my $maintrepo = shift @repos)) {
