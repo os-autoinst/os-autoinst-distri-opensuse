@@ -6,9 +6,9 @@ vars:
     YAST2_FIRSTBOOT_USERNAME: firstbootuser
 schedule:
     - boot/boot_to_desktop
-    - console/prepare_test_data
-    - console/consoletest_setup
-    - console/hostname
+#    - console/prepare_test_data
+#    - console/consoletest_setup
+#    - console/hostname
     - installation/enable_y2_firstboot
     - autoyast/autoyast_reboot
     - installation/grub_test

@@ -167,7 +167,8 @@ sub run {
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
-    prepare_system_shutdown if check_var('BACKEND', 's390x');
+    push(@needles, 'startshell') if get_var('YUI_REST_API');
+    prepare_system_shutdown      if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
     my $confirmed      = 0;
     my $pxe_boot_done  = 0;
@@ -189,6 +190,9 @@ sub run {
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
             last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
+        }
+        elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
+            type_string_slow "exit\n";
         }
         elsif (match_has_tag('import-untrusted-gpg-key')) {
             handle_untrusted_gpg_key;

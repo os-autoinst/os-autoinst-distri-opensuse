@@ -1,0 +1,24 @@
+# SUSE's openQA tests
+#
+# Copyright © 2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved. This file is offered as-is,
+# without any warranty.
+
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
+
+package YuiRestClient::Widget::DebugLabel;
+
+use strict;
+use warnings;
+
+use parent 'YuiRestClient::Widget::Base';
+
+sub text {
+    my ($self, $args) = @_;
+    return $self->exist($args);
+}
+
+1;

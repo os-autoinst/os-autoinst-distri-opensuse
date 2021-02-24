@@ -6,3 +6,4 @@ clients:
   - firstboot_user
   - firstboot_root
   - firstboot_registration
+  - firstboot_finish

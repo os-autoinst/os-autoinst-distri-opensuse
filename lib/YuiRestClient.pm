@@ -20,6 +20,7 @@ use utils qw(type_string_slow type_line_svirt save_svirt_pty zypper_call);
 use Utils::Backends qw(is_pvm is_hyperv);
 use YuiRestClient::App;
 use registration;
+use version_utils "is_sle";
 
 our $interval = 1;
 our $timeout  = 10;
@@ -87,6 +88,17 @@ sub setup_libyui_running_system {
     assert_script_run("firewall-cmd --zone=public --add-port=$port/tcp");
     my $app = YuiRestClient::App->new({port => $port, host => $host, api_version => API_VERSION});
     set_app($app);
+}
+
+sub setup_libyui_firstboot {
+    my $port = get_var('YUI_PORT');
+    add_suseconnect_product('sle-module-development-tools') if is_sle;
+    zypper_call('in libyui-rest-api');
+    assert_script_run "firewall-cmd --zone=public --add-port=$port/tcp --permanent";
+    foreach my $export ("YUI_HTTP_PORT=$port", "YUI_HTTP_REMOTE=1", "YUI_REUSE_PORT=1", "Y2DEBUG=1") {
+        assert_script_run "echo export $export >> /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
+    }
+    assert_script_run "chmod +x /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
 }
 
 sub teardown_libyui {

@@ -20,6 +20,7 @@ use YuiRestClient::Widget::Button;
 use YuiRestClient::Widget::CheckBox;
 use YuiRestClient::Widget::ComboBox;
 use YuiRestClient::Widget::Label;
+use YuiRestClient::Widget::DebugLabel;
 use YuiRestClient::Widget::MenuCollection;
 use YuiRestClient::Widget::RadioButton;
 use YuiRestClient::Widget::RichText;
@@ -79,6 +80,14 @@ sub combobox {
 sub label {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Label->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub debug_label {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::DebugLabel->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });

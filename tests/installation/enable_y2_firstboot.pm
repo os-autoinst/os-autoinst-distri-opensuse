@@ -17,13 +17,19 @@ use warnings;
 use testapi;
 use utils qw(zypper_call clear_console);
 use scheduler 'get_test_suite_data';
+use version_utils 'is_sle';
+use registration 'add_suseconnect_product';
+use YuiRestClient;
+
 
 sub run {
     my $test_data = get_test_suite_data();
     my $base_path = "yast2/firstboot/";
     select_console 'root-console';
+    # add_suseconnect_product('sle-module-development-tools') if is_sle;
     zypper_call "in yast2-firstboot";
     assert_script_run 'touch /var/lib/YaST2/reconfig_system';
+    YuiRestClient::setup_libyui_firstboot;
     # Use default files from package if no custom file was specified
     if ($test_data->{custom_control_file}) {
         assert_script_run 'wget ' . data_url($base_path . $test_data->{custom_control_file}) . ' -O /etc/YaST2/firstboot.xml';

@@ -20,6 +20,8 @@ use utils qw(zypper_call clear_console);
 use installation_user_settings qw(await_password_check enter_userinfo enter_rootinfo);
 use version_utils qw(is_sle is_opensuse);
 use scheduler 'get_test_suite_data';
+use YuiRestClient;
+
 
 sub firstboot_language_keyboard {
     my $shortcuts = {
@@ -49,14 +51,13 @@ sub firstboot_licenses {
 }
 
 sub firstboot_welcome {
-    my ($self, $custom_needle) = @_;
-    assert_screen 'welcome' . $custom_needle;
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    my $firstboot = $testapi::distri->get_firstboot();
+    $firstboot->welcome_smoketest();
 }
 
 sub firstboot_timezone {
-    assert_screen 'inst-timezone';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    my $firstboot = $testapi::distri->get_firstboot();
+    $firstboot->generic_smoketest('This should be broken');
 }
 
 sub firstboot_user {
@@ -74,13 +75,26 @@ sub firstboot_root {
 }
 
 sub firstboot_hostname {
-    assert_screen 'hostname';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    my $firstboot = $testapi::distri->get_firstboot();
+    $firstboot->generic_smoketest();
 }
 
 sub firstboot_registration {
+    # my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'system_registered';
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    # $firstboot->generic_smoketest();
+}
+
+sub firstboot_finish {
+    my ($self, $custom_needle) = @_;
+    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
+    send_key $cmd{finish};
+}
+
+sub pre_run_hook {
+    assert_screen "firstboot", 140;
+    YuiRestClient::connect_to_app;
 }
 
 sub run {
@@ -93,8 +107,6 @@ sub run {
         my $client_method = \&{"$client"};
         $client_method->($self, $custom_needle);
     }
-    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
-    send_key $cmd{finish};
 }
 
 sub post_fail_hook {
