@@ -41,7 +41,7 @@ lock so that we can run a new zypper for our test.
 
 =cut
 sub wait_quit_zypper {
-    assert_script_run 'until ! pgrep zypper; do sleep 1; done';
+    assert_script_run('until ! pgrep \'zypper|purge-kernels|rpm\' > /dev/null; do sleep 10; done', 600);
 }
 
 1;
