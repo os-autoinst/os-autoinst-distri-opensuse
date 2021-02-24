@@ -41,6 +41,12 @@ sub header {
     $self->property('header');
 }
 
+sub items {
+    my ($self) = @_;
+
+    return (map { $_->{labels} } @{$self->property('items')});
+}
+
 sub get_index {
     my ($self, $column) = @_;
     my @header = @{$self->header()};
