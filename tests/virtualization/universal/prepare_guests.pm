@@ -20,10 +20,10 @@ use testapi;
 use utils;
 use version_utils 'is_sle';
 
-
 sub run {
     my $self = shift;
-    $self->select_serial_terminal;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
 
     # Ensure additional package is installed
     zypper_call '-t in libvirt-client iputils nmap';
@@ -46,24 +46,26 @@ sub run {
     assert_script_run "virsh net-start default || true", 90;
     assert_script_run "virsh net-autostart default",     90;
 
-    # Remove existing guests, if present. This is needed for debugging runs, when we skip the installation
-    # and it will not hurt on a fresh hypervisor
-    script_run('for i in `virsh list --name --all`; do virsh destroy $i; virsh undefine $i; done');
+    # Show all guests
+    assert_script_run 'virsh list --all';
+    wait_still_screen 1;
 
-    # Install guests
-    create_guest($_, 'virt-install') foreach (values %virt_autotest::common::guests);
+    # Disable bash monitoring, so the output of completed background jobs doesn't confuse openQA
+    script_run("set +m");
+
+    # Install every defined guest
+    create_guest $_, 'virt-install' foreach (values %virt_autotest::common::guests);
+
+    ## Ensure every guest has <on_reboot>restart</on_reboot>
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        if (script_run("! virsh dumpxml $guest | grep 'on_reboot' | grep -v 'restart'") != 0) {
+            record_info("$guest bsc#1153028", "Setting on_reboot=restart failed for $guest");
+        }
+    }
 
     script_run 'history -a';
     script_run('cat ~/virt-install* | grep ERROR', 30);
-    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (is_xen_host());
-
-    collect_virt_system_logs();
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    collect_virt_system_logs();
-    $self->SUPER::post_fail_hook;
+    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (get_var("REGRESSION", '') =~ /xen/);
 }
 
 1;

@@ -360,7 +360,7 @@ sub wait_guests_shutdown {
 
 # Start all guests and wait until they are online
 sub start_guests {
-    assert_script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
+    script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
     # Wait for guests to show up as running
     script_retry("virsh list | grep $_ | grep running", delay => 5, retry => 10) foreach (keys %virt_autotest::common::guests);
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
