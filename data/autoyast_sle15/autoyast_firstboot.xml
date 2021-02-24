@@ -65,6 +65,7 @@
           <package>sles-release</package>
           <package>yast2-firstboot</package>
           <package>yast2-registration</package>
+          <!--<package>libyui-rest-api15</package>-->
         </packages>
         <patterns config:type="list">
           <pattern>apparmor</pattern>
@@ -77,7 +78,7 @@
           <pattern>minimal_base</pattern>
           <pattern>x11</pattern>
           <pattern>x11_enhanced</pattern>
-        </patterns>
+	</patterns>
     </software>
     <users config:type="list">
         <user>
