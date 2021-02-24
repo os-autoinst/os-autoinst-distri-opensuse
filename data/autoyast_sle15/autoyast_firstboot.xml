@@ -20,6 +20,11 @@
           <arch>{{ARCH}}</arch>
         </addon>
         <addon>
+          <name>sle-module-development-tools</name>
+          <version>{{VERSION}}</version>
+          <arch>{{ARCH}}</arch>
+        </addon>
+        <addon>
           <name>sle-module-desktop-applications</name>
           <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
@@ -34,6 +39,23 @@
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
+      <firewall>
+        <zones config:type="list">
+            <zone>
+                <name>external</name>
+                <services config:type="list">
+                    <service>http</service>
+                    <service>https</service>
+                </services>
+                <ports config:type="list">
+                    <port>{{YUI_PORT}}/tcp</port>
+                </ports>
+            </zone>
+        </zones>
+        <log_denied_packets>off</log_denied_packets>
+        <enable_firewall config:type="boolean">false</enable_firewall>
+        <start_firewall config:type="boolean">false</start_firewall>
+    </firewall>
     <software>
         <products config:type="list">
             <product>SLES</product>
@@ -95,4 +117,37 @@
         <timeout config:type="integer">0</timeout>
       </yesno_messages>
     </report>
+    <scripts>
+        <chroot-scripts config:type="list">
+            <script>
+            <chrooted config:type="boolean">true</chrooted>
+                <source>
+                    <![CDATA[#!/bin/bash
+                    # Enable libyui-rest-api in firstboot (requires an init script).
+                    for i in YUI_HTTP_PORT={{YUI_PORT}} YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1 Y2DEBUG=1; do
+                    echo "export $i" >> /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api;
+                    done
+                    chmod +x /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api;
+                    ]]>
+                </source>
+            </script>
+        </chroot-scripts>
+        <post-scripts config:type="list">
+            <script>
+            <filename>install_libyui.sh</filename>
+            <interpreter>shell</interpreter>
+            <location/>
+            <feedback config:type="boolean">false</feedback>
+            <source><![CDATA[#!/bin/sh 
+                # Regarding rpm lock see Q9@ https://documentation.suse.com/de-de/sles/15-SP1/html/SLES-all/app-ay-faq.html
+                # quote : "during the post-script phase, YaST still has an exclusive lock on the RPM database."
+                # the package cannot be installed the autoyast way, because of the package name (eg libyui-rest-api15)
+                # only zypper allows to install "by capability".
+                mv /var/run/zypp.pid /var/run/zypp.sav
+                zypper -n in libyui-rest-api
+                mv /var/run/zypp.sav /var/run/zypp.pid
+                ]]></source>
+            </script>
+        </post-scripts>
+    </scripts>
 </profile>
