@@ -24,7 +24,7 @@ sub is_regproxy_required {
 }
 
 sub is_image_flavor {
-    return get_required_var('FLAVOR') =~ /-Image$/;
+    return get_required_var('FLAVOR') =~ /-Image/;
 }
 
 sub load_boot_from_dvd_tests {
