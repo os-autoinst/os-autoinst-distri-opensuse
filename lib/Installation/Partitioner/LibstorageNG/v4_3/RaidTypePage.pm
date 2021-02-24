@@ -66,12 +66,39 @@ sub set_raid_level {
     my $rb_name = "rb_raid$raid_level";
 
     die "No control defined for raid level: $raid_level" unless $self->{$rb_name};
-    $self->{$rb_name}->select();
+    $self->{$rb_name}->exist();
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->{$rb_name}->select();
+            $self->{$rb_name}->is_selected();
+    });
 }
 
 sub select_available_device {
     my ($self, $device) = @_;
     return $self->{tbl_available_devices}->select(value => "/dev/$device");
+}
+
+sub get_added_devices {
+    my ($self) = @_;
+    return $self->{tbl_selected_devices}->items();
+}
+
+sub is_device_added {
+    my ($self, $device) = @_;
+    my @added_devices = $self->get_added_devices();
+    my $device_clmn   = $self->{tbl_selected_devices}->get_index('Device');
+    return (grep { $_->[$device_clmn] eq "/dev/$device" } @added_devices);
+}
+
+sub add_device {
+    my ($self, $device) = @_;
+    $self->{tbl_available_devices}->exist();
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->select_available_device($device);
+            $self->press_add_button();
+            # Verify that entry was added
+            return $self->is_device_added($device);
+    });
 }
 
 1;
