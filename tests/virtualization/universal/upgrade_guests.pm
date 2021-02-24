@@ -21,6 +21,8 @@ use virt_autotest::common;
 
 sub run {
     my ($self) = @_;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
 
     script_run("mkdir /root/update_guests");
     foreach my $guest (keys %virt_autotest::common::guests) {
