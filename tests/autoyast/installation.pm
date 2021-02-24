@@ -190,6 +190,9 @@ sub run {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
             last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
         }
+        elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
+            type_string_slow "exit\n";
+        }
         elsif (match_has_tag('import-untrusted-gpg-key')) {
             handle_untrusted_gpg_key;
             @needles = grep { $_ ne 'import-untrusted-gpg-key' } @needles;

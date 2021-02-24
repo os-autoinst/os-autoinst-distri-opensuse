@@ -18,6 +18,7 @@ use testapi;
 use utils qw(zypper_call clear_console);
 use scheduler 'get_test_suite_data';
 
+
 sub run {
     my $test_data = get_test_suite_data();
     my $base_path = "yast2/firstboot/";

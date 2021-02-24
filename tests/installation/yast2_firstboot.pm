@@ -50,13 +50,20 @@ sub firstboot_licenses {
 
 sub firstboot_welcome {
     my ($self, $custom_needle) = @_;
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'welcome' . $custom_needle;
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->check_and_skip_page('Welcome');
 }
 
 sub firstboot_timezone {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'inst-timezone';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->check_and_skip_page('Clock and Time Zone');
+}
+
+sub firstboot_inst_lan {
+    my $firstboot = $testapi::distri->get_firstboot();
+    $firstboot->inst_lan();
 }
 
 sub firstboot_user {
@@ -74,13 +81,21 @@ sub firstboot_root {
 }
 
 sub firstboot_hostname {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'hostname';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->check_and_skip_page('Hostname');
 }
 
 sub firstboot_registration {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'system_registered';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->check_and_skip_page('Registration');
+}
+
+sub firstboot_finish {
+    my ($self, $custom_needle) = @_;
+    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
+    send_key $cmd{finish};
 }
 
 sub run {
@@ -93,8 +108,6 @@ sub run {
         my $client_method = \&{"$client"};
         $client_method->($self, $custom_needle);
     }
-    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
-    send_key $cmd{finish};
 }
 
 sub post_fail_hook {
