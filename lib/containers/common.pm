@@ -234,7 +234,7 @@ sub test_container_image {
             upload_logs("$logfile");
             die "Heartbeat test failed for $image";
         }
-        assert_script_run "rm $logfile";
+        assert_script_run "rm -f $logfile";
     }
 }
 
