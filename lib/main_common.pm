@@ -579,6 +579,7 @@ sub load_jeos_tests {
             loadtest "jeos/grub2_gfxmode";
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
+            loadtest "console/prjconf_excluded_rpms";
         }
         if (is_sle) {
             loadtest "console/suseconnect_scc";
@@ -1073,7 +1074,8 @@ sub load_console_server_tests {
 }
 
 sub load_consoletests {
-    return                            unless consolestep_is_applicable();
+    return unless consolestep_is_applicable();
+    loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";
@@ -1659,7 +1661,6 @@ sub load_extra_tests_console {
     loadtest "console/clamav";
     loadtest "console/shells";
     loadtest 'console/sudo';
-    loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
