@@ -1347,7 +1347,7 @@ sub prepare_disks {
 
     my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
     for my $d (split('\n', $disks)) {
-        script_run "wipefs -a /dev/$d";
+        script_run "wipefs -af /dev/$d";
         if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
         {
             create_encrypted_part(disk => $d);
