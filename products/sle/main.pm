@@ -725,6 +725,9 @@ elsif (get_var('XFSTESTS')) {
             unless (get_var('NO_KDUMP')) {
                 loadtest 'xfstests/enable_kdump';
             }
+            if (get_var('XFSTEST_KLP')) {
+                loadtest 'kernel/install_klp_product';
+            }
             loadtest 'shutdown/shutdown';
         }
         else {
