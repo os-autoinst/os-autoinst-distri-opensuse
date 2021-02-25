@@ -29,6 +29,7 @@ use testapi;
 use utils qw(zypper_call script_retry systemctl);
 use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud);
 use Utils::Backends qw(is_hyperv);
+use Utils::Architectures qw(is_s390x);
 use power_action_utils qw(power_action);
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
@@ -48,8 +49,6 @@ sub verify_journal {
     # if that happens, run it again after waiting some time and softfailure to https://bugzilla.suse.com/show_bug.cgi?id=1178193
     my $cmd = 'journalctl --verify';
     $cmd .= " --verify-key=$fss_key" if defined($fss_key);
-
-    #No sealing yet
 
     return if (script_run("$cmd 2>&1 | tee errs") == 0);
     # Check for https://bugzilla.suse.com/show_bug.cgi?id=1171858, corruption bug when FSS is enabled
@@ -92,7 +91,8 @@ sub assert_test_log_entries {
     my ($entries, $boots) = @_;
     foreach my $bootid (@{$boots}) {
         foreach (keys(%{$entries})) {
-            assert_script_run("journalctl --boot=$bootid --identifier=batman --priority=$_ --output=short | grep $entries->{$_}");
+            script_retry("journalctl --boot=$bootid --identifier=batman --priority=$_ --output=short | grep $entries->{$_}",
+                retry => 5, delay => 2);
             assert_script_run("grep $entries->{$_} ${\ SYSLOG }") if is_sle;
         }
     }
@@ -148,15 +148,15 @@ sub run {
         die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
         is_journal_empty('--boot=-1', "journalctl-1.txt");
         assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot");
+        script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
+        die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
     } else {
         # TODO: Handle reboots on public cloud
         record_info("publiccloud", "Public cloud omits rebooting (temporary workaround)");
     }
-    script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
-    die "journalctl output is empty!"   if is_journal_empty('',                               "journalctl.txt");
-    die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
-    die "journalctl dmesg empty"        if is_journal_empty("-k",                             "journalctl-dmesg.txt");
+    die "journalctl output is empty!" if is_journal_empty('',   "journalctl.txt");
+    die "journalctl dmesg empty"      if is_journal_empty("-k", "journalctl-dmesg.txt");
 
     # Check boot times from journal
     unless (is_journal_empty('-U "`cat /var/tmp/reboottime`"', "journalctl-before.txt")) {
@@ -205,6 +205,12 @@ sub run {
     assert_script_run 'journalctl --flush';
     verify_journal();
     # Write second series of messages with different log priority
+
+    if (is_sle('=15') && is_s390x) {
+        zypper_call 'in haveged';
+        systemctl 'start haveged';
+    }
+
     die("System is not using persistent logging\n")
       if (script_output('journalctl --interval=10s --setup-keys 2>&1 | tee /var/tmp/journalctl-setup-keys.txt') =~
         '/var/log/journal is not a directory, must be using persistent logging for FSS.');
@@ -243,11 +249,15 @@ sub cleanup {
     script_run('rm -f /var/tmp/journal_serial.out');
     script_run('rm -f /var/tmp/reboottime');
     script_run("rm -rf ${\ DROPIN_DIR }");
+    systemctl('stop haveged') if (is_sle('=15') && is_s390x);
 }
 
 sub post_fail_hook {
-    script_run('journalctl -x > /var/tmp/journalctl.txt');
-    upload_logs('/var/tmp/journalctl.txt');
+    select_console 'log-console';
+    shift->save_and_upload_log('journalctl', '/tmp/journalctl.txt', {screenshot => 1});
+    if (script_run('test -s /var/tmp/journalctl-setup-keys.txt') == 0) {
+        upload_logs('/var/tmp/journalctl-setup-keys.txt');
+    }
     upload_logs('/etc/systemd/journald.conf');
     cleanup();
 }
