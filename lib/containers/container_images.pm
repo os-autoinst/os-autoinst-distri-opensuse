@@ -49,6 +49,7 @@ sub build_container_image {
 
     # Build the image
     assert_script_run("$runtime build -t dockerfile_derived .");
+    assert_script_run("cd");
 
     assert_script_run("$runtime run --entrypoint 'printenv' dockerfile_derived WORLD_VAR | grep Arda");
     assert_script_run("$runtime images");

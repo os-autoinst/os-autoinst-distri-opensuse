@@ -193,6 +193,7 @@ sub build_img {
     else {
         die "Unsupported runtime: $runtime";
     }
+    assert_script_run("cd");
     assert_script_run("$runtime images| grep myapp");
 }
 
