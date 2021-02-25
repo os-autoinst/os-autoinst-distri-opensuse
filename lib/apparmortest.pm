@@ -41,9 +41,6 @@ our @EXPORT = qw(
   $prof_dir
   $adminer_file
   $adminer_dir
-  create_a_test_profile_name_is_special
-  create_log_content_is_special
-  test_profile_content_is_special
 );
 
 our $prof_dir      = "/etc/apparmor.d";
@@ -668,74 +665,6 @@ sub yast2_apparmor_cleanup {
 
     # Upload logs for reference
     upload_logs("$audit_log");
-}
-
-# Create a test profile with name contains '('
-sub create_a_test_profile_name_is_special {
-    my ($testfile, $str) = @_;
-
-    my $testfile2 = "$testfile" . "$str";
-    assert_script_run("cp $testfile $testfile2");
-    assert_script_run("aa-autodep $testfile2");
-    assert_script_run("ll /etc/apparmor.d/ | grep $str");
-}
-
-# Refer to "https://bugs.launchpad.net/apparmor/+bug/1848227"
-# to create a test profile with content "local include above the '}'",
-# then run "aa-complain, aa-disable, aa-enforce, aa-logprof"
-# to verify all the commands should be succeeded
-sub test_profile_content_is_special {
-    my ($self, $cmd, $msg) = @_;
-    my $test          = "test_profile";
-    my $test_profile  = "/etc/apparmor.d/usr.sbin." . "$test";
-    my $local_profile = "/etc/apparmor.d/local/usr.sbin.cupsd";
-
-    # Create an empty local profile under "/etc/apparmor.d/local/"
-    assert_script_run("rm -rf $local_profile");
-    assert_script_run("touch $local_profile");
-
-    # Create a test profile under "/etc/apparmor.d/"
-    assert_script_run("echo '/usr/sbin/cupsd {' > $test_profile");
-    assert_script_run("echo '}' >> $test_profile");
-    assert_script_run("echo '#include <local/usr.sbin.cupsd>' >> $test_profile");
-
-    # Run aa-* commands and check the output
-    my $cmd1 = $cmd eq "aa-logprof" ? $cmd : "$cmd $test_profile";
-    validate_script_output($cmd1, sub { m/$msg/ });
-    if ("$cmd" eq "aa-disable") {
-        # The profile will not be listed out if disabled
-        my $ret = script_run("aa-status | grep $test");
-        if ($ret == 0) {
-            $self->result("fail");
-        }
-    }
-
-    # Clean up
-    assert_script_run("rm -rf $test_profile");
-    assert_script_run("rm -rf $local_profile");
-}
-
-# Refer to "https://apparmor.net/news/release-2.13.4/" setup env to verify the fix:
-# "Fix crash when log message contains a filename with unbalanced parenthesis".
-# Create a test profile with content "local include above the '}'" in order
-# to run "aa-logprof" to verify the commands should be succeeded
-sub create_log_content_is_special {
-    my ($self, $testfile, $test_special) = @_;
-
-    # Enable & Start auditd service
-    systemctl("enable auditd");
-    systemctl("start auditd");
-
-    # Clean up audit log
-    assert_script_run("echo '' > $audit_log");
-
-    # Generate an audit record which "contains a filename with unbalanced parenthesis"
-    assert_script_run("cp $testfile $test_special");
-    assert_script_run("aa-autodep $test_special");
-    assert_script_run("$test_special ./");
-
-    # Check the record which "contains a filename with unbalanced parenthesis"
-    validate_script_output("cat $audit_log", sub { m/.*type=AVC.*profile=.*$test_special.*/sx });
 }
 
 =head2 upload_logs_mail
