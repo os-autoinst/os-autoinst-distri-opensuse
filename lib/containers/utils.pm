@@ -213,7 +213,8 @@ The call should return false if the test is run on a non-sle host.
 
 =cut
 sub can_build_sle_base {
-    my $has_sle_registration = script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
+    # script_run returns 0 if true, but true is 1 on perl
+    my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
     return check_os_release('sles', 'ID') && $has_sle_registration;
 }
 
