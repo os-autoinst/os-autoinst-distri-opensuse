@@ -180,14 +180,14 @@ sub tests_from_category {
 # Return matched exclude tests from groups in @GROUPLIST
 # return structure - hash
 # Group name start with ! will exclude in test, and expected to use to update blacklist
+# If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder
 sub exclude_grouplist {
-    my %tests_list = ();
+    my %tests_list  = ();
+    my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name !~ /^\!/);
         $group_name = substr($group_name, 1);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$FSTYPE/group | awk '{printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' > tmp.group";
-        script_run($cmd);
-        $cmd = "awk '/$group_name/' $INST_DIR/tests/generic/group | awk '{printf \"generic/\"}{printf \$1}{printf \",\"}' >> tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
@@ -199,13 +199,13 @@ sub exclude_grouplist {
 # Return matched include tests from groups in @GROUPLIST
 # return structure - array
 # Group name start without ! will include in test, and expected to use to update test ranges
+# If TEST_RANGES contain generic tests, then include tests from generic folder, else will include tests from filesystem type folder
 sub include_grouplist {
     my @tests_list;
+    my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name =~ /^\!/);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$FSTYPE/group | awk '{printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' > tmp.group";
-        script_run($cmd);
-        $cmd = "awk '/$group_name/' $INST_DIR/tests/generic/group | awk '{printf \"generic/\"}{printf \$1}{printf \",\"}' >> tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my $tests = substr(script_output($cmd), 0, -1);
