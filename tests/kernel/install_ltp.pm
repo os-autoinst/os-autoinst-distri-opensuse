@@ -258,7 +258,11 @@ sub setup_network {
     # echo/echoes, getaddrinfo_01
     assert_script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' $f');
 
-    foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
+    my @services = qw(auditd dnsmasq rpcbind vsftpd);
+    # nfsd module is not included in kernel-default-base package
+    push @services, 'nfs-server' unless get_var('KERNEL_BASE');
+
+    foreach my $service (@services) {
         if (!is_jeos && is_sle('12+') || is_opensuse) {
             systemctl("reenable $service");
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
