@@ -31,6 +31,8 @@ conditional_schedule:
                 - console/kdump_and_crash
             'svirt-xen-pv':
                 - console/kdump_and_crash
+            'aarch64':
+                - console/kdump_and_crash
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
