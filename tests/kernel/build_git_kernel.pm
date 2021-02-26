@@ -36,10 +36,7 @@ sub run {
     assert_script_run('cd linux');
     assert_script_run('zcat /proc/config.gz > .config');
     assert_script_run('make olddefconfig');
-    assert_script_run('yes | make localmodconfig');
 
-    # building a kernel takes a while, give it a long timeout in case we run
-    # this on a slower machine
     assert_script_run('make -j `nproc` | tee /tmp/kernelbuild.log', 3600);
     assert_script_run("sed -i 's/allow_unsupported_modules 0/allow_unsupported_modules 1/g' /etc/modprobe.d/10-unsupported-modules.conf");
     assert_script_run('make install modules_install');
