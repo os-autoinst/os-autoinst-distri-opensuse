@@ -35,6 +35,7 @@ sub init {
     $self->{rb_no_mount_device}  = $self->{app}->radiobutton({id => 'dont_mount_device'});
     $self->{cb_encrypt}          = $self->{app}->checkbox({id => '"Y2Partitioner::Widgets::EncryptBlkDevice"'});
     $self->{btn_next}            = $self->{app}->button({id => 'next'});
+    $self->{btn_fstab_options}   = $self->{app}->button({id => '"Y2Partitioner::Widgets::FstabOptionsButton"'});
     return $self;
 }
 
@@ -134,6 +135,11 @@ sub enter_mount_point {
 sub press_next {
     my ($self) = @_;
     return $self->{btn_next}->click();
+}
+
+sub press_fstab_options {
+    my ($self) = @_;
+    return $self->{btn_fstab_options}->click();
 }
 
 1;
