@@ -6,23 +6,8 @@
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
-    % unless ($check_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
     <reg_server>{{SCC_URL}}</reg_server>
-    % }
     <addons config:type="list">
-      % if ($get_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
-      % while (my ($key, $addon) = each (%$addons)) {
-      <addon>
-        <name><%= $addon->{name} %></name>
-        <version><%= $addon->{version} %></version>
-        <arch><%= $addon->{arch} %></arch>
-        % if ($key eq 'ltss') {
-        <reg_code><%= $get_var->('SCC_REGCODE_LTSS') %></reg_code>
-        % }
-      </addon>
-      % }
-      % }
-      % unless ($get_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
       <addon>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
@@ -48,7 +33,6 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
-      % }
     </addons>
   </suse_register>
   % if ($check_var->('ARCH', 's390x')) {
@@ -101,6 +85,17 @@
         </partition>
         <partition>
           <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/home</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>10GiB</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
           <filesystem config:type="symbol">btrfs</filesystem>
           <format config:type="boolean">true</format>
           <mount>/</mount>
@@ -109,6 +104,41 @@
           <partition_nr config:type="integer">2</partition_nr>
           <partition_type>primary</partition_type>
           <resize config:type="boolean">false</resize>
+          <subvolumes config:type="list">
+            <subvolume>
+              <copy_on_write config:type="boolean">false</copy_on_write>
+              <path>var</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>usr/local</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>srv</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>root</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>opt</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/x86_64-efi</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>boot/grub2/i386-pc</path>
+            </subvolume>
+            <subvolume>
+              <copy_on_write config:type="boolean">true</copy_on_write>
+              <path>tmp</path>
+            </subvolume>
+          </subvolumes>
+          <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -182,7 +212,7 @@
           <partition_id config:type="integer">131</partition_id>
           <partition_nr config:type="integer">2</partition_nr>
           <resize config:type="boolean">false</resize>
-          <size>70GiB</size>
+          <size>5GiB</size>
           <subvolumes config:type="list">
             <subvolume>
               <copy_on_write config:type="boolean">false</copy_on_write>
@@ -206,10 +236,6 @@
             </subvolume>
             <subvolume>
               <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>home</path>
-            </subvolume>
-	        <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
               <path>boot/grub2/x86_64-efi</path>
             </subvolume>
             <subvolume>
@@ -222,6 +248,17 @@
             </subvolume>
           </subvolumes>
           <subvolumes_prefix><![CDATA[@]]></subvolumes_prefix>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">xfs</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/home</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>10GiB</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
@@ -282,19 +319,10 @@
     </zones>
   </firewall>
   <software>
-    % if ($get_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
-    <patterns config:type="list">
-      % for my $pattern (@$patterns) {
-      <pattern><%= $pattern %></pattern>
-      % }
-    </patterns>
-    % }
-    % unless ($get_var->('FLAVOR') =~ /-Updates$|-Incidents/) {
     <patterns config:type="list">
       <pattern>enhanced_base</pattern>
       <pattern>minimal_base</pattern>
     </patterns>
-    % }
     % if ($check_var->('ARCH', 'aarch64')) {
     <packages config:type="list">
       <package>efivar</package>
@@ -318,10 +346,6 @@
       </enable>
     </services>
   </services-manager>
-  <timezone>
-    <hwclock>UTC</hwclock>
-    <timezone>Europe/Berlin</timezone>
-  </timezone>
   <users config:type="list">
     <user>
       <fullname>Bernhard M. Wiedemann</fullname>
