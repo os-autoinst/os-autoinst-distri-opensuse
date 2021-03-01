@@ -1,5 +1,5 @@
 ---
-mds: !include test_data/yast/lvm_raid1/lvm+raid1_mds.yaml
+mds: !include test_data/yast/lvm_raid1/lvm+raid1_mds_hyperv.yaml
 lvm: !include test_data/yast/lvm_raid1/lvm+raid1_lvm.yaml
 disks:
   - name: sda
