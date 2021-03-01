@@ -138,7 +138,7 @@ sub run {
             assert_script_run '[ -s /tmp/xev_log ]';
         }
         else {
-            assert_script_run 'wc -l /tmp/xev_log | grep "^0 "';
+            validate_script_output('wc -l /tmp/xev_log"', qr/^0/);
         }
         assert_script_run 'rm /tmp/xev_log';
     }
