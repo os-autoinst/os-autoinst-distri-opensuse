@@ -2471,6 +2471,7 @@ sub load_security_tests_check_kernel_config {
 
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
     loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
+    loadtest "security/check_kernel_config/dm_crypt";
 }
 
 sub load_security_tests_pam {
