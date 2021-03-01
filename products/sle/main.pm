@@ -712,7 +712,7 @@ elsif (get_var("QA_TESTSUITE")) {
 }
 elsif (get_var('XFSTESTS')) {
     prepare_target;
-    if (is_pvm || check_var('ARCH', 's390x')) {
+    if (is_pvm) {
         loadtest 'xfstests/install';
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
@@ -728,6 +728,7 @@ elsif (get_var('XFSTESTS')) {
                 loadtest 'kernel/install_klp_product';
             }
             loadtest 'shutdown/shutdown';
+            loadtest 'shutdown/svirt_upload_assets' if check_var('ARCH', 's390x');
         }
         else {
             loadtest 'xfstests/partition';
