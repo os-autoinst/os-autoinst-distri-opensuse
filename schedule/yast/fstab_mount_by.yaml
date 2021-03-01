@@ -1,0 +1,65 @@
+---
+description: >
+  The test conducts installation and edits the mounting option of some partitions,
+  as specified by the test_data. After installation, it verifies that the
+  partitions are mounted by the expected option.
+name: fstab_mount_by
+vars:
+  YUI_REST_API: 1
+  DESKTOP: textmode
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/setup_lvm
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/teardown_libyui
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_fstab
+test_data:
+  disks:
+    - name: vda
+      partitions:
+        - name: vda1
+          size: 8MiB
+          role: raw-volume
+          id: bios-boot
+        - name: vda2
+          role: operating-system
+          size: 8GiB
+          mounting_options:
+            should_mount: 1
+            mount_point: /
+          fstab_options:
+            mount_by: Device Name
+        - name: vda3
+          role: data
+          size: 10GiB
+          mounting_options:
+            should_mount: 1
+            mount_point: /home
+          fstab_options:
+            mount_by: UUID
+        - name: vda4
+          role: swap
+          mounting_options:
+            should_mount: 1
+            mount_point: swap
+          fstab_options:
+            mount_by: Device Path

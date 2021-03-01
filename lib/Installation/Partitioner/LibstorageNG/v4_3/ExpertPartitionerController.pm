@@ -40,8 +40,8 @@ use Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
-
 use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
+use Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage;
 
 use YuiRestClient;
 
@@ -77,6 +77,7 @@ sub init {
     $self->{LogicalVolumeSizePage}             = Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage->new({app => YuiRestClient::get_app()});
     $self->{RaidTypePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage->new({app => YuiRestClient::get_app()});
     $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{FstabOptionsPage}                  = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -196,6 +197,11 @@ sub get_raid_options_page {
     return $self->{RaidOptionsPage};
 }
 
+sub get_fstab_options_page {
+    my ($self) = @_;
+    return $self->{FstabOptionsPage};
+}
+
 sub add_partition {
     my ($self, $args) = @_;
     my $table_type = $args->{table_type} // '';
@@ -241,6 +247,7 @@ sub add_partition_gpt_non_encrypted {
     $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
     $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
     $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_fstab_options_page()->edit_fstab_options($part->{fstab_options})                                if $part->{fstab_options};
     $self->get_partition_id_format_mount_options_page()->press_next();
 }
 
