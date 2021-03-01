@@ -95,7 +95,7 @@ sub log_add {
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    $self->select_serial_terminal;
 
     assert_script_run('cd ' . get_var('WORK_DIR'));
     assert_script_run('btrfs version | tee ' . STATUS_LOG);

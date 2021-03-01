@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,13 +10,10 @@
 # Package: xfsprogs
 # Summary: Run tests
 # - Shuffle the list of xfs tests to run
-# - Create heartbeat script, directorie
-# - Start heartbeat, setup environment variables
 # - Start test from list, write log to file
 # - Collect test log and system logs
 # - Check if SUT crashed, reset if necessary
 # - Save kdump data, unless NO_KDUMP is set
-# - Stop heartbeat after last test on list
 # - Collect all logs
 # Maintainer: Yong Sun <yosun@suse.com>
 package run;
@@ -32,21 +29,13 @@ use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
 use filesystem_utils qw(format_partition);
 
-# Heartbeat variables
-my $HB_INTVL     = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 200;
-my $HB_PATN      = '<heartbeat>';
-my $HB_DONE      = '<done>';
-my $HB_DONE_FILE = '/opt/test.done';
-my $HB_EXIT_FILE = '/opt/test.exit';
-my $HB_SCRIPT    = '/opt/heartbeat.sh';
-
 # xfstests variables
 # - XFSTESTS_RANGES: Set sub tests ranges. e.g. XFSTESTS_RANGES=xfs/100-199 or XFSTESTS_RANGES=generic/010,generic/019,generic/038
 # - XFSTESTS_BLACKLIST: Set sub tests not run in XFSTESTS_RANGES. e.g. XFSTESTS_BLACKLIST=generic/010,generic/019,generic/038
 # - XFSTESTS_GROUPLIST: Include/Exclude tests in group(a classification by upstream). e.g. XFSTESTS_GROUPLIST='auto,!dangerous_online_repair'
 # - XFSTESTS_SUBTEST_MAXTIME: Debug use. To set the max time to wait for sub test to finish. Meet this time frame will trigger reboot, and continue next tests.
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
+# - XFSTESTS_TIMEOUT: test timeout, default is 2000
 my $TEST_RANGES  = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
 my %BLACKLIST    = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
@@ -55,90 +44,9 @@ my $STATUS_LOG   = '/opt/status.log';
 my $INST_DIR     = '/opt/xfstests';
 my $LOG_DIR      = '/opt/log';
 my $KDUMP_DIR    = '/opt/kdump';
-my $MAX_TIME     = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE       = get_required_var('XFSTESTS');
-
-# Create heartbeat script, directories(Call it only once)
-sub test_prepare {
-    my $redir  = " >> /dev/$serialdev";
-    my $script = <<END_CMD;
-#!/bin/sh
-rm -f $HB_DONE_FILE $HB_EXIT_FILE
-declare -i c=0
-while [[ ! -f $HB_EXIT_FILE ]]; do
-    if [[ -f $HB_DONE_FILE ]]; then
-        c=0
-        echo "$HB_DONE" $redir
-        sleep 2
-    elif [[ \$c -ge $HB_INTVL ]]; then
-        c=0
-        echo "$HB_PATN" $redir
-    else
-        c+=1
-    fi
-    sleep 1
-done
-END_CMD
-    assert_script_run("cat > $HB_SCRIPT <<'END'\n$script\nEND\n( exit \$?)");
-    assert_script_run("mkdir -p $KDUMP_DIR $LOG_DIR");
-}
-
-# Start heartbeat, setup environment variables(Call it everytime SUT reboots)
-sub heartbeat_start {
-    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
-}
-
-# Stop heartbeat
-sub heartbeat_stop {
-    send_key 'ret';
-    assert_script_run("touch $HB_EXIT_FILE");
-}
-
-# Wait for heartbeat
-sub heartbeat_wait {
-    # When under heavy load, the SUT might be unable to send
-    # heartbeat messages to serial console. That's why HB_TIMEOUT
-    # is set to 200 by default: waiting for such tests to finish.
-    my $ret = wait_serial([$HB_PATN, $HB_DONE], $HB_TIMEOUT);
-    if ($ret) {
-        if ($ret =~ /$HB_PATN/) {
-            return ($HB_PATN, '');
-        }
-        else {
-            my $status;
-            send_key 'ret';
-            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
-            $ret =~ s/^\s+|\s+$//g;
-            if ($ret == 0) {
-                $status = 'PASSED';
-            }
-            elsif ($ret == 22) {
-                $status = 'SKIPPED';
-            }
-            else {
-                $status = 'FAILED';
-            }
-            return ($HB_DONE, $status);
-        }
-    }
-    return ('', 'FAILED');
-}
-
-# Wait for test to finish
-sub test_wait {
-    my $timeout = shift;
-    my $begin   = time();
-    my ($type, $status) = heartbeat_wait;
-    my $delta = time() - $begin;
-    while ($type eq $HB_PATN and $delta < $timeout) {
-        ($type, $status) = heartbeat_wait;
-        $delta = time() - $begin;
-    }
-    if ($type eq $HB_PATN) {
-        return ('', 'FAILED', $delta);
-    }
-    return ($type, $status, $delta);
-}
+my $TIMEOUT      = get_var('XFSTESTS_TIMEOUT', 2000);
+my ($status, $test_start, $test_duration);
 
 # Return the name of a test(e.g. xfs-005)
 # test - specific test(e.g. xfs/005)
@@ -153,15 +61,11 @@ sub test_name {
 # status - test status
 # time   - time consumed
 sub log_add {
-    my ($file, $test, $status, $time) = @_;
+    my ($test, $status, $time) = @_;
     my $name = test_name($test);
-    unless ($name and $status) { return; }
-    my $cmd = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
-    send_key 'ret';
-    assert_script_run($cmd);
-    sleep 5;
-    my $ret = script_output("cat $file", 20);
-    return $ret;
+    die "Required variable test: $test or status: $status is missing" unless ($name and $status);
+    type_string("\n");
+    assert_script_run("echo '$name ... ... $status (${time}s)' >> $STATUS_LOG");
 }
 
 # Return all the tests of a specific xfstests category
@@ -252,16 +156,6 @@ sub tests_from_ranges {
     return @tests;
 }
 
-# Run a single test and write log to file
-# test - test to run(e.g. xfs/001)
-sub test_run {
-    my $test = shift;
-    my ($category, $num) = split(/\//, $test);
-    my $cmd = "\n$TEST_WRAPPER '$test' | tee $LOG_DIR/$category/$num; ";
-    $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
-    type_string($cmd);
-}
-
 # Save kdump data for further uploading
 # test   - corresponding test(e.g. xfs/009)
 # dir    - Save kdump data to this dir
@@ -312,6 +206,27 @@ mkfs.xfs -f -m reflink=1 \$TEST_DEV
 export XFS_MKFS_OPTIONS="-m reflink=1"
 END_CMD
         script_run($cmd);
+    }
+}
+
+sub reload_loop_device {
+    assert_script_run("losetup -fP $INST_DIR/test_dev");
+    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
+    my $scratch_num    = 1;
+    while ($scratch_amount >= $scratch_num) {
+        assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
+        $scratch_num += 1;
+    }
+    script_run('losetup -a');
+    format_partition("$INST_DIR/test_dev", $FSTYPE);
+}
+
+# Umount TEST_DEV and SCRATCH_DEV
+sub umount_xfstests_dev {
+    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null')    if get_var('XFSTESTS_TEST_DEV');
+    script_run('umount ' . get_var('XFSTESTS_SCRATCH_DEV') . ' &> /dev/null') if get_var('XFSTESTS_SCRATCH_DEV');
+    if (get_var('XFSTESTS_SCRATCH_DEV_POOL')) {
+        script_run("umount $_ &> /dev/null") foreach (split ' ', get_var('XFSTESTS_SCRATCH_DEV_POOL'));
     }
 }
 
@@ -379,31 +294,62 @@ END_CMD
     enter_cmd("$cmd");
 }
 
-sub reload_loop_device {
-    my $self = shift;
-    assert_script_run("losetup -fP $INST_DIR/test_dev");
-    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
-    my $scratch_num    = 1;
-    while ($scratch_amount >= $scratch_num) {
-        assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
-        $scratch_num += 1;
-    }
-    script_run('losetup -a');
-    format_partition("$INST_DIR/test_dev", $FSTYPE);
-}
+# Run a single test and write log to file
+# test - test to run(e.g. xfs/001)
+sub test_run {
+    my ($self,     $test) = @_;
+    my ($category, $num)  = split(/\//, $test);
+    eval {
+        $test_start = time();
+        assert_script_run("timeout " . ($TIMEOUT - 5) . " $TEST_WRAPPER '$test' -k | tee $LOG_DIR/$category/$num", $TIMEOUT);
+        $test_duration = time() - $test_start;
+    };
+    if ($@) {
+        $status        = 'FAILED';
+        $test_duration = time() - $test_start;
+        sleep(2);
+        copy_log($category, $num, 'out.bad');
+        copy_log($category, $num, 'full');
+        copy_log($category, $num, 'dmesg');
+        copy_fsxops($category, $num);
+        collect_fs_status($category, $num);
+        if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
 
-# Umount TEST_DEV and SCRATCH_DEV
-sub umount_xfstests_dev {
-    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null')    if get_var('XFSTESTS_TEST_DEV');
-    script_run('umount ' . get_var('XFSTESTS_SCRATCH_DEV') . ' &> /dev/null') if get_var('XFSTESTS_SCRATCH_DEV');
-    if (get_var('XFSTESTS_SCRATCH_DEV_POOL')) {
-        script_run("umount $_ &> /dev/null") foreach (split ' ', get_var('XFSTESTS_SCRATCH_DEV_POOL'));
+        #return to VNC due to grub2 and linux-login needle
+        select_console('root-console');
+        power_action('reboot', keepconsole => 1);
+        reconnect_mgmt_console if is_pvm;
+        $self->wait_boot(bootloader_time => 500);
+
+        $self->select_serial_terminal;
+        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
+        unless (get_var('NO_KDUMP')) {
+            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
+                # If no kdump data found, write warning to log
+                my $msg = "Warning: $test crashed SUT but has no kdump data";
+                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
+            }
+        }
+
+        # Add test status to STATUS_LOG file
+        log_add($test, $status, $test_duration);
+
+        # Reload loop device after a reboot
+        if (get_var('XFSTESTS_LOOP_DEVICE')) {
+            reload_loop_device;
+        }
+    }
+    else {
+        $status = 'PASSED';
+        # Add test status to STATUS_LOG file
+        log_add($test, $status, $test_duration);
+        umount_xfstests_dev;
     }
 }
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    $self->select_serial_terminal;
 
     # Get wrapper
     assert_script_run("curl -o $TEST_WRAPPER " . data_url('xfstests/wrapper.sh'));
@@ -425,84 +371,18 @@ sub run {
     %BLACKLIST = (%BLACKLIST, %tests_needto_exclude);
 
     mkfs_setting;
-    test_prepare;
-    heartbeat_start;
-    my $status_log_content = "";
     foreach my $test (@tests) {
         # Skip tests inside blacklist
         if (exists($BLACKLIST{$test})) {
             next;
         }
 
-        umount_xfstests_dev;
-
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
-        enter_cmd("echo $test > /dev/$serialdev");
-        test_run($test);
-        my ($type, $status, $time) = test_wait($MAX_TIME);
-        if ($type eq $HB_DONE) {
-            # Test finished without crashing SUT
-            $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
-            if ($status =~ /FAILED/) {
-                copy_log($category, $num, 'out.bad');
-                copy_log($category, $num, 'full');
-                copy_log($category, $num, 'dmesg');
-                copy_fsxops($category, $num);
-                collect_fs_status($category, $num);
-                if (get_var('BTRFS_DUMP', 0) && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num); }
-            }
-            next;
-        }
-
-        # SUT crashed. Wait for kdump to finish.
-        # After that, SUT will reboot automatically
-        eval {
-            power_action('reboot', keepconsole => is_pvm);
-            reconnect_mgmt_console if is_pvm;
-            $self->wait_boot;
-        };
-        # If SUT didn't reboot for some reason, force reset
-        if ($@) {
-            power('reset', keepconsole => is_pvm);
-            reconnect_mgmt_console if is_pvm;
-            $self->wait_boot;
-        }
-
-        sleep(1);
-        select_console('root-console');
-        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP"
-        unless (get_var('NO_KDUMP')) {
-            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
-                # If no kdump data found, write warning to log
-                my $msg = "Warning: $test crashed SUT but has no kdump data";
-                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
-            }
-        }
-
-        # Add test status to STATUS_LOG file
-        log_add($STATUS_LOG, $test, $status, $time);
-
-        # Reload loop device after a reboot
-        if (get_var('XFSTESTS_LOOP_DEVICE')) {
-            reload_loop_device;
-        }
-
-        # Prepare for the next test
-        heartbeat_start;
-
+        test_run($self, $test);
     }
-    heartbeat_stop;
 
-    #Save status log before next step(if run.pm fail will load into a last good snapshot)
-    save_tmp_file('status.log', $status_log_content);
-    my $local_file = "/tmp/opt_logs.tar.gz";
-    script_run("tar zcvf $local_file --absolute-names /opt/log/");
-    script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
-    my $tar_content = script_output("cat $local_file");
-    save_tmp_file('opt_logs.tar.gz', $tar_content);
-    send_key 'ctrl-c';
-    script_run('clear');
+    assert_script_run("tar zcvf /tmp/opt_logs.tar.gz --absolute-names /opt/log/");
 }
 
 sub post_fail_hook {
