@@ -84,7 +84,7 @@ sub run {
     check_etc_hosts_update() if get_var('VALIDATE_ETC_HOSTS');
 
     $self->clear_and_verify_console;
-    assert_script_run "hostname|grep $hostname";
+    assert_script_run "hostnamectl --static |grep $hostname";
 
     clear_console;
     script_run('ip -o a s');
