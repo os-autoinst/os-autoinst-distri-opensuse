@@ -2,10 +2,10 @@
 - raid_level: 1
   chunk_size: '64 KiB'
   devices:
-    - vda2
-    - vdb2
-    - vdc2
-    - vdd2
+    - xvdb2
+    - xvdc2
+    - xvdd2
+    - xvde2
   partition:
     role: raw-volume
     formatting_options:
@@ -15,10 +15,10 @@
 - raid_level: 0
   chunk_size: '64 KiB'
   devices:
-    - vda3
-    - vdb3
-    - vdc3
-    - vdd3
+    - xvdb3
+    - xvdc3
+    - xvdd3
+    - xvde3
   partition:
     role: swap
     formatting_options:
