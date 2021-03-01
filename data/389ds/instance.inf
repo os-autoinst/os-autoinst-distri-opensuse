@@ -1,0 +1,11 @@
+[general]
+config_version = 2
+strict_host_checking = True
+ 
+[slapd]
+root_password = nots3cr3t
+instance_name = localhost
+ 
+[backend-userroot]
+sample_entries = yes
+suffix = dc=example,dc=com
