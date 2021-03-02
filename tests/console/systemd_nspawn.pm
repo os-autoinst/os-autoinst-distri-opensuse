@@ -70,6 +70,7 @@ sub run {
     assert_script_run 'machinectl shell messagebus@' . $machine . ' /usr/bin/whoami | grep messagebus';
     assert_script_run "machinectl shell $machine /usr/bin/systemctl status systemd-journald | grep -B100 -A100 'active (running)'";
     assert_script_run "machinectl stop test1";
+    script_retry 'systemctl status systemd-nspawn@' . $machine . ' | grep "Reached target Power-Off"', retry => 30, delay => 5;
     assert_script_run "rm -rf $path";
 
     record_info 'oci bundle';
