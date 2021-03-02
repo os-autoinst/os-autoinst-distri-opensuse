@@ -69,6 +69,11 @@ sub qaset_config {
         assert_script_run("echo '#!/bin/sh' > $boot_local");
         assert_script_run("chmod +x $boot_local");
     }
+
+    if (is_sle('=15') or is_sle('=15-SP1')) {
+        record_soft_failure("qaperf.service fails to start bsc#1182914");
+        assert_script_run("systemctl reset-failed qaperf.service");
+    }
 }
 
 # Add qa head repo for kernel testing. If QA_SERVER_REPO is set,
