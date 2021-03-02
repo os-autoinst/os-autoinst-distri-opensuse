@@ -70,8 +70,10 @@ sub run {
     assert_script_run 'machinectl shell messagebus@' . $machine . ' /usr/bin/whoami | grep messagebus';
     assert_script_run "machinectl shell $machine /usr/bin/systemctl status systemd-journald | grep -B100 -A100 'active (running)'";
     assert_script_run "machinectl stop test1";
-    script_retry 'systemctl status systemd-nspawn@' . $machine . ' | grep "Reached target Power-Off"', retry => 30, delay => 5;
+    script_retry 'systemctl status systemd-nspawn@' . $machine, retry => 30, delay => 5, expect => 3;
+    validate_script_output 'journalctl -n10 -u systemd-nspawn@' . $machine, sub { m/Reached target Power-Off/ };
     assert_script_run "rm -rf $path";
+
 
     record_info 'oci bundle';
     assert_script_run 'cd /tmp/';
@@ -84,7 +86,7 @@ sub run {
         zypper_call 'in busybox-static';
         assert_script_run 'cp -v /usr/bin/busybox-static ./oci_testbundle/rootfs/bin/busybox';
     }
-    if (script_run('systemd-nspawn --oci-bundle=/tmp/oci_testbundle |& grep "Failed to resolve path rootfs"') == 0) {
+    if (script_run('(systemd-nspawn --oci-bundle=/tmp/oci_testbundle || true) |& grep "Failed to resolve path rootfs"') == 0) {
         record_soft_failure 'bsc#1182598 - Loading rootfs from OCI bundle not according to specification';
         assert_script_run 'cd oci_testbundle';
     }
