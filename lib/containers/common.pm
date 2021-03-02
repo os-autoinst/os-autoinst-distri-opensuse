@@ -205,6 +205,10 @@ sub test_container_image {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
+    # Images from docker.io registry are listed without the 'docker.io/library/'
+    # Images from custom registry are listed with the '$registry/library/'
+    $image =~ s/^docker\.io\/library\///;
+
     my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
 
     if ($runtime =~ /buildah/) {
