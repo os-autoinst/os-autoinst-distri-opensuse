@@ -170,7 +170,8 @@ sub post_fail_hook {
     send_key 'alt-a';
     assert_screen 'wsl-installing-prompt';
     wait_still_screen stilltime => 2, timeout => 11;
-    shift->opensusebasetest::save_and_upload_log('save_y2logs wsl-fb.tar.xz', '/tmp/wsl-fb.tar.xz', {screenshot => 1});
+    script_run 'save_y2logs wsl-fb.tar.xz';
+    upload_logs '/root/wsl-fb.tar.xz';
 }
 
 1;
