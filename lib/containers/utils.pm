@@ -45,10 +45,16 @@ sub basic_container_tests {
     my %args    = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
-    my $registry             = get_var('REGISTRY', 'docker.io');
+
+    my $registry = get_var('REGISTRY', 'docker.io');
+    # Images from docker.io registry are listed without the 'docker.io/library/'
+    # Images from custom registry are listed with the 'server/library/'
+    # We also filter images the same way they are listed.
+    my $prefix = ($registry =~ /docker\.io/) ? "" : "$registry/library/";
+
     my $alpine_image_version = '3.6';
-    my $alpine               = "$registry/library/alpine:$alpine_image_version";
-    my $hello_world          = "$registry/library/hello-world";
+    my $alpine               = "${prefix}alpine:$alpine_image_version";
+    my $hello_world          = "${prefix}hello-world";
     my $leap                 = "registry.opensuse.org/opensuse/leap";
     my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
 
@@ -70,6 +76,8 @@ sub basic_container_tests {
     #   - pull image of openSUSE Tumbleweed
     assert_script_run("$runtime image pull $tumbleweed", timeout => 600);
 
+    # All images can be listed
+    assert_script_run("$runtime image ls");
     # Local images can be listed
     assert_script_run("$runtime image ls none");
     #   - filter with tag

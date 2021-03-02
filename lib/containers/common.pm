@@ -75,7 +75,7 @@ sub install_docker_when_needed {
                 assert_script_run "apt-get -y install docker-ce", timeout => 260;
             } else {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                if (can_build_sle_base && script_run("SUSEConnect --status-text | grep Containers") != 0) {
+                if (can_build_sle_base && script_run("SUSEConnect --status-text | grep Containers", timeout => 240) != 0) {
                     is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
                 }
 
