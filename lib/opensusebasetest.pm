@@ -610,9 +610,24 @@ sub handle_uefi_boot_disk_workaround {
     send_key_until_needlematch 'tianocore-select_opensuse_or_sles', 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
-    # efi file
-    send_key_until_needlematch 'tianocore-select_grubaa64_efi', 'up';
-    wait_screen_change { send_key 'ret' };
+    # efi file, first check shim.efi exist or not
+    my $counter        = 10;
+    my $shim_efi_found = 1;
+    while (!check_screen('tianocore-select_shim_efi', 2)) {
+        wait_screen_change {
+            send_key 'up';
+        };
+        if (!$counter--) {
+            $shim_efi_found = 0;
+            last;
+        }
+    }
+    if ($shim_efi_found == 1) {
+        wait_screen_change { send_key 'ret' };
+    } else {
+        send_key_until_needlematch 'tianocore-select_grubaa64_efi', 'up';
+        wait_screen_change { send_key 'ret' };
+    }
 }
 
 =head2 wait_grub
