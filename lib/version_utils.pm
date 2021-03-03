@@ -34,6 +34,7 @@ use constant {
           is_sle_micro
           is_gnome_next
           is_jeos
+          is_community_jeos
           is_krypton_argon
           is_leap
           is_opensuse
@@ -113,6 +114,13 @@ sub is_jeos {
     return get_var('FLAVOR', '') =~ /^JeOS/;
 }
 
+=head2 is_community_jeos
+
+Returns true if called on community jeos images, which don't use jeos-firstboot by default
+=cut
+sub is_community_jeos {
+    return (check_var('FLAVOR', 'JeOS-for-AArch64') || check_var('FLAVOR', 'JeOS-for-RPi'));
+}
 =head2 is_vmware
 
 Returns true if called on vmware

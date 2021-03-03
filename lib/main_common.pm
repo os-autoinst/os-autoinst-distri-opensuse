@@ -22,7 +22,7 @@ use utils;
 use wicked::TestContext;
 use Utils::Architectures ':ARCH';
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
-use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x is_pvm);
+use Utils::Backends qw(:BACKEND);
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';
@@ -366,13 +366,13 @@ sub load_shutdown_tests {
 sub load_svirt_boot_tests {
     # Unless GRUB2 supports framebuffer on Xen PV (bsc#961638), grub2 tests
     # has to be skipped there.
-    if (!(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux'))) {
-        if (get_var("UEFI") || is_jeos) {
-            loadtest "installation/bootloader_uefi";
-        }
-        elsif (!get_var('NETBOOT')) {
-            loadtest "installation/bootloader";
-        }
+    if (is_svirt && !is_xen_pv) {
+        loadtest "installation/bootloader_uefi";
+    }
+    elsif (!get_var('NETBOOT') && !is_jeos) {
+        loadtest "installation/bootloader";
+    } else {
+        diag 'Skipping GRUB2 handler';
     }
 }
 
@@ -397,7 +397,7 @@ sub load_boot_tests {
     if (get_var("ISO_MAXSIZE") && (!is_remote_backend() || is_svirt_except_s390x())) {
         loadtest "installation/isosize";
     }
-    if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
+    if ((get_var("UEFI") || is_jeos) && !is_svirt) {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader_uefi";
     }
@@ -566,7 +566,7 @@ sub load_system_role_tests {
 sub load_jeos_tests {
     # loadtest 'jeos/sccreg';
     unless (get_var('LTP_COMMAND_FILE')) {
-        if ((is_arm || is_aarch64) && is_opensuse()) {
+        if (is_community_jeos) {
             # Enable jeos-firstboot, due to boo#1020019
             load_boot_tests();
             loadtest "jeos/prepare_firstboot";

@@ -88,6 +88,7 @@ sub run {
         tianocore_http_boot;
     }
     assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2)], $bootloader_timeout);
+    stop_grub_timeout;
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";

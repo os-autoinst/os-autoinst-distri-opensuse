@@ -107,6 +107,14 @@ sub cleanup_needles {
         unregister_needle_tags('ENV-JEOS-1');
     }
 
+    if (is_jeos) {
+        unregister_needle_tags('inst-bootmenu');
+        unregister_needle_tags('ENV-PXEBOOT-0');
+        unregister_needle_tags('ENV-PXEBOOT-1');
+        unregister_needle_tags('ENV-OFW-0');
+        unregister_needle_tags('ENV-OFW-1');
+    }
+
     if (get_var('OFW')) {
         unregister_needle_tags('ENV-OFW-0');
     }
