@@ -23,6 +23,11 @@ use testapi;
 
 sub run {
     x11_start_program('seahorse');
+    if (check_screen "seahorse-keyring-locked") {
+        assert_and_click "unlock";
+        type_password;
+        send_key "ret";
+    }
     send_key "ctrl-n";                                # New keyring
     assert_screen "seahorse-keyring-selector";        # Dialog "Select type to create"
     wait_still_screen(3);
