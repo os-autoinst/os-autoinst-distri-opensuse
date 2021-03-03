@@ -98,6 +98,7 @@ sub run {
     select_console('root-console');
 
     assert_script_run('cd ' . get_var('WORK_DIR'));
+    assert_script_run('btrfs version | tee ' . STATUS_LOG);
     for my $category (@category) {
         assert_script_run('mkdir -p ' . LOG_DIR . $category);
 
