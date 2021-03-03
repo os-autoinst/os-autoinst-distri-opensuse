@@ -2,6 +2,7 @@
 
 # The first parameter is the git url
 # The second parameter is the install folder
+# The third parameter keep default btrfs binary
 btrfs_bin='
 btrfs
 btrfs-convert
@@ -21,4 +22,6 @@ make
 make testsuite
 mkdir -p $2
 tar zxf tests/btrfs-progs-tests.tar.gz -C $2
-cp -r $btrfs_bin /sbin/
+if [ "$3" = 0 ]; then
+    cp -r $btrfs_bin /sbin/
+fi
