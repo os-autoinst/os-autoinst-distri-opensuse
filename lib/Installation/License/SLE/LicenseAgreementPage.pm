@@ -7,7 +7,8 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The module provides interface to act on
+# Summary: The module provides interface to act on license agreement page of
+#          the installer for SLE products
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::License::SLE::LicenseAgreementPage;
@@ -24,11 +25,17 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next}         = $self->{app}->button({id => 'next'});
-    $self->{cb_eula_language} = $self->{app}->combobox({id => '"simple_language_selection"'});
-    $self->{txt_eula}         = $self->{app}->richtext({id => '"CWM::RichText"'});
+    $self->{btn_next}          = $self->{app}->button({id => 'next'});
+    $self->{cb_accept_license} = $self->{app}->checkbox({id => '"Y2Packager::Widgets::ProductLicenseConfirmation"'});
+    $self->{cb_eula_language}  = $self->{app}->combobox({id => '"simple_language_selection"'});
+    $self->{txt_eula}          = $self->{app}->richtext({id => '"CWM::RichText"'});
 
     return $self;
+}
+
+sub check_accept_license {
+    my ($self) = @_;
+    return $self->{cb_accept_license}->check();
 }
 
 sub get_available_languages {
@@ -51,7 +58,7 @@ sub is_shown {
     return $self->{txt_eula}->exist();
 }
 
-sub press_next_button {
+sub press_next {
     my ($self) = @_;
     return $self->{btn_next}->click();
 }
