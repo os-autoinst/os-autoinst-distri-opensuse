@@ -36,6 +36,13 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
   remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown);
 
+# helper function: Trim string
+sub trim {
+    my $text = shift;
+    $text =~ s/^\s+|\s+$//g;
+    return $text;
+}
+
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
 }
@@ -150,11 +157,13 @@ sub create_guest {
     my $location     = $guest->{location};
     my $autoyast     = $guest->{autoyast};
     my $macaddress   = $guest->{macaddress};
-    my $extra_params = $guest->{extra_params} // "";
+    my $on_reboot    = $guest->{on_reboot}    // "restart";    # configurable on_reboot policy
+    my $extra_params = $guest->{extra_params} // "";           # extra-parameters
+    my $extra_args   = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
+    $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
-        record_info "$name", "Going to create $name guest";
-        send_key 'ret';    # Make some visual separator
+        send_key 'ret';                                        # Make some visual separator
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
@@ -165,13 +174,17 @@ sub create_guest {
         assert_script_run "sync",                                                                             180;
         script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
 
+        $extra_args  = "autoyast=$autoyastURL $extra_args";
+        $extra_args  = trim($extra_args);
         $virtinstall = "virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
-        $virtinstall .= " --events on_reboot=destroy --extra-args 'autoyast=$autoyastURL usessh=0 ssh=0'";
-        # Note: true is required because openQA adds ""; echo ... > /dev/serial" after the & and bash does not allow empty commands
-        assert_script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";
+        $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
+        $virtinstall .= " --extra-args '$extra_args'"    unless ($extra_args eq '');
+        record_info("$name", "Creating $name guests:\n$virtinstall");
+        script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
 
+        # wait for initrd to ensure the installation is starting
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     }
 }

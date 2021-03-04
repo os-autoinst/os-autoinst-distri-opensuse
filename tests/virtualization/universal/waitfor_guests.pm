@@ -77,6 +77,9 @@ sub add_pci_bridge {
         # Apply xml settings to VM. Note: They will be applied after reboot.
         assert_script_run("virt-xml-validate $xml");
         assert_script_run("virsh define $xml");
+
+    } elsif (is_xen_host() && is_pv_guest($guest)) {
+        # We're skipping to add an additional bridge on xen
     } else {
         my $msg = "Unknown machine type";
         record_soft_failure($msg);
