@@ -1,0 +1,29 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/vda
+        disklabel: gpt
+        enable_snapshots: 'true'
+        partitions:
+          partition:
+            - filesystem: btrfs
+              mount: /
+              subvolumes:
+                subvolume:
+                  - copy_on_write: 'true'
+                    path: usr/local
+                  - copy_on_write: 'false'
+                    path: var
+                  - copy_on_write: 'true'
+                    path: srv
+                  - copy_on_write: 'true'
+                    path: root
+                  - copy_on_write: 'true'
+                    path: home
+                  - copy_on_write: 'true'
+                    path: opt
+              subvolumes_prefix: '@'
+            - filesystem: swap
+              mount: swap
+        type: CT_DISK

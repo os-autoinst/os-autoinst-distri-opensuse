@@ -25,21 +25,5 @@ test_data:
     - rpcbind
     - rpc-statd
     - nfs
-  # cloned AutoYaST profile validation
   services_status: active
-  profile:
-    partitioning:
-      drive:
-        unique_key: device
-        device: openqa.suse.de:/var/lib/openqa/share
-        disklabel: none
-        partitions:
-          - partition:
-              unique_key: mount
-              create: 'false'
-              mount: /test
-        type: CT_NFS
-    services-manager:
-      services:
-        enable:
-          service: nfs
+  <<: !include test_data/yast/autoyast/profiles/nfs_share.yaml

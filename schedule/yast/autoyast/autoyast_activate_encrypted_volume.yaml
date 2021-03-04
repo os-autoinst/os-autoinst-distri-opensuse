@@ -16,3 +16,5 @@ schedule:
   - autoyast/clone
   - autoyast/verify_cloned_profile
   - autoyast/logs
+test_data:
+  <<: !include test_data/yast/autoyast/profiles/activate_encrypted_volume.yaml
