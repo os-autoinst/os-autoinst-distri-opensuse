@@ -1,0 +1,21 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/system
+        partitions:
+          partition:
+            - lv_name: root_lv
+              mount: /
+            - lv_name: opt_lv
+              mount: /opt
+            - lv_name: swap_lv
+              mount: swap
+      - device: /dev/sda
+        partitions:
+          __count: 3
+          partition:
+            - lvm_group: system
+              partition_nr: 1
+            - lvm_group: system
+              partition_nr: 2
