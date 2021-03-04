@@ -21,6 +21,7 @@ schedule:
   - installation/setup_libyui
   - installation/welcome
   - installation/licensing/verify_license_translations
+  - installation/licensing/verify_license_has_to_be_accepted
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
