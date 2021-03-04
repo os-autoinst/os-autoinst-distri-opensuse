@@ -45,33 +45,36 @@ sub run {
     zypper_call("--root $path install --no-recommends -ly $packages", exitcode => [0, 107]);
 
     record_info 'chroot';
-    type_string "systemd-nspawn -M $machine --bind /dev/$serialdev\n";
-    assert_script_run "date";
-    assert_script_run "echo foobar | tee /foo.txt";
-    type_string "exit\n";
+    assert_script_run "systemd-nspawn -M $machine date";
+    assert_script_run "systemd-nspawn -M $machine sh -c 'echo foobar | tee /foo.txt'";
     assert_script_run "grep foobar $path/foo.txt";
     assert_script_run "rm $path/foo.txt";
+    assert_script_run "systemd-nspawn -M $machine --bind /dev/shm sh -c 'echo foobar | tee /dev/shm/foo.txt'";
+    assert_script_run "grep foobar /dev/shm/foo.txt";
+    assert_script_run "rm /dev/shm/foo.txt";
 
     record_info 'boot';
     systemctl 'start systemd-nspawn@' . $machine;
     systemctl 'status systemd-nspawn@' . $machine;
     # Wait for container to boot
-    script_retry "systemd-run -tM $machine /bin/bash -c date", retry => 30, delay => 5;
-    assert_script_run "systemd-run -tM $machine /bin/bash -c 'systemctl status' | grep -A1 test1 | grep State: | grep running";
+    script_retry "systemd-run -tM $machine /bin/bash -c date",                            retry => 30, delay => 5;
+    script_retry "journalctl -n10 -M $machine | grep 'Reached target Multi-User System'", retry => 30, delay => 5;
+    validate_script_output "systemd-run -tM $machine /bin/bash -c 'systemctl status'",    qr/systemd-logind/;
     systemctl 'stop systemd-nspawn@' . $machine;
+    script_retry 'systemctl status systemd-nspawn@' . $machine, retry => 30, delay => 5, expect => 3;
 
     record_info 'machinectl';
-    assert_script_run "machinectl list-images | grep -B1 -A2 test1";
+    validate_script_output "machinectl list-images", qr/$machine/;
     assert_script_run "machinectl start test1";
     # Wait for container to boot
-    script_retry "systemd-run -tM $machine /bin/bash -c date", retry => 30, delay => 5;
-    assert_script_run "machinectl list | grep -B1 -A2 test1";
+    script_retry "systemd-run -tM $machine /bin/bash -c date",                            retry => 30, delay => 5;
+    script_retry "journalctl -n10 -M $machine | grep 'Reached target Multi-User System'", retry => 30, delay => 5;
+    validate_script_output "machinectl list",                                             qr/$machine/;
     assert_script_run "machinectl shell $machine /bin/echo foobar | grep foobar";
     assert_script_run 'machinectl shell messagebus@' . $machine . ' /usr/bin/whoami | grep messagebus';
     assert_script_run "machinectl shell $machine /usr/bin/systemctl status systemd-journald | grep -B100 -A100 'active (running)'";
     assert_script_run "machinectl stop test1";
     script_retry 'systemctl status systemd-nspawn@' . $machine, retry => 30, delay => 5, expect => 3;
-    validate_script_output 'journalctl -n10 -u systemd-nspawn@' . $machine, sub { m/Reached target Power-Off/ };
     assert_script_run "rm -rf $path";
 
 
