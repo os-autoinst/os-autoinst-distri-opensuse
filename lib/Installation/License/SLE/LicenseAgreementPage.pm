@@ -36,6 +36,11 @@ sub get_available_languages {
     return $self->{cb_eula_language}->items();
 }
 
+sub get_eula_content {
+    my ($self) = @_;
+    return $self->{txt_eula}->text();
+}
+
 sub get_selected_language {
     my ($self) = @_;
     return $self->{cb_eula_language}->value();
