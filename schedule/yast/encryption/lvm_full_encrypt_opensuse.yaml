@@ -19,7 +19,7 @@ schedule:
   - installation/logpackages
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning/setup_lvm
+  - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
   - installation/user_settings
   - installation/resolve_dependency_issues
