@@ -60,7 +60,7 @@ sub proceed_to_next_page {
 sub process_accept_license_pop_up {
     my ($self) = @_;
     $self->get_accept_license_popup()->press_ok();
-    return $self->get_license_agreement_page()->exist();
+    return $self->get_license_agreement_page()->is_shown();
 }
 
 1;
