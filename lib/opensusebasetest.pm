@@ -1109,9 +1109,14 @@ sub wait_boot {
     }
     else {
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
-        if (get_var('UEFI') && is_hyperv && check_screen('grub2', 10)) {
-            record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
-            send_key 'ret';
+        # part of soft failure bsc#1118456
+        if (get_var('UEFI') && is_hyperv) {
+            wait_still_screen stilltime => 5, timeout => 26;
+            save_screenshot;
+            if (check_screen('grub2', 20)) {
+                record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
+                send_key 'ret';
+            }
         }
     }
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
