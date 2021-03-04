@@ -224,7 +224,7 @@ sub wait_for_ssh
     }
 
     croak(sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds",
-            $self->{instance_id}, $self->{public_ip}, $self->{timeout}))
+            $self->{instance_id}, $self->{public_ip}, $args{timeout}))
       unless ($args{proceed_on_failure});
     return;
 }
