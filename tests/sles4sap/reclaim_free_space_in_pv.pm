@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: parted lvm2
 # Summary: Try to reclaim some of the space from the system PV which
 #           may be needed for SAP products
 # Maintainer: Loic Devulder <ldevulder@suse.com>

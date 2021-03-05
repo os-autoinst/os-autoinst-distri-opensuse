@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnome-settings-daemon gdm
 # Summary: testcase 5255-1503905: Gnome:gnome-login test
 #   other login scenario has been coverred by the change_password
 #   script, here only cover the auto_login

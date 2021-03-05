@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: PackageKit
 # Summary: Check that no updates are available after they were previoulsy applied
 # - execute pkcon get-updates and check that the message says 'there are no updates'
 # Maintainer: mkravec <mkravec@suse.com>

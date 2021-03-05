@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh ha-cluster-bootstrap corosync-qdevice
 # Summary: Create HA cluster using ha-cluster-init
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsprogs util-linux
 # Summary: Check that root filesystem is read only
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: https://fate.suse.com/321755

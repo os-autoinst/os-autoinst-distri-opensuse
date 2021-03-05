@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: wicked-service wicked
 # Summary: Sanity checks of wicked
 # Test scenarios:
 # Test 1: Bring down the wicked client service

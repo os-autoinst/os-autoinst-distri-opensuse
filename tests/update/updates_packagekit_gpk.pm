@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: PackageKit gnome-packagekit
 # Summary: PackageKit update using gpk
 # - Install gnome-packagekit
 # - Check if desktop is not locked, unlock if necessary

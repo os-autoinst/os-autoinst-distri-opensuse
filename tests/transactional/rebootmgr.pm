@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rebootmgr
 # Summary: Test rebootmgr using different strategies
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: poo#16266

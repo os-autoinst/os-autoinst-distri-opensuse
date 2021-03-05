@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-ec2metadata iproute2 ca-certificates
 # Summary: This is just bunch of random commands overviewing the public cloud instance
 # We just register the system, install random package, see the system and network configuration
 # This test module will fail at the end to prove that the test run will continue without rollback

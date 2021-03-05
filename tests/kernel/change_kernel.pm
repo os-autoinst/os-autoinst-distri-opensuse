@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: zypper rpm
 # Summary: Change the default kernel using a package
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 use 5.018;

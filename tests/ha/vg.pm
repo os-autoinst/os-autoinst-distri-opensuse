@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2
 # Summary: Create clustered LVM in HA tests
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

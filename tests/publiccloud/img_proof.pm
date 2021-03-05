@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-img-proof
 # Summary: Use img-proof framework to test public cloud SUSE images
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: chrony ntp corosync-qdevice ha-cluster-bootstrap
 # Summary: Add node to existing cluster
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

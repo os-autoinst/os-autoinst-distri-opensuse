@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: PackageKit
 # Summary: Prepare system for actual desktop specific updates
 # - Disable delta rpms if system is not sle
 # - Unmask packagekit service

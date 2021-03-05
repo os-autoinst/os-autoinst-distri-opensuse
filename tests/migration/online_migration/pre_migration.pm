@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsprogs zypper
 # Summary: sle12 online migration testsuite
 # Maintainer: yutao <yuwang@suse.com>
 

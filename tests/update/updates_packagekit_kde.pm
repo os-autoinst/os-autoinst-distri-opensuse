@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: PackageKit plasma5-pk-updates
 # Summary: Packagekit updates using kde applet
 # Maintainer: mkravec <mkravec@suse.com>
 

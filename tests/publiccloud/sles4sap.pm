@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: pacemaker-cli crmsh csync2
 # Summary: Test public cloud SLES4SAP images
 #
 # Maintainer: Loic Devulder <ldevulder@suse.de>

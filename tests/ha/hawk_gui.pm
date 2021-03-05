@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: docker MozillaFirefox
 # Summary: check HAWK GUI with the a python+selenium script and firefox
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
