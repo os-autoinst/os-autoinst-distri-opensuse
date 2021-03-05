@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: transactional-update
 # Summary: Disable Grub timeout by transactional update
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>

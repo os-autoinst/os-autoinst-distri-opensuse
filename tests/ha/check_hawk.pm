@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: hawk2 iproute2 netcat-openbsd
 # Summary: Basic check of Hawk Web interface
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

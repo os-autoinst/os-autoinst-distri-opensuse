@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-network
 # Summary: yast lan in cli, creates, edits and deletes device and lists and
 # shows details of the device
 # - Installs yast2-network

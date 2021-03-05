@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: apparmor-parser apparmor-utils dovecot
 # Summary: Test with "usr.sbin.dovecot" is in "enforce" mode and AppArmor is
 #          "enabled && active", stop and start the dovecot service have no error.
 # - Install dovecot

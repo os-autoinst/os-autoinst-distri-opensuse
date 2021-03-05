@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: apparmor-utils
 # Summary: Test with "usr.sbin.traceroute" is in "enforce" mode and AppArmor is
 #          "enabled && active", the "/usr/sbin/traceroute" can work as usual.
 # - Run "aa-enforce usr.sbin.traceroute", check output for enforce mode set

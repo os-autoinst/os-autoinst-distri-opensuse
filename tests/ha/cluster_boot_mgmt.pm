@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: pacemaker
 # Summary: Manage cluster at boot time
 #          Disable pacemaker at boot if pacemaker is active, otherwise enable it.
 # Maintainer: Julien Adamek <jadamek@suse.com>

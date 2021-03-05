@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: fio
 # Summary: Use FIO tool to run storage performance test
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>

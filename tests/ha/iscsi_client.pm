@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-iscsi-client
 # Summary: Configure iSCSI target for HA tests
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

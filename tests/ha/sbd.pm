@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sbd crmsh
 # Summary: Add stonith sbd resource
 # Maintainer: Julien Adamek <jadamek@suse.com>
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: SLE 12 online migration using zypper migration
 # Maintainer: yutao <yuwang@suse.com>
 

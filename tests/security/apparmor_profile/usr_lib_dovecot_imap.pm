@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: apparmor-utils apparmor-parser dovecot
 # Summary: Test with "usr.lib.dovecot.*" (mainly *.imap*) & "usr.sbin.dovecot"
 #          are in "enforce" mode retrieve mails with imap should have no error.
 # - Start apparmor service

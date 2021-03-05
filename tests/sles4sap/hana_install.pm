@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2 util-linux parted device-mapper
 # Summary: Install HANA via command line. Verify installation with
 # sles4sap/hana_test
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: corosync pacemaker
 # Summary: Configure shared NFS mount point and /etc/hosts for HA
 #          tests with no supportserver
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>

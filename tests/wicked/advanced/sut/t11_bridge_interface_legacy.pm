@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# PackageL wicked
 # Summary: Advanced test cases for wicked
 # Test 11: Create Bridge interface from legacy ifcfg files
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
