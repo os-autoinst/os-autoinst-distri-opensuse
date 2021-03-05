@@ -43,7 +43,7 @@ sub run {
         $kiwi_version = $kiwi_version . "-ng";
     }
     # new page layout contains a hash inside tbody, became too complex to run using assert_script
-    assert_script_run("curl -v -o /tmp/validate_kiwi.sh" . data_url("qam/validate_kiwi.sh"));
+    assert_script_run("curl -v -o /tmp/validate_kiwi.sh " . data_url("qam/validate_kiwi.sh"));
     assert_script_run("chmod +x /tmp/validate_kiwi.sh");
     assert_script_run("/tmp/validate_kiwi.sh $sle_version $kiwi_version-testing $logfile");
     # upload logs anyway
