@@ -170,8 +170,9 @@ $profile is the autoyast profile 'autoinst.xml'.
 =cut
 sub expand_template {
     my ($profile) = @_;
-    my $template  = Mojo::Template->new(vars => 1);
-    my $vars      = {
+    my $template = Mojo::Template->new(vars => 1);
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    my $vars = {
         addons   => expand_addons,
         repos    => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
         patterns => expand_patterns,
