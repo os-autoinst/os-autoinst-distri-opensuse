@@ -29,7 +29,7 @@ sub run {
     assert_script_run("usermod -a -G parsec-clients $testapi::username");
     select_console('user-console');
     # Use newgrp to get 'parsec-clients' group membership
-    type_string("newgrp parsec-clients\n");
+    enter_cmd("newgrp parsec-clients");
 
     # Run tests as user with 'parsec-clients' permissions, with default config
     record_info('ping');
@@ -49,7 +49,7 @@ sub run {
     save_screenshot;
 
     # exit from newgrp session
-    type_string("exit\n");
+    enter_cmd("exit");
 
     # Clean-up
     select_console 'root-console';

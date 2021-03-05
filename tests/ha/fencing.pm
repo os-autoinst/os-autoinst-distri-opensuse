@@ -40,7 +40,7 @@ sub run {
     # Sysrq fencing is more a real crash simulation
     if (get_var('USE_SYSRQ_FENCING')) {
         record_info('Fencing info', 'Fencing done by sysrq');
-        type_string "echo b > /proc/sysrq-trigger\n" if ((!defined $node_to_fence && get_var('HA_CLUSTER_INIT')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
+        enter_cmd "echo b > /proc/sysrq-trigger" if ((!defined $node_to_fence && get_var('HA_CLUSTER_INIT')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
     }
     else {
         record_info('Fencing info', 'Fencing done by crm');

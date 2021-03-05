@@ -17,8 +17,8 @@ use warnings;
 use testapi;
 
 sub run {
-    type_string "mount /dev/vda2 /mnt\n";
-    type_string "cat /mnt/etc/SUSE-brand > /dev/$serialdev\n";
+    enter_cmd "mount /dev/vda2 /mnt";
+    enter_cmd "cat /mnt/etc/SUSE-brand > /dev/$serialdev";
     wait_serial("VERSION = 13.1", 2) || die "Not SUSE-brand found";
 }
 

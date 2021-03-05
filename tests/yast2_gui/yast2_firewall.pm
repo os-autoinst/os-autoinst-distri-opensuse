@@ -116,7 +116,7 @@ sub change_interface_zone {
     send_key $fw{interfaces_change_zone};
     assert_screen 'yast2_firewall_interfaces_change_zone';
     send_key $fw{interfaces_change_zone_zone};
-    type_string "$zone\n";
+    enter_cmd "$zone";
 }
 
 sub verify_zone {

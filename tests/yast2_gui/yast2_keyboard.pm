@@ -80,14 +80,14 @@ sub run {
 
     # 5. Reproduce bug 1142559
     x11_start_program("xterm");
-    type_string "/sbin/yast2 keyboard\n";
+    enter_cmd "/sbin/yast2 keyboard";
     if (check_screen("yast2-keyboard-ui", 5)) {
         record_soft_failure "bsc#1142559, yast2 keyboard should not start as non root user";
         send_key "alt-c";
         wait_still_screen 2;
     }
 
-    type_string "exit\n";
+    enter_cmd "exit";
     assert_screen "generic-desktop", timeout => 90;
 
 

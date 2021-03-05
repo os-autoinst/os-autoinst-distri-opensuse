@@ -46,7 +46,7 @@ sub run {
       fail_message => "Failed to change ownership of /home/$test_data->{username}/";
     mutex_create('nis_user_ready');
     wait_for_children;
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

@@ -31,7 +31,7 @@ sub run {
     assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';
 
     clear_console;
-    type_string "openssl s_server -key domain.key -cert domain.crt -alpn http\n";
+    enter_cmd "openssl s_server -key domain.key -cert domain.crt -alpn http";
     assert_screen "openssl-s_server-alpn-accept-connections";
 
     select_console 'user-console';

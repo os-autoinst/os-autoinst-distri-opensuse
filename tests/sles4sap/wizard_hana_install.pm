@@ -34,8 +34,8 @@ sub run {
 
     # Keep only the generic HANA partitioning profile and link it to the needed model
     # NOTE: fix name is used here (Dell), but something more flexible should be done later!
-    type_string "rm -f /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning_Dell*.xml\n";
-    type_string "ln -s hana_partitioning.xml '/usr/share/YaST2/include/sap-installation-wizard/hana_partitioning_Dell Inc._generic.xml'\n";
+    enter_cmd "rm -f /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning_Dell*.xml";
+    enter_cmd "ln -s hana_partitioning.xml '/usr/share/YaST2/include/sap-installation-wizard/hana_partitioning_Dell Inc._generic.xml'";
 
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
@@ -54,7 +54,7 @@ sub run {
         mouse_hide;                    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
-        type_string "killall xterm\n";
+        enter_cmd "killall xterm";
         assert_screen 'generic-desktop';
         x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
     }

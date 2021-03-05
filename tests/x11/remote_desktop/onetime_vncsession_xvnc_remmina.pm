@@ -30,7 +30,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # Start Remmina and login the remote server

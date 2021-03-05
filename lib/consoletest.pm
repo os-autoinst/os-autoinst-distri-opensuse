@@ -36,7 +36,7 @@ sub post_run_hook {
     my ($self) = @_;
 
     # start next test in home directory
-    type_string "cd\n";
+    enter_cmd "cd";
 
     # clear screen to make screen content ready for next test
     $self->clear_and_verify_console;

@@ -81,7 +81,7 @@ sub run {
     assert_script_run "xhost +";
     my $docker_cmd = "docker run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
     $docker_cmd .= "$docker_image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
-    type_string "$docker_cmd | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode\n";
+    enter_cmd "$docker_cmd | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
     assert_screen "hawk-$browser", 60;
 
     my $loop_count = 360;    # 30 minutes (360*5)

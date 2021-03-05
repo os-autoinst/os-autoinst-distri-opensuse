@@ -51,7 +51,7 @@ sub extract_assets {
 
     # Upload the image as a private asset; do the upload verification on your own, hence
     # the following assert_screen(). We need Windows filename path for a short amount of time.
-    type_string "cls\n";
+    enter_cmd "cls";
     my $old_fstype = fileparse_set_fstype();
     fileparse_set_fstype('MSWin32');
     upload_asset("$image_storage\\$name", 1, 1);

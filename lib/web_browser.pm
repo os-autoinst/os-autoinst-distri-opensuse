@@ -86,7 +86,7 @@ sub run_web_browser_text_based {
     );
 
     for my $p (keys %https_url) {
-        type_string "clear\n";
+        enter_cmd "clear";
         script_run "$browser $options $https_url{$p}", 0;
 
         # Send key "o" ("OK" button) in case of any popup

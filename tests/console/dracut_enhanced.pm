@@ -58,7 +58,7 @@ sub run {
         power_action('reboot', textmode => 1);
         wait_still_screen(10, 60);
         assert_screen("linux-login", 600);
-        type_string "root\n";
+        enter_cmd "root";
         wait_still_screen 3;
         type_password;
         wait_still_screen 3;

@@ -26,7 +26,7 @@ sub run {
 
     send_key "super-r";
     assert_screen "windows-run";
-    type_string "mstsc\n";
+    enter_cmd "mstsc";
     assert_screen "remote-desktop-connection";
     type_string '10.0.2.17';
     assert_screen "remote-ip-filled";

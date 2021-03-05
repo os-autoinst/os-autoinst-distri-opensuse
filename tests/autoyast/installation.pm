@@ -307,7 +307,7 @@ sub run {
         }
         elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
             @needles = grep { $_ ne 'linuxrc-start-shell-after-installation' } @needles;
-            type_string "exit\n";
+            enter_cmd "exit";
         }
         elsif (match_has_tag 'expired-gpg-key') {
             send_key 'alt-y';

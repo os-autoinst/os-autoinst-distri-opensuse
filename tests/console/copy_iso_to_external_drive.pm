@@ -45,7 +45,7 @@ sub run {
 
 sub post_run_hook {
     #prepare environment for next test
-    type_string "logout\n";
+    enter_cmd "logout";
     my $tty = get_root_console_tty;
     assert_screen "tty$tty-selected";
     select_console "x11";

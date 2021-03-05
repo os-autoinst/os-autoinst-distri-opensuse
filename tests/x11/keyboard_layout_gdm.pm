@@ -37,7 +37,7 @@ sub run {
     assert_script_run "sed -i.bak '/^DISPLAYMANAGER_AUTOLOGIN=/s/=.*/=\"\"/' /etc/sysconfig/displaymanager";
 
     # set german keyboard layout (y and z are switched on this layout)
-    type_string "echo \"test \\\$1 == qwerty && loadkeys us && echo done > /dev/$serialdev\" > $kbdlayout_script\n";
+    enter_cmd "echo \"test \\\$1 == qwerty && loadkeys us && echo done > /dev/$serialdev\" > $kbdlayout_script";
     assert_script_run "cat $kbdlayout_script";
     assert_script_run "yast keyboard set layout=german; echo";    # echo should produce clean bash prompt
 
@@ -50,7 +50,7 @@ sub run {
 
     # check console keyboard layout and restore autologin
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
-    type_string "bash $kbdlayout_script qwertz\n";
+    enter_cmd "bash $kbdlayout_script qwertz";
     wait_serial 'done';
     assert_script_run '$(exit $?)';
     assert_script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";

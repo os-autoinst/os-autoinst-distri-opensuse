@@ -38,8 +38,8 @@ sub run {
     else {
         # Login with default credentials (root:linux)
         assert_screen('linux-login', 300);
-        type_string("root\n",              wait_still_screen => 5);
-        type_string("$default_password\n", wait_still_screen => 5);
+        enter_cmd("root",              wait_still_screen => 5);
+        enter_cmd("$default_password", wait_still_screen => 5);
     }
 
     # Install jeos-firstboot, when needed
@@ -66,10 +66,10 @@ sub run {
         # Trigger *-firstboot at next boot
         assert_script_run("touch /var/lib/YaST2/reconfig_system");
 
-        type_string("reboot\n");
+        enter_cmd("reboot");
     }
     else {
-        type_string(is_leap('<=15.2') ? "/usr/lib/jeos-firstboot\n" : "jeos-firstboot\n");
+        enter_cmd(is_leap('<=15.2') ? "/usr/lib/jeos-firstboot\n" : "jeos-firstboot");
     }
 }
 

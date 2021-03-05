@@ -57,7 +57,7 @@ sub prepare_application_environment {
     # Open nautilus
     x11_start_program('nautilus');
     send_key "ctrl-l";
-    type_string "/home/$username/gnometest\n";
+    enter_cmd "/home/$username/gnometest";
     send_key "ret";
     assert_screen 'gnomecase-defaultapps-nautilus';
 }

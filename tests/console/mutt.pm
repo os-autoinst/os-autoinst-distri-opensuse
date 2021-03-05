@@ -53,29 +53,29 @@ sub run {
     assert_script_run 'sed -i -e "/ssl_ca_certificates_file/d" ~/.muttrc' if is_sle('<=12-SP2');
 
     record_info 'receive mail', 'Run mutt as a user to read the mail';
-    type_string "mutt\na";
+    enter_cmd "mutta";
     assert_screen 'mutt-message-list';
-    type_string "\n";
+    send_key 'ret';
     assert_screen 'mutt-show-mail';
 
     record_info 'reply', 'Send a reply to the mail';
-    type_string "rOHello,\nthanks for the message.\n:x\n";
+    enter_cmd "rOHello,\nthanks for the message.\n:x";
     assert_screen 'mutt-send-reply';
     type_string "y";
     assert_screen 'mutt-message-sent';
 
     record_info 'move', 'Move mail to another mailbox';
-    type_string "sArchive\n\n";
+    enter_cmd "sArchive\n";
     assert_screen 'mutt-message-deleted';
     type_string "q";
 
     #select_console "user-console";
     record_info 'open mailbox', 'Open local mailbox';
-    type_string "mutt -f ~/Archive\n";
+    enter_cmd "mutt -f ~/Archive";
     assert_screen 'mutt-message-list';
     type_string "q";
 
-    type_string "clear\n";
+    enter_cmd "clear";
     script_run 'rm -r ~/Archive';
     save_screenshot;
 

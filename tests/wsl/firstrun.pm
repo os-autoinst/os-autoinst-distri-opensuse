@@ -138,17 +138,17 @@ sub run {
     # Nothing to do in WSL2 pts w/o serialdev support
     # https://github.com/microsoft/WSL/issues/4322
     if (get_var('WSL2')) {
-        type_string "exit\n";
+        enter_cmd "exit";
         return;
     }
 
     is_fake_scc_url_needed || become_root;
     assert_script_run 'cd ~';
     assert_script_run "zypper ps";
-    type_string "exit\n";
+    enter_cmd 'exit';
     sleep 3;
     save_screenshot;
-    is_fake_scc_url_needed || type_string("exit\n");
+    is_fake_scc_url_needed || enter_cmd 'exit';
 }
 
 sub post_fail_hook {

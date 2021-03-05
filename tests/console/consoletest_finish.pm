@@ -31,7 +31,7 @@ sub run {
 
     my $console = select_console 'root-console';
     # cleanup
-    type_string "loginctl --no-pager\n";
+    enter_cmd "loginctl --no-pager";
     wait_still_screen(2);
     save_screenshot();
 
@@ -42,11 +42,11 @@ sub run {
     assert_script_run 'pkill Xvnc ||:' if !check_var('DESKTOP', 'textmode') && check_var('ARCH', 's390x');
     # logout root (and later user) so they don't block logout
     # in KDE
-    type_string "exit\n";
+    enter_cmd "exit";
     $console->reset;
 
     $console = select_console 'user-console';
-    type_string "exit\n";    # logout
+    enter_cmd "exit";    # logout
     $console->reset;
     wait_still_screen(2);
 

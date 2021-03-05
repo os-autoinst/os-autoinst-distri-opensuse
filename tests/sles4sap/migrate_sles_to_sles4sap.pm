@@ -39,15 +39,15 @@ sub run {
     zypper_call 'in -y migrate-sles-to-sles4sap';
 
     # Do the migration!
-    type_string "$cmd && touch /tmp/OK\n";
+    enter_cmd "$cmd && touch /tmp/OK";
     wait_serial 'Do you want to continue\?', timeout => 5;
-    type_string "y\n";
+    enter_cmd "y";
     wait_serial 'This script can use a local RMT or SMT', timeout => 5;
-    type_string "c\n";    # Use SCC for now, TODO: add support for SMT/RMT
+    enter_cmd "c";    # Use SCC for now, TODO: add support for SMT/RMT
     wait_serial "Please enter the email address to be used to register", timeout => 5;
-    type_string "\n";
+    send_key 'ret';
     wait_serial "Please enter your activation code", timeout => 5;
-    type_string "${regcode}\n";
+    enter_cmd "${regcode}";
     assert_script_run "ls /tmp/OK";
     zypper_call "in -y -t pattern sap_server";
 

@@ -26,7 +26,7 @@ sub run {
 
     record_info("INFO", "Start TREX in background");
     script_run("cd /tmp/trex-core");
-    type_string("nohup bash /tmp/trex-core/t-rex-64 -i &\n") if (check_var('BACKEND', 'ipmi'));
+    enter_cmd("nohup bash /tmp/trex-core/t-rex-64 -i &") if (check_var('BACKEND', 'ipmi'));
 
     record_info("INFO", "Wait for NFV tests to be completed. Waiting for Mutex NFV_TESTING_DONE");
     mutex_wait('NFV_TESTING_DONE');

@@ -109,16 +109,16 @@ sub login {
     wait_serial(qr/login:\s*$/i, timeout => 5, quiet => 1);
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
-    type_string("\n");
+    send_key 'ret';
     die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
-    type_string("$user\n");
+    enter_cmd("$user");
     if (length $testapi::password) {
         die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i);
         type_password;
-        type_string("\n");
+        send_key 'ret';
     }
     die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
-    type_string(qq/PS1="$serial_term_prompt"\n/);
+    enter_cmd(qq/PS1="$serial_term_prompt"/);
     wait_serial(qr/PS1="$serial_term_prompt"/);
     # TODO: Send 'tput rmam' instead/also
     assert_script_run('export TERM=dumb; stty cols 2048');

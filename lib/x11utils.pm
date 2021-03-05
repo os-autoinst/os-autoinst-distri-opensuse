@@ -206,10 +206,10 @@ sub handle_login {
             assert_and_click 'displaymanager-username-notlisted';
             wait_still_screen 3;
         }
-        type_string "root\n";
+        enter_cmd "root";
     }
     elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
-        type_string "$myuser\n";
+        enter_cmd "$myuser";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         if ($user_selected || (is_sle('<15') || is_leap('<15.0'))) {

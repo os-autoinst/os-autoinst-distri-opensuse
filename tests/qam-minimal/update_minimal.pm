@@ -41,7 +41,7 @@ sub run {
     capture_state('after', 1);
 
     prepare_system_shutdown;
-    type_string "reboot\n";
+    enter_cmd "reboot";
     $self->wait_boot(bootloader_time => 200);
 }
 

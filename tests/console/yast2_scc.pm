@@ -26,7 +26,7 @@ sub run {
     select_console 'root-console';
 
     if (my $u = get_var('SCC_URL')) {
-        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
+        enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
     }
     yast_scc_registration;
 }

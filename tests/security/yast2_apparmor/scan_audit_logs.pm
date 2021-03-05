@@ -41,7 +41,7 @@ sub run {
     $self->yast2_apparmor_setup();
 
     # Enter "yast2 apparmor"
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should no records
     assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
     send_key "alt-l";
@@ -69,7 +69,7 @@ sub run {
     $self->yast2_apparmor_setup();
 
     # Enter "yast2 apparmor" and verify apparmor can revise the profile based on former violation
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should have records
     assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
     send_key "alt-l";

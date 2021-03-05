@@ -58,7 +58,7 @@ sub setup_sle {
     ensure_serialdev_permissions;
 
     # Enable Y2DEBUG for error debugging
-    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
+    enter_cmd "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local";
     script_run "source /etc/bash.bashrc.local";
 }
 
@@ -77,7 +77,7 @@ sub register_system_in_textmode {
     # so set SMT_URL here if register system via smt server
     # otherwise must register system via real SCC before online migration
     if (my $u = get_var('SMT_URL')) {
-        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
+        enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
     }
 
     # register system and addons in textmode for all archs
@@ -205,7 +205,7 @@ sub reset_consoles_tty {
 # Register the already installed system on a specific SCC server/proxy if needed
 sub set_scc_proxy_url {
     if (my $u = get_var('SCC_PROXY_URL')) {
-        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
+        enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
     }
     save_screenshot;
 }

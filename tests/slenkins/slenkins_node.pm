@@ -43,7 +43,7 @@ sub run {
     }
 
     # we have to completely stop wicked - bsc#981651
-    type_string("rcwickedd stop\n");
+    enter_cmd("rcwickedd stop");
     configure_hostname(get_var('SLENKINS_NODE'));
 
     # Support server can start after network is on
@@ -98,9 +98,9 @@ sub run {
     ";
     script_output($conf_script, get_var('FOREIGN_REPOS') ? 1500 : 200);
 
-    type_string("cat /var/log/messages >/dev/$serialdev\n");
+    enter_cmd("cat /var/log/messages >/dev/$serialdev");
     # send messages logged during the testsuite runtime to serial
-    type_string("journalctl -f -o short-precise >/dev/$serialdev\n");
+    enter_cmd("journalctl -f -o short-precise >/dev/$serialdev");
 
     mutex_create(get_var('SLENKINS_NODE'));
 

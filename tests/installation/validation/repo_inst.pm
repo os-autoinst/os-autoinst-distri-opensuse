@@ -24,7 +24,7 @@ sub run {
     assert_script_run("grep -Pzo \"instsys url:(.|\\n)*disk:/boot/$arch/root\" /var/log/linuxrc.log");
     my $mirror = get_netboot_mirror;
     assert_script_run("grep -Pzo \"install url:(.|\\n)*$mirror\" /var/log/linuxrc.log");
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

@@ -77,7 +77,7 @@ sub get_dom0_serialdev {
         $grub_ver = "grub2";
     }
 
-    type_string("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev. Grub version is $grub_ver.\"\n");
+    enter_cmd("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev. Grub version is $grub_ver.\"");
 
     return $dom0_serialdev;
 }
@@ -220,7 +220,7 @@ sub get_installation_partition {
 
     die "Error: can not get installation partition!" unless ($partition);
 
-    type_string "echo Debug info: The partition with the installed system is $partition .\n";
+    enter_cmd "echo Debug info: The partition with the installed system is $partition .";
     save_screenshot;
 
     return $partition;
@@ -242,7 +242,7 @@ sub adjust_for_ipmi_xen {
     assert_script_run('mount --rbind /proc /mnt/proc');
     assert_script_run('mount --rbind /sys /mnt/sys');
     assert_script_run('mount --rbind /dev /mnt/dev');
-    type_string("chroot /mnt\n");
+    enter_cmd("chroot /mnt");
     wait_still_screen;
 
     # Mount Btrfs sub-volumes
@@ -256,7 +256,7 @@ sub adjust_for_ipmi_xen {
     assert_script_run "grub2-mkconfig -o /boot/grub2/grub.cfg";
 
     # Exit chroot
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_still_screen;
 
     #cleanup mount

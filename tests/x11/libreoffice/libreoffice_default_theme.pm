@@ -54,9 +54,9 @@ sub run {
     # Set LO GUI toolkit var to none
     x11_start_program('xterm');
     assert_script_run 'export OOO_FORCE_DESKTOP="none"';
-    type_string "cd\n";
+    enter_cmd "cd";
     clear_console;
-    type_string "echo \$OOO_FORCE_DESKTOP\n";
+    enter_cmd "echo \$OOO_FORCE_DESKTOP";
     assert_screen 'ooffice-change-guitoolkit';
     send_key 'alt-f4';    # Quit xterm
 

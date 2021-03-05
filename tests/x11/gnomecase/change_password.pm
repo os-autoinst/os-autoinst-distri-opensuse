@@ -43,7 +43,7 @@ sub reboot_system {
         $self->{await_reboot} = 0;
         assert_and_click "displaymanager-$username";
         wait_still_screen;
-        type_string "$services::users::newpwd\n";
+        enter_cmd "$services::users::newpwd";
     } else {
         $self->wait_boot();
     }

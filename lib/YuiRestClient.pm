@@ -16,7 +16,7 @@ use warnings;
 use constant API_VERSION => 'v1';
 
 use testapi;
-use utils qw(type_string_slow type_line_svirt save_svirt_pty zypper_call);
+use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty zypper_call);
 use Utils::Backends qw(is_pvm is_hyperv);
 use YuiRestClient::App;
 use registration;
@@ -65,8 +65,8 @@ sub process_start_shell {
         type_line_svirt 'exit';
     } else {
         assert_screen('startshell', timeout => 500);
-        type_string_slow "extend libyui-rest-api\n";
-        type_string_slow "exit\n";
+        enter_cmd_slow "extend libyui-rest-api";
+        enter_cmd_slow "exit";
     }
 }
 
@@ -101,7 +101,7 @@ sub teardown_libyui {
     } else {
         check_screen('startshell', timeout => 100);
         # Putting new line to avoid issues if anything was put there (see poo#81034)
-        type_string_slow "\nexit\n";
+        enter_cmd_slow "\nexit";
     }
 }
 

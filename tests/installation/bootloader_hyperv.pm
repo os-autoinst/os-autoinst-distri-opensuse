@@ -135,11 +135,11 @@ sub run {
     my $ramsize  = get_var('QEMURAM',  1024);
     my $cpucount = get_var('QEMUCPUS', 1);
 
-    type_string "mkdir -p ~/.vnc/\n";
-    type_string "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd\n";
-    type_string "chmod 0600 ~/.vnc/passwd\n";
-    type_string "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"\n";
-    type_string "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &\n";
+    enter_cmd "mkdir -p ~/.vnc/";
+    enter_cmd "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd";
+    enter_cmd "chmod 0600 ~/.vnc/passwd";
+    enter_cmd "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"";
+    enter_cmd "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &";
 
     my $ps = 'powershell -Command';
 

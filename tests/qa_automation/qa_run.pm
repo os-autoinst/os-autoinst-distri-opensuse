@@ -125,14 +125,14 @@ sub wait_testrun {
     my $code    = int(rand(999999));
     my $redir   = (is_serial_terminal) ? "" : " >> /dev/$serialdev";
     my $cmd     = "code=$code; while [[ ! -f $fdone ]]; do sleep $sleep; done; echo \"$pattern-\$code\" $redir";
-    type_string("bash -c '$cmd' &\n");
+    enter_cmd("bash -c '$cmd' &");
     # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
     my $ret = wait_serial("$pattern-$code", $timeout);
     if (is_serial_terminal()) {
         # Print new terminal prompt for script_run
-        type_string("\n");
+        send_key 'ret';
     }
     return $ret ? 1 : 0;
 }

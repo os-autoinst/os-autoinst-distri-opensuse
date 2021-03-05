@@ -88,7 +88,7 @@ sub run {
     }
 
     if (kernel_updated) {
-        type_string "reboot\n";
+        enter_cmd "reboot";
         $self->wait_boot;
     }
     else {

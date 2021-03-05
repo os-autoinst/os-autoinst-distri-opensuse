@@ -29,10 +29,10 @@ sub run {
     assert_script_run 'rpm -qi --whatprovides vim_client';
     # vim-data package must not be present on JeOS (except on aarch64 openSUSE)
     assert_script_run('! rpm -qi vim-data') if (is_jeos() && !(check_var('ARCH', 'aarch64') && is_opensuse()));
-    type_string "vim /etc/passwd\n";
+    enter_cmd "vim /etc/passwd";
     my $jeos = is_jeos() ? '-jeos' : '';
     assert_screen "vim-showing-passwd$jeos";
-    wait_screen_change { type_string ":q!\n" };
+    wait_screen_change { enter_cmd ":q!" };
 }
 
 1;

@@ -94,7 +94,7 @@ sub run {
             do {
                 assert_screen \@updates_installed_tags, 3600;
                 if (match_has_tag("Policykit")) {
-                    type_string "$password\n";
+                    enter_cmd "$password";
                     pop @updates_installed_tags;
                 }
                 if (match_has_tag("updates_failed")) {

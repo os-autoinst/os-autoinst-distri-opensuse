@@ -67,7 +67,7 @@ sub patching_sle {
             # Open gdm debug info for poo#45236, this issue happen sometimes in openqa env
             script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
             # Remove '-f' for reboot for poo#65226
-            type_string "reboot\n";
+            enter_cmd "reboot";
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300, nologin => $nologin);
             # Setup again after reboot
