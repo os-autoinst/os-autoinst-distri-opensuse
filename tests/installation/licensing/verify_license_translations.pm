@@ -76,7 +76,6 @@ sub run {
     assert_true(!$errors, $errors);
     # Set language back to default
     $eula_page->select_language($default_language);
-    save_screenshot;
 }
 
 1;

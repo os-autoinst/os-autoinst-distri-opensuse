@@ -630,6 +630,13 @@ sub save_strace_gdb_output {
     }
 }
 
+sub post_run_hook {
+    my $self = shift;
+
+    $self->SUPER::post_run_hook;
+    save_screenshot;
+}
+
 sub post_fail_hook {
     my $self = shift;
 
