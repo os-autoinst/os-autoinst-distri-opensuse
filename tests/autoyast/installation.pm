@@ -167,7 +167,6 @@ sub run {
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
-    push(@needles, 'startshell') if get_var('YUI_REST_API');
     prepare_system_shutdown      if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
     my $confirmed      = 0;
@@ -202,8 +201,8 @@ sub run {
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
             @needles       = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
             $pxe_boot_done = 1;
-            send_key 'ret';    # boot from harddisk
-            next;              # first stage is over, now we should see grub with autoyast-boot
+            send_key 'ret';              # boot from harddisk
+            next;                        # first stage is over, now we should see grub with autoyast-boot
         }
         #repeat until timeout or login screen
         elsif (match_has_tag('nonexisting-package')) {

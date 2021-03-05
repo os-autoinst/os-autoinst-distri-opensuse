@@ -52,7 +52,6 @@ sub property {
     return undef;
 }
 
-
 sub find_widgets {
     my ($self) = @_;
 

@@ -18,7 +18,7 @@ use parent 'YuiRestClient::Widget::Base';
 
 sub text {
     my ($self, $args) = @_;
-    return $self->exist($args);
+    return $self->property('text');
 }
 
 1;
