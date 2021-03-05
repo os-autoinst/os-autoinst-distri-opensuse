@@ -109,14 +109,10 @@ sub basic_container_tests {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # Containers' state can be saved to a docker image
-    my $exit_code = script_run("$runtime container exec $container_name zypper -n in curl", 300);
-    if ($exit_code && !check_var('ARCH', 's390x')) {
+    if (script_run("$runtime container exec $container_name zypper -n in curl", 300)) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
-    }
-    elsif (check_var('ARCH', 's390x')) {
-        record_soft_failure("bsc#1165922 s390x control.xml has wrong repos");
     }
     assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
