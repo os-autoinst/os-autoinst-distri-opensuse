@@ -97,9 +97,9 @@ sub ibtest_master {
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
 
+    barrier_wait('IBTEST_DONE');
     $self->upload_ibtest_logs;
 
-    barrier_wait('IBTEST_DONE');
     barrier_destroy('IBTEST_SETUP');
     barrier_destroy('IBTEST_BEGIN');
     barrier_destroy('IBTEST_DONE');
@@ -151,7 +151,6 @@ sub post_fail_hook {
 
     $self->upload_ibtest_logs;
 
-    barrier_wait('IBTEST_DONE');
     wait_for_children;
 
     $self->SUPER::post_fail_hook;
