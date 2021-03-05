@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,7 +22,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
-use utils 'type_string_slow';
+use utils 'enter_cmd_slow';
 
 sub run {
     my ($self) = shift;
@@ -32,7 +32,7 @@ sub run {
     # mistyping with slow typing and retrying.
     my $retries = 7;
     for (1 .. $retries) {
-        type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
+        enter_cmd_slow "E %PHI = H %PHI\nnewline1 = 1";
         last                                                             if check_screen [qw(test-oomath-1 oomath-bsc1127895)];
         die "Could not match on correct formula within multiple retries" if $_ == $retries;
         record_info 'workaround', 'retrying unstable formula typing, see https://progress.opensuse.org/issues/53795 for details';

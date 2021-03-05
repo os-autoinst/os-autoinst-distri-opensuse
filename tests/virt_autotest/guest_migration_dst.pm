@@ -37,7 +37,7 @@ sub run {
     my $hypervisor   = (is_xen_host) ? 'xen' : 'kvm';
     my $args         = "-d $src_ip -v $hypervisor -u $src_user -p $src_pass";
     my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/guest_migrate.sh " . $args;
-    type_string("$pre_test_cmd \n");
+    enter_cmd("$pre_test_cmd ");
     save_screenshot;
     send_key("ctrl-c");
     save_screenshot;

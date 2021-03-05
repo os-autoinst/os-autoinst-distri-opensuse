@@ -115,7 +115,7 @@ sub run {
     # Adjust the 2nd Firefox launch via xterm as workaround to avoid the race condition during password interaction while internet connection busy
     x11_start_program('xterm');
     mouse_hide(1);
-    type_string("firefox --setDefaultBrowser https://html5test.opensuse.org\n");
+    enter_cmd("firefox --setDefaultBrowser https://html5test.opensuse.org");
     assert_screen("firefox-passowrd-typefield", 120);
 
     # Add max_interval while type password and extend time of click needle match

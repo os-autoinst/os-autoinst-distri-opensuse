@@ -30,7 +30,7 @@ sub run_test {
     my ($self) = @_;
 
     #x11_start_program 'virt-manager';
-    type_string "virt-manager\n";
+    enter_cmd "virt-manager";
 
     establish_connection();
 

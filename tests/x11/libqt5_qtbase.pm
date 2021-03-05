@@ -53,7 +53,7 @@ sub run {
     assert_script_run 'qmake-qt5';
     assert_script_run 'make';
     assert_script_run './libqt5-qtbase';
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

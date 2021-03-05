@@ -37,7 +37,7 @@ sub run {
 
     send_key "/";
     sleep 1;
-    type_string "license.tar.gz\n";
+    enter_cmd "license.tar.gz";
 
     assert_screen('firefox-extcontent-opening', 60);
 

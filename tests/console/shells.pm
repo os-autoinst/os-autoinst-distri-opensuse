@@ -52,13 +52,13 @@ sub tcsh_extra_tests {
     wait_still_screen(3);
 
     #Generate some outputs for the new created user:
-    type_string "echo \"echo Sourced!\" >> ~/.tcsh\n";
+    enter_cmd "echo \"echo Sourced!\" >> ~/.tcsh";
 
-    type_string "grep tcsh_user /etc/passwd > /tmp/tcsh\n";
-    type_string "echo \$SHELL >> /tmp/tcsh\n";
-    type_string "echo ~ >> /tmp/tcsh\n";
-    type_string "source ~/.tcsh >> /tmp/tcsh\n";
-    type_string "ls -d /* |grep -wc '/bin\\|/home\\|/root\\|/lib\\|/usr\\|/var\\|/proc\\|/sys\\|/boot\\|/sbin\\|/tmp\\|/opt' >> /tmp/tcsh\n";
+    enter_cmd "grep tcsh_user /etc/passwd > /tmp/tcsh";
+    enter_cmd "echo \$SHELL >> /tmp/tcsh";
+    enter_cmd "echo ~ >> /tmp/tcsh";
+    enter_cmd "source ~/.tcsh >> /tmp/tcsh";
+    enter_cmd "ls -d /* |grep -wc '/bin\\|/home\\|/root\\|/lib\\|/usr\\|/var\\|/proc\\|/sys\\|/boot\\|/sbin\\|/tmp\\|/opt' >> /tmp/tcsh";
 
     #Go back to root/openqa and do the validations:
     script_run 'logout', 0;

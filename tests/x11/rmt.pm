@@ -32,7 +32,7 @@ sub run {
     rmt_mirror_repo();
     # import data and repos from an existing RMT server
     rmt_import_data("rmt_external.tar.gz");
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

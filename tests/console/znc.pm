@@ -22,61 +22,61 @@ sub run {
     script_run("su znc -s /bin/bash -c 'znc --makeconf' | tee /dev/$serialdev; echo zncconf-status-\$? > /dev/$serialdev", 0);
 
     wait_serial('Listen on port') || die "znc --makeconf failed";
-    type_string("12345\n");
+    enter_cmd("12345");
 
     wait_serial('Listen using SSL');
-    type_string("yes\n");
+    enter_cmd("yes");
 
     wait_serial('Listen using both IPv4 and IPv6');
-    type_string("yes\n");
+    enter_cmd("yes");
 
     wait_serial('Username');
-    type_string("bernhard\n");
+    enter_cmd("bernhard");
 
     wait_serial('Enter password');
-    type_string("$testapi::password\n");
+    enter_cmd("$testapi::password");
 
     wait_serial('Confirm password');
-    type_string("$testapi::password\n");
+    enter_cmd("$testapi::password");
 
     wait_serial('Nick');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Alternate nick');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Ident');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Real name');
-    type_string("Bernhard M. Wiedemann\n");
+    enter_cmd("Bernhard M. Wiedemann");
 
     wait_serial('Bind host');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Set up a network');
-    type_string("yes\n");
+    enter_cmd("yes");
 
     wait_serial('Name');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Server host');
-    type_string("this.remote.irc.server.does.not.exist\n");
+    enter_cmd("this.remote.irc.server.does.not.exist");
 
     wait_serial('Server uses SSL');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Server port');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Server password');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Initial channels');
-    type_string("\n");
+    send_key 'ret';
 
     wait_serial('Launch ZNC now');
-    type_string("no\n");
+    enter_cmd("no");
 
     wait_serial("zncconf-status-0") || die "'znc --makeconf' could not finish successfully";
 

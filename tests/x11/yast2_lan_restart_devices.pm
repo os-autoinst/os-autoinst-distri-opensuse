@@ -165,7 +165,7 @@ sub run {
     }
 
     check_device($_) foreach @devices;
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub post_fail_hook {

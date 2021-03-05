@@ -36,7 +36,7 @@ sub run {
 
     my $out = wait_serial [$zypper_ar_ok, $zypper_pk_block];
     if ($out =~ $zypper_pk_block) {
-        type_string "yes\n";
+        enter_cmd "yes";
         wait_serial $zypper_ar_ok || die "Failed to add test repo";
     }
 

@@ -190,7 +190,7 @@ sub run {
     }
 
     # Return to default directory
-    type_string "cd\n";
+    enter_cmd "cd";
 
     # Wait until Filesystem content is checked
     barrier_wait("FS_CHECKED_${barrier_tag}_$cluster_name");

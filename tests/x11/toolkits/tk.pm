@@ -26,7 +26,7 @@ sub run {
     wait_screen_change { send_key 'alt-f4' };
     assert_script_run '$(exit $?)';
 
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

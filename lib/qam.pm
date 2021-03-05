@@ -124,7 +124,7 @@ sub ssh_add_test_repositories {
 sub remove_test_repositories {
 
     type_string 'repos=($(zypper lr -e - | grep "name=TEST|baseurl=ftp" | cut -d= -f2)); if [ ${#repos[@]} -ne 0 ]; then zypper rr ${repos[@]}; fi';
-    type_string "\n";
+    send_key 'ret';
 }
 
 sub advance_installer_window {

@@ -44,7 +44,7 @@ sub run {
     # Check the exported file
     x11_start_program('nautilus');
     wait_screen_change { send_key 'ctrl-l' };
-    type_string "/home/$username/Desktop\n";
+    enter_cmd "/home/$username/Desktop";
     send_key "ret";
     assert_screen 'shotwell-exported-file';
     send_key "ctrl-w";

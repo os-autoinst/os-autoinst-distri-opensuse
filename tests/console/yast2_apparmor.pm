@@ -199,9 +199,9 @@ sub run {
     for (1 .. 15) { send_key 'backspace'; }
 
     if (is_pre_15) {
-        type_string "/usr/bin/top\n";
+        enter_cmd "/usr/bin/top";
     } else {
-        type_string "top\n";
+        enter_cmd "top";
         send_key 'alt-o';
         assert_screen 'yast2_apparmor_profile_for_top_generated';
         send_key 'alt-f';
@@ -211,7 +211,7 @@ sub run {
         #wait till app is closed
         wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
         #cleaning the console
-        type_string "reset\n";
+        enter_cmd "reset";
         return;
     }
 

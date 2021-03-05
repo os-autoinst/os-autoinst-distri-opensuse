@@ -141,7 +141,7 @@ sub run {
     if ($lang ne 'en_US') {
         # With the foreign keyboard, type 'loadkeys us'
         my %loadkeys_reset = ('de_DE' => 'loadkezs us');
-        type_string("$loadkeys_reset{$lang}\n");
+        enter_cmd("$loadkeys_reset{$lang}");
         wait_still_screen;
     }
     # Manually configure root-console as we skipped some parts in root-console's activation
@@ -158,7 +158,7 @@ sub run {
 
     my $console = select_console 'user-console';
     verify_user_info;
-    type_string "exit\n";
+    enter_cmd "exit";
     $console->reset();
 
     select_console 'root-console';

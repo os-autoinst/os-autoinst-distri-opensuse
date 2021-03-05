@@ -130,7 +130,7 @@ sub run {
     wait_serial("$module_name-0", 360) || die "'yast2 nis client' didn't finish";
     setup_verification();
     mutex_create('nis_nfs_client_ready');
-    type_string "killall xterm\n";         # game over -> xterm
+    enter_cmd "killall xterm";             # game over -> xterm
 }
 
 1;

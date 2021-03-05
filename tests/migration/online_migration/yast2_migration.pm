@@ -286,7 +286,7 @@ sub run {
     }
     else {
         wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
-        type_string "exit\n" if (is_desktop_installed());
+        enter_cmd "exit" if (is_desktop_installed());
     }
 }
 

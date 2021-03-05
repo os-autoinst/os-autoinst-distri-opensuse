@@ -45,7 +45,7 @@ sub run {
     $self->yast2_apparmor_setup();
 
     # Enter "yast2 apparmor"
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
 
     # Enter "Manually Add Profile" to generate a profile for a program
     # "marked as a program that should not have its own profile",
@@ -60,7 +60,7 @@ sub run {
     wait_screen_change { send_key "alt-o" };
 
     # Enter "yast2 apparmor" again
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
 
     # Enter "Manually Add Profile" to generate a profile for a program
     # *NOT* "marked as a program that should not have its own profile",
@@ -82,7 +82,7 @@ sub run {
 
     # Verify bsc#1172040
     # Enter "yast2 apparmor" again
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
     send_key "alt-l";
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");

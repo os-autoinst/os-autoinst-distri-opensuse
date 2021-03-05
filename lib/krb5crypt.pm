@@ -71,7 +71,7 @@ our $nfs_fname  = 'foo';
 sub krb5_init {
     script_run("kinit -p $adm |& tee /dev/$serialdev", 0);
     wait_serial(qr/Password.*\Q$adm\E/) || die "Matching output failed";
-    type_string "$pass_a\n";
+    enter_cmd "$pass_a";
     script_output "echo \$?", sub { m/^0$/ };
 
     validate_script_output "klist", sub {

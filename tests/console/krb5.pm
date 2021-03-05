@@ -76,18 +76,18 @@ sub run {
 
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;
-    type_string "klist 2> /tmp/krb5\n";
+    enter_cmd "klist 2> /tmp/krb5";
     script_run 'logout',                                                       0;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #create kinit tickets cache for the user:
     script_run 'su - tester', 0;
-    type_string "kinit\n";
+    enter_cmd "kinit";
     #just a fast paced and harmless pwd:
-    type_string "1234wert\n";
+    enter_cmd "1234wert";
 
     #confirm the users tickets cache is created, also confirm its on the FQDN:
-    type_string "klist > /tmp/krb5-klist-cache 2> /dev/null\n";
+    enter_cmd "klist > /tmp/krb5-klist-cache 2> /dev/null";
     script_run 'logout',                                                                                         0;
     validate_script_output "grep -c \"krbtgt\/openqa.kerberus.org\@openqa.kerberus.org\" /tmp/krb5-klist-cache", sub { /1/ };
 
@@ -96,8 +96,8 @@ sub run {
 
     #test the destroy kinit cache command:
     script_run 'su - tester', 0;
-    type_string "kdestroy\n";
-    type_string "klist 2> /tmp/krb5\n";
+    enter_cmd "kdestroy";
+    enter_cmd "klist 2> /tmp/krb5";
     script_run 'logout',                                                       0;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 

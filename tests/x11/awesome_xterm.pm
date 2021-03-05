@@ -11,9 +11,9 @@ use testapi;
 sub run {
     my ($self) = @_;
     send_key "super-r";
-    type_string "xterm\n";
+    enter_cmd "xterm";
     assert_screen 'awesome_xterm_icon', 10;
-    type_string "clear\n";
+    enter_cmd "clear";
     $self->enter_test_text('xterm');
     assert_screen 'test-xterm-1', 5;
     send_key "super-shift-c";

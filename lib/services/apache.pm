@@ -39,7 +39,7 @@ sub check_service {
 # check httpd function
 sub check_function {
     # verify httpd serves index.html
-    type_string "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html\n";
+    enter_cmd "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html";
     assert_script_run(
         "curl -f http://localhost/ | grep 'Lorem ipsum dolor sit amet'",
         timeout      => 90,

@@ -70,7 +70,7 @@ sub run {
     assert_script_run "chmod 0775 /sapinst/unattended";
 
     # Start the installation
-    type_string "cd /sapinst/unattended\n";
+    enter_cmd "cd /sapinst/unattended";
     $cmd = '../SWPM/sapinst ' . join(' ', @sapoptions);
 
     # Synchronize with other nodes

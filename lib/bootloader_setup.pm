@@ -393,7 +393,7 @@ sub uefi_bootmenu_params {
     }
 
     # changed the line before typing video params
-    wait_screen_change(sub { type_string " \\\n"; }, 3);
+    wait_screen_change(sub { enter_cmd " \\"; }, 3);
     save_screenshot;
 }
 
@@ -571,7 +571,7 @@ sub select_installation_source {
     # Type variables into fields
     type_string_slow "$m_server\t";
     type_string_slow "$m_share\t" if $m_protocol eq "smb";
-    type_string_slow "$m_directory\n";
+    enter_cmd_slow "$m_directory";
     save_screenshot;
 
     # HTTP-proxy
@@ -582,7 +582,7 @@ sub select_installation_source {
             send_key "down";
         }
         send_key "ret";
-        type_string_slow "$proxyhost\t$proxyport\n";
+        enter_cmd_slow "$proxyhost\t$proxyport";
         assert_screen "inst-proxy_is_setup";
 
         # add boot parameters
@@ -894,7 +894,7 @@ sub tianocore_disable_secureboot {
     assert_screen 'grub2';
     send_key 'c';
     sleep 2;
-    type_string "exit\n";
+    enter_cmd "exit";
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
     send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
@@ -989,7 +989,7 @@ sub zkvm_add_disk {
             $svirt->add_disk({file => $patched_img, dev_id => 'a'});
         }
         else {
-            type_string("# copying image...\n");
+            enter_cmd("# copying image...");
             $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
         }
     }

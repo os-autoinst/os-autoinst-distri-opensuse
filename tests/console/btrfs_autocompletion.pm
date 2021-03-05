@@ -31,7 +31,7 @@ sub compare_commands {
         type_string shift;
         type_string "\" > /tmp/command$i";
         send_key "home";
-        type_string "echo \"\n";
+        enter_cmd "echo \"";
     }
     assert_script_run "diff /tmp/command\[12\]";
 }

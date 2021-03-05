@@ -702,7 +702,7 @@ sub pre_run_hook {
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
     type_string($coninfo);
     wait_serial($coninfo, undef, 0, no_regex => 1);
-    type_string("\n");
+    send_key 'ret';
     if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1) {
         my $serial_terminal = check_var('ARCH', 'ppc64le') ? 'hvc2' : 'hvc1';
         add_serial_console($serial_terminal);

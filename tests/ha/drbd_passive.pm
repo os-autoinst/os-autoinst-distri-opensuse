@@ -79,7 +79,7 @@ sub run {
         assert_script_run "sed -i 's;%DRBD_LUN_02%;\"$drbd_lun_02\";g' $drbd_rsc_file";
 
         # Show the result
-        type_string "cat $drbd_rsc_file\n";
+        enter_cmd "cat $drbd_rsc_file";
 
         # We need to add the configuration in csync2.conf
         add_file_in_csync(value => '/etc/drbd*');

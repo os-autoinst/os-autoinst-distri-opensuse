@@ -32,7 +32,7 @@ sub run {
 
     # login in to system
     assert_screen('linux-login', 120);
-    type_string("root\n");
+    enter_cmd("root");
     sleep(2);
     type_password("linux\n");
 

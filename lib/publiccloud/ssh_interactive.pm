@@ -44,7 +44,7 @@ sub ssh_interactive_tunnel {
 
 sub ssh_interactive_join {
     # Open SSH interactive session and check the serial console works
-    type_string("ssh -yt sut\n");
+    enter_cmd("ssh -yt sut");
     wait_serial("ssh_serial_ready", 90) if (get_var("AUTOINST_URL_HOSTNAME", '') !~ /localhost/);
 
     # Prepare the environment to use the SSH tunnel for upload/download from the worker

@@ -43,7 +43,7 @@ sub run {
     my $md5_initial_sh   = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_sh.sh');
     my $md5_initial_tar  = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_tar.tar');
 
-    type_string("rsync -avzr /tmp/rsync_test_folder_a/ root\@localhost:/tmp/rsync_test_folder_b; echo \$\? > /tmp/rsync_return_code.txt\n");
+    enter_cmd("rsync -avzr /tmp/rsync_test_folder_a/ root\@localhost:/tmp/rsync_test_folder_b; echo \$\? > /tmp/rsync_return_code.txt");
     assert_script_run('time sync');
 
     # keep the md5 hash value of the synced file and folder

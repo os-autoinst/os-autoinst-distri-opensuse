@@ -95,7 +95,7 @@ sub test_users_locale {
     record_info('Compare ldd', "\nExpected = $ldd_help_string_expected\nGot = $ldd_help_string_updated");
 
     ($ldd_help_string_expected eq $ldd_help_string_updated) or die "Unexpected locale settings, glibc test strings are not the same!\n";
-    type_string("exit\n");
+    enter_cmd("exit");
 
     return $ldd_help_string_updated;
 }
@@ -125,7 +125,7 @@ sub run {
     ## Check glibc locale, should be the same as in firstrun module
     my $original_glibc_string = script_output("ldd --help | grep '^" . $test_data_lang{$lang_booted_short} . "'");
     record_info('Original', $original_glibc_string);
-    type_string("exit\n");
+    enter_cmd("exit");
 
     ## Check system wide locale configuration; general notes
     # 1) Verify RC_LC_ variables defined in the file /etc/sysconfig/language

@@ -89,7 +89,7 @@ sub run {
     configure_scenario $scenario;
 
     # Install the operating system in the inner QEMU
-    type_string "salt -l debug minion state.highstate |& tee -i salt /dev/$serialdev\n";
+    enter_cmd "salt -l debug minion state.highstate |& tee -i salt /dev/$serialdev";
     wait_serial('Total states run:', 1200);
 
     # Get the assets and upload then before any assert that can kill

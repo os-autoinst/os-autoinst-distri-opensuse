@@ -52,7 +52,7 @@ sub run {
     become_root;
 
     # Run "# yast2 users" to create a user
-    type_string("yast2 users &\n");
+    enter_cmd("yast2 users &");
     # Check "SHA-512" is selected by default
     assert_and_click("Yast2-Users-Expert-Options", timeout => 180);
     assert_and_click("Yast2-Users-Expert-Options-Password-Encryption");
