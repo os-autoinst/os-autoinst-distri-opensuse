@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: samba samba-client yast2-samba-client yast2-samba-server nautilus
+# apparmor-utils
 # Summary: Test with "usr.sbin.smbd" is in "enforce" mode and AppArmor is
 #          "enabled && active", access the shared directory should have no error.
 # - Install samba samba-client yast2-samba-client yast2-samba-server

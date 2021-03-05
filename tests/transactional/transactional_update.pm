@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: transactional-update rebootmgr
 # Summary: Test transactional updates
 #   Installs & remove ptf, update, rollback
 #   Check that system was rebooted and mounted snapshot changed

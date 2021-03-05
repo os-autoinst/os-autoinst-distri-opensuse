@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: cryptsetup
 # Summary: Test dm-crypt cipher support with cryptsetup tool. Make sure
 #          unsafe algorithms are not applicable in FIPS or non-FIPS mode.
 # Maintainer: Ben Chou <bchou@suse.com>

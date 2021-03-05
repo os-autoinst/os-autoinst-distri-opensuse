@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Remove all the resources except stonith/sbd
 # Maintainer: Julien Adamek <jadamek@suse.com>
 

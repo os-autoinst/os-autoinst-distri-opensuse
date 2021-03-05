@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice
 # Summary: LibreOffice: Favorite Documents link in Computer menu
 # - Open desktop main menu
 # - Open favorite documents list

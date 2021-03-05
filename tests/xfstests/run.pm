@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: xfsprogs
 # Summary: Run tests
 # - Shuffle the list of xfs tests to run
 # - Create heartbeat script, directorie

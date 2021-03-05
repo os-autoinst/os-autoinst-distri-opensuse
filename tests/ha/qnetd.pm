@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh corosync-qnetd
 # Summary: Test qdevice/qnetd
 # qdevice/qnetd is a supported feature since 15-SP1
 # Maintainer: Julien Adamek <jadamek@suse.com>

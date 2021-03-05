@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-rear rear23a
 # Summary: Install ReaR packages and create a ReaR backup on an NFS server
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

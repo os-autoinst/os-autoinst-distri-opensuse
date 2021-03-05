@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: pacemaker-cts
 # Summary: Execute regression tests with pacemaker-cts
 # Maintainer: Julien Adamek <jadamek@suse.com>
 

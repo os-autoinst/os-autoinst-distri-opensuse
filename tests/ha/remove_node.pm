@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: ha-cluster-bootstrap
 # Summary: Remove a node both by its hostname and ip address
 # Maintainer: Julien Adamek <jadamek@suse.com>
 

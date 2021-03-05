@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: apparmor-parser apache2-mod_apparmor apparmor-utils
 # Summary: Test Web application apache2 using ChangeHat.
 # - Stops apparmor daemon
 # - if sle 15+ or tumbleweed, runs aa-teardown

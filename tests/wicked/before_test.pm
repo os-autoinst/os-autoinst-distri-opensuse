@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvpn dhcp-server wicked git
 # Summary: Do basic checks to make sure system is ready for wicked testing
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 

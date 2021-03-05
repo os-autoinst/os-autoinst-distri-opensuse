@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Full patch system using zypper
 # - Calls zypper in quiet mode and patch system
 # Maintainer: Oliver Kurz <okurz@suse.de>

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: texlive-latexdiff-bin
 # Summary: Test the latexdiff command with a simple example
 # - Install texlive-latexdiff-bin
 # - Run latexdiff between to latex files (original and modified) and save output

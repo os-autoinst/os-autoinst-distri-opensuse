@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rsync
 # Summary: Transfer repositories to the public cloud instasnce
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
