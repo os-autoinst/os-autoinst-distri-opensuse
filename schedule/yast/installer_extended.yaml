@@ -8,11 +8,8 @@ description: >
 vars:
   CHECK_PRESELECTED_MODULES: '1'
   CHECK_RELEASENOTES: '1'
-  EULA_LANGUAGES: korean
   EXIT_AFTER_START_INSTALL: '1'
   EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
-  INSTALLER_EXTENDED_TEST: '1'
-  VALIDATE_CHECKSUM: '1'
   YUI_REST_API: 1
 schedule:
   # Called on BACKEND: qemu
@@ -22,7 +19,7 @@ schedule:
   - installation/welcome
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
-  - installation/accept_license
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
