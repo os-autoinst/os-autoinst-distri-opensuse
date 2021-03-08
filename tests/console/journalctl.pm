@@ -34,7 +34,8 @@ use power_action_utils qw(power_action);
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
     DROPIN_DIR         => '/etc/systemd/journald.conf.d/',
-    SYSLOG             => '/var/log/messages'
+    SYSLOG             => '/var/log/messages',
+    SEALING_DELAY      => 10
 };
 
 sub is_journal_empty {
@@ -50,6 +51,7 @@ sub verify_journal {
     my $cmd = 'journalctl --verify';
     $cmd .= " --verify-key=$fss_key" if defined($fss_key);
 
+    script_run('journactl --flush');    # ensure data is written to persistent log
     return if (script_run("$cmd 2>&1 | tee errs") == 0);
     # Check for https://bugzilla.suse.com/show_bug.cgi?id=1171858, corruption bug when FSS is enabled
     if (defined($fss_key) && (script_run("grep 'tag/entry realtime timestamp out of synchronization' errs") == 0)) {
@@ -189,11 +191,11 @@ sub run {
         script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
         assert_script_run('jobs | grep socat', fail_message => "socat is not running");
         # Redirect journal to virtual serial console and syslog
-        assert_script_run "echo -e '[Journal]\nForwardToConsole=yes\nTTYPath=/dev/ttyS100\nMaxLevelConsole=info' > ${\ DROPIN_DIR }/fw-ttyS100.conf";
+        assert_script_run "echo -e '[Journal]\nForwardToConsole=yes\nTTYPath=/dev/ttyS100\nMaxLevelConsole=info' | tee ${\ DROPIN_DIR }/fw-ttyS100.conf";
         systemctl 'restart systemd-journald.service';
         script_run('cat /dev/ttyS101 > /var/tmp/journal_serial.out & true');
         assert_script_run('echo "journal redirect output started (grep for: aeru4Poh eiDeik5l)" | systemd-cat -p info -t redirect');
-        assert_script_run('grep "aeru4Poh eiDeik5l" /var/tmp/journal_serial.out', fail_message => "Forward to syslog failed");
+        die "Serial forward failed" if (script_retry('grep "aeru4Poh eiDeik5l" /var/tmp/journal_serial.out', retry => 5, delay => 2, die => 0) != 0);
         # Stop redirecting to serial console and syslog
         assert_script_run('rm /etc/systemd/journald.conf.d/fw-ttyS100.conf');
         systemctl 'restart systemd-journald.service';
@@ -236,6 +238,7 @@ sub run {
     write_test_log_entries \%log_entries;
     assert_test_log_entries(\%log_entries, \@boots);
     # verify sealing
+    sleep ${\SEALING_DELAY};
     verify_journal($keyid);
     # Rotate once more and verify the journal afterwards
     assert_script_run('journalctl --rotate');
