@@ -77,8 +77,8 @@ sub check_function {
 # Check rpcbind service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_rpcbind_check {
-    my ($stage, $type) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
     $nfs_server   = 'nfsserver' if ($type eq 'SystemV');
     if ($stage eq 'before') {

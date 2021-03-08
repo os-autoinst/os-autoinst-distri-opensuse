@@ -50,15 +50,17 @@ sub check_function {
 # check apache service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_apache_check {
-    my ($stage, $type) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage  = $hash{stage};
+    my $type   = $hash{service_type};
+    my $pkg    = $hash{srv_pkg_name};
     if ($stage eq 'before') {
         install_service();
-        common_service_action('apache2', $type, 'enable');
-        common_service_action('apache2', $type, 'start');
+        common_service_action($pkg, $type, 'enable');
+        common_service_action($pkg, $type, 'start');
     }
-    common_service_action('apache2', $type, 'is-enabled');
-    common_service_action('apache2', $type, 'is-active');
+    common_service_action($pkg, $type, 'is-enabled');
+    common_service_action($pkg, $type, 'is-active');
     check_function();
 }
 

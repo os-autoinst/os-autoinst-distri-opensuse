@@ -78,8 +78,8 @@ sub check_service {
 # Check dhcp service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_dhcpd_check {
-    my ($stage, $type) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
     if ($stage eq 'before') {
         install_service();
