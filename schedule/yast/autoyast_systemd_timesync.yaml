@@ -21,9 +21,4 @@ schedule:
   - installation/first_boot
   - console/verify_systemd_timesync
 test_data:
-  profile:
-    ntp-client:
-      ntp_servers:
-        ntp_server:
-          address: cz.pool.ntp.org
-      ntp_sync: 1
+  <<: !include test_data/yast/autoyast/profiles/systemd_timesync.yaml

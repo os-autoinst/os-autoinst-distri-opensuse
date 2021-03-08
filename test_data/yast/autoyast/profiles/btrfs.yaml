@@ -1,0 +1,21 @@
+---
+profile:
+  partitioning:
+    drive:
+      - enable_snapshots: 'true'
+        partitions:
+          partition:
+            - mount: swap
+            - mount: /
+              subvolumes_prefix: ''
+              fstopt: rw,relatime,space_cache
+              subvolumes:
+                subvolume:
+                  - path: usr/local
+                    copy_on_write: 'true'
+                  - path: opt
+                    copy_on_write: 'true'
+                  - path: tmp
+                    copy_on_write: 'false'
+            - mount: /var/log
+              fstopt: rw,relatime,nobarrier,nodatacow

@@ -1,0 +1,22 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/sda
+      - device: /dev/system
+        partitions:
+          partition:
+            - lv_name: swap
+              mount: swap
+            - lv_name: home
+              mount: /home
+      - device: /dev/sdb
+        disklabel: none
+        partitions:
+          partition:
+            - mount: /
+      - device: /dev/sdc
+        disklabel: none
+        partitions:
+          partition:
+            - lvm_group: system
