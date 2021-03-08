@@ -28,7 +28,7 @@ sub setup_rancher_container {
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
 
-    assert_script_run("$runtime pull rancher/rancher", timeout => 600);
+    assert_script_run("$runtime pull docker.io/rancher/rancher:latest", timeout => 600);
     assert_script_run("$runtime run --name rancher_webui --privileged -d --restart=unless-stopped -p 80:80 -p 443:443 rancher/rancher");
 
     # Check every 30 seconds that the cluster is setup. Times out after 20 minutes
