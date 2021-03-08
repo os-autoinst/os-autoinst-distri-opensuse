@@ -1278,17 +1278,11 @@ sub shorten_url {
 
     my $ua = Mojo::UserAgent->new;
 
-    my $tx = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}});
-    if (my $res = $tx->success) {
-        return $res->body;
-    }
-    else {
-        my $err = $tx->error;
-        die "Shorten url got $err->{code} response: $err->{message}" if $err->{code};
-        die "Connection error when shorten url: $err->{message}";
-    }
+    my $res = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}})->result;
+    if    ($res->is_success) { return $res->body }
+    elsif ($res->is_error)   { die "Shorten url got $res->code response: $res->message" }
+    else                     { die "Shorten url failed with unknown error" }
 }
-
 
 =head2 _handle_login_not_found
 
