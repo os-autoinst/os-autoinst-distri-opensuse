@@ -187,9 +187,9 @@ sub test_opensuse_based_image {
 }
 
 sub verify_userid_on_container {
-    my ($runtime, $image) = @_;
-    record_info "host uid", script_output "echo \$UID";
-
+    my ($runtime, $image, $start_id) = @_;
+    my $huser_id = script_output "echo \$UID";
+    record_info "host uid",          "$huser_id";
     record_info "root default user", "rootless mode process runs with the default container user(root)";
     my $cid = script_output "$runtime run -d --rm --name test1 $image sleep infinity";
     validate_script_output "$runtime top $cid user huser", sub { /root\s+1000/ };
@@ -197,7 +197,8 @@ sub verify_userid_on_container {
 
     record_info "non-root user", "process runs under the range of subuids assigned for regular user";
     $cid = script_output "$runtime run -d --rm --name test2 --user 1000 $image sleep infinity";
-    validate_script_output "$runtime top $cid user huser", sub { /1000\s+200999/ };
+    my $id = $start_id + $huser_id - 1;
+    validate_script_output "$runtime top $cid user huser", sub { /1000\s+${id}/ };
     validate_script_output "$runtime top $cid capeff",     sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
