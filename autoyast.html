@@ -20,6 +20,16 @@
       <li><a href="#expand_template">expand_template</a></li>
       <li><a href="#init_autoyast_profile">init_autoyast_profile</a></li>
       <li><a href="#validate_autoyast_profile">validate_autoyast_profile</a></li>
+      <li><a href="#is_processable">is_processable</a></li>
+      <li><a href="#has_properties">has_properties</a></li>
+      <li><a href="#create_xpath_predicate">create_xpath_predicate</a></li>
+      <li><a href="#close_predicate">close_predicate</a></li>
+      <li><a href="#ns">ns</a></li>
+      <li><a href="#get_traversable">get_traversable</a></li>
+      <li><a href="#get_descendant">get_descendant</a></li>
+      <li><a href="#generate_expressions">generate_expressions</a></li>
+      <li><a href="#run_expressions">run_expressions</a></li>
+      <li><a href="#create_report">create_report</a></li>
       <li><a href="#detect_profile_directory">detect_profile_directory</a></li>
       <li><a href="#expand_version">expand_version</a></li>
       <li><a href="#adjust_network_conf">adjust_network_conf</a></li>
@@ -71,19 +81,126 @@
 
 <pre><code>  validate_autoyast_profile($profile);</code></pre>
 
-<p>Validate AutoYaST profile traversing yaml test data $profile is the root node in the test data</p>
+<p>Validate XML AutoYaST profile traversing YAML test data $profile is the root node in the test data</p>
 
-<p>Expected yaml data should mimic structure of xml file for AutoYaST profile, so hashes and arrays in the yaml should represent nodes in the xml file.</p>
+<p>Expected YAML data should mimic structure of XML file for the AutoYaST profile, so hashes and arrays in the yaml should represent nodes in the xml file.</p>
 
-<p>In case of list in xml, yaml structure should be represented as an array, so it would be able to generate expression to check that element on the list met expectations. If a hash is used instead, it will validate its inner value but it will not check size of the list.</p>
+<p>Generates a list of XPATH expressions based on the YAML file provided, run those expressions and create a summary based with the errors found and all the expressions.</p>
 
-<p>To identify an element in a list (as they are not ordered) on xml via xpath it has been added an special field in yaml named &#39;unique_key&#39; which value is the name of the selected property to search the element on the list. When that property is not a direct child (in other words, it is not at the same level in the yaml) it should be specify in yaml &#39;unique_value&#39; to specify the value expected for that inner/nested property (it is verbose but avoid to search every time in the whole yaml tree). For instance:</p>
+<p>See function &#39;generate_expressions&#39; for further info.</p>
 
-<p>- drive: unique_key: mount unique_value: / ... partitions: - partition: unique_key: label ... label: root_multi_btrfs mount: /</p>
+<h2 id="is_processable">is_processable</h2>
 
-<p>In the example, the tester chose &#39;mount&#39; node/value to distinguish this &#39;drive&#39; from other &#39;drive&#39; nodes in the xml. In order to distinguish that particular &#39;partition&#39; node only &#39;unique_key&#39; was required because label is a direct child of &#39;partition&#39; node in the xml.</p>
+<pre><code>    is_processable($node);
 
-<p>Finally, creates a report at the end with errors (both yaml and execution errors) and overall expressions executed.</p>
+  A node is considered &#39;processable&#39; when:
+   - is a simple key-value pair where value is text:
+     quotas: &#39;true&#39;
+   - has properties:
+     quotas:
+       _t: boolean
+       __text: &#39;true&#39;
+  In other words, a node is not processable when just needs to be traversed in the YAML.</code></pre>
+
+<h2 id="has_properties">has_properties</h2>
+
+<pre><code>  has_properties($node);</code></pre>
+
+<p>- A XML node can be specified in YAML along with its attributes from XML: XML: &lt;subvolumes t=&quot;list&quot;&gt; YAML: subvolumes: _t: list XPATH: ns:subvolumes[@t=&#39;list&#39;]</p>
+
+<p>- XPATH functions can be used:</p>
+
+<pre><code>    &#39;count&#39;: when you want to explicitly count the element in a list
+    XML:  &lt;subvolumes t=&quot;list&quot;&gt;
+            &lt;subvolume t=&quot;map&quot;&gt;
+    YAML: subvolumes:
+            __count: 8
+            subvolume:
+                ...
+    XPATH: ns:subvolumes[count(ns:subvolume)=8]
+
+    &#39;text&#39;: when you want to check some attribute and the text itself
+    XML:  &lt;quotas t=&quot;boolean&quot;&gt;true&lt;/quotas&gt;
+    YAML: quotas:
+            _t: boolean
+            __text: true
+    XPATH: ns:quotas[text()=&#39;true&#39; and @t=&#39;boolean&#39;]
+
+    &#39;descendant&#39;: by default the algorithm will try to identify an element
+    in a list using direct children, but with this property is it possible to
+    add children which are descendant but not necessarily direct children.
+    It is useful when XML structure are almost exactly the same for different
+    list items and the only difference is found in more deeper descendants,
+    therefore avoiding to return multiple result for an XPATH expression.
+
+    YAML:
+            drive:
+            - label: 
+                _descendant: any
+                __text: root_multi_btrfs
+                disklabel: none
+                partitions:
+                partition:
+                - filesystem: btrfs
+                    label: root_multi_btrfs
+            - label: 
+                _descendant: any
+                __text: test_multi_btrfs
+                disklabel: none        
+                partitions:
+                partition:
+                - filesystem: btrfs
+                    label: test_multi_btrfs</code></pre>
+
+<h2 id="create_xpath_predicate">create_xpath_predicate</h2>
+
+<pre><code>    create_xpath_predicate($node);</code></pre>
+
+<p>Based on the properties of the node will create a predicate for the XPATH expression.</p>
+
+<h2 id="close_predicate">close_predicate</h2>
+
+<pre><code>    close_predicate(@array);</code></pre>
+
+<p>Joins a list of intermediate predicates and closes it to create one XPATH predicate.</p>
+
+<h2 id="ns">ns</h2>
+
+<pre><code>    ns($node);</code></pre>
+
+<p>Add XML namespace to the node declared in YAML file to be able to build the correct XPATH expression with namespaces.</p>
+
+<h2 id="get_traversable">get_traversable</h2>
+
+<pre><code>    get_traversable($node);</code></pre>
+
+<p>Return the node &#39;traversable&#39; of a node which contains properties, so it returns the key of the hash needed to continue traversing the YAML.</p>
+
+<p>Example which would return &#39;subvolume&#39; as the key to continue traversing. YAML: subvolumes: _t: list __count: 8 subvolume: - path: var</p>
+
+<h2 id="get_descendant">get_descendant</h2>
+
+<pre><code>    get_descendant($node);</code></pre>
+
+<p>It will apply the right separator in case direct children nodes (default) or any descendant is applied (&#39;&#39; also means ./ for direct children)</p>
+
+<h2 id="generate_expressions">generate_expressions</h2>
+
+<pre><code>    generate_expressions($node);</code></pre>
+
+<p>Recursive algorithm to traverse YAML file and create a list of XPATH expressions.</p>
+
+<h2 id="run_expressions">run_expressions</h2>
+
+<pre><code>    run_expressions($args);</code></pre>
+
+<p>Run XPATH expressions. Errors handled are &#39;no node found&#39; and &#39;more than one node found&#39;</p>
+
+<h2 id="create_report">create_report</h2>
+
+<pre><code>    create_report($args);</code></pre>
+
+<p>Create a report with the errors found and listing all the XPATH expressions executed.</p>
 
 <h2 id="detect_profile_directory">detect_profile_directory</h2>
 
