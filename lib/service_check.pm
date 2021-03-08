@@ -247,7 +247,7 @@ sub install_services {
                     $service_type = 'Systemd';
                 }
                 if (exists $service->{$s}->{service_check_func}) {
-                    $service->{$s}->{service_check_func}->('before', $service_type);
+                    $service->{$s}->{service_check_func}->(%{$service->{$s}}, service_type => $service_type, stage => 'before');
                     next;
                 }
                 zypper_call "in $srv_pkg_name";
@@ -285,7 +285,7 @@ sub check_services {
                 # service check after migration. if we've set up service check
                 # function, we don't need following actions to check the service.
                 if (exists $service->{$s}->{service_check_func}) {
-                    $service->{$s}->{service_check_func}->('after', 'Systemd');
+                    $service->{$s}->{service_check_func}->(%{$service->{$s}}, service_type => $service_type, stage => 'after');
                     next;
                 }
                 common_service_action($srv_proc_name, $service_type, 'is-active');

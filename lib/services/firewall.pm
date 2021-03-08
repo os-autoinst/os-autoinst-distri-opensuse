@@ -59,7 +59,8 @@ sub check_service {
 #           'before' for SuSEfirewall2 or
 #           'after' for firewalld after system migration.
 sub full_firewall_check {
-    my ($stage) = @_;
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
     # we just support SLE12 to SLES15 SuSEfirewall2 to firewalld check
     return if (get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4');

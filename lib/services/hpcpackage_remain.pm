@@ -86,8 +86,9 @@ sub check_pkg {
 }
 
 sub full_pkgcompare_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
+
     if ($stage eq 'before') {
         list_pkg("orignalq1w2.txt");
         install_pkg();

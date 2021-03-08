@@ -263,8 +263,8 @@ sub check_service {
 }
 
 sub check_y2_nfs_func {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
     if ($stage eq 'before') {
         install_service();
         config_service($rw, $ro);
