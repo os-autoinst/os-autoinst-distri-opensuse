@@ -21,7 +21,8 @@ our @EXPORT = qw(
   validate_filesystem
   validate_read_write
   validate_unpartitioned_space
-  validate_subvolume);
+  validate_subvolume
+  validate_mounting_option);
 
 sub validate_partition_table {
     my $args = shift;
@@ -80,6 +81,17 @@ sub validate_subvolume {
         "Check if $args->{subvolume} subvolume exists in $args->{mount_point} partition");
     assert_script_run("btrfs subvolume list $args->{mount_point} | grep $args->{subvolume}",
         fail_message => "Subvolume $args->{subvolume} does not exist in $args->{mount_point} partition");
+}
+
+sub validate_mounting_option {
+    my $args = shift;
+    record_info("Check $args->{partition}",
+        "Check if $args->{partition} partition is mounted by $args->{mount_by} option");
+    my %mount_by = (
+        UUID          => "UUID",
+        "Device Name" => "/dev/$args->{partition}",
+        "Device Path" => "/dev/disk/by-path/");
+    assert_script_run("grep \"$mount_by{$args->{mount_by}}\" /etc/fstab | grep \" $args->{mount_point} \"");
 }
 
 1;

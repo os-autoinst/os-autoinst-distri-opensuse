@@ -28,7 +28,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning/setup_lvm
+  - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/user_settings
