@@ -38,6 +38,11 @@ use constant {
     SEALING_DELAY      => 10
 };
 
+# If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
+sub corrupted_logfiles {
+    return (script_output('find /var/log/journal/$(cat /etc/machine-id) -iname "*.journal~" -type f -print0') ne "");
+}
+
 sub is_journal_empty {
     my ($args, $filename) = @_;
     assert_script_run("journalctl -q $args > $filename");
@@ -51,7 +56,7 @@ sub verify_journal {
     my $cmd = 'journalctl --verify';
     $cmd .= " --verify-key=$fss_key" if defined($fss_key);
 
-    script_run('journactl --flush');    # ensure data is written to persistent log
+    assert_script_run('journalctl --flush');    # ensure data is written to persistent log
     return if (script_run("$cmd 2>&1 | tee errs") == 0);
     # Check for https://bugzilla.suse.com/show_bug.cgi?id=1171858, corruption bug when FSS is enabled
     if (defined($fss_key) && (script_run("grep 'tag/entry realtime timestamp out of synchronization' errs") == 0)) {
@@ -61,8 +66,10 @@ sub verify_journal {
     } elsif (defined($fss_key) && (script_run("egrep 'No sealing yet,.*of entries not sealed.' errs") == 0)) {
         die "Sealing is not working!\n";
         # Check for https://bugzilla.suse.com/show_bug.cgi?id=1178193, a race condition for `journalctl --verify`
-    } elsif ((script_run("grep 'File corruption detected' errs") == 0) && script_run("$cmd")) {
+    } elsif ((script_run("grep 'File corruption detected' errs") == 0)) {
         record_soft_failure("bsc#1178193 - Journal corruption race condition");
+    } elsif (corrupted_logfiles) {
+        die "The daemon is stopped not in a clean way, or corrupted files have been detected\n";
     } else {
         assert_script_run("mv errs journalctl-verify-err.txt");
         upload_logs('journalctl-verify-err.txt');
@@ -97,6 +104,18 @@ sub assert_test_log_entries {
                 retry => 5, delay => 2);
             assert_script_run("grep $entries->{$_} ${\ SYSLOG }") if is_sle;
         }
+    }
+}
+
+sub rotatelogs_and_verify {
+    push my @existing_rotations, split('\n', script_output('find /var/log/journal/ -regex ".*system\@.*" -o -regex ".*user-.*"'));
+    my $systemd_journal_birth = script_output 'stat -c %W /var/log/journal/$(cat /etc/machine-id)/system.journal';
+    assert_script_run('journalctl --rotate');
+    if ($systemd_journal_birth >= script_output('stat -c %W /var/log/journal/$(cat /etc/machine-id)/system.journal')) {
+        die "New system.journal file has not been created!\n";
+    }
+    if (scalar(@existing_rotations) >= scalar(split('\n', script_output('find /var/log/journal/ -regex ".*system\@.*" -o -regex ".*user-.*"')))) {
+        die "Logs have not been rotated!\n";
     }
 }
 
@@ -191,10 +210,11 @@ sub run {
         script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
         assert_script_run('jobs | grep socat', fail_message => "socat is not running");
         # Redirect journal to virtual serial console and syslog
-        assert_script_run "echo -e '[Journal]\nForwardToConsole=yes\nTTYPath=/dev/ttyS100\nMaxLevelConsole=info' | tee ${\ DROPIN_DIR }/fw-ttyS100.conf";
+        assert_script_run(q(echo -e '[Journal]\nForwardToConsole=yes\nTTYPath=/dev/ttyS100\nMaxLevelConsole=info') . "| tee ${\ DROPIN_DIR }/fw-ttyS100.conf");
         systemctl 'restart systemd-journald.service';
         script_run('cat /dev/ttyS101 > /var/tmp/journal_serial.out & true');
         assert_script_run('echo "journal redirect output started (grep for: aeru4Poh eiDeik5l)" | systemd-cat -p info -t redirect');
+        script_run('cat /var/tmp/journal_serial.out');
         die "Serial forward failed" if (script_retry('grep "aeru4Poh eiDeik5l" /var/tmp/journal_serial.out', retry => 5, delay => 2, die => 0) != 0);
         # Stop redirecting to serial console and syslog
         assert_script_run('rm /etc/systemd/journald.conf.d/fw-ttyS100.conf');
@@ -232,7 +252,7 @@ sub run {
         err   => q{'We NEED to call the batman NOW-after sealing'},
         emerg => q{'CALL THE BATMAN NOW!1!! AARRGGH!!-after sealing'}
     );
-    assert_script_run('journalctl --rotate');
+    rotatelogs_and_verify;
     # remove first bootid
     shift @boots;
     write_test_log_entries \%log_entries;
@@ -241,7 +261,7 @@ sub run {
     sleep ${\SEALING_DELAY};
     verify_journal($keyid);
     # Rotate once more and verify the journal afterwards
-    assert_script_run('journalctl --rotate');
+    rotatelogs_and_verify;
     # Additional journalctl commands/use cases
     assert_script_run('journalctl --vacuum-size=100M');
     assert_script_run('journalctl --vacuum-time=1years');
@@ -258,12 +278,17 @@ sub cleanup {
 }
 
 sub post_fail_hook {
+
     select_console 'log-console';
-    shift->save_and_upload_log('journalctl', '/tmp/journalctl.txt', {screenshot => 1});
+    script_run 'cp -a /var/log/journal /var/log/journal-backup';
+    script_run 'tar Jcvf journal.tar.xz /var/log/journal/';
+    script_run 'tar Jcvf journal-backup.tar.xz /var/log/journal-backup';
     if (script_run('test -s /var/tmp/journalctl-setup-keys.txt') == 0) {
         upload_logs('/var/tmp/journalctl-setup-keys.txt');
     }
     upload_logs('/etc/systemd/journald.conf');
+    upload_logs('./journal.tar.xz');
+    upload_logs('./journal-backup.tar.xz');
     cleanup();
 }
 
