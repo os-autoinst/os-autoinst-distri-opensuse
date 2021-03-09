@@ -157,8 +157,8 @@ sub run {
     }
 
     hyperv_cmd("$ps Get-VM");
-    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
-    hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
+    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff",                                       {ignore_return_code => 1});
+    hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; Remove-VM -Force $name"), {ignore_return_code => 1});
 
     my $hddsize            = get_var('HDDSIZEGB', 20);
     my $vm_generation      = get_var('UEFI') ? 2 : 1;
@@ -173,7 +173,7 @@ sub run {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
                 my $disk_path = "$root\\cache\\${name}_${n}${hddsuffix}";
                 push @disk_paths, $disk_path;
-                hyperv_cmd_with_retry("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
+                hyperv_cmd_with_retry(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -ParentPath $hdd -Path $disk_path -Differencing"));
             }
             else {
                 my $disk_path = "$root\\cache\\${name}_${n}.vhdx";
@@ -247,7 +247,7 @@ sub run {
       . get_var('HYPERV_SERVER') . ' +auto-reconnect /auto-reconnect-max-retries:10'
       . " /cert-ignore /vmconnect:$vmguid /f -floatbar /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
-    hyperv_cmd_with_retry("$ps Start-VM $name");
+    hyperv_cmd_with_retry(qq($ps "\$ProgressPreference='SilentlyContinue'; Start-VM $name"));
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';
