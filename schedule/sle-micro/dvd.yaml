@@ -14,8 +14,10 @@ schedule:
     - installation/disable_grub_timeout
     - installation/start_install
     - installation/await_install
+    - installation/logs_from_installation_system
     - installation/reboot_after_installation
     - microos/disk_boot
+    - console/textinfo
     - microos/networking
     - microos/libzypp_config
     - microos/one_line_checks
