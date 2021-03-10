@@ -1,0 +1,32 @@
+---
+name: remote_ssh_controller
+description: >
+  Multi-machine test using one VM to trigger installation over ssh using ftp
+  mirror, second VM connects over ssh and conducts the installation.
+  Installation is validated by successful boot and that YaST does not report
+  any issue. Installs remote server (parallel job) with ssh.
+conditional_schedule:
+  modules:
+    DISTRI:
+      'sle-micro':
+        - installation/accept_license
+        - installation/scc_registration
+      'microos':
+        - installation/online_repos
+        - installation/installation_mode
+        - installation/system_role
+schedule:
+  - support_server/login
+  - support_server/setup
+  - remote/remote_controller
+  - installation/welcome
+  - '{{modules}}'
+  - installation/ntp_config_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - support_server/wait_children
