@@ -128,7 +128,7 @@ sub prepare_freeradius_server {
     # we can authenticate with PEAP+MSCHAPv2, TLS and TTLS/PAP
     assert_script_run(sprintf(q(echo '%s ClearText-Password := "%s"' >> /etc/raddb/users),
             $self->eap_user, $self->eap_password));
-    assert_script_run('(cd /etc/raddb/certs && ./bootstrap)', timeout => 300);
+    assert_script_run('time (cd /etc/raddb/certs && ./bootstrap)', timeout => 600);
     assert_script_run(q(openssl rsa -in /etc/raddb/certs/client.key -out /etc/raddb/certs/client_no_pass.key -passin pass:'whatever'));
 }
 
