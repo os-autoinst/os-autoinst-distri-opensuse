@@ -48,7 +48,6 @@ sub run {
     if ($is_generalhw_via_ssh) {
         # Do not set network down as we are connected through ssh!
         my $filetoedit = is_leap('<=15.2') ? '/usr/lib/jeos-firstboot' : '/usr/share/jeos-firstboot/jeos-firstboot-dialogs';
-        $filetoedit = '/usr/sbin/jeos-firstboot' unless is_leap;    # Change is not in TW just yet
         assert_script_run("sed -i 's/ip link set down /# ip link set down/g' $filetoedit");
     }
     # Remove current root password
