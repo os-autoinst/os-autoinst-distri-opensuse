@@ -36,7 +36,7 @@ sub run {
     # check service (without restarting)
     systemctl('is-enabled kdump');
 
-    validate_cfg_file(get_test_suite_data()->{configuration_files});
+    validate_cfg_file(get_test_suite_data()->{config_files});
 
     # delete additional modules
     remove_suseconnect_product('sle-module-development-tools');

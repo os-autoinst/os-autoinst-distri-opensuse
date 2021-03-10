@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-img-proof
 # Summary: Use img-proof framework to test public cloud SUSE images
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -46,16 +47,20 @@ our $gce_byos      = $test_sles_for_dev . ',test_sles_gce';
 our $gce_on_demand = $test_sles_for_dev . ',test_update,test_sles_smt_reg,test_sles_guestregister,' . $test_sles_on_demand_for_dev . ',test_sles_gce';
 
 our $img_proof_tests = {
-    'Azure-BYOS'             => $azure_byos,
-    'AZURE-BYOS-Updates'     => $azure_byos_updates,
-    'Azure-Basic'            => $azure_on_demand,
-    'AZURE-Basic-Updates'    => $azure_on_demand_updates,
-    'Azure-Standard'         => $azure_on_demand,
-    'AZURE-Standard-Updates' => $azure_on_demand_updates,
-    'Azure-CHOST-BYOS'       => $azure_byos,
-    'Azure-HPC'              => $azure_on_demand,
-    'Azure-HPC-BYOS'         => $azure_byos,
-    'AZURE-Priority-Updates' => $azure_on_demand_updates,
+    'Azure-BYOS'                  => $azure_byos,
+    'AZURE-BYOS-Updates'          => $azure_byos_updates,
+    'AZURE-BYOS-gen2-Updates'     => $azure_byos_updates,
+    'Azure-Basic'                 => $azure_on_demand,
+    'AZURE-Basic-Updates'         => $azure_on_demand_updates,
+    'AZURE-Basic-gen2-Updates'    => $azure_on_demand_updates,
+    'Azure-Standard'              => $azure_on_demand,
+    'AZURE-Standard-Updates'      => $azure_on_demand_updates,
+    'AZURE-Standard-gen2-Updates' => $azure_on_demand_updates,
+    'Azure-CHOST-BYOS'            => $azure_byos,
+    'Azure-HPC'                   => $azure_on_demand,
+    'Azure-HPC-BYOS'              => $azure_byos,
+    'AZURE-Priority-Updates'      => $azure_on_demand_updates,
+    'AZURE-Priority-gen2-Updates' => $azure_on_demand_updates,
 
     'EC2-CHOST-BYOS'       => $ec2_byos_chost,
     'EC2-HVM'              => $ec2_on_demand,

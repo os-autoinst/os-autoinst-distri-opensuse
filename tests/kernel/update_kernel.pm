@@ -54,6 +54,15 @@ sub prepare_azure {
     boot_to_console($self);
 }
 
+sub prepare_kernel_base {
+    my $self = shift;
+
+    remove_kernel_packages();
+    zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    power_action('reboot', textmode => 1);
+    boot_to_console($self);
+}
+
 sub update_kernel {
     my ($repo, $incident_id) = @_;
 
@@ -389,6 +398,10 @@ sub run {
             update_kernel($repo, $incident_id);
         }
     }
+    elsif (get_var('KERNEL_BASE')) {
+        $self->prepare_kernel_base;
+        update_kernel($repo, $incident_id);
+    }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
     }
@@ -432,6 +445,12 @@ kernel as in the default case.
 When AZURE_FIRST_RELEASE evaluates to true, install kernel-azure directly
 from incident repository and update system. This is a chicken&egg workaround
 because there is never any kernel-azure package in the pool repository.
+
+=head2 KERNEL_BASE
+
+When KERNEL_BASE variable evaluates to true, the job should test the
+alternative minimal kernel. Uninstall kernel-default and install
+kernel-default-base instead. Then update kernel as in the default case.
 
 =head2 KOTD_REPO
 

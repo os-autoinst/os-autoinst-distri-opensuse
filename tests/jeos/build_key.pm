@@ -17,6 +17,8 @@ use testapi;
 use version_utils "is_opensuse";
 
 sub run {
+    select_console 'root-console';
+
     if (is_opensuse) {
         assert_script_run("rpm -qi openSUSE-build-key");
     }

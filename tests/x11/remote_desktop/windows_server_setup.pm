@@ -22,9 +22,9 @@ sub run {
     my $self = shift;
 
     assert_and_click "start";
+    sleep 5;
     type_string "allow remote connections";
-    assert_screen "start_menu-remote_access-controlpanel";
-    send_key "ret";
+    assert_and_click "start_menu-remote_access-controlpanel";
 
     assert_and_click "show-settings";
     assert_and_click "allow-remote-connections";

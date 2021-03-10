@@ -18,7 +18,6 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle);
-use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run_python_script {
     my $script  = shift;
@@ -28,8 +27,9 @@ sub run_python_script {
     assert_script_run("chmod a+rx '$script'");
     assert_script_run("./$script 2>&1 | tee $logfile");
     if (script_run("grep 'Softfail' $logfile") == 0) {
-        # bsc#1180605 is only relevant for SLE > 15-SP2.
-        if (script_run("grep 'Softfail' $logfile | grep 'bsc#1180605'") == 0 && is_sle("<=15-SP2")) {
+        # bsc#1180605 is only relevant for SLE >= 15-SP2 but not yet available for 15-SP3
+        # Note: Remote 'is_sle(">15-SP2")' when available in PackageHub
+        if (script_run("grep 'Softfail' $logfile | grep 'bsc#1180605'") == 0 && (is_sle("<15-SP2") || is_sle(">15-SP2"))) {
             record_info("scipy-fft", "scipy-fft module not available for SLE <= 15-SP2");
         } else {
             my $failmsg = script_output("grep 'Softfail' '$logfile'");
@@ -41,11 +41,7 @@ sub run_python_script {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
-    if (is_sle) {
-        cleanup_registration();
-        register_product();
-        add_suseconnect_product(get_addon_fullname('phub'));
-    }
+
     my $scipy = is_sle('<15-sp1') ? '' : 'python3-scipy';
     zypper_call "in python3 python3-numpy $scipy";
     # Run python scripts
@@ -53,21 +49,13 @@ sub run {
     run_python_script('python3-scipy-test.py') unless is_sle('<15-sp1');
 }
 
-sub cleanup() {
-    if (is_sle) {
-        remove_suseconnect_product(get_addon_fullname('phub'));
-    }
-}
-
 sub post_fail_hook {
     my $self = shift;
-    cleanup();
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my $self = shift;
-    cleanup();
     $self->SUPER::post_run_hook;
 }
 

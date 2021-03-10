@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper
 # Summary: Verify that essential snapshots cannot be deleted, see https://jira.suse.com/browse/SLE-3804
 # Maintainer: QA SLE Functional YaST <qa-sle-yast@suse.de>
 

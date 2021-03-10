@@ -38,8 +38,10 @@ use Installation::Partitioner::LibstorageNG::v4_3::PartitionIdFormatMountOptions
 use Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage;
 use Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
-
+use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
+use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
+use Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage;
 
 use YuiRestClient;
 
@@ -73,6 +75,9 @@ sub init {
     $self->{EncryptPartitionPage}              = Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage->new({app => YuiRestClient::get_app()});
     $self->{FormatMountOptionsPage}            = Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{LogicalVolumeSizePage}             = Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage->new({app => YuiRestClient::get_app()});
+    $self->{RaidTypePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage->new({app => YuiRestClient::get_app()});
+    $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{FstabOptionsPage}                  = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -182,6 +187,21 @@ sub get_logical_volume_size_page {
     return $self->{LogicalVolumeSizePage};
 }
 
+sub get_raid_type_page {
+    my ($self) = @_;
+    return $self->{RaidTypePage};
+}
+
+sub get_raid_options_page {
+    my ($self) = @_;
+    return $self->{RaidOptionsPage};
+}
+
+sub get_fstab_options_page {
+    my ($self) = @_;
+    return $self->{FstabOptionsPage};
+}
+
 sub add_partition {
     my ($self, $args) = @_;
     my $table_type = $args->{table_type} // '';
@@ -227,6 +247,7 @@ sub add_partition_gpt_non_encrypted {
     $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
     $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
     $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_fstab_options_page()->edit_fstab_options($part->{fstab_options})                                if $part->{fstab_options};
     $self->get_partition_id_format_mount_options_page()->press_next();
 }
 
@@ -290,11 +311,15 @@ sub add_raid {
     my ($self, $args) = @_;
     my $raid_level            = $args->{raid_level};
     my $device_selection_step = $args->{device_selection_step};
+    my $chunk_size            = $args->{chunk_size};
     $self->get_expert_partitioner_page()->select_raid();
     $self->get_expert_partitioner_page()->press_add_raid_button();
     $self->get_raid_type_page()->set_raid_level($raid_level);
-    $self->get_raid_type_page()->select_devices_from_list($device_selection_step);
+    foreach my $device (@{$args->{devices}}) {
+        $self->get_raid_type_page()->add_device($device);
+    }
     $self->get_raid_type_page()->press_next();
+    $self->get_raid_options_page()->select_chunk_size($chunk_size) if $chunk_size;
     $self->get_raid_options_page()->press_next();
     $self->add_raid_partition($args->{partition});
 }

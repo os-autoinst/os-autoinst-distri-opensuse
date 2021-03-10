@@ -113,7 +113,7 @@ sub switch_users {
     assert_screen "originUser-login-dm";
     #For poo#88247, we have to restore current user's password before migration,
     #so here need to use the original password.
-    type_password get_var('INCLUDE_SERVICES') ? "$password\n" : "$newpwd\n";
+    type_password(get_required_var('FLAVOR') =~ /Migration/ ? "$password\n" : "$newpwd\n");
     assert_screen "generic-desktop", 120;
 }
 

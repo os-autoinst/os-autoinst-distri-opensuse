@@ -1,0 +1,32 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/sda
+        partitions:
+          partition:
+            - mount: swap
+            - mount: /
+              filesystem: btrfs
+              subvolumes:
+                subvolume:
+                  - path: usr/local
+                    copy_on_write: 'true'
+                  - path: opt
+                    copy_on_write: 'true'
+                  - path: tmp
+                    copy_on_write: 'true'
+                  - path: root
+                    copy_on_write: 'true'
+                  - path: boot/grub2/i386-pc
+                    copy_on_write: 'true'
+                  - path: boot/grub2/x86_64-efi
+                    copy_on_write: 'true'
+                  - path: var
+                    copy_on_write: 'false'
+                  - path: srv
+                    copy_on_write: 'true'
+            - mount: /home
+              crypt_key: ENTER KEY HERE
+              crypt_method: luks1
+              filesystem: xfs

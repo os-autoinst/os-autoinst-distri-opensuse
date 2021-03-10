@@ -22,9 +22,9 @@ schedule:
   - installation/reboot_after_installation
   - installation/first_boot
   - console/system_prepare
-  - console/check_network
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/verify_network
   - locale/keymap_or_locale
   - console/force_scheduled_tasks
   - console/textinfo

@@ -31,14 +31,14 @@ use utils;
 sub run {
     select_console 'root-console';
 
-    validate_cfg_file(get_test_suite_data()->{configuration_files});
+    validate_cfg_file(get_test_suite_data()->{config_files});
 }
 
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
     # Upload all configurations files which were validated
-    upload_logs for (@{get_test_suite_data()->{configuration_files}});
+    upload_logs for (@{get_test_suite_data()->{config_files}});
 }
 
 1;

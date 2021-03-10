@@ -16,7 +16,7 @@ use File::Basename;
 use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
-use suse_container_urls 'get_suse_container_urls';
+use containers::urls 'get_suse_container_urls';
 use autotest;
 use utils;
 use wicked::TestContext;
@@ -212,11 +212,12 @@ sub any_desktop_is_applicable {
 }
 
 sub opensuse_welcome_applicable {
-    # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2+ XFCE only
+    # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
+    # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     # since not all DEs honor xdg/autostart, we are filtering based on desktop environments
     # except for ppc64/ppc64le because not built libqt5-qtwebengine sr#323144
     my $desktop = shift // get_var('DESKTOP', '');
-    return (($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed) || ($desktop =~ /xfce/ && is_leap(">=15.2"))) && (get_var('ARCH') !~ /ppc64/);
+    return ((($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed) || ($desktop =~ /xfce/ && is_leap("=15.2"))) && (get_var('ARCH') !~ /ppc64/)) || (($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_leap(">=15.3")) && (get_var('ARCH') !~ /ppc64|s390/));
 }
 
 sub logcurrentenv {
@@ -578,6 +579,7 @@ sub load_jeos_tests {
             loadtest "jeos/grub2_gfxmode";
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
+            loadtest "console/prjconf_excluded_rpms";
         }
         if (is_sle) {
             loadtest "console/suseconnect_scc";
@@ -1072,7 +1074,8 @@ sub load_console_server_tests {
 }
 
 sub load_consoletests {
-    return                            unless consolestep_is_applicable();
+    return unless consolestep_is_applicable();
+    loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";
@@ -1184,7 +1187,7 @@ sub load_consoletests {
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
 # textmode install comes without firewall by default atm on openSUSE. For virtualization server xen and kvm is disabled by default: https://fate.suse.com/324207
-    if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon && !is_virtualization_server) {
+    if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_krypton_argon && !is_virtualization_server) {
         loadtest "console/firewall_enabled";
     }
     if (is_jeos) {
@@ -1658,7 +1661,6 @@ sub load_extra_tests_console {
     loadtest "console/clamav";
     loadtest "console/shells";
     loadtest 'console/sudo';
-    loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
@@ -1722,6 +1724,7 @@ sub load_extra_tests_docker {
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
     loadtest 'containers/registry';
     loadtest "containers/zypper_docker";
+    loadtest "containers/rootless_podman" unless is_sle('<15-SP2');
 }
 
 sub load_extra_tests_prepare {
@@ -2343,6 +2346,7 @@ sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
     loadtest "security/apparmor/aa_notify";
+    loadtest "security/apparmor/aa_disable";
 }
 
 sub load_security_tests_apparmor_profile {
@@ -2468,6 +2472,7 @@ sub load_security_tests_check_kernel_config {
 
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
     loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
+    loadtest "security/check_kernel_config/dm_crypt";
 }
 
 sub load_security_tests_pam {

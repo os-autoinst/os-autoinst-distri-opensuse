@@ -1,0 +1,12 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/system0
+      - device: /dev/vda
+        disklabel: gpt
+        partitions:
+          __count: 2
+          partition:
+            - crypt_method: luks1
+              loop_fs: 'true'

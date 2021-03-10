@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Create filesystem and check content
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

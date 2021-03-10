@@ -47,7 +47,14 @@ sub validate_cfg_file {
     # Accumulate errors
     my $errors = '';
     foreach my $cfg_file (@{$args}) {
-        my $path        = $cfg_file->{path};
+        my $path = $cfg_file->{path};
+        if ($cfg_file->{empty}) {
+            if (script_run("[ -s $path ]") == 0) {
+                $errors .= "No entries should be found in '$path'.\n";
+            }
+            next;
+        }
+
         my $cfg_content = script_output("cat $path");
 
         for my $setting (keys %{$cfg_file->{settings}}) {
@@ -57,8 +64,8 @@ sub validate_cfg_file {
                 next;
             }
             my $value = $cfg_file->{settings}->{$setting};
-            if ($conf_line !~ /^$setting=["]?$value["]?$/) {
-                $errors .= "Found unexpected setting value for '$setting' in $path.\n";
+            if ($conf_line !~ /^$setting=[",']?$value[",']?$/) {
+                $errors .= "Setting '$setting' with value '$value' not found in $path.\n";
             }
         }
 

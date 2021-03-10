@@ -39,7 +39,7 @@ function rungrep
   output=$($@ || exit 1)
 
   echo "$output"
-  echo "$output" | grep -q "$pattern"
+  echo "$output" | grep -Eq "$pattern"
 
   if [ ! $? = 0 ]
   then
@@ -136,8 +136,8 @@ run mdadm --create --verbose $MD_DEVICE --level=0 --raid-devices=3 --size=522240
 
 rungrep "active raid0" cat /proc/mdstat
 
-# Different fdisk versions either report "1.5 GiB" or "1.51 GiB"
-rungrep "1.51\? GiB" fdisk -l $MD_DEVICE
+# Different fdisk versions either report "1.5 GiB" or "1.49 GiB"
+rungrep "1.(5|49) GiB" fdisk -l $MD_DEVICE
 
 rungrep "Creating filesystem with" mkfs.ext4 $MD_DEVICE
 
@@ -245,7 +245,7 @@ run mdadm $MD_DEVICE --fail $DEV_2
 
 rungrep "clean, degraded" mdadm --detail $MD_DEVICE | fgrep "State :"
 
-rungrep "\[1\](F)" cat /proc/mdstat
+rungrep "\[1\]\(F\)" cat /proc/mdstat
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do
@@ -389,7 +389,7 @@ run mdadm $MD_DEVICE --fail $DEV_1
 
 rungrep "clean, degraded" mdadm --detail $MD_DEVICE | fgrep "State :"
 
-rungrep "\[0\](F)" cat /proc/mdstat
+rungrep "\[0\]\(F\)" cat /proc/mdstat
 
 for i in $(seq -w 1 $RANDOM_DATA_COPY_COUNT)
 do

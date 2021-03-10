@@ -40,8 +40,12 @@ test_data:
   <<: !include test_data/yast/raid/raid_prep_boot_test_data_pvm.yaml
   mds:
     - raid_level: 10
-      chunk_size: 64
-      device_selection_step: 3
+      chunk_size: '64 KiB'
+      devices:
+        - sda2
+        - sdb2
+        - sdc2
+        - sdd2
       partition:
         role: operating-system
         formatting_options:
@@ -49,8 +53,12 @@ test_data:
         mounting_options:
           should_mount: 1
     - raid_level: 1
-      chunk_size: 64
-      device_selection_step: 2
+      chunk_size: '64 KiB'
+      devices:
+        - sda3
+        - sdb3
+        - sdc3
+        - sdd3
       partition:
         role: data
         formatting_options:
@@ -60,7 +68,12 @@ test_data:
           should_mount: 1
           mount_point: '/boot'
     - raid_level: 0
-      chunk_size: 64
+      chunk_size: '64 KiB'
+      devices:
+        - sda4
+        - sdb4
+        - sdc4
+        - sdd4
       device_selection_step: 1
       partition:
         role: swap

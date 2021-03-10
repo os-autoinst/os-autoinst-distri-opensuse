@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: drbd-utils crmsh
 # Summary: DRBD active/passive OpenQA test
 # Create DRBD device
 # Create crm ressource

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: iproute2 hostname expect postfix dovecot telnet
 # Summary: Setup mail server for testing "usr.lib.dovecot.*" & "usr.sbin.dovecot":
 #          set up it with Postfix and Dovecot and create a testing mail.
 # - Set up mail server with Postfix and Dovecot

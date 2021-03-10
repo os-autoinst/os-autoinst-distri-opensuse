@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: apparmor-parser apparmor-utils dovecot
 # Summary: Test with "usr.lib.dovecot.*" (mainly *.pop3*) & "usr.sbin.dovecot"
 #          are in "enforce" mode retrieve mails with pop3 should have no error.
 # - Start apparmor service

@@ -45,10 +45,16 @@ sub basic_container_tests {
     my %args    = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
-    my $registry             = get_var('REGISTRY', 'docker.io');
+
+    my $registry = get_var('REGISTRY', 'docker.io');
+    # Images from docker.io registry are listed without the 'docker.io/library/'
+    # Images from custom registry are listed with the 'server/library/'
+    # We also filter images the same way they are listed.
+    my $prefix = ($registry =~ /docker\.io/) ? "" : "$registry/library/";
+
     my $alpine_image_version = '3.6';
-    my $alpine               = "$registry/library/alpine:$alpine_image_version";
-    my $hello_world          = "$registry/library/hello-world";
+    my $alpine               = "${prefix}alpine:$alpine_image_version";
+    my $hello_world          = "${prefix}hello-world";
     my $leap                 = "registry.opensuse.org/opensuse/leap";
     my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
 
@@ -70,6 +76,8 @@ sub basic_container_tests {
     #   - pull image of openSUSE Tumbleweed
     assert_script_run("$runtime image pull $tumbleweed", timeout => 600);
 
+    # All images can be listed
+    assert_script_run("$runtime image ls");
     # Local images can be listed
     assert_script_run("$runtime image ls none");
     #   - filter with tag
@@ -101,14 +109,10 @@ sub basic_container_tests {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # Containers' state can be saved to a docker image
-    my $exit_code = script_run("$runtime container exec $container_name zypper -n in curl", 300);
-    if ($exit_code && !check_var('ARCH', 's390x')) {
+    if (script_run("$runtime container exec $container_name zypper -n in curl", 300)) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
-    }
-    elsif (check_var('ARCH', 's390x')) {
-        record_soft_failure("bsc#1165922 s390x control.xml has wrong repos");
     }
     assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
@@ -213,7 +217,8 @@ The call should return false if the test is run on a non-sle host.
 
 =cut
 sub can_build_sle_base {
-    my $has_sle_registration = script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
+    # script_run returns 0 if true, but true is 1 on perl
+    my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
     return check_os_release('sles', 'ID') && $has_sle_registration;
 }
 

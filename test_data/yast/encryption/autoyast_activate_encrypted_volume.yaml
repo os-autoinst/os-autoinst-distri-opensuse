@@ -1,22 +1,4 @@
 mapped_device: '/dev/mapper/cr-auto-1'
-profile:
-  partitioning:
-    - drive:
-        unique_key: device
-        device: /dev/system0
-    - drive:
-        unique_key: device
-        device: /dev/vda
-        disklabel: gpt
-        partitions:
-          - partition:
-              unique_key: partition_nr
-              partition_nr: 1
-          - partition:
-              unique_key: partition_nr
-              partition_nr: 2
-              crypt_method: luks1
-              loop_fs: 'true'
 disks:
   - name: vda
     partitions:

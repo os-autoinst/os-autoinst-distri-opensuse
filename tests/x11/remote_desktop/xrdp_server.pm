@@ -86,7 +86,6 @@ sub run {
 
     if (is_sles4sap || is_tumbleweed) {
         # We don't have to test the reconnection and reboot part in SLES4SAP and TW
-        send_key "tab" if is_tumbleweed;
         handle_login;
     }
 

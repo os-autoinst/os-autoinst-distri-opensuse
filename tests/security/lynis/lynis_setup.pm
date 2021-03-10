@@ -32,10 +32,9 @@ sub run {
 
     select_console "root-console";
 
-    if (is_sle) {
-        add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1);
-        zypper_call("in lynis", timeout => 300);
-    }
+    add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1) if is_sle;
+    # Set timeout to 300s as the default 90s is not enough in some situations
+    zypper_call("in lynis", timeout => 300);
 
     # Record the pkgs' version for reference
     my $results = script_output("rpm -qi lynis");

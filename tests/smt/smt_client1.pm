@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,6 +30,7 @@ sub run {
     assert_script_run 'SUSEConnect --cleanup';
     assert_script_run 'SUSEConnect --status';
 
+    mutex_wait 'barrier_setup_done';
     barrier_wait 'smt_setup';
     #registration of client
     assert_script_run 'wget --no-check-certificate https://SERVER/repo/tools/clientSetup4SMT.sh';

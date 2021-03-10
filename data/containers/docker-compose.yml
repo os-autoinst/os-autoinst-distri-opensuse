@@ -2,7 +2,8 @@ version: "3.3"
 services:
 
   nginx:
-    image: nginx
+    # The REGISTRY is variable and will be replaced
+    image: REGISTRY/library/nginx
     networks:
       - backend
     volumes:
@@ -10,7 +11,8 @@ services:
     restart: on-failure
 
   haproxy:
-    image: haproxy
+    # The REGISTRY is variable and will be replaced
+    image: REGISTRY/library/haproxy
     volumes:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:

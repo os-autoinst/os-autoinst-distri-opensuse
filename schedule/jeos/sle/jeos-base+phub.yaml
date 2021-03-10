@@ -26,10 +26,11 @@ schedule:
     - jeos/grub2_gfxmode
     - jeos/diskusage
     - jeos/build_key
+    - console/prjconf_excluded_rpms
     - console/suseconnect_scc
     - console/machinery
-    - sysauth/sssd
+    #- sysauth/sssd
     - containers/docker_compose
     - network/cifs
     - console/orphaned_packages_check
-    - console/repo_orphaned_packages_check
+    - console/prjconf_excluded_rpms

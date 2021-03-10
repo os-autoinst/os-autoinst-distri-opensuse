@@ -66,7 +66,11 @@ sub run {
     }
     install_pkg;
     setup_environment;
-    power_action('poweroff', keepconsole => 1, textmode => 1);
+    if (check_var('ARCH', 'ppc64le')) {
+        power_action('reboot', keepconsole => 1, textmode => 1);
+    } else {
+        power_action('poweroff', keepconsole => 1, textmode => 1);
+    }
 }
 
 sub post_fail_hook {

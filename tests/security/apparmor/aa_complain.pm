@@ -1,4 +1,4 @@
-# Copyright (C) 2018 SUSE LLC
+# Copyright (C) 2018-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,18 +22,22 @@
 # - Put nscd back in enforce mode
 # - Cleanup temporary directories
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#36880, tc#1621142
+# Tags: poo#36880, tc#1621142, poo#81730, tc#1767574
 
 use strict;
 use warnings;
-use base "consoletest";
+use base "apparmortest";
 use testapi;
 use utils;
 use services::apparmor;
 
 sub run {
+    my ($self) = @_;
     select_console 'root-console';
     services::apparmor::check_aa_complain();
+
+    # Verify "https://bugs.launchpad.net/apparmor/+bug/1848227"
+    $self->test_profile_content_is_special("aa-complain", "Setting.*to complain mode");
 }
 
 1;

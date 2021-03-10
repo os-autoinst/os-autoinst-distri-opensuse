@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>

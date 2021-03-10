@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iproute2 wicked libteam-tools
 # Summary: Teaming, LACP
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>

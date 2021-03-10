@@ -64,8 +64,8 @@ sub _test_btrfs_device_mgmt {
     # Due to disk space this should fail
     die("pull still works") if ($rt->pull("$container") == 0);
     assert_script_run "btrfs device add /dev/vdb $dev_path";
-    validate_script_output "lsblk | grep vdb",              sub { m/vdb.+20G/ };
-    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2\s+size\s20.00GiB\sused\s1.00G.+\/dev\/vdb/ };
+    assert_script_run "btrfs fi show $dev_path/btrfs";
+    validate_script_output "lsblk | grep vdb", sub { m/vdb.+20G/ };
     $rt->pull($container);
     assert_script_run qq{test \$(ls -t $dev_path/btrfs/subvolumes/ | head -n 1) != \$(cat $btrfs_head)};
 }

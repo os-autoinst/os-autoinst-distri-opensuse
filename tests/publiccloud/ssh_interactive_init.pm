@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssh
 # Summary: This tests will deploy the public cloud instance and prepare the ssh
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>

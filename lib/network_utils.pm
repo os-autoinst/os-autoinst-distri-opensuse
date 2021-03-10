@@ -24,7 +24,7 @@ use warnings;
 use testapi;
 use mm_network;
 
-our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up);
+our @EXPORT = qw(setup_static_network recover_network can_upload_logs iface ifc_exists ifc_is_up genmac);
 
 =head2 setup_static_network
 
@@ -135,6 +135,24 @@ Return only if network status is UP.
 sub ifc_is_up {
     my ($ifc) = @_;
     return !script_run("ip link show dev $ifc | grep 'state UP'");
+}
+
+=head2 genmac
+
+Generate custom MAC address.
+Used for Xen domU testing, to define MAC address once for whole test suite lifecycle.
+
+ genmac(['aa:bb:cc'])
+
+=cut
+
+sub genmac {
+    my @mac = split(/:/, shift);
+    my $len = scalar(@mac);
+    for (my $i = 0; $i < (6 - $len); $i++) {
+        push @mac, (sprintf("%02X", int(rand(254))));
+    }
+    return lc(join(':', @mac));
 }
 
 1;
