@@ -90,6 +90,7 @@ our @EXPORT = qw(
   validate_repo_properties
   parse_repo_data
   verify_software
+  ensure_ca_certificates_suse_installed
 );
 
 =head2 add_qa_head_repo
@@ -557,5 +558,34 @@ sub verify_software {
     }
     return '';
 }
+
+=head2 ensure_ca_certificates_suse_installed
+
+    ensure_ca_certificates_suse_installed([repo => $some_repo]);
+
+This functions checks if C<ca-certificates-suse> is installed
+and if it is not it adds the repository and installs it. After installation
+the repository get's disabled.
+
+Use the optional C<repo> parameter to specify the repository, by default use
+C<ca-certificates-suse> from this pkg:
+  https://build.opensuse.org/package/show/openSUSE:infrastructure/ca-certificates-suse
+
+Other well known project is:
+  https://build.suse.de/package/show/SUSE:CA/ca-certificates-suse
+
+=cut
+sub ensure_ca_certificates_suse_installed {
+    my (%args) = @_;
+
+    if (script_run('rpm -qi ca-certificates-suse') == 1) {
+        $args{repo} //= 'https://download.opensuse.org/repositories/openSUSE:/infrastructure/' . generate_version();
+        $args{repo} = $2 if ($args{repo} =~ m/^((.*)[\/])[^\/]*$/);
+        zypper_ar($args{repo}, name => 'ca-certificates-suse-repo');
+        zypper_call('in --gpg-auto-import-keys ca-certificates-suse');
+        zypper_call('mr -d ' . $args{repo});
+    }
+}
+
 
 1;

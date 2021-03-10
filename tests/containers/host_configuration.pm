@@ -17,6 +17,7 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use utils;
 use version_utils 'check_os_release';
+use repo_tools qw(ensure_ca_certificates_suse_installed);
 
 sub run {
     my ($self) = @_;

@@ -34,6 +34,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use repo_tools qw(ensure_ca_certificates_suse_installed);
 use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
 use registration 'add_suseconnect_product';
