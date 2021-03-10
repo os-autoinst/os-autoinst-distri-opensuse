@@ -6,7 +6,7 @@ description: >
   LVM partition, where /home (XFS) is being mounted. Partitioning is validated
   in the booted system after the installation.
 vars:
-  YUI_REST_API: '1'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
@@ -14,7 +14,8 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
@@ -28,6 +29,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   # Called on BACKEND: svirt
   - '{{reconnect_mgmt_console}}'
   - installation/teardown_libyui
@@ -48,3 +50,6 @@ conditional_schedule:
     BACKEND:
       qemu:
         - installation/grub_test
+test_data:
+  system_role:
+    default: 'SLES with GNOME'

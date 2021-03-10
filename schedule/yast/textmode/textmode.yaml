@@ -2,14 +2,18 @@
 name: textmode
 description: |
   Installation in textmode which selects System Role 'Text Mode'.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - '{{disk_activation}}'
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -22,6 +26,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - '{{reconnect_mgmt_console}}'
   - '{{grub_test}}'
   - installation/first_boot
@@ -57,3 +62,6 @@ conditional_schedule:
         - installation/grub_test
       pvm_hmc:
         - installation/grub_test
+test_data:
+  system_role:
+    default: 'Text Mode'

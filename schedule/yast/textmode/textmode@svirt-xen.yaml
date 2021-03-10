@@ -2,13 +2,17 @@
 name: textmode@svirt-xen
 description: |
   Installation in textmode which selects System Role 'Text Mode'.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -20,6 +24,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/first_boot
   - console/system_prepare
   - console/prepare_test_data
@@ -30,3 +35,6 @@ schedule:
   - console/textinfo
   - console/orphaned_packages_check
   - console/consoletest_finish
+test_data:
+  system_role:
+    default: 'Text Mode'
