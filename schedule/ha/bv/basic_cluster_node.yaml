@@ -14,6 +14,7 @@ description: >
   HOSTNAME must be defined to different hostnames for each node.
   All jobs with the exception of the parent job must include a PARALLEL_WITH setting
   referencing the parent job.
+  NICTYPE and WORKER_CLASS must be set to 'tap' in the job group directly in qemu based jobs.
   TWO_NODES must be set to 'no' for every cluster with more than '2' nodes.
   And of course, YAML_SCHEDULE must point to this file.
 
@@ -32,7 +33,6 @@ vars:
   HA_CLUSTER: '1'
   HDDMODEL: 'scsi-hd'
   HDD_SCC_REGISTERED: '1'
-  NICTYPE: 'tap'
   # Disable qemu snapshots to avoid unexpected fences in HA tests
   QEMU_DISABLE_SNAPSHOTS: '1'
   TIMEOUT_SCALE: '2'
@@ -40,7 +40,6 @@ vars:
   USE_LVMLOCKD: '1'
   USE_SUPPORT_SERVER: '1'
   VIRTIO_CONSOLE: '0'
-  WORKER_CLASS: 'tap'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-HA-BV.qcow2
 schedule:

@@ -13,6 +13,7 @@ description: >
   CTDB_TEST_ROLE, PACEMAKER_TEST_ROLE or HAWKGUI_TEST_ROLE (depends of the test) must be defined to client.
   DESKTOP must be defined as textmode or gnome.
   HOSTNAME must be defined to different hostnames for each node.
+  NICTYPE and WORKER_CLASS must be set to 'tap' in the job group directly in qemu based jobs.
   All jobs with the exception of the parent job must include a PARALLEL_WITH setting
   referencing the parent job.
   And of course, YAML_SCHEDULE must point to this file.
@@ -22,14 +23,12 @@ vars:
   #DESKTOP: 'textmode' or 'gnome' (hawk)
   HA_CLUSTER: '1'
   HDDMODEL: 'scsi-hd'
-  NICTYPE: 'tap'
   # Disable qemu snapshots to avoid unexpected fences in HA tests
   QEMU_DISABLE_SNAPSHOTS: '1'
   TIMEOUT_SCALE: '2'
   # LVM locking daemon used since SLE 15
   USE_SUPPORT_SERVER: '1'
   VIRTIO_CONSOLE: '1'
-  WORKER_CLASS: 'tap'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-HA-BV.qcow2
 schedule:
