@@ -144,6 +144,7 @@ schedule:
     - console/kmod
     - console/suse_module_tools
     - console/firewalld
+    - console/nftables
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'
