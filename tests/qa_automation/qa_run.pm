@@ -20,7 +20,7 @@ use registration 'add_suseconnect_product';
 use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle package_version_cmp);
 
 sub test_run_list {
     return ('_reboot_off', @{get_var_array('QA_TESTSUITE', get_var('QA_TESTSET', '') =~ s/[^_]*_//r)});
@@ -70,9 +70,14 @@ sub qaset_config {
         assert_script_run("chmod +x $boot_local");
     }
 
-    if (is_sle('=15') or is_sle('=15-SP1')) {
-        record_soft_failure("qaperf.service fails to start bsc#1182914");
-        assert_script_run("systemctl reset-failed qaperf.service");
+    # Reset the failed state of all units so that only new failures are recorded
+    assert_script_run("systemctl reset-failed");
+
+    # Workaround for bsc#1183229 (mdmonitor.service cannot run for newer mdadm versions)
+    my $mdadm_version         = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}\n' mdadm");
+    my $working_mdadm_version = '4.1-15.20.1';
+    if (package_version_cmp($mdadm_version, $working_mdadm_version) > 0) {
+        zypper_call("in -f mdadm-$working_mdadm_version");
     }
 }
 
