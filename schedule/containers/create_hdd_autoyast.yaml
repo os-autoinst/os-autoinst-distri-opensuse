@@ -3,9 +3,6 @@ name: create_hdd_autoyast
 description:    >
     Maintainer: qa-c@suse.de.
     HDD creation for container tests in product QA
-vars:
-    AUTOYAST: autoyast_sle15/autoyast_containers_%ARCH%.xml
-    HDDSIZEGB: 30
 conditional_schedule:
     grub_set_bootargs:
         ARCH:
