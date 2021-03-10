@@ -24,6 +24,7 @@ use YuiRestClient::Widget::MenuCollection;
 use YuiRestClient::Widget::RadioButton;
 use YuiRestClient::Widget::RichText;
 use YuiRestClient::Widget::SelectionBox;
+use YuiRestClient::Widget::ItemSelector;
 use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Textbox;
 use YuiRestClient::Widget::Tree;
@@ -71,6 +72,14 @@ sub checkbox {
 sub combobox {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::ComboBox->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
+sub itemselector {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::ItemSelector->new({
             widget_controller => $self->{widget_controller},
             filter            => $filter
     });

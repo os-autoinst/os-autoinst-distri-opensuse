@@ -58,4 +58,11 @@ sub find_widgets {
     return $self->{widget_controller}->find($self->{filter});
 }
 
+sub sanitize {
+    my ($self, $item) = @_;
+    # remove shortcut
+    $item =~ s/&//;
+    return $item;
+}
+
 1;
