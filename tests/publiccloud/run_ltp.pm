@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,7 @@
 # Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
 use base "publiccloud::basetest";
 use strict;
@@ -79,10 +79,10 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp',                              timeout => 600);
     }
 
-    assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
-
+    my $runltp_ng_repo   = get_var("LTP_RUN_NG_REPO",   "https://github.com/metan-ucw/runltp-ng.git");
+    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
+    assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh', timeout => 300);
-
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 
     my $reset_cmd     = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
@@ -90,7 +90,7 @@ sub run {
 
     assert_script_run($log_start_cmd);
 
-    my $cmd = 'perl -I ltp/tools/runltp-ng ltp/tools/runltp-ng/runltp-ng ';
+    my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log ';
     $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
     $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
@@ -100,8 +100,6 @@ sub run {
     $cmd .= ':host=' . $instance->public_ip;
     $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
     $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
-    $cmd .= '--json-format=openqa ';
-
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
 }
 
