@@ -1,0 +1,31 @@
+name: ha_textmode_extended
+description: >
+  Install SLES+HA and checks release notes and pre-selected modules.
+
+  This schedule requires the VIDEOMODE setting to be set to text either in a test
+  suite, command line or in the job group yaml configuration.
+vars:
+  CHECK_PRESELECTED_MODULES: '1'
+  CHECK_RELEASENOTES: '1'
+  HDDMODEL: scsi-hd
+  HDDSIZEGB: '15'
+  SCC_ADDONS: ha
+  SCC_REGISTER: installation
+schedule:
+  - installation/isosize
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/releasenotes
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
