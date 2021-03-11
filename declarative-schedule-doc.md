@@ -66,7 +66,7 @@ test_data:
     - item2
   hash:
     key1: value1
-    key2: value2  
+    key2: value2
 ```
 Previous structure contains the following sections:
 
@@ -77,6 +77,9 @@ Name of the test suite
 Description of the test suite.
 
 #### vars
+
+Already existing variables do have precedence over variables set in the YAML_SCHEDULE file.
+
 Most of your settings could be migrated from openQA WebUI to this declarative way, for instance:
   - `BOOTFROM: c`
   - `BOOT_HDD_IMAGE: 1`
@@ -204,11 +207,11 @@ test_data:
         - size: 3mb
   <<: !include path/to/test_data.yaml
 ```
-Test data sometimes is more related to a particular schedule, sometimes  
-to other test data shared with other test suites and sometimes it is a mix.  
-In those cases, `YAML_TEST_DATA` setting can be used to give us the flexibility  
-to avoid duplicate schedule files just because they have different data and due  
-to it will be pointing to a test data file. Only for this particular case,  
+Test data sometimes is more related to a particular schedule, sometimes
+to other test data shared with other test suites and sometimes it is a mix.
+In those cases, `YAML_TEST_DATA` setting can be used to give us the flexibility
+to avoid duplicate schedule files just because they have different data and due
+to it will be pointing to a test data file. Only for this particular case,
 the possibility to use `$include` functionality in test data file is allowed. For instance:
 
 In your yaml for your Job Group configuration for one product you could have:

@@ -141,7 +141,7 @@ sub load_yaml_schedule {
         my $schedule              = $ypp->load_file($root_project_dir . $yamlfile);
         my %schedule_vars         = parse_vars($schedule);
         my $test_context_instance = undef;
-        while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
+        while (my ($var, $value) = each %schedule_vars) { set_var($var, get_var($var, $value)) }
         my @schedule_modules = parse_schedule($schedule);
         parse_test_suite_data($schedule);
         $test_context_instance = get_var('TEST_CONTEXT')->new() if defined get_var('TEST_CONTEXT');
