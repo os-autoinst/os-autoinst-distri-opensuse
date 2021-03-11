@@ -41,4 +41,11 @@ sub run {
     }
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/sysconfig/console');
+    script_run('echo $TERM');
+}
+
 1;
