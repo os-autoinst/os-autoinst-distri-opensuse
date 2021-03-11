@@ -631,6 +631,11 @@ sub adminer_database_delete {
     send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 1);
     # Exit x11 and turn to console
     send_key "alt-f4";
+    # Handle exceptions when "Quit and close tabs" in Firefox, the warning FYI:
+    # "You are about to close 2 tabs. Are you sure want to continue?"
+    if (check_screen("firefox-quit-and-close-tabs", 5)) {
+        assert_and_click("firefox-close-tabs");
+    }
     assert_screen("generic-desktop");
     select_console("root-console");
     send_key "ctrl-c";

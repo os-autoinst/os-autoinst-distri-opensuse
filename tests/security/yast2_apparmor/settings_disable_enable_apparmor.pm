@@ -47,6 +47,8 @@ sub run {
     send_key "alt-e";
     assert_screen("AppArmor-Settings-Enable-Apparmor");
     wait_screen_change { send_key "alt-q" };
+    # Handle exception: the cursor disappears for no reason sometimes
+    type_string("\n");
     clear_console;
     assert_screen("root-console-x11");
     type_string("systemctl status apparmor | tee \n");
