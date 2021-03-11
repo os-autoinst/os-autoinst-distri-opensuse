@@ -36,14 +36,16 @@ sub run {
 
     install_podman_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
-    my $user      = $testapi::username;
-    my $check_msg = 'Checking allocation range of user';
-    script_run "grep $user /etc/subuid || echo /etc/subuid has no uid range for $user", output => $check_msg;
-    script_run "grep $user /etc/subgid || echo /etc/subgid has no gid range for $user", output => $check_msg;
-    assert_script_run "usermod --add-subuids 200000-201000 --add-subgids 200000-201000 $user";
+    my $user         = $testapi::username;
+    my $subuid_start = get_user_subuid($user);
+    if ($subuid_start eq '') {
+        record_soft_failure 'bsc#1179261 - YaST creates incomplete user accounts';
+        $subuid_start = 200000;
+        my $subuid_range = $subuid_start + 1000;
+        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
+    }
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "grep $user /etc/subgid", fail_message => "subgid range not assigned for $user";
-    # Set read bits for $user
     assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
     ensure_serialdev_permissions;
     select_console "user-console";
@@ -54,9 +56,16 @@ sub run {
         test_container_image(image => $iname, runtime => $runtime);
         build_container_image(image => $iname, runtime => $runtime);
         test_zypper_on_container($runtime, $iname);
-        verify_userid_on_container($runtime, $iname);
+        verify_userid_on_container($runtime, $iname, $subuid_start);
     }
     clean_container_host(runtime => $runtime);
+}
+
+sub get_user_subuid {
+    my ($user) = shift;
+    my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid",
+        proceed_on_failure => 1);
+    return $start_range;
 }
 
 sub post_run_hook {
