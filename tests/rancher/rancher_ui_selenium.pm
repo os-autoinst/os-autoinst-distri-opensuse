@@ -20,25 +20,21 @@ use x11utils 'ensure_unlocked_desktop';
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    
+
     assert_script_run("wget https://github.com/mozilla/geckodriver/releases/download/v0.29.0/geckodriver-v0.29.0-linux64.tar.gz");
     assert_script_run("tar -xf geckodriver-v0.29.0-linux64.tar.gz");
     assert_script_run("mv geckodriver /opt/geckodriver");
     assert_script_run("ln -s /opt/geckodriver /usr/local/bin/geckodriver");
 
     assert_script_run("pip3 install selenium");
-    assert_script_run('curl -O ' . data_url("rancher/ui_test.py"), timeout => 300);    
+    assert_script_run('curl -O ' . data_url("rancher/ui_test.py"), timeout => 300);
     assert_script_run('mv ui_test.py /home/bernhard/');
     assert_script_run('ls /home/bernhard/');
-    
+
     select_console 'x11';
     ensure_unlocked_desktop;
 
-	x11_start_program('python3 ui_test.py');
-
-    #x11_start_program('xterm');
-    #type_string "python3 ui_test.py && touch /tmp/ok\n";
-    #assert_script_run("[ -f /tmp/ok ]");
+    x11_start_program('python3 ui_test.py', target_match => "cluster-dashboard", match_timeout => 60);
 }
 
 1;

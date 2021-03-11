@@ -11,7 +11,7 @@ if __name__ == '__main__' :
 
   # driver.get("https://localhost:10443")
   driver.get("https://localhost")
-  time.sleep(2)
+  time.sleep(5)
 
   # Check page started
   assert "Rancher" in driver.title
@@ -28,20 +28,17 @@ if __name__ == '__main__' :
 
   driver.find_element_by_xpath("//button[@type='submit']").click()
 
-  # Initial page: set the URL
+  # Initial page: Set the URL
   time.sleep(2)
   wait.until(EC.visibility_of_element_located((By.XPATH, "//button[@type='submit']")))
   driver.find_element_by_xpath("//button[@type='submit']").click()
 
-  # Welcome page
-  #driver.get("https://localhost:10443/c/local")
+  # Cluster Dashboard page
+  driver.get("https://localhost/dashboard/c/local/explorer")
   time.sleep(2)
-  wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='welcome-copy']")))
+  wait.until(EC.visibility_of_element_located((By.XPATH, "//*[contains(text(),'Cluster Dashboard')]")))
 
-  # Cluster explorer
-  driver.get("https://localhost/dashboard/c/local")
-  time.sleep(2)
-  wait.until(EC.visibility_of_element_located((By.XPATH, "//*[contains(text(),'Cluster Explorer')]")))
+  time.sleep(20)
 
   driver.close()
 
