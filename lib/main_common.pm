@@ -2646,7 +2646,8 @@ sub load_system_prepare_tests {
     loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
     loadtest 'console/integration_services'   if is_hyperv || is_vmware;
-    loadtest 'console/hostname'              unless is_bridged_networking;
+    loadtest 'console/hostname' unless is_bridged_networking;
+    loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests          if is_repo_replacement_required;
