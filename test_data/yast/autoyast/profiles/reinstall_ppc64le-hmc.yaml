@@ -10,7 +10,7 @@ profile:
     slp_discovery: 'false'
   partitioning:
     drive:
-      - device: /dev/vda
+      - device: /dev/sda
         disklabel: gpt
         enable_snapshots: 'true'
         partitions:
@@ -27,8 +27,6 @@ profile:
                     path: srv
                   - copy_on_write: 'true'
                     path: root
-                  - copy_on_write: 'true'
-                    path: home
                   - copy_on_write: 'true'
                     path: opt
                   - copy_on_write: 'true'
