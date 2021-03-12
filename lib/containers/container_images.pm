@@ -54,9 +54,22 @@ sub build_container_image {
     assert_script_run("$runtime images");
 }
 
+=head2 test_containered_app
+
+ test_containered_app($runtime, [$buildah], $dockerfile, $base);
+
+Create a container using a C<dockerfile> and run smoke test against that.
+ C<base> can be used to setup base repo in the dockerfile in case that the file
+does not have a defined one.
+
+The main container runtimes do not need C<buildah> variable in general, unless
+you want to build the image with buildah but run it with $<runtime>
+
+=cut
 sub test_containered_app {
     my %args       = @_;
     my $runtime    = $args{runtime};
+    my $buildah    = $args{buildah} // 0;
     my $dockerfile = $args{dockerfile};
     my $base       = $args{base};
 
@@ -69,10 +82,12 @@ sub test_containered_app {
     container_set_up("$dir", $dockerfile, $base);
 
     # Build the image
-    build_img("$dir", $runtime);
-
+    $buildah ? build_img("$dir", 'buildah') : build_img("$dir", $runtime);
+    if ($runtime eq 'docker' && $buildah) {
+        assert_script_run "buildah push myapp docker-daemon:myapp:latest";
+        script_run "$runtime images";
+    }
     # Run the built image
-    $runtime = 'podman' if $runtime eq 'buildah';
     test_built_img($runtime);
 }
 

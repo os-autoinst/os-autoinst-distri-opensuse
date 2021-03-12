@@ -22,6 +22,7 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
+use version_utils 'is_sle';
 
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
@@ -29,6 +30,8 @@ sub run {
 
     install_buildah_when_needed($host_distri);
     install_podman_when_needed($host_distri);
+    install_docker_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => 'docker');
     allow_selected_insecure_registries(runtime => 'podman');
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
@@ -39,13 +42,26 @@ sub run {
             test_opensuse_based_image(image => 'sle15-working-container', runtime => 'buildah');
             # Due to the steps from the test_opensuse_based_image previously,
             # the image has been committed as refreshed
-            test_containered_app(runtime => 'buildah',
+            test_containered_app(runtime => 'podman',
+                buildah    => 1,
                 dockerfile => 'Dockerfile.suse',
                 base       => 'refreshed');
+            assert_script_run "podman rmi -f myapp";
+            test_containered_app(runtime => 'docker',
+                buildah    => 1,
+                dockerfile => 'Dockerfile.suse',
+                base       => 'refreshed');
+            if (is_sle) {
+                my $container_id = script_output "docker ps -aqf 'ancestor=myapp'";
+                assert_script_run "docker cp /etc/SUSEConnect $container_id:/etc/SUSEConnect";
+                assert_script_run "docker cp /etc/zypp/credentials.d/SCCcredentials $container_id:/etc/zypp/credentials.d/SCCcredentials";
+                assert_script_run "docker exec -it $container_id zypper lr";
+            }
         }
     }
     scc_restore_docker_image_credentials();
     clean_container_host(runtime => 'podman');
+    clean_container_host(runtime => 'docker');
     clean_container_host(runtime => 'buildah');
 }
 
