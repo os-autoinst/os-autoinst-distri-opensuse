@@ -28,7 +28,8 @@ use virt_autotest::utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # Remove old files

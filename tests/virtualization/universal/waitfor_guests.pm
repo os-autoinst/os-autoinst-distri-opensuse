@@ -77,6 +77,9 @@ sub add_pci_bridge {
         # Apply xml settings to VM. Note: They will be applied after reboot.
         assert_script_run("virt-xml-validate $xml");
         assert_script_run("virsh define $xml");
+
+    } elsif (is_xen_host() && is_pv_guest($guest)) {
+        # We're skipping to add an additional bridge on xen
     } else {
         my $msg = "Unknown machine type";
         record_soft_failure($msg);
@@ -93,16 +96,21 @@ sub upload_machine_definitions {
 }
 
 sub run {
+    my $self = shift;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+
     # Fill the current pairs of hostname & address into /etc/hosts file
     assert_script_run 'virsh list --all';
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
     # Wait for guests to finish installation
-    assert_script_run("wait", timeout => 1200);
+    script_run("wait", timeout => 1200);
     #script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
     # Unfortunately this doesn't cover the second step of the installation, where ssh is available
-    script_run("sleep 300", timeout => 360);    # XXX No idea yet how to prevent this sleep :-(
+    script_run("sleep 600", timeout => 660);    # XXX No idea yet how to prevent this sleep :-(
+    start_guests();
     record_info("guests installed", "Guest installation completed");
     wait_guest_online($_, 120) foreach (keys %virt_autotest::common::guests);
 
