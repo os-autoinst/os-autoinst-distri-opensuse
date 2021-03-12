@@ -127,9 +127,15 @@ sub remove_test_repositories {
 
 sub advance_installer_window {
     my ($screenName) = @_;
+    my $build = get_var('BUILD');
 
     send_key $cmd{next};
     die 'Unable to create repository' if check_screen('unable-to-create-repo', 5);
+    if ($build =~ m/^MR:/) {
+        if (check_screen("impotrt-untrusted-gpg-key", 20)) {
+            send_key "alt-t";
+        }
+    }
     unless (check_screen "$screenName", 60) {
         my $key = check_screen('cannot-access-installation-media') ? "alt-y" : "$cmd{next}";
         send_key_until_needlematch $screenName, $key, 5, 60;
