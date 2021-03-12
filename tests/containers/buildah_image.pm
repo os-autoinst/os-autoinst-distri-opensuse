@@ -27,7 +27,6 @@ use version_utils 'is_sle';
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-
     install_buildah_when_needed($host_distri);
     install_podman_when_needed($host_distri);
     install_docker_when_needed($host_distri);

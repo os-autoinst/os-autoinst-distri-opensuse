@@ -115,7 +115,7 @@ sub allow_selected_insecure_registries {
         assert_script_run("mkdir -p /etc/docker");
         assert_script_run('cat /etc/docker/daemon.json; true');
         assert_script_run(
-            'echo "{ \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
+'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
         systemctl('restart docker');
     } elsif ($runtime =~ /podman/) {
