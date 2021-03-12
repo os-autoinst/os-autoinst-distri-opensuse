@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use registration;
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl file_content_replace);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud);
 use containers::utils 'can_build_sle_base';
 
@@ -112,8 +112,6 @@ sub allow_selected_insecure_registries {
     assert_script_run "echo $runtime ...";
     if ($runtime =~ /docker/) {
         # Allow our internal 'insecure' registry
-        assert_script_run("mkdir -p /etc/docker");
-        assert_script_run('cat /etc/docker/daemon.json; true');
         assert_script_run(
             'echo "{ \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
@@ -121,9 +119,9 @@ sub allow_selected_insecure_registries {
     } elsif ($runtime =~ /podman/) {
         assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
         assert_script_run "chmod 644 /etc/containers/registries.conf";
-        assert_script_run("sed -i 's/REGISTRY/$registry/' /etc/containers/registries.conf");
+        file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
     } else {
-        die "You must define the runtime!";
+        die "Unsupported runtime - " . $runtime;
     }
 }
 
