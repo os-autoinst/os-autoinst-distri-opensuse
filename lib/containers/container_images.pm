@@ -192,7 +192,18 @@ sub test_opensuse_based_image {
         }
     } else {
         $version =~ s/^Jump://i;
-        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        if ($runtime =~ /buildah/) {
+            if (script_output("$runtime run $image grep PRETTY_NAME /etc/os-release") =~ /WARN.+from \"\/etc\/containers\/mounts.conf\" doesn\'t exist, skipping/) {
+                record_soft_failure "bcs#1183482 - libcontainers-common contains SLE files on TW";
+            }
+            else {
+                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+                    sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ });
+            }
+        }
+        else {
+            validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        }
     }
 
     # Zypper is supported only on openSUSE or on SLE based image on SLE host

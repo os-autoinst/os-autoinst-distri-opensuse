@@ -38,7 +38,8 @@ sub run {
         test_container_image(image => $iname, runtime => 'buildah');
         if (check_os_release('suse', 'PRETTY_NAME')) {
             # sle15-working-container is the default name given to a container. it is created in test_container_image
-            test_opensuse_based_image(image => 'sle15-working-container', runtime => 'buildah');
+            my $prefix_img_name = +(split /\//, +(split /:/, $iname)[0])[-1];
+            test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah');
             # Due to the steps from the test_opensuse_based_image previously,
             # the image has been committed as refreshed
             test_containered_app(runtime => 'podman',
