@@ -46,7 +46,7 @@ schedule:
     - console/suseconnect_scc
     - console/zypper_lr_validate
     - console/zypper_ref
-    - console/validate_packages_and_patterns
+      #    - console/validate_packages_and_patterns
     - console/zypper_extend
     - console/check_os_release
     - console/timezone
