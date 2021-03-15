@@ -25,31 +25,41 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
+use version_utils qw(is_microos is_sle_micro);
 
 sub run {
     my ($self) = @_;
     select_console "root-console";
 
-    # make sure SELinux in "permissive" mode
-    validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*permissive.*/sx });
+    if (!is_microos || !is_sle_micro) {
+        # make sure SELinux in "permissive" mode
+        validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*permissive.*/sx });
+    }
+    if (is_microos || is_sle_micro) {
+        # make sure SELinux is "enabled" and in "enforcing" mode
+        validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*enforcing.*/sx });
+    }
 
-    # label system
-    assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
-    script_run("restorecon -R /",  600);
-    script_run("restorecon -R /*", 600);
+    if (!is_microos || !is_sle_micro) {
+        # label system
+        assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
+        script_run("restorecon -R /",  600);
+        script_run("restorecon -R /*", 600);
 
-    # enable enforcing mode from SELinux
-    replace_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 'security=selinux selinux=1 enforcing=1', update_grub => 1);
+        # enable enforcing mode from SELinux
+        replace_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', 'security=selinux selinux=1 enforcing=1', update_grub => 1);
 
-    # control (enable) the status of SELinux on the system
-    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
-    assert_script_run("echo 'SELINUX=enforcing' >> /etc/selinux/config");
+        # control (enable) the status of SELinux on the system
+        assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' /etc/selinux/config");
+        assert_script_run("echo 'SELINUX=enforcing' >> /etc/selinux/config");
+    }
 
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
     select_console "root-console";
 
+    if (!is_microos || !is_sle_micro) {
     validate_script_output(
         "sestatus",
         sub {
@@ -64,6 +74,24 @@ sub run {
             Policy\ deny_unknown\ status:\ .*allowed.*
             Max\ kernel\ policy\ version:\ .*[0-9]+.*/sx
         });
+    }
+    # using targeted policy type and enforcing mode for MicroOS ans SLE Micro
+    if (is_microos || is_sle_micro) {
+        validate_script_output(
+            "sestatus",
+            sub {
+                m/
+                SELinux\ status:\ .*enabled.*
+                SELinuxfs\ mount:\ .*\/sys\/fs\/selinux.*
+                SELinux\ root\ directory:\ .*\/etc\/selinux.*
+                Loaded\ policy\ name:\ .*targeted.*
+                Current\ mode:\ .*enforcing.*
+                Mode\ from\ config\ file:\ .*enforcing.*
+                Policy\ MLS\ status:\ .*enabled.*
+                Policy\ deny_unknown\ status:\ .*allowed.*
+                Max\ kernel\ policy\ version:\ .*[0-9]+.*/sx
+            });
+    }
 }
 
 sub test_flags {
