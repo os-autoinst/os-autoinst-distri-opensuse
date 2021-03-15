@@ -76,6 +76,8 @@ sub run {
             assert_script_run "wget --quiet " . data_url("selinux/$file");
             assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");
         }
+    } else {
+        zypper_call("in selinux-policy-minimum");
     }
 
     # record the pkgs' version for reference
