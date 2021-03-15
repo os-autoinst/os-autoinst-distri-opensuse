@@ -27,24 +27,44 @@ use warnings;
 use testapi;
 use utils;
 use registration qw(add_suseconnect_product register_product);
-use version_utils "is_sle";
+use version_utils qw(is_sle is_microos is_sle_micro);
 
 sub run {
     select_console "root-console";
 
-    # make sure SELinux is "enabled" and in "permissive" mode
-    validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });
+    if (!is_microos || !is_sle_micro) {
+        # make sure SELinux is "enabled" and in "permissive" mode
+        validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });
+    }
+    if (is_microos || is_sle_micro) {
+        # make sure SELinux is "enabled" and in "enforcing" mode
+        validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*enforcing/sx });
+    }
 
-    # refresh & update
-    zypper_call("ref", timeout => 1200);
-    zypper_call("up",  timeout => 1200);
-
-    # install & remove pkgs, e.g., apache2
-    zypper_call("in apache2");
-    zypper_call("rm apache2");
+    if (!is_microos || !is_sle_micro) {
+        # refresh & update
+        zypper_call("ref", timeout => 1200);
+        zypper_call("up",  timeout => 1200);
+        # install & remove pkgs, e.g., apache2
+        zypper_call("in apache2");
+        zypper_call("rm apache2");
+    }
+    if (is_microos || is_sle_micro) {
+        # refresh & update
+        zypper_call("ref", timeout => 1200);
+        assert_script_run('transactional-update up',  timeout => 1200);
+        # install & remove pkgs, e.g., checkpolicy-debuginfo
+        assert_script_run("transactional-update -n pkg install checkpolicy-debuginfo");
+        # reboot the vm and reconnect the console
+        power_action("reboot", textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+        select_console "root-console";
+        assert_script_run("transactional-update -n pkg remove checkpolicy-debuginfo");
+    }
 
     # for sle, register available extensions and modules, e.g., free addons
-    if (is_sle) {
+    if (is_sle || is_sle_micro) {
         register_product();
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '15') {
@@ -57,8 +77,10 @@ sub run {
     }
 
     # install & remove patterns, e.g., mail_server
-    zypper_call("in -t pattern mail_server");
-    zypper_call("rm -t pattern mail_server");
+    if (!is_microos || !is_sle_micro) {
+        zypper_call("in -t pattern mail_server");
+        zypper_call("rm -t pattern mail_server");
+    }
 }
 
 1;
