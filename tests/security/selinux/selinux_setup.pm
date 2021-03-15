@@ -22,35 +22,62 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap is_tumbleweed);
+use version_utils qw(is_sle is_leap is_tumbleweed is_microos is_sle_micro);
 use Utils::Architectures 'is_x86_64';
 
 sub run {
     select_console "root-console";
 
-    # program 'sestatus' can be found in policycoreutils pkgs
-    zypper_call("in policycoreutils");
-    # program 'semanage' is in policycoreutils-python-utils pkgs on TW
-    if (is_tumbleweed) {
-        zypper_call("in policycoreutils-python-utils");
+    if (!is_microos || !is_sle_micro) {
+        # program 'sestatus' can be found in policycoreutils pkgs
+        zypper_call("in policycoreutils");
+        # program 'semanage' is in policycoreutils-python-utils pkgs on TW
+        if (is_tumbleweed) {
+            zypper_call("in policycoreutils-python-utils");
+        }
+        if (!is_sle('>=15')) {
+            assert_script_run('zypper -n in policycoreutils-python');
+        }
     }
-    if (!is_sle('>=15')) {
-        assert_script_run('zypper -n in policycoreutils-python');
+
+    # SELinux setup for MicroOS and SLE_Micro si done via transactional-update and runs several steps:
+    # 1. Make sure the policies are installed
+    # 2. Adjust /etc/default/grub
+    # 3. Adjust /etc/selinux/config
+    # 4. Rebuild grub.cfg and initrd
+    if (is_microos || is_sle_micro) {
+        assert_script_run('transactional-update -n pkg install policycoreutils');
+         # program 'semanage' is in policycoreutils-python-utils pkgs on MicroOS ans SLE Micro...getting nothing provies which basically
+         # eliminates all test related to semanage at this point 
+        # assert_script_run('transactional-update -n pkg install policycoreutils-python-utils');
     }
 
     # install as many as SELinux related packages
-    my @pkgs = (
-        "selinux-tools", "libselinux-devel",  "libselinux1",  "python3-selinux", "libsepol1",   "libsepol-devel",
-        "libsemanage1",  "libsemanage-devel", "checkpolicy",  "mcstrans",        "restorecond", "setools-console",
-        "setools-devel", "setools-java",      "setools-libs", "setools-tcl"
-    );
+    # not enabled for MicroOS ans SLE Micro
+    if (!is_microos || !is_sle_micro) {
+        my @pkgs = (
+            "selinux-tools", "libselinux-devel",  "libselinux1",  "python3-selinux", "libsepol1",   "libsepol-devel",
+            "libsemanage1",  "libsemanage-devel", "checkpolicy",  "mcstrans",        "restorecond", "setools-console",
+            "setools-devel", "setools-java",      "setools-libs", "setools-tcl"
+        );
+    }
+    if (is_microos || is_sle_micro) {
+        my @pkgs = (
+            "selinux-tools", "libselinux1", "libsepol1", "libsemanage1", "checkpolicy"
+        );
+    }
     foreach my $pkg (@pkgs) {
         my $results = script_run("zypper --non-interactive se $pkg");
         if ($results) {
             record_info("WARNING", "Package $pkg is missing, zypper search returns: $results");
         }
         else {
-            zypper_call("in $pkg");
+            if (!is_microos || !is_sle_micro) {
+                zypper_call("in $pkg");
+            }
+            if (is_microos || is_sle_micro) {
+                assert_script_run("transactional-update -n pkg install $pkg");
+            }
         }
     }
     if (is_x86_64) {
@@ -61,6 +88,7 @@ sub run {
     # for sle15 and sle15+ "selinux-policy-*" pkgs will not be released
     # NOTE: have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
     # install policy packages separately due to this bug: bsc#1177675
+    # for MicroOS ans SLE Micro "selinux-policy-targeted" is installed
     if (is_sle('>=15')) {
         my @files
           = ("selinux-policy-20200219-3.6.noarch.rpm", "selinux-policy-minimum-20200219-3.6.noarch.rpm", "selinux-policy-devel-20200219-3.20.noarch.rpm");
@@ -76,6 +104,9 @@ sub run {
         }
     } else {
         zypper_call("in selinux-policy-minimum");
+    }
+    elsif (is_microos || is_sle_micro) {
+        assert_script_run("transactional-update selinux-setup");
     }
 
     # record the pkgs' version for reference
