@@ -353,13 +353,13 @@ sub check_function {
 # parameter $stage is 'before' or 'after' of a system migration stage.
 #
 sub full_kdump_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
     select_console 'root-console';
 
     if ($stage eq 'before') {
-        configure_service('before');
+        configure_service($stage);
     }
     check_function();
 

@@ -135,8 +135,8 @@ sub restore_passwd {
 # check users before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_users_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     select_console 'x11', await_console => 0;

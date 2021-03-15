@@ -52,8 +52,8 @@ sub check_function {
 # check postfix service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_postfix_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
     if ($stage eq 'before') {
         install_service();
         enable_service();

@@ -95,8 +95,8 @@ sub check_suseconnect_cmd {
 }
 
 sub full_registered_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
     check_suseconnect();
     check_suseconnect_cmd();
     if ($stage eq 'before') {
