@@ -71,6 +71,28 @@ sub load_rcshell_tests {
     loadtest 'microos/one_line_checks';
 }
 
+sub load_security_tests_selinux {
+    # ALWAYS run following tests in sequence because of the dependencies
+    # Setup - install SELinux necessary packages
+    loadtest "security/selinux/selinux_setup";
+    loadtest "security/selinux/sestatus";
+    loadtest "security/selinux/selinux_smoke";
+
+    # Change SELinux from "permissive" mode to "enforcing" mode for testing
+    loadtest "security/selinux/enforcing_mode_setup";
+    # The following test modules must be run after "enforcing_mode_setup"
+    #loadtest "security/selinux/semanage_fcontext";
+    #loadtest "security/selinux/semanage_boolean";
+    loadtest "security/selinux/fixfiles";
+    loadtest "security/selinux/print_se_context";
+    #loadtest "security/selinux/audit2allow";
+    loadtest "security/selinux/semodule";
+    loadtest "security/selinux/setsebool";
+    #loadtest "security/selinux/restorecon";
+    loadtest "security/selinux/chcon";
+    #loadtest "security/selinux/chcat";
+}
+
 sub load_installation_tests {
     if (check_var('HDDSIZEGB', '10')) {
         # boo#1099762
@@ -90,6 +112,7 @@ sub load_installation_tests {
         load_boot_from_disk_tests;
         load_tdup_tests             if (get_var 'TDUP');
         loadtest 'console/regproxy' if is_regproxy_required;
+        load_security_tests_selinux;
         load_feature_tests          if (check_var 'EXTRA', 'FEATURES');
         loadtest 'shutdown/shutdown';
     }
@@ -103,6 +126,7 @@ return 1 if load_yaml_schedule;
 if (get_var 'STACK_ROLE') {
     load_boot_from_disk_tests;
     load_tdup_tests      if (get_var 'TDUP');
+    load_security_tests_selinux;
     load_feature_tests() if (check_var 'EXTRA', 'FEATURES');
     loadtest 'shutdown/shutdown';
 }
@@ -114,6 +138,10 @@ else {
     elsif (check_var 'EXTRA', 'RCSHELL') {
         load_rcshell_tests;
     }
+}
+
+if (get_var 'SELINUX_BY_DEFAULT') {
+    load_security_tests_selinux;
 }
 
 1;
