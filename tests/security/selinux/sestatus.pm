@@ -26,6 +26,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use Utils::Architectures 'is_aarch64';
+use version_utils qw(is_microos is_sle_micro);
 
 sub run {
     my ($self) = @_;
@@ -42,17 +43,28 @@ sub run {
     }
 
     # enable SELinux in grub
-    add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', update_grub => 1);
+    # not enabled for MicroOS ans SLE Micro as this is being done via transactional-update
+    if (!is_microos || !is_sle_micro) {
+        add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', update_grub => 1);
+    }
 
     # control (enable) the status of SELinux on the system
-    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' $selinux_config_file");
-    assert_script_run("echo 'SELINUX=permissive' >> $selinux_config_file");
+    # not enabled for MicroOS ans SLE Micro as this is being done via transactional-update
+    if (!is_microos || !is_sle_micro) {
+        assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' $selinux_config_file");
+        assert_script_run("echo 'SELINUX=permissive' >> $selinux_config_file");
+    }
 
     # set SELINUXTYPE=minimum
     assert_script_run("sed -i -e 's/^SELINUXTYPE=/#SELINUXTYPE=/' $selinux_config_file");
     assert_script_run("echo 'SELINUXTYPE=minimum' >> $selinux_config_file");
     assert_script_run("systemctl enable auditd");
 
+    # not enabled for MicroOS ans SLE Micro as this is being done via transactional-update
+    if (!is_microos || !is_sle_micro) {
+        assert_script_run("sed -i -e 's/^SELINUXTYPE=/#SELINUXTYPE=/' $selinux_config_file");
+        assert_script_run("echo 'SELINUXTYPE=minimum' >> $selinux_config_file");
+    }
 
     # reboot the vm and reconnect the console
     power_action("reboot", textmode => 1);
@@ -60,20 +72,39 @@ sub run {
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
     select_console "root-console";
 
-    validate_script_output(
-        "sestatus",
-        sub {
-            m/
-            SELinux\ status:\ .*enabled.*
-            SELinuxfs\ mount:\ .*\/sys\/fs\/selinux.*
-            SELinux\ root\ directory:\ .*\/etc\/selinux.*
-            Loaded\ policy\ name:\ .*minimum.*
-            Current\ mode:\ .*permissive.*
-            Mode\ from\ config\ file:\ .*permissive.*
-            Policy\ MLS\ status:\ .*enabled.*
-            Policy\ deny_unknown\ status:\ .*allowed.*
-            Max\ kernel\ policy\ version:\ .*[0-9]+.*/sx
-        });
+    if (!is_microos || !is_sle_micro) {
+        validate_script_output(
+            "sestatus",
+            sub {
+                m/
+                SELinux\ status:\ .*enabled.*
+                SELinuxfs\ mount:\ .*\/sys\/fs\/selinux.*
+                SELinux\ root\ directory:\ .*\/etc\/selinux.*
+                Loaded\ policy\ name:\ .*minimum.*
+                Current\ mode:\ .*permissive.*
+                Mode\ from\ config\ file:\ .*permissive.*
+                Policy\ MLS\ status:\ .*enabled.*
+                Policy\ deny_unknown\ status:\ .*allowed.*
+                Max\ kernel\ policy\ version:\ .*[0-9]+.*/sx
+            });
+    }
+    # using targeted policy type and enforcing mode for MicroOS ans SLE Micro
+    if (is_microos || is_sle_micro) {
+        validate_script_output(
+            "sestatus",
+            sub {
+                m/
+                SELinux\ status:\ .*enabled.*
+                SELinuxfs\ mount:\ .*\/sys\/fs\/selinux.*
+                SELinux\ root\ directory:\ .*\/etc\/selinux.*
+                Loaded\ policy\ name:\ .*targeted.*
+                Current\ mode:\ .*enforcing.*
+                Mode\ from\ config\ file:\ .*enforcing.*
+                Policy\ MLS\ status:\ .*enabled.*
+                Policy\ deny_unknown\ status:\ .*allowed.*
+                Max\ kernel\ policy\ version:\ .*[0-9]+.*/sx
+            });
+    }
 }
 
 1;
