@@ -44,6 +44,8 @@ sub run {
     # set SELINUXTYPE=minimum
     assert_script_run("sed -i -e 's/^SELINUXTYPE=/#SELINUXTYPE=/' $selinux_config_file");
     assert_script_run("echo 'SELINUXTYPE=minimum' >> $selinux_config_file");
+    assert_script_run("systemctl enable auditd");
+
 
     # reboot the vm and reconnect the console
     power_action("reboot", textmode => 1);
