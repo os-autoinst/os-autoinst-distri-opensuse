@@ -5,6 +5,7 @@ description:    >
 schedule:
     - microos/disk_boot
     - console/suseconnect_scc
+    - microos/toolbox
     - containers/containers_3rd_party
     - containers/podman
     - containers/podman_image
