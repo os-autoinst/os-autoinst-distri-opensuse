@@ -1,4 +1,5 @@
 #!/bin/bash
+set -o pipefail
 
 #Obtain SLES release version and service pack level
 function get_sles_release() {
