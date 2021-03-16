@@ -39,7 +39,10 @@ sub run {
         send_key $cmd{next};
     }
     if (match_has_tag("select-for-update")) {
-        send_key $cmd{next};
+        assert_screen('select-for-update-arch');
+        if (match_has_tag("select-for-update-arch-" .get_var("ARCH"))) {
+            send_key $cmd{next};
+        }
     }
     # The SLE15-SP2 license page moved after registration.
     if (get_var('MEDIA_UPGRADE') || is_sle('<15-SP2') || is_opensuse) {
