@@ -21,7 +21,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_upgrade);
 use utils 'assert_and_click_until_screen_change';
 use Utils::Architectures 'is_aarch64';
 
@@ -211,7 +211,7 @@ sub handle_login {
     elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
         type_string "$myuser\n";
     }
-    elsif (check_var('DESKTOP', 'gnome')) {
+    elsif (check_var('DESKTOP', 'gnome') || (check_var('DESKTOP', 'kde') && is_upgrade)) {
         if ($user_selected || (is_sle('<15') || is_leap('<15.0'))) {
             send_key 'ret';
         }
