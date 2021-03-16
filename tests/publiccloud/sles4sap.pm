@@ -231,7 +231,7 @@ sub workaround_bsc_1182701 {
         # Check if workaround is already applied
         if ($self->run_cmd(cmd => "crm resource param $stonith_rsc show method", rc_only => 1)) {
             # Add location constraints as a workaround
-            record_soft_failure "bsc#1179529 - [0.9.10-GCE-Build1.6] fence_gce doesn\'t restart the node as expected (on $node)";
+            record_soft_failure "bsc#1182701 - [0.9.10-GCE-Build1.6] fence_gce doesn\'t restart the node as expected (on $node)";
             $self->run_cmd(cmd => "crm resource param $stonith_rsc set method cycle", quiet => 1);
         }
     }
