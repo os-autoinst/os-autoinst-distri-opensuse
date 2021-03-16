@@ -88,7 +88,7 @@ sub run {
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
-    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error);
+    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error initializing-target-directory-failed);
     if (get_var('UPGRADE') || get_var('LIVE_UPGRADE')) {
         push(@tags, 'ERROR-removing-package');
         push(@tags, 'DIALOG-packages-notifications');
@@ -186,6 +186,12 @@ sub run {
         #
         if (match_has_tag 'package-update-found') {
             send_key 'alt-n';
+            next;
+        }
+        # rpm cache failed to load
+        if (match_has_tag 'initializing-target-directory-failed') {
+            record_soft_failure "bsc#1182928 - Initializing the target directory failed";
+            send_key 'alt-o';
             next;
         }
         last;
