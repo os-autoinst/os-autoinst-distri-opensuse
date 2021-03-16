@@ -99,7 +99,7 @@ sub expand_test_data_vars {
     } elsif (ref $node eq 'ARRAY') {
         $_ = expand_test_data_vars($_) foreach (@$node);
     } else {
-        $node =~ s/%(.*?)%/get_var($1,'')/eg;
+        $node =~ s/%(.*?)%/get_var($1,'')/eg if $node;
     }
     return $node;
 }
