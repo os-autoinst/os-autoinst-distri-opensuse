@@ -9,4 +9,4 @@ table_type: gpt
 file_system:
   /: btrfs
 swap: 1
-<<: !include test_data/yast/autoyast/profiles/reinstall.yaml
+<<: !include test_data/yast/autoyast/profiles/reinstall_opensuse.yaml
