@@ -18,7 +18,6 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self) = @_;
     x11_start_program('xterm');
     send_key 'alt-f10';
     become_root;
@@ -27,7 +26,7 @@ sub run {
         record_soft_failure 'bsc#1083398 - YaST2-virtualization provides wrong components for SLED';
         zypper_call 'in yast2-vm';
     }
-    $self->launch_yast2_module_x11('virtualization');
+    y2_module_guitest::launch_yast2_module_x11('virtualization');
     # select everything
     if (check_var('ARCH', 'x86_64')) {
         send_key 'alt-x';    # XEN Server, only available on x86_64: bsc#1088175

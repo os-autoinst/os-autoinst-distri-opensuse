@@ -39,12 +39,11 @@ use utils;
 use version_utils "is_sle";
 
 sub run {
-    my $self = shift;
     select_console("x11");
     my $accept_keybind = is_sle("<=15-SP1") ? "alt-o" : "alt-a";
 
     # 1. start yast2 keyboard
-    $self->launch_yast2_module_x11("keyboard", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("keyboard", match_timeout => 120);
     send_key "alt-k";
     wait_still_screen 1;
     send_key "g";

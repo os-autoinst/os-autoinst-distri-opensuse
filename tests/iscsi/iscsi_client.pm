@@ -102,11 +102,10 @@ sub initiator_connected_targets_tab {
 
 
 sub run {
-    my $self = shift;
     prepare_xterm_and_setup_static_network(ip => $test_data->{initiator_conf}->{ip}, message => 'Configure MM network - client');
     mutex_wait('iscsi_target_ready', undef, 'Target configuration in progress!');
     record_info 'Target Ready!', 'iSCSI target is configured, start initiator configuration';
-    my $module_name = $self->launch_yast2_module_x11('iscsi-client', target_match => 'iscsi-client');
+    my $module_name = y2_module_guitest::launch_yast2_module_x11('iscsi-client', target_match => 'iscsi-client');
     initiator_service_tab;
     initiator_discovered_targets_tab;
     initiator_connected_targets_tab;

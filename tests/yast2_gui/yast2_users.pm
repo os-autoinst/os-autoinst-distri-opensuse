@@ -18,9 +18,8 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
     select_console 'x11';
-    $self->launch_yast2_module_x11('users', match_timeout => 100);
+    y2_module_guitest::launch_yast2_module_x11('users', match_timeout => 100);
     send_key "alt-o";    # OK => Exit
 }
 

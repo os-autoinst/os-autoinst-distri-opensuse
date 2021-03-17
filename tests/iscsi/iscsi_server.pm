@@ -213,7 +213,7 @@ sub run {
     display_targets(expected => qq('no open sessions'));
     # start yast2 wizard
     record_info 'iSCSI target', 'Start target configuration';
-    my $module_name = $self->launch_yast2_module_x11('iscsi-lio-server', target_match => 'iscsi-lio-server');
+    my $module_name = y2_module_guitest::launch_yast2_module_x11('iscsi-lio-server', target_match => 'iscsi-lio-server');
     target_service_tab;
     target_backstore_tab;
     wait_serial("$module_name-0", 180) || die "'yast2 iscsi-lio-server' didn't finish or exited with non-zero code";
