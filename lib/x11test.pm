@@ -135,18 +135,14 @@ sub clean_shotwell {
 sub upload_libreoffice_specified_file {
 
     x11_start_program('xterm');
-    type_string_slow("wget " . autoinst_url . "/data/x11/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
-    send_key "ret";
-    wait_still_screen;
-    type_string("cd /home/$username/Documents && ls -l");
-    send_key "ret";
-    wait_screen_change {
-        assert_screen("libreoffice-find-tar-file");
-        type_string("tar -xjvf ooo-test-doc-types.tar.bz2");
-        send_key "ret";
-    };
-    wait_still_screen;
+    assert_script_run('wget ' . autoinst_url . "/data/x11/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
+    assert_script_run("cd /home/$username/Documents && ls -l");
+    # extract the files directly in /home/berhard/Documents, no need to write whole path in libreoffice_open_specified_file
+    assert_script_run('tar -xjvf ooo-test-doc-types.tar.bz2 --strip-components 1');
+    # delete the archive, to keep the order for already existing needles
+    assert_script_run('rm ooo-test-doc-types.tar.bz2');
     send_key "alt-f4";
+    wait_still_screen;
 
 }
 
@@ -154,15 +150,10 @@ sub upload_libreoffice_specified_file {
 sub cleanup_libreoffice_specified_file {
 
     x11_start_program('xterm');
-    assert_script_run("rm -rf /home/$username/Documents/ooo-test-doc-types*");
-    wait_still_screen;
-    type_string_slow "ls -l /home/$username/Documents";
-    send_key "ret";
-    wait_screen_change {
-        assert_screen("libreoffice-find-no-tar-file");
-    };
-    wait_still_screen;
+    assert_script_run("rm -f /home/$username/Documents/{cs,ooo-test-doc-types,template,test}*");
+    assert_script_run("ls -l /home/$username/Documents");
     send_key "alt-f4";
+    wait_still_screen;
 
 }
 
