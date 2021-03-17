@@ -83,7 +83,9 @@ sub run {
         elsif ($out =~ $zypper_migration_conflict)
         {
             if (check_var("BREAK_DEPS", '1')) {
-                send_key '1';
+                # This is a workaround for leap to sle migration, we need choose 2 to resolve conflicts.
+                # Normally we do not need resolve any conflicts during migration.
+                is_leap_migration ? send_key '2' : send_key '1';
                 send_key 'ret';
             } else {
                 save_screenshot;
