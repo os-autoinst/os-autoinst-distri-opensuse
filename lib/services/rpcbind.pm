@@ -33,8 +33,9 @@ sub check_install {
 }
 
 sub config_service {
-    type_string("echo '/mnt *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports\n");
-    type_string("echo 'nfs is working' > /mnt/test\n");
+    assert_script_run("mkdir -p /rpcbindtest");
+    assert_script_run("echo '/rpcbindtest *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports");
+    assert_script_run("echo 'nfs is working' > /rpcbindtest/test");
 }
 
 sub enable_service {
@@ -68,7 +69,7 @@ sub check_function {
     sleep(5);
     assert_script_run('rpcinfo | grep nfs');
     assert_script_run('mkdir -p /tmp/nfs');
-    assert_script_run('mount -t nfs localhost:/mnt /tmp/nfs');
+    assert_script_run('mount -t nfs localhost:/rpcbindtest /tmp/nfs');
     sleep(3);
     assert_script_run('grep working /tmp/nfs/test');
     assert_script_run('umount -f /tmp/nfs');
