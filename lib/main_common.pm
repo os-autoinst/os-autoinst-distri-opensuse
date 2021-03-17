@@ -1177,6 +1177,7 @@ sub load_consoletests {
     {
         loadtest "console/glibc_sanity";
     }
+    loadtest "console/glibc_tunables";
     load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
     loadtest "console/zypper_in";
