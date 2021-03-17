@@ -319,7 +319,6 @@ sub start_fonts {
 }
 
 sub run {
-    my $self = shift;
     select_console 'x11';
     if (is_sle '15+') {
         # kdump is disabled by default in the installer, so ensure that it's installed
@@ -333,7 +332,7 @@ sub run {
         record_soft_failure('bsc#1182241', "yast2-vpn is not pre-installed on TW");
         ensure_installed('yast2-vpn yast2-sudo yast2-tune yast2-kdump');
     }
-    $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
+    y2_module_guitest::launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
     start_addon_products;
     start_media_check;

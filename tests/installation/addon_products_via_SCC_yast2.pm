@@ -45,10 +45,8 @@ sub test_setup {
 }
 
 sub run {
-    my ($self) = @_;
-
     test_setup;
-    $self->launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)], maximize_window => 1);
+    y2_module_guitest::launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)], maximize_window => 1);
     if (match_has_tag 'packagekit-warning') {
         send_key 'alt-y';
         assert_screen 'scc-registration';
