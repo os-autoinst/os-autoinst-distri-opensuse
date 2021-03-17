@@ -155,7 +155,7 @@ sub run {
 
     ensure_fullscreen;
 
-    if (is_sle_micro || (is_sle('15+') && get_var('UPGRADE'))) {
+    if (is_sle('15+') && get_var('UPGRADE')) {
         assert_screen('inst-welcome-no-product-list');
     }
     else {
