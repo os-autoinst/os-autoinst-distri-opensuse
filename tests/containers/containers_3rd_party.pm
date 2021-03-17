@@ -31,8 +31,7 @@ sub skip_podman {
 }
 
 sub run_image_tests {
-    my $engine = shift;
-    my @images = @_;
+    my ($runtime, @images) = @_;
     foreach my $image (@images) {
         if ((check_var('ARCH', 's390x')) && ($image =~ /leap/)) {
             record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
@@ -41,8 +40,8 @@ sub run_image_tests {
         } elsif ((check_var('ARCH', 's390x')) && ($image =~ /ubuntu/)) {
             record_soft_failure("poo#72124 Ubuntu image (occasionaly) fails on s390x");
         } else {
-            test_container_image(image => $image, runtime => $engine);
-            script_run("echo 'OK: $engine - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
+            test_container_image($runtime, image => $image);
+            script_run("echo 'OK: " . $runtime->engine . " - $image:latest' >> /var/tmp/containers_3rd_party_log.txt");
         }
     }
 }
@@ -62,39 +61,40 @@ sub run {
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $docker = containers::runtime->new(engine => 'docker');
+    my $podman = containers::runtime->new(engine => 'podman');
 
     # Define test images here
-    my $ex_reg = get_var('REGISTRY', 'docker.io');
     my @images = (
         "registry.opensuse.org/opensuse/leap",
         "registry.opensuse.org/opensuse/tumbleweed",
-        "$ex_reg/library/alpine",
-        "$ex_reg/library/debian",
-        "$ex_reg/library/ubuntu",
-        "$ex_reg/library/centos",
-        "$ex_reg/library/fedora");
+        $docker->registry . "/library/alpine",
+        $docker->registry . "/library/debian",
+        $docker->registry . "/library/ubuntu",
+        $docker->registry . "/library/centos",
+        $docker->registry . "/library/fedora");
 
     script_run('echo "Container base image tests:" > /var/tmp/containers_3rd_party_log.txt');
     # Run docker tests
-    if (skip_docker) {
+    if (skip_docker()) {
         record_info("Skip Docker", "Docker image tests skipped");
         script_run("echo 'INFO: Docker image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
         install_docker_when_needed($host_distri);
-        allow_selected_insecure_registries(runtime => 'docker');
-        run_image_tests('docker', @images);
-        clean_container_host(runtime => 'docker');
+        allow_selected_insecure_registries($docker);
+        run_image_tests($docker, @images);
+        $docker->cleanup_system_host();
     }
     # Run podman tests
-    if (skip_podman) {
+    if (skip_podman()) {
         record_info("Skip Podman", "Podman image tests skipped");
         script_run("echo 'INFO: Podman image tests skipped' >> /var/tmp/containers_3rd_party_log.txt");
     } else {
         # In SLE we need to add the Containers module
         install_podman_when_needed($host_distri);
-        allow_selected_insecure_registries(runtime => 'podman');
-        run_image_tests('podman', @images);
-        clean_container_host(runtime => 'podman');
+        allow_selected_insecure_registries($podman);
+        run_image_tests($podman, @images);
+        $podman->cleanup_system_host();
     }
 }
 

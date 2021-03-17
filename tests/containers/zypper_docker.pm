@@ -28,9 +28,10 @@ use containers::common;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal();
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
+    my ($running_version, $sp, $host_distri) = get_os_release();
+    my $docker = containers::runtime->new(engine => 'docker');
 
     install_docker_when_needed($host_distri);
 
@@ -45,8 +46,8 @@ sub run {
         return 0;
     } else {
         # pull image and check zypper-docker's images funcionalities
-        assert_script_run("docker image pull $testing_image", timeout => 600);
-        my $local_images_list = script_output('docker images');
+        $docker->_rt_assert_script_run("image pull $testing_image", timeout => 600);
+        my $local_images_list = $docker->_rt_script_output('docker images');
         die("docker image $testing_image not found") unless ($local_images_list =~ /opensuse\s*/);
         validate_script_output("zypper-docker images ls", sub { m/opensuse/ }, 180);
         assert_script_run("zypper-docker list-updates $testing_image", timeout => 1200);
@@ -58,7 +59,7 @@ sub run {
         assert_script_run("zypper-docker list-patches-container tmp_container", timeout => 600);
         # apply all the updates to a new_image
         assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
-        clean_container_host(runtime => 'docker');
+        $docker->cleanup_system_host();
     }
 
 }

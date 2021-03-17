@@ -33,26 +33,26 @@ use containers::common;
 use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
+use containers::runtime;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
-
-    my $dir = "/root/DockerTest";
+    $self->select_serial_terminal();
 
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $podman = containers::runtime->new(engine => 'podman');
 
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'podman');
+    allow_selected_insecure_registries($podman);
 
     # Run basic tests for podman
-    basic_container_tests(runtime => "podman");
+    basic_container_tests($podman);
 
     # Build an image from Dockerfile and test it
-    test_containered_app(runtime => 'podman', dockerfile => 'Dockerfile.python3');
+    test_containered_app($podman, dockerfile => 'Dockerfile.python3');
 
     # Clean container
-    clean_container_host(runtime => "podman");
+    $podman->cleanup_system_host();
 }
 
 sub post_fail_hook {
@@ -60,7 +60,7 @@ sub post_fail_hook {
     select_console 'log-console';
     script_run "podman version | tee /dev/$serialdev";
     script_run "podman info --debug | tee /dev/$serialdev";
-    $self->SUPER::post_fail_hook;
+    $self->SUPER::post_fail_hook();
 }
 
 1;

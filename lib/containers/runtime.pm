@@ -15,21 +15,27 @@ use Mojo::Base -base;
 use testapi;
 use Test::Assert 'assert_equals';
 
-has runtime => undef;
+has engine   => undef;
+has registry => get_var('REGISTRY', 'docker.io');
 
 sub _rt_assert_script_run {
     my ($self, $cmd, @args) = @_;
-    assert_script_run($self->runtime . " " . $cmd, @args);
+    assert_script_run($self->engine . " $cmd", @args);
 }
 
 sub _rt_script_run {
     my ($self, $cmd, @args) = @_;
-    return script_run($self->runtime . " " . $cmd, @args);
+    return script_run($self->engine . " $cmd", @args);
 }
 
 sub _rt_script_output {
     my ($self, $cmd, @args) = @_;
-    return script_output($self->runtime . " " . $cmd, @args);
+    return script_output($self->engine . " $cmd", @args);
+}
+
+sub _rt_validate_script_output {
+    my ($self, $cmd, $func) = @_;
+    return validate_script_output($self->engine . " $cmd", $func);
 }
 
 =head2 build
@@ -40,10 +46,15 @@ C<container_tag> will be the name of the container.
 
 =cut
 sub build {
-    my ($self, $dockerfile_path, $container_tag) = @_;
-    die 'wrong number of arguments' if @_ < 3;
+    my ($self, %args) = @_;
+    die 'container_tag should be defined ' unless defined($args{container_tag});
+    my $container_tag   = ' -t ' . $args{container_tag};
+    my $dockerfile_path = '/tmp/' . $container_tag;
+    $dockerfile_path = $args{dockerfile_path} if defined($args{dockerfile_path});
+    $args{timeout} //= 300;
     #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
-    $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", 300);
+    record_info("Building $container_tag", "Building $container_tag using " . $self->engine);
+    $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile $container_tag $dockerfile_path", timeout => $args{timeout});
     record_info "$container_tag created";
 }
 
@@ -51,12 +62,10 @@ sub build {
 
 Run a container.
 C<image_name> is required and can be the image id, the name or name with tag.
-If C<daemon> is enabled then container will run in the detached mode. Otherwise will be in the 
+If C<daemon> is enabled then container will run in the detached mode. Otherwise will be in the
 interactive mode.
 if C<cmd> found then it will execute the given command into the container.
-The container is always removed after exit.
-if C<keep_container> is 1 the container is not removed after creation. Default to get removed
-when it exits or when the daemon exits
+By default container is removed after exit. If C<keep_container> is 1 the container is not removed after creation.
 
 =cut
 sub up {
@@ -65,7 +74,8 @@ sub up {
     my $mode           = $args{daemon}         ? '-d'    : '-it';
     my $remote         = $args{cmd}            ? 'sh -c' : '';
     my $keep_container = $args{keep_container} ? ''      : '--rm';
-    my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s %s '%s'), $keep_container, $mode, $image_name, $remote, $args{cmd});
+    my $exec_string    = sprintf(qq(run %s %s %s %s '%s'), $keep_container, $mode, $image_name, $remote, $args{cmd});
+    my $ret            = $self->_rt_script_run($exec_string);
     record_info "Remote run on $image_name", "options $keep_container $mode $image_name $remote $args{cmd}";
     return $ret;
 }
@@ -95,14 +105,14 @@ sub enum_images {
     return \@images;
 }
 
-=head2 enum_images
+=head2 enum_containers
 
 Return an array ref of the containers
 
 =cut
 sub enum_containers {
-    my ($self) = shift;
-    my $containers_s = $self->_rt_script_output("container ls -q");
+    my ($self, %args) = shift;
+    my $containers_s = $self->_rt_script_output("container ls -a" . $args{quiet} ? " -q" : "");
     record_info "Containers", $containers_s;
     my @containers = split /[\n\t]/, $containers_s;
     return \@containers;
@@ -137,12 +147,38 @@ Remove containers and then all the images respectively and then make sure that e
 
 =cut
 sub cleanup_system_host {
-    my ($self) = shift;
-    # copy from common > clean_container_host
-    $self->_rt_assert_script_run("stop \$($self->{runtime} ps -q)", 180) if script_output("$self->{runtime} ps -q | wc -l") != '0';
-    $self->_rt_assert_script_run("system prune -a -f",              180);
-    assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-    assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
+    my ($self) = @_;
+    if ($self->is_buildah()) {
+        $self->_rt_assert_script_run("rm --all");
+        $self->_rt_assert_script_run("rmi --all --force");
+    }
+    $self->_rt_assert_script_run("stop \$($self->{engine} ps -q)", 180) if script_output("$self->{engine} ps -q | wc -l") != '0';
+    $self->_rt_assert_script_run("system prune -a -f",             180);
+    assert_equals(0, scalar @{$self->enum_containers(quiet => 1)}, "containers have not been removed");
+    assert_equals(0, scalar @{$self->enum_images()},               "images have not been removed");
+}
+
+sub is_docker {
+    my ($self) = @_;
+    return $self->engine =~ /docker/;
+}
+
+sub is_podman {
+    my ($self) = @_;
+    return $self->engine =~ /podman/;
+}
+
+
+# TODO: buildah is not a runtime actually so this function and all it's usages should be dropped in the future
+sub is_buildah {
+    my ($self) = @_;
+    return $self->engine =~ /buildah/;
+}
+
+sub exec_on_container {
+    my ($self, $image, $command, %args) = @_;
+    $args{timeout} //= 120;
+    $self->_rt_assert_script_run("run --rm $image $command", %args);
 }
 
 1;

@@ -23,20 +23,20 @@ use version_utils qw(get_os_release check_os_release);
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = "podman";
+    my $podman = containers::runtime->new(engine => 'podman');
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    allow_selected_insecure_registries($podman);
     for my $iname (@{$image_names}) {
         test_container_image(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
+        build_container_image($podman, $iname);
         if (check_os_release('suse', 'PRETTY_NAME')) {
-            test_opensuse_based_image(image => $iname, runtime => $runtime);
+            test_opensuse_based_image($podman, image => $iname);
         }
         else {
-            exec_on_container($iname, $runtime, 'cat /etc/os-release');
+            $podman->exec_on_container($iname, 'cat /etc/os-release');
         }
     }
-    clean_container_host(runtime => $runtime);
+    $podman->cleanup_system_host();
 }
 
 1;

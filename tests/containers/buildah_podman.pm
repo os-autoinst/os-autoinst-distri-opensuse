@@ -26,32 +26,29 @@ use version_utils qw(get_os_release check_os_release);
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $buildah = containers::runtime->new(engine => 'buildah');
 
     install_buildah_when_needed($host_distri);
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'podman');
+    allow_selected_insecure_registries($buildah);
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    for my $iname (@{$stable_names}) {
+    for my $iname (@{$image_names}) {
         record_info 'testing image', $iname;
-        test_container_image(image => $iname, runtime => 'buildah');
+        test_container_image($buildah, image => $iname);
         if (check_os_release('suse', 'PRETTY_NAME')) {
             # Use container which it is created in test_container_image
             # Buildah default name is conducted by <image-name>-working-container
             my ($prefix_img_name) = $iname =~ /([^\/:]+)(:.+)?$/;
             record_info $prefix_img_name;
-            test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah');
+            test_opensuse_based_image($buildah, image => "${prefix_img_name}-working-container");
             # Due to the steps from the test_opensuse_based_image previously,
             # the image has been committed as refreshed
-            test_containered_app(runtime => 'podman',
-                buildah    => 1,
-                dockerfile => 'Dockerfile.suse',
-                base       => 'refreshed');
+            test_containered_app(containers::runtime->new(engine => 'podman'), buildah => 1, dockerfile => 'Dockerfile.suse', base => 'refreshed');
         }
     }
     scc_restore_docker_image_credentials();
-    clean_container_host(runtime => 'podman');
-    clean_container_host(runtime => 'buildah');
+    $buildah->cleanup_system_host();
 }
 
 1;

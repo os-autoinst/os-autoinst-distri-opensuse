@@ -32,10 +32,10 @@ sub run {
     my ($self) = @_;
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = "podman";
+    my $podman = containers::runtime->new(engine => 'podman');
 
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    allow_selected_insecure_registries($podman);
     my $user         = $testapi::username;
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {
@@ -51,14 +51,14 @@ sub run {
     select_console "user-console";
 
     # smoke test
-    assert_script_run "$runtime images -a";
+    $podman->_rt_assert_script_run("images -a");
     for my $iname (@{$image_names}) {
-        test_container_image(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
-        test_zypper_on_container($runtime, $iname);
-        verify_userid_on_container($runtime, $iname, $subuid_start);
+        test_container_image($podman, image => $iname);
+        build_container_image($podman, $iname);
+        test_zypper_on_container($podman, $iname);
+        verify_userid_on_container($podman, $iname, $subuid_start);
     }
-    clean_container_host(runtime => $runtime);
+    $podman->cleanup_system_host();
 }
 
 sub get_user_subuid {

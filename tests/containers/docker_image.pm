@@ -30,25 +30,25 @@ use version_utils qw(get_os_release check_os_release);
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = "docker";
+    my $docker = containers::runtime->new(engine => 'docker');
 
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    allow_selected_insecure_registries($docker);
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
     for my $iname (@{$image_names}) {
-        test_container_image(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
+        test_container_image($docker, image => $iname);
+        build_container_image($docker, $iname);
         if (check_os_release('suse', 'PRETTY_NAME')) {
-            test_opensuse_based_image(image => $iname, runtime => $runtime);
-            build_with_zypper_docker(image => $iname, runtime => $runtime);
+            test_opensuse_based_image($docker, image => $iname);
+            build_with_zypper_docker($docker, image => $iname);
         }
         else {
-            exec_on_container($iname, $runtime, 'cat /etc/os-release');
+            $docker->exec_on_container($iname, 'cat /etc/os-release');
         }
     }
     scc_restore_docker_image_credentials();
-    clean_container_host(runtime => $runtime);
+    $docker->cleanup_system_host();
 }
 
 1;

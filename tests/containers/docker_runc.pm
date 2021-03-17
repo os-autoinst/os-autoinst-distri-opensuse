@@ -26,9 +26,9 @@ use warnings;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal();
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
+    my ($running_version, $sp, $host_distri) = get_os_release();
 
     my @runtimes = ();
     push @runtimes, "docker-runc" if (is_sle("<16") || is_leap("<16.0"));
@@ -37,15 +37,15 @@ sub run {
     record_info 'Setup', 'Setup the environment';
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
+    my $docker = containers::runtime->new(engine => 'docker');
+    allow_selected_insecure_registries($docker);
 
     # create the rootfs directory
     assert_script_run('mkdir rootfs');
 
     # export alpine via Docker into the rootfs directory (see bsc#1152508)
-    my $registry = get_var('REGISTRY', 'docker.io');
-    my $alpine   = "$registry/library/alpine:3.6";
-    assert_script_run('docker export $(docker create ' . $alpine . ') | tar -C rootfs -xvf -');
+    my $alpine = $docker->registry . "/library/alpine:3.6";
+    $docker->_rt_assert_script_run('export $(docker create ' . $alpine . ') | tar -C rootfs -xvf -');
 
     foreach my $runc (@runtimes) {
         record_info "$runc", "Testing $runc";
@@ -68,7 +68,7 @@ sub run {
     install_docker_when_needed($host_distri);
 
     # remove leftover containers and images
-    clean_container_host(runtime => 'docker');
+    $docker->cleanup_system_host();
 }
 
 1;

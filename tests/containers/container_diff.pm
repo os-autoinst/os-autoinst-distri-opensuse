@@ -23,13 +23,14 @@ use version_utils qw(is_sle get_os_release);
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal();
 
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $docker = containers::runtime->new(engine => 'docker');
 
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker') if (is_sle());
-    zypper_call("install container-diff")                   if (script_run("which container-diff") != 0);
+    allow_selected_insecure_registries($docker) if (is_sle());
+    zypper_call("install container-diff")       if (script_run("which container-diff") != 0);
 
     my ($image_names, $stable_names) = get_suse_container_urls();
 
@@ -37,15 +38,15 @@ sub run {
     for my $i (@{$image_names}) {
         my $image_file             = $image_names->[$i] =~ s/\/|:/-/gr;
         my $container_diff_results = "/tmp/container-diff-$image_file.txt";
-        assert_script_run("docker pull $image_names->[$i]",  360);
-        assert_script_run("docker pull $stable_names->[$i]", 360);
+        $docker->_rt_assert_script_run("pull $image_names->[$i]",  timeout => 360);
+        $docker->_rt_assert_script_run("pull $stable_names->[$i]", timeout => 360);
         assert_script_run("container-diff diff daemon://$image_names->[$i] daemon://$stable_names->[$i] --type=rpm --type=file --type=size > $container_diff_results", 300);
-        upload_logs("$container_diff_results");
-        ensure_container_rpm_updates("$container_diff_results");
+        upload_logs($container_diff_results);
+        ensure_container_rpm_updates($container_diff_results);
     }
 
     # Clean container
-    clean_container_host(runtime => "docker");
+    $docker->cleanup_system_host();
 }
 
 1;

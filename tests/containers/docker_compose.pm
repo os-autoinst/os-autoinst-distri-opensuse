@@ -33,9 +33,10 @@ use warnings;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal();
 
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $docker = containers::runtime->new(engine => 'docker');
 
     install_docker_when_needed($host_distri);
     add_suseconnect_product(get_addon_fullname('phub'))    if is_sle();
@@ -50,9 +51,9 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    allow_selected_insecure_registries(runtime => 'docker');
-    my $registry = get_var('REGISTRY', 'docker.io');
-    assert_script_run("sed -i 's/REGISTRY/$registry/' docker-compose.yml");
+    allow_selected_insecure_registries($docker);
+
+    file_content_replace("docker-compose.yml", REGISTRY => $docker->registry);
     assert_script_run 'docker-compose pull', 600;
 
     # Start all containers in background
@@ -79,7 +80,7 @@ sub run {
     # De-registration is disabled for on-demand instances
     remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle()          && !is_ondemand());
     remove_suseconnect_product(get_addon_fullname('python2')) if (is_sle('=15-sp1') && !is_ondemand());
-    clean_container_host(runtime => 'docker');
+    $docker->cleanup_system_host();
 }
 
 sub post_fail_hook {

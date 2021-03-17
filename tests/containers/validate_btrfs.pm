@@ -71,7 +71,7 @@ sub _test_btrfs_device_mgmt {
 }
 
 sub run {
-    my $docker    = containers::runtime->new(runtime => 'docker');
+    my $docker    = containers::runtime->new(engine => 'docker');
     my $btrfs_dev = '/var/lib/docker';
     _sanity_test_btrfs($docker, $btrfs_dev);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);

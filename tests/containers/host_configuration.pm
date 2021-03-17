@@ -20,7 +20,7 @@ use version_utils 'check_os_release';
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal();
     if (check_os_release('suse', 'PRETTY_NAME')) {
         ensure_ca_certificates_suse_installed();
     }
@@ -33,4 +33,3 @@ sub run {
 }
 
 1;
-

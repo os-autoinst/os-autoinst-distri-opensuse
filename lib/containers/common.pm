@@ -26,12 +26,11 @@ use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos 
 use containers::utils 'can_build_sle_base';
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
-  clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
-  scc_restore_docker_image_credentials install_buildah_when_needed);
+  test_container_runtime test_container_image scc_apply_docker_image_credentials scc_restore_docker_image_credentials install_buildah_when_needed);
 
 sub install_podman_when_needed {
-    my $host_os = shift;
-    my @pkgs    = qw(podman);
+    my ($host_os) = @_;
+    my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
@@ -49,14 +48,14 @@ sub install_podman_when_needed {
             push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
         }
-        assert_script_run('podman info');
     }
+    assert_script_run('podman info');
 }
 
 sub install_docker_when_needed {
-    my $host_os = shift;
+    my ($host_os) = @_;
 
-    if (is_microos || is_sle_micro) {
+    if (is_microos() || is_sle_micro()) {
         # Docker should be pre-installed in MicroOS
         die 'Docker is not pre-installed.' if zypper_call('se -x --provides -i docker');
     } else {
@@ -86,15 +85,17 @@ sub install_docker_when_needed {
     }
 
     # docker daemon can be started
-    systemctl('enable docker') if systemctl('is-enabled docker', ignore_failure => 1);
-    systemctl('start docker')  if systemctl('is-active docker',  ignore_failure => 1);
+    systemctl('enable docker');
+    systemctl('is-enabled docker');
+    systemctl('start docker');
+    systemctl('is-active docker');
     systemctl('status docker', timeout => 120);
     assert_script_run('docker info');
 }
 
 sub install_buildah_when_needed {
-    my $host_os = shift;
-    my @pkgs    = qw(buildah);
+    my ($host_os) = @_;
+    my @pkgs = qw(buildah);
     if (script_run("which buildah") != 0) {
         # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
         add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
@@ -104,42 +105,26 @@ sub install_buildah_when_needed {
 }
 
 sub allow_selected_insecure_registries {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-    my $registry = get_var('REGISTRY', 'docker.io');
+    my ($runtime) = @_;
+    my $registry = $runtime->registry;
 
-    assert_script_run "echo $runtime ...";
-    if ($runtime =~ /docker/) {
+    if ($runtime->is_docker()) {
         # Allow our internal 'insecure' registry
         assert_script_run(
-'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
+            'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \" $registry \"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
         systemctl('restart docker');
-    } elsif ($runtime =~ /podman/) {
+    } elsif ($runtime->is_podman()) {
         assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
         assert_script_run "chmod 644 /etc/containers/registries.conf";
-        file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
+        file_content_replace("/etc/containers/registries.conf", REGISTRY => $runtime->registry);
     } else {
-        die "Unsupported runtime - " . $runtime;
-    }
-}
-
-sub clean_container_host {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-    if ($runtime =~ /buildah/) {
-        assert_script_run("$runtime rm --all");
-        assert_script_run("$runtime rmi --all --force");
-    } else {
-        assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
-        assert_script_run("$runtime system prune -a -f",             180);
+        die "Unsupported runtime - " . $runtime->engine;
     }
 }
 
 sub test_container_runtime {
-    my $runc = shift;
+    my ($runc) = @_;
     die "You must define the runtime!" unless $runc;
 
     # installation of runtime
@@ -195,13 +180,8 @@ sub test_container_runtime {
 
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
-    my %args    = @_;
-    my $image   = $args{image};
-    my $runtime = $args{runtime};
+    my ($runtime, $image) = @_;
     my $logfile = "/var/tmp/container_logs";
-
-    die 'Argument $image not provided!'   unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
 
     # Images from docker.io registry are listed without the 'docker.io/library/'
     # Images from custom registry are listed with the '$registry/library/'
@@ -209,7 +189,7 @@ sub test_container_image {
 
     my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
 
-    if ($runtime =~ /buildah/) {
+    if ($runtime->is_buildah()) {
         if (script_run("buildah images | grep '$image'") != 0) {
             assert_script_run("buildah pull $image", timeout => 300);
             assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
@@ -219,15 +199,15 @@ sub test_container_image {
         assert_script_run("buildah run $container $smoketest");
     } else {
         # Pull the image if necessary
-        if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
-            assert_script_run("$runtime pull $image", timeout => 300);
-            assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
+        if ($runtime->_rt_script_run("image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
+            $runtime->_rt_assert_script_run("pull $image", timeout => 300);
+            $runtime->_rt_assert_script_run("image inspect --format='{{.RepoTags}}' $image | grep '$image'");
         }
-        assert_script_run("$runtime container create --name 'testing' '$image' /bin/sh -c '$smoketest'");
-        assert_script_run("$runtime container start 'testing'");
-        assert_script_run("$runtime wait 'testing'", 90);
-        assert_script_run("$runtime container logs 'testing' | tee '$logfile'");
-        assert_script_run("$runtime container rm 'testing'");
+        $runtime->_rt_assert_script_run("container create --name 'testing' '$image' /bin/sh -c '$smoketest'");
+        $runtime->_rt_assert_script_run("container start 'testing'");
+        $runtime->_rt_assert_script_run("wait 'testing'", timeout => 90);
+        $runtime->_rt_assert_script_run("container logs 'testing' | tee '$logfile'");
+        $runtime->_rt_assert_script_run("container rm 'testing'");
         if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
             upload_logs("$logfile");
             die "Kernel smoke test failed for $image";

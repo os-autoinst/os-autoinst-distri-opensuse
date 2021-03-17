@@ -37,27 +37,45 @@ use version_utils qw(is_sle is_leap get_os_release);
 use containers::utils;
 use containers::container_images;
 
+sub test_seccomp {
+    my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
+    upload_logs('/tmp/docker_info.txt');
+    if ($no_seccomp) {
+        my $err_seccomp_support = 'boo#1072367 - Docker Engine does NOT have seccomp support';
+        if (is_sle('<15') || is_leap('<15.0')) {
+            record_info('WONTFIX', $err_seccomp_support);
+        }
+        else {
+            die($err_seccomp_support);
+        }
+    }
+    else {
+        record_info('seccomp', 'Docker Engine supports seccomp');
+    }
+}
+
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    $self->select_serial_terminal();
 
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
     my $dir        = "/root/DockerTest";
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
+    my ($running_version, $sp, $host_distri) = get_os_release();
+    my $docker = containers::runtime->new(engine => 'docker');
 
     install_docker_when_needed($host_distri);
     test_seccomp();
-    allow_selected_insecure_registries(runtime => 'docker');
+    allow_selected_insecure_registries($docker);
 
     # Run basic docker tests
-    basic_container_tests(runtime => "docker");
+    basic_container_tests($docker);
 
     # Build an image from Dockerfile and test it
-    test_containered_app(runtime => 'docker', dockerfile => 'Dockerfile.python3');
+    test_containered_app($docker, dockerfile => 'Dockerfile.python3');
 
     # Clean container
-    clean_container_host(runtime => "docker");
+    $docker->cleanup_system_host();
 }
 
 1;

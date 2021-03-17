@@ -29,40 +29,39 @@ use containers::common;
 use containers::utils;
 
 sub registry_push_pull {
-    my %args    = @_;
-    my $image   = $args{image};
-    my $runtime = $args{runtime};
+    my ($runtime, %args) = @_;
+    my $image = $args{image};
 
-    die 'Argument $image not provided!'   unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
+    die 'Argument $image not provided!' unless $image;
 
     # Pull $image
-    assert_script_run "$runtime pull $image",            600;
-    assert_script_run "$runtime images | grep '$image'", 60;
+    $runtime->_rt_assert_script_run("pull $image",            timeout => 600);
+    $runtime->_rt_assert_script_run("images | grep '$image'", timeout => 60);
 
     # Tag $image for the local registry
-    assert_script_run "$runtime tag $image localhost:5000/$image",      90;
-    assert_script_run "$runtime images | grep 'localhost:5000/$image'", 60;
+    $runtime->_rt_assert_script_run("tag $image localhost:5000/$image",      timeout => 90);
+    $runtime->_rt_assert_script_run("images | grep 'localhost:5000/$image'", timeout => 60);
 
     # Push $image to the local registry
-    assert_script_run "$runtime push localhost:5000/$image", 90;
+    $runtime->_rt_assert_script_run("push localhost:5000/$image", timeout => 90);
 
     # Remove $image as well as the local registry $image
     # The localhost:5000/$image must be removed first
-    assert_script_run "$runtime image rm -f localhost:5000/$image",       90;
-    assert_script_run "$runtime image rm -f $image",                      90;
-    assert_script_run "! $runtime images | grep '$image'",                60;
-    assert_script_run "! $runtime images | grep 'localhost:5000/$image'", 60;
+    $runtime->_rt_assert_script_run("image rm -f localhost:5000/$image", timeout => 90);
+    $runtime->_rt_assert_script_run("image rm -f $image",                timeout => 90);
+    assert_script_run("! " . $runtime->engine . " images | grep '$image'",         timeout => 60);
+    assert_script_run("! " . $runtime->engine . " | grep 'localhost:5000/$image'", timeout => 60);
 
     # Pull $image from the local registry
-    assert_script_run "$runtime pull localhost:5000/$image",            90;
-    assert_script_run "$runtime images | grep 'localhost:5000/$image'", 60;
+    $runtime->_rt_assert_script_run("pull localhost:5000/$image",            timeout => 90);
+    $runtime->_rt_assert_script_run("images | grep 'localhost:5000/$image'", timeout => 60);
 }
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
-    my ($running_version, $sp, $host_distri) = get_os_release;
+    $self->select_serial_terminal();
+    my ($running_version, $sp, $host_distri) = get_os_release();
+    my $docker = containers::runtime->new(engine => 'docker');
 
     # Package Hub is not enabled on 15-SP3 yet.
     return if is_sle '=15-SP3';
@@ -79,17 +78,18 @@ sub run {
 
     # Run docker tests
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
+    allow_selected_insecure_registries($docker);
     my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
-    registry_push_pull(image => $tumbleweed, runtime => 'docker');
-    clean_container_host(runtime => 'docker');
+    registry_push_pull($docker, image => $tumbleweed);
+    $docker->cleanup_system_host();
 
     # Run podman tests
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
+    if (is_leap('15.1+') || is_tumbleweed() || is_sle("15-sp1+")) {
+        my $podman = containers::runtime->new(engine => 'podman');
         install_podman_when_needed($host_distri);
-        allow_selected_insecure_registries(runtime => 'podman');
-        registry_push_pull(image => $tumbleweed, runtime => 'podman');
-        clean_container_host(runtime => 'podman');
+        allow_selected_insecure_registries($podman);
+        registry_push_pull($podman, image => $tumbleweed);
+        $podman->cleanup_system_host();
     }
 }
 
