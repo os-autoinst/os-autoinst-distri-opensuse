@@ -18,6 +18,7 @@ use publiccloud::instance;
 use Data::Dumper;
 use Mojo::JSON 'decode_json';
 use utils qw(file_content_replace script_retry);
+use publiccloud::utils qw(is_azure);
 
 use constant TERRAFORM_DIR     => '/root/terraform';
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -384,22 +385,25 @@ sub terraform_apply {
     record_info('TFM cmd', $cmd);
 
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
-    my $ret = script_run('terraform apply -no-color -input=false myplan', $terraform_timeout);
-    unless (defined $ret) {
-        if (is_serial_terminal()) {
-            type_string(qq(\c\\));    # Send QUIT signal
+    my $tries = (is_azure() && get_var('PUBLIC_CLOUD_QAM')) ? 3 : 1;    # Retry only on azure platform for QAM runs
+    my $ret   = 1;
+    while ($ret != 0) {
+        $ret = script_run('terraform apply -no-color -input=false myplan | tee terraform_apply.log', $terraform_timeout);
+        unless (defined $ret) {
+            if (is_serial_terminal()) {
+                type_string(qq(\c\\));    # Send QUIT signal
+            }
+            else {
+                send_key('ctrl-\\');      # Send QUIT signal
+            }
+            assert_script_run('true');    # make sure we have a prompt
+            record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
+            assert_script_run('cd ' . TERRAFORM_DIR);
+            $self->on_terraform_apply_timeout();
+            die('Terraform apply failed with timeout');
         }
-        else {
-            send_key('ctrl-\\');      # Send QUIT signal
-        }
-        assert_script_run('true');    # make sure we have a prompt
-        record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
-        assert_script_run('cd ' . TERRAFORM_DIR);
-        $self->on_terraform_apply_timeout();
-        die('Terraform apply failed with timeout');
+        die('Terraform exit with ' . $ret) if ($ret != 0 && --$tries <= 0);
     }
-    die('Terraform exit with ' . $ret) if ($ret != 0);
-
     $self->terraform_applied(1);
 
     my $output = decode_json(script_output("terraform output -json"));
