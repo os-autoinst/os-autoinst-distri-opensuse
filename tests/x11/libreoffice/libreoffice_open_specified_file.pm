@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -40,7 +40,7 @@ sub run {
         send_key "ctrl-l";
         save_screenshot;
         type_string_slow "/home/$username/Documents/ooo-test-doc-types/test.$tag\n";
-        wait_still_screen 3;
+        wait_still_screen 3, 7;
         assert_screen("libreoffice-test-$tag", 120);
         if (match_has_tag('ooffice-tip-of-the-day')) {
             # Unselect "_S_how tips on startup", select "_O_k"
