@@ -54,7 +54,7 @@ sub run {
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
     # prepare sudoers and test user
-    assert_script_run 'echo "bernhard ALL = (root) NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su" >/etc/sudoers.d/test';
+    assert_script_run 'echo "bernhard ALL = (root) NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su, /usr/bin/id, /bin/bash" >/etc/sudoers.d/test';
     # use script_run because yes is still writing to the pipe and then command is exiting with 141
     script_run "groupadd sudo_group && useradd -m -d /home/sudo_test -G sudo_group,\$(stat -c %G /dev/$serialdev) sudo_test && yes $test_password|passwd -q sudo_test";
     assert_script_run 'echo "%sudo_group ALL = (root) NOPASSWD: /usr/bin/journalctl, PASSWD: /usr/bin/zypper" >/etc/sudoers.d/sudo_group';
