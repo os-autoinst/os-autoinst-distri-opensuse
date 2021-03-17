@@ -39,7 +39,7 @@ sub run {
         wait_still_screen 3;
         send_key "ctrl-l";
         save_screenshot;
-        type_string_slow "/home/$username/Documents/ooo-test-doc-types/test.$tag\n";
+        type_string_slow "test.$tag\n";
         wait_still_screen 3, 7;
         assert_screen("libreoffice-test-$tag", 120);
         if (match_has_tag('ooffice-tip-of-the-day')) {
@@ -47,8 +47,8 @@ sub run {
             send_key "alt-s";
             send_key "alt-o";
         }
-        # Close every 3 files to reduce the VM's burden
-        if ($i % 3 == 0) { send_key_until_needlematch('libreoffice-test-doc', 'alt-f4', 5, 10); }
+        # close document
+        send_key "ctrl-f4";
         $i++;
     }
     send_key 'ctrl-q' unless check_screen 'generic-desktop', 0;
