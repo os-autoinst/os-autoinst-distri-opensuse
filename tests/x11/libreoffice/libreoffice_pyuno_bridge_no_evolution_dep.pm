@@ -36,16 +36,12 @@ sub run {
     send_key 'right';
     assert_and_click 'ooffice-writer-tools-run-macros';
 
-    # navigate to the python samples item
+    # navigate to the Table sample item
     assert_screen 'ooffice-writer-mymacros';
-    send_key 'down';
     assert_and_click 'ooffice-writer-libreofficemacros';
     wait_still_screen(2);
-    type_string "py\n";
-
-    assert_and_click 'ooffice-python-samples';
-    wait_still_screen(2);
-    send_key_until_needlematch 'ooffice-table-sample', 'down', 5, 1;
+    type_string "table\n";
+    assert_screen 'ooffice-table-sample';
     send_key 'tab';
 
     # run create table
