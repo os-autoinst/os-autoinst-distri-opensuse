@@ -22,7 +22,8 @@ schedule:
   - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning_finish
   - installation/releasenotes
@@ -67,3 +68,5 @@ test_data:
         text: Acuerdo de licencia de usuario final
       - language: Traditional Chinese
         text: 版軟體的
+  system_role:
+    default: 'Text Mode'

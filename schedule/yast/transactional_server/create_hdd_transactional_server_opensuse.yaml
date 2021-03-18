@@ -6,13 +6,16 @@ description: >
   system without interfering with the running system.
 vars:
   HDDSIZEGB: 40
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -24,6 +27,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/system_prepare
@@ -35,3 +39,7 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+test_data:
+  system_role:
+    default: null
+    selection: 'Transactional Server'
