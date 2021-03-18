@@ -54,9 +54,22 @@ sub build_container_image {
     assert_script_run("$runtime images");
 }
 
+=head2 test_containered_app
+
+ test_containered_app($runtime, [$buildah], $dockerfile, $base);
+
+Create a container using a C<dockerfile> and run smoke test against that.
+ C<base> can be used to setup base repo in the dockerfile in case that the file
+does not have a defined one.
+
+The main container runtimes do not need C<buildah> variable in general, unless
+you want to build the image with buildah but run it with $<runtime>
+
+=cut
 sub test_containered_app {
     my %args       = @_;
     my $runtime    = $args{runtime};
+    my $buildah    = $args{buildah} // 0;
     my $dockerfile = $args{dockerfile};
     my $base       = $args{base};
 
@@ -69,10 +82,12 @@ sub test_containered_app {
     container_set_up("$dir", $dockerfile, $base);
 
     # Build the image
-    build_img("$dir", $runtime);
-
+    $buildah ? build_img("$dir", 'buildah') : build_img("$dir", $runtime);
+    if ($runtime eq 'docker' && $buildah) {
+        assert_script_run "buildah push myapp docker-daemon:myapp:latest";
+        script_run "$runtime images";
+    }
     # Run the built image
-    $runtime = 'podman' if $runtime eq 'buildah';
     test_built_img($runtime);
 }
 
@@ -177,7 +192,18 @@ sub test_opensuse_based_image {
         }
     } else {
         $version =~ s/^Jump://i;
-        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        if ($runtime =~ /buildah/) {
+            if (script_output("$runtime run $image grep PRETTY_NAME /etc/os-release") =~ /WARN.+from \"\/etc\/containers\/mounts.conf\" doesn\'t exist, skipping/) {
+                record_soft_failure "bcs#1183482 - libcontainers-common contains SLE files on TW";
+            }
+            else {
+                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+                    sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ });
+            }
+        }
+        else {
+            validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        }
     }
 
     # Zypper is supported only on openSUSE or on SLE based image on SLE host

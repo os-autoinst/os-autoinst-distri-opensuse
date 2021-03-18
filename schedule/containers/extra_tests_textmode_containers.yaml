@@ -21,8 +21,10 @@ schedule:
   - boot/boot_to_desktop
   - containers/podman
   - '{{podman_image}}'
+  - containers/buildah_podman
   - containers/docker
   - '{{docker_image}}'
+  - containers/buildah_docker
   - containers/docker_runc
   - containers/docker_compose
   - containers/zypper_docker

@@ -22,30 +22,35 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
+use version_utils 'is_sle';
 
 sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-
     install_buildah_when_needed($host_distri);
-    install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'podman');
+    install_docker_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => 'docker');
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    for my $iname (@{$image_names}) {
+    for my $iname (@{$stable_names}) {
+        record_info 'testing image', $iname;
         test_container_image(image => $iname, runtime => 'buildah');
         if (check_os_release('suse', 'PRETTY_NAME')) {
-            # sle15-working-container is the default name given to a container. it is created in test_container_image
-            test_opensuse_based_image(image => 'sle15-working-container', runtime => 'buildah');
+            # Use container which it is created in test_container_image
+            # Buildah default name is conducted by <image-name>-working-container
+            my ($prefix_img_name) = $iname =~ /([^\/:]+)(:.+)?$/;
+            test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah');
             # Due to the steps from the test_opensuse_based_image previously,
             # the image has been committed as refreshed
-            test_containered_app(runtime => 'buildah',
+            test_containered_app(runtime => 'docker',
+                buildah    => 1,
                 dockerfile => 'Dockerfile.suse',
                 base       => 'refreshed');
         }
     }
+
     scc_restore_docker_image_credentials();
-    clean_container_host(runtime => 'podman');
+    clean_container_host(runtime => 'docker');
     clean_container_host(runtime => 'buildah');
 }
 

@@ -16,7 +16,8 @@ schedule:
   - boot/boot_to_desktop
   - containers/host_configuration
   - containers/podman_image
-  - containers/buildah_image
+  - containers/buildah_podman
+  - containers/buildah_docker
   - containers/docker_image
   - containers/container_diff
   - '{{validate_btrfs}}'
