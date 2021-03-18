@@ -24,16 +24,12 @@ sub run {
     # check nftables, stop iptables and start firewalld by need
     my $logs = "/tmp/log";
 
-    #check that nftables has been already installed
-    assert_script_run('echo -e "____ nftables version and rules ____\n\n" > ' . $logs);
-    assert_script_run("rpm -qa nftables |& tee -a $logs");
+    # check that nftables has been already installed
+    zypper_call('info nftables', log => 'zypper_info.log');
     assert_script_run("if systemctl is-active -q iptables; then systemctl stop iptables; fi");
     systemctl("restart firewalld");
 
-    # check that directory of nftables and create a customer rule 'tcp-mss-clamp'
-    assert_script_run('echo -e "____ /etc/nftables contains rules ____\n" >> ' . $logs);
-    assert_script_run("ls /etc/nftables |& tee -a $logs");
-
+    # create a customer rule 'tcp-mss-clamp'
     script_run('cat > tcp-mss-clamp <<EOF
 #  nft list chain inet firewalld filter_FWDO_public_allow
 table inet firewalld {
@@ -104,7 +100,8 @@ true');
 
     # check firewall settings and save them to logs
     assert_script_run('echo -e "____ firewall services --zone=public ____\n" >> ' . $logs);
-    assert_script_run("firewall-cmd --list-services --zone=public |& tee -a $logs");
+    assert_script_run("firewall-cmd --list-services --zone=public | grep -e dhcpv6-client ");
+    assert_script_run("firewall-cmd --list-services --zone=public |& tee -a $logs ");
 
     # Upload logs
     upload_logs("$logs");
