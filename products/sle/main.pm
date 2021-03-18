@@ -896,7 +896,12 @@ elsif (get_var("QAM_MINIMAL")) {
 }
 elsif (get_var("INSTALLTEST")) {
     boot_hdd_image;
-    loadtest "qam-updinstall/update_install";
+    if (get_var('BUILD') =~ m/^MR:/) {
+        loadtest "qam-updinstall/update_install_mr";
+    }
+    else {
+        loadtest "qam-updinstall/update_install";
+    }
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
