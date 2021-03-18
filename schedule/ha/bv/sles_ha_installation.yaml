@@ -55,7 +55,6 @@ schedule:
   - '{{after_reboot}}'
   - installation/first_boot
   - '{{create_hdd_tests}}'
-  - '{{svirt_upload_assets}}'
 conditional_schedule:
   check_iso_maxsize:
     CHECK_ISO_MAXSIZE:
@@ -75,6 +74,10 @@ conditional_schedule:
         - installation/grub_test
       ppc64le:
         - installation/grub_test
+  svirt_upload_assets:
+    BACKEND:
+      svirt:
+        - shutdown/svirt_upload_assets
   create_hdd_tests:
     CREATE_HDD:
       1:
@@ -84,7 +87,4 @@ conditional_schedule:
         - shutdown/grub_set_bootargs
         - shutdown/cleanup_before_shutdown
         - shutdown/shutdown
-  svirt_upload_assets:
-    BACKEND:
-      svirt:
-        - shutdown/svirt_upload_assets
+        - '{{svirt_upload_assets}}'
