@@ -134,7 +134,7 @@ sub advance_installer_window {
     send_key $cmd{next};
     die 'Unable to create repository' if check_screen('unable-to-create-repo', 5);
     if ($build =~ m/^MR:/) {
-        if (check_screen("impotrt-untrusted-gpg-key", 20)) {
+        if (check_screen("import-untrusted-gpg-key", 20)) {
             send_key "alt-t";
         }
     }
