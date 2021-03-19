@@ -109,7 +109,7 @@ sub run {
     # Port forwarding (bsc#1131709 bsc#1133386)
     assert_script_run "( ssh -NL 4242:localhost:22 $ssh_testman\@localhost & )";
     assert_script_run "( ssh -NR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost & )";
-    assert_script_run 'until ss -tulpn|egrep "4242|5252";do sleep 1;done';
+    assert_script_run 'until ss -tulpn|grep sshd|egrep "4242|5252";do sleep 1;done';
     assert_script_run "ssh-keyscan -p 4242 localhost >> ~/.ssh/known_hosts";
     assert_script_run "ssh-keyscan -p 5252 localhost >> ~/.ssh/known_hosts";
 
