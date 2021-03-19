@@ -136,7 +136,7 @@ sub configure_firewall_policies {
     assert_script_run("systemctl start firewalld");
     assert_script_run("firewall-cmd --permanent --new-zone=my-external");
     assert_script_run("firewall-cmd --permanent --new-zone=my-internal");
-    assert_script_run("systemctl restart firewalld");
+    assert_script_run("firewall-cmd --reload");
     assert_script_run("firewall-cmd --zone=my-external --change-interface=$net0");
     assert_script_run("firewall-cmd --zone=my-internal --change-interface=$net1");
     assert_script_run("firewall-cmd --permanent --new-policy=int-to-ext");
@@ -155,7 +155,7 @@ sub configure_firewall_policies {
     assert_script_run("firewall-cmd --permanent --policy ext-to-int --add-rich-rule='rule family=ipv4 service name=http reject'");
     assert_script_run("firewall-cmd --permanent --policy ext-to-int --add-rich-rule='rule family=ipv4 protocol value=icmp reject'");
 
-    assert_script_run("systemctl restart firewalld");
+    assert_script_run("firewall-cmd --reload");
 }
 
 sub run {
