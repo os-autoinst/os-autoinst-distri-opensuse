@@ -87,7 +87,7 @@ Accept warning for Networkmanager controls network device.
 
 =cut
 sub open_network_settings {
-    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan', extra_vars => get_var('YUI_PARAMS'));
     # 'Global Options' tab is opened after accepting the warning on the systems
     # with Network Manager.
     # Thus, there is no way to select device in Overview tab on such systems, so

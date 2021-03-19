@@ -76,7 +76,6 @@ sub setup_libyui {
 }
 
 sub setup_libyui_running_system {
-    add_suseconnect_product('sle-module-development-tools');
     zypper_call('in libyui-rest-api');
 
     my $port = get_var('YUI_PORT');
@@ -84,7 +83,12 @@ sub setup_libyui_running_system {
     record_info('PORT',   "Used port for libyui: $port");
     record_info('SERVER', "Connecting to: $host");
     set_var('YUI_PARAMS', "YUI_HTTP_PORT=$port YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
-    assert_script_run("firewall-cmd --zone=public --add-port=$port/tcp");
+    # Add the port to permanent config and restart firewalld to apply the changes immediately.
+    # This is needed, because if firewall is restarted for some reason, then the port become
+    # closed (e.g. it was faced while saving settings in yast2 lan) and further tests will not
+    # be able to communicate with YaST modules.
+    assert_script_run("firewall-cmd --zone=public --add-port=$port/tcp --permanent");
+    assert_script_run('firewall-cmd --reload');
     my $app = YuiRestClient::App->new({port => $port, host => $host, api_version => API_VERSION});
     set_app($app);
 }

@@ -21,7 +21,13 @@ use YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab;
 
 sub new {
     my ($class, $args) = @_;
-    my $self = $class->SUPER::new($args);
+    my $self = bless {}, $class;
+    return $self->init($args);
+}
+
+sub init {
+    my ($self, $args) = @_;
+    $self->SUPER::init($args);
     $self->{HardwareDialog}    = YaST::NetworkSettings::NetworkCardSetup::HardwareDialog->new();
     $self->{BridgedDevicesTab} = YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab->new({tab_shortcut => 'alt-i', bridged_devices_shortcut => 'alt-d'});
     $self->{BondSlavesTab}     = YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab->new({tab_shortcut => 'alt-o'});
