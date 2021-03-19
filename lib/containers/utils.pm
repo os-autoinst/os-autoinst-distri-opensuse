@@ -112,7 +112,7 @@ sub basic_container_tests {
     if (script_run("$runtime container exec $container_name zypper -n in curl", 300)) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
-        die('error: curl not installed in the container') unless (($output =~ m/Installing: curl.*done/) || ($output =~ m/curl .* already installed/));
+        die('error: curl not installed in the container') unless (($output =~ m/Installing: curl.*done/) || ($output =~ m/\'curl\' .* already installed/));
     }
     assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
