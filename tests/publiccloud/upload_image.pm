@@ -35,7 +35,7 @@ sub run {
         return;
     }
 
-    assert_script_run("wget $img_url -O $img_name", timeout => 60 * 10);
+    assert_script_run("wget --no-check-certificate $img_url -O $img_name", timeout => 60 * 10);
     $provider->upload_img($img_name, $img_type);
 }
 
