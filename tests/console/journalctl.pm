@@ -27,7 +27,7 @@ use Mojo::Base qw(consoletest);
 use Date::Parse qw(str2time);
 use testapi;
 use utils qw(zypper_call script_retry systemctl);
-use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud);
+use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud is_leap);
 use Utils::Backends qw(is_hyperv);
 use Utils::Architectures qw(is_s390x);
 use power_action_utils qw(power_action);
@@ -123,7 +123,7 @@ sub run {
     # Other configuration changes should be overridden using _drop-in_ file
     # To enable persistent logging in opensuse, we use systemd-logger.rpm that creates */var/log/journal/* directory
     get_current_boot_id \@boots;
-    if (is_opensuse) {
+    if (is_opensuse && !is_leap('>=15.3')) {
         assert_script_run 'rpm -q systemd-logger';
         assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
     } else {
@@ -186,7 +186,7 @@ sub run {
     verify_journal();
     # Note: Detailled error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
     # Create virtual serial console for journal redirecting
-    if (is_opensuse) {
+    if (is_opensuse && !is_leap('>=15.3')) {
         zypper_call 'in socat';
         script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
         assert_script_run('jobs | grep socat', fail_message => "socat is not running");
