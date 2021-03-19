@@ -133,9 +133,6 @@ sub build_with_zypper_docker {
 
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
-
-    record_info("Testing derived");
-    test_opensuse_based_image(image => $derived_image, runtime => $runtime);
 }
 
 sub test_opensuse_based_image {
