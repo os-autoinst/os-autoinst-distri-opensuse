@@ -229,6 +229,9 @@ Check service before migration, zypper install service package, enable, start an
 =cut
 sub install_services {
     my ($service) = @_;
+    # turn off lmod shell debug information
+    assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
+    assert_script_run '. /etc/bash.bashrc.local';
     foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
