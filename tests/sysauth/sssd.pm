@@ -9,12 +9,11 @@
 # without any warranty.
 
 # Package: sssd sssd-krb5 sssd-krb5-common sssd-ldap sssd-tools openldap2 openldap2-client
-# krb5 krb5-client krb5-server krb5-plugin-kdb-ldap python-pam python3-python-pam psmisc
+# krb5 krb5-client krb5-server krb5-plugin-kdb-ldap psmisc
 # Summary: Test the integration between SSSD and its various backends - file database, LDAP, and Kerberos
 # - If distro is sle >= 15, add Packagehub and sle-module-legacy products
 # - Install sssd, sssd-krb5, sssd-krb5-common, sssd-ldap, sssd-tools, openldap2,
 # openldap2-client, krb5, krb5-client, krb5-server, krb5-plugin-kdb-ldap
-# - If sle<15, install python-pam. Otherwise, install python3-python-pam
 # - If textmode, install psmisc
 # - Fetch "version_utils.sh" and "sssd-tests" from datadir
 # - Run the following test scenarios: ldap, ldap-no-auth, ldap-nested-groups,
@@ -36,7 +35,6 @@ use version_utils qw(is_sle is_opensuse);
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
     # Install test subjects and test scripts
     my @test_subjects = qw(
       sssd sssd-krb5 sssd-krb5-common sssd-ldap sssd-tools
@@ -44,12 +42,6 @@ sub run {
       krb5 krb5-client krb5-server krb5-plugin-kdb-ldap
     );
 
-    # for sle 12 we still use and support python2
-    if (is_sle('<15')) {
-        push @test_subjects, 'python-pam';
-    } else {
-        push @test_subjects, 'python3-python-pam';
-    }
     # sssd test suite depends on killall, which is part of psmisc (enhanced_base pattern)
     push @test_subjects, 'psmisc' if check_var('DESKTOP', 'textmode');
 

@@ -4,12 +4,6 @@ set -e
 
 . ../testincl.sh
 
-if ( usePython3 ); then
-	PYTHON=python3
-else
-	PYTHON=python2
-fi
-
 # kerberos.schema changing path /usr/share/kerberos/ldap/kerberos.schema
 # https://bugzilla.suse.com/show_bug.cgi?id=1135543
 if [ -f /usr/share/doc/packages/krb5/kerberos.schema ]; then
@@ -98,14 +92,6 @@ credentials_test() {
 	passwd -S testuser1@ldapdom &> /dev/null &&
 	passwd -S testuser2@ldapdom &> /dev/null || test_fatal "($mode) Failed to check password status"
 	! passwd -S doesnotexist@ldapdom &> /dev/null || test_fatal "($mode) Non-existing user showed up in passwd"
-	test_ok
-
-	# Test user authentication and login, via PAM
-	test_case "($mode) Login via PAM"
-	$PYTHON ../pamtest.py login testuser1 goodpass &&
-	$PYTHON ../pamtest.py login testuser2 goodpass || test_fatal "($mode) Failed to login"
-	! $PYTHON ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal "($mode) Failed to deny login of incorrect password"
-	! $PYTHON ../pamtest.py login doesnotexist badpass &> /dev/null || test_fatal "($mode) Failed to deny login of false username"
 	test_ok
 }
 

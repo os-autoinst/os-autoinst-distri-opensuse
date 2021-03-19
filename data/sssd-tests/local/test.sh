@@ -4,12 +4,6 @@ set -e
 
 . ../testincl.sh
 
-if ( usePython3 ); then
-	PYTHON=python3
-else
-	PYTHON=python2
-fi
-
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
 
@@ -55,18 +49,5 @@ test_case 'Check password status'
 passwd -S testuser1 &> /dev/null || test_fatal 'Failed to check password status'
 ! passwd -S testuser2 &> /dev/null || test_fatal 'Deleted user still shows up in passwd'
 test_ok
-
-echo 'testuser1@LOCAL:goodpass' | chpasswd
-test_case 'Authentication via PAM'
-$PYTHON ../pamtest.py passwd testuser1 goodpass || test_fatal 'Failed to authentication testuser1'
-! $PYTHON ../pamtest.py passwd testuser1 badpass &> /dev/null || test_fatal 'Failed to deny false password for testuser1'
-! $PYTHON ../pamtest.py passwd testuser2 badpass &> /dev/null || test_fatal 'Failed to deny false username'
-test_ok
-
-test_case 'Login via PAM'
-$PYTHON ../pamtest.py login testuser1 goodpass || test_fatal 'Failed to login as testuser1'
-! $PYTHON ../pamtest.py login testuser1 badpass &> /dev/null || test_fatal 'Failed to deny login of incorrect password'
-! $PYTHON ../pamtest.py login testuser2 badpass &> /dev/null || test_fatal 'Failed to deny login of false username'
-test_ok
-
+#
 test_suite_end

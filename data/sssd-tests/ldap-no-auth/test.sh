@@ -4,11 +4,6 @@ set -e
 
 . ../testincl.sh
 
-if ( usePython3 ); then
-	PYTHON=python3
-else
-	PYTHON=python2
-fi
 
 trap sssd_test_common_cleanup EXIT SIGINT SIGTERM
 sssd_test_common_setup
@@ -76,9 +71,6 @@ passwd -S testuser2@ldapdom &> /dev/null || test_fatal 'Failed to check password
 ! passwd -S doesnotexist@ldapdom &> /dev/null || test_fatal 'Non-existing user showed up in passwd'
 test_ok
 
-ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -sgoodpass 'uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net'
-test_case 'Login via PAM'
-! $PYTHON ../pamtest.py login testuser1 goodpass || test_fatal 'Disabled authentication provider did not reject login'
-test_ok
+#ldappasswd -x -D 'cn=root,dc=ldapdom,dc=net' -wpass -sgoodpass 'uid=testuser1,ou=UnixUser,dc=ldapdom,dc=net'
 
 test_suite_end

@@ -101,19 +101,3 @@ test_abort() {
 	../junit.sh error -T "$1"
 	exit 1
 }
-
-
-#########################################################################
-###
-### Returns 0 if python3 should be used
-###
-### Example:
-### usePython3
-### echo $?
-
-usePython3(){
-   if ( isSles15 ) || ( isLeap15 ) || ( isTumbleweed ); then
-      return 0
-   fi
-   return 1
-}
