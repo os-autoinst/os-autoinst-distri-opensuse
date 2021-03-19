@@ -25,11 +25,11 @@ use utils qw(systemctl zypper_call);
 use Mojo::Util 'trim';
 
 my %package = (
-    postgresql12 => '13.0.0',
-    python3      => '3.9.0',
+    postgresql13 => '13.0.0',
+    python39     => '3.9.0',
+    python3      => '3.6.0',
     mariadb      => '10.0.0'
 );
-
 sub cmp_version {
     my ($old, $new) = @_;
     my @newv = split(qr/-|\+/, $new);
