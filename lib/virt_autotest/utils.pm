@@ -33,8 +33,15 @@ use Utils::Architectures 'is_s390x';
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
-  upload_y2logs ensure_default_net_is_active ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs);
+  upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
+  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown);
+
+# helper function: Trim string
+sub trim {
+    my $text = shift;
+    $text =~ s/^\s+|\s+$//g;
+    return $text;
+}
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -150,11 +157,13 @@ sub create_guest {
     my $location     = $guest->{location};
     my $autoyast     = $guest->{autoyast};
     my $macaddress   = $guest->{macaddress};
-    my $extra_params = $guest->{extra_params} // "";
+    my $on_reboot    = $guest->{on_reboot}    // "restart";    # configurable on_reboot policy
+    my $extra_params = $guest->{extra_params} // "";           # extra-parameters
+    my $extra_args   = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
+    $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
-        record_info "$name", "Going to create $name guest";
-        send_key 'ret';    # Make some visual separator
+        send_key 'ret';                                        # Make some visual separator
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
@@ -165,12 +174,17 @@ sub create_guest {
         assert_script_run "sync",                                                                             180;
         script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
 
+        $extra_args  = "autoyast=$autoyastURL $extra_args";
+        $extra_args  = trim($extra_args);
         $virtinstall = "virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
-        $virtinstall .= " --events on_reboot=restart --extra-args 'autoyast=$autoyastURL'";
-        script_run "( $virtinstall >> ~/virt-install_$name.txt 2>&1 & )";
+        $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
+        $virtinstall .= " --extra-args '$extra_args'"    unless ($extra_args eq '');
+        record_info("$name", "Creating $name guests:\n$virtinstall");
+        script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
 
+        # wait for initrd to ensure the installation is starting
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     }
 }
@@ -204,6 +218,7 @@ sub install_default_packages {
     }
 }
 
+# ensure_online($guest) - Ensures the given guests is started and fixes some common network issues
 sub ensure_online {
     my ($guest, %args) = @_;
 
@@ -211,6 +226,7 @@ sub ensure_online {
     my $dns_host     = $args{DNS_TEST_HOST} // "suse.de";
     my $skip_ssh     = $args{skip_ssh}      // 0;
     my $skip_network = $args{skip_network}  // 0;
+    my $skip_ping    = $args{skip_ping}     // 0;
     my $ping_delay   = $args{ping_delay}    // 15;
     my $ping_retry   = $args{ping_retry}    // 60;
 
@@ -219,11 +235,14 @@ sub ensure_online {
     if (is_xen_host || is_kvm_host) {
         if (script_run("virsh list | grep '$guest'") != 0) {
             assert_script_run("virsh start '$guest'");
-            script_retry("ping -c 1 '$guest'", delay => 10, retry => 30);
+            wait_guest_online($guest);
         }
     }
     unless ($skip_network == 1) {
-        die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => $ping_delay, retry => $ping_retry) != 0);
+        # Check if we can ping guest
+        unless ($skip_ping == 1) {
+            die "$guest does not respond to ICMP" if (script_retry("ping -c 1 '$guest'", delay => $ping_delay, retry => $ping_retry) != 0);
+        }
         unless ($skip_ssh == 1) {
             # Wait for ssh to come up
             die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
@@ -232,10 +251,13 @@ sub ensure_online {
             if (script_run("ssh $guest ip r s | grep default") != 0) {
                 assert_script_run("ssh $guest ip r a default via $hypervisor");
             }
-            die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 3 $hypervisor", delay => 1, retry => 10, timeout => 90) != 0);
+            # Check if we can ping hypervizor from the guest
+            unless ($skip_ping == 1) {
+                die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 3 $hypervisor", delay => 1, retry => 10, timeout => 90) != 0);
+            }
             # Check also if name resolution works - restart libvirtd if not
             if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
-                restart_libvirtd;
+                restart_libvirtd                        if (is_xen_host || is_kvm_host);
                 die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 3 -w 120 $dns_host", delay => 1, retry => 10, timeout => 180) != 0);
             }
         }
@@ -317,6 +339,44 @@ sub collect_virt_system_logs {
     assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
     assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
     upload_asset '/tmp/dumpxml.tar.gz';
+}
+
+# is_guest_online($guest) check if the given guests is online by probing for an open ssh port
+sub is_guest_online {
+    my $guest = shift;
+    return script_run("nmap $guest -PN -p ssh | grep open") == 0;
+}
+
+# wait_guest_online($guest, [$timeout]) waits until the given guests is online by probing for an open ssh port
+sub wait_guest_online {
+    my $guest   = shift;
+    my $retries = shift // 300;
+    # Wait until guest is reachable via ssh
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 1, retry => $retries);
+}
+
+# Shutdown all guests and wait until they are shutdown
+sub shutdown_guests {
+    ## Reboot the guest to ensure the settings are applied
+    # Shutdown and start the guest because some might have the on_reboot=destroy policy still applied
+    script_run("virsh shutdown $_") foreach (keys %virt_autotest::common::guests);
+    # Wait until guests are terminated
+    wait_guests_shutdown();
+}
+
+# wait_guests_shutdown([$timeout]) waits for all guests to be shutdown
+sub wait_guests_shutdown {
+    my $retries = shift // 240;
+    # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
+    script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries);
+}
+
+# Start all guests and wait until they are online
+sub start_guests {
+    script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
+    # Wait for guests to show up as running
+    script_retry("virsh list | grep $_ | grep running", delay => 5, retry => 10) foreach (keys %virt_autotest::common::guests);
+    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 }
 
 1;

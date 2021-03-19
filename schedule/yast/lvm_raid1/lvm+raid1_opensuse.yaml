@@ -7,8 +7,6 @@ vars:
   RAIDLEVEL: 1
   LVM: 1
   YUI_REST_API: 1
-test_data:
-  <<: !include test_data/yast/lvm_raid1/lvm+raid1.yaml
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
@@ -16,7 +14,8 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning/setup_raid1_lvm
   - installation/installer_timezone
@@ -32,3 +31,8 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm_raid1
+test_data:
+  system_role:
+    default: null
+    selection: 'Desktop with KDE Plasma'
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1.yaml

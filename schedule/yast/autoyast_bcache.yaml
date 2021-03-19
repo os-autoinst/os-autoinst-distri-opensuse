@@ -32,46 +32,4 @@ test_data:
   file_system:
     /: btrfs
     /boot: ext3
-  profile:
-    partitioning:
-      - drive:
-          unique_key: device
-          device: /dev/vda
-          type: CT_DISK
-          partitions:
-            - partition:
-                unique_key: mount
-                mount: /boot
-                filesystem: ext3
-            - partition:
-                unique_key: mount
-                mount: swap
-                filesystem: swap
-            - partition:
-                unique_key: bcache_backing_for
-                bcache_backing_for: /dev/bcache0
-            - partition:
-                # BIOS Boot Partition
-                unique_key: partition_nr
-                partition_nr: 1
-      - drive:
-          unique_key: device
-          device: /dev/vdb
-          disklabel: none
-          type: CT_DISK
-          partitions:
-            partition:
-              bcache_caching_for:
-                unique_key: listentry
-                listentry: /dev/bcache0
-      - drive:
-          unique_key: device
-          device: /dev/bcache0
-          bcache_options:
-            unique_key: cache_mode
-            cache_mode: writethrough
-          type: CT_BCACHE
-          partitions:
-            - partition:
-                unique_key: mount
-                mount: /
+  <<: !include test_data/yast/autoyast/profiles/bcache.yaml

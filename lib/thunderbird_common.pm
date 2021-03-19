@@ -61,7 +61,7 @@ sub tb_setup_account {
             assert_and_click 'thunderbird_wizard-imap-pop-open';
             assert_and_click 'thunderbird_SSL_pop3-selection-click-TW';
             assert_and_click 'thunderbird_SSL_auth_click';
-            assert_and_click 'thunderbird_wizard-pop-selected-normal';
+            assert_and_click 'thunderbird_wizard-pop-done';
         }
         else {
             assert_screen 'thunderbird_wizard-imap-pop-open';
@@ -79,10 +79,9 @@ sub tb_setup_account {
 
     # If use multimachine, select correct needles to configure thunderbird.
     if ($hostname eq 'client') {
-        assert_and_click "thunderbird_SSL_advanced_config";
-        assert_and_click "thunderbird_SSL_ok_config";
-        assert_and_click "thunderbird_skip-system-integration";
+        assert_and_click "thunderbird_SSL_done_config";
         assert_and_click "thunderbird_confirm_security_exception";
+        assert_and_click "thunderbird_skip-system-integration";
         assert_and_click "thunderbird_get-messages";
     }
     else {
@@ -104,13 +103,13 @@ sub tb_setup_account {
 =head2 tb_send_message
  tb_send_message($account);
 Test sending an email using Thunderbird.
-C<$account> can be C<internal_account_A> or C<internal_account_B>.
+C<$proto> can be C<pop> or C<imap>.
+C<$account> can be C<internal_account_A> or C<internal_account_B> or C<internal_account_C> or C<internal_account_D>.
 Returns email subject.
 =cut
 sub tb_send_message {
     my $hostname = get_var('HOSTNAME');
-    my ($self, $account) = @_;
-
+    my ($self, $proto, $account) = @_;
     my $config       = $self->getconfig_emailaccount;
     my $mailbox      = $config->{$account}->{mailbox};
     my $mail_passwd  = $config->{$account}->{passwd};
@@ -130,33 +129,19 @@ sub tb_send_message {
     if ($hostname eq 'client') {
         if (check_var('SLE_PRODUCT', 'sled')) {
             assert_and_click "thunderbird_SSL_error_security_exception";
-            #for any reason, window go to behind, useing shortcut key to focus again.
-            hold_key "alt";
-            send_key "f1";
-            release_key "alt";
-            send_key "tab";
-            send_key "ret";
             assert_and_click "thunderbird_confirm_security_exception";
-            # Now, return focus to thunderbirt sent email window.
-            hold_key "alt";
-            send_key "f1";
-            release_key "alt";
-            send_key "tab";
-            send_key "tab";
-            send_key "ret";
+            assert_and_click 'thunderbird_maximized_send-message';
         }
-        if (is_tumbleweed) {
+        else {
             assert_and_click "thunderbird_SSL_error_security_exception";
-            assert_and_click "thunderbird_focus_security_exception-TW";
-            assert_and_click "thunderbird_select_security_exception-TW";
             assert_and_click "thunderbird_confirm_security_exception";
-            assert_and_click "thunderbird_focus_security_exception-TW";
-            assert_and_click "thunderbird_select_sentemail_window-TW";
+            assert_and_click 'thunderbird_maximized_send-message';
+            assert_and_click "thunderbird_get-messages";
         }
-        assert_and_click "thunderbird_maximized_send-message";
+
     }
     else {
-        assert_screen 'thunderbird_sent-folder-appeared';
+        assert_screen 'thunderbird_sent-folder-appeared', 90;
     }
 
     return $mail_subject;
@@ -173,7 +158,7 @@ sub tb_check_email {
     wait_screen_change { send_key "shift-f5" };
     send_key "ctrl-shift-k";
     wait_screen_change { type_string "$mail_search" };
-    assert_screen "thunderbird_sent-message-received";
+    assert_screen "thunderbird_sent-message-received", 120;
 
     # delete the message
     assert_and_click "thunderbird_select-message";

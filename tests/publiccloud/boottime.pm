@@ -92,6 +92,18 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
+    'Azure-Image-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-BYOS-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-Image-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
 
     # EC2
     'EC2-CHOST-BYOS' => {
@@ -117,6 +129,22 @@ our $thresholds_by_flavor = {
         analyze => $default_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
+    'EC2-BYOS-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-ARM-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-ARM-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
 
     # GCE
     GCE => {
@@ -128,6 +156,14 @@ our $thresholds_by_flavor = {
         blame   => $default_blame_thresholds,
     },
     'GCE-CHOST-BYOS' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'GCE-Image-Updates' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'GCE-BYOS-Image-Updates' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -29,23 +29,19 @@ sub run {
     $self->libreoffice_start_program('oowriter');
 
     # Make sure the tip of the day window disappear
-    wait_still_screen;
+    wait_still_screen(3, 7);
     # Open the tools and navigate to macro selector
     assert_and_click 'ooffice-writer-tools';
     assert_and_click 'ooffice-tools-macros';
     send_key 'right';
     assert_and_click 'ooffice-writer-tools-run-macros';
 
-    # navigate to the python samples item
+    # navigate to the Table sample item
     assert_screen 'ooffice-writer-mymacros';
-    send_key 'down';
     assert_and_click 'ooffice-writer-libreofficemacros';
     wait_still_screen(2);
-    type_string "py\n";
-
-    assert_and_click 'ooffice-python-samples';
-    wait_still_screen(2);
-    send_key_until_needlematch 'ooffice-table-sample', 'down', 5, 1;
+    type_string "table\n";
+    assert_screen 'ooffice-table-sample';
     send_key 'tab';
 
     # run create table

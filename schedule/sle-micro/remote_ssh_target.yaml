@@ -1,0 +1,18 @@
+---
+name: remote_ssh_target_ftp
+description: >
+  Multi-machine test using one VM to trigger installation over ssh using ftp
+  mirror, second VM connects over ssh and conducts the installation.
+  Installation is validated by successful boot and that YaST does not report
+  any issue. Boots with ssh=1 parameter and waits for parallel job
+  (remote_ssh_controller) to install the system.
+schedule:
+  - installation/bootloader_start
+  - remote/remote_target
+  - console/textinfo
+  - microos/networking
+  - microos/libzypp_config
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/journal_check
+  - shutdown/shutdown

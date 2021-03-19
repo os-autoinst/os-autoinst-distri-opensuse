@@ -356,20 +356,6 @@ else {
             set_var('INSTALLONLY', 1);
             loadtest "iscsi/iscsi_client";
         }
-        if (get_var('WIREGUARD_SERVER') || get_var("WIREGUARD_CLIENT")) {
-            set_var('INSTALLONLY', 1);
-            if (get_var('IS_MM_SERVER')) {
-                barrier_create 'SETUP_DONE',       2;
-                barrier_create 'KEY_TRANSFERED',   2;
-                barrier_create 'VPN_ESTABLISHED',  2;
-                barrier_create 'IPERF_COMPLETED',  2;
-                barrier_create 'WG_QUICK_READY',   2;
-                barrier_create 'WG_QUICK_ENABLED', 2;
-            }
-            loadtest "network/setup_multimachine";
-            loadtest "network/wireguard";
-            return 1;
-        }
         if (get_var('OVS')) {
             set_var('INSTALLONLY', 1);
             if (check_var('HOSTNAME', 'server')) {
@@ -382,7 +368,9 @@ else {
                 barrier_create('traffic_check_done2', 2);
                 barrier_create('cert_done',           2);
                 barrier_create('host2_cert_ready',    2);
+                barrier_create('empty_directories',   2);
                 barrier_create('cacert_done',         2);
+                barrier_create('end_of_test',         2);
             }
             loadtest 'installation/bootloader_start';
             loadtest 'network/setup_multimachine';

@@ -1,0 +1,83 @@
+---
+name: migration_offline_sles_ha
+description: >
+  Offline migration from installed SLES with HA extension
+
+  This test does an offline migration using the *DVD* media, with or without SCC registration.
+vars:
+  BOOTFROM: 'd'
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: 'textmode'
+  FULL_UPDATE: '1'
+  HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
+  INSTALLONLY: '1'
+  MAX_JOB_TIME: '14400'
+  ORIGINAL_TARGET_VERSION: '%VERSION%'
+  PATCH: '1'
+  TERMINATE_AFTER_JOBS_DONE: '1'
+  TIMEOUT_SCALE: '2'
+  UPGRADE: '1'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1, UEFI_PFLASH_VARS
+schedule:
+  - migration/version_switch_origin_system
+  - '{{bootloader_zkvm}}'
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - migration/record_disk_info
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - '{{bootloader}}'
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - '{{after_reboot}}'
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_lr
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - '{{upload_zkvm}}'
+conditional_schedule:
+  bootloader:
+    ARCH:
+      aarch64:
+        - installation/bootloader_uefi
+      ppc64le:
+        - installation/bootloader
+      s390x:
+        - installation/bootloader_zkvm
+      x86_64:
+        - installation/bootloader
+  bootloader_zkvm:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+  after_reboot:
+    ARCH:
+      aarch64:
+        - installation/grub_test
+      ppc64le:
+        - installation/grub_test
+      s390x:
+        - boot/reconnect_mgmt_console
+      x86_64:
+        - installation/grub_test
+  upload_zkvm:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets

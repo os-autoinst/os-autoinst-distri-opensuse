@@ -22,7 +22,6 @@ use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
-use serial_terminal 'prepare_serial_console';
 use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
@@ -259,7 +258,11 @@ sub setup_network {
     # echo/echoes, getaddrinfo_01
     assert_script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; sed -i \'s/^\(hosts:\s+files\s\+dns$\)/\1 myhostname/\' $f');
 
-    foreach my $service (qw(auditd dnsmasq nfs-server rpcbind vsftpd)) {
+    my @services = qw(auditd dnsmasq rpcbind vsftpd);
+    # nfsd module is not included in kernel-default-base package
+    push @services, 'nfs-server' unless get_var('KERNEL_BASE');
+
+    foreach my $service (@services) {
         if (!is_jeos && is_sle('12+') || is_opensuse) {
             systemctl("reenable $service");
             assert_script_run("systemctl start $service || { systemctl status --no-pager $service; journalctl -xe --no-pager; false; }");
@@ -292,8 +295,6 @@ sub run {
     if (!get_var('KGRAFT') && !get_var('LTP_BAREMETAL') && !is_jeos) {
         $self->wait_boot;
     }
-
-    prepare_serial_console;
 
     $self->select_serial_terminal;
 

@@ -20,7 +20,7 @@ use registration 'add_suseconnect_product';
 use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle package_version_cmp);
 
 sub test_run_list {
     return ('_reboot_off', @{get_var_array('QA_TESTSUITE', get_var('QA_TESTSET', '') =~ s/[^_]*_//r)});
@@ -62,6 +62,23 @@ sub qaset_config {
     assert_script_run("mkdir -p /root/qaset");
     my $testsuites = "\n\t" . join("\n\t", @list) . "\n";
     assert_script_run("echo 'SQ_TEST_RUN_LIST=($testsuites)' > /root/qaset/config");
+
+    if (is_sle('>=15')) {
+        # poo88597 We need an executable boot.local to avoid failing rc-local service test for sle15+
+        my $boot_local = "/etc/init.d/boot.local";
+        assert_script_run("echo '#!/bin/sh' > $boot_local");
+        assert_script_run("chmod +x $boot_local");
+    }
+
+    # Reset the failed state of all units so that only new failures are recorded
+    assert_script_run("systemctl reset-failed");
+
+    # Workaround for bsc#1183229 (mdmonitor.service cannot run for newer mdadm versions)
+    my $mdadm_version         = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}\n' mdadm");
+    my $working_mdadm_version = '4.1-15.20.1';
+    if (package_version_cmp($mdadm_version, $working_mdadm_version) > 0) {
+        zypper_call("in -f mdadm-$working_mdadm_version");
+    }
 }
 
 # Add qa head repo for kernel testing. If QA_SERVER_REPO is set,

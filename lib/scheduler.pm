@@ -1,4 +1,4 @@
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -86,6 +86,24 @@ sub get_test_suite_data {
     return $test_suite_data;
 }
 
+=head2 expand_test_data_vars
+
+Expand test suite data variables
+
+=cut
+
+sub expand_test_data_vars {
+    my ($node) = shift;
+    if (ref $node eq 'HASH') {
+        $_ = expand_test_data_vars($_) foreach values %$node;
+    } elsif (ref $node eq 'ARRAY') {
+        $_ = expand_test_data_vars($_) foreach (@$node);
+    } else {
+        $node =~ s/%(.*?)%/get_var($1,'')/eg if $node;
+    }
+    return $node;
+}
+
 =head2 parse_test_suite_data
 
 Parse test data from the yaml file which contains data used in the tests which could be located
@@ -105,6 +123,7 @@ sub parse_test_suite_data {
         # latest included data has priority over previous included data
         $test_suite_data = {%$test_suite_data, %{$include_yaml}};
     }
+    expand_test_data_vars($test_suite_data);
     local $Data::Dumper::Terse = 1;
     my $out = Dumper($test_suite_data);
     chomp($out);

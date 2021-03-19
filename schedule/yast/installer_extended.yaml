@@ -8,20 +8,22 @@ description: >
 vars:
   CHECK_PRESELECTED_MODULES: '1'
   CHECK_RELEASENOTES: '1'
-  EULA_LANGUAGES: korean
   EXIT_AFTER_START_INSTALL: '1'
   EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
-  INSTALLER_EXTENDED_TEST: '1'
-  VALIDATE_CHECKSUM: '1'
+  YUI_REST_API: 1
 schedule:
   # Called on BACKEND: qemu
   - '{{compare_checksums}}'
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
-  - installation/accept_license
+  - installation/licensing/verify_license_translations
+  - installation/licensing/verify_license_has_to_be_accepted
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
   - installation/partitioning
   - installation/partitioning_finish
   - installation/releasenotes
@@ -38,3 +40,33 @@ conditional_schedule:
       qemu:
         - installation/isosize
         - installation/data_integrity
+test_data:
+  license:
+    default: English (US)
+    translations:
+      - language: Czech
+        text: Licenční smlouva společnosti
+      - language: English (US)
+        text: End User License Agreement
+      - language: French
+        text: Contrat de licence utilisateur final
+      - language: German
+        text: Endbenutzer-Lizenzvereinbarung
+      - language: Italian
+        text: Contratto di licenza
+      - language: Japanese
+        text: 版ソフトウェア
+      - language: Korean
+        text: 소프트웨어
+      - language: Portuguese (Brazilian)
+        text: Contrato de Licença para Usuário Final
+      - language: Russian
+        text: Лицензионное соглашение
+      - language: Simplified Chinese
+        text: 软件的
+      - language: Spanish
+        text: Acuerdo de licencia de usuario final
+      - language: Traditional Chinese
+        text: 版軟體的
+  system_role:
+    default: 'Text Mode'

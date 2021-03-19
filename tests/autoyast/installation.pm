@@ -40,7 +40,7 @@ use base 'y2_installbase';
 use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
-use version_utils qw(is_sle is_microos is_released);
+use version_utils qw(is_sle is_microos is_released is_upgrade);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
@@ -138,7 +138,7 @@ sub run {
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || is_pvm;
+    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || (is_pvm && !is_upgrade);
     # Similar situation over IPMI backend, we can check against PXE menu
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     # Import untrusted certification for SMT
@@ -343,7 +343,7 @@ sub run {
     $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
     # Second stage starts here
-    $maxtime = 1000;
+    $maxtime = 1000 * get_var('TIMEOUT_SCALE', 1);    # Max waiting time for stage 2
     $timer   = 0;
     $stage   = 'stage2';
 

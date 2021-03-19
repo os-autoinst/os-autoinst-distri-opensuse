@@ -1,0 +1,11 @@
+---
+profile:
+  partitioning:
+    drive:
+      - device: /dev/vda
+      - device: /dev/vdb
+        disklabel: gpt
+        partitions:
+          partition:
+            crypt_method: luks1
+            size: 5368709120

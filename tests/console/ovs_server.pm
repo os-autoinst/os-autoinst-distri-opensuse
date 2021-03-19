@@ -97,9 +97,12 @@ sub run {
     barrier_wait 'traffic_check_done1';
 
     assert_script_run("rm -r $dir* $dir_certs* $dir_private*");
+    barrier_wait 'empty_directories';
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
     add_bridge("$server_vpn");
+
+    barrier_wait 'host2_cert_ready';
 
     # Setup IPsec tunnel using CA-signed certificate
     assert_script_run("ovs-pki init");
@@ -110,7 +113,7 @@ sub run {
     assert_script_run("ovs-pki -b sign host_1 switch");
 
     # Wait for the client to send the certificate request and sign it with the CA key
-    barrier_wait 'host2_cert_ready';
+
     assert_script_run("ovs-pki -b sign host_2 switch");
 
     # Copy the client's certificate and CA certificate to client
@@ -136,6 +139,8 @@ sub run {
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
     assert_script_run("rm -r $dir* $dir_certs* $dir_private* $dir_cacerts*");
+
+    barrier_wait 'end_of_test';
 
 }
 

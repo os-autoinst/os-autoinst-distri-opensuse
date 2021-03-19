@@ -95,6 +95,9 @@ sub run {
     barrier_wait 'traffic_check_done1';
 
     assert_script_run("rm -r $dir* $dir_certs* $dir_private*");
+
+    barrier_wait 'empty_directories';
+
     assert_script_run("ovs-vsctl del-br br-ipsec");
     add_bridge("$client_vpn");
 
@@ -123,6 +126,8 @@ sub run {
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
     assert_script_run("rm -r $dir* $dir_certs* $dir_private*");
+
+    barrier_wait 'end_of_test';
 }
 
 1;

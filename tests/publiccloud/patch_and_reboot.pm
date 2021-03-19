@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
 #
 # Maintainer: Pavel Dostal <pdostal@suse.cz>

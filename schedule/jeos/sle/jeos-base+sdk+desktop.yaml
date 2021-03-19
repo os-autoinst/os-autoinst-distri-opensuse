@@ -1,0 +1,45 @@
+description: 'Test suite verifies functionality and integration of Development-Tools (sdk) and Desktop-Applications (desktop) patterns'
+name: 'jeos_base+sdk+desktop_patterns'
+conditional_schedule:
+    bootloader:
+        MACHINE:
+            'svirt-xen-pv':
+                - installation/bootloader_svirt
+            'svirt-xen-hvm':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+            'svirt-hyperv-uefi':
+                - installation/bootloader_hyperv
+            'svirt-hyperv':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
+            'svirt-vmware65':
+                - installation/bootloader_svirt
+                - installation/bootloader_uefi
+schedule:
+    - '{{bootloader}}'
+    - jeos/firstrun
+    - jeos/record_machine_id
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - jeos/grub2_gfxmode
+    - jeos/diskusage
+    - jeos/build_key
+    - console/suseconnect_scc
+    - console/consoletest_setup
+    - console/textinfo
+    - jeos/kiwi_templates
+    - console/zypper_ref
+    - console/command_not_found
+    - console/libvorbis
+    - console/git
+    - console/java
+    - console/ant
+    - console/gdb
+    - console/perf
+    - console/update_alternatives
+    - toolchain/install
+    - toolchain/gcc_compilation
+    - toolchain/gcc_fortran_compilation
+    - console/orphaned_packages_check
+    - console/consoletest_finish

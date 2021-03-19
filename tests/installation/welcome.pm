@@ -113,7 +113,8 @@ sub run {
     while ($iterations++ < scalar(@welcome_tags)) {
         # See poo#19832, sometimes manage to match same tag twice and test fails due to broken sequence
         wait_still_screen 5;
-        assert_screen(\@welcome_tags, 500);
+        my $timeout = check_var('ARCH', 'aarch64') ? '1000' : '500';
+        assert_screen(\@welcome_tags, $timeout);
         # Normal exit condition
         if ((match_has_tag 'inst-betawarning') || (match_has_tag 'inst-welcome') || (match_has_tag 'inst-welcome-no-product-list')) {
             last;
@@ -154,7 +155,7 @@ sub run {
 
     ensure_fullscreen;
 
-    if (is_sle_micro || (is_sle('15+') && get_var('UPGRADE'))) {
+    if (is_sle('15+') && get_var('UPGRADE')) {
         assert_screen('inst-welcome-no-product-list');
     }
     else {

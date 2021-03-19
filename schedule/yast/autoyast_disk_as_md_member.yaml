@@ -30,23 +30,4 @@ test_data:
   mount_point:
     root: /
     data: /data
-  profile:
-    partitioning:
-      - drive:
-          unique_key: device
-          device: /dev/sda
-      - drive:
-          unique_key: device
-          device: /dev/md0
-          raid_options:
-            raid_type: raid1
-          partitions:
-            - partition:
-                unique_key: mount
-                mount: /
-            - partition:
-                unique_key: mount
-                mount: /data
-      - drive:
-          unique_key: device
-          device: /dev/sdb
+  <<: !include test_data/yast/autoyast/profiles/disk_as_md_member.yaml

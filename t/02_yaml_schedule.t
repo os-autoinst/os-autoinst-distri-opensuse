@@ -21,6 +21,25 @@ subtest 'parse_yaml_test_data_single_import' => sub {
 
 };
 
+subtest 'parse_yaml_test_data_vars_expansion' => sub {
+    use scheduler;
+    use testapi 'set_var';
+
+    set_var('ENV_VAR_1', 'aaa');
+    set_var('ENV_VAR_2', 'bbb');
+    set_var('ENV_VAR_3', 'ccc');
+    set_var('ENV_VAR_4', 'ddd');
+    my $schedule = $ypp->load_file(dirname(__FILE__) . '/data/test_data_vars_expansion.yaml');
+    scheduler::parse_test_suite_data($schedule);
+    my $testdata = scheduler::get_test_suite_data();
+    ok $testdata->{var1} eq 'pre-aaa-post', 'Test data expanded properly for hash';
+    ok $testdata->{nested1}->[0]->{nested2}->{var2} eq 'bbb-post', 'Test data expanded properly for nested hash';
+    ok $testdata->{nested1}->[1] eq 'pre-ccc', 'Test data expanded properly for array';
+    ok $testdata->{nested1}->[2]->{var4} eq 'ddd', 'Test data expanded properly for hash in array';
+    ok $testdata->{nested1}->[3] eq '', 'Non-existing variable expanded as empty in test data for array';
+    ok $testdata->{no_var} eq '', 'Non-existing variable expanded as empty string in test data for hash';
+};
+
 subtest 'parse_yaml_test_data_multiple_imports' => sub {
     use scheduler;
     # compare versions if possible

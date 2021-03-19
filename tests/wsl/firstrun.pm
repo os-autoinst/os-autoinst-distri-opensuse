@@ -160,4 +160,18 @@ sub run {
     type_string "exit\n" unless (get_var('BETA', 0) && is_sut_reg());
 }
 
+sub post_fail_hook {
+    assert_screen 'yast2-wsl-active';
+    # function keys are not encoded in consoles/VNC.pm
+    send_key 'alt-q';
+    wait_still_screen stilltime => 5, timeout => 35;
+    send_key 'alt-r';
+    assert_screen 'wsl-firsboot-exit-warning-pop-up';
+    send_key 'alt-a';
+    assert_screen 'wsl-installing-prompt';
+    wait_still_screen stilltime => 2, timeout => 11;
+    script_run 'save_y2logs wsl-fb.tar.xz';
+    upload_logs '/root/wsl-fb.tar.xz';
+}
+
 1;

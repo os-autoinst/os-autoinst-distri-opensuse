@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-pip python3-virtualenv python3-ec2imgutils aws-cli
+# python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>

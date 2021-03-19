@@ -5,6 +5,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Patch SLE qcow2 images before migration (offline)
 # Maintainer: Dumitru Gutu <dgutu@suse.de>
 
@@ -42,10 +43,7 @@ sub patching_sle {
         if (is_sle('12-SP2+')) {
             set_var('HDD_SP2ORLATER', 1);
         }
-        # disable existing repos temporary
-        zypper_call "lr";
-        zypper_call "mr --disable --all";
-        save_screenshot;
+        disable_installation_repos;
         # Set SCC_PROXY_URL if needed
         set_scc_proxy_url if ((check_var('HDDVERSION', get_var('ORIGINAL_TARGET_VERSION')) && is_upgrade()));
         sle_register("register");
@@ -106,16 +104,6 @@ sub patching_sle {
     }
     else {
         sle_register("unregister");
-    }
-
-    # RMT didn't mirror all repos, cannot use enable all
-    if (!get_var("SMT_URL")) {
-        zypper_call("mr --enable --all");
-    }
-
-    # Disable old repositories during AutoYaST driven upgrade
-    if (get_var('AUTOUPGRADE')) {
-        disable_installation_repos;
     }
 
     # Restore the old value of VIDEOMODE and SCC_REGISTER
@@ -180,6 +168,7 @@ sub sle_register {
         }
         else {
             # Erase all local files created from a previous executed registration
+            assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf") if (get_var('SLE11_USE_SCC'));
             assert_script_run('suse_register -E');
             # Register SLE 11 to SMT server
             my $smt_url = get_var('SMT_URL', '');
@@ -195,7 +184,6 @@ sub sle_register {
             elsif (get_var('SLE11_USE_SCC')) {
                 my $reg_code = get_required_var('NCC_REGCODE');
                 my $reg_mail = get_var('NCC_MAIL');               # email address is not mandatory for SCC
-                assert_script_run("sed -i '/^url[[:space:]]*/s|.*|url = https://scc.suse.com/ncc/center/regsvc|' /etc/suseRegister.conf");
                 if (get_var('NCC_REGCODE_SDK')) {
                     my $reg_code_sdk = get_required_var('NCC_REGCODE_SDK');
                     zypper_call("ar http://schnell.suse.de/SLE11/SLE-11-SP4-SDK-GM/s390x/DVD1/ sdk");

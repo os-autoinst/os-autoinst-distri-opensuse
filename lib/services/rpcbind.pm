@@ -33,8 +33,9 @@ sub check_install {
 }
 
 sub config_service {
-    type_string("echo '/mnt *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports\n");
-    type_string("echo 'nfs is working' > /mnt/test\n");
+    assert_script_run("mkdir -p /rpcbindtest");
+    assert_script_run("echo '/rpcbindtest *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports");
+    assert_script_run("echo 'nfs is working' > /rpcbindtest/test");
 }
 
 sub enable_service {
@@ -52,6 +53,11 @@ sub stop_service {
     common_service_action($nfs_server, $service_type, 'stop');
 }
 
+sub check_enabled {
+    common_service_action('rpcbind',   $service_type, 'is-enabled');
+    common_service_action($nfs_server, $service_type, 'is-enabled');
+}
+
 sub check_service {
     common_service_action('rpcbind', $service_type, 'is-enabled');
     common_service_action('rpcbind', $service_type, 'is-active');
@@ -63,7 +69,7 @@ sub check_function {
     sleep(5);
     assert_script_run('rpcinfo | grep nfs');
     assert_script_run('mkdir -p /tmp/nfs');
-    assert_script_run('mount -t nfs localhost:/mnt /tmp/nfs');
+    assert_script_run('mount -t nfs localhost:/rpcbindtest /tmp/nfs');
     sleep(3);
     assert_script_run('grep working /tmp/nfs/test');
     assert_script_run('umount -f /tmp/nfs');
@@ -72,14 +78,15 @@ sub check_function {
 # Check rpcbind service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_rpcbind_check {
-    my ($stage, $type) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
     $nfs_server   = 'nfsserver' if ($type eq 'SystemV');
     if ($stage eq 'before') {
         install_service();
         config_service();
         enable_service();
+        check_enabled();
         start_service();
     }
     check_service();

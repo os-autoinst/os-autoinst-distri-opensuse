@@ -37,11 +37,11 @@ sub firstboot_language_keyboard {
 }
 
 sub firstboot_licenses {
-    my $self = shift;
+    my ($self, $custom_needle) = @_;
     # default TO value was not sufficient
-    assert_screen('license-agreement', 60);
+    assert_screen('license-agreement' . $custom_needle, 60);
     # Nothing to be accepted in opensuse
-    unless (is_opensuse) {
+    if (is_sle || $custom_needle) {
         $self->verify_license_has_to_be_accepted;
         $self->accept_license;
     }
@@ -49,7 +49,8 @@ sub firstboot_licenses {
 }
 
 sub firstboot_welcome {
-    assert_screen 'welcome';
+    my ($self, $custom_needle) = @_;
+    assert_screen 'welcome' . $custom_needle;
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
@@ -83,16 +84,16 @@ sub firstboot_registration {
 }
 
 sub run {
-    my $self      = shift;
-    my $test_data = get_test_suite_data();
-    my %clients;
+    my $self          = shift;
+    my $test_data     = get_test_suite_data();
+    my $custom_needle = $test_data->{custom_control_file} ? "_custom" : undef;
     foreach my $client (@{$test_data->{clients}}) {
         # Make sure the subroutine called from test data exists
         die "Client '$client' is not defined in the module, please check test_data" unless defined(&{"$client"});
         my $client_method = \&{"$client"};
-        $client_method->($self);
+        $client_method->($self, $custom_needle);
     }
-    assert_screen 'installation_completed';
+    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
     send_key $cmd{finish};
 }
 

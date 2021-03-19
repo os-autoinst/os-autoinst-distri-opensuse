@@ -26,6 +26,10 @@ use testapi;
 use utils;
 
 sub run {
+    my $self = shift;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
 

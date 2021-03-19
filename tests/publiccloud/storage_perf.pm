@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: fio
 # Summary: Use FIO tool to run storage performance test
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
@@ -80,7 +81,7 @@ sub run {
     $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code,                timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
-    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk|grep ' . $disk_size . '|cut -f 1 -d " "');
+    my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | sort | tail -n1');
     record_info('dev', "Block device under test: $block_device");
 
     for my $href (@scenario) {

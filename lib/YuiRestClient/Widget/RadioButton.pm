@@ -23,4 +23,9 @@ sub select {
     return $self->action(action => YuiRestClient::Action::YUI_SELECT);
 }
 
+sub is_selected {
+    my ($self) = @_;
+    $self->property('value');
+}
+
 1;

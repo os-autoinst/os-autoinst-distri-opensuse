@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper
 # Summary: Conduct a rollback after migration back to previous system
 # Maintainer: yutao <yuwang@suse.com>
 

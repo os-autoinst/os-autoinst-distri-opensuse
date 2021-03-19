@@ -14,16 +14,16 @@
 use base "y2_module_consoletest";
 use strict;
 use warnings;
+
+use cfg_files_utils 'validate_cfg_file';
+use kdump_utils;
+use registration;
+use scheduler 'get_test_suite_data';
 use testapi;
 use utils;
-use registration;
-use kdump_utils;
-use scheduler 'get_test_suite_data';
-use Test::Assert ':all';
 
 sub run {
     select_console('root-console');
-    my @conf_files = @{get_test_suite_data()->{kdump}};
 
     # install kdump by adding additional modules
     add_suseconnect_product('sle-module-desktop-applications');
@@ -36,18 +36,7 @@ sub run {
     # check service (without restarting)
     systemctl('is-enabled kdump');
 
-    # check configuration files
-    for my $conf_file (@conf_files) {
-        my $path        = $conf_file->{path};
-        my $conf_output = script_output("cat $path");
-        for my $setting (keys %{$conf_file->{settings}}) {
-            my ($conf_line) = grep { /$setting=/ } split(/\n/, $conf_output);
-            die "Setting '$setting' not found in $path" unless $conf_line;
-            my $value = $conf_file->{settings}->{$setting};
-            assert_matches(qr/^$setting=["]?$value["]?$/, $conf_line,
-                "Found unexpected setting value in $path.");
-        }
-    }
+    validate_cfg_file(get_test_suite_data()->{config_files});
 
     # delete additional modules
     remove_suseconnect_product('sle-module-development-tools');

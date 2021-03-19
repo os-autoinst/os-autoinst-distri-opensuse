@@ -7,7 +7,6 @@ description:    >
   configure root and user accounts. SUT should end up in GDM screen after exiting YaST2
   Firstboot.
 vars:
-  AUTOYAST: autoyast_opensuse/autoyast_firstboot.xml
   DESKTOP: gnome
   YAST2_FIRSTBOOT_USERNAME: firstbootuser
 schedule:

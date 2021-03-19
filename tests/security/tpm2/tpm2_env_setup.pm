@@ -1,4 +1,4 @@
-# Copyright (C) 2020 SUSE LLC
+# Copyright (C) 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,6 +47,9 @@ sub run {
 [Service]
 ExecStart=
 ExecStart=/usr/sbin/tpm2-abrmd --tcti=libtss2-tcti-mssim.so
+
+[Unit]
+ConditionPathExistsGlob=
 EOF
         )\" > /etc/systemd/system/tpm2-abrmd.service.d/emulator.conf"
     );
@@ -63,10 +66,7 @@ EOF
 
     # Start the tpm2-abrmd service
     assert_script_run "systemctl start tpm2-abrmd";
-
-    # Wait for 5s and then check if the abrmd service is up
-    assert_script_run "sleep 5";
-    validate_script_output "systemctl status tpm2-abrmd", sub { m/Active:\sactive/ };
+    assert_script_run "systemctl is-active tpm2-abrmd";
 }
 
 # Since all tpm2.0 cases start after this case, mark it a milestone one

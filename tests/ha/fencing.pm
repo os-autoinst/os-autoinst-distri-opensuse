@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Execute fence command on one of the cluster nodes
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
@@ -30,7 +31,7 @@ sub run {
     # Give time for HANA to replicate the database
     if (check_var('CLUSTER_NAME', 'hana')) {
         'sles4sap'->check_replication_state;
-        assert_script_run 'SAPHanaSR-showAttr';
+        'sles4sap'->check_hanasr_attr;
         save_screenshot;
         barrier_wait("HANA_REPLICATE_STATE_${cluster_name}_NODE${node_index}");
     }

@@ -1,0 +1,7 @@
+---
+profile:
+  ntp-client:
+    ntp_servers:
+      ntp_server:
+        address: cz.pool.ntp.org
+    ntp_sync: 1

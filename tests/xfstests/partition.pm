@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: parted
 # Summary: Create partitions for xfstests
 # - Create a gpt partition table on device
 # - Partition device according to system variable XFSTESTS_DEVICE or

@@ -91,6 +91,7 @@ sub _set_partitioning {
     my $is_lvm            = $args{is_lvm};
     my $is_encrypted      = $args{is_encrypted};
     my $has_separate_home = $args{has_separate_home};
+    my $has_enlarge_swap  = $args{has_enlarge_swap};
     if ($is_lvm) {
         $self->get_partitioning_scheme_page()->select_logical_volume_management_checkbox();
     }
@@ -107,6 +108,9 @@ sub _set_partitioning {
         else {
             $self->get_file_system_options_page()->set_state_propose_separate_home_partition_checkbox($has_separate_home);
         }
+    }
+    if (defined $has_enlarge_swap) {
+        $self->get_file_system_options_page()->set_state_enlarge_to_ram_size_for_suspend_checkbox($has_enlarge_swap);
     }
     $self->get_file_system_options_page()->press_next();
 }

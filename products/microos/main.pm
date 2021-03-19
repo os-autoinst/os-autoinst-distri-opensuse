@@ -24,7 +24,7 @@ sub is_regproxy_required {
 }
 
 sub is_image_flavor {
-    return get_required_var('FLAVOR') =~ /-Image$/;
+    return get_required_var('FLAVOR') =~ /-Image/;
 }
 
 sub load_boot_from_dvd_tests {
@@ -55,6 +55,7 @@ sub load_feature_tests {
         loadtest 'console/kubeadm';
     }
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
+        loadtest 'microos/toolbox';
         loadtest 'containers/podman';
         loadtest 'containers/podman_image';
     }

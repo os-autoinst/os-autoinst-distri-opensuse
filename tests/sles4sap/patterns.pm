@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: SAP Pattern test
 # Working both on plain SLE and SLES4SAP products
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>

@@ -11,13 +11,28 @@ conditional_schedule:
                 - installation/bootloader_uefi
             'svirt-hyperv-uefi':
                 - installation/bootloader_hyperv
-                - installation/bootloader_uefi
             'svirt-hyperv':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
+    kdump:
+        MACHINE:
+            '64bit-virtio-vga':
+                - console/kdump_and_crash
+            'uefi-virtio-vga':
+                - console/kdump_and_crash
+            'svirt-hyperv-uefi':
+                - console/kdump_and_crash
+            'svirt-hyperv':
+                - console/kdump_and_crash
+            'svirt-vmware65':
+                - console/kdump_and_crash
+            'svirt-xen-pv':
+                - console/kdump_and_crash
+            'aarch64':
+                - console/kdump_and_crash
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
@@ -55,4 +70,4 @@ schedule:
     - console/dstat
     - console/journalctl
     - console/procps
-    - console/kdump_and_crash
+    - '{{kdump}}'

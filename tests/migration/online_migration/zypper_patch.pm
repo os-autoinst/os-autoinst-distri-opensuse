@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Fully patch the system before conducting an online migration
 # Maintainer: yutao <yuwang@suse.com>
 
@@ -25,6 +26,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
+    disable_installation_repos;
     add_test_repositories;
     fully_patch_system;
     install_patterns() if (get_var('PATTERNS'));

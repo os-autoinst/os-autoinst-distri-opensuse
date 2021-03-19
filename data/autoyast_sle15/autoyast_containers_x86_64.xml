@@ -122,7 +122,7 @@
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
-      <pattern>minimal_base</pattern>
+      <pattern>enhanced_base</pattern>
     </patterns>
   </software>
   <users config:type="list">

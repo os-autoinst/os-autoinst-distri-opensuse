@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,8 @@ sub run {
     # setup
     my ($self) = @_;
     $self->select_serial_terminal;
-    add_suseconnect_product('sle-module-desktop-applications') if is_sle("15-sp1+");
+
+    add_suseconnect_product('sle-module-desktop-applications') if is_sle && !main_common::is_updates_tests();
     zypper_call 'in vorbis-tools libvorbis0';
     # download ogg sample
     assert_script_run 'curl -v -o sample.ogg ' . data_url('libvorbis/glass.ogg');

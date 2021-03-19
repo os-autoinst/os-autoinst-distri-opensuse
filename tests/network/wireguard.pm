@@ -18,6 +18,8 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version_utils 'is_sle';
+use registration;
 use lockapi;
 use mmapi 'wait_for_children';
 
@@ -35,6 +37,18 @@ sub start_wgquick {
 sub run {
     my $self = shift;
 
+    if (get_var('IS_MM_SERVER')) {
+        barrier_create 'SETUP_DONE',       2;
+        barrier_create 'KEY_TRANSFERED',   2;
+        barrier_create 'VPN_ESTABLISHED',  2;
+        barrier_create 'IPERF_COMPLETED',  2;
+        barrier_create 'WG_QUICK_READY',   2;
+        barrier_create 'WG_QUICK_ENABLED', 2;
+        mutex_create 'barrier_setup_done';
+    }
+
+    mutex_wait 'barrier_setup_done';
+
     $self->select_serial_terminal;
     barrier_wait 'SETUP_DONE';
 
@@ -47,6 +61,18 @@ sub run {
         $vpn_local  = '192.168.2.2';
         $vpn_remote = '192.168.2.1';
         $remote     = '10.0.2.101';
+    }
+
+    if (is_sle()) {
+        add_suseconnect_product('sle-module-desktop-applications');
+        add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_required_var('SCC_REGCODE_WE'), 300, 1);
+        # Workaround https://bugzilla.suse.com/show_bug.cgi?id=1181941
+        zypper_call '--gpg-auto-import-keys ref';
+        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
+        # Workaround https://bugzilla.suse.com/show_bug.cgi?id=1182004
+        zypper_call '--gpg-auto-import-keys ref';
+        zypper_call 'in kernel-default-extra';
+        assert_script_run 'modprobe wireguard';
     }
 
     assert_script_run 'grep -i CONFIG_WIREGUARD /boot/config-$(uname -r)';

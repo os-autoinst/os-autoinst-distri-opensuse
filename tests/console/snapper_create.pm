@@ -58,7 +58,8 @@ sub get_last_snap_number {
 }
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my @snapper_cmd = "snapper create";
     my @snap_numbers;

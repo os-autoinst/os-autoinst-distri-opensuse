@@ -20,7 +20,6 @@ use testapi;
 use utils;
 use klp;
 use power_action_utils 'power_action';
-use serial_terminal 'prepare_serial_console';
 use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_pvm);
 
@@ -30,13 +29,7 @@ sub do_reboot {
     power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot;
-
-    if (is_s390x) {
-        select_console('root-console');
-    } else {
-        prepare_serial_console;
-        $self->select_serial_terminal;
-    }
+    $self->select_serial_terminal;
 }
 
 sub run {

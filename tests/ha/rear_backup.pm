@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-rear rear23a
 # Summary: Install ReaR packages and create a ReaR backup on an NFS server
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
@@ -21,7 +22,7 @@ sub run {
     my $hostname   = get_var('HOSTNAME', 'susetest');
     my $arch       = get_required_var('ARCH');
     my $backup_url = get_required_var('BACKUP_URL');
-    my $timeout    = bmwqemu::scale_timeout(300);
+    my $timeout    = bmwqemu::scale_timeout(600);
 
     # Disable packagekit and install ReaR
     get_var('USE_YAST_REAR') ? select_console 'root-console' : $self->select_serial_terminal;

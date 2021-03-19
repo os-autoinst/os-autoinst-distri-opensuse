@@ -17,7 +17,6 @@ use warnings;
 use testapi;
 use lockapi;
 use mm_network;
-use version_utils 'is_opensuse';
 
 
 # poo#9576
@@ -27,10 +26,6 @@ sub run {
     mutex_create("installation_ready");
     # wait while whole installation process finishes
     mutex_wait("installation_done");
-    if (is_opensuse) {
-        record_soft_failure('bsc#1164503');
-        send_key('ctrl-alt-delete');
-    }
     $self->wait_boot(bootloader_time => 120);
 }
 

@@ -1246,7 +1246,7 @@ Returns the array of the boot parameters.
 =cut
 
 sub parse_bootparams_in_serial {
-    my $parsed_string = wait_serial(qr/command line:.*/msi);
+    my $parsed_string = wait_serial(qr/command line:.*\[/msi);
     $parsed_string =~ m/.*command line:(?<boot>.*)/i;
     return split ' ', $+{boot};
 }
@@ -1268,7 +1268,7 @@ sub compare_bootparams {
     if (scalar @difference > 0) {
         record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
     } else {
-        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$expected_boot_params}");
+        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters:\n" . join("\n", @{$expected_boot_params}));
     }
 }
 
@@ -1347,7 +1347,7 @@ sub prepare_disks {
 
     my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
     for my $d (split('\n', $disks)) {
-        script_run "wipefs -a /dev/$d";
+        script_run "wipefs -af /dev/$d";
         if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
         {
             create_encrypted_part(disk => $d);

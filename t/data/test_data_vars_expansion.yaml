@@ -1,0 +1,9 @@
+test_data:
+  var1: 'pre-%ENV_VAR_1%-post'
+  nested1:
+    - nested2:
+        var2: '%ENV_VAR_2%-post'
+    - 'pre-%ENV_VAR_3%'
+    - var4: '%ENV_VAR_4%'
+    - '%ENV_NO_VAR%'
+  no_var: '%ENV_NO_VAR%'

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Clear unneed repos before updating for Staging Project
 # Maintainer: Max Lin <mlin@suse.com>
 

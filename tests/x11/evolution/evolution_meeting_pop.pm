@@ -9,6 +9,7 @@
 
 # Test Case #1503976 Pop Meeting
 
+# Package: evolution
 # Summary: Test Case #1503976 Pop Meeting
 #    This case is used for tc#1503976, send the meeting request by evolution and the
 #    receiver will get the meeting request with POP3 protocol.

@@ -327,7 +327,14 @@ sub unlock_if_encrypted {
         assert_screen("encrypted-disk-password-prompt", 200);
         type_password;    # enter PW at boot
         save_screenshot;
-        assert_screen 'encrypted_disk-typed_password' if $args{check_typed_password};
+        if ($args{check_typed_password}) {
+            unless (check_screen "encrypted_disk-typed_password", 30) {
+                record_info("Invalid password", "Not all password characters were typed successfully, retyping");
+                send_key "backspace" for (0 .. 9);
+                type_password;
+                assert_screen "encrypted_disk-typed_password";
+            }
+        }
         send_key "ret";
     }
 }
@@ -395,7 +402,7 @@ sub check_console_font {
     # we do not await the console here, as we have to expect the font to be broken
     # for the needle to match, for migration, need wait root console
     my $flavor = get_var('FLAVOR');
-    select_console('root-console', await_console => ($flavor =~ /Migration/));
+    select_console('root-console', await_console => ($flavor =~ /Migration/) ? 1 : 0);
 
     # if this command failed, we're not in a console (e.g. in a svirt
     # ssh connection) and don't see the console font but the local
@@ -1271,17 +1278,11 @@ sub shorten_url {
 
     my $ua = Mojo::UserAgent->new;
 
-    my $tx = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}});
-    if (my $res = $tx->success) {
-        return $res->body;
-    }
-    else {
-        my $err = $tx->error;
-        die "Shorten url got $err->{code} response: $err->{message}" if $err->{code};
-        die "Connection error when shorten url: $err->{message}";
-    }
+    my $res = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}})->result;
+    if    ($res->is_success) { return $res->body }
+    elsif ($res->is_error)   { die "Shorten url got $res->code response: $res->message" }
+    else                     { die "Shorten url failed with unknown error" }
 }
-
 
 =head2 _handle_login_not_found
 
@@ -1333,8 +1334,7 @@ sub reconnect_mgmt_console {
     $args{grub_expected_twice} //= 0;
 
     if (check_var('ARCH', 's390x')) {
-        my $login_ready = qr/Welcome to /;
-        $login_ready .= is_sle() ? qr/SUSE Linux Enterprise Server.*\(s390x\)/ : qr/openSUSE Tumbleweed/;
+        my $login_ready = serial_terminal::get_login_message();
         console('installation')->disable_vnc_stalls;
 
         # different behaviour for z/VM and z/KVM
@@ -1496,12 +1496,21 @@ sub script_retry {
     my $die     = $args{die}     // 1;
 
     my $ret;
+
+    my $exec = "timeout $timeout $cmd";
+    # Exclamation mark needs to be moved before the timeout command, if present
+    if (substr($cmd, 0, 1) eq "!") {
+        $cmd = substr($cmd, 1);
+        $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
+        $exec = "! timeout $timeout $cmd";
+    }
     for (1 .. $retry) {
-        $ret = script_run "timeout " . ($timeout - 3) . " $cmd", $timeout;
+        # timeout for script_run must be larger than for the 'timeout ...' command
+        $ret = script_run($exec, ($timeout + 3));
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
-        sleep $delay;
+        sleep $delay                   if ($delay > 0);
     }
 
     return $ret;

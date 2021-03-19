@@ -137,9 +137,10 @@ sub remove_espos {
 # Disable installation repos before online migration
 # s390x: use ftp remote repos as installation repos
 # Other archs: use local DVDs as installation repos
+# https://documentation.suse.com/sles/15-SP2/html/SLES-all/cha-upgrade-online.html#sec-upgrade-online-zypper
 sub disable_installation_repos {
     if (check_var('ARCH', 's390x')) {
-        zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de/ {print \$1}'`";
+        zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de|10.160.0.100/ {print \$1}'`";
     }
     else {
         zypper_call "mr -d -l";
@@ -184,8 +185,6 @@ sub check_rollback_system {
     }
     systemctl('is-active rollback');
 
-    # Disable the obsolete cd and dvd repos to avoid zypper error
-    zypper_call("mr -d -m cd -m dvd");
     # Verify registration status matches current system version
     # system is un-registered during media based upgrade
     unless (get_var('MEDIA_UPGRADE')) {

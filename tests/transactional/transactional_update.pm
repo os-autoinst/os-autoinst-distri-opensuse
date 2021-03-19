@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: transactional-update rebootmgr
 # Summary: Test transactional updates
 #   Installs & remove ptf, update, rollback
 #   Check that system was rebooted and mounted snapshot changed
@@ -65,12 +66,6 @@ sub run {
     select_console 'root-console';
 
     script_run "rebootmgrctl set-strategy off";
-
-    if (is_opensuse && get_var('BETA')) {
-        record_info 'Remove pkgs', 'Remove preinstalled packages on Leap BETA';
-        trup_call "pkg remove update-test-[^t]*";
-        process_reboot(trigger => 1);
-    }
 
     get_utt_packages;
 

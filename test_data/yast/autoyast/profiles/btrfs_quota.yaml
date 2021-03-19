@@ -1,0 +1,30 @@
+---
+profile:
+  partitioning:
+    drive:
+      device: /dev/vda
+      enable_snapshots:
+        _t: boolean
+        __text: 'true'
+      partitions:
+        partition:
+          - mount: /
+            quotas:
+              _t: boolean
+              __text: 'true'
+            subvolumes:
+              _t: list
+              __count: 8
+              subvolume:
+                - path: var
+                  referenced_limit: '1 GiB'
+                - path: usr/local
+                  referenced_limit: '1 GiB'
+                - path: tmp
+                  referenced_limit: '1 GiB'
+                - path: root
+                  referenced_limit: '1 GiB'
+                - path: srv
+                  referenced_limit: '1 GiB'
+                - path: opt
+                  referenced_limit: '1 GiB'

@@ -31,26 +31,23 @@ use testapi;
 use utils;
 
 sub run {
-    select_console "x11";
-    x11_start_program('xterm');
+    my $self = shift;
+    $self->select_serial_terminal;
 
-    # become root, disable packagekit and install all needed packages
-    become_root;
+    # disable packagekit and install all needed packages
     quit_packagekit;
     zypper_call "in ghostscript ghostscript-x11";
 
     # special case for gv which is not installed on all flavors
     my $gv_missing = zypper_call("in gv", exitcode => [0, 104]);
-
-    # exit root shell
-    type_string "exit\n";
-
-    my $gs_script = "ghostscript_ps2pdf.sh";
-    my $gs_log    = "ghostscript.log";
-    my $gs_failed = "/tmp/ghostscript_failed";
-    my $reference = "alphabet.pdf";
+    my $gs_script  = "ghostscript_ps2pdf.sh";
+    my $gs_log     = "ghostscript.log";
+    my $gs_failed  = "/tmp/ghostscript_failed";
+    my $reference  = "alphabet.pdf";
 
     # download ghostscript converter script and test if download succeeded
+    # change to user directory to create files which can be accessed later
+    assert_script_run('cd ~' . $testapi::username);
     assert_script_run "wget " . data_url("ghostscript/$gs_script");
     assert_script_run "test -s $gs_script";
 
@@ -66,6 +63,9 @@ sub run {
 
     # display one reference pdf on screen and check if it looks correct
     # skip this when there is no gv installed
+    select_console "x11";
+    x11_start_program('xterm');
+
     if (!$gv_missing) {
         script_run "gv $reference", 0;
         assert_screen "ghostview_alphabet";

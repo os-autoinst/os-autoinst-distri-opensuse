@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,6 @@
 package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use strict;
 use warnings;
-use testapi;
 use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController';
 use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
@@ -27,15 +26,22 @@ use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningRichText;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
 use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog;
-use Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ModifiedDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ResizePage;
-use Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage;
+use Installation::Partitioner::LibstorageNG::v4_3::MsdosPartitionTypePage;
 use Installation::Partitioner::LibstorageNG::v4_3::SummaryPage;
-
+use Installation::Partitioner::LibstorageNG::v4_3::NewPartitionSizePage;
+use Installation::Partitioner::LibstorageNG::v4_3::RolePage;
+use Installation::Partitioner::LibstorageNG::v4_3::PartitionIdFormatMountOptionsPage;
+use Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage;
+use Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
+use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
+use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
+use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
+use Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage;
 
 use YuiRestClient;
 
@@ -60,29 +66,24 @@ sub init {
     $self->{AddVolumeGroupPage}            = Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage->new({app => YuiRestClient::get_app()});
     $self->{AddLogicalVolumePage}          = Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage->new({app => YuiRestClient::get_app()});
     $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
-    $self->{NewPartitionTypePage}          = Installation::Partitioner::LibstorageNG::v4_3::NewPartitionTypePage->new({app => YuiRestClient::get_app()});
-    $self->{FormattingOptionsPage}         = Installation::Partitioner::LibstorageNG::v4_3::FormattingOptionsPage->new({
-            do_not_format_shortcut => 'alt-t',
-            format_shortcut        => 'alt-r',
-            filesystem_shortcut    => 'alt-f',
-            do_not_mount_shortcut  => 'alt-u',
-            # workaround to be fixed when using fully libyui
-            encrypt_device_shortcut => get_var('BOOT_HDD_IMAGE') ? 'alt-y' : 'alt-e',
-            app                     => YuiRestClient::get_app()
-    });
-    $self->{EncryptionPasswordPage} = Installation::Partitioner::LibstorageNG::EncryptionPasswordPage->new({
-            # workaround to be fixed when using fully libyui
-            enter_password_shortcut  => get_var('BOOT_HDD_IMAGE') ? 'alt-t' : 'alt-e',
-            verify_password_shortcut => 'alt-v'
-    });
+    $self->{MsdosPartitionTypePage}        = Installation::Partitioner::LibstorageNG::v4_3::MsdosPartitionTypePage->new({app => YuiRestClient::get_app()});
     $self->{SummaryPage}                   = Installation::Partitioner::LibstorageNG::v4_3::SummaryPage->new({app => YuiRestClient::get_app()});
     $self->{ConfirmationWarningController} = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController->new;
+    $self->{NewPartitionSizePage}          = Installation::Partitioner::LibstorageNG::v4_3::NewPartitionSizePage->new({app => YuiRestClient::get_app()});
+    $self->{RolePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RolePage->new({app => YuiRestClient::get_app()});
+    $self->{PartitionIdFormatMountOptionsPage} = Installation::Partitioner::LibstorageNG::v4_3::PartitionIdFormatMountOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{EncryptPartitionPage}              = Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage->new({app => YuiRestClient::get_app()});
+    $self->{FormatMountOptionsPage}            = Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{LogicalVolumeSizePage}             = Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage->new({app => YuiRestClient::get_app()});
+    $self->{RaidTypePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage->new({app => YuiRestClient::get_app()});
+    $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{FstabOptionsPage}                  = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
-sub get_new_partition_type_page {
+sub get_msdos_partition_type_page {
     my ($self) = @_;
-    return $self->{NewPartitionTypePage};
+    return $self->{MsdosPartitionTypePage};
 }
 
 sub get_add_volume_group_page {
@@ -156,20 +157,135 @@ sub get_summary_page {
     return $self->{SummaryPage};
 }
 
+sub get_new_partition_size_page {
+    my ($self) = @_;
+    return $self->{NewPartitionSizePage};
+}
+
+sub get_role_page {
+    my ($self) = @_;
+    return $self->{RolePage};
+}
+
+sub get_partition_id_format_mount_options_page {
+    my ($self) = @_;
+    return $self->{PartitionIdFormatMountOptionsPage};
+}
+
+sub get_encrypt_partition_page {
+    my ($self) = @_;
+    return $self->{EncryptPartitionPage};
+}
+
+sub get_format_mount_options_page {
+    my ($self) = @_;
+    return $self->{FormatMountOptionsPage};
+}
+
+sub get_logical_volume_size_page {
+    my ($self) = @_;
+    return $self->{LogicalVolumeSizePage};
+}
+
+sub get_raid_type_page {
+    my ($self) = @_;
+    return $self->{RaidTypePage};
+}
+
+sub get_raid_options_page {
+    my ($self) = @_;
+    return $self->{RaidOptionsPage};
+}
+
+sub get_fstab_options_page {
+    my ($self) = @_;
+    return $self->{FstabOptionsPage};
+}
+
+sub add_partition {
+    my ($self, $args) = @_;
+    my $table_type = $args->{table_type} // '';
+    return $self->add_partition_msdos($args) if $table_type eq 'msdos';
+    return $self->add_partition_gpt($args);
+}
+
+# alias function to not break back-compability in test scenarios
 sub add_partition_on_gpt_disk {
     my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_disk($args->{disk}) if $args->{disk};
+    $self->add_partition_gpt($args);
+}
+
+sub add_partition_gpt {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    return $self->add_partition_gpt_encrypted($args) if $part->{encrypt_device};
+    return $self->add_partition_gpt_non_encrypted($args);
+}
+
+sub add_partition_gpt_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk($args->{disk});
     $self->get_expert_partitioner_page()->press_add_partition_button();
-    $self->_add_partition($args->{partition});
+    $self->get_new_partition_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->encrypt_device($part->{encrypt});
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options}) if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
+    $self->get_encrypt_partition_page()->set_encryption();
+}
+
+sub add_partition_gpt_non_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk($args->{disk});
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->get_new_partition_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_fstab_options_page()->edit_fstab_options($part->{fstab_options})                                if $part->{fstab_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
 }
 
 sub add_partition_msdos {
     my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_disk($args->{disk}) if $args->{disk};
+    my $part = $args->{partition};
+    return $self->add_partition_msdos_encrypted($args) if $part->{encrypt_device};
+    return $self->add_partition_msdos_non_encrypted($args);
+}
+
+sub add_partition_msdos_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk($args->{disk});
     $self->get_expert_partitioner_page()->press_add_partition_button();
-    $self->get_new_partition_type_page()->select_new_partition_type($args->{partition_type});
-    $self->get_new_partition_type_page()->press_next();
-    $self->add_new_partition($args->{partition});
+    $self->get_msdos_partition_type_page()->set_type($part->{partition_type});
+    $self->get_new_partition_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->encrypt_device($part->{encrypt});
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options}) if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
+    $self->get_encrypt_partition_page()->set_encryption();
+}
+
+sub add_partition_msdos_non_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk($args->{disk});
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->get_msdos_partition_type_page()->set_type($part->{partition_type});
+    $self->get_new_partition_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
 }
 
 sub clone_partition_table {
@@ -191,24 +307,53 @@ sub cancel_changes {
     }
 }
 
-sub add_raid_partition {
-    my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_raid();
-    $self->get_expert_partitioner_page()->press_add_partition_button();
-    $self->_add_partition($args);
-}
-
 sub add_raid {
     my ($self, $args) = @_;
     my $raid_level            = $args->{raid_level};
     my $device_selection_step = $args->{device_selection_step};
+    my $chunk_size            = $args->{chunk_size};
     $self->get_expert_partitioner_page()->select_raid();
     $self->get_expert_partitioner_page()->press_add_raid_button();
     $self->get_raid_type_page()->set_raid_level($raid_level);
-    $self->get_raid_type_page()->select_devices_from_list($device_selection_step);
+    foreach my $device (@{$args->{devices}}) {
+        $self->get_raid_type_page()->add_device($device);
+    }
     $self->get_raid_type_page()->press_next();
+    $self->get_raid_options_page()->select_chunk_size($chunk_size) if $chunk_size;
     $self->get_raid_options_page()->press_next();
     $self->add_raid_partition($args->{partition});
+}
+
+sub add_raid_partition {
+    my ($self, $part) = @_;
+    return $self->add_raid_partition_encrypted($part) if $part->{encrypt_device};
+    return $self->add_raid_partition_non_encrypted($part);
+}
+
+sub add_raid_partition_non_encrypted {
+    my ($self, $part) = @_;
+    $self->get_expert_partitioner_page()->select_raid();
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->get_new_partition_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
+}
+
+sub add_raid_partition_encrypted {
+    my ($self, $part) = @_;
+    $self->get_expert_partitioner_page()->select_raid();
+    $self->get_expert_partitioner_page()->press_add_partition_button();
+    $self->get_new_partition_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->encrypt_device($part->{encrypt});
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options}) if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
+    $self->get_encrypt_partition_page()->set_encryption();
 }
 
 sub create_new_partition_table {
@@ -243,20 +388,97 @@ sub delete_volume_group {
 
 sub add_logical_volume {
     my ($self, $args) = @_;
-    my $lv   = $args->{logical_volume};
-    my $type = $lv->{type} // '';
+    my $type = $args->{logical_volume}->{type} // '';
+    return $self->add_logical_volume_thin_pool($args)   if $type eq 'thin-pool';
+    return $self->add_logical_volume_thin_volume($args) if $type eq 'thin-volume';
+    return $self->add_logical_volume_normal($args);
+}
+
+sub add_logical_volume_normal {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
+    return $self->add_logical_volume_normal_encrypted($args) if $part->{encrypt_device};
+    return $self->add_logical_volume_normal_non_encrypted($args);
+}
+
+sub add_logical_volume_normal_non_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
     $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
     $self->get_expert_partitioner_page()->press_add_logical_volume_button();
-    $self->get_add_logical_volume_page()->set_logical_volume_name($lv->{name});
-    $self->get_add_logical_volume_page()->set_logical_volume_type($lv->{type}) if $lv->{type};
-    $self->get_add_logical_volume_page()->press_next_button();
-    $self->get_add_logical_volume_page()->set_custom_size($lv->{size}) if $lv->{size};
-    $self->get_add_logical_volume_page()->press_next_button();
-    return if $type eq 'thin_pool';
-    $self->get_add_logical_volume_page()->select_role($lv->{role});
-    $self->get_add_logical_volume_page()->press_next_button();
-    $self->_set_partition_options($lv);
-    $self->_finish_partition_creation() unless $lv->{encrypt_device};
+    $self->get_add_logical_volume_page()->enter_name($part->{name});
+    $self->get_add_logical_volume_page()->press_next();
+    $self->get_logical_volume_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_format_mount_options_page()->press_next();
+}
+
+sub add_logical_volume_normal_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
+    $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
+    $self->get_expert_partitioner_page()->press_add_logical_volume_button();
+    $self->get_add_logical_volume_page()->enter_name($part->{name});
+    $self->get_add_logical_volume_page()->press_next();
+    $self->get_logical_volume_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_format_mount_options_page()->encrypt_device($part->{encrypt});
+    $self->get_format_mount_options_page()->enter_mounting_options($part->{mounting_options}) if $part->{mounting_options};
+    $self->get_format_mount_options_page()->press_next();
+    $self->get_encrypt_partition_page()->set_encryption();
+}
+
+sub add_logical_volume_thin_pool {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
+    $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
+    $self->get_expert_partitioner_page()->press_add_logical_volume_button();
+    $self->get_add_logical_volume_page()->enter_name($part->{name});
+    $self->get_add_logical_volume_page()->select_type($part->{type});
+    $self->get_add_logical_volume_page()->press_next();
+    $self->get_logical_volume_size_page()->set_custom_size($part->{size});
+}
+
+sub add_logical_volume_thin_volume {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
+    return $self->add_logical_volume_thin_volume_encrypted($args) if $part->{encrypt_device};
+    return $self->add_logical_volume_thin_volume_non_encrypted($args);
+}
+
+sub add_logical_volume_thin_volume_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
+    $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
+    $self->get_expert_partitioner_page()->press_add_logical_volume_button();
+    $self->get_add_logical_volume_page()->enter_name($part->{name});
+    $self->get_add_logical_volume_page()->select_type($part->{type});
+    $self->get_add_logical_volume_page()->press_next();
+    $self->get_logical_volume_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_format_mount_options_page()->encrypt_device($part->{encrypt});
+    $self->get_format_mount_options_page()->enter_mounting_options($part->{mounting_options}) if $part->{mounting_options};
+    $self->get_format_mount_options_page()->press_next();
+    $self->get_encrypt_partition_page()->set_encryption();
+}
+
+sub add_logical_volume_thin_volume_non_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
+    $self->get_expert_partitioner_page()->select_volume_group($args->{volume_group});
+    $self->get_expert_partitioner_page()->press_add_logical_volume_button();
+    $self->get_add_logical_volume_page()->enter_name($part->{name});
+    $self->get_add_logical_volume_page()->select_type($part->{type});
+    $self->get_add_logical_volume_page()->press_next();
+    $self->get_logical_volume_size_page()->set_custom_size($part->{size});
+    $self->get_role_page()->set_role($part->{role});
+    $self->get_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_format_mount_options_page()->press_next();
 }
 
 sub setup_raid {
@@ -265,7 +487,7 @@ sub setup_raid {
     my @disks      = @{$args->{disks}};
     my $first_disk = $disks[0];
     foreach my $partition (@{$first_disk->{partitions}}) {
-        $self->add_partition_on_gpt_disk({disk => $first_disk->{name}, partition => $partition});
+        $self->add_partition_gpt({disk => $first_disk->{name}, partition => $partition});
     }
     # Clone partition table from first disk to all other disks
     my @target_disks = map { $_->{name} } @disks[1 .. $#disks];
@@ -281,10 +503,10 @@ sub setup_lvm {
 
     foreach my $vg (@{$args->{volume_groups}}) {
         $self->add_volume_group($vg);
-        foreach my $lv (@{$vg->{logical_volumes}}) {
+        foreach my $part (@{$vg->{logical_volumes}}) {
             $self->add_logical_volume({
                     volume_group   => $vg->{name},
-                    logical_volume => $lv
+                    logical_volume => $part
             });
         }
     }
@@ -293,10 +515,11 @@ sub setup_lvm {
 sub resize_partition {
     my ($self, $args) = @_;
     my $part = $args->{partition};
-    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
+    $self->get_expert_partitioner_page()->select_disk_partition({
+            disk      => $args->{disk},
+            partition => $part->{name}});
     $self->get_expert_partitioner_page()->open_resize_device();
     $self->get_resize_page()->set_custom_size($part->{size});
-    $self->get_resize_page()->press_next();
 }
 
 sub delete_partition {
@@ -309,25 +532,44 @@ sub delete_partition {
 
 sub resize_logical_volume {
     my ($self, $args) = @_;
+    my $part = $args->{logical_volume};
     $self->get_expert_partitioner_page()->select_logical_volume({
             volume_group   => $args->{volume_group},
-            logical_volume => $args->{logical_volume}
+            logical_volume => $part->{name}
     });
     $self->get_expert_partitioner_page()->open_resize_device();
-    $self->get_resize_page()->set_custom_size($args->{size});
-    $self->get_resize_page()->press_next();
+    $self->get_resize_page()->set_custom_size($part->{size});
 }
 
-sub edit_partition_on_gpt_disk {
+sub edit_partition_gpt {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    return $self->edit_partition_gpt_encrypted($args) if $part->{encrypt_device};
+    return $self->edit_partition_gpt_non_encrypted($args);
+}
+
+sub edit_partition_gpt_non_encrypted {
     my ($self, $args) = @_;
     my $part = $args->{partition};
     $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
     $self->get_expert_partitioner_page()->press_edit_partition_button();
-    $self->get_edit_formatting_options_page()->select_format_device_radiobutton($part->{formatting_options}->{skip});
-    $self->get_edit_formatting_options_page()->select_filesystem($part->{formatting_options}->{filesystem}, $part->{formatting_options}->{skip});
-    $self->get_edit_formatting_options_page()->select_mount_device_radiobutton();
-    $self->get_edit_formatting_options_page()->fill_in_mount_point_field($part->{mounting_options}->{mount_point});
-    $self->get_edit_formatting_options_page()->press_next();
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options})     if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
+}
+
+sub edit_partition_gpt_encrypted {
+    my ($self, $args) = @_;
+    my $part = $args->{partition};
+    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
+    $self->get_expert_partitioner_page()->press_edit_partition_button();
+    $self->get_partition_id_format_mount_options_page()->enter_formatting_options($part->{formatting_options}) if $part->{formatting_options};
+    $self->get_partition_id_format_mount_options_page()->select_partition_id($part->{id})                      if $part->{id};
+    $self->get_partition_id_format_mount_options_page()->encrypt_device($part->{encrypt});
+    $self->get_partition_id_format_mount_options_page()->enter_mounting_options($part->{mounting_options}) if $part->{mounting_options};
+    $self->get_partition_id_format_mount_options_page()->press_next();
+    $self->get_encrypt_partition_page()->set_encryption();
 }
 
 sub confirm_error_dialog {
@@ -358,15 +600,6 @@ sub confirm_warning {
 sub decline_warning {
     my ($self) = @_;
     $self->get_confirmation_warning()->press_no();
-}
-
-sub edit_partition_encrypt {
-    my ($self, $args) = @_;
-    $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $args->{partition}});
-    $self->get_expert_partitioner_page()->press_edit_partition_button();
-    $self->get_edit_formatting_options_page()->check_encrypt_device_checkbox();
-    $self->get_edit_formatting_options_page()->press_next();
-    $self->set_encryption_password();
 }
 
 sub show_summary_and_accept_changes {

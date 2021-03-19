@@ -8,7 +8,7 @@ schedule:
   - console/suseconnect_scc
   - update/zypper_up
   - console/console_reboot
-  - '{{register_without_ltss}}'
+  - migration/online_migration/register_without_ltss
   - ha/wait_barriers
   - console/system_prepare
   - console/consoletest_setup
@@ -34,6 +34,7 @@ schedule:
   - '{{cluster_boot_mgmt}}'
   - ha/cluster_state_mgmt
   - migration/online_migration/zypper_migration
+  - '{{register_ltss}}'
   - migration/online_migration/post_migration
   - '{{cluster_boot_mgmt}}'
   - '{{console_reboot}}'
@@ -50,7 +51,7 @@ conditional_schedule:
     QAM_INCI:
       1:
         - console/console_reboot
-  register_without_ltss:
-    ORIGIN_SYSTEM_VERSION:
-      15:
-        - migration/online_migration/register_without_ltss
+  register_ltss:
+    LTSS_TO_LTSS:
+      1:
+        - migration/online_migration/register_ltss

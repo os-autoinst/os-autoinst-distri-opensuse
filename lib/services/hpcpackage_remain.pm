@@ -41,17 +41,9 @@ sub install_pkg {
     my $version = get_var('HDDVERSION');
     # Install all 'library wrappers' (packages matching -hpc, not having a version number with '_' after their name)
     my @pkginstall = split('\n', script_output q[zypper search -r SLE-Module-HPC] . $version . q[-Pool -r SLE-Module-HPC] . $version . q[-Updates | cut -d '|' -f 2 | sed -e 's/ *//g' | grep -E '.*-hpc.*' | grep -vE 'system|module|suse' |  grep -vE '.*_[[:digit:]]+_[[:digit:]]+.*gnu|.*_[[:digit:]]+_[[:digit:]]+.*-hpc' | grep -vE '.*-static$' | grep -vE '.*hpc-macros.*'], proceed_on_failure => 1, timeout => 180);
-    my $disable    = (script_run("snapper --help | grep disable-used-space")) ? '' : '--disable-used-space';
-    my @snaps      = split('\n', script_output("snapper list $disable | grep important=no |tail -n2 | awk \'{print \$1}\'"));
-    my $start_snap = $snaps[-1] + 1;
-    for (my $i = 1; $i < @pkginstall; $i = $i + 1) {
-        zypper_call("in $pkginstall[$i]");
-        # we need to delete the snapshot after zypper install or it will left
-        # lots of snapshot there.
-        @snaps = split('\n', script_output("snapper list $disable | grep important=no |tail -n2 | awk \'{print \$1}\'"));
-        my $end_snap = $snaps[-1];
-        script_run('snapper delete ' . $start_snap . '-' . $end_snap, timeout => 90) if ($end_snap > $start_snap);
-    }
+    # on x86 zypper will print out the Shell debug information, we need exclude it.
+    @pkginstall = grep { !/LMOD_SH_DBG_ON/ } @pkginstall;
+    zypper_call("in " . join(' ', @pkginstall), timeout => 1800);
 }
 
 sub compare_pkg {
@@ -87,14 +79,16 @@ sub check_pkg {
     my @before = del_num(@diffpkg);
     my %hash_a = map  { $_ => 1 } @after;
     my @b_only = grep { !$hash_a{$_} } @before;
-    if (@b_only) {
-        die "After migration, some packages are miss: " . Dumper(\@b_only);
+    my @remain = grep { $_ !~ /LMOD_SH_DBG_ON=1/ } @b_only;
+    if (@remain) {
+        die "After migration, some packages are miss: " . Dumper(\@remain);
     }
 }
 
 sub full_pkgcompare_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
+
     if ($stage eq 'before') {
         list_pkg("orignalq1w2.txt");
         install_pkg();

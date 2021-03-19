@@ -1,0 +1,64 @@
+---
+name: haproxy_hawk_node
+description: >
+  HA haproxy and hawk cluster tests.
+
+  This test makes a two nodes cluster and a client machine for testing the
+  hawk (High Availability Web Console) features.
+  From the client machine side, the selenium framework is used to check that
+  all the functionality behaves well.
+
+  Then, we do a simple test of the haproxy Resource Agent. We make sure that the RA
+  is configurable in the cluster configuration. Finally, we check if the round-robin
+  mode is doing its job by requesting a virtual ip.
+
+  Some settings are required in the job group or test suite for this schedule to work.
+
+  The other settings required in the job group are.
+
+  CLUSTER_NAME must be defined for all jobs as a string.
+  HA_CLUSTER_INIT must be defined to a non false value in the parent job
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the parent job (the job where HA_CLUSTER_SETUP is defined to init)
+  HOSTNAME must be defined to different hostnames for each node.
+  MAX_JOB_TIME is recommended to be defined as well to a high value (ex. 20000)
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
+  NICTYPE and WORKER_CLASS must be set to 'tap' in the job group directly in qemu based jobs.
+  SLE_PRODUCT must be defined and set accordingly.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  USE_SUPPORT_SERVER: '1'
+  HDD_SCC_REGISTERED: '1'
+  VIRTIO_CONSOLE: '0'
+  HA_CLUSTER: '1'
+  HAWKGUI_TEST_ROLE: 'server'
+  QEMU_DISABLE_SNAPSHOTS: '1'
+  # Below setting must be defined in the openQA UI because macros for %VERSION%,
+  # %ARCH% and %BUILD% are usually not defined yet when this file is being loaded
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+schedule:
+  - boot/boot_to_desktop
+  - ha/wait_barriers
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/firewall_disable
+  - ha/iscsi_client
+  - ha/watchdog
+  - '{{cluster_setup}}'
+  - ha/check_after_reboot
+  - ha/haproxy
+  - ha/check_logs
+conditional_schedule:
+  cluster_setup:
+    HA_CLUSTER_SETUP:
+      init:
+        - ha/ha_cluster_init
+        - ha/check_hawk
+        - boot/boot_to_desktop
+      join:
+        - ha/ha_cluster_join
+        - ha/check_hawk

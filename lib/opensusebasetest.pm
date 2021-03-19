@@ -95,7 +95,7 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub save_and_upload_log {
     my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
-    upload_logs($file) unless $args->{noupload};
+    upload_logs($file, failok => 1) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
 }
 
@@ -113,7 +113,7 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub tar_and_upload_log {
     my ($self, $sources, $dest, $args) = @_;
     script_run("tar -jcv -f $dest $sources", $args->{timeout});
-    upload_logs($dest) unless $args->{noupload};
+    upload_logs($dest, failok => 1) unless $args->{noupload};
     save_screenshot() if $args->{screenshot};
 }
 
@@ -219,29 +219,31 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
     # VMware specific
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run('vm-support');
-        upload_logs('vm-*.*.tar.gz');
+        script_run('vm-support');
+        upload_logs('vm-*.*.tar.gz', failok => 1);
         clear_console;
     }
 
     script_run 'tar cvvJf problem_detection_logs.tar.xz *';
-    upload_logs('problem_detection_logs.tar.xz');
+    upload_logs('problem_detection_logs.tar.xz', failok => 1);
     type_string "popd\n";
 }
 
 =head2 investigate_yast2_failure
 
- investigate_yast2_failure();
+ investigate_yast2_failure(logs_path => $logs_path);
 
-Inspect the YaST2 logfile checking for known issues.
+Inspect the YaST2 logfile checking for known issues. logs_path can be a directory where logs are saved
+e.g. /tmp. In that case the function will parse /tmp/var/log/YaST2/y2logs* files.
 
 =cut
 sub investigate_yast2_failure {
-    my ($self) = shift;
-
+    my ($self, %args) = @_;
+    my $logs_path = $args{logs_path} . '/var/log/YaST2';
+    record_info("logs path", "Parsing longs in $logs_path");
     my $error_detected;
     # first check if badlist exists which could be the most likely problem
-    if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
+    if (my $badlist = script_output "test -f $logs_path/badlist && cat $logs_path/badlist | tail -n 20 || true") {
         record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
         $error_detected = 1;
     }
@@ -370,8 +372,7 @@ sub investigate_yast2_failure {
     my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
-    my $logs_path   = '/var/log/YaST2/';
-    my $cmd_postfix = $logs_path . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
+    my $cmd_postfix = $logs_path . "/" . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
     # String to accumulate unknown detected issues
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
@@ -1001,6 +1002,8 @@ sub wait_boot_past_bootloader {
         select_console('x11');
     }
     elsif ($textmode || check_var('DESKTOP', 'textmode')) {
+        # Avoid return key not received occasionally for hyperv guest with uefi at first boot
+        send_key_until_needlematch('linux-login', 'ret') if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
         return $self->wait_boot_textmode(ready_time => $ready_time);
     }
 
@@ -1075,7 +1078,7 @@ the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot {
     my ($self, %args) = @_;
-    my $bootloader_time = $args{bootloader_time} // ((is_pvm) ? 200 : 100);
+    my $bootloader_time = $args{bootloader_time} // ((is_pvm || check_var('BACKEND', 'ipmi')) ? 300 : 100);
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
     my $in_grub         = $args{in_grub}    // 0;
@@ -1108,9 +1111,14 @@ sub wait_boot {
     }
     else {
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
-        if (get_var('UEFI') && is_hyperv && check_screen('grub2', 10)) {
-            record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
-            send_key 'ret';
+        # part of soft failure bsc#1118456
+        if (get_var('UEFI') && is_hyperv) {
+            wait_still_screen stilltime => 5, timeout => 26;
+            save_screenshot;
+            if (check_screen('grub2', 20)) {
+                record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
+                send_key 'ret';
+            }
         }
     }
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
@@ -1164,7 +1172,7 @@ under test, the version and if the SUT is an upgrade.
 sub firewall {
     my $old_product_versions      = is_sle('<15') || is_leap('<15.0');
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
-    return (($old_product_versions || $upgrade_from_susefirewall) && !is_tumbleweed) ? 'SuSEfirewall2' : 'firewalld';
+    return (($old_product_versions || $upgrade_from_susefirewall) && !is_tumbleweed && !(check_var('SUSEFIREWALL2_SERVICE_CHECK', 1))) ? 'SuSEfirewall2' : 'firewalld';
 }
 
 =head2 remount_tmp_if_ro
@@ -1256,20 +1264,23 @@ sub select_user_serial_terminal {
 
 =head2 upload_coredumps
 
- upload_coredumps();
+ upload_coredumps(%args);
 
-Upload all coredumps to logs
+Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
+errors during logs collection will be ignored, which is usefull for the
+post_fail_hook calls.
 =cut
 sub upload_coredumps {
+    my (%args) = @_;
     my $res = script_run("coredumpctl --no-pager", timeout => 10);
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
-        upload_logs("coredump-info.log");
+        upload_logs("coredump-info.log", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';
-        my @files   = split("\n", script_output("\\ls -1 $basedir | cat"));
+        my @files   = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
         foreach my $file (@files) {
-            upload_logs($basedir . $file);
+            upload_logs($basedir . $file, failok => $args{proceed_on_failure});
         }
     }
 }
@@ -1307,16 +1318,16 @@ sub post_fail_hook {
     if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
         select_console 'root-console';
         my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
-        my $out           = script_output 'lvmdump';
+        my $out           = script_output('lvmdump', proceed_on_failure => 1);
         if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
-            upload_logs "$+{lvmdump_gzip}";
+            upload_logs("$+{lvmdump_gzip}", failok => 1);
         }
         $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
     }
 
     if (get_var('COLLECT_COREDUMPS')) {
         select_console 'root-console';
-        $self->upload_coredumps;
+        $self->upload_coredumps(proceed_on_failure => 1);
     }
 
     if ($self->{in_wait_boot}) {

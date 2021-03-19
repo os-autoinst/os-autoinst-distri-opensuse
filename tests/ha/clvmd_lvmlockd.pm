@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2-clvm lvm2-cmirrord crmsh
 # Summary: Configure clvmd or lvmlockd
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

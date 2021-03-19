@@ -10,6 +10,8 @@ schedule:
     - autoyast/installation
     - autoyast/console
     - autoyast/login
+    - autoyast/logs
+    - console/textinfo
     - microos/networking
     - microos/libzypp_config
     - microos/one_line_checks

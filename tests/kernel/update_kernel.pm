@@ -54,6 +54,15 @@ sub prepare_azure {
     boot_to_console($self);
 }
 
+sub prepare_kernel_base {
+    my $self = shift;
+
+    remove_kernel_packages();
+    zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    power_action('reboot', textmode => 1);
+    boot_to_console($self);
+}
+
 sub update_kernel {
     my ($repo, $incident_id) = @_;
 
@@ -89,17 +98,15 @@ sub kgraft_state {
     script_run("ls -lt /boot >/tmp/lsboot");
     upload_logs("/tmp/lsboot");
     script_run("cat /tmp/lsboot");
-    save_screenshot;
 
-    script_run("basename /boot/initrd-\$(uname -r) | sed s_initrd-__g > /dev/$serialdev", 0);
-    my ($kver) = wait_serial(qr/(^[\d.-]+)-.+\s/) =~ /(^[\d.-]+)-.+\s/;
+    die "Invalid kernel version string" if script_output("uname -r") !~ m/(^[\d.-]+)-.+/;
+    my $kver = $1;
     my $module;
 
     # xen kernel exists only on SLE12 and SLE12SP1
     if (is_sle('<=12-SP1')) {
         script_run("lsinitrd /boot/initrd-$kver-xen | grep patch");
-        save_screenshot;
-        $module = script_output("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev");
+        $module = script_output("lsinitrd /boot/initrd-$kver-xen | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}'");
 
         if (check_var('REMOVE_KGRAFT', '1')) {
             die 'Kgraft module exists when it should have been removed' if $module;
@@ -110,8 +117,7 @@ sub kgraft_state {
     }
 
     script_run("lsinitrd /boot/initrd-$kver-default | grep patch");
-    save_screenshot;
-    $module = script_output("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}' > /dev/$serialdev");
+    $module = script_output("lsinitrd /boot/initrd-$kver-default | awk '/-patch-.*ko\$/ || /livepatch-.*ko\$/ {print \$NF}'");
 
     if (check_var('REMOVE_KGRAFT', '1')) {
         die 'Kgraft module exists when it should have been removed' if $module;
@@ -121,7 +127,6 @@ sub kgraft_state {
     }
 
     script_run("uname -a");
-    save_screenshot;
 }
 
 sub override_shim {
@@ -292,7 +297,7 @@ sub update_kgraft {
         die "Patch isn't needed";
     }
     else {
-        script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.before});
+        script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\\n" | sort -t '-' > /tmp/rpmlist.before});
         upload_logs('/tmp/rpmlist.before');
 
         # Download HEAVY LOAD script
@@ -313,7 +318,7 @@ sub update_kgraft {
         script_run("screen -S newburn_KCOMPILE -X quit");
         script_run("rm -Rf /var/log/qa");
 
-        script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\n" | sort -t '-' > /tmp/rpmlist.after});
+        script_run(qq{rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE} (%{INSTALLTIME:date})\\n" | sort -t '-' > /tmp/rpmlist.after});
         upload_logs('/tmp/rpmlist.after');
 
         my $installed_klp_pkg =
@@ -341,18 +346,21 @@ sub install_kotd {
 
 sub boot_to_console {
     my ($self) = @_;
-    $self->wait_boot unless check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL');
-    if (check_var('BACKEND', 'ipmi')) {
-        use_ssh_serial_console;
-    }
-    else {
-        select_console('root-console');
-    }
+
+    select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
+    $self->wait_boot;
+    $self->select_serial_terminal;
 }
 
 sub run {
     my $self = shift;
-    boot_to_console($self);
+
+    if (check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL')) {
+        # System is already booted after installation, just switch terminal
+        $self->select_serial_terminal;
+    } else {
+        boot_to_console($self);
+    }
 
     my $repo        = get_var('KOTD_REPO');
     my $incident_id = undef;
@@ -389,6 +397,10 @@ sub run {
             $self->prepare_azure;
             update_kernel($repo, $incident_id);
         }
+    }
+    elsif (get_var('KERNEL_BASE')) {
+        $self->prepare_kernel_base;
+        update_kernel($repo, $incident_id);
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
@@ -433,6 +445,12 @@ kernel as in the default case.
 When AZURE_FIRST_RELEASE evaluates to true, install kernel-azure directly
 from incident repository and update system. This is a chicken&egg workaround
 because there is never any kernel-azure package in the pool repository.
+
+=head2 KERNEL_BASE
+
+When KERNEL_BASE variable evaluates to true, the job should test the
+alternative minimal kernel. Uninstall kernel-default and install
+kernel-default-base instead. Then update kernel as in the default case.
 
 =head2 KOTD_REPO
 

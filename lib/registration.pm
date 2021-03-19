@@ -124,7 +124,7 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo rt idu);
+    my @addons_with_license = qw(geo rt idu nvidia);
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
@@ -184,6 +184,10 @@ sub add_suseconnect_product {
     $arch    //= '${CPU}';
     $params  //= '';
     $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+
+    # some modules on sle12 use major version e.g. containers module
+    my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
+    $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
 
     my $result = script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
     if ($result != 0 && $retry) {
@@ -650,9 +654,9 @@ sub fill_in_registration_data {
                 send_key 'alt-y';
                 next;
             }
-            elsif (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
-                send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
-                record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
+            elsif (match_has_tag("license-agreement")) {
+                send_key 'alt-a';
+                assert_screen('license-agreement-accepted');
                 send_key $cmd{next};
                 assert_screen "remove-repository";
                 send_key $cmd{next};

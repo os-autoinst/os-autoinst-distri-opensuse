@@ -32,6 +32,8 @@ schedule:
   - console/consoletest_setup
   - console/validate_installed_software
   - console/yast2_i
+  - console/verify_no_separate_home
+  - console/validate_subvolumes
 conditional_schedule:
   boot_handler:
     BACKEND:

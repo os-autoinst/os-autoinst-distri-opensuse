@@ -36,30 +36,33 @@ sub run {
     # Configure the internal network an  try it
     if ($hostname =~ /server|master/) {
         setup_static_mm_network('10.0.2.101/24');
-        #if server running opensuse.
+        # If server running openSUSE.
         if (is_opensuse) {
-            disable_and_stop_service('NetworkManager', ignore_failure => 1);
-            assert_script_run 'systemctl start  wicked';
+            assert_script_run 'systemctl restart  wicked';
+        }
+        # If server running on SLED
+        if (check_var('SLE_PRODUCT', 'sled')) {
+            assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.101/24' gw4 10.0.2.2 ipv4.method manual ";
+            assert_script_run "nmcli connection down 'Wired connection 1'";
+            assert_script_run "nmcli connection up 'Wired connection 1'";
         }
     }
     else {
         setup_static_mm_network('10.0.2.102/24');
 
-        my $base_product = get_var('SLE_PRODUCT');
-        if ($base_product eq "sled") {
+        if (check_var('SLE_PRODUCT', 'sled')) {
             if (is_sle('=15')) {
                 assert_script_run 'systemctl restart  wicked';
             }
             else {
-                disable_and_stop_service('NetworkManager', ignore_failure => 1);
-                assert_script_run 'systemctl enable wicked';
-                assert_script_run 'systemctl start  wicked';
+                assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
+                assert_script_run "nmcli connection down 'Wired connection 1'";
+                assert_script_run "nmcli connection up 'Wired connection 1'";
             }
         }
-        #Opensuse versions
+        # To openSUSE versions
         if (is_opensuse) {
-            disable_and_stop_service('NetworkManager', ignore_failure => 1);
-            assert_script_run 'systemctl start  wicked';
+            assert_script_run 'systemctl restart  wicked';
         }
     }
 

@@ -36,8 +36,10 @@ sub susefirewall2_to_firewalld {
     assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
     # On some platforms such as Aarch64, the 'firewalld restart'
     # can't finish in the default timeout.
-    systemctl 'restart firewalld', timeout => 60;
-    script_run('iptables -S', timeout => 60);
+
+    systemctl 'restart firewalld', timeout => $timeout;
+    script_run('iptables -S', timeout => $timeout);
+    set_var('SUSEFIREWALL2_SERVICE_CHECK', 1);
 }
 
 sub enable_service {
@@ -59,7 +61,8 @@ sub check_service {
 #           'before' for SuSEfirewall2 or
 #           'after' for firewalld after system migration.
 sub full_firewall_check {
-    my ($stage) = @_;
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
     # we just support SLE12 to SLES15 SuSEfirewall2 to firewalld check
     return if (get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4');

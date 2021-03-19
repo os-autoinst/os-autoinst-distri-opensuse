@@ -16,7 +16,7 @@ use File::Basename;
 use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
-use suse_container_urls 'get_suse_container_urls';
+use containers::urls 'get_suse_container_urls';
 use autotest;
 use utils;
 use wicked::TestContext;
@@ -212,11 +212,12 @@ sub any_desktop_is_applicable {
 }
 
 sub opensuse_welcome_applicable {
-    # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2+ XFCE only
+    # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
+    # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     # since not all DEs honor xdg/autostart, we are filtering based on desktop environments
     # except for ppc64/ppc64le because not built libqt5-qtwebengine sr#323144
     my $desktop = shift // get_var('DESKTOP', '');
-    return (($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed) || ($desktop =~ /xfce/ && is_leap(">=15.2"))) && (get_var('ARCH') !~ /ppc64/);
+    return ((($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_tumbleweed) || ($desktop =~ /xfce/ && is_leap("=15.2"))) && (get_var('ARCH') !~ /ppc64/)) || (($desktop =~ /gnome|kde|lxde|lxqt|mate|xfce/ && is_leap(">=15.3")) && (get_var('ARCH') !~ /ppc64|s390/));
 }
 
 sub logcurrentenv {
@@ -491,7 +492,6 @@ sub load_autoyast_tests {
     loadtest("autoyast/console");
     loadtest("autoyast/login");
     loadtest("autoyast/wicked");
-    loadtest("autoyast/autoyast_verify")                      if get_var("AUTOYAST_VERIFY");
     loadtest('autoyast/' . get_var("AUTOYAST_VERIFY_MODULE")) if get_var("AUTOYAST_VERIFY_MODULE");
     if (get_var("SUPPORT_SERVER_GENERATOR")) {
         loadtest("support_server/configure");
@@ -579,6 +579,7 @@ sub load_jeos_tests {
             loadtest "jeos/grub2_gfxmode";
             loadtest "jeos/diskusage";
             loadtest "jeos/build_key";
+            loadtest "console/prjconf_excluded_rpms";
         }
         if (is_sle) {
             loadtest "console/suseconnect_scc";
@@ -1073,7 +1074,8 @@ sub load_console_server_tests {
 }
 
 sub load_consoletests {
-    return                            unless consolestep_is_applicable();
+    return unless consolestep_is_applicable();
+    loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";
@@ -1175,6 +1177,7 @@ sub load_consoletests {
     {
         loadtest "console/glibc_sanity";
     }
+    loadtest "console/glibc_tunables";
     load_system_update_tests(console_updates => 1);
     loadtest "console/console_reboot" if is_jeos;
     loadtest "console/zypper_in";
@@ -1185,7 +1188,7 @@ sub load_consoletests {
     }
     loadtest "console/vim" if is_opensuse || is_sle('<15') || !get_var('PATTERNS') || check_var_array('PATTERNS', 'enhanced_base');
 # textmode install comes without firewall by default atm on openSUSE. For virtualization server xen and kvm is disabled by default: https://fate.suse.com/324207
-    if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_staging() && !is_krypton_argon && !is_virtualization_server) {
+    if ((is_sle || !check_var("DESKTOP", "textmode")) && !is_krypton_argon && !is_virtualization_server) {
         loadtest "console/firewall_enabled";
     }
     if (is_jeos) {
@@ -1659,7 +1662,6 @@ sub load_extra_tests_console {
     loadtest "console/clamav";
     loadtest "console/shells";
     loadtest 'console/sudo';
-    loadtest "console/repo_orphaned_packages_check" if is_jeos;
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
@@ -1723,6 +1725,7 @@ sub load_extra_tests_docker {
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
     loadtest 'containers/registry';
     loadtest "containers/zypper_docker";
+    loadtest "containers/rootless_podman" unless is_sle('<15-SP2');
 }
 
 sub load_extra_tests_prepare {
@@ -1765,7 +1768,6 @@ sub load_extra_tests_toolkits {
     loadtest "x11/toolkits/motif";
     loadtest "x11/toolkits/gtk2";
     loadtest "x11/toolkits/gtk3";
-    loadtest "x11/toolkits/qt4" if is_opensuse && !is_tumbleweed;
     loadtest "x11/toolkits/qt5";
     loadtest "x11/toolkits/swing";
     return 1;
@@ -1995,6 +1997,7 @@ sub load_x11_other {
             loadtest "x11/gnome_tweak_tool";
             loadtest "x11/seahorse";
         }
+        loadtest 'x11/flatpak' if (is_opensuse);
     }
     # shotwell was replaced by gnome-photos in SLE15 & yast_virtualization isn't in SLE15
     if (is_sle('>=12-sp2') && is_sle('<15')) {
@@ -2344,6 +2347,7 @@ sub load_security_tests_apparmor {
     loadtest "security/apparmor/aa_logprof";
     loadtest "security/apparmor/aa_easyprof";
     loadtest "security/apparmor/aa_notify";
+    loadtest "security/apparmor/aa_disable";
 }
 
 sub load_security_tests_apparmor_profile {
@@ -2378,6 +2382,15 @@ sub load_security_tests_yast2_users {
     load_security_console_prepare;
 
     loadtest "security/yast2_users/add_users";
+}
+
+sub load_security_tests_lynis {
+    load_security_console_prepare;
+
+    loadtest "security/lynis/lynis_setup";
+    loadtest "security/lynis/lynis_perform_system_audit";
+    loadtest "security/lynis/lynis_analyze_system_audit";
+    loadtest "security/lynis/lynis_harden_index";
 }
 
 sub load_security_tests_openscap {
@@ -2460,6 +2473,7 @@ sub load_security_tests_check_kernel_config {
 
     loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
     loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
+    loadtest "security/check_kernel_config/dm_crypt";
 }
 
 sub load_security_tests_pam {
@@ -2470,6 +2484,25 @@ sub load_security_tests_pam {
     loadtest "security/pam/pam_su";
     loadtest "security/pam/pam_config";
     loadtest "security/pam/pam_mount";
+}
+
+sub load_security_tests_create_swtpm_hdd {
+    load_security_console_prepare;
+
+    loadtest "security/create_swtpm_hdd/build_hdd";
+}
+
+sub load_security_tests_swtpm {
+    load_security_console_prepare;
+
+    loadtest "security/swtpm/swtpm_env_setup";
+    loadtest "security/swtpm/swtpm_verify";
+}
+
+sub load_security_tests_grub_auth {
+    load_security_console_prepare;
+
+    loadtest "security/grub_auth/grub_authorization";
 }
 
 sub load_security_tests_tpm2 {
@@ -2589,6 +2622,10 @@ sub load_security_tests {
       check_kernel_config
       tpm2
       pam
+      create_swtpm_hdd
+      swtpm
+      grub_auth
+      lynis
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
@@ -2610,7 +2647,8 @@ sub load_system_prepare_tests {
     loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
     loadtest 'console/integration_services'   if is_hyperv || is_vmware;
-    loadtest 'console/hostname'              unless is_bridged_networking;
+    loadtest 'console/hostname' unless is_bridged_networking;
+    loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests          if is_repo_replacement_required;

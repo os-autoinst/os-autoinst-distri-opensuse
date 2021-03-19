@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: pacemaker-cts
 # Summary: Execute the pacemaker-cts cluster exerciser to test a whole
 # cluster.
 # Maintainer: Julien Adamek <jadamek@suse.com>

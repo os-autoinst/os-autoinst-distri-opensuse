@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -18,6 +19,7 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
+use publiccloud::utils "is_byos";
 
 our $root_dir = '/root';
 
@@ -60,6 +62,8 @@ sub run {
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
 
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE, timeout => 600) if is_byos();
+
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
         my $ltp_rpm         = get_ltp_rpm($ltp_repo);
@@ -77,8 +81,6 @@ sub run {
 
     assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
 
-    # Install ltp from package on remote
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE,          timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh', timeout => 300);
 
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));

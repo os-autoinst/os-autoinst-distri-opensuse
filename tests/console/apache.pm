@@ -1,6 +1,6 @@
 # SUSE's Apache regression test
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -139,6 +139,7 @@ sub run {
 
             # Run and test this new environment
             assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
+            assert_script_run 'until ps aux|grep wwwrun; do echo waiting for httpd2-prefork pid; done';
             assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
 
             # Run and test the old environment too

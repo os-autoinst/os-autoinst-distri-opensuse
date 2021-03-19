@@ -28,8 +28,8 @@ sub run {
     record_info("Resize root");
     $partitioner->resize_partition({disk => $disk, partition => $root_part});
     for my $part (@partitions) {
-        record_info("Edit $part->{name}", "$part");
-        $partitioner->edit_partition_on_gpt_disk({disk => $disk, partition => $part});
+        record_info("Edit $part->{name}");
+        $partitioner->edit_partition_gpt({disk => $disk, partition => $part});
     }
     $partitioner->accept_changes_and_press_next();
 }
