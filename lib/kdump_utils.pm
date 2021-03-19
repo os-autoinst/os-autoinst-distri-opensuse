@@ -82,6 +82,9 @@ sub prepare_for_kdump {
     # disable packagekitd
     quit_packagekit;
     if ($test_type eq 'before') {
+        # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
+        # we need to reset the console font.
+        assert_script_run('/usr/lib/systemd/systemd-vconsole-setup') if check_var('ARCH', 'ppc64le');
         zypper_call('in yast2-kdump kdump');
     }
     else {
