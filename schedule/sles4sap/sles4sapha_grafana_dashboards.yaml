@@ -1,0 +1,21 @@
+---
+name: sles4sapha_grafana_dashboards
+description: >
+  Basic tests for HA & SAP Grafana dashboards
+
+  Install the main grafana package as well as the HA & SAP dashboards packages
+  Start grafana and make sure all the dashboards imported well
+  Finally some simple graphical tests are done
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: 'gnome'
+  ROOT_ONLY: 1
+  TIMEOUT_SCALE: '2'
+  # Below have to be entered in the OpenQA UI because it doesn't read this YAML
+  # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-sles4sap-gnome.qcow2
+  # START_AFTER_TEST: create_hdd_sles4sap_gnome
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/grafana_dashboards
