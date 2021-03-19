@@ -25,15 +25,15 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_jeos);
+use version_utils qw(is_sle);
 use utils;
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call("in mutt", exitcode => [0, 102, 103]) if (is_tumbleweed || is_jeos || get_var('PUBLIC_CLOUD'));
-    zypper_call("in wget", exitcode => [0, 102, 103]) if is_jeos;
+    zypper_call("in mutt", exitcode => [0, 102, 103]);
+    zypper_call("in wget", exitcode => [0, 102, 103]);
 
     # Mutt is Mutt (bsc#1094717) and has build in support for IMAP and SMTP
     validate_script_output 'mutt -v', sub { m/\+USE_IMAP/ && m/\+USE_SMTP/ && not m/NeoMutt/ };
