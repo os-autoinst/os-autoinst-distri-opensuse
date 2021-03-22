@@ -168,6 +168,9 @@ sub container_set_up {
     record_info('Dockerfile', script_output("cat $dir/BuildTest/Dockerfile"));
     assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
     record_info('requirements.txt', script_output("cat $dir/BuildTest/requirements.txt"));
+    assert_script_run("mkdir -p $dir/BuildTest/templates");
+    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/templates/index.html";
+
 }
 
 # Build the image
@@ -198,9 +201,7 @@ sub test_built_img {
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
 
-    assert_script_run("mkdir /root/templates");
-    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > /root/templates/index.html";
-    assert_script_run("$runtime run -dit -p 8888:5000 -v ~/templates:\/usr/src/app/templates myapp www.google.com");
+    assert_script_run("$runtime run -dit -p 8888:5000 myapp www.google.com");
     sleep 5;
     assert_script_run("$runtime ps -a");
     script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
