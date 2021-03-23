@@ -284,7 +284,11 @@ EOF
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
         assert_script_run 'initdb -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
-        assert_script_run 'pg_ctl -D /tmp/psql status';
+        if (script_run('pg_ctl -D /tmp/psql status')) {
+            record_info('status', 'wait 5s more before status query');
+            sleep(5);
+            assert_script_run 'pg_ctl -D /tmp/psql status';
+        }
         assert_script_run 'pg_ctl -D /tmp/psql stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
@@ -313,7 +317,7 @@ EOF
     # check if db contains old and new table row
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE first_name = \'openQA\'"|grep openQA';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE last_name = \'Davidson\'"|grep Davidson';
-    type_string "exit\n", wait_still_screen => 1;
+    type_string "exit\n", wait_still_screen => 3;
 }
 
 =head2 test_mysql
