@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -51,8 +51,20 @@ sub run {
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
         record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
     }
-    # Initialize and download ClamAV database which needs time
-    assert_script_run('freshclam', 700);
+
+    # Initialize and download ClamAV database
+    # First from local mirror, it's much faster, then from official clamav db
+    if (is_sle('=15')) {
+        record_soft_failure('bsc#1183881');
+        assert_script_run('freshclam', 700);
+    }
+    else {
+        my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
+        assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
+        assert_script_run('freshclam');
+        assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
+        assert_script_run('freshclam');
+    }
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
