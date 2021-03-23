@@ -234,13 +234,15 @@ sub rmt_wizard {
     type_string "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev\n";
     assert_screen 'yast2_rmt_registration';
     send_key 'alt-u';
-    wait_still_screen;
+    wait_still_screen(2, 5);
     type_string(get_required_var('SMT_ORG_NAME'));
+    wait_still_screen(2, 5);
     send_key 'alt-p';
-    wait_still_screen;
+    wait_still_screen(2, 5);
     type_string(get_required_var('SMT_ORG_PASSWORD'));
+    wait_still_screen(2, 5);
     send_key 'alt-n';
-    assert_screen 'yast2_rmt_config_written_successfully', 60;
+    assert_screen 'yast2_rmt_config_written_successfully', 200;
     send_key 'alt-o';
     assert_screen 'yast2_rmt_db_password';
     send_key 'alt-p';
