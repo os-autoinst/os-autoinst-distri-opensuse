@@ -58,6 +58,8 @@ sub prepare_for_kdump_sle {
         return;
     }
     my $counter = 0;
+    # use INCIDENT_REPO if defined, MR's contain also MAINT_TEST_REPO, but INCIDENT_REPO is relevant
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     if (get_var('MAINT_TEST_REPO')) {
         # append _debug to the incident repo
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
