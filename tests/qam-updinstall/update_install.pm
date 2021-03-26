@@ -44,7 +44,10 @@ sub has_conflict {
         'cluster-md-kmp-default' => 'kernel-default-base',
         'dlm-kmp-default'        => 'kernel-default-base',
         'gfs2-kmp-default'       => 'kernel-default-base',
-        'ocfs2-kmp-default'      => 'kernel-default-base'
+        'ocfs2-kmp-default'      => 'kernel-default-base',
+        dpdk                     => 'dpdk-thunderx',
+        'dpdk-devel'             => 'dpdk-thunderx-devel',
+        'dpdk-kmp-default'       => 'dpdk-thunderx-kmp-default',
     );
     return $conflict{$binary};
 }
