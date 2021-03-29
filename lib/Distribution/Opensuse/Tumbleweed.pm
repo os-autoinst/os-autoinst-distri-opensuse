@@ -20,6 +20,7 @@ use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use Installation::SystemRole::SystemRoleController;
+use YaST::SystemSettings::SystemSettingsController;
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
@@ -35,6 +36,10 @@ sub get_network_settings {
 
 sub get_system_role_controller() {
     return Installation::SystemRole::SystemRoleController->new();
+}
+
+sub get_system_settings {
+    return YaST::SystemSettings::SystemSettingsController->new();
 }
 
 1;

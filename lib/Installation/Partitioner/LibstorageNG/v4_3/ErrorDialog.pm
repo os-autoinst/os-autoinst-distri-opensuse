@@ -41,4 +41,17 @@ sub press_ok {
     $self->{btn_ok}->click();
 }
 
+sub is_shown {
+    my ($self) = @_;
+    $self->{lbl_heading}->exist();
+}
+
+sub confirm {
+    my ($self) = @_;
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->is_shown();
+    });
+    $self->press_ok();
+}
+
 1;
