@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,7 @@
 # Summary: The class introduces business actions for Guided Setup of
 # Libstorage-NG Partitioner.
 
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use strict;
@@ -25,14 +25,20 @@ use Installation::Partitioner::LibstorageNG::SelectHardDisksPage;
 
 sub new {
     my ($class, $args) = @_;
-    my $self = bless {
-        SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
-        PartitioningSchemePage    => Installation::Partitioner::LibstorageNG::PartitioningSchemePage->new(),
-        TooSimplePasswordDialog   => Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog->new(),
-        FileSystemOptionsPage     => Installation::Partitioner::LibstorageNG::FileSystemOptionsPage->new(),
-        FileSystemOptionsLvmPage  => Installation::Partitioner::LibstorageNG::FileSystemOptionsLvmPage->new(),
-        SelectHardDisksPage       => Installation::Partitioner::LibstorageNG::SelectHardDisksPage->new()
-    }, $class;
+    my $self = bless {}, $class;
+    return $self->init($args);
+}
+
+sub init {
+    my ($self, $args) = @_;
+
+    $self->{SuggestedPartitioningPage} = Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new();
+    $self->{PartitioningSchemePage}    = Installation::Partitioner::LibstorageNG::PartitioningSchemePage->new();
+    $self->{TooSimplePasswordDialog}   = Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog->new();
+    $self->{FileSystemOptionsPage}     = Installation::Partitioner::LibstorageNG::FileSystemOptionsPage->new();
+    $self->{FileSystemOptionsLvmPage}  = Installation::Partitioner::LibstorageNG::FileSystemOptionsLvmPage->new();
+    $self->{SelectHardDisksPage}       = Installation::Partitioner::LibstorageNG::SelectHardDisksPage->new();
+    return $self;
 }
 
 sub get_suggested_partitioning_page {
