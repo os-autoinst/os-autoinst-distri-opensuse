@@ -16,13 +16,13 @@ package Distribution::Opensuse::Tumbleweed;
 use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
-use Installation::Partitioner::LibstorageNG::GuidedSetupController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use Installation::SystemRole::SystemRoleController;
 
 sub get_partitioner {
-    return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController->new();
 }
 
 sub get_expert_partitioner {
