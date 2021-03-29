@@ -1,0 +1,15 @@
+nodes:
+  - address: master
+    user: root
+    role:
+      - controlplane
+      - etcd
+  - address: worker1
+    user: root
+    role:
+      - worker
+  - address: worker2
+    user: root
+    role:
+      - worker
+
