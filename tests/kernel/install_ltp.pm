@@ -212,7 +212,6 @@ sub add_ltp_repo {
         }
 
         my $arch = '';
-        $arch = "_ARM"      if is_aarch64();
         $arch = "_PowerPC"  if is_ppc64le();
         $arch = "_zSystems" if is_s390x();
 
