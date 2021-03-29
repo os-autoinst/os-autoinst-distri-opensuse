@@ -218,7 +218,7 @@ sub add_ltp_repo {
         if (want_stable) {
             $repo = "https://download.opensuse.org/repositories/benchmark/openSUSE_Factory$arch/";
         } else {
-            $arch = ((is_x86_64) ? "Tumbleweed" : "Factory") . $arch;
+            $arch = ((is_x86_64 || is_aarch64) ? "Tumbleweed" : "Factory") . $arch;
             $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$arch/";
         }
     }
