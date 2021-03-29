@@ -1,3 +1,6 @@
+guided_partitioning:
+  disks:
+    - sda
 disks:
   - sda
   - sdb
