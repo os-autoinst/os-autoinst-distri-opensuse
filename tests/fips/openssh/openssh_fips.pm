@@ -1,6 +1,6 @@
 # SUSE's openssh fips tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright © 2016 - 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,25 +8,38 @@
 # without any warranty.
 
 # Package: openssh expect
+#
 # Summary: FIPS: openssh
-#    Involve the existing openssh test case: sshd.pm
+#          Involve the existing openssh test case: sshd.pm
+#          Create new case ssh_pubkey.pm to test public key
+#          Create new case openssh_fips.pm to verify that
+#          openssh will refuse to work with any non-approved
+#          algorithm in fips mode, just like blowfish cipher
+#          or MD5 hash.
 #
-#    Create new case ssh_pubkey.pm to test public key
-#
-#    Create new case openssh_fips.pm to verify that
-#    openssh will refuse to work with any non-approved
-#    algorithm in fips mode, just like blowfish cipher
-#    or MD5 hash.
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: tc#1525228
+# Tags: tc#1525228, poo#90458
 
 use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use utils 'zypper_call';
+use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
+
+    zypper_call('info openssh');
+    my $current_ver = script_output("rpm -q --qf '%{version}\n' openssh");
+
+    # openssh update to 8.3 in SLE15 SP3
+    if (is_sle('>=15-sp3') && ($current_ver ge 8.3)) {
+        record_info("openssh version", "Current openssh package version: $current_ver");
+    }
+    else {
+        record_soft_failure("jsc#SLE-16308: openssh version outdate, openssh version need to be updated over to 8.3+ in SLE15 SP3");
+    }
 
     # Verify MD5 is disabled in fips mode, no need to login
     validate_script_output
