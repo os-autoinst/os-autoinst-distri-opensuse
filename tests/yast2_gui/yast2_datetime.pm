@@ -21,9 +21,8 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
     select_console 'x11';
-    $self->launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf require_install_chrony)], match_timeout => 90);
+    y2_module_guitest::launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf require_install_chrony)], match_timeout => 90);
     if (match_has_tag 'yast2-datetime_ntp-conf') {
         send_key 'alt-d';
         send_key 'alt-o';

@@ -38,7 +38,7 @@ C<$maximize_window> option allows to maximize application window using shortcut.
 
 =cut
 sub launch_yast2_module_x11 {
-    my ($self, $module, %args) = @_;
+    my ($module, %args) = @_;
     $module //= '';
     $args{target_match} //= $module ? "yast2-$module-ui" : 'yast2-ui';
     my @tags = ['root-auth-dialog', ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}];

@@ -44,7 +44,7 @@ sub run {
     my ($addon, $uc_addon);
     my $perform_reboot;
     test_setup;
-    $self->launch_yast2_module_x11('add-on', target_match => [qw(addon-products packagekit-warning)]);
+    y2_module_guitest::launch_yast2_module_x11('add-on', target_match => [qw(addon-products packagekit-warning)]);
     if (match_has_tag 'packagekit-warning') {
         send_key 'alt-y';
         assert_screen 'addon-products';
