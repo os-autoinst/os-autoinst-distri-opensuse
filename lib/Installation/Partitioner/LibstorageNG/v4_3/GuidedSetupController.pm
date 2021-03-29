@@ -19,8 +19,9 @@ use warnings;
 
 use YuiRestClient;
 
-use Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage;
 use Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage;
+use Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage;
+use Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage;
 
 =head1 PARTITION_SETUP
 
@@ -39,8 +40,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{PartitioningSchemePage} = Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage->new({app => YuiRestClient::get_app()});
     $self->{FilesystemOptionsPage}  = Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{PartitioningSchemePage} = Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage->new({app => YuiRestClient::get_app()});
+    $self->{SelectDisksToUsePage}   = Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -54,6 +56,18 @@ sub get_filesystem_options_page {
     my ($self) = @_;
     die "Filesystem Options is not displayed" unless $self->{FilesystemOptionsPage}->is_shown();
     return $self->{FilesystemOptionsPage};
+}
+
+sub get_select_disks_to_use_page {
+    my ($self) = @_;
+    die "Disk to use selection page is not displayed" unless $self->{SelectDisksToUsePage}->is_shown();
+    return $self->{SelectDisksToUsePage};
+}
+
+sub setup_disks_to_use {
+    my ($self, @disks) = @_;
+    $self->get_select_disks_to_use_page()->select_hard_disks(@disks);
+    $self->get_select_disks_to_use_page()->press_next();
 }
 
 sub setup_partitioning_scheme {
