@@ -215,12 +215,8 @@ sub add_ltp_repo {
         $arch = "_PowerPC"  if is_ppc64le();
         $arch = "_zSystems" if is_s390x();
 
-        if (want_stable) {
-            $repo = "https://download.opensuse.org/repositories/benchmark/openSUSE_Factory$arch/";
-        } else {
-            $arch = ((is_x86_64 || is_aarch64) ? "Tumbleweed" : "Factory") . $arch;
-            $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$arch/";
-        }
+        $arch = ((is_x86_64 || is_aarch64) ? "Tumbleweed" : "Factory") . $arch;
+        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$arch/";
     }
 
     zypper_ar($repo, name => 'ltp_repo');
@@ -442,13 +438,11 @@ QA head repository for SLE12 SP5.
 https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_Tumbleweed_PowerPC
 Nightly build for openSUSE Tumbleweed ppc64le.
 
-https://download.opensuse.org/repositories/benchmark/openSUSE_Factory
-Stable release for openSUSE Tumbleweed x86_64.
-
 =head2 LTP_STABLE
 
 When defined and installing from repository stable release. Default is stable
 for SLES QAM, otherwise nightly builds.
+NOTE: openSUSE does not have LTP stable package, only nightly builds.
 
 =head2 LTP_PKG
 
