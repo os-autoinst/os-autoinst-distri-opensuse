@@ -38,7 +38,8 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
-  - console/validate_installed_software
+  - console/validate_installed_packages
+  - console/validate_installed_patterns
   - shutdown/cleanup_before_shutdown
   - console/suseconnect_scc
   - shutdown/shutdown

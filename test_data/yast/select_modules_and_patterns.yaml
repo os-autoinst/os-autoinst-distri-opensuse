@@ -4,14 +4,16 @@ software:
     bash:
       installed: 1
   patterns:
-    yast2_basis:
-      installed: 1
-    yast2_desktop:
-      installed: 1
-    yast2_server:
-      installed: 1
-    devel_yast:
-      installed: 1
+    - apparmor
+    - base
+    - devel_yast
+    - enhanced_base
+    - fonts
+    - gnome_basic
+    - x11
+    - yast2_basis
+    - yast2_desktop
+    - yast2_server
 validate_subvolumes:
   - subvolume: home
     mount_point: /

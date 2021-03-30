@@ -67,10 +67,12 @@ use utils;
 use version_utils qw(is_leap is_sle is_tumbleweed);
 use y2_module_consoletest;
 use Test::Assert ':all';
+use xml_utils;
 
 our @EXPORT = qw(
   add_qa_head_repo
   add_qa_web_repo
+  get_installed_patterns
   smt_wizard
   smt_mirror_repo
   rmt_wizard
@@ -118,6 +120,21 @@ This repository is *not* mandatory.
 sub add_qa_web_repo {
     my $repo = get_var('QA_WEB_REPO');
     zypper_ar($repo, name => 'qa-web', no_gpg_check => is_sle("<12") ? 0 : 1) if ($repo);
+}
+
+=head2 get_installed_patterns
+
+ get_installed_patterns();
+
+Here zypper uses XML as output format for more precise parsing (by using '-x' command parameter).
+Then the names of patterns are parsed from the XML.
+
+Returns array containing all installed patterns in the system.
+
+=cut
+sub get_installed_patterns {
+    my $xml = script_output q[zypper -n -q -x se -i -t pattern];
+    map { $_->to_literal() } find_nodes(xpc => get_xpc($xml), xpath => '//solvable[@kind="pattern"]/@name');
 }
 
 =head2 get_repo_var_name
