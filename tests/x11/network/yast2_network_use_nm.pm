@@ -35,7 +35,7 @@ sub run {
 
 sub configure_system {
     # we have to change the networkmanager form wicked to NetworkManager
-    y2_module_guitest::launch_yast2_module_x11 module => 'lan';
+    y2_module_guitest::launch_yast2_module_x11('lan');
     assert_screen 'yast2_control-center_network-opened';
 
     # switch to 'Global options'
