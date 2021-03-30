@@ -31,6 +31,7 @@ schedule:
   - console/consoletest_setup
   - console/verify_network
   - locale/keymap_or_locale
+  - console/validate_installed_patterns
   - console/force_scheduled_tasks
   - console/textinfo
   - console/orphaned_packages_check
@@ -38,3 +39,10 @@ schedule:
 test_data:
   system_role:
     default: 'Text Mode'
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - x11
+      - yast2_basis

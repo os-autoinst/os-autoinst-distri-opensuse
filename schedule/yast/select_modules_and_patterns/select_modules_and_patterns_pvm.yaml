@@ -33,5 +33,6 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/consoletest_setup
-  - console/validate_installed_software
+  - console/validate_installed_packages
+  - console/validate_installed_patterns
   - console/yast2_i

@@ -7,8 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: validate package and patterns in the SUT
-# - Reads test data structure with expectations for patterns and packages
+# Summary: validate packages in the SUT
+# - Reads test data structure with expectations for packages
 # - Validate that provided packages are installed or not
 # Maintainer: QA SLE YaST <qa-sle-yast@suse.de>
 
@@ -23,7 +23,6 @@ use scheduler 'get_test_suite_data';
 sub run {
     my $test_data = get_test_suite_data();
     my %packages  = %{$test_data->{software}->{packages}};
-    my %patterns  = %{$test_data->{software}->{patterns}};
     # Variable to accumulate errors
     my $errors = '';
     # Validate packages
@@ -31,13 +30,6 @@ sub run {
         $errors .= verify_software(name => $name,
             installed => $packages{$name}->{installed},
             available => 1);
-    }
-    #Validate patterns
-    for my $name (keys %patterns) {
-        $errors .= verify_software(name => $name,
-            installed => $patterns{$name}->{installed},
-            available => 1,
-            pattern   => 1);
     }
     # Fail in case of any unexpected results
     die "$errors" if $errors;

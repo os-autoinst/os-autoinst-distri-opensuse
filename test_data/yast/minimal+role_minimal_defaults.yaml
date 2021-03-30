@@ -8,12 +8,7 @@ software:
     wicked:
       installed: 1
   patterns:
-    base:
-      installed: 1
-    enhanced_base:
-      installed: 0
-    x11:
-      installed: 0
+    - base
 table_type: gpt
 subvolume:
   cow:
