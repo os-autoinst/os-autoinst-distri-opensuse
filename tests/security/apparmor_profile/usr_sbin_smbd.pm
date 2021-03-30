@@ -56,7 +56,7 @@ sub samba_server_setup {
     systemctl("restart smb");
 
     select_console 'x11';
-    y2_module_guitest::launch_yast2_module_x11(module => "samba-server", target_match => "samba-server-installation", match_timeout => 200);
+    y2_module_guitest::launch_yast2_module_x11("samba-server", target_match => "samba-server-installation", match_timeout => 200);
 
     send_key "alt-w";
     send_key "ctrl-a";
