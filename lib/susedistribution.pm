@@ -758,7 +758,7 @@ sub activate_console {
             push(@tags, 'wsl-linux-prompt')    if (get_var('FLAVOR') eq 'WSL');
             # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
             # or premature typing of credentials on sle15+
-            my $stilltime = is_sle('15+') ? 5 : 1;
+            my $stilltime = is_sle('15+') ? 6 : 1;
             wait_still_screen $stilltime;
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
