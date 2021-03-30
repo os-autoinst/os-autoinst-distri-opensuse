@@ -44,6 +44,5 @@ test_data:
   guided_partitioning:
     disks:
       - vda
-  disks:
-    - vda
+  unused_disks:
     - vdb
