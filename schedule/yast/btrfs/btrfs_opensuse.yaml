@@ -3,17 +3,18 @@ description:    >
   Validate default installation with btrfs.
 vars:
   FILESYSTEM: btrfs
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
-  - installation/bootloader
+  - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
   - installation/resolve_dependency_issues
@@ -23,6 +24,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/validate_no_cow_attribute
