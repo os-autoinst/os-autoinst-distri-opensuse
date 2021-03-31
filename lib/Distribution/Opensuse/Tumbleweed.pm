@@ -16,6 +16,8 @@ package Distribution::Opensuse::Tumbleweed;
 use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
+use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
@@ -24,6 +26,10 @@ use YaST::SystemSettings::SystemSettingsController;
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
+}
+
+sub get_guided_partitioner {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController->new();
 }
 
 sub get_expert_partitioner {
@@ -40,6 +46,10 @@ sub get_system_role_controller() {
 
 sub get_system_settings {
     return YaST::SystemSettings::SystemSettingsController->new();
+}
+
+sub get_suggested_partitioning() {
+    return Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController->new();
 }
 
 1;
