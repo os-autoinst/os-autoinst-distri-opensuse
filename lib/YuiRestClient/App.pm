@@ -28,6 +28,7 @@ use YuiRestClient::Widget::ItemSelector;
 use YuiRestClient::Widget::Table;
 use YuiRestClient::Widget::Textbox;
 use YuiRestClient::Widget::Tree;
+use YuiRestClient::Widget::Tab;
 
 sub new {
     my ($class, $args) = @_;
@@ -148,5 +149,14 @@ sub tree {
             filter            => $filter
     });
 }
+
+sub tab {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::Tab->new({
+            widget_controller => $self->{widget_controller},
+            filter            => $filter
+    });
+}
+
 
 1;

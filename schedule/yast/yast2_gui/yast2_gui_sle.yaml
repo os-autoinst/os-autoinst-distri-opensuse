@@ -23,8 +23,8 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/scc_cleanup_reregister
-        - console/suseconnect_scc
         - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
         - yast2_gui/yast2_control_center
         - yast2_gui/yast2_expert_partitioner
         - yast2_gui/yast2_software_management
@@ -43,6 +43,9 @@ conditional_schedule:
         - yast2_gui/yast2_lan_restart_vlan
         - yast2_gui/yast2_lan_restart_bond
       aarch64:
+        - console/scc_cleanup_reregister
+        - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
         - x11/yast2_snapper
@@ -56,8 +59,8 @@ conditional_schedule:
         - yast2_gui/yast2_lan_restart_bond
       ppc64le:
         - console/scc_cleanup_reregister
-        - console/suseconnect_scc
         - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
         - yast2_gui/yast2_expert_partitioner
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
