@@ -18,6 +18,7 @@ schedule:
   - console/consoletest_setup
   - console/hostname
   - "{{yast2_modules}}"
+  - console/validate_installed_patterns
 conditional_schedule:
   yast2_modules:
     ARCH:
@@ -128,3 +129,14 @@ test_data:
             should_format: 1
             filesystem: xfs
           encrypt_device: 1
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - fonts
+      - gnome_basic
+      - x11
+      - yast2_basis
+      - yast2_desktop
+      - yast2_server

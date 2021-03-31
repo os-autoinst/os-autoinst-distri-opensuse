@@ -38,10 +38,15 @@ schedule:
   - update/zypper_up
   - console/zypper_lifecycle
   - console/orphaned_packages_check
-  - console/validate_selected_patterns
+  - console/validate_installed_patterns
   - console/consoletest_finish
 conditional_schedule:
   reconnect_mgmt_console:
     BACKEND:
       pvm_hmc:
         - boot/reconnect_mgmt_console
+test_data:
+  software:
+    patterns:
+      - base
+      - enhanced_base
