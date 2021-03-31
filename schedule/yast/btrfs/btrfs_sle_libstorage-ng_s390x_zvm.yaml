@@ -1,40 +1,48 @@
----
-name:           ext4@yast-xen-pv
+name:           btrfs_libstorage-ng@s390x_zvm
 description:    >
-  Test for ext4 filesystem in svirt-xen-pv.
-  Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
-  due to grub2 doesnt support xfb console.
+  Validate default installation with btrfs and libstorage-ng.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: ext4
-  YUI_REST_API: 1
+  FILESYSTEM: btrfs
 schedule:
   - installation/bootloader_start
-  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
+  - installation/disk_activation
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup
-  - installation/partitioning/accept_proposed_layout
+  - installation/partitioning
+  - installation/partitioning_filesystem
+  - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
+  - boot/reconnect_mgmt_console
   - installation/first_boot
-  - console/validate_ext4_fs
+  - console/check_resume
+  - console/validate_no_cow_attribute
+  - console/verify_no_separate_home
 test_data:
-  guided_partitioning:
-    filesystem_options:
-      root_filesystem_type: ext4
-  <<: !include test_data/yast/ext4/ext4.yaml
-  device: /dev/xvdb
+  device: vda
   table_type: gpt
+  subvolume:
+    cow:
+      - /root
+      - /tmp
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
+  file_system:
+    /home: xfs
+    /: btrfs

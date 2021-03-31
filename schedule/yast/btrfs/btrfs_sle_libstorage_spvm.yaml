@@ -7,16 +7,18 @@ vars:
   FILESYSTEM: btrfs
   DESKTOP: textmode
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
@@ -27,6 +29,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - boot/reconnect_mgmt_console
   - installation/grub_test
   - installation/first_boot
