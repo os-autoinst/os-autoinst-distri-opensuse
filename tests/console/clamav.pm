@@ -62,8 +62,6 @@ sub run {
         my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
         assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
         assert_script_run('freshclam');
-        assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
-        assert_script_run('freshclam');
     }
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
