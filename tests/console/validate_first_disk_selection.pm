@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -36,23 +36,21 @@ sub run {
     select_console 'root-console';
 
     my @errors;
-    my $test_data    = get_test_suite_data();
-    my @used_disks   = @{$test_data->{guided_partitioning}->{disks}};
-    my @unused_disks = @{$test_data->{unused_disks}};
+    my @expected_disks = @{get_test_suite_data()->{disks}};
 
     # list info about block devices
     my @lsblk_output = split(/\n/, script_output('lsblk -n'));
     # get list of disk names
-    my @actual_disks = map { (split ' ', $_)[0] } grep { /disk/ } @lsblk_output;
+    my @disks = map { (split ' ', $_)[0] } grep { /disk/ } @lsblk_output;
     # compare disks found with expected
-    compare_disks(expected => [@used_disks, @unused_disks], got => \@actual_disks);
+    compare_disks(expected => \@expected_disks, got => \@disks);
+    # get first disk names
+    my $first_disk = shift @expected_disks;
     # check existing partitioning in first disk
-    for my $disk (@used_disks) {
-        push @errors, "Disk $disk was not used for partitioning."
-          unless (grep { /$disk\d/ } @lsblk_output) > 0;
-    }
+    push @errors, "First disk $first_disk was not used for partitioning."
+      unless (grep { /$first_disk\d/ } @lsblk_output) > 0;
     # Check for non-existing partitioning/mount points/swap in remaining disks
-    for my $disk (@unused_disks) {
+    for my $disk (@expected_disks) {
         push @errors, "Disk $disk was wrongly used during partitioning."
           if (grep { /$disk.*(\/|[SWAP])/ } @lsblk_output) > 0;
     }
