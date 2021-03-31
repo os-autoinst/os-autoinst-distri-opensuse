@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#add_qa_head_repo">add_qa_head_repo</a></li>
       <li><a href="#add_qa_web_repo">add_qa_web_repo</a></li>
+      <li><a href="#get_installed_patterns">get_installed_patterns</a></li>
       <li><a href="#get_repo_var_name">get_repo_var_name</a></li>
       <li><a href="#smt_wizard">smt_wizard</a></li>
       <li><a href="#get_repo_var_name1">get_repo_var_name</a></li>
@@ -110,6 +111,14 @@
 <pre><code> add_qa_web_repo();</code></pre>
 
 <p>Helper to add QA web repository repository. This repository is *not* mandatory.</p>
+
+<h2 id="get_installed_patterns">get_installed_patterns</h2>
+
+<pre><code> get_installed_patterns();</code></pre>
+
+<p>Here zypper uses XML as output format for more precise parsing (by using &#39;-x&#39; command parameter). Then the names of patterns are parsed from the XML.</p>
+
+<p>Returns array containing all installed patterns in the system.</p>
 
 <h2 id="get_repo_var_name">get_repo_var_name</h2>
 
