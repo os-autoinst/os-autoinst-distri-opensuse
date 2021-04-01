@@ -297,8 +297,8 @@ sub plugin_vf_device {
 
     #get the mac address and bdf by parsing the domain xml
     #tips: there may be multiple interfaces and multiple hostdev devices in the guest
-    my $nics_count = script_output "virsh dumpxml $vm | grep -c \"<interface.*type='hostdev'\"";
-    my $devs_xml   = script_output "virsh dumpxml $vm | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
+    my $nics_count = script_output "virsh dumpxml $vm --inactive | grep -c \"<interface.*type='hostdev'\"";
+    my $devs_xml   = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
     $vf->{host_id} =~ /pci_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)/;
     my ($dom, $bus, $slot, $func) = ($1, $2, $3, $4);    #these are different with those in host_devices.xml
     for (my $i = 0; $i < $nics_count; $i++) {
