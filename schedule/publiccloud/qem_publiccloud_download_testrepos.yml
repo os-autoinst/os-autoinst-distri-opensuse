@@ -6,3 +6,4 @@ description: |
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
+  - shutdown/shutdown
