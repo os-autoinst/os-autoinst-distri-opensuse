@@ -138,6 +138,12 @@ sub full_users_check {
     my (%hash) = @_;
     my $stage = $hash{stage};
 
+    # Since the users test is only supported on gnome, will quit the test if not on gnome.
+    my $desktop = get_var('DESKTOP');
+    if (!check_var("DESKTOP", "gnome")) {
+        record_info('Unsupported on non-gnome', "This test is only supported on gnome, quit for your DESKTOP is $desktop", result => 'fail');
+        return;
+    }
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     select_console 'x11', await_console => 0;
     wait_still_screen 5;
