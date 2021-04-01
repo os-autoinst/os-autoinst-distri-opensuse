@@ -19,8 +19,8 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
-use publiccloud::utils "is_byos";
 use LTP::utils "get_ltproot";
+use publiccloud::utils qw(is_byos select_host_console);
 
 our $root_dir = '/root';
 
@@ -46,16 +46,24 @@ sub instance_log_args
 }
 
 sub run {
-    my ($self)   = @_;
+    my ($self, $args) = @_;
     my $arch     = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
     my $REG_CODE = get_required_var('SCC_REGCODE');
+    my $provider;
+    my $instance;
 
-    $self->select_serial_terminal;
-
-    my $provider = $self->provider_factory();
-    my $instance = $self->{my_instance} = $provider->create_instance();
-    $instance->wait_for_guestregister();
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $instance = $self->{my_instance} = $args->{my_instance};
+        $provider = $self->{provider}    = $args->{my_provider};    # required for cleanup
+        select_host_console(await_console => 0);
+        assert_script_run("true");                                  # Ensure the host console is activated propely
+    } else {
+        $self->select_serial_terminal;
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance();
+        $instance->wait_for_guestregister();
+    }
 
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
