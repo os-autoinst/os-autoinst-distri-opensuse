@@ -62,7 +62,6 @@ sub run {
         select_console 'root-console';
         if (script_run 'rpm -q "gnome-packagekit"') {
             zypper_call("in gnome-packagekit", timeout => 90);
-            record_soft_failure 'bsc#1081584';
         }
     }
     select_console 'x11', await_console => 0;
