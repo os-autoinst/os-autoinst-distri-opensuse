@@ -2,13 +2,15 @@
 name: xfs
 description: >
   Installation with default parameters, except XFS being selected as filesystem
-  for the root partition. Installation is validated by successful boot and that
-  YaST does not report any issue.
+  for the root partition. Installation is validated by successful boot and checking
+  that the correct filesystem was installed.
 vars:
   DESKTOP: gnome
   FILESYSTEM: xfs
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   # Called only on BACKEND: s390x
@@ -16,9 +18,9 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   # Called on all, except BACKEND: s390x
   - '{{hostname_inst}}'
@@ -31,6 +33,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   # Called on BACKEND: s390x, svirt
   - '{{reconnect_mgmt_console}}'
   # Called on BACKEND: qemu
@@ -58,3 +61,7 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: xfs
