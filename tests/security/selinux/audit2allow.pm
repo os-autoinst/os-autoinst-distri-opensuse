@@ -65,14 +65,18 @@ sub run {
         die "ERROR:\ \"$test_module\"\ module\ was\ not\ removed!";
     }
 
-    if (is_sle) {
+    if (is_sle('>=15')) {
         # generate reference policy using installed macros
         # install needed pkgs for interface
         add_suseconnect_product("sle-module-desktop-applications");
         add_suseconnect_product("sle-module-development-tools");
+        zypper_call("in policycoreutils-devel");
+    } elsif (is_sle('<15')) {
+        zypper_call("in selinux-policy-devel");
+    } else {
+        zypper_call("in policycoreutils-devel");
     }
 
-    zypper_call("in policycoreutils-devel");
     # call sepolgen-ifgen to generate the interface descriptions
     assert_script_run("sepolgen-ifgen");
     # run "# audit2allow -R" to generate reference policy and verify the policy format
