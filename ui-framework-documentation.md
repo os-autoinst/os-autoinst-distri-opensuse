@@ -41,7 +41,7 @@ UI tests for SUSE products.
 ## Overview
 
 The Test Framework is based on
-[Page Object Desing Pattern](https://www.seleniumhq.org/docs/06_test_design_considerations.jsp#page-object-design-pattern)
+[Page Object Desing Pattern](https://www.selenium.dev/documentation/en/guidelines_and_recommendations/page_object_models/)
 with the certain adaptation related to the environment-specific demands.
 
 It is broken on several [Layers](#framework-layers). The interactions
