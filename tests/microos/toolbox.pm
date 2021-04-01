@@ -53,15 +53,16 @@ sub run {
 
 
     record_info 'Test', "Rootless toolbox as $user";
-    my $prefix = "runuser -l $user -c";
-    my $uid    = script_output "$prefix 'id -u'";
-    validate_script_output "$prefix 'toolbox -u id'", sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
-    die "$user shouldn't have access to /etc/passwd!" if (script_run("$prefix 'toolbox -u touch /etc/passwd'") == 0);
-    assert_script_run "$prefix \"podman rm toolbox-$user-user\"";
+    my $uid    = script_output 'id -u';
+    script_run "sudo -i -u $user /bin/bash";
+    validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
+    die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
+    assert_script_run 'podman rm toolbox-$user-user';
 
-    record_info 'Test',                                         "Rootfull toolbox as $user";
-    validate_script_output "$prefix 'toolbox -r id'",           sub { m/uid=0\(root\)/ };
-    assert_script_run "$prefix 'toolbox -r touch /etc/passwd'", fail_message => 'Root should have access to /etc/passwd!';
+    record_info 'Test',                                       "Rootfull toolbox as $user";
+    validate_script_output '$prefix toolbox -r id',           sub { m/uid=0\(root\)/ };
+    assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
+    script_run 'exit';
     assert_script_run "podman rm toolbox-$user";
 
 
