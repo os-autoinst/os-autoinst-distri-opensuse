@@ -1,0 +1,12 @@
+---
+name: qem_publiccloud_img_proof
+description: |
+  img_proof publiccloud test
+schedule:
+  - boot/boot_to_desktop
+  - publiccloud/download_repos
+  - publiccloud/ssh_interactive_init
+  - publiccloud/register_system
+  - publiccloud/transfer_repos
+  - publiccloud/patch_and_reboot
+  - publiccloud/img_proof
