@@ -211,7 +211,7 @@ sub schedule_tests {
 
     parse_runfiles($cmd_file, $test_result_export);
 
-    if (check_var('UNINSTALL_INCIDENT', 1)) {
+    if (check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1)) {
         loadtest_kernel 'uninstall_incident';
         parse_runfiles($cmd_file, $test_result_export, '_postun');
     }
