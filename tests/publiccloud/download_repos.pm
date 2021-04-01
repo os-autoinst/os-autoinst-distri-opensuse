@@ -78,7 +78,8 @@ sub run {
 
         my $size = script_output("du -hs ~/repos");
         record_info("Repo size", "Total repositories size: $size");
-        script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
+        assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
+        assert_script_run("echo 'Repository size: $size' >> ~/repos/qem_download_status.txt");
         upload_logs('/tmp/repos.list.txt');
         upload_logs('qem_download_status.txt');
     }
