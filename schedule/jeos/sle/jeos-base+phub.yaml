@@ -33,4 +33,3 @@ schedule:
     - containers/docker_compose
     - network/cifs
     - console/orphaned_packages_check
-    - console/prjconf_excluded_rpms
