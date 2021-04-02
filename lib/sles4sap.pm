@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use hacluster qw(pre_run_hook get_hostname save_state wait_until_resources_started);
+use hacluster qw(get_hostname ha_export_logs pre_run_hook save_state wait_until_resources_started);
 use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
@@ -348,18 +348,21 @@ sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
 
     # First copy media
-    my $mnt_path = '/mnt';
+    my $mnt_path   = '/mnt';
+    my $media_path = "$mnt_path/" . get_required_var('ARCH');
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
-    type_string "cd $mnt_path\n";
-    type_string "cd " . get_var('ARCH') . "\n";    # Change to ARCH specific subdir if exists
-    assert_script_run "cp -ax . $target/", $nettout;
+    $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
+    assert_script_run "cp -ax $media_path/. $target/", $nettout;
 
     # Go back to target directory and umount the share, as we don't need it anymore
-    type_string "cd $target\n";
     assert_script_run "umount $mnt_path";
 
     return 1 if get_var('DISABLE_CHECKSUM');
+
+    # Save current directory and go to target path for checking the files
+    my $current_dir = script_output 'pwd';
+    type_string "cd $target\n";
 
     # Then verify everything was copied correctly
     # NOTE: checksum is generated with this command: "find . -type f -exec md5sum {} \; > checksums.md5sum"
@@ -367,6 +370,9 @@ sub copy_media {
     # We can't check the checksum file itself as well as the clustered NFS share part
     assert_script_run "sed -i -e '/$chksum_file\$/d' -e '/\\/nfs_share/d' $chksum_file";
     assert_script_run "md5sum -c --quiet $chksum_file", $nettout;
+
+    # Back to previous directory
+    type_string "cd $current_dir\n";
 }
 
 =head2 add_hostname_to_hosts
@@ -854,6 +860,9 @@ sub post_fail_hook {
 
     # NW installation logs, if needed
     $self->upload_nw_install_log if get_var('NW');
+
+    # HA cluster logs, if needed
+    ha_export_logs if get_var('HA_CLUSTER');
 
     # Execute the common part
     $self->SUPER::post_fail_hook;
