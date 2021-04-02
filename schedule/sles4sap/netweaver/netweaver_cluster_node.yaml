@@ -47,6 +47,7 @@ schedule:
   - sles4sap/netweaver_filesystems
   - sles4sap/netweaver_install
   - sles4sap/netweaver_cluster
+  - sles4sap/monitoring_services
   - '{{sap_suse_cluster_connector}}'
   - ha/fencing
   - '{{boot_to_desktop}}'
