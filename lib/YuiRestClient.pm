@@ -54,7 +54,7 @@ sub connect_to_app {
 }
 
 sub connect_to_app_running_system {
-    get_app()->connect(timeout => 500, interval => 10);
+    get_app()->connect(timeout => 30, interval => 2);
 }
 
 sub process_start_shell {
