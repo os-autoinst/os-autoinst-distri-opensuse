@@ -21,14 +21,13 @@ use YaST::Module;
 
 sub run {
     my $test_data = get_test_suite_data();
-    YaST::Module::open({module => 'lan', ui => $test_data->{yast2_lan_hostname}->{ui}});
-    my $network_settings = $testapi::distri->get_network_settings();
-    $network_settings->confirm_warning() if $test_data->{yast2_lan_hostname}->{confirm_warning};
-    $network_settings->set_hostname_via_dhcp({dhcp_option => 'no'});
-    $network_settings->save_changes();
+    YaST::Module::run_actions {
+        my $network_settings = $testapi::distri->get_network_settings();
+        $network_settings->confirm_warning() if $test_data->{yast2_lan_hostname}->{confirm_warning};
+        $network_settings->set_hostname_via_dhcp({dhcp_option => 'no'});
+        $network_settings->save_changes();
+    } module => 'lan', ui => $test_data->{yast2_lan_hostname}->{ui};
 
-    assert_screen 'console-visible', 180;
-    wait_still_screen;
     assert_script_run 'grep DHCLIENT_SET_HOSTNAME /etc/sysconfig/network/dhcp|grep no';
 }
 
