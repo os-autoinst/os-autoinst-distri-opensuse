@@ -35,6 +35,8 @@ schedule:
   # Called on BACKEND: qemu
   - '{{grub_test}}'
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_no_cow_attribute
   # On all the architectures except s390x, /home is located on a separate partition
   - '{{validate_home_partition}}'
