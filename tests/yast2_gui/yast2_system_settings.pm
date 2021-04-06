@@ -57,21 +57,24 @@ sub install_package_via_xterm {
 sub sysrq_config {
     my $action = shift;
     record_info("$action sysrq", "$action sysrq using yast");
-    YaST::Module::open({module => 'system_settings', ui => 'qt'});
+    YaST::Module::open(module => 'system_settings', ui => 'qt');
     $system_settings->setup_kernel_settings_sysrq($action);
+    YaST::Module::close(module => 'system_settings');
 }
 
 sub add_invalid_pci_id {
     record_info("PCI ID Setup", "Add an invalid PCI ID and handle the expected error message");
-    YaST::Module::open({module => 'system_settings', ui => 'qt'});
+    YaST::Module::open(module => 'system_settings', ui => 'qt');
     $system_settings->add_pci_id_from_list({driver => 'random', sysdir => 'random'});
     $system_settings->get_error_dialog()->confirm();
+    YaST::Module::close(module => 'system_settings');
 }
 
 sub remove_pci_id {
     record_info("Remove PCI ID", "Remove the first PCI ID in the table");
-    YaST::Module::open({module => 'system_settings', ui => 'qt'});
+    YaST::Module::open(module => 'system_settings', ui => 'qt');
     $system_settings->remove_pci_id();
+    YaST::Module::close(module => 'system_settings');
 }
 
 sub run {
