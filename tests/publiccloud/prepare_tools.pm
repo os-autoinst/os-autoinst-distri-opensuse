@@ -83,7 +83,13 @@ sub run {
     my $azure_error = '/tmp/azure_error';
     record_info('Azure', script_output('az -v 2>' . $azure_error));
     assert_script_run('cat ' . $azure_error);
-    assert_script_run('test ! -s ' . $azure_error);
+    if (script_run('test -s ' . $azure_error)) {
+        die("Unexpected error in azure-cli") unless validate_script_output("cat $azure_error", m/Please let us know how we are doing .* and let us know if you're interested in trying out our newest features .*/);
+    }
+
+    # Install OpenStack cli
+    install_in_venv('python-openstackclient', 'openstack');
+    record_info('OpenStack', script_output('openstack --version'));
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
