@@ -26,7 +26,7 @@ sub run {
     $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
 
     # Ensure additional package is installed
-    zypper_call '-t in libvirt-client iputils nmap';
+    zypper_call '-t in libvirt-client iputils nmap supportutils';
 
     assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
 

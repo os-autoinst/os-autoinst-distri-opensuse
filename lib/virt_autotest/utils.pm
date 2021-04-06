@@ -26,6 +26,7 @@ use Exporter;
 use strict;
 use warnings;
 use utils;
+use upload_system_log 'upload_supportconfig_log';
 use version_utils;
 use testapi;
 use DateTime;
@@ -339,6 +340,8 @@ sub collect_virt_system_logs {
     assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
     assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
     upload_asset '/tmp/dumpxml.tar.gz';
+
+    upload_system_log::upload_supportconfig_log();
 }
 
 # is_guest_online($guest) check if the given guests is online by probing for an open ssh port

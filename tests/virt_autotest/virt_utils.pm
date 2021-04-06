@@ -30,7 +30,7 @@ use virt_autotest::utils;
 use version_utils qw(is_sle get_os_release);
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
 
 sub enable_debug_logging {
 
@@ -390,16 +390,6 @@ sub remove_vm {
     if ($is_persistent_vm eq "yes") {
         assert_script_run("virsh undefine $vm", 30);
     }
-}
-
-
-sub upload_supportconfig_log {
-    my $datetab = script_output("date '+%Y%m%d%H%M%S'");
-    script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
-    script_run("tar zcvfP supportconfig.$datetab.tar.gz *supportconfig.$datetab");
-    upload_logs("supportconfig.$datetab.tar.gz");
-    script_run("rm -rf *supportconfig.*");
-    save_screenshot;
 }
 
 # Download guest image and xml from a NFS location to local
