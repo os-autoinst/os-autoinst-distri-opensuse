@@ -26,6 +26,8 @@ schedule:
   - installation/reboot_after_installation
   - boot/reconnect_mgmt_console
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/check_resume
   - console/validate_no_cow_attribute
   - console/verify_separate_home
