@@ -762,8 +762,16 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
+    elsif (get_var('START_DIRECTLY_AFTER_TEST')) {
+        #Skip host installation for tests run after another test which already installs host on same SUT
+        loadtest "virt_autotest/login_console";
+        if (get_var("SKIP_GUEST_INSTALL")) {
+            loadtest "virt_autotest/cleanup_service";
+            loadtest "virt_autotest/download_guest_assets";
+        }
+    }
     else {
-        if (!check_var('ARCH', 's390x')) {
+        if (!is_s390x) {
             load_boot_tests();
             if (get_var("AUTOYAST")) {
                 loadtest "autoyast/installation";
@@ -774,7 +782,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/login_console";
             }
         }
-        elsif (check_var('ARCH', 's390x')) {
+        else {
             loadtest "virt_autotest/login_console";
         }
         loadtest "virt_autotest/install_package";
