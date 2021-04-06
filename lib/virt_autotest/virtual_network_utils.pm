@@ -33,6 +33,7 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use utils 'script_retry';
+use upload_system_log 'upload_supportconfig_log';
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest_base;
@@ -294,7 +295,8 @@ sub upload_debug_log {
         script_run("xl dmesg > /tmp/xl-dmesg.log");
         virt_autotest_base::upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "libvirt-virtual-network-debug-logs");
     }
-    virt_utils::upload_supportconfig_log;
+    upload_system_log::upload_supportconfig_log();
+    script_run("rm -rf scc_* nts_*");
 }
 
 sub check_guest_status {
