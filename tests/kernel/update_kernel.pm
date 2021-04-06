@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -360,6 +360,12 @@ sub run {
         $self->select_serial_terminal;
     } else {
         boot_to_console($self);
+    }
+
+    # https://progress.opensuse.org/issues/90522
+    if (is_sle('=12-SP2')) {
+        my $arch = get_var('ARCH');
+        zypper_call('ar -G -f https://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON');
     }
 
     my $repo        = get_var('KOTD_REPO');
