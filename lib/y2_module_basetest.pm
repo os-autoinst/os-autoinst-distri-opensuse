@@ -31,6 +31,7 @@ our @EXPORT = qw(is_network_manager_default
   continue_info_network_manager_default
   accept_warning_network_manager_default
   with_yast_env_variables
+  wait_for_exit
 );
 
 =head2 with_yast_env_variables
@@ -85,6 +86,26 @@ sub accept_warning_network_manager_default {
     assert_screen 'yast2-lan-warning-network-manager';
     send_key $cmd{ok};
     assert_screen 'yast2_lan-global-tab';
+}
+
+
+=head2 wait_for_exit
+
+ wait_for_exit(module => $module, timeout => $timeout);
+
+Wait for string yast2-$module-status-0 (which has been
+previously used to open the module) to appear in the serial output
+using a timeout in order to ensure that the module exited.
+
+C<module> module to wait for exit.
+C<timeout> timeout to wait on the serial.
+
+=cut
+sub wait_for_exit {
+    my %args = @_;
+    $args{timeout} //= 60;
+    wait_serial("yast2-$args{module}-status-0", timeout => $args{timeout}) ||
+      die "Fail! yast2 $args{module} is not closed or non-zero code returned.";
 }
 
 sub post_fail_hook {
