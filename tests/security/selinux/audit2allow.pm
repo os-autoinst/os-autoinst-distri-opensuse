@@ -45,7 +45,7 @@ sub run {
 	    type=.*AVC.*denied.*
 	    Was\ caused\ by:.*
 	    You\ can\ use\ audit2allow\ to\ generate\ a\ loadable\ module\ to\ allow\ this\ access.*/sx
-        });
+        }, 300);
 
     # create an SELinux module, make this policy package active, check the new added module
     validate_script_output(
@@ -54,7 +54,7 @@ sub run {
             m/
             To\ make\ this\ policy\ package\ active,\ execute:.*
             semodule\ -i\ $test_module.*\./sx
-        });
+        }, 300);
     assert_script_run("semodule\ -i ${test_module}.pp");
     validate_script_output("semodule -lfull", sub { m/$test_module\ .*pp.*/sx });
 
@@ -90,7 +90,7 @@ sub run {
             .*type\ .*;.*
             #=============.*==============.*
             .*allow.*;.*/sx
-        });
+        }, 300);
 }
 
 1;
