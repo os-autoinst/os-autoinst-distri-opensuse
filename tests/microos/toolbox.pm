@@ -17,7 +17,8 @@ use testapi;
 use containers::common;
 use version_utils 'is_sle_micro';
 
-our $user = 'test_user';
+our $user     = $testapi::username;
+our $password = $testapi::password;
 
 sub cleanup {
     record_info 'Cleanup';
@@ -25,13 +26,23 @@ sub cleanup {
     script_run "userdel -rf $user";    # script_run in case user has not been created yet
 }
 
+sub create_user {
+    assert_script_run "useradd -m $user ";
+    my $password_hash = script_output "openssl passwd -1 -salt 5RPVAd $password";
+    assert_script_run "usermod --password '$password_hash' $user";
+
+    # Make sure user has access to tty group
+    my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
+    assert_script_run "grep '^${serial_group}:.*:${user}\$' /etc/group || (chown $user /dev/$testapi::serialdev && gpasswd -a $user $serial_group)";
+
+    # Don't ask password for sudo commands
+    assert_script_run "echo \"$user ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers";
+}
+
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
-
-    # Create user and don't ask password for sudo commands
-    assert_script_run "useradd -m $user ";
-    assert_script_run "echo \"$user ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers";
+    select_console 'root-console';
+    $self->create_user;
 
     # Display help
     assert_script_run 'toolbox -h';
@@ -53,17 +64,19 @@ sub run {
 
 
     record_info 'Test', "Rootless toolbox as $user";
-    my $prefix = "runuser -l $user -c";
-    my $uid    = script_output "$prefix 'id -u'";
-    validate_script_output "$prefix 'toolbox -u id'", sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
-    die "$user shouldn't have access to /etc/passwd!" if (script_run("$prefix 'toolbox -u touch /etc/passwd'") == 0);
-    assert_script_run "$prefix \"podman rm toolbox-$user-user\"";
+    select_console 'user-console';
+    my $uid = script_output 'id -u';
+    validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
+    die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
 
-    record_info 'Test',                                         "Rootfull toolbox as $user";
-    validate_script_output "$prefix 'toolbox -r id'",           sub { m/uid=0\(root\)/ };
-    assert_script_run "$prefix 'toolbox -r touch /etc/passwd'", fail_message => 'Root should have access to /etc/passwd!';
-    assert_script_run "podman rm toolbox-$user";
+    record_info 'Test',                               "Rootfull toolbox as $user";
+    validate_script_output 'toolbox -r id',           sub { m/uid=0\(root\)/ };
+    assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
+    assert_script_run 'podman ps -a';
+    clean_container_host(runtime => 'podman');
 
+    # Back to root
+    select_console 'root-console';
 
     record_info 'Test', 'Pulling toolbox image from different registry';
     # Switch default registries for openSUSE MicroOS and SLE Micro
