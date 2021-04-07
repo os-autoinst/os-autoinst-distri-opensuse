@@ -48,7 +48,7 @@ sub run {
     $self->open_powershell_as_admin;
     $self->run_in_powershell(
         cmd     => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
-        timeout => 600
+        timeout => 750
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
 

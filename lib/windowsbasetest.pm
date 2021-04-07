@@ -8,9 +8,7 @@
 # without any warranty.
 
 package windowsbasetest;
-use base 'basetest';
-use strict;
-use warnings;
+use Mojo::Base qw(basetest);
 use testapi;
 
 sub _setup_serial_device {
@@ -107,7 +105,7 @@ sub wait_boot_windows {
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
 
-    assert_screen 'windows-screensaver',        300;
+    assert_screen 'windows-screensaver',        600;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button
