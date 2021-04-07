@@ -21,6 +21,8 @@ jobs:
     - name: Install dependencies
       run: apt-get -y install yamllint libdbus-1-dev libssh2-1-dev parallel
     - name: Setup perl
+      env:
+        INLINE_PYTHON_EXECUTABLE: /usr/bin/python3
       run: |
         # Prefix with space to bypass ./tools/update_spec
         echo " requires 'Code::DRY';" >> cpanfile
