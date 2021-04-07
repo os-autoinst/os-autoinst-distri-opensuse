@@ -7,7 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-package YaST::Installer::GenericPage;
+package YaST::Firstboot::KeyboardPage;
 use strict;
 use warnings;
 use testapi;
@@ -22,18 +22,15 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next} = $self->{app}->button({id => 'next'});
-    # $self->{debug_label} = $self->{app}->debug_label({debug_label => $debug_label}); # to be implemented as part of poo#89866
+    $self->{selectionbox} = $self->{app}->selectionbox({id => 'layout_list'});
     return $self;
 }
 
-sub assert_page {
-    return;    # to be implemented as part of poo#89866
-}
-
-sub press_next {
+sub is_shown {
     my ($self) = @_;
-    return $self->{btn_next}->click();
+    # Just check if we can select the first listed interface.
+    $self->{selectionbox}->exist();
+    save_screenshot;
 }
 
 1;

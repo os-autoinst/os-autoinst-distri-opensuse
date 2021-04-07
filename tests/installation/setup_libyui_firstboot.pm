@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Enable libyui for firstboot. Temporary module until 
+# Summary: Enable libyui for firstboot. Temporary module until
 # https://progress.opensuse.org/issues/90368 is done.
 
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
