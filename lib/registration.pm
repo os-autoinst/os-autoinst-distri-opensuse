@@ -592,8 +592,9 @@ sub fill_in_registration_data {
             push @tags, 'untrusted-ca-cert';
         }
         # The SLE15-SP2 license page moved after registration.
-        push @tags, 'license-agreement'          if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
-        push @tags, 'license-agreement-accepted' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement'                 if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement-accepted'        if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'leap-to-sle-registrition-finished' if (is_leap_migration);
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
@@ -660,6 +661,10 @@ sub fill_in_registration_data {
                 send_key $cmd{next};
                 assert_screen "remove-repository";
                 send_key $cmd{next};
+            }
+            elsif (match_has_tag('leap-to-sle-registrition-finished')) {
+                # leap to sle do not need to add any addons
+                return;
             }
         }
     }
