@@ -45,6 +45,8 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_multipath
 test_data:
   <<: !include test_data/yast/multipath.yaml
