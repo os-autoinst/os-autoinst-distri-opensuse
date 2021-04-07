@@ -88,7 +88,7 @@
                 </module>
                 <module>
                     <label>Keyboard Layout</label>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
                     <name>firstboot_keyboard</name>
                 </module>
                 <module>
@@ -132,7 +132,7 @@
                 </module>
                 <module>
                     <label>NTP Client</label>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
                     <name>firstboot_ntp</name>
                 </module>
                 <module>

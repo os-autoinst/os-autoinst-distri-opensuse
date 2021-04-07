@@ -80,7 +80,7 @@
                 </module>
                 <module>
                     <label>Keyboard Layout</label>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
                     <name>firstboot_keyboard</name>
                 </module>
                 <module>
@@ -110,7 +110,10 @@
                 <module>
                     <label>Network</label>
                     <name>inst_lan</name>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
+                    <arguments>
+                        <skip_detection config:type="boolean">true</skip_detection>
+                    </arguments>
                 </module>
                  <module>
                     <label>Automatic Configuration</label>
@@ -124,7 +127,7 @@
                 </module>
                 <module>
                     <label>NTP Client</label>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
                     <name>firstboot_ntp</name>
                 </module>
                 <module>

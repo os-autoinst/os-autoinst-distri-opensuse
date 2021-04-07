@@ -36,6 +36,16 @@ sub firstboot_language_keyboard {
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
+sub firstboot_keyboard {
+    my $firstboot = $testapi::distri->get_firstboot();
+    $firstboot->keyboard_page();
+}
+
+sub firstboot_NTP {
+    my $firstboot = $testapi::distri->get_firstboot();
+    $firstboot->NTP_page();
+}
+
 sub firstboot_licenses {
     my ($self, $custom_needle) = @_;
     # default TO value was not sufficient
