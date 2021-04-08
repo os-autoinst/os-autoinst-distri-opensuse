@@ -1002,8 +1002,6 @@ sub wait_boot_past_bootloader {
         select_console('x11');
     }
     elsif ($textmode || check_var('DESKTOP', 'textmode')) {
-        # Avoid return key not received occasionally for hyperv guest with uefi at first boot
-        send_key_until_needlematch('linux-login', 'ret') if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
         return $self->wait_boot_textmode(ready_time => $ready_time);
     }
 
