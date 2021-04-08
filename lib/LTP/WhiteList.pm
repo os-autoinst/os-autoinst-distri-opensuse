@@ -57,6 +57,7 @@ sub override_known_failures {
         @issues = @{$issues->{$suite}};
     }
     else {
+        $test =~ s/_postun$//g if check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1);
         return unless exists $issues->{$suite}->{$test};
         @issues = @{$issues->{$suite}->{$test}};
     }
