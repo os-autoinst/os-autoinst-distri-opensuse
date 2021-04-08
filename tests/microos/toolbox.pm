@@ -96,7 +96,7 @@ sub run {
         record_info('ISSUE', 'https://github.com/kubic-project/microos-toolbox/issues/23');
     }
     script_run 'toolbox run -c devel -- zypper lr';    # this command will fail in SLE Micro toolbox as there are no repos
-    assert_script_run 'toolbox run -c devel -- zypper -n in python3' unless is_sle_micro;
+    assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180 unless is_sle_micro;
     assert_script_run 'podman rm devel';
 
     cleanup;
