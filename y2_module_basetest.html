@@ -18,6 +18,7 @@
       <li><a href="#is_network_manager_default">is_network_manager_default</a></li>
       <li><a href="#continue_info_network_manager_default">continue_info_network_manager_default</a></li>
       <li><a href="#accept_warning_network_manager_default">accept_warning_network_manager_default</a></li>
+      <li><a href="#wait_for_exit">wait_for_exit</a></li>
     </ul>
   </li>
 </ul><h1>lib/y2_module_basetest.pm</h1>
@@ -49,6 +50,14 @@
 <pre><code> accept_warning_network_manager_default();</code></pre>
 
 <p>Click on OK when appears a warning indicating that network interfaces are controlled by Network Manager.</p>
+
+<h2 id="wait_for_exit">wait_for_exit</h2>
+
+<pre><code> wait_for_exit(module =&gt; $module, timeout =&gt; $timeout);</code></pre>
+
+<p>Wait for string yast2-$module-status-0 (which has been previously used to open the module) to appear in the serial output using a timeout in order to ensure that the module exited.</p>
+
+<p><code>module</code> module to wait for exit. <code>timeout</code> timeout to wait on the serial.</p>
 
 
 </body>

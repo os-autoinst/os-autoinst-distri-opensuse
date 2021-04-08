@@ -14,18 +14,37 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
-      <li><a href="#open-args">open($args)</a></li>
+      <li><a href="#open">open</a></li>
+      <li><a href="#close">close</a></li>
+      <li><a href="#run_actions">run_actions</a></li>
     </ul>
   </li>
 </ul><h1>lib/YaST/Module.pm</h1>
 
-<h2 id="open-args">open($args)</h2>
+<h2 id="open">open</h2>
 
 <pre><code>   open(module =&gt; $module, ui =&gt; $ui);</code></pre>
 
 <p>Unified method to open YaST module while using LibyuiClient. Allows to open the module with both ncurses and Qt UI. After starting the module ensures that connection to libyui-rest-api server is established.</p>
 
 <p><code>$module</code> - Module to open. e.g. lan, storage, partitioner etc. (full list of available yast2 modules can be observed by running &#39;yast2 -l&#39; in console); <code>$ui</code> - User interface the module is expected to be opened with (Possible values: ncurses, qt).</p>
+
+<h2 id="close">close</h2>
+
+<pre><code>    close(module =&gt; $module, timeout =&gt; $timeout);
+
+    Ensure the module has exited by checking with a timeout the serial output.</code></pre>
+
+<p><code>module</code> module to wait for exit. <code>timeout</code> timeout to wait on the serial.</p>
+
+<h2 id="run_actions">run_actions</h2>
+
+<pre><code>   run_actions(CODEREF, @args)
+
+   Open the module using $args, execute CODEREF and ensure the module has exited
+   by checking with a timeout the serial output.</code></pre>
+
+<p><code>$module</code> - Module to open (i.e.: lan, storage, partitioner). <code>$ui</code> - User interface to open the module (i.e. : ncurses, qt). <code>$timeout</code> - timeout to wait on the serial.</p>
 
 
 </body>
