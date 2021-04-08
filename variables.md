@@ -86,6 +86,8 @@ LIVECD | boolean | false | Indicates live image being used.
 LIVE_INSTALLATION | boolean | false | If set, boots the live media and starts the builtin NET installer.
 LIVE_UPGRADE | boolean | false | If set, boots the live media and starts the builtin NET installer in upgrade mode.
 LIVETEST | boolean | false | Indicates test of live system.
+LTP_RUN_NG_BRANCH | string | | Define the branch of the LTP_RUN_NG_REPO.
+LTP_RUN_NG_REPO | string | | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
