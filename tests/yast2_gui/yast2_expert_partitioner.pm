@@ -49,19 +49,16 @@ sub pre_run_hook {
     $test_data   = get_test_suite_data();
 }
 
-sub open_expert_partitioner {
-    YaST::Module::open({module => 'storage', ui => 'qt'});
-    $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
-}
-
 sub add_custom_partition {
     my $disk = $test_data->{disks}[0];
-    open_expert_partitioner;
-    $partitioner->add_partition_on_gpt_disk({
-            disk      => $disk->{name},
-            partition => $disk->{partitions}[0]
-    });
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->add_partition_on_gpt_disk({
+                disk      => $disk->{name},
+                partition => $disk->{partitions}[0]
+        });
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub verify_custom_partition {
@@ -80,12 +77,14 @@ sub verify_custom_partition {
 }
 
 sub resize_custom_partition {
-    open_expert_partitioner;
-    $partitioner->resize_partition({
-            disk      => $test_data->{disks}[0]->{name},
-            partition => $test_data->{disks}[0]->{partitions}[1]
-    });
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->resize_partition({
+                disk      => $test_data->{disks}[0]->{name},
+                partition => $test_data->{disks}[0]->{partitions}[1]
+        });
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub verify_resized_partition {
@@ -93,18 +92,22 @@ sub verify_resized_partition {
 }
 
 sub delete_resized_partition {
-    open_expert_partitioner;
-    $partitioner->delete_partition({
-            disk      => $test_data->{disks}[0]->{name},
-            partition => $test_data->{disks}[0]->{partitions}[1]
-    });
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->delete_partition({
+                disk      => $test_data->{disks}[0]->{name},
+                partition => $test_data->{disks}[0]->{partitions}[1]
+        });
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub add_logical_volumes {
-    open_expert_partitioner;
-    $partitioner->setup_lvm($test_data->{lvm});
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->setup_lvm($test_data->{lvm});
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub verify_logical_volumes {
@@ -118,11 +121,12 @@ sub verify_logical_volumes {
 }
 
 sub delete_volume_group {
-    open_expert_partitioner;
-    my $vg = $test_data->{lvm}->{volume_groups}[0];
-
-    $partitioner->delete_volume_group($vg->{name});
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        my $vg = $test_data->{lvm}->{volume_groups}[0];
+        $partitioner->delete_volume_group($vg->{name});
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub run {
