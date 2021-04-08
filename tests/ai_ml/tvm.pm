@@ -26,15 +26,14 @@ sub run {
 
     select_console 'user-console';
     record_info('AutoTVM');
-    # From https://tvm.apache.org/docs/tutorials/autotvm/tune_simple_template.html
-    assert_script_run('curl -L -O https://tvm.apache.org/docs/_downloads/0bb862dbb3a4c434477f93fe2c147fbb/tune_simple_template.py');
+    assert_script_run('curl -L -O https://github.com/apache/tvm/raw/72c9a51687c5882c5bd13d718a69892d45b5cc4b/tutorials/autotvm/tune_simple_template.py');
     assert_script_run('python3 tune_simple_template.py');
 
     # https://tvm.apache.org/docs/tutorials/get_started/tvmc_command_line_driver.html
     # TVMC supports models created with Keras, ONNX, TensorFlow, TFLite and Torch. Use onnx model here.
     record_info('tvmc - no tune');
     assert_script_run('curl -L -O https://github.com/onnx/models/raw/master/vision/classification/resnet/model/resnet50-v2-7.onnx');
-    assert_script_run('curl -L -O https://tvm.apache.org/docs/_downloads/18fb1ab3ed0a0c9f304520f2beaf4fd6/tvmc_command_line_driver.py');
+    assert_script_run('curl -L -O https://github.com/apache/tvm/raw/b7b69a2d1dbfe7a9cd04ddab2e60f33654419d58/tutorials/get_started/tvmc_command_line_driver.py');
 
     assert_script_run('tvmc compile --target "llvm" --output compiled_module.tar resnet50-v2-7.onnx', timeout => 600);
     assert_script_run('python3 tvmc_command_line_driver.py');
