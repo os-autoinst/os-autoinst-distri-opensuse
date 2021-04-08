@@ -365,7 +365,7 @@ sub run {
     # https://progress.opensuse.org/issues/90522
     if (is_sle('=12-SP2')) {
         my $arch = get_var('ARCH');
-        zypper_call('ar -G -f http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON');
+        zypper_call("ar -G -f http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON");
     }
 
     my $repo        = get_var('KOTD_REPO');
