@@ -60,7 +60,7 @@ sub run {
     wait_for_password_prompt(needle => 'ha-cluster-join-password', timeout => $join_timeout);
     type_password;
     send_key 'ret';
-    if (check_var('TWO_NODES', 'no') && wait_for_password_prompt(needle => 'ha-cluster-join-3nodes-password', timeout => 60, failok => 1)) {
+    if (check_var('TWO_NODES', 'no') && wait_for_password_prompt(needle => 'ha-cluster-join-3nodes-password', timeout => 150, failok => 1)) {
         type_password;
         send_key 'ret';
     }
