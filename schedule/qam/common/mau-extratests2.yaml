@@ -29,6 +29,7 @@ schedule:
   - console/suse_module_tools
   - console/aaa_base
   - console/gd
+  - console/systemtap
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
