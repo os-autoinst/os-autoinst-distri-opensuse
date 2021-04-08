@@ -103,14 +103,14 @@ sub run {
     my $provider;
     my $instance;
 
+    select_host_console();
+
     # QAM passes the instance as argument
     if (get_var('PUBLIC_CLOUD_QAM')) {
         $instance         = $args->{my_instance};
         $provider         = $args->{my_provider};
         $self->{provider} = $args->{my_provider};    # required for cleanup
-        select_host_console();
     } else {
-        $self->select_serial_terminal;
         $provider = $self->provider_factory();
         $instance = $provider->create_instance();
     }

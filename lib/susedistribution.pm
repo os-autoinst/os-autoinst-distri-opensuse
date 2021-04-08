@@ -18,7 +18,6 @@ use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tu
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
 use Utils::Backends qw(has_serial_over_ssh set_sshserial_dev use_ssh_serial_console is_remote_backend);
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
-use publiccloud::ssh_interactive 'ssh_interactive_join';
 use Cwd;
 use autotest 'query_isotovideo';
 
@@ -840,7 +839,7 @@ sub activate_console {
     }
     if (get_var('TUNNELED') && $name !~ /tunnel/) {
         die "Console '$console' activated in TUNNEL mode activated but tunnel(s) are not yet initialized, use the 'tunnel' console and call 'setup_ssh_tunnels' first" unless get_var('_SSH_TUNNELS_INITIALIZED');
-        (get_var('PUBLIC_CLOUD')) ? ssh_interactive_join() : $self->script_run('ssh -t sut', 0);
+        $self->script_run('ssh -t sut', 0);
         ensure_user($user) unless (get_var('PUBLIC_CLOUD'));
     }
     set_var('CONSOLE_JUST_ACTIVATED', 1);

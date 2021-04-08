@@ -69,9 +69,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
+    select_host_console(force => 1);
     # Destroy the public cloud instance
-    ssh_interactive_leave();
-    select_host_console(await_console => 0);
     $self->{provider}->cleanup();
 }
 
