@@ -45,7 +45,7 @@ sub build_container_image {
     assert_script_run("cd $dir");
 
     # Create basic Dockerfile
-    assert_script_run("echo -e 'FROM $image\nENV WORLD_VAR Arda' > Dockerfile");
+    assert_script_run("echo -e 'FROM $image\\nENV WORLD_VAR Arda' > Dockerfile");
 
     # Build the image
     assert_script_run("$runtime build -t dockerfile_derived .");
