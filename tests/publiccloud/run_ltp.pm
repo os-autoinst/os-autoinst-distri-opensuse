@@ -53,13 +53,12 @@ sub run {
     my $provider;
     my $instance;
 
+    select_host_console();
+
     if (get_var('PUBLIC_CLOUD_QAM')) {
         $instance = $self->{my_instance} = $args->{my_instance};
         $provider = $self->{provider}    = $args->{my_provider};    # required for cleanup
-        select_host_console(await_console => 0);
-        assert_script_run("true");                                  # Ensure the host console is activated propely
     } else {
-        $self->select_serial_terminal;
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance();
         $instance->wait_for_guestregister();

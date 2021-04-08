@@ -25,7 +25,7 @@ use warnings;
 use testapi;
 
 sub post_fail_hook {
-    select_host_console(await_console => 0);
+    select_host_console(force => 1);
     assert_script_run('cd /root/terraform');
     script_run('terraform destroy -no-color -auto-approve', 240);
 }

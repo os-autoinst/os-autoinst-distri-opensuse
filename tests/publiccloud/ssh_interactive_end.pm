@@ -19,10 +19,7 @@ use utils;
 
 sub run {
     my ($self, $args) = @_;
-    select_console 'root-console';
-
-    ssh_interactive_leave();
-    select_host_console(await_console => 0);
+    select_host_console(force => 1);
     $args->{my_provider}->cleanup();
 }
 
