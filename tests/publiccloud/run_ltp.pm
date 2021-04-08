@@ -20,6 +20,7 @@ use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
 use publiccloud::utils "is_byos";
+use LTP::utils "get_ltproot";
 
 our $root_dir = '/root';
 
@@ -82,7 +83,7 @@ sub run {
     my $runltp_ng_repo   = get_var("LTP_RUN_NG_REPO",   "https://github.com/metan-ucw/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
-    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh', timeout => 300);
+    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 
     my $reset_cmd     = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
