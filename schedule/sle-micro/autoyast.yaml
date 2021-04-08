@@ -2,8 +2,6 @@ name:           sle_micro_autoyast
 description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
-vars:
-    AUTOYAST: autoyast_sle15/autoyast_sle-micro_50.xml
 schedule:
     - autoyast/prepare_profile
     - installation/bootloader_start
