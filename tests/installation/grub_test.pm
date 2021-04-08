@@ -88,6 +88,8 @@ sub run {
         # avoid timeout for booting to HDD
         send_key 'ret';
     }
+    # Avoid return key not received occasionally for hyperv-uefi guest at first boot
+    send_key 'ret' if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
 }
 
 sub test_flags {
