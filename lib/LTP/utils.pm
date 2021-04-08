@@ -29,11 +29,12 @@ use version_utils 'is_jeos';
 use File::Basename 'basename';
 
 our @EXPORT = qw(
+  get_ltproot
+  init_ltp_tests
   loadtest_kernel
-  shutdown_ltp
   prepare_ltp_env
   schedule_tests
-  init_ltp_tests
+  shutdown_ltp
 );
 
 sub loadtest_kernel {
@@ -46,11 +47,15 @@ sub shutdown_ltp {
     loadtest_kernel('shutdown_ltp', @_);
 }
 
+sub get_ltproot {
+    return get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/ ? '/opt/ltp-32' : '/opt/ltp';
+}
+
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
     my $ltp_env = get_var('LTP_ENV');
 
-    assert_script_run('export LTPROOT=/opt/ltp; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
+    assert_script_run('export LTPROOT=' . get_ltproot() . '; export LTP_COLORIZE_OUTPUT=n TMPDIR=/tmp PATH=$LTPROOT/testcases/bin:$PATH');
 
     # setup for LTP networking tests
     assert_script_run("export PASSWD='$testapi::password'");
@@ -265,7 +270,7 @@ sub parse_runfiles {
                 $cmd_pattern, $cmd_exclude, $test_result_export, $suffix);
         }
         else {
-            parse_runtest_file($name, read_runfile("/opt/ltp/runtest/$name"),
+            parse_runtest_file($name, read_runfile(get_ltproot() . "/runtest/$name"),
                 $cmd_pattern, $cmd_exclude, $test_result_export, $suffix);
         }
     }
