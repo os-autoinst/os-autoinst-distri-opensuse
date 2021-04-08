@@ -177,8 +177,10 @@ sub install_from_git {
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
     my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
-    my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
+    my $prefix      = get_ltproot();
+    my $configure   = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
+
     if ($rel) {
         $rel = ' -b ' . $rel;
     }
@@ -195,7 +197,7 @@ sub install_from_git {
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list";
+    assert_script_run "find $prefix -name '*.run-test' > ~/openposix-test-list";
 }
 
 sub want_stable {
@@ -227,7 +229,7 @@ sub install_from_repo {
 
     zypper_call("in --recommends $pkg");
     script_run "rpm -qi $pkg | tee /opt/ltp_version";
-    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
+    assert_script_run "find " . get_ltproot() . q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
 }
 
 sub setup_network {
