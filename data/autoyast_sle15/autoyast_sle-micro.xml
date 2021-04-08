@@ -2,9 +2,9 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
-    <do_registration config:type="boolean">true</do_registration>
+    <do_registration config:type="boolean">false</do_registration>
     <reg_code>{{SCC_REGCODE}}</reg_code>
-    <install_updates config:type="boolean">true</install_updates>
+    <install_updates config:type="boolean">false</install_updates>
     <reg_server>{{SCC_URL}}</reg_server>
   </suse_register>
   <bootloader>
