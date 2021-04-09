@@ -66,7 +66,7 @@ sub run {
                 assert_script_run("echo -en '\\n" . ('#' x 80) . "\\n# $maintrepo:\\n' >> /tmp/repos.list.txt");
                 assert_script_run("echo 'Downloaded $maintrepo:' \$(du -hs $parent | cut -f1) >> ~/repos/qem_download_status.txt");
                 if (script_run("ls $parent*.repo") == 0) {
-                    assert_script_run("sed -i \"1 s/\\]/_\$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 4)]/\" $parent*.repo");
+                    assert_script_run(sprintf(q(sed -i '1 s/]/_%s]/' %s*.repo), random_string(4), $parent));
                     assert_script_run("find $parent >> /tmp/repos.list.txt");
                 } else {
                     record_soft_failure("No .repo file found in $parent. This directory will be removed.");
