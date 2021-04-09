@@ -37,7 +37,7 @@ sub run {
     save_screenshot;
 
     record_info('list-opcodes');
-    assert_script_run 'parsec-tool list-opcodes';
+    assert_script_run 'parsec-tool list-opcodes --provider 1';
     save_screenshot;
 
     record_info('list-providers');
