@@ -130,11 +130,24 @@ sub run {
                 assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
                 $device .= is_multipath() ? '-part1' : '1';
             }
+
             # Remove traces of LVM structures from previous tests before configuring
-            script_run "lvremove -f $volgroup";
-            script_run "vgremove -f $volgroup";
-            script_run "pvremove -f $device";
+            foreach my $lv_cmd ('lv', 'vg', 'pv') {
+                my $looptime  = 20;
+                my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
+                until (script_run "${lv_cmd}remove -f $lv_device 2>&1 | grep -q \"Can't open .* exclusively\.\"") {
+                    sleep bmwqemu::scale_timeout(2);
+                    last if (--$looptime <= 0);
+                }
+                if ($looptime <= 0) {
+                    record_info('ERROR', "Device $lv_device seems to be locked!", result => 'fail');
+                    # Just retry the $lv_cmd to have a "proper" error message
+                    script_run "${lv_cmd}remove -f $lv_device";
+                    die 'locked block device';    # We have to force the die, record_info don't do it
+                }
+            }
             foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
+
             # Now configure LVs and file systems for HANA
             assert_script_run "pvcreate -y $device";
             assert_script_run "vgcreate -f $volgroup $device";
