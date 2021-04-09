@@ -110,7 +110,7 @@ sub build_with_zypper_docker {
 
     # The zypper-docker works only on openSUSE or on SLE based image on SLE host
     unless (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
-        record_info 'The zypper-docker only works for openSUSE based images and SLE based images on SLE host.';
+        record_info 'Warning!', 'The zypper-docker only works for openSUSE based images and SLE based images on SLE host.';
         return;
     }
 
@@ -135,7 +135,7 @@ sub build_with_zypper_docker {
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
 
-    record_info("Testing derived");
+    record_info("Testing derived", "Derived image: $derived_image");
     test_opensuse_based_image(image => $derived_image, runtime => $runtime);
 }
 
@@ -272,7 +272,7 @@ sub test_zypper_on_container {
         # Verify the image works
         assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
     }
-    record_info "zypper test completed";
+    record_info "The End", "zypper test completed";
 }
 
 sub ensure_container_rpm_updates {
