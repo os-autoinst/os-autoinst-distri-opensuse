@@ -160,6 +160,7 @@ sub run {
         barrier_create("HANA_INIT_CONF_$cluster_name",       $num_nodes);
         barrier_create("HANA_CREATED_CONF_$cluster_name",    $num_nodes);
         barrier_create("HANA_LOADED_CONF_$cluster_name",     $num_nodes);
+        barrier_create("MONITORING_CONF_DONE_$cluster_name", $num_nodes);
         # We have to create barriers for each nodes if we want to be able to fence *all* nodes
         foreach (1 .. $num_nodes) {
             barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_",      $num_nodes);
