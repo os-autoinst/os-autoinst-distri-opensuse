@@ -33,3 +33,5 @@ Single-Node tests will pass on properly running on KVM virtual-machines.
 ## Cluster testing
 
 *In progress...*
+
+Automerge is enabled
