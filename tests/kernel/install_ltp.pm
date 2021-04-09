@@ -189,15 +189,15 @@ sub install_from_git {
         assert_script_run("git clone -q $url" . $rel, timeout => 360);
     }
     assert_script_run 'cd ltp';
-    # It is a shallow clone so 'git describe' won't work
-    script_run 'git log -1 --pretty=format:"git-%h" | tee /opt/ltp_version';
-
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
     assert_script_run "find $prefix -name '*.run-test' > ~/openposix-test-list";
+
+    # It is a shallow clone so 'git describe' won't work
+    script_run 'git log -1 --pretty=format:"git-%h" | tee ' . get_ltp_version_file();
 }
 
 sub add_ltp_repo {
@@ -220,12 +220,24 @@ sub add_ltp_repo {
     zypper_ar($repo, name => 'ltp_repo');
 }
 
-sub install_from_repo {
-    my $pkg = get_var('LTP_PKG', (is_sle && is_released) ? 'qa_test_ltp' : 'ltp');
+sub get_default_pkg {
+    my $pkg = 'ltp';
 
-    zypper_call("in --recommends $pkg");
-    script_run "rpm -qi $pkg | tee /opt/ltp_version";
-    assert_script_run "find " . get_ltproot() . q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
+    return 'qa_test_ltp' if (is_sle && is_released);
+    return $pkg;
+}
+
+sub install_from_repo {
+    my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
+
+    zypper_call("in --recommends " . join(' ', @pkgs));
+
+    for my $pkg (@pkgs) {
+        my $want_32bit = $pkg =~ m/32bit/;
+        script_run "rpm -qi $pkg | tee " . get_ltp_version_file($want_32bit);
+        assert_script_run "find " . get_ltproot($want_32bit) .
+          q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
+    }
 }
 
 sub setup_network {
@@ -331,6 +343,8 @@ sub run {
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     setup_network;
 
+    # we don't run LVM tests in 32bit, thus not generating the runtest file
+    # for 32 bit packages
     if (!is_sle('<12')) {
         prepare_ltp_env();
         assert_script_run('generate_lvm_runfile.sh');
@@ -447,6 +461,9 @@ LTP_EXTRA_CONF_FLAGS="CFLAGS=-m32 LDFLAGS=-m32").
 
 LTP_PKG=qa_test_ltp
 Stable LTP package in QA head repository.
+
+LTP_PKG=ltp ltp-32bit
+Install both 64bit and 32bit LTP packages from nightly build.
 
 =head3 Available LTP packages
 https://confluence.suse.com/display/qasle/LTP+repositories
