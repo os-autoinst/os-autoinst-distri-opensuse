@@ -197,7 +197,8 @@ sub install_from_git {
     assert_script_run "find $prefix -name '*.run-test' > ~/openposix-test-list";
 
     # It is a shallow clone so 'git describe' won't work
-    script_run 'git log -1 --pretty=format:"git-%h" | tee ' . get_ltp_version_file();
+    record_info("LTP git", script_output('git log -1 --pretty=format:"git-%h" | tee '
+              . get_ltp_version_file()));
 }
 
 sub add_ltp_repo {
@@ -236,7 +237,8 @@ sub install_from_repo {
 
     for my $pkg (@pkgs) {
         my $want_32bit = $pkg =~ m/32bit/;
-        script_run "rpm -qi $pkg | tee " . get_ltp_version_file($want_32bit);
+        record_info("LTP pkg: $pkg", script_output("rpm -qi $pkg | tee "
+                  . get_ltp_version_file($want_32bit)));
         assert_script_run "find " . get_ltproot($want_32bit) .
           q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
     }

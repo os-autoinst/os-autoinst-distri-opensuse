@@ -217,7 +217,9 @@ sub schedule_tests {
     }
 
     my $file = get_ltp_version_file();
-    $environment->{ltp_version}        = script_output("touch $file; cat $file");
+    $environment->{ltp_version} = script_output("touch $file; cat $file");
+    record_info("LTP version", $environment->{ltp_version});
+
     $test_result_export->{environment} = $environment;
 
     if ($cmd_file =~ m/ltp-aiodio.part[134]/) {
