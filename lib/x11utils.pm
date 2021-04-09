@@ -387,7 +387,8 @@ Also handle workarounds when needed.
 =cut
 sub handle_welcome_screen {
     my (%args) = @_;
-    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203)], $args{timeout});
+    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203 opensuse-welcome-gnome40-activities)], $args{timeout});
+    send_key 'esc'                              if match_has_tag('opensuse-welcome-gnome40-activities');
     workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
