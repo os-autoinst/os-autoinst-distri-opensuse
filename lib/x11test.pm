@@ -81,6 +81,8 @@ sub test_terminal {
     my ($self, $name) = @_;
     mouse_hide(1);
     x11_start_program($name);
+    # GNOME40 sometimes gets its activities mode incorrectly triggered by x11_start_program
+    send_key 'esc' if check_screen "$name-activities";
     $self->enter_test_text($name, cmd => 1);
     assert_screen "test-$name-1";
     send_key 'alt-f4';
