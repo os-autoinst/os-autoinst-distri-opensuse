@@ -200,10 +200,6 @@ sub install_from_git {
     assert_script_run "find $prefix -name '*.run-test' > ~/openposix-test-list";
 }
 
-sub want_stable {
-    return get_var('LTP_STABLE', is_sle && is_released);
-}
-
 sub add_ltp_repo {
     my $repo = get_var('LTP_REPOSITORY');
 
@@ -225,7 +221,7 @@ sub add_ltp_repo {
 }
 
 sub install_from_repo {
-    my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
+    my $pkg = get_var('LTP_PKG', (is_sle && is_released) ? 'qa_test_ltp' : 'ltp');
 
     zypper_call("in --recommends $pkg");
     script_run "rpm -qi $pkg | tee /opt/ltp_version";
@@ -426,10 +422,9 @@ platforms which do not support QCOW2 image snapshot (PowerVM, s390x backend).
 
 =head2 LTP_REPOSITORY
 
-When installing from repository default repository URL is generated (for SLES
+When installing from repository the default repository URL is generated (for SLES
 uses QA head repository in IBS, using QA_HEAD_REPO variable; for openSUSE
-Tumbleweed benchmark repository in OBS), with respect whether stable or nightly
-build LTP is required (see LTP_STABLE). Variable allows to use custom repository.
+Tumbleweed benchmark repository in OBS). Variable allows to use custom repository.
 When defined, it requires LTP_PKG to be set properly.
 
 Examples (these are set by default):
@@ -439,12 +434,6 @@ QA head repository for SLE12 SP5.
 
 https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_Tumbleweed_PowerPC
 Nightly build for openSUSE Tumbleweed ppc64le.
-
-=head2 LTP_STABLE
-
-When defined and installing from repository stable release. Default is stable
-for SLES QAM, otherwise nightly builds.
-NOTE: openSUSE does not have LTP stable package, only nightly builds.
 
 =head2 LTP_PKG
 
@@ -462,7 +451,7 @@ Stable LTP package in QA head repository.
 =head3 Available LTP packages
 https://confluence.suse.com/display/qasle/LTP+repositories
 
-* QA:Head/qa_test_ltp (IBS, stable - latest release, used by QAM)
+* QA:Head/qa_test_ltp (IBS, stable - latest release, used for released products testing)
 https://build.suse.de/package/show/QA:Head/qa_test_ltp
 Configured via
 https://github.com/SUSE/qa-testsuites
