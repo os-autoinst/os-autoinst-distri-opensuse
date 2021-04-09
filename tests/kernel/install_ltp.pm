@@ -221,10 +221,12 @@ sub add_ltp_repo {
 }
 
 sub get_default_pkg {
-    my $pkg = 'ltp';
+    if (is_sle) {
+        return 'qa_test_ltp qa_test_ltp-32bit' if (is_released);
+        return 'ltp'                           if (is_jeos);
+    }
 
-    return 'qa_test_ltp' if (is_sle && is_released);
-    return $pkg;
+    return is_x86_64 ? 'ltp ltp-32bit' : 'ltp';
 }
 
 sub install_from_repo {
@@ -461,9 +463,11 @@ LTP_EXTRA_CONF_FLAGS="CFLAGS=-m32 LDFLAGS=-m32").
 
 LTP_PKG=qa_test_ltp
 Stable LTP package in QA head repository.
+This is the default for QA for SLE released products.
 
 LTP_PKG=ltp ltp-32bit
 Install both 64bit and 32bit LTP packages from nightly build.
+This is the default on x86_64 for QA for SLE product development and Tumbleweed.
 
 =head3 Available LTP packages
 https://confluence.suse.com/display/qasle/LTP+repositories
