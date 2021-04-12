@@ -84,11 +84,11 @@ sub test2 {
     record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
     if (!is_tumbleweed) {
-        assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
     else {
-        assert_script_run("if [ `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
-        assert_script_run("if [ `nft list chain inet firewalld filter_FWDI_public | wc -l` -eq `cat /tmp/nr_fwdi_public.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt`");
+        assert_script_run("test `nft list chain inet firewalld filter_FWDI_public | wc -l` -eq `cat /tmp/nr_fwdi_public.txt`");
     }
 }
 
@@ -121,11 +121,11 @@ sub test3 {
     assert_script_run("firewall-cmd --zone=public --permanent --remove-port=2000-3000/udp");
     assert_script_run("firewall-cmd --reload");
     if (!is_tumbleweed) {
-        assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
     else {
-        assert_script_run("if [ `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
-        assert_script_run("if [ `nft list chain inet firewalld filter_FWDI_public | wc -l` -eq `cat /tmp/nr_fwdi_public.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt`");
+        assert_script_run("test `nft list chain inet firewalld filter_FWDI_public | wc -l` -eq `cat /tmp/nr_fwdi_public.txt`");
     }
 
 }
@@ -158,12 +158,12 @@ sub test4 {
     record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
     if (!is_tumbleweed) {
-        assert_script_run("if [ `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
-        assert_script_run("if [ `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
+        assert_script_run("test `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     }
     else {
-        assert_script_run("if [ `nft list chain ip firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
-        assert_script_run("if [ `nft list chain ip firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `nft list chain ip firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
+        assert_script_run("test `nft list chain ip firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     }
 }
 
@@ -198,12 +198,12 @@ sub test5 {
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.201.0/24 drop'");
     assert_script_run("firewall-cmd --reload");
     if (!is_tumbleweed) {
-        assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_allow.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
-        assert_script_run("if [ `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_deny.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
+        assert_script_run("test `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
     }
     else {
-        assert_script_run("if [ `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules_allow.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
-        assert_script_run("if [ `nft list chain inet firewalld filter_IN_public_deny | wc -l` -eq `cat /tmp/nr_rules_deny.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
+        assert_script_run("test `nft list chain inet firewalld filter_IN_public_deny | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
     }
 }
 
@@ -242,10 +242,10 @@ sub test7 {
 
     assert_script_run("sleep 35");
     if (!is_tumbleweed) {
-        assert_script_run("if [ `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`  ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
     else {
-        assert_script_run("if [ `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt` ]; then /usr/bin/true; else /usr/bin/false; fi");
+        assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
 
 }
