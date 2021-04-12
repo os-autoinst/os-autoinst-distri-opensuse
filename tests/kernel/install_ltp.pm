@@ -405,27 +405,6 @@ Runtime dependencies are needed to be listed both in this module (for git
 installation) and for all LTP rpm packages (for installation from repo), where
 listed as 'Recommends:'. See list of available LTP packages in LTP_PKG section.
 
-=head2 Example
-
-Example SLE test suite configuration for installation from repository:
-
-BOOT_HDD_IMAGE=1
-DESKTOP=textmode
-HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2
-INSTALL_LTP=from_repo
-ISO=SLE-%VERSION%-Server-DVD-%ARCH%-Build%BUILD%-Media1.iso
-ISO_1=SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso
-ISO_2=SLE-%VERSION%-WE-DVD-%ARCH%-Build%BUILD_WE%-Media1.iso
-PUBLISH_HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_ltp_installed.qcow2
-QEMUCPUS=4
-QEMURAM=4096
-RUN_AFTER_TEST=sles12_minimal_base+sdk_create_hdd
-
-For openSUSE the configuration should be simpler as you can install git and the
-other dev tools from the main repository. You just need a text mode installation
-image to boot from (a graphical one will probably work as well). Depending how
-OpenQA is configured the ISO variable may not be necessary either.
-
 =head2 INSTALL_LTP
 
 Either should contain 'git' or 'repo'. Git is recommended for now. If you decide
@@ -472,6 +451,7 @@ Install both 64bit and 32bit LTP packages from nightly build.
 This is the default on x86_64 for QA for SLE product development and Tumbleweed.
 
 =head3 Available LTP packages
+
 https://confluence.suse.com/display/qasle/LTP+repositories
 
 * QA:Head/qa_test_ltp (IBS, stable - latest release, used for released products testing)
@@ -481,9 +461,6 @@ https://github.com/SUSE/qa-testsuites
 
 * QA:Head/ltp (IBS, nightly build)
 https://build.suse.de/package/show/QA:Head/ltp
-
-* benchmark/ltp (OBS, stable - latest release)
-https://build.opensuse.org/package/show/benchmark/ltp
 
 * benchmark:ltp:devel/ltp (OBS, nightly build)
 https://build.opensuse.org/package/show/benchmark:ltp:devel/ltp
@@ -504,5 +481,102 @@ Overrides the official LTP GitHub repository URL.
 
 Append custom group entries with appended group param via
 add_custom_grub_entries().
+
+=head2 SLES CONFIGURATION
+
+=head3 install_ltp+sle+Online
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
+HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
+INSTALL_LTP=from_repo
+LTP_PKG=ltp ltp-32bit
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+START_AFTER_TEST=create_hdd_minimal_base+sdk
+UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
+
+=head3 install_ltp+sle+Online-KOTD
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
+HDD_1=%KOTD_HDD%
+INSTALL_KOTD=1
+INSTALL_LTP=from_repo
+LTP_PKG=ltp ltp-32bit
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+UEFI_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
+
+=head3 install_ltp_spvm
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb
+INSTALL_LTP=from_repo
+NOVIDEO=1
+START_DIRECTLY_AFTER_TEST=default_kernel_spvm
+
+=head3 install_ltp_baremetal
+
+DESKTOP=textmode
+GA_REPO=http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
+GRUB_TIMEOUT=300
+INSTALL_LTP=from_repo
+LTP_PKG=ltp ltp-32bit
+START_DIRECTLY_AFTER_TEST=prepare_baremetal
+VNC_TYPING_LIMIT=50
+
+=head3 install_ltp+sle+Server-DVD-Incidents-Kernel-KOTD
+
+Incidents Kernel (released products) use qa_test_ltp package.
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb
+HDDSIZEGB=60
+HDD_1=SLES-%VERSION%-%ARCH%-minimal_installed_for_LTP.qcow2
+INSTALL_LTP=from_repo
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-minimal_installed_for_LTP-uefi-vars.qcow2
+
+=head2 JeOS
+
+JeOS does not use install_ltp, it installs LTP for each runtest file.
+
+=head3 jeos-ltp-syscalls
+
+INSTALL_LTP=from_repo
+LTP_COMMAND_EXCLUDE=quotactl(01|04|06)|msgstress(03|04)
+LTP_COMMAND_FILE=syscalls
+SCC_ADDONS=base
+YAML_SCHEDULE=schedule/jeos/sle/jeos-ltp.yaml
+
+=head2 openSUSE CONFIGURATION
+
+=head3 install_ltp+opensuse+DVD
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb
+HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%DESKTOP%@%MACHINE%.qcow2
+INSTALL_LTP=from_repo
+LTP_ENV=LVM_DIR=/var/tmp/
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+START_AFTER_TEST=create_hdd_textmode
+UEFI_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%DESKTOP%@%MACHINE%-uefi-vars.qcow2
 
 =cut
