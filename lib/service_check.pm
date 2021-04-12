@@ -231,6 +231,9 @@ sub install_services {
     my ($service) = @_;
     # turn off lmod shell debug information
     assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
+    # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
+    # we need to reset the console font. As it impacted all the console services, added this command to bashrc file
+    assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if check_var('ARCH', 'ppc64le');
     assert_script_run '. /etc/bash.bashrc.local';
     foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
