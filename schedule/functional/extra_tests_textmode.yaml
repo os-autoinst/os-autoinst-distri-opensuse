@@ -129,7 +129,6 @@ schedule:
     - console/shells
     - console/sudo
     - console/dstat
-    - console/systemtap
     - x11/evolution/evolution_prepare_servers
     - console/mutt
     - '{{sle_tests}}'
