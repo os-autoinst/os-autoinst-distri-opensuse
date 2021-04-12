@@ -5,3 +5,4 @@ clients:
   - firstboot_timezone
   - firstboot_user
   - firstboot_root
+  - firstboot_finish

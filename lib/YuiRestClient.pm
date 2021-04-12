@@ -135,4 +135,15 @@ sub set_libyui_backend_vars {
     set_var('YUI_SERVER', $server);
 }
 
+sub setup_libyui_firstboot {
+    my $port = get_var('YUI_PORT');
+    record_info("YUIPORT", "Port that will be used by libyui_rest_api:" . get_var('YUI_PORT'));
+    zypper_call('in libyui-rest-api');
+    assert_script_run "firewall-cmd --zone=public --add-port=$port/tcp --permanent";
+    foreach my $export ("YUI_HTTP_PORT=$port", "YUI_HTTP_REMOTE=1", "YUI_REUSE_PORT=1", "Y2DEBUG=1") {
+        assert_script_run "echo export $export >> /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
+    }
+    assert_script_run "chmod +x /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
+}
+
 1;
