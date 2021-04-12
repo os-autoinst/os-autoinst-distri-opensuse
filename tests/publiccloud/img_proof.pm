@@ -21,7 +21,8 @@ use publiccloud::utils qw(select_host_console is_ondemand);
 # for not released versions we need to exclude :
 # * test_sles_kernel_version - test checking CONFIG_SUSE_PATCHLEVEL correctness but during chat with kernel devs it was clarified that they don't care about this variable till release
 # * test_sles_multipath_off - TODO : simply not exists in current version of publiccloud_tools image used
-our $test_sles_for_dev = 'test_soft_reboot,test_sles_license,test_sles_root_pass,test_hard_reboot,test_sles_hostname,test_sles_haveged,test_sles_lscpu,test_sles_motd';
+our $test_sles_for_dev = 'test_soft_reboot,test_sles_license,test_sles_root_pass,test_hard_reboot,test_sles_hostname,test_sles_haveged,test_sles_lscpu';
+$test_sles_for_dev .= ',test_sles_motd' unless get_var('BETA');
 # for not released versions we need to exclude :
 # * test_sles_repos - not released version repo names have initially names omit 'Beta/Snapshot' titles. This test trying
 # to compare repo name with VERSION which has 'Beta/Snapshot' so test will always fail
