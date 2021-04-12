@@ -58,8 +58,8 @@ sub run {
     assert_script_run('systemctl restart btrfsmaintenance-refresh.service');
     # Check state of btrfsmaintenance-refresh units. Have to use (|| :) due to pipefail
     assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.path || :) | grep enabled') unless is_sle("<15");
-    # Fixed in SP1:Update, but is out of general support and SP3 is based on an older snapshot currently
-    if (is_sle("<15-SP2") || is_sle("=15-SP3") || is_leap("=15.3")) {
+    # Fixed in SP1:Update, but is out of general support
+    if (is_sle("<15-SP2")) {
         assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep enabled');
         record_soft_failure('boo#1165780 - Preset is wrong and enables btrfsmaintenance-refresh.service instead of .path');
     } elsif (is_sle("<=15-SP3") || is_leap("<=15.3")) {
