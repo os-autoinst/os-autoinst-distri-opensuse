@@ -16,6 +16,7 @@ use Mojo::Util 'trim';
 use Data::Dumper;
 use testapi;
 use db_utils;
+use publiccloud::utils qw(select_host_console);
 
 our $default_analyze_thresholds = {
     # First boot after provisioning
@@ -92,11 +93,35 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
-    'Azure-Image-Updates' => {
+    'AZURE-Basic-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-Basic-gen2-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-Standard-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-Standard-gen2-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-Standard-Updates' => {
         analyze => $default_azure_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
     'Azure-BYOS-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-BYOS-gen2-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-Image-Updates' => {
         analyze => $default_azure_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
@@ -119,17 +144,31 @@ our $thresholds_by_flavor = {
         analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
-
     'EC2-HVM-ARM' => {
         analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
-
     'EC2-HVM-BYOS' => {
         analyze => $default_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
     'EC2-BYOS-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-ARM-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-ARM-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
@@ -151,7 +190,15 @@ our $thresholds_by_flavor = {
         analyze => $default_gce_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
+    'GCE-Updates' => {
+        analyze => $default_gce_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
     'GCE-BYOS' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'GCE-BYOS-Updates' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
@@ -231,7 +278,9 @@ sub do_systemd_analyze {
 }
 
 sub measure_timings {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    my $provider;
+    my $instance;
 
     my $ret = {
         kernel_release => undef,
@@ -241,10 +290,18 @@ sub measure_timings {
             first => {}, soft => {}, hard => {}
         },
     };
-    my $provider = $self->provider_factory();
 
-    # Provision the instance
-    my $instance = $provider->create_instance(check_connectivity => 0);
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $instance         = $args->{my_instance};
+        $provider         = $args->{my_provider};
+        $self->{provider} = $args->{my_provider};    # required for cleanup
+        select_host_console();
+    } else {
+        $self->select_serial_terminal;
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance(check_connectivity => 0);
+    }
+
     $ret->{analyze}->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
 
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
@@ -347,10 +404,10 @@ sub check_thresholds {
 }
 
 sub run {
-    my ($self) = @_;
+    my ($self, $args) = @_;
     $self->select_serial_terminal;
 
-    my $results = $self->measure_timings();
+    my $results = $self->measure_timings($args);
     $self->store_in_db($results);
     $self->check_thresholds($results);
 }
