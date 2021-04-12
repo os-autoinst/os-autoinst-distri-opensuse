@@ -8,7 +8,6 @@ software:
     - base
     - devel_yast
     - enhanced_base
-    - fonts
     - x11
     - yast2_basis
     - yast2_desktop
