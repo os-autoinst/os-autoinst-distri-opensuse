@@ -84,14 +84,7 @@ sub prepare_for_kdump {
     # disable packagekitd
     quit_packagekit;
     my @pkgs = qw(yast2-kdump kdump);
-    if ($test_type eq 'before') {
-        # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
-        # we need to reset the console font.
-        assert_script_run('/usr/lib/systemd/systemd-vconsole-setup') if check_var('ARCH', 'ppc64le');
-    }
-    else {
-        push @pkgs, qw(crash);
-    }
+    push @pkgs, qw(crash);
 
     if (is_jeos && get_var('UEFI')) {
         push @pkgs, is_aarch64 ? qw(mokutil shim) : qw(mokutil);
