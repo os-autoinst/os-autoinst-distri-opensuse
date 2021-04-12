@@ -9,9 +9,10 @@ description:    >
 vars:
   DESKTOP: gnome
   YAST2_FIRSTBOOT_USERNAME: firstbootuser
+  AY_EXPAND_VARS: YUI_PORT,BUILD,VERSION
+  YUI_REST_API: 1
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
   - autoyast/installation

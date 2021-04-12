@@ -4,6 +4,7 @@ description:    >
     Smoke test for YaST2 firstboot module
 vars:
     YAST2_FIRSTBOOT_USERNAME: firstbootuser
+    YUI_REST_API: 1
 schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
