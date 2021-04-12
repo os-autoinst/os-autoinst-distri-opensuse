@@ -789,7 +789,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reset_partition";
         loadtest "virt_autotest/reboot_and_wait_up_normal" if get_var('REPO_0_TO_INSTALL');
-        loadtest "virt_autotest/download_guest_assets"     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
+        loadtest "virt_autotest/download_guest_assets"     if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
@@ -810,11 +810,13 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "virt_autotest/virsh_external_snapshot";
         }
     }
-    elsif (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
-        loadtest "virt_autotest/restore_guests";
+    #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passhthrough etc.
+    #they can be seperated from prj1 if needed
+    elsif (get_var("DIRECT_CHAINED_VIRT_FEATURE_TEST")) {
+        loadtest "virt_autotest/restore_guests" if get_var("SKIP_GUEST_INSTALL");
         loadtest "virt_autotest/set_config_as_glue";
         loadtest "virt_autotest/setup_dns_service";
-        loadtest "virt_autotest/sriov_network_card_pci_passthrough";
+        loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
