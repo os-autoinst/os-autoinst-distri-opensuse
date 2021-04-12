@@ -217,7 +217,42 @@ so hashes and arrays in the yaml should represent nodes in the xml file.
 Generates a list of XPATH expressions based on the YAML file provided, run those
 expressions and create a summary based with the errors found and all the expressions.
 
-See function 'generate_expressions' for further info.
+There are special keys to handle xml attributes for the node types, or in case
+exact number of nodes has to be validated, e.g. C<_t> for the type, C<__text> for
+the text value of the node, C<__count> to specify exact number of child nodes.
+
+See 'has_properties' and 'generate_expressions' functions for the further info.
+
+In order to validate following xml:
+<profile>
+    <suse_register t="map">
+        <addons t="list">
+            <addon t="map">
+                <name>sle-module-server-applications</name>
+            </addon>
+            <addon t="map">
+                <arch>ppc64le</arch>
+                <name>sle-module-basesystem</name>
+            </addon>
+        </addons>
+        <do_registration t="boolean">true</do_registration>
+        <install_updates t="boolean">false</install_updates>
+    </suse_register>
+</profile>
+
+YAML example to validate given xml:
+profile:
+  suse_register:
+    addons:
+      _t: list
+      __count: 2
+      addon:
+        - name: sle-module-server-applications
+        - name: sle-module-basesystem
+    do_registration:
+      _t: boolean
+      __text: 'true'
+
 
 =cut
 sub validate_autoyast_profile {
@@ -290,7 +325,7 @@ sub is_processable {
 
     YAML:
             drive:
-            - label: 
+            - label:
                 _descendant: any
                 __text: root_multi_btrfs
                 disklabel: none
@@ -298,10 +333,10 @@ sub is_processable {
                 partition:
                 - filesystem: btrfs
                     label: root_multi_btrfs
-            - label: 
+            - label:
                 _descendant: any
                 __text: test_multi_btrfs
-                disklabel: none        
+                disklabel: none
                 partitions:
                 partition:
                 - filesystem: btrfs
@@ -323,7 +358,7 @@ sub has_properties {
 
     create_xpath_predicate($node);
 
-Based on the properties of the node will create a predicate for the XPATH expression.  
+Based on the properties of the node will create a predicate for the XPATH expression.
 
 =cut
 sub create_xpath_predicate {
