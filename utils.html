@@ -28,6 +28,8 @@
       <li><a href="#type_string_slow_extended">type_string_slow_extended</a></li>
       <li><a href="#type_string_slow">type_string_slow</a></li>
       <li><a href="#type_string_very_slow">type_string_very_slow</a></li>
+      <li><a href="#enter_cmd_slow">enter_cmd_slow</a></li>
+      <li><a href="#enter_cmd_very_slow">enter_cmd_very_slow</a></li>
       <li><a href="#get_netboot_mirror">get_netboot_mirror</a></li>
       <li><a href="#zypper_call">zypper_call</a></li>
       <li><a href="#zypper_enable_install_dvd">zypper_enable_install_dvd</a></li>
@@ -190,6 +192,18 @@
 <p>Typing a string even slower with <code>VERY_SLOW_TYPING_SPEED</code>.</p>
 
 <p>The bootloader prompt line is very delicate with typing especially when scrolling. We are typing very slow but this could still pose problems when the worker host is utilized so better wait until the string is displayed before continuing For the special winter grub screen with moving penguins <code>wait_still_screen</code> does not work so we just revert to sleeping a bit instead of waiting for a still screen which is never happening. Sleeping for 3 seconds is less waste of time than waiting for the <code>wait_still_screen</code> to timeout, especially because <code>wait_still_screen</code> is also scaled by <code>TIMEOUT_SCALE</code> which we do not need here.</p>
+
+<h2 id="enter_cmd_slow">enter_cmd_slow</h2>
+
+<pre><code> enter_cmd_slow($cmd);</code></pre>
+
+<p>Enter a command with <code>SLOW_TYPING_SPEED</code> to avoid losing keys.</p>
+
+<h2 id="enter_cmd_very_slow">enter_cmd_very_slow</h2>
+
+<pre><code> enter_cmd_very_slow($cmd);</code></pre>
+
+<p>Enter a command even slower with <code>VERY_SLOW_TYPING_SPEED</code>. Compare to <code>type_string_very_slow</code>.</p>
 
 <h2 id="get_netboot_mirror">get_netboot_mirror</h2>
 
