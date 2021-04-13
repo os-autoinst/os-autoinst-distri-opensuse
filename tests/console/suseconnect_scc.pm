@@ -16,50 +16,53 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Package: SUSEConnect
-# Summary: Register system against SCC after installation
-# Maintainer: Michal Nowak <mnowak@suse.com>
+# Summary: Register system image against SCC
+# Maintainer: qac <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base qw(consoletest);
 use testapi;
-use utils 'zypper_call';
-use version_utils qw(is_sle is_sle_micro);
-use registration;
+use utils qw(zypper_call);
+use version_utils qw(is_sle);
+use registration qw(register_addons_cmd verify_scc investigate_log_empty_license);
 
 sub run {
     return if get_var('HDD_SCC_REGISTERED');
     my $self       = shift;
-    my $reg_code   = get_required_var('SCC_REGCODE');
+    my $reg_code   = get_required_var 'SCC_REGCODE';
     my $cmd        = "SUSEConnect -r $reg_code";
-    my $scc_addons = get_var('SCC_ADDONS', '');
+    my $scc_addons = get_var 'SCC_ADDONS', '';
+    # fake scc url pointing to synced repos on openQA
+    # valid only for products currently in development
+    # please unset in job def *SCC_URL* if not required
+    my $fake_scc = get_var 'SCC_URL', '';
+    $cmd .= ' --url ' . $fake_scc if $fake_scc;
 
-    if ($reg_code !~ /^INTERNAL-USE-ONLY.*/i || is_sle_micro) {
-        $cmd .= ' --url ' . (get_required_var 'SCC_URL');
-    }
 
-    select_console('root-console');
+    $self->select_serial_terminal;
+    die 'SUSEConnect package is not pre-installed!' if script_run 'rpm -q SUSEConnect';
+    die 'System has been already registered!'       if script_run q(SUSEConnect --status-text | grep -i 'not registered');
     assert_script_run $cmd;
-    unless (is_sle_micro) {
-        assert_script_run 'SUSEConnect --list-extensions';
-        assert_screen 'activated-with-suseconnect';
+    # Check available extenstions (only present in sle)
+    assert_script_run q[SUSEConnect --list-extensions];
+    if (is_sle) {
+        # What has been activated by default
+        assert_script_run q[SUSEConnect --list-extensions | grep -e '\(Activated\)'];
         assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"';
         assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'        \e\[1mWeb and Scripting Module\')"';
     }
 
     # add modules
-    if (is_sle '15+') {
-        register_addons_cmd;
-    }
+    register_addons_cmd if $scc_addons;
     # Check that repos actually work
-    zypper_call('refresh');
+    zypper_call 'refresh';
+    zypper_call 'repos --details';
 }
 
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
     verify_scc;
-    investigate_log_empty_license;
+    investigate_log_empty_license unless (script_run 'test -f /var/log/YaST2/y2log');
 }
 
 sub test_flags {
