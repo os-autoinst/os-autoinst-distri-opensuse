@@ -30,7 +30,7 @@ use LTP::utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
-    return if (is_opensuse);
+    return if (is_opensuse || is_jeos);
 
     my ($ar_url, $we_repo);
     $we_repo = get_var('REPO_SLE_PRODUCT_WE');
