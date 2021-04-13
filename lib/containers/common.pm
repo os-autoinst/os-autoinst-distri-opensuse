@@ -215,7 +215,7 @@ sub test_container_image {
             assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
         }
         my $container = script_output("buildah from $image");
-        record_info $container;
+        record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
         assert_script_run("buildah run $container $smoketest");
     } else {
         # Pull the image if necessary
