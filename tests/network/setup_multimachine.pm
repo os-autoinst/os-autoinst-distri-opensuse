@@ -20,6 +20,10 @@ use utils 'zypper_call';
 use Utils::Systemd 'disable_and_stop_service';
 use version_utils qw(is_sle is_opensuse);
 
+sub is_networkmanager {
+    return (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
+}
+
 sub run {
     my ($self) = @_;
     my $hostname = get_var('HOSTNAME');
@@ -36,32 +40,25 @@ sub run {
     # Configure the internal network an  try it
     if ($hostname =~ /server|master/) {
         setup_static_mm_network('10.0.2.101/24');
-        # If server running openSUSE.
-        if (is_opensuse) {
-            assert_script_run 'systemctl restart  wicked';
-        }
-        # If server running on SLED
-        if (check_var('SLE_PRODUCT', 'sled')) {
+
+        if (is_networkmanager) {
             assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.101/24' gw4 10.0.2.2 ipv4.method manual ";
             assert_script_run "nmcli connection down 'Wired connection 1'";
             assert_script_run "nmcli connection up 'Wired connection 1'";
+        }
+        else {
+            assert_script_run 'systemctl restart  wicked';
         }
     }
     else {
         setup_static_mm_network('10.0.2.102/24');
 
-        if (check_var('SLE_PRODUCT', 'sled')) {
-            if (is_sle('=15')) {
-                assert_script_run 'systemctl restart  wicked';
-            }
-            else {
-                assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
-                assert_script_run "nmcli connection down 'Wired connection 1'";
-                assert_script_run "nmcli connection up 'Wired connection 1'";
-            }
+        if (is_networkmanager) {
+            assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
+            assert_script_run "nmcli connection down 'Wired connection 1'";
+            assert_script_run "nmcli connection up 'Wired connection 1'";
         }
-        # To openSUSE versions
-        if (is_opensuse) {
+        else {
             assert_script_run 'systemctl restart  wicked';
         }
     }
