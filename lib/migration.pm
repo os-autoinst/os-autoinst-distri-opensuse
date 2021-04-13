@@ -26,7 +26,7 @@ use utils;
 use zypper;
 use registration;
 use qam 'remove_test_repositories';
-use version_utils qw(is_sle is_sles4sap);
+use version_utils qw(is_sle is_sles4sap is_leap_migration);
 
 our @EXPORT = qw(
   setup_sle
@@ -174,7 +174,10 @@ sub check_rollback_system {
         base_version=\$(echo \$version | cut -d'-' -f1)
         zypper lr | cut -d'|' -f3 | gawk '/SLE/ || /openSUSE/' | sed \"/\$version\\|Module.*\$base_version/d\"
     ", 100);
-    record_info('Incorrect Repos', $incorrect_repos, result => 'fail') if $incorrect_repos;
+    # for leap to sle migration, we'll have SLE-$VERSION-Updates in the leap repo.
+    if ($incorrect_repos) {
+        record_info('Incorrect Repos', $incorrect_repos, result => 'fail') unless (is_leap_migration && $incorrect_repos eq 'SLE-' . get_var("VERSION") . '-Updates');
+    }
 
     return unless is_sle;
     # Check SUSEConnect status for SLE
