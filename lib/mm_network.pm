@@ -16,12 +16,12 @@ our @EXPORT = qw(configure_hostname get_host_resolv_conf
 sub configure_hostname {
     my ($hostname) = @_;
     if (get_var('VERSION') =~ /^11/) {
-        type_string "echo '$hostname' > /etc/HOSTNAME\n";
-        type_string "echo '$hostname' > /etc/hostname\n";
-        type_string "hostname '$hostname'\n";
+        enter_cmd "echo '$hostname' > /etc/HOSTNAME";
+        enter_cmd "echo '$hostname' > /etc/hostname";
+        enter_cmd "hostname '$hostname'";
     }
     else {
-        type_string "hostnamectl set-hostname '$hostname'\n";
+        enter_cmd "hostnamectl set-hostname '$hostname'";
     }
 }
 
@@ -67,7 +67,7 @@ sub configure_dhcp {
     type_string "for MAC in " . join(' ', @mac) . " ; do ";
     type_string "NIC=`grep \$MAC /sys/class/net/*/address |cut -d / -f 5`;";
     type_string("echo \"STARTMODE='auto'\nBOOTPROTO='dhcp'\n\" > /etc/sysconfig/network/ifcfg-\$NIC;");
-    type_string("done\n");
+    enter_cmd 'done';
     save_screenshot;
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
@@ -75,7 +75,7 @@ sub configure_dhcp {
 }
 
 sub configure_default_gateway {
-    type_string("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes\n");
+    enter_cmd("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
 }
 
 sub configure_static_dns {

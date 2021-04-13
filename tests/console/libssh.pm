@@ -123,7 +123,7 @@ sub run {
     assert_script_run("docker cp libssh_container:/root/.ssh/id_rsa.pub /root/.ssh/authorized_keys");
 
     #Switch into container as client
-    type_string("docker exec -it libssh_container bash\n", wait_still_screen => 3);
+    enter_cmd("docker exec -it libssh_container bash", wait_still_screen => 3);
     assert_script_run("test -f /.dockerenv");                                          #verify inside container
     assert_script_run("ssh-keyscan susetest >> /root/.ssh/known_hosts");
     validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t",                sub { m/libssh_testfile/ });
@@ -135,7 +135,7 @@ sub run {
     validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15-sp1'); #libssh is not supported by libvirt for sle12 and sle15sp1
     validate_script_output('virsh -c "qemu+libssh2://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ });
     #Switch back to host
-    type_string("exit\n", wait_still_screen => 3);
+    enter_cmd("exit", wait_still_screen => 3);
     #libssh2 test with qemu-block-ssh
     assert_script_run("eval `ssh-agent` && ssh-add /root/.ssh/id_rsa");
     assert_script_run("qemu-system-x86_64 -daemonize -display none -drive format=raw,if=virtio,index=1,file=ssh://root\@$container_ip/tmp/libssh_block.raw -monitor unix:/tmp/socket01,server,nowait");

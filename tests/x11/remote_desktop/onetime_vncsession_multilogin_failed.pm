@@ -48,7 +48,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4'; };
 
     # Setup the first remote connection and minimize the vncviewer

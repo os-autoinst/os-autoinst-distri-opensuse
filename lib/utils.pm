@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2020 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -35,6 +35,8 @@ our @EXPORT = qw(
   type_string_slow
   type_string_very_slow
   type_string_slow_extended
+  enter_cmd_slow
+  enter_cmd_very_slow
   save_svirt_pty
   type_line_svirt
   integration_services_check
@@ -131,8 +133,8 @@ Does B<not> work on B<Hyper-V>.
 sub save_svirt_pty {
     return if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     my $name = console('svirt')->name;
-    type_string "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
-    type_string "echo \$pty\n";
+    enter_cmd "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
+    enter_cmd "echo \$pty";
 }
 
 =head2 type_line_svirt
@@ -146,7 +148,7 @@ If the expected text is not found, it will fail with C<$fail_message>.
 =cut
 sub type_line_svirt {
     my ($string, %args) = @_;
-    type_string "echo $string > \$pty\n";
+    enter_cmd "echo $string > \$pty";
     if ($args{expect}) {
         wait_serial($args{expect}, $args{timeout}) || die $args{fail_message} // 'expected \'' . $args{expect} . '\' not found';
     }
@@ -349,7 +351,7 @@ So this function will simply type C<clear\n>.
 
 =cut
 sub clear_console {
-    type_string "clear\n";
+    enter_cmd "clear";
 }
 
 =head2 assert_gui_app
@@ -469,6 +471,34 @@ sub type_string_very_slow {
     else {
         wait_still_screen(1, 3);
     }
+}
+
+=head2 enter_cmd_slow
+
+ enter_cmd_slow($cmd);
+
+Enter a command with C<SLOW_TYPING_SPEED> to avoid losing keys.
+
+=cut
+sub enter_cmd_slow {
+    my ($cmd) = @_;
+
+    enter_cmd $cmd, SLOW_TYPING_SPEED;
+}
+
+=head2 enter_cmd_very_slow
+
+ enter_cmd_very_slow($cmd);
+
+Enter a command even slower with C<VERY_SLOW_TYPING_SPEED>. Compare to
+C<type_string_very_slow>.
+
+=cut
+sub enter_cmd_very_slow {
+    my ($cmd) = @_;
+
+    enter_cmd $cmd, VERY_SLOW_TYPING_SPEED;
+    wait_still_screen(1, 3);
 }
 
 
@@ -875,7 +905,7 @@ sub handle_livecd_reboot_failure {
     if (match_has_tag('generic-desktop-after_installation')) {
         record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
         select_console 'install-shell';
-        type_string "reboot\n";
+        enter_cmd "reboot";
         save_screenshot;
     }
 }
@@ -1239,7 +1269,7 @@ sub exec_and_insert_password {
     clear_console if !is_serial_terminal();
     type_string "$cmd";
     if (is_serial_terminal()) {
-        type_string " ; echo $hashed_cmd-\$?-\n";
+        enter_cmd " ; echo $hashed_cmd-\$?-";
         wait_serial(qr/Password:\s*$/i);
     }
     else {

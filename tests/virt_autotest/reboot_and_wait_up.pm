@@ -60,14 +60,14 @@ sub reboot_and_wait_up {
             #login
             #The timeout can't be too small since autoyast installation
             assert_screen "text-login", 600;
-            type_string "root\n";
+            enter_cmd "root";
             assert_screen "password-prompt";
             type_password;
             send_key('ret');
             assert_screen "text-logged-in-root";
 
             #type reboot
-            type_string("reboot\n");
+            enter_cmd("reboot");
         }
         #switch to sut console
         reset_consoles;

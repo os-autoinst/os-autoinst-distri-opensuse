@@ -71,7 +71,7 @@ sub run {
     install_packages($patch_status) if $patch_status;
 
     prepare_system_shutdown;
-    type_string "reboot\n";
+    enter_cmd "reboot";
     $self->wait_boot(bootloader_time => 200);
 }
 

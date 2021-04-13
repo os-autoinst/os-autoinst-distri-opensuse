@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -532,13 +532,13 @@ sub setup_mariadb_server {
     systemctl('start mysql');
 
     # Enter mysql command to grant the access privileges to root
-    type_string_slow "mysql\n";
+    enter_cmd_slow "mysql";
     assert_screen 'mariadb-monitor-opened';
-    type_string_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';\n";
+    enter_cmd_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';";
     assert_screen 'mariadb-user-host';
-    type_string_slow "GRANT ALL PRIVILEGES ON *.* TO \'root\'@\'$ip\' IDENTIFIED BY \'$passwd\' WITH GRANT OPTION;\n";
+    enter_cmd_slow "GRANT ALL PRIVILEGES ON *.* TO \'root\'@\'$ip\' IDENTIFIED BY \'$passwd\' WITH GRANT OPTION;";
     assert_screen 'mariadb-grant-ok';
-    type_string_slow "quit\n";
+    enter_cmd_slow "quit";
     wait_still_screen 2;
     systemctl('restart mysql');
     $disable_firewall = 1;

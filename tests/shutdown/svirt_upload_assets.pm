@@ -22,17 +22,17 @@ sub extract_assets {
     my $name   = $args->{name};
     my $format = $args->{format};
 
-    type_string("clear\n");
+    enter_cmd("clear");
     my $image_storage  = '/var/lib/libvirt/images';
     my $svirt_img_name = $image_storage . '/' . $args->{svirt_name} . '.img';
-    type_string("test -e $svirt_img_name && echo 'OK'\n");
+    enter_cmd("test -e $svirt_img_name && echo 'OK'");
     assert_screen('svirt-asset-upload-hdd-image-exists');
 
     my $cmd = "nice ionice qemu-img convert -p -O $format $svirt_img_name $image_storage/$name";
     if (get_var('QEMU_COMPRESS_QCOW2')) {
         $cmd .= ' -c';
     }
-    type_string("$cmd && echo OK\n");
+    enter_cmd("$cmd && echo OK");
     assert_screen('svirt-asset-upload-hdd-image-converted', 600);
 
     # Upload the image as a private asset; do the upload verification

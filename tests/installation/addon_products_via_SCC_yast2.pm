@@ -41,7 +41,7 @@ sub test_setup {
     }
 
     assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";    # Define proxy SCC
-    wait_screen_change(sub { type_string "exit\n" }, 5) for (1 .. 2);
+    wait_screen_change(sub { enter_cmd "exit" }, 5) for (1 .. 2);
 }
 
 sub run {

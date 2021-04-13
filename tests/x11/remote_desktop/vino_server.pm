@@ -37,7 +37,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'yast2 firewall services add zone=EXT service=service:vnc-server';
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4' };
 
     # Activate vino server
@@ -58,7 +58,7 @@ sub run {
     # to help debug poo#49811
     x11_start_program('xterm');
     assert_script_run('killall vino-server');
-    type_string("/usr/lib/vino/vino-server | tee /tmp/vino-server.log\n");
+    enter_cmd("/usr/lib/vino/vino-server | tee /tmp/vino-server.log");
     send_key 'alt-tab';
 
     # Notice vino server is ready for remote access

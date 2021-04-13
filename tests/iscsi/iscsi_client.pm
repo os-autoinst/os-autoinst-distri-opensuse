@@ -151,7 +151,7 @@ sub run {
     record_info 'Logout iSCSI', 'Logout iSCSI sessions & unmount LUN';
     assert_script_run 'iscsiadm --mode node --logoutall=all';
     assert_script_run 'umount /mnt';
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub post_fail_hook {

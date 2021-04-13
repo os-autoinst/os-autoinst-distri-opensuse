@@ -43,9 +43,9 @@ sub run {
     # Copy public key to target user's ~/.ssh/authorized_keys
     script_run("ssh-keygen -R localhost; ssh-copy-id -i ~/.ssh/id_rsa.pub $ssh_testman\@localhost", 0);
     assert_screen "ssh-login", 60;
-    type_string "yes\n";
+    enter_cmd "yes";
     assert_screen 'password-prompt';
-    type_string "$ssh_testman_passwd\n";
+    enter_cmd "$ssh_testman_passwd";
 
     # Verify ssh without password
     script_run("ssh -v $ssh_testman\@localhost -t echo LOGIN_SUCCESSFUL", 0);

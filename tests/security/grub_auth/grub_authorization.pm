@@ -41,28 +41,28 @@ my $test_passwd  = 'pw_test';
 
 sub grub_auth_oper {
     my $para = shift;
-    type_string("reboot\n");
+    enter_cmd("reboot");
     if ($para eq "operator") {
         assert_screen("grub_auth_boot_menu_entry", timeout => 90);
         send_key("ret");
         assert_screen("grub_auth_super_user_login");
-        type_string("$sup_user\n");
-        type_string("$sup_passwd\n");
+        enter_cmd("$sup_user");
+        enter_cmd("$sup_passwd");
     }
     elsif ($para eq "maintainer") {
         assert_screen("grub_auth_boot_menu_entry_maintainer", timeout => 90);
         send_key("down");
         send_key("ret");
         assert_screen("grub_auth_maintain_user_login");
-        type_string("$maint_user\n");
-        type_string("$maint_passwd\n");
+        enter_cmd("$maint_user");
+        enter_cmd("$maint_passwd");
     }
     elsif ($para eq "grub_edit_mode") {
         assert_screen("grub_auth_boot_menu_entry", timeout => 90);
         send_key("e");
         assert_screen("grub_auth_super_user_login");
-        type_string("$sup_user\n");
-        type_string("$sup_passwd\n");
+        enter_cmd("$sup_user");
+        enter_cmd("$sup_passwd");
         assert_screen("grub_auth_edit_mode");
         send_key("ctrl-x");
     }
@@ -70,13 +70,13 @@ sub grub_auth_oper {
         assert_screen("grub_auth_boot_menu_entry", timeout => 90);
         send_key("ret");
         assert_screen("grub_auth_super_user_login");
-        type_string("$test_user\n");
-        type_string("$test_passwd\n");
+        enter_cmd("$test_user");
+        enter_cmd("$test_passwd");
         assert_screen("grub_auth_boot_menu_entry");
         send_key("ret");
         assert_screen("grub_auth_super_user_login");
-        type_string("$sup_user\n");
-        type_string("$test_passwd\n");
+        enter_cmd("$sup_user");
+        enter_cmd("$test_passwd");
         assert_screen("grub_auth_boot_menu_entry");
     }
 }

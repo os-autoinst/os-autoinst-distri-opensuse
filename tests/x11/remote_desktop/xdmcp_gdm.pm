@@ -40,10 +40,10 @@ sub run {
     become_root;
     assert_script_run 'dhclient';
     $self->configure_xdmcp_firewall;
-    type_string "exit\n";
+    enter_cmd "exit";
 
     # Remote access SLES via Xephyr
-    type_string "Xephyr -query 10.0.2.1 -screen 1024x768+0+0 -terminate :1\n";
+    enter_cmd "Xephyr -query 10.0.2.1 -screen 1024x768+0+0 -terminate :1";
     assert_screen 'xdmcp-gdm', 90;
     send_key 'ret';
     assert_screen 'xdmcp-login-gdm';

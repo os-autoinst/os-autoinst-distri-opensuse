@@ -31,7 +31,7 @@ Base class implementation of distribution class necessary for testapi
 
 # don't import script_run - it will overwrite script_run from distribution and create a recursion
 use testapi qw(send_key %cmd assert_screen check_screen check_var click_lastmatch get_var save_screenshot
-  match_has_tag set_var type_password type_string wait_serial $serialdev
+  match_has_tag set_var type_password type_string enter_cmd wait_serial $serialdev
   mouse_hide send_key_until_needlematch record_info record_soft_failure
   wait_still_screen wait_screen_change get_required_var diag);
 
@@ -296,7 +296,7 @@ sub _ensure_installed_zypper_fallback {
     $self->become_root;
     quit_packagekit;
     zypper_call "in $pkglist";
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 =head2 ensure_installed
@@ -329,8 +329,8 @@ sub script_sudo {
     if ($wait > 0) {
         $prog = "$prog; echo $str-\$?- > /dev/$testapi::serialdev" unless $prog eq 'bash';
     }
-    type_string "clear\n";    # poo#13710
-    type_string "su -c \'$prog\'\n", max_interval => 125;
+    enter_cmd "clear";    # poo#13710
+    enter_cmd "su -c \'$prog\'", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
     if ($wait > 0) {
         if ($prog eq 'bash') {
@@ -358,11 +358,11 @@ sub set_standard_prompt {
     my $prompt_sign = $user eq 'root' ? '#' : '$';
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
-        type_string "prompt $prompt_sign\n";
-        type_string "cls\n";    # clear the screen
+        enter_cmd "prompt $prompt_sign";
+        enter_cmd "cls";    # clear the screen
     }
     elsif ($os_type eq 'linux') {
-        type_string "which tput 2>&1 && PS1=\"\\\[\$(tput bold 2; tput setaf 1)\\\]$prompt_sign\\\[\$(tput sgr0)\\\] \"\n";
+        enter_cmd "which tput 2>&1 && PS1=\"\\\[\$(tput bold 2; tput setaf 1)\\\]$prompt_sign\\\[\$(tput sgr0)\\\] \"";
     }
 }
 
@@ -378,9 +378,9 @@ sub become_root {
     if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
         disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
     }
-    type_string "cd /tmp\n";
+    enter_cmd "cd /tmp";
     $self->set_standard_prompt('root');
-    type_string "clear\n";
+    enter_cmd "clear";
 }
 
 =head2 init_consoles
@@ -631,7 +631,7 @@ Make sure the right user is logged in, e.g. when using remote shells
 =cut
 sub ensure_user {
     my ($user) = @_;
-    type_string("su - $user\n") if $user ne 'root';
+    enter_cmd("su - $user") if $user ne 'root';
 }
 
 =head2 hyperv_console_switch
@@ -666,7 +666,7 @@ sub hyperv_console_switch {
     return if check_screen('any-console', 10);
     # We are in X11 and wan't to switch to VT
     if (check_var('DESKTOP', 'textmode') && check_var('VIDEOMODE', 'text')) {
-        testapi::assert_still_screen { type_string "xinit /usr/bin/xterm -- :1 &\n" };
+        testapi::assert_still_screen { enter_cmd "xinit /usr/bin/xterm -- :1 &" };
         testapi::mouse_set(10, 10);
     } else {
         testapi::x11_start_program('xterm');
@@ -717,7 +717,7 @@ sub activate_console {
             # LIVE CDa do not run inst-consoles as started by inst-linux (it's regular live run, auto-starting yast live installer)
             assert_screen "tty2-selected", 10;
             # login as root, who does not have a password on Live-CDs
-            wait_screen_change { type_string "root\n" };
+            wait_screen_change { enter_cmd "root" };
         }
         else {
             # on s390x we need to login here by providing a password
@@ -766,7 +766,7 @@ sub activate_console {
             # just after ssh login
             assert_screen \@tags, $args{timeout} // 60;
             if (match_has_tag("tty$nr-selected")) {
-                type_string "$user\n";
+                enter_cmd "$user";
                 handle_password_prompt;
             }
             elsif (match_has_tag('text-logged-in-root')) {

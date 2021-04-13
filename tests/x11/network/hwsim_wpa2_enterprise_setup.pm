@@ -34,13 +34,13 @@ sub run {
 
 sub install_packages {
     my $required_packages = 'NetworkManager hostapd';
-    type_string "# installing required packages\n";
+    enter_cmd "# installing required packages";
     quit_packagekit;
     zypper_call("in $required_packages");
 }
 
 sub prepare_NM {
-    type_string "# configure NetworkManager to ignore one of the hwsim interfaces\n";
+    enter_cmd "# configure NetworkManager to ignore one of the hwsim interfaces";
     release_key 'shift';    # workaround for stuck key
 
     my $nm_conf = '/etc/NetworkManager/NetworkManager.conf';
@@ -52,34 +52,34 @@ sub generate_certs {
     assert_script_run 'mkdir -p wpa_enterprise_certificates/{CA,server}';
     assert_script_run 'cd wpa_enterprise_certificates';
 
-    type_string "# generate private keys\n";
+    enter_cmd "# generate private keys";
     assert_script_run 'openssl genrsa -out CA/CA.key 4096';
     assert_script_run 'openssl genrsa -out server/server.key 4096';
     save_screenshot;
 
-    type_string "# generate certificate for CA\n";
+    enter_cmd "# generate certificate for CA";
     assert_script_run 'openssl req -x509 -new -nodes -key CA/CA.key -sha256 -days 3650 -out CA/CA.crt -subj "/"';
 
-    type_string "# generate certificate signing request for server\n";
+    enter_cmd "# generate certificate signing request for server";
     assert_script_run 'openssl req -new -key server/server.key -out server/server.csr -subj "/"';
     save_screenshot;
 
-    type_string "# sign csr with the key/cert from the CA\n";
+    enter_cmd "# sign csr with the key/cert from the CA";
     assert_script_run 'openssl x509 -req -in server/server.csr -CA CA/CA.crt -CAkey CA/CA.key -CAcreateserial -out server/server.crt -days 3650 -sha256';
     save_screenshot;
 }
 
 sub configure_hostapd {
-    type_string "# configure hostapd\n";
+    enter_cmd "# configure hostapd";
     assert_script_run 'wget -O /etc/hostapd.conf ' . data_url('hostapd_wpa2-enterprise.conf');
 
-    type_string "# create wpa2 enterprise user\n";
+    enter_cmd "# create wpa2 enterprise user";
     assert_script_run 'echo \"franz.nord@example.com\" PEAP >> /etc/hostapd.eap_user';
     assert_script_run 'echo \"franz.nord@example.com\" MSCHAPV2 \"nots3cr3t\" [2]>> /etc/hostapd.eap_user';
 }
 
 sub reload_services {
-    type_string "# reload required services\n";
+    enter_cmd "# reload required services";
     systemctl 'restart NetworkManager';
     systemctl 'restart hostapd';
     systemctl 'is-active hostapd';

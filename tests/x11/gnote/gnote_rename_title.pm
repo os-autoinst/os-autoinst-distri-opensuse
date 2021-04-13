@@ -30,7 +30,7 @@ sub run {
     assert_screen 'gnote-new-note', 5;
     send_key "up";
     send_key "up";
-    type_string "new title-opensuse\n";
+    enter_cmd "new title-opensuse";
     $self->cleanup_gnote('gnote-new-note-title-matched');
 }
 

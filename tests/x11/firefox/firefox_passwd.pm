@@ -72,7 +72,7 @@ sub run {
     send_key "ret";
     assert_and_click('firefox-passwd-confirm_remember');
     assert_screen('firefox-passwd-confirm_master_pw');
-    type_string $masterpw. "\n";
+    enter_cmd $masterpw. "";
 
     $self->firefox_open_url($mozlogin);
     assert_screen('firefox-passwd-auto_filled');

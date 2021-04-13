@@ -162,7 +162,7 @@ sub execute_script_run {
         $timeout = 10;
     }
 
-    type_string "(" . $cmd . "; echo $pattern) 2>&1 | tee -a /dev/$serialdev\n";
+    enter_cmd "(" . $cmd . "; echo $pattern) 2>&1 | tee -a /dev/$serialdev";
     $self->{script_output} = wait_serial($pattern, $timeout);
     save_screenshot;
 

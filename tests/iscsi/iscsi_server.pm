@@ -235,7 +235,7 @@ sub run {
     mutex_create('iscsi_display_sessions');
     # wait idle while initiator finishes its execution
     wait_for_children;
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
     # run till client is done
     wait_for_children;
     $self->result('ok');

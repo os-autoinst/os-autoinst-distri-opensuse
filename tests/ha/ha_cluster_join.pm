@@ -56,7 +56,7 @@ sub run {
     assert_script_run "ping -c1 $node_to_join";
     # Status redirection is not needed if running on serial terminal
     my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
-    type_string "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? $redirection\n";
+    enter_cmd "ha-cluster-join -yc $node_to_join ; echo ha-cluster-join-finished-\$? $redirection";
     wait_for_password_prompt(needle => 'ha-cluster-join-password', timeout => $join_timeout);
     type_password;
     send_key 'ret';

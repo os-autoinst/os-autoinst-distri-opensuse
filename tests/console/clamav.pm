@@ -99,7 +99,7 @@ sub run {
     # signature to viruses database, then scan the virus
     for my $alg (qw(md5 sha1 sha256)) {
         assert_script_run "sigtool --$alg /usr/bin/vim > test.hdb";
-        type_string "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev\n";
+        enter_cmd "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev";
         die "Virus scan result was not expected" unless (wait_serial qr/vim\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
 

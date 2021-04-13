@@ -390,7 +390,7 @@ sub get_to_console {
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
         send_key "ctrl-alt-f9";
         assert_screen "inst-console";
-        type_string "blkid\n";
+        enter_cmd "blkid";
         save_screenshot();
         wait_screen_change { send_key 'ctrl-alt-f3' };
         save_screenshot();
@@ -547,10 +547,10 @@ sub save_remote_upload_y2logs {
     type_string 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
     send_key 'ret';
     my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
-    type_string "save_y2logs $filename\n";
+    enter_cmd "save_y2logs $filename";
     my $uploadname = +(split('/', $filename))[2];
     my $upname     = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
-    type_string "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "\n";
+    enter_cmd "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "";
     save_screenshot();
     $self->investigate_yast2_failure();
 }

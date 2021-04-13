@@ -120,11 +120,11 @@ sub switch_users {
 #restore password to original value
 sub restore_passwd {
     x11_start_program('gnome-terminal');
-    type_string "su\n";
+    enter_cmd "su";
     assert_screen "pwd4root-terminal";
     type_password "$password\n";
     assert_screen "root-gnome-terminal";
-    type_string "passwd $username\n";
+    enter_cmd "passwd $username";
     assert_screen "pwd4user-terminal";
     type_password "$password\n";
     assert_screen "pwd4user-confirm-terminal";

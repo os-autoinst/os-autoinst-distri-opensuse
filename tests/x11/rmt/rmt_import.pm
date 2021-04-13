@@ -40,7 +40,7 @@ sub run {
     rmt_list_pro;
     my $pro_ls = get_var('RMT_PRO') || 'sle-module-legacy/15/x86_64';
     assert_script_run("rmt-cli product list | grep $pro_ls");
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

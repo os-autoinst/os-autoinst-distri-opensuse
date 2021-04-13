@@ -51,7 +51,7 @@ sub run {
     wait_still_screen 3;
     send_key "n";
     assert_and_click('firefox-preferences-search');
-    type_string "cert\n";
+    enter_cmd "cert";
     assert_and_click('firefox-ssl-preference-view-certificate');
 
     sleep 1;

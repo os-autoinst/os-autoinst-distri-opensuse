@@ -56,7 +56,7 @@ sub run {
 
     send_key "ctrl-l";
     sleep 1;
-    type_string "about:\n";
+    enter_cmd "about:";
     assert_screen 'google-chrome-about', 15;
 
     send_key "alt-f4";

@@ -26,7 +26,7 @@ sub run {
     script_run 'echo "SSHHOSTPUBKEYFILE" | tee /etc/ssh/*key.pub*';
     script_run "cat /etc/ssh/*key* | tee /dev/$serialdev";
     script_run "md5sum * | tee /etc/ssh/ssh_config /dev/$serialdev";
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

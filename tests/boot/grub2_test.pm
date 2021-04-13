@@ -25,7 +25,7 @@ use utils qw(zypper_call zypper_ar);
 use version_utils 'is_sle';
 
 sub reboot {
-    type_string "reboot\n";
+    enter_cmd "reboot";
     reset_consoles;
     assert_screen 'grub2', 120;
     stop_grub_timeout;
@@ -76,9 +76,9 @@ sub run {
 
     record_info 'grub2 command line', 'ls /boot and help command';
     send_key 'c';
-    type_string "ls /boot\n";
+    enter_cmd "ls /boot";
     assert_screen 'grub2-command-line-ls';
-    type_string "help\n";
+    enter_cmd "help";
     assert_screen 'grub2-command-line-help';
     send_key 'esc';
     sleep 1;

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -35,8 +35,8 @@ sub install_ibus {
 
 sub override_i18n {
     x11_start_program('gnome-terminal');
-    type_string "echo 'export INPUT_METHOD=ibus' > .i18n \n";
-    type_string "cat .i18n \n";
+    enter_cmd "echo 'export INPUT_METHOD=ibus' > .i18n ";
+    enter_cmd "cat .i18n ";
     assert_screen 'ibus_i18n_overrided';
     send_key 'ctrl-d';
 }
@@ -45,10 +45,10 @@ sub ibus_daemon_started {
     x11_start_program('gnome-terminal');
     wait_still_screen;
 
-    type_string_slow "env | grep ibus \n";
+    enter_cmd_slow "env | grep ibus ";
     assert_screen 'ibus-daemon-started';
 
-    type_string_slow "ps aux | grep [i]bus \n";
+    enter_cmd_slow "ps aux | grep [i]bus ";
     assert_screen 'ibus-process-started';
 
     send_key 'ctrl-d';

@@ -36,11 +36,11 @@ sub run {
     send_key "alt-e";
     assert_screen("AppArmor-Settings-Disable-Apparmor");
     wait_screen_change { send_key "alt-q" };
-    type_string("systemctl status apparmor | tee \n");
+    enter_cmd("systemctl status apparmor | tee ");
     assert_screen("AppArmor_Inactive");
 
     # Enable apparmor service and check
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
     assert_screen("AppArmor-Configuration-Settings", timeout => 60);
     send_key "alt-l";
     assert_screen("AppArmor-Settings-Disable-Apparmor");
@@ -51,7 +51,7 @@ sub run {
     type_string("\n");
     clear_console;
     assert_screen("root-console-x11");
-    type_string("systemctl status apparmor | tee \n");
+    enter_cmd("systemctl status apparmor | tee ");
     assert_screen("AppArmor_Active");
 
     # Yast2 AppArmor clean up

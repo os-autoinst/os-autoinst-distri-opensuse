@@ -157,7 +157,7 @@ The files will be uploaded as a single tarball called C<problem_detection_logs.t
 sub problem_detection {
     my $self = shift;
 
-    type_string "pushd \$(mktemp -d)\n";
+    enter_cmd "pushd \$(mktemp -d)";
     $self->detect_bsc_1063638;
     # Slowest services
     $self->save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
@@ -191,9 +191,8 @@ sub problem_detection {
     $self->save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
     $self->save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     # Save core dumps
-    type_string "mkdir -p coredumps\n";
-    type_string 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
-    type_string "\n";
+    enter_cmd "mkdir -p coredumps";
+    enter_cmd 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
     clear_console;
 
     # Broken links
@@ -226,7 +225,7 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
     script_run 'tar cvvJf problem_detection_logs.tar.xz *';
     upload_logs('problem_detection_logs.tar.xz', failok => 1);
-    type_string "popd\n";
+    enter_cmd "popd";
 }
 
 =head2 investigate_yast2_failure
@@ -400,10 +399,10 @@ sub investigate_yast2_failure {
     # Send last lines to serial to copy in case of new critical bugs
     # If yast log file exists
     if (script_run("test -e $logs_path/y2log") == 0) {
-        type_string "echo $delimiter > /dev/$serialdev\n";
-        type_string "echo 'YaST LOGS' > /dev/$serialdev\n";
-        type_string "tail -n 150 $logs_path/y2log > /dev/$serialdev\n";
-        type_string "echo $delimiter > /dev/$serialdev\n";
+        enter_cmd "echo $delimiter > /dev/$serialdev";
+        enter_cmd "echo 'YaST LOGS' > /dev/$serialdev";
+        enter_cmd "tail -n 150 $logs_path/y2log > /dev/$serialdev";
+        enter_cmd "echo $delimiter > /dev/$serialdev";
     }
     if ($detected_errors_detailed) {
         record_info(

@@ -73,7 +73,7 @@ sub run {
             assert_script_run 'kexec -l -s /boot/vmlinuz --initrd=/boot/initrd --reuse-cmdline';
             script_run 'umount -a';
             script_run 'mount -o remount,ro /';
-            type_string "kexec -e\n";
+            enter_cmd "kexec -e";
             assert_screen 'linux-login', 90;
             reset_consoles;
             select_console 'root-console';
@@ -87,7 +87,7 @@ sub run {
             disable_and_stop_service('lvm2-monitor', ignore_failure => 1);
         }
         prepare_system_shutdown;
-        type_string "reboot\n";
+        enter_cmd "reboot";
         $self->wait_boot(bootloader_time => 200);
     }
 }

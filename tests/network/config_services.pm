@@ -112,16 +112,16 @@ sub setup_mail_server {
     assert_script_run "useradd -m admin";
     script_run "passwd admin", 5;       # set user's password
     wait_serial("New password:", 5);    #Step 3
-    type_string("password123\n");
+    enter_cmd("password123");
     wait_serial("Retype new password:", 5);
-    type_string("password123\n");
+    enter_cmd("password123");
 
     assert_script_run "useradd -m nimda";
     script_run "passwd nimda", 5;       # set user's password
     wait_serial("New password:", 5);    #Step 3
-    type_string("password123\n");
+    enter_cmd("password123");
     wait_serial("Retype new password:", 5);
-    type_string("password123\n");
+    enter_cmd("password123");
 
     save_screenshot;
 

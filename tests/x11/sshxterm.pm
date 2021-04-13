@@ -27,13 +27,13 @@ sub run {
     my ($self) = @_;
     mouse_hide(1);
     x11_start_program('xterm');
-    type_string("ssh -o StrictHostKeyChecking=no -XC root\@localhost xterm\n");
+    enter_cmd("ssh -o StrictHostKeyChecking=no -XC root\@localhost xterm");
     assert_screen "ssh-second-xterm";
     $self->set_standard_prompt();
     $self->enter_test_text('ssh-X-forwarding', cmd => 1);
     assert_screen 'test-sshxterm-1';
     # close both windows, executed in remote session, because we can
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

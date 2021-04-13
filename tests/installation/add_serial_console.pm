@@ -28,7 +28,7 @@ sub run {
         done");
     assert_script_run('mount -o bind /dev /mnt/dev');
     assert_script_run('mount -o bind /proc /mnt/proc');
-    type_string("chroot /mnt\n");
+    enter_cmd("chroot /mnt");
     wait_still_screen;
 
     # Mount Btrfs sub-volumes
@@ -48,7 +48,7 @@ sub run {
     assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');
 
     # Exit chroot
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_still_screen;
 
     # Clean-up

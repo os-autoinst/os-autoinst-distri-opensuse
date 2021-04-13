@@ -552,8 +552,8 @@ sub adminer_setup {
     # Clean and Start Firefox
     x11_start_program('xterm');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
-    type_string("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* \n");
-    type_string("firefox http://localhost/adminer/$adminer_file &\n");
+    enter_cmd("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* ");
+    enter_cmd("firefox http://localhost/adminer/$adminer_file &");
 
     my $ret;
     $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
@@ -656,7 +656,7 @@ sub yast2_apparmor_setup {
 
 # Yast2 Apparmor: check apparmor is enabled
 sub yast2_apparmor_is_enabled {
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
     assert_screen("AppArmor-Configuration-Settings", timeout => 180);
     send_key "alt-l";
     assert_screen("AppArmor-Settings-Enable-Apparmor");

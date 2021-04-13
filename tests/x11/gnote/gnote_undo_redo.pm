@@ -46,7 +46,7 @@ sub run {
     x11_start_program('gnote');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note';
-    type_string "opensuse\nOPENSUSE\n";
+    enter_cmd "opensuse\nOPENSUSE";
     $self->undo_redo_once;
 
     #assure undo and redo take effect after save note and re-enter note

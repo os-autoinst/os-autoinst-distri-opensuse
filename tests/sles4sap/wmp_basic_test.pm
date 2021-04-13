@@ -51,13 +51,13 @@ sub run {
     # Run script
     my $current_test = get_var('WMP_PHASE', $testphases[0]);
     $current_test = $testphases[0] unless (grep /^$current_test$/, @testphases);
-    type_string "cd /root/$testname\n";
+    enter_cmd "cd /root/$testname";
     my $out = script_output "python3 check_process.py -n $current_test 2>&1";
     die "$testname failed with error [$out]" if ($out =~ /ERROR:/);
     my ($index) = grep { $testphases[$_] eq $current_test } (0 .. $#testphases);
     $index = ($index == $#testphases) ? $#testphases : ($index + 1);
     set_var('WMP_PHASE', $testphases[$index]);
-    type_string "cd -\n";
+    enter_cmd "cd -";
 
     # Upload results
     assert_script_run "tar -zcvf /tmp/$current_test.tar.gz $logdir/*$current_test*";

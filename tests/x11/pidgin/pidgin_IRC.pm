@@ -77,7 +77,7 @@ sub run {
     # Send a message
     send_key is_sle('<15') ? "alt-tab" : "alt-`";
     wait_still_screen 2;
-    type_string "Hello from openQA\n";
+    enter_cmd "Hello from openQA";
     assert_screen 'pidgin-irc-msgsent';
     send_key "ctrl-w";
     wait_still_screen 2;

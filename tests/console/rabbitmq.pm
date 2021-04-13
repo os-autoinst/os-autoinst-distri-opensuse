@@ -34,7 +34,7 @@ python3 send.py
 wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/receive.py
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    type_string("timeout 1 python3 receive.py > /dev/$serialdev\n");
+    enter_cmd("timeout 1 python3 receive.py > /dev/$serialdev");
     wait_serial(".*Received.*Hello World.*");
     # should be simple assert_script_run but takes too long to stop so
     # workaround

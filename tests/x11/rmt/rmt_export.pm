@@ -38,7 +38,7 @@ sub run {
     rmt_export_data();
     mutex_create("FINISH_EXPORT_DATA");
     wait_for_children;
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

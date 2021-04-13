@@ -83,7 +83,7 @@ EOF
 
     # Start a server with support for PSK. This would require a password file created with psktool
     type_string "nohup gnutls-serv --http --priority NORMAL:+ECDHE-PSK:+PSK --pskpasswd $passwd&";
-    type_string "\n";
+    send_key 'ret';
 }
 
 sub test_flags {

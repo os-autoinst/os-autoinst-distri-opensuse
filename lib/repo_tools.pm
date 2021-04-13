@@ -248,7 +248,7 @@ sub rmt_wizard {
     zypper_call 'in rmt-server';
     zypper_call 'in mariadb';
 
-    type_string "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev\n";
+    enter_cmd "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev";
     assert_screen 'yast2_rmt_registration';
     send_key 'alt-u';
     wait_still_screen(2, 5);

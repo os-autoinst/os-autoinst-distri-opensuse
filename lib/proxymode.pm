@@ -61,12 +61,12 @@ sub check_prompt_for_boot {
     my ($self, $timeout) = @_;
     $timeout //= 5000;
     assert_screen("autoyast-system-login-console", $timeout);
-    type_string "root\n";
+    enter_cmd "root";
     wait_still_screen(2);
     type_password;
     send_key "ret";
     assert_screen("text-logged-in-root");
-    type_string("clear;ip a\n");
+    enter_cmd("clear;ip a");
 }
 
 sub save_org_serialdev {
@@ -90,8 +90,8 @@ sub set_serialdev {
 sub start_nc_on_slave {
     my ($self) = @_;
     # Create nc connection on root console
-    type_string "mkfifo /dev/$SLAVE_SERIALDEV\n";
-    type_string "tail -f /dev/$SLAVE_SERIALDEV | nc -l 1234 &\n";
+    enter_cmd "mkfifo /dev/$SLAVE_SERIALDEV";
+    enter_cmd "tail -f /dev/$SLAVE_SERIALDEV | nc -l 1234 &";
     save_screenshot;
     save_org_serialdev();
 }
@@ -104,7 +104,7 @@ sub con_nc_on_proxy {
 
     my $proxy_serialdev = get_var("PROXY_SERIALDEV", "ttyS0");
 
-    type_string "nc ${test_machine} 1234 |tee /dev/" . $proxy_serialdev . "\n";
+    enter_cmd "nc ${test_machine} 1234 |tee /dev/" . $proxy_serialdev . "";
     save_screenshot;
 }
 
@@ -112,7 +112,7 @@ sub reset_curr_serialdev {
     my ($self) = @_;
     set_serialdev();
     my $pattern = 'NC_CONNECTION_TEST-' . int(rand(999999));
-    type_string "echo $pattern |tee /dev/$serialdev\n";
+    enter_cmd "echo $pattern |tee /dev/$serialdev";
     die "Failed to build the connection between slave machine and proxy machine!" unless wait_serial($pattern, 10);
     save_screenshot;
 }
@@ -192,7 +192,7 @@ sub reboot {
     if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
         $self->set_default_boot_sequence("xen");
     }
-    type_string("/sbin/reboot\n");
+    enter_cmd("/sbin/reboot");
     $self->check_prompt_for_boot($timeout);
     $self->redirect_serial($test_machine);
 }

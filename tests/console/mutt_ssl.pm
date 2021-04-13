@@ -47,7 +47,7 @@ sub run {
     }
 
     # Receive mails
-    type_string "mutt\n";
+    enter_cmd "mutt";
 
     # check testing mail in mailbox
     assert_screen 'mutt_mailbox';
