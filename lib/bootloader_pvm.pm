@@ -179,7 +179,12 @@ sub boot_hmc_pvm {
     # don't wait for it, otherwise we miss the menu
     enter_cmd "mkvterm -m $hmc_machine_name --id $lpar_id";
     # skip further preperations if system is already installed
-    return if get_var('BOOT_HDD_IMAGE');
+    # PowerVM, send "up" key to refresh the serial terminal in case
+    # it is already entered into grub2 menu
+    if (get_var('BOOT_HDD_IMAGE')) {
+        send_key('up');
+        return;
+    }
     get_into_net_boot;
     prepare_pvm_installation;
 }
