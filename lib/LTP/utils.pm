@@ -30,6 +30,7 @@ use File::Basename 'basename';
 
 our @EXPORT = qw(
   get_ltproot
+  get_ltp_version_file
   init_ltp_tests
   loadtest_kernel
   prepare_ltp_env
@@ -48,7 +49,18 @@ sub shutdown_ltp {
 }
 
 sub get_ltproot {
-    return get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/ ? '/opt/ltp-32' : '/opt/ltp';
+    # TEST_SUITE_NAME is for running 32bit tests (e.g. ltp_syscalls_m32),
+    # checking LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
+    my $want_32bit = shift // (get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/
+          || get_var('LTP_PKG', '') =~ m/^(ltp|qa_test_ltp)-32bit$/);
+
+    return $want_32bit ? '/opt/ltp-32' : '/opt/ltp';
+}
+
+sub get_ltp_version_file {
+    my $want_32bit = shift // get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/;
+
+    return get_ltproot($want_32bit) . '/version';
 }
 
 # Set up basic shell environment for running LTP tests
@@ -203,7 +215,11 @@ sub schedule_tests {
     if ($ver_linux_out =~ qr'^Gnu C\s*(.*?)\s*$'m) {
         $environment->{gcc} = $1;
     }
-    $environment->{ltp_version}        = script_output('touch /opt/ltp_version; cat /opt/ltp_version');
+
+    my $file = get_ltp_version_file();
+    $environment->{ltp_version} = script_output("touch $file; cat $file");
+    record_info("LTP version", $environment->{ltp_version});
+
     $test_result_export->{environment} = $environment;
 
     if ($cmd_file =~ m/ltp-aiodio.part[134]/) {
