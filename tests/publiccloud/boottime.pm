@@ -295,9 +295,7 @@ sub measure_timings {
         $instance         = $args->{my_instance};
         $provider         = $args->{my_provider};
         $self->{provider} = $args->{my_provider};    # required for cleanup
-        select_host_console();
     } else {
-        $self->select_serial_terminal;
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance(check_connectivity => 0);
     }
@@ -405,7 +403,7 @@ sub check_thresholds {
 
 sub run {
     my ($self, $args) = @_;
-    $self->select_serial_terminal;
+    select_host_console();
 
     my $results = $self->measure_timings($args);
     $self->store_in_db($results);
