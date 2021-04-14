@@ -29,26 +29,14 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  # Called on BACKEND: svirt
-  - '{{reconnect_mgmt_console}}'
   - installation/teardown_libyui
-  # Called on BACKEND: qemu
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - console/lvm_thin_check
-conditional_schedule:
-  reconnect_mgmt_console:
-    BACKEND:
-      svirt:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
 test_data:
   system_role:
     default: 'SLES with GNOME'

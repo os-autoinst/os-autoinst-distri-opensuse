@@ -24,7 +24,7 @@ schedule:
   - '{{logs_from_installation_system}}'
   - installation/reboot_after_installation
   - installation/teardown_libyui
-  - '{{reconnect_mgmt_console}}'
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_fs_table
 conditional_schedule:
@@ -49,16 +49,6 @@ conditional_schedule:
         - installation/logs_from_installation_system
       pvm_hmc:
         - installation/logs_from_installation_system
-  reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-    BACKEND:
-      qemu:
-        - installation/grub_test
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
-        - installation/grub_test
     VIRSH_VMM_TYPE:
       hvm:
         - installation/grub_test

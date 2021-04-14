@@ -59,8 +59,7 @@ schedule:
   - installation/start_install
   - installation/await_install
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - ha/wait_barriers
   - console/system_prepare
@@ -106,14 +105,12 @@ conditional_schedule:
   boot_to_desktop:
     HA_CLUSTER_SETUP:
       init:
-        - boot/reconnect_mgmt_console
-        - installation/grub_test
+        - installation/handle_reboot
         - installation/first_boot
   boot_to_desktop_non_init:
     HA_CLUSTER_SETUP:
       join:
-        - boot/reconnect_mgmt_console
-        - installation/grub_test
+        - installation/handle_reboot
         - installation/first_boot
   sles4sap12_product:
     VERSION:

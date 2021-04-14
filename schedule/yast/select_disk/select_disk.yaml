@@ -29,8 +29,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/teardown_libyui
-  - "{{reconnect_mgmt_console}}"
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_first_disk_selection
 conditional_schedule:
@@ -38,10 +37,6 @@ conditional_schedule:
     BACKEND:
       pvm_hmc:
         - installation/edit_optional_kernel_cmd_parameters
-  reconnect_mgmt_console:
-    BACKEND:
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
 test_data:
   guided_partitioning:
     disks:
