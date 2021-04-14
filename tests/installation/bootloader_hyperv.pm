@@ -178,7 +178,7 @@ sub run {
             else {
                 my $disk_path = "$root\\cache\\${name}_${n}.vhdx";
                 push @disk_paths, $disk_path;
-                hyperv_cmd("$ps New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB");
+                hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB"));
             }
         }
         hyperv_cmd("$ps New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
