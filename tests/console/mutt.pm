@@ -54,6 +54,7 @@ sub run {
 
     record_info 'receive mail', 'Run mutt as a user to read the mail';
     enter_cmd "mutt";
+    send_key 'a';
     assert_screen 'mutt-message-list';
     send_key 'ret';
     assert_screen 'mutt-show-mail';
