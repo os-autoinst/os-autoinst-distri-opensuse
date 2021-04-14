@@ -557,7 +557,7 @@ sub verify_software {
     $zypper_args .= $args{pattern} ? ' -t pattern' : ' -t package';
     # Negate condition if package should not be available
     my $cmd = $args{available} ? '' : '! ';
-    $cmd .= "zypper --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
+    $cmd .= "zypper --quiet --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
     # Verify repo only if package expected to be available
     if ($args{repo} && $args{available}) {
         $cmd .= ' | grep ' . $args{repo};
