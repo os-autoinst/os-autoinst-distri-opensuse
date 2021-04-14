@@ -30,6 +30,7 @@ use File::Basename 'basename';
 
 our @EXPORT = qw(
   get_ltproot
+  get_ltp_openposix_test_list_file
   get_ltp_version_file
   init_ltp_tests
   loadtest_kernel
@@ -48,13 +49,23 @@ sub shutdown_ltp {
     loadtest_kernel('shutdown_ltp', @_);
 }
 
-sub get_ltproot {
+sub want_ltp_32bit {
     # TEST_SUITE_NAME is for running 32bit tests (e.g. ltp_syscalls_m32),
     # checking LTP_PKG is for install_ltp.pm which also uses prepare_ltp_env()
-    my $want_32bit = shift // (get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/
+    return (get_required_var('TEST_SUITE_NAME') =~ m/[-_]m32$/
           || get_var('LTP_PKG', '') =~ m/^(ltp|qa_test_ltp)-32bit$/);
+}
+
+sub get_ltproot {
+    my $want_32bit = shift // want_ltp_32bit;
 
     return $want_32bit ? '/opt/ltp-32' : '/opt/ltp';
+}
+
+sub get_ltp_openposix_test_list_file {
+    my $want_32bit = shift // want_ltp_32bit;
+
+    return get_ltproot($want_32bit) . '/runtest/openposix-test-list';
 }
 
 sub get_ltp_version_file {
@@ -271,6 +282,7 @@ sub parse_runtest_file {
     }
 }
 
+# NOTE: current implementation does not allow to run tests on both archs
 sub parse_runfiles {
     my ($cmd_file, $test_result_export, $suffix) = @_;
 
@@ -282,7 +294,7 @@ sub parse_runfiles {
     for my $name (split(/,/, $cmd_file)) {
         if ($name eq 'openposix') {
             parse_openposix_runfile($name,
-                read_runfile('/root/openposix-test-list'),
+                read_runfile(get_ltp_openposix_test_list_file()),
                 $cmd_pattern, $cmd_exclude, $test_result_export, $suffix);
         }
         else {
