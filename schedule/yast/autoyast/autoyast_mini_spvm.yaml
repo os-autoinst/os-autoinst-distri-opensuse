@@ -18,8 +18,7 @@ schedule:
   - autoyast/clone
   - autoyast/logs
   - autoyast/autoyast_reboot
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_file_system
   - console/zypper_lr

@@ -13,19 +13,6 @@ conditional_schedule:
         BACKEND:
             pvm_hmc:
             - installation/edit_optional_kernel_cmd_parameters
-    reconnect_mgmt_console:
-        ARCH:
-            s390x:
-            - boot/reconnect_mgmt_console
-        BACKEND:
-            pvm_hmc:
-            - boot/reconnect_mgmt_console
-    grub_test:
-        BACKEND:
-            qemu:
-            - installation/grub_test
-            pvm_hmc:
-            - installation/grub_test
     shutdown_svirt:
         BACKEND:
             svirt:
@@ -53,8 +40,7 @@ schedule:
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
     - installation/teardown_libyui
-    - "{{reconnect_mgmt_console}}"
-    - "{{grub_test}}"
+    - installation/handle_reboot
     - installation/first_boot
     - console/hostname
     - console/system_prepare

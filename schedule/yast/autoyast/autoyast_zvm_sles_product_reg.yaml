@@ -19,5 +19,5 @@ schedule:
   - autoyast/clone
   - autoyast/logs
   - autoyast/autoyast_reboot
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - installation/first_boot

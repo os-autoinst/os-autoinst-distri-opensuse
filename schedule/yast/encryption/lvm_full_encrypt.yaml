@@ -15,11 +15,11 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/boot_encrypt
-        - boot/reconnect_mgmt_console
+        - installation/handle_reboot
   grub_test_boot_encrypt:
     BACKEND:
       qemu:
-        - installation/grub_test
+        - installation/handle_reboot
         - installation/boot_encrypt
 schedule:
   - installation/bootloader_start

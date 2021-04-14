@@ -33,10 +33,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/teardown_libyui
-  # Called on BACKEND: s390x, svirt
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/force_scheduled_tasks
@@ -53,16 +50,6 @@ conditional_schedule:
     BACKEND:
       s390x:
         - installation/disk_activation
-  reconnect_mgmt_console:
-    BACKEND:
-      s390x:
-        - boot/reconnect_mgmt_console
-      svirt:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
   hostname_inst:
     BACKEND:
       qemu:

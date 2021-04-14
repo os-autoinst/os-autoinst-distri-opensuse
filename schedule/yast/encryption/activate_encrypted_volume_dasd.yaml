@@ -30,7 +30,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - installation/first_boot
 test_data:
   <<: !include test_data/yast/encryption/activate_encrypted_volume.yaml
