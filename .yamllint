@@ -1,5 +1,8 @@
 extends: default
 rules:
+  comments:
+    level: error
+    require-starting-space: true
   line-length:
     max: 160
   document-start: disable

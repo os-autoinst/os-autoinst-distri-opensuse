@@ -29,7 +29,7 @@ schedule:
     - console/prjconf_excluded_rpms
     - console/suseconnect_scc
     - console/machinery
-    #- sysauth/sssd
+    # - sysauth/sssd
     - containers/docker_compose
     - network/cifs
     - console/orphaned_packages_check
