@@ -123,6 +123,17 @@ sub run {
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
 
+        # PRIORITY_FENCING_DELAY barriers
+        barrier_create("PRIORITY_FENCING_CONF_$cluster_name", $num_nodes);
+        barrier_create("PRIORITY_FENCING_DONE_$cluster_name", $num_nodes);
+        if (get_var('STONITH_COUNT')) {
+            my $count = get_var('STONITH_COUNT');
+            while ($count ne 0) {
+                barrier_create("STONITH_COUNTER_${count}_${cluster_name}", $num_nodes);
+                $count--;
+            }
+        }
+
         # Preflight-check barriers
         barrier_create("PREFLIGHT_CHECK_INIT_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
 
