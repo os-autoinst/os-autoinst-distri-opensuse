@@ -222,12 +222,18 @@ sub add_ltp_repo {
 }
 
 sub get_default_pkg {
-    if (is_sle) {
-        return 'qa_test_ltp qa_test_ltp-32bit' if (is_released);
-        return 'ltp'                           if (is_jeos);
+    my @packages;
+
+    if (is_sle && is_released) {
+        push @packages, 'qa_test_ltp';
+        # temporarily disabled due to package conflict with qa_test_ltp
+        #push @packages, 'qa_test_ltp-32bit' if is_x86_64;
+    } else {
+        push @packages, 'ltp';
+        push @packages, 'ltp-32bit' if is_x86_64 && !is_jeos;
     }
 
-    return is_x86_64 ? 'ltp ltp-32bit' : 'ltp';
+    return join(' ', @packages);
 }
 
 sub install_from_repo {
