@@ -34,7 +34,6 @@ use power_action_utils qw(power_action);
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
     DROPIN_DIR         => '/etc/systemd/journald.conf.d',
-    SYSLOG             => '/var/log/messages',
     SEALING_DELAY      => 10
 };
 
@@ -102,7 +101,6 @@ sub assert_test_log_entries {
         foreach (keys(%{$entries})) {
             script_retry("journalctl --boot=$bootid --identifier=batman --priority=$_ --output=short | grep $entries->{$_}",
                 retry => 5, delay => 2);
-            assert_script_run("grep $entries->{$_} ${\ SYSLOG }") if is_sle;
         }
     }
 }
@@ -160,7 +158,6 @@ sub run {
         # rsyslog must be there by design
         assert_script_run 'rpm -q rsyslog';
         assert_script_run 'test -S /run/systemd/journal/syslog';
-        upload_logs('/var/log/messages');
         systemctl 'restart systemd-journald';
     }
 
