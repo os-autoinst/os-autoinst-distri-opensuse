@@ -38,7 +38,7 @@ sub run {
     my $uid         = '1003';
 
     # Install 389-ds and sssd on client
-    zypper_call("in 389-ds sssd");
+    zypper_call("in 389-ds sssd sssd-ldap");
 
     # Disable and stop the nscd daemon because it conflicts with sssd
     disable_and_stop_service("nscd", ignore_failure => 1);
@@ -70,6 +70,11 @@ sub run {
     # Make sure ldap user can login from client as well
     assert_script_run("LDAPTLS_REQCERT=never ldapwhoami -H ldaps://$remote_name.example.com:636 -x");
     assert_script_run("id $ldap_user | grep $uid");
+}
+
+sub post_fail_hook {
+    upload_logs("/var/log/messages");
+    upload_logs("/etc/sssd/sssd.conf");
 }
 
 1;
