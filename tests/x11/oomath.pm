@@ -22,7 +22,7 @@ use base 'x11test';
 use strict;
 use warnings;
 use testapi;
-use utils 'enter_cmd_slow';
+use utils 'type_string_slow';
 
 sub run {
     my ($self) = shift;
@@ -32,7 +32,7 @@ sub run {
     # mistyping with slow typing and retrying.
     my $retries = 7;
     for (1 .. $retries) {
-        enter_cmd_slow "E %PHI = H %PHI\nnewline1 = 1";
+        type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
         last                                                             if check_screen [qw(test-oomath-1 oomath-bsc1127895)];
         die "Could not match on correct formula within multiple retries" if $_ == $retries;
         record_info 'workaround', 'retrying unstable formula typing, see https://progress.opensuse.org/issues/53795 for details';
