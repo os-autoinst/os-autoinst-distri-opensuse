@@ -9,6 +9,7 @@ description:    >
 vars:
   DESKTOP: textmode
   ENABLE_ALL_SCC_MODULES: 1
+  SYSTEM_ROLE: textmode
 schedule:
   - installation/bootloader_start
   - installation/welcome
