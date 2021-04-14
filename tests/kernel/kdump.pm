@@ -20,8 +20,8 @@ use kdump_utils;
 sub run {
     my ($self) = @_;
     select_console('root-console');
-    configure_service('function', yast_interface => 'cli');
-    check_function('function');
+    configure_service(test_type => 'function', yast_interface => 'cli');
+    check_function(test_type => 'function');
 
 }
 

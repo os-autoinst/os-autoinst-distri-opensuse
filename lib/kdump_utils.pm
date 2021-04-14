@@ -78,8 +78,8 @@ sub prepare_for_kdump_sle {
 }
 
 sub prepare_for_kdump {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type} //= '';
 
     # disable packagekitd
     quit_packagekit;
@@ -92,7 +92,7 @@ sub prepare_for_kdump {
 
     zypper_call "in @pkgs";
 
-    return if ($test_type eq 'before');
+    return if ($args{test_type} eq 'before');
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
@@ -244,7 +244,7 @@ sub do_kdump {
 
 #
 # Install debug kernel and use yast2 kdump to enable kdump service.
-# we use $test_type to distingush  migration or function check.
+# we use $args{test_type} to distingush  migration or function check.
 #
 # For migration test we just do activate kdump. migration test do
 # not need to run prepare_for_kdump function because it can't get
@@ -253,12 +253,12 @@ sub do_kdump {
 # For function test we need to install the debug kernel and activate kdump.
 #
 sub configure_service {
-    my ($test_type, %args) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type}      //= '';
     $args{yast_interface} //= '';
 
     my $self = y2_module_consoletest->new();
-    if ($test_type eq 'function') {
+    if ($args{test_type} eq 'function') {
         # preparation for crash test
         if (is_sle '15+') {
             add_suseconnect_product('sle-module-desktop-applications');
@@ -266,7 +266,7 @@ sub configure_service {
         }
     }
 
-    prepare_for_kdump($test_type);
+    prepare_for_kdump($args{test_type});
     if ($args{yast_interface} eq 'cli') {
         activate_kdump_cli;
     } else {
@@ -297,8 +297,8 @@ sub configure_service {
 # and can be debugged by crash.
 #
 sub check_function {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type} //= '';
 
     my $self = y2_module_consoletest->new();
 
@@ -326,7 +326,7 @@ sub check_function {
 
     assert_script_run 'find /var/crash/';
 
-    if ($test_type eq 'function') {
+    if ($args{test_type} eq 'function') {
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`*";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
@@ -362,7 +362,7 @@ sub full_kdump_check {
     select_console 'root-console';
 
     if ($stage eq 'before') {
-        configure_service($stage);
+        configure_service(test_type => $stage);
     }
     check_function();
 
