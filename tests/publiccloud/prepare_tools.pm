@@ -23,16 +23,17 @@ use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
 sub install_in_venv {
-    my ($pip_packages, $binary) = @_;
-    die("Missing pip packages") unless ($pip_packages);
-    die("Missing binary name")  unless ($binary);
+    my ($binary, %args) = @_;
+    die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
+    die("Missing binary name")                                         unless ($binary);
     my $install_timeout = 15 * 60;
-    $pip_packages = [$pip_packages] unless ref $pip_packages eq 'ARRAY';
+    assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
     my $venv = '/root/.venv_' . $binary;
     assert_script_run("virtualenv '$venv'");
     assert_script_run(". '$venv/bin/activate'");
-    assert_script_run('pip install --force-reinstall ' . join(' ', map("'$_'", @$pip_packages)), timeout => $install_timeout);
+    my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
+    assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
     assert_script_run('deactivate');
     my $script = <<EOT;
 #!/bin/sh
@@ -71,15 +72,15 @@ sub run {
     record_info('python', script_output('python --version'));
 
     # Install AWS cli
-    install_in_venv('awscli', 'aws');
+    install_in_venv('aws', requirements => 1);
     record_info('EC2', script_output('aws --version'));
 
     # Install ec2imgutils
-    install_in_venv('ec2imgutils', 'ec2uploadimg');
+    install_in_venv('ec2uploadimg', requirements => 1);
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
-    install_in_venv('azure-cli', 'az');
+    install_in_venv('az', requirements => 1);
     my $azure_error = '/tmp/azure_error';
     record_info('Azure', script_output('az -v 2>' . $azure_error));
     assert_script_run('cat ' . $azure_error);
@@ -88,7 +89,7 @@ sub run {
     }
 
     # Install OpenStack cli
-    install_in_venv('python-openstackclient', 'openstack');
+    install_in_venv('openstack', requirements => 1);
     record_info('OpenStack', script_output('openstack --version'));
 
     # Install Google Cloud SDK
