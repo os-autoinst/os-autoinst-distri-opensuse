@@ -143,7 +143,7 @@ sub run {
             assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
 
             # Run and test the old environment too
-            assert_script_run 'rm /var/run/httpd.pid';
+            script_run 'rm /var/run/httpd.pid';
             systemctl 'start apache2';
             assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
 
