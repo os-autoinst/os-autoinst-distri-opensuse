@@ -53,7 +53,7 @@ sub run {
     assert_script_run 'sed -i -e "/ssl_ca_certificates_file/d" ~/.muttrc' if is_sle('<=12-SP2');
 
     record_info 'receive mail', 'Run mutt as a user to read the mail';
-    enter_cmd "mutta";
+    enter_cmd "mutt";
     assert_screen 'mutt-message-list';
     send_key 'ret';
     assert_screen 'mutt-show-mail';
