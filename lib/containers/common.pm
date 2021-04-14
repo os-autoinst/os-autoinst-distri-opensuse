@@ -207,7 +207,7 @@ sub test_container_image {
     # Images from custom registry are listed with the '$registry/library/'
     $image =~ s/^docker\.io\/library\///;
 
-    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
+    my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
     if ($runtime =~ /buildah/) {
         if (script_run("buildah images | grep '$image'") != 0) {
@@ -223,7 +223,7 @@ sub test_container_image {
             assert_script_run("$runtime pull $image", timeout => 300);
             assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
         }
-        assert_script_run("$runtime container create --name 'testing' '$image' /bin/sh -c '$smoketest'");
+        assert_script_run("$runtime container create --name testing $image $smoketest");
         assert_script_run("$runtime container start 'testing'");
         assert_script_run("$runtime wait 'testing'", 90);
         assert_script_run("$runtime container logs 'testing' | tee '$logfile'");
