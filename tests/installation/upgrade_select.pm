@@ -39,6 +39,8 @@ sub run {
         send_key $cmd{next};
     }
     if (match_has_tag("select-for-update")) {
+        my $arch = get_var("ARCH");
+        assert_screen('select-for-update-' . "$arch");
         send_key $cmd{next};
     }
     # The SLE15-SP2 license page moved after registration.
