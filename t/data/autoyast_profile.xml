@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+    <suse_register t="map">
+        <addons t="list">
+            <addon t="map">
+                <name>sle-module-server-applications</name>
+            </addon>
+            <addon t="map">
+                <arch>ppc64le</arch>
+                <name>sle-module-basesystem</name>
+            </addon>
+        </addons>
+        <do_registration t="boolean">true</do_registration>
+        <install_updates t="boolean">false</install_updates>
+    </suse_register>
+</profile>
