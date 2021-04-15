@@ -85,6 +85,7 @@ conditional_schedule:
         - console/upgrade_snapshots
         - console/zypper_lifecycle
         - console/consoletest_finish
+        - migration/openldap_to_389ds
         - x11/desktop_runner
         - x11/xterm
         - locale/keymap_or_locale_x11
