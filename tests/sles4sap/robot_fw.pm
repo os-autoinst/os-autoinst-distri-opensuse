@@ -80,8 +80,6 @@ sub run {
         # PARAMETER  : What parameters have changed.
         # TEST_NAME  : The function needs to be trigger only in the targeted test.
         if ($robot_test eq "sysctl.robot") {
-            # bsc#1181925 - kernel.panic_on_oops is not consistent
-            add_softfail("sysctl.robot", "15-SP1", "bsc#1181925", qw(Sysctl_kernel_panic_on_oops));
             # bsc#1181163 - unexpected values for net.ipv6.conf.lo.use_tempaddr and net.ipv6.conf.lo.accept_redirects
             add_softfail("sysctl.robot", "15-SP1", "bsc#1181163", qw(Sysctl_net_ipv6_conf_lo_accept_redirects Sysctl_net_ipv6_conf_lo_use_tempaddr));
         }
