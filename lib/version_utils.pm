@@ -359,7 +359,7 @@ sub is_hpc {
 Returns true if called on a released build
 =cut
 sub is_released {
-    return get_var('FLAVOR') =~ /Incidents/ || get_var('FLAVOR') =~ /Updates/;
+    return get_var('FLAVOR') =~ /Incidents|Updates|QR/;
 }
 
 
