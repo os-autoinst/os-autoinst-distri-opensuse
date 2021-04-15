@@ -45,7 +45,7 @@ test_data:
   <<: !include test_data/yast/lvm_thin_provisioning/lvm_thin_provisioning.yaml
   system_role:
     default: null
-    selection: 'Desktop with KDE Plasma'
+    selection: 'Desktop with GNOME'
 conditional_schedule:
   opensuse_welcome:
     VERSION:
