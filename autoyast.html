@@ -87,7 +87,13 @@
 
 <p>Generates a list of XPATH expressions based on the YAML file provided, run those expressions and create a summary based with the errors found and all the expressions.</p>
 
-<p>See function &#39;generate_expressions&#39; for further info.</p>
+<p>There are special keys to handle xml attributes for the node types, or in case exact number of nodes has to be validated, e.g. <code>_t</code> for the type, <code>__text</code> for the text value of the node, <code>__count</code> to specify exact number of child nodes.</p>
+
+<p>See &#39;has_properties&#39; and &#39;generate_expressions&#39; functions for the further info.</p>
+
+<p>In order to validate following xml: &lt;profile&gt; &lt;suse_register t=&quot;map&quot;&gt; &lt;addons t=&quot;list&quot;&gt; &lt;addon t=&quot;map&quot;&gt; &lt;name&gt;sle-module-server-applications&lt;/name&gt; &lt;/addon&gt; &lt;addon t=&quot;map&quot;&gt; &lt;arch&gt;ppc64le&lt;/arch&gt; &lt;name&gt;sle-module-basesystem&lt;/name&gt; &lt;/addon&gt; &lt;/addons&gt; &lt;do_registration t=&quot;boolean&quot;&gt;true&lt;/do_registration&gt; &lt;install_updates t=&quot;boolean&quot;&gt;false&lt;/install_updates&gt; &lt;/suse_register&gt; &lt;/profile&gt;</p>
+
+<p>YAML example to validate given xml: profile: suse_register: addons: _t: list __count: 2 addon: - name: sle-module-server-applications - name: sle-module-basesystem do_registration: _t: boolean __text: &#39;true&#39;</p>
 
 <h2 id="is_processable">is_processable</h2>
 
@@ -135,7 +141,7 @@
 
     YAML:
             drive:
-            - label: 
+            - label:
                 _descendant: any
                 __text: root_multi_btrfs
                 disklabel: none
@@ -143,10 +149,10 @@
                 partition:
                 - filesystem: btrfs
                     label: root_multi_btrfs
-            - label: 
+            - label:
                 _descendant: any
                 __text: test_multi_btrfs
-                disklabel: none        
+                disklabel: none
                 partitions:
                 partition:
                 - filesystem: btrfs
