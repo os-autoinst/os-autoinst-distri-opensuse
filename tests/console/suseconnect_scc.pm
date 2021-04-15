@@ -22,7 +22,7 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use utils qw(zypper_call);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_jeos is_sle_micro);
 use registration qw(register_addons_cmd verify_scc investigate_log_empty_license);
 
 sub run {
@@ -40,7 +40,9 @@ sub run {
 
     $self->select_serial_terminal;
     die 'SUSEConnect package is not pre-installed!' if script_run 'rpm -q SUSEConnect';
-    die 'System has been already registered!'       if script_run q(SUSEConnect --status-text | grep -i 'not registered');
+    if ((is_jeos || is_sle_micro) && script_run(q(SUSEConnect --status-text | grep -i 'not registered'))) {
+        die 'System has been already registered!';
+    }
     assert_script_run $cmd;
     # Check available extenstions (only present in sle)
     assert_script_run q[SUSEConnect --list-extensions];
