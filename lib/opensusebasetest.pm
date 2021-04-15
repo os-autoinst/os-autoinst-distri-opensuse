@@ -631,9 +631,9 @@ sub wait_grub {
     push @tags, 'bootloader-shim-verification'  if get_var('MOK_VERBOSITY');
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
     push @tags, 'grub2';
-    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
-    push @tags, 'bootloader'                      if get_var('OFW');
-    push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
+    push @tags, 'boot-live-' . get_var('DESKTOP')     if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+    push @tags, 'bootloader'                          if get_var('OFW');
+    push @tags, 'encrypted-disk-password-prompt-grub' if get_var('ENCRYPT');
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
     }
@@ -706,7 +706,7 @@ sub wait_grub {
     elsif (match_has_tag('inst-bootmenu')) {
         $self->wait_grub_to_boot_on_local_disk;
     }
-    elsif (match_has_tag('encrypted-disk-password-prompt')) {
+    elsif (match_has_tag('encrypted-disk-password-prompt-grub')) {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
         assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
