@@ -35,6 +35,13 @@ sub run {
     my ($self) = @_;
     my $cluster_name = get_cluster_name;
 
+    # For facilitating the QEM process, the hawk client system will always be a 15-SP3 version
+    # That means we need to change the version and reload the needles
+    if (get_var('CLIENT_VERSION')) {
+        set_var('VERSION', get_var('CLIENT_VERSION'), reload_needles => 1);
+        record_info('Version switch', 'New version = ' . get_var('VERSION'));
+    }
+
     # Wait for each cluster node to check for its hawk service
     barrier_wait("HAWK_GUI_INIT_$cluster_name");
 
