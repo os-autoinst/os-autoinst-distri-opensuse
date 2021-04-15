@@ -346,11 +346,12 @@ sub store_in_db {
         os_flavor         => get_required_var('FLAVOR'),
         os_version        => get_required_var('VERSION'),
         os_build          => get_required_var('BUILD'),
-        os_pc_build       => get_required_var('PUBLIC_CLOUD_BUILD'),
-        os_pc_kiwi_build  => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
+
+    $tags->{os_pc_build}      = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD');
+    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
 
     # Store values in influx-db
     my $data = {
