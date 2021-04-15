@@ -194,7 +194,8 @@ sub install_from_git {
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find $prefix -name '*.run-test' > ~/openposix-test-list";
+    assert_script_run "find $prefix -name '*.run-test' > "
+      . get_ltp_openposix_test_list_file();
 
     # It is a shallow clone so 'git describe' won't work
     record_info("LTP git", script_output('git log -1 --pretty=format:"git-%h" | tee '
@@ -246,7 +247,8 @@ sub install_from_repo {
         record_info("LTP pkg: $pkg", script_output("rpm -qi $pkg | tee "
                   . get_ltp_version_file($want_32bit)));
         assert_script_run "find " . get_ltproot($want_32bit) .
-          q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
+          q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > )
+          . get_ltp_openposix_test_list_file($want_32bit);
     }
 }
 
