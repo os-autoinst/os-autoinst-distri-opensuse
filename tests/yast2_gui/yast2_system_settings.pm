@@ -36,14 +36,8 @@ sub validate_sysrq_config {
     record_info("Validate sysrq", "Validate that sysrq is $expected_status in configuration files");
     my %config_value = (disabled => 0, enabled => 1);
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
-    my $is_enabled = script_output("cat /proc/sys/kernel/sysrq");
-    $is_enabled = substr($is_enabled, 0, 1);
-    die "/proc/sys/kernel/sysrq has value $is_enabled , but sysrq should be $expected_status"
-      unless ($is_enabled eq $config_value{$expected_status});
-    $is_enabled = script_output("cat /etc/sysctl.d/70-yast.conf | grep sysrq");
-    $is_enabled = substr($is_enabled, -1, 1);
-    die "sysrq.kernel=$is_enabled in /etc/sysctl.d/70-yast.conf , but sysrq should be $expected_status"
-      unless ($is_enabled eq $config_value{$expected_status});
+    validate_script_output("cat /proc/sys/kernel/sysrq",                  sub { m/^$config_value{$expected_status}/ });
+    validate_script_output("cat /etc/sysctl.d/70-yast.conf | grep sysrq", sub { m/$config_value{$expected_status}$/ });
     close_xterm();
 }
 
