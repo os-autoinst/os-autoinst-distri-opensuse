@@ -38,6 +38,11 @@ use constant {
     SEALING_DELAY      => 10
 };
 
+# by default persistent journal is set for opensuse, except of leap 15.3+
+sub has_default_persistent_journal {
+    return is_opensuse && !is_leap('>=15.3');
+}
+
 # If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
 sub corrupted_logfiles {
     return script_output('find /var/log/journal/ -iname "*.journal~" -type f -print0') ne "";
@@ -102,7 +107,7 @@ sub assert_test_log_entries {
         foreach (keys(%{$entries})) {
             script_retry("journalctl --boot=$bootid --identifier=batman --priority=$_ --output=short | grep $entries->{$_}",
                 retry => 5, delay => 2);
-            assert_script_run("grep $entries->{$_} ${\ SYSLOG }") if is_sle;
+            script_retry("grep $entries->{$_} ${\ SYSLOG }", retry => 5, delay => 2, die => 0) if !has_default_persistent_journal;
         }
     }
 }
@@ -149,7 +154,7 @@ sub run {
     # Other configuration changes should be overridden using _drop-in_ file
     # To enable persistent logging in opensuse, we use systemd-logger.rpm that creates */var/log/journal/* directory
     get_current_boot_id \@boots;
-    if (is_opensuse && !is_leap('>=15.3')) {
+    if (has_default_persistent_journal) {
         assert_script_run 'rpm -q systemd-logger';
         assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
     } else {
@@ -160,7 +165,7 @@ sub run {
         # rsyslog must be there by design
         assert_script_run 'rpm -q rsyslog';
         assert_script_run 'test -S /run/systemd/journal/syslog';
-        upload_logs('/var/log/messages');
+        upload_logs(${\SYSLOG});
         systemctl 'restart systemd-journald';
     }
 
