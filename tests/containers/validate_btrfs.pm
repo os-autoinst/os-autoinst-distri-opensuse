@@ -34,7 +34,7 @@ sub _sanity_test_btrfs {
 
 sub _test_btrfs_balancing {
     my ($dev_path) = shift;
-    assert_script_run qq(btrfs balance start --full-balance $dev_path), timeout => 600;
+    assert_script_run qq(btrfs balance start --full-balance $dev_path), timeout => 900;
     assert_script_run "btrfs fi show $dev_path/btrfs";
     validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+10.\d+G.+\/dev\/vdb/ };
 }
