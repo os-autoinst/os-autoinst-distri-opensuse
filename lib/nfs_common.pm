@@ -219,8 +219,11 @@ sub config_service {
     send_key 'alt-s';
 
     # Disable NFSv4
-    send_key 'alt-v';
-    wait_still_screen 1;
+    assert_screen([qw(nfsv4-disabled nfsv4-enabled)], 120);
+    if (match_has_tag('nfsv4-enabled')) {
+        send_key 'alt-v';
+        wait_still_screen 1;
+    }
 
     yast_handle_firewall();
 
@@ -271,8 +274,12 @@ sub check_y2_nfs_func {
         start_service($rw, $ro);
     }
     check_service($rw, $ro);
-    if ($stage eq 'before') {
-        stop_service();
+    stop_service();
+    # we need to cleanup the nfs settings after service check was done.
+    if ($stage eq 'after') {
+        zypper_call 'rm yast2-nfs-server nfs-kernel-server', timeout => 480;
+        script_run ':> /etc/exports';
+        script_run 'rm -fr /srv/*';
     }
 }
 
