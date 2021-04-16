@@ -1,3 +1,4 @@
+name: 389ds_sssd
 description:    >
     This is for 389ds and sssd authentication
 schedule:
