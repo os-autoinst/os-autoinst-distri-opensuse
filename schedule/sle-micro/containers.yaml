@@ -7,9 +7,14 @@ conditional_schedule:
     SCC_REGISTER:
       'installation':
         - console/suseconnect_scc
+  maintenance:
+    FLAVOR:
+      'MicroOS-Image-Updates':
+        - transactional/install_updates
 schedule:
   - microos/disk_boot
   - '{{registration}}'
+  - '{{maintenance}}'
   - microos/toolbox
   - containers/containers_3rd_party
   - containers/podman

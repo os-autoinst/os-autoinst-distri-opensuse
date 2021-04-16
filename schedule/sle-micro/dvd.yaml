@@ -2,29 +2,35 @@ name:           sle_micro_dvd
 description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  maintenance:
+    FLAVOR:
+      'DVD-Updates':
+        - transactional/install_updates
 schedule:
-    - installation/bootloader_start
-    - installation/welcome
-    - installation/accept_license
-    - installation/scc_registration
-    - installation/ntp_config_settings
-    - installation/user_settings_root
-    - installation/resolve_dependency_issues
-    - installation/installation_overview
-    - installation/disable_grub_timeout
-    - installation/start_install
-    - installation/await_install
-    - installation/logs_from_installation_system
-    - installation/reboot_after_installation
-    - microos/disk_boot
-    - console/textinfo
-    - microos/networking
-    - microos/libzypp_config
-    - microos/one_line_checks
-    - microos/services_enabled
-    - transactional/filesystem_ro
-    - transactional/transactional_update
-    - transactional/rebootmgr
-    - transactional/health_check
-    - microos/journal_check
-    - shutdown/shutdown
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/ntp_config_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - microos/disk_boot
+  - console/textinfo
+  - '{{maintenance}}'
+  - microos/networking
+  - microos/libzypp_config
+  - microos/one_line_checks
+  - microos/services_enabled
+  - transactional/filesystem_ro
+  - transactional/transactional_update
+  - transactional/rebootmgr
+  - transactional/health_check
+  - microos/journal_check
+  - shutdown/shutdown

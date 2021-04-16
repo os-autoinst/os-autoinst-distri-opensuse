@@ -7,10 +7,15 @@ conditional_schedule:
     SCC_REGISTER:
       'installation':
         - console/suseconnect_scc
+  maintenance:
+    FLAVOR:
+      'MicroOS-Image-Updates':
+        - transactional/install_updates
 schedule:
   - microos/disk_boot
   - transactional/disable_grub
   - '{{registration}}'
+  - '{{maintenance}}'
   - microos/networking
   - microos/libzypp_config
   - microos/image_checks
