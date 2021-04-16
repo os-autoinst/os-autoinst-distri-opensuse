@@ -45,7 +45,7 @@ use constant {
           is_qemu
           is_svirt
           is_image_backend
-          )
+        )
     ],
     CONSOLES => [
         qw(
@@ -53,7 +53,7 @@ use constant {
           unset_sshserial_dev
           use_ssh_serial_console
           set_ssh_console_timeout
-          )
+        )
     ]
 };
 

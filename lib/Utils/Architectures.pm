@@ -39,7 +39,7 @@ use constant {
           is_ppc64le
           is_orthos_machine
           is_supported_suse_domain
-          )
+        )
     ]
 };
 
