@@ -1,6 +1,6 @@
-name:           ha_priority_fencing
+name:           qam_ha_priority_fencing
 description:    >
-  Create a 2 nodes cluster for testing the priority fencing delay feature
+  Create a 2 nodes cluster for testing the priority fencing delay feature used for the maintenance process.
 
   Schedule for priority fencing delay test cluster nodes. Use HA_CLUSTER_SETUP setting
   in the job group so the schedule loads the tests for a node running
