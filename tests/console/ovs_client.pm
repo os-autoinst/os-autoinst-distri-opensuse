@@ -10,13 +10,16 @@
 # Summary: Test IPsec tunnel in Open vSwitch with 3 different authentication methods
 #
 #   This test does the following
-#    - Installs openvswitch-ipsec and openvswitch-pki
+#    - Installs openvswitch-ipsec, openvswitch-pki and openvswitch-vtep
 #    - Starts the systemd service unit
 #    - Executes IPsec tunneling between two hosts with the following authenitcation
 #    methods:
 #       * Pre-shared key
 #       * Self-signed certificate
 #       * CA-signed certificate
+#    - Sets up and starts the VTEP emulator
+#    - Sets up the logical network, where server and client connect to one switch
+#    - Verifies that client can ping the server
 #
 # Maintainer: Anna Minou <anminou@suse.de>
 #
@@ -33,6 +36,8 @@ my $server_ip   = "10.0.2.101";
 my $client_ip   = "10.0.2.102";
 my $server_vpn  = "192.0.0.1";
 my $client_vpn  = "192.0.0.2";
+my $server_mac  = "00:00:00:00:00:01";
+my $client_mac  = "00:00:00:00:00:02";
 my $dir         = "/etc/keys/";
 my $dir_certs   = "/etc/ipsec.d/certs/";
 my $dir_private = "/etc/ipsec.d/private/";
@@ -44,7 +49,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Install the needed packages
-    zypper_call('in openvswitch-ipsec openvswitch-pki tcpdump', timeout => 300);
+    zypper_call('in openvswitch-ipsec openvswitch-pki tcpdump openvswitch-vtep', timeout => 300);
 
     # Start the openvswitch and openvswitch-ipsec services
     systemctl 'start openvswitch',       timeout => 200;
@@ -128,6 +133,50 @@ sub run {
     assert_script_run("rm -r $dir* $dir_certs* $dir_private*");
 
     barrier_wait 'end_of_test';
+
+    systemctl 'stop ovsdb-server';
+    systemctl 'stop ovs-vswitchd';
+
+    # Create the ovs and vtep schemas
+    assert_script_run("ovsdb-tool create /etc/openvswitch/ovs.db /usr/share/openvswitch/vswitch.ovsschema");
+    assert_script_run("ovsdb-tool create /etc/openvswitch/vtep.db /usr/share/openvswitch/vtep.ovsschema");
+
+    # Start ovsdb-server and have it handle both databases
+    assert_script_run("ovsdb-server --pidfile --detach --log-file --remote punix:/var/run/openvswitch/db.sock --remote=db:hardware_vtep,Global,managers /etc/openvswitch/ovs.db /etc/openvswitch/vtep.db");
+
+    # Start ovs-vswitchd as normal
+    assert_script_run("ovs-vswitchd --log-file --detach --pidfile unix:/var/run/openvswitch/db.sock");
+
+    # Set up the vtep emulator
+    assert_script_run("ovs-vsctl add-br br0");
+    assert_script_run("ovs-vsctl add-port br0 p1 -- set interface p1 type=internal");
+    assert_script_run("ip link set dev p1 address $client_mac");
+    assert_script_run("ip a add $client_vpn/24 dev p1");
+    assert_script_run("ip link set dev p1 up");
+
+    # Start VTEP Emulator
+    assert_script_run("vtep-ctl add-ps br0");
+    assert_script_run("vtep-ctl set Physical_Switch br0 tunnel_ips=$client_ip");
+    script_output("/usr/share/openvswitch/scripts/ovs-vtep --log-file --pidfile --detach br0");
+
+    # Verify that the ovs-vtep script has run
+    script_retry('cat /var/log/openvswitch/ovs-vtep.log | grep ovs-vtep', delay => 5, retry => 5);
+
+    # Set up Logical Network for the server and client
+    assert_script_run("vtep-ctl add-ls ls0");
+    assert_script_run("vtep-ctl set Logical_Switch ls0 tunnel_key=5000");
+    assert_script_run("vtep-ctl bind-ls br0 p1 0 ls0");
+    assert_script_run("vtep-ctl add-ucast-remote ls0 $server_mac  $server_ip");
+
+    # Direct unknown destinations out a tunnel
+    assert_script_run("vtep-ctl add-mcast-remote ls0 unknown-dst $server_ip");
+
+    # Wait for the server to finish the configuration
+    barrier_wait 'vtep_config';
+
+    assert_script_run("ping -I p1 -c 5 $server_vpn");
+
+    barrier_wait 'end';
 }
 
 1;
