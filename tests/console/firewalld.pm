@@ -18,6 +18,10 @@ use testapi;
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_sle is_leap is_tumbleweed);
 
+sub has_iptables {
+    return (!is_tumbleweed && !is_sle('15-SP3+') && !is_leap('15.3+'));
+}
+
 # Check Service State, enable it if necessary, set default zone to public
 sub pre_test {
     zypper_call('in firewalld');
@@ -28,13 +32,7 @@ sub pre_test {
 }
 
 sub check_rules {
-    if (is_sle('15-SP3+') || is_leap('15.3+')) {
-        assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
-        assert_script_run("iptables -C IN_public_allow -p tcp --dport 110 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
-        assert_script_run("iptables -C IN_public_allow -p icmp -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
-        assert_script_run("iptables -C IN_public_allow -p udp --dport 2000:3000 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
-    }
-    elsif (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW -j ACCEPT");
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 110 -m conntrack --ctstate NEW -j ACCEPT");
         assert_script_run("iptables -C IN_public_allow -p icmp -m conntrack --ctstate NEW -j ACCEPT");
@@ -54,7 +52,7 @@ sub test1 {
     systemctl('stop firewalld');
     systemctl('start firewalld');
     # wait until iptables -L can print rules, max 10 seconds
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run('timeout 10 bash -c "until iptables -L IN_public_allow; do sleep 1;done"');
     }
     else {
@@ -65,7 +63,7 @@ sub test1 {
 # Test #2 - Temporary Rules
 sub test2 {
     record_info 'Test #2', 'Test Temporary Rules';
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
     }
     else {
@@ -83,7 +81,7 @@ sub test2 {
     # Reload default configuration
     record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
     else {
@@ -96,7 +94,7 @@ sub test2 {
 sub test3 {
     # Test Permanent Rules
     record_info 'Test #3', 'Test Permanent Rules';
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
     }
     else {
@@ -120,7 +118,7 @@ sub test3 {
     assert_script_run("firewall-cmd --zone=public --permanent --remove-protocol=icmp");
     assert_script_run("firewall-cmd --zone=public --permanent --remove-port=2000-3000/udp");
     assert_script_run("firewall-cmd --reload");
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
     else {
@@ -133,7 +131,7 @@ sub test3 {
 # Test #4 - Test Rules using Masquerading
 sub test4 {
     record_info 'Test #4', 'Test Rules using Masquerading';
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
         assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
     }
@@ -145,7 +143,7 @@ sub test4 {
     assert_script_run("firewall-cmd --zone=public --add-masquerade");
     assert_script_run("firewall-cmd --zone=public --add-forward-port=port=2222:proto=tcp:toport=22");
 
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow | grep 'to::22'");
         assert_script_run("iptables -t nat -L POST_public_allow | grep MASQUERADE");
     }
@@ -157,7 +155,7 @@ sub test4 {
     # Reload default configuration
     record_info 'Reload default configuration';
     assert_script_run("firewall-cmd --reload");
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("test `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     }
@@ -170,7 +168,7 @@ sub test4 {
 # Test #5 - Test ipv4 family addresses with rich rules
 sub test5 {
     record_info 'Test #5", "Test ipv4 family addresses with rich rules';
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_allow.txt");
         assert_script_run("iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_deny.txt");
     }
@@ -183,7 +181,7 @@ sub test5 {
     assert_script_run("firewall-cmd --zone=public --permanent --add-rich-rule 'rule family=\"ipv4\" source address=192.168.201.0/24 drop'");
     assert_script_run("firewall-cmd --reload");
 
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -C IN_public_allow -s 192.168.200.0/24 -j ACCEPT");
         assert_script_run("iptables -C IN_public_deny -s 192.168.201.0/24 -j DROP");
     }
@@ -197,7 +195,8 @@ sub test5 {
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.200.0/24 accept'");
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.201.0/24 drop'");
     assert_script_run("firewall-cmd --reload");
-    if (!is_tumbleweed) {
+
+    if (has_iptables) {
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
         assert_script_run("test `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
     }
@@ -220,7 +219,7 @@ sub test6 {
 # Test #7 - Create a rule using --timeout and verifying if the rule vanishes after the specified period
 sub test7 {
     record_info 'Test #7', 'Create a rule using timeout';
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
     }
     else {
@@ -230,10 +229,7 @@ sub test7 {
     assert_script_run("firewall-cmd --zone=public --add-service=smtp --timeout=30");
 
     # Default is for Tumbleweed and newer SLE/Leap
-    if (is_sle('15-SP3+') || is_leap('15.3+')) {
-        assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW,UNTRACKED -j ACCEPT");
-    }
-    elsif (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("iptables -C IN_public_allow -p tcp --dport 25 -m conntrack --ctstate NEW -j ACCEPT");
     }
     else {
@@ -241,7 +237,7 @@ sub test7 {
     }
 
     assert_script_run("sleep 35");
-    if (!is_tumbleweed) {
+    if (has_iptables) {
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules.txt`");
     }
     else {
