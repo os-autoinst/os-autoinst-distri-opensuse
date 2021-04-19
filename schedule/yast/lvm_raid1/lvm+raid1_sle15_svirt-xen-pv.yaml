@@ -28,6 +28,5 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
   - installation/first_boot
   - console/validate_lvm_raid1
