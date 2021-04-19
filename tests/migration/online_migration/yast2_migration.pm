@@ -19,7 +19,7 @@ use utils;
 use version_utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sle);
-use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
+use x11utils qw(ensure_unlocked_desktop turn_off_screensaver);
 use Utils::Backends 'is_pvm';
 
 sub yast2_migration_gnome_remote {
@@ -112,8 +112,8 @@ sub run {
         mouse_hide(1);
         assert_screen 'generic-desktop';
 
+        turn_off_screensaver();
         x11_start_program('xterm');
-        turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
         become_root;
         if (check_var('HDDVERSION', '12') && get_var('MIGRATION_REMOVE_ADDONS')) {
             # use latest yast2-registration version because is not officially available
