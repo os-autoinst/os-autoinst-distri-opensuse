@@ -21,42 +21,42 @@
 use strict;
 use warnings;
 use base "installbasetest";
-use Utils::Backends qw(is_pvm is_hyperv);
-
 use testapi;
+use Utils::Backends qw(is_hyperv);
 use YuiRestClient;
 use YuiRestClient::Wait;
 
-my $ip_regexp    = qr/(?<ip>(\d+\.){3}\d+)/i;
-my $boot_timeout = 500;
-
 sub run {
-    # We setup libyui in bootloader on PowerVM and s390x zKVM
-    return if (is_pvm || get_var('S390_ZKVM'));
-    YuiRestClient::process_start_shell();
-
+    my $ip_regexp = qr/(?<ip>(\d+\.){3}\d+)/i;
     if (is_hyperv) {
-        my $svirt = select_console('svirt');
-        my $name  = $svirt->name;
-        my $cmd   = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
-        my $ip    = YuiRestClient::Wait::wait_until(object => sub {
+        my $boot_timeout = 500;
+        my $svirt        = select_console('svirt');
+        my $name         = $svirt->name;
+        my $cmd          = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
+        my $ip           = YuiRestClient::Wait::wait_until(object => sub {
                 my $ip = $svirt->get_cmd_output($cmd);
                 return $+{ip} if ($ip =~ $ip_regexp);
         }, timeout => $boot_timeout, interval => 30);
         set_var('YUI_SERVER', $ip);
-        select_console('sut', await_console => 0);
-    } elsif (check_var('BACKEND', 'svirt')) {
-        assert_screen('yast-still-running', $boot_timeout);
+        #        select_console('sut', await_console => 0);
+    } elsif (check_var('BACKEND', 's390x')) {
         select_console('install-shell');
         my $ip = YuiRestClient::Wait::wait_until(object => sub {
                 my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
                 return $+{ip} if ($ip =~ $ip_regexp);
         });
         set_var('YUI_SERVER', $ip);
-        select_console('installation');
+    } elsif (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        assert_screen "inst-betawarning", 500;
+        select_console('root-console');
+        my $ip = YuiRestClient::Wait::wait_until(object => sub {
+                my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
+                return $+{ip} if ($ip =~ $ip_regexp);
+        });
+        set_var('YUI_SERVER', $ip);
     }
-
     YuiRestClient::connect_to_app();
+    select_console('installation');
 }
 
 1;

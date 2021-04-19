@@ -17,9 +17,10 @@ use constant API_VERSION => 'v1';
 
 use testapi;
 use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty zypper_call);
-use Utils::Backends qw(is_pvm is_hyperv);
+use Utils::Backends qw(is_pvm is_ipmi);
 use YuiRestClient::App;
 use registration;
+use YuiRestClient::Wait;
 
 our $interval = 1;
 our $timeout  = 10;
@@ -57,24 +58,6 @@ sub connect_to_app_running_system {
     get_app()->connect(timeout => 30, interval => 2);
 }
 
-sub process_start_shell {
-    if (get_var('S390_ZKVM')) {
-        wait_serial('ATTENTION: Starting shell', 120) || die "start shell didn't show up";
-        save_svirt_pty;
-        type_line_svirt 'extend libyui-rest-api';
-        type_line_svirt 'exit';
-    } else {
-        assert_screen('startshell', timeout => 500);
-        enter_cmd_slow "extend libyui-rest-api";
-        enter_cmd_slow "exit";
-    }
-}
-
-sub setup_libyui {
-    process_start_shell;
-    connect_to_app;
-}
-
 sub setup_libyui_running_system {
     zypper_call('in libyui-rest-api');
 
@@ -93,18 +76,6 @@ sub setup_libyui_running_system {
     set_app($app);
 }
 
-sub teardown_libyui {
-    if (get_var('S390_ZKVM')) {
-        wait_serial('ATTENTION: Starting shell', 120) || die "start shell didn't show up";
-        save_svirt_pty;
-        type_line_svirt "exit";
-    } else {
-        check_screen('startshell', timeout => 100);
-        # Putting new line to avoid issues if anything was put there (see poo#81034)
-        enter_cmd_slow "\nexit";
-    }
-}
-
 sub is_libyui_rest_api {
     return get_var('YUI_REST_API');
 }
@@ -118,7 +89,7 @@ sub set_libyui_backend_vars {
 
     unless (get_var('BOOT_HDD_IMAGE')) {
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
-              . " startshell=1 YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+              . " extend=libyui-rest-api YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
     }
 
     my $server;
@@ -126,7 +97,7 @@ sub set_libyui_backend_vars {
         # On qemu we connect to the worker using port forwarding
         $server = 'localhost';
         set_var('NICTYPE_USER_OPTIONS', "hostfwd=tcp::$yuiport-:$yuiport");
-    } elsif (is_pvm) {
+    } elsif (is_pvm || is_ipmi) {
         $server = get_var('SUT_IP');
     } elsif (get_var('S390_ZKVM')) {
         $server = get_var('VIRSH_GUEST');
