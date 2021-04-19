@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Package: firewalld
-# Summary: Test FirewallD basic usage
+# Summary: Test FirewallD basic usage, including NFT tables
 # Maintainer: Alexandre Makoto Tanno <atanno@suse.com>
 
 use strict;
@@ -50,8 +50,8 @@ sub check_rules {
 }
 
 # Test #1 - Stop firewalld then start it
-sub test1 {
-    record_info 'Test #1', 'Test: Stop firewalld, then start it';
+sub start_stop_firewalld {
+    record_info 'Service start', 'Test: Stop firewalld, then start it';
     systemctl('stop firewalld');
     systemctl('start firewalld');
     # wait until iptables -L can print rules, max 10 seconds
@@ -64,8 +64,8 @@ sub test1 {
 }
 
 # Test #2 - Temporary Rules
-sub test2 {
-    record_info 'Test #2', 'Test Temporary Rules';
+sub test_temporary_rules {
+    record_info 'Temporary rules', 'Test Temporary Rules';
     if (!is_tumbleweed) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
     }
@@ -94,9 +94,9 @@ sub test2 {
 }
 
 # Test #3 - Test Permanent Rules
-sub test3 {
+sub test_permanent_rules {
     # Test Permanent Rules
-    record_info 'Test #3', 'Test Permanent Rules';
+    record_info 'Permanent Rules', 'Test Permanent Rules';
     if (!is_tumbleweed) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
     }
@@ -132,8 +132,8 @@ sub test3 {
 }
 
 # Test #4 - Test Rules using Masquerading
-sub test4 {
-    record_info 'Test #4', 'Test Rules using Masquerading';
+sub test_masquerading {
+    record_info 'Masquerading tests', 'Test Rules using Masquerading';
     if (!is_tumbleweed) {
         assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
         assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
@@ -169,8 +169,8 @@ sub test4 {
 }
 
 # Test #5 - Test ipv4 family addresses with rich rules
-sub test5 {
-    record_info 'Test #5", "Test ipv4 family addresses with rich rules';
+sub test_rich_rules {
+    record_info 'Rich rules tests", "Test ipv4 family addresses with rich rules';
     if (!is_tumbleweed) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_allow.txt");
         assert_script_run("iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_deny.txt");
@@ -209,8 +209,8 @@ sub test5 {
 }
 
 # Test #6 - Change the default zone
-sub test6 {
-    record_info 'Test #6', 'Change the default zone';
+sub test_default_zone {
+    record_info 'Default zone change test', 'Change the default zone';
     assert_script_run("firewall-cmd --set-default-zone=dmz");
 
     # Change to the default zone
@@ -219,8 +219,8 @@ sub test6 {
 }
 
 # Test #7 - Create a rule using --timeout and verifying if the rule vanishes after the specified period
-sub test7 {
-    record_info 'Test #7', 'Create a rule using timeout';
+sub test_timeout_rules {
+    record_info 'Timeout rules tests', 'Create a rule using timeout';
     if (!is_tumbleweed) {
         assert_script_run("iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules.txt");
     }
@@ -252,8 +252,8 @@ sub test7 {
 }
 
 # Test #8 - Create a custom service
-sub test8 {
-    record_info 'Test #8', 'Create a custom service';
+sub test_custom_services {
+    record_info 'Custom services tests', 'Create a custom service';
     assert_script_run("sed -e 's/22/3050/' -e 's/SSH/FBSQL/' /usr/lib/firewalld/services/ssh.xml | awk '{doit=1} doit{sub(/<description>[^<]+<\\/description>/, \"<description>FBSQL is the protocol for the FirebirdSQL Relational Database</description>\"); print} {doit=0}' > /etc/firewalld/services/fbsql.xml");
     assert_script_run("firewall-cmd --reload");
     assert_script_run("firewall-cmd --get-services | grep -i fbsql");
@@ -268,28 +268,28 @@ sub run {
     pre_test;
 
     # Test #1 - Stop firewalld then start it
-    test1;
+    start_stop_firewalld;
 
     # Test #2 - Temporary rules
-    test2;
+    test_temporary_rules;
 
     # Test #3 - Permanent rules
-    test3;
+    test_permanent_rules;
 
     # Test #4 - Masquerading
-    test4;
+    test_masquerading;
 
     # Test #5 - ipv4 adress family with rich rules
-    test5;
+    test_rich_rules;
 
     # Test #6 - Change the default zone
-    test6;
+    test_default_zone;
 
     # Test #7 - Create a rule using --timeout and verifying if the rule vanishes after the specified period
-    test7;
+    test_timeout_rules;
 
     # Test #8 - Create a custom service
-    test8;
+    test_custom_services;
 
 }
 
