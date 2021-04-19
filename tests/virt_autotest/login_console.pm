@@ -157,5 +157,19 @@ sub run {
     $self->login_to_console;
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    if (check_var('PERF_KERNEL', '1')) {
+        select_console 'log-console';
+        save_screenshot;
+        script_run "save_y2logs /tmp/y2logs.tar.bz2";
+        upload_logs "/tmp/y2logs.tar.bz2";
+        save_screenshot;
+    }
+    else {
+        $self->SUPER::post_fail_hook;
+    }
+}
+
 1;
 
