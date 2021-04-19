@@ -52,7 +52,7 @@ schedule:
   - installation/start_install
   - installation/await_install
   - installation/reboot_after_installation
-  - '{{after_reboot}}'
+  - installation/handle_reboot
   - installation/first_boot
   - '{{create_hdd_tests}}'
 conditional_schedule:
@@ -64,16 +64,6 @@ conditional_schedule:
     CHECK_RELEASENOTES:
       1:
         - installation/releasenotes
-  after_reboot:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-      aarch64:
-        - installation/grub_test
-      x86_64:
-        - installation/grub_test
-      ppc64le:
-        - installation/grub_test
   svirt_upload_assets:
     BACKEND:
       svirt:

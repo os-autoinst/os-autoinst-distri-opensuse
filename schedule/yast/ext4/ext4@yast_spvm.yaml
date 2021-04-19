@@ -31,8 +31,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/teardown_libyui
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_ext4_fs
 test_data:

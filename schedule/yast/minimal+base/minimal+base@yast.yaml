@@ -27,8 +27,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - '{{reconnect_mgmt_console}}'
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/installation_snapshots
@@ -40,11 +39,6 @@ schedule:
   - console/orphaned_packages_check
   - console/validate_installed_patterns
   - console/consoletest_finish
-conditional_schedule:
-  reconnect_mgmt_console:
-    BACKEND:
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
 test_data:
   software:
     patterns:

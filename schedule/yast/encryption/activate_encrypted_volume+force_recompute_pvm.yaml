@@ -33,8 +33,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/boot_encrypt
   - installation/first_boot
   - console/validate_lvm
