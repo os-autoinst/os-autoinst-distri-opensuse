@@ -41,7 +41,9 @@ sub run {
     }
 
     send_key 'alt-f4';
-    assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
+    assert_screen([qw(dont-save-libreoffice-btn generic-desktop)]);
+    record_soft_failure('bsc#1184961')           if match_has_tag('generic-desktop');
+    assert_and_click 'dont-save-libreoffice-btn' if match_has_tag('dont-save-libreoffice-btn');
 }
 
 1;
