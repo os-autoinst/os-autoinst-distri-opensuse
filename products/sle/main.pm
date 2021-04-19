@@ -1089,6 +1089,8 @@ else {
             barrier_create('host2_cert_ready',    2);
             barrier_create('cacert_done',         2);
             barrier_create('end_of_test',         2);
+            barrier_create('vtep_config',         2);
+            barrier_create('end',                 2);
         }
         loadtest 'installation/bootloader_start';
         boot_hdd_image;

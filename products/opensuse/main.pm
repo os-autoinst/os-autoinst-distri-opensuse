@@ -367,6 +367,8 @@ else {
                 barrier_create('empty_directories',   2);
                 barrier_create('cacert_done',         2);
                 barrier_create('end_of_test',         2);
+                barrier_create('vtep_config',         2);
+                barrier_create('end',                 2);
             }
             loadtest 'installation/bootloader_start';
             loadtest 'network/setup_multimachine';
