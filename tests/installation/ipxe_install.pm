@@ -18,6 +18,9 @@ use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
+use version_utils 'is_upgrade';
+use bootloader_setup 'prepare_disks';
+use Utils::Architectures qw(is_aarch64);
 
 use HTTP::Tiny;
 use IPC::Run;
@@ -148,15 +151,20 @@ sub run {
         sleep 120;
     } else {
         select_console 'sol', await_console => 0;
-        sleep 300;
-        my $ssh_vnc_wait_time = 1200;
+        my $ssh_vnc_wait_time = 1500;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         my @tags              = ($ssh_vnc_tag);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
+            prepare_disks if (!is_upgrade && !get_var('KEEP_DISKS'));
         }
         save_screenshot;
+        # Disable SATA disks on arm server as workaround for poo#88403
+        if (is_aarch64) {
+            script_run('for disk in $(lsscsi | awk \'/ST9500325AS/ {split ($6, dev, "/"); print dev[3] }\'); do echo 1> /sys/block/$disk/device/delete; done');
+            save_screenshot;
+        }
 
         set_bootscript_hdd if get_var('IPXE_UEFI');
 

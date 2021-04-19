@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sssd-wbclient samba coreutils
 # Summary: Integration tests to sssd/samba (version conflicted libwbclient.so.0)
 # Based on https://bugzilla.suse.com/show_bug.cgi?id=1162203
 # The core issue was that samba has it's own version of libwbclient.so.0 but it

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus libreoffice
 # Summary: LibreOffice: Open supported file types by double click (tc#1503778)
 # - Download sample files from datadir
 # - Launch nautilus, open directory containing test files
@@ -32,9 +33,6 @@ sub run {
     send_key_until_needlematch("nautilus-Documents-matched", "right");
     send_key "ret";
     wait_still_screen(3);
-    send_key_until_needlematch("libreoffice-specified-file-directory", "right");
-    send_key "ret";
-    wait_still_screen;
 
     # open test files of different formats
     for my $tag (qw(doc docx fodg fodp fods fodt odf odg odp ods odt pptx xlsx)) {

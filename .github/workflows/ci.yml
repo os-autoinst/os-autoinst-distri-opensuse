@@ -1,0 +1,40 @@
+name: ci
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    name: "CI: Running ${{ matrix.test }} tests with perl v${{ matrix.perl-version }}"
+    strategy:
+      matrix:
+        include:
+          - test: static
+            perl-version: 5.32
+          - test: unit
+            perl-version: 5.32
+          - test: compile
+            perl-version: 5.26
+    container:
+      image: perldocker/perl-tester:${{ matrix.perl-version }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        apt-get -y update
+        apt-get -y install yamllint libdbus-1-dev libssh2-1-dev parallel python3-dev
+    - name: Setup perl
+      env:
+        INLINE_PYTHON_EXECUTABLE: /usr/bin/python3
+      run: |
+        # Prefix with space to bypass ./tools/update_spec
+        echo " requires 'Code::DRY';" >> cpanfile
+        echo " requires 'Date::Parse';" >> cpanfile
+        echo " requires 'Regexp::Common';" >> cpanfile
+        echo " requires 'Perl::Tidy', '== 20210111';" >> cpanfile
+        make prepare
+    - name: Run ${{ matrix.test }} tests
+      env:
+        TESTS: ${{ matrix.test }}
+      run: |
+        git fetch origin master
+        make test

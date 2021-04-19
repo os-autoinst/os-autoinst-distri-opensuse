@@ -1,29 +1,32 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 FILES="${@}"
 success=1
 for FILE in $FILES; do
     if [ -f "$FILE" ] 
     then
-        # if file exists it means it was renamed, and then previous file name is retrieved by git log
+        # if file exists, it means it was renamed. Previous file name is retrieved by git log
         FILE=$(git log --follow -p $FILE | grep 'rename from test' | awk '{print $3}' | head -n 1)
     fi
     if [ -n "$(echo $FILE | grep '\.pm$')" ] 
     then
-        # In case file is a module, module name appears in scheduling files excluding 'tests/' and file extension
+        # If the file is a module, file name appears in scheduling files (excluding part 'tests/' and file extension)
         file_to_verify=$(echo $FILE | sed -E 's/^tests\/(.*)\.pm$/\1/g')
         target_paths='schedule/ products/*/main.pm lib/main_common.pm'
-        # In case file is test_data yaml file, the file given is the same as in schedule files
     elif [ -n "$(echo $FILE | grep '\.ya\?ml$')" ] 
     then
+        # If the file is test_data yaml file, the file name returned from git diff command
+        # is the same as in schedule or test_data files
         file_to_verify="$FILE" 
-        target_paths='schedule/'
+        target_paths='schedule/ test_data/'
     fi
-    if [[ -n  $file_to_verify ]] && [[ MATCHED_SCHEDULE_FILES="$(grep --recursive --ignore-case \
-       --files-with-matches "${file_to_verify}\b" $target_paths)" ]]
+    # Using the -e script option will cause the following command to exit the script with failure in case the file_to_verify
+    # is not referenced anywhere. Using "|| :" to avoid this.
+    MATCHED_REFERENCE_FILES=$(grep --recursive --ignore-case --files-with-matches \
+    "${file_to_verify}\b" $target_paths | grep '\(\.ya\?ml$\|\.pm\)' || :)
+    if [[ -n $file_to_verify ]] && [[ -n $MATCHED_REFERENCE_FILES ]]
     then
-        echo "\"$file_to_verify\" was removed or renamed, but it is still used in: \
-              \n$MATCHED_SCHEDULE_FILES\n"
+        echo -e "\"$file_to_verify\" was removed or renamed, but it is still used in:\n$MATCHED_REFERENCE_FILES" 
         success=0
     fi
 done

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Execute fence command on one of the cluster nodes
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
@@ -30,7 +31,7 @@ sub run {
     # Give time for HANA to replicate the database
     if (check_var('CLUSTER_NAME', 'hana')) {
         'sles4sap'->check_replication_state;
-        assert_script_run 'SAPHanaSR-showAttr';
+        'sles4sap'->check_hanasr_attr;
         save_screenshot;
         barrier_wait("HANA_REPLICATE_STATE_${cluster_name}_NODE${node_index}");
     }
@@ -39,7 +40,7 @@ sub run {
     # Sysrq fencing is more a real crash simulation
     if (get_var('USE_SYSRQ_FENCING')) {
         record_info('Fencing info', 'Fencing done by sysrq');
-        type_string "echo b > /proc/sysrq-trigger\n" if ((!defined $node_to_fence && get_var('HA_CLUSTER_INIT')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
+        enter_cmd "echo b > /proc/sysrq-trigger" if ((!defined $node_to_fence && get_var('HA_CLUSTER_INIT')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
     }
     else {
         record_info('Fencing info', 'Fencing done by crm');

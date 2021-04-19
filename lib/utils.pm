@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2020 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
-use maintenance_smelt qw(repo_is_not_active);
 
 our @EXPORT = qw(
   check_console_font
@@ -36,6 +35,8 @@ our @EXPORT = qw(
   type_string_slow
   type_string_very_slow
   type_string_slow_extended
+  enter_cmd_slow
+  enter_cmd_very_slow
   save_svirt_pty
   type_line_svirt
   integration_services_check
@@ -132,8 +133,8 @@ Does B<not> work on B<Hyper-V>.
 sub save_svirt_pty {
     return if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     my $name = console('svirt')->name;
-    type_string "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
-    type_string "echo \$pty\n";
+    enter_cmd "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
+    enter_cmd "echo \$pty";
 }
 
 =head2 type_line_svirt
@@ -147,7 +148,7 @@ If the expected text is not found, it will fail with C<$fail_message>.
 =cut
 sub type_line_svirt {
     my ($string, %args) = @_;
-    type_string "echo $string > \$pty\n";
+    enter_cmd "echo $string > \$pty";
     if ($args{expect}) {
         wait_serial($args{expect}, $args{timeout}) || die $args{fail_message} // 'expected \'' . $args{expect} . '\' not found';
     }
@@ -328,7 +329,14 @@ sub unlock_if_encrypted {
         assert_screen("encrypted-disk-password-prompt", 200);
         type_password;    # enter PW at boot
         save_screenshot;
-        assert_screen 'encrypted_disk-typed_password' if $args{check_typed_password};
+        if ($args{check_typed_password}) {
+            unless (check_screen "encrypted_disk-typed_password", 30) {
+                record_info("Invalid password", "Not all password characters were typed successfully, retyping");
+                send_key "backspace" for (0 .. 9);
+                type_password;
+                assert_screen "encrypted_disk-typed_password";
+            }
+        }
         send_key "ret";
     }
 }
@@ -343,7 +351,7 @@ So this function will simply type C<clear\n>.
 
 =cut
 sub clear_console {
-    type_string "clear\n";
+    enter_cmd "clear";
 }
 
 =head2 assert_gui_app
@@ -394,8 +402,9 @@ sub check_console_font {
     # Does not make sense on ssh-based consoles
     return if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
     # we do not await the console here, as we have to expect the font to be broken
-    # for the needle to match
-    select_console('root-console', await_console => 0);
+    # for the needle to match, for migration, need wait root console
+    my $flavor = get_var('FLAVOR');
+    select_console('root-console', await_console => ($flavor =~ /Migration/) ? 1 : 0);
 
     # if this command failed, we're not in a console (e.g. in a svirt
     # ssh connection) and don't see the console font but the local
@@ -464,6 +473,34 @@ sub type_string_very_slow {
     }
 }
 
+=head2 enter_cmd_slow
+
+ enter_cmd_slow($cmd);
+
+Enter a command with C<SLOW_TYPING_SPEED> to avoid losing keys.
+
+=cut
+sub enter_cmd_slow {
+    my ($cmd) = @_;
+
+    enter_cmd $cmd, SLOW_TYPING_SPEED;
+}
+
+=head2 enter_cmd_very_slow
+
+ enter_cmd_very_slow($cmd);
+
+Enter a command even slower with C<VERY_SLOW_TYPING_SPEED>. Compare to
+C<type_string_very_slow>.
+
+=cut
+sub enter_cmd_very_slow {
+    my ($cmd) = @_;
+
+    enter_cmd $cmd, VERY_SLOW_TYPING_SPEED;
+    wait_still_screen(1, 3);
+}
+
 
 =head2 get_netboot_mirror
 
@@ -529,21 +566,7 @@ sub zypper_call {
             next unless get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/;
         }
         if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)/ && ($ret == 4 || $ret == 8 || $ret == 105 || $ret == 106 || $ret == 139 || $ret == 141)) {
-            # remove maintenance update repo which was released
-            if (($ret == 106 || $ret == 8 || $ret == 4) && script_run(q[grep -E "Repository type can't be determined|not found on medium" /var/log/zypper.log]) == 0) {
-                my @removed;
-                my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
-                while (defined(my $maintrepo = shift @repos)) {
-                    next if $maintrepo =~ /^\s*$/;
-                    my $id = repo_is_not_active($maintrepo);
-                    # id can repeat due to different product, next if repo was removed
-                    next if (grep(/$id/, @removed));
-                    push @removed, $id;
-                    # remove all repositories containing ID, ignore failure as removed repo can be in list again as MAINT_TEST_REPO is not altered
-                    script_run(qq[zypper rr \$(zypper lr -u|awk 'BEGIN {ORS=" "};/$id/{print\$1}')], 0) if $id =~ /\d{3}\d+/;
-                }
-            }
-            elsif (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
+            if (script_run('grep "Exiting on SIGPIPE" /var/log/zypper.log') == 0) {
                 record_soft_failure 'Zypper exiting on SIGPIPE received during package download bsc#1145521';
             }
             else {
@@ -882,7 +905,7 @@ sub handle_livecd_reboot_failure {
     if (match_has_tag('generic-desktop-after_installation')) {
         record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
         select_console 'install-shell';
-        type_string "reboot\n";
+        enter_cmd "reboot";
         save_screenshot;
     }
 }
@@ -1246,7 +1269,7 @@ sub exec_and_insert_password {
     clear_console if !is_serial_terminal();
     type_string "$cmd";
     if (is_serial_terminal()) {
-        type_string " ; echo $hashed_cmd-\$?-\n";
+        enter_cmd " ; echo $hashed_cmd-\$?-";
         wait_serial(qr/Password:\s*$/i);
     }
     else {
@@ -1285,17 +1308,11 @@ sub shorten_url {
 
     my $ua = Mojo::UserAgent->new;
 
-    my $tx = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}});
-    if (my $res = $tx->success) {
-        return $res->body;
-    }
-    else {
-        my $err = $tx->error;
-        die "Shorten url got $err->{code} response: $err->{message}" if $err->{code};
-        die "Connection error when shorten url: $err->{message}";
-    }
+    my $res = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}})->result;
+    if    ($res->is_success) { return $res->body }
+    elsif ($res->is_error)   { die "Shorten url got $res->code response: $res->message" }
+    else                     { die "Shorten url failed with unknown error" }
 }
-
 
 =head2 _handle_login_not_found
 
@@ -1347,8 +1364,7 @@ sub reconnect_mgmt_console {
     $args{grub_expected_twice} //= 0;
 
     if (check_var('ARCH', 's390x')) {
-        my $login_ready = qr/Welcome to /;
-        $login_ready .= is_sle() ? qr/SUSE Linux Enterprise Server.*\(s390x\)/ : qr/openSUSE Tumbleweed/;
+        my $login_ready = serial_terminal::get_login_message();
         console('installation')->disable_vnc_stalls;
 
         # different behaviour for z/VM and z/KVM
@@ -1510,12 +1526,21 @@ sub script_retry {
     my $die     = $args{die}     // 1;
 
     my $ret;
+
+    my $exec = "timeout $timeout $cmd";
+    # Exclamation mark needs to be moved before the timeout command, if present
+    if (substr($cmd, 0, 1) eq "!") {
+        $cmd = substr($cmd, 1);
+        $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
+        $exec = "! timeout $timeout $cmd";
+    }
     for (1 .. $retry) {
-        $ret = script_run "timeout " . ($timeout - 3) . " $cmd", $timeout;
+        # timeout for script_run must be larger than for the 'timeout ...' command
+        $ret = script_run($exec, ($timeout + 3));
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
-        sleep $delay;
+        sleep $delay                   if ($delay > 0);
     }
 
     return $ret;

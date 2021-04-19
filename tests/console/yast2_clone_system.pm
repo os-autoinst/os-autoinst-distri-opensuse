@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: autoyast2
 # Summary: Clone system and use the autoyast file in chained tests
 # Maintainer: Martin Kravec <mkravec@suse.com>
 

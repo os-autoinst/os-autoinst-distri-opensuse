@@ -9,6 +9,7 @@ description:    >
 vars:
   DESKTOP: textmode
   ENABLE_ALL_SCC_MODULES: 1
+  SYSTEM_ROLE: textmode
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -28,10 +29,10 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/consoletest_setup
-  - console/validate_installed_software
+  - console/validate_installed_packages
+  - console/validate_installed_patterns
   - console/yast2_i

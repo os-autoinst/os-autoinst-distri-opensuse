@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: sle12 online migration testsuite
 # Maintainer: yutao <yuwang@suse.com>
 
@@ -19,6 +20,7 @@ use migration;
 
 sub run {
     select_console 'root-console';
+    disable_installation_repos;
     minimal_patch_system(version_variable => 'HDDVERSION');
     remove_ltss;
 }

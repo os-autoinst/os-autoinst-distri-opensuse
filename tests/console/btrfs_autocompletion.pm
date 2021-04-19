@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: bash-completion btrfsprogs
 # Summary: Bash autocompletion for btrfs
 # - Installs bash-completion package in case jeos
 # - Call compare_commands with btrfs commands wth "short" (tabbed) version and
@@ -30,7 +31,7 @@ sub compare_commands {
         type_string shift;
         type_string "\" > /tmp/command$i";
         send_key "home";
-        type_string "echo \"\n";
+        enter_cmd "echo \"";
     }
     assert_script_run "diff /tmp/command\[12\]";
 }

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-ec2metadata iproute2 ca-certificates
 # Summary: This is just bunch of random commands overviewing the public cloud instance
 # We just register the system, install random package, see the system and network configuration
 # This test module will fail at the end to prove that the test run will continue without rollback
@@ -68,13 +69,9 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
+    select_host_console(force => 1);
     # Destroy the public cloud instance
-    ssh_interactive_leave();
-    select_console('tunnel-console', await_console => 0);
-    send_key "ctrl-c";
-    send_key "ret";
     $self->{provider}->cleanup();
 }
 
 1;
-

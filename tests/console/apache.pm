@@ -1,12 +1,13 @@
 # SUSE's Apache regression test
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: apache2 apache2-mod_php72 php72-php72-curl
 # Summary: Test various apche2 basic scenarios
 #  * Test the default vhost after installation
 #  * Test custom vhost domain, custom vhost port
@@ -138,10 +139,11 @@ sub run {
 
             # Run and test this new environment
             assert_script_run 'httpd2-prefork -f /tmp/prefork/httpd.conf';
+            assert_script_run 'until ps aux|grep wwwrun; do echo waiting for httpd2-prefork pid; done';
             assert_script_run 'ps aux | grep "\-f /tmp/prefork/httpd.conf" | grep httpd2-prefork';
 
             # Run and test the old environment too
-            assert_script_run 'rm /var/run/httpd.pid';
+            script_run 'rm /var/run/httpd.pid';
             systemctl 'start apache2';
             assert_script_run 'ps aux | grep "\-f /etc/apache2/httpd.conf" | grep httpd-prefork';
 
@@ -174,15 +176,10 @@ sub run {
     assert_script_run 'htpasswd -s -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
 
     # Paste the .htaccess file
-    assert_script_run "echo 'AuthType Basic
-    AuthName \"only joe must get in!\"
-    AuthUserFile /srv/www/vhosts/localhost/authtest/.htpasswd
-    Require valid-user' > /srv/www/vhosts/localhost/authtest/.htaccess";
+    assert_script_run('curl -o /srv/www/vhosts/localhost/authtest/.htaccess ' . data_url('console/apache_.htaccess'));
 
     # Paste the config file
-    assert_script_run "echo '<Directory \"/srv/www/vhosts/localhost/authtest\">
-    AllowOverride AuthConfig
-    </Directory>' > /etc/apache2/conf.d/authtest.conf";
+    assert_script_run('curl -o /etc/apache2/conf.d/authtest.conf ' . data_url('console/apache_authtest.conf'));
 
     # Start the webserver and test the password access
     systemctl 'start apache2';

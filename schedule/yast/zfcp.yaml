@@ -26,7 +26,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_zfcp
   - console/validate_multipath
@@ -50,17 +50,13 @@ test_data:
           port_type: 'NPIV VPORT'
         fcp_luns:
           - wwpn: '0x500507630718d3b3'
-            names: 'sda sg0'
             scsi:
               peripheral_type: disk
               vendor_model_revision: 'IBM'
-              device_node_name: '/dev/sda'
           - wwpn: '0x500507630713d3b3'
-            names: 'sdb sg1'
             scsi:
               peripheral_type: disk
               vendor_model_revision: 'IBM'
-              device_node_name: '/dev/sdb'
       - fcp_channel: '0.0.fc00'
         attributes:
           online: 0

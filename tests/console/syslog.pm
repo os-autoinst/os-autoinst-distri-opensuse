@@ -5,6 +5,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: util-linux-systemd rsyslog
 # Summary: Check for syslog daemon
 # - Run "logger Test Log Message FOOBAR123"
 # - Check if syslog-ng is installed

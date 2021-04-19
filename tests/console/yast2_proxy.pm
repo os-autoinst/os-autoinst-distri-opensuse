@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
+# Copyright (c) 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: squid yast2-squid yast2-proxy
 # Summary: Test that squid proxy can be started after setup with YaST
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
@@ -157,15 +158,15 @@ sub run {
 
     # change some value in cache settings
     send_key 'alt-a';
-    type_string_slow "11\n";
+    enter_cmd_slow "11";
     send_key 'alt-x';
-    type_string_slow "4086\n";
+    enter_cmd_slow "4086";
     send_key 'alt-i';
-    type_string_slow "3\n";
+    enter_cmd_slow "3";
     send_key 'alt-l';
-    type_string_slow "87\n";
+    enter_cmd_slow "87";
     send_key 'alt-s';
-    type_string_slow "92\n";
+    enter_cmd_slow "92";
     wait_screen_change { send_key 'alt-e'; };
     send_key 'end';
     wait_screen_change { send_key 'ret'; };
@@ -184,11 +185,11 @@ sub run {
     empty_field 'alt-d', 'yast_proxy_cache_dir_empty', 25;
     type_string_slow "/var/cache/squid1";
     send_key 'alt-s';
-    type_string_slow "120\n";
+    enter_cmd_slow "120";
     send_key 'alt-e';
-    type_string_slow "20\n";
+    enter_cmd_slow "20";
     send_key 'alt-v';
-    type_string_slow "246\n";
+    enter_cmd_slow "246";
 
     # check the changes made correctly
     assert_screen 'yast_proxy_cache_directory_new';

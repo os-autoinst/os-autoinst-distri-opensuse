@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-iscsi-client pacemaker-cli
 # Summary: Check cluster status *after* reboot
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
@@ -96,6 +97,12 @@ sub run {
 
     # And check for the state of the whole cluster
     check_cluster_state;
+
+    if (check_var('CLUSTER_NAME', 'hana')) {
+        'sles4sap'->check_replication_state;
+        'sles4sap'->check_hanasr_attr;
+        save_screenshot;
+    }
 
     # Synchronize all nodes
     barrier_wait("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE${node_index}");

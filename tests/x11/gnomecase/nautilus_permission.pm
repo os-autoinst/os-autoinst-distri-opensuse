@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus
 # Summary: case 1436125-use nautilus to change file permissions
 # - Create a test file called "newfile"
 # - Launch nautilus
@@ -41,6 +42,9 @@ sub run {
     send_key "r";        #choose properties
     assert_screen 'nautilus-properties';
     send_key "up";       #move focus onto tab
+                         # For Tumbleweed it is needed one more hit to reach the tab
+                         # In case that the problem appears again, switch to an assert and click strategy for reaching the tab
+    send_key "up";
     send_key "right";    #move to tab Permissions
     for (1 .. 4) { send_key "tab" }
     send_key "ret";
@@ -64,6 +68,9 @@ sub run {
     send_key "r";        #choose properties
     assert_screen 'nautilus-properties';
     send_key "up";       #move focus onto tab
+                         # For Tumbleweed it is needed one more hit to reach the tab
+                         # In case that the problem appears again, switch to an assert and click strategy for reaching the tab
+    send_key "up";
     send_key "right";    #move to tab Permissions
     assert_screen 'nautilus-permissions-changed';
     send_key "esc";      #close the dialog

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: audit nscd apparmor-utils
 # Summary: Display information about logged AppArmor messages
 # - Restart auditd
 # - Create temporary apparmor profile on /tmp
@@ -50,7 +51,7 @@ sub run {
 
     assert_script_run "echo > $audit_log";
 
-    validate_script_output "aa-notify -l", sub { m/^$/ };
+    validate_script_output "aa-notify -l", sub { m/^(AppArmor\sdenials:\s+0\s+\(since.*)?$/ };
 
     # Make it failed intentionally to get some audit messages
     assert_script_run "sed -i '/\\/etc\\/nscd.conf/d' $tmp_prof/usr.sbin.nscd";

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-storage-ng util-linux
 # Summary: This test will check that creating, resizing, encrypting and
 #          deleting a partition, a volume group and some logical volumes work as
 #          intended.
@@ -74,20 +75,18 @@ sub select_vdb {
 }
 
 sub start_y2sn {
-    my $self = shift;
-    $self->launch_yast2_module_x11("storage", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("storage", match_timeout => 120);
 
     wait_screen_change { send_key "alt-y" };
     wait_still_screen 5;
 }
 
 sub run {
-    my $self = shift;
     select_console "x11";
 
     ensure_installed 'lvm2' if is_tumbleweed;
 
-    start_y2sn $self;
+    start_y2sn;
     select_vdb;
 
     ### ADD PARTITION ###
@@ -129,7 +128,7 @@ sub run {
 
     ### RESIZE PARTITION ###
     wait_still_screen 3;
-    start_y2sn $self;
+    start_y2sn;
     select_vdb;
     # resize partition
     if (is_opensuse) {
@@ -170,7 +169,7 @@ sub run {
 
     ### DELETE PARTITION ###
     wait_still_screen 3;
-    start_y2sn $self;
+    start_y2sn;
     select_vdb;
     wait_screen_change { send_key "alt-l" };
     wait_still_screen 1;
@@ -184,7 +183,7 @@ sub run {
 
     ### CREATE VOLUME GROUP ###
     wait_still_screen 3;
-    start_y2sn $self;
+    start_y2sn;
     assert_and_click "yast2_storage_ng-select-vol-management";
     wait_screen_change { send_key "alt-a" };
     # alt-v doesn't work reliably, so we have to use assert_and_click
@@ -248,7 +247,7 @@ sub run {
 
     # Remove the volume group and all its logical volumes
     wait_still_screen 1;
-    start_y2sn $self;
+    start_y2sn;
     assert_and_click "yast2_storage_ng-select-vol-management";
     wait_screen_change { send_key(is_sle() ? "alt-l" : "alt-d") };
     wait_still_screen 1;

@@ -12,7 +12,6 @@ conditional_schedule:
   bootmenu:
     ARCH:
       aarch64:
-        - boot/uefi_bootmenu
   hpctest:
     HPC:
       conman:

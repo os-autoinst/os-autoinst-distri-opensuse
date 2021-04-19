@@ -209,9 +209,9 @@ sub y2snapper_clean_and_quit {
     script_run 'rm -rf /test/*';
     script_run "ls";
     unless ($ncurses) {
-        type_string "exit\n";    # root
+        enter_cmd "exit";    # root
         wait_still_screen(1);
-        type_string "exit\n";    # user
+        enter_cmd "exit";    # user
         wait_still_screen(1);
     }
 }
@@ -246,7 +246,7 @@ sub y2snapper_failure_analysis {
     script_run('pidof snapperd && gdb --batch -q -ex "thread apply all bt" -ex q /usr/sbin/snapperd $(pidof snapperd) |& tee /tmp/snapperd_bt_all.log');
     upload_logs '/tmp/snapperd_bt_all.log';
     set_var('TIMEOUT_SCALE', $previous_timeout_scale);
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: rpm
 # Summary: Test the host kernel
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 

@@ -88,8 +88,12 @@ test_data:
           id: linux-raid
   mds:
     - raid_level: 1
-      chunk_size: 64
-      device_selection_step: 2
+      chunk_size: '64 KiB'
+      devices:
+        - vda2
+        - vdb2
+        - vdc2
+        - vdd2
       partition:
         role: operating-system
         formatting_options:
@@ -97,10 +101,14 @@ test_data:
         mounting_options:
           should_mount: 1
     - raid_level: 0
-      chunk_size: 64
-      device_selection_step: 1
+      chunk_size: '64 KiB'
+      devices:
+        - vda3
+        - vdb3
+        - vdc3
+        - vdd3
       partition:
-        role: operating-system
+        role: swap
         formatting_options:
           should_format: 1
           filesystem: swap

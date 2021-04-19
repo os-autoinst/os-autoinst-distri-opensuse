@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: seahorse
 # Summary: Test seahorse (GNOME Keyring frontend)
 #    * As a side effect, it initializes the keyring so that other
 #      tests running later can access an existing keyring (e.g. chromium &

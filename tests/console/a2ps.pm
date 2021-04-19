@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: a2ps
 # Summary: a2ps test based on: https://progress.opensuse.org/issues/9472
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: openssl SUSEConnect ca-certificates-suse
 # Summary: Register all guests against local SMT server
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -24,8 +25,10 @@ use testapi;
 use utils;
 use version_utils;
 
-sub run {
+sub run_test {
     my ($self) = @_;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Registrating $guest against SMT";

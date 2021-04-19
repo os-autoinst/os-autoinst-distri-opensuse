@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-cluster crmsh
 # Summary: Deploy a cluster with YaST
 # Maintainer: Julien Adamek <jadamek@suse.com>
 
@@ -98,7 +99,7 @@ sub run {
     save_state;
 
     # Generate ssh key
-    type_string "rm -rf /root/.ssh\n";
+    enter_cmd "rm -rf /root/.ssh";
     assert_script_run 'ssh-keygen -f /root/.ssh/id_rsa -N ""';
     assert_script_run 'cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys';
 

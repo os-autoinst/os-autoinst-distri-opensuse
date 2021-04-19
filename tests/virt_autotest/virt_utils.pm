@@ -30,7 +30,7 @@ use virt_autotest::utils;
 use version_utils qw(is_sle get_os_release);
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
 
 sub enable_debug_logging {
 
@@ -307,6 +307,17 @@ sub upload_virt_logs {
 sub generate_guest_asset_name {
     my $guest = shift;
 
+    #get build number
+    my $build_num;
+    #for clone job, get build number from SCC proxy which is set in Media
+    if (get_var('CASEDIR')) {
+        get_var('SCC_URL') =~ /^http.*all-([\d\.]*)\.proxy\.*/;
+        $build_num = $1;
+    }
+    else {
+        $build_num = get_required_var('BUILD');
+    }
+
     my $composed_name
       = 'guest_'
       . $guest
@@ -314,7 +325,7 @@ sub generate_guest_asset_name {
       . get_required_var('DISTRI') . '-'
       . get_required_var('VERSION')
       . '_build'
-      . get_required_var('BUILD') . '_'
+      . $build_num . '_'
       . lc(get_required_var('SYSTEM_ROLE')) . '_'
       . get_required_var('ARCH');
 
@@ -348,6 +359,8 @@ sub compress_single_qcow2_disk {
 sub get_guest_list {
 
     #get the guest pattern from test suite settings
+    #GUEST_PATTERN, GUEST_LIST, or GUEST_LIST is used in different test suites,
+    #thus I use GUEST_LIST uniformly.
     if (get_var('GUEST_PATTERN')) {
         set_var('GUEST_LIST', get_var('GUEST_PATTERN'));
     }
@@ -377,16 +390,6 @@ sub remove_vm {
     if ($is_persistent_vm eq "yes") {
         assert_script_run("virsh undefine $vm", 30);
     }
-}
-
-
-sub upload_supportconfig_log {
-    my $datetab = script_output("date '+%Y%m%d%H%M%S'");
-    script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
-    script_run("tar zcvfP supportconfig.$datetab.tar.gz *supportconfig.$datetab");
-    upload_logs("supportconfig.$datetab.tar.gz");
-    script_run("rm -rf *supportconfig.*");
-    save_screenshot;
 }
 
 # Download guest image and xml from a NFS location to local
@@ -678,11 +681,14 @@ sub perform_guest_restart {
 #Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
 sub collect_host_and_guest_logs {
     my ($guest_wanted, $host_extra_logs, $guest_extra_logs) = @_;
+    $guest_wanted     //= '';
+    $host_extra_logs  //= '';
+    $guest_extra_logs //= '';
 
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
     script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 3600 / get_var('TIMEOUT_SCALE', 1), type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
     my $logs_fetching_script_url = data_url("virt_autotest/fetch_logs_from_guest.sh");
@@ -703,6 +709,7 @@ sub collect_host_and_guest_logs {
 #Please refer to clean_up_virt_logs.sh data/virt_autotest for its detailed functionality, implementation and usage
 sub cleanup_host_and_guest_logs {
     my ($extra_logs_to_cleanup) = @_;
+    $extra_logs_to_cleanup //= '';
 
     #Clean dhcpd and named services up explicity
     if (get_var('VIRT_AUTOTEST')) {

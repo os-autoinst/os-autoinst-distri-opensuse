@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: PackageKit plasma5-pk-updates
 # Summary: Packagekit updates using kde applet
 # Maintainer: mkravec <mkravec@suse.com>
 
@@ -67,15 +68,18 @@ sub run {
             }
             # Check, if there are more updates available
             elsif (match_has_tag('updates_available-tray')) {
-                # look again
-                if (check_screen 'updates_available-tray', 30) {
+                # Look again
+                if (check_screen 'updates_none', 30) {
+                    # There were no updates but the tray icon persisted.
+                    record_soft_failure 'boo#1041112';
+                    last;
+                }
+                elsif (check_screen 'updates_available-tray', 30) {
+                    # There were updates. Do the update again
                     assert_and_click("updates_available-tray");
                 }
                 else {
-                    # Make sure, that there are no updates, otherwise fail
-                    assert_screen 'updates_none';
-                    record_soft_failure 'boo#1041112';
-                    last;
+                    die "Invalid state.";
                 }
             }
         }
@@ -84,7 +88,7 @@ sub run {
     }
 
     if (kernel_updated) {
-        type_string "reboot\n";
+        enter_cmd "reboot";
         $self->wait_boot;
     }
     else {

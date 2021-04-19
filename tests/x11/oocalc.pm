@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice-calc
 # Summary: Startup, basic input and shutdown of oocalc
 # - Launch oocalc
 # - Type "Hello World!"
@@ -25,7 +26,7 @@ sub run {
     $self->libreoffice_start_program('oocalc');
     wait_still_screen;    # extra wait because oo sometimes appears to be idle during start
     wait_screen_change { assert_and_click('input-area-oocalc', timeout => 10) };
-    type_string "Hello World!\n";
+    enter_cmd "Hello World!";
     assert_screen 'test-oocalc-2';
     send_key "alt-f4";
     assert_screen 'test-oocalc-3';

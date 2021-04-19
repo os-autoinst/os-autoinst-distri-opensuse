@@ -9,6 +9,7 @@
 
 #testcase 5255-1503908:Evolution: setup timezone
 
+# Package: evolution
 # Summary: tc#1503908: evolution_timezone_setup
 # - Open edit menu, preferences
 # - Open Calendar and Tasks

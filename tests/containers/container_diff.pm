@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use containers::common;
 use containers::container_images;
-use suse_container_urls 'get_suse_container_urls';
+use containers::urls 'get_suse_container_urls';
 use version_utils qw(is_sle get_os_release);
 
 sub run {
@@ -34,12 +34,14 @@ sub run {
     my ($image_names, $stable_names) = get_suse_container_urls();
 
     # container-diff
-    for my $i (0 .. $#$image_names) {
-        my $image_file = $image_names->[$i] =~ s/\/|:/-/gr;
+    for my $i (@{$image_names}) {
+        my $image_file             = $image_names->[$i] =~ s/\/|:/-/gr;
+        my $container_diff_results = "/tmp/container-diff-$image_file.txt";
         assert_script_run("docker pull $image_names->[$i]",  360);
         assert_script_run("docker pull $stable_names->[$i]", 360);
-        assert_script_run("container-diff diff daemon://$image_names->[$i] daemon://$stable_names->[$i] --type=rpm --type=file --type=size > /tmp/container-diff-$image_file.txt", 300);
-        upload_logs("/tmp/container-diff-$image_file.txt");
+        assert_script_run("container-diff diff daemon://$image_names->[$i] daemon://$stable_names->[$i] --type=rpm --type=file --type=size > $container_diff_results", 300);
+        upload_logs("$container_diff_results");
+        ensure_container_rpm_updates("$container_diff_results");
     }
 
     # Clean container

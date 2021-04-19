@@ -9,17 +9,19 @@ description: >
      - Passwords are set for the users in the profile
 vars:
   AUTOYAST: autoyast_sle15/autoyast_lvm.xml
-  AUTOYAST_VERIFY: autoyast_sle15/autoyast_lvm.list
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - autoyast/console
   - autoyast/login
+  - console/verify_shadow
+  - console/verify_y2log_entries
+  - console/verify_snapper
+  - console/verify_firewall_services
   - console/validate_lvm
   - autoyast/verify_lvm_partitions
   - autoyast/wicked
-  - autoyast/autoyast_verify
   - autoyast/repos
   - autoyast/clone
   - autoyast/logs
@@ -28,41 +30,13 @@ schedule:
   - installation/first_boot
   - autoyast/verify_cloned_profile
 test_data:
-  profile:
-    partitioning:
-      - drive:
-          unique_key: device
-          device: /dev/system
-          partitions:
-            - partition:
-                unique_key: lv_name
-                lv_name: root_lv
-                mount: /
-            - partition:
-                unique_key: lv_name
-                lv_name: opt_lv
-                mount: /opt
-            - partition:
-                unique_key: lv_name
-                lv_name: swap_lv
-                mount: swap
-      - drive:
-          unique_key: device
-          device: /dev/sda
-          partitions:
-            - partition:
-                unique_key: partition_nr
-                partition_nr: 1
-                lvm_group: system
-            - partition:
-                unique_key: partition_nr
-                partition_nr: 2
-            - partition:
-                unique_key: partition_nr
-                partition_nr: 3
+  <<: !include test_data/yast/autoyast/profiles/lvm.yaml
   lvm:
     vg: system
     lvs:
       - root_lv
       - opt_lv
       - swap_lv
+  y2log:
+    - entry_text: 'Some additional space'
+      fail_message: 'no warnings for partition shrinking in y2log'

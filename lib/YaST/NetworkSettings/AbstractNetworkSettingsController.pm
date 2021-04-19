@@ -21,12 +21,17 @@ use YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab;
 
 sub new {
     my ($class, $args) = @_;
-    my $self = bless {
-        OverviewTab    => YaST::NetworkSettings::OverviewTab->new(),
-        AddressTab     => YaST::NetworkSettings::NetworkCardSetup::AddressTab->new(),
-        GeneralTab     => YaST::NetworkSettings::NetworkCardSetup::GeneralTab->new(),
-        VLANAddressTab => YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab->new()
-    }, $class;
+    my $self = bless {}, $class;
+    return $self->init($args);
+}
+
+sub init {
+    my ($self, $args) = @_;
+    $self->{OverviewTab}    = YaST::NetworkSettings::OverviewTab->new();
+    $self->{AddressTab}     = YaST::NetworkSettings::NetworkCardSetup::AddressTab->new();
+    $self->{GeneralTab}     = YaST::NetworkSettings::NetworkCardSetup::GeneralTab->new();
+    $self->{VLANAddressTab} = YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab->new();
+    return $self;
 }
 
 sub get_overview_tab {
@@ -150,7 +155,5 @@ sub save_changes {
     my ($self) = @_;
     $self->get_overview_tab()->press_ok();
 }
-
-
 
 1;

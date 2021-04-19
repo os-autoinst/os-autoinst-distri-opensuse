@@ -1,35 +1,34 @@
 name:           extra_tests_textmode_containers
 description:    >
-    Maintainer: jalausuch@suse.com, qa-c@suse.de.
-    Extra tests about software in containers module
+  Maintainer: qa-c@suse.de.
+  Extra tests about software in containers module
 conditional_schedule:
-    podman_image:
-        DISTRI:
-            'opensuse':
-                - containers/podman_image
-    docker_image:
-        DISTRI:
-            'opensuse':
-                - containers/docker_image
-                - containers/container_diff
-    containers_3rd_party:
-        DISTRI:
-            'opensuse':
-                - containers/containers_3rd_party
-    docker_compose:
-        DISTRI:
-            'opensuse':
-                - containers/docker_compose
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+  podman_image:
+    DISTRI:
+      'opensuse':
+        - containers/podman_image
+  docker_image:
+    DISTRI:
+      'opensuse':
+        - containers/docker_image
+        - containers/container_diff
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - containers/podman
-    - '{{podman_image}}'
-    - containers/docker
-    - containers/docker_runc
-    - '{{docker_image}}'
-    - '{{containers_3rd_party}}'
-    - '{{docker_compose}}'
-    - containers/registry
-    - containers/zypper_docker
-    - console/coredump_collect
+  - '{{boot}}'
+  - boot/boot_to_desktop
+  - containers/podman
+  - '{{podman_image}}'
+  - containers/buildah_podman
+  - containers/docker
+  - '{{docker_image}}'
+  - containers/buildah_docker
+  - containers/docker_runc
+  - containers/docker_compose
+  - containers/zypper_docker
+  - containers/containers_3rd_party
+  - containers/registry
+  - console/coredump_collect
+  - containers/rootless_podman

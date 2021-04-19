@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: dhcp-client xorg-x11-server-extra
 # Summary: Remote Login: XDMCP with xdm and icewm configured
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586204
@@ -37,12 +38,12 @@ sub run {
     become_root;
     assert_script_run 'dhclient';
     $self->configure_xdmcp_firewall;
-    type_string "exit\n";
+    enter_cmd "exit";
 
     # Remote access SLES via Xephyr
-    type_string "Xephyr -query 10.0.2.1 -terminate :1\n";
+    enter_cmd "Xephyr -query 10.0.2.1 -terminate :1";
     assert_screen 'xdmcp-xdm', 90;
-    type_string "$username\n";
+    enter_cmd "$username";
     wait_still_screen 3;
     type_password;
     send_key 'ret';

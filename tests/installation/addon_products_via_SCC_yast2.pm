@@ -41,14 +41,12 @@ sub test_setup {
     }
 
     assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";    # Define proxy SCC
-    wait_screen_change(sub { type_string "exit\n" }, 5) for (1 .. 2);
+    wait_screen_change(sub { enter_cmd "exit" }, 5) for (1 .. 2);
 }
 
 sub run {
-    my ($self) = @_;
-
     test_setup;
-    $self->launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)], maximize_window => 1);
+    y2_module_guitest::launch_yast2_module_x11('scc', target_match => [qw(scc-registration packagekit-warning)], maximize_window => 1);
     if (match_has_tag 'packagekit-warning') {
         send_key 'alt-y';
         assert_screen 'scc-registration';

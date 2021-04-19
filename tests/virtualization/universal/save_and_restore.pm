@@ -7,17 +7,18 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client nmap
 # Summary: Test if the guests can be saved and restored
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
 use testapi;
 use utils;
 
-sub run {
+sub run_test {
     assert_script_run "mkdir -p /var/lib/libvirt/images/saves/";
 
     record_info "Remove", "Remove previous saves (if there were any)";

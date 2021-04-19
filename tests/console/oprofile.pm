@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: fio oprofile psmisc
 # Summary: Simple tests for oprofile.
 # - profile example application (fio to create some load)
 # - check report

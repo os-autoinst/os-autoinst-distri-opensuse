@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2017 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: iproute2 systemd PackageKit zypper yast2 tar bzip2
 # Summary: Verify network and repos are available
 # - Check status of all network interfaces
 # - Stop packagekit service
@@ -26,11 +27,16 @@ use warnings;
 use base 'y2_module_consoletest';
 use testapi;
 use utils;
+use zypper;
 
 sub run {
     # sles12_minimal.xml profile does not install "ip"
     assert_script_run 'ip a || ifstatus all';
-    quit_packagekit;
+    if (!check_var('DESKTOP', 'textmode')) {
+        quit_packagekit;
+        # poo#87850 wait the zypper processes in background to finish and release the lock.
+        wait_quit_zypper;
+    }
     zypper_enable_install_dvd;
     # make sure that save_y2logs from yast2 package, tar and bzip2 are installed
     # even on minimal system

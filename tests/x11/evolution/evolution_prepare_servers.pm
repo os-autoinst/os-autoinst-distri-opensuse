@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dovecot postfix openssl
 # Summary: Setup dovecot and postfix servers as backend for evolution
 # - Stop packagekit service
 # - Install dovecot if DOVECOT_REPO is defined or it is sled. Otherwise, install

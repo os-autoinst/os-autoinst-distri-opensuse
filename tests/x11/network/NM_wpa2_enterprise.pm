@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: NetworkManager
 # Summary: Tests the wpa2-enterprise capabilites of 'hostapd' and 'NetworkManager' based on the setup hwsim_wpa2-enterprise_setup does
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
@@ -28,8 +29,8 @@ sub run {
     become_root;
     # disable IPv4 and IPv6 so NM thinks we are online even without dhcp
     $self->NM_disable_ip;
-    type_string "exit\n";
-    type_string "exit\n";
+    enter_cmd "exit";
+    enter_cmd "exit";
 
     # connect again to see if NM has a "connection" after we disabled v4 and v6
     $self->connect_to_network;

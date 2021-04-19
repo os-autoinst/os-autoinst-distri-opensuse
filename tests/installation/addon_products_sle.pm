@@ -165,8 +165,8 @@ sub run {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
-                timeout      => check_var('BACKEND', 'pvm_hmc') ? 600 : 60,
-                soft_timeout => 30,
+                timeout      => check_var('BACKEND', 'pvm_hmc') ? 600 : 120,
+                soft_timeout => 60,
                 bugref       => 'bsc#1166504');
         }
     }
@@ -228,7 +228,7 @@ sub run {
                     assert_screen "addon-license-beta";
                 }
                 wait_still_screen 2;
-                send_key 'alt-a';                                  # yes, agree
+                send_key 'alt-a';    # yes, agree
                 wait_still_screen 2;
                 send_key $cmd{next};
                 assert_screen 'addon-products', 90;
@@ -236,9 +236,9 @@ sub run {
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
             }
-            send_key "tab";                                        # select addon-products-$addon
-            wait_still_screen 10;                                  # wait until repo is added and list is initialized
-            if (check_var('VIDEOMODE', 'text')) {                  # textmode need more tabs, depends on add-on count
+            send_key "tab";                          # select addon-products-$addon
+            wait_still_screen 10;                    # wait until repo is added and list is initialized
+            if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
             send_key "pgup";

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaThunderbird
 # Summary: send an email using SMTP and receive it using POP
 # - Kill thunderbird, erase all config files
 # - Launch thunderbird
@@ -43,7 +44,7 @@ sub run {
     } else {
         $self->tb_setup_account('pop', $account);
 
-        my $mail_subject = $self->tb_send_message($account);
+        my $mail_subject = $self->tb_send_message('pop', $account);
         $self->tb_check_email($mail_subject);
 
         # exit Thunderbird

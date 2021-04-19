@@ -39,6 +39,7 @@ our @EXPORT = qw(
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
   untick_welcome_on_next_startup
+  start_root_shell_in_xterm
   workaround_boo1170586
 );
 
@@ -205,10 +206,10 @@ sub handle_login {
             assert_and_click 'displaymanager-username-notlisted';
             wait_still_screen 3;
         }
-        type_string "root\n";
+        enter_cmd "root";
     }
     elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
-        type_string "$myuser\n";
+        enter_cmd "$myuser";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         if ($user_selected || (is_sle('<15') || is_leap('<15.0'))) {
@@ -386,9 +387,23 @@ Also handle workarounds when needed.
 =cut
 sub handle_welcome_screen {
     my (%args) = @_;
-    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203)], $args{timeout});
+    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203 opensuse-welcome-gnome40-activities)], $args{timeout});
+    send_key 'esc'                              if match_has_tag('opensuse-welcome-gnome40-activities');
     workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
+}
+
+=head2 start_root_shell_in_xterm
+
+    start_root_shell_in_xterm()
+    
+Start a root shell in xterm.
+
+=cut
+sub start_root_shell_in_xterm {
+    select_console 'x11';
+    x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
+    become_root;
 }
 
 1;

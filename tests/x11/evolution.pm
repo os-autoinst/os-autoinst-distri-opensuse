@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: evolution
 # Summary: Startup of evolution with check of first-startup dialogs
 # - Start evolution and check if it is running
 # - Handle evolution first time wizard

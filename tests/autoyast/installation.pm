@@ -1,4 +1,4 @@
-# Copyright © 2015-2020 SUSE LLC
+# Copyright © 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,13 +40,14 @@ use base 'y2_installbase';
 use testapi;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
-use version_utils qw(is_sle is_microos is_released);
+use version_utils qw(is_sle is_microos is_released is_upgrade);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
 use Utils::Backends 'is_pvm';
 use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
+use validate_encrypt_utils "validate_encrypted_volume_activation";
 
 my $confirmed_licenses = 0;
 my $stage              = 'stage1';
@@ -137,7 +138,7 @@ sub run {
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || is_pvm;
+    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || (is_pvm && !is_upgrade);
     # Similar situation over IPMI backend, we can check against PXE menu
     push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
     # Import untrusted certification for SMT
@@ -163,6 +164,8 @@ sub run {
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
     push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
+    # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
+    push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
@@ -178,7 +181,8 @@ sub run {
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('inst-bootmenu')
-          || match_has_tag('lang_and_keyboard'))
+          || match_has_tag('lang_and_keyboard')
+          || match_has_tag('encrypted-disk-password-prompt'))
     {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
@@ -228,6 +232,14 @@ sub run {
             die "installation ends in linuxrc";
         }
         elsif (match_has_tag('autoyast-confirm')) {
+            if (get_var('ENCRYPT_ACTIVATE_EXISTING')) {
+                validate_encrypted_volume_activation({
+                        mapped_device => $test_data->{mapped_device},
+                        device_status => $test_data->{device_status}->{message},
+                        properties    => $test_data->{device_status}->{properties}
+                });
+            }
+
             # select network (second entry)
             send_key "ret";
 
@@ -295,7 +307,7 @@ sub run {
         }
         elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
             @needles = grep { $_ ne 'linuxrc-start-shell-after-installation' } @needles;
-            type_string "exit\n";
+            enter_cmd "exit";
         }
         elsif (match_has_tag 'expired-gpg-key') {
             send_key 'alt-y';
@@ -331,12 +343,12 @@ sub run {
     $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
     # Second stage starts here
-    $maxtime = 1000;
+    $maxtime = 1000 * get_var('TIMEOUT_SCALE', 1);    # Max waiting time for stage 2
     $timer   = 0;
     $stage   = 'stage2';
 
     check_screen \@needles, $check_time;
-    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard);
+    @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard encrypted-disk-password-prompt);
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
@@ -381,6 +393,9 @@ sub run {
         }
         elsif (match_has_tag('opensuse-welcome')) {
             return;             # Popup itself is processed in opensuse_welcome module
+        }
+        elsif (match_has_tag('encrypted-disk-password-prompt')) {
+            return;
         }
     }
     # ssh console was activated at this point of time, so need to reset

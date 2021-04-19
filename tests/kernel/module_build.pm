@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: kernel-default-devel kmod-compact make
 # Summary: Test kernel module build
 #          Example http://www.tldp.org/LDP/lkmpg/2.6/html/x121.html
 # Maintainer: Petr Cervinka <pcervinka@suse.com>

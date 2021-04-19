@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: smt yast2-smt
 # Summary: Disconnected SMT internal
 # Maintainer: Wei Gao <wegao@suse.com>
 
@@ -31,7 +32,7 @@ sub run {
     smt_wizard();
 
     # setting internal SMT server
-    type_string("yast2 smt-server;echo yast2-smt-server-\$? > /dev/$serialdev\n");
+    enter_cmd("yast2 smt-server;echo yast2-smt-server-\$? > /dev/$serialdev");
     assert_screen("smt-server-1");
     send_key("alt-s");
     assert_screen("smt-server-jobs");
@@ -78,7 +79,7 @@ sub run {
     assert_script_run("smt-repos  --only-enabled | grep SLES12-SP3-Installer-Updates");
     assert_script_run("umount \/mnt\/Mobile-disk");
 
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

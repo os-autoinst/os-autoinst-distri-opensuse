@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Ensure zypper info shows expected output
 # - Check output of "zypper info vim" for header and package name
 # - Add zypper source repository to correspondent distro version

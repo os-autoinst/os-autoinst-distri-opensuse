@@ -212,12 +212,12 @@ available patterns.
 =cut
 sub select_all_patterns_by_menu {
     my ($self) = @_;
-    # move mouse on patterns and open menu
-    mouse_set 100, 400;
-    mouse_click 'right';
-    wait_still_screen 3;
+    # Ensure mouse on certain pattern then right click
+    assert_and_click("minimal-system", button => 'right');
+    assert_screen 'selection-menu';
     # select action on all patterns
     wait_screen_change { send_key 'a'; };
+    assert_screen 'all-select-install';
     # confirm install
     wait_screen_change { send_key 'ret'; };
     mouse_hide;
@@ -390,7 +390,7 @@ sub get_to_console {
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
         send_key "ctrl-alt-f9";
         assert_screen "inst-console";
-        type_string "blkid\n";
+        enter_cmd "blkid";
         save_screenshot();
         wait_screen_change { send_key 'ctrl-alt-f3' };
         save_screenshot();
@@ -523,10 +523,10 @@ sub save_upload_y2logs {
 
     # Try to recover network if cannot reach gw and upload logs if everything works
     if (can_upload_logs() || (!$args{no_ntwrk_recovery} && recover_network())) {
-        assert_script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
+        script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
         my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
-        assert_script_run "save_y2logs $filename", 180;
-        upload_logs $filename;
+        script_run "save_y2logs $filename", 180;
+        upload_logs($filename, failok => 1);
     } else {    # Redirect logs content to serial
         script_run("journalctl -b --no-pager -o short-precise > /dev/$serialdev");
         script_run("dmesg > /dev/$serialdev");
@@ -547,10 +547,10 @@ sub save_remote_upload_y2logs {
     type_string 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
     send_key 'ret';
     my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
-    type_string "save_y2logs $filename\n";
+    enter_cmd "save_y2logs $filename";
     my $uploadname = +(split('/', $filename))[2];
     my $upname     = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
-    type_string "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "\n";
+    enter_cmd "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "";
     save_screenshot();
     $self->investigate_yast2_failure();
 }
@@ -561,24 +561,24 @@ sub save_system_logs {
     return if (get_var('NOLOGS'));
 
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
-        assert_script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
-        assert_script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
-        upload_logs '/tmp/btrfs-filesystem-df-mnt.txt';
-        upload_logs '/tmp/btrfs-filesystem-usage-mnt.txt';
+        script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
+        script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
+        upload_logs('/tmp/btrfs-filesystem-df-mnt.txt',    failok => 1);
+        upload_logs('/tmp/btrfs-filesystem-usage-mnt.txt', failok => 1);
     }
-    assert_script_run 'df -h';
-    assert_script_run 'df > /tmp/df.txt';
-    upload_logs '/tmp/df.txt';
+    script_run 'df -h';
+    script_run 'df > /tmp/df.txt';
+    upload_logs('/tmp/df.txt', failok => 1);
 
     # Log connections
     script_run('ss -tulpn > /tmp/connections.txt');
-    upload_logs '/tmp/connections.txt';
+    upload_logs('/tmp/connections.txt', failok => 1);
     # Check network traffic
     script_run('for run in {1..10}; do echo "RUN: $run"; nstat; sleep 3; done | tee /tmp/network_traffic.log');
-    upload_logs '/tmp/network_traffic.log';
+    upload_logs('/tmp/network_traffic.log', failok => 1);
     # Check VM load
     script_run('for run in {1..3}; do echo "RUN: $run"; vmstat; sleep 5; done | tee /tmp/cpu_mem_usage.log');
-    upload_logs '/tmp/cpu_mem_usage.log';
+    upload_logs('/tmp/cpu_mem_usage.log', failok => 1);
 
     $self->save_and_upload_log('pstree',  '/tmp/pstree');
     $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
@@ -596,7 +596,7 @@ sub save_strace_gdb_output {
         my $strace_log    = '/tmp/yast_trace.log';
         my $strace_ret    = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
 
-        upload_logs $strace_log if script_run "! [[ -e $strace_log ]]";
+        upload_logs($strace_log, failok => 1) if script_run "! [[ -e $strace_log ]]";
 
         # collect installer proc fs files
         my @procfs_files = qw(
@@ -625,9 +625,16 @@ sub save_strace_gdb_output {
         unless ($system_management_locked) {
             my $gdb_output = '/tmp/yast_gdb.log';
             my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
-            upload_logs $gdb_output if script_run '! [[ -e /tmp/yast_gdb.log ]]';
+            upload_logs($gdb_output, failok => 1) if script_run '! [[ -e /tmp/yast_gdb.log ]]';
         }
     }
+}
+
+sub post_run_hook {
+    my $self = shift;
+
+    $self->SUPER::post_run_hook;
+    save_screenshot;
 }
 
 sub post_fail_hook {

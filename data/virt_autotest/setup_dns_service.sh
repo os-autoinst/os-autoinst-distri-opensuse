@@ -120,7 +120,7 @@ if [[ ${vmguest_failed} -ne 0 ]];then
 	exit 1
 fi
 #Wait for vm guests get assigned ip addresses
-sleep 60s
+sleep 90s
 echo -e "Virtual machines ${vm_guestnames_array[@]} have already been refreshed\n" | tee -a ${setup_log_file}
 
 #Write vm_hash_forward_ipaddr and vm_hash_reverse_ipaddr arrays
@@ -129,6 +129,11 @@ for vmguest in ${vm_guestnames_array[@]};do
         vm_macaddresses_array[${vm_hash_index}]=$(echo -e ${get_vm_macaddress})
         get_vm_ipaddress=`tac $dhcpd_lease_file | awk '!($0 in S) {print; S[$0]}' | tac | grep -iE "${vm_macaddresses_array[${vm_hash_index}]}" -B8 | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | tail -1`
         vm_ipaddress=$(echo -e ${get_vm_ipaddress})
+        #missing ip will make named fail to load domain zones due to malformed zone file
+        if [ -z "$vm_ipaddress" ]; then
+            echo -e "Unable to get the ip of $vmguest. Abort the test!\n" | tee -a ${setup_log_file}
+            exit 1
+        fi
         vm_ipaddress_lastpart=$(echo -e ${vm_ipaddress} | grep -Eo "[0-9]{1,3}$")
         vm_hash_forward_ipaddr[${vm_hash_index}]=${vm_ipaddress}
         vm_hash_reverse_ipaddr[${vm_hash_index}]=${vm_ipaddress_lastpart}

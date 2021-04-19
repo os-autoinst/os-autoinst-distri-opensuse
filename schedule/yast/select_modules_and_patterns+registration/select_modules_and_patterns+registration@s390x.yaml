@@ -34,14 +34,15 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - installation/first_boot
   - console/check_resume
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
-  - console/validate_installed_software
+  - console/validate_installed_packages
+  - console/validate_installed_patterns
   - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown

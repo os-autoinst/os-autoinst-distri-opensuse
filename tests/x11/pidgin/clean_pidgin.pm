@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: Cleanup before testing pidgin
 # - remove pidgin package
 # - ensure that package was really removed
@@ -25,7 +26,7 @@ sub remove_pkg {
     # Remove packages
     assert_script_sudo "zypper -n rm @packages", timeout => 180;
     assert_script_run "zypper --no-refresh if @packages|grep 'not installed'";
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 sub run {

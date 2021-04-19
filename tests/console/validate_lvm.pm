@@ -88,15 +88,17 @@ sub run {
         die "LVM usage stats do not differ!";
     }
 
-    record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
-    my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
-    my $drives            = extract_drives_from_json($lsblk_output_json);
-    my $i;
-    foreach my $dev (@{$drives}) {
-        $i = 1;
-        foreach my $child (@{get_children($dev)}) {
-            assert_script_run("parted $dev->{name} align-check optimal $i");
-            $i++;
+    unless (get_var('MULTIPATH')) {
+        record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
+        my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
+        my $drives            = extract_drives_from_json($lsblk_output_json);
+        my $i;
+        foreach my $dev (@{$drives}) {
+            $i = 1;
+            foreach my $child (@{get_children($dev)}) {
+                assert_script_run("parted $dev->{name} align-check optimal $i");
+                $i++;
+            }
         }
     }
 }

@@ -27,13 +27,20 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next} = $self->{app}->button({id => 'next'});
+    $self->{rb_msdos_part_table} = $self->{app}->radiobutton({id => '"msdos"'});
+    $self->{rb_gpt_part_table}   = $self->{app}->radiobutton({id => '"gpt"'});
+    $self->{btn_next}            = $self->{app}->button({id => 'next'});
     return $self;
 }
 
 sub press_next {
     my ($self) = @_;
     return $self->{btn_next}->click();
+}
+
+sub select_partition_table_type {
+    my ($self, $table_type) = @_;
+    return ($table_type eq 'msdos') ? $self->{rb_msdos_part_table}->select() : $self->{rb_gpt_part_table}->select();
 }
 
 1;

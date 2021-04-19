@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: kmod
 # Summary: Test common commands: modinfo, lsmod, modprobe, rmmod,
 # depmod. Tests the commands and their output for common words.
 # Module used for testing: ip_set.

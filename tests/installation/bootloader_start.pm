@@ -32,7 +32,6 @@ BEGIN {
     unshift @INC, dirname(__FILE__) . '/../boot';
 }
 use boot_from_pxe;
-use uefi_bootmenu;
 
 sub run {
     my $self = shift;
@@ -71,12 +70,7 @@ sub run {
     # except Xen PV as id does not have VNC (bsc#961638).
     if (check_var('BACKEND', 'qemu') || (check_var('BACKEND', 'svirt') && !(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')))) {
         if (get_var('UEFI')) {
-            if (get_var('BOOT_HDD_IMAGE')) {
-                record_info('uefi_bootmenu');
-                $self->uefi_bootmenu::run();
-                return;
-            }
-            else {
+            unless (get_var('BOOT_HDD_IMAGE')) {
                 record_info('bootloader_uefi');
                 $self->bootloader_uefi::run();
                 return;

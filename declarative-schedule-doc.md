@@ -254,6 +254,15 @@ disks:
 > allows to override imported data). Latest included data has priority over previous included data in test
 > data file.
 
+Additionally in the test_data structure for your scenario you can expand variables from vars.json, for instance:
+```
+test_data:
+  repos:
+    - name:  SLES-%VERSION%
+      alias: SLES
+      enabled: No
+```
+
 ### 2. Enable scheduler in settings
 
 It is required to add in openQA WebUI in the test suite configuration a new setting `YAML_SCHEDULE` pointing to .yaml file path, for instance:

@@ -1,0 +1,16 @@
+name:           sle_micro_containers
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  registration:
+    SCC_REGISTER:
+      'installation':
+        - console/suseconnect_scc
+schedule:
+  - microos/disk_boot
+  - '{{registration}}'
+  - microos/toolbox
+  - containers/containers_3rd_party
+  - containers/podman
+  - containers/podman_image

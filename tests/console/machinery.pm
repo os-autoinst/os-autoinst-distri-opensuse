@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: machinery
 # Summary: Add simple machinery test thanks to greygoo (#1592)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
@@ -23,28 +24,14 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    if (is_sle) {
-        assert_script_run 'source /etc/os-release';
-        if (is_sle '>=15') {
-            add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-        }
-        else {
-            register_product();
-            if (script_run('SUSEConnect -p sle-module-adv-systems-management/12/${CPU}') == 67) {
-                record_soft_failure 'bsc#1124343 - ASMM Module not yet available for SLE12SP5';
-                return;
-            }
-        }
-    }
-
-    if (zypper_call('in machinery', exitcode => [0, 4]) == 4) {
-        if (is_sle) {
+    if (zypper_call 'in machinery', exitcode => [0, 4]) {
+        my $reported_pkgs_regex = q[(builder|kramdown)];
+        if (is_sle && !script_run(q{grep -E 'nothing\s+provides.*rubygem\(ruby.*} . $reported_pkgs_regex . q{\)' /var/log/zypper.log})) {
             record_soft_failure 'bsc#1124304 - Dependency of machinery missing (dep is in HA module)';
+            return;
+        } else {
+            die "Newly found missing dependency, please report in bsc#1124304!\n";
         }
-        elsif (is_opensuse) {
-            record_soft_failure 'boo#1142975 - Dependency of machinery missing in TW';
-        }
-        return;
     }
     validate_script_output 'machinery --help', sub { m/machinery - A systems management toolkit for Linux/ }, 100;
     if (get_var('ARCH') =~ /aarch64|ppc64le/ && \

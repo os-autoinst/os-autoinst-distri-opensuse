@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel
+# make dracut
 # Summary: build, install and boot a custom, upstream kernel tree
 #          from an arbitrary git tree
 #
@@ -27,17 +29,14 @@ sub run {
     $self->select_serial_terminal;
 
     # download, compile and install a kernel tree from git
-    zypper_call('in git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');
+    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel');
     # git clone takes a long time due to slow network connection
     assert_script_run("git clone --depth 1 --single-branch --branch $git_branch $git_tree linux", 7200);
 
     assert_script_run('cd linux');
     assert_script_run('zcat /proc/config.gz > .config');
     assert_script_run('make olddefconfig');
-    assert_script_run('yes | make localmodconfig');
 
-    # building a kernel takes a while, give it a long timeout in case we run
-    # this on a slower machine
     assert_script_run('make -j `nproc` | tee /tmp/kernelbuild.log', 3600);
     assert_script_run("sed -i 's/allow_unsupported_modules 0/allow_unsupported_modules 1/g' /etc/modprobe.d/10-unsupported-modules.conf");
     assert_script_run('make install modules_install');

@@ -2,8 +2,12 @@
 <<: !include test_data/yast/raid/raid_disks_prep_boot.yaml
 mds:
   - raid_level: 10
-    chunk_size: 64
-    device_selection_step: 3
+    chunk_size: '64 KiB'
+    devices:
+      - vda2
+      - vdb2
+      - vdc2
+      - vdd2
     partition:
       role: operating-system
       formatting_options:
@@ -11,8 +15,12 @@ mds:
       mounting_options:
         should_mount: 1
   - raid_level: 1
-    chunk_size: 64
-    device_selection_step: 2
+    chunk_size: '64 KiB'
+    devices:
+      - vda3
+      - vdb3
+      - vdc3
+      - vdd3
     partition:
       role: data
       formatting_options:
@@ -22,8 +30,12 @@ mds:
         should_mount: 1
         mount_point: '/boot'
   - raid_level: 0
-    chunk_size: 64
-    device_selection_step: 1
+    chunk_size: '64 KiB'
+    devices:
+      - vda4
+      - vdb4
+      - vdc4
+      - vdd4
     partition:
       role: swap
       formatting_options:

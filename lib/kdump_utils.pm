@@ -14,17 +14,17 @@ use warnings;
 use testapi;
 use utils;
 use registration;
-use Utils::Backends 'is_pvm';
-use Utils::Architectures qw(is_ppc64le is_aarch64);
+use Utils::Backends qw(is_pvm is_xen_pv is_ipmi);
+use Utils::Architectures qw(is_ppc64le is_aarch64 is_x86_64);
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_jeos is_leap is_tumbleweed is_opensuse);
 use utils 'ensure_serialdev_permissions';
-use maintenance_smelt qw(repo_is_not_active);
 
 
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
-  activate_kdump activate_kdump_without_yast kdump_is_active
-  do_kdump configure_service check_function full_kdump_check);
+  activate_kdump activate_kdump_cli activate_kdump_without_yast
+  kdump_is_active do_kdump configure_service check_function
+  full_kdump_check);
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
@@ -58,11 +58,12 @@ sub prepare_for_kdump_sle {
         return;
     }
     my $counter = 0;
+    # use INCIDENT_REPO if defined, MR's contain also MAINT_TEST_REPO, but INCIDENT_REPO is relevant
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     if (get_var('MAINT_TEST_REPO')) {
         # append _debug to the incident repo
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
             next unless $i;
-            next if repo_is_not_active($i);
             $i =~ s,/$,_debug/,;
             $counter++;
             zypper_call("--no-gpg-checks ar -f $i 'DEBUG_$counter'");
@@ -77,20 +78,21 @@ sub prepare_for_kdump_sle {
 }
 
 sub prepare_for_kdump {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type} //= '';
 
     # disable packagekitd
     quit_packagekit;
-    if ($test_type eq 'before') {
-        zypper_call('in yast2-kdump kdump');
-    }
-    else {
-        zypper_call('in yast2-kdump kdump crash');
-    }
-    zypper_call('in mokutil') if is_jeos && get_var('UEFI') && !check_var('ARCH', 'aarch64');
+    my @pkgs = qw(yast2-kdump kdump);
+    push @pkgs, qw(crash);
 
-    return if ($test_type eq 'before');
+    if (is_jeos && get_var('UEFI')) {
+        push @pkgs, is_aarch64 ? qw(mokutil shim) : qw(mokutil);
+    }
+
+    zypper_call "in @pkgs";
+
+    return if ($args{test_type} eq 'before');
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
@@ -113,6 +115,20 @@ sub prepare_for_kdump {
     zypper_call("mr -d $opensuse_debug_repos");
 }
 
+sub handle_warning_not_supported {
+    my $warning = shift;
+
+    if ($warning eq 'yast2-kdump-not-supported') {
+        send_key 'ret';
+        assert_screen 'yast2-kdump-cannot-read-mem';
+        send_key 'ret';
+    } elsif ($warning eq 'yast2-kdump-cannot-read-mem') {
+        send_key 'ret';
+    } else {
+        die "Unknown warning message\n";
+    }
+}
+
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
     # restart info will appear only when change has been done
@@ -121,7 +137,18 @@ sub activate_kdump {
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
     my $module_name  = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
-    assert_screen([qw(yast2-kdump-disabled yast2-kdump-enabled)], 200);
+    my @initial_tags = qw(yast2-kdump-disabled yast2-kdump-enabled);
+    push(@initial_tags,
+        (is_sle('>=15-sp3')) ? 'yast2-kdump-not-supported' : 'yast2-kdump-cannot-read-mem') if (is_xen_pv);
+
+    assert_screen(\@initial_tags, 200);
+    if (match_has_tag('yast2-kdump-not-supported') || match_has_tag('yast2-kdump-cannot-read-mem')) {
+        handle_warning_not_supported(pop(@initial_tags));
+        assert_screen(\@initial_tags, 200);
+        send_key 'alt-c';
+        wait_serial("$module_name-16") || die "'yast2 kdump' didn't finish";
+        return 16;
+    }
     if (match_has_tag('yast2-kdump-disabled')) {
         # enable kdump
         send_key('alt-u');
@@ -148,6 +175,27 @@ sub activate_kdump {
         send_key('alt-o');
     }
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
+}
+
+# Activate kdump using yast command line interface
+sub activate_kdump_cli {
+    # Make sure fadump is disabled on PowerVM
+    assert_script_run('yast2 kdump fadump disable', 180) if is_pvm;
+
+    # Use kdumptool calibrate to get default memory settings
+    my $kdumptool_calibrate = script_output('kdumptool calibrate');
+    record_info('KDUMPTOOL CALIBRATE', $kdumptool_calibrate);
+    my $high_low = is_x86_64 ? 'High' : 'Low';
+    my ($calibrated_memory) = $kdumptool_calibrate =~ /\s$high_low:[ ]*(\d*)/;
+
+    # Set kernel crash memory from job variable or use kdumptool calibrate value
+    my $crash_memory = get_var('CRASH_MEMORY') ? get_var('CRASH_MEMORY') : $calibrated_memory;
+    record_info('CRASH MEMORY', $crash_memory);
+    assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
+    # Enable firmware assisted dump if needed
+    assert_script_run('yast2 kdump fadump enable', 180) if check_var('FADUMP');
+    assert_script_run('yast kdump show',           180);
+    systemctl('enable kdump');
 }
 
 sub activate_kdump_without_yast {
@@ -196,7 +244,7 @@ sub do_kdump {
 
 #
 # Install debug kernel and use yast2 kdump to enable kdump service.
-# we use $test_type to distingush  migration or function check.
+# we use $args{test_type} to distingush  migration or function check.
 #
 # For migration test we just do activate kdump. migration test do
 # not need to run prepare_for_kdump function because it can't get
@@ -205,11 +253,12 @@ sub do_kdump {
 # For function test we need to install the debug kernel and activate kdump.
 #
 sub configure_service {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type}      //= '';
+    $args{yast_interface} //= '';
 
     my $self = y2_module_consoletest->new();
-    if ($test_type eq 'function') {
+    if ($args{test_type} eq 'function') {
         # preparation for crash test
         if (is_sle '15+') {
             add_suseconnect_product('sle-module-desktop-applications');
@@ -217,8 +266,12 @@ sub configure_service {
         }
     }
 
-    prepare_for_kdump($test_type);
-    activate_kdump;
+    prepare_for_kdump($args{test_type});
+    if ($args{yast_interface} eq 'cli') {
+        activate_kdump_cli;
+    } else {
+        return 16 if (activate_kdump == 16);
+    }
 
     # restart to activate kdump
     power_action('reboot', keepconsole => is_pvm);
@@ -244,8 +297,8 @@ sub configure_service {
 # and can be debugged by crash.
 #
 sub check_function {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type} //= '';
 
     my $self = y2_module_consoletest->new();
 
@@ -260,7 +313,7 @@ sub check_function {
         assert_screen 'grub2', 180;
         wait_screen_change { send_key 'ret' };
     }
-    elsif (is_pvm) {
+    elsif (is_pvm || is_ipmi) {
         reconnect_mgmt_console;
     }
     else {
@@ -273,7 +326,9 @@ sub check_function {
 
     assert_script_run 'find /var/crash/';
 
-    if ($test_type eq 'function') {
+    if ($args{test_type} eq 'function') {
+        # Check, that vmcore exists, otherwise fail
+        assert_script_run('ls -lah /var/crash/*/vmcore');
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`*";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
@@ -285,14 +340,14 @@ sub check_function {
     # Test PoverVM specific scenario with disabled fadump on encrypted filesystem
     if (is_pvm && get_var('ENCRYPT') && get_var('FADUMP')) {
         # Disable fadump
-        assert_script_run('yast2 kdump fadump disable', 120);
-        assert_script_run('yast2 kdump show',           120);
+        assert_script_run('yast2 kdump fadump disable', 180);
+        assert_script_run('yast2 kdump show',           180);
         # Set print_delay to slow down kernel
         assert_script_run('echo 1000 > /proc/sys/kernel/printk_delay');
         # Restart system and check console
         power_action('reboot', keepconsole => 1);
         reconnect_mgmt_console;
-        assert_screen('system-reboot', timeout => 120, no_wait => 1);
+        assert_screen('system-reboot', timeout => 180, no_wait => 1);
         $self->wait_boot(bootloader_time => 300);
         select_console 'root-console';
     }
@@ -303,13 +358,13 @@ sub check_function {
 # parameter $stage is 'before' or 'after' of a system migration stage.
 #
 sub full_kdump_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
     select_console 'root-console';
 
     if ($stage eq 'before') {
-        configure_service('before');
+        configure_service(test_type => $stage);
     }
     check_function();
 

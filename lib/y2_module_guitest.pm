@@ -38,7 +38,7 @@ C<$maximize_window> option allows to maximize application window using shortcut.
 
 =cut
 sub launch_yast2_module_x11 {
-    my ($self, $module, %args) = @_;
+    my ($module, %args) = @_;
     $module //= '';
     $args{target_match} //= $module ? "yast2-$module-ui" : 'yast2-ui';
     my @tags = ['root-auth-dialog', ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match}];
@@ -48,7 +48,7 @@ sub launch_yast2_module_x11 {
         script_run('pkill -TERM -e yast2');
         select_console('x11');
     }
-    my $yast_env_variables = y2_module_basetest::with_yast_env_variables();
+    my $yast_env_variables = y2_module_basetest::with_yast_env_variables($args{extra_vars});
     # the command started with 'sh -c' to be able to execute 'echo' in Desktop Runner on Gnome
     x11_start_program("sh -c 'xdg-su -c \"env $yast_env_variables /sbin/yast2 $module\"; echo \"yast2-$module-status-\$?\" > /dev/$serialdev'", target_match => @tags, match_timeout => $args{match_timeout});
     foreach ($args{target_match}) {

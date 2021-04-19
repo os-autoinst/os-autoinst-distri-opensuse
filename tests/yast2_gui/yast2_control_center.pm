@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-control-center-qt yast2-kdump yast2-boot-server yast2-sound
 # Summary: YaST2 UI test yast2-control-center provides sanity checks for YaST modules
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
@@ -318,7 +319,6 @@ sub start_fonts {
 }
 
 sub run {
-    my $self = shift;
     select_console 'x11';
     if (is_sle '15+') {
         # kdump is disabled by default in the installer, so ensure that it's installed
@@ -326,7 +326,13 @@ sub run {
         # see bsc#1062331, sound is not added to the yast2 pattern
         ensure_installed 'yast2-boot-server yast2-sound';
     }
-    $self->launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
+    elsif (is_tumbleweed) {
+        record_soft_failure('bsc#1182125', "yast2-online-update-frontend is not pre-installed on TW");
+        ensure_installed('yast2-online-update-frontend');
+        record_soft_failure('bsc#1182241', "yast2-vpn is not pre-installed on TW");
+        ensure_installed('yast2-vpn yast2-sudo yast2-tune yast2-kdump');
+    }
+    y2_module_guitest::launch_yast2_module_x11('', target_match => 'yast2-control-center-ui', match_timeout => 180);
 
     start_addon_products;
     start_media_check;

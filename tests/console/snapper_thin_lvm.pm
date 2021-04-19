@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper lvm2 e2fsprogs util-linux
 # Summary: Test snapper on thin-provisioned LVM
 # poo#15944 FATE#321049
 # - Install lvm2

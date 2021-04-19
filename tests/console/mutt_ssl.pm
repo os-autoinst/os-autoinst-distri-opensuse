@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: mutt curl
 # Summary: Test mutt mail agent with SSL enabled
 # Maintainer: Ben Chou <bchou@suse.com>
 
@@ -46,7 +47,7 @@ sub run {
     }
 
     # Receive mails
-    type_string "mutt\n";
+    enter_cmd "mutt";
 
     # check testing mail in mailbox
     assert_screen 'mutt_mailbox';

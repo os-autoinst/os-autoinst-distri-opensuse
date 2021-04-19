@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: virt-manager
 # Summary: This test turns all VMs off and then on again
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use strict;
 use warnings;
@@ -24,11 +25,11 @@ use testapi;
 use utils;
 use virtmanager;
 
-sub run {
+sub run_test {
     my ($self) = @_;
 
     #x11_start_program 'virt-manager';
-    type_string "virt-manager\n";
+    enter_cmd "virt-manager";
 
     establish_connection();
 

@@ -11,7 +11,7 @@
 package opensusebasetest;
 use base 'basetest';
 
-use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface tianocore_disable_secureboot);
+use bootloader_setup qw(boot_grub_item boot_local_disk stop_grub_timeout tianocore_enter_menu zkvm_add_disk zkvm_add_pty zkvm_add_interface tianocore_disable_secureboot tianocore_select_bootloader);
 use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
@@ -95,7 +95,7 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub save_and_upload_log {
     my ($self, $cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", $args->{timeout});
-    upload_logs($file) unless $args->{noupload};
+    upload_logs($file, failok => 1) unless $args->{noupload};
     save_screenshot if $args->{screenshot};
 }
 
@@ -113,7 +113,7 @@ Afterwards a screenshot will be created if C<$screenshot> is set.
 sub tar_and_upload_log {
     my ($self, $sources, $dest, $args) = @_;
     script_run("tar -jcv -f $dest $sources", $args->{timeout});
-    upload_logs($dest) unless $args->{noupload};
+    upload_logs($dest, failok => 1) unless $args->{noupload};
     save_screenshot() if $args->{screenshot};
 }
 
@@ -157,7 +157,7 @@ The files will be uploaded as a single tarball called C<problem_detection_logs.t
 sub problem_detection {
     my $self = shift;
 
-    type_string "pushd \$(mktemp -d)\n";
+    enter_cmd "pushd \$(mktemp -d)";
     $self->detect_bsc_1063638;
     # Slowest services
     $self->save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
@@ -191,9 +191,8 @@ sub problem_detection {
     $self->save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
     $self->save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     # Save core dumps
-    type_string "mkdir -p coredumps\n";
-    type_string 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
-    type_string "\n";
+    enter_cmd "mkdir -p coredumps";
+    enter_cmd 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
     clear_console;
 
     # Broken links
@@ -219,29 +218,31 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
     # VMware specific
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        assert_script_run('vm-support');
-        upload_logs('vm-*.*.tar.gz');
+        script_run('vm-support');
+        upload_logs('vm-*.*.tar.gz', failok => 1);
         clear_console;
     }
 
     script_run 'tar cvvJf problem_detection_logs.tar.xz *';
-    upload_logs('problem_detection_logs.tar.xz');
-    type_string "popd\n";
+    upload_logs('problem_detection_logs.tar.xz', failok => 1);
+    enter_cmd "popd";
 }
 
 =head2 investigate_yast2_failure
 
- investigate_yast2_failure();
+ investigate_yast2_failure(logs_path => $logs_path);
 
-Inspect the YaST2 logfile checking for known issues.
+Inspect the YaST2 logfile checking for known issues. logs_path can be a directory where logs are saved
+e.g. /tmp. In that case the function will parse /tmp/var/log/YaST2/y2logs* files.
 
 =cut
 sub investigate_yast2_failure {
-    my ($self) = shift;
-
+    my ($self, %args) = @_;
+    my $logs_path = $args{logs_path} . '/var/log/YaST2';
+    record_info("logs path", "Parsing longs in $logs_path");
     my $error_detected;
     # first check if badlist exists which could be the most likely problem
-    if (my $badlist = script_output 'test -f /var/log/YaST2/badlist && cat /var/log/YaST2/badlist | tail -n 20 || true') {
+    if (my $badlist = script_output "test -f $logs_path/badlist && cat $logs_path/badlist | tail -n 20 || true") {
         record_info 'Likely error detected: badlist', "badlist content:\n\n$badlist", result => 'fail';
         $error_detected = 1;
     }
@@ -370,8 +371,7 @@ sub investigate_yast2_failure {
     my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
-    my $logs_path   = '/var/log/YaST2/';
-    my $cmd_postfix = $logs_path . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
+    my $cmd_postfix = $logs_path . "/" . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
     # String to accumulate unknown detected issues
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
@@ -399,10 +399,10 @@ sub investigate_yast2_failure {
     # Send last lines to serial to copy in case of new critical bugs
     # If yast log file exists
     if (script_run("test -e $logs_path/y2log") == 0) {
-        type_string "echo $delimiter > /dev/$serialdev\n";
-        type_string "echo 'YaST LOGS' > /dev/$serialdev\n";
-        type_string "tail -n 150 $logs_path/y2log > /dev/$serialdev\n";
-        type_string "echo $delimiter > /dev/$serialdev\n";
+        enter_cmd "echo $delimiter > /dev/$serialdev";
+        enter_cmd "echo 'YaST LOGS' > /dev/$serialdev";
+        enter_cmd "tail -n 150 $logs_path/y2log > /dev/$serialdev";
+        enter_cmd "echo $delimiter > /dev/$serialdev";
     }
     if ($detected_errors_detailed) {
         record_info(
@@ -467,7 +467,8 @@ sub export_logs {
     $self->export_logs_basic;
 
     # Just after the setup: let's see the network configuration
-    $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
+    $self->save_and_upload_log("ip addr show",         "/tmp/ip-addr-show.log");
+    $self->save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.log");
 
     save_screenshot;
 
@@ -630,9 +631,9 @@ sub wait_grub {
     push @tags, 'bootloader-shim-verification'  if get_var('MOK_VERBOSITY');
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
     push @tags, 'grub2';
-    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
-    push @tags, 'bootloader'                      if get_var('OFW');
-    push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
+    push @tags, 'boot-live-' . get_var('DESKTOP')     if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+    push @tags, 'bootloader'                          if get_var('OFW');
+    push @tags, 'encrypted-disk-password-prompt-grub' if get_var('ENCRYPT');
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
     }
@@ -705,7 +706,7 @@ sub wait_grub {
     elsif (match_has_tag('inst-bootmenu')) {
         $self->wait_grub_to_boot_on_local_disk;
     }
-    elsif (match_has_tag('encrypted-disk-password-prompt')) {
+    elsif (match_has_tag('encrypted-disk-password-prompt-grub')) {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
         assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
@@ -727,7 +728,23 @@ sub wait_grub_to_boot_on_local_disk {
     my @tags = qw(grub2 tianocore-mainmenu);
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
 
-    assert_screen(\@tags, 15);
+    # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
+    if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && check_var('ARCH', 'x86_64') && get_var('UEFI')) {
+        if (!check_screen(\@tags, 15)) {
+            record_soft_failure 'bsc#1180080';
+            wait_screen_change { send_key 'e' };
+            wait_screen_change { send_key 'f2' };
+            type_string "exit";
+            wait_screen_change { send_key 'ret' };
+            tianocore_select_bootloader;
+            send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
+            send_key "ret";
+            return;
+        }
+    }
+
+    # We need to wait more time for aarch64's tianocore-mainmenu
+    (check_var('ARCH', 'aarch64')) ? assert_screen(\@tags, 30) : assert_screen(\@tags, 15);
     if (match_has_tag('tianocore-mainmenu')) {
         opensusebasetest::handle_uefi_boot_disk_workaround();
         check_screen('encrypted-disk-password-prompt', 10);
@@ -996,7 +1013,7 @@ sub wait_boot_past_bootloader {
     }
 
     $self->handle_displaymanager_login(ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin);
-    return if $args{nologin};
+    return                                                                             if $args{nologin};
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
@@ -1023,6 +1040,10 @@ sub wait_boot_past_bootloader {
         last if $ret;
         $timeout -= $check_interval;
     }
+    # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+    # user will want to start something. For openQA, we simply press 'esc' to close
+    # it again and really end up on the desktop
+    send_key('esc') if match_has_tag('gnome-activities');
     # if we reached a logged in desktop we are done here
     return 1 if match_has_tag('generic-desktop') || match_has_tag('opensuse-welcome');
     # the last check after previous intervals must be fatal
@@ -1058,7 +1079,7 @@ the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot {
     my ($self, %args) = @_;
-    my $bootloader_time = $args{bootloader_time} // ((is_pvm) ? 200 : 100);
+    my $bootloader_time = $args{bootloader_time} // ((is_pvm || check_var('BACKEND', 'ipmi')) ? 300 : 100);
     my $textmode        = $args{textmode};
     my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
     my $in_grub         = $args{in_grub}    // 0;
@@ -1091,9 +1112,14 @@ sub wait_boot {
     }
     else {
         $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
-        if (get_var('UEFI') && is_hyperv && check_screen('grub2', 10)) {
-            record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
-            send_key 'ret';
+        # part of soft failure bsc#1118456
+        if (get_var('UEFI') && is_hyperv) {
+            wait_still_screen stilltime => 5, timeout => 26;
+            save_screenshot;
+            if (check_screen('grub2', 20)) {
+                record_soft_failure 'bsc#1118456 - Booting reset on Hyper-V (UEFI)';
+                send_key 'ret';
+            }
         }
     }
     reconnect_xen if check_var('VIRSH_VMM_FAMILY', 'xen');
@@ -1147,7 +1173,7 @@ under test, the version and if the SUT is an upgrade.
 sub firewall {
     my $old_product_versions      = is_sle('<15') || is_leap('<15.0');
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
-    return (($old_product_versions || $upgrade_from_susefirewall) && !is_tumbleweed) ? 'SuSEfirewall2' : 'firewalld';
+    return (($old_product_versions || $upgrade_from_susefirewall) && !is_tumbleweed && !(check_var('SUSEFIREWALL2_SERVICE_CHECK', 1))) ? 'SuSEfirewall2' : 'firewalld';
 }
 
 =head2 remount_tmp_if_ro
@@ -1208,6 +1234,8 @@ sub select_serial_terminal {
         } else {
             $console = $root ? 'root-virtio-terminal' : 'virtio-terminal';
         }
+    } elsif (get_var('SUT_IP')) {
+        $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
     } elsif ($backend eq 'svirt') {
         if (check_var('SERIAL_CONSOLE', 0)) {
             $console = $root ? 'root-console' : 'user-console';
@@ -1237,20 +1265,23 @@ sub select_user_serial_terminal {
 
 =head2 upload_coredumps
 
- upload_coredumps();
+ upload_coredumps(%args);
 
-Upload all coredumps to logs
+Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
+errors during logs collection will be ignored, which is usefull for the
+post_fail_hook calls.
 =cut
 sub upload_coredumps {
+    my (%args) = @_;
     my $res = script_run("coredumpctl --no-pager", timeout => 10);
     if (!$res) {
         record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
-        upload_logs("coredump-info.log");
+        upload_logs("coredump-info.log", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';
-        my @files   = split("\n", script_output("\\ls -1 $basedir | cat"));
+        my @files   = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
         foreach my $file (@files) {
-            upload_logs($basedir . $file);
+            upload_logs($basedir . $file, failok => $args{proceed_on_failure});
         }
     }
 }
@@ -1288,16 +1319,16 @@ sub post_fail_hook {
     if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
         select_console 'root-console';
         my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
-        my $out           = script_output 'lvmdump';
+        my $out           = script_output('lvmdump', proceed_on_failure => 1);
         if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
-            upload_logs "$+{lvmdump_gzip}";
+            upload_logs("$+{lvmdump_gzip}", failok => 1);
         }
         $self->save_and_upload_log('lvm dumpconfig', '/tmp/lvm_dumpconf.out');
     }
 
     if (get_var('COLLECT_COREDUMPS')) {
         select_console 'root-console';
-        $self->upload_coredumps;
+        $self->upload_coredumps(proceed_on_failure => 1);
     }
 
     if ($self->{in_wait_boot}) {

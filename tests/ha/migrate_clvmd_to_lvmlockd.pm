@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2-lockd crmsh csync2 lvm2
 # Summary: Workarounds after upgrade from cluster with clvmd into lvmlockd only systems
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
 

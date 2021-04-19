@@ -8,7 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-
+# Package: chrome-chrome-stable
 # Summary: GOOGLE Chrome: attempt to install and run google chrome
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
@@ -56,7 +56,7 @@ sub run {
 
     send_key "ctrl-l";
     sleep 1;
-    type_string "about:\n";
+    enter_cmd "about:";
     assert_screen 'google-chrome-about', 15;
 
     send_key "alt-f4";

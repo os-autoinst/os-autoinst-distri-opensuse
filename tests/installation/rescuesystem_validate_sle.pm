@@ -19,7 +19,7 @@ use testapi;
 sub run {
     my $hdddev = check_var('VIRSH_VMM_FAMILY', 'xen') ? 'xvda2' : 'vda2';
     assert_script_run "mount /dev/$hdddev /mnt";
-    type_string "cat /mnt/etc/SuSE-release > /dev/$serialdev\n";
+    enter_cmd "cat /mnt/etc/SuSE-release > /dev/$serialdev";
     wait_serial("SUSE Linux Enterprise Server", 10) || die "Not SLES found";
 }
 

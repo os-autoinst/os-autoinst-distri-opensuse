@@ -32,11 +32,11 @@ sub run {
 
     # Login as root (no password)
     assert_screen "rescuesystem-login";
-    type_string "root\n";
+    enter_cmd "root";
 
     # Clean the screen
     sleep 1;
-    type_string "reset\n";
+    enter_cmd "reset";
     assert_screen "rescuesystem-prompt";
 }
 

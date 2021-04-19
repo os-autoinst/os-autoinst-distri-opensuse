@@ -1,0 +1,43 @@
+name:          prepare_baremetal
+description:    >
+    Universal installation schedule to prepare bare metal using IPXE or
+    prepare PowerVM.
+vars:
+    DESKTOP: textmode
+    PATTERNS: base,minimal
+    SCC_ADDONS: sdk
+schedule:
+    - '{{boot}}'
+    - installation/welcome
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_firstdisk
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/handle_reboot
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - shutdown/grub_set_bootargs
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+conditional_schedule:
+    boot:
+        IPXE:
+            1:
+                - installation/ipxe_install
+        BACKEND:
+            spvm:
+                - installation/bootloader

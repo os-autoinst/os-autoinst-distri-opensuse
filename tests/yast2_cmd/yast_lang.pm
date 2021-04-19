@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-country
 # Summary: yast language test
 # List languages, set default and secondary languages
 # Maintainer: Michael Grifalconi <mgrifalconi@suse.com>

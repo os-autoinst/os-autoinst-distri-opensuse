@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: gnutls
 # Summary: SLES15SP2 FIPS certification, we need to certify gnutls and libnettle
 #          In this case, will configure GnuTLS server
 # Maintainer: rfan1 <richard.fan@suse.com>
@@ -82,7 +83,7 @@ EOF
 
     # Start a server with support for PSK. This would require a password file created with psktool
     type_string "nohup gnutls-serv --http --priority NORMAL:+ECDHE-PSK:+PSK --pskpasswd $passwd&";
-    type_string "\n";
+    send_key 'ret';
 }
 
 sub test_flags {

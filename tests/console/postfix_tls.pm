@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: postfix cyrus-sasl cyrus-sasl-saslauthd mailx
 # Summary: Test Postfix mail server with SSL enabled
 # Note: The test case can be run separately for postfix sanity test,
 #       or run as stand-alone mail server (together with dovecot)

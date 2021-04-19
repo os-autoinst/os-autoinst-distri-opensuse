@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: smt
 # Summary: Disconnect SMT external
 # Maintainer: Wei Gao <wegao@suse.com>
 
@@ -50,7 +51,7 @@ sub run {
 
     # create mutex to let internal smt do daily operation
     mutex_create("disconnect_smt_3");
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
     wait_for_children;
 }
 

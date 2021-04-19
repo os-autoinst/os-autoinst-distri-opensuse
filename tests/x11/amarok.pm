@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: amarok
 # Summary: Basic amarok test with sound check
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
@@ -35,7 +36,7 @@ sub run {
         x11_start_program('amarok -l ~/data/1d5d9dD.oga', target_match => 'test-amarok-3');
         assert_recorded_sound('DTMF-159D');
     }
-    send_key "ctrl-q";       # really quit (alt-f4 just backgrounds)
+    send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
 }
 
 1;

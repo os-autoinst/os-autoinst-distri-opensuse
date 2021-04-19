@@ -31,7 +31,7 @@ lvm:
       - /dev/vda3
     logical_volumes:
       - name: lv-thin-pool
-        type: thin_pool
+        type: thin-pool
       - name: lv-home
-        type: thin_volume
-        id: data
+        type: thin-volume
+        role: data

@@ -17,10 +17,7 @@ schedule:
   - autoyast/verify_cloned_profile
   - autoyast/logs
   - autoyast/autoyast_reboot
-  # Called on ARCH: s390x and on powerVM
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu and on powerVM
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_file_system
   - console/zypper_lr
@@ -31,19 +28,6 @@ schedule:
   - console/zypper_log
   - console/orphaned_packages_check
 conditional_schedule:
-  reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-    BACKEND:
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
-      pvm_hmc:
-        - installation/grub_test
   opensuse_welcome:
     VERSION:
       Tumbleweed:

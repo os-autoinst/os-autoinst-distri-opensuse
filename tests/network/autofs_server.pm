@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nfs-kernel-server nfs-client
 # Summary: It shares a dir via nfs for autofs testing, and another dir
 #          for testing nfsidmap functionality.
 # - If opensuse, enables repository 1 (zypper modifyrepo -e 1) and refresh
@@ -69,6 +70,7 @@ sub run {
     # common
     assert_script_run "cat /etc/exports";
     systemctl 'restart nfs-server';
+    mutex_create 'barrier_setup_done';
     barrier_wait 'AUTOFS_SUITE_READY';
     barrier_wait 'AUTOFS_FINISHED';
 }

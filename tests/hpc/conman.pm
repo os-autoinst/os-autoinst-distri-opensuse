@@ -40,33 +40,33 @@ sub run {
     select_console('root-console');
 
     # run netcat on this socket
-    type_string("netcat -ClU /tmp/testsocket &\n");
+    enter_cmd("netcat -ClU /tmp/testsocket &");
 
     # If needed change group:
     my $conman_chgrp = q!GRP=$(ps -Ao group,fname | grep conmand | cut -d' ' -f 1);!;
     $conman_chgrp .= q! [ "$GRP" = "root" ] || { chgrp $GRP /tmp/testsocket; chmod g+w /tmp/testsocket; }!;
-    type_string($conman_chgrp . "\n");
+    enter_cmd($conman_chgrp . "");
 
     # do not restart conmand after starting netcat!
 
     # start conman on this socket
-    type_string("conman socket1 &\n");
+    enter_cmd("conman socket1 &");
 
     # test from netcat side
-    type_string("fg 1\n");
+    enter_cmd("fg 1");
     wait_still_screen(1, 2);
-    type_string("Hello from nc...\n");
+    enter_cmd("Hello from nc...");
     send_key('ctrl-z');
-    type_string("fg 2\n");
+    enter_cmd("fg 2");
     assert_screen('socket-response');
 
     # test from conman side
-    type_string("&E\n");    # enable echoing
-    type_string("Hello from conman...\n");
-    send_key('ctrl-l');     # send \n
+    enter_cmd("&E");       # enable echoing
+    enter_cmd("Hello from conman...");
+    send_key('ctrl-l');    # send \n
     type_string '&.';
     assert_screen("connection-closed");
-    type_string "fg 1\n";
+    enter_cmd "fg 1";
     assert_screen('nc-response');
 
     send_key 'ctrl-d';

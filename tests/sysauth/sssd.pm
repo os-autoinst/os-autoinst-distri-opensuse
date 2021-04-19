@@ -1,13 +1,15 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sssd sssd-krb5 sssd-krb5-common sssd-ldap sssd-tools openldap2 openldap2-client
+# krb5 krb5-client krb5-server krb5-plugin-kdb-ldap python-pam python3-python-pam psmisc
 # Summary: Test the integration between SSSD and its various backends - file database, LDAP, and Kerberos
 # - If distro is sle >= 15, add Packagehub and sle-module-legacy products
 # - Install sssd, sssd-krb5, sssd-krb5-common, sssd-ldap, sssd-tools, openldap2,
@@ -30,13 +32,10 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_opensuse);
-use registration "add_suseconnect_product";
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
-    add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle('>=15');
 
     # Install test subjects and test scripts
     my @test_subjects = qw(
@@ -47,7 +46,6 @@ sub run {
 
     # for sle 12 we still use and support python2
     if (is_sle('<15')) {
-        add_suseconnect_product('sle-module-legacy');
         push @test_subjects, 'python-pam';
     } else {
         push @test_subjects, 'python3-python-pam';
@@ -92,6 +90,11 @@ sub run {
     if (@scenario_failures) {
         die "Some test scenarios failed: @scenario_failures";
     }
+}
+
+sub post_fail_hook {
+    select_console 'log-console';
+    shift->export_logs_basic;
 }
 
 1;

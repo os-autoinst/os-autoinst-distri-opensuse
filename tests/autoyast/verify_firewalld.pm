@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: firewalld
 # Summary: Verify firewall configuration after installation using ay profile
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 

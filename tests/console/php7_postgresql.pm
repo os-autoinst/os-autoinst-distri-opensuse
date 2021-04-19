@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: php7 php7-pgsql postgresql*-contrib sudo unzip
 # Summary: PHP7 code that interacts locally with PostgreSQL
 #   This tests creates a PostgreSQL database and inserts an element.
 #   Then, PHP reads the elements and writes a new one in the database.
@@ -41,8 +42,8 @@ use apachetest qw(setup_apache2 setup_pgsqldb test_pgsql destroy_pgsqldb postgre
 use Utils::Systemd 'systemctl';
 
 sub run {
-    select_console 'root-console';
-
+    my $self = shift;
+    $self->select_serial_terminal;
     # ensure apache2 + php7 installed and running
     setup_apache2(mode => 'PHP7');
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: firewalld xrdp gnome-session-core
 # Summary: Remote Login: Windows access SLES over RDP
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
@@ -69,7 +70,7 @@ sub run {
     }
 
     # Terminate xterm session
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4' };
     x11_start_program('gnome-session-quit --logout --force', valid => 0);
 
@@ -85,7 +86,6 @@ sub run {
 
     if (is_sles4sap || is_tumbleweed) {
         # We don't have to test the reconnection and reboot part in SLES4SAP and TW
-        send_key "tab" if is_tumbleweed;
         handle_login;
     }
 

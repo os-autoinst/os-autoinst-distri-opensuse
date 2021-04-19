@@ -29,9 +29,19 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-  - console/hostname
   - console/system_prepare
+  - console/consoletest_setup
+  - console/hostname
   - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
+  - console/check_network
+  - console/validate_repos
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/zypper_in
+  - console/orphaned_packages_check
+  - console/consoletest_finish
+  - x11/xterm
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+test_data:
+  <<: !include test_data/yast/skip_registration/default_repos.yaml

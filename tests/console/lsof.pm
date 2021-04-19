@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
+# Package: netcat lsof psmisc
 # Summary: Test lsof command
 # - Install netcat, lsof and psmisc
 # - Run lsof alone
@@ -43,7 +44,7 @@ use utils 'zypper_call';
 
 sub run {
     my ($self) = @_;
-    select_console('root-console');
+    $self->select_serial_terminal;
     zypper_call('in netcat lsof psmisc');
     assert_script_run("lsof");
     assert_script_run("lsof -u root");
@@ -62,12 +63,14 @@ sub run {
     assert_script_run('exec 4>&-');
     assert_script_run('lsof -a -p $$ -d 4 | grep testoutput || test $? -eq 1');
 
-    type_string("netcat -l 5555 &");
+    assert_script_run('(netcat -l 5555 &)');
+    sleep 1;
     validate_script_output("lsof -i :5555 |grep netcat", sub { m/TCP/ });
     assert_script_run("killall netcat");
     assert_script_run('lsof -i :5555|grep netcat || test $? -eq 1');
 
-    type_string("netcat -ul 5555 &");
+    assert_script_run('(netcat -ul 5555 &)');
+    sleep 1;
     validate_script_output("lsof -i UDP:5555 |grep netcat", sub { m/UDP/ });
     assert_script_run("killall netcat");
     assert_script_run('lsof -i UDP:5555|grep netcat || test $? -eq 1');

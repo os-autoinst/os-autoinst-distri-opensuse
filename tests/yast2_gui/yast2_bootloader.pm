@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-bootloader
 # Summary: YaST2 UI test bootloader checks boot code option, kernel parameters,
 #	graphical console, bootloader option, foreign OS and protect boot loader
 #    Make sure those yast2 modules can opened properly. We can add more
@@ -22,9 +23,8 @@ use testapi;
 use utils 'type_string_slow_extended';
 
 sub run {
-    my $self = shift;
     select_console 'x11';
-    $self->launch_yast2_module_x11('bootloader', match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11('bootloader', match_timeout => 120);
 
     #	boot code options
     assert_and_click 'yast2-bootloader_grub2';

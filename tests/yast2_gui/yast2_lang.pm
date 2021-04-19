@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-country
 # Summary: yast2_lang.pm checks basic settings of language
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
@@ -20,9 +21,8 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
     select_console 'x11';
-    $self->launch_yast2_module_x11('language', match_timeout => 240);
+    y2_module_guitest::launch_yast2_module_x11('language', match_timeout => 240);
 
     # check language details and change detailed locale setting
     assert_and_click 'yast2-lang_details';

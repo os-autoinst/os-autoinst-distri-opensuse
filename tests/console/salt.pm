@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: salt-master salt-minion
 # Summary: Test installation of salt-master as well as salt-minion on same
 #  machine. Test simple operation with loopback.
 # - Add suse connect product according to distribution in test

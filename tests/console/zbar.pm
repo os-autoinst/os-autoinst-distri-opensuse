@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: wget zbar
 # Summary: Test zbar to be able to decode a qr code
 #  added for fun during OSC together with DimStar to show a third person how
 #  easy adding a new test to openQA can be

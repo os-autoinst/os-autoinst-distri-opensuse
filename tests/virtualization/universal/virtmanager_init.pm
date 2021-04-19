@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: virt-manager
 # Summary: This test connects to hypervisor and check our VMs
 # Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use virt_autotest::common;
 use virt_autotest::utils;
 use strict;
@@ -25,8 +26,9 @@ use testapi;
 use utils;
 use virtmanager;
 
-sub run {
+sub run_test {
     my ($self) = @_;
+    select_console 'root-console';
 
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
@@ -39,7 +41,7 @@ sub run {
     }
 
     #x11_start_program 'virt-manager';
-    type_string "virt-manager\n";
+    enter_cmd "virt-manager";
 
     establish_connection();
 

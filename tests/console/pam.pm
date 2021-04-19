@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: bats pam-test pam pam-config snapper perl
 # Summary: This PM is to run a suite of tests about PAM, and gets a TAP
 #          format result. Four files(pam.sh, pam_test, pam_test.sh,
 #          system-default) are included. pam.sh is a "bats" script, and

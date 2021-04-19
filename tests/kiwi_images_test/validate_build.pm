@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: curl
 # Summary: validate kiwi online build status from buildsystem
 # - checks if system is at login screen
 # - login using user root and password
@@ -31,7 +32,7 @@ sub run {
 
     # login in to system
     assert_screen('linux-login', 120);
-    type_string("root\n");
+    enter_cmd("root");
     sleep(2);
     type_password("linux\n");
 
@@ -41,20 +42,10 @@ sub run {
     if ($install_type == 0) {
         $kiwi_version = $kiwi_version . "-ng";
     }
-
-    script_run("curl -k https://build.suse.de/project/monitor/QA:Maintenance:Images:$sle_version:$kiwi_version-testing | sed -n \"s/.*\\(test-image-[[:alpha:]]\\+\\).*>\\(.*\\)<\\/a><\\/td>/\\1 \\2/p\" > $logfile");
-    #script_run("echo -e \"test-image-iso succeeded\\ntest-image-pxe succeeded\\ntest-image-vmx succeeded\\n\" > $logfile");
-    my $check_log = script_output("cat $logfile");
-    foreach my $line (split(/\n/, $check_log)) {
-        if ($line !~ /succeeded/) {
-            print $line;
-            die "Kiwi build failure";
-        }
-        else {
-            print $line;
-        }
-    }
-
+    # new page layout contains a hash inside tbody, became too complex to run using assert_script
+    assert_script_run("curl -v -o /tmp/validate_kiwi.sh " . data_url("qam/validate_kiwi.sh"));
+    assert_script_run("chmod +x /tmp/validate_kiwi.sh");
+    assert_script_run("/tmp/validate_kiwi.sh $sle_version $kiwi_version-testing $logfile");
     # upload logs anyway
     upload_logs $logfile;
 }

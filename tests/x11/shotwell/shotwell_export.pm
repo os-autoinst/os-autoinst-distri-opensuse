@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: shotwell nautilus
 # Summary: Shotwell: Export images to folder
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 # Tags: tc#1503754
@@ -43,7 +44,7 @@ sub run {
     # Check the exported file
     x11_start_program('nautilus');
     wait_screen_change { send_key 'ctrl-l' };
-    type_string "/home/$username/Desktop\n";
+    enter_cmd "/home/$username/Desktop";
     send_key "ret";
     assert_screen 'shotwell-exported-file';
     send_key "ctrl-w";

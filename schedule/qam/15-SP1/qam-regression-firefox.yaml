@@ -8,7 +8,6 @@ schedule:
 - x11/firefox/firefox_downloading
 - x11/firefox/firefox_changesaving
 - x11/firefox/firefox_fullscreen
-- x11/firefox/firefox_flashplayer
 - x11/firefox/firefox_localfiles
 - x11/firefox/firefox_headers
 - x11/firefox/firefox_pdf

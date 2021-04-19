@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: openssh hostname iputils
 # Summary: This checks all VMs over SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use base "virt_feature_test_base";
 use strict;
 use warnings;
 use virt_autotest::common;
@@ -24,7 +25,7 @@ use strict;
 use testapi;
 use utils;
 
-sub run {
+sub run_test {
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Establishing SSH connection to $guest";
         assert_script_run "ping -c3 -W1 $guest";

@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: mutt wget
 # Summary: Test basic capabilities of mutt
 # - Install mutt and wget (if necessary)
 # - Check if mutt has built in support for imap and smtp
@@ -24,15 +25,15 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_tumbleweed is_jeos);
+use version_utils qw(is_sle);
 use utils;
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call("in mutt", exitcode => [0, 102, 103]) if (is_tumbleweed || is_jeos || get_var('PUBLIC_CLOUD'));
-    zypper_call("in wget", exitcode => [0, 102, 103]) if is_jeos;
+    zypper_call("in mutt", exitcode => [0, 102, 103]);
+    zypper_call("in wget", exitcode => [0, 102, 103]);
 
     # Mutt is Mutt (bsc#1094717) and has build in support for IMAP and SMTP
     validate_script_output 'mutt -v', sub { m/\+USE_IMAP/ && m/\+USE_SMTP/ && not m/NeoMutt/ };
@@ -52,29 +53,30 @@ sub run {
     assert_script_run 'sed -i -e "/ssl_ca_certificates_file/d" ~/.muttrc' if is_sle('<=12-SP2');
 
     record_info 'receive mail', 'Run mutt as a user to read the mail';
-    type_string "mutt\na";
+    enter_cmd "mutt";
+    send_key 'a';
     assert_screen 'mutt-message-list';
-    type_string "\n";
+    send_key 'ret';
     assert_screen 'mutt-show-mail';
 
     record_info 'reply', 'Send a reply to the mail';
-    type_string "rOHello,\nthanks for the message.\n:x\n";
+    enter_cmd "rOHello,\nthanks for the message.\n:x";
     assert_screen 'mutt-send-reply';
     type_string "y";
     assert_screen 'mutt-message-sent';
 
     record_info 'move', 'Move mail to another mailbox';
-    type_string "sArchive\n\n";
+    enter_cmd "sArchive\n";
     assert_screen 'mutt-message-deleted';
     type_string "q";
 
     #select_console "user-console";
     record_info 'open mailbox', 'Open local mailbox';
-    type_string "mutt -f ~/Archive\n";
+    enter_cmd "mutt -f ~/Archive";
     assert_screen 'mutt-message-list';
     type_string "q";
 
-    type_string "clear\n";
+    enter_cmd "clear";
     script_run 'rm -r ~/Archive';
     save_screenshot;
 

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnote
 # Summary: Gnote: Search for text in title of notes
 # - Launch gnote and check
 # - Select all notes

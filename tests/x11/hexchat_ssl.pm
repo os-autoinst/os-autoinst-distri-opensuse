@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: hexchat
 # Summary: FIPS : hexchat_ssl
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tags: poo#49139 , poo#49136 , poo#52796
@@ -35,7 +36,7 @@ sub run {
     }
     else {
         x11_start_program("$name", target_match => "$name-network-select");
-        type_string "freenode\n";
+        enter_cmd "freenode";
 
         # use ssl for all servers on this network
         assert_and_click "$name-edit-button";
@@ -55,15 +56,15 @@ sub run {
         send_key "delete";
         wait_still_screen 2;
 
-        type_string "#openqa-test_irc_from_openqa\n";
+        enter_cmd "#openqa-test_irc_from_openqa";
         assert_screen "$name-join-openqa-test_irc_from_openqa";
         assert_and_click "$name-join-channel-OK";
 
     }
     assert_screen "$name-main-window";
-    type_string "hello, this is openQA running $name with FIPS Enabled!\n";
+    enter_cmd "hello, this is openQA running $name with FIPS Enabled!";
     assert_screen "$name-message-sent-to-channel";
-    type_string "/quit I'll be back\n";
+    enter_cmd "/quit I'll be back";
     assert_screen "$name-quit";
     send_key "alt-f4";
 }

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: glibc glibc-32bit
 # Summary: Check /lib{,64}/libc.so.6 provides correct content
 # - Install package providing "libc.so.6"
 # - Check "/lib/libc.so.6" for "GNU C Library"

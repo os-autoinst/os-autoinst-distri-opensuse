@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: pciutils mstflint
 # Summary: Mellanox Link protocol config
 # This configures the interfaces according to the
 # variable MLX_PROTOCOL. By default ETH if not set.

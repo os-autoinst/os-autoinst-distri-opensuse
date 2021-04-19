@@ -23,11 +23,4 @@ schedule:
   - console/validate_multipath
 test_data:
   <<: !include test_data/yast/multipath.yaml
-  profile:
-    general:
-      storage:
-        start_multipath: 'true'
-    services-manager:
-      services:
-        enable:
-          service: multipathd
+  <<: !include test_data/yast/autoyast/profiles/multipath.yaml

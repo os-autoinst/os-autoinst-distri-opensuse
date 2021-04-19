@@ -12,7 +12,7 @@
 # itself and make the system ready for power off.
 # - if DEBUG_SHUTDOWN is set, then collect detailed logs to investigate shutdown issues
 #   and redirect them to serial console
-# - if DROP_PERSISTENT_NET_RULES is set, then remove 70-persistent-net.rules
+# - if KEEP_PERSISTENT_NET_RULES is set, 70-persistent-net.rules will not be deleted on backend with image support
 # - dhcp cleanup on qemu backend (stop network and wickedd, remove xml files from /var/lib/wicked)
 # - if DESKTOP is set, then set 'ForwardToConsole=yes', 'MaxLevelConsole=debug' and 'TTYPath=/dev/$serialdev'
 #   in /etc/systemd/journald.conf and restart systemd-journalctl
@@ -25,6 +25,7 @@ use testapi;
 use serial_terminal 'prepare_serial_console';
 use utils;
 use version_utils;
+use Utils::Backends qw(is_qemu is_image_backend);
 
 sub run {
     select_console('root-console');
@@ -42,8 +43,8 @@ END_SCRIPT
         assert_script_run $script;
         assert_script_run "chmod +x /usr/lib/systemd/system-shutdown/debug.sh";
     }
-    if (get_var('DROP_PERSISTENT_NET_RULES')) {
-        type_string "rm -f /etc/udev/rules.d/70-persistent-net.rules\n";
+    if (!get_var('KEEP_PERSISTENT_NET_RULES') && is_image_backend) {
+        script_run('rm -f /etc/udev/rules.d/70-persistent-net.rules');
     }
 
     prepare_serial_console;
@@ -51,7 +52,7 @@ END_SCRIPT
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
     # on several nodes, the dhcp clients use same id and cause conflicts on dhcpd server.
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         my $network_status = script_output('systemctl status network');
         # Do dhcp cleanup for wicked
         if ($network_status =~ /wicked/) {

@@ -1,4 +1,4 @@
-# Copyright (C) 2020 SUSE LLC
+# Copyright (C) 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,20 +36,22 @@ sub run {
     send_key "alt-e";
     assert_screen("AppArmor-Settings-Disable-Apparmor");
     wait_screen_change { send_key "alt-q" };
-    type_string("systemctl status apparmor | tee \n");
+    enter_cmd("systemctl status apparmor | tee ");
     assert_screen("AppArmor_Inactive");
 
     # Enable apparmor service and check
-    type_string("yast2 apparmor &\n");
-    assert_screen("AppArmor-Configuration-Settings");
+    enter_cmd("yast2 apparmor &");
+    assert_screen("AppArmor-Configuration-Settings", timeout => 60);
     send_key "alt-l";
     assert_screen("AppArmor-Settings-Disable-Apparmor");
     send_key "alt-e";
     assert_screen("AppArmor-Settings-Enable-Apparmor");
     wait_screen_change { send_key "alt-q" };
+    # Handle exception: the cursor disappears for no reason sometimes
+    type_string("\n");
     clear_console;
     assert_screen("root-console-x11");
-    type_string("systemctl status apparmor | tee \n");
+    enter_cmd("systemctl status apparmor | tee ");
     assert_screen("AppArmor_Active");
 
     # Yast2 AppArmor clean up

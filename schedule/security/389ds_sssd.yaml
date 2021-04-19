@@ -1,0 +1,15 @@
+name: 389ds_sssd
+description:    >
+    This is for 389ds and sssd authentication
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - network/setup_multimachine
+    - '{{tls_389ds}}'
+conditional_schedule:
+    tls_389ds:
+        HOSTNAME:
+            server:
+                - security/389ds/tls_389ds_server
+            client:
+                - security/389ds/tls_389ds_sssd_client

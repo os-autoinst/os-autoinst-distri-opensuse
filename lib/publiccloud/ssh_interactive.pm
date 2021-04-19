@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_join ssh_interactive_leave);
+our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_leave);
 
 sub ssh_interactive_tunnel {
     my ($instance) = @_;
@@ -40,18 +40,9 @@ sub ssh_interactive_tunnel {
 
     set_var('SERIALDEV_',               $serialdev);
     set_var('_SSH_TUNNELS_INITIALIZED', 1);
-}
 
-sub ssh_interactive_join {
-    # Open SSH interactive session and check the serial console works
-    type_string("ssh -yt sut\n");
-    wait_serial("ssh_serial_ready", 90) if (get_var("AUTOINST_URL_HOSTNAME", '') !~ /localhost/);
-
-    # Prepare the environment to use the SSH tunnel for upload/download from the worker
     set_var('AUTOINST_URL_HOSTNAME', 'localhost');
     set_sshserial_dev();
-
-    $testapi::distri->set_standard_prompt('root');
 }
 
 sub ssh_interactive_leave {

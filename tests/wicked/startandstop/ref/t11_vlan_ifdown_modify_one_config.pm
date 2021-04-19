@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iproute2
 # Summary: VLAN - ifdown, modify one config, ifreload, ifdown, ifup
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 #             Jose Lausuch <jalausuch@suse.com>

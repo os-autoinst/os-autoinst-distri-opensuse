@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: supportutils
 # Summary: Test is files created by supportconfig are readable and contain some basic data.
 # - Delete any previously existing supportconfig data
 # - Run supportconfig -t . -B test
@@ -18,6 +19,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use upload_system_log 'upload_supportconfig_log';
 
 sub run {
     my $self = shift;
@@ -25,7 +27,7 @@ sub run {
 
     my $options = get_var('SUPPORTCOFIG_OPTIONS', '');
     assert_script_run "rm -rf nts_* scc_* ||:";
-    assert_script_run "supportconfig $options -t . -B test", 2000;
+    upload_supportconfig_log(file_name => 'test', options => $options, timeout => 2000);
 
     # bcc#1166774
     if (script_run("test -d scc_test") == 0) {

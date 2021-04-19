@@ -22,7 +22,7 @@ use warnings;
 
 use testapi;
 use utils;
-use version_utils qw(is_sle check_version);
+use version_utils qw(is_sle is_leap check_version);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
@@ -39,9 +39,10 @@ Possible values for C<$mode> are: SSL, NSS, NSSFIPS and PHP7
 
 =cut
 sub setup_apache2 {
-    my %args     = @_;
-    my $mode     = uc $args{mode} || "";
-    my @packages = qw(apache2);
+    my %args = @_;
+    my $mode = uc $args{mode} || "";
+    # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
+    my @packages = qw(apache2 /bin/hostname);
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
@@ -52,6 +53,7 @@ sub setup_apache2 {
 
     if ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
+        push @packages, qw(php7-cli) unless (is_sle || is_leap);
         zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
     }
 
@@ -210,15 +212,15 @@ Set up a postgres database and configure for:
 sub test_pgsql {
     # configuration so that PHP can access PostgreSQL
     # setup password
-    type_string "sudo -u postgres psql postgres\n";
+    enter_cmd "sudo -u postgres psql postgres";
     wait_still_screen(1);
-    type_string "\\password postgres\n";
+    enter_cmd "\\password postgres";
     wait_still_screen(1);
-    type_string "postgres\n";
+    enter_cmd "postgres";
     wait_still_screen(1);
-    type_string "postgres\n";
+    enter_cmd "postgres";
     wait_still_screen(1);
-    type_string "\\q\n";
+    enter_cmd "\\q";
     wait_still_screen(1);
     # comment out default configuration
     assert_script_run "sed -i 's/^host/#host/g' /var/lib/pgsql/data/pg_hba.conf";
@@ -230,7 +232,7 @@ sub test_pgsql {
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql...' test)
     #  2. inserts a new element 'can php write this?' into the same table
-    type_string "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php\n";
+    enter_cmd "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php";
     systemctl 'restart apache2.service';
 
     # access the website and verify that it can read the database
@@ -242,8 +244,8 @@ sub test_pgsql {
     # add sudo rights to switch postgresql version and run script to determine oldest and latest version
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
-    type_string "su - postgres\n", wait_still_screen => 1;
-    type_string "PS1='# '\n",      wait_still_screen => 1;
+    enter_cmd "su - postgres", wait_still_screen => 1;
+    enter_cmd "PS1='# '",      wait_still_screen => 1;
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
@@ -282,7 +284,11 @@ EOF
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
         assert_script_run 'initdb -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
-        assert_script_run 'pg_ctl -D /tmp/psql status';
+        if (script_run('pg_ctl -D /tmp/psql status')) {
+            record_info('status', 'wait 5s more before status query');
+            sleep(5);
+            assert_script_run 'pg_ctl -D /tmp/psql status';
+        }
         assert_script_run 'pg_ctl -D /tmp/psql stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
@@ -311,7 +317,7 @@ EOF
     # check if db contains old and new table row
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE first_name = \'openQA\'"|grep openQA';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE last_name = \'Davidson\'"|grep Davidson';
-    type_string "exit\n", wait_still_screen => 1;
+    enter_cmd 'exit', wait_still_screen => 3;
 }
 
 =head2 test_mysql

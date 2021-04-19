@@ -700,6 +700,7 @@
       <package>btrfsprogs</package>
       <package>autoyast2-installation</package>
       <package>autoyast2</package>
+      <package>qemu-guest-agent</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>

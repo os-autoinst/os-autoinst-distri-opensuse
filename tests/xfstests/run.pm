@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: xfsprogs
 # Summary: Run tests
 # - Shuffle the list of xfs tests to run
 # - Create heartbeat script, directorie
@@ -29,10 +30,11 @@ use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
+use filesystem_utils qw(format_partition);
 
 # Heartbeat variables
 my $HB_INTVL     = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 40;
+my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 200;
 my $HB_PATN      = '<heartbeat>';
 my $HB_DONE      = '<done>';
 my $HB_DONE_FILE = '/opt/test.done';
@@ -83,12 +85,12 @@ END_CMD
 
 # Start heartbeat, setup environment variables(Call it everytime SUT reboots)
 sub heartbeat_start {
-    type_string(". ~/.xfstests; nohup sh $HB_SCRIPT &\n");
+    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
 }
 
 # Stop heartbeat
 sub heartbeat_stop {
-    type_string("\n");
+    send_key 'ret';
     assert_script_run("touch $HB_EXIT_FILE");
 }
 
@@ -104,7 +106,7 @@ sub heartbeat_wait {
         }
         else {
             my $status;
-            type_string("\n");
+            send_key 'ret';
             my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
             $ret =~ s/^\s+|\s+$//g;
             if ($ret == 0) {
@@ -155,7 +157,7 @@ sub log_add {
     my $name = test_name($test);
     unless ($name and $status) { return; }
     my $cmd = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
-    type_string("\n");
+    send_key 'ret';
     assert_script_run($cmd);
     sleep 5;
     my $ret = script_output("cat $file", 20);
@@ -179,14 +181,14 @@ sub tests_from_category {
 # Return matched exclude tests from groups in @GROUPLIST
 # return structure - hash
 # Group name start with ! will exclude in test, and expected to use to update blacklist
+# If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder
 sub exclude_grouplist {
-    my %tests_list = ();
+    my %tests_list  = ();
+    my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name !~ /^\!/);
         $group_name = substr($group_name, 1);
-        my $cmd = "awk '/$group_name/ {printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/$FSTYPE/group > tmp.group";
-        script_run($cmd);
-        $cmd = "awk '/$group_name/ {printf \"generic/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/generic/group >> tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
@@ -198,13 +200,13 @@ sub exclude_grouplist {
 # Return matched include tests from groups in @GROUPLIST
 # return structure - array
 # Group name start without ! will include in test, and expected to use to update test ranges
+# If TEST_RANGES contain generic tests, then include tests from generic folder, else will include tests from filesystem type folder
 sub include_grouplist {
     my @tests_list;
+    my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name =~ /^\!/);
-        my $cmd = "awk '/$group_name/ {printf \"$FSTYPE/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/$FSTYPE/group > tmp.group";
-        script_run($cmd);
-        $cmd = "awk '/$group_name/ {printf \"generic/\"}{printf \$1}{printf \",\"}' $INST_DIR/tests/generic/group >> tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my $tests = substr(script_output($cmd), 0, -1);
@@ -374,19 +376,29 @@ $cmd
 umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
-    type_string("$cmd\n");
+    enter_cmd("$cmd");
 }
 
 sub reload_loop_device {
     my $self = shift;
-    assert_script_run("losetup -fP test_dev");
-    my $scratch_amount = script_output("ls scratch_dev* | wc -l");
-    my $scratch_num    = 0;
+    assert_script_run("losetup -fP $INST_DIR/test_dev");
+    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
+    my $scratch_num    = 1;
     while ($scratch_amount >= $scratch_num) {
-        assert_script_run("losetup -fP scratch_dev$scratch_num", 300);
+        assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
         $scratch_num += 1;
     }
     script_run('losetup -a');
+    format_partition("$INST_DIR/test_dev", $FSTYPE);
+}
+
+# Umount TEST_DEV and SCRATCH_DEV
+sub umount_xfstests_dev {
+    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null')    if get_var('XFSTESTS_TEST_DEV');
+    script_run('umount ' . get_var('XFSTESTS_SCRATCH_DEV') . ' &> /dev/null') if get_var('XFSTESTS_SCRATCH_DEV');
+    if (get_var('XFSTESTS_SCRATCH_DEV_POOL')) {
+        script_run("umount $_ &> /dev/null") foreach (split ' ', get_var('XFSTESTS_SCRATCH_DEV_POOL'));
+    }
 }
 
 sub run {
@@ -422,9 +434,11 @@ sub run {
             next;
         }
 
+        umount_xfstests_dev;
+
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
-        type_string("echo $test > /dev/$serialdev\n");
+        enter_cmd("echo $test > /dev/$serialdev");
         test_run($test);
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {

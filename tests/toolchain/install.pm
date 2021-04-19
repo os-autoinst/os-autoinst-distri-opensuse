@@ -38,9 +38,9 @@ sub run {
         zypper_call('up');
 
         # reboot when runing processes use deleted files after packages update
-        type_string "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev\n";
+        enter_cmd "zypper ps|grep 'PPID' || echo OK | tee /dev/$serialdev";
         if (!wait_serial("OK", 100)) {
-            type_string "shutdown -r now\n";
+            enter_cmd "shutdown -r now";
             $self->wait_boot;
             select_console('root-console');
         }

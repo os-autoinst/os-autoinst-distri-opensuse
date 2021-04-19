@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yp-tools
 # Summary: Validate YaST configuration functionality for NIS
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
@@ -44,7 +45,7 @@ sub run {
       fail_message => "Cannot write in home directory of new NIS user from NIS client";
     assert_script_run "su - $test_data->{username} -c 'grep \"nis works\" some_random_file'",
       fail_message => "Failed to verify writability to home directory of new NIS user from NIS client";
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

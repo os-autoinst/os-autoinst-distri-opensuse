@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: wine wine-mono
 # Summary: Test wine with a simple Windows program
 #   I decided for about the most simple and small Windows programs I could
 #   find because one of the things I dislike about the MS Windows ecoysystem

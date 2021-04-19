@@ -1,71 +1,142 @@
 ---
 name:           yast2_gui
 description:    >
-    Test for yast2 UI, GUI only.
-    Running on created gnome images which provides both text console for ncurses UI tests as well
-    as the gnome environment for the GUI tests.
+  Test for yast2 UI, GUI only.
+  Running on created gnome images which provides both text console for ncurses UI tests as well
+  as the gnome environment for the GUI tests.
 vars:
-    BOOTFROM: c
-    HDDSIZEGB: 20
-    SOFTFAIL_BSC1063638: 1
-    VALIDATE_ETC_HOSTS: 1
+  BOOTFROM: c
+  HDDSIZEGB: 20
+  SOFTFAIL_BSC1063638: 1
+  VALIDATE_ETC_HOSTS: 1
+  YUI_REST_API: 1
+  SCC_ADDONS: sdk
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - console/prepare_test_data
-    - console/consoletest_setup
-    - console/hostname
-    - "{{yast2_modules}}"
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/hostname
+  - "{{yast2_modules}}"
+  - console/validate_installed_patterns
 conditional_schedule:
-    yast2_modules:
-        ARCH:
-            x86_64:
-                - yast2_gui/yast2_control_center
-                - yast2_gui/yast2_software_management
-                - yast2_gui/yast2_security
-                - yast2_gui/yast2_firewall
-                - yast2_gui/yast2_bootloader
-                - x11/yast2_snapper
-                - yast2_gui/yast2_lang
-                - yast2_gui/yast2_users
-                - yast2_gui/yast2_datetime
-                - yast2_gui/yast2_hostnames
-                - yast2_gui/yast2_network_settings
-                - x11/yast2_lan_restart
-                - yast2_gui/yast2_lan_restart_bridge
-                - yast2_gui/yast2_lan_restart_vlan
-                - yast2_gui/yast2_lan_restart_bond
-                - yast2_gui/yast2_storage_ng
-            aarch64:
-                - yast2_gui/yast2_software_management
-                - yast2_gui/yast2_security
-                - x11/yast2_snapper
-                - yast2_gui/yast2_lang
-                - yast2_gui/yast2_users
-                - yast2_gui/yast2_datetime
-                - yast2_gui/yast2_hostnames
-                - yast2_gui/yast2_network_settings
-                - yast2_gui/yast2_lan_restart_bridge
-                - yast2_gui/yast2_lan_restart_vlan
-                - yast2_gui/yast2_lan_restart_bond
-            ppc64le:
-                - yast2_gui/yast2_software_management
-                - yast2_gui/yast2_security
-                - x11/yast2_snapper
-                - yast2_gui/yast2_lang
-                - yast2_gui/yast2_users
-                - yast2_gui/yast2_datetime
-                - yast2_gui/yast2_hostnames
-                - yast2_gui/yast2_network_settings
-                - yast2_gui/yast2_lan_restart_bridge
-                - yast2_gui/yast2_lan_restart_vlan
-                - yast2_gui/yast2_lan_restart_bond
-                - yast2_gui/yast2_storage_ng
-            s390x:
-                - yast2_gui/yast2_software_management
-                - yast2_gui/yast2_security
-                - x11/yast2_snapper
-                - yast2_gui/yast2_lang
-                - yast2_gui/yast2_users
-                - yast2_gui/yast2_datetime
-                - yast2_gui/yast2_hostnames
+  yast2_modules:
+    ARCH:
+      x86_64:
+        - console/scc_cleanup_reregister
+        - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
+        - yast2_gui/yast2_control_center
+        - yast2_gui/yast2_expert_partitioner
+        - yast2_gui/yast2_software_management
+        - yast2_gui/yast2_security
+        - yast2_gui/yast2_firewall
+        - yast2_gui/yast2_bootloader
+        - x11/yast2_snapper
+        - yast2_gui/yast2_lang
+        - yast2_gui/yast2_users
+        - yast2_gui/yast2_datetime
+        - yast2_gui/yast2_hostnames
+        - yast2_gui/yast2_network_settings
+        - yast2_gui/yast2_lan_ifcfg_errors
+        - x11/yast2_lan_restart
+        - yast2_gui/yast2_lan_restart_bridge
+        - yast2_gui/yast2_lan_restart_vlan
+        - yast2_gui/yast2_lan_restart_bond
+      aarch64:
+        - console/scc_cleanup_reregister
+        - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
+        - yast2_gui/yast2_software_management
+        - yast2_gui/yast2_security
+        - x11/yast2_snapper
+        - yast2_gui/yast2_lang
+        - yast2_gui/yast2_users
+        - yast2_gui/yast2_datetime
+        - yast2_gui/yast2_hostnames
+        - yast2_gui/yast2_network_settings
+        - yast2_gui/yast2_lan_restart_bridge
+        - yast2_gui/yast2_lan_restart_vlan
+        - yast2_gui/yast2_lan_restart_bond
+      ppc64le:
+        - console/scc_cleanup_reregister
+        - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
+        - yast2_gui/yast2_expert_partitioner
+        - yast2_gui/yast2_software_management
+        - yast2_gui/yast2_security
+        - x11/yast2_snapper
+        - yast2_gui/yast2_lang
+        - yast2_gui/yast2_users
+        - yast2_gui/yast2_datetime
+        - yast2_gui/yast2_hostnames
+        - yast2_gui/yast2_network_settings
+        - yast2_gui/yast2_lan_restart_bridge
+        - yast2_gui/yast2_lan_restart_vlan
+        - yast2_gui/yast2_lan_restart_bond
+      s390x:
+        - yast2_gui/yast2_software_management
+        - yast2_gui/yast2_security
+        - x11/yast2_snapper
+        - yast2_gui/yast2_lang
+        - yast2_gui/yast2_users
+        - yast2_gui/yast2_datetime
+        - yast2_gui/yast2_hostnames
+test_data:
+  net_device: eth0
+  errors_in_ifcfg_file:             # Each command is followed by ifcfg file name.
+    # - "sed -i 's/dhcp/dgcp/'"     # Typo in value. To be enabled once bsc#1181296 is fixed.
+    - "echo ETHERDEVICE='eth0' >>"  # Wrong device for VLAN (should be same as current).
+    - "echo BOOTPROTO='dhcp' >>"    # Duplicate entry, same data.
+    - "echo BOOTPROTO='none' >>"    # Duplicate entry, different data.
+  disks:
+    - name: vdb
+      partitions:
+        - name: vdb1
+          size: 200MiB
+          formatting_options:
+            should_format: 1
+            filesystem: ext4
+          encrypt_device: 1
+        - name: vdb1
+          size: 170MiB
+  lvm:
+    volume_groups:
+    - name: vgtest
+      devices:
+        - /dev/vdb
+      logical_volumes:
+        - name: lv1
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+        - name: lv2
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: ext4
+          encrypt_device: 1
+        - name: lv3
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: btrfs
+          encrypt_device: 1
+        - name: lv4
+          size: 400MiB
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+          encrypt_device: 1
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - fonts
+      - gnome_basic
+      - x11
+      - yast2_basis
+      - yast2_desktop
+      - yast2_server

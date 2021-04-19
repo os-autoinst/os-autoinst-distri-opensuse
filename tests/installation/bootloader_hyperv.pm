@@ -135,36 +135,36 @@ sub run {
     my $ramsize  = get_var('QEMURAM',  1024);
     my $cpucount = get_var('QEMUCPUS', 1);
 
-    type_string "mkdir -p ~/.vnc/\n";
-    type_string "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd\n";
-    type_string "chmod 0600 ~/.vnc/passwd\n";
-    type_string "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"\n";
-    type_string "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &\n";
+    enter_cmd "mkdir -p ~/.vnc/";
+    enter_cmd "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd";
+    enter_cmd "chmod 0600 ~/.vnc/passwd";
+    enter_cmd "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"";
+    enter_cmd "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &";
 
     my $ps = 'powershell -Command';
 
     my ($winserver, $winver, $vmguid);
 
-    $winver = $svirt->get_cmd_output("cmd /C ver");
-    if (grep { /Microsoft Windows \[Version 6.3.*\]/ } $winver) {
-        $winserver = 2012;
+    $winver = $svirt->get_cmd_output("$ps (Get-WmiObject Win32_OperatingSystem).Version");
+    if (grep { /6.3.*/ } $winver) {
+        $winserver = '2012r2';
     }
-    elsif (grep { /Microsoft Windows \[Version 10.0.*\]/ } $winver) {
-        $winserver = 2016;
+    elsif (grep { /10.0.*/ } $winver) {
+        $winserver = '2016_or_2019';
     }
     else {
         die "Unsupported version: $winver";
     }
 
     hyperv_cmd("$ps Get-VM");
-    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
-    hyperv_cmd("$ps Remove-VM -Force $name",        {ignore_return_code => 1});
+    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff",                                       {ignore_return_code => 1});
+    hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; Remove-VM -Force $name"), {ignore_return_code => 1});
 
     my $hddsize            = get_var('HDDSIZEGB', 20);
     my $vm_generation      = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
     my @disk_paths         = ();
-    if ($winserver eq '2012' || $winserver eq '2016') {
+    if ($winserver eq '2012r2' || $winserver eq '2016_or_2019') {
         for my $n (1 .. get_var('NUMDISKS')) {
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhdx");
@@ -173,12 +173,12 @@ sub run {
                 my ($hddsuffix) = $hdd =~ /(\.[^.]+)$/;
                 my $disk_path = "$root\\cache\\${name}_${n}${hddsuffix}";
                 push @disk_paths, $disk_path;
-                hyperv_cmd_with_retry("$ps New-VHD -ParentPath $hdd -Path $disk_path -Differencing");
+                hyperv_cmd_with_retry(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -ParentPath $hdd -Path $disk_path -Differencing"));
             }
             else {
                 my $disk_path = "$root\\cache\\${name}_${n}.vhdx";
                 push @disk_paths, $disk_path;
-                hyperv_cmd("$ps New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB");
+                hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; New-VHD -Path $disk_path -Dynamic -SizeBytes ${hddsize}GB"));
             }
         }
         hyperv_cmd("$ps New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
@@ -186,7 +186,7 @@ sub run {
         # the default is 'Production' (i.e. snapshot on guest level).
         hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016';
         if ($iso) {
-            hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0") unless $winserver eq '2012' and get_var('UEFI');
+            hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0") unless $winserver eq '2012r2' and get_var('UEFI');
             hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
         }
         foreach my $disk_path (@disk_paths) {
@@ -212,7 +212,7 @@ sub run {
     hyperv_cmd("$ps Set-VMProcessor $name -Count $cpucount");
 
     if (get_var('UEFI')) {
-        if ($winserver eq '2012' || get_var('DISABLE_SECUREBOOT')) {
+        if ($winserver eq '2012r2' || get_var('DISABLE_SECUREBOOT')) {
             hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot Off");
         } else {
             hyperv_cmd("$ps Set-VMFirmware $name -EnableSecureBoot On -SecureBootTemplate 'MicrosoftUEFICertificateAuthority'");
@@ -247,7 +247,7 @@ sub run {
       . get_var('HYPERV_SERVER') . ' +auto-reconnect /auto-reconnect-max-retries:10'
       . " /cert-ignore /vmconnect:$vmguid /f -floatbar /log-level:DEBUG 2>&1 > $xfreerdp_log; echo $vmguid > xfreerdp_${name}_stop; done; ";
 
-    hyperv_cmd_with_retry("$ps Start-VM $name");
+    hyperv_cmd_with_retry(qq($ps "\$ProgressPreference='SilentlyContinue'; Start-VM $name"));
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';

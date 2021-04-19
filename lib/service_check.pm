@@ -6,7 +6,7 @@ check service status or service function before and after migration
 
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -33,20 +33,20 @@ use services::hpcpackage_remain;
 use services::ntpd;
 use services::cups;
 use services::rpcbind;
+use services::users;
 use autofs_utils;
 use services::postfix;
+use services::firewall;
 use kdump_utils;
 use version_utils 'is_sle';
 
 our @EXPORT = qw(
-  $hdd_base_version
   $default_services
   %srv_check_results
   install_services
   check_services
 );
 
-our $hdd_base_version;
 our $support_ver_def  = '12+';
 our $support_ver_12   = '=12';
 our $support_ver_ge15 = '15+';
@@ -60,6 +60,12 @@ our %srv_check_results = (
 );
 
 our $default_services = {
+    users => {
+        srv_pkg_name       => 'users',
+        srv_proc_name      => 'users',
+        support_ver        => $support_ver_ge12,
+        service_check_func => \&services::users::full_users_check
+    },
     hpcpackage_remain => {
         srv_pkg_name       => 'hpcpackage_remain',
         srv_proc_name      => 'hpcpackage_remain',
@@ -73,9 +79,10 @@ our $default_services = {
         service_check_func => \&services::registered_addons::full_registered_check
     },
     susefirewall => {
-        srv_pkg_name  => 'SuSEfirewall2',
-        srv_proc_name => 'SuSEfirewall2',
-        support_ver   => $support_ver_12
+        srv_pkg_name       => 'SuSEfirewall2',
+        srv_proc_name      => 'SuSEfirewall2',
+        support_ver        => $support_ver_lt15,
+        service_check_func => \&services::firewall::full_firewall_check
     },
     firewall => {
         srv_pkg_name  => 'firewalld',
@@ -131,7 +138,7 @@ our $default_services = {
     rpcbind => {
         srv_pkg_name       => 'rpcbind',
         srv_proc_name      => 'rpcbind',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::rpcbind::full_rpcbind_check
     },
     autofs => {
@@ -143,7 +150,7 @@ our $default_services = {
     cups => {
         srv_pkg_name       => 'cups',
         srv_proc_name      => 'cups',
-        support_ver        => $support_ver_def,
+        support_ver        => $support_ver_ge11,
         service_check_func => \&services::cups::full_cups_check
     },
     radvd => {
@@ -222,7 +229,12 @@ Check service before migration, zypper install service package, enable, start an
 =cut
 sub install_services {
     my ($service) = @_;
-    $hdd_base_version = get_var('HDDVERSION');
+    # turn off lmod shell debug information
+    assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
+    # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
+    # we need to reset the console font. As it impacted all the console services, added this command to bashrc file
+    assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if check_var('ARCH', 'ppc64le');
+    assert_script_run '. /etc/bash.bashrc.local';
     foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
@@ -231,8 +243,8 @@ sub install_services {
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check before migration");
         eval {
-            if (is_sle($support_ver, $hdd_base_version)) {
-                if ($hdd_base_version eq '11-SP4') {
+            if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
+                if (check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
                     $service_type = 'SystemV';
                     # Enable IPv6 forwarding on sle11sp4
                     script_run('echo 1 > /proc/sys/net/ipv6/conf/all/forwarding') if ($srv_pkg_name eq 'radvd');
@@ -241,7 +253,7 @@ sub install_services {
                     $service_type = 'Systemd';
                 }
                 if (exists $service->{$s}->{service_check_func}) {
-                    $service->{$s}->{service_check_func}->('before', $service_type);
+                    $service->{$s}->{service_check_func}->(%{$service->{$s}}, service_type => $service_type, stage => 'before');
                     next;
                 }
                 zypper_call "in $srv_pkg_name";
@@ -275,11 +287,11 @@ sub check_services {
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check after migration");
         eval {
-            if (is_sle($support_ver, $hdd_base_version)) {
+            if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
                 # service check after migration. if we've set up service check
                 # function, we don't need following actions to check the service.
                 if (exists $service->{$s}->{service_check_func}) {
-                    $service->{$s}->{service_check_func}->('after', 'Systemd');
+                    $service->{$s}->{service_check_func}->(%{$service->{$s}}, service_type => $service_type, stage => 'after');
                     next;
                 }
                 common_service_action($srv_proc_name, $service_type, 'is-active');

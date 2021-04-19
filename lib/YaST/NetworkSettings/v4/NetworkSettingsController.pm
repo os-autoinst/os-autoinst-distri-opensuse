@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Summary: The class introduces business actions for Network Settings Dialog
 # (yast2 lan module), version 4.
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 package YaST::NetworkSettings::v4::NetworkSettingsController;
 use parent 'YaST::NetworkSettings::AbstractNetworkSettingsController';
@@ -21,7 +21,13 @@ use YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab;
 
 sub new {
     my ($class, $args) = @_;
-    my $self = $class->SUPER::new($args);
+    my $self = bless {}, $class;
+    return $self->init($args);
+}
+
+sub init {
+    my ($self, $args) = @_;
+    $self->SUPER::init($args);
     $self->{DeviceTypeDialog}       = YaST::NetworkSettings::NetworkCardSetup::DeviceTypeDialog->new();
     $self->{BridgedDevicesTabOnAdd} = YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab->new({tab_shortcut => 'alt-v', bridged_devices_shortcut => 'alt-i'});
     $self->{BridgedDevicesTabOnEdit} = YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab->new({tab_shortcut => 'alt-b', bridged_devices_shortcut => 'alt-i'});
@@ -87,6 +93,7 @@ sub add_vlan_device {
     $self->get_vlan_address_tab()->select_dynamic_address();
     $self->get_vlan_address_tab()->fill_in_vlan_id('12');
     $self->get_vlan_address_tab()->press_next();
+    $self->get_vlan_address_tab()->decline_vlan_id_warning();
 }
 
 sub view_bridged_device_without_editing {

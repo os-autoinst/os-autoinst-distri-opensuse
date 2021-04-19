@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-snapper grub2
 # Summary: Show user defined comments in grub2 menu for snapshots
 # - Launch yast2 snapper
 # - Create a new snapshot, name "grub_comment", user_data
@@ -67,7 +68,7 @@ sub run {
     wait_serial("$module_name-0", 200) || die "'yast2 $module_name' didn't finish";
     $self->{in_wait_boot} = 1;
     record_info 'Snapshot created', 'booting the system into created snapshot';
-    power_action('reboot', keepconsole => 1, observe => is_remote_backend);
+    power_action('reboot', keepconsole => 1);
     $self->wait_grub(bootloader_time => 250);
     send_key_until_needlematch("boot-menu-snapshot", 'down', 10, 5);
     send_key 'ret';
@@ -87,7 +88,7 @@ sub run {
     $self->wait_boot(textmode => $is_textmode, in_grub => 1);
     # request reboot again to ensure we will end up in the original system
     record_info 'Desktop reached', 'Now return system to original state with a reboot';
-    power_action('reboot', keepconsole => 1, observe => is_remote_backend);
+    power_action('reboot', keepconsole => 1);
     $self->wait_boot(textmode => $is_textmode, in_grub => 1, bootloader_time => 250);
 }
 

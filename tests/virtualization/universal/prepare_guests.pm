@@ -7,8 +7,9 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client iputils nmap xen-tools
 # Summary: Installation of HVM and PV guests
-# Maintainer: Jan Baier <jbaier@suse.cz>
+# Maintainer: Pavel Dostál <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
 
 use base 'consoletest';
 use virt_autotest::common;
@@ -21,9 +22,11 @@ use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
 
     # Ensure additional package is installed
-    zypper_call '-t in libvirt-client iputils nmap';
+    zypper_call '-t in libvirt-client iputils nmap supportutils';
 
     assert_script_run "mkdir -p /var/lib/libvirt/images/xen/";
 
@@ -47,9 +50,13 @@ sub run {
     assert_script_run 'virsh list --all';
     wait_still_screen 1;
 
+    # Disable bash monitoring, so the output of completed background jobs doesn't confuse openQA
+    script_run("set +m");
+
     # Install every defined guest
     create_guest $_, 'virt-install' foreach (values %virt_autotest::common::guests);
 
+    ## Our test setup requires guests to restart when the machine is rebooted.
     ## Ensure every guest has <on_reboot>restart</on_reboot>
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (script_run("! virsh dumpxml $guest | grep 'on_reboot' | grep -v 'restart'") != 0) {
@@ -58,8 +65,15 @@ sub run {
     }
 
     script_run 'history -a';
-    script_run('cat ~/virt-install* | grep ERROR', 30);
-    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (get_var("REGRESSION", '') =~ /xen/);
+    assert_script_run('cat ~/virt-install*', 30);
+    script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (is_xen_host());
+    collect_virt_system_logs();
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    collect_virt_system_logs();
+    $self->SUPER::post_fail_hook;
 }
 
 1;

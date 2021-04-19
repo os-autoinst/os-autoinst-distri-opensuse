@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper
 # Summary: snapper without DBus service running tests / POO#15944 FATE#321049
 # - Run snapper create for the following options:
 #   - Types 'single', 'command', 'pre' and 'post'
@@ -57,7 +58,8 @@ sub get_last_snap_number {
 }
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my @snapper_cmd = "snapper create";
     my @snap_numbers;

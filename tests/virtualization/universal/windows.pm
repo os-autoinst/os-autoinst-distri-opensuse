@@ -5,6 +5,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-daemon openssh
 # Summary: Import and test Windows guest
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 

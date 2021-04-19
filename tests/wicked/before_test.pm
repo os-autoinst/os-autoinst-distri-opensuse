@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvpn dhcp-server wicked git
 # Summary: Do basic checks to make sure system is ready for wicked testing
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
 
@@ -14,7 +15,7 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call systemctl file_content_replace zypper_ar);
+use utils qw(zypper_call systemctl file_content_replace zypper_ar ensure_ca_certificates_suse_installed);
 use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
 use serial_terminal;
@@ -98,6 +99,7 @@ sub run {
             assert_script_run('make ; make install', timeout => 600);
         } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
             record_info('REPO', $wicked_repo);
+            ensure_ca_certificates_suse_installed() if ($wicked_repo =~ /suse\.de/);
             zypper_ar($wicked_repo, params => '-n wicked_repo', no_gpg_check => 1);
             my ($resolv_options, $repo_id) = (' --allow-vendor-change  --allow-downgrade ', 'wicked_repo');
             $resolv_options = ' --oldpackage' if (is_sle('<15'));

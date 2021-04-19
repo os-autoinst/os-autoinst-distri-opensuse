@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: salt-master salt-minion sysstat
 # Summary: Test Salt stack on two machines. Here we test mainly the
 #  master but minion is also present just for having more of those.
 # - Install salt-master
@@ -47,6 +48,7 @@ sub run {
     $self->minion_prepare();
 
     # Both machines are ready
+    mutex_create 'barrier_setup_done';
     barrier_wait 'SALT_MINIONS_READY';
 
     # List and accept both minions when they are ready

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: zypper
 # Summary: To a transactional-update dup and reboot the node
 # Maintainer: Richard Brown <rbrown@suse.com>
 

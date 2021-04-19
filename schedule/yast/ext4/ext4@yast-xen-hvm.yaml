@@ -5,16 +5,18 @@ description:    >
 vars:
   DESKTOP: gnome
   FILESYSTEM: ext4
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
@@ -25,10 +27,14 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/validate_ext4_fs
 test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
   <<: !include test_data/yast/ext4/ext4.yaml
   device: /dev/xvdb
   table_type: gpt

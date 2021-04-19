@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsprogs
 # Summary: Btrfs send & receive snapshots
 # - Creates a btrfs subvolume in /root/sr
 # - Prepares an external disk volume, formats with btrfs and mounts at /mnt/sr
@@ -54,7 +55,7 @@ sub compare_data {
 # poo#11792
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Set up
     assert_script_run "mkdir $src";

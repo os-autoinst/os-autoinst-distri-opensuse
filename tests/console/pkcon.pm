@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: PackageKit
 # Summary: Simple pkcon test
 # - check basic commands of pkcon
 # - install package with options

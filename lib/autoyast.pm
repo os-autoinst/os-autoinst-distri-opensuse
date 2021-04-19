@@ -5,7 +5,7 @@ Provide translations for autoyast XML file
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -28,7 +28,6 @@ use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
 use File::Path 'make_path';
 use LWP::Simple 'head';
-use maintenance_smelt qw(repo_is_not_active);
 
 use xml_utils;
 
@@ -171,15 +170,17 @@ $profile is the autoyast profile 'autoinst.xml'.
 =cut
 sub expand_template {
     my ($profile) = @_;
-    my $template  = Mojo::Template->new(vars => 1);
-    my $vars      = {
+    my $template = Mojo::Template->new(vars => 1);
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    my $vars = {
         addons   => expand_addons,
-        repos    => [grep { !repo_is_not_active($_) } split(/,/, get_var('MAINT_TEST_REPO', ''))],
+        repos    => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
         patterns => expand_patterns,
         # pass reference to get_required_var function to be able to fetch other variables
         get_var => \&get_required_var,
         # pass reference to check_var
-        check_var => \&check_var
+        check_var => \&check_var,
+        is_ltss   => get_var('SCC_REGCODE_LTSS') ? '1' : '0'
     };
     my $output = $template->render($profile, $vars);
     return $output;
@@ -207,125 +208,322 @@ sub init_autoyast_profile {
 
   validate_autoyast_profile($profile);
 
-Validate AutoYaST profile traversing yaml test data
+Validate XML AutoYaST profile traversing YAML test data
 $profile is the root node in the test data
 
-Expected yaml data should mimic structure of xml file for AutoYaST profile,
+Expected YAML data should mimic structure of XML file for the AutoYaST profile,
 so hashes and arrays in the yaml should represent nodes in the xml file.
 
-In case of list in xml, yaml structure should be represented as an array,
-so it would be able to generate expression to check that element on the list met expectations.
-If a hash is used instead, it will validate its inner value but it will not check size of the list.
+Generates a list of XPATH expressions based on the YAML file provided, run those
+expressions and create a summary based with the errors found and all the expressions.
 
-To identify an element in a list (as they are not ordered) on xml via xpath it has been added
-an special field in yaml named 'unique_key' which value is the name of the selected property
-to search the element on the list. When that property is not a direct child
-(in other words, it is not at the same level in the yaml)
-it should be specify in yaml 'unique_value' to specify the value expected for that inner/nested property
-(it is verbose but avoid to search every time in the whole yaml tree).
-For instance:
+There are special keys to handle xml attributes for the node types, or in case
+exact number of nodes has to be validated, e.g. C<_t> for the type, C<__text> for
+the text value of the node, C<__count> to specify exact number of child nodes.
 
-- drive:
-    unique_key: mount
-    unique_value: /
-    ...
-        partitions:
-            - partition:
-                unique_key: label
-                ...
-                label: root_multi_btrfs
-                mount: /
+See 'has_properties' and 'generate_expressions' functions for the further info.
 
-In the example, the tester chose 'mount' node/value to distinguish this 'drive'
-from other 'drive' nodes in the xml. In order to distinguish that particular 'partition' node
-only 'unique_key' was required because label is a direct child of 'partition' node in the xml.
+In order to validate following xml:
+<profile>
+    <suse_register t="map">
+        <addons t="list">
+            <addon t="map">
+                <name>sle-module-server-applications</name>
+            </addon>
+            <addon t="map">
+                <arch>ppc64le</arch>
+                <name>sle-module-basesystem</name>
+            </addon>
+        </addons>
+        <do_registration t="boolean">true</do_registration>
+        <install_updates t="boolean">false</install_updates>
+    </suse_register>
+</profile>
 
-Finally, creates a report at the end with errors (both yaml and execution errors)
-and overall expressions executed.
+YAML example to validate given xml:
+profile:
+  suse_register:
+    addons:
+      _t: list
+      __count: 2
+      addon:
+        - name: sle-module-server-applications
+        - name: sle-module-basesystem
+    do_registration:
+      _t: boolean
+      __text: 'true'
+
 
 =cut
 sub validate_autoyast_profile {
     my $profile = shift;
 
-    my $xpc         = get_xpc(init_autoyast_profile());    # get XPathContext
-    my $expressions = [];
+    my $xpc         = get_xpc(init_autoyast_profile());                              # get XPathContext
     my $errors      = [];
-    generate_expressions(node => $profile, exp => "/ns:profile",
-        expressions => $expressions, errors => $errors);
+    my $expressions = [map { '/ns:profile' . $_ } generate_expressions($profile)];
     run_expressions(xpc => $xpc, expressions => $expressions, errors => $errors);
     my $report = create_report(errors => $errors, expressions => $expressions);
     record_info('Summary', $report);
-    die "Found errors on validation of AutoYaST profile, please check Summary report" if @{$errors};
+    die 'Found errors on validation of AutoYaST profile, ' .
+      'please check Summary report' if (@{$errors});
 }
 
+=head2 is_processable
+
+    is_processable($node);
+
+  A node is considered 'processable' when:
+   - is a simple key-value pair where value is text:
+     quotas: 'true'
+   - has properties:
+     quotas:
+       _t: boolean
+       __text: 'true'
+  In other words, a node is not processable when just needs to be traversed in the YAML.
+
+=cut
+sub is_processable {
+    my $node = shift;
+    return (!ref $node ||
+          (ref $node eq 'HASH' && has_properties($node)));
+}
+
+=head2 has_properties
+
+  has_properties($node);
+
+- A XML node can be specified in YAML along with its attributes from XML:
+    XML:  <subvolumes t="list">
+    YAML: subvolumes:
+            _t: list
+    XPATH: ns:subvolumes[@t='list']
+
+- XPATH functions can be used:
+
+    'count': when you want to explicitly count the element in a list
+    XML:  <subvolumes t="list">
+            <subvolume t="map">
+    YAML: subvolumes:
+            __count: 8
+            subvolume:
+                ...
+    XPATH: ns:subvolumes[count(ns:subvolume)=8]
+
+    'text': when you want to check some attribute and the text itself
+    XML:  <quotas t="boolean">true</quotas>
+    YAML: quotas:
+            _t: boolean
+            __text: true
+    XPATH: ns:quotas[text()='true' and @t='boolean']
+
+    'descendant': by default the algorithm will try to identify an element
+    in a list using direct children, but with this property is it possible to
+    add children which are descendant but not necessarily direct children.
+    It is useful when XML structure are almost exactly the same for different
+    list items and the only difference is found in more deeper descendants,
+    therefore avoiding to return multiple result for an XPATH expression.
+
+    YAML:
+            drive:
+            - label:
+                _descendant: any
+                __text: root_multi_btrfs
+                disklabel: none
+                partitions:
+                partition:
+                - filesystem: btrfs
+                    label: root_multi_btrfs
+            - label:
+                _descendant: any
+                __text: test_multi_btrfs
+                disklabel: none
+                partitions:
+                partition:
+                - filesystem: btrfs
+                    label: test_multi_btrfs
+
+=cut
+sub has_properties {
+    my $node = shift;
+    return 0 unless ref $node;
+    return scalar(grep {
+            $_ eq '_t'        ||
+              $_ eq '__text'  ||
+              $_ eq '__count' ||
+              $_ eq '_descendant'
+    } keys %{$node});
+}
+
+=head2 create_xpath_predicate
+
+    create_xpath_predicate($node);
+
+Based on the properties of the node will create a predicate for the XPATH expression.
+
+=cut
+sub create_xpath_predicate {
+    my $node       = shift;
+    my @predicates = ();
+
+    if (has_properties($node)) {
+        push @predicates, "text()='$node->{__text}'"      if $node->{__text};
+        push @predicates, '@t=' . "'" . $node->{_t} . "'" if $node->{_t};
+        if ($node->{__count}) {
+            my ($list_item) = grep { ref $node->{$_} } keys %{$node};
+            push @predicates, 'count(' . ns($list_item) . ")=$node->{__count}";
+        }
+    } else {
+        push @predicates, ($node eq '') ? 'not(text())' : "text()='$node'";
+    }
+    return close_predicate(@predicates);
+}
+
+=head2 close_predicate
+
+    close_predicate(@array);
+
+Joins a list of intermediate predicates and closes it to create one XPATH predicate.
+
+=cut
+sub close_predicate {
+    my @predicates = @_;
+    return '[' . join(' and ', @predicates) . ']';
+}
+
+=head2 ns
+
+    ns($node);
+
+Add XML namespace to the node declared in YAML file to be able to build
+the correct XPATH expression with namespaces.
+
+=cut
+sub ns {
+    my $node = shift;
+    return "ns:$node";
+}
+
+=head2 get_traversable
+
+    get_traversable($node);
+
+Return the node 'traversable' of a node which contains properties, so
+it returns the key of the hash needed to continue traversing the YAML.
+
+Example which would return 'subvolume' as the key to continue traversing.
+YAML:  subvolumes:
+         _t: list
+         __count: 8
+         subvolume:
+           - path: var
+
+=cut
+sub get_traversable {
+    my $node = shift;
+    if ((ref $node eq 'HASH')) {
+        my ($traversable) = grep { ref $node->{$_} } keys %{$node};
+        return $traversable;
+    }
+    return undef;
+}
+
+=head2 get_descendant
+
+    get_descendant($node);
+
+It will apply the right separator in case direct children nodes (default)
+or any descendant is applied ('' also means ./ for direct children)
+
+=cut
+sub get_descendant {
+    my $node = shift;
+    return ".//" if (ref $node eq 'HASH' && $node->{_descendant});
+    return '';
+}
+
+=head2 generate_expressions
+
+    generate_expressions($node);
+
+Recursive algorithm to traverse YAML file and create a list of XPATH expressions.
+
+=cut
 sub generate_expressions {
-    my (%args) = @_;
+    my ($node) = shift;
+    # accumulate expressions
+    my @expressions = ();
 
-    my $node        = $args{node};
-    my $exp         = $args{exp};
-    my $expressions = $args{expressions};
-    my $errors      = $args{errors};
-
+    # one of the choices when reading YAML structure is that is a hash ref
     if (ref $node eq 'HASH') {
         for my $k (keys %{$node}) {
-            next if $k =~ /unique_key|unique_value/;
-            if (!ref $node->{$k}) {
-                push @{$expressions}, "$exp" . "/ns:$k" . "[text() = '$node->{$k}'" .
-                  (($node->{$k} eq '') ? ' or not(text())]' : ']');    # node might not have text node descendant
+            my @inner_expressions = ();
+            # some node are processables
+            if (is_processable($node->{$k})) {
+                # which gives a predicate with all its processable properties
+                # or simple text
+                push @inner_expressions, create_xpath_predicate($node->{$k});
+                # after processing continue traversing is still needed
+                if (my $t = get_traversable($node->{$k})) {
+                    # prepend all the expression that will generated for nested nodes
+                    # (in this case with starting point as the 'traversable' node)
+                    # with available info for current child in this iteration.
+                    push @inner_expressions,
+                      map { '/' . ns($t) . $_ } generate_expressions($node->{$k}->{$t});
+                }
+            } else {
+                # continue traversing and accumulating
+                push @inner_expressions, generate_expressions($node->{$k});
             }
-            else {
-                generate_expressions(node => $node->{$k}, exp => "$exp/ns:$k",
-                    expressions => $expressions, errors => $errors);
-            }
+            # all the accumulated inner expressions are concatenated with current node info
+            push @expressions, map { '/' . ns($k) . $_ } @inner_expressions;
         }
     }
+    # the other choice is when is a array ref
     elsif (ref $node eq 'ARRAY') {
-        my ($list_name) = keys %{$node->[0]};
-        my $list_size = scalar @{$node};
-
-        # add expression to check expected list size
-        push @{$expressions}, "$exp" . "[count(ns:$list_name)=$list_size]";
-
         for my $item (@{$node}) {
-            if (my $unique_exp = get_unique_exp(list_name => $list_name, item => $item,
-                    exp => $exp, errors => $errors)) {
-                push @{$expressions}, $unique_exp;
-                generate_expressions(node => $item->{$list_name}, exp => $unique_exp,
-                    expressions => $expressions, errors => $errors);
+            # only in case we have a list of scalars
+            if (!ref $item) {
+                push @expressions, create_xpath_predicate($item);
+                next;
+            }
+            # get items with some nested properties
+            my @processables = grep { is_processable($item->{$_}) } sort keys(%{$item});
+            # create a predicate and consider where to look, if direct children or any descendant
+            my @predicates = map {
+                get_descendant($item->{$_}) . ns($_) . create_xpath_predicate($item->{$_})
+            } @processables;
+            # close the predicate joining all the intermediate ones and add it as expression
+            my $predicate = close_predicate(@predicates);
+            push @expressions, $predicate;
+
+            # consider how to continue traversing the YAML when we need to search a node to traverse
+            # in case it could have some properties
+            for my $p (@processables) {
+                if (my $t = get_traversable($item->{$p})) {
+                    # concatenate current node info with result of recursive call
+                    push @expressions, map { $predicate . '/' . ns($p) . '/' . ns($t) . $_ } generate_expressions($item->{$p}->{$t});
+                }
+            }
+
+            # items which do not have properties are directly ready to traverse them
+            my @traversables = grep { !is_processable($item->{$_}) } sort keys(%{$item});
+            for my $k (@traversables) {
+                # concatenate current node info with result of recursive call
+                push @expressions, map { $predicate . '/' . ns($k) . $_ } generate_expressions($item->{$k});
             }
         }
     }
+    # return expressions recursively to caller
+    return @expressions;
 }
 
-# get unique expression for a list item
-sub get_unique_exp {
-    my (%args) = @_;
+=head2 run_expressions
 
-    my $list_name = $args{list_name};
-    my $item      = $args{item};
-    my $exp       = $args{exp};
-    my $errors    = $args{errors};
+    run_expressions($args);
 
-    if (my $search_key = $item->{$list_name}->{unique_key}) {
-        my $value = '';
-        my $sep   = '';
-        if ($value = $item->{$list_name}->{unique_value}) {
-            $sep = './/'    # separator for any descendant
-        }
-        elsif ($value = $item->{$list_name}->{$search_key}) {
-            $sep = './'     # separator for direct child
-        }
-        else {
-            push @{$errors}, "YAML error: 'unique_key: $search_key' does not point to existing key in: '$item->{$list_name}'";
-        }
-        return "$exp/ns:$list_name" . "[$sep" . "ns:$search_key" . "[text()='$value']]";
-    }
-    else {
-        push @{$errors}, "YAML error: 'unique_key' key not found on yaml list for '$list_name'";
-    }
-    return;
-}
+Run XPATH expressions. Errors handled are 'no node found' and 'more than one node found'
 
+=cut
 sub run_expressions {
     my (%args) = @_;
 
@@ -345,6 +543,13 @@ sub run_expressions {
     }
 }
 
+=head2 create_report
+
+    create_report($args);
+
+Create a report with the errors found and listing all the XPATH expressions executed.
+
+=cut
 sub create_report {
     my %args = @_;
 

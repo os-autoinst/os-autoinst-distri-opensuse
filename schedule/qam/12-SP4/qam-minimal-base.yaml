@@ -21,7 +21,7 @@ schedule:
 - installation/await_install
 - installation/logs_from_installation_system
 - installation/reboot_after_installation
-- '{{grub}}'
+- installation/handle_reboot
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - console/dracut
@@ -66,14 +66,6 @@ conditional_schedule:
     ARCH:
       x86_64:
         - installation/system_role
-  grub:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-      x86_64:
-        - installation/grub_test
-      aarch64:
-        - installation/grub_test
   glibc_sanity:
     ARCH:
       x86_64:

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: empathy
 # Summary: Empathy irc regression test
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 # Tags: tc#1478813
@@ -53,7 +54,7 @@ sub run {
 
     # send a message and then leave the channel
     assert_screen 'empathy-room-window';
-    type_string "This test message was sent by openQA\n";
+    enter_cmd "This test message was sent by openQA";
     assert_screen 'empathy-sent-message';
     send_key "ctrl-w";
     assert_screen 'empathy-leave-room';

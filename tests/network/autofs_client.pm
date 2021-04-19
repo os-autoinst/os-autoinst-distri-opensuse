@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: autofs nfs-client
 # Summary: It waits until a nfs server is ready and mounts a dir from that one.
 #          It also mounts another dir to check nfsidmap functionality.
 # - Calls check_autofs_service (start/stop/restart/status autofs)
@@ -69,6 +70,7 @@ sub run {
     assert_script_run("nfsidmap -c || true");
     assert_script_run("mkdir -p $test_mount_dir_nfsidmap");
 
+    mutex_wait 'barrier_setup_done';
     barrier_wait 'AUTOFS_SUITE_READY';
 
     # autofs

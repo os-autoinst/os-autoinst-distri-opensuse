@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sudo expect
 # Summary: sudo test
 #          - single command
 #          - I/O redirection
@@ -32,7 +33,7 @@ sub sudo_with_pw {
     my $password = $args{password} //= $testapi::password;
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {
-        type_string "expect -c 'spawn $command;expect \"password\";send \"$password\\r\";interact'\n";
+        enter_cmd "expect -c 'spawn $command;expect \"password\";send \"$password\\r\";interact'";
         sleep 2;
     }
     else {
@@ -53,7 +54,7 @@ sub run {
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
     # prepare sudoers and test user
-    assert_script_run 'echo "bernhard ALL = (root) NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su" >/etc/sudoers.d/test';
+    assert_script_run 'echo "bernhard ALL = (root) NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su, /usr/bin/id, /bin/bash" >/etc/sudoers.d/test';
     # use script_run because yes is still writing to the pipe and then command is exiting with 141
     script_run "groupadd sudo_group && useradd -m -d /home/sudo_test -G sudo_group,\$(stat -c %G /dev/$serialdev) sudo_test && yes $test_password|passwd -q sudo_test";
     assert_script_run 'echo "%sudo_group ALL = (root) NOPASSWD: /usr/bin/journalctl, PASSWD: /usr/bin/zypper" >/etc/sudoers.d/sudo_group';
@@ -75,11 +76,11 @@ sub run {
     sudo_with_pw 'sudo -i';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /root';
-    type_string "exit\n", wait_still_screen => 3;
+    enter_cmd "exit", wait_still_screen => 3;
     sudo_with_pw 'sudo -s';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /home/bernhard';
-    type_string "exit\n", wait_still_screen => 3;
+    enter_cmd "exit", wait_still_screen => 3;
     # environment variables
     assert_script_run 'ENVVAR=test132 env | grep ENVVAR=test132';
     sudo_with_pw 'sudo env', grep => '-v ENVVAR=test132', env => 'ENVVAR test132';
@@ -91,7 +92,7 @@ sub run {
     test_sudoers $test_password;
     sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password";
     assert_script_run 'grep -i "not allowed" check_err.log';
-    type_string "exit\n", wait_still_screen => 3;
+    enter_cmd "exit", wait_still_screen => 3;
 }
 
 sub post_run_hook {

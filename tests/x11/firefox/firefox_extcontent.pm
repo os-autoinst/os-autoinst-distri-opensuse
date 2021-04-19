@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Firefox: Externally handled content (Case#1436064)
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
@@ -36,7 +37,7 @@ sub run {
 
     send_key "/";
     sleep 1;
-    type_string "license.tar.gz\n";
+    enter_cmd "license.tar.gz";
 
     assert_screen('firefox-extcontent-opening', 60);
 

@@ -45,8 +45,8 @@ sub run {
     }
     save_screenshot;
     # cleanup
-    type_string "cd /\n";
-    type_string "reset\n";
+    enter_cmd "cd /";
+    enter_cmd "reset";
     select_console 'installation';
 }
 

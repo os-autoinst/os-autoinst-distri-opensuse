@@ -10,6 +10,7 @@
 
 # Case#1479413: Firefox: Full Screen Browsing
 
+# Package: MozillaFirefox
 # Summary: Case#1479413: Firefox: Full Screen Browsing
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

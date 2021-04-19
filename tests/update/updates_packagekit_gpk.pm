@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: PackageKit gnome-packagekit
 # Summary: PackageKit update using gpk
 # - Install gnome-packagekit
 # - Check if desktop is not locked, unlock if necessary
@@ -61,7 +62,6 @@ sub run {
         select_console 'root-console';
         if (script_run 'rpm -q "gnome-packagekit"') {
             zypper_call("in gnome-packagekit", timeout => 90);
-            record_soft_failure 'bsc#1081584';
         }
     }
     select_console 'x11', await_console => 0;
@@ -94,7 +94,7 @@ sub run {
             do {
                 assert_screen \@updates_installed_tags, 3600;
                 if (match_has_tag("Policykit")) {
-                    type_string "$password\n";
+                    enter_cmd "$password";
                     pop @updates_installed_tags;
                 }
                 if (match_has_tag("updates_failed")) {

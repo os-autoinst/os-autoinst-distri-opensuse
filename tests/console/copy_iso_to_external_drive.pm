@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: parted e2fsprogs
 # Summary: Copy the installation ISO to an external drive
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 # Tags: boo#1040749
@@ -44,7 +45,7 @@ sub run {
 
 sub post_run_hook {
     #prepare environment for next test
-    type_string "logout\n";
+    enter_cmd "logout";
     my $tty = get_root_console_tty;
     assert_screen "tty$tty-selected";
     select_console "x11";

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: piglit
 # Summary: Piglit testsuite
 # - Enable piglit repository and install piglit
 # - Create a temporary directory

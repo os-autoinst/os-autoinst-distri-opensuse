@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">false</do_registration>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">false</install_updates>
+    <reg_server>{{SCC_URL}}</reg_server>
+  </suse_register>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+      <hiddenmenu>false</hiddenmenu>
+    </global>
+  </bootloader>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <software>
+    <products config:type="list">
+      <product>SUSE-MicroOS</product>
+    </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <packages config:type="list">
+      <package>grub2</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>basesystem</pattern>
+      <pattern>microos-container_runtime</pattern>
+      <pattern>microos-selinux</pattern>
+    </patterns>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+</profile>

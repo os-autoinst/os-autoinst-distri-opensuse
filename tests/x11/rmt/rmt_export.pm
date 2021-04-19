@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: rmt-server mariadb yast2-rmt
 # Summary: setup one RMT server, sync, enable, mirror and list
 # products. Then export RMT data to one folder. Wait another RMT
 # Server to import those data
@@ -37,7 +38,7 @@ sub run {
     rmt_export_data();
     mutex_create("FINISH_EXPORT_DATA");
     wait_for_children;
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

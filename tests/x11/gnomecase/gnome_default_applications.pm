@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: glib2-tools nautilus
 # Summary: Case 1503753: Gnome - Some types of files should
 #  be opened by corresponding applications
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
@@ -56,7 +57,7 @@ sub prepare_application_environment {
     # Open nautilus
     x11_start_program('nautilus');
     send_key "ctrl-l";
-    type_string "/home/$username/gnometest\n";
+    enter_cmd "/home/$username/gnometest";
     send_key "ret";
     assert_screen 'gnomecase-defaultapps-nautilus';
 }

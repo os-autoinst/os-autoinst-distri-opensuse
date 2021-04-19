@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: parted lvm2
 # Summary: Try to reclaim some of the space from the system PV which
 #           may be needed for SAP products
 # Maintainer: Loic Devulder <ldevulder@suse.com>
@@ -83,7 +84,7 @@ sub run {
     assert_script_run "parted -s $device $resize_cmd $partnum $newsize${unit}i";    # Unit in parted must use the 'GiB' notation!
 
     # Sync all and reboot if needed
-    type_string "partprobe;sync;sync;\n";
+    enter_cmd "partprobe;sync;sync;";
     reset_consoles;
     $self->reboot if is_sle('<15');
 }

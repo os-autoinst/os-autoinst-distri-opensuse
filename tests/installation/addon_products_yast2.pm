@@ -36,7 +36,7 @@ sub test_setup {
     }
 
     assert_script_run "echo \"@addon_proxy.proxy.scc.suse.de\" > /etc/SUSEConnect";    # Define proxy SCC
-    wait_screen_change(sub { type_string "exit\n" }, 5) for (1 .. 2);
+    wait_screen_change(sub { enter_cmd "exit" }, 5) for (1 .. 2);
 }
 
 sub run {
@@ -44,7 +44,7 @@ sub run {
     my ($addon, $uc_addon);
     my $perform_reboot;
     test_setup;
-    $self->launch_yast2_module_x11('add-on', target_match => [qw(addon-products packagekit-warning)]);
+    y2_module_guitest::launch_yast2_module_x11('add-on', target_match => [qw(addon-products packagekit-warning)]);
     if (match_has_tag 'packagekit-warning') {
         send_key 'alt-y';
         assert_screen 'addon-products';
@@ -145,7 +145,7 @@ sub run {
         }
     }
     else {
-        send_key 'alt-n';                                           # done
+        send_key 'alt-n';    # done
     }
 }
 

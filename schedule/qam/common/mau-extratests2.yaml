@@ -1,0 +1,74 @@
+---
+name: mau-extratests2
+description: Second set of CLI extratests
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/curl_ipv6
+  - console/wget_ipv6
+  - console/ca_certificates_mozilla
+  - console/unzip
+  - console/gpg
+  - console/rsync
+  - console/shells
+  - console/sudo
+  - console/dstat
+  - x11/evolution/evolution_prepare_servers
+  - console/supportutils
+  - console/mdadm
+  - console/quota
+  - console/vhostmd
+  - console/rpcbind
+  - console/timezone
+  - console/procps
+  - console/iotop
+  - console/systemd_rpm_macros
+  - console/kmod
+  - console/suse_module_tools
+  - console/aaa_base
+  - console/gd
+  - console/systemtap
+  - '{{version_specific}}'
+  - console/coredump_collect
+conditional_schedule:
+  version_specific:
+    VERSION:
+      15-SP2:
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/valgrind
+        - console/zziplib
+        - '{{arch_specific}}'
+      15-SP1:
+        - console/osinfo_db
+        - console/libgcrypt
+        - console/valgrind
+        - console/zziplib
+        - '{{arch_specific}}'
+      15:
+        - console/osinfo_db
+        - console/libgcrypt
+        - console/valgrind
+        - console/zziplib
+        - '{{arch_specific}}'
+      12-SP5:
+        - console/osinfo_db
+        - console/libgcrypt
+        - console/valgrind
+        - console/zziplib
+        - '{{arch_specific}}'
+      12-SP4:
+        - console/osinfo_db
+        - '{{arch_specific}}'
+      12-SP3:
+        - console/osinfo_db
+        - '{{arch_specific}}'
+  arch_specific:
+    ARCH:
+      x86_64:
+        - console/mutt
+...

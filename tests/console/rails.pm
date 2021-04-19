@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rubygem(rails)
 # Summary: Rails test - just installing and starting server
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

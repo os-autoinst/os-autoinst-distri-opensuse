@@ -1,13 +1,14 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Case#1436079: Firefox: Password Management
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
@@ -49,14 +50,9 @@ sub run {
     wait_still_screen 2, 4;
     send_key "n";
     assert_and_click('firefox-passwd-security');
-
-    send_key "alt-shift-u";
-    send_key "alt-shift-u" unless (is_sle('=15') || is_leap('=15'));
-    wait_still_screen 3;
-    send_key 'spc' unless check_screen('firefox-passwd-master_setting');
-
+    send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 3, 1);
+    send_key 'spc';
     assert_screen('firefox-passwd-master_setting');
-
     type_string $masterpw, 150;
     send_key "tab";
     type_string $masterpw, 150;
@@ -76,7 +72,7 @@ sub run {
     send_key "ret";
     assert_and_click('firefox-passwd-confirm_remember');
     assert_screen('firefox-passwd-confirm_master_pw');
-    type_string $masterpw. "\n";
+    enter_cmd $masterpw. "";
 
     $self->firefox_open_url($mozlogin);
     assert_screen('firefox-passwd-auto_filled');
@@ -88,24 +84,11 @@ sub run {
     wait_still_screen 3;
     send_key 'spc';
     assert_screen('firefox-passwd-saved');
-
-    send_key "alt-shift-a";    #"Remove"
-    assert_and_click('firefox-saved-logins-remove') unless (is_sle('=15') || is_leap('=15'));
-    wait_still_screen 3                             unless (is_sle('=15') || is_leap('=15'));
-    send_key "spc"                                  unless (is_sle('=15') || is_leap('=15'));
-    wait_still_screen 3                             unless (is_sle('=15') || is_leap('=15'));
-    send_key "alt-y";
-    wait_still_screen 3;
-    send_key "alt-shift-c";
-    wait_still_screen 3;
-    send_key "ctrl-w";
-    wait_still_screen 3;
-    send_key "ctrl-w"   unless (is_sle('=15') || is_leap('=15'));
-    wait_still_screen 3 unless (is_sle('=15') || is_leap('=15'));
-    send_key "f5";
-    wait_still_screen 3;
-    send_key "f5" unless (is_sle('=15') || is_leap('=15'));
-    assert_screen('firefox-passwd-removed', 60);
+    assert_and_click('firefox-saved-logins-remove');
+    send_key 'spc';
+    send_key_until_needlematch('firefox-passwd-auto_filled', 'ctrl-w', 3, 2);
+    send_key 'f5';
+    assert_screen('firefox-passwd-removed');
 
     # Exit
     $self->exit_firefox;

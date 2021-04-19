@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-pip python3-virtualenv python3-ec2imgutils aws-cli
+# python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
@@ -21,16 +23,17 @@ use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
 sub install_in_venv {
-    my ($pip_packages, $binary) = @_;
-    die("Missing pip packages") unless ($pip_packages);
-    die("Missing binary name")  unless ($binary);
+    my ($binary, %args) = @_;
+    die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
+    die("Missing binary name")                                         unless ($binary);
     my $install_timeout = 15 * 60;
-    $pip_packages = [$pip_packages] unless ref $pip_packages eq 'ARRAY';
+    assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
     my $venv = '/root/.venv_' . $binary;
     assert_script_run("virtualenv '$venv'");
     assert_script_run(". '$venv/bin/activate'");
-    assert_script_run('pip install --force-reinstall ' . join(' ', map("'$_'", @$pip_packages)), timeout => $install_timeout);
+    my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
+    assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
     assert_script_run('deactivate');
     my $script = <<EOT;
 #!/bin/sh
@@ -69,20 +72,25 @@ sub run {
     record_info('python', script_output('python --version'));
 
     # Install AWS cli
-    install_in_venv('awscli', 'aws');
+    install_in_venv('aws', requirements => 1);
     record_info('EC2', script_output('aws --version'));
 
     # Install ec2imgutils
-    install_in_venv('ec2imgutils', 'ec2uploadimg');
-    assert_script_run("curl " . data_url('publiccloud/ec2utils.conf') . " -o /root/.ec2utils.conf");
+    install_in_venv('ec2uploadimg', requirements => 1);
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
-    install_in_venv('azure-cli', 'az');
+    install_in_venv('az', requirements => 1);
     my $azure_error = '/tmp/azure_error';
     record_info('Azure', script_output('az -v 2>' . $azure_error));
     assert_script_run('cat ' . $azure_error);
-    assert_script_run('test ! -s ' . $azure_error);
+    if (script_run('test -s ' . $azure_error)) {
+        die("Unexpected error in azure-cli") unless validate_script_output("cat $azure_error", m/Please let us know how we are doing .* and let us know if you're interested in trying out our newest features .*/);
+    }
+
+    # Install OpenStack cli
+    install_in_venv('openstack', requirements => 1);
+    record_info('OpenStack', script_output('openstack --version'));
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
@@ -96,7 +104,7 @@ sub run {
     record_info('img-proof', script_output('img-proof --version'));
 
     # Install Terraform from repo
-    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP1/systemsmanagement:terraform.repo');
+    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP2/systemsmanagement:terraform.repo');
     zypper_call('--gpg-auto-import-keys -q in terraform');
     record_info('Terraform', script_output('terraform -v'));
 

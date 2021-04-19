@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvswitch wicked
 # Summary: Advanced test cases for wicked
 # Test 14: Create OVS Bridge interface from Wicked XML files
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>

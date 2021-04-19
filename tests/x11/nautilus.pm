@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus
 # Summary: Test initial startup of nautilus
 # - Start nautilus
 # - Check if nautilus was launched

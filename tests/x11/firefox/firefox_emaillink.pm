@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Firefox emaillink test (Case#1436117)
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox
@@ -45,13 +46,13 @@ sub run {
         else {
             send_key 'y';         # yes
             sleep 1;
-            type_string "test\@suse.com\n";
+            enter_cmd "test\@suse.com";
             sleep 1;
             send_key 'home';      # beginning of subject
             sleep 1;
             send_key 'ctrl-k';    # delete existing subject
             sleep 1;
-            type_string "test subject\n";
+            enter_cmd "test subject";
             sleep 1;
             send_key 'd';
             sleep 1;
@@ -59,12 +60,12 @@ sub run {
             sleep 1;
             send_key 'i';         # enter vim insert mode
             sleep 1;
-            type_string "test email\n";
+            enter_cmd "test email";
             sleep 1;
             send_key 'esc';       # escape insert mode
             sleep 1;
             save_screenshot;
-            type_string ":wq\n";
+            enter_cmd ":wq";
             sleep 1;
             assert_screen('mutt-send');
             send_key 'y';

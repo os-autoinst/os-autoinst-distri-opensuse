@@ -40,7 +40,7 @@ sub setup_vpn {
 }
 
 sub connect_vpn {
-    my ($self) = @_;
+    my ($self)       = @_;
     my $vpn_username = get_required_var('VPN_USERNAME');
     my $vpn_endpoint = get_var('VPN_ENDPOINT', 'asa003b.centers.ihost.com');
     my $vpn_group    = get_var('VPN_GROUP',    'ACC');

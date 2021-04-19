@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: dialog
 # Summary: Ensure simple ncurses applications can start and look correct
 # - Install dialog
 # - Run "dialog --yesno "test for boo#1054448"
@@ -23,8 +24,14 @@ use utils qw(clear_console zypper_call);
 sub run {
     select_console 'root-console';
     zypper_call 'in dialog';
-    script_run 'dialog --yesno "test for boo#1054448" 3 20', 0;
-    assert_screen 'ncurses-simple-dialog';
+    # Try to draw a bold red line
+    script_run('echo "$(tput smacs;tput setaf 1;tput bold)lqqqqqqqqqqqqqqk$(tput rmacs;tput sgr0)"');
+    # Try a simple yes/no dialog
+    script_run 'dialog --yesno "test for boo#1054448" 3 20 | tee boo_1054448.tee';
+    assert_screen([qw(ncurses-simple-dialog ncurses-simple-dialog-broken-boo1183234)]);
+    if (match_has_tag 'ncurses-simple-dialog-broken-boo1183234') {
+        die "boo#1183234: Console misconfigured, ncurses UI broken!\n";
+    }
     send_key 'ret';
     clear_console;
     if (match_has_tag 'boo#1054448') {
@@ -35,6 +42,14 @@ sub run {
         assert_script_run "$cmd";
         select_console 'root-console';
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/sysconfig/console');
+    upload_logs('boo_1054448.tee');
+    script_run('echo $TERM');
 }
 
 1;

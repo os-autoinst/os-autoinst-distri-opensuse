@@ -33,6 +33,7 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use utils 'script_retry';
+use upload_system_log 'upload_supportconfig_log';
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest_base;
@@ -40,7 +41,10 @@ use virt_autotest::utils;
 use virt_utils;
 
 our @EXPORT
-  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log upload_debug_log check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup hosts_restore);
+  = qw(download_network_cfg prepare_network restore_standalone destroy_standalone restart_network
+  restore_guests restore_network destroy_vir_network restore_libvirt_default enable_libvirt_log pload_debug_log
+  check_guest_status check_guest_module check_guest_ip save_guest_ip test_network_interface hosts_backup
+  hosts_restore get_free_mem get_active_pool_and_available_space);
 
 sub check_guest_ip {
     my ($guest, %args) = @_;
@@ -109,13 +113,16 @@ sub test_network_interface {
     save_guest_ip("$guest", name => $net);
 
     # Configure the network interface to use DHCP configuration
-    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180) if (is_sle('=11-sp4') || ($routed == 1) || ($isolated == 1));
+    #flag SRIOV test as it need not restart network service
+    my $is_sriov_test = "false";
+    $is_sriov_test = "true" if caller 0 eq 'sriov_network_card_pci_passthrough';
+    script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 180);
     my $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+    if (check_var('TEST', 'qam-xen-networking') || check_var('TEST', 'qam-kvm-networking') || $is_sriov_test eq "true") {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
 
         # Restart the network - the SSH connection may drop here, so no return code is checked.
-        if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+        if ($is_sriov_test ne "true") {
             if (($guest =~ m/sles11/i) || ($guest =~ m/sles-11/i)) {
                 script_run("ssh root\@$guest service network restart", 300);
             } else {
@@ -131,7 +138,7 @@ sub test_network_interface {
     }
 
     # See obtained IP addresses
-    script_run("virsh net-dhcp-leases $net");
+    script_run("virsh net-dhcp-leases $net") unless $is_sriov_test eq "true";
 
     # Show the IP address of secondary (tested) interface
     assert_script_run("ssh root\@$guest ip -o -4 addr list $nic | awk \"{print \\\$4}\" | cut -d/ -f1 | head -n1");
@@ -288,7 +295,8 @@ sub upload_debug_log {
         script_run("xl dmesg > /tmp/xl-dmesg.log");
         virt_autotest_base::upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "libvirt-virtual-network-debug-logs");
     }
-    virt_utils::upload_supportconfig_log;
+    upload_system_log::upload_supportconfig_log();
+    script_run("rm -rf scc_* nts_*");
 }
 
 sub check_guest_status {
@@ -304,6 +312,31 @@ sub check_guest_status {
         }
     }
 
+}
+
+sub get_free_mem {
+    if (check_var('SYSTEM_ROLE', 'xen')) {
+        # ensure the free memory size on xen host
+        my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
+        $mem = int($mem / 1024);
+        return $mem;
+    }
+}
+
+sub get_active_pool_and_available_space {
+    # get some debug info about hard disk topology
+    script_run 'df -h';
+    script_run 'df -h /var/lib/libvirt/images/';
+    script_run 'lsblk -f';
+    # get some debug info about storage pool
+    script_run 'virsh pool-list --details';
+    # ensure the available disk space size for active pool
+    my $active_pool    = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
+    my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
+    my $pool_unit      = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
+    # default available pool unit as GiB
+    $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
+    return ($active_pool, $available_size);
 }
 
 1;

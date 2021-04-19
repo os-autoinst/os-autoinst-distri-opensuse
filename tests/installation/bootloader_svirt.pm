@@ -21,6 +21,7 @@ use version_utils qw(is_jeos is_microos is_installcheck is_rescuesystem is_sle i
 use registration 'registration_bootloader_cmdline';
 use data_integrity_utils 'verify_checksum';
 use File::Basename;
+use network_utils qw(genmac);
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -49,7 +50,7 @@ sub search_image_on_svirt_host {
     my $path = $svirt->get_cmd_output("find $dir -name $basename | head -n1 | awk 1 ORS=''", {domain => $domain});
     die "Unable to find image $basename in $dir" unless $path;
     diag("Image found: $path");
-    type_string("# Copying image $basename...\n");
+    enter_cmd("# Copying image $basename...");
     return $path;
 }
 
@@ -236,11 +237,17 @@ sub run {
     if ($vmm_family eq 'kvm') {
         $iface_model = 'virtio';
     }
-    elsif ($vmm_family eq 'xen' && $vmm_type eq 'hvm') {
-        $iface_model = 'netfront';
+    elsif ($vmm_family eq 'xen') {
+        $ifacecfg{type}        = 'bridge';
+        $ifacecfg{source}      = {bridge  => 'br0'};
+        $ifacecfg{virtualport} = {type    => 'openvswitch'};
+        $ifacecfg{mac}         = {address => genmac('00:16:3e')};
+        $iface_model           = 'netfront';
     }
     elsif ($vmm_family eq 'vmware') {
         $iface_model = 'e1000';
+    } else {
+        die "Unsupported value of *VIRSH_VMM_FAMILY*\n";
     }
 
     if ($iface_model) {
@@ -289,40 +296,35 @@ sub run {
         $svirt->suspend;
         my $cmdline = '';
         $cmdline .= 'textmode=1 '                         if check_var('VIDEOMODE', 'text');
-        $cmdline .= 'rescue=1 '                           if is_installcheck || is_rescuesystem;          # rescue mode
+        $cmdline .= 'rescue=1 '                           if is_installcheck || is_rescuesystem;
         $cmdline .= get_var('EXTRABOOTPARAMS') . ' '      if get_var('EXTRABOOTPARAMS');
         $cmdline .= registration_bootloader_cmdline . ' ' if check_var('SCC_REGISTER', 'installation');
-        type_string "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
-        type_string "echo \$pty\n";
+        enter_cmd "export pty=`virsh dumpxml $name | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
+        enter_cmd "echo \$pty";
         $svirt->resume;
         wait_serial("Press enter to boot the selected OS", 10) || die "Can't get to GRUB";
         # Do not boot OS from disk, select installation medium
         if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_microos) {
-            type_string "echo -en '\\033[B' > \$pty\n";                                                   # key down
+            enter_cmd "echo -en '\\033[B' > \$pty";    # key down
         }
-        type_string "echo e > \$pty\n";                                                                   # edit
+        enter_cmd "echo e > \$pty";                    # edit
 
         my $max = (!is_jeos) ? 2 : (is_sle '<15-sp1') ? 4 : 13;
-        type_string "echo -en '\\033[B' > \$pty\n" for (1 .. $max);                                       # $max-times key down
-        type_string "echo -en '\\033[K' > \$pty\n";                                                       # end of line
-
-        if (is_jeos && is_sle('>=15-sp2')) {
-            record_soft_failure('bsc#1175514 cannot login to rescue when JeOS image is loaded as xen pv domain');
-            type_string "echo -en '\\010' > \$pty\n" for (1 .. length('console=ttyS0,115200 console=tty0 quiet'));
-        }
+        enter_cmd "echo -en '\\033[B' > \$pty" for (1 .. $max);    # $max-times key down
+        enter_cmd "echo -en '\\033[K' > \$pty";                    # end of line
 
         if (is_sle '12-SP2+') {
-            type_string "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768' > \$pty\n";    # set kernel framebuffer
-            type_string "echo -en ' console=hvc console=tty' > \$pty\n";                                         # set consoles
+            enter_cmd "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768' > \$pty";    # set kernel framebuffer
+            enter_cmd "echo -en ' console=hvc console=tty' > \$pty";                                         # set consoles
         }
         else {
-            type_string "echo -en ' xenfb.video=4,1024,768 ' > \$pty\n";                                         # set kernel framebuffer
-            type_string "echo -en ' console=xvc console=tty ' > \$pty\n";                                        # set consoles
-            $cmdline .= 'linemode=0 ';                                                                           # workaround for bsc#1066919
+            enter_cmd "echo -en ' xenfb.video=4,1024,768 ' > \$pty";                                         # set kernel framebuffer
+            enter_cmd "echo -en ' console=xvc console=tty ' > \$pty";                                        # set consoles
+            $cmdline .= 'linemode=0 ';                                                                       # workaround for bsc#1066919
         }
-        type_string "echo -en ' $cmdline' > \$pty\n";
+        enter_cmd "echo -en ' $cmdline' > \$pty";
 
-        type_string "echo -en '\\x18' > \$pty\n";                                                                # send Ctrl-x to boot guest kernel
+        enter_cmd "echo -en '\\x18' > \$pty";                                                                # send Ctrl-x to boot guest kernel
         save_screenshot;
     }
 

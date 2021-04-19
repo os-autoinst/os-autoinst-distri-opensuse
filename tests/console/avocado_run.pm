@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: avocado
 # Summary: Run avocado tests and upload results, --vt-type qemu (by default)
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 

@@ -27,6 +27,7 @@ use version_utils qw(is_sle is_leap);
 use y2_module_basetest qw(accept_warning_network_manager_default is_network_manager_default);
 use y2_module_consoletest;
 use Test::Assert ':all';
+use x11utils "start_root_shell_in_xterm";
 
 our @EXPORT = qw(
   check_etc_hosts_update
@@ -59,9 +60,7 @@ Initialize yast2 lan. Stop firewalld. Ensure firewalld is stopped. Enable DEBUG.
 =cut
 sub initialize_y2lan
 {
-    select_console 'x11';
-    x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
-    become_root;
+    start_root_shell_in_xterm();
     # make sure that firewalld is stopped, or we have later pops for firewall activation warning
     # or timeout for command 'ip a' later
     if ((is_sle('15+') or is_leap('15.0+')) and script_run("systemctl show -p ActiveState firewalld.service | grep ActiveState=inactive")) {
@@ -74,7 +73,7 @@ sub initialize_y2lan
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
-    type_string "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &\n";
+    enter_cmd "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &";
     clear_journal_log();
 }
 
@@ -88,7 +87,7 @@ Accept warning for Networkmanager controls network device.
 
 =cut
 sub open_network_settings {
-    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan', extra_vars => get_var('YUI_PARAMS'));
     # 'Global Options' tab is opened after accepting the warning on the systems
     # with Network Manager.
     # Thus, there is no way to select device in Overview tab on such systems, so
@@ -129,7 +128,7 @@ sub close_network_settings {
         wait_serial("$module_name-0", 180) || die "'yast2 lan' didn't finish or exited with non-zero code";
     }
 
-    type_string "\n\n";    # make space for better readability of the console
+    enter_cmd "\n";    # make space for better readability of the console
 }
 
 =head2 check_network_status
@@ -262,7 +261,7 @@ sub set_network {
         assert_screen 'yast2_lan_static_ip_set';
     }
     else {
-        send_key 'alt-y';                                                       # set back to DHCP
+        send_key 'alt-y';    # set back to DHCP
         assert_screen 'yast2_lan_dhcp_set';
     }
     # Exit
@@ -331,7 +330,7 @@ Confirm if a warning popup for Networkmanager controls networking.
 
 =cut
 sub handle_Networkmanager_controlled {
-    assert_screen "Networkmanager_controlled";
+    assert_screen 'Networkmanager_controlled', 90;
     send_key "ret";    # confirm networkmanager popup
     assert_screen "Networkmanager_controlled-approved";
     send_key "alt-c";
@@ -439,7 +438,7 @@ so that the existing logs will not interfere with the new ones.
 
 =cut
 sub clear_journal_log {
-    type_string "\n\n";
+    enter_cmd "\n";
     assert_script_run '> journal.log';
 }
 
@@ -468,7 +467,7 @@ further tests.
 
 =cut
 sub close_xterm {
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

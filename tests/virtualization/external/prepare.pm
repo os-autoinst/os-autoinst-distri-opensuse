@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: nmap iputils bind-utils
 # Summary: This test prepares environment
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
@@ -27,6 +28,8 @@ use version_utils;
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+
+    script_run("SUSEConnect -r " . get_var('SCC_REGCODE'), timeout => 420);
 
     assert_script_run "rm /etc/zypp/repos.d/SUSE_Maintenance* || true";
     assert_script_run "rm /etc/zypp/repos.d/TEST* || true";

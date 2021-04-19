@@ -77,7 +77,7 @@ sub get_dom0_serialdev {
         $grub_ver = "grub2";
     }
 
-    type_string("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev. Grub version is $grub_ver.\"\n");
+    enter_cmd("echo \"Debug info: hypervisor serial dev should be $dom0_serialdev. Grub version is $grub_ver.\"");
 
     return $dom0_serialdev;
 }
@@ -129,11 +129,17 @@ sub setup_console_in_grub {
             die "Host Hypervisor is not xen or kvm";
         }
 
+        #enable Intel VT-d for SR-IOV test running on intel SUTs
+        my $intel_option = "";
+        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
+            $intel_option = "intel_iommu=on";
+        }
+
         $cmd
           = "cp $grub_cfg_file ${grub_cfg_file}.org "
           . "\&\& sed -ri '/($bootmethod\\s*.*$search_pattern)/ "
           . "{s/(console|loglevel|log_lvl|guest_loglvl)=[^ ]*//g; "
-          . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5/;}; "
+          . "/$bootmethod\\s*.*$search_pattern/ s/\$/ console=$ipmi_console,115200 console=tty loglevel=5 $intel_option/;}; "
           . "s/timeout=-{0,1}[0-9]{1,}/timeout=30/g;"
           . "' $grub_cfg_file";
         assert_script_run($cmd);
@@ -143,6 +149,10 @@ sub setup_console_in_grub {
         save_screenshot;
 
         if (!script_run('grep HPE /sys/class/dmi/id/board_vendor') == 0) {
+            $cmd = "sed -ri '/^terminal.*\$/ {:mylabel; n; s/^terminal.*\$//;b mylabel;}' $grub_cfg_file";
+            assert_script_run($cmd);
+            $cmd = "sed -ri '/^[[:space:]]*\$/d' $grub_cfg_file";
+            assert_script_run($cmd);
             $cmd = "sed -ri 's/^terminal.*\$/terminal_input console serial\\nterminal_output console serial\\nterminal console serial/g' $grub_cfg_file";
             assert_script_run($cmd);
         }
@@ -210,7 +220,7 @@ sub get_installation_partition {
 
     die "Error: can not get installation partition!" unless ($partition);
 
-    type_string "echo Debug info: The partition with the installed system is $partition .\n";
+    enter_cmd "echo Debug info: The partition with the installed system is $partition .";
     save_screenshot;
 
     return $partition;
@@ -232,7 +242,7 @@ sub adjust_for_ipmi_xen {
     assert_script_run('mount --rbind /proc /mnt/proc');
     assert_script_run('mount --rbind /sys /mnt/sys');
     assert_script_run('mount --rbind /dev /mnt/dev');
-    type_string("chroot /mnt\n");
+    enter_cmd("chroot /mnt");
     wait_still_screen;
 
     # Mount Btrfs sub-volumes
@@ -246,7 +256,7 @@ sub adjust_for_ipmi_xen {
     assert_script_run "grub2-mkconfig -o /boot/grub2/grub.cfg";
 
     # Exit chroot
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_still_screen;
 
     #cleanup mount

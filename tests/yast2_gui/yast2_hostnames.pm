@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2
 # Summary: yast2_hostnames check hostnames and add/delete hostsnames
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
@@ -21,7 +22,6 @@ use testapi;
 use utils qw(type_string_slow_extended clear_console);
 
 sub run {
-    my $self         = shift;
     my $module       = "host";
     my $hosts_params = {
         ip    => '195.135.221.134',
@@ -34,7 +34,7 @@ sub run {
     script_run "echo '80.92.65.53    n-tv.de ntv' >> /etc/hosts";
     clear_console;
     select_console 'x11';
-    $self->launch_yast2_module_x11($module, match_timeout => 90);
+    y2_module_guitest::launch_yast2_module_x11($module, match_timeout => 90);
     assert_and_click "yast2_hostnames_added";
     send_key 'alt-i';
     assert_screen 'yast2_hostnames_edit_popup';

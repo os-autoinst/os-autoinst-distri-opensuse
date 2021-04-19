@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: make shadow
 # Summary: Validate YaST configuration functionality for NIS
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
@@ -45,7 +46,7 @@ sub run {
       fail_message => "Failed to change ownership of /home/$test_data->{username}/";
     mutex_create('nis_user_ready');
     wait_for_children;
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

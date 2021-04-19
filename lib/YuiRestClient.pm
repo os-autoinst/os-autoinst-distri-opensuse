@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,9 +16,10 @@ use warnings;
 use constant API_VERSION => 'v1';
 
 use testapi;
-use utils qw(type_string_slow type_line_svirt save_svirt_pty);
+use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty zypper_call);
 use Utils::Backends qw(is_pvm is_hyperv);
 use YuiRestClient::App;
+use registration;
 
 our $interval = 1;
 our $timeout  = 10;
@@ -52,6 +53,10 @@ sub connect_to_app {
     set_app($app);
 }
 
+sub connect_to_app_running_system {
+    get_app()->connect(timeout => 30, interval => 2);
+}
+
 sub process_start_shell {
     if (get_var('S390_ZKVM')) {
         wait_serial('ATTENTION: Starting shell', 120) || die "start shell didn't show up";
@@ -60,8 +65,8 @@ sub process_start_shell {
         type_line_svirt 'exit';
     } else {
         assert_screen('startshell', timeout => 500);
-        type_string_slow "extend libyui-rest-api\n";
-        type_string_slow "exit\n";
+        enter_cmd_slow "extend libyui-rest-api";
+        enter_cmd_slow "exit";
     }
 }
 
@@ -70,14 +75,33 @@ sub setup_libyui {
     connect_to_app;
 }
 
+sub setup_libyui_running_system {
+    zypper_call('in libyui-rest-api');
+
+    my $port = get_var('YUI_PORT');
+    my $host = get_var('YUI_SERVER');
+    record_info('PORT',   "Used port for libyui: $port");
+    record_info('SERVER', "Connecting to: $host");
+    set_var('YUI_PARAMS', "YUI_HTTP_PORT=$port YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+    # Add the port to permanent config and restart firewalld to apply the changes immediately.
+    # This is needed, because if firewall is restarted for some reason, then the port become
+    # closed (e.g. it was faced while saving settings in yast2 lan) and further tests will not
+    # be able to communicate with YaST modules.
+    assert_script_run("firewall-cmd --zone=public --add-port=$port/tcp --permanent");
+    assert_script_run('firewall-cmd --reload');
+    my $app = YuiRestClient::App->new({port => $port, host => $host, api_version => API_VERSION});
+    set_app($app);
+}
+
 sub teardown_libyui {
     if (get_var('S390_ZKVM')) {
         wait_serial('ATTENTION: Starting shell', 120) || die "start shell didn't show up";
         save_svirt_pty;
         type_line_svirt "exit";
     } else {
-        assert_screen('startshell', timeout => 100);
-        type_string_slow "exit\n";
+        check_screen('startshell', timeout => 100);
+        # Putting new line to avoid issues if anything was put there (see poo#81034)
+        enter_cmd_slow "\nexit";
     }
 }
 
@@ -91,8 +115,11 @@ sub set_libyui_backend_vars {
     die "Cannot set port for YUI REST API" unless $yuiport;
 
     set_var('YUI_PORT', $yuiport);
-    set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
-          . " startshell=1 YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+
+    unless (get_var('BOOT_HDD_IMAGE')) {
+        set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
+              . " startshell=1 YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+    }
 
     my $server;
     if (check_var('BACKEND', 'qemu')) {
@@ -106,6 +133,17 @@ sub set_libyui_backend_vars {
     }
 
     set_var('YUI_SERVER', $server);
+}
+
+sub setup_libyui_firstboot {
+    my $port = get_var('YUI_PORT');
+    record_info("YUIPORT", "Port that will be used by libyui_rest_api:" . get_var('YUI_PORT'));
+    zypper_call('in libyui-rest-api');
+    assert_script_run "firewall-cmd --zone=public --add-port=$port/tcp --permanent";
+    foreach my $export ("YUI_HTTP_PORT=$port", "YUI_HTTP_REMOTE=1", "YUI_REUSE_PORT=1", "Y2DEBUG=1") {
+        assert_script_run "echo export $export >> /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
+    }
+    assert_script_run "chmod +x /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
 }
 
 1;

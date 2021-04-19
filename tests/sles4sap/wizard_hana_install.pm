@@ -16,7 +16,8 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(file_content_replace type_string_slow);
-use x11utils 'turn_off_gnome_screensaver';
+use x11utils qw(turn_off_gnome_screensaver);
+use version_utils qw(package_version_cmp);
 
 sub run {
     my ($self) = @_;
@@ -33,14 +34,17 @@ sub run {
 
     # Keep only the generic HANA partitioning profile and link it to the needed model
     # NOTE: fix name is used here (Dell), but something more flexible should be done later!
-    type_string "rm -f /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning_Dell*.xml\n";
-    type_string "ln -s hana_partitioning.xml '/usr/share/YaST2/include/sap-installation-wizard/hana_partitioning_Dell Inc._generic.xml'\n";
+    enter_cmd "rm -f /usr/share/YaST2/data/y2sap//hana_partitioning_Dell*.xml";
+    enter_cmd "ln -s hana_partitioning.xml '/usr/share/YaST2/data/y2sap/hana_partitioning_Dell Inc._generic.xml'";
 
     # Add host's IP to /etc/hosts
     $self->add_hostname_to_hosts;
 
     # Install libopenssl1_0_0 for older (<SPS03) HANA versions on SLE15+
     $self->install_libopenssl_legacy($path);
+
+    # Get package version
+    my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' sap-installation-wizard");
 
     if (check_var('DESKTOP', 'textmode')) {
         script_run "yast2 sap-installation-wizard; echo yast2-sap-installation-wizard-status-\$? > /dev/$serialdev", 0;
@@ -50,7 +54,7 @@ sub run {
         mouse_hide;                    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
-        type_string "killall xterm\n";
+        enter_cmd "killall xterm";
         assert_screen 'generic-desktop';
         x11_start_program('yast2 sap-installation-wizard', target_match => 'sap-installation-wizard');
     }
@@ -67,8 +71,10 @@ sub run {
     assert_screen 'sap-wizard-copying-media',     120;
     assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
     send_key $cmd{next};
-    assert_screen 'sap-wizard-additional-repos';
-    send_key $cmd{next};
+    if (package_version_cmp($wizard_package_version, '4.3.0') <= 0) {
+        assert_screen 'sap-wizard-additional-repos';
+        send_key $cmd{next};
+    }
     assert_screen 'sap-wizard-hana-system-parameters';
     send_key 'alt-s';                                          # SAP SID
     send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');

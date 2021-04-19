@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rpm-build yast2-network yast2-http-server
 # Summary: Support for the new tests for yast command line
 # Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
 

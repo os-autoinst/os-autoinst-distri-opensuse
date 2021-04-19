@@ -42,6 +42,7 @@ use testapi;
 use utils;
 use virt_utils;
 use virt_autotest::common;
+use virt_autotest::utils;
 use version_utils 'is_sle';
 
 sub run_test {
@@ -51,19 +52,24 @@ sub run_test {
 sub prepare_run_test {
     my $self = shift;
 
+    script_run("rm -f /root/{commands_history,commands_failure}");
+    assert_script_run("history -c");
+
     virt_utils::cleanup_host_and_guest_logs;
     virt_utils::start_monitor_guest_console;
 }
 
 sub run {
     my ($self) = @_;
-    script_run("rm -f /root/{commands_history,commands_failure}");
-    assert_script_run("history -c");
-    $self->prepare_run_test;
+
+    $self->prepare_run_test if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
+
     $self->{"start_run"} = time();
     $self->run_test;
     $self->{"stop_run"} = time();
-    virt_utils::stop_monitor_guest_console;
+
+    virt_utils::stop_monitor_guest_console if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
+
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
 }
@@ -156,9 +162,10 @@ sub post_fail_hook {
 
     $self->{"stop_run"} = time();
     assert_script_run("history -w /root/commands_history");
-    virt_utils::stop_monitor_guest_console;
+    virt_utils::stop_monitor_guest_console() if (!(get_var("TEST", '') =~ /qam/) && (is_xen_host() || is_kvm_host()));
     #(caller(0))[3] can help pass calling subroutine name into called subroutine
     $self->junit_log_provision((caller(0))[3]) if get_var("VIRT_AUTOTEST");
+    collect_virt_system_logs();
 
     virt_utils::collect_host_and_guest_logs;
     upload_logs("/var/log/clean_up_virt_logs.log");
@@ -171,29 +178,13 @@ sub post_fail_hook {
     save_screenshot;
 }
 
-sub get_free_mem {
-    if (check_var('SYSTEM_ROLE', 'xen')) {
-        # ensure the free memory size on xen host
-        my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
-        $mem = int($mem / 1024);
-        return $mem;
-    }
-}
-
-sub get_active_pool_and_available_space {
-    # get some debug info about hard disk topology
-    script_run 'df -h';
-    script_run 'df -h /var/lib/libvirt/images/';
-    script_run 'lsblk -f';
-    # get some debug info about storage pool
-    script_run 'virsh pool-list --details';
-    # ensure the available disk space size for active pool
-    my $active_pool    = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
-    my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
-    my $pool_unit      = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
-    # default available pool unit as GiB
-    $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
-    return ($active_pool, $available_size);
+sub get_virt_disk_and_available_space {
+    # ensure the available disk space size for virt disk - /var/lib/libvirt
+    my $virt_disk_name      = script_output 'lsblk -rnoPKNAME $(findmnt -nrvoSOURCE /var/lib/libvirt)';
+    my $virt_available_size = script_output("df -k | grep libvirt | awk '{print \$4}'");
+    # default available virt disk unit as GiB
+    $virt_available_size = int($virt_available_size / 1048576);
+    return ($virt_disk_name, $virt_available_size);
 }
 
 1;

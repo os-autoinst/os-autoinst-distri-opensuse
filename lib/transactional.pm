@@ -21,7 +21,7 @@ use warnings;
 use testapi;
 use microos 'microos_reboot';
 use power_action_utils 'power_action';
-use version_utils qw(is_opensuse is_microos is_sle);
+use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
 use Utils::Backends 'is_pvm';
 
@@ -54,7 +54,7 @@ sub get_utt_packages {
 # After automated rollback initialization passes by GRUB twice.
 # Here it is handled the first time GRUB is displayed
 sub handle_first_grub {
-    type_string "reboot\n";
+    enter_cmd "reboot";
     if (check_var('ARCH', 's390x') || is_pvm) {
         reconnect_mgmt_console(timeout => 500, grub_expected_twice => 1);
     }
@@ -72,7 +72,7 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if (is_microos) {
+    if (is_microos || is_sle_micro) {
         microos_reboot $args{trigger};
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
@@ -196,10 +196,10 @@ sub trup_shell {
     my ($cmd, %args) = @_;
     $args{reboot} //= 1;
 
-    type_string("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev\n");
+    enter_cmd("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev");
     wait_still_screen;
-    type_string("$cmd\n");
-    type_string("exit\n");
+    enter_cmd("$cmd");
+    enter_cmd("exit");
     wait_serial('trup_shell-status-0') || die "'transactional-update shell' didn't finish";
 
     process_reboot(trigger => 1) if $args{reboot};

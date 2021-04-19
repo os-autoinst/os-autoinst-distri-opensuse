@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: baobab
 # Summary: GNOME Disk Usage Analyzer - Minimal Test
 # Maintainer: Dominique Leuenberger <dimstar@suse.de>>
 

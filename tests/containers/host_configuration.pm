@@ -27,6 +27,8 @@ sub run {
     else {
         assert_script_run "dhclient -v";
         assert_script_run "curl http://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/ssl/certs/SUSE_Trust_Root.crt";
+        # Stop unattended-upgrades on Ubuntu hosts to prevent interference from automatic updates
+        assert_script_run "sed -i 's/Unattended-Upgrade \"1\"/Unattended-Upgrade \"0\"/' /etc/apt/apt.conf.d/20auto-upgrades" if check_os_release("ubuntu", "PRETTY_NAME");
     }
 }
 

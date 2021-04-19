@@ -115,28 +115,29 @@ sub verify_scsi_devices {
             # Validate scsi devices with specific scsi command
             my $peripheral_type       = $lun->{scsi}->{peripheral_type};
             my $vendor_model_revision = $lun->{scsi}->{vendor_model_revision};
-            my $device_node_name      = $lun->{scsi}->{device_node_name};
-            my $iscsi_output          = script_output("lsscsi | grep '$device_node_name'");
-            unless ($iscsi_output =~ /^\[(?<hctl>.*)\]\s*$peripheral_type\s+$vendor_model_revision/)
-            {
-                die "SCSI device $device_node_name was not found with peripheral type '$peripheral_type' and " .
-                  "vendor/model/revision '$vendor_model_revision'";
-            }
-
-            # Save H:C:T:L
-            my $hctl = $+{hctl};
 
             # Validate scsi devices with specific command for zfcp: lszfcp
-            my $fcp_channel = $fcp_device->{fcp_channel};
-            my $wwpn        = $lun->{wwpn};
-            my $bus_wwpn    = "$fcp_channel/$wwpn";
-            validate_script_output("lszfcp -D -b $fcp_channel | grep '$bus_wwpn'", qr/$hctl/);
+            my $fcp_channel  = $fcp_device->{fcp_channel};
+            my $wwpn         = $lun->{wwpn};
+            my $bus_wwpn     = "$fcp_channel/$wwpn";
+            my $iscsi_output = script_output("lszfcp -D -b $fcp_channel | grep '$bus_wwpn'");
+
+            # Store SCSI target id H:C:T:L
+            my $hctl;
+            if ($iscsi_output =~ /(?<hctl>(\d+:){3}\d+)/)
+            {
+                $hctl = $+{hctl};
+            } else {
+                die "Could not parse SCSI target ID for the device with wwpn: '$bus_wwpn'";
+            }
+
+            assert_script_run("lsscsi | grep '$hctl.*/dev/'",
+                fail_message => "Device with wwpn: '$bus_wwpn' is not mapped to any device node");
 
             # Validate scsi devices with specific command for zfcp: lszdev
-            my $names = $lun->{names};
             $bus_wwpn = "$fcp_channel:$wwpn";
-            validate_script_output("lszdev --no-headings zfcp-lun | grep '$names'",
-                qr/$bus_wwpn/);
+            assert_script_run("lszdev --no-headings zfcp-lun | grep $bus_wwpn",
+                fail_message => "Device with wwpn: '$bus_wwpn' not listed in lszdev output");
 
             # Set SCSI devices offline and set back online (other states are also possible)
             my $state_file = "\"/sys/bus/scsi/devices/$hctl/state\"";

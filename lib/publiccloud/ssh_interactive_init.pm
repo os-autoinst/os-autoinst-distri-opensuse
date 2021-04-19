@@ -19,15 +19,13 @@
 
 package publiccloud::ssh_interactive_init;
 use base "consoletest";
-
+use publiccloud::utils;
 use strict;
 use warnings;
 use testapi;
 
 sub post_fail_hook {
-    select_console 'tunnel-console', await_console => 0;
-    send_key "ctrl-c";
-    send_key "ret";
+    select_host_console(force => 1);
     assert_script_run('cd /root/terraform');
     script_run('terraform destroy -no-color -auto-approve', 240);
 }

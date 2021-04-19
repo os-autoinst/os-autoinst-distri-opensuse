@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: cryptsetup
 # Summary: FIPS: cryptsetup
 #    This case is verify the command of cryptsetup whether can be work in FIPS mode
 # Maintainer: Ben Chou <bchou@suse.com>

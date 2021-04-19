@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: exiv2 wget
 # Summary: Add exiv2 tests
 #    Checks exif metadata from given image.
 #    Checks exiv2 functionalities like renaming and creating preview image from metadata.

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: libvirt-daemon xen-tools nmap
 # Summary: Export XML from virsh and create new guests in xl stack
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 

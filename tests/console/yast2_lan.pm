@@ -9,6 +9,7 @@
 # without any warranty.
 
 
+# Package: yast2-network hostname iproute2
 # Summary: yast2 lan functionality test https://bugzilla.novell.com/show_bug.cgi?id=600576
 # - Install yast2-network
 # - Launch yast2 lan
@@ -83,7 +84,7 @@ sub run {
     check_etc_hosts_update() if get_var('VALIDATE_ETC_HOSTS');
 
     $self->clear_and_verify_console;
-    assert_script_run "hostname|grep $hostname";
+    assert_script_run "hostnamectl --static |grep $hostname";
 
     clear_console;
     script_run('ip -o a s');

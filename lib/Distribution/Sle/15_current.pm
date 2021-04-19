@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,11 +13,24 @@
 # Tumbleweed distribution, and only if it behaves different in Sle15 then it
 # should be overriden here.
 
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Distribution::Sle::15_current;
 use strict;
 use warnings FATAL => 'all';
 use parent 'Distribution::Opensuse::Tumbleweed';
+
+use Installation::License::SLE::LicenseAgreementController;
+
+=head2 get_eula_controller
+
+Returns controller for the EULA page. This page significantly differs
+from the openSUSE distributions, therefore has its own controller.
+
+=cut
+
+sub get_eula_controller() {
+    return Installation::License::SLE::LicenseAgreementController->new();
+}
 
 1;

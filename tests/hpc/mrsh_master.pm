@@ -48,10 +48,10 @@ sub run {
     $self->switch_user('nobody');
     for (my $node = 1; $node < $nodes; $node++) {
         my $node_name = sprintf("mrsh-slave%02d", $node);
-        type_string("mrlogin ${node_name} \n");
+        enter_cmd("mrlogin ${node_name} ");
         sleep(1);
         assert_script_run('hostname|grep mrsh-slave01');
-        type_string("exit\n");
+        enter_cmd("exit");
         sleep(1);
         assert_script_run('hostname|grep mrsh-master');
         assert_script_run("mrsh ${node_name}  rm -f /tmp/hello");

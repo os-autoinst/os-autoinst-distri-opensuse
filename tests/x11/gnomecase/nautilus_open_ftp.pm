@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: nautilus
 # Summary: Test nautilus open ftp
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: tc#1436143
@@ -22,7 +23,7 @@ use version_utils qw(is_sle is_tumbleweed);
 sub run {
     x11_start_program('nautilus');
     wait_screen_change { send_key 'ctrl-l' };
-    type_string "ftp://ftp.suse.com\n";
+    enter_cmd "ftp://ftp.suse.com";
     assert_screen 'nautilus-ftp-login';
     send_key 'ret';
     assert_screen 'nautilus-ftp-suse-com';

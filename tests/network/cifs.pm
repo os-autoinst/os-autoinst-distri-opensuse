@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: samba samba-client cifs-utils nmap coreutils util-linux
 # Summary: Test samba client and CIFS mount
 # * Test smbclient directory listing
 # * Test mounting a CIFS filesystem (with different versions)
@@ -31,15 +32,15 @@ sub setup_local_server() {
     zypper_call('in samba');
     assert_script_run("useradd geekotest");
     assert_script_run("mkdir -p /srv/samba/{currywurst,filedrop}");
-    assert_script_run("echo -e '[currywurst]\npath = /srv/samba/currywurst\nread only = yes\nbrowseable = yes\nguest ok = yes\n\n' >> /etc/samba/smb.conf");
-    assert_script_run("echo -e '[filedrop]\npath = /srv/samba/filedrop\nbrowseable = no\nwrite list = geekotest\ncreate mask = 0644\ndirectory mask = 0755\n' >> /etc/samba/smb.conf");
+    assert_script_run('echo -e \'[currywurst]\npath = /srv/samba/currywurst\nread only = yes\nbrowseable = yes\nguest ok = yes\n\n\' >> /etc/samba/smb.conf');
+    assert_script_run('echo -e \'[filedrop]\npath = /srv/samba/filedrop\nbrowseable = no\nwrite list = geekotest\ncreate mask = 0644\ndirectory mask = 0755\n\' >> /etc/samba/smb.conf');
     assert_script_run('curl ' . data_url('samba/Currywurst.txt') . ' -o /srv/samba/currywurst/Recipe.txt');
     assert_script_run("chown -R geekotest /srv/samba/{currywurst,filedrop}");
     assert_script_run("chmod -R 0755 /srv/samba/currywurst");
     assert_script_run("chmod -R 0750 /srv/samba/filedrop");
     systemctl("start smb");
     assert_script_run("systemctl status smb | grep 'active (running)'");
-    assert_script_run("echo -ne 'nots3cr3t\nnots3cr3t' | smbpasswd -a -s geekotest");
+    assert_script_run('echo -ne \'nots3cr3t\nnots3cr3t\' | smbpasswd -a -s geekotest');
 }
 
 sub run {
@@ -48,10 +49,7 @@ sub run {
     my $smb_remote = get_var("CIFS_TEST_REMOTE") // "currywurst.qam.suse.de";
     $self->select_serial_terminal;
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # samba-client requires package hub
-    my $ret = zypper_call('in cifs-utils samba-client nmap', exitcode => [0, 106]);
-    if ($ret == 106) {
-        record_soft_failure 'bsc#1152524 - [Build 18.1] openQA test fails whenever package hub repo is added: Valid metadata not found at specified URL';
-    }
+    my $ret = zypper_call 'in cifs-utils samba-client nmap';
     # Use local samba server, if defined or if defined SMB server is not accessible
     my $is_local = get_var("CIFS_TEST_REMOTE") eq 'local';
     if ($is_local || script_run("nmap -p 139,445 $smb_remote | grep open") != 0) {

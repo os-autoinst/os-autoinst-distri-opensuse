@@ -5,7 +5,7 @@ Library for spvm and pvm_hmc backend to boot and install SLES
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,7 @@ use warnings;
 use testapi;
 use bootloader_setup;
 use registration 'registration_bootloader_params';
-use utils qw(get_netboot_mirror type_string_slow);
+use utils qw(get_netboot_mirror type_string_slow enter_cmd_slow);
 use version_utils 'is_upgrade';
 use YuiRestClient;
 
@@ -42,30 +42,30 @@ sub get_into_net_boot {
     assert_screen 'pvm-bootmenu';
 
     # 5.   Select Boot Options
-    type_string "5\n";
+    enter_cmd "5";
     assert_screen 'pvm-bootmenu-boot-order';
 
     # 1.   Select Install/Boot Device
-    type_string "1\n";
+    enter_cmd "1";
     assert_screen 'pvm-bootmenu-boot-device-type';
 
     # 4.   Network
-    type_string "4\n";
+    enter_cmd "4";
     assert_screen 'pvm-bootmenu-boot-network-service';
 
     # 1.   BOOTP
-    type_string "1\n";
+    enter_cmd "1";
     assert_screen 'pvm-bootmenu-boot-select-device';
 
     # primary disk
-    type_string "1\n";
+    enter_cmd "1";
     assert_screen 'pvm-bootmenu-boot-mode';
 
     # 2.   Normal Mode Boot
-    type_string "2\n";
+    enter_cmd "2";
     assert_screen 'pvm-bootmenu-boot-exit';
 
-    type_string "1\n";
+    enter_cmd "1";
     assert_screen ["pvm-grub", "novalink-failed-first-boot"];
 }
 
@@ -84,8 +84,8 @@ sub prepare_pvm_installation {
     # first menu entry was used to enter the command line. So we need to
     # reset the LPAR manually
     if (match_has_tag('novalink-failed-first-boot')) {
-        type_string "set-default ibm,fw-nbr-reboots\n";
-        type_string "reset-all\n";
+        enter_cmd "set-default ibm,fw-nbr-reboots";
+        enter_cmd "reset-all";
         assert_screen 'pvm-firmware-prompt';
         send_key '1';
         get_into_net_boot;
@@ -95,7 +95,7 @@ sub prepare_pvm_installation {
     send_key_until_needlematch('pvm-grub-command-line', 'c', 3, 5);
 
     # clear the prompt (and create an error) in case the above went wrong
-    type_string "\n";
+    send_key 'ret';
 
     my $repo     = get_required_var('REPO_0');
     my $mirror   = get_netboot_mirror;
@@ -108,13 +108,13 @@ sub prepare_pvm_installation {
     registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED);
     type_string_slow remote_install_bootmenu_params;
     type_string_slow " UPGRADE=1" if (get_var('UPGRADE'));
-    type_string_slow "\n";
+    send_key 'ret';
 
     assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # kernel is downloaded while waiting
-    type_string_slow "initrd $mntpoint/initrd\n";
+    enter_cmd_slow "initrd $mntpoint/initrd";
 
     assert_screen "pvm-grub-command-line-fresh-prompt", 180, no_wait => 1;    # initrd is downloaded while waiting
-    type_string "boot\n";
+    enter_cmd "boot";
     save_screenshot;
 
     assert_screen(["pvm-grub-menu", "novalink-successful-first-boot"], 120);
@@ -138,7 +138,7 @@ sub prepare_pvm_installation {
     # Switch to installation console (ssh or vnc)
     select_console('installation');
     # We need to start installer only if it's pure ssh installation
-    type_string("yast.ssh\n") if get_var('VIDEOMODE', '') =~ /ssh-x|text/;
+    enter_cmd("yast.ssh") if get_var('VIDEOMODE', '') =~ /ssh-x|text/;
     wait_still_screen;
 }
 
@@ -157,29 +157,34 @@ sub boot_hmc_pvm {
 
     # Print the machine details before anything else, Firmware name might be useful when reporting bugs
     record_info("Details", "See the next screen to get details on $hmc_machine_name");
-    type_string "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'\n";
+    enter_cmd "lslic -m $hmc_machine_name -t syspower | sed 's/,/\\n/g'";
 
     # detach possibly attached terminals - might be left over
-    type_string "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'\n";
+    enter_cmd "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'";
     assert_screen 'pvm-vterm-closed';
 
     # power off the machine if it's still running - and don't give it a 2nd chance
     # sometimes lpar shutdown takes long time if the lpar was running already, we need to check it's state
     # and wait until it's finished
-    type_string("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id \n");
-    type_string("for ((i=0\; i<24\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done \n");
+    enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id ");
+    enter_cmd("for ((i=0\; i<24\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done ");
     assert_screen 'lpar-is-down', 120;
 
     # proceed with normal boot if is system already installed, use sms boot for installation
     my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
-    type_string("chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id \n");
-    type_string("for ((i=0\; i<12\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q -e 'Running' -e 'Firmware' && echo 'LPAR IS RUNNING' && break || echo 'Waiting for lpar $lpar_id to start up' && sleep 5 ; done \n");
+    enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o on -b ${bootmode} --id $lpar_id ");
+    enter_cmd("for ((i=0\; i<12\; i++)); do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q -e 'Running' -e 'Firmware' && echo 'LPAR IS RUNNING' && break || echo 'Waiting for lpar $lpar_id to start up' && sleep 5 ; done ");
     assert_screen 'lpar-is-running', 60;
 
     # don't wait for it, otherwise we miss the menu
-    type_string "mkvterm -m $hmc_machine_name --id $lpar_id\n";
+    enter_cmd "mkvterm -m $hmc_machine_name --id $lpar_id";
     # skip further preperations if system is already installed
-    return if get_var('BOOT_HDD_IMAGE');
+    # PowerVM, send "up" key to refresh the serial terminal in case
+    # it is already entered into grub2 menu
+    if (get_var('BOOT_HDD_IMAGE')) {
+        send_key('up');
+        return;
+    }
     get_into_net_boot;
     prepare_pvm_installation;
 }
@@ -196,25 +201,25 @@ sub boot_spvm {
     my $novalink = select_console 'novalink-ssh';
 
     # detach possibly attached terminals - might be left over
-    type_string "rmvterm --id $lpar_id && echo 'DONE'\n";
+    enter_cmd "rmvterm --id $lpar_id && echo 'DONE'";
     assert_screen 'pvm-vterm-closed';
 
     # power off the machine if it's still running - and don't give it a 2nd chance
-    type_string " pvmctl lpar power-off -i id=$lpar_id --hard\n";
+    enter_cmd " pvmctl lpar power-off -i id=$lpar_id --hard";
     assert_screen [qw(pvm-poweroff-successful pvm-poweroff-not-running)], 180;
 
     # make sure that the default boot mode is 'Normal' and not 'System_Management_Services'
     # see https://progress.opensuse.org/issues/39785#note-14
-    type_string " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'\n";
+    enter_cmd " pvmctl lpar update -i id=$lpar_id --set-field LogicalPartition.bootmode=Normal && echo 'BOOTMODE_SET_TO_NORMAL'";
     assert_screen 'pvm-bootmode-set-normal';
 
     # proceed with normal boot if is system already installed, use sms boot for installation
     my $bootmode = get_var('BOOT_HDD_IMAGE') ? "norm" : "sms";
-    type_string " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}\n";
+    enter_cmd " pvmctl lpar power-on -i id=$lpar_id --bootmode ${bootmode}";
     assert_screen "pvm-poweron-successful";
 
     # don't wait for it, otherwise we miss the menu
-    type_string " mkvterm --id $lpar_id\n";
+    enter_cmd " mkvterm --id $lpar_id";
     # skip further preperations if system is already installed
     return if get_var('BOOT_HDD_IMAGE');
     get_into_net_boot;

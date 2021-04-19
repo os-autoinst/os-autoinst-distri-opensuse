@@ -25,7 +25,6 @@ sub run {
     my $reboot_for_jeos_firstboot = 1;
 
     my $is_generalhw_via_ssh = check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'));
-    my $jeos_firstboot_cmd   = (is_leap) ? '/usr/lib/jeos-firstboot' : '/usr/sbin/jeos-firstboot';
 
     if ($is_generalhw_via_ssh) {
         # Run jeos-firstboot manually and do not reboot as we use SSH
@@ -33,13 +32,14 @@ sub run {
 
         # Handle default credentials for ssh login
         $testapi::password = $default_password;
-        $self->select_serial_terminal;
+        # 'root-ssh' console will wait for SUT to be reachable from ssh
+        select_console('root-ssh');
     }
     else {
         # Login with default credentials (root:linux)
         assert_screen('linux-login', 300);
-        type_string("root\n",              wait_still_screen => 5);
-        type_string("$default_password\n", wait_still_screen => 5);
+        enter_cmd("root",              wait_still_screen => 5);
+        enter_cmd("$default_password", wait_still_screen => 5);
     }
 
     # Install jeos-firstboot, when needed
@@ -47,7 +47,8 @@ sub run {
 
     if ($is_generalhw_via_ssh) {
         # Do not set network down as we are connected through ssh!
-        assert_script_run("sed -i 's/ip link set down /# ip link set down/g' $jeos_firstboot_cmd");
+        my $filetoedit = is_leap('<=15.2') ? '/usr/lib/jeos-firstboot' : '/usr/share/jeos-firstboot/jeos-firstboot-dialogs';
+        assert_script_run("sed -i 's/ip link set down /# ip link set down/g' $filetoedit");
     }
     # Remove current root password
     assert_script_run("sed -i 's/^root:[^:]*:/root:*:/' /etc/shadow", 600);
@@ -65,12 +66,11 @@ sub run {
         # Trigger *-firstboot at next boot
         assert_script_run("touch /var/lib/YaST2/reconfig_system");
 
-        type_string("reboot\n");
+        enter_cmd("reboot");
     }
     else {
-        type_string("$jeos_firstboot_cmd\n");
+        enter_cmd(is_leap('<=15.2') ? "/usr/lib/jeos-firstboot\n" : "jeos-firstboot");
     }
-
 }
 
 1;

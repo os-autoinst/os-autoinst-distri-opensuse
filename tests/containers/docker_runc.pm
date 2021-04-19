@@ -19,7 +19,7 @@
 use base "consoletest";
 use testapi;
 use utils;
-use version_utils qw(is_sle get_os_release);
+use version_utils qw(is_leap is_sle get_os_release);
 use containers::common;
 use strict;
 use warnings;
@@ -30,12 +30,14 @@ sub run {
 
     my ($running_version, $sp, $host_distri) = get_os_release;
 
-    my @runtimes = ("docker-runc");
-    push @runtimes, "runc" if !is_sle('=15');
+    my @runtimes = ();
+    push @runtimes, "docker-runc" if (is_sle("<16") || is_leap("<16.0"));
+    push @runtimes, "runc"        if !is_sle('=15');
 
     record_info 'Setup', 'Setup the environment';
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
     install_docker_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => 'docker');
 
     # create the rootfs directory
     assert_script_run('mkdir rootfs');

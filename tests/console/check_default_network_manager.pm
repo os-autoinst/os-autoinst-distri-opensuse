@@ -5,6 +5,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: systemd-network
 # Summary: Check that the network daemon in use is the expected one
 # - check which network daemon is in use
 # - based on the system (SLE, JeOS, SLED, openSUSE), check that

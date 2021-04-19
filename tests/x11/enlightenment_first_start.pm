@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: enlightenment
 # Summary: Other Desktop Environments: Enlightenment
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 

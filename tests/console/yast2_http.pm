@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-http-server apache2
 # Summary: Dependency install, create server, start/stop, enable extra modules.
 # HTTP Server Wizard:
 # Step 1: Needle main window: used port and used adress/IP;
@@ -115,16 +116,16 @@ sub run {
     if (is_sle('<=15') || is_leap('<=15.0')) {
         send_key 'alt-t';
     } else {
-        send_key 'alt-a';                           #after rebooting the host, what should be apache status?
+        send_key 'alt-a';    #after rebooting the host, what should be apache status?
         send_key 'up';
-        send_key 'ret';                             #we select to start apache when the host boots
+        send_key 'ret';      #we select to start apache when the host boots
     }
 
-    assert_screen 'http_start_apache2';             #confirm apache now starts on boot
-    send_key 'alt-f';                               # now finish the tests :)
+    assert_screen 'http_start_apache2';    #confirm apache now starts on boot
+    send_key 'alt-f';                      # now finish the tests :)
 
     check_screen 'http_install_apache2_mods', 60;
-    send_key 'alt-i';                               # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
+    send_key 'alt-i';                      # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
 
     # if popup, confirm to enable apache2 configuratuion
     if (check_screen('http_enable_apache2', 10)) {

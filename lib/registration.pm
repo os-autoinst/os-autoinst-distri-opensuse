@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key script_retry);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_microos);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 
@@ -124,7 +124,7 @@ sub accept_addons_license {
     #   isc co SUSE:SLE-15:GA 000product
     #   grep -l EULA SUSE:SLE-15:GA/000product/*.product | sed 's/.product//'
     # All shown products have a license that should be checked.
-    my @addons_with_license = qw(geo rt idu);
+    my @addons_with_license = qw(geo rt idu nvidia);
     # For the legacy module we do not need any additional subscription,
     # like all modules, it is included in the SLES subscription.
     push @addons_with_license, 'lgm' unless is_sle('15+');
@@ -184,6 +184,10 @@ sub add_suseconnect_product {
     $arch    //= '${CPU}';
     $params  //= '';
     $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+
+    # some modules on sle12 use major version e.g. containers module
+    my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
+    $version = $major_version if $name eq 'sle-module-containers' && is_sle('<15');
 
     my $result = script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
     if ($result != 0 && $retry) {
@@ -473,8 +477,16 @@ sub process_scc_register_addons {
         wait_still_screen 2;
         # Process addons licenses
         accept_addons_license @scc_addons;
-        while (check_screen('import-untrusted-gpg-key', 60)) {
-            handle_untrusted_gpg_key;
+        # Process GPG keys
+        my @gpg_key_needles = qw(import-untrusted-gpg-key);
+        # Repo key expired bsc#1180619
+        push @gpg_key_needles, 'expired-gpg-key' if is_sle('=15');
+        while (check_screen([@gpg_key_needles], 60)) {
+            handle_untrusted_gpg_key if match_has_tag('import-untrusted-gpg-key');
+            if (match_has_tag('expired-gpg-key')) {
+                record_soft_failure 'bsc#1180619';
+                send_key 'alt-y';
+            }
         }
         # Press next only if entered reg code for any addon
         if (register_addons @scc_addons) {
@@ -580,11 +592,14 @@ sub fill_in_registration_data {
             push @tags, 'untrusted-ca-cert';
         }
         # The SLE15-SP2 license page moved after registration.
-        push @tags, 'license-agreement'          if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
-        push @tags, 'license-agreement-accepted' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement'                 if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement-accepted'        if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'leap-to-sle-registrition-finished' if (is_leap_migration);
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
         push @tags, 'inst-addon' if is_sle('15+') && is_upgrade;
+        # Repo key expired bsc#1180619
+        push @tags, 'expired-gpg-key' if is_sle('=15');
         while ($counter--) {
             die 'Registration repeated too much. Check if SCC is down.' if ($counter eq 1);
             assert_screen(\@tags, timeout => 360);
@@ -626,7 +641,7 @@ sub fill_in_registration_data {
                 wait_screen_change { send_key(get_var('DISABLE_SLE_UPDATES') ? 'alt-n' : 'alt-y') };
                 # Remove tag from array not to match twice
                 @tags = grep { $_ ne 'registration-online-repos' } @tags;
-                last if is_microos('suse');    # SUSE MicroOS does not ask about modules to select
+                last if is_sle_micro;    # SLE Micro does not ask about modules to select
                 next;
             }
             elsif (match_has_tag('module-selection')) {
@@ -635,12 +650,21 @@ sub fill_in_registration_data {
             elsif (match_has_tag('inst-addon')) {
                 return;
             }
-            elsif (match_has_tag("license-agreement") || match_has_tag("license-agreement-accepted")) {
-                send_key 'alt-a' unless match_has_tag("license-agreement-accepted");
-                record_soft_failure 'bsc#1080450: license agreement is shown twice' if match_has_tag("license-agreement-accepted");
+            elsif (match_has_tag('expired-gpg-key')) {
+                record_soft_failure 'bsc#1180619';
+                send_key 'alt-y';
+                next;
+            }
+            elsif (match_has_tag("license-agreement")) {
+                send_key 'alt-a';
+                assert_screen('license-agreement-accepted');
                 send_key $cmd{next};
                 assert_screen "remove-repository";
                 send_key $cmd{next};
+            }
+            elsif (match_has_tag('leap-to-sle-registrition-finished')) {
+                # leap to sle do not need to add any addons
+                return;
             }
         }
     }
@@ -739,9 +763,11 @@ sub yast_scc_registration {
         $client_module = 'registration';
     }
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
+    # For Aarch64 if the worker run with heavy loads, it will
+    # timeout in nearly 120 seconds. So we set it to 150.
     assert_screen_with_soft_timeout(
         'scc-registration',
-        timeout      => 90,
+        timeout      => (check_var('ARCH', 'aarch64')) ? 150 : 90,
         soft_timeout => 30,
         bugref       => 'wait longer time to start yast2 scc in case of multiple jobs start to execute it in parallel on a same worker'
     );

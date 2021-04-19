@@ -5,11 +5,8 @@ description: >
   something is missing during manual partitioning using Expert Partitioner.
   Following warning are verified:
     - Missing root partition;
-    - Invalid boot partitioning (bios boot,/boot/zipl/,EFI, prep-boot),
-      only storage NG;
-    - Minimal size for the root with btrfs and snapshots and non-btrfs
-      (only storage-ng);
-    - No swap partition.
+    - Minimal size for the root with btrfs and snapshots
+    - Missing boot partition (bios boot,/boot/zipl/,EFI, prep-boot).
 vars:
   FILESYSTEM: btrfs
   YUI_REST_API: 1
@@ -24,6 +21,12 @@ schedule:
   - installation/partitioning
   - installation/partitioning/warning/no_root
   - installation/partitioning/warning/snapshots_small_root
+  - installation/partitioning/warning/no_boot
+  - installation/partitioning/warning/boot_small_for_kernel
+  - installation/partitioning/warning/bios_boot_small_for_bootloader
+  - installation/partitioning/warning/prep_small
+  - installation/partitioning/warning/zipl_small
+  - installation/partitioning/warning/rootfs_small
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -38,10 +41,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/teardown_libyui
-  # Called on BACKEND: svirt
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
 conditional_schedule:
   hostname_inst:
@@ -50,15 +50,3 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
-  reconnect_mgmt_console:
-    BACKEND:
-      svirt:
-        - boot/reconnect_mgmt_console
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
-      pvm_hmc:
-        - installation/grub_test

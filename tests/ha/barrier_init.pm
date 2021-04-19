@@ -25,9 +25,9 @@ sub is_not_supportserver_scenario {
 sub run {
     my $cluster_infos = get_required_var('CLUSTER_INFOS');
 
-    for my $cluster_info (split(/,/, $cluster_infos)) {
+    foreach (split(/,/, $cluster_infos)) {
         # The CLUSTER_INFOS variable for support_server also contains the number of node
-        my ($cluster_name, $num_nodes) = split(/:/, $cluster_info);
+        my ($cluster_name, $num_nodes) = split(/:/, $_);
 
         # Number of node is a mandatory variable!
         die 'A valid number of nodes is mandatory' if ($num_nodes lt '2');
@@ -70,7 +70,7 @@ sub run {
         barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",   $num_nodes);
         barrier_create("LOGS_CHECKED_$cluster_name",            $num_nodes);
         # We have to create barriers for each nodes if we want to be able to fence *all* nodes
-        for (1 .. $num_nodes) {
+        foreach (1 .. $num_nodes) {
             barrier_create("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE$_",   $num_nodes);
             barrier_create("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE$_",     $num_nodes);
             barrier_create("CHECK_BEFORE_FENCING_BEGIN_${cluster_name}_NODE$_", $num_nodes);
@@ -78,7 +78,6 @@ sub run {
         }
         barrier_create("CLUSTER_MD_INIT_$cluster_name",             $num_nodes);
         barrier_create("CLUSTER_MD_CREATED_$cluster_name",          $num_nodes);
-        barrier_create("CLUSTER_MD_STARTED_$cluster_name",          $num_nodes);
         barrier_create("CLUSTER_MD_RESOURCE_CREATED_$cluster_name", $num_nodes);
         barrier_create("CLUSTER_MD_CHECKED_$cluster_name",          $num_nodes);
         barrier_create("HAWK_INIT_$cluster_name",                   $num_nodes);
@@ -124,11 +123,23 @@ sub run {
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
 
+        # PRIORITY_FENCING_DELAY barriers
+        barrier_create("PRIORITY_FENCING_CONF_$cluster_name", $num_nodes);
+        barrier_create("PRIORITY_FENCING_DONE_$cluster_name", $num_nodes);
+        if (get_var('STONITH_COUNT')) {
+            my $count = get_var('STONITH_COUNT');
+            while ($count ne 0) {
+                barrier_create("STONITH_COUNTER_${count}_${cluster_name}", $num_nodes);
+                $count--;
+            }
+        }
+
+        # Preflight-check barriers
+        barrier_create("PREFLIGHT_CHECK_INIT_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
+
         # ROLLING UPGRADE / UPDATE barriers
         my $update_type = (get_var('UPDATE_TYPE') eq "update") ? "UPDATED" : "UPGRADED";
-        for (1 .. $num_nodes) {
-            barrier_create("NODE_${update_type}_${cluster_name}_NODE$_", $num_nodes);
-        }
+        barrier_create("NODE_${update_type}_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
 
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
@@ -160,8 +171,9 @@ sub run {
         barrier_create("HANA_INIT_CONF_$cluster_name",       $num_nodes);
         barrier_create("HANA_CREATED_CONF_$cluster_name",    $num_nodes);
         barrier_create("HANA_LOADED_CONF_$cluster_name",     $num_nodes);
+        barrier_create("MONITORING_CONF_DONE_$cluster_name", $num_nodes);
         # We have to create barriers for each nodes if we want to be able to fence *all* nodes
-        for (1 .. $num_nodes) {
+        foreach (1 .. $num_nodes) {
             barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_",      $num_nodes);
             barrier_create("HANA_REPLICATE_STATE_${cluster_name}_NODE$_", $num_nodes);
         }
@@ -180,16 +192,16 @@ sub run {
     my $dev_by_path    = '/dev/disk/by-path';
     my $index          = get_var('ISCSI_LUN_INDEX', 0);
 
-    for my $cluster_info (split(/,/, $cluster_infos)) {
+    foreach (split(/,/, $cluster_infos)) {
         # The CLUSTER_INFOS variable for support_server also contains the number of LUN
-        my ($cluster_name, $num_nodes, $num_luns) = split(/:/, $cluster_info);
+        my ($cluster_name, $num_nodes, $num_luns) = split(/:/, $_);
 
         # Export LUN name if needed
         if (defined $num_luns) {
             # Create a file that contains the list of LUN for each cluster
             my $lun_list_file = "/tmp/$cluster_name-lun.list";
-            foreach my $i (0 .. ($num_luns - 1)) {
-                my $lun_id = $i + $index;
+            foreach (0 .. ($num_luns - 1)) {
+                my $lun_id = $_ + $index;
                 script_run "echo '${dev_by_path}/ip-${target_ip_port}-iscsi-${target_iqn}-lun-${lun_id}' >> $lun_list_file";
             }
             $index += $num_luns;

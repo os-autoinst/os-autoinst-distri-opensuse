@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: cronie btrfsmaintenance
 # Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
 #   jobs or systemd timer
 # - Show dmesg output in console during cron run

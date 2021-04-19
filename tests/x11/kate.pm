@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: kate
 # Summary: Test the KDE text editor can be installed, started, typing works
 #   and closed
 # Maintainer: Oliver Kurz <okurz@suse.de>

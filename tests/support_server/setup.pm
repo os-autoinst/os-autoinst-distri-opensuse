@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2019 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ use opensusebasetest 'firewall';
 use registration 'scc_version';
 use iscsi;
 use version_utils 'is_opensuse';
+use virt_autotest::utils qw(is_vmware_virtualization is_hyperv_virtualization);
 
 my $pxe_server_set       = 0;
 my $http_server_set      = 0;
@@ -155,6 +156,7 @@ sub setup_dns_server {
                -e '/^NETCONFIG_DNS_FORWARDER_FALLBACK=/ s/yes/no/' /etc/sysconfig/network/config
         sed -i '/^NAMED_CONF_INCLUDE_FILES=/ s/=.*/="openqa.zones"/' /etc/sysconfig/named
         sed -i 's|#forwarders.*;|include "/etc/named.d/forwarders.conf";|' /etc/named.conf
+        sed -i 's|#dnssec-validation .*;|dnssec-validation no;|' /etc/named.conf
         curl -f -v $named_url/openqa.zones > /etc/named.d/openqa.zones
         curl -f -v $named_url/openqa.test.zone > /var/lib/named/master/openqa.test.zone
         curl -f -v $named_url/2.0.10.in-addr.arpa.zone > /var/lib/named/master/2.0.10.in-addr.arpa.zone
@@ -530,13 +532,13 @@ sub setup_mariadb_server {
     systemctl('start mysql');
 
     # Enter mysql command to grant the access privileges to root
-    type_string_slow "mysql\n";
+    enter_cmd_slow "mysql";
     assert_screen 'mariadb-monitor-opened';
-    type_string_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';\n";
+    enter_cmd_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';";
     assert_screen 'mariadb-user-host';
-    type_string_slow "GRANT ALL PRIVILEGES ON *.* TO \'root\'@\'$ip\' IDENTIFIED BY \'$passwd\' WITH GRANT OPTION;\n";
+    enter_cmd_slow "GRANT ALL PRIVILEGES ON *.* TO \'root\'@\'$ip\' IDENTIFIED BY \'$passwd\' WITH GRANT OPTION;";
     assert_screen 'mariadb-grant-ok';
-    type_string_slow "quit\n";
+    enter_cmd_slow "quit";
     wait_still_screen 2;
     systemctl('restart mysql');
     $disable_firewall = 1;
@@ -566,7 +568,10 @@ sub setup_nfs_server {
 }
 
 sub run {
-    configure_static_network('10.0.2.1/24');
+    # Persist DHCP configuration for VMware & HyperV virtualization smoketests
+    unless (is_vmware_virtualization || is_hyperv_virtualization) {
+        configure_static_network('10.0.2.1/24');
+    }
 
     my @server_roles = split(',|;', lc(get_var("SUPPORT_SERVER_ROLES")));
     my %server_roles = map { $_ => 1 } @server_roles;

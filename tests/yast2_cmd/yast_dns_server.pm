@@ -10,6 +10,7 @@
 # All of cases is based on the reference:
 # https://documentation.suse.com/sles/15-SP1/single-html/SLES-admin/#id-1.3.3.6.13.6.11
 #
+# Package: yast2-dns-server bind bind-libs
 # Summary: Create DNS forwarder and DNS server, verify lookup.
 #
 # 1. Create a sub to handle command and verify it result
@@ -74,13 +75,13 @@ sub run {
     assert_script_run(qq(sed -i 's/NETCONFIG_FORCE_REPLACE="no"/NETCONFIG_FORCE_REPLACE="yes"/' /etc/sysconfig/network/config));
 
     #Forward server and test lookup
-    my $suseip = script_output("dig www.suse.com +short");
-    $suseip =~ s/.*(\d+\.\d+\.\d+\.\d+).*/$1/s;
+    my $opensuseip = script_output("dig www.opensuse.org +short");
+    $opensuseip =~ s/.*^(\d+\.\d+\.\d+\.\d+).*/$1/ms;
     $self->cmd_handle("forwarders", "add", ip => "10.0.2.3");
     #disable dnssec validation
     assert_script_run("sed -i 's/#dnssec-validation auto/dnssec-validation no/' /etc/named.conf");
     systemctl("start named.service");
-    validate_script_output('dig @localhost www.suse.com +short', sub { /\Q$suseip\E/ });
+    validate_script_output('dig @localhost www.opensuse.org +short', sub { /\Q$opensuseip\E/ });
 
     assert_script_run("sed -i 's/dnssec-validation no/#dnssec-validation auto/' /etc/named.conf");
     $self->cmd_handle("forwarders", "remove", ip => "10.0.2.3");

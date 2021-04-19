@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Check logs to find error and upload all needed logs
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
@@ -22,7 +23,9 @@ sub run {
     my $cluster_name = get_cluster_name;
 
     # Checking cluster state can take time, so default timeout is not enough
-    assert_script_run 'crm script run health', bmwqemu::scale_timeout(240);
+    if (script_run("crm script run health", bmwqemu::scale_timeout(240)) != 0) {
+        record_soft_failure("bsc#1180618, unexpected hostname in the output");
+    }
 
     barrier_wait("LOGS_CHECKED_$cluster_name");
 
@@ -30,7 +33,14 @@ sub run {
     ha_export_logs;
 
     # Looking for segfault during the test
-    record_soft_failure "bsc#1132123" if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))');
+    if (script_run '(( $(grep -sR segfault /var/log | wc -l) == 0 ))') {
+        if (script_run '(( $(egrep -sR iscsiadm.+segfault /var/log | wc -l) == 0 ))') {
+            record_soft_failure "bsc#1181052 - segfault on iscsiadm";
+        }
+        else {
+            die "segfault detected in the system! Aborting";
+        }
+    }
 }
 
 # Specific test_flags for this test module

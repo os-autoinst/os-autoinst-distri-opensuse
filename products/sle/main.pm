@@ -725,6 +725,9 @@ elsif (get_var('XFSTESTS')) {
             unless (get_var('NO_KDUMP')) {
                 loadtest 'xfstests/enable_kdump';
             }
+            if (get_var('XFSTEST_KLP')) {
+                loadtest 'kernel/install_klp_product';
+            }
             loadtest 'shutdown/shutdown';
         }
         else {
@@ -759,8 +762,16 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
+    elsif (get_var('START_DIRECTLY_AFTER_TEST')) {
+        #Skip host installation for tests run after another test which already installs host on same SUT
+        loadtest "virt_autotest/login_console";
+        if (get_var("SKIP_GUEST_INSTALL")) {
+            loadtest "virt_autotest/cleanup_service";
+            loadtest "virt_autotest/download_guest_assets";
+        }
+    }
     else {
-        if (!check_var('ARCH', 's390x')) {
+        if (!is_s390x) {
             load_boot_tests();
             if (get_var("AUTOYAST")) {
                 loadtest "autoyast/installation";
@@ -771,13 +782,14 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/login_console";
             }
         }
-        elsif (check_var('ARCH', 's390x')) {
+        else {
             loadtest "virt_autotest/login_console";
         }
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
+        loadtest "virt_autotest/reset_partition";
         loadtest "virt_autotest/reboot_and_wait_up_normal" if get_var('REPO_0_TO_INSTALL');
-        loadtest "virt_autotest/download_guest_assets"     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
+        loadtest "virt_autotest/download_guest_assets"     if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
@@ -798,11 +810,13 @@ elsif (get_var("VIRT_AUTOTEST")) {
             loadtest "virt_autotest/virsh_external_snapshot";
         }
     }
-    elsif (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
-        loadtest "virt_autotest/restore_guests";
+    #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passhthrough etc.
+    #they can be seperated from prj1 if needed
+    elsif (get_var("DIRECT_CHAINED_VIRT_FEATURE_TEST")) {
+        loadtest "virt_autotest/restore_guests" if get_var("SKIP_GUEST_INSTALL");
         loadtest "virt_autotest/set_config_as_glue";
         loadtest "virt_autotest/setup_dns_service";
-        loadtest "virt_autotest/sriov_network_card_pci_passthrough";
+        loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
@@ -892,7 +906,12 @@ elsif (get_var("QAM_MINIMAL")) {
 }
 elsif (get_var("INSTALLTEST")) {
     boot_hdd_image;
-    loadtest "qam-updinstall/update_install";
+    if (get_var('BUILD') =~ m/^MR:/) {
+        loadtest "qam-updinstall/update_install_mr";
+    }
+    else {
+        loadtest "qam-updinstall/update_install";
+    }
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
@@ -978,6 +997,7 @@ else {
         for my $test_group (@test_groups) {
             loadtest 'console/avocado_run', name => "$test_group";
         }
+
         return 1;
     }
     elsif (check_var('BACKEND', 'ipmi') && get_var('MICROCODE_UPDATE')) {
@@ -1052,6 +1072,32 @@ else {
         }
         else {
             loadtest 'console/rsync_client';
+        }
+    }
+    elsif (get_var('OVS')) {
+        set_var('INSTALLONLY', 1);
+        if (check_var('HOSTNAME', 'server')) {
+            barrier_create('ipsec_done',          2);
+            barrier_create('traffic_check_done',  2);
+            barrier_create('certificate_signed',  2);
+            barrier_create('ipsec1_done',         2);
+            barrier_create('traffic_check_done1', 2);
+            barrier_create('ipsec2_done',         2);
+            barrier_create('traffic_check_done2', 2);
+            barrier_create('cert_done',           2);
+            barrier_create('empty_directories',   2);
+            barrier_create('host2_cert_ready',    2);
+            barrier_create('cacert_done',         2);
+            barrier_create('end_of_test',         2);
+        }
+        loadtest 'installation/bootloader_start';
+        boot_hdd_image;
+        loadtest 'network/setup_multimachine';
+        if (check_var('HOSTNAME', 'server')) {
+            loadtest 'console/ovs_server';
+        }
+        else {
+            loadtest 'console/ovs_client';
         }
     }
     elsif (get_var('QAM_CURL')) {

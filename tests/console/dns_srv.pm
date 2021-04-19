@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: bind bind-utils
 # Summary: Very simple, needle free, bind server test
 # - check that named can be enabled and disabled
 # - start named service

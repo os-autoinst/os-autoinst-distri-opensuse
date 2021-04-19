@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-network
 # Summary: Ensure using NetworkManager as system network manager
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
@@ -34,7 +35,7 @@ sub run {
 
 sub configure_system {
     # we have to change the networkmanager form wicked to NetworkManager
-    y2_module_guitest::launch_yast2_module_x11 module => 'lan';
+    y2_module_guitest::launch_yast2_module_x11('lan');
     assert_screen 'yast2_control-center_network-opened';
 
     # switch to 'Global options'

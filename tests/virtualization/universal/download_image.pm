@@ -5,6 +5,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: rsync
 # Summary: Download disk image
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
@@ -18,6 +19,7 @@ use utils;
 
 sub run {
     my $self = shift;
+    $self->select_serial_terminal;
 
     ensure_default_net_is_active();
 

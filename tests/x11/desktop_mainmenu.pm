@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lxde xfce
 # Summary: Test that desktop main menu shows up (support multiple DEs/WMs)
 # - open main menu and check that it matches the needle
 # Maintainer: Oliver Kurz <okurz@suse.de>
@@ -16,6 +17,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_leap);
 
 
 sub run {
@@ -24,6 +26,9 @@ sub run {
     if (check_var("DESKTOP", "lxde")) {
         # or Super_L or Windows key
         x11_start_program('lxpanelctl menu', target_match => 'test-desktop_mainmenu-1');
+    }
+    elsif (check_var("DESKTOP", "xfce") && !is_leap("<15.3")) {
+        send_key "super";
     }
     elsif (check_var("DESKTOP", "xfce")) {
         mouse_set(0, 0);

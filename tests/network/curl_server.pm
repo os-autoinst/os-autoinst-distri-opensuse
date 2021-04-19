@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: curl
 # Summary: Server configurations to test curl .
 # Maintainer: Marcelo Martins <mmartins@@suse.com>
 

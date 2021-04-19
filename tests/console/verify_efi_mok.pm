@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: efibootmgr openssl mokutil parted coreutils sbsigntools
 # Summary: Check EFI boot in images or after OS installation
 # Maintainer: Martin Loviska <mloviska@suse.com>
 

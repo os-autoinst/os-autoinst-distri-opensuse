@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: greenbone-security-assistant
 # Summary: Case 1525263 - Verify libmicrohttpd via Greenbone Security Assistant
 # Maintainer: Ben Chou <bchou@suse.com>
 

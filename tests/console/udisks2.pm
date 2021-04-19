@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: cdrkit-cdrtools-compat udisks2 util-linux mkisofs
 # Summary: Simple tests for udisks2 using udisksctl checking status,
 # block device information and loop-setup.
 # Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
@@ -19,7 +20,8 @@ use utils;
 use version_utils qw(is_sle);
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Install udisks2 package. mkisofs and util-linux for support packages
     if (is_sle('<15')) {
@@ -43,7 +45,7 @@ sub run {
                     push @tested_devices, $current_test_device;
 
                     # Check if udisks2 output is valid (contains a sections for Block and Partition Table/or available).
-                    validate_script_output("udisksctl info --block-device /dev/$current_test_device", sub { m/UDisks2.*Block.*(HintPartitionable:\s+true|PartitionTable).*/s });
+                    validate_script_output("udisksctl info --block-device /dev/$current_test_device|tee", sub { m/UDisks2.*Block.*(HintPartitionable:\s+true|PartitionTable).*/s });
                 }
             }
         }

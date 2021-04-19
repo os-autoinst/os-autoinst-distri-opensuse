@@ -40,7 +40,7 @@ sub check_service {
 # check postfix function
 sub check_function {
     # Clear mailbox
-    type_string("rm /var/spool/mail/$testapi::username\n");
+    enter_cmd("rm /var/spool/mail/$testapi::username");
     # Send testing mail
     assert_script_run("echo 'Mail body' | mailx -v -s 'openQA Testing' $testapi::username\@localhost");
     # Flush mail queue to ensure mail has been sent
@@ -52,8 +52,8 @@ sub check_function {
 # check postfix service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_postfix_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
     if ($stage eq 'before') {
         install_service();
         enable_service();

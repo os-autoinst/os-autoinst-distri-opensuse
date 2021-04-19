@@ -21,11 +21,11 @@ sub run {
     select_console 'root-console';
 
     if (check_var('ARCH', 'x86_64')) {
-        type_string "qemu-system-x86_64 -nographic -enable-kvm\n";
+        enter_cmd "qemu-system-x86_64 -nographic -enable-kvm";
         assert_screen 'qemu-no-bootable-device', 60;
     }
     elsif (check_var('ARCH', 'ppc64le')) {
-        type_string "qemu-system-ppc64 -nographic -enable-kvm\n";
+        enter_cmd "qemu-system-ppc64 -nographic -enable-kvm";
         assert_screen ['qemu-open-firmware-ready', 'qemu-does-not-support-1tib-segments', 'qemu-ppc64-no-trans-mem'], 60;
         if (match_has_tag 'qemu-does-not-support-1tib-segments') {
             record_soft_failure 'bsc#1124589 - qemu on ppx64le fails when called with kvm on POWER9';
@@ -34,16 +34,16 @@ sub run {
         elsif (match_has_tag 'qemu-ppc64-no-trans-mem') {
             # this should only happen on SLE12SP5
             record_info 'workaround', 'bsc#1118450 - qemu-system-ppc64: KVM implementation does not support Transactional Memory';
-            type_string "qemu-system-ppc64 -nographic -enable-kvm -M usb=off,cap-htm=off\n";
+            enter_cmd "qemu-system-ppc64 -nographic -enable-kvm -M usb=off,cap-htm=off";
             assert_screen 'qemu-open-firmware-ready', 60;
         }
     }
     elsif (check_var('ARCH', 's390x')) {
-        type_string "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd\n";
+        enter_cmd "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd";
         assert_screen 'qemu-reached-target-basic-system', 60;
     }
     elsif (check_var('ARCH', 'aarch64')) {
-        type_string "qemu-system-aarch64 -M virt,usb=off,gic-version=host -cpu host -enable-kvm -nographic -pflash flash0.img -pflash flash1.img\n";
+        enter_cmd "qemu-system-aarch64 -M virt,usb=off,gic-version=host -cpu host -enable-kvm -nographic -pflash flash0.img -pflash flash1.img";
         assert_screen 'qemu-uefi-shell', 600;
     }
 

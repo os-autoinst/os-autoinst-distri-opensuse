@@ -1,0 +1,13 @@
+---
+name: Userspace_test
+vars:
+    DISABLE_SUBMIT_QADB: 1
+    USER_SPACE_TESTSUITES: bash
+    TESTCASES_BLACKLIST: >
+      bash.run-appendop.sh bash.run-array.sh bash.run-errors.sh bash.run-execscript.sh bash.run-herestr.sh
+      bash.run-jobs.sh bash.run-new-exp.sh bash.run-posix2.sh bash.run-read.sh bash.run-shopt.sh
+      bash.run-trap.sh bash.run-nquote4.sh
+    INDEPENDENT_RUN: 1
+schedule:
+    - boot/boot_to_desktop
+    - qa_automation/qaset_pre_patch_run

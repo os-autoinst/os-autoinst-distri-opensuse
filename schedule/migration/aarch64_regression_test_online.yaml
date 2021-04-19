@@ -1,0 +1,98 @@
+name:           aarch64_regression_test_online.yaml
+description:    |
+  This is for aarch64 online regression test.
+  #REGRESSION_LTSS: '1' means base system supports ltss test.
+  #REGRESSION_TEST: '1' means regression test part1 include console test. '2'
+  # means regression test part2 include x11 test and some performance related test.
+vars:
+  DESKTOP: 'gnome'
+  BOOT_HDD_IMAGE: 1
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+schedule:
+  - migration/version_switch_origin_system
+  - '{{online_migration_test}}'
+  - '{{remove_ltss}}'
+  - migration/version_switch_upgrade_target
+  - migration/online_migration/pre_migration
+  - '{{migration_method}}'
+  - migration/online_migration/post_migration
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_upgraded_service
+  - '{{regression_tests}}'
+  - '{{openldap_to_389ds}}'
+  - boot/grub_test_snapshot
+  - migration/version_switch_origin_system
+  - boot/snapper_rollback
+conditional_schedule:
+  remove_ltss:
+    REGRESSION_LTSS:
+      1:
+        - migration/online_migration/register_without_ltss
+  migration_method:
+    MIGRATION_METHOD:
+      yast:
+        - migration/online_migration/yast2_migration
+      zypper:
+        - migration/online_migration/zypper_migration
+  online_migration_test:
+    ONLINE_MIGRATION:
+      1:
+        - installation/isosize
+        - installation/bootloader_uefi
+        - migration/online_migration/online_migration_setup
+        - migration/online_migration/register_system
+        - migration/online_migration/zypper_patch
+        - installation/install_service
+  openldap_to_389ds:
+    REGRESSION_389DS:
+      1:
+        - migration/openldap_to_389ds
+  regression_tests:
+    REGRESSION_TEST:
+      1:
+        - locale/keymap_or_locale
+        - console/check_package_version
+        - console/textinfo
+        - console/hostname
+        - console/x_vt
+        - console/zypper_lr
+        - console/check_system_info
+        - console/zypper_ref
+        - console/ncurses
+        - console/yast2_lan
+        - console/curl_https
+        - console/salt
+        - console/zypper_in
+        - console/zypper_log
+        - console/yast2_i
+        - console/yast2_bootloader
+        - console/firewall_enabled
+        - console/sshd
+        - console/ssh_cleanup
+        - console/mtab
+        - console/orphaned_packages_check
+        - console/consoletest_finish
+      2:
+        - console/supportutils
+        - console/force_scheduled_tasks
+        - console/upgrade_snapshots
+        - console/zypper_lifecycle
+        - console/consoletest_finish
+        - x11/desktop_runner
+        - x11/xterm
+        - locale/keymap_or_locale_x11
+        - x11/sshxterm
+        - x11/gnome_control_center
+        - x11/gnome_terminal
+        - x11/gedit
+        - x11/firefox
+        - x11/yast2_snapper
+        - x11/glxgears
+        - x11/nautilus
+        - x11/desktop_mainmenu
+        - x11/reboot_gnome

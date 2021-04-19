@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: steamcmd
 # Summary: Run steamcmd to bootstrap a game server
 #   see https://developer.valvesoftware.com/wiki/SteamCMD for reference,
 #   https://developer.valvesoftware.com/wiki/Dedicated_Servers_List#Linux_Dedicated_Servers

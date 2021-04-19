@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: perl-Bootloader dracut
 # Summary: Test the perl-Bootloader package by generating the initrd,
 #          calling update-bootloader and rebooting the host
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>

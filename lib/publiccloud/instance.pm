@@ -224,7 +224,7 @@ sub wait_for_ssh
     }
 
     croak(sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds",
-            $self->{instance_id}, $self->{public_ip}, $self->{timeout}))
+            $self->{instance_id}, $self->{public_ip}, $args{timeout}))
       unless ($args{proceed_on_failure});
     return;
 }
@@ -284,6 +284,18 @@ sub start
     my ($self, %args) = @_;
     $self->provider->start_instance($self, @_);
     return $self->wait_for_ssh(timeout => $args{timeout});
+}
+
+=head2 get_state
+
+    get_state();
+
+Get the status of the instance using the CSP api calls.
+=cut
+sub get_state
+{
+    my $self = shift;
+    return $self->provider->get_state_from_instance($self, @_);
 }
 
 1;

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: trinity sudo
 # Summary: Trying to stress kernel with fuzz testing using trinity
 # Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
 

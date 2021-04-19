@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iproute2
 # Summary: Advanced test cases for wicked
 # Test 1 : Create a GRE interface from legacy ifcfg files
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>

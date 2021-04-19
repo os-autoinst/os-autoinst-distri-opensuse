@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Case#1479153 Firefox: Smoke Test
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox and handle popups

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rebootmgr
 # Summary: Test rebootmgr using different strategies
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: poo#16266
@@ -105,7 +106,7 @@ sub check_strategy_etcd_lock {
 }
 
 sub run {
-    type_string "tput civis\n";
+    enter_cmd "tput civis";
 
     record_info 'Instantly', 'Test instant reboot';
     check_strategy_instantly;

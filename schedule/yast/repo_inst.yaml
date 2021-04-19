@@ -4,12 +4,15 @@ description: >
   Install system from remote repository as long as the repo is type of repomd or
   susetags. Installer is loaded from local DVD and installation packages are
   downloaded from repo during installation. Test covers linuxrc features.
+  Validation of installation repository parameters before and after installation.
 vars:
   DESKTOP: gnome
   VALIDATE_INST_SRC: '1'
+  EXTRABOOTPARAMS: startshell=1
 schedule:
   - installation/isosize
   - installation/bootloader
+  - installation/validation/repo_inst
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -28,5 +31,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/exit_startshell
   - installation/grub_test
   - installation/first_boot
+  - console/validate_mirror_repos

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: xorg-x11-Xvnc ncurses-utils tigervnc xev
 # Summary: Check VNC Secondary viewonly password
 # - Stop vncmanager
 # - Create custom passwords (one for readonly, other for # read/write)
@@ -41,7 +42,7 @@ my $wrong_password = "password123";
 sub type_and_wait {
     type_string shift;
     wait_screen_change {
-        type_string "\n";
+        send_key 'ret';
     };
 }
 
@@ -51,7 +52,7 @@ sub start_vnc_server {
     script_run 'systemctl stop vncmanager';
 
     # Create password file
-    type_string "tput civis\n";
+    enter_cmd "tput civis";
     type_and_wait "vncpasswd /tmp/file.passwd";
 
     # Set read write password
@@ -62,7 +63,7 @@ sub start_vnc_server {
     # Set read only password
     type_and_wait $options[0]->{pw};
     type_and_wait $options[0]->{pw};
-    type_string "tput cnorm\n";
+    enter_cmd "tput cnorm";
 
     # Also set the password via `vncpasswd -f` for vncserver and to test for https://bugzilla.opensuse.org/show_bug.cgi?id=1171519
     assert_script_run('umask 0077');
@@ -74,7 +75,7 @@ sub start_vnc_server {
     }
 
     # Start server
-    type_string "Xvnc $display -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd\n";
+    enter_cmd "Xvnc $display -SecurityTypes=VncAuth -PasswordFile=/tmp/file.passwd";
     wait_still_screen 2;
     select_console 'x11';
 }
@@ -85,9 +86,9 @@ sub generate_vnc_events {
     # Login into vnc display in RO/RW mode
     x11_start_program 'xterm';
     send_key 'super-left';
-    type_string "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev \n", timeout => 60;
+    enter_cmd "vncviewer $display -SecurityTypes=VncAuth ; echo vncviewer-finished >/dev/$serialdev ", timeout => 60;
     assert_screen 'vnc_password_dialog';
-    type_string "$password\n";
+    enter_cmd "$password";
     assert_screen 'vncviewer-xev';
     send_key 'super-left';
     wait_still_screen 2;
@@ -100,7 +101,7 @@ sub generate_vnc_events {
 
     send_key 'alt-f4';
     wait_serial('vncviewer-finished') || die 'vncviewer not finished';
-    type_string "exit \n";
+    enter_cmd 'exit';
 }
 
 sub run {
@@ -123,7 +124,7 @@ sub run {
         #     xev -display $display -root | tee /tmp/xev_log ; echo xev-finished >/dev/$serialdev
         # will not work
         # Parentheses are needed to not populate trap to following commands
-        type_string "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log) \n";
+        enter_cmd "(trap 'echo xev-finished >/dev/$serialdev' SIGINT; xev -display $display -root | tee /tmp/xev_log) ";
 
         # Repeat with RO/RW password
         generate_vnc_events $opt->{pw};

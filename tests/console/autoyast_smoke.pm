@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iproute2 systemd
 # Summary: smoke test for autoyast post-installation
 # Maintainer: Yiannis Bonatakis <ybonatakis@suse.com>
 

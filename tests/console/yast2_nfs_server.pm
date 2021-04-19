@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-nfs-server nfs-kernel-server nfs-client
 # Summary: Add new yast2_nfs_server test
 #    This tests "yast2 nfs-server" by creating an NFS share,
 #    writing a file to it and validating that the file is accessible

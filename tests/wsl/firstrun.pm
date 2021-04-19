@@ -13,14 +13,9 @@
 use Mojo::Base qw(windowsbasetest);
 use testapi;
 use version_utils qw(is_sle);
-use wsl qw(is_sut_reg);
-
-sub is_fake_scc_url_needed {
-    return get_var('SCC_URL') && get_var('BETA', 0);
-}
+use wsl qw(is_sut_reg is_fake_scc_url_needed);
 
 sub set_fake_scc_url {
-    return unless is_fake_scc_url_needed;
     my $proxyscc = get_var('SCC_URL');
 
     assert_screen 'yast2-wsl-firstboot-welcome';
@@ -80,10 +75,9 @@ sub license {
 }
 
 sub register_via_scc {
-    my $skip = shift;
     assert_screen 'wsl-registration', 120;
 
-    unless (!!$skip) {
+    unless (is_sut_reg) {
         wait_screen_change(sub { send_key 'alt-s' }, 10);
         assert_screen 'wsl-skip-registration-warning';
         send_key 'ret';
@@ -110,7 +104,7 @@ sub run {
     if (match_has_tag 'yast2-wsl-firstboot-welcome') {
         assert_and_click 'window-max';
         wait_still_screen stilltime => 3, timeout => 10;
-        set_fake_scc_url();
+        is_fake_scc_url_needed && set_fake_scc_url();
         send_key 'alt-n';
         # License handling
         license;
@@ -119,7 +113,7 @@ sub run {
         enter_user_details([$realname, undef, $password, $password]);
         send_key 'alt-n';
         # Registration
-        is_sle && register_via_scc(get_var('SCC_REGISTER', 0));
+        is_sle && register_via_scc();
         # And done!
         assert_screen 'wsl-installation-completed', 120;
         send_key 'alt-f';
@@ -144,20 +138,31 @@ sub run {
     # Nothing to do in WSL2 pts w/o serialdev support
     # https://github.com/microsoft/WSL/issues/4322
     if (get_var('WSL2')) {
-        type_string "exit\n";
+        enter_cmd "exit";
         return;
     }
 
-    become_root unless (get_var('BETA', 0) && is_sut_reg());
-
+    is_fake_scc_url_needed || become_root;
     assert_script_run 'cd ~';
-    if (script_run "zypper ps") {
-        record_soft_failure 'bsc#1170256 - [Build 3.136] zypper ps is missing lsof package';
-    }
-    type_string "exit\n";
+    assert_script_run "zypper ps";
+    enter_cmd 'exit';
     sleep 3;
     save_screenshot;
-    type_string "exit\n" unless (get_var('BETA', 0) && is_sut_reg());
+    is_fake_scc_url_needed || enter_cmd 'exit';
+}
+
+sub post_fail_hook {
+    assert_screen 'yast2-wsl-active';
+    # function keys are not encoded in consoles/VNC.pm
+    send_key 'alt-q';
+    wait_still_screen stilltime => 5, timeout => 35;
+    send_key 'alt-r';
+    assert_screen 'wsl-firsboot-exit-warning-pop-up';
+    send_key 'alt-a';
+    assert_screen 'wsl-installing-prompt';
+    wait_still_screen stilltime => 2, timeout => 11;
+    script_run 'save_y2logs wsl-fb.tar.xz';
+    upload_logs '/root/wsl-fb.tar.xz';
 }
 
 1;

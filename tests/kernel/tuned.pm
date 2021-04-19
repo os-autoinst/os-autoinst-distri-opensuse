@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: tuned
 # Summary: Regression test for tuned daemon
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 # Tags: https://jira.suse.com/browse/SLE-6514
@@ -32,7 +33,7 @@ sub run {
     $known_errors{bsc_1148789} = 'Executing cpupower error: Error setting perf-bias value on CPU' if is_sle '<15';
     $known_errors{bsc_1148789} = 'Failed to set energy_perf_bias on cpu'                          if (is_sle('>=15') || is_tumbleweed);
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
     # Install tuned package
     zypper_call 'in tuned';
     # Start daemon

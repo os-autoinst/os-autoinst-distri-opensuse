@@ -1,12 +1,13 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2 util-linux parted device-mapper
 # Summary: Install HANA via command line. Verify installation with
 # sles4sap/hana_test
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
@@ -99,7 +100,7 @@ sub run {
     # Partition disks for Hana
     if (check_var('HANA_PARTITIONING_BY', 'yast')) {
         my $yast_partitioner = is_sle('15+') ? 'sap_create_storage_ng' : 'sap_create_storage';
-        assert_script_run "yast $yast_partitioner /usr/share/YaST2/include/sap-installation-wizard/hana_partitioning.xml", 120;
+        assert_script_run "yast $yast_partitioner /usr/share/YaST2/data/y2sap/hana_partitioning.xml", 120;
     }
     else {
         # If running on QEMU and with a second disk configured, then configure
@@ -129,11 +130,24 @@ sub run {
                 assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
                 $device .= is_multipath() ? '-part1' : '1';
             }
+
             # Remove traces of LVM structures from previous tests before configuring
-            script_run "lvremove -f $volgroup";
-            script_run "vgremove -f $volgroup";
-            script_run "pvremove -f $device";
+            foreach my $lv_cmd ('lv', 'vg', 'pv') {
+                my $looptime  = 20;
+                my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
+                until (script_run "${lv_cmd}remove -f $lv_device 2>&1 | grep -q \"Can't open .* exclusively\.\"") {
+                    sleep bmwqemu::scale_timeout(2);
+                    last if (--$looptime <= 0);
+                }
+                if ($looptime <= 0) {
+                    record_info('ERROR', "Device $lv_device seems to be locked!", result => 'fail');
+                    # Just retry the $lv_cmd to have a "proper" error message
+                    script_run "${lv_cmd}remove -f $lv_device";
+                    die 'locked block device';    # We have to force the die, record_info don't do it
+                }
+            }
             foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
+
             # Now configure LVs and file systems for HANA
             assert_script_run "pvcreate -y $device";
             assert_script_run "vgcreate -f $volgroup $device";

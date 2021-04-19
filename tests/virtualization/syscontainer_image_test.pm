@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-client zypper
 # Summary: tests running system containers images with libvirt-lxc
 # Maintainer: Cédric Bosdonnat <cbosdonnat@suse.de>
 
@@ -60,7 +61,7 @@ sub run() {
     # Tests on the container
 
     # Test login on the container
-    type_string("root\n");
+    enter_cmd("root");
     type_password("test\n");
 
     # Wait for the login to be done before continuing

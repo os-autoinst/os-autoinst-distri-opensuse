@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper
 # Summary: Check post-installation snapshot
 # - Parse system variables and define snapshot type and description
 # - Using the type and description, check if snapshot was already created

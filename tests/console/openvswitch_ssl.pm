@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: python openvswitch
 # Summary: The test to connect openvswitch to openflow with SSL enabled
 #
 # Maintainer: Ben Chou <bchou@suse.com>
@@ -49,7 +50,7 @@ sub run {
     die 'pox was not up correctly' unless (wait_serial qr/INFO:core:POX.*is up/ms);
     # Enter to show prompt
     for (1 .. 2) {
-        type_string "\n";
+        send_key 'ret';
     }
 
     # Set SSL for openvswitch and connect to open-flow controller (POX)
@@ -62,7 +63,7 @@ sub run {
     for (1 .. 3) {
         sleep 10;
         diag "Trying to check connection: $_ of 3";
-        type_string "ovs-vsctl show | tee /dev/$serialdev\n";
+        enter_cmd "ovs-vsctl show | tee /dev/$serialdev";
         if (wait_serial qr/Controller "ssl:127\.0\.0\.1:6634".*is_connected: true/ms) {
             last;
         }

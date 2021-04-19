@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: openssh coreutils ca-certificates-suse
 # Summary: This test connects to hypervisor using SSH
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
@@ -27,7 +28,8 @@ use virt_autotest::utils;
 
 sub run {
     my ($self) = @_;
-    $self->select_serial_terminal;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     my $hypervisor = get_var('HYPERVISOR') // '127.0.0.1';
 
     # Remove old files

@@ -52,7 +52,7 @@ sub run {
 
     allow_selected_insecure_registries(runtime => 'docker');
     my $registry = get_var('REGISTRY', 'docker.io');
-    assert_script_run("docker image pull $registry/library/nginx", timeout => 300);
+    assert_script_run("sed -i 's/REGISTRY/$registry/' docker-compose.yml");
     assert_script_run 'docker-compose pull', 600;
 
     # Start all containers in background

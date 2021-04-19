@@ -3,7 +3,8 @@ description:    >
     Maintainer: pdostal@suse.cz
     Testing Kernel on VMware / Hyper-V SLE hosts
 schedule:
-    - boot/boot_to_desktop
+    - support_server/login
+    - support_server/setup
     - virtualization/external/prepare
     - virtualization/universal/ssh_hypervisor_init
     - virtualization/universal/ssh_guests_init

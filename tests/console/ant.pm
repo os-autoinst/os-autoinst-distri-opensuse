@@ -7,6 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 # Description: Basic Ant test
+#
+# Package: ant
 # Summary: Runs an ant build file that compiles a sample java code,
 #          creates a jar file and runs it.
 # Maintainer: George Gkioulis <ggkioulis@suse.com>

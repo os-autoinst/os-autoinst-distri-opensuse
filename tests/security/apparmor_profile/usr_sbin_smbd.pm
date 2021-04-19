@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: samba samba-client yast2-samba-client yast2-samba-server nautilus
+# apparmor-utils
 # Summary: Test with "usr.sbin.smbd" is in "enforce" mode and AppArmor is
 #          "enabled && active", access the shared directory should have no error.
 # - Install samba samba-client yast2-samba-client yast2-samba-server
@@ -54,7 +56,7 @@ sub samba_server_setup {
     systemctl("restart smb");
 
     select_console 'x11';
-    y2_module_guitest::launch_yast2_module_x11(module => "samba-server", target_match => "samba-server-installation", match_timeout => 200);
+    y2_module_guitest::launch_yast2_module_x11("samba-server", target_match => "samba-server-installation", match_timeout => 200);
 
     send_key "alt-w";
     send_key "ctrl-a";

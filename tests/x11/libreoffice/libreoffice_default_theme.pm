@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice
 # Summary: LibreOffice: Default icon theme verification
 # - Start ooffice
 # - Open options menu and check
@@ -38,7 +39,7 @@ sub check_lo_theme {
         send_key "o";
     }
     assert_screen 'ooffice-tools-options';
-    send_key_until_needlematch 'ooffice-tools-options-view', 'down';
+    send_key_until_needlematch 'ooffice-tools-options-view', 'down', 5, 2;
     send_key "esc";
     wait_still_screen 3;
     send_key "ctrl-q";    # Quit LO
@@ -53,9 +54,9 @@ sub run {
     # Set LO GUI toolkit var to none
     x11_start_program('xterm');
     assert_script_run 'export OOO_FORCE_DESKTOP="none"';
-    type_string "cd\n";
+    enter_cmd "cd";
     clear_console;
-    type_string "echo \$OOO_FORCE_DESKTOP\n";
+    enter_cmd "echo \$OOO_FORCE_DESKTOP";
     assert_screen 'ooffice-change-guitoolkit';
     send_key 'alt-f4';    # Quit xterm
 

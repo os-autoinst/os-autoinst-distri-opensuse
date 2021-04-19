@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: ristretto
 # Summary: test ristretto and open the default wallpaper
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

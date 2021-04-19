@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnote
 # Summary: test gnote note format
 # - Launch gnome, create a new note and check
 # - Type "opensuse" and CTRL-H to turn highlight on
@@ -31,17 +32,17 @@ use testapi;
 sub run {
     my ($self) = @_;
     $self->gnote_start_with_new_note;
-    type_string "opensuse\n";
+    enter_cmd "opensuse";
     send_key "ctrl-h";    #hightlight on
-    type_string "opensuse\n";
+    enter_cmd "opensuse";
     send_key "ctrl-b";    #bold on
-    type_string "opensuse\n";
+    enter_cmd "opensuse";
     send_key "ctrl-b";    #bold off
     send_key "ctrl-h";    #hightlight off
     send_key "ctrl-i";    #italic on
-    type_string "opensuse\n";
+    enter_cmd "opensuse";
     send_key "ctrl-s";    #strikeline on
-    type_string "opensuse\n";
+    enter_cmd "opensuse";
     send_key "ctrl-s";    #strikeline off
     send_key "ctrl-i";    #italic off
     assert_screen 'gnote-edit-format', 5;

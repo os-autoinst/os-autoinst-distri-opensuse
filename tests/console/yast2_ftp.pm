@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: vsftpd yast2-ftp-server openssl
 # Summary: Check yast ftp-server options and ability to start vsftpd with ssl support
 # FTP Server Wizard
 # Step 1: Installs the package and dependencies;
@@ -96,7 +97,7 @@ sub run {
     } else {
         # create DSA certificate for ftp server at first which can be used for SSL configuration
         script_run("openssl dsaparam -out dsaparam.pem 1024");
-        type_string_slow("openssl req -x509 -nodes -days 365 -newkey dsa:dsaparam.pem \\\n"
+        enter_cmd_slow("openssl req -x509 -nodes -days 365 -newkey dsa:dsaparam.pem \\"
               . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
               . "-keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}\n");
     }
@@ -157,15 +158,15 @@ sub run {
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'ret' };
     send_key 'alt-m';                                                              # max idle time in minutes to 10
-    type_string_slow($vsftpd_directives->{idle_session_timeout} / 60 . "\n");
+    enter_cmd_slow($vsftpd_directives->{idle_session_timeout} / 60 . "");
     send_key 'alt-e';                                                              # change max client for one IP
-    type_string_slow($vsftpd_directives->{max_per_ip} . "\n");
+    enter_cmd_slow($vsftpd_directives->{max_per_ip} . "");
     send_key 'alt-x';                                                              # change max clients to 20
-    type_string_slow($vsftpd_directives->{max_clients} . "\n");
+    enter_cmd_slow($vsftpd_directives->{max_clients} . "");
     send_key 'alt-l';                                                              # change local max rate to 100 kb/s
-    type_string_slow($vsftpd_directives->{local_max_rate} / 1024 . "\n");
+    enter_cmd_slow($vsftpd_directives->{local_max_rate} / 1024 . "");
     send_key 'alt-r';                                                              # change anonymous max rate to 50 kb/s
-    type_string_slow($vsftpd_directives->{anon_max_rate} / 1024 . "\n");
+    enter_cmd_slow($vsftpd_directives->{anon_max_rate} / 1024 . "");
     assert_screen 'yast2_ftp_performance-settings';                                # check performance settings
 
     # Authentication
@@ -197,9 +198,9 @@ sub run {
     assert_screen 'yast2_ftp_expert_settings';              # check passive mode value and enable SSL
     wait_still_screen;                                      # wait until yast loads expert settings data
     send_key 'alt-m';
-    type_string_slow($vsftpd_directives->{pasv_min_port} . "\n");
+    enter_cmd_slow($vsftpd_directives->{pasv_min_port} . "");
     send_key 'alt-a';
-    type_string_slow($vsftpd_directives->{pasv_max_port} . "\n");
+    enter_cmd_slow($vsftpd_directives->{pasv_max_port} . "");
     wait_screen_change { send_key 'alt-l' };                # enable SSL, and wait with next step
     wait_still_screen;
     wait_screen_change { send_key 'alt-s' };                # give path for DSA certificate

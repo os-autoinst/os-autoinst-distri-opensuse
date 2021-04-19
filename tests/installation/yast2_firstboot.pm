@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 # Doc: https://en.opensuse.org/YaST_Firstboot
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
-use base 'y2_installbase';
+use base 'y2_module_basetest';
 use y2_logs_helper qw(accept_license verify_license_has_to_be_accepted);
 use strict;
 use warnings;
@@ -30,17 +30,18 @@ sub firstboot_language_keyboard {
     mouse_hide(1);
     foreach (sort keys %${shortcuts}) {
         send_key 'alt-' . $_;
+        wait_screen_change(sub { send_key 'ret' }) if check_var('DESKTOP', 'textmode');
         assert_screen $shortcuts->{$_} . '_selected';
     }
     wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
 sub firstboot_licenses {
-    my $self = shift;
+    my ($self, $custom_needle) = @_;
     # default TO value was not sufficient
-    assert_screen('license-agreement', 60);
+    assert_screen('license-agreement' . $custom_needle, 60);
     # Nothing to be accepted in opensuse
-    unless (is_opensuse) {
+    if (is_sle || $custom_needle) {
         $self->verify_license_has_to_be_accepted;
         $self->accept_license;
     }
@@ -48,13 +49,16 @@ sub firstboot_licenses {
 }
 
 sub firstboot_welcome {
-    assert_screen 'welcome';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    my ($self, $custom_needle) = @_;
+    my $firstboot = $testapi::distri->get_firstboot();
+    assert_screen 'welcome' . $custom_needle;
+    $firstboot->press_next();
 }
 
 sub firstboot_timezone {
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'inst-timezone';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->press_next();
 }
 
 sub firstboot_user {
@@ -69,32 +73,37 @@ sub firstboot_user {
 sub firstboot_root {
     assert_screen 'root_user', 60;
     enter_rootinfo;
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
 }
 
 sub firstboot_hostname {
-    if (check_screen('bsc1173298', 30)) {
-        record_soft_failure "bsc#1173298";
-        send_key $cmd{ok};
-        wait_screen_change(sub { send_key $cmd{next}; }, 7);
-        return;
-    }
+    my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'hostname';
-    wait_screen_change(sub { send_key $cmd{next}; }, 7);
+    $firstboot->press_next();
+}
+
+sub firstboot_registration {
+    my $firstboot = $testapi::distri->get_firstboot();
+    assert_screen 'system_registered';
+    $firstboot->press_next();
+}
+
+sub firstboot_finish {
+    my ($self, $custom_needle) = @_;
+    assert_screen 'installation_completed' . $custom_needle;    # Should now be "Configuration_completed". Kept for historical reasons.
+    send_key $cmd{finish};
 }
 
 sub run {
-    my $self      = shift;
-    my $test_data = get_test_suite_data();
-    my %clients;
+    my $self = shift;
+    YuiRestClient::connect_to_app();
+    my $test_data     = get_test_suite_data();
+    my $custom_needle = $test_data->{custom_control_file} ? "_custom" : undef;
     foreach my $client (@{$test_data->{clients}}) {
         # Make sure the subroutine called from test data exists
         die "Client '$client' is not defined in the module, please check test_data" unless defined(&{"$client"});
         my $client_method = \&{"$client"};
-        $client_method->($self);
+        $client_method->($self, $custom_needle);
     }
-    assert_screen 'installation_completed';
-    send_key $cmd{finish};
 }
 
 sub post_fail_hook {
@@ -102,6 +111,10 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
     # upload YaST2 Firstboot configuration file
     upload_logs('/etc/YaST2/firstboot.xml', log_name => "firstboot.xml.conf");
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lvm2
 # Summary: Simple LVM thin provisioning check
 # Maintainer: Martin Loviska <mloviska@suse.com>
 

@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: systemsettings5
 # Summary: Like 'systemsettings' but for plasma5 (and more recent)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

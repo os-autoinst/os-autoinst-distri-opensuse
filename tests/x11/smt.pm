@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: smt smt
 # Summary: Add smt configuration test
 #    test installation and upgrade with smt pattern, basic configuration via
 #    smt-wizard and validation with smt-repos smt-sync return value
@@ -34,7 +35,7 @@ sub run {
 
     # mirror and sync a base repo from SCC
     smt_mirror_repo();
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

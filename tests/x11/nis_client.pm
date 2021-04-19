@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-nis-server yast2-nfs-client
 # Summary: NIS server-client test
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 # Tags: https://progress.opensuse.org/issues/9900
@@ -129,7 +130,7 @@ sub run {
     wait_serial("$module_name-0", 360) || die "'yast2 nis client' didn't finish";
     setup_verification();
     mutex_create('nis_nfs_client_ready');
-    type_string "killall xterm\n";         # game over -> xterm
+    enter_cmd "killall xterm";             # game over -> xterm
 }
 
 1;

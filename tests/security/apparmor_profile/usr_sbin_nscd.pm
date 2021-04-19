@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: apparmor-utils nscd
 # Summary: Test with "usr.sbin.nscd" is in "enforce" mode and AppArmor is
 #          "enabled && active", stop and start the nscd service have no error.
 # - Install nscd

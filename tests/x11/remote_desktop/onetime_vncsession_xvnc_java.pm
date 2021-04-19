@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: dhcp-client MozillaFirefox
 # Summary: Remote Login: One-time VNC Session with Jave applet and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586207
@@ -36,14 +37,14 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # Start firefox
     $self->start_firefox;
     send_key 'esc';
     send_key 'alt-d';
-    type_string "10.0.2.1:5801\n";
+    enter_cmd "10.0.2.1:5801";
     assert_screen 'firefox-ssl-untrusted';
     assert_and_click 'firefox-ssl-untrusted-advanced';
     assert_and_click 'firefox-ssl-addexception-button';

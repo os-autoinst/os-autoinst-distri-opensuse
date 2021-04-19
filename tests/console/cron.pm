@@ -5,6 +5,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: cronie
 # Summary: Check for CRON daemon
 # - check if cron is enabled
 # - check if cron is active

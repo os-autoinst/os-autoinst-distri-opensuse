@@ -67,10 +67,12 @@ use utils;
 use version_utils qw(is_leap is_sle is_tumbleweed);
 use y2_module_consoletest;
 use Test::Assert ':all';
+use xml_utils;
 
 our @EXPORT = qw(
   add_qa_head_repo
   add_qa_web_repo
+  get_installed_patterns
   smt_wizard
   smt_mirror_repo
   rmt_wizard
@@ -118,6 +120,21 @@ This repository is *not* mandatory.
 sub add_qa_web_repo {
     my $repo = get_var('QA_WEB_REPO');
     zypper_ar($repo, name => 'qa-web', no_gpg_check => is_sle("<12") ? 0 : 1) if ($repo);
+}
+
+=head2 get_installed_patterns
+
+ get_installed_patterns();
+
+Here zypper uses XML as output format for more precise parsing (by using '-x' command parameter).
+Then the names of patterns are parsed from the XML.
+
+Returns array containing all installed patterns in the system.
+
+=cut
+sub get_installed_patterns {
+    my $xml = script_output q[zypper -n -q -x se -i -t pattern];
+    map { $_->to_literal() } find_nodes(xpc => get_xpc($xml), xpath => '//solvable[@kind="pattern"]/@name');
 }
 
 =head2 get_repo_var_name
@@ -231,16 +248,18 @@ sub rmt_wizard {
     zypper_call 'in rmt-server';
     zypper_call 'in mariadb';
 
-    type_string "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev\n";
+    enter_cmd "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev";
     assert_screen 'yast2_rmt_registration';
     send_key 'alt-u';
-    wait_still_screen;
+    wait_still_screen(2, 5);
     type_string(get_required_var('SMT_ORG_NAME'));
+    wait_still_screen(2, 5);
     send_key 'alt-p';
-    wait_still_screen;
+    wait_still_screen(2, 5);
     type_string(get_required_var('SMT_ORG_PASSWORD'));
+    wait_still_screen(2, 5);
     send_key 'alt-n';
-    assert_screen 'yast2_rmt_config_written_successfully', 60;
+    assert_screen 'yast2_rmt_config_written_successfully', 200;
     send_key 'alt-o';
     assert_screen 'yast2_rmt_db_password';
     send_key 'alt-p';
@@ -538,7 +557,7 @@ sub verify_software {
     $zypper_args .= $args{pattern} ? ' -t pattern' : ' -t package';
     # Negate condition if package should not be available
     my $cmd = $args{available} ? '' : '! ';
-    $cmd .= "zypper --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
+    $cmd .= "zypper --quiet --non-interactive se -n $zypper_args --match-exact --details @{[ $args{name} ]}";
     # Verify repo only if package expected to be available
     if ($args{repo} && $args{available}) {
         $cmd .= ' | grep ' . $args{repo};

@@ -19,7 +19,7 @@ use lockapi;
 use testapi;
 use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks);
 use registration 'registration_bootloader_cmdline';
-use utils 'type_string_slow';
+use utils qw(type_string_slow enter_cmd_slow);
 use Utils::Backends 'is_remote_backend';
 use Utils::Architectures qw(is_aarch64 is_orthos_machine is_supported_suse_domain);
 use version_utils 'is_upgrade';
@@ -44,6 +44,9 @@ sub run {
         else {
             select_console 'sol', await_console => 0;
         }
+    }
+    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {
+        ipmi_backend_utils::ipmitool 'chassis power reset';
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
 
@@ -202,7 +205,7 @@ sub run {
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
             type_string_slow('DISPLAY= ') if check_var('VIDEOMODE', 'text');
-            type_string_slow("yast.ssh\n");
+            enter_cmd_slow("yast.ssh");
         }
         wait_still_screen;
     }

@@ -35,8 +35,13 @@ for my $file (@ARGV) {
     }
     if ($file =~ m{schedule/}) {
         my @errors = $validator->validate($data);
-        is(scalar @errors, 0, "$file passes schema validation")
-            or diag @errors;
+        if (@errors) {
+            fail("$file has invalid schema");
+            diag "Error: @errors";
+        }
+        else {
+            pass("$file has valid schema");
+        }
     }
 }
 

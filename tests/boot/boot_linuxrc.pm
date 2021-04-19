@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test the ability to boot installed linux from cd with linuxrc.
-# Maintainer: Jonathan Rivrain <jrivrain@suse.com>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base "bootbasetest";
 use strict;
@@ -27,13 +27,6 @@ sub run {
     assert_screen "edit_kernel_options";
     send_key "ret";
     assert_screen "edit_kexec_options";
-    # The kexec step is triggered wnen we put debug options, and proposes a
-    # default option that never works, --real-mode. we have to remove it
-    if (check_screen "kexec_opt_realmode") {
-        record_soft_failure 'bsc#1141875';
-        for (0 .. 11) { send_key "backspace" }
-        save_screenshot;
-    }
     send_key "ret";
     $self->{in_boot_desktop} = 1;
 }

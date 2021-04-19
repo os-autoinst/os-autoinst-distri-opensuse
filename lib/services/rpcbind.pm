@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,6 +18,9 @@ use utils;
 use strict;
 use warnings;
 
+my $service_type = 'Systemd';
+my $nfs_server   = 'nfs-server';
+
 sub install_service {
     # rpcbind needs nfs-server for testing.
     zypper_call('in rpcbind');
@@ -30,28 +33,34 @@ sub check_install {
 }
 
 sub config_service {
-    type_string("echo '/mnt *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports\n");
-    type_string("echo 'nfs is working' > /mnt/test\n");
+    assert_script_run("mkdir -p /rpcbindtest");
+    assert_script_run("echo '/rpcbindtest *(ro,root_squash,sync,no_subtree_check)' >> /etc/exports");
+    assert_script_run("echo 'nfs is working' > /rpcbindtest/test");
 }
 
 sub enable_service {
-    systemctl('enable rpcbind');
-    systemctl('enable nfs-server');
+    common_service_action('rpcbind',   $service_type, 'enable');
+    common_service_action($nfs_server, $service_type, 'enable');
 }
 
 sub start_service {
-    systemctl('start rpcbind');
-    systemctl('start nfs-server');
+    common_service_action('rpcbind',   $service_type, 'start');
+    common_service_action($nfs_server, $service_type, 'start');
 }
 
 sub stop_service {
-    systemctl('stop rpcbind');
-    systemctl('stop nfs-server');
+    common_service_action('rpcbind',   $service_type, 'stop');
+    common_service_action($nfs_server, $service_type, 'stop');
+}
+
+sub check_enabled {
+    common_service_action('rpcbind',   $service_type, 'is-enabled');
+    common_service_action($nfs_server, $service_type, 'is-enabled');
 }
 
 sub check_service {
-    systemctl('is-enabled rpcbind');
-    systemctl('is-active rpcbind');
+    common_service_action('rpcbind', $service_type, 'is-enabled');
+    common_service_action('rpcbind', $service_type, 'is-active');
 }
 
 sub check_function {
@@ -60,7 +69,7 @@ sub check_function {
     sleep(5);
     assert_script_run('rpcinfo | grep nfs');
     assert_script_run('mkdir -p /tmp/nfs');
-    assert_script_run('mount -t nfs localhost:/mnt /tmp/nfs');
+    assert_script_run('mount -t nfs localhost:/rpcbindtest /tmp/nfs');
     sleep(3);
     assert_script_run('grep working /tmp/nfs/test');
     assert_script_run('umount -f /tmp/nfs');
@@ -69,12 +78,15 @@ sub check_function {
 # Check rpcbind service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_rpcbind_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
+    $service_type = $type;
+    $nfs_server   = 'nfsserver' if ($type eq 'SystemV');
     if ($stage eq 'before') {
         install_service();
         config_service();
         enable_service();
+        check_enabled();
         start_service();
     }
     check_service();

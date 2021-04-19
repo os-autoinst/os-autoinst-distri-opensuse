@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper btrfsprogs
 # Summary: Snapper cleanup test based on FATE#312751
 # - In case of upgrade or BOOT_TO_SNAPSHOT not set
 #   - Run snapper setup-quota
@@ -47,6 +48,7 @@ sub snapper_cleanup {
     assert_script_run "btrfs filesystem show --mbytes /";
 
     for (1 .. $scratch_size_gb) { assert_script_run("$snap_create", 500); }
+    assert_script_run('sync');
     script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
     assert_script_run("snapper cleanup number",  300);    # cleanup created snapshots
     assert_script_run("btrfs quota rescan -w /", 90);
@@ -70,7 +72,8 @@ sub snapper_cleanup {
 }
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     if (get_var("UPGRADE") || get_var("AUTOUPGRADE") && !get_var("BOOT_TO_SNAPSHOT")) {
         assert_script_run "snapper setup-quota";

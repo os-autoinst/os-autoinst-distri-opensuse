@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: coreutils
 # Summary: Ssh key dialog test
 #    https://progress.opensuse.org/issues/11454 https://github.com/yast/skelcd-control-SLES/blob/d2f9a79c0681806bf02eb38c4b7c287b9d9434eb/control/control.SLES.xml#L53-L71
 # Maintainer: Oliver Kurz <okurz@suse.de>
@@ -25,7 +26,7 @@ sub run {
     script_run 'echo "SSHHOSTPUBKEYFILE" | tee /etc/ssh/*key.pub*';
     script_run "cat /etc/ssh/*key* | tee /dev/$serialdev";
     script_run "md5sum * | tee /etc/ssh/ssh_config /dev/$serialdev";
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

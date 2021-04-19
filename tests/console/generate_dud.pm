@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: mkdud
 # Summary: Generate DUD dynamically using mkdud and xml file where variables
 # are expanded for the corresponding product/build.
 #

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: btrfsmaintenance
 # Summary: Check btrfsmaintenance for functionality
 # - run btrfs-balance.sh and btrfs-scrub.sh
 # - Check if btrfsmaintenance-refresh.service is present and started properly
@@ -20,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_leap is_sle);
 
 sub btrfs_service_unavailable {
     my $service = $_[0];
@@ -55,7 +56,19 @@ sub run {
     assert_script_run('/usr/share/btrfsmaintenance/btrfs-balance.sh', timeout => 300);
     assert_script_run('/usr/share/btrfsmaintenance/btrfs-scrub.sh ',  timeout => 300);
     assert_script_run('systemctl restart btrfsmaintenance-refresh.service');
-    assert_script_run("systemctl is-enabled btrfsmaintenance-refresh");
+    # Check state of btrfsmaintenance-refresh units. Have to use (|| :) due to pipefail
+    assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.path || :) | grep enabled') unless is_sle("<15");
+    # Fixed in SP1:Update, but is out of general support
+    if (is_sle("<15-SP2")) {
+        assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep enabled');
+        record_soft_failure('boo#1165780 - Preset is wrong and enables btrfsmaintenance-refresh.service instead of .path');
+    } elsif (is_sle("<=15-SP3") || is_leap("<=15.3")) {
+        # Preset is correct, btrfsmaintenance-refresh.service still has the [Install] section
+        assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep disabled');
+    } else {
+        # Preset is correct, btrfsmaintenance-refresh.service dropped the [Install] section
+        assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep static');
+    }
     # Check if btrfs-scrub and btrfs-balance are (somehow) enabled (results only in a info write)
     if (!is_sle('<15')) {
         die("btrfs-scrub service not active")   if btrfs_service_unavailable("scrub");

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: procps yast2-kdump kdump crash mokutil kernel-*-debuginfo
 # Summary: Enable kdump and verify it's enabled
 # - Run "echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf"
 # - Run "sysctl -p"  and check for "kernel.softlockup_panic = 1"

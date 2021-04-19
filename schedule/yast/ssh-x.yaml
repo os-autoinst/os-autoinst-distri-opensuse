@@ -27,16 +27,12 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  # Called on powerVM BACKEND
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
+  - installation/validation/validate_sshd_reachable
+  - console/sshd
 conditional_schedule:
   disk_activation:
     BACKEND:
       s390x:
         - installation/disk_activation
-  grub_test:
-    BACKEND:
-      pvm_hmc:
-        - installation/grub_test

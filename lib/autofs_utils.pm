@@ -196,8 +196,8 @@ Run checks of autofs by call following functions:
 
 =cut
 sub full_autofs_check {
-    my ($stage, $type) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
 
     select_console 'root-console';

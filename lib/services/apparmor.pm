@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: apparmor-parser patterns-base-apparmor apparmor-utils
 # Summary: Package for apparmor service tests
 #
 # Maintainer: Huajian Luo <hluo@suse.com>
@@ -141,8 +142,8 @@ sub check_function {
 # check apparmor service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_apparmor_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
     if ($stage eq 'before') {
         install_service();
         enable_service();

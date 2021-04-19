@@ -1,0 +1,15 @@
+---
+name: rancher
+description:    >
+    Tests for Rancher in openSUSE
+conditional_schedule:
+    runtime_test:
+        RUNTIME:
+            docker:
+            - rancher/docker_rancher
+            podman:
+            - rancher/podman_rancher
+schedule:
+    - boot/boot_to_desktop
+    - '{{runtime_test}}'
+    - rancher/rancher_ui

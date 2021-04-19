@@ -1,3 +1,4 @@
+
 ## Supported list of variables which control test suites
 
 Below you can find the list of variables which control tests behavior, including schedule.
@@ -7,6 +8,7 @@ NOTE: This list is not complete and may contain outdated info. If you face such 
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
+AARCH64_MTE_SUPPORTED | boolean | false     | Set to 1 if your machine supports Memory Tagging Extension (MTE)
 ADDONS          | string    |               | Comma separated list of addons to be added using DVD. Also used to indicate addons in the SUT.
 ADDONURL        | string    |               | Comma separated list of addons. Includes addon names to get url defined in ADDONURL_*. For example: ADDONURL=sdk,we ADDONURL_SDK=https://url ADDONURL_WE=ftp://url
 ADDONURL_*      | string    |               | Define url for the addons list defined in ADDONURL
@@ -15,7 +17,6 @@ ASSERT_Y2LOGS   | boolean   | false         | If set to true, we will parse YaST
 AUTOCONF        | boolean   | false         | Toggle automatic configuration
 AUTOYAST        | string    |               | Full url to the AY profile or relative path if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data). If value starts with `aytests/`, these profiles are provided by suport server, source code is available in [aytests repo](https://github.com/yast/aytests-tests)
 AUTOYAST_PREPARE_PROFILE | boolean | false | Enable variable expansion in the autoyast profile.
-AUTOYAST_VERIFY | string | | Script to be executed to validate installation. Can be url, relative path if in [data directory of os-autoinst-distri-opensuse repo](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data) or test module name to be scheduled after installation is conducted.
 AUTOYAST_VERIFY_TIMEOUT  | boolean | false | Enable validation of pop-up windows timeout.
 AY_EXPAND_VARS | string | | Commas separated list of variable names to be expanded in the provided autoyast profile. For example: REPO_SLE_MODULE_BASESYSTEM,DESKTOP,... Provided variables will replace `{{VAR}}` in the profile with the value of given variable. See also `AUTOYAST_PREPARE_PROFILE`.
 BASE_VERSION | string | | |
@@ -77,6 +78,7 @@ ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
 KEEP_DISKS | boolean | false | Prevents disks wiping for remote backends without snaphots support, e.g. ipmi, powerVM, zVM
 KEEP_ONLINE_REPOS | boolean | false | openSUSE specific variable, not to replace original repos in the installed system with snapshot mirrors which are not yet published.
+KEEP_PERSISTENT_NET_RULES | boolean | false | Keep udev rules 70-persistent-net.rules, which are deleted on backends with image support (qemu, svirt) by default.
 LAPTOP |||
 LINUX_BOOT_IPV6_DISABLE | boolean | false | If set, boots linux kernel with option named "ipv6.disable=1" which disables IPv6 from startup.
 LINUXRC_KEXEC | integer | | linuxrc has the capability to download and run a new kernel and initrd pair from the repository.<br> There are four settings for the kexec option:<br> 0: feature disabled;<br> 1: always restart with kernel/initrd from repository (without bothering to check if it's necessary);<br>2: restart only if needed - that is, if linuxrc detects that the booted initrd is outdated (this is the default);<br>3: like kexec=2 but without user interaction.<br> *More details [here](https://en.opensuse.org/SDB:Linuxrc)*.
@@ -84,6 +86,8 @@ LIVECD | boolean | false | Indicates live image being used.
 LIVE_INSTALLATION | boolean | false | If set, boots the live media and starts the builtin NET installer.
 LIVE_UPGRADE | boolean | false | If set, boots the live media and starts the builtin NET installer in upgrade mode.
 LIVETEST | boolean | false | Indicates test of live system.
+LTP_RUN_NG_BRANCH | string | | Define the branch of the LTP_RUN_NG_REPO.
+LTP_RUN_NG_REPO | string | | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
 MACHINE | string | | Define machine name which defines worker specific configuration, including WORKER_CLASS.
@@ -160,6 +164,7 @@ YUI_PORT | integer | | Port being used for libyui REST API. See also YUI_SERVER 
 YUI_SERVER | string | | libyui REST API server name or ip address.
 YUI_START_PORT | integer | 39000 | Sets starting port for the libyui REST API, on qemu VNC port is then added to this port not to have conflicts.
 YUI_REST_API | boolean | false | Is used to setup environment for libyui REST API, as some parameters have to be set before the VM is started.
+YUI_PARAMS | string | | libyui REST API params required to open YaST modules
 ZDUP | boolean | false | Prescribes zypper dup scenario.
 ZDUPREPOS | string | | Comma separated list of repositories to be added/used for zypper dup call, defaults to SUSEMIRROR or attached media, e.g. ISO.
 ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in the machine (usually 0.0.fa00 and/or 0.0.fc00)

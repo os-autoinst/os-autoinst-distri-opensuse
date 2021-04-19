@@ -27,15 +27,22 @@ sub run {
     assert_screen 'windows-setup', 1000;
     send_key 'alt-n';      # next
     save_screenshot;
-    send_key 'alt-i';                                                           # install Now
+    send_key 'alt-i';      # install Now
     save_screenshot;
-    send_key 'alt-n';                                                           # next
+    send_key 'alt-n';      # next
     assert_screen 'windows-activate';
-    assert_and_click 'windows-no-prod-key';
-    assert_screen 'windows-select-system';
-    send_key_until_needlematch('windows-10-pro', 'down');
-    send_key 'alt-n';                                                           # select OS (Win 10 Pro)
-    assert_screen 'windows-license';
+    if (my $key = get_var('_SECRET_WINDOWS_10_PRO_KEY')) {
+        type_password $key . "\n";
+        assert_screen([qw(windows-wrong-key windows-license-with-key)]);
+        die("The provided product key didn't work...") if (match_has_tag('windows-wrong-key'));
+    }
+    else {
+        assert_and_click 'windows-no-prod-key';
+        assert_screen 'windows-select-system';
+        send_key_until_needlematch('windows-10-pro', 'down');
+        send_key 'alt-n';    # select OS (Win 10 Pro)
+        assert_screen 'windows-license';
+    }
     send_key 'alt-a';                                                           # accept eula
     send_key 'alt-n';                                                           # next
     assert_screen 'windows-installation-type';

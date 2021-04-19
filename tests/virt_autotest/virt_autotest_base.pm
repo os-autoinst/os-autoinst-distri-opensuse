@@ -162,7 +162,7 @@ sub execute_script_run {
         $timeout = 10;
     }
 
-    type_string "(" . $cmd . "; echo $pattern) 2>&1 | tee -a /dev/$serialdev\n";
+    enter_cmd "(" . $cmd . "; echo $pattern) 2>&1 | tee -a /dev/$serialdev";
     $self->{script_output} = wait_serial($pattern, $timeout);
     save_screenshot;
 
@@ -257,7 +257,13 @@ sub post_fail_hook {
     $self->post_run_test;
     save_screenshot;
 
-    if (get_var('VIRT_PRJ2_HOST_UPGRADE')) {
+    if (get_var('VIRT_PRJ1_GUEST_INSTALL')) {
+        #collect and upload guest autoyast control files
+        assert_script_run "cp -r /srv/www/htdocs/install/autoyast /guest_autoyast_files";
+        virt_utils::collect_host_and_guest_logs('', '/guest_autoyast_files', '');
+        assert_script_run "rm -rf /guest_autoyast_files";
+    }
+    elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         virt_utils::collect_host_and_guest_logs('', '/root/autoupg.xml', '');
     }
     else {

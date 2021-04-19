@@ -1,0 +1,107 @@
+name:           ppc64le_regression_test_offline.yaml
+description:    |
+  This is for ppc64le offline regression test.
+  #REGRESSION_SERVICE: '1' means support service check test. '0' means doesn't
+  #support service check test, normally set '0' for package media test.
+  #REGRESSION_TEST: '1' means regression test part1 include console test. '2'
+  #means regression test part2 include x11 test and some performance related test.
+vars:
+  DESKTOP: 'gnome'
+  BOOT_HDD_IMAGE: 1
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
+  BOOTFROM: 'd'
+schedule:
+  - migration/version_switch_origin_system
+  - boot/boot_to_desktop
+  - update/patch_sle
+  - migration/record_disk_info
+  - '{{install_service}}'
+  - migration/reboot_to_upgrade
+  - migration/version_switch_upgrade_target
+  - '{{isosize_test}}'
+  - installation/bootloader
+  - installation/welcome
+  - installation/upgrade_select
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - migration/post_upgrade
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - '{{check_upgraded_service}}'
+  - '{{regression_tests}}'
+  - boot/grub_test_snapshot
+  - migration/version_switch_origin_system
+  - boot/snapper_rollback
+conditional_schedule:
+  check_upgraded_service:
+    REGRESSION_SERVICE:
+      1:
+        - console/check_upgraded_service
+  isosize_test:
+    REGRESSION_SERVICE:
+      1:
+        - installation/isosize
+  install_service:
+    REGRESSION_SERVICE:
+      1:
+        - installation/install_service
+  regression_tests:
+    REGRESSION_TEST:
+      1:
+        - locale/keymap_or_locale
+        - console/supportutils
+        - console/force_scheduled_tasks
+        - console/textinfo
+        - console/hostname
+        - console/upgrade_snapshots
+        - console/x_vt
+        - console/zypper_lr
+        - console/check_system_info
+        - console/zypper_ref
+        - console/ncurses
+        - console/yast2_lan
+        - console/curl_https
+        - console/salt
+        - console/zypper_in
+        - console/zypper_log
+        - console/yast2_i
+        - console/yast2_bootloader
+        - console/firewall_enabled
+        - console/sshd
+        - console/ssh_cleanup
+        - console/mtab
+        - console/zypper_lifecycle
+        - console/orphaned_packages_check
+        - console/consoletest_finish
+      2:
+        - console/supportutils
+        - console/force_scheduled_tasks
+        - console/upgrade_snapshots
+        - console/zypper_lifecycle
+        - console/consoletest_finish
+        - x11/desktop_runner
+        - x11/xterm
+        - locale/keymap_or_locale_x11
+        - x11/sshxterm
+        - x11/gnome_control_center
+        - x11/gnome_terminal
+        - x11/gedit
+        - x11/firefox
+        - x11/yast2_snapper
+        - x11/glxgears
+        - x11/nautilus
+        - x11/desktop_mainmenu
+        - x11/reboot_gnome

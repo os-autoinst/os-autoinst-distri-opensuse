@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: eog rrdtool
 # Summary: Regression test for rrdtool
 # - created, update rrd file
 # - fetch data from file
@@ -27,7 +28,7 @@ use version_utils 'is_sle';
 sub verify_rrd_image {
     my $rrdtool_image = shift;
     send_key("alt-f2");
-    type_string("eog /tmp/rrdtool/${rrdtool_image}.png\n");
+    enter_cmd("eog /tmp/rrdtool/${rrdtool_image}.png");
     assert_screen "rrdtool_image_${rrdtool_image}";
     send_key 'alt-f4';
     assert_screen "rrdtool_xterm";

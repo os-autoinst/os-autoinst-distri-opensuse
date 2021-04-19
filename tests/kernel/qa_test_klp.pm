@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: autoconf automake gcc git-core make
 # Summary: Tests for kernel live patching infrastructure
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
@@ -41,6 +42,7 @@ sub run {
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
     zypper_call('in -l autoconf automake gcc git make');
 
+    assert_script_run('git config --global http.sslVerify false');
     assert_script_run('git clone ' . $git_repo);
     assert_script_run("cd $dir && ./run.sh", 2760);
 }

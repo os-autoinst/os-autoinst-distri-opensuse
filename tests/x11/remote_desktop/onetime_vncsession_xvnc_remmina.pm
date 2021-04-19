@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: dhcp-client remmina
 # Summary: Remote Login: One-time VNC Session with remmina and xvnc
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1610354
@@ -29,7 +30,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # Start Remmina and login the remote server

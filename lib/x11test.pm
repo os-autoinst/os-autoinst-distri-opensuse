@@ -81,6 +81,8 @@ sub test_terminal {
     my ($self, $name) = @_;
     mouse_hide(1);
     x11_start_program($name);
+    # GNOME40 sometimes gets its activities mode incorrectly triggered by x11_start_program
+    send_key 'esc' if check_screen "$name-activities";
     $self->enter_test_text($name, cmd => 1);
     assert_screen "test-$name-1";
     send_key 'alt-f4';
@@ -109,7 +111,7 @@ sub import_pictures {
     };
     assert_screen 'shotwell-importing';
     send_key "ctrl-l";
-    type_string "/home/$username/Documents\n";
+    enter_cmd "/home/$username/Documents";
     send_key "ret";
 
     # Choose 'Import in Place'
@@ -135,18 +137,14 @@ sub clean_shotwell {
 sub upload_libreoffice_specified_file {
 
     x11_start_program('xterm');
-    type_string_slow("wget " . autoinst_url . "/data/x11/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
-    send_key "ret";
-    wait_still_screen;
-    type_string("cd /home/$username/Documents && ls -l");
-    send_key "ret";
-    wait_screen_change {
-        assert_screen("libreoffice-find-tar-file");
-        type_string("tar -xjvf ooo-test-doc-types.tar.bz2");
-        send_key "ret";
-    };
-    wait_still_screen;
+    assert_script_run('wget ' . autoinst_url . "/data/x11/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
+    assert_script_run("cd /home/$username/Documents && ls -l");
+    # extract the files directly in /home/berhard/Documents, no need to write whole path in libreoffice_open_specified_file
+    assert_script_run('tar -xjvf ooo-test-doc-types.tar.bz2 --strip-components 1');
+    # delete the archive, to keep the order for already existing needles
+    assert_script_run('rm ooo-test-doc-types.tar.bz2');
     send_key "alt-f4";
+    wait_still_screen;
 
 }
 
@@ -154,15 +152,10 @@ sub upload_libreoffice_specified_file {
 sub cleanup_libreoffice_specified_file {
 
     x11_start_program('xterm');
-    assert_script_run("rm -rf /home/$username/Documents/ooo-test-doc-types*");
-    wait_still_screen;
-    type_string_slow "ls -l /home/$username/Documents";
-    send_key "ret";
-    wait_screen_change {
-        assert_screen("libreoffice-find-no-tar-file");
-    };
-    wait_still_screen;
+    assert_script_run("rm -f /home/$username/Documents/{cs,ooo-test-doc-types,template,test}*");
+    assert_script_run("ls -l /home/$username/Documents");
     send_key "alt-f4";
+    wait_still_screen;
 
 }
 
@@ -536,7 +529,7 @@ sub start_clean_firefox {
 
     x11_start_program('xterm');
     # Clean and Start Firefox
-    type_string "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox /home >firefox.log 2>&1 &\n";
+    enter_cmd "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox /home >firefox.log 2>&1 &";
     wait_still_screen 3;
     assert_screen 'firefox-url-loaded', 90;
     # to avoid stuck trackinfo pop-up, refresh the browser
@@ -597,9 +590,9 @@ sub start_firefox_with_profile {
 
     x11_start_program('xterm');
     # use mozilla configuration stored with start_clean_firefox
-    type_string "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla\n";
+    enter_cmd "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla";
     # Start Firefox
-    type_string "firefox $url >firefox.log 2>&1 &\n";
+    enter_cmd "firefox $url >firefox.log 2>&1 &";
     wait_still_screen 2,                4;
     assert_screen 'firefox-url-loaded', 300;
     wait_still_screen 2,                4;
@@ -623,8 +616,8 @@ sub restart_firefox {
     wait_still_screen 2;
     $self->exit_firefox_common;
     assert_script_run('time wait $(pidof firefox)');
-    type_string "$cmd\n";
-    type_string "firefox $url >>firefox.log 2>&1 &\n";
+    enter_cmd "$cmd";
+    enter_cmd "firefox $url >>firefox.log 2>&1 &";
     $self->firefox_check_default;
 }
 
@@ -687,7 +680,7 @@ sub firefox_open_url {
             last;    # in case it worked
         }
     }
-    type_string_slow "$url\n";
+    enter_cmd_slow "$url";
     wait_still_screen 2, 4;
     # this is because of adobe flash, screensaver will activate sooner than the page
     unless ($do_not_check_loaded_url) {
@@ -718,7 +711,7 @@ sub exit_firefox {
     script_run "cat firefox.log";
     save_screenshot;
     upload_logs "firefox.log";
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 sub start_gnome_settings {
@@ -953,7 +946,7 @@ sub configure_static_ip_nm {
     assert_script_run "nmcli device disconnect '$niName'";
     assert_script_run "nmcli connection up wired ifname '$niName'";
     configure_static_dns(get_host_resolv_conf());
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4' };
 }
 

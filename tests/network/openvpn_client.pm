@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openvpn openssh iputils
 # Summary: Test OpenVPN on two machines. This one is client.
 #  * After server is done, we use SCP to download the shared key
 #  * When connected, we perform the ping, disconnect and wait again

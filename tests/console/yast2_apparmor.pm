@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-apparmor
 # Summary: Check configuration of apparmor, add and delete apparmor profiles;
 # Toggle Enable/Disable Apparmor;
 # List active/loaded profile;
@@ -90,13 +91,15 @@ sub run {
     send_key(is_pre_15() ? 'alt-o' : 'alt-s');
     wait_still_screen(3);
     assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
-    wait_screen_change { send_key 'tab' };                              # focus on first element in the list
-    wait_screen_change { send_key(is_pre_15() ? 'alt-t' : 'alt-c') };
+    send_key 'tab';    # focus on first element in the list
+    wait_still_screen(3);
+    send_key(is_pre_15() ? 'alt-t' : 'alt-c');
+    wait_still_screen(3);
     assert_screen [qw(
           yast2_apparmor_profile_mode_configuration_toggle
           yast2_apparmor_profile_mode_configuration_show_all
           yast2_apparmor_profile_mode_not_visible
-          )];
+    )];
     if (match_has_tag 'yast2_apparmor_profile_mode_not_visible') {
         record_soft_failure 'bsc#1127714 - yast2_apparmor does not display mode column when profile name is too long';
         send_key_until_needlematch 'yast2_apparmor_profile_mode_configuration_show_all', 'tab';
@@ -196,9 +199,9 @@ sub run {
     for (1 .. 15) { send_key 'backspace'; }
 
     if (is_pre_15) {
-        type_string "/usr/bin/top\n";
+        enter_cmd "/usr/bin/top";
     } else {
-        type_string "top\n";
+        enter_cmd "top";
         send_key 'alt-o';
         assert_screen 'yast2_apparmor_profile_for_top_generated';
         send_key 'alt-f';
@@ -208,7 +211,7 @@ sub run {
         #wait till app is closed
         wait_serial("$module_name-0", 200) || die "'yast2 apparmor' didn't finish";
         #cleaning the console
-        type_string "reset\n";
+        enter_cmd "reset";
         return;
     }
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh ha-cluster-bootstrap corosync-qdevice
 # Summary: Create HA cluster using ha-cluster-init
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 
@@ -40,15 +41,23 @@ sub cluster_init {
 
     # Clear the console to correctly catch the password needle if needed
     clear_console if !is_serial_terminal();
+    # No need to send status to serial terminal if running on serial terminal
+    my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
 
     if ($init_method eq 'ha-cluster-init') {
-        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
+        enter_cmd "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection";
         type_qnetd_pwd if get_var('QDEVICE');
     }
     elsif ($init_method eq 'crm-debug-mode') {
-        type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? > /dev/$serialdev\n";
-        type_qnetd_pwd                      if get_var('QDEVICE');
-        die "Cluster initialization failed" if (!wait_serial("ha-cluster-init-finished-0", $join_timeout));
+        enter_cmd "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection";
+        type_qnetd_pwd if get_var('QDEVICE');
+        if (!wait_serial("ha-cluster-init-finished-0", $join_timeout)) {
+            # ha-cluster-init failed in debug mode. Wait some seconds and attempt to start pacemaker
+            # in case this was due to a transient error
+            sleep bmwqemu::scale_timeout(3);
+            assert_script_run 'systemctl start pacemaker';
+            assert_script_run 'systemctl --no-pager status pacemaker';
+        }
     }
 }
 

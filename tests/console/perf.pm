@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: perf
 # Summary: Test basic perf funcionality
 # Maintainer: Orestis Nalmpantis <onalmpantis@suse.de>
 

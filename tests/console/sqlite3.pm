@@ -6,6 +6,7 @@
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
+# Package: sqlite3 expect perl
 # Summary: Test sqlite3 package
 #   These tests use the sqlite3 commandline tool to test various SQL:
 #   * CREATE/ALTER TABLE, CREATE INDEX, CREATE VIEW, CREATE TRIGGER

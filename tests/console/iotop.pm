@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iotop
 # Summary: Test iotop
 # - Check basic functionality of iotop
 # - Run iotop in background and create some load
@@ -28,9 +29,8 @@ sub run {
     assert_script_run("iotop -bakPtn 2");
 
     # Test under load
-    type_string("iotop -baoqn 10 > iotop.log &");
-    wait_still_screen(1, 2);
-    assert_script_run("dd if=/dev/zero of=./file.img bs=1M count=1000 status=none");
+    assert_script_run('(iotop -baoqn 10 > iotop.log &)');
+    assert_script_run("time dd if=/dev/zero of=./file.img bs=1k count=1000000 status=none");
     assert_script_run("wait");
     assert_script_run("grep 'dd if=/dev/zero of=./file.img' iotop.log");
 

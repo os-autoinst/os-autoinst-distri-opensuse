@@ -1,12 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: clamav
 # Summary: check freshclam and clamscan against some fake virus samples
 # - refresh the database using freshclam
 # - change user vscan to root in clamd.conf (clamd runs as root)
@@ -44,14 +45,26 @@ sub run {
 
     # Check Clamav version
     # Jira ID SLE-16780: upgrade Clamav SLE
-    my $current_ver = script_output("zypper info clamav | grep Version | cut -d':' -f2| cut -d'-' -f1");
+    my $current_ver = script_output("rpm -q --qf '%{version}' clamav");
     record_info("Clamav_ver", "Current Clamav package version: $current_ver");
 
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
         record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
     }
-    # Initialize and download ClamAV database which needs time
-    assert_script_run('freshclam', 700);
+
+    # Initialize and download ClamAV database
+    # First from local mirror, it's much faster, then from official clamav db
+    if (is_sle('=15')) {
+        record_soft_failure('bsc#1183881');
+        assert_script_run('freshclam', 700);
+    }
+    else {
+        my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
+        assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
+        assert_script_run('freshclam');
+        assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
+        assert_script_run('freshclam');
+    }
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
@@ -86,7 +99,7 @@ sub run {
     # signature to viruses database, then scan the virus
     for my $alg (qw(md5 sha1 sha256)) {
         assert_script_run "sigtool --$alg /usr/bin/vim > test.hdb";
-        type_string "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev\n";
+        enter_cmd "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev";
         die "Virus scan result was not expected" unless (wait_serial qr/vim\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-rmt rmt-server
 # Summary: Add rmt configuration test and disconnect RMT test
 #    test basic configuration via rmt-wizard, test disconnect RMT
 #    via import RMT data and repos from an existing RMT server,
@@ -31,7 +32,7 @@ sub run {
     rmt_mirror_repo();
     # import data and repos from an existing RMT server
     rmt_import_data("rmt_external.tar.gz");
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

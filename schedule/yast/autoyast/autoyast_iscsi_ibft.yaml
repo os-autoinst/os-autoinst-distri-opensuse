@@ -1,0 +1,42 @@
+---
+name: autoyast_iscsi_ibft
+description: >
+  AutoYaST ibft installation on iSCSI disk. iSCSI configuration is validated
+  in the installed system, as well as cloned profile is verified to check
+  relevant sections.
+vars:
+  AUTOYAST: autoyast_sle15/autoyast_iscsi_ibft.xml
+  # Using it for specifying iscsi portal
+  AY_EXPAND_VARS: WORKER_HOSTNAME,NBF
+  DESKTOP: textmode
+  IBFT: '1'
+  NBF: iqn.2016-02.openqa.de:for.openqa
+  NICTYPE: user
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - installation/validation/ibft
+  - autoyast/verify_cloned_profile
+test_data:
+  profile:
+    iscsi-client:
+      initiatorname: iqn.2010-04.org.ipxe:00000000-0000-0000-0000-000000000000
+      targets:
+        listentry:
+          authmethod: None
+          iface: default
+          portal: '%WORKER_HOSTNAME%:3260'
+          startup: onboot
+          target: '%NBF%'

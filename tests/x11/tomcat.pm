@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox tomcat tomcat-webapps tomcat-admin-webapps
 # Summary: Tomcat regression test
 # * install and configure tomcat
 # * access tomcat manager web page

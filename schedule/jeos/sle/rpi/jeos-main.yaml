@@ -9,6 +9,7 @@ schedule:
   - jeos/grub2_gfxmode
   - jeos/diskusage
   - jeos/build_key
+  - console/prjconf_excluded_rpms
   - console/suseconnect_scc
   - jeos/glibc_locale
   - console/check_network
@@ -45,6 +46,5 @@ schedule:
   - console/mysql_srv
   - console/rsync
   - console/zypper_lifecycle
-  - console/repo_orphaned_packages_check
   - console/orphaned_packages_check
   - console/consoletest_finish

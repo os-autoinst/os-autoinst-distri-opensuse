@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package:  rabbitmq-server python3-pika
 # Summary: rabbitmq test suite based on
 #  https://www.rabbitmq.com/tutorials/tutorial-one-python.html
 #  Solely added because someone added "rabbitmq" to the Leap42.2 test plan :-)
@@ -33,7 +34,7 @@ python3 send.py
 wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/python/receive.py
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
-    type_string("timeout 1 python3 receive.py > /dev/$serialdev\n");
+    enter_cmd("timeout 1 python3 receive.py > /dev/$serialdev");
     wait_serial(".*Received.*Hello World.*");
     # should be simple assert_script_run but takes too long to stop so
     # workaround

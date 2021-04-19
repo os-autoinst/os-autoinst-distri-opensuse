@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libgcrypt20 gcc libgcrypt-devel
 # Summary: test that libgcrypt works as intended by executing
 #          the selftest and by calling libgcrypt-config.
 #          In addition to this test, also the gpg test should be

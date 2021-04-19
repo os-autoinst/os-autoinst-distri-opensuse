@@ -13,11 +13,11 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/boot_encrypt
-        - boot/reconnect_mgmt_console
+        - installation/handle_reboot
   grub_test_boot_encrypt:
     BACKEND:
       qemu:
-        - installation/grub_test
+        - installation/handle_reboot
         - installation/boot_encrypt
 schedule:
   - installation/bootloader_start
@@ -28,7 +28,7 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning/setup_lvm
+  - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/user_settings

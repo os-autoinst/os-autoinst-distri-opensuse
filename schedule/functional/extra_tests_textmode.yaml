@@ -65,6 +65,7 @@ conditional_schedule:
                 - console/nano
                 - '{{steamcmd}}'
                 - console/libqca2
+                - console/python_scientific
                 - console/kdump_and_crash
     validate_packages_and_patterns:
         DISTRI:
@@ -80,6 +81,7 @@ conditional_schedule:
         VERSION:
             'Tumbleweed':
                 - console/parsec
+                - console/systemd_rpm_macros
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -132,6 +134,7 @@ schedule:
     - '{{sle_tests}}'
     - console/mdadm
     - console/journalctl
+    - console/systemd_nspawn
     - console/quota
     - console/vhostmd
     - console/rpcbind
@@ -141,6 +144,7 @@ schedule:
     - console/kmod
     - console/suse_module_tools
     - console/firewalld
+    - console/nftables
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'

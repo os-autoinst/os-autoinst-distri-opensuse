@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rpcbind nfs-kernel-server
 # Summary: rpcbind test
 # - Install rpcbind and nfs-kernel-server and check
 # - Export a mount point on /etc/exports and create a test file inside
@@ -29,6 +30,7 @@ sub run {
     services::rpcbind::check_install();
     services::rpcbind::config_service();
     services::rpcbind::enable_service();
+    services::rpcbind::check_enabled();
     services::rpcbind::start_service();
     services::rpcbind::check_service();
     services::rpcbind::check_function();

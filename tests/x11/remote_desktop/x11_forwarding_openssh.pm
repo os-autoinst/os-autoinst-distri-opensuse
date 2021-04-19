@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
+# Package: dhcp-client openssh gedit gnome-control-center
 # Summary: Remote Login: X11 forwarding over OpenSSH
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586202
@@ -38,15 +39,15 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
 
     # ssh login
     my $str = 'SSH-' . time;
-    type_string "ssh -X root\@10.0.2.1\n";
+    enter_cmd "ssh -X root\@10.0.2.1";
     assert_screen 'ssh-login', 60;
-    type_string "yes\n";
+    enter_cmd "yes";
     assert_screen 'password-prompt', 60;
-    type_string "$password\n";
+    enter_cmd "$password";
     assert_screen 'ssh-login-ok';
 
     $self->set_standard_prompt();
@@ -54,15 +55,15 @@ sub run {
     assert_screen 'test-sshxterm-1';
 
     # Launch gedit and gnome control center remotely
-    type_string "gedit /etc/issue\n";
+    enter_cmd "gedit /etc/issue";
     assert_screen 'x11-forwarding-gedit';
     send_key 'alt-f4';
     wait_still_screen 3;
-    type_string "gnome-control-center info\n";
+    enter_cmd "gnome-control-center info";
     assert_screen 'x11-forwarding-gccinfo';
     send_key 'alt-f4';
     wait_still_screen 3;
-    type_string "exit\n";    # Exit the ssh login
+    enter_cmd "exit";    # Exit the ssh login
     send_key 'alt-f4';
     assert_screen 'generic-desktop';
 }

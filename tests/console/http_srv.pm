@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: apache2
 # Summary: Simple apache server test
 # - Install apache2
 # - Enable apache2 service

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-country
 # Summary: yast timezone, list, set and show summary
 # - Install yast2-country
 # - Check current timezone

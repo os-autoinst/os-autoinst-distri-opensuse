@@ -19,10 +19,6 @@ use utils;
 use testapi qw(get_var record_info);
 
 sub run {
-    if (get_var('ENCRYPT_ACTIVATE_EXISTING') and !get_var('ENCRYPT_FORCE_RECOMPUTE')) {
-        record_info 'bsc#993247 https://fate.suse.com/321208', 'activated encrypted partition will not be recreated as encrypted';
-        return;
-    }
     unlock_if_encrypted(check_typed_password => 1);
 }
 

@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: python3-openstackclient
 # Summary: Run teuthology suites via ECP or OVH openstack and get results and logs
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 

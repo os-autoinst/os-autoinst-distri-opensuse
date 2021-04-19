@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: mdadm
 # Summary: mdadm test, run script creating RAID 0, 1, 5, re-assembling and replacing faulty drive
 # - Fetch mdadm.sh from datadir
 # - Execute bash mdadm.sh |& tee mdadm.log

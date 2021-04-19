@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: inkscape
 # Summary: Test inkscape can be installed and started
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

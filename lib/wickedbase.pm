@@ -40,8 +40,8 @@ This function saves the command and the stdout and stderr to a file to be upload
 =cut
 sub wicked_command {
     my ($self, $action, $iface) = @_;
-    my $cmd = '/usr/sbin/wicked --log-target syslog ' . $action . ' ' . $iface;
-    assert_script_run(q(echo -e "\n# ") . $cmd . ' >> /tmp/wicked_serial.log');
+    my $cmd = '/usr/sbin/wicked --log-target syslog --debug all ' . $action . ' ' . $iface;
+    assert_script_run('echo -e "\n# $(date -Isecond)\n# "' . $cmd . ' >> /tmp/wicked_serial.log');
     record_info('wicked cmd', $cmd);
     assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
     assert_script_run(q(echo -e "\n# ip addr" >> /tmp/wicked_serial.log));
@@ -658,6 +658,26 @@ sub check_ipv6 {
     die "There were errors during test" if $errors || $dns_failure;
 }
 
+sub run_test_shell_script
+{
+    my ($self, $title, $script_cmd) = @_;
+    my $output = script_output($script_cmd . ' && echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1);
+    my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
+    $self->record_console_test_result($title, $output, result => $result);
+}
+
+sub record_console_test_result {
+    my ($self, $title, $content, %args) = @_;
+    $args{result} //= 'failed';
+    $title =~ s/:/_/g;
+    my $details  = $self->record_testresult($args{result});
+    my $filename = $self->next_resultname('txt', $title);
+    $details->{_source} = 'parser';
+    $details->{text}    = $filename;
+    $details->{title}   = $title;
+    $self->write_resultfile($filename, $content);
+}
+
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
@@ -682,7 +702,7 @@ sub pre_run_hook {
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
     type_string($coninfo);
     wait_serial($coninfo, undef, 0, no_regex => 1);
-    type_string("\n");
+    send_key 'ret';
     if ($self->{name} eq 'before_test' && get_var('VIRTIO_CONSOLE_NUM', 1) > 1) {
         my $serial_terminal = check_var('ARCH', 'ppc64le') ? 'hvc2' : 'hvc1';
         add_serial_console($serial_terminal);

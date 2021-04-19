@@ -34,23 +34,26 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
     my ($self) = @_;
 
     if (is_xen_host) {
         #Ensure that there is enough free memory on xen host for virtual network test
-        my $MEM = $self->get_free_mem();
+        my $MEM = virt_autotest::virtual_network_utils::get_free_mem();
         record_info('Detect FREE MEM', $MEM . 'G');
         assert_script_run("test $MEM -ge 20", fail_message => "The SUT needs at least 20G FREE MEM for virtual network test");
     }
 
-    #After deployed guest systems, ensure active pool have at least
-    #60GiB available disk space on vm host for virtual network test
-    my ($ACTIVE_POOL_NAME, $AVAILABLE_POOL_SIZE) = $self->get_active_pool_and_available_space();
+    #After deployed guest systems, ensure active pool have at least 40GiB(XEN)
+    #or 20GiB(KVM) available disk space on vm host for virtual network test
+    my ($ACTIVE_POOL_NAME, $AVAILABLE_POOL_SIZE) = virt_autotest::virtual_network_utils::get_active_pool_and_available_space();
     record_info('Detect Active POOL NAME:',    $ACTIVE_POOL_NAME);
     record_info('Detect Available POOL SIZE:', $AVAILABLE_POOL_SIZE . 'GiB');
-    assert_script_run("test $AVAILABLE_POOL_SIZE -ge 60", fail_message => "The SUT needs at least 60GiB available space of active pool for virtual network test");
+    my $expected_pool_size = get_var('VIRT_EXPECTED_POOLSIZE', (is_xen_host) ? '40' : '20');
+    assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",
+        fail_message => "The SUT needs at least " . $expected_pool_size . "GiB available space of active pool for virtual network test");
 
     #Need to reset up environemt - br123 for virt_atuo test due to after
     #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
@@ -82,10 +85,17 @@ sub run_test {
         virt_autotest::utils::ssh_copy_id($guest);
         #Prepare the new guest network interface files for libvirt virtual network
         assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
+        #enable guest wickedd debugging
+        assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g' /etc/sysconfig/network/config\"";
+        assert_script_run "ssh root\@$guest 'grep 'WICKED_DEBUG' /etc/sysconfig/network/config'";
+        assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_LOG_LEVEL=.*/WICKED_LOG_LEVEL=\"debug\"/g' /etc/sysconfig/network/config\"";
+        assert_script_run "ssh root\@$guest 'grep 'WICKED_LOG_LEVEL' /etc/sysconfig/network/config'";
         if ($guest =~ m/sles-?11/i) {
             assert_script_run("ssh root\@$guest service network restart", 90);
+            assert_script_run("ssh root\@$guest service wickedd restart", 90);
         } else {
             assert_script_run("time ssh -v root\@$guest systemctl restart network", 120);
+            assert_script_run("time ssh -v root\@$guest systemctl restart wickedd", 120);
         }
     }
 

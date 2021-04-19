@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: openssh open-vm-tools
 # Summary: Simple vmware client testing with updated open-vm-tools
 # Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
 

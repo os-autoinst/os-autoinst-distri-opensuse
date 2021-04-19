@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libreoffice-writer
 # Summary: LibreOffice: Verify Main Menu Recent Documents get populated
 #   with files accessed and modified using LibreOffice (Case 1503783)
 # - Launch oowriter

@@ -41,7 +41,7 @@ sub run {
     assert_script_run 'cat /etc/hosts';
     script_run 'kinit Administrator', quiet => 1;
     wait_serial 'Password for Administrator@GEEKO.COM:';
-    type_string "N0tS3cr3t@\n";
+    enter_cmd "N0tS3cr3t@";
     assert_script_run 'adcli join -v -W --domain geeko.com -U Administrator -C';
     #Verify if machine already added
     assert_script_run 'adcli info -D geeko.com  -S 10.0.2.101 -v';
@@ -50,7 +50,7 @@ sub run {
     assert_script_run "klist";
     script_run "net ads join -U Administrator", quiet => 1;
     wait_serial "Set Administrator's password:";
-    type_string "N0tS3cr3t@\n";
+    enter_cmd "N0tS3cr3t@";
     systemctl('restart smb nmb winbind');
     #systemctl('restart nmb');
     #systemctl('restart winbind');

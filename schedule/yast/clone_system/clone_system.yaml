@@ -8,11 +8,10 @@ vars:
 schedule:
   # Called on ARCH: s390x
   - '{{bootloader_zkvm}}'
-  # Called on ARCH: aarch64
-  - '{{uefi_bootmenu}}'
   - boot/boot_to_desktop
   - console/system_prepare
   - console/consoletest_setup
+  - console/scc_cleanup_reregister
   - console/yast2_clone_system
   - console/consoletest_finish
 conditional_schedule:
@@ -20,7 +19,3 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/bootloader_zkvm
-  uefi_bootmenu:
-    ARCH:
-      aarch64:
-        - boot/uefi_bootmenu

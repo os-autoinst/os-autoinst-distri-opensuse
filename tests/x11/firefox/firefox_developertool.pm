@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: MozillaFirefox
 # Summary: Case#1479522: Firefox: Web Developer Tools
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

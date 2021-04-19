@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 #
+# Package: yast2-ftp-server yast2-users
 # Summary: this test checks "yast ftp-server" module.
 #          this module configure ftp-server services in yast command line mode.
 # - Install yast2-ftp-server and yast2-users

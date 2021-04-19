@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: util-linux lvm2
 # Summary: Validate partitioning for autoyast installation when using whole disk as PV
 #          We have 2 disks, one contains bios boot and /boot partitions, second one
 #          is used for LVM group with root and swap logical volumes.

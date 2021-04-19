@@ -39,7 +39,7 @@ sub run {
     # Slow type for 12-SP2 aarch64 image creation test to try to avoid filling up the key event queue
     for my $cmd (@cmds) {
         if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP2')) {
-            type_string $cmd . " ; echo cmd-\$? > /dev/$testapi::serialdev\n", wait_screen_change => 1;
+            enter_cmd $cmd . " ; echo cmd-\$? > /dev/$testapi::serialdev", wait_screen_change => 1;
             wait_serial "cmd-0";
         }
         else {

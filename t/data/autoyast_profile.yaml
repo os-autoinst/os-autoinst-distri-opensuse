@@ -1,0 +1,13 @@
+suse_register:
+  addons:
+    _t: list
+    __count: 2
+    addon:
+      - name: sle-module-server-applications
+      - name: sle-module-basesystem
+  do_registration:
+    _t: boolean
+    __text: 'true'
+  install_updates:
+    _t: boolean
+    __text: 'false'

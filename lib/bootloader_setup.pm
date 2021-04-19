@@ -265,7 +265,7 @@ sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
     # assert needle to avoid send down key early in grub_test_snapshot.
-    assert_screen('snap-default', 120) if (get_var('OFW') || is_pvm);
+    assert_screen('snap-default', 120) if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc'));
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
         send_key_until_needlematch('snap-before-update', 'down', 40, 5);
@@ -393,7 +393,7 @@ sub uefi_bootmenu_params {
     }
 
     # changed the line before typing video params
-    wait_screen_change(sub { type_string " \\\n"; }, 3);
+    wait_screen_change(sub { enter_cmd " \\"; }, 3);
     save_screenshot;
 }
 
@@ -571,7 +571,7 @@ sub select_installation_source {
     # Type variables into fields
     type_string_slow "$m_server\t";
     type_string_slow "$m_share\t" if $m_protocol eq "smb";
-    type_string_slow "$m_directory\n";
+    enter_cmd_slow "$m_directory";
     save_screenshot;
 
     # HTTP-proxy
@@ -582,7 +582,7 @@ sub select_installation_source {
             send_key "down";
         }
         send_key "ret";
-        type_string_slow "$proxyhost\t$proxyport\n";
+        enter_cmd_slow "$proxyhost\t$proxyport";
         assert_screen "inst-proxy_is_setup";
 
         # add boot parameters
@@ -894,7 +894,7 @@ sub tianocore_disable_secureboot {
     assert_screen 'grub2';
     send_key 'c';
     sleep 2;
-    type_string "exit\n";
+    enter_cmd "exit";
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
     send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
@@ -989,7 +989,7 @@ sub zkvm_add_disk {
             $svirt->add_disk({file => $patched_img, dev_id => 'a'});
         }
         else {
-            type_string("# copying image...\n");
+            enter_cmd("# copying image...");
             $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
         }
     }
@@ -1246,7 +1246,7 @@ Returns the array of the boot parameters.
 =cut
 
 sub parse_bootparams_in_serial {
-    my $parsed_string = wait_serial(qr/command line:.*/msi);
+    my $parsed_string = wait_serial(qr/command line:.*\[/msi);
     $parsed_string =~ m/.*command line:(?<boot>.*)/i;
     return split ' ', $+{boot};
 }
@@ -1268,7 +1268,7 @@ sub compare_bootparams {
     if (scalar @difference > 0) {
         record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
     } else {
-        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters: @{$expected_boot_params}");
+        record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters:\n" . join("\n", @{$expected_boot_params}));
     }
 }
 
@@ -1347,17 +1347,21 @@ sub prepare_disks {
 
     my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
     for my $d (split('\n', $disks)) {
-        script_run "wipefs -a /dev/$d";
-        if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
-        {
+        script_run "wipefs -af /dev/$d";
+        script_run "sync";
+        if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING')) {
             create_encrypted_part(disk => $d);
             if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
                 mimic_user_to_import(disk => $d,
                     passwd => get_var('ETC_PASSWD'),
                     shadow => get_var('ETC_SHADOW'));
             }
+        } else {
+            script_run "parted /dev/$d mklabel gpt";
+            script_run "sync";
         }
     }
+    script_run "lsblk";
 }
 
 1;

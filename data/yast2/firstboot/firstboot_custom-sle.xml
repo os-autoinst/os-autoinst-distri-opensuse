@@ -26,7 +26,7 @@
 	The value of the variable (true/false) will set the default value for the check box.
 	<root_password_as_first_user config:type="boolean">true</root_password_as_first_user>
 	 -->
-
+	<root_password_as_first_user config:type="boolean">true</root_password_as_first_user>
 	<!-- The default value of "Automatic Login" checkbox -->
 	<enable_autologin config:type="boolean">false</enable_autologin>
 
@@ -166,7 +166,7 @@
                 </module>
                 <module>
                     <label>Finish Setup</label>
-                    <name>inst_congratulate</name>
+                    <name>firstboot_finish</name>
                     <enable_back>no</enable_back>
                     <enable_next>yes</enable_next>
                 </module>

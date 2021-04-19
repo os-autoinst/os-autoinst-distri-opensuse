@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: libvirt-daemon-lxc libvirt-client libvirt-daemon-config-network
 # Summary: system containers images test setup, installing libvirt-lxc
 # Maintainer: Cédric Bosdonnat <cbosdonnat@suse.de>
 

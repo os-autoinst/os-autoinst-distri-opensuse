@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: snapper
 # Summary: Check that snapper can revert file changes between snapshots
 # - Disable dbus if necessary
 # - Create a snapshot with description "before undochange test"

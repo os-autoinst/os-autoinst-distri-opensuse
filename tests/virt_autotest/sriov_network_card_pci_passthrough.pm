@@ -55,14 +55,13 @@ sub run_test {
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
     if (@host_pfs == ()) {
-        $self->{test_results}->{host}->{"Error: there is no SR-IOV ethernet devices in the host!"}->{status} = 'FAILED';
+        $self->{test_results}->{host}->{"Error: there are not SR-IOV ethernet devices in the host, or no carrier for them!"}->{status} = 'FAILED';
         return 1;
     }
     record_info("Find SR-IOV devices", "@host_pfs");
 
     #get/set nessisary variables for test
     my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
-    set_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH", 1);    #to differenciate virtual network tests
 
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
@@ -83,10 +82,15 @@ sub run_test {
 
             #detach the vf from host
             $vf{host_bdf} = $host_vfs[int(rand($#host_vfs + 1))];
-            for (my $j = 0; $j < $i; $j++) {
+            my $j = 0;
+            while ($j < $i) {
+                #select another vf if the vf has been in the list which is going to be detached
                 if ($vf{host_bdf} eq $vfs[$j]->{host_bdf}) {
                     $vf{host_bdf} = $host_vfs[int(rand($#host_vfs + 1))];
                     $j = 0;
+                }
+                else {
+                    $j++;
                 }
             }
             $vf{host_id} = detach_vf_from_host($vf{host_bdf});
@@ -121,7 +125,7 @@ sub run_test {
         record_info("VM reboot", "$guest");
         script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 10, retry => 18, die => 1);
-        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 4 . '-after_guest_reboot');
+        save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 3 . '-after_guest_reboot');
 
         #check host and guest to make sure they work well
         check_host();
@@ -148,8 +152,6 @@ sub run_test {
 
     }
 
-    set_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH", 0);    #turn off the flag in case of affecting other tests
-
     #upload network device related logs
     upload_virt_logs($log_dir, "logs");
 }
@@ -159,16 +161,19 @@ sub run_test {
 sub prepare_host {
 
     #install required packages on host
-    zypper_call '-t in pciutils nmap';                    #to run 'lspci' and 'nmap' command
+    zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
 
-    #check IOMMU on XEN is enabled
-    if (is_xen_host()) {
-        assert_script_run "xl dmesg | grep IOMMU | grep -i enabled";
+    #check VT-d is supported in Intel x86_64 machines
+    if (script_run("grep Intel /proc/cpuinfo") == 0) {
+        assert_script_run "dmesg | grep -E \"DMAR:.*IOMMU enabled\"";
     }
+
+    #enable pciback debug logs
+    script_run "echo \"module xen_pciback +p\" > /sys/kernel/debug/dynamic_debug/control" if is_xen_host;
 }
 
 
-#get the BDF the PF device on host
+#get the BDF of the PF device on host
 sub find_sriov_ethernet_devices {
 
     #get the BDF of the ethernet devices with SR-IOV
@@ -177,7 +182,10 @@ sub find_sriov_ethernet_devices {
     my @sriov_devices;
     foreach (@nic_devices) {
         if ((script_run "lspci -v -s $_ | grep -q 'SR-IOV'") == 0) {
-            push @sriov_devices, $_;
+            #only those vfs whose pv can be brought up can be passed through to guest vms
+            my $nic = script_output "ls -l /sys/class/net |grep $_ | awk '{print \$9}'";
+            script_run "echo \"BOOTPROTO='dhcp'\nSTARTMODE='auto'\" > /etc/sysconfig/network/ifcfg-$nic";
+            push @sriov_devices, $_ if (script_run("ifup $nic") == 0);
         }
     }
     return @sriov_devices;
@@ -187,26 +195,13 @@ sub find_sriov_ethernet_devices {
 sub enable_vf {
     my @pfs = @_;
 
-    # get the network device drivers
-    my @drivers = ();
-    my $driver  = "";
+    #enable VFs for SR-IOV PFs by modifying SYS PCI
+    #modifying SYS PCI is much better than passing max_vfs=8 in reloading network device drivers
+    #as no network break is required anymore(ie. no sol console is needed or no worries about ip/nic change),
+    #also modifying SYS PCI allows to enable specified PFs
     foreach my $pf (@pfs) {
-        $driver = script_output "lspci -v -s $pf | sed -n '/Kernel modules/p' | sed 's/.*Kernel modules: *//'";
-        push @drivers, $driver if (!grep /^$driver$/, @drivers);
-    }
-
-    #set max_vfs and reload driver
-    #should not enable vf repeatedly, so skip enabling in local test for debugging
-    foreach my $driver (@drivers) {
-        assert_script_run("[ `lsmod | grep $driver | wc -l` -gt 0 ] && rmmod $driver", 60);
-        assert_script_run("modprobe --first-time $driver max_vfs=8",                   60);
-    }
-
-    #bring up the SR-IOV device
-    foreach my $pf (@pfs) {
-        my $nic = script_output "ls -l /sys/class/net |grep $pf | awk '{print \$9}'";
-        assert_script_run "echo \"BOOTPROTO='dhcp'\nSTARTMODE='manual'\" > /etc/sysconfig/network/ifcfg-$nic";
-        assert_script_run("ifup $nic", 60);    #about 15s
+        #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
+        assert_script_run("echo 7 > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
     }
 
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
@@ -224,7 +219,7 @@ sub prepare_guest {
     assert_script_run "virsh undefine $vm";
 
     #extra process for XEN hypervisor
-    if (is_xen_host()) {
+    if (is_xen_host) {
 
         #enable pci-passthrough and set model for pv guest.
         #refer to bug #1167217 for the reason
@@ -243,6 +238,12 @@ sub prepare_guest {
         #disable memory ballooning for fv guest as it is not supported
         if (is_fv_guest($vm)) {
             assert_script_run "sed -i '/<currentMemory/d' $vm.xml";
+        }
+
+        #enable udev debug logs
+        my $udev_conf_file = "/etc/udev/udev.conf";
+        if (script_run("ssh root\@$vm \"ls $udev_conf_file\"") == 0) {
+            script_run "ssh root\@$vm \"sed -i '/udev_log *=/{h;s/^[# ]*udev_log *=.*\$/udev_log=debug/};\${x;/^\$/{s//udev_log=debug/;H};x}' $udev_conf_file";
         }
 
     }
@@ -296,8 +297,8 @@ sub plugin_vf_device {
 
     #get the mac address and bdf by parsing the domain xml
     #tips: there may be multiple interfaces and multiple hostdev devices in the guest
-    my $nics_count = script_output "virsh dumpxml $vm | grep -c \"<interface.*type='hostdev'\"";
-    my $devs_xml   = script_output "virsh dumpxml $vm | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
+    my $nics_count = script_output "virsh dumpxml $vm --inactive | grep -c \"<interface.*type='hostdev'\"";
+    my $devs_xml   = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
     $vf->{host_id} =~ /pci_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)/;
     my ($dom, $bus, $slot, $func) = ($1, $2, $3, $4);    #these are different with those in host_devices.xml
     for (my $i = 0; $i < $nics_count; $i++) {
@@ -335,7 +336,7 @@ sub plugin_vf_device {
     $vf->{vm_bdf} =~ /[a-z\d]+:[a-z\d]+[.:][a-z\d]+/;    #bdf has different format in guests on KVM and XEN
     assert_script_run "ssh root\@$vm \"lspci -vvv -s $vf->{vm_bdf}\"";
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_addrss='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 
 }
 
@@ -372,15 +373,15 @@ sub save_network_device_status_logs {
     print_cmd_output_to_file("virsh domiflist $vm", $log_file);
 
     #save udev rules from guest
-    script_run "echo -e \"\n# ssh root\@$vm 'cat /etc/udev/rules.d/'\" >> $log_file";
-    if ((script_run "ssh root\@$vm 'ls /etc/udev/rules.d/'") == 0) {
-        script_run "[ -d rules.d/ ] && rm -rf rules.d/; scp -r root\@$vm:/etc/udev/rules.d/ .; ls rules.d/ >> $log_file; cat rules.d/* >> $log_file";
+    print_cmd_output_to_file("ls -l /etc/udev/rules.d/70-persistent-net.rules", $log_file, $vm);
+    if ((script_run "ssh root\@$vm 'ls /etc/udev/rules.d/70-persistent-net.rules'") == 0) {
+        print_cmd_output_to_file("cat /etc/udev/rules.d/70-persistent-net.rules", $log_file, $vm);
     }
 
     #list pci devices in guest
-    print_cmd_output_to_file("lspci",     $log_file, $vm);
-    print_cmd_output_to_file("ip l show", $log_file, $vm);
-    print_cmd_output_to_file("lsmod",     $log_file, $vm) if is_xen_host;
+    print_cmd_output_to_file("lspci", $log_file, $vm);
+    print_cmd_output_to_file("ip a",  $log_file, $vm);
+    print_cmd_output_to_file("lsmod", $log_file, $vm) if is_xen_host;
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";
 

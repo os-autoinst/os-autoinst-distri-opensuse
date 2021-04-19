@@ -38,6 +38,7 @@ use Utils::Systemd 'disable_and_stop_service';
 use version_utils;
 use registration 'add_suseconnect_product';
 use containers::common 'install_docker_when_needed';
+use registration qw(add_suseconnect_product get_addon_fullname);
 
 # Build a custom container image with openssl, curl and virsh installed.
 # The container will be used as client of libssh
@@ -93,9 +94,12 @@ EOT
 
 sub run {
     select_console 'root-console';
-    #    unless (is_opensuse) {
-    #    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-    #}
+
+    # contm is not supported on LTSS products bsc#1181835
+    if (get_var('SCC_REGCODE_LTSS')) {
+        add_suseconnect_product(get_addon_fullname('contm'));
+    }
+
     # Host is used as server of libssh test
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_docker_when_needed($host_distri);
@@ -119,7 +123,7 @@ sub run {
     assert_script_run("docker cp libssh_container:/root/.ssh/id_rsa.pub /root/.ssh/authorized_keys");
 
     #Switch into container as client
-    type_string("docker exec -it libssh_container bash\n", wait_still_screen => 3);
+    enter_cmd("docker exec -it libssh_container bash", wait_still_screen => 3);
     assert_script_run("test -f /.dockerenv");                                          #verify inside container
     assert_script_run("ssh-keyscan susetest >> /root/.ssh/known_hosts");
     validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t",                sub { m/libssh_testfile/ });
@@ -131,7 +135,7 @@ sub run {
     validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15-sp1'); #libssh is not supported by libvirt for sle12 and sle15sp1
     validate_script_output('virsh -c "qemu+libssh2://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ });
     #Switch back to host
-    type_string("exit\n", wait_still_screen => 3);
+    enter_cmd("exit", wait_still_screen => 3);
     #libssh2 test with qemu-block-ssh
     assert_script_run("eval `ssh-agent` && ssh-add /root/.ssh/id_rsa");
     assert_script_run("qemu-system-x86_64 -daemonize -display none -drive format=raw,if=virtio,index=1,file=ssh://root\@$container_ip/tmp/libssh_block.raw -monitor unix:/tmp/socket01,server,nowait");

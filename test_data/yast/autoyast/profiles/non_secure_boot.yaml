@@ -1,0 +1,5 @@
+---
+profile:
+  bootloader:
+    global:
+      secure_boot: 'false'

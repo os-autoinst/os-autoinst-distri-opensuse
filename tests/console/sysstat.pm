@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sysstat
 # Summary: test sysstat basic functionalities
 # - Install sysstat
 # - Start/stop/restart sysstat service

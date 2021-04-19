@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: GraphicsMagick
 # Summary: GraphicMagick testsuite
 # Maintainer: Ivan Lausuch <ilausuch@suse.com>
 
@@ -33,15 +34,15 @@ sub run {
 
     record_info("INFO", "Step 2. Runs visual tests");
 
-    type_string "gm display quadrants500x500.png\n";
+    enter_cmd "gm display quadrants500x500.png";
     assert_screen('open_an_image', 90);
     send_key 'alt-f4';
 
-    type_string "gm display -geometry 300x300+200+200! quadrants500x500.png\n";
+    enter_cmd "gm display -geometry 300x300+200+200! quadrants500x500.png";
     assert_screen('open_an_image_window_location', 90);
     send_key 'alt-f4';
 
-    type_string "gm display frame*.tiff\n";
+    enter_cmd "gm display frame*.tiff";
     assert_screen('open_an_image_directory_1', 90);
     send_key 'spc';
     assert_screen('open_an_image_directory_2', 90);
@@ -51,11 +52,11 @@ sub run {
     assert_screen('open_an_image_directory_4', 90);
     send_key 'alt-f4';
 
-    type_string "gm convert noise_blur_10.png HISTOGRAM:- | gm display -\n";
+    enter_cmd "gm convert noise_blur_10.png HISTOGRAM:- | gm display -";
     assert_screen('open_an_image_histogram', 90);
     send_key 'alt-f4';
 
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 }
 

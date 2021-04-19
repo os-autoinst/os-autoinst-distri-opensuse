@@ -38,7 +38,8 @@ test_data:
       partitions:
       - name: vda2
         size: 18GiB
-      - role: raw-volume
+      - name: vda2
+        role: raw-volume
         formatting_options:
           should_format: 1
           filesystem: xfs

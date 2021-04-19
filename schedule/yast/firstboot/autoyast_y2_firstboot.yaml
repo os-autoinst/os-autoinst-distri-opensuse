@@ -8,13 +8,15 @@ description:    >
   Firstboot.
 vars:
   AUTOYAST: autoyast_sle15/autoyast_firstboot.xml
+  AY_EXPAND_VARS: YUI_PORT
   DESKTOP: gnome
   NOAUTOLOGIN: 1
   YAST2_FIRSTBOOT_USERNAME: firstbootuser
+  YUI_REST_API: 1
 schedule:
   - autoyast/prepare_profile
-  - installation/isosize
   - installation/bootloader_start
+  - installation/setup_libyui
   - autoyast/installation
   - installation/yast2_firstboot
   - installation/first_boot

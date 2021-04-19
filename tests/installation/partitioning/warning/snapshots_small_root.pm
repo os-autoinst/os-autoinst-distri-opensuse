@@ -31,7 +31,7 @@ sub run {
             partition => $disk->{partitions}->{snapshots_small_root}
     });
 
-    assert_matches(qr/$test_data->{warnings}->{snapshots_small_root}/, $partitioner->get_warning_text(),
+    assert_matches(qr/$test_data->{warnings}->{snapshots_small_root}/, $partitioner->get_warning_label_text(),
         "'Root is too small for snapshots' Warning Dialog did not appear, while it is expected.");
 }
 

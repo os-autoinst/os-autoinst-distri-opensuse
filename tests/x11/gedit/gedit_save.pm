@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gedit wget
 # Summary: Gedit: save file
 # - Download test text file from datadir
 # - Launch gedit and open text test file

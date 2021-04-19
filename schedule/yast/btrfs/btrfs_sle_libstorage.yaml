@@ -30,11 +30,10 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  # Called on ARCH: s390x
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_no_cow_attribute
   # On all the architectures except s390x, /home is located on a separate partition
   - '{{validate_home_partition}}'
@@ -51,14 +50,6 @@ conditional_schedule:
     ARCH:
       x86_64:
         - installation/system_role
-  reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
   hostname_inst:
     BACKEND:
       qemu:

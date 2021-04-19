@@ -1,0 +1,61 @@
+---
+name:           lvm_multipath_encrypted
+description:    >
+  Textmode installation test for encrypted lvm partitioning on multipath with lvm and encryption validation.
+vars:
+  DESKTOP: textmode
+  MULTIPATH: 1
+  LVM: 1
+  ENCRYPT: 1
+  SEPARATE_HOME: 0
+  HDDMODEL: scsi-hd
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/multipath
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/encrypt_lvm
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - console/validate_multipath
+  - console/validate_lvm
+  - console/validate_encrypt
+  - console/consoletest_finish
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  cryptsetup:
+    device_status:
+      message: is active and is in use.
+      properties:
+        type: LUKS1
+        cipher: aes-xts-plain64
+        device: /dev/mapper/0QEMU_QEMU_HARDDISK_hd0-part2
+        key_location: dm-crypt
+        mode: read/write
+  backup_file_info: 'LUKS encrypted file, ver 1 \[aes, xts-plain64, sha256\]'
+  backup_path: '/root/bkp_luks_header_cr_home'
+  <<: !include test_data/yast/multipath.yaml

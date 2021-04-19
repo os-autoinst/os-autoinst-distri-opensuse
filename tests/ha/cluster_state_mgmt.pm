@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Manage cluster stack
 #          Stop the cluster if pacemaker is active, otherwise start it.
 # Maintainer: Julien Adamek <jadamek@suse.com>

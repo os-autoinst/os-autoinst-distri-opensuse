@@ -1,0 +1,9 @@
+---
+profile:
+  general:
+    storage:
+      start_multipath: 'true'
+  services-manager:
+    services:
+      enable:
+        service: multipathd

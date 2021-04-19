@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: steam
 # Summary: steam GUI app startup test
 # Maintainer: Oliver Kurz <okurz@suse.de>
 

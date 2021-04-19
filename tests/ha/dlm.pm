@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: crmsh
 # Summary: Configure DLM in cluster configuration
 # Maintainer: Loic Devulder <ldevulder@suse.com>
 

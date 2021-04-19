@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: util-linux cryptsetup
 # Summary: Validation module to check File system on partition(s).
 # Requires 'test_data->{file_system}' to be specified in yaml scheduling file,
 # so that it allows to check the File system on any amount of partitions

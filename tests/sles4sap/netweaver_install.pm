@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -59,9 +59,10 @@ sub run {
     assert_script_run "sed -i -e \"s/%HOSTNAME%/$hostname/g\" -e 's/%INSTANCE_ID%/$instance_id/g' -e 's/%INSTANCE_SID%/$sid/g' $params_file";
 
     # Create an appropiate start_dir.cd file and an unattended installation directory
-    my $cmd = 'ls | while read d; do if [ -d "$d" -a ! -h "$d" ]; then echo $d; fi ; done | sed -e "s@^@/sapinst/@"';
+    my $cmd = 'cd /sapinst ; ls | while read d; do if [ -d "$d" -a ! -h "$d" ]; then echo $d; fi ; done | sed -e "s@^@/sapinst/@" ; cd -';
     assert_script_run 'mkdir -p /sapinst/unattended';
-    assert_script_run "$cmd > /sapinst/unattended/start_dir.cd";
+    assert_script_run "($cmd) > /sapinst/unattended/start_dir.cd";
+    script_run 'cd -';
 
     # Create sapinst group
     assert_script_run "groupadd sapinst";
@@ -69,7 +70,7 @@ sub run {
     assert_script_run "chmod 0775 /sapinst/unattended";
 
     # Start the installation
-    type_string "cd /sapinst/unattended\n";
+    enter_cmd "cd /sapinst/unattended";
     $cmd = '../SWPM/sapinst ' . join(' ', @sapoptions);
 
     # Synchronize with other nodes

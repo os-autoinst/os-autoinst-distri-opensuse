@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: stunnel tigervnc
 # Summary: client part of VNC wrapped with stunnel
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: TC1595152
@@ -33,7 +34,7 @@ sub run {
     configure_stunnel;
 
     # Connect vnc server as normal user
-    type_string "exit\n";
+    enter_cmd "exit";
     script_run('vncviewer 127.0.0.1:15905', 0);
     assert_screen 'stunnel-vnc-auth';
     type_string $password;

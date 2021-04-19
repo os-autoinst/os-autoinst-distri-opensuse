@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: mailx
 # Summary: Test mailx send/reveive mails with SSL enabled
 # Maintainer: Ben Chou <bchou@suse.com>
 

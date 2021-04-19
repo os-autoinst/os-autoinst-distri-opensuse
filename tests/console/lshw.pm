@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: lshw libxml2-tools
 # Summary: Test lshw installation and verify that the output seems properly formatted
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com>
 

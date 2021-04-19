@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: php7 php-json
 # Summary: Simple PHP7 code hosted locally
 #   This test requires the Web and Scripting module on SLE.
 # - Setup apache2 to use php7 modules
@@ -22,7 +23,8 @@ use testapi;
 use apachetest;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     setup_apache2(mode => 'PHP7');
     assert_script_run('curl http://localhost/index.php | tee /tmp/tests-console-php7.txt');
     assert_script_run('grep "PHP Version 7" /tmp/tests-console-php7.txt');

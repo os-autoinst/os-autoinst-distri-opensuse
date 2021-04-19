@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: wicked
 # Summary: Advanced test cases for wicked
 # Test 9 : Create a tap interface from legacy ifcfg files
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>

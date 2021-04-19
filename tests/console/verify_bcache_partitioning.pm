@@ -7,6 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+# Package: bcache-tools
 # Summary: Validate bcache in writethrough
 # Usually the caching device is a fast device (ssd). In this scenario a rotational device is used.
 # The whole second disk is used as a caching device with /home mounted as a backing partition.
@@ -26,7 +27,7 @@ use Test::Assert 'assert_true';
 
 sub run {
     my $test_data  = get_test_suite_data();
-    my $cachingdev = $test_data->{profile}->{partitioning}->[1]->{drive}->{device};
+    my $cachingdev = $test_data->{profile}->{partitioning}->{drive}->[1]->{device};
     select_console 'root-console';
 
     # assert the registered backing dev

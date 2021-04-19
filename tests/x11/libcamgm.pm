@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2 libcamgm100 perl-camgm yast2-ca-management
 # Summary: Test libcamgm via Yast2 CA management module(yast2 ca_mgm)
 # Maintainer: Ben Chou <bchou@suse.com>
 
@@ -21,7 +22,7 @@ my $email    = "you\@example.com";
 
 sub restart_yast2_camgm {
     assert_and_click("xterm-selected");
-    type_string("yast2 ca_mgm\n");
+    enter_cmd("yast2 ca_mgm");
     wait_still_screen 1;
     assert_screen("yast2-ca_management-testca");
     send_key("alt-t");
@@ -46,9 +47,9 @@ sub run {
     wait_still_screen 1;
     zypper_call("in libcamgm100 perl-camgm yast2-ca-management");
     wait_still_screen 2;
-    type_string("clear\n");
+    enter_cmd("clear");
     save_screenshot;
-    type_string("yast2 ca_mgm\n");
+    enter_cmd("yast2 ca_mgm");
     wait_still_screen 2;
     assert_screen("yast2-ca-management");
 
@@ -105,7 +106,7 @@ sub run {
     save_screenshot;
     send_key("tab");
     send_key("tab");
-    type_string("$email\n");
+    enter_cmd("$email");
     save_screenshot;
     wait_still_screen 1;
     send_key("alt-u");
@@ -124,7 +125,7 @@ sub run {
     save_screenshot;
     send_key("tab");
     send_key("tab");
-    type_string("$email\n");
+    enter_cmd("$email");
     save_screenshot;
     wait_still_screen 1;
     send_key("alt-u");
@@ -169,7 +170,7 @@ sub run {
     send_key("alt-p");
     type_string("$password");
     send_key("alt-f");
-    type_string("\/root\/ClientCA.crt\n");
+    enter_cmd("\/root\/ClientCA.crt");
     save_screenshot;
     send_key("alt-o");
     save_screenshot;
@@ -178,14 +179,14 @@ sub run {
     ending_yast2_camgm;
     ## Check export CA file
     assert_and_click("xterm-selected");
-    type_string("file \/root\/ClientCA.crt\n");
+    enter_cmd("file \/root\/ClientCA.crt");
     save_screenshot;
-    type_string("cat \/root\/ClientCA.crt\n");
+    enter_cmd("cat \/root\/ClientCA.crt");
     save_screenshot;
 
     # Cleanup
     assert_and_click("xterm-selected");
-    type_string("rm -f \/root\/ClientCA.crt\n");
+    enter_cmd("rm -f \/root\/ClientCA.crt");
     save_screenshot;
     send_key("alt-f4");
 }

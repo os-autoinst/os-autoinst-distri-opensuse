@@ -27,17 +27,4 @@ test_data:
     - partition: vdb1
       size: 5G
       luks_type: 2
-  profile:
-    partitioning:
-      - drive:
-          unique_key: device
-          device: /dev/vda
-      - drive:
-          unique_key: device
-          device: /dev/vdb
-          disklabel: gpt
-          partitions:
-            - partition:
-                unique_key: crypt_method
-                crypt_method: luks1
-                size: 5368709120
+  <<: !include test_data/yast/autoyast/profiles/resize_luks2.yaml

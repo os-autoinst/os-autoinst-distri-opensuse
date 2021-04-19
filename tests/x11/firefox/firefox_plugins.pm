@@ -10,6 +10,7 @@
 
 # Case#1479188: Firefox: Add-ons - Plugins
 
+# Package: MozillaFirefox
 # Summary: Case#1479188: Firefox: Add-ons - Plugins
 # - Launch xterm, kill firefox, cleanup previous firefox configuration, launch
 # firefox

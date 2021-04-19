@@ -78,7 +78,7 @@ sub run {
     # Test Stop/Start of SAP resource
     my $rsc = get_var('NW') ? "rsc_sap_${instance_sid}_${instance_type}${instance_id}" : "rsc_SAPHana_${instance_sid}_${instance_type}${instance_id}";
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act stop", timeout => 120) foreach qw(fra cpa);
-    sleep 10;      # wait to let enough time for the HA stack to stop the resource
+    wait_until_resources_stopped(timeout => 1200);
     save_state;    # do a check of the cluster with a screenshot
     exec_conn_cmd(binary => $binary, cmd => "$_ --res $rsc --act start", timeout => 120) foreach qw(fra cpa);
 

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,19 +13,17 @@ use strict;
 use warnings;
 use testapi;
 use List::Util qw(first);
+use Mojo::UserAgent;
 
 use base "Exporter";
 use Exporter;
 
 
-our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules repo_is_not_active);
+our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules);
 
 sub query_smelt {
     my $graphql = $_[0];
-    my $api_url = "--request POST https://smelt.suse.de/graphql/";
-    my $header  = '--header "Content-Type: application/json"';
-    my $data    = qq( --data '{"query": "$graphql"}');
-    return qx(curl $api_url $header $data 2>/dev/null );
+    return Mojo::UserAgent->new->post("https://smelt.suse.de/graphql/" => json => {query => "$graphql"})->result->body;
 }
 
 sub get_incident_packages {
@@ -43,7 +41,7 @@ sub get_packagebins_in_modules {
     # in different modules.
     my ($self) = @_;
     my ($package_name, $module_ref) = ($self->{package_name}, $self->{modules});
-    my $response = qx(curl "https://smelt.suse.de/api/v1/basic/maintained/$package_name/" 2>/dev/null);
+    my $response = Mojo::UserAgent->new->get("https://smelt.suse.de/api/v1/basic/maintained/$package_name/")->result->body;
     my $graph    = JSON->new->utf8->decode($response);
     # Get the modules to which this package provides binaries.
     my @existing_modules = grep { exists($graph->{$_}) } @{$module_ref};
@@ -58,14 +56,6 @@ sub get_packagebins_in_modules {
     # Return a hash of hashes, hashed by name. The values are hashes with the keys 'name', 'supportstatus' and
     # 'package'.
     return map { $_->{name} => $_ } @arr;
-}
-
-sub repo_is_not_active {
-    my $repo = $_[0];
-    $repo =~ m".+Maintenance\:\/(\d+)";
-    my $id     = $1;
-    my $status = query_smelt("{incidents(incidentId: $id){edges{node{status {name}}}}}");
-    record_info("$id", "$id have been released") && return $id if $status =~ /\Qstatus":{"name":"done"\E/;
 }
 
 1;

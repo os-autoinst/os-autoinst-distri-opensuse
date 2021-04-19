@@ -32,6 +32,7 @@ use registration;
 use containers::common;
 use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
+use containers::container_images;
 
 sub run {
     my ($self) = @_;
@@ -45,16 +46,10 @@ sub run {
     allow_selected_insecure_registries(runtime => 'podman');
 
     # Run basic tests for podman
-    basic_container_tests("podman");
+    basic_container_tests(runtime => "podman");
 
-    # Setup the environment
-    set_up("$dir");
-
-    # Build the image
-    build_img("$dir", "podman");
-
-    # Run the built image
-    test_built_img("podman");
+    # Build an image from Dockerfile and test it
+    test_containered_app(runtime => 'podman', dockerfile => 'Dockerfile.python3');
 
     # Clean container
     clean_container_host(runtime => "podman");

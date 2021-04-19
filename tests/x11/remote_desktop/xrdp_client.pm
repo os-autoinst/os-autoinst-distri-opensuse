@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: remmina
 # Summary: Remote Login: SLED access Windows over RDP
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610392
@@ -34,7 +35,7 @@ sub run {
     my $pref_dir = '~/.config/remmina';
     assert_script_run "mkdir $pref_dir";
     assert_script_run 'echo -e "[remmina_news]\\nperiodic_rmnews_last_get=$(date +%s)" >> ' . $pref_dir . '/remmina.pref';
-    type_string "exit\n";
+    enter_cmd "exit";
 
     # Start Remmina and login the remote server
     x11_start_program('remmina', valid => 0);

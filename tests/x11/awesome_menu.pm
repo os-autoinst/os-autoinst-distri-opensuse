@@ -1,3 +1,4 @@
+# Package: awesome
 # Summary: awesome window manager startup
 #    Based on "minimalx" installation.
 # Maintainer: Dominik Heidler <dheidler@suse.de>

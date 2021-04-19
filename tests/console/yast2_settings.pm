@@ -6,6 +6,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-network
 # Summary: YaST writes config to 70-yast.conf and detects conflicts
 # - Install yast2-network
 # - verify writing config to the correct file

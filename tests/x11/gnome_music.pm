@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: gnome-music
 # Summary: Gnome music startup
 # - Launch gnome-music and check if it is running
 # - Close gnome-music
@@ -21,7 +22,7 @@ use utils;
 
 sub run {
     assert_gui_app('gnome-music', install => 1);
-    send_key('alt-f4');
+    send_key_until_needlematch("generic-desktop", 'alt-f4', 5, 5);
 }
 
 1;

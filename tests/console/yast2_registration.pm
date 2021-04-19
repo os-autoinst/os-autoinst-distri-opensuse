@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: yast2-registration
 # Summary: check if an unregistered system can be registered and if
 #          enabling and disabling extensions correctly work.
 # - Install yast2-registration

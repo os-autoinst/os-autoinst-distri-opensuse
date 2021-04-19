@@ -1,15 +1,16 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
 use base "publiccloud::basetest";
 use strict;
@@ -18,6 +19,8 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
+use LTP::utils "get_ltproot";
+use publiccloud::utils qw(is_byos select_host_console);
 
 our $root_dir = '/root';
 
@@ -43,24 +46,23 @@ sub instance_log_args
 }
 
 sub run {
-    my ($self)   = @_;
+    my ($self, $args) = @_;
     my $arch     = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_repo = get_var('LTP_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version("-") . '/' . $arch . '/');
+    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
     my $REG_CODE = get_required_var('SCC_REGCODE');
+    my $provider;
+    my $instance;
 
-    $self->select_serial_terminal;
+    select_host_console();
 
-    my $ltp_rpm         = get_ltp_rpm($ltp_repo);
-    my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
-    my $remote_rpm_path = '/tmp/' . $ltp_rpm;
-    record_info('LTP RPM', $ltp_repo . $ltp_rpm);
-    assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
-
-    my $provider = $self->provider_factory();
-    my $instance = $self->{my_instance} = $provider->create_instance();
-    $instance->wait_for_guestregister();
-
-    $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path);
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $instance = $self->{my_instance} = $args->{my_instance};
+        $provider = $self->{provider}    = $args->{my_provider};    # required for cleanup
+    } else {
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance();
+        $instance->wait_for_guestregister();
+    }
 
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
@@ -68,13 +70,27 @@ sub run {
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
 
-    assert_script_run('git clone -q --single-branch -b runltp_ng_openqa --depth 1 https://github.com/cfconrad/ltp.git');
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE, timeout => 600) if is_byos();
 
-    # Install ltp from package on remote
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE, timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
-    $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
-    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 /opt/ltp/IDcheck.sh',                                       timeout => 300);
+    # in repo with LTP rpm is internal we need to manually upload package to VM
+    if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
+        my $ltp_rpm         = get_ltp_rpm($ltp_repo);
+        my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
+        my $remote_rpm_path = '/tmp/' . $ltp_rpm;
+        record_info('LTP RPM', $ltp_repo . $ltp_rpm);
+        assert_script_run('wget ' . $ltp_repo . $ltp_rpm . ' -O ' . $source_rpm_path);
+        $instance->scp($source_rpm_path, 'remote:' . $remote_rpm_path) if (get_var('LTP_RPM_MANUAL_UPLOAD'));
+        $instance->run_ssh_command(cmd => 'sudo zypper --no-gpg-checks --gpg-auto-import-keys -q in -y ' . $remote_rpm_path, timeout => 600);
+    }
+    else {
+        $instance->run_ssh_command(cmd => 'sudo zypper -q addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
+        $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp',                              timeout => 600);
+    }
 
+    my $runltp_ng_repo   = get_var("LTP_RUN_NG_REPO",   "https://github.com/metan-ucw/runltp-ng.git");
+    my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
+    assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
+    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 
     my $reset_cmd     = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
@@ -82,8 +98,9 @@ sub run {
 
     assert_script_run($log_start_cmd);
 
-    my $cmd = 'perl -I ltp/tools/runltp-ng ltp/tools/runltp-ng/runltp-ng ';
+    my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log ';
+    $cmd .= '--timeout=900 ';
     $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
     $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
     $cmd .= '--backend=ssh';
@@ -92,8 +109,6 @@ sub run {
     $cmd .= ':host=' . $instance->public_ip;
     $cmd .= ':reset_command=\'' . $reset_cmd . '\'';
     $cmd .= ':ssh_opts=\'-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no\' ';
-    $cmd .= '--json-format=openqa ';
-
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
 }
 

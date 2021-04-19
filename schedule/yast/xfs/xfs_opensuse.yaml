@@ -1,0 +1,40 @@
+---
+name: xfs
+description: >
+  Installation with default parameters, except XFS being selected as filesystem
+  for the root partition. Installation is validated by successful boot and checking
+  that the correct filesystem was installed.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: xfs
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/select_patterns
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/teardown_libyui
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_fs_table
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: xfs

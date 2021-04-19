@@ -4,7 +4,9 @@ description: >
   Test suite verifies variety of warning which are expected to be shown when
   something is missing during manual partitioning using Expert Partitioner.
   Following warning are verified:
-    - Missing root partition.
+    - Missing root partition;
+    - Minimal size for the root with btrfs and snapshots
+    - Missing boot partition.
 vars:
   FILESYSTEM: btrfs
   YUI_REST_API: 1
@@ -19,6 +21,12 @@ schedule:
   - installation/partitioning
   - installation/partitioning/warning/no_root
   - installation/partitioning/warning/snapshots_small_root
+  - installation/partitioning/warning/no_boot
+  - installation/partitioning/warning/boot_small_for_kernel
+  - installation/partitioning/warning/bios_boot_small_for_bootloader
+  - installation/partitioning/warning/prep_small
+  - installation/partitioning/warning/zipl_small
+  - installation/partitioning/warning/rootfs_small
   - installation/partitioning_filesystem
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -33,22 +41,34 @@ schedule:
   - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
-  - installation/opensuse_welcome
+  # On Tumbleweed process Welcome pop-up screen
+  - '{{opensuse_welcome}}'
   - console/system_prepare
+conditional_schedule:
+  opensuse_welcome:
+    VERSION:
+      Tumbleweed:
+        - installation/opensuse_welcome
 test_data:
   disks:
     - name: vda
       partitions:
-        snapshots_small_root:
-          size: 9GiB
-          role: operating-system
-          formatting_options:
-            should_format: 1
-            enable_snapshots: 1
-          mounting_options:
-            should_mount: 1
-            mount_point: /
+        <<: !include test_data/yast/btrfs/common/btrfs+warnings_partitions.yaml
+        rootfs_small:
+          - role: raw-volume
+            size: 2mb
+            id: bios-boot
+          - role: operating-system
+            size: 4GiB
+            formatting_options:
+              should_format: 1
+              filesystem: xfs
+            mounting_options:
+              should_mount: 1
+              mount_point: /
   errors:
-    no_root: There is no device mounted at '/'
+    <<: !include test_data/yast/btrfs/common/btrfs+warnings_errors.yaml
   warnings:
-    snapshots_small_root: Your root device is very small for snapshots
+    <<: !include test_data/yast/btrfs/common/btrfs+warnings_warnings.yaml
+    missing_boot: A partition of type BIOS Boot Partition is needed to install the bootloader
+    rootfs_small: Missing device for / with size equal or bigger than 5 GiB and filesystem ext2, ext3, ext4, btrfs, xfs

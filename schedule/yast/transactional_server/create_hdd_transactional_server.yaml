@@ -7,55 +7,30 @@ description: >
 vars:
     SCC_ADDONS: tsm
     HDDSIZEGB: 40
+    YUI_REST_API: 1
 conditional_schedule:
     kernel_cmd_parameters:
         BACKEND:
             pvm_hmc:
             - installation/edit_optional_kernel_cmd_parameters
-    reconnect_mgmt_console:
-        ARCH:
-            s390x:
-            - boot/reconnect_mgmt_console
-        BACKEND:
-            pvm_hmc:
-            - boot/reconnect_mgmt_console
-    grub_test:
-        BACKEND:
-            qemu:
-            - installation/grub_test
-            pvm_hmc:
-            - installation/grub_test
     shutdown_svirt:
         BACKEND:
             svirt:
             - shutdown/svirt_upload_assets
-    license_reg_scc_addon:
-        DISTRI:
-            sle:
-            - installation/accept_license
-            - installation/scc_registration
-            - installation/addon_products_sle
-    online_repos_inst_mode_logpackes:
-        DISTRI:
-            opensuse:
-            - installation/online_repos
-            - installation/installation_mode
-            - installation/logpackages
-    user_settings_root:
-        DISTRI:
-            sle:
-            - installation/user_settings_root
 schedule:
     - installation/bootloader_start
+    - installation/setup_libyui
     - installation/welcome
-    - "{{license_reg_scc_addon}}"
-    - "{{online_repos_inst_mode_logpackes}}"
-    - installation/system_role
+    - installation/accept_license
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role/validate_default_role
+    - installation/system_role/select_role
     - installation/partitioning
     - installation/partitioning_finish
     - installation/installer_timezone
     - installation/user_settings
-    - "{{user_settings_root}}"
+    - installation/user_settings_root
     - installation/resolve_dependency_issues
     - installation/installation_overview
     - "{{kernel_cmd_parameters}}"
@@ -64,8 +39,8 @@ schedule:
     - installation/await_install
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
-    - "{{reconnect_mgmt_console}}"
-    - "{{grub_test}}"
+    - installation/teardown_libyui
+    - installation/handle_reboot
     - installation/first_boot
     - console/hostname
     - console/system_prepare
@@ -74,3 +49,6 @@ schedule:
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - "{{shutdown_svirt}}"
+test_data:
+    system_role:
+        default: 'Transactional Server'

@@ -16,6 +16,14 @@ Please, find up-to-date documentation references on the official [openQA project
 If you are looking for a task to start with, check out the [openQA Tests](https://progress.opensuse.org/projects/openqatests/issues/)
 Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
+## How to get this repository working
+
+Upon setting up a new openQA instance, it's also necessary to install some aditional dependencies that are inherent to this repository,
+for which there are two ways:
+
+* In case you're using cpanm (with or without local::lib, or others), from within the working copy: call `cpanm -n --mirror http://no.where/ --installdeps . `
+* In case you're using openSUSE: `zypper in os-autoinst-distri-opensuse-deps`
+
 #### Relevant documentation
 
 * All openQA documentation in a single [html page](https://open.qa/docs/)
@@ -73,12 +81,13 @@ and additionally the following rules:
   an explanation why the behaviour should differ. You can try to negate the logic
   check. As alternative consider the approach documented in
   [ui-framework-documentation.md](ui-framework-documentation.md)
-* Consider a corresponding Tumbleweed test: Because of
+* Support openSUSE Tumbleweed as primary product: Because of
   [Factory First](https://opensource.suse.com/suse-open-source-policy)
-  we should test against Tumbleweed by default (with exceptions for special
-  packages, of course). So please check if your code changes work with a current
-  Tumbleweed snapshot and then add to the according schedule for Tumbleweed
-  tests, e.g. main.pm
+  Tumbleweed is the default test target. So ensure and test that your code
+  changes work with a current Tumbleweed snapshot and then add to the
+  according schedule for Tumbleweed tests, e.g. in schedule/ or main.pm.
+  Exceptions are any special SLE-specific behaviour or packages not in
+  Tumbleweed or the case not being relevant otherwise.
 * Avoid "dead code": Don't add disabled code as nobody but you will understand
   why this is not active. Better leave it out and keep in your local git
   repository, either in `git stash` or a temporary "WIP"-commit.
@@ -86,10 +95,15 @@ and additionally the following rules:
   e.g. what issue is fixed, why this needs to change, to which versions of which
   product it applies, link to a bug or a feature entry, the choices you made,
   etc. Also see https://commit.style/ or http://chris.beams.io/posts/git-commit/
-  as a helpful guide how to write good commit messages.
+  as a helpful guide how to write good commit messages. And make code
+  reviewers fall in love with you :) https://mtlynch.io/code-review-love/
   Keep in mind that the text in the github pull request description is only
   visible on github, not in the git log which can be considered permanent
   information storage.
+* Add comments to the source code if the code is not self-explanatory:
+  Comments in the source code should describe the choices made, to answer the
+  question "why is the code like this". The git commit message should describe
+  "why did we change it".
 * Consider "multi-tag `assert_screen` with `match_has_tag`": Please use a
   multi-tag `assert_screen` with `match_has_tag` instead of `check_screen`
   with non-zero timeout to prevent introducing any timing dependant behaviour,
@@ -108,9 +122,9 @@ if (match_has_tag('yast2_missing_package')) {
 * All code needs to be tidy, for this use `make prepare` the first time you
   set up your local environment, use `make tidy` or `tools/tidy` locally to
   ensure your new code adheres to our coding style.
-* Every pull request is tested by the travis CI for different perl versions,
+* Every pull request is tested by our CI system for different perl versions,
   if something fails, run `make test` (don't forget to `make prepare` if your setup is new)
-  but the travis results are available too, in case they need to be investigated further
+  but the CI results are available too, in case they need to be investigated further
 * Whenever possible, [provide a verification run][1] of a job that runs the code [provided in the pull request][2]
 
 Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new contributions.

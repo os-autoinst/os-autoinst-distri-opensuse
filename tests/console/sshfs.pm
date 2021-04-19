@@ -8,6 +8,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: sshfs rpm diffutils
 # Summary: Mount and access a directory using sshfs; Test file listing is
 #   correct as well as that rpm/zypper can work when called from a remotely
 #   mounted directory.

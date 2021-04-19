@@ -3,6 +3,19 @@ description:    >
   Test installation on machine with virtual multipath hardware.
   Tests successful detection of multipath and installation and
   validate multipath configuration and tools after booting.
+conditional_schedule:
+  multipath_on_full_medium:
+    FLAVOR:
+      'Full-QR':
+        - installation/multipath
+      'Full':
+        - installation/multipath
+  multipath_on_online_medium:
+    FLAVOR:
+      'Online-QR':
+        - installation/multipath
+      'Online':
+        - installation/multipath
 vars:
   DESKTOP: gnome
   MULTIPATH: 1
@@ -10,8 +23,11 @@ schedule:
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
+  - '{{multipath_on_full_medium}}'
+  # for some odd reason multipath is on different positions
+  # in the installation depending on the medium
   - installation/scc_registration
-  - installation/multipath
+  - '{{multipath_on_online_medium}}'
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -29,6 +45,8 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_multipath
 test_data:
   <<: !include test_data/yast/multipath.yaml

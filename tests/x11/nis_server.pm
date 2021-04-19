@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: rpcbind nfs-client yast2-nis-server yast2-nfs-server
 # Summary: NIS server-client test
 #    https://progress.opensuse.org/issues/9900
 # Maintainer: Jozef Pupava <jpupava@suse.com>
@@ -141,7 +142,7 @@ sub run {
     mutex_wait('nis_nfs_client_ready', $child_id);
     # Read content of a file created by the client
     setup_verification();
-    type_string "killall xterm\n";    # game over -> xterm
+    enter_cmd "killall xterm";    # game over -> xterm
 }
 
 sub test_flags {

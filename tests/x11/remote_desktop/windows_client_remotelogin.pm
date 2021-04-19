@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
+# Package: gnome-session-core
 # Summary: Remote Login: Windows access openSUSE/SLE over RDP
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
@@ -25,7 +26,7 @@ sub run {
 
     send_key "super-r";
     assert_screen "windows-run";
-    type_string "mstsc\n";
+    enter_cmd "mstsc";
     assert_screen "remote-desktop-connection";
     type_string '10.0.2.17';
     assert_screen "remote-ip-filled";

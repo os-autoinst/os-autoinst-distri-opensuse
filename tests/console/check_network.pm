@@ -7,6 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
+# Package: iproute2
 # Summary: Check that an interface is configured and show some network info
 # - check from logs that an interface is already configured, if NETWORK_INIT_PARAM is set
 # - get some info using 'ip addr'
@@ -30,6 +31,7 @@ sub run {
     }
     # check the network configuration
     script_run "ip addr show";
+    script_run "cat /etc/resolv.conf";
 }
 
 1;
