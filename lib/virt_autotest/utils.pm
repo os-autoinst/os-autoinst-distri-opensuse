@@ -32,7 +32,7 @@ use testapi;
 use DateTime;
 use Utils::Architectures 'is_s390x';
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
   remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown);
@@ -70,6 +70,17 @@ sub is_fv_guest {
 sub is_pv_guest {
     my $guest = shift;
     return $guest =~ /\bpv\b/;
+}
+
+#return 1 if max_mem > memory in vm configuration file in libvirt
+sub is_guest_ballooned {
+    my $guest = shift;
+
+    my $mem     = "";
+    my $cur_mem = "";
+    $mem     = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //memory";
+    $cur_mem = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //currentMemory";
+    return $mem > $cur_mem;
 }
 
 #return 1 if test is expected to run on KVM hypervisor
