@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -81,6 +81,30 @@ sub wait_countdown_stop {
     return wait_screen_change(undef, $stilltime, similarity => $similarity);
 }
 
+sub _set_timeout {
+    my ($timeout) = @_;
+    # upgrades are slower
+    ${$timeout} = 5500 if (get_var('UPGRADE') || get_var('LIVE_UPGRADE'));
+    # our Hyper-V server is just too slow
+    # SCC might mean we install everything from the slow internet
+    ${$timeout} = 5500 if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL')));
+    # VMware server is also a bit slow, needs to take more time
+    ${$timeout} = 3600 if (check_var('VIRSH_VMM_FAMILY', 'vmware'));
+
+    # aarch64 can be particularily slow depending on the hardware
+    ${$timeout} *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
+    # PPC HMC (Power9) performs very slow in general
+    ${$timeout} *= 2 if check_var('BACKEND', 'pvm_hmc') && get_var('MAX_JOB_TIME');
+    # encryption, LVM and RAID makes it even slower
+    ${$timeout} *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
+    # "allpatterns" tests install a lot of packages
+    ${$timeout} *= 2 if check_var_array('PATTERNS', 'all');
+    # multipath installations seem to take longer (failed some time)
+    ${$timeout} *= 2 if check_var('MULTIPATH', 1);
+    # Scale timeout
+    ${$timeout} *= get_var('TIMEOUT_SCALE', 1);
+}
+
 sub run {
     my $self = shift;
     # NET isos are slow to install
@@ -88,37 +112,16 @@ sub run {
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
-    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error initializing-target-directory-failed);
+    my @tags = qw(rebootnow yast2_wrong_digest yast2_package_retry yast_error initializing-target-directory-failed linuxrc_error);
+    _set_timeout(\$timeout);
     if (get_var('UPGRADE') || get_var('LIVE_UPGRADE')) {
         push(@tags, 'ERROR-removing-package');
         push(@tags, 'DIALOG-packages-notifications');
         # There is a dialog with packages that updates are available from
         # the official repo, do not use those as want to use not published repos only
         push(@tags, 'package-update-found') if is_opensuse;
-        # upgrades are slower
-        $timeout = 5500;
+        # _timeout() adjusts the $timeout because upgrades are slower;
     }
-    # our Hyper-V server is just too slow
-    # SCC might mean we install everything from the slow internet
-    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') || (check_var('SCC_REGISTER', 'installation') && !get_var('SCC_URL'))) {
-        $timeout = 5500;
-    }
-    # VMware server is also a bit slow, needs to take more time
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        $timeout = 3600;
-    }
-    # aarch64 can be particularily slow depending on the hardware
-    $timeout *= 2 if check_var('ARCH', 'aarch64') && get_var('MAX_JOB_TIME');
-    # PPC HMC (Power9) performs very slow in general
-    $timeout *= 2 if check_var('BACKEND', 'pvm_hmc') && get_var('MAX_JOB_TIME');
-    # encryption, LVM and RAID makes it even slower
-    $timeout *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
-    # "allpatterns" tests install a lot of packages
-    $timeout *= 2 if check_var_array('PATTERNS', 'all');
-    # multipath installations seem to take longer (failed some time)
-    $timeout *= 2 if check_var('MULTIPATH', 1);
-    # Scale timeout
-    $timeout *= get_var('TIMEOUT_SCALE', 1);
     # on s390 we might need to install additional packages depending on the installation method
     if (check_var('ARCH', 's390x')) {
         push(@tags, 'additional-packages');
@@ -146,6 +149,9 @@ sub run {
                 mouse_set($mouse_x, 1);
             }
             next;
+        }
+        if (match_has_tag("linuxrc_error")) {
+            die 'Installation cant continue. Check medium or hardware.';
         }
         if (match_has_tag('yast_error')) {
             die 'YaST error detected. Test is terminated.';
