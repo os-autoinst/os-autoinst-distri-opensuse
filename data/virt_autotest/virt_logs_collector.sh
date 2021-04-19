@@ -159,7 +159,7 @@ function collect_supportconfig() {
 	if [[ ${target_type} == "guest" ]];then
 	   target_user="root"
 	   target_pass="novell"
-	   sshpass_ssh_cmd="sshpass -p ${target_pass} ssh ${target_user}@${target_ipaddr}"
+	   sshpass_ssh_cmd="sshpass -p ${target_pass} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${target_user}@${target_ipaddr}"
 	fi	
 
 	if [[ ${target_domain} != "" ]];then
@@ -240,7 +240,7 @@ function collect_extra_logs_from_guest() {
         if [[ ${extra_logs} != "" ]];then
            local guest_user="root"
            local guest_pass="novell"
-           local sshpass_ssh_cmd="sshpass -p ${guest_pass} ssh ${guest_user}@${guest_ipaddr}"
+           local sshpass_ssh_cmd="sshpass -p ${guest_pass} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${guest_user}@${guest_ipaddr}"
            local guest_transformed=${guest_domain//./_}
            local ret_result=128
            local retry_times=0
@@ -414,10 +414,43 @@ guest_hash_index=0
 guest_current=""
 dhcpd_lease_file="/var/lib/dhcp/db/dhcpd.leases"
 
+#Install necessary packages
+echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet" | tee -a ${virt_logs_collecor_log}
+zypper install -y sshpass nmap xmlstarlet | tee -a ${virt_logs_collecor_log}
+
+#Establish reachable networks and hosts database on host
+subnets_in_route=`ip route show all | awk '{print $1}' | grep -v default`
+subnets_scan_results=""
+subnets_scan_index=0
+echo -e "Subnets ${subnets_in_route[@]} are reachable on host judging by ip route show all" | tee -a ${virt_logs_collecor_log}
+echo -e "Establishing reachable hosts in subnets ${subnets_in_route[@]} database on host" | tee -a ${virt_logs_collecor_log}
+for single_subnet in ${subnets_in_route[@]};do
+    single_subnet_transformed=${single_subnet//./_}
+    single_subnet_transformed=${single_subnet_transformed/\//_}
+    scan_timestamp=`date "+%F-%H-%M-%S"`
+    mkdir -p "${virt_logs_folder}/nmap_subnets_scan_results"
+    single_subnet_scan_results=${virt_logs_folder}'/nmap_subnets_scan_results/nmap_scan_'${single_subnet_transformed}'_'${scan_timestamp}
+    subnets_scan_results[${subnets_scan_index}]=${single_subnet_scan_results}
+    echo -e "nmap -sn $single_subnet -oX $single_subnet_scan_results" | tee -a ${virt_logs_collecor_log}
+    nmap -sn $single_subnet -oX $single_subnet_scan_results  | tee -a ${virt_logs_collecor_log}
+    subnets_scan_index=$(( ${subnets_scan_index} + 1 ))
+done
+
 #Establish virtual machine domain name and ip address mapping
 for guest_current in ${guest_domains_array[@]};do
     guest_macaddresses_array[${guest_hash_index}]=`virsh domiflist --domain ${guest_current} | grep -oE "([0-9|a-z]{2}:){5}[0-9|a-z]{2}"`
     guest_ipaddress=`tac $dhcpd_lease_file | awk '!($0 in S) {print; S[$0]}' | tac | grep -iE "${guest_macaddresses_array[${guest_hash_index}]}" -B8 | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | tail -1`
+    if [[ -z ${guest_ipaddress} ]];then
+       for single_subnet_scan_results in ${subnets_scan_results[@]};do
+           guest_ipaddress=`xmlstarlet sel -t -v //address/@addr -n $single_subnet_scan_results | grep -i ${guest_macaddresses_array[${guest_hash_index}]} -B1 | grep -iv ${guest_macaddresses_array[${guest_hash_index}]}`
+           if [[ ! -z ${guest_ipaddress} ]];then
+               break
+           fi
+       done
+    fi
+    if [[ -z ${guest_ipaddress} ]];then
+       guest_ipaddress="NO_IP_ADDRESS_FOUND"
+    fi
     guest_hash_ipaddr[${guest_hash_index}]=${guest_ipaddress}
     echo -e ${guest_current}:${guest_hash_ipaddr[${guest_hash_index}]} | tee -a ${virt_logs_collecor_log}
     guest_hash_index=$(( ${guest_hash_index} + 1 ))
@@ -425,10 +458,10 @@ done
 
 #Start collecing logs from host and virtual machine
 setup_common_logs_folder ${virt_logs_folder}	
-echo -e "collect_supportconfig ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}"
+echo -e "collect_supportconfig ${virt_logs_folder} host" | tee -a ${virt_logs_collecor_log}
 collect_supportconfig ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
-echo -e "collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}"
+echo -e "collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host}" | tee -a ${virt_logs_collecor_log}
 collect_extra_logs_from_host ${virt_logs_folder} "" ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
 if [[ ${virt_guests_wanted} == "none" ]];then
