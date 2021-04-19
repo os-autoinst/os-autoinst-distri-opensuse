@@ -43,7 +43,6 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - '{{boot_encrypt_reconnect_mgmt_console}}'
-  - installation/teardown_libyui
   - '{{grub_test_boot_encrypt}}'
   - installation/first_boot
   - console/hostname

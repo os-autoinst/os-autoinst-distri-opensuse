@@ -30,7 +30,6 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
-  - installation/teardown_libyui
   - boot/reconnect_mgmt_console
   - installation/first_boot
   - console/validate_ext4_fs
