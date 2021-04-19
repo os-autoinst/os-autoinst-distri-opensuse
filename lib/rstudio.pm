@@ -184,13 +184,29 @@ sub rstudio_test_notebook {
     # notice this and open another message itself that we have to dismiss
     # afterwards as well
     send_key("ctrl-shift-k", wait_screen_change => 1);
-    my $popup_needle = "rstudio_server-Firefox-popup_blocked";
-    assert_screen([("$prefix-R_notebook-preview", $popup_needle)]);
+    my $popup_needle   = "rstudio_server-Firefox-popup_blocked";
+    my $loading_needle = "Firefox-transferring_data_from_localhost";
+    my $preview_needle = "$prefix-R_notebook-preview";
+    assert_screen([($preview_needle, $popup_needle, $loading_needle)]);
     my $popup_blocked = match_has_tag($popup_needle);
+
     if ($popup_blocked) {
         click_lastmatch();
         assert_and_click("rstudio_server-Firefox-allow_for_localhost");
-        assert_screen("$prefix-R_notebook-preview");
+    }
+
+    # it sometimes happens that the page has not yet finished loading, then we
+    # wait a bit for the loading indicator to disappear on the page and then
+    # check that the preview is there
+    assert_screen([($preview_needle, $loading_needle)]);
+    if (match_has_tag($loading_needle)) {
+        for (my $i = 0; $i < 10; $i++) {
+            sleep(10);
+            if (!defined(check_screen($loading_needle))) {
+                last;
+            }
+        }
+        assert_screen($preview_needle, timeout => 1);
     }
 
     send_key("alt-f4", wait_screen_change => 1);
