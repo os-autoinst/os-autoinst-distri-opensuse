@@ -56,7 +56,7 @@ use constant {
           get_os_release
           check_os_release
           package_version_cmp
-          )
+        )
     ],
     BACKEND => [
         qw(
@@ -65,7 +65,7 @@ use constant {
           is_hyperv_in_gui
           is_aarch64_uefi_boot_hdd
           is_svirt_except_s390x
-          )
+        )
     ],
     SCENARIO => [
         qw(
@@ -86,7 +86,7 @@ use constant {
           has_license_to_accept
           uses_qa_net_hardware
           has_test_issues
-          )
+        )
     ]
 };
 
