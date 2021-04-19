@@ -33,19 +33,15 @@ sub run {
     my $retries = 7;
     for (1 .. $retries) {
         type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
-        last                                                             if check_screen [qw(test-oomath-1 oomath-bsc1127895)];
+        last                                                             if check_screen('test-oomath-1', 2);
         die "Could not match on correct formula within multiple retries" if $_ == $retries;
         record_info 'workaround', 'retrying unstable formula typing, see https://progress.opensuse.org/issues/53795 for details';
         send_key 'ctrl-a';
         send_key 'delete';
     }
-    if (match_has_tag('oomath-bsc1127895')) {
-        record_soft_failure 'bsc#1127895';
-        send_key 'alt-f4';
-    } else {
-        send_key 'alt-f4';
-        assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
-    }
+
+    send_key 'alt-f4';
+    assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 
 1;
