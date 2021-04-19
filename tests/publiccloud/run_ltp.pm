@@ -100,7 +100,7 @@ sub run {
 
     my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log ';
-    $cmd .= '--timeout=900 ';
+    $cmd .= '--timeout=1200 ';
     $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
     $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
     $cmd .= '--backend=ssh';
