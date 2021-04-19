@@ -327,6 +327,8 @@ sub check_function {
     assert_script_run 'find /var/crash/';
 
     if ($args{test_type} eq 'function') {
+        # Check, that vmcore exists, otherwise fail
+        assert_script_run('ls -lah /var/crash/*/vmcore');
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`*";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
