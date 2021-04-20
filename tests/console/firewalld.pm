@@ -196,6 +196,7 @@ sub test_rich_rules {
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.200.0/24 accept'");
     assert_script_run("firewall-cmd --zone=public --permanent --remove-rich-rule 'rule family=\"ipv4\" source address=192.168.201.0/24 drop'");
     assert_script_run("firewall-cmd --reload");
+
     if (uses_iptables) {
         assert_script_run("test `iptables -L IN_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_allow.txt`");
         assert_script_run("test `iptables -L IN_public_deny --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_deny.txt`");
@@ -285,6 +286,12 @@ sub run {
     # Test #8 - Create a custom service
     test_custom_services;
 
+}
+
+sub post_fail_hook {
+    my ($self) = shift;
+    upload_logs("/var/log/firewalld");
+    $self->SUPER::post_fail_hook;
 }
 
 1;
