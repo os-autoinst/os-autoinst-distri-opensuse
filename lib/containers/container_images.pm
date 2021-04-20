@@ -287,6 +287,10 @@ sub ensure_container_rpm_updates {
             my $updated_v = version->parse("v$+{update_version}");
             my $stable_v  = version->parse("v$+{stable_version}");
             record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
+            if ($stable_v eq 'v52.1' && $updated_v eq 'v49.1') {
+                record_soft_failure('poo#91422');
+                last;
+            }
             die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
         } elsif ($line =~ $regex2zerorpm) {
             record_info("No Update found", "no updates found between rpm versions");
