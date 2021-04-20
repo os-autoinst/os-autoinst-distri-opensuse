@@ -1,0 +1,27 @@
+---
+name:           msdos@svirt-xen-pv
+description:    >
+  Test for installation on msdos partition table.
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning/msdos_partition_table
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/first_boot
+  - console/validate_fs_table
+test_data:
+  <<: !include test_data/yast/msdos/msdos_pv.yaml
