@@ -1211,7 +1211,7 @@ sub load_consoletests {
         loadtest "console/mysql_srv";
         # disable these tests of server packages for SLED (poo#36436)
         load_console_server_tests() unless is_desktop;
-        load_extra_tests_docker()   unless (is_desktop || !is_released);
+        load_extra_tests_docker()   unless (!is_opensuse || is_desktop || !is_released);
     }
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
