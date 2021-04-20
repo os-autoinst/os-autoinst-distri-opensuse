@@ -48,8 +48,5 @@ conditional_schedule:
         - installation/logs_from_installation_system
       pvm_hmc:
         - installation/logs_from_installation_system
-    VIRSH_VMM_TYPE:
-      hvm:
-        - installation/grub_test
 test_data:
   <<: !include test_data/yast/msdos/msdos.yaml
