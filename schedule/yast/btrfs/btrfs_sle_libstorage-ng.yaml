@@ -32,7 +32,6 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
   - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
