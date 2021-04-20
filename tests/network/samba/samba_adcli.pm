@@ -19,16 +19,20 @@ use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use testapi;
 use utils;
 
+my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
+my $AD_ip       = '10.162.30.119';
+
 sub samba_sssd_install {
     zypper_call('in  samba adcli samba-winbind krb5-client');
     #Copy config files enviroment.
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/smb.conf  >/etc/samba/smb.conf";
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/krb5.conf  >/etc/krb5.conf";
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/nsswitch.conf  >/etc/nsswitch.conf";
-    assert_script_run("echo '10.0.2.102 susetest.geeko.com susetest' > /etc/hosts");
-    assert_script_run("echo '10.0.2.101 win-r70413psjm4.geeko.com win-r70413psjmn4' >> /etc/hosts");
-    assert_script_run("echo 'nameserver 10.0.2.101' > /etc/resolv.conf");
-    assert_script_run("echo 'search geeko.com' >> /etc/resolv.conf");
+    #assert_script_run("echo '10.0.2.102 susetest.geeko.com susetest' > /etc/hosts");
+    #assert_script_run("echo '10.0.2.101 win-r70413psjm4.geeko.com win-r70413psjmn4' >> /etc/hosts");
+    script_run('echo NETCONFIG_DNS_STATIC_SEARCHLIST="geeko.com" >> /etc/sysconfig/network/config');
+    script_run('echo NETCONFIG_DNS_STATIC_SERVERS="' . $AD_ip . '" >> /etc/sysconfig/network/config');
+    assert_script_run('netconfig update -f');
 }
 
 sub run {
@@ -38,19 +42,18 @@ sub run {
     samba_sssd_install;
 
     #Join the Active Directory
-    assert_script_run 'cat /etc/hosts';
     script_run 'kinit Administrator', quiet => 1;
     wait_serial 'Password for Administrator@GEEKO.COM:';
-    enter_cmd "N0tS3cr3t@";
-    assert_script_run 'adcli join -v -W --domain geeko.com -U Administrator -C';
+    enter_cmd "Nots3cr3t";
+    assert_script_run 'adcli join -v -W --domain geeko.com -U Administrator -C', fail_message => 'Host down?';
     #Verify if machine already added
-    assert_script_run 'adcli info -D geeko.com  -S 10.0.2.101 -v';
+    assert_script_run "adcli info -D geeko.com  -S $AD_hostname -v";
 
     #test samba with AD
     assert_script_run "klist";
     script_run "net ads join -U Administrator", quiet => 1;
     wait_serial "Set Administrator's password:";
-    enter_cmd "N0tS3cr3t@";
+    enter_cmd "Nots3cr3t";
     systemctl('restart smb nmb winbind');
     #systemctl('restart nmb');
     #systemctl('restart winbind');
