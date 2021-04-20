@@ -1,0 +1,45 @@
+---
+name: minimalx
+description: >
+  As default but explicitly unselecting DE patterns, for example gnome, to have
+  only a "minimal X" environment preserved, for example icewm. On zVM we should
+  explicitly enable ssh service, as required for the test execution in the
+  installed system
+vars:
+  DESKTOP: minimalx
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/disk_activation
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role/select_role
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/select_patterns
+  - installation/overview/enable_ssh_service
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - update/zypper_clear_repos
+  - console/zypper_ar
+  - console/zypper_ref
+  - console/zypper_lr
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/firewall_enabled
+  - console/sshd
+  - console/orphaned_packages_check
+test_data:
+  system_role:
+    selection: 'Generic Desktop'
