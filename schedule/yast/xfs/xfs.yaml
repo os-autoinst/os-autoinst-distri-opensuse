@@ -48,3 +48,7 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: xfs
