@@ -36,6 +36,8 @@ schedule:
     - installation/resolve_dependency_issues
     - installation/select_packages
     - installation/installation_overview
+    - installation/disable_grub_graphics
+    - installation/disable_grub_timeout
     - installation/start_install
     - installation/await_install
     - installation/logs_from_installation_system
