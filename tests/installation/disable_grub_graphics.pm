@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,11 +18,21 @@ use testapi;
 sub run {
     my ($self) = shift;
 
-    send_key 'alt-c';
-    assert_screen 'inst-overview-options';
+    if (check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-c';
+        assert_screen 'inst-overview-options';
 
-    send_key 'alt-b';
-    assert_screen 'installation-bootloader-config';
+        send_key 'alt-b';
+        assert_screen 'installation-bootloader-config';
+    }
+    else {
+        # Verify Installation Settings overview is displayed as starting point
+        assert_screen "installation-settings-overview-loaded";
+
+        # Select section booting on Installation Settings overview (video mode)
+        send_key_until_needlematch 'booting-section-selected', 'tab';
+        send_key 'ret';
+    }
     send_key 'alt-k';
     assert_screen 'installation-bootloader-kernel';
     if (match_has_tag 'graphic-console-enabled') {

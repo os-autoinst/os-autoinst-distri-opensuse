@@ -1427,7 +1427,7 @@ sub reconnect_mgmt_console {
     elsif (check_var('ARCH', 'x86_64')) {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
-            assert_screen([qw(qa-net-selection prague-pxe-menu)], 300) unless get_var('IPXE_CONSOLE');
+            assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
             # boot to hard disk is default
             send_key 'ret';
         }
@@ -1436,7 +1436,8 @@ sub reconnect_mgmt_console {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
-            assert_screen([qw(qa-net-selection prague-pxe-menu)], 600) unless get_var('IPXE_CONSOLE');
+            assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
+            send_key 'ret';
         }
     }
     else {
