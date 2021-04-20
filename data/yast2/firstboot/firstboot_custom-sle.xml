@@ -69,7 +69,7 @@
                 </module>
                 <module>
                     <label>Language and Keyboard</label>
-                    <enabled config:type="boolean">true</enabled>
+                    <enabled config:type="boolean">false</enabled>
 		    <!-- step for configuration of both language and keyboard layout (fate#306296) -->
                     <name>firstboot_language_keyboard</name>
                 </module>
@@ -80,7 +80,7 @@
                 </module>
                 <module>
                     <label>Keyboard Layout</label>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
                     <name>firstboot_keyboard</name>
                 </module>
                 <module>
@@ -110,7 +110,10 @@
                 <module>
                     <label>Network</label>
                     <name>inst_lan</name>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
+                    <arguments>
+                        <skip_detection config:type="boolean">true</skip_detection>
+                    </arguments>
                 </module>
                  <module>
                     <label>Automatic Configuration</label>
@@ -119,12 +122,12 @@
                  </module>
                 <module>
                     <label>Time and Date</label>
-                    <enabled config:type="boolean">true</enabled>
+                    <enabled config:type="boolean">false</enabled>
                     <name>firstboot_timezone</name>
                 </module>
                 <module>
                     <label>NTP Client</label>
-                    <enabled config:type="boolean">false</enabled>
+                    <enabled config:type="boolean">true</enabled>
                     <name>firstboot_ntp</name>
                 </module>
                 <module>
@@ -144,7 +147,7 @@
                 </module>
                 <module>
                     <label>Root Password</label>
-                    <enabled config:type="boolean">true</enabled>
+                    <enabled config:type="boolean">false</enabled>
                     <name>firstboot_root</name>
                 </module>
                 <module>

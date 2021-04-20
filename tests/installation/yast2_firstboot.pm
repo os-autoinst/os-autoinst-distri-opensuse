@@ -7,8 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Utilize OS using YaST2 Firstboot module
+# Summary: Setup OS using YaST2 Firstboot wizard
 # Doc: https://en.opensuse.org/YaST_Firstboot
+# In this test module, each firstboot "client" is treated by its own
+# function and functions are called by test data. Some of these
+# functions are using POM (see ui-framework-documentation.md) in which
+# case each client is treated as a page defined in lib/YaST/FIrstboot/
+
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_module_basetest';
@@ -85,6 +90,24 @@ sub firstboot_registration {
     my $firstboot = $testapi::distri->get_firstboot();
     assert_screen 'system_registered';
     $firstboot->press_next();
+}
+
+sub firstboot_keyboard {
+    my $firstboot = $testapi::distri->get_firstboot();
+    save_screenshot;
+    $firstboot->setup_keyboard();
+}
+
+sub firstboot_NTP {
+    my $firstboot = $testapi::distri->get_firstboot();
+    save_screenshot;
+    $firstboot->setup_NTP();
+}
+
+sub firstboot_lan {
+    my $firstboot = $testapi::distri->get_firstboot();
+    save_screenshot;
+    $firstboot->setup_LAN();
 }
 
 sub firstboot_finish {

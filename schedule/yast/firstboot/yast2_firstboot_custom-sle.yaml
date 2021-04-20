@@ -21,11 +21,12 @@ schedule:
     - console/validate_yast2_firstboot_configuration
 test_data:
     clients:
-        - firstboot_language_keyboard
+        - firstboot_keyboard
         - firstboot_welcome
         - firstboot_licenses
         - firstboot_hostname
-        - firstboot_timezone
+        - firstboot_lan
+        - firstboot_NTP
         - firstboot_user
         - firstboot_finish
     custom_control_file: "firstboot_custom-sle.xml"
