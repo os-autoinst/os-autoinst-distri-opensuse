@@ -29,6 +29,8 @@ requires 'Mojo::File';
 requires 'Mojo::JSON';
 requires 'Mojo::UserAgent';
 requires 'Mojo::Util';
+requires 'NetAddr::IP';
+requires 'Net::IP';
 requires 'POSIX';
 requires 'Perl::Critic::Freenode';
 requires 'Regexp::Common';
