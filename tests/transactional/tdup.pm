@@ -42,7 +42,10 @@ sub run {
     trup_call 'dup';
 
     check_reboot_changes;
+}
 
+sub test_flags {
+    return {fatal => 1, milestone => 1};
 }
 
 1;
