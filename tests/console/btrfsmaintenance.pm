@@ -59,14 +59,23 @@ sub run {
     # Check state of btrfsmaintenance-refresh units. Have to use (|| :) due to pipefail
     assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.path || :) | grep enabled') unless is_sle("<15");
     # Fixed in SP1:Update, but is out of general support
+
+    my $btrfsmaintenance_service_status = script_output('(systemctl is-enabled btrfsmaintenance-refresh.service || :)');
+    record_info('Service status', $btrfsmaintenance_service_status);
+
     if (is_sle("<15-SP2")) {
+
+        record_soft_failure('boo#1165780 - Preset is wrong and enables btrfsmaintenance-refresh.service instead of .path')
+          if $btrfsmaintenance_service_status =~ /enabled/;
         assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep enabled');
-        record_soft_failure('boo#1165780 - Preset is wrong and enables btrfsmaintenance-refresh.service instead of .path');
+
     } elsif (is_sle("<=15-SP3") || is_leap("<=15.3")) {
         # Preset is correct, btrfsmaintenance-refresh.service still has the [Install] section
+        record_info('refresh status disabled') if $btrfsmaintenance_service_status =~ /disabled/;
         assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep disabled');
     } else {
         # Preset is correct, btrfsmaintenance-refresh.service dropped the [Install] section
+        record_info('refresh status disabled') if $btrfsmaintenance_service_status =~ /static/;
         assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep static');
     }
     # Check if btrfs-scrub and btrfs-balance are (somehow) enabled (results only in a info write)
