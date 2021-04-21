@@ -123,20 +123,22 @@ sub upload_img {
 
         # AMI is region specific also we need to use different AMI's for on-demand/BYOS uploads
         my $ami_id_hash = {
-            # suse-sles-15-sp2-byos-v20201211-hvm-ssd-x86_64
-            'us-west-1-byos' => 'ami-02b1a98531379c966',
-            # suse-sles-15-sp2-v20201211-hvm-ssd-x86_64
-            'us-west-1' => 'ami-05c558c169cfe8d99',
-            # suse-sles-15-sp2-byos-v20201211-hvm-ssd-x86_64
-            'us-west-2-byos' => 'ami-0b167c7e41ab53cb1',
-            # suse-sles-15-sp2-v20201211-hvm-ssd-x86_64
-            'us-west-2' => 'ami-0174313b5af8423d7',
-            # suse-sles-15-sp2-byos-v20201211-hvm-ssd-x86_64
-            'eu-central-1-byos' => 'ami-09740eee15629d44f',
-            # suse-sles-15-sp2-v20201211-hvm-ssd-x86_64
-            'eu-central-1' => 'ami-09e8a19c9eda495b3',
-            # suse-sles-15-sp2-v20201211-hvm-ssd-arm64
-            'eu-central-1-arm64' => 'ami-00f2e594abc782530'
+            # suse-sles-15-sp2-byos-v20210310-hvm-ssd-x86_64
+            'us-west-1-byos' => 'ami-00dce4ab26f53989c',
+            # suse-sles-15-sp2-v20210310-hvm-ssd-x86_64
+            'us-west-1' => 'ami-099dc1001c74f4813',
+            # suse-sles-15-sp2-byos-v20210310-hvm-ssd-x86_64
+            'us-west-2-byos' => 'ami-088f33f7fdcd2e657',
+            # suse-sles-15-sp2-v20210310-hvm-ssd-x86_64
+            'us-west-2' => 'ami-072cfc789636fd055',
+            # suse-sles-15-sp2-byos-v20210310-hvm-ssd-x86_64
+            'eu-central-1-byos' => 'ami-0e0c1a6d906f89e31',
+            # suse-sles-15-sp2-v20210310-hvm-ssd-x86_64
+            'eu-central-1' => 'ami-0174e85f7925868aa',
+            # suse-sles-15-sp2-v20210303-hvm-ssd-arm64
+            'eu-central-1-arm64' => 'ami-0b01dd8e9169233b8',
+            # suse-sles-15-sp2-byos-v20210303-hvm-ssd-arm64
+            'eu-central-1-byos-arm64' => 'ami-0c8748d383cef954d'
         };
 
         my $ami_id_key = $self->region;
