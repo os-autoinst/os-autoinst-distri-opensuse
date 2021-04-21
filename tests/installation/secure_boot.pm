@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Make sure that we are in the installation overview with SB enabled
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;

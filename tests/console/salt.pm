@@ -19,7 +19,7 @@
 # - Run "salt-key --accept-all -y"
 # - Ping the minion. If fails, try again 7 times.
 # - Stop both minion and master
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#318875, fate#320919
 
 use base "consoletest";

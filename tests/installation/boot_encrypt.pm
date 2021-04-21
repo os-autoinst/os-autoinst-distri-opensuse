@@ -10,7 +10,7 @@
 
 # Summary: Unlock encrypted partitions during bootup after the bootloader
 #   passed, e.g. from plymouth
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

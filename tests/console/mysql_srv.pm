@@ -14,7 +14,7 @@
 # - Check mysql service status
 # - Start mysql
 # - Check mysql service status
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use strict;
 use warnings;

@@ -11,7 +11,7 @@
 # Summary: Ensure the ssh daemon is running
 # - Check if sshd is started
 # - Check if sshd is running
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

@@ -10,7 +10,7 @@
 
 # Package: libreoffice-math
 # Summary: Test formula rendering in oomath
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # - Launch oomath
 # - Enter formula
 # - Select text and replace

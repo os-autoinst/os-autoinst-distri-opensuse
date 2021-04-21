@@ -10,7 +10,7 @@
 
 # Package: yast2-users
 # Summary: Test initial startup of users configuration YaST2 module
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base "y2_module_guitest";
 use strict;

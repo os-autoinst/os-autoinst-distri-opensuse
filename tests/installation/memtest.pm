@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Simple memtest
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'opensusebasetest';
 use strict;

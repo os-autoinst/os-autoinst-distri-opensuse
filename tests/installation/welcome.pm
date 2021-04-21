@@ -21,7 +21,7 @@
 # - Save screenshot
 # - If necessary, change keyboard layout
 # - Proceed install (Next, next) until license on welcome screen is found
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

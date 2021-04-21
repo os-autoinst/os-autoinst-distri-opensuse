@@ -20,7 +20,7 @@
 # - Check if ~ is expanding correctly
 # - Check if ~/.tcsh is correctly sourced
 # - Check if directories are listed correctly with ls -d /*
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

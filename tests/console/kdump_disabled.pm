@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Check if kdump is disabled by default
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

@@ -26,7 +26,7 @@
 # - Check return of "zypper lifecycle --days 0"
 # - Check output of "zypper lifecycle --days 9999"
 # - Check output of "zypper lifecycle --date $(date --iso-8601)"
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 # Tags: fate#320597
 
 use base "consoletest";

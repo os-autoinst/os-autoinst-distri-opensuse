@@ -13,7 +13,7 @@
 # - Install wget
 # - Test that wget is installed
 # - Download a file and display its contents
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#598574
 
 use base "consoletest";

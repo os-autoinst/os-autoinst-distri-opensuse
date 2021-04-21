@@ -13,7 +13,7 @@
 # - Launch oocalc
 # - Type "Hello World!"
 # - Close oocalc
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

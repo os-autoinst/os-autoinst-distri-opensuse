@@ -12,7 +12,7 @@
 # Summary: Mount and access a directory using sshfs; Test file listing is
 #   correct as well as that rpm/zypper can work when called from a remotely
 #   mounted directory.
-# Maintainer: Oliver Kurz (okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;
