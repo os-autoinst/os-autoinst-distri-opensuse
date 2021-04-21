@@ -143,6 +143,7 @@ schedule:
     - '{{lshw}}'
     - console/kmod
     - console/suse_module_tools
+    - network/samba/samba_adcli
     - console/firewalld
     - console/nftables
     - console/aaa_base
