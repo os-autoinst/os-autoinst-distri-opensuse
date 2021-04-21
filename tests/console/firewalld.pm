@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Package: firewalld
-# Summary: Test FirewallD basic usage, including NFT tables
+# Summary: Test FirewallD basic usage, including nftables/iptables
 # Maintainer: Alexandre Makoto Tanno <atanno@suse.com>
 
 use strict;
@@ -27,7 +27,7 @@ sub pre_test {
     zypper_call('in firewalld');
     zypper_call('info firewalld');
     record_info 'Check Service State';
-    script_run('echo "FIREWALLD_ARGS=--debug" > /etc/sysconfig/firewalld');
+    script_run('echo "FIREWALLD_ARGS=--debug" >> /etc/sysconfig/firewalld');
     systemctl('enable --now firewalld');
     assert_script_run("firewall-cmd --set-default-zone=public");
 }
@@ -285,7 +285,6 @@ sub run {
 
     # Test #8 - Create a custom service
     test_custom_services;
-
 }
 
 sub post_fail_hook {
