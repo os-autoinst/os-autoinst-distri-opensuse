@@ -13,7 +13,7 @@
 # - Start evolution and check if it is running
 # - Handle evolution first time wizard
 # - Close evolution
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

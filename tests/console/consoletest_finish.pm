@@ -17,7 +17,7 @@
 # - logout user
 # - reset console
 # - if not in textmode, then ensure that desktop is unlocked
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "opensusebasetest";
 use testapi;

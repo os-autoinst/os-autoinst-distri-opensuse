@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Installation/upgrade mode selection during installation
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

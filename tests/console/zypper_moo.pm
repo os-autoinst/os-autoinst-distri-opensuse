@@ -9,7 +9,7 @@
 
 # Package: zypper
 # Summary: Moo, cause we can
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base "consoletest";
 use strict;

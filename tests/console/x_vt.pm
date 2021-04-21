@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Check for correct tty used by X
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

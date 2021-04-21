@@ -19,7 +19,7 @@
 # - upload autoinst.xml
 # - upload original installedSystem.xml
 # - run save_y2logs and upload the generated tar.bz2
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

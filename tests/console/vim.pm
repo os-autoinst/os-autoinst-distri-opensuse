@@ -16,7 +16,7 @@
 # - Run "vim /etc/passwd"
 # - Check if file is opened correctly (with syntax hightlight)
 # - Force exit vim (":q!")
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

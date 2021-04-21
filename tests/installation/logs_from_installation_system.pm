@@ -18,7 +18,7 @@
 #   - Get /etc/resolv.conf contents
 #   - Save screenshot
 # - Upload yast2 installation network logs
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;

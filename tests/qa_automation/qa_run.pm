@@ -10,7 +10,7 @@
 #
 package qa_run;
 # Summary: base class for qa_automation tests in openQA
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use strict;
 use warnings;

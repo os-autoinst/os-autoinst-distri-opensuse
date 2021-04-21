@@ -14,7 +14,7 @@
 # - Open a second tab
 # - Type "If you can see this text gnome-terminal is working."
 # - Close gnome-terminal
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

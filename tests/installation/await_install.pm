@@ -40,7 +40,7 @@
 #   - If needle matches 'package-update-found'
 #     - Send 'alt-n'
 #   - Stop reboot timeout where necessary
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
