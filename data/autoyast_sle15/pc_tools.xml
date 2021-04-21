@@ -58,6 +58,11 @@
                 <version>{{VERSION}}</version>
                 <arch>x86_64</arch>
             </addon>
+            <addon>
+                <name>sle-module-containers</name>
+                <version>{{VERSION}}</version>
+                <arch>x86_64</arch>
+            </addon>
         </addons>
     </suse_register>
     <bootloader>
