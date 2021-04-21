@@ -1563,10 +1563,6 @@ sub load_extra_tests_zypper {
     loadtest 'console/zypper_extend';
 }
 
-sub load_extra_tests_dracut {
-    loadtest "console/dracut";
-}
-
 sub load_extra_tests_perl_bootloader {
     loadtest "console/perl_bootloader";
 }

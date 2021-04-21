@@ -1,0 +1,8 @@
+name:           extra_tests_dracut
+description:    >
+    Maintainer: dheidler.
+    Extra dracut tests
+schedule:
+    - boot/boot_to_desktop
+    - console/dracut
+    - console/coredump_collect
