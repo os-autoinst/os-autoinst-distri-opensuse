@@ -30,12 +30,16 @@ use upload_system_log 'upload_supportconfig_log';
 use version_utils;
 use testapi;
 use DateTime;
+use NetAddr::IP;
+use Net::IP qw(:PROC);
+use File::Basename;
 use Utils::Architectures 'is_s390x';
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown);
+  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
+  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file);
 
 # helper function: Trim string
 sub trim {
@@ -391,6 +395,98 @@ sub start_guests {
     # Wait for guests to show up as running
     script_retry("virsh list | grep $_ | grep running", delay => 5, retry => 10) foreach (keys %virt_autotest::common::guests);
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+}
+
+#Add common ssh options to host ssh config file to be used for all ssh connections when host tries to ssh to another host/guest.
+sub setup_common_ssh_config {
+    my $ssh_config_file = shift;
+
+    $ssh_config_file //= '/root/.ssh/config';
+    if (script_run("test -f $ssh_config_file") ne 0) {
+        script_run "mkdir -p " . dirname($ssh_config_file);
+        assert_script_run("touch $ssh_config_file");
+    }
+    if (script_run("grep \"Host \\\*\" $ssh_config_file") ne 0) {
+        type_string("cat >> $ssh_config_file <<EOF
+Host *
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking no
+    User root
+    PreferredAuthentications publickey
+EOF
+");
+    }
+    assert_script_run("chmod 600 $ssh_config_file");
+    record_info("Content of $ssh_config_file after common ssh config setup", script_output("cat $ssh_config_file;ls -lah $ssh_config_file"));
+    return;
+}
+
+#If certain host or guest is assigned a transient hostname from DNS server in company wide space, so the transient hostname becomes the real hostname to be indentified
+#on the network.In order to ensure its good ssh connection using predefined hostname or just a more desired one, add alias to its real hostname in host ssh config.
+sub add_alias_in_ssh_config {
+    my ($ssh_config_file, $real_name, $domain_name, $alias_name) = @_;
+
+    $ssh_config_file //= '/root/.ssh/config';
+    $real_name       //= '';
+    $domain_name     //= '';
+    $alias_name      //= '';
+    croak("Real name, domain name and alias name have to be given.") if (($real_name eq '') or ($domain_name eq '') or ($alias_name eq ''));
+    if (script_run("test -f $ssh_config_file") ne 0) {
+        script_run "mkdir -p " . dirname($ssh_config_file);
+        assert_script_run("touch $ssh_config_file");
+    }
+    if (script_run("grep -i \"Host $alias_name\" $ssh_config_file") ne 0) {
+        type_string("cat >> $ssh_config_file <<EOF
+Host $alias_name
+    HostName $real_name.$domain_name
+    User root
+EOF
+");
+    }
+    assert_script_run("chmod 600 $ssh_config_file");
+    record_info("Content of $ssh_config_file after adding alias $alias_name to real $real_name.", script_output("cat $ssh_config_file"));
+    return;
+}
+
+#Parsed detaild subnet information, including subnet ip address, network mask, network mask length, gateway ip address, start ip address, end ip address and reverse ip address
+#from ipv4 subnet address given.
+sub parse_subnet_address_ipv4 {
+    my $subnet_address = shift;
+
+    $subnet_address //= '';
+    croak("Subnet address argument must be given in the form of \"10.11.12.13/24\"") if (!($subnet_address =~ /\d+\.\d+\.\d+\.\d+\/\d+/));
+    my $subnet              = NetAddr::IP->new($subnet_address);
+    my $subnet_mask         = $subnet->mask();
+    my $subnet_mask_len     = $subnet->masklen();
+    my $subnet_ipaddr       = (split(/\//, $subnet->network()))[0];
+    my $subnet_ipaddr_rev   = ip_reverse($subnet_ipaddr, $subnet_mask_len);
+    my $subnet_ipaddr_gw    = (split(/\//, $subnet->first()))[0];
+    my $subnet_ipaddr_start = (split(/\//, $subnet->nth(1)))[0];
+    my $subnet_ipaddr_end   = (split(/\//, $subnet->last()))[0];
+    return ($subnet_ipaddr, $subnet_mask, $subnet_mask_len, $subnet_ipaddr_gw, $subnet_ipaddr_start, $subnet_ipaddr_end, $subnet_ipaddr_rev);
+}
+
+#This subroutine receives array reference that contains file or folder name in absolute path form as $backup_target. Then back it up by appending 'backup' and timestamp to its
+#original name. If $destination_folder is given, the file or folder will be backed up in it. Otherwise it will be backed up in the orginal parent folder. For example,
+#my @something_to_be_backed_up = ('file1', 'folder2', 'folder3'); backup_file(\@something_to_be_backed_up) or backup_file(\@something_to_be_backed_up, '/tmp').
+sub backup_file {
+    my ($backup_target, $destination_folder) = @_;
+
+    $backup_target      //= '';
+    $destination_folder //= '';
+    croak("The file or folder to be backed up must be given.") if ($backup_target eq '');
+    my $backup_timestamp = localtime();
+    $backup_timestamp   =~ s/ |:/_/g;
+    $destination_folder =~ s/\/$//g;
+    my @backup_target_array = @$backup_target;
+    foreach (@backup_target_array) {
+        my $backup_target_basename = basename($_);
+        my $backup_target_dirname  = dirname($_);
+        my $destination_target     = $backup_target_basename . '_backup_' . $backup_timestamp;
+        $destination_target = ($destination_folder eq '' ? "$backup_target_dirname/$destination_target" : "$destination_folder/$destination_target");
+        script_run("cp -f -r $_ $destination_target");
+    }
+    return;
 }
 
 1;
