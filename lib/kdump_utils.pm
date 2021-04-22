@@ -314,7 +314,7 @@ sub check_function {
         wait_screen_change { send_key 'ret' };
     }
     elsif (is_pvm || is_ipmi) {
-        reconnect_mgmt_console;
+        reconnect_mgmt_console(grub_skip_confirmation => is_ipmi);
     }
     else {
         power_action('reboot', observe => 1, keepconsole => 1);

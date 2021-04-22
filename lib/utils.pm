@@ -1351,17 +1351,18 @@ sub _handle_login_not_found {
 
 =head2 reconnect_mgmt_console
 
- reconnect_mgmt_console([timeout => $timeout]);
+ reconnect_mgmt_console([timeout => $timeout], [grub_expected_twice => $grub_expected_twice], [grub_skip_confirmation => $grub_skip_confirmation]);
 
 After each reboot we have to reconnect to the management console on remote backends.
 C<$timeout> can be set to some specific time and if during reboot GRUB is shown twice C<grub_expected_twice>
-can be set to 1.
+can be set to 1. Grub option confirmation by return key can be skipped if is C<grub_skip_confirmation> set.
 
 =cut
 sub reconnect_mgmt_console {
     my (%args) = @_;
-    $args{timeout}             //= 300;
-    $args{grub_expected_twice} //= 0;
+    $args{timeout}                //= 300;
+    $args{grub_expected_twice}    //= 0;
+    $args{grub_skip_confirmation} //= 0;
 
     if (check_var('ARCH', 's390x')) {
         my $login_ready = serial_terminal::get_login_message();
@@ -1429,7 +1430,7 @@ sub reconnect_mgmt_console {
             select_console 'sol', await_console => 0;
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
             # boot to hard disk is default
-            send_key 'ret';
+            send_key 'ret' unless $args{grub_skip_confirmation};
         }
     }
     elsif (check_var('ARCH', 'aarch64')) {
@@ -1437,7 +1438,7 @@ sub reconnect_mgmt_console {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
-            send_key 'ret';
+            send_key 'ret' unless $args{grub_skip_confirmation};
         }
     }
     else {
