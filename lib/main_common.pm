@@ -76,7 +76,6 @@ our @EXPORT = qw(
   load_jeos_tests
   load_kernel_baremetal_tests
   load_kernel_tests
-  load_networkd_tests
   load_nfv_master_tests
   load_nfv_trafficgen_tests
   load_public_cloud_patterns_validation_tests
@@ -1895,13 +1894,6 @@ sub load_wicked_create_hdd {
 
 sub load_extra_tests_udev {
     loadtest "kernel/udev_no_symlink";
-}
-
-sub load_networkd_tests {
-    loadtest 'networkd/networkd_init';
-    loadtest 'networkd/networkd_dhcp';
-    loadtest 'networkd/networkd_vlan';
-    loadtest 'networkd/networkd_bridge';
 }
 
 sub load_nfv_master_tests {
