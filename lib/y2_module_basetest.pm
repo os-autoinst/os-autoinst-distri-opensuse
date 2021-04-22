@@ -5,7 +5,7 @@ This module provides common subroutines for YaST2 modules in graphical and text 
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,14 +17,13 @@ This module provides common subroutines for YaST2 modules in graphical and text 
 
 package y2_module_basetest;
 
-use parent 'opensusebasetest';
+use parent 'y2_base';
 use Exporter 'import';
 
 use strict;
 use warnings;
 use testapi;
 use utils 'show_tasks_in_blocked_state';
-use y2_installbase;
 use version_utils qw(is_opensuse is_leap is_tumbleweed);
 
 our @EXPORT = qw(is_network_manager_default
@@ -110,7 +109,7 @@ sub wait_for_exit {
 
 sub post_fail_hook {
     my $self = shift;
-
+    $self->upload_widgets_json();
     my $defer_blocked_task_info = testapi::is_serial_terminal();
     show_tasks_in_blocked_state unless ($defer_blocked_task_info);
 
@@ -120,10 +119,10 @@ sub post_fail_hook {
     show_tasks_in_blocked_state if ($defer_blocked_task_info);
 
     $self->remount_tmp_if_ro;
-    y2_installbase::save_upload_y2logs($self);
+    $self->save_upload_y2logs();
     upload_logs('/var/log/zypper.log', failok => 1);
-    y2_installbase::save_system_logs($self);
-    y2_installbase::save_strace_gdb_output($self, 'yast');
+    $self->save_system_logs();
+    $self->save_strace_gdb_output('yast');
 }
 
 1;
