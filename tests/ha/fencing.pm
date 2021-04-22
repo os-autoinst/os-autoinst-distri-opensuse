@@ -40,7 +40,7 @@ sub run {
     # Sysrq fencing is more a real crash simulation
     if (get_var('USE_SYSRQ_FENCING')) {
         record_info('Fencing info', 'Fencing done by sysrq');
-        enter_cmd "echo b > /proc/sysrq-trigger" if ((!defined $node_to_fence && get_var('HA_CLUSTER_INIT')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
+        enter_cmd "echo b > /proc/sysrq-trigger" if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence"));
     }
     else {
         record_info('Fencing info', 'Fencing done by crm');
@@ -53,7 +53,7 @@ sub run {
 
     # Wait for server to restart on $node_to_fence or on the master node if no node is specified
     # This loop waits for 'root-console' to disappear, then 'boot_to_desktop' (or something similar) will take care of the boot
-    if ((!defined $node_to_fence && get_var('HA_CLUSTER_INIT')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
+    if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
         # Wait at most for 5 minutes (TIMEOUT_SCALE could increase this value!)
         my $loop_count = bmwqemu::scale_timeout(300);
         while (check_screen('root-console', 0, no_wait => 1)) {
