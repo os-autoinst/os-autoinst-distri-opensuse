@@ -51,7 +51,7 @@ sub open {
     else {
         die "Unknown user interface: $ui";
     }
-    YuiRestClient::connect_to_app_running_system();
+    YuiRestClient::connect_to_running_app();
 }
 
 =head2 close

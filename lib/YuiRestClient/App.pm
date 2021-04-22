@@ -36,6 +36,7 @@ sub new {
     return bless {
         port              => $args->{port},
         host              => $args->{host},
+        api_version       => $args->{api_version},
         timeout           => $args->{timeout},
         interval          => $args->{interval},
         widget_controller =>
@@ -45,10 +46,13 @@ sub new {
 
 sub connect {
     my ($self, %args) = @_;
-    my $uri = YuiRestClient::Http::HttpClient::compose_uri(host => $self->{host}, port => $self->{port});
+    my $uri = YuiRestClient::Http::HttpClient::compose_uri(
+        host => $self->{host},
+        port => $self->{port},
+        path => $self->{api_version} . '/widgets');
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
-            return 1 if $response;
+            return $response->json if $response;
         },
         message => "Connection to YUI REST server failed",
         %args);
