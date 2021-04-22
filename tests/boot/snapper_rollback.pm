@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test rollback after migration back to downgraded system
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base "consoletest";
 use testapi;

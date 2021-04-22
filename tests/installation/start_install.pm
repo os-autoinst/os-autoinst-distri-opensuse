@@ -16,7 +16,7 @@
 # install progress
 # - If USEIMAGES is set, check desktop install type (either kde, gnome or
 # textmode)
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;

@@ -10,7 +10,7 @@
 
 # Package: nautilus
 # Summary: Test nautilus open ftp
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: tc#1436143
 
 

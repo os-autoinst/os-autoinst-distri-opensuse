@@ -17,7 +17,7 @@
 # - Check if system is at login screen in console
 # - Run "cat /proc/cmdline"
 # - Save screenshot
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

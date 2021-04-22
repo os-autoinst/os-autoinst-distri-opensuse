@@ -12,7 +12,7 @@
 #   - Type keystrokes for selected language (default = us)
 # - Access console as user
 #   - Type keystrokes for selected language (default = us)
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "locale";
 use strict;

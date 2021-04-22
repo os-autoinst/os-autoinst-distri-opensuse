@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Handle x11 login (username+password)
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

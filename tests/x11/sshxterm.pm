@@ -15,7 +15,7 @@
 # - Check if another xterm opened
 # - Check for "If you can see this text ssh-X-forwarding is working"
 # - Kill xterm
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

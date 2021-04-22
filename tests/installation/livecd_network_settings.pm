@@ -9,7 +9,7 @@
 
 # Summary: Live-CD installer since 2016 seems to have an additional step
 # 'network settings' after welcome
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;

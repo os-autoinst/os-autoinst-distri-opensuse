@@ -12,7 +12,7 @@
 #  https://www.rabbitmq.com/tutorials/tutorial-one-python.html
 #  Solely added because someone added "rabbitmq" to the Leap42.2 test plan :-)
 #
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

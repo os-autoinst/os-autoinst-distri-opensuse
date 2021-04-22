@@ -9,7 +9,7 @@
 #          displaymanager and confusing other tests
 #          - If user sshboy exists, remove the user
 #
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#65375
 
 use base "consoletest";
