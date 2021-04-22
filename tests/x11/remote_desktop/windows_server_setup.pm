@@ -23,8 +23,10 @@ sub run {
 
     assert_and_click "start";
     sleep 5;
+    assert_and_click "system-settings";
+    wait_still_screen;
     type_string "allow remote connections";
-    assert_and_click "start_menu-remote_access-controlpanel";
+    assert_and_click "windows-settings-allow-remote-connections";
 
     assert_and_click "show-settings";
     assert_and_click "allow-remote-connections";
