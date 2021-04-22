@@ -16,6 +16,7 @@ package Distribution::Opensuse::Tumbleweed;
 use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
+use Installation::Overview::OverviewController;
 use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
@@ -35,6 +36,10 @@ sub get_guided_partitioner {
 
 sub get_expert_partitioner {
     return Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController->new();
+}
+
+sub get_overview_controller {
+    return Installation::Overview::OverviewController->new();
 }
 
 sub get_network_settings {
