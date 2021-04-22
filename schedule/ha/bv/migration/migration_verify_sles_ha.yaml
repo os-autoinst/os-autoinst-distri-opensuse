@@ -43,6 +43,6 @@ conditional_schedule:
       s390x:
         - ha/setup_hosts_and_luns
   s390x_cluster_setup:
-    HA_CLUSTER_SETUP:
-      1:
+    HA_CLUSTER_INIT:
+      yes:
         - ha/barrier_init
