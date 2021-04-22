@@ -19,6 +19,7 @@ use warnings;
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
 use hacluster qw(is_package_installed);
+use kdump_utils qw(deactivate_kdump_cli);
 
 sub remove_value {
     my ($module, $parameter) = @_;
@@ -63,6 +64,15 @@ sub run {
     # Disable extra tuning for testing "from scratch" system
     if (check_var('SLE_PRODUCT', 'sles4sap')) {
         assert_script_run "systemctl disable sapconf";
+        $self->reboot;
+        select_console 'root-console';
+    }
+
+    # It can only happen on sle product
+    # Only use by test not fully migrated to YAML
+    if (get_var('DISABLE_KDUMP')) {
+        record_info('Disabling kdump', 'Disabling kdump and crashkernel option');
+        deactivate_kdump_cli;
         $self->reboot;
         select_console 'root-console';
     }
