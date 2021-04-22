@@ -1,0 +1,51 @@
+---
+name: transactional_server
+description: >
+  Installation of a Transactional Server which uses a read-only
+  root filesystem to provide atomic, automatic updates of a
+  system without interfering with the running system.
+vars:
+  HDDSIZEGB: 40
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - update/zypper_clear_repos
+  - console/zypper_ar
+  - console/zypper_ref
+  - console/hostname
+  - console/force_scheduled_tasks
+  - transactional/filesystem_ro
+  - '{{tar_package_install}}'
+  - transactional/transactional_update
+  - transactional/rebootmgr
+  - transactional/health_check
+test_data:
+  system_role:
+    default: null
+    selection: 'Transactional Server'
+conditional_schedule:
+  tar_package_install:
+    LEAP:
+      1:
+        - transactional/trup_install_tar
