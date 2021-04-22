@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,7 @@
 # Summary: Waits for the guest to boot, sets some variables for LTP then
 #          dynamically loads the test modules based on the runtest file
 #          contents.
-# Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use 5.018;
 use warnings;
@@ -23,8 +23,8 @@ use utils 'assert_secureboot_status';
 sub run {
     my ($self) = @_;
     my $cmd_file = get_var('LTP_COMMAND_FILE') || '';
-
-    if (check_var('BACKEND', 'ipmi')) {
+    # Use standard boot for ipmi backend with IPXE
+    if (check_var('BACKEND', 'ipmi') && !get_var('IPXE_CONSOLE')) {
         record_info('INFO', 'IPMI boot');
         select_console 'sol', await_console => 0;
         assert_screen('linux-login', 1800);
