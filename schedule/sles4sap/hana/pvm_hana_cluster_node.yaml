@@ -4,18 +4,17 @@ description: >
   HanaSR Cluster Test for pvm_hmc. Schedule for all nodes.
 
   Some settings are required in the job group or test suite for this schedule to work.
-  HA_CLUSTER_SETUP must be defined for all jobs. In one of the jobs (the parent),
-  it must be defined to 'init', while in the rest to 'join'. This will only
-  control the conditional scheduling of ha_cluster_init or ha_cluster_join.
+  HA_CLUSTER_INIT must be defined for all jobs. In one of the jobs, it must be defined
+  to 'yes', while in the rest to 'no'. This will only control the conditional scheduling
+  of ha_cluster_init or ha_cluster_join.
 
   The other settings required in the job group are.
 
   CLUSTER_INFOS must be defined in the parent job to the name of the cluster, number
   of nodes and number of LUNs. Example 'hana:2:3'
   CLUSTER_NAME must be defined for all jobs as a string.
-  HA_CLUSTER_INIT must be defined to a non false value in the parent job
   HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
-  hostname of the parent job (the job where HA_CLUSTER_SETUP is defined to init)
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
   HANA must be defined pointing to the location of the HANA installation masters
   HOSTNAME must be defined to different hostnames for each node.
   ISCSI_LUN_INDEX must be defined in the parent job pointing to an available LUN
@@ -90,26 +89,26 @@ conditional_schedule:
         - installation/multipath
   barrier_init:
     HA_CLUSTER_INIT:
-      1:
+      yes:
         - ha/barrier_init
   cluster_setup:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - ha/ha_cluster_init
-      join:
+      no:
         - ha/ha_cluster_join
   sap_suse_cluster_connector:
     HA_CLUSTER_INIT:
-      1:
+      yes:
         - sles4sap/sap_suse_cluster_connector
   boot_to_desktop:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - installation/handle_reboot
         - installation/first_boot
   boot_to_desktop_non_init:
-    HA_CLUSTER_SETUP:
-      join:
+    HA_CLUSTER_INIT:
+      no:
         - installation/handle_reboot
         - installation/first_boot
   sles4sap12_product:

@@ -6,7 +6,7 @@ vars:
   BOOT_HDD_IMAGE: '1'
   DESKTOP: 'textmode'
   HA_CLUSTER: '1'
-  HA_CLUSTER_INIT: '1'
+  HA_CLUSTER_INIT: 'yes'
   HDDMODEL: 'scsi-hd'
   HOSTNAME: '%CLUSTER_NAME%-node01'
   NICTYPE: 'tap'

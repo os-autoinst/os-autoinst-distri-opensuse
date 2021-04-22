@@ -15,11 +15,12 @@ description: >
   The other settings required in the job group are.
 
   CLUSTER_NAME must be defined for all jobs as a string. HA_CLUSTER_INIT must be
-  defined to a non false value in the parent job HA_CLUSTER_JOIN must be defined
-  for the rest of the jobs, and it must contain the hostname of the parent job
-  (the job where HA_CLUSTER_SETUP is defined to init) HOSTNAME must be defined
-  to different hostnames for each node. All jobs with the exception of the
-  parent job must include a PARALLEL_WITH setting referencing the parent job.
+  defined to yes in the job that initializes the cluster
+  HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
+  HOSTNAME must be defined to different hostnames for each node.
+  All jobs with the exception of the parent job must include a PARALLEL_WITH setting
+  referencing the parent job.
   HA_UNICAST must be set to 1 because we can not configure multicast corosync on
   s390x. ISCSI_LUN_INDEX must be set to an available LUN Id starting point,  HA
   tests will take 5 consecutive LUNs; 1 for SBD, 2 for cluster_md and 2 for
@@ -73,14 +74,14 @@ schedule:
   - ha/check_logs
 conditional_schedule:
   barrier_setup:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - ha/barrier_init
   cluster_setup:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - ha/ha_cluster_init
-      join:
+      no:
         - ha/ha_cluster_join
   drbd:
     HA_CLUSTER_DRBD:
@@ -88,8 +89,8 @@ conditional_schedule:
         - ha/drbd_passive
         - ha/filesystem
   boot_to_desktop_node01:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - boot/boot_to_desktop
   remove_node:
     HA_REMOVE_NODE:
