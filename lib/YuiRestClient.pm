@@ -19,7 +19,6 @@ use testapi;
 use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty zypper_call);
 use Utils::Backends qw(is_pvm is_ipmi);
 use YuiRestClient::App;
-use registration;
 use YuiRestClient::Wait;
 
 our $interval = 1;
@@ -48,14 +47,17 @@ sub connect_to_app {
     die "Cannot set libyui REST API server" unless $host;
     record_info('PORT',   "Used port for libyui: $port");
     record_info('SERVER', "Connecting to: $host");
-    my $app = YuiRestClient::App->new({port => $port, host => $host, api_version => API_VERSION});
+    my $app = YuiRestClient::App->new({
+            port        => $port,
+            host        => $host,
+            api_version => API_VERSION});
     # As we start installer, REST API is not instantly available
     $app->connect(timeout => 500, interval => 10);
     set_app($app);
 }
 
-sub connect_to_app_running_system {
-    get_app()->connect(timeout => 30, interval => 2);
+sub connect_to_running_app {
+    return get_app()->connect(timeout => 30, interval => 2);
 }
 
 sub setup_libyui_running_system {

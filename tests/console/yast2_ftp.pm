@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2019 SUSE LLC
+# Copyright (c) 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,7 +25,6 @@ use base "y2_module_consoletest";
 use testapi;
 use utils;
 use version_utils;
-use y2_installbase;
 
 sub vsftd_setup_checker {
     my ($self, $config_ref) = @_;
@@ -242,7 +241,7 @@ sub post_fail_hook {
 
     upload_logs('/etc/vsftpd.conf');
     upload_logs('/tmp/failed_vsftpd_directives.log');
-    y2_installbase::save_upload_y2logs;
+    $self->save_upload_y2logs();
 }
 
 1;
