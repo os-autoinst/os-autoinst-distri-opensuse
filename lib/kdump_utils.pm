@@ -314,7 +314,8 @@ sub check_function {
         wait_screen_change { send_key 'ret' };
     }
     elsif (is_pvm || is_ipmi) {
-        reconnect_mgmt_console;
+        # Reconnect management console on pvm only after the crash, IPMI console is managed by wait_boot
+        reconnect_mgmt_console if is_pvm;
     }
     else {
         power_action('reboot', observe => 1, keepconsole => 1);
