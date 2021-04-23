@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,7 +27,8 @@ our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   full_kdump_check deactivate_kdump_cli);
 
 sub install_kernel_debuginfo {
-    zypper_call 'ref';
+    my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
+    zypper_call "$import_gpg ref";
     # Using the provided capabilities of the currently active kernel, get the
     # name and version of the shortest flavor and add "-debuginfo" to the name.
     # Before kernel-default-base was built separately (< 15 SP2/15.2):
