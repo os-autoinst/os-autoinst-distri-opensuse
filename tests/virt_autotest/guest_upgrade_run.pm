@@ -21,7 +21,20 @@ use testapi;
 use Utils::Architectures;
 
 sub get_script_run {
-    my $pre_test_cmd         = "/usr/share/qa/tools/test_virtualization-guest-upgrade-run";
+    #NOTE:Found that s390x arch used with the svirt backend
+    #do not work very well with two times ctcs2 runs - test_virtualization-guest-upgrade-run
+    #Also, found that svirt backend worked very well
+    #with just only one time ctcs2 run - test_full_guest_upgrade.sh
+    #So, change to use with test_full_guest_upgrade.sh directly for s390x arch
+    my $pre_test_cmd = "";
+    if (is_s390x) {
+        #Use pipefail to keep the correct returns from test_full_guest_upgrade.sh
+        $pre_test_cmd = "set -o pipefail;";
+        $pre_test_cmd = "$pre_test_cmd/usr/share/qa/virtautolib/lib/test_full_guest_upgrade.sh";
+    }
+    else {
+        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-guest-upgrade-run";
+    }
     my $product_upgrade_repo = get_var("PRODUCT_UPGRADE_REPO", "");
     #Prefer to use offline media for upgrade to avoid guest registration
     $product_upgrade_repo =~ s/-Online-/-Full-/ if ($product_upgrade_repo =~ /15-sp[2-9]/i);
@@ -34,7 +47,12 @@ sub get_script_run {
     handle_sp_in_settings_with_fcs("GUEST_LIST");
     my $guest_list = get_required_var("GUEST_LIST");
 
-    $pre_test_cmd = "$pre_test_cmd -p $product_upgrade -r $product_upgrade_repo -t $max_test_time -g \"$guest_list\"";
+    $pre_test_cmd = "$pre_test_cmd -p $product_upgrade -r $product_upgrade_repo -g \"$guest_list\"";
+    if (is_s390x) {
+        $pre_test_cmd .= " 2>&1 | tee /tmp/s390x_guest_upgrade_test.log";
+    } else {
+        $pre_test_cmd .= " -t $max_test_time";
+    }
     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64) {
         $pre_test_cmd .= " -k $vm_xml_dir";
     }
@@ -101,8 +119,32 @@ sub run {
     repl_module_in_sourcefile();
 
     $self->{'package_name'} = 'Guest Upgrade Test';
-    $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);
+    if (is_s390x) {
+        script_run "[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /var/lib/libvirt/images/prj4_guest_upgrade ] && rm -r /var/lib/libvirt/images/prj4_guest_upgrade /tmp/full_guest_upgrade_test-* /tmp/kill_zypper_procs-* /tmp/update-guest-*";
+    }
+    else {
+        $self->execute_script_run("[ -d /var/log/qa/ctcs2 ] && rm -r /var/log/qa/ctcs2 ; [ -d /tmp/prj4_guest_upgrade ] && rm -r /tmp/prj4_guest_upgrade", 30);
+    }
     $self->run_test($timeout, '', 'yes', 'yes', '/var/log/qa/', $upload_log_name);
+    #upload testing logs for s390x guest upgrade test
+    if (is_s390x) {
+        #upload s390x_guest_upgrade_test.log
+        upload_asset("/tmp/s390x_guest_upgrade_test.log", 1, 1);
+        script_run "rm -rf /tmp/s390x_guest_upgrade_test.log";
+    }
+
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    $self->SUPER::post_fail_hook;
+
+    if (is_s390x) {
+        #upload s390x_guest_upgrade_test.log
+        upload_asset("/tmp/s390x_guest_upgrade_test.log", 1, 1);
+        script_run "rm -rf /tmp/s390x_guest_upgrade_test.log";
+    }
 }
 
 1;
