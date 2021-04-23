@@ -32,7 +32,7 @@ sub run {
     }
 
     # Create some snapshots with a transactional update snapshot in the middle.
-    record_info "Check undel", "Snapshot #1 - Check that essential snapshots cannot be deleted, 
+    record_info "Check undel", "Snapshot #1 - Check that essential snapshots cannot be deleted,
                                 creates snapshots and installs a package";
     assert_script_run("snapper create -d \"Disposable snapshot #1\"");
     get_utt_packages;
@@ -43,8 +43,8 @@ sub run {
     my $next_snap_after_update;
     my $current_snap_after_update;
     foreach (@snapshots_after_update) {
-        $current_snap_after_update = $+{current_snap} if ($_ =~ /(?<current_snap>^\d+)\-/);
-        $next_snap_after_update    = $+{next_snap}    if ($_ =~ /(?<next_snap>^\d+)\+/);
+        $current_snap_after_update = $+{current_snap} if ($_ =~ /(?<current_snap>^\s*\d+)\-/);
+        $next_snap_after_update    = $+{next_snap}    if ($_ =~ /(?<next_snap>^\s*\d+)\+/);
     }
     die('Current snapshot was not marked with -') unless $current_snap_after_update;
     die('New snapshot not marked with +')         unless $next_snap_after_update;
