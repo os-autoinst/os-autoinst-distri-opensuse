@@ -796,6 +796,8 @@ elsif (get_var("VIRT_AUTOTEST")) {
     }
     if (get_var("VIRT_UEFI_GUEST_INSTALL")) {
         loadtest "virt_autotest/uefi_guest_installation";
+        loadtest "virt_autotest/set_config_as_glue";
+        loadtest "virt_autotest/uefi_guest_verification";
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         loadtest "virt_autotest/guest_installation_run";
