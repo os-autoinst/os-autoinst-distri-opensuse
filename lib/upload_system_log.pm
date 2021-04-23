@@ -18,6 +18,7 @@ use Exporter;
 use testapi;
 use utils;
 use base "opensusebasetest";
+use Utils::Architectures;
 
 our @EXPORT = qw(upload_system_logs upload_supportconfig_log);
 
@@ -69,10 +70,20 @@ sub upload_system_logs {
 
 sub upload_supportconfig_log {
     my (%args) = @_;
-    $args{file_name} //= 'supportconfig.' . script_output("date '+%Y%m%d%H%M%S'");
-    $args{options}   //= '';
-    $args{timeout}   //= 600;
+    if (is_s390x) {
+        $args{file_name} //= "supportconfig";
+    } else {
+        $args{file_name} //= 'supportconfig.' . script_output("date '+%Y%m%d%H%M%S'");
+    }
+    $args{options} //= '';
+    $args{timeout} //= 600;
     script_run("supportconfig -t . -B $args{file_name}", $args{timeout});
+    #FOR S390X LPAR
+    if (is_s390x) {
+        script_run("tar zcvfP scc_$args{file_name}.tar.gz scc_supportconfig");
+        upload_asset("scc_$args{file_name}.tar.gz", 1, 1);
+        return;
+    }
     # bcc#1166774
     if (script_run("test -d scc_$args{file_name}/") == 0) {
         assert_script_run("tar zcvfP scc_$args{file_name}.tar.gz scc_$args{file_name}/");

@@ -20,6 +20,8 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use virt_utils;
+use Utils::Architectures;
+use upload_system_log;
 
 sub analyzeResult {
     die "You need to overload analyzeResult in your class";
@@ -192,7 +194,7 @@ sub run_test {
 
     my $test_cmd = $self->get_script_run();
     #FOR S390X LPAR
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         virt_utils::lpar_cmd("$test_cmd");
         return;
     }
@@ -253,6 +255,14 @@ sub upload_guest_assets {
 
 sub post_fail_hook {
     my ($self) = shift;
+
+    #FOR S390X LPAR
+    if (is_s390x) {
+        #collect and upload supportconfig log from S390X LPAR
+        upload_system_log::upload_supportconfig_log();
+        script_run "rm -rf scc_*";
+        return;
+    }
 
     $self->post_run_test;
     save_screenshot;
