@@ -70,7 +70,7 @@ sub run {
 
     # It can only happen on sle product
     # Only use by test not fully migrated to YAML
-    if (get_var('DISABLE_KDUMP')) {
+    if (get_var('DISABLE_KDUMP') && is_package_installed('kdump')) {
         record_info('Disabling kdump', 'Disabling kdump and crashkernel option');
         deactivate_kdump_cli;
         $self->reboot;
