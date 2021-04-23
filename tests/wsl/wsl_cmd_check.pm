@@ -32,7 +32,7 @@ sub run {
     $self->run_in_powershell(cmd => qq/wsl systemd-detect-virt | Select-String -Pattern "$expected{provider}"/, timeout => 60);
     $self->run_in_powershell(cmd => 'wsl /bin/bash -c "dmesg | head -n 20"');
     $self->run_in_powershell(cmd => 'wsl env');
-    $self->run_in_powershell(cmd => 'wsl locale');
+    $self->run_in_powershell(cmd => 'wsl locale', timeout => 60);
     $self->run_in_powershell(cmd => 'wsl date');
     if (is_opensuse || (is_sle && is_sut_reg)) {
         $self->run_in_powershell(cmd => 'wsl -u root zypper -q -n in python3', timeout => 120);
