@@ -22,9 +22,10 @@ use strict;
 use warnings;
 use base "installbasetest";
 use testapi;
-use Utils::Backends qw(is_hyperv);
+use Utils::Backends qw(is_hyperv is_pvm is_svirt);
 use YuiRestClient;
 use YuiRestClient::Wait;
+use Utils::Architectures 'is_s390x';
 
 sub run {
     my $ip_regexp = qr/(?<ip>(\d+\.){3}\d+)/i;
@@ -54,7 +55,12 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         });
         set_var('YUI_SERVER', $ip);
+    } elsif (is_ssh_installation) {
+        my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
+        $cmd .= YuiRestClient::get_yui_params_string() . " yast.ssh";
+        enter_cmd($cmd);
     }
+
     YuiRestClient::connect_to_app();
     select_console('installation');
 }

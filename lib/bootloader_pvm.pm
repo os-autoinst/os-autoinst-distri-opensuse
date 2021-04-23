@@ -25,6 +25,7 @@ use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow enter_cmd_slow);
 use version_utils 'is_upgrade';
+use YuiRestClient;
 
 our @EXPORT = qw(
   boot_pvm
@@ -133,7 +134,12 @@ sub prepare_pvm_installation {
     # Switch to installation console (ssh or vnc)
     select_console('installation');
     # We need to start installer only if it's pure ssh installation
-    enter_cmd("yast.ssh") if get_var('VIDEOMODE', '') =~ /ssh-x|text/;
+    # If libyui REST API is used, we set it up in installation/setup_libyui
+    if (get_var('VIDEOMODE', '') =~ /ssh-x|text/ && !get_var('YUI_REST_API')) {
+        # We need to set env variables when start installer in ssh
+        enter_cmd("yast.ssh");
+    }
+
     wait_still_screen;
 }
 
