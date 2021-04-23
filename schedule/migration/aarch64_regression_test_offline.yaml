@@ -37,6 +37,7 @@ schedule:
   - installation/system_workarounds
   - migration/post_upgrade
   - console/system_prepare
+  - console/check_system_info
   - console/check_network
   - console/system_state
   - console/prepare_test_data

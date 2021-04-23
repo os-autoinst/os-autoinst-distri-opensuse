@@ -15,6 +15,7 @@
 #
 # Package: SUSEConnect
 # Summary: Verify milestone version and display some info.
+# Check repos info
 # Maintainer: Alynx Zhou <alynx.zhou@suse.com>
 
 use base "consoletest";
@@ -22,6 +23,9 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils 'is_sle';
+use registration;
+use List::MoreUtils 'uniq';
 
 sub run {
     select_console('root-console');
@@ -35,6 +39,25 @@ sub run {
         assert_script_run("grep -w $milestone_version /etc/issue");
     }
     assert_script_run('cat /etc/os-release');
+
+    my $myaddons = "";
+    $myaddons = get_var('SCC_ADDONS');
+    $myaddons = $myaddons . ",base,serverapp"          if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
+    $myaddons = $myaddons . ",base,desktop,we,python2" if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
+    $myaddons = $myaddons . ",base,serverapp,desktop,dev,lgm,python2,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('12+', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+
+    # After upgrade, system doesn't include ltss extension
+    $myaddons =~ s/ltss,?//g;
+    my @addons        = split(/,/, $myaddons);
+    my @unique_addons = uniq @addons;
+    foreach my $addon (@unique_addons) {
+        my $name = get_addon_fullname($addon);
+        record_info("$addon module fullname: ", $name);
+        $name = "sle-product-we"      if ($name =~ /sle-we/);
+        $name = "SLE-Module-DevTools" if ($name =~ /development/);
+        my $out = script_output("zypper lr | grep -i $name", proceed_on_failure => 1);
+        die "zypper lr command output does not include $name" if ($out eq '');
+    }
 }
 
 1;
