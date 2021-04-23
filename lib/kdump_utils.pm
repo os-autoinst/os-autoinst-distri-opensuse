@@ -24,7 +24,7 @@ use utils 'ensure_serialdev_permissions';
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   activate_kdump activate_kdump_cli activate_kdump_without_yast
   kdump_is_active do_kdump configure_service check_function
-  full_kdump_check);
+  full_kdump_check deactivate_kdump_cli);
 
 sub install_kernel_debuginfo {
     zypper_call 'ref';
@@ -196,6 +196,14 @@ sub activate_kdump_cli {
     assert_script_run('yast2 kdump fadump enable', 180) if check_var('FADUMP');
     assert_script_run('yast kdump show',           180);
     systemctl('enable kdump');
+}
+
+# Deactivate kdump using yast command line interface
+sub deactivate_kdump_cli {
+    # Disable the crashkernel option from the kernel grub cmdline
+    assert_script_run('yast kdump startup disable alloc_mem=0', 180);
+    # Disable the kdump service at boot time
+    systemctl('disable kdump');
 }
 
 sub activate_kdump_without_yast {
