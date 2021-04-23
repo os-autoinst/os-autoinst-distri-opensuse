@@ -14,13 +14,38 @@ package cfg_files_utils;
 use Exporter 'import';
 use strict;
 use warnings;
+use Test::Assert ':all';
+use Data::Dumper;
+$Data::Dumper::Sortkeys = 1;
 
 use testapi;
 
 our @EXPORT = qw(
   validate_cfg_file
+  compare_settings
 );
 
+=head2 compare_settings
+
+  compare_settings({ expected => $value_1, current => value_2 })
+
+Method validates that the given hash references contain the
+same data. In any other case, the data from both structures 
+are printed, accompanied by an error message.
+
+=cut
+
+sub compare_settings {
+    my ($args) = @_;
+    eval {
+        assert_deep_equals($args->{expected}, $args->{current});
+        record_info("Compare settings", "Settings comparison passed");
+    } or do {
+        print "$@\n";
+        die "The system settings deviate from expectations. \n
+    Expected: " . Dumper($args->{expected}) . "\nGot: " . Dumper($args->{current}) . "\n";
+    };
+}
 
 =head2 validate_cfg_file
 
