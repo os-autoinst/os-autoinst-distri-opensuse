@@ -48,6 +48,8 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    mutex_wait 'barrier_setup_done';
+
     # Install the needed packages
     zypper_call('in openvswitch-ipsec openvswitch-pki tcpdump openvswitch-vtep', timeout => 300);
 

@@ -48,6 +48,22 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    barrier_create('ipsec_done',          2);
+    barrier_create('traffic_check_done',  2);
+    barrier_create('certificate_signed',  2);
+    barrier_create('ipsec1_done',         2);
+    barrier_create('traffic_check_done1', 2);
+    barrier_create('ipsec2_done',         2);
+    barrier_create('traffic_check_done2', 2);
+    barrier_create('cert_done',           2);
+    barrier_create('host2_cert_ready',    2);
+    barrier_create('empty_directories',   2);
+    barrier_create('cacert_done',         2);
+    barrier_create('end_of_test',         2);
+    barrier_create('vtep_config',         2);
+    barrier_create('end',                 2);
+    mutex_create 'barrier_setup_done';
+
     # Install the needed packages
     zypper_call('in openvswitch-ipsec tcpdump openvswitch-pki openvswitch-vtep', timeout => 300);
     systemctl 'start openvswitch',       timeout => 200;
