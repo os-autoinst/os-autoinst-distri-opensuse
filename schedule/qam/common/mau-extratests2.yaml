@@ -30,7 +30,6 @@ schedule:
   - console/aaa_base
   - console/gd
   - console/systemtap
-  - network/samba/samba_adcli
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
