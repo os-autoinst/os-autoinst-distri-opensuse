@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2020 SUSE LLC
+# Copyright (C) 2018-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,6 +33,9 @@ sub run {
 
     # SELinux by default
     validate_script_output("sestatus", sub { m/SELinux status: .*disabled/ });
+
+    # workaround for "selinux-auto-relabel" in case: auto relabel then trigger reboot
+    assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub");
 
     # enable SELinux in grub
     add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', update_grub => 1);
