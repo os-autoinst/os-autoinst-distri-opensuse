@@ -83,9 +83,29 @@ sub reboot_x11 {
     if (check_var('DESKTOP', 'gnome')) {
         if (is_tumbleweed) {
             assert_and_click('reboot-power-icon');
-            assert_and_click('reboot-power-menu');
-            assert_and_click('reboot-click-restart');
-        } else {
+            # re-try if 'reboot-power-menu' is not coming up, we have sporadic issue with DVD installation on aarch64, see poo#88948
+            assert_screen [qw(reboot-power-menu reboot-power-icon)];
+            if (match_has_tag 'reboot-power-menu') {
+                assert_and_click('reboot-power-menu');
+                assert_and_click('reboot-click-restart');
+            }
+            else {
+                record_info 'worker performance is low! try to reboot again.';
+                # in case that reboot-power-menu doesn't come up
+                assert_screen [qw(reboot-power-menu generic-desktop)];
+                if (match_has_tag 'reboot-power-menu') {
+                    assert_and_click('reboot-power-menu', 60);
+                    save_screenshot;
+                    assert_and_click('reboot-click-restart');    # in case that reboot-power-menu is there, but reboot-click-restart is not successful
+                }
+                else {
+                    assert_and_click_until_screen_change('reboot-power-icon', 5, 30);    # in case that reboot-power-menu is not coming up at all
+                    assert_and_click_until_screen_change('reboot-power-menu', 5, 30);
+                    assert_and_click('reboot-click-restart');
+                }
+            }
+        }
+        else {
             send_key_until_needlematch 'logoutdialog', 'ctrl-alt-delete', 7, 10;    # reboot
         }
         my $repetitions = assert_and_click_until_screen_change 'logoutdialog-reboot-highlighted';
