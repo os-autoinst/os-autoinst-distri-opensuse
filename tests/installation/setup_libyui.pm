@@ -39,7 +39,6 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         }, timeout => $boot_timeout, interval => 30);
         set_var('YUI_SERVER', $ip);
-        #        select_console('sut', await_console => 0);
     } elsif (check_var('BACKEND', 's390x')) {
         select_console('install-shell');
         my $ip = YuiRestClient::Wait::wait_until(object => sub {
