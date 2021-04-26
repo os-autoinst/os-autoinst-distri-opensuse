@@ -1,4 +1,4 @@
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use base "installbasetest";
 use testapi;
-use Utils::Backends qw(is_hyperv is_pvm is_svirt);
+use Utils::Backends;
 use YuiRestClient;
 use YuiRestClient::Wait;
 use Utils::Architectures 'is_s390x';

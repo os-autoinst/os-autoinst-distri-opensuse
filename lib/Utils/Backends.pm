@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2019 SUSE LLC
+# Copyright (C) 2018-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ use warnings;
 use base 'Exporter';
 use Exporter;
 use testapi ':DEFAULT';
+use Utils::Architectures 'is_s390x';
 
 use constant {
     BACKEND => [
@@ -45,6 +46,7 @@ use constant {
           is_qemu
           is_svirt
           is_image_backend
+          is_ssh_installation
         )
     ],
     CONSOLES => [
@@ -149,7 +151,7 @@ sub is_hyperv_in_gui {
 
 =head2 is_xen_pv
 
-Returns true if the current VM runs in Xen host in paravirtual mode 
+Returns true if the current VM runs in Xen host in paravirtual mode
 
 =cut
 
@@ -224,6 +226,20 @@ sub set_ssh_console_timeout {
     my $client_count_max = $sshd_timeout / 60;
     script_run("sed -irnE 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
     script_run("service sshd restart") if (script_run("systemctl restart sshd") ne '0');
+}
+
+=head2 is_ssh_installation
+
+Returns true if ssh is used for the installation. If ssh can be used with
+enabled X forwarding or in textmode.
+Textmode is only possible over ssh in case of powerVM, zVM, and zKVM.
+
+=cut
+
+sub is_ssh_installation {
+    my $videomode = get_var('VIDEOMODE', '');
+    return ($videomode =~ /ssh/ ||
+          (($videomode =~ /text/) && (is_pvm || is_s390x)));
 }
 
 1;
