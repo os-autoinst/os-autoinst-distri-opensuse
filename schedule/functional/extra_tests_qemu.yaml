@@ -1,0 +1,22 @@
+name:           extra_tests_qemu
+description:    >
+    Maintainer: dheidler.
+    Extra qemu tests
+conditional_schedule:
+    kvm:
+        ARCH:
+            # nested kvm is not yet implemented on ARM and kvm not supported on ppc64le
+            'x86_64':
+                - qemu/kvm
+            's390x':
+                - qemu/kvm
+    user:
+        DISTRI:
+            'opensuse':
+                - qemu/user
+schedule:
+    - boot/boot_to_desktop
+    - qemu/info
+    - qemu/qemu
+    - '{{kvm}}'
+    - '{{user}}'

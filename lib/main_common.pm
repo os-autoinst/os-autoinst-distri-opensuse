@@ -1584,13 +1584,6 @@ sub load_extra_tests_opensuse {
     loadtest "console/libqca2";
 }
 
-sub load_extra_tests_qemu {
-    loadtest "qemu/info";
-    loadtest "qemu/qemu";
-    loadtest "qemu/kvm" unless (is_aarch64 || is_ppc64le);    # nested kvm is not yet implemented on ARM and kvm not supported on ppc64le
-    loadtest "qemu/user" if is_opensuse;
-}
-
 sub load_extra_tests_geo_console {
     loadtest "appgeo/gdal" if is_tumbleweed;
 }
