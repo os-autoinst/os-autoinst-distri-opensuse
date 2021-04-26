@@ -21,13 +21,8 @@ sub run {
     my ($self, $args) = @_;
 
     # If someone schedules a publiccloud run with a custom SCHEDULE this causes
-    # the test to break, because we need to pass $args via the main_common.pm.
-    # This check warns about this common pitfall when doing verification runs
-    if (!defined $args) {
-        my $msg = 'Note: Running publiccloud runs with a custom SCHEDULE is not yet supported';
-        record_info('ERROR', $msg, result => 'fail');
-        die($msg);
-    }
+    # the test to break, because we need to pass $args, so dying earlier and with clear message about root cause
+    die('Note: Running publiccloud with a custom SCHEDULE is not supported') if (!defined $args);
 
     select_host_console();    # select console on the host, not the PC instance
 
@@ -39,49 +34,38 @@ sub run {
     $args->{my_instance} = $instance;
 
     # configure ssh client, fetch the instance ssh public key, do not use default $instance->ssh_opts
-    assert_script_run('curl ' . data_url('publiccloud/ssh_config') . ' -o ~/.ssh/config');
-    assert_script_run "ssh-keyscan " . $instance->public_ip . " >> ~/.ssh/known_hosts";
+    my $ssh_config_url = data_url('publiccloud/ssh_config');
+    assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
     $instance->ssh_opts("");
 
     # Create the ssh alias
-    assert_script_run('echo -en "Host sut\n  Hostname ' . $instance->public_ip . '\n" >> ~/.ssh/config');
+    assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));
 
-    # Copy the SSH settings also for normal user
-    assert_script_run("mkdir /home/" . $testapi::username . "/.ssh");
-    assert_script_run("chmod -R 700 /home/" . $testapi::username . "/.ssh/");
-    assert_script_run("cp ~/.ssh/* /home/" . $testapi::username . "/.ssh/");
-    assert_script_run("chown -R " . $testapi::username . " /home/" . $testapi::username . "/.ssh/");
+    # Copy SSH settings also for normal user
+    assert_script_run("install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
 
-    # configure ssh server, allow root and password login
-    $instance->run_ssh_command(cmd => 'hostname');
-    $instance->run_ssh_command(cmd => 'sudo sed -i "s/PasswordAuthentication/#PasswordAuthentication/" /etc/ssh/sshd_config; echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config');
-    $instance->run_ssh_command(cmd => 'sudo sed -i "s/ChallengeResponseAuthentication/#ChallengeResponseAuthentication/" /etc/ssh/sshd_config; echo "ChallengeResponseAuthentication no" | sudo tee -a /etc/ssh/sshd_config');
     # Skip setting root password for img_proof, because it expects the root password to NOT be set
-    $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd root') unless (get_var('PUBLIC_CLOUD_QAM') && get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS'));
-    $instance->run_ssh_command(cmd => 'sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
-    $instance->run_ssh_command(cmd => "sudo mkdir -p /root/.ssh");
-    $instance->run_ssh_command(cmd => "sudo chmod -R 700 /root/.ssh");
-    $instance->run_ssh_command(cmd => 'sudo cp /home/' . $instance->username() . '/.ssh/authorized_keys /root/.ssh/');
-    $instance->run_ssh_command(cmd => 'sudo chmod 644 /root/.ssh/authorized_keys');
-    $instance->run_ssh_command(cmd => 'sudo chown root /root/.ssh/authorized_keys');
-    $instance->run_ssh_command(cmd => 'sudo systemctl reload sshd');
+    unless (get_var('PUBLIC_CLOUD_QAM') && get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+        $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
+    }
 
-    # Create normal user on remote instance and make it accessible by key
-    $instance->run_ssh_command(cmd => "sudo useradd " . $testapi::username);
-    $instance->run_ssh_command(cmd => "sudo mkdir /home/" . $testapi::username);
-    $instance->run_ssh_command(cmd => "sudo chown -R " . $testapi::username . " /home/" . $testapi::username . "/");
-    $instance->run_ssh_command(cmd => 'echo -e "' . $testapi::password . '\n' . $testapi::password . '" | sudo passwd ' . $testapi::username);
-    $instance->run_ssh_command(cmd => "sudo mkdir /home/" . $testapi::username . "/.ssh");
-    $instance->run_ssh_command(cmd => "sudo chmod -R 700 /home/" . $testapi::username . "/.ssh");
-    $instance->run_ssh_command(cmd => 'sudo cp /home/' . $instance->username() . '/.ssh/authorized_keys /home/' . $testapi::username . '/.ssh/');
-    $instance->run_ssh_command(cmd => "sudo chmod 644 /home/" . $testapi::username . "/.ssh/authorized_keys");
-    $instance->run_ssh_command(cmd => "sudo chown -R " . $testapi::username . " /home/" . $testapi::username . "/.ssh/");
+    # Permit root passwordless login over SSH
+    $instance->run_ssh_command('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
+    $instance->run_ssh_command('sudo systemctl reload sshd');
 
-    # Print ssh_serial_ready to serial console when interactive ssh session is initiated
-    $instance->run_ssh_command(cmd => "echo \"if tty -s; then echo ssh_serial_ready >> /dev/sshserial; fi\" > .bashrc");
-    $instance->run_ssh_command(cmd => "sudo chmod 777 .bashrc");
-    $instance->run_ssh_command(cmd => "sudo cp .bashrc /root/");
-    $instance->run_ssh_command(cmd => "sudo cp .bashrc /home/" . $testapi::username . "/");
+    # Copy SSH settings for remote root
+    $instance->run_ssh_command('sudo install -o root -g root -m 0700 -dD /root/.ssh');
+    $instance->run_ssh_command(sprintf("sudo install -o root -g root -m 0644 /home/%s/.ssh/authorized_keys /root/.ssh/", $instance->{username}));
+
+    # Create remote user and set him a password
+    $instance->run_ssh_command("sudo useradd -m $testapi::username");
+    $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd $testapi::username));
+
+    # Copy SSH settings for remote user
+    $instance->run_ssh_command("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
+    $instance->run_ssh_command("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
 }
 
 sub test_flags {
