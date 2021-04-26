@@ -72,7 +72,7 @@ sub run {
     # Prepare data file for migration
     assert_script_run "sed -i 's/^root_password.*/root_password = $password/' ./instance.inf";
     assert_script_run "mkdir slapd.d";
-    assert_script_run("dscreate from-file ./instance.inf", timeout => 60);
+    assert_script_run("dscreate from-file ./instance.inf", timeout => 120);
     assert_script_run "dsctl localhost status";
     assert_script_run "slaptest -f slapd.conf -F ./slapd.d";
 
