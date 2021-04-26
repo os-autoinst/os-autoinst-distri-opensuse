@@ -1,0 +1,99 @@
+---
+name: hanaperf_installation
+description: >
+  Maintainer: dawei.pang@suse.com
+  OS installation for HANA performance
+schedule:
+  - '{{pxe_bootloader}}'
+  - installation/welcome
+  - installation/accept_license
+  - '{{scc_registration}}'
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - '{{fix_sle_15gm_multi_disks}}'
+  - '{{separate_home}}'
+  - '{{partitioning_method}}'
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - '{{change_desktop}}'
+  - installation/installation_overview
+  - '{{disable_grub_graphics}}'
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - '{{post_installation}}'
+conditional_schedule:
+  fix_sle_15gm_multi_disks:
+    VERSION:
+      15:
+        - installation/partitioning_smalldisk_storageng
+  disable_grub_graphics:
+    ARCH:
+      x86_64:
+        - installation/disable_grub_graphics
+  pxe_bootloader:
+    BACKEND:
+      ipmi:
+        - boot/boot_from_pxe
+      qemu:
+        - installation/bootloader
+      pvm_hmc:
+        - installation/bootloader
+  scc_registration:
+    SCC_REGISTER:
+      none:
+        - '{{multipath}}'
+        - installation/scc_registration
+      installation:
+        - installation/scc_registration
+        - '{{multipath}}'
+  multipath:
+    MULTIPATH:
+      1:
+        - installation/multipath
+  separate_home:
+    NO_SEPARATE_HOME:
+      1:
+        - installation/partitioning/no_separate_home
+        - '{{enlarge_swap}}'
+  enlarge_swap:
+    VERSION:
+      15:
+        - installation/partitioning/no_enlarge_swap
+      15-SP1:
+        - installation/partitioning/no_enlarge_swap
+      15-SP2:
+        - installation/partitioning/no_enlarge_swap
+  partitioning_method:
+    ARCH:
+      x86_64:
+        - installation/partitioning_firstdisk
+      ppc64le:
+        - installation/partitioning_smalldisk_storageng
+  change_desktop:
+    VERSION:
+      12-SP4:
+        - installation/change_desktop
+      12-SP5:
+        - installation/change_desktop
+  post_installation:
+    ARCH:
+      ppc64le:
+        - '{{login_console}}'
+        - kernel_performance/install_qatestset
+        - '{{login_console}}'
+        - '{{full_run}}'
+  login_console:
+    BACKEND:
+      pvm_hmc:
+        - boot/reconnect_mgmt_console
+        - support_server/login
+  full_run:
+    HANA_PERF_FULL_RUN:
+      1:
+        - kernel_performance/full_run
