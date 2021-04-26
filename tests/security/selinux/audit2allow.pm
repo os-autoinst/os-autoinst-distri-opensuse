@@ -1,4 +1,4 @@
-# Copyright (C) 2020 SUSE LLC
+# Copyright (C) 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,6 +46,9 @@ sub run {
 	    Was\ caused\ by:.*
 	    You\ can\ use\ audit2allow\ to\ generate\ a\ loadable\ module\ to\ allow\ this\ access.*/sx
         }, 300);
+
+    # upload aduit log for reference
+    upload_logs($audit_log);
 
     # create an SELinux module, make this policy package active, check the new added module
     validate_script_output(

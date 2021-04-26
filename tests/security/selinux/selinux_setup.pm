@@ -1,4 +1,4 @@
-# Copyright (C) 2018-2020 SUSE LLC
+# Copyright (C) 2018-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,11 +70,9 @@ sub run {
         }
     }
     elsif (!is_sle && !is_leap) {
-        my @files
-          = ("selinux-policy-20201016-1.1.noarch.rpm", "selinux-policy-minimum-20201016-1.1.noarch.rpm", "selinux-policy-devel-20201016-1.1.noarch.rpm");
+        my @files = ("selinux-policy", "selinux-policy-minimum", "selinux-policy-devel");
         foreach my $file (@files) {
-            assert_script_run "wget --quiet " . data_url("selinux/$file");
-            assert_script_run("rpm -ivh --nosignature --nodeps --noplugins $file");
+            zypper_call("in $file");
         }
     } else {
         zypper_call("in selinux-policy-minimum");
