@@ -117,6 +117,7 @@ sub run {
     # Clean up
     script_run "rm -f test.hdb";
     script_run "rm -rf eicar_test_files/";
+    systemctl('stop clamd freshclam');
 }
 
 sub post_run_hook {

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -97,6 +97,13 @@ sub run {
     # Add the L2 rule again and check that traffic is back
     script_run "ovs-ofctl add-flow ovs-openqa-br0 priority=0,actions=normal";
     assert_script_run "ip netns exec ovs-openqa-ns0 ping -c 5 172.16.0.2", 30;
+
+    # teardown
+    assert_script_run "ip netns del ovs-openqa-ns1";
+    assert_script_run "ip netns del ovs-openqa-ns0";
+    assert_script_run "ovs-vsctl del-br ovs-openqa-br1";
+    assert_script_run "ovs-vsctl del-br ovs-openqa-br0";
+    systemctl 'stop openvswitch';
 }
 
 1;

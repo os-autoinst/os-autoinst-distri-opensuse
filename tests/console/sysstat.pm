@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -87,6 +87,9 @@ sub run {
     validate_script_output "sar -S", sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
 
     assert_script_run 'unset S_COLORS';
+
+    # teardown
+    systemctl 'stop sysstat.service';
 }
 
 1;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -118,6 +118,8 @@ sub run {
     script_run 'rm /tmp/krb5';
     script_run 'hostname `cat /tmp/hostname`';
     script_run 'rm /tmp/hostname';
+    assert_script_run 'rckadmind stop';
+    systemctl 'stop kadmind krb5kdc';
 
     #confirm hostname returned:
     validate_script_output "hostname", sub { /susetest/ };

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -83,6 +83,11 @@ sub run {
     assert_script_run "ip netns exec vm1 ping -c2 192.168.200.22";
     assert_script_run "ip netns exec vm2 ping -c2 192.168.200.21";
 
+    # teardown
+    assert_script_run 'ip netns del vm2';
+    assert_script_run 'ip netns del vm1';
+    assert_script_run 'ovs-vsctl del-br br-int';
+    systemctl 'stop openvswitch ovn-controller ovn-northd', timeout => 200;
 }
 
 1;
