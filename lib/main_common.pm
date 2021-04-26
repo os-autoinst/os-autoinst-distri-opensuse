@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2018-2020 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -564,29 +564,27 @@ sub load_system_role_tests {
 }
 sub load_jeos_tests {
     # loadtest 'jeos/sccreg';
-    unless (get_var('LTP_COMMAND_FILE')) {
-        if ((is_arm || is_aarch64) && is_opensuse()) {
-            # Enable jeos-firstboot, due to boo#1020019
-            load_boot_tests();
-            loadtest "jeos/prepare_firstboot";
-        }
+    if ((is_arm || is_aarch64) && is_opensuse()) {
+        # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();
-        loadtest "jeos/firstrun";
-        loadtest "jeos/record_machine_id";
-        unless (get_var('INSTALL_LTP')) {
-            loadtest "console/force_scheduled_tasks";
-            loadtest "jeos/grub2_gfxmode";
-            loadtest "jeos/diskusage";
-            loadtest "jeos/build_key";
-            loadtest "console/prjconf_excluded_rpms";
-        }
-        if (is_sle) {
-            loadtest "console/suseconnect_scc";
-        }
-
-        replace_opensuse_repos_tests      if is_repo_replacement_required;
-        loadtest 'console/verify_efi_mok' if get_var('MOK_VERBOSITY');
+        loadtest "jeos/prepare_firstboot";
     }
+    load_boot_tests();
+    loadtest "jeos/firstrun";
+    loadtest "jeos/record_machine_id";
+    unless (get_var('INSTALL_LTP')) {
+        loadtest "console/force_scheduled_tasks";
+        loadtest "jeos/grub2_gfxmode";
+        loadtest "jeos/diskusage";
+        loadtest "jeos/build_key";
+        loadtest "console/prjconf_excluded_rpms";
+    }
+    if (is_sle) {
+        loadtest "console/suseconnect_scc";
+    }
+
+    replace_opensuse_repos_tests      if is_repo_replacement_required;
+    loadtest 'console/verify_efi_mok' if get_var('MOK_VERBOSITY');
 }
 
 sub installzdupstep_is_applicable {
