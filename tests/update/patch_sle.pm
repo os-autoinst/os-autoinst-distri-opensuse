@@ -1,4 +1,4 @@
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use migration;
 use registration;
 use qam;
 use Utils::Backends 'is_pvm';
-use y2_installbase;
+use y2_base;
 
 
 sub patching_sle {
@@ -226,6 +226,6 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    y2_installbase::save_upload_y2logs;
+    y2_base::save_upload_y2logs;
 }
 1;

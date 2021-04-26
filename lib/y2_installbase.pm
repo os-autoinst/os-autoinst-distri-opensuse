@@ -1,5 +1,5 @@
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 package y2_installbase;
 
-use base "installbasetest";
+use parent 'y2_base';
 use strict;
 use warnings;
-use ipmi_backend_utils;
+
 use testapi;
-use network_utils;
+
 use version_utils qw(is_microos is_sle);
 use y2_logs_helper 'get_available_compression';
 use utils qw(type_string_slow zypper_call);
@@ -361,6 +361,7 @@ sub use_wicked {
     script_run("for i in *[0-9]; do echo BOOTPROTO=dhcp > /etc/sysconfig/network/ifcfg-\$i; wicked --debug all ifup \$i; done", 600);
     save_screenshot;
 }
+
 sub use_ifconfig {
     script_run "dhcpcd eth0";
 }
@@ -511,33 +512,6 @@ sub deal_with_dependency_issues {
     }
 }
 
-sub save_upload_y2logs {
-    my ($self, %args) = @_;
-
-    return if (get_var('NOLOGS'));
-    $args{suffix} //= '';
-
-    # Do not test/recover network if collect from installation system, as it won't work anyway with current approach
-    # Do not recover network on non-qemu backend, as not implemented yet
-    $args{no_ntwrk_recovery} //= (get_var('BACKEND') !~ /qemu/);
-
-    # Try to recover network if cannot reach gw and upload logs if everything works
-    if (can_upload_logs() || (!$args{no_ntwrk_recovery} && recover_network())) {
-        script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
-        my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
-        script_run "save_y2logs $filename", 180;
-        upload_logs($filename, failok => 1);
-    } else {    # Redirect logs content to serial
-        script_run("journalctl -b --no-pager -o short-precise > /dev/$serialdev");
-        script_run("dmesg > /dev/$serialdev");
-        script_run("cat /var/log/YaST/y2log > /dev/$serialdev");
-    }
-    save_screenshot();
-    # We skip parsing yast2 logs in each installation scenario, but only if
-    # test has failed or we want to explicitly identify failures
-    $self->investigate_yast2_failure() unless $args{skip_logs_investigation};
-}
-
 sub save_remote_upload_y2logs {
     my ($self, %args) = @_;
 
@@ -553,81 +527,6 @@ sub save_remote_upload_y2logs {
     enter_cmd "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "";
     save_screenshot();
     $self->investigate_yast2_failure();
-}
-
-sub save_system_logs {
-    my ($self) = @_;
-
-    return if (get_var('NOLOGS'));
-
-    if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
-        script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
-        script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
-        upload_logs('/tmp/btrfs-filesystem-df-mnt.txt',    failok => 1);
-        upload_logs('/tmp/btrfs-filesystem-usage-mnt.txt', failok => 1);
-    }
-    script_run 'df -h';
-    script_run 'df > /tmp/df.txt';
-    upload_logs('/tmp/df.txt', failok => 1);
-
-    # Log connections
-    script_run('ss -tulpn > /tmp/connections.txt');
-    upload_logs('/tmp/connections.txt', failok => 1);
-    # Check network traffic
-    script_run('for run in {1..10}; do echo "RUN: $run"; nstat; sleep 3; done | tee /tmp/network_traffic.log');
-    upload_logs('/tmp/network_traffic.log', failok => 1);
-    # Check VM load
-    script_run('for run in {1..3}; do echo "RUN: $run"; vmstat; sleep 5; done | tee /tmp/cpu_mem_usage.log');
-    upload_logs('/tmp/cpu_mem_usage.log', failok => 1);
-
-    $self->save_and_upload_log('pstree',  '/tmp/pstree');
-    $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
-}
-
-sub save_strace_gdb_output {
-    my ($self, $is_yast_module) = @_;
-    return if (get_var('NOLOGS'));
-
-    # Collect yast2 installer or yast2 module trace if is still running
-    if (!script_run(qq{ps -eo pid,comm | grep -i [y]2start | cut -f 2 -d " " > /dev/$serialdev}, 0)) {
-        chomp(my $yast_pid = wait_serial(qr/^[\d{4}]/, 10));
-        return unless defined($yast_pid);
-        my $trace_timeout = 120;
-        my $strace_log    = '/tmp/yast_trace.log';
-        my $strace_ret    = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
-
-        upload_logs($strace_log, failok => 1) if script_run "! [[ -e $strace_log ]]";
-
-        # collect installer proc fs files
-        my @procfs_files = qw(
-          mounts
-          mountinfo
-          mountstats
-          maps
-          status
-          stack
-          cmdline
-          environ
-          smaps);
-
-        my $opt = defined($is_yast_module) ? 'module' : 'installer';
-        foreach (@procfs_files) {
-            $self->save_and_upload_log("cat /proc/$yast_pid/$_", "/tmp/yast2-$opt.$_");
-        }
-        # We enable gdb differently in the installer and in the installed SUT
-        my $system_management_locked;
-        if ($is_yast_module) {
-            $system_management_locked = zypper_call('in gdb', exitcode => [0, 7]) == 7;
-        }
-        else {
-            script_run 'extend gdb';
-        }
-        unless ($system_management_locked) {
-            my $gdb_output = '/tmp/yast_gdb.log';
-            my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
-            upload_logs($gdb_output, failok => 1) if script_run '! [[ -e /tmp/yast_gdb.log ]]';
-        }
-    }
 }
 
 sub post_run_hook {
@@ -660,6 +559,11 @@ sub post_fail_hook {
         # Collect yast2 installer  strace and gbd debug output if is still running
         $self->save_strace_gdb_output;
     }
+}
+
+# All steps in the installation are 'fatal'.
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@
 
 use base 'x11test';
 use y2_module_guitest 'launch_yast2_module_x11';
-use y2_installbase;
+use y2_base;
 use strict;
 use warnings;
 use testapi;
@@ -59,7 +59,7 @@ sub configure_system {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
-    y2_installbase::save_upload_y2logs($self);
+    y2_base::save_upload_y2logs($self);
     $self->SUPER::post_fail_hook;
 }
 
