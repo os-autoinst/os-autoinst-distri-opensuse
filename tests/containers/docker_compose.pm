@@ -51,8 +51,7 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
     allow_selected_insecure_registries(runtime => 'docker');
-    my $registry = get_var('REGISTRY', 'docker.io');
-    assert_script_run("sed -i 's/REGISTRY/$registry/' docker-compose.yml");
+    file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
     assert_script_run 'docker-compose pull', 600;
 
     # Start all containers in background
