@@ -22,4 +22,10 @@ sub select {
     $self->action(action => YuiRestClient::Action::YUI_SELECT, value => $item);
 }
 
+sub selected_tab {
+    my ($self) = @_;
+    my $tabs = $self->property('items');
+    return map { $_->{label} } grep { $_->{selected} } @{$tabs};
+}
+
 1;

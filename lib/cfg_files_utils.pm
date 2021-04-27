@@ -99,6 +99,12 @@ sub validate_cfg_file {
                 $errors .= "Entry '$entry' is not found in '$path'.\n";
             }
         }
+
+        foreach my $not_entry (@{$cfg_file->{not_entries}}) {
+            if ($cfg_content =~ /$not_entry/) {
+                $errors .= "Unexpected entry '$not_entry' was found in '$path'.\n";
+            }
+        }
     }
 
     die "Configuration files validation failed:\n$errors" if $errors;
