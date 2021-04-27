@@ -84,6 +84,7 @@ sub post_fail_hook {
         $self->save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
         assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*";
     }
+    $self->SUPER::post_fail_hook;
 }
 
 1;
