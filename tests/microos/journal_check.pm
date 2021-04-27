@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Basic MicroOS journal tests
-# Maintainer: Tomas Hehejik <thehejik@suse.com>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -43,6 +43,7 @@ sub run {
         bsc_1177695         => 'kernel: parport_pc: `none\' invalid for parameter `dma\'',
         bsc_1178033         => 'kernel: ITS@0x8080000: Unable to locate ITS domain handle',
         bsc_1182500         => 'Failed to transition into init label \'system_u:system_r:init_t:s0\'',
+        bsc_1184970         => '.*rpc\.statd.*Failed to stat \/var\/lib\/nfs\/sm: No such file or directory',
         bsc_000000_FEATURE  => 'health-checker/fail.sh check" failed|Machine didn\'t come up correct, do a rollback',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
