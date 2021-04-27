@@ -110,7 +110,6 @@ sub set_libyui_backend_vars {
 
 sub setup_libyui_firstboot {
     my $port = get_var('YUI_PORT');
-    record_info("YUIPORT", "Port that will be used by libyui_rest_api:" . get_var('YUI_PORT'));
     zypper_call('in libyui-rest-api');
     assert_script_run "firewall-cmd --zone=public --add-port=$port/tcp --permanent";
     foreach my $export ("YUI_HTTP_PORT=$port", "YUI_HTTP_REMOTE=1", "YUI_REUSE_PORT=1", "Y2DEBUG=1") {

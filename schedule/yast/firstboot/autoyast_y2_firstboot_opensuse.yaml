@@ -14,7 +14,6 @@ vars:
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
-  - installation/setup_libyui
   - autoyast/installation
   - installation/yast2_firstboot
   - installation/first_boot
