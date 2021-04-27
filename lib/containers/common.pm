@@ -49,8 +49,8 @@ sub install_podman_when_needed {
             push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
         }
-        assert_script_run('podman info');
     }
+    assert_script_run('podman info');
 }
 
 sub install_docker_when_needed {
