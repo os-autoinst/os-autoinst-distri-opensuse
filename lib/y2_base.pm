@@ -150,9 +150,6 @@ sub upload_widgets_json {
     if (get_var('YUI_REST_API')) {
         my $json_content = to_json(YuiRestClient::connect_to_running_app());
         my $json_path    = $autotest::current_test->{name} . '-widgets.json';
-        print "*****\n";
-        print "$json_path";
-        print "*****\n";
         save_tmp_file($json_path, $json_content);
         make_path('ulogs');
         copy(hashed_string($json_path), "ulogs/$json_path");
