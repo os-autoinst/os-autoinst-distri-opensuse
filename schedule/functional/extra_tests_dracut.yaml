@@ -3,6 +3,7 @@ description:    >
     Maintainer: dheidler.
     Extra dracut tests
 schedule:
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - console/dracut
     - console/coredump_collect
