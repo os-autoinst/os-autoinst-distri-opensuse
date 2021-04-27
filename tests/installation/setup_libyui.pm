@@ -39,6 +39,7 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         }, timeout => $boot_timeout, interval => 30);
         set_var('YUI_SERVER', $ip);
+        select_console('sut', await_console => 0);
     } elsif (check_var('BACKEND', 's390x')) {
         select_console('install-shell');
         my $ip = YuiRestClient::Wait::wait_until(object => sub {
@@ -46,7 +47,9 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         });
         set_var('YUI_SERVER', $ip);
+        select_console('installation');
     } elsif (check_var('VIRSH_VMM_FAMILY', 'xen')) {
+        # For xen, when attempting to switch console while the installation loader is not finished, we end up with test failure.
         assert_screen "inst-betawarning", 500;
         select_console('root-console');
         my $ip = YuiRestClient::Wait::wait_until(object => sub {
@@ -54,14 +57,13 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         });
         set_var('YUI_SERVER', $ip);
+        select_console('installation');
     } elsif (is_ssh_installation) {
         my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
         $cmd .= YuiRestClient::get_yui_params_string() . " yast.ssh";
         enter_cmd($cmd);
     }
-
     YuiRestClient::connect_to_app();
-    select_console('installation');
 }
 
 1;
