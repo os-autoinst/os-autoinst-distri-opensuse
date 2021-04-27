@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use autotest;
-use LTP::WhiteList 'download_whitelist';
+use LTP::WhiteList qw(download_whitelist is_test_disabled);
 use LTP::TestInfo 'testinfo';
 use version_utils 'is_jeos';
 use File::Basename 'basename';
@@ -42,6 +42,19 @@ our @EXPORT = qw(
 sub loadtest_kernel {
     my ($test, %args) = @_;
     autotest::loadtest("tests/kernel/$test.pm", %args);
+}
+
+sub loadtest_runltp {
+    my ($name, $tinfo) = @_;
+    my %env = %{$tinfo->test_result_export->{environment}};
+    $env{retval} = 'none';
+
+    if (is_test_disabled(\%env, $tinfo->runfile, $name)) {
+        bmwqemu::diag("skipping $name (disabled by LTP_KNOWN_ISSUES)");
+        return;
+    }
+
+    loadtest_kernel('run_ltp', name => $name, run_args => $tinfo);
 }
 
 sub shutdown_ltp {
@@ -259,7 +272,7 @@ sub parse_openposix_runfile {
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
             my $test  = {name => basename($line, '.run-test') . $suffix, command => $line};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
-            loadtest_kernel('run_ltp', name => $test->{name}, run_args => $tinfo);
+            loadtest_runltp($test->{name}, $tinfo);
         }
     }
 }
@@ -276,7 +289,7 @@ sub parse_runtest_file {
             my $test  = {name => $1 . $suffix, command => $2};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
-                loadtest_kernel('run_ltp', name => $test->{name}, run_args => $tinfo);
+                loadtest_runltp($test->{name}, $tinfo);
             }
         }
     }
