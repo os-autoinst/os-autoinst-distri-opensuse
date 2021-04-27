@@ -15,6 +15,7 @@ conditional_schedule:
             'opensuse':
                 - qemu/user
 schedule:
+    - installation/bootloader_start
     - boot/boot_to_desktop
     - qemu/info
     - qemu/qemu
