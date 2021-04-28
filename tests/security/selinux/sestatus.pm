@@ -25,6 +25,7 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
+use Utils::Architectures 'is_aarch64';
 
 sub run {
     my ($self) = @_;
@@ -35,7 +36,10 @@ sub run {
     validate_script_output("sestatus", sub { m/SELinux status: .*disabled/ });
 
     # workaround for "selinux-auto-relabel" in case: auto relabel then trigger reboot
-    assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub");
+    my $results = script_run("zypper --non-interactive se selinux-autorelabel");
+    if (!$results) {
+        assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub");
+    }
 
     # enable SELinux in grub
     add_grub_cmdline_settings('security=selinux selinux=1 enforcing=0', update_grub => 1);
