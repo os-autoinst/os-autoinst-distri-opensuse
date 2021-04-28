@@ -41,9 +41,14 @@ sub get_app {
     return $app;
 }
 
+sub get_yui_params_string {
+    my $port = get_required_var('YUI_PORT');
+    return "YUI_HTTP_PORT=$port YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1";
+}
+
 sub connect_to_app {
-    my $port = get_var('YUI_PORT');
-    my $host = get_var('YUI_SERVER');
+    my $port = get_required_var('YUI_PORT');
+    my $host = get_required_var('YUI_SERVER');
     die "Cannot set libyui REST API server" unless $host;
     record_info('PORT',   "Used port for libyui: $port");
     record_info('SERVER', "Connecting to: $host");
@@ -63,11 +68,11 @@ sub connect_to_running_app {
 sub setup_libyui_running_system {
     zypper_call('in libyui-rest-api');
 
-    my $port = get_var('YUI_PORT');
-    my $host = get_var('YUI_SERVER');
+    my $port = get_required_var('YUI_PORT');
+    my $host = get_required_var('YUI_SERVER');
     record_info('PORT',   "Used port for libyui: $port");
     record_info('SERVER', "Connecting to: $host");
-    set_var('YUI_PARAMS', "YUI_HTTP_PORT=$port YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+    set_var('YUI_PARAMS', get_yui_params_string());
     # Add the port to permanent config and restart firewalld to apply the changes immediately.
     # This is needed, because if firewall is restarted for some reason, then the port become
     # closed (e.g. it was faced while saving settings in yast2 lan) and further tests will not
@@ -91,7 +96,7 @@ sub set_libyui_backend_vars {
 
     unless (get_var('BOOT_HDD_IMAGE')) {
         set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
-              . " extend=libyui-rest-api YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1");
+              . " extend=libyui-rest-api " . get_yui_params_string());
     }
 
     my $server;

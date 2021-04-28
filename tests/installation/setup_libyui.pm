@@ -1,4 +1,4 @@
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,9 +22,10 @@ use strict;
 use warnings;
 use base "installbasetest";
 use testapi;
-use Utils::Backends qw(is_hyperv);
+use Utils::Backends;
 use YuiRestClient;
 use YuiRestClient::Wait;
+use Utils::Architectures 'is_s390x';
 
 sub run {
     my $ip_regexp = qr/(?<ip>(\d+\.){3}\d+)/i;
@@ -38,7 +39,6 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         }, timeout => $boot_timeout, interval => 30);
         set_var('YUI_SERVER', $ip);
-        #        select_console('sut', await_console => 0);
     } elsif (check_var('BACKEND', 's390x')) {
         select_console('install-shell');
         my $ip = YuiRestClient::Wait::wait_until(object => sub {
@@ -54,7 +54,12 @@ sub run {
                 return $+{ip} if ($ip =~ $ip_regexp);
         });
         set_var('YUI_SERVER', $ip);
+    } elsif (is_ssh_installation) {
+        my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
+        $cmd .= YuiRestClient::get_yui_params_string() . " yast.ssh";
+        enter_cmd($cmd);
     }
+
     YuiRestClient::connect_to_app();
     select_console('installation');
 }

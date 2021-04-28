@@ -81,7 +81,11 @@ sub run {
         if (check_var("VIDEOMODE", "text")) {
             wait_serial("run 'yast.ssh'", 300) || die "linuxrc didn't finish";
             select_console("installation");
-            enter_cmd("TERM=linux yast.ssh") && record_soft_failure('bsc#1054448');
+            # If libyui REST API is used, we set it up in installation/setup_libyui
+            unless (get_var('YUI_REST_API')) {
+                enter_cmd("TERM=linux yast.ssh");
+                record_soft_failure('bsc#1054448');
+            }
         }
         else {
             # On s390x zKVM we have to process startshell in bootloader
