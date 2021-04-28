@@ -28,7 +28,7 @@ use Mojo::UserAgent;
 use Mojo::JSON;
 use Mojo::File 'path';
 
-our @EXPORT = qw(download_whitelist override_known_failures);
+our @EXPORT = qw(download_whitelist override_known_failures is_test_disabled);
 
 sub download_whitelist {
     my $path = get_required_var('LTP_KNOWN_ISSUES');
@@ -44,13 +44,13 @@ sub download_whitelist {
     bmwqemu::save_json_file($res->json, "ulogs/$basename");
 }
 
-sub override_known_failures {
-    my ($self, $env, $suite, $test) = @_;
+sub find_whitelist_entry {
+    my ($env, $suite, $test) = @_;
 
     my $content = path(get_required_var('LTP_KNOWN_ISSUES'))->slurp;
     my $issues  = Mojo::JSON::decode_json($content);
-    return unless $issues;
-    return unless exists $issues->{$suite};
+    return undef unless $issues;
+    return undef unless exists $issues->{$suite};
 
     my @issues;
     if (ref($issues->{$suite}) eq 'ARRAY') {
@@ -58,7 +58,7 @@ sub override_known_failures {
     }
     else {
         $test =~ s/_postun$//g if check_var('KGRAFT', 1) && check_var('UNINSTALL_INCIDENT', 1);
-        return unless exists $issues->{$suite}->{$test};
+        return undef unless exists $issues->{$suite}->{$test};
         @issues = @{$issues->{$suite}->{$test}};
     }
 
@@ -68,12 +68,27 @@ sub override_known_failures {
             next ISSUE if exists $cond->{$filter} and $env->{$filter} !~ m/$cond->{$filter}/;
         }
 
-        bmwqemu::diag("Failure in LTP:$suite:$test is known, overriding to softfail");
-        $self->{result} = 'softfail';
-        $self->record_soft_failure_result($cond->{message}) if exists $cond->{message};
-        return 1;
+        return $cond;
     }
 
+    return undef;
+}
+
+sub override_known_failures {
+    my ($self, $env, $suite, $test) = @_;
+    my $entry = find_whitelist_entry($env, $suite, $test);
+
+    return 0 unless defined($entry);
+    bmwqemu::diag("Failure in LTP:$suite:$test is known, overriding to softfail");
+    $self->{result} = 'softfail';
+    $self->record_soft_failure_result($entry->{message}) if exists $entry->{message};
+    return 1;
+}
+
+sub is_test_disabled {
+    my $entry = find_whitelist_entry(@_);
+
+    return 1 if defined($entry) && exists $entry->{skip} && $entry->{skip};
     return 0;
 }
 
