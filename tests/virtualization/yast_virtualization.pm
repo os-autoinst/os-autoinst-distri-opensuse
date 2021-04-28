@@ -38,7 +38,7 @@ sub run {
 
     # launch the installation
     send_key 'alt-a';
-    assert_screen([qw(yast_virtualization_installed yast_virtualization_bridge)], 600);
+    assert_screen([qw(yast_virtualization_installed yast_virtualization_bridge)], 800);
     if (match_has_tag('yast_virtualization_bridge')) {
         # select yes
         send_key 'alt-y';
