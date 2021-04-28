@@ -5,16 +5,18 @@ description:    >
 vars:
   DESKTOP: textmode
   FILESYSTEM: btrfs
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
@@ -32,6 +34,9 @@ schedule:
   - console/validate_no_cow_attribute
   - console/verify_separate_home
 test_data:
+  guided_partitioning:
+    disks:
+      - sda
   device: sda
   table_type: gpt
   subvolume:
