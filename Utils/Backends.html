@@ -28,6 +28,7 @@
       <li><a href="#is_qemu">is_qemu</a></li>
       <li><a href="#is_svirt">is_svirt</a></li>
       <li><a href="#is_image_backend">is_image_backend</a></li>
+      <li><a href="#is_ssh_installation">is_ssh_installation</a></li>
     </ul>
   </li>
 </ul><h1>lib/Utils/Backends.pm</h1>
@@ -89,6 +90,10 @@
 <h2 id="is_image_backend">is_image_backend</h2>
 
 <p>Returns true if the current instance is running on backend with image support</p>
+
+<h2 id="is_ssh_installation">is_ssh_installation</h2>
+
+<p>Returns true if ssh is used for the installation. If ssh can be used with enabled X forwarding or in textmode. Textmode is only possible over ssh in case of powerVM, zVM, and zKVM.</p>
 
 
 </body>
