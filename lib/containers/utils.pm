@@ -161,7 +161,7 @@ sub container_set_up {
     assert_script_run "mkdir -p $dir/BuildTest/templates";
     assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
     assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
-    assert_script_run "sed -i 's,baseimage_var,$base,1' $dir/BuildTest/Dockerfile" if defined $base;
+    file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
     assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
     assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/templates/index.html";
 }
