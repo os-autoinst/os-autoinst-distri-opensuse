@@ -19,6 +19,7 @@ schedule:
   - '{{migration_method}}'
   - migration/online_migration/post_migration
   - console/system_prepare
+  - console/check_system_info
   - console/check_network
   - console/system_state
   - console/prepare_test_data
