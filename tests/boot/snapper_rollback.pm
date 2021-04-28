@@ -22,7 +22,7 @@ use version_utils;
 
 sub run {
     my ($self) = @_;
-    if (is_leap_migration && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde'))) {
+    if ((is_leap_migration || is_opensuse) && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde'))) {
         assert_screen 'generic-desktop', 90;
     }
     else {
