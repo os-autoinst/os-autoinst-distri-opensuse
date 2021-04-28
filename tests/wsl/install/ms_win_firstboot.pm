@@ -102,17 +102,8 @@ sub run {
 
     # turn off hibernation and fast startup
     $self->open_powershell_as_admin;
-    $self->run_in_powershell(cmd => q{Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name HiberbootEnabled -Value 0});
+    $self->run_in_powershell(cmd => q{REG ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d "0" /f});
     $self->run_in_powershell(cmd => 'powercfg /hibernate off');
-    # disable screen's fade to black
-    $self->run_in_powershell(cmd => 'powercfg -change -monitor-timeout-ac 0');
-    # adjust visusal effects to best performance
-    $self->run_in_powershell(cmd => q{Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name VisualFXSetting -Value 2});
-    # remove skype and xbox
-    $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.SkypeApp | Remove-AppxPackage');
-    $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.XboxApp | Remove-AppxPackage');
-    $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.XboxGamingOverlay | Remove-AppxPackage');
-    $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.YourPhone | Remove-AppxPackage');
 
     # poweroff
     $self->reboot_or_shutdown();

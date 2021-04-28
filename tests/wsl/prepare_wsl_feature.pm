@@ -47,8 +47,8 @@ sub run {
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
     $self->run_in_powershell(
-        cmd     => "Start-BitsTransfer -Source \\\\10.0.2.4\\qemu\\$wsl_appx_filename -Destination C:\\\\$wsl_appx_filename",
-        timeout => 60
+        cmd     => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
+        timeout => 750
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
 
