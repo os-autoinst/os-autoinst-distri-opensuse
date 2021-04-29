@@ -4,17 +4,19 @@ description:    >
 vars:
   DESKTOP: gnome
   FILESYSTEM: btrfs
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
+  - installation/setup_libyui
   - installation/welcome
   - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
