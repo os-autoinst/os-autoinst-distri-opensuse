@@ -31,8 +31,10 @@ use Mojo::File 'path';
 our @EXPORT = qw(download_whitelist override_known_failures is_test_disabled);
 
 sub download_whitelist {
-    my $path = get_required_var('LTP_KNOWN_ISSUES');
-    my $res  = Mojo::UserAgent->new->get($path)->result;
+    my $path = get_var('LTP_KNOWN_ISSUES');
+    return undef unless defined($path);
+
+    my $res = Mojo::UserAgent->new->get($path)->result;
     unless ($res->is_success) {
         record_info("File not downloaded!", $res->message, result => 'softfail');
         set_var('LTP_KNOWN_ISSUES', undef);
@@ -47,7 +49,10 @@ sub download_whitelist {
 sub find_whitelist_entry {
     my ($env, $suite, $test) = @_;
 
-    my $content = path(get_required_var('LTP_KNOWN_ISSUES'))->slurp;
+    my $path = get_var('LTP_KNOWN_ISSUES');
+    return undef unless defined($path);
+
+    my $content = path($path)->slurp;
     my $issues  = Mojo::JSON::decode_json($content);
     return undef unless $issues;
     return undef unless exists $issues->{$suite};
