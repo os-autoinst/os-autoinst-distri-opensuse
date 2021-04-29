@@ -25,6 +25,10 @@ sub run {
 
     mouse_hide(1);
     x11_start_program('gnome-tweaks', target_match => \@gnome_tweak_matches);
+
+    # debug
+    wait_still_screen(10);
+
     if (match_has_tag('command-not-found')) {
         # GNOME Tweak tool was renamed to GNOME Tweaks during 3.28 dev branch
         # As the new name yielded a 'command-not-found', start as old command

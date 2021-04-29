@@ -78,6 +78,11 @@ sub ensure_unlocked_desktop {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         assert_screen \@tags, no_wait => 1;
+
+        #debug
+        wait_still_screen 10;
+        record_info("Here", "First call");
+
         if (match_has_tag 'oh-no-something-has-gone-wrong') {
             # bsc#1159950 - gnome-session-failed is detected
             # Note: usually happens on *big* hardware with lot of cpus/memory
@@ -101,6 +106,10 @@ sub ensure_unlocked_desktop {
             }
         }
         if (match_has_tag('guest-disabled-display')) {
+            # debug
+            record_info('Guest disabled display', 'Issue here');
+            record_soft_failure "bsc#1168979 - screenbuffer not updated after screen is locked";
+            next;
             wait_screen_change(sub {
                     send_key 'shift';
             }, 10);
@@ -124,6 +133,11 @@ sub ensure_unlocked_desktop {
             }
             send_key 'ret';
         }
+
+        #debug
+        wait_still_screen 10;
+        record_info("Here", "Second call");
+
         if (match_has_tag 'generic-desktop') {
             send_key 'esc';
             unless (get_var('DESKTOP', '') =~ m/awesome|enlightenment|lxqt/) {
@@ -147,13 +161,21 @@ sub ensure_unlocked_desktop {
             last;            # desktop is unlocked, mission accomplished
         }
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
+
+        #debug
+        wait_still_screen 10;
+        record_info("Here", "Third call");
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
+            # debug
+            record_info('Here', 'Issue here');
+            record_soft_failure "bsc#1168979 - screenbuffer not updated after screen is locked";
+            next;
             wait_screen_change {
-                send_key 'esc';                                                                           # end screenlock
+                send_key 'esc';    # end screenlock
                 diag("Screen lock present");
             };
         }
-        wait_still_screen 1;                                                                              # slow down loop
+        wait_still_screen 1;    # slow down loop
     }
 }
 

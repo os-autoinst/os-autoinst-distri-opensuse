@@ -26,6 +26,9 @@ sub run {
     # avoid async keyring popups
     x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
 
+    #debug
+    wait_still_screen(10);
+
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
     send_key 'ctrl-l';                        # select text in address bar
 

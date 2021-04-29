@@ -48,7 +48,9 @@ sub run {
     $console = select_console 'user-console';
     enter_cmd "exit";    # logout
     $console->reset;
-    wait_still_screen(2);
+
+    # Reproduce the issue
+    wait_still_screen(10);
 
     save_screenshot();
 

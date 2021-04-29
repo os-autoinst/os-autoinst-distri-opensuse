@@ -26,10 +26,14 @@ use x11utils 'ensure_unlocked_desktop';
 sub run {
     # If system update tests were executed, need to switch back to x11
     select_console('x11', await_console => 0);
+
+    #debug
+    wait_still_screen(10);
     ensure_unlocked_desktop;
     mouse_hide(1);
     # for timeout selection see bsc#965857
     x11_start_program('gnome-control-center', match_timeout => 120);
+
     if (match_has_tag('gnome-control-center-new-layout')) {
         # with GNOME 3.26, the control-center got a different layout / workflow
         type_string "about";
