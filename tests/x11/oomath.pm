@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'type_string_slow';
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = shift;
@@ -41,7 +42,9 @@ sub run {
     }
 
     send_key 'alt-f4';
-    assert_screen([qw(dont-save-libreoffice-btn generic-desktop)]);
+    my @tags = ('dont-save-libreoffice-btn');
+    push @tags, 'generic-desktop' if is_sle;    # for bsc#1184961
+    assert_screen \@tags;
     record_soft_failure('bsc#1184961')           if match_has_tag('generic-desktop');
     assert_and_click 'dont-save-libreoffice-btn' if match_has_tag('dont-save-libreoffice-btn');
 }
