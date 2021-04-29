@@ -32,6 +32,8 @@ sub setup_environment {
 
     assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
     if (get_var("HANA_PERF")) {
+        my $rel_ver = get_var('VERSION');
+        assert_script_run("if [ ! -f /root/.product_version_cfg ]; then cp /root/.product_version_cfg.$rel_ver /root/.product_version_cfg; fi");
         assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $runid $mitigation_switch");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
         if (my $qaset_config = get_var("QASET_CONFIG")) {
