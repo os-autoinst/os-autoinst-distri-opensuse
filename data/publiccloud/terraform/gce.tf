@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    google = {
+      version = "= 3.65.0"
+      source = "hashicorp/google"
+    }
+  }
+}
+
 variable "cred_file" {
     default = "/root/google_credentials.json"
 }
@@ -81,7 +90,7 @@ resource "google_compute_instance" "openqa" {
     metadata = merge({
             sshKeys = "susetest:${file("/root/.ssh/id_rsa.pub")}"
             openqa_created_by = var.name
-            openqa_created_date = "${timestamp()}"
+            openqa_created_date = timestamp()
             openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
         }, var.tags)
 

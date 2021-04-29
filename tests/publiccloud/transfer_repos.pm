@@ -31,7 +31,7 @@ sub run {
     if (get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD') == 1) {
         record_info('Skip download', 'Skipping download triggered by setting (QAM_PUBLICCLOUD_SKIP_DOWNLOAD = 1)');
     } else {
-        assert_script_run("du -sh ~/repos");
+        assert_script_run('du -sh ~/repos');
         assert_script_run("rsync -uva -e ssh ~/repos root@" . $args->{my_instance}->public_ip . ":'/tmp/repos'", timeout => 900);
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar '{}' \\;");
