@@ -114,7 +114,7 @@ sub init_ltp_tests {
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
     my $is_ima     = $cmd_file =~ m/^ima$/i;
 
-    download_whitelist if get_var('LTP_KNOWN_ISSUES');
+    download_whitelist;
     script_run('env');
 
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
