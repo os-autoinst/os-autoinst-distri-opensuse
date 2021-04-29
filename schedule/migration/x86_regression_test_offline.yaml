@@ -42,6 +42,7 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - '{{check_upgraded_service}}'
+  - migration/openldap_to_389ds
   - '{{regression_tests}}'
   - boot/grub_test_snapshot
   - migration/version_switch_origin_system
@@ -89,7 +90,6 @@ conditional_schedule:
         - console/zypper_lifecycle
         - console/orphaned_packages_check
         - console/consoletest_finish
-        - migration/openldap_to_389ds
 
       2:
         - console/supportutils

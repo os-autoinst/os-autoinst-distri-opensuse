@@ -24,6 +24,7 @@ schedule:
   - console/system_state
   - console/prepare_test_data
   - console/consoletest_setup
+  - migration/openldap_to_389ds
   - '{{regression_tests}}'
   - boot/grub_test_snapshot
   - migration/version_switch_origin_system
@@ -86,7 +87,6 @@ conditional_schedule:
         - console/upgrade_snapshots
         - console/zypper_lifecycle
         - console/consoletest_finish
-        - migration/openldap_to_389ds
         - x11/desktop_runner
         - x11/xterm
         - locale/keymap_or_locale_x11
