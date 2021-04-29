@@ -1853,7 +1853,8 @@ sub install_patterns {
     my @pt_list;
     my @pt_list_un;
     my @pt_list_in;
-    my $pcm_list = 0;
+    my $pcm_list    = 0;
+    my $cf_selected = 0;
 
     if (is_sle('15+')) {
         $pcm_list = 'Amazon_Web_Services|Google_Cloud_Platform|Microsoft_Azure';
@@ -1891,6 +1892,15 @@ sub install_patterns {
             next unless $pcm == 0;
             $pt .= '*';
             $pcm = 1;
+        }
+        # Only one CFEngine pattern can be installed
+        if ($pt =~ /CFEngine|CFEngien/) {
+            if ($cf_selected == 0) {
+                $cf_selected = 1;
+            }
+            elsif ($cf_selected == 1) {
+                next;
+            }
         }
         # skip the installation of "SAP Application Server Base", poo#75058.
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
