@@ -17,6 +17,10 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
+    efi:
+        UEFI:
+            '1':
+                - console/verify_efi_mok
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
@@ -28,6 +32,7 @@ schedule:
     - jeos/build_key
     - console/prjconf_excluded_rpms
     - console/suseconnect_scc
+    - '{{efi}}'
     - jeos/glibc_locale
     - console/check_network
     - console/system_state
