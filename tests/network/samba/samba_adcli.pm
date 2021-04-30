@@ -73,9 +73,7 @@ sub run {
     # if something is not working in the future: i.e authentication is not working, switching to using expect
     # would be a better idea
     assert_script_run "klist";
-    script_run "net ads join --domain geeko.com -U Administrator --no-dns-updates", quiet => 1;
-    wait_serial "Set Administrator's password:";
-    enter_cmd "Nots3cr3t";
+    assert_script_run "echo Nots3cr3t  | net ads join --domain geeko.com -U Administrator --no-dns-updates -i";
 
     #systemctl('restart nmb');
     #systemctl('restart winbind');
@@ -84,7 +82,10 @@ sub run {
     assert_script_run "pam-config -a --mkhomedir";
     assert_script_run "pam-config -a --sss";
 
-    systemctl('enable --now smb nmb winbind sssd');
+    foreach my $service (qw(smb nmb winbind sssd)) {
+        systemctl("enable --now $service");
+    }
+
     systemctl('restart nscd');
     #Verify users and groups  from AD
     assert_script_run "wbinfo -u | grep foursixnine";
@@ -94,9 +95,7 @@ sub run {
     assert_script_run "wbinfo -i Administrator\@geeko.com";
 
     assert_script_run "expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;expect geekouser>;send exit\\n;interact'";
-    script_run "net ads leave --domain geeko.com -U Administrator", quiet => 1;
-    wait_serial "Enter Administrator's password:";
-    enter_cmd "Nots3cr3t";
+    assert_script_run "echo Nots3cr3t  | net ads leave --domain geeko.com -U Administrator -i";
 
     # For futher extensions
     # - Mount //GEEKO
