@@ -17,8 +17,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
-use repo_tools qw(add_qa_head_repo add_qa_web_repo);
-use version_utils qw(is_sle check_version);
+use version_utils 'is_sle';
 
 my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
 my $AD_ip       = '10.162.30.119';
@@ -28,11 +27,9 @@ sub samba_sssd_install {
 
     # sssd versions prior to 1.14 don't support conf.d
     # https://github.com/SSSD/sssd/issues/3289
-    my $sssd_version         = script_output 'sssd --version';
+    # 12-SP4 ships libini 1.2, and version 1.3.0 is required for this feature to be available in sssd
     my $sssd_config_location = "/etc/sssd/conf.d/suse.conf";
-    if (check_version('<1.14', $sssd_version)) {
-        $sssd_config_location = "/etc/sssd/sssd.conf";
-    }
+    $sssd_config_location = "/etc/sssd/sssd.conf" if is_sle('<=12-sp4');
 
     record_info($sssd_config_location);
 
