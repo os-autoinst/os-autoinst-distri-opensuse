@@ -40,21 +40,20 @@ sub run {
     }
     assert_script_run('cat /etc/os-release');
 
-    my $myaddons = "";
-    $myaddons = get_var('SCC_ADDONS');
-    $myaddons = $myaddons . ",base,serverapp"          if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
-    $myaddons = $myaddons . ",base,desktop,we,python2" if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
-    $myaddons = $myaddons . ",base,serverapp,desktop,dev,lgm,python2,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('12+', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+    my $myaddons = get_var('SCC_ADDONS', "");
+    $myaddons = $myaddons . ",base,serverapp"                             if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
+    $myaddons = $myaddons . ",base,desktop,we,python2"                    if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
+    $myaddons = $myaddons . ",base,serverapp,desktop,dev,lgm,python2,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
 
     # After upgrade, system doesn't include ltss extension
     $myaddons =~ s/ltss,?//g;
-    my @addons        = split(/,/, $myaddons);
+    my @addons        = grep { $_ =~ /\w/ } split(/,/, $myaddons);
     my @unique_addons = uniq @addons;
     foreach my $addon (@unique_addons) {
         my $name = get_addon_fullname($addon);
         record_info("$addon module fullname: ", $name);
-        $name = "sle-product-we"      if ($name =~ /sle-we/);
-        $name = "SLE-Module-DevTools" if ($name =~ /development/);
+        $name = "sle-product-we"      if (($name =~ /sle-we/)      && !get_var("MEDIA_UPGRADE"));
+        $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
         my $out = script_output("zypper lr | grep -i $name", proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
