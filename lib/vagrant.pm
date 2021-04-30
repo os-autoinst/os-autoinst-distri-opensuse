@@ -24,6 +24,6 @@ sub setup_vagrant_virtualbox {
 
     zypper_call("in vagrant virtualbox");
     systemctl("start vboxdrv");
-    systemctl("start vboxautostart");
+    systemctl("start vboxautostart-service");
     assert_script_run("usermod -a -G vboxusers bernhard");
 }
