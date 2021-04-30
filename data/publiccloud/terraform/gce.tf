@@ -95,7 +95,7 @@ resource "google_compute_instance" "openqa" {
             sshKeys = "susetest:${file("/root/.ssh/id_rsa.pub")}"
             openqa_created_by = var.name
             openqa_created_date = timestamp()
-            openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+            openqa_created_id = element(random_id.service.*.hex, count.index)
         }, var.tags)
 
     network_interface {
@@ -134,14 +134,14 @@ resource "google_compute_disk" "default" {
     physical_block_size_bytes = 4096
     labels = {
         openqa_created_by = var.name
-        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+        openqa_created_id = element(random_id.service.*.hex, count.index)
     }
 }
 
 output "public_ip" {
-    value = "${google_compute_instance.openqa.*.network_interface.0.access_config.0.nat_ip}"
+    value = google_compute_instance.openqa.*.network_interface.0.access_config.0.nat_ip
 }
 
 output "vm_name" {
-    value = "${google_compute_instance.openqa.*.name}"
+    value = google_compute_instance.openqa.*.name
 }
