@@ -28,6 +28,7 @@ sub run {
     $self->prepare_NM;
     $self->generate_certs;
     $self->configure_hostapd;
+    $self->adopt_apparmor;
     $self->reload_services;
     select_console 'x11';
 }
@@ -76,6 +77,14 @@ sub configure_hostapd {
     enter_cmd "# create wpa2 enterprise user";
     assert_script_run 'echo \"franz.nord@example.com\" PEAP >> /etc/hostapd.eap_user';
     assert_script_run 'echo \"franz.nord@example.com\" MSCHAPV2 \"nots3cr3t\" [2]>> /etc/hostapd.eap_user';
+}
+
+sub adopt_apparmor {
+    if (script_output('systemctl is-active apparmor', proceed_on_failure => 1) eq 'active') {
+        enter_cmd "# adopt AppArmor";
+        enter_cmd q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/root\/wpa_enterprise_certificates\/** r,\n}/' /etc/apparmor.d/usr.sbin.hostapd);
+        systemctl 'reload apparmor';
+    }
 }
 
 sub reload_services {
