@@ -1,0 +1,28 @@
+---
+name: qam_test_hana
+description: >
+  HANA tests for SLES4SAP.
+vars:
+  BOOTFROM: c
+  BOOT_HDD_IMAGE: '1'
+  HDDSIZEGB_2: '131'
+  HDD_SCC_REGISTERED: '1'
+  INSTANCE_ID: '00'
+  INSTANCE_SID: NDB
+  NUMDISKS: '2'
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - '{{cli_install}}'
+  - '{{wizard_install}}'
+  - sles4sap/hana_test
+conditional_schedule:
+  cli_install:
+    CLI:
+      1:
+        - sles4sap/hana_install
+  wizard_install:
+    WIZARD:
+      1:
+        - sles4sap/wizard_hana_install
