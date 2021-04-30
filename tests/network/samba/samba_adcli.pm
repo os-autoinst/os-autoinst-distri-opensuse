@@ -15,25 +15,37 @@
 use strict;
 use warnings;
 use base "consoletest";
-use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 use testapi;
 use utils;
+use repo_tools qw(add_qa_head_repo add_qa_web_repo);
+use version_utils qw(is_sle check_version);
 
 my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
 my $AD_ip       = '10.162.30.119';
 
 sub samba_sssd_install {
     zypper_call('in samba adcli samba-winbind krb5-client sssd-ad');
+
+    # sssd versions prior to 1.14 don't support conf.d
+    # https://github.com/SSSD/sssd/issues/3289
+    my $sssd_version         = script_output 'sssd --version';
+    my $sssd_config_location = "/etc/sssd/conf.d/suse.conf";
+    if (check_version('<1.14', $sssd_version)) {
+        $sssd_config_location = "/etc/sssd/sssd.conf";
+    }
+
+    record_info($sssd_config_location);
+
     #Copy config files enviroment.
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/kinit.exp  > ~/kinit.exp";
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/smb.conf  >/etc/samba/smb.conf";
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/krb5.conf  >/etc/krb5.conf";
     assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/nsswitch.conf  >/etc/nsswitch.conf";
-    assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/sssd/conf.d/suse.conf  >/etc/sssd/conf.d/suse.conf";
-    assert_script_run 'chmod go-rwx /etc/sssd/conf.d/suse.conf';
+    assert_script_run 'curl -f -v ' . autoinst_url . "/data/supportserver/samba/sssd/conf.d/suse.conf  >$sssd_config_location";
+    assert_script_run "chmod go-rwx $sssd_config_location";
     assert_script_run 'sed -i -E \'s/\tenable-cache(.*)(passwd|group)(.*)yes/\tenable-cache\1\2\3no/g\' /etc/nscd.conf';
-    #assert_script_run("echo '10.0.2.102 susetest.geeko.com susetest' > /etc/hosts");
-    #assert_script_run("echo '10.0.2.101 win-r70413psjm4.geeko.com win-r70413psjmn4' >> /etc/hosts");
+
+    # ensure we can resolve the ip addresses of the Active Directory Server
     script_run('echo NETCONFIG_DNS_STATIC_SEARCHLIST="geeko.com" >> /etc/sysconfig/network/config');
     script_run('echo NETCONFIG_DNS_STATIC_SERVERS="' . $AD_ip . '" >> /etc/sysconfig/network/config');
     assert_script_run('netconfig update -f');
