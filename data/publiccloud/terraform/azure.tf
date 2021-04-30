@@ -1,3 +1,16 @@
+terraform {
+  required_providers {
+    azurerm = {
+      version = "= 2.56.0"
+      source = "hashicorp/azurerm"
+    }
+    random = {
+      version = "= 3.1.0"
+      source = "hashicorp/random"
+    }
+  }
+}
+
 provider "azurerm" {
     features {}
 }
@@ -66,8 +79,8 @@ resource "azurerm_resource_group" "openqa-group" {
 
     tags = merge({
             openqa_created_by = var.name
-            openqa_created_date = "${timestamp()}"
-            openqa_created_id = "${element(random_id.service.*.hex, 0)}"
+            openqa_created_date = timestamp()
+            openqa_created_id = element(random_id.service.*.hex, 0)
         }, var.tags)
 }
 
@@ -148,7 +161,7 @@ resource "azurerm_virtual_machine" "openqa-vm" {
     name                  = "${var.name}-${element(random_id.service.*.hex, count.index)}"
     location              = var.region
     resource_group_name   = azurerm_resource_group.openqa-group.name
-    network_interface_ids = ["${azurerm_network_interface.openqa-nic[count.index].id}"]
+    network_interface_ids = [azurerm_network_interface.openqa-nic[count.index].id]
     vm_size               = var.type
     count                 = var.instance_count
 
@@ -182,8 +195,8 @@ resource "azurerm_virtual_machine" "openqa-vm" {
 
     tags = merge({
             openqa_created_by = var.name
-            openqa_created_date = "${timestamp()}"
-            openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+            openqa_created_date = timestamp()
+            openqa_created_id = element(random_id.service.*.hex, count.index)
         }, var.tags)
 
 
@@ -213,15 +226,15 @@ resource "azurerm_managed_disk" "ssd_disk" {
 
 
 output "vm_name" {
-    value = "${azurerm_virtual_machine.openqa-vm.*.id}"
+    value = azurerm_virtual_machine.openqa-vm.*.id
 }
 
 data "azurerm_public_ip" "openqa-publicip" {
-    name                = "${azurerm_public_ip.openqa-publicip[count.index].name}"
-    resource_group_name = "${azurerm_virtual_machine.openqa-vm.0.resource_group_name}"
+    name                = azurerm_public_ip.openqa-publicip[count.index].name
+    resource_group_name = azurerm_virtual_machine.openqa-vm.0.resource_group_name
     count               = var.instance_count
 }
 
 output "public_ip" {
-    value = "${data.azurerm_public_ip.openqa-publicip.*.ip_address}"
+    value = data.azurerm_public_ip.openqa-publicip.*.ip_address
 }
