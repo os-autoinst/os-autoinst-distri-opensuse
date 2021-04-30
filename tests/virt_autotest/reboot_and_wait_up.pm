@@ -52,8 +52,8 @@ sub reboot_and_wait_up {
         my ($host_upgrade_rel)     = $host_upgrade_version =~ /sles-(\d+)-sp/i;
         my ($host_upgrade_sp)      = $host_upgrade_version =~ /sp(\d+)$/im;
         if ($package_name eq 'reboot_and_wait_up_upgrade' and is_kvm_host and is_x86_64 and ($host_installed_rel eq '15' and $host_installed_sp eq '2') and ($host_upgrade_rel eq '15' and $host_upgrade_sp eq '3')) {
-            record_soft_failure("bsc#1156315 irqbalance warning messages prevent needles being asserted in sol console");
-            diag("bsc#1156315 irqbalance warning messages prevent needles being asserted in sol console. Reboot host by using ipmitool directly.");
+            record_soft_failure("Workaround is preserved to avoid needle assertion on sol console and prevent potential unnecessary failures due to bsc#1185374.");
+            diag("Workaround is preserved to avoid needle assertion on sol console and prevent potential unnecessary failures due to bsc#1185374..Reboot host by using ipmitool directly.");
             ipmi_backend_utils::ipmitool 'chassis power reset';
         }
         else {
