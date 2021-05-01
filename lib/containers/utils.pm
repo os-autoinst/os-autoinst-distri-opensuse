@@ -22,7 +22,7 @@ use strict;
 use warnings;
 use version_utils;
 
-our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base check_docker_firewall get_docker_version check_runtime_version container_ip);
+our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base check_docker_firewall get_docker_version check_runtime_version container_ip registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -44,7 +44,7 @@ sub test_seccomp {
 sub check_docker_firewall {
     my $container_name = 'sut_container';
     my $running        = script_output qq(docker ps -a -q | wc -l);
-    validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running = !0;
+    validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running != 0;
     assert_script_run "firewall-cmd --list-all --zone=docker";
     validate_script_output "firewall-cmd --list-interfaces --zone=docker",  sub { /docker0/ };
     validate_script_output "firewall-cmd --list-interfaces --zone=trusted", sub { /^\s*$/ };
@@ -77,20 +77,25 @@ sub container_ip {
     return $ip;
 }
 
-sub basic_container_tests {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-
+sub registry_url {
+    my ($container_name, $version_tag) = @_;
     my $registry = get_var('REGISTRY', 'docker.io');
     # Images from docker.io registry are listed without the 'docker.io/library/'
     # Images from custom registry are listed with the 'server/library/'
     # We also filter images the same way they are listed.
-    my $prefix = ($registry =~ /docker\.io/) ? "" : "$registry/library/";
+    my $repo = ($registry =~ /docker\.io/) ? "" : "$registry/library";
+    return $registry unless $container_name;
+    return sprintf("%s/%s", $repo, $container_name) unless $version_tag;
+    return sprintf("%s/%s:%s", $repo, $container_name, $version_tag);
+}
 
+sub basic_container_tests {
+    my %args    = @_;
+    my $runtime = $args{runtime};
+    die "You must define the runtime!" unless $runtime;
     my $alpine_image_version = '3.6';
-    my $alpine               = "${prefix}alpine:$alpine_image_version";
-    my $hello_world          = "${prefix}hello-world";
+    my $alpine               = registry_url('alpine', $alpine_image_version);
+    my $hello_world          = registry_url('hello-world');
     my $leap                 = "registry.opensuse.org/opensuse/leap";
     my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
 
@@ -208,12 +213,12 @@ sub build_img {
     die "You must define the directory!" unless $dir;
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
-    my $registry = get_var('REGISTRY', 'docker.io');
+    my $py_repo = registry_url('python', '3');
 
     assert_script_run("cd $dir");
     if ($runtime =~ /docker|podman/) {
-        assert_script_run("$runtime image pull $registry/library/python:3", timeout => 300);
-        assert_script_run("$runtime tag $registry/library/python:3 python:3");
+        assert_script_run("$runtime image pull $py_repo", timeout => 300);
+        assert_script_run("$runtime tag $py_repo python:3");
         assert_script_run("$runtime build -t myapp BuildTest");
     }
     elsif ($runtime =~ /buildah/) {
