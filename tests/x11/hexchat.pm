@@ -44,7 +44,7 @@ sub run {
         enter_cmd "hello, this is openQA running $name!";
         assert_screen "$name-message-sent-to-channel";
         enter_cmd "/quit I'll be back";
-        assert_screen "$name-quit";
+        assert_screen "$name-quit", 60;
     }
     elsif (match_has_tag("$name-SASL-only-error")) {
         record_info('SASL required', 'The public IP of the current worker has been blacklisted on freenode, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
