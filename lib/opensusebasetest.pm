@@ -1310,11 +1310,23 @@ base method using C<$self-E<gt>SUPER::post_fail_hook;> at the end.
 =cut
 sub post_fail_hook {
     my ($self) = @_;
-    return if is_serial_terminal();    # unless VIRTIO_CONSOLE=0 nothing below make sense
-
-    show_tasks_in_blocked_state;
 
     return if (get_var('NOLOGS'));
+
+    if (!$self->is_serial_terminal()) {
+        # In case the system is stuck in shutting down or during boot up, press
+        # 'esc' just in case the plymouth splash screen is shown and we can not
+        # see any interesting console logs.
+        send_key 'esc';
+        save_screenshot;
+        # the space prevents the esc from eating up the next alphanumerical
+        # character typed into the console
+        send_key 'spc';
+
+        # We also want to try getting the tasks and stuff if it's possible
+        show_tasks_in_blocked_state;
+
+    }
 
     # just output error if selected program doesn't exist instead of collecting all logs
     # set current variables in x11_start_program
@@ -1354,15 +1366,6 @@ sub post_fail_hook {
         my $io_status = script_output("sed -n 's/^.*da / /p' /proc/diskstats | cut -d' ' -f10");
         record_info('System I/O status:', ($io_status =~ /^0$/) ? 'idle' : 'busy');
     }
-
-    # In case the system is stuck in shutting down or during boot up, press
-    # 'esc' just in case the plymouth splash screen is shown and we can not
-    # see any interesting console logs.
-    send_key 'esc';
-    save_screenshot;
-    # the space prevents the esc from eating up the next alphanumerical
-    # character typed into the console
-    send_key 'spc';
 
     $self->export_logs;
 }
