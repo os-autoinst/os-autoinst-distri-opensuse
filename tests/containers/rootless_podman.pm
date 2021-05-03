@@ -39,7 +39,7 @@ sub run {
     my $user         = $testapi::username;
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {
-        record_soft_failure 'bsc#1179261 - YaST creates incomplete user accounts';
+        record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';
         $subuid_start = 200000;
         my $subuid_range = $subuid_start + 1000;
         assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
