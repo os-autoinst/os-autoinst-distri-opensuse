@@ -108,9 +108,11 @@ sub run {
         barrier_create("PACEMAKER_CTS_CHECKED_$cluster_name", $num_nodes + 1);
 
         # HAWK_GUI_ barriers also have to wait in the client
-        barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);
-        barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
-        barrier_create("HAWK_FENCE_$cluster_name",       $num_nodes + 1);
+        barrier_create("HAWK_GUI_INIT_$cluster_name",            $num_nodes + 1);
+        barrier_create("HAWK_GUI_CHECKED_$cluster_name",         $num_nodes + 1);
+        barrier_create("HAWK_GUI_CPU_TEST_START_$cluster_name",  $num_nodes + 1);
+        barrier_create("HAWK_GUI_CPU_TEST_FINISH_$cluster_name", $num_nodes + 1);
+        barrier_create("HAWK_FENCE_$cluster_name",               $num_nodes + 1);
 
         # CTDB barriers
         barrier_create("CTDB_INIT_$cluster_name", $num_nodes + 1);

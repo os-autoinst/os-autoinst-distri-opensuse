@@ -19,6 +19,43 @@ use lockapi;
 use hacluster qw(get_cluster_name is_node);
 use utils 'systemctl';
 use version_utils 'is_sle';
+use List::Util qw(sum);
+
+sub check_hawk_cpu {
+    my $cluster_name = get_cluster_name;
+    my @cpu_usage    = ();
+
+    barrier_wait("HAWK_GUI_CPU_TEST_START_$cluster_name");
+    while (!barrier_try_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name")) {
+        # Wrapping script_output in eval { } as node can be fenced by hawk test from client.
+        # In fenced node, script_output will croak and kill the test. This prevents it
+        my $metric = eval {
+            script_output q@ps axo pcpu,comm | awk '/hawk|puma/ {total += $1} END {print "cpu_usage["total"]"}'@,
+              proceed_on_failure => 1;
+        };
+        if ($@) {
+            # When script_output croaks, command may be typed when SUT is on the grub menu
+            # and either boot the system or get into grub editing. If system has booted,
+            # force a new fence; if it's still in grub menu, do nothing; otherwise send an
+            # ESC to return SUT to grub menu and exit the loop
+            if (check_screen('linux-login')) {
+                reset_consoles;
+                select_console('root-console');
+                enter_cmd 'echo b > /proc/sysrq-trigger';
+            }
+            else {
+                send_key 'esc' unless check_screen('grub2');
+            }
+            barrier_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name");
+            last;
+        }
+        push @cpu_usage, $metric =~ /cpu_usage\[([\d\.]+)\]/;
+        sleep bmwqemu::scale_timeout(1);
+    }
+    my $cpu_usage = sum(@cpu_usage) / @cpu_usage;
+    record_info "CPU usage", "HAWK/PUMA CPU usage was $cpu_usage";
+    record_soft_failure "bsc#1179609 - HAWK/PUMA consume a considerable amount of CPU" if ($cpu_usage >= 50);
+}
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -55,6 +92,7 @@ sub run {
     # If testing HAWK GUI, also wait for those barriers
     if (get_var('HAWKGUI_TEST_ROLE')) {
         barrier_wait("HAWK_GUI_INIT_$cluster_name");
+        check_hawk_cpu;
         barrier_wait("HAWK_GUI_CHECKED_$cluster_name");
     }
 
