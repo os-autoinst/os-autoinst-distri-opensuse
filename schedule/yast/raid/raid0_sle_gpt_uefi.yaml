@@ -33,6 +33,7 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
+  - console/validate_md_raid
   - console/validate_raid
 test_data:
   <<: !include test_data/yast/raid/raid0_gpt_uefi_test_data.yaml

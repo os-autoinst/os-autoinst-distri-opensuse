@@ -33,6 +33,7 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
+  - console/validate_md_raid
   - console/validate_raid
 test_data:
   disks:
@@ -87,6 +88,7 @@ test_data:
           id: linux-raid
   mds:
     - raid_level: 1
+      name: md0
       chunk_size: '64 KiB'
       devices:
         - vda2
@@ -100,6 +102,7 @@ test_data:
         mounting_options:
           should_mount: 1
     - raid_level: 0
+      name: md1
       chunk_size: '64 KiB'
       devices:
         - vda3

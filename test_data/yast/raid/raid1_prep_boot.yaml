@@ -2,6 +2,7 @@
 <<: !include test_data/yast/raid/raid_disks_prep_boot.yaml
 mds:
   - raid_level: 1
+    name: md0
     chunk_size: '64 KiB'
     devices:
       - vda2
@@ -15,6 +16,7 @@ mds:
       mounting_options:
         should_mount: 1
   - raid_level: 1
+    name: md1
     chunk_size: '64 KiB'
     devices:
       - vda3
@@ -30,6 +32,7 @@ mds:
         should_mount: 1
         mount_point: '/boot'
   - raid_level: 0
+    name: md2
     chunk_size: '64 KiB'
     devices:
       - vda4
