@@ -33,7 +33,7 @@ sub run {
     # Add additional 60 seconds if the test suite is migration as reboot from
     # pre-migration system may take an additional time. Booting of encrypted disk
     # needs additional time too.
-    $timeout += 60 if get_var('PATCH') || get_var('ONLINE_MIGRATION');
+    $timeout += 60 if get_var('PATCH') || get_var('ONLINE_MIGRATION') || get_var('ZDUP');
     $timeout += 60 if get_var('ENCRYPT');
     # For bsc#1180313, can't stop wicked during reboot make system need more time
     # to wait bootloader, add additional 60s when ARCH is ppc64le.
