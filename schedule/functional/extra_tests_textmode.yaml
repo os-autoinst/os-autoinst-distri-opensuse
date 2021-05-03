@@ -66,6 +66,7 @@ conditional_schedule:
                 - '{{steamcmd}}'
                 - console/libqca2
                 - console/python_scientific
+                - console/vmstat
                 - console/kdump_and_crash
     validate_packages_and_patterns:
         DISTRI:

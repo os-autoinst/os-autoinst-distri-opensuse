@@ -8,6 +8,7 @@ schedule:
   - console/add_phub_extension
   - console/python_scientific
   - '{{version_specific}}'
+  - console/vmstat
   - sysauth/sssd
   - console/coredump_collect
 conditional_schedule:
