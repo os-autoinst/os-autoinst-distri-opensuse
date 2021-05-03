@@ -1,0 +1,28 @@
+---
+name:          create_hdd_gnome_libyui
+description:    >
+  Boot into gnome HDD and republish image for tests that use libyui.
+vars:
+  SCC_ADDONS: sdk
+schedule:
+  - '{{bootloader}}'
+  - boot/boot_to_desktop
+  - console/scc_cleanup_reregister
+  - console/install_packages_simple
+  - console/firewalld_add_port
+  - shutdown/shutdown
+  - '{{upload_assets}}'
+conditional_schedule:
+  bootloader:
+    ARCH:
+      s390x:
+        - installation/bootloader_start
+  upload_assets:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
+test_data:
+  install_packages:
+    - libyui-rest-api
+  port: 30000-50000
+  zone: public
