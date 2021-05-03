@@ -20,8 +20,8 @@
   Program version:           3.0.3
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210222
-  Kernel version:            5.10.16
+  Operating system version:  20210502
+  Kernel version:            5.12.0
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -100,7 +100,7 @@
 [8C- serial-getty@ttyS1.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS2.service:[24C [ UNSAFE ]
 [8C- smartd.service:[36C [ UNSAFE ]
-[8C- snapperd.service:[34C [ UNSAFE ]
+[8C- snapperd.service:[34C [ MEDIUM ]
 [8C- sshd.service:[38C [ UNSAFE ]
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
 [8C- systemd-ask-password-plymouth.service:[13C [ UNSAFE ]
@@ -124,7 +124,7 @@
 [2C- Checking kernel version and release[22C [ DONE ]
 [2C- Checking kernel type[37C [ DONE ]
 [2C- Checking loaded kernel modules[27C [ DONE ]
-[6CFound 106 active modules[31C
+[6CFound 102 active modules[31C
 [2C- Checking Linux kernel configuration file[17C [ FOUND ]
 [2C- Checking default I/O kernel scheduler[20C [ NOT FOUND ]
 [2C- Checking core dumps configuration[24C
@@ -173,7 +173,7 @@
 [+] Shells
 ------------------------------------
 [2C- Checking shells from /etc/shells[25C
-[4CResult: found 26 shells (valid shells: 6).[15C
+[4CResult: found 26 shells (valid shells: 9).[15C
 [4C- Session timeout settings/tools[25C [ NONE ]
 [2C- Checking default umask values[28C
 [4C- Checking default umask in /etc/bash.bashrc[13C [ NONE ]
@@ -201,7 +201,7 @@
 [2C- Mount options of /run[36C [ HARDENED ]
 [2C- Mount options of /tmp[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /var[36C [ NON DEFAULT ]
-[2C- Total without nodev:14 noexec:18 nosuid:12 ro or noexec (W^X): 18 of total 45[0C
+[2C- Total without nodev:14 noexec:19 nosuid:12 ro or noexec (W^X): 18 of total 33[0C
 [2C- Disable kernel support of some filesystems[15C
 [4C- Module cramfs is blacklisted[27C [ OK ]
 [4C- Module freevxfs is blacklisted[25C [ OK ]
@@ -241,7 +241,10 @@
 [4C- Searching RPM package manager[26C [ FOUND ]
 [6C- Querying RPM package manager[25C
 
-  [WARNING]: Test PKGS-7308 had a long execution: 16.369354 seconds
+  [WARNING]: Test PKGS-7308 had a long execution: 20.221873 seconds
+
+
+  [WARNING]: Test PKGS-7328 had a long execution: 11.230931 seconds
 
 [2C- Using Zypper to find vulnerable packages[17C [ NONE ]
 [2C- Checking package audit tool[30C [ INSTALLED ]
@@ -260,7 +263,7 @@
 [2C- Getting listening ports (TCP/UDP)[24C [ DONE ]
 [2C- Checking promiscuous interfaces[26C [ OK ]
 [2C- Checking waiting connections[29C [ OK ]
-[2C- Checking status DHCP client[30C
+[2C- Checking status DHCP client[30C [ RUNNING ]
 [2C- Checking for ARP monitoring software[21C [ NOT FOUND ]
 [2C- Uncommon network protocols[31C [ 0 ]
 
@@ -417,9 +420,8 @@
 ------------------------------------
 [2C- Checking presence AppArmor[31C [ FOUND ]
 [4C- Checking AppArmor status[31C [ ENABLED ]
-[8CFound 94 unconfined processes[24C
-[2C- Checking presence SELinux[32C [ FOUND ]
-[4C- Checking SELinux status[32C [ DISABLED ]
+[8CFound 96 unconfined processes[24C
+[2C- Checking presence SELinux[32C [ NOT FOUND ]
 [2C- Checking presence TOMOYO Linux[27C [ NOT FOUND ]
 [2C- Checking presence grsecurity[29C [ NOT FOUND ]
 [2C- Checking for implemented MAC framework[19C [ OK ]
@@ -526,13 +528,13 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package iio-sensor-proxy-3.0-1.3.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.SensorProxy.conf[0C [ WARNING ]
-[4CWarning: Package bluez-5.55-3.3.x86_64 installs an unknown D-BUS autostart/system service: org.bluez.service[0C [ WARNING ]
-[4CWarning: Package flatpak-1.10.1-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.Flatpak.SystemHelper.service[0C [ WARNING ]
-[4CWarning: Package bolt-0.9-1.4.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.bolt.service[0C [ WARNING ]
-[4CWarning: Package fwupd-1.5.6-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.fwupd.service[0C [ WARNING ]
-[4CWarning: Package systemd-246.10-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.8.15-2.2.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package iio-sensor-proxy-3.0-1.6.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.SensorProxy.conf[0C [ WARNING ]
+[4CWarning: Package bluez-5.58-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.bluez.service[0C [ WARNING ]
+[4CWarning: Package flatpak-1.10.2-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.Flatpak.SystemHelper.service[0C [ WARNING ]
+[4CWarning: Package bolt-0.9-1.7.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.bolt.service[0C [ WARNING ]
+[4CWarning: Package fwupd-1.5.8-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.fwupd.service[0C [ WARNING ]
+[4CWarning: Package systemd-246.13-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -567,7 +569,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 85.246075 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 117.446383 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -789,7 +791,7 @@
   Lynis security scan details:
 
   Hardening index : 92 [##################  ]
-  Tests performed : 262
+  Tests performed : 261
   Plugins enabled : 0
 
   Components:

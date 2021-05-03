@@ -20,8 +20,8 @@
   Program version:           3.0.3
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210222
-  Kernel version:            5.10.16
+  Operating system version:  20210502
+  Kernel version:            5.12.0
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -89,7 +89,7 @@
 [8C- serial-getty@ttyS1.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS2.service:[24C [ UNSAFE ]
 [8C- smartd.service:[36C [ UNSAFE ]
-[8C- snapperd.service:[34C [ UNSAFE ]
+[8C- snapperd.service:[34C [ MEDIUM ]
 [8C- sshd.service:[38C [ UNSAFE ]
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
 [8C- systemd-ask-password-plymouth.service:[13C [ UNSAFE ]
@@ -114,7 +114,7 @@
 [2C- Checking kernel version and release[22C [ DONE ]
 [2C- Checking kernel type[37C [ DONE ]
 [2C- Checking loaded kernel modules[27C [ DONE ]
-[6CFound 107 active modules[31C
+[6CFound 101 active modules[31C
 [2C- Checking Linux kernel configuration file[17C [ FOUND ]
 [2C- Checking default I/O kernel scheduler[20C [ NOT FOUND ]
 [2C- Checking core dumps configuration[24C
@@ -188,7 +188,7 @@
 [2C- Mount options of /run[36C [ HARDENED ]
 [2C- Mount options of /tmp[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /var[36C [ NON DEFAULT ]
-[2C- Total without nodev:14 noexec:16 nosuid:12 ro or noexec (W^X): 16 of total 43[0C
+[2C- Total without nodev:14 noexec:16 nosuid:12 ro or noexec (W^X): 16 of total 30[0C
 [2C- Disable kernel support of some filesystems[15C
 [4C- Module cramfs is blacklisted[27C [ OK ]
 [4C- Module freevxfs is blacklisted[25C [ OK ]
@@ -399,8 +399,7 @@
 [2C- Checking presence AppArmor[31C [ FOUND ]
 [4C- Checking AppArmor status[31C [ ENABLED ]
 [8CFound 35 unconfined processes[24C
-[2C- Checking presence SELinux[32C [ FOUND ]
-[4C- Checking SELinux status[32C [ DISABLED ]
+[2C- Checking presence SELinux[32C [ NOT FOUND ]
 [2C- Checking presence TOMOYO Linux[27C [ NOT FOUND ]
 [2C- Checking presence grsecurity[29C [ NOT FOUND ]
 [2C- Checking for implemented MAC framework[19C [ OK ]
@@ -507,8 +506,8 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package systemd-246.10-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.8.15-2.2.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package systemd-246.13-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -543,7 +542,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 40.963852 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 53.378980 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -761,7 +760,7 @@
   Lynis security scan details:
 
   Hardening index : 89 [#################   ]
-  Tests performed : 259
+  Tests performed : 258
   Plugins enabled : 0
 
   Components:
