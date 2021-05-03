@@ -22,12 +22,12 @@ use warnings;
 use testapi;
 use registration;
 use utils qw(zypper_call systemctl file_content_replace);
-use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud);
+use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils 'can_build_sle_base';
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
   clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
-  scc_restore_docker_image_credentials install_buildah_when_needed);
+  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend);
 
 sub install_podman_when_needed {
     my $host_os = shift;
@@ -250,6 +250,25 @@ sub scc_apply_docker_image_credentials {
 
 sub scc_restore_docker_image_credentials {
     assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
+}
+
+sub test_rpm_db_backend {
+    my %args     = @_;
+    my $image    = $args{image};
+    my $runtime  = $args{runtime};
+    my $expected = 'bdb';
+
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
+    my $backend = script_output "$runtime run $image rpm --eval %_db_backend";
+    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
+    record_info('RPM check', "The rpm db backend in the image $image is $backend");
+    # TW and SLE 15-SP3+ uses rpm-ndb in the image
+    if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
+        $expected = 'ndb';
+    }
+    die("The rpm db backend should be $expected") if ($backend ne $expected);
 }
 
 1;
