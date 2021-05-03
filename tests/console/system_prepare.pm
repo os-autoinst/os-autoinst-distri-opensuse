@@ -90,7 +90,7 @@ sub run {
         }
     }
 
-    assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true' if get_var('COLLECT_COREDUMPS');
+    assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true', timeout => 200 if get_var('COLLECT_COREDUMPS');
 
     # stop and disable PackageKit
     quit_packagekit;
