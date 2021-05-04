@@ -28,6 +28,16 @@ sub new {
     }, $class;
 }
 
+sub set_timeout {
+    my ($self, $timeout) = @_;
+    $self->{timeout} = $timeout;
+}
+
+sub set_interval {
+    my ($self, $interval) = @_;
+    $self->{interval} = $interval;
+}
+
 sub find {
     my ($self, $args) = @_;
 

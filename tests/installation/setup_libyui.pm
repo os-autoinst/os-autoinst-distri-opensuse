@@ -22,48 +22,13 @@ use strict;
 use warnings;
 use base "installbasetest";
 use testapi;
-use Utils::Backends;
 use YuiRestClient;
-use YuiRestClient::Wait;
-use Utils::Architectures 'is_s390x';
 
 sub run {
-    my $ip_regexp = qr/(?<ip>(\d+\.){3}\d+)/i;
-    if (is_hyperv) {
-        my $boot_timeout = 500;
-        my $svirt        = select_console('svirt');
-        my $name         = $svirt->name;
-        my $cmd          = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
-        my $ip           = YuiRestClient::Wait::wait_until(object => sub {
-                my $ip = $svirt->get_cmd_output($cmd);
-                return $+{ip} if ($ip =~ $ip_regexp);
-        }, timeout => $boot_timeout, interval => 30);
-        set_var('YUI_SERVER', $ip);
-        select_console('sut', await_console => 0);
-    } elsif (check_var('BACKEND', 's390x')) {
-        select_console('install-shell');
-        my $ip = YuiRestClient::Wait::wait_until(object => sub {
-                my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
-                return $+{ip} if ($ip =~ $ip_regexp);
-        });
-        set_var('YUI_SERVER', $ip);
-        select_console('installation');
-    } elsif (check_var('VIRSH_VMM_FAMILY', 'xen')) {
-        # For xen, when attempting to switch console while the installation loader is not finished, we end up with test failure.
-        assert_screen "inst-betawarning", 500;
-        select_console('root-console');
-        my $ip = YuiRestClient::Wait::wait_until(object => sub {
-                my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
-                return $+{ip} if ($ip =~ $ip_regexp);
-        });
-        set_var('YUI_SERVER', $ip);
-        select_console('installation');
-    } elsif (is_ssh_installation) {
-        my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
-        $cmd .= YuiRestClient::get_yui_params_string() . " yast.ssh";
-        enter_cmd($cmd);
-    }
-    YuiRestClient::connect_to_app();
+    my $app = YuiRestClient::get_app(installation => 1);
+    record_info('SERVER', "Used host for libyui: " . $app->get_host());
+    record_info('PORT',   "Used port for libyui: " . $app->get_port());
+    $app->check_connection(timeout => 500, interval => 10);
 }
 
 1;
