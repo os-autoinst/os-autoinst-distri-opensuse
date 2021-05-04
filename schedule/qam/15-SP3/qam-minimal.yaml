@@ -1,0 +1,49 @@
+---
+name: qam-minimal
+schedule:
+- installation/bootloader_start
+- installation/welcome
+- installation/accept_license
+- '{{disk_activation}}'
+- installation/scc_registration
+- installation/addon_products_sle
+- installation/system_role
+- installation/partitioning
+- installation/partitioning_finish
+- installation/installer_timezone
+- installation/user_settings
+- installation/user_settings_root
+- installation/resolve_dependency_issues
+- installation/select_patterns
+- installation/installation_overview
+- installation/disable_grub_timeout
+- installation/start_install
+- installation/await_install
+- installation/logs_from_installation_system
+- installation/reboot_after_installation
+- installation/handle_reboot
+- installation/first_boot
+- qam-minimal/install_update
+- qam-minimal/update_minimal
+- qam-minimal/check_logs
+- '{{s390tools}}'
+- '{{publish}}'
+conditional_schedule:
+  disk_activation:
+    ARCH:
+      s390x:
+        - installation/disk_activation
+  s390tools:
+    ARCH:
+      s390x:
+        - qam-minimal/s390tools
+  publish:
+    ARCH:
+      x86_64:
+        - console/hostname
+        - console/system_prepare
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
+...

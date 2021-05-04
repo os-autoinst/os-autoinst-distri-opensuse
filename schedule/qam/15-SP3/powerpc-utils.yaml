@@ -1,0 +1,10 @@
+---
+name: powerpc-utils
+description: >
+  Test for powerpc-utils on spvm only. Running on created textmode image.
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/powerpc_utils
