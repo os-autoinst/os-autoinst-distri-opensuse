@@ -196,7 +196,12 @@ sub test_cryptographic_policies() {
 sub check_journal {
     # bsc#1175310 bsc#1181308 - Detect serious errors as they can be invisible because sshd may silently recover
     if (script_run("journalctl -b -u sshd.service | grep -A6 -B24 'segfault\\|fatal'") == 0) {
-        die("Please check the journalctl! Segfault or fatal journal entry detected.");
+        my $journalctl = script_output("journalctl -b -u sshd.service | grep 'segfault\\|fatal'", proceed_on_failure => 1);
+        if (is_sle('<15') && $journalctl =~ /diffie-hellman-group1-sha1/) {
+            record_info("diffie-hellman-group1-sha1", "Expected message - bsc#1185584 diffie-hellman-group1-sha1 is not enabled on this product");
+        } else {
+            die("Please check the journalctl! Segfault or fatal journal entry detected.");
+        }
     }
 }
 
