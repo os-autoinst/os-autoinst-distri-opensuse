@@ -142,8 +142,8 @@ sub run {
     # Test TensorFlow Lite backend
     record_info('TF Lite', "TensorFlow Lite backend");
     armnn_tf_lite_test_prepare;
-    # Run with default backend
-    armnn_tf_lite_test_run;
+    # Run with default backend, if no specific backend required
+    armnn_tf_lite_test_run if !defined($armnn_backends);
     # Run with explicit backend, if requested
     armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
     cleanup_model_folder;
@@ -151,7 +151,7 @@ sub run {
     # Test TensorFlow backend
     record_info('TensorFlow', "TensorFlow backend");
     armnn_tf_test_prepare;
-    armnn_tf_test_run;
+    armnn_tf_test_run if !defined($armnn_backends);
     armnn_tf_test_run(backend => $_) for split(/,/, $armnn_backends);
     cleanup_model_folder;
 
@@ -162,7 +162,7 @@ sub run {
     } else {
         record_info('ONNX', "ONNX backend");
         armnn_onnx_test_prepare;
-        armnn_onnx_test_run;
+        armnn_onnx_test_run if !defined($armnn_backends);
         armnn_onnx_test_run(backend => $_) for split(/,/, $armnn_backends);
         cleanup_model_folder;
     }
@@ -170,7 +170,7 @@ sub run {
     # Test Caffe backend
     record_info('Caffe', "Caffe backend");
     armnn_caffe_test_prepare;
-    armnn_caffe_test_run;
+    armnn_caffe_test_run if !defined($armnn_backends);
     armnn_caffe_test_run(backend => $_) for split(/,/, $armnn_backends);
     cleanup_model_folder;
 }
