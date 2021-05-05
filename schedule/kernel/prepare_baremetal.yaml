@@ -21,6 +21,7 @@ schedule:
     - installation/user_settings_root
     - installation/resolve_dependency_issues
     - installation/installation_overview
+    - installation/edit_optional_kernel_cmd_parameters
     - installation/disable_grub_graphics
     - installation/disable_grub_timeout
     - installation/start_install
