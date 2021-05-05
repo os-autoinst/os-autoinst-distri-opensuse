@@ -23,7 +23,8 @@ use warnings;
 use version_utils;
 use Mojo::Util 'trim';
 
-our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base check_docker_firewall get_docker_version check_runtime_version container_ip);
+our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base
+  check_docker_firewall get_docker_version check_runtime_version container_ip registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -76,6 +77,19 @@ sub container_ip {
     my $ip = script_output "$runtime inspect $container --format='{{.NetworkSettings.IPAddress}}'";
     record_info "$ip";
     return $ip;
+}
+
+sub registry_url {
+    my ($container_name, $version_tag) = @_;
+    my $registry = get_var('REGISTRY', 'docker.io');
+    $registry = trim($registry);
+    # Images from docker.io registry are listed without the 'docker.io/library/'
+    # Images from custom registry are listed with the 'server/library/'
+    # We also filter images the same way they are listed.
+    my $repo = ($registry =~ /docker\.io/) ? "" : "$registry/library";
+    return $registry unless $container_name;
+    return sprintf("%s/%s", $repo, $container_name) unless $version_tag;
+    return sprintf("%s/%s:%s", $repo, $container_name, $version_tag);
 }
 
 sub basic_container_tests {
@@ -202,7 +216,7 @@ sub build_img {
     die "You must define the directory!" unless $dir;
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
-    my $py_repo = get_var('REGISTRY', 'docker.io');
+    my $py_repo = registry_url('python', '3');
 
     assert_script_run("cd $dir");
     if ($runtime =~ /docker|podman/) {
