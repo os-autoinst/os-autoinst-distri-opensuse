@@ -18,6 +18,7 @@ use YaST::Firstboot::GenericPage;
 use YaST::Firstboot::LANSetupPage;
 use YaST::Firstboot::KeyboardLayoutPage;
 use YaST::Firstboot::NTPClientPage;
+use YaST::Firstboot::LanguageAndKeyboardPage;
 
 sub new {
     my ($class, $args) = @_;
@@ -27,10 +28,11 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{GenericPage}  = YaST::Firstboot::GenericPage->new({app => YuiRestClient::get_app()});
-    $self->{LanPage}      = YaST::Firstboot::LANSetupPage->new({app => YuiRestClient::get_app()});
-    $self->{KeyboardPage} = YaST::Firstboot::KeyboardLayoutPage->new({app => YuiRestClient::get_app()});
-    $self->{NTPPage}      = YaST::Firstboot::NTPClientPage->new({app => YuiRestClient::get_app()});
+    $self->{GenericPage}             = YaST::Firstboot::GenericPage->new({app => YuiRestClient::get_app()});
+    $self->{LanPage}                 = YaST::Firstboot::LANSetupPage->new({app => YuiRestClient::get_app()});
+    $self->{KeyboardPage}            = YaST::Firstboot::KeyboardLayoutPage->new({app => YuiRestClient::get_app()});
+    $self->{NTPPage}                 = YaST::Firstboot::NTPClientPage->new({app => YuiRestClient::get_app()});
+    $self->{LanguageAndKeyboardPage} = YaST::Firstboot::LanguageAndKeyboardPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -49,6 +51,12 @@ sub get_keyboard_page {
     my ($self) = @_;
     die "Keyboard layout page is not shown" unless $self->{KeyboardPage}->is_shown();
     return $self->{KeyboardPage};
+}
+
+sub get_language_and_keyboard_page {
+    my ($self) = @_;
+    die "Language and Keyboard page is not shown" unless $self->{LanguageAndKeyboardPage}->is_shown();
+    return $self->{LanguageAndKeyboardPage};
 }
 
 sub get_lan_page {
@@ -75,6 +83,19 @@ sub setup_keyboard {
 sub press_next {
     my ($self) = @_;
     $self->get_generic_page->press_next();
+}
+
+sub get_language_and_keyboard {
+    my ($self) = @_;
+    my %settings;
+    $settings{language} = $self->get_language_and_keyboard_page->get_selected_language();
+    $settings{keyboard} = $self->get_language_and_keyboard_page->get_selected_keyboard();
+    return %settings;
+}
+
+sub setup_language_and_keyboard {
+    my ($self) = @_;
+    $self->press_next();
 }
 
 1;
