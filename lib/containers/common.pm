@@ -257,15 +257,16 @@ sub test_rpm_db_backend {
     my $image    = $args{image};
     my $runtime  = $args{runtime};
     my $expected = 'bdb';
-
+ 
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     my $backend = script_output "$runtime run $image rpm --eval %_db_backend";
-    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
+    my ($running_version, $sp, $img_distri) = get_os_release("$runtime run $image");
+    my (undef, undef, $host_distri) = get_os_release();
     record_info('RPM check', "The rpm db backend in the image $image is $backend");
     # TW and SLE 15-SP3+ uses rpm-ndb in the image
-    if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
+    if ($img_distri eq 'opensuse-tumbleweed' || ($img_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/)) || ($host_distri eq 'centos')) {
         $expected = 'ndb';
     }
     die("The rpm db backend should be $expected") if ($backend ne $expected);
