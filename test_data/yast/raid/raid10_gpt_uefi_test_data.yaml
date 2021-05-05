@@ -50,6 +50,7 @@ disks:
         id: linux-raid
 mds:
   - raid_level: 10
+    name: md0
     chunk_size: '64 KiB'
     devices:
       - vda2
@@ -63,6 +64,7 @@ mds:
       mounting_options:
         should_mount: 1
   - raid_level: 0
+    name: md1
     chunk_size: '64 KiB'
     devices:
       - vda3
