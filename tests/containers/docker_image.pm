@@ -21,8 +21,8 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
-use utils;
 use containers::common;
+use containers::utils;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
@@ -35,7 +35,6 @@ sub run {
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
-
     for my $iname (@{$image_names}) {
         test_container_image(image => $iname, runtime => $runtime);
         test_rpm_db_backend(image => $iname, runtime => $runtime);
