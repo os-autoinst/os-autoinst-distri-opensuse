@@ -14,10 +14,17 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#compare_settings">compare_settings</a></li>
       <li><a href="#validate_cfg_file">validate_cfg_file</a></li>
     </ul>
   </li>
 </ul><h1>lib/cfg_files_utils.pm</h1>
+
+<h2 id="compare_settings">compare_settings</h2>
+
+<pre><code>  compare_settings({ expected =&gt; $value_1, current =&gt; value_2 })</code></pre>
+
+<p>Method validates that the given hash references contain the same data. In any other case, the data from both structures are printed, accompanied by an error message.</p>
 
 <h2 id="validate_cfg_file">validate_cfg_file</h2>
 
