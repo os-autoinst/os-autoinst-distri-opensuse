@@ -26,6 +26,10 @@ sub configure_ha_exporter {
     # Install needed packages
     zypper_call "in prometheus-$exporter_name";
 
+    # Upload the config file (can be in different location)
+    upload_logs("/etc/$exporter_name",     failok => 1);
+    upload_logs("/usr/etc/$exporter_name", failok => 1);
+
     # Get the IP port and start exporter
     my ($ha_exporter_port) = script_output("awk '/port:/ { print \$NF }' /etc/$exporter_name /usr/etc/$exporter_name 2>/dev/null", proceed_on_failure => 1) =~ /(\d+)/;
     $ha_exporter_port ||= 9664;
@@ -53,10 +57,13 @@ sub configure_hanadb_exporter {
     # Modify the configuration file
     assert_script_run "cp $config_dir/config.json.example $hanadb_exporter_config";
     file_content_replace("$hanadb_exporter_config",
-        q(PASSWORD)             => $sles4sap::instance_password,
-        q(./logging_config.ini) => "$config_dir/logging_config.ini",
-        q(hanadb_exporter.log)  => "/var/log/${exporter_name}_$args{rsc_id}.log"
+        q(PASSWORD)              => $sles4sap::instance_password,
+        q(\./logging_config.ini) => "$config_dir/logging_config.ini",
+        q(hanadb_exporter\.log)  => "/var/log/${exporter_name}_$args{rsc_id}.log"
     );
+
+    # Upload the config file
+    upload_logs("$hanadb_exporter_config", failok => 1);
 
     # Get the IP port and start exporter
     ($hanadb_exporter_port) = script_output("awk '/exposition_port/ { print \$NF }' $hanadb_exporter_config", proceed_on_failure => 1) =~ /(\d+)/;
@@ -114,6 +121,9 @@ sub configure_sap_host_exporter {
     file_content_replace("$exporter_config",
         q(:50013) => ":5$args{instance_id}13"
     );
+
+    # Upload the config file
+    upload_logs("$exporter_config", failok => 1);
 
     # Get the IP port and start exporter
     my ($exporter_port) = script_output("awk '/port:/ { print \$NF }' $exporter_config", proceed_on_failure => 1) =~ /(\d+)/;
