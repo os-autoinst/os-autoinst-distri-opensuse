@@ -44,7 +44,22 @@ sub new {
     }, $class;
 }
 
-sub connect {
+sub get_widget_controller {
+    my ($self) = @_;
+    return $self->{widget_controller};
+}
+
+sub get_port {
+    my ($self) = @_;
+    return $self->{port};
+}
+
+sub get_host {
+    my ($self) = @_;
+    return $self->{host};
+}
+
+sub check_connection {
     my ($self, %args) = @_;
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(
         host => $self->{host},

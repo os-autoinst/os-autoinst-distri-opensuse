@@ -26,6 +26,7 @@ use installation_user_settings qw(await_password_check enter_userinfo enter_root
 use version_utils qw(is_sle is_opensuse);
 use scheduler 'get_test_suite_data';
 use cfg_files_utils;
+use YuiRestClient;
 
 my $firstboot;
 my %settings;
@@ -107,7 +108,8 @@ sub firstboot_finish {
 
 sub run {
     my $self = shift;
-    YuiRestClient::connect_to_app();
+    my $app  = YuiRestClient::get_app();
+    $app->check_connection();
     wait_still_screen();
     $firstboot = $testapi::distri->get_firstboot();
     my $test_data     = get_test_suite_data();

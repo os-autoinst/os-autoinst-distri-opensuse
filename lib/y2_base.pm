@@ -148,7 +148,7 @@ Save screenshot and upload widgets json file.
 sub upload_widgets_json {
     save_screenshot;
     if (get_var('YUI_REST_API')) {
-        my $json_content = to_json(YuiRestClient::connect_to_running_app());
+        my $json_content = to_json(YuiRestClient::get_app()->check_connection());
         my $json_path    = $autotest::current_test->{name} . '-widgets.json';
         save_tmp_file($json_path, $json_content);
         make_path('ulogs');

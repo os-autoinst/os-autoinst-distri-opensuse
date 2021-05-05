@@ -21,13 +21,25 @@
 use strict;
 use warnings;
 use base "installbasetest";
-
+use utils qw(zypper_call);
 use testapi;
 use YuiRestClient;
+use Utils::Firewalld qw(add_port_to_zone);
 
 sub run {
     select_console 'root-console';
-    YuiRestClient::setup_libyui_running_system();
+    zypper_call('in libyui-rest-api');
+
+    my $app  = YuiRestClient::get_app();
+    my $port = $app->get_port();
+    record_info('SERVER', "Used host for libyui: " . $app->get_host());
+    record_info('PORT',   "Used port for libyui: " . $app->get_port());
+    # Add the port to permanent config and restart firewalld to apply the changes immediately.
+    # This is needed, because if firewall is restarted for some reason, then the port become
+    # closed (e.g. it was faced while saving settings in yast2 lan) and further tests will not
+    # be able to communicate with YaST modules.
+    add_port_to_zone($port, 'public');
+    set_var('YUI_PARAMS', YuiRestClient::get_yui_params_string($port));
 }
 
 sub test_flags {
