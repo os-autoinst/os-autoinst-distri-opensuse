@@ -95,12 +95,11 @@ sub run {
     # Keep a screenshot for this test
     save_screenshot;
 
-    check_hawk_cpu(idle_check => 1);
-
     barrier_wait("HAWK_CHECKED_$cluster_name");
 
     # If testing HAWK GUI, also wait for those barriers
     if (get_var('HAWKGUI_TEST_ROLE')) {
+        check_hawk_cpu(idle_check => 1);
         barrier_wait("HAWK_GUI_INIT_$cluster_name");
         check_hawk_cpu;
         barrier_wait("HAWK_GUI_CHECKED_$cluster_name");
