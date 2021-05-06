@@ -32,7 +32,7 @@ sub reboot_image {
     my ($self, $msg) = @_;
     power_action('reboot', textmode => 1);
     record_info('reboot', $msg);
-    $self->wait_boot;
+    $self->wait_boot(bootloader_time => 150);
     $self->select_serial_terminal;
     ensure_serialdev_permissions;
 }

@@ -584,7 +584,7 @@ sub load_jeos_tests {
     }
 
     replace_opensuse_repos_tests      if is_repo_replacement_required;
-    loadtest 'console/verify_efi_mok' if get_var('MOK_VERBOSITY');
+    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
 }
 
 sub installzdupstep_is_applicable {
