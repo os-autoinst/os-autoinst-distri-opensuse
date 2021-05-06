@@ -53,7 +53,9 @@ sub set_pxe_boot {
         my $stdout = ipmitool('chassis bootparam get 5');
         last if $stdout =~ m/Force PXE/;
         diag "setting boot device to pxe";
-        ipmitool("chassis bootdev pxe");
+        my $options;
+        $options = 'options=efiboot' if get_var('IPXE_UEFI');
+        ipmitool("chassis bootdev pxe ${options}");
         sleep(3);
     }
 }
