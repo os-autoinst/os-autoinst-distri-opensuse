@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,7 +22,7 @@ sub run {
     send_key 'alt-f10';
     become_root;
     quit_packagekit;
-    if (script_run('zypper se -i yast2-vm') == 104) {
+    if (zypper_call('se yast2-vm', exitcode => [0, 104]) == 104) {
         record_soft_failure 'bsc#1083398 - YaST2-virtualization provides wrong components for SLED';
         zypper_call 'in yast2-vm';
     }
