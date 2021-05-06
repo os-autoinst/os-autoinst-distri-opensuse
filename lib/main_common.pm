@@ -1747,19 +1747,6 @@ sub load_extra_tests {
     return 1;
 }
 
-sub load_extra_tests_toolkits {
-    loadtest "x11/toolkits/prepare";
-    loadtest "x11/toolkits/x11";
-    loadtest "x11/toolkits/tk";
-    loadtest "x11/toolkits/fltk";
-    loadtest "x11/toolkits/motif";
-    loadtest "x11/toolkits/gtk2";
-    loadtest "x11/toolkits/gtk3";
-    loadtest "x11/toolkits/qt5";
-    loadtest "x11/toolkits/swing";
-    return 1;
-}
-
 sub load_rollback_tests {
     return if check_var('ARCH', 's390x');
     # On Xen PV we don't have GRUB.
