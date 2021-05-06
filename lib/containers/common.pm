@@ -23,7 +23,7 @@ use testapi;
 use registration;
 use utils qw(zypper_call systemctl file_content_replace);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
-use containers::utils qw(can_build_sle_base registry_url);
+use containers::utils 'can_build_sle_base';
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
   clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
@@ -109,7 +109,7 @@ sub allow_selected_insecure_registries {
     my %args    = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
-    my $registry = registry_url();
+    my $registry = get_var('REGISTRY', 'docker.io');
 
     assert_script_run "echo $runtime ...";
     if ($runtime =~ /docker/) {
