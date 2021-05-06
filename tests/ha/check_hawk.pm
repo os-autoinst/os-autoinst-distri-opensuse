@@ -35,7 +35,7 @@ sub check_hawk_cpu {
         # Wrapping script_output in eval { } as node can be fenced by hawk test from client.
         # In fenced node, script_output will croak and kill the test. This prevents it
         my $metric = eval {
-            script_output q@ps axo pcpu,comm | awk '/hawk|puma/ {total += $1} END {print "cpu_usage["total"]"}'@,
+            script_output q@ps axo pcpu,cmd | awk '/hawk|puma/ {if ($2 != "awk") total += $1} END {print "cpu_usage["total"]"}'@,
               proceed_on_failure => 1, quiet => 1;
         };
         if ($@) {
@@ -58,6 +58,7 @@ sub check_hawk_cpu {
         sleep bmwqemu::scale_timeout(1);
         last if ($args{idle_check} && (--$idle_check_loops < 0));
     }
+    die "No HAWK/PUMA CPU usage measurements found. Is it running?" unless (@cpu_usage);
     my $cpu_usage = sum(@cpu_usage) / @cpu_usage;
     my $msg       = "HAWK/PUMA CPU usage was $cpu_usage";
     $msg .= " while idle" if $args{idle_check};
