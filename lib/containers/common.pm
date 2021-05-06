@@ -256,19 +256,26 @@ sub test_rpm_db_backend {
     my %args     = @_;
     my $image    = $args{image};
     my $runtime  = $args{runtime};
-    my $expected = 'bdb';
+    my %expected = (
+        sles12sp3             => 'bdb',
+        sles12sp4             => 'bdb',
+        sles12sp5             => 'bdb',
+        sles15sp0             => 'bdb',
+        sles15sp2             => 'bdb',
+        sles15sp3             => 'ndb',
+        'opensuse-tumbleweed' => 'ndb',
+        leap                  => 'bdb'
+    );
 
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     my $backend = script_output "$runtime run $image rpm --eval %_db_backend";
-    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
+    my ($running_version, $sp, $img_distri) = get_os_release("$runtime run $image");
+    my $item   = $img_distri eq 'sles'      ? "${img_distri}${running_version}sp${sp}" : $img_distri;
+    my $actual = $backend eq '%_db_backend' ? 'bdb'                                    : $expected{$item};
     record_info('RPM check', "The rpm db backend in the image $image is $backend");
-    # TW and SLE 15-SP3+ uses rpm-ndb in the image
-    if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
-        $expected = 'ndb';
-    }
-    die("The rpm db backend should be $expected") if ($backend ne $expected);
+    die("The rpm db backend should be $expected{$item}") unless ($actual =~ /$expected{$item}/);
 }
 
 1;
