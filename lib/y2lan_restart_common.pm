@@ -330,7 +330,7 @@ Confirm if a warning popup for Networkmanager controls networking.
 
 =cut
 sub handle_Networkmanager_controlled {
-    assert_screen 'Networkmanager_controlled', 90;
+    assert_screen 'Networkmanager_controlled', 300;
     send_key "ret";    # confirm networkmanager popup
     assert_screen "Networkmanager_controlled-approved";
     send_key "alt-c";
