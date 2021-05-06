@@ -58,6 +58,7 @@ sub test_ui {
     send_key "spc";
     send_key "alt-n";
     assert_screen "yast2_rmt_service_status";
+    wait_still_screen;
     send_key "alt-n";
     assert_screen "yast2_rmt_config_summary";
     send_key "alt-f";
