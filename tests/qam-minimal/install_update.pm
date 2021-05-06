@@ -33,6 +33,11 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
+    # shim update will fail with old grub2 due to old signature
+    if (check_var('MACHINE', 'uefi')) {
+        zypper_call('up grub2 grub2-x86_64-efi kernel-default');
+    }
+
     capture_state('before');
 
     # Set and check patch variables
