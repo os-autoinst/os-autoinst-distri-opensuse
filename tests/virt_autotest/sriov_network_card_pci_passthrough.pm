@@ -238,25 +238,24 @@ sub prepare_guest_for_sriov_passthrough {
                 assert_script_run "sed -i '/<currentMemory/d' $vm.xml";
                 record_info "Disable guest ballooning", "$vm";
             }
-            #enable pci-passthrough and set e820_host for pv guest
-            #enable pci-passthrough for fv guest on sles15sp2+
-            #refer to bug #1167217 for the reason
-            #but need wait libvirt support for pv guest requested in a bug on sles12sp5
+            #enable pci-passthrough on sles15sp2+
+            #set e820_host for pv guest
+            #refer to bug #1167217 and but #1185081 for the reason
             if (is_pv_guest($vm) || (is_fv_guest($vm) && is_sle('>=15-SP2'))) {
-                unless (script_run("grep '<features>' $vm.xml") == 0) {
+                unless (script_run("xmlstarlet sel -t -c /domain/features $vm.xml") == 0) {
                     assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $vm.xml";
                 }
-                assert_script_run "xmlstarlet edit -L \\
-                                       -s //features -t elem -n xen -v '' \\
-                                       -s ///xen -t elem -n passthrough -v '' \\
-                                       -s ////passthrough -t attr -n state -v on \\
-                                       $vm.xml";
-                if (is_pv_guest($vm)) {
-                    assert_script_run "xmlstarlet edit -L \\
-                                           -s ///xen -t elem -n e820_host -v '' \\
-                                           -s ////e820_host -t attr -n state -v on \\
-                                           $vm.xml";
+                unless (script_run("xmlstarlet sel -t -c /domain/features/xen $vm.xml") == 0) {
+                    assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $vm.xml";
                 }
+                assert_script_run "xmlstarlet edit -L \\
+                                       -s /domain/features/xen -t elem -n passthrough -v '' \\
+                                       -s ////passthrough -t attr -n state -v on \\
+                                       $vm.xml" if is_sle('>=15-SP2');
+                assert_script_run "xmlstarlet edit -L \\
+                                           -s /domain/features/xen -t elem -n e820_host -v '' \\
+                                           -s ////e820_host -t attr -n state -v on \\
+                                           $vm.xml" if is_pv_guest($vm);
             }
         }
 
@@ -358,7 +357,6 @@ sub plugin_vf_device {
     assert_script_run "ssh root\@$vm \"lspci -vvv -s $vf->{vm_bdf}\"";
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
-
 }
 
 
