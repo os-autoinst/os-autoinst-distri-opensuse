@@ -45,11 +45,13 @@ sub test_seccomp {
 
 sub check_docker_firewall {
     my $container_name = 'sut_container';
-    my $running        = script_output qq(docker ps -a -q | wc -l);
-    validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running != 0;
-    assert_script_run "firewall-cmd --list-all --zone=docker";
-    validate_script_output "firewall-cmd --list-interfaces --zone=docker",  sub { /docker0/ };
-    validate_script_output "firewall-cmd --list-interfaces --zone=trusted", sub { /^\s*$/ };
+    my $docker_version = get_docker_version();
+    systemctl('is-active firewalld');
+    my $running = script_output qq(docker ps -q | wc -l);
+    validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running == 0;
+    # Docker zone is created only for SLE15-SP3 for version <20.10 unless is_opensuse
+    assert_script_run "firewall-cmd --list-all --zone=docker" if (is_opensuse() || is_sle('>=15-sp3'));
+    validate_script_output "firewall-cmd --list-interfaces --zone=docker", sub { /docker0/ } if (check_runtime_version($docker_version, ">=20.10") || is_sle('>=15-sp3'));
     # Rules applied before DOCKER. Default is to listen to all tcp connections
     # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
     validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
@@ -75,14 +77,14 @@ sub check_runtime_version {
 sub container_ip {
     my ($container, $runtime) = @_;
     my $ip = script_output "$runtime inspect $container --format='{{.NetworkSettings.IPAddress}}'";
-    record_info "$ip";
+    record_info "container IP", "$ip";
     return $ip;
 }
 
 sub registry_url {
     my ($container_name, $version_tag) = @_;
-    my $registry = get_var('REGISTRY', 'docker.io');
-    $registry = trim($registry);
+    my $registry = trim(get_var('REGISTRY', 'docker.io'));
+    $registry =~ s{/$}{};
     # Images from docker.io registry are listed without the 'docker.io/library/'
     # Images from custom registry are listed with the 'server/library/'
     # We also filter images the same way they are listed.

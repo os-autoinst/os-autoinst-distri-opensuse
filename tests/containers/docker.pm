@@ -51,7 +51,7 @@ sub run {
     test_seccomp();
     allow_selected_insecure_registries(runtime => 'docker');
 
-    check_docker_firewall() if (check_runtime_version(get_docker_version(), ">=20.10") && $self->firewall() eq 'firewalld');
+    check_docker_firewall() if $self->firewall() eq 'firewalld';
     # Run basic docker tests
     basic_container_tests(runtime => "docker");
 
