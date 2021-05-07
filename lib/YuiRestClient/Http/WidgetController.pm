@@ -38,6 +38,16 @@ sub set_interval {
     $self->{interval} = $interval;
 }
 
+sub set_host {
+    my ($self, $host) = @_;
+    $self->{host} = $host;
+}
+
+sub set_port {
+    my ($self, $port) = @_;
+    $self->{port} = $port;
+}
+
 sub find {
     my ($self, $args) = @_;
 
