@@ -26,6 +26,7 @@ sub run {
 
     mutex_wait('support_server_ready');
     prepare_mm_network();
+    barrier_wait('networking_prepared');
 
     assert_script_run("curl -L https://github.com/rancher/rke/releases/download/v1.1.15/rke_linux-amd64 -o ~/rke", 360);
     assert_script_run("chmod +rx ~/rke");

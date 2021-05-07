@@ -27,6 +27,7 @@ sub run {
 
     mutex_wait('support_server_ready');
     prepare_mm_network();
+    barrier_wait('networking_prepared');
 
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_docker_when_needed($host_distri);

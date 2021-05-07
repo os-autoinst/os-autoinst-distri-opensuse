@@ -25,6 +25,7 @@ sub run {
 
     mutex_wait('support_server_ready');
     prepare_mm_network();
+    barrier_wait('networking_prepared');
 
     assert_script_run("curl -L https://get.k3s.io -o ~/get_k3s", 360);
     assert_script_run("chmod +rx ~/get_k3s");
