@@ -49,8 +49,6 @@ our @EXPORT = qw(
   is_kernel_test
   is_ltp_test
   is_livesystem
-  is_mediacheck
-  is_mediacheck
   is_memtest
   is_memtest
   is_server
@@ -322,10 +320,6 @@ sub is_memtest {
     return get_var('MEMTEST');
 }
 
-sub is_mediacheck {
-    return get_var('MEDIACHECK');
-}
-
 sub is_desktop {
     return get_var('FLAVOR', '') =~ /^Desktop/ || check_var('SLE_PRODUCT', 'sled');
 }
@@ -387,7 +381,7 @@ sub load_svirt_vm_setup_tests {
     else {
         loadtest "installation/bootloader_svirt" unless get_var('UPGRADE');
     }
-    unless (is_installcheck || is_memtest || is_rescuesystem || is_mediacheck) {
+    unless (is_installcheck || is_memtest || is_rescuesystem) {
         load_svirt_boot_tests;
     }
 }

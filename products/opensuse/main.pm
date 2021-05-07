@@ -271,10 +271,6 @@ elsif (get_var('NFV')) {
 elsif (get_var("REGRESSION")) {
     load_common_x11;
 }
-elsif (is_mediacheck) {
-    load_svirt_vm_setup_tests;
-    loadtest "installation/mediacheck";
-}
 elsif (is_memtest) {
     if (!get_var("OFW")) {    #no memtest on PPC
         load_svirt_vm_setup_tests;
