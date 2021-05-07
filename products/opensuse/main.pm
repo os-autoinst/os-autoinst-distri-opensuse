@@ -281,14 +281,6 @@ elsif (is_memtest) {
         loadtest "installation/memtest";
     }
 }
-elsif (get_var('GNUHEALTH')) {
-    boot_hdd_image;
-    loadtest 'gnuhealth/gnuhealth_install';
-    loadtest 'gnuhealth/gnuhealth_setup';
-    loadtest 'gnuhealth/gnuhealth_client_install';
-    loadtest 'gnuhealth/gnuhealth_client_preconfigure';
-    loadtest 'gnuhealth/gnuhealth_client_first_time';
-}
 elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
     loadtest "installation/rescuesystem_validate_131";
