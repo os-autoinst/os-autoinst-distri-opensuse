@@ -338,10 +338,7 @@ sub is_boot_raid_partition_required {
 
 sub add_partitions {
     ## no RAID /boot partition for ppc
-    if (get_var("OFW")) {
-        add_prep_boot_partition;
-    }
-    else {
+    if (!get_var("OFW")) {
         send_key "right" unless is_storage_ng;
         assert_screen 'partitioning_raid-hard_disks-unfolded';
         send_key "down";
@@ -351,25 +348,37 @@ sub add_partitions {
     @devices = qw(xvdb xvdc xvdd xvde) if check_var('VIRSH_VMM_FAMILY', 'xen');
     @devices = qw(sda sdb sdc sdd)     if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     for (@devices) {
+        record_info("looping $_");
+
+        if (get_var("OFW")) {
+            record_info("PRePBoot");
+            add_prep_boot_partition;
+        }
+
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
         # storage-ng requires bios boot partition if not UEFI and not OFW
         if (get_var('UEFI')) {
+            record_info("boot-efi");
             addpart('boot-efi');
         }
         elsif (is_storage_ng && !get_var('OFW')) {
+            record_info("bios-boot");
             addpart('bios-boot');
         }
         else {
+            record_info("boot");
             addpart('boot');
         }
 
         # Need to navigate to the disk manually
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_boot_added';
+        record_info("boot");
         addpart('root');
         # Need to navigate to the disk manually
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
         assert_screen 'partitioning_raid-part_root_added';
+        record_info("swap");
         addpart('swap');
         # Need to navigate to the disk manually
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", 'down' if is_storage_ng;
@@ -388,6 +397,7 @@ sub add_partitions {
         # select next disk
         send_key "shift-tab" unless is_storage_ng;
         send_key "shift-tab" unless is_storage_ng;
+        record_info("Finished $_");
     }
 }
 
