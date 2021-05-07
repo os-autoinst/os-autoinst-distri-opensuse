@@ -111,16 +111,19 @@ sub run {
             # We need 2.5 times $RAM + 50G for HANA installation.
             my $device = get_var('HANA_INST_DEV', '');
             if ($device) {
-                die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)\d+|);
-                my $disk = $1;
+                die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)(\d+)|);
+                my $disk    = $1;
+                my $partnum = $2;
                 if (script_run "test -b $device") {
                     # Need to create the partition if it does not exist
                     my $lastsector = script_output "parted --machine --script $disk -- unit MB print | tail -1 | cut -d: -f3";
                     $lastsector =~ /(\d+)MB/;
                     $lastsector = $1 + 1;
                     assert_script_run "parted --script $disk -- mkpart primary $lastsector -1";
+                    assert_script_run "parted --script $disk -- set $partnum lvm on";
                     assert_script_run "test -b $device";    # Check partition was created successfully
                     script_run "wipefs -a -f $device";      # This is a new partition, but it could have traces of old tests. We do some cleanup
+                    script_run "partprobe $device";         # Reload kernel table
                 }
             }
             else {
@@ -137,12 +140,15 @@ sub run {
                 my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
                 until (script_run "${lv_cmd}remove -f $lv_device 2>&1 | grep -q \"Can't open .* exclusively\.\"") {
                     sleep bmwqemu::scale_timeout(2);
+                    # Try to fix device-mapper table as a workaround
+                    script_run("dmsetup remove $lv_device");
                     last if (--$looptime <= 0);
                 }
                 if ($looptime <= 0) {
                     record_info('ERROR', "Device $lv_device seems to be locked!", result => 'fail');
-                    # Just retry the $lv_cmd to have a "proper" error message
+                    # Just retry the $lv_cmd and a 'dmsetup ls' to have a "proper" error message
                     script_run "${lv_cmd}remove -f $lv_device";
+                    script_run 'dmsetup ls';
                     die 'locked block device';    # We have to force the die, record_info don't do it
                 }
             }
