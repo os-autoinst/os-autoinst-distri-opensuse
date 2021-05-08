@@ -1,0 +1,84 @@
+#openldap database
+
+dn: dc=sssdtest,dc=com
+objectClass: dcObject
+objectClass: organization
+objectClass: top
+o: Tony test
+dc: sssdtest
+
+dn: ou=groups,dc=sssdtest,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: ou=users,dc=sssdtest,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: ou=system,dc=sssdtest,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: system
+
+dn: cn=binduser,ou=system,dc=sssdtest,dc=com
+objectClass: organizationalRole
+objectClass: simpleSecurityObject
+cn: binduser
+userPassword: novell
+description: User for bind
+
+dn: cn=testgroup,ou=groups,dc=sssdtest,dc=com
+objectClass: posixGroup
+objectClass: groupOfNames
+cn: testgroup
+gidNumber: 5000
+memberUid: adam bob
+member: uid=adam,ou=users,dc=sssdtest,dc=com
+member: uid=bob,ou=users,dc=sssdtest,dc=com
+
+dn: uid=adam,ou=users,dc=sssdtest,dc=com
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: adam
+sn: openldap
+uid: adam
+uidNumber: 5008
+gidNumber: 5000
+userPassword: open5use
+homeDirectory: /home/adam
+loginShell: /bin/sh
+gecos: openldap user
+
+dn: uid=bob,ou=users,dc=sssdtest,dc=com
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: bob
+sn: openldap
+uid: bob
+uidNumber: 5009
+gidNumber: 5000
+userPassword: open5use
+homeDirectory: /home/bob
+loginShell: /bin/sh
+gecos: openldap user
+
+#sudoers rule
+
+dn: ou=SUDOers,dc=sssdtest,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: SUDOers
+description: SUDOers container
+
+dn: cn=adam,ou=SUDOers,dc=sssdtest,dc=com
+objectClass: sudoRole
+objectClass: top
+cn: adam
+sudoUser: adam
+sudoRunAsUser: bob
+sudoHost: ALL
+sudoCommand: /usr/bin/cat /home/bob/hello

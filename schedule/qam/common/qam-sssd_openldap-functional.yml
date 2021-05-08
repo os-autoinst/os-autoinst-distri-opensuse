@@ -1,0 +1,6 @@
+---
+name: sssd_openldap_functional
+schedule:
+- installation/bootloader_start
+- boot/boot_to_desktop
+- console/sssd_openldap_functional
