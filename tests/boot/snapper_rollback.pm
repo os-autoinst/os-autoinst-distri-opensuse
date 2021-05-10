@@ -39,7 +39,7 @@ sub run {
     my $ret     = script_run("snapper --help | grep disable-used-space");
     my $disable = '';
     $disable = '--disable-used-space' unless $ret;
-    assert_script_run("snapper list $disable | tail -n 2 | grep rollback", 180);
+    assert_script_run("snapper list $disable | tail -n 2 | grep rollback", 240);
     power_action('reboot', textmode => 1, keepconsole => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(ready_time => 300, bootloader_time => 300);
