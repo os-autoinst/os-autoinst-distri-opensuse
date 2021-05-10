@@ -40,7 +40,7 @@ use version_utils 'is_sle';
 use set_config_as_glue;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
-use virt_utils qw(upload_virt_logs);
+use virt_utils qw(upload_virt_logs remove_vm restore_downloaded_guests);
 
 sub run_test {
     my $self = shift;
@@ -67,6 +67,15 @@ sub run_test {
     # enable 8 vfs for the SR-IOV device on host
     my @host_vfs = enable_vf(@host_pfs);
     record_info("VFs enabled", "@host_vfs");
+
+    #save original guest configuration file in case of restore in post_fail_hook()
+    my $downloaded_xml_dir = "/tmp/download_vm_xml";
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        unless (script_run("ls $downloaded_xml_dir/$guest.xml") == 0) {
+            assert_script_run "mkdir -p $downloaded_xml_dir";
+            assert_script_run "virsh dumpxml --inactive $guest > $downloaded_xml_dir/$guest.xml";
+        }
+    }
 
     foreach my $guest (keys %virt_autotest::common::guests) {
 
@@ -155,6 +164,9 @@ sub run_test {
 
     #upload network device related logs
     upload_virt_logs($log_dir, "logs");
+
+    #redefine guest from their original configuration files
+    restore_original_guests();
 }
 
 
@@ -214,6 +226,7 @@ sub enable_vf {
 #set up guest test environment to enable attach VFs
 sub prepare_guest_for_sriov_passthrough {
     my $vm = shift;
+
 
     unless (is_sle('=12-SP5') && (is_kvm_host || (is_fv_guest($vm) && !is_guest_ballooned($vm)))) {
 
@@ -410,22 +423,37 @@ sub save_network_device_status_logs {
 
 }
 
+#restore guests for subsequent test modules
+sub restore_original_guests {
+
+    my $downloaded_xml_dir = "/tmp/download_vm_xml";
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        remove_vm($guest);
+        if (script_run("ls $downloaded_xml_dir/$guest.xml") == 0) {
+            restore_downloaded_guests($guest, $downloaded_xml_dir);
+            record_info "Guest $guest is restored.";
+        }
+        else {
+            record_soft_failure "Fail to restore $guest!";
+        }
+    }
+}
+
 sub post_fail_hook {
     my $self = shift;
 
-    my $log_dir = "/tmp/sriov_pcipassthru";
-
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
-    my $vm_hostnames       = script_output "virsh list --all --name | grep sles";
-    my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
-    foreach (@vm_hostnames_array)
-    {
-        save_network_device_status_logs($log_dir, $_, "post_fail_hook");
-    }
-
+    my $log_dir = "/tmp/sriov_pcipassthru";
+    save_network_device_status_logs($log_dir, $_, "post_fail_hook") foreach (keys %virt_autotest::common::guests);
     upload_virt_logs($log_dir, "network_device_status");
     $self->SUPER::post_fail_hook;
+    restore_original_guests();
 
+}
+
+sub test_flags {
+    #continue subsequent test in the case test restored
+    return {fatal => 0};
 }
 
 1;
