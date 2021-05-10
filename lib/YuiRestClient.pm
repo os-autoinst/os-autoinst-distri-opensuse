@@ -37,11 +37,26 @@ sub get_app {
 }
 
 sub get_host {
+    my (%args) = @_;
+    $host = init_host(%args) unless $host;
     return $host;
 }
 
 sub get_port {
+    $port = init_port() unless $port;
     return $port;
+}
+
+sub set_host {
+    my ($yuihost) = @_;
+    $host = $yuihost;
+    $app->get_widget_controller()->set_host($yuihost);
+}
+
+sub set_port {
+    my ($yuiport) = @_;
+    $port = $yuiport;
+    $app->get_widget_controller()->set_host($yuiport);
 }
 
 sub set_interval {
@@ -71,7 +86,6 @@ sub init_app {
 }
 
 sub init_port {
-    return $port if defined $port;
     $port = get_var('YUI_START_PORT', 39000);
     $port += get_var('VNC') =~ /(?<vncport>\d+)/ ? $+{vncport} : int(rand(1000));
     die "Cannot set port for YUI REST API" unless $port;
@@ -81,9 +95,8 @@ sub init_port {
 }
 
 sub init_host {
-    return $host if defined $host;
     my ($installation)             = @_;
-    my $yuiport                    = init_port();
+    my $yuiport                    = get_port();
     my $ip_regexp                  = qr/(?<ip>(\d+\.){3}\d+)/i;
     my $get_ip_from_console_output = sub {
         YuiRestClient::Wait::wait_until(object => sub {
@@ -132,7 +145,7 @@ sub is_libyui_rest_api {
 }
 
 sub set_libyui_backend_vars {
-    my $yuiport = init_port();
+    my $yuiport = get_port();
     if (check_var('BACKEND', 'qemu')) {
         # On qemu we connect to the worker using port forwarding
         set_var('NICTYPE_USER_OPTIONS', "hostfwd=tcp::$yuiport-:$yuiport");
