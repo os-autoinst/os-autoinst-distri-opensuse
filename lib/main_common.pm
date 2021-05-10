@@ -1303,6 +1303,7 @@ sub load_x11tests {
             loadtest "x11/systemsettings";
         }
         loadtest "x11/dolphin";
+        loadtest "x11/konsole";
     }
     # SLES4SAP default installation does not configure snapshots
     if (snapper_is_applicable() and !is_sles4sap()) {
