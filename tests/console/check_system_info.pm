@@ -29,6 +29,7 @@ use List::MoreUtils 'uniq';
 
 sub run {
     select_console('root-console');
+    assert_script_run('setterm -blank 0');
 
     assert_script_run("SUSEConnect --status-text > /dev/$serialdev", timeout => 180);
 
@@ -44,9 +45,12 @@ sub run {
     $myaddons = $myaddons . ",base,serverapp"                             if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
     $myaddons = $myaddons . ",base,desktop,we,python2"                    if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
     $myaddons = $myaddons . ",base,serverapp,desktop,dev,lgm,python2,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+    $myaddons = $myaddons . ",python2"                                    if (is_sle('=15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
 
     # After upgrade, system doesn't include ltss extension
     $myaddons =~ s/ltss,?//g;
+    # For hpc, system doesn't include legacy module
+    $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
     my @addons        = grep { $_ =~ /\w/ } split(/,/, $myaddons);
     my @unique_addons = uniq @addons;
     foreach my $addon (@unique_addons) {
@@ -54,7 +58,7 @@ sub run {
         record_info("$addon module fullname: ", $name);
         $name = "sle-product-we"      if (($name =~ /sle-we/)      && !get_var("MEDIA_UPGRADE"));
         $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
-        my $out = script_output("zypper lr | grep -i $name", proceed_on_failure => 1);
+        my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
 }
