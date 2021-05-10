@@ -18,10 +18,17 @@
 # rckadmind service start, stop, restart, status
 
 use base 'consoletest';
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl script_retry);
 use strict;
 use warnings;
 use testapi;
+
+sub logout_and_verify_shell_availability {
+    script_run 'logout', 0;
+    # verify shell is ready with simple command
+    # avoid fail due to following command being typed while logout in progress
+    script_retry('w', delay => 1, retry => 3);
+}
 
 sub run {
     my $self = shift;
@@ -77,7 +84,7 @@ sub run {
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;
     enter_cmd "klist 2> /tmp/krb5";
-    script_run 'logout',                                                       0;
+    logout_and_verify_shell_availability;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #create kinit tickets cache for the user:
@@ -88,7 +95,7 @@ sub run {
 
     #confirm the users tickets cache is created, also confirm its on the FQDN:
     enter_cmd "klist > /tmp/krb5-klist-cache 2> /dev/null";
-    script_run 'logout',                                                                                         0;
+    logout_and_verify_shell_availability;
     validate_script_output "grep -c \"krbtgt\/openqa.kerberus.org\@openqa.kerberus.org\" /tmp/krb5-klist-cache", sub { /1/ };
 
     #validate tickets cache output integrity:
@@ -98,7 +105,7 @@ sub run {
     script_run 'su - tester', 0;
     enter_cmd "kdestroy";
     enter_cmd "klist 2> /tmp/krb5";
-    script_run 'logout',                                                       0;
+    logout_and_verify_shell_availability;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #test the service management script:
