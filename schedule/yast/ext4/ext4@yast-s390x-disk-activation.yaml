@@ -5,7 +5,7 @@ description:    >
   Requires disk activation and grub is not displayed due to console reconnection.
 vars:
   FILESYSTEM: ext4
-  FORMAT_DASD: install
+  FORMAT_DASD: pre_install
 schedule:
   - installation/bootloader_start
   - installation/welcome
