@@ -357,6 +357,10 @@ sub plugin_vf_device {
     assert_script_run "ssh root\@$vm \"lspci -vvv -s $vf->{vm_bdf}\"";
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    if ($vf->{vm_nic} eq '') {
+        script_output "ssh root\@$vm \"for FILE in /sys/class/net/*/address; do echo \\\$FILE; cat \\\$FILE; done\"";    #for debug
+        die "Fail to get NIC in $vm: nic='$vf->{vm_nic}'";
+    }
 }
 
 
