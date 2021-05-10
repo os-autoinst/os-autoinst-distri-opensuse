@@ -130,10 +130,6 @@ sub init_host {
         select_console('root-console');
         $host = &$get_ip_from_console_output;
         select_console('installation') if $installation;
-    } elsif ($installation && is_ssh_installation) {
-        my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
-        $cmd .= get_yui_params_string($yuiport) . " yast.ssh";
-        enter_cmd($cmd);
     }
 
     set_var('YUI_SERVER', $host);

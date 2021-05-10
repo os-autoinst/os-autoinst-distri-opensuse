@@ -21,13 +21,22 @@
 use strict;
 use warnings;
 use base "installbasetest";
+use Utils::Backends qw(is_svirt is_ssh_installation);
+use Utils::Architectures qw(is_s390x);
 use testapi;
 use YuiRestClient;
 
 sub run {
-    my $app = YuiRestClient::get_app(installation => 1);
+    my $app  = YuiRestClient::get_app(installation => 1);
+    my $port = $app->get_port();
     record_info('SERVER', "Used host for libyui: " . $app->get_host());
-    record_info('PORT',   "Used port for libyui: " . $app->get_port());
+    record_info('PORT',   "Used port for libyui: " . $port);
+
+    if (is_ssh_installation) {
+        my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
+        $cmd .= YuiRestClient::get_yui_params_string($port) . " yast.ssh";
+        enter_cmd($cmd);
+    }
     $app->check_connection(timeout => 500, interval => 10);
 }
 
