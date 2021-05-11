@@ -29,7 +29,7 @@ use List::MoreUtils 'uniq';
 
 sub run {
     select_console('root-console');
-    assert_script_run('setterm -blank 0');
+    assert_script_run('setterm -blank 0') unless (check_var('ARCH', 's390x'));
 
     assert_script_run("SUSEConnect --status-text > /dev/$serialdev", timeout => 180);
 
