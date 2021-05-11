@@ -7,6 +7,7 @@ vars:
   AUTOYAST: autoyast_sle15/mini_remote.xml
   AUTOYAST_CONFIRM: 1
   DESKTOP: textmode
+  KEEP_DISKS: 1
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
