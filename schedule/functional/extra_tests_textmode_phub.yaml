@@ -9,6 +9,7 @@ schedule:
     - console/machinery
     - console/python_scientific
     - '{{wpa_supplicant}}'
+    - console/vmstat
     - sysauth/sssd
     - console/coredump_collect
 conditional_schedule:
