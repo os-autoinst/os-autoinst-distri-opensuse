@@ -49,6 +49,7 @@ sub has_conflict {
         'dpdk-devel'              => 'dpdk-thunderx-devel',
         'dpdk-kmp-default'        => 'dpdk-thunderx-kmp-default',
         'pulseaudio-module-gconf' => 'pulseaudio-module-gsettings',
+        'systemtap-sdt-devel'     => 'systemtap-headers',
     );
     return $conflict{$binary};
 }
