@@ -15,12 +15,12 @@ use base 'wickedbase';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call systemctl file_content_replace zypper_ar ensure_ca_certificates_suse_installed);
+use utils qw(zypper_call systemctl file_content_replace zypper_ar);
 use version_utils 'is_sle';
 use network_utils qw(iface setup_static_network);
 use serial_terminal;
 use main_common 'is_updates_tests';
-use repo_tools 'generate_version';
+use repo_tools qw(generate_version ensure_ca_certificates_suse_installed);
 
 sub run {
     my ($self, $ctx) = @_;
