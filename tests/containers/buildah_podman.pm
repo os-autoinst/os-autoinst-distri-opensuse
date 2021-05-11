@@ -32,7 +32,7 @@ sub run {
     allow_selected_insecure_registries(runtime => 'podman');
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    for my $iname (@{$stable_names}) {
+    for my $iname (@{$image_names}) {
         record_info 'testing image', $iname;
         test_container_image(image => $iname, runtime => 'buildah');
         if (check_os_release('suse', 'PRETTY_NAME')) {
