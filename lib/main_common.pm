@@ -693,6 +693,8 @@ sub remove_common_needles {
 
     unregister_needle_tags("ENV-VIDEOMODE-text") unless check_var("VIDEOMODE", "text");
     unregister_needle_tags('ENV-ARCH-s390x')     unless check_var('ARCH',      's390x');
+    # Only for container tests
+    unregister_needle_tags('ENV-UBUNTU-1') unless get_var('HDD_1') =~ /ubuntu/;
     if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
         unregister_needle_tags("ENV-INSTLANG-en_US");
     }

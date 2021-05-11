@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,17 +16,22 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use utils;
-use version_utils 'check_os_release';
+use version_utils qw(check_os_release is_sle);
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+    my $interface;
     if (check_os_release('suse', 'PRETTY_NAME')) {
+        $interface = script_output q@ip r s default | awk '{printf $5}'@;
+        validate_script_output "ip a s '$interface'", sub { m/((\d{1,3}\.){3}\d{1,3}\/\d{1,2})/ };
         ensure_ca_certificates_suse_installed();
     }
     else {
         assert_script_run "dhclient -v";
-        assert_script_run "curl http://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/ssl/certs/SUSE_Trust_Root.crt";
+        $interface = script_output q@ip r s default | awk '{printf $5}'@;
+        validate_script_output "ip a s '$interface'", sub { m/((\d{1,3}\.){3}\d{1,3}\/\d{1,2})/ };
+        assert_script_run "curl http://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/ssl/certs/SUSE_Trust_Root.crt" if is_sle();
         # Stop unattended-upgrades on Ubuntu hosts to prevent interference from automatic updates
         assert_script_run "sed -i 's/Unattended-Upgrade \"1\"/Unattended-Upgrade \"0\"/' /etc/apt/apt.conf.d/20auto-upgrades" if check_os_release("ubuntu", "PRETTY_NAME");
     }
