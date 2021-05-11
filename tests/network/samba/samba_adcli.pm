@@ -96,6 +96,47 @@ sub update_password {
     }
 }
 
+sub test_gpo_enforcement {
+
+    # We want to test that GPO policies for computers are working when they are comming from AD
+    # for that we set up a policy where user Bernhard is not allowed to login using terminal services
+    # which for linux translates in ssh (for instance), but will allow him to connect using a local
+    # connection which is why we're logging in as geekouser first, and then logging in as bernhard locally
+    # via su - bernhard
+    #
+    # All these tests belong to the SSSD + AD side of testing
+    # net ads join & leave commands belong to samba section furthermore this test is either to be split
+    # or extended with better separation of domain
+
+    # bernhard is denied remote login
+    enter_cmd "expect -c 'spawn ssh -l bernhard\@geeko.com localhost -t;expect Password:;send Nots3cr3t\\n;interact'";
+    sleep 10;                                                             # sleep 10 seconds, to wait for password validation and stuff
+    assert_script_run "whoami | grep root";                               # GPO in the AD dictates that bernhard can't login over ssh
+    record_info("ssh login: DENIED", "bernhard can't login remotely");    # if the domain user is known to the system, user bernhard can login further ahead
+                                                                          # sssd/pam will first look in the domain, and that will deny bernhard a login
+    assert_script_run "getent passwd bernhard";
+
+    # geekouser is allowed to login
+    # geekouser's login should be extended to log in as bernhard to check that local login is also working
+    enter_cmd "expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;interact'";
+    assert_script_run 'echo $SSH_TTY | grep pts';
+    assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
+    assert_script_run "whoami | grep geekouser";
+    record_info("ssh: ALLOWED");
+
+    # Login as bernhard now
+    enter_cmd "expect -c 'spawn su - bernhard;expect sword:;send Nots3cr3t\\n;interact'";
+    assert_script_run 'echo $SSH_TTY | grep "^$"';
+    assert_script_run "whoami | grep bernhard";
+    record_info("local: PASS", "bernhard logged in");
+
+    enter_cmd "logout";    # leaves bernhard's session
+    assert_script_run "whoami | grep geekouser";
+
+    enter_cmd "logout";                        # leaves geekouser's session and terminates the expect command calls started above
+    assert_script_run "whoami | grep root";    # we're back to root, now we can leave the domain
+}
+
 sub disable_ipv6 {
     my $self = shift;
     $self->select_serial_terminal;
@@ -112,9 +153,12 @@ sub enable_ipv6 {
 
 sub run {
     my $self = shift;
-    # select_console 'root-console';
     $self->select_serial_terminal;
     $self->disable_ipv6 if is_s390x;
+
+    # avoid harmless failures in virtio-console due to unexpected PS1
+    assert_script_run("chmod 666 /dev/$serialdev");    # avoid geekouser not being able to use $serialdev
+
     samba_sssd_install;
 
     #Join the Active Directory
@@ -156,6 +200,11 @@ sub run {
 
     # poo#91950 (update machine password with adcli --add-samba-data option)
     update_password() unless is_sle('=15');    # sle 15 does not support the `--add-samba-data` option
+
+    # Testing login via sssd
+    test_gpo_enforcement();
+
+    # Leave the domain
 
     assert_script_run "echo Nots3cr3t  | net ads leave --domain geeko.com -U Administrator -i";
 
