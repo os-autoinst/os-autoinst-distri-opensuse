@@ -147,10 +147,16 @@ sub run {
     # - Mount //GEEKO
     # - smbclient //10.162.30.119/openQA as geekouser will be denied, as berhard is the owner
     # - delete the computer OU after the test is done in post_run_hook
-    # - add the post_fail_hook to upload all relevant logs
     # - test winbind (samba?) authentication
 
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    $self->select_serial_terminal;
+    script_run 'tar Jcvf samba_adcli.tar.xz /etc/sssd /var/log/samba /var/log/sssd /var/log/krb5';
+    upload_logs('./samba_adcli.tar.xz');
+}
 
 1;
