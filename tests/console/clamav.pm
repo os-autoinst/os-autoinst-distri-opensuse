@@ -54,17 +54,11 @@ sub run {
 
     # Initialize and download ClamAV database
     # First from local mirror, it's much faster, then from official clamav db
-    if (is_sle('=15')) {
-        record_soft_failure('bsc#1183881');
-        assert_script_run('freshclam', 700);
-    }
-    else {
-        my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
-        assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
-        assert_script_run('freshclam');
-        assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
-        assert_script_run('freshclam');
-    }
+    my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
+    assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
+    assert_script_run('freshclam');
+    assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
+    assert_script_run('freshclam');
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
