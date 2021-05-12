@@ -47,7 +47,8 @@ sub check_registered_addons {
     foreach my $addon (@unique_addons) {
         $addon =~ s/(^\s+|\s+$)//g;
         my $name = get_addon_fullname($addon);
-        $name = 'LTSS' if ($name =~ /LTSS/);
+        $name = 'LTSS'          if ($name =~ /LTSS/);
+        $name = 'SLE_HPC-ESPOS' if ($name =~ /ESPOS/);
         next if ($name eq '');
         suseconnect_ls($name);
     }
