@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Attempt to merge common parts of sle/main.pm and opensuse/main.pm
-# Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
+# Maintainer: qe-core@suse.de
 
 package main_common;
 use base Exporter;
