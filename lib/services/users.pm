@@ -43,13 +43,16 @@ sub lock_screen {
 }
 
 sub logout_and_login {
+    my ($login_user, $login_pw) = @_;
+    my $test_user = $login_user // $username;
+    my $test_pw   = $login_pw   // $newpwd;
     handle_logout;
     send_key_until_needlematch 'displaymanager', 'esc', 9, 10;
     mouse_hide();
     wait_still_screen;
-    assert_and_click "displaymanager-$username";
+    assert_and_click "displaymanager-$test_user";
     assert_screen 'displaymanager-password-prompt', no_wait => 1;
-    type_password "$newpwd\n";
+    type_password "$test_pw\n";
     assert_screen 'generic-desktop', 120;
 }
 
@@ -164,8 +167,15 @@ sub full_users_check {
         restore_passwd;
     }
     else {
-        #swtich to new added user then switch back
-        switch_users;
+        #switch to new added user then switch back
+        #It's not supported to switch user on s390x VM with vnc connection,
+        #so we have to change this test to logout and login new user.
+        if (check_var('ARCH', 's390x')) {
+            logout_and_login($newUser, $pwd4newUser);
+        }
+        else {
+            switch_users;
+        }
         send_key "alt-f4";
         send_key "ret";
         select_console 'root-console';
