@@ -118,10 +118,13 @@ sub login {
         send_key 'ret';
     }
     die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
+    # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
+    enter_cmd('export TERM=dumb; stty cols 2048; exec $SHELL');
+    die 'Failed to confirm that shell re-exec was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
     enter_cmd(qq/PS1="$serial_term_prompt"/);
     wait_serial(qr/PS1="$serial_term_prompt"/);
     # TODO: Send 'tput rmam' instead/also
-    assert_script_run('export TERM=dumb; stty cols 2048');
+    assert_script_run('export TERM=dumb');
     assert_script_run('echo Logged into $(tty)', timeout => $bmwqemu::default_timeout, result_title => 'vconsole_login');
 }
 
