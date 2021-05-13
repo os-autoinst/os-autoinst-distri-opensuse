@@ -276,6 +276,34 @@
       <use>all</use>
     </drive>
   </partitioning>
+  % if ($check_var->('VERSION', '15-SP3')) {
+  <scripts t="map">
+    <init-scripts t="list">
+      <script t="map">
+        <filename>post.sh</filename>
+        <location/>
+        <source><![CDATA[
+#!/bin/sh
+# turn off autorefresh on pool repos
+sed -i 's/autorefresh=1/autorefresh=0/' /etc/zypp/repos.d/*pool*
+
+# enable keeppackages
+sed -i 's/keeppackages=0/keppackages=1/' /etc/zypp/repos.d/*
+
+# delete uselless path=
+sed -i '/^path*/d' /etc/zypp/repos.d/*
+
+# delete default ISO repo
+rm -f /etc/zypp/repos.d/SLE[SD]<%= $get_var->('VERSION') %>*
+
+exit 0
+
+]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
+  % }
+  % unless ($check_var->('VERSION', '15-SP3')) {
   <scripts>
     <init-scripts config:type="list">
       <script>
@@ -301,6 +329,7 @@ exit 0
       </script>
     </init-scripts>
   </scripts>
+  % }
   <services-manager>
     <default_target>multi-user</default_target>
     <services>
