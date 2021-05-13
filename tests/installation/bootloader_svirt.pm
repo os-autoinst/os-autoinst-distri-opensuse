@@ -330,7 +330,7 @@ sub run {
 
     # connects to a guest VNC session
     select_console('sut', await_console => 0);
-    vmware_set_permanent_boot_device('cdrom');
+    vmware_set_permanent_boot_device($boot_device);
 }
 
 
