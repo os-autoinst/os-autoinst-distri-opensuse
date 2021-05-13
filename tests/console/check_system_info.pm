@@ -61,6 +61,13 @@ sub run {
         my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
+
+    # Checked to get expected buildID with proxy scc upgrade
+    if ((get_var('SCC_URL', "") =~ /proxy/) && !get_var("MEDIA_UPGRADE") && get_var("BUILD_SLE") && !get_var("ONLINE_MIGRATION")) {
+        my $build_id = get_var("BUILD_SLE");
+        my $build    = script_output("zypper lr --url | grep -i $build_id", 200, proceed_on_failure => 1);
+        die "System does not upgrade to expected build ID: $build_id" if ($build eq '');
+    }
 }
 
 1;
