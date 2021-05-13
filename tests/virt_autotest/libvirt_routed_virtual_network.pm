@@ -86,6 +86,8 @@ sub run_test {
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest network vnet_routed --model $model1 --mac $mac1 --live $affecter", 60);
+        #Wait for attached interface and associated information to be populated and become stable
+        die "Interface model:$model1 mac:$mac1 can not be attached to guest $guest successfully" if (script_retry("virsh domiflist $guest | grep vnet_routed | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"", delay => 20, retry => 3) ne 0);
 
         $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model2 = (is_xen_host) ? 'netfront' : 'virtio';
@@ -93,9 +95,9 @@ sub run_test {
         #Check guest loaded kernel module before attach interface to guest system
         check_guest_module("$guest.clone", module => "acpiphp");
         assert_script_run("virsh attach-interface $guest.clone network vnet_routed_clone --model $model2 --mac $mac2 --live $affecter", 60);
+        #Wait for attached interface and associated information to be populated and become stable
+        die "Interface model:$model2 mac:$mac2 can not be attached to guest $guest.clone successfully" if (script_retry("virsh domiflist $guest.clone | grep vnet_routed_clone | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"", delay => 20, retry => 3) ne 0);
 
-        #Wait for guests attached interface from virtual routed network
-        sleep 30;
         my $net1 = is_sle('=11-sp4') ? 'br123' : 'vnet_routed';
         test_network_interface("$guest", mac => $mac1, gate => $gate1, routed => 1, target => $target1, net => $net1);
         my $net2 = is_sle('=11-sp4') ? 'br123' : 'vnet_routed_clone';
