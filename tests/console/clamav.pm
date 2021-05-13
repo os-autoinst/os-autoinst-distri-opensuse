@@ -54,17 +54,11 @@ sub run {
 
     # Initialize and download ClamAV database
     # First from local mirror, it's much faster, then from official clamav db
-    if (is_sle('=15')) {
-        record_soft_failure('bsc#1183881');
-        assert_script_run('freshclam', 700);
-    }
-    else {
-        my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
-        assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
-        assert_script_run('freshclam');
-        assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
-        assert_script_run('freshclam');
-    }
+    my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
+    assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
+    assert_script_run('freshclam');
+    assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
+    assert_script_run('freshclam');
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
@@ -80,7 +74,8 @@ sub run {
     # Verify the database
     assert_script_run 'sigtool -i /var/lib/clamav/main.cvd';
     assert_script_run 'sigtool -i /var/lib/clamav/bytecode.cvd';
-    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd';
+    # CLD files are uncompressed and unsigned versions of the CVD that have had CDIFFs applied
+    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd || sigtool -i /var/lib/clamav/daily.cld';
 
     # Clamd start timeout sometimes. The default systemd timeout is 90s,
     # override it with a longer duration in runtime.
