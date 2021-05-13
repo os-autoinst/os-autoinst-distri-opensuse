@@ -74,7 +74,8 @@ sub run {
     # Verify the database
     assert_script_run 'sigtool -i /var/lib/clamav/main.cvd';
     assert_script_run 'sigtool -i /var/lib/clamav/bytecode.cvd';
-    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd';
+    # CLD files are uncompressed and unsigned versions of the CVD that have had CDIFFs applied
+    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd || sigtool -i /var/lib/clamav/daily.cld';
 
     # Clamd start timeout sometimes. The default systemd timeout is 90s,
     # override it with a longer duration in runtime.
