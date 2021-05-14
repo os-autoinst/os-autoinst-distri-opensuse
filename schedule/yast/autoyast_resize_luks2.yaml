@@ -18,7 +18,7 @@ schedule:
   - autoyast/console
   - autoyast/repos
   - autoyast/clone
-  - console/validate_file_system
+  - console/validate_encrypt_unmounted
   - autoyast/verify_cloned_profile
 test_data:
   device: vdb
