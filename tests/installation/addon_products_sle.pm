@@ -152,6 +152,7 @@ sub test_addonurl {
 
 sub run {
     my ($self) = @_;
+    die 'Test module does not support !ADDONS&&!DUD_ADDONS&&!ADDONURL. Suggestion, specify "ADDONS: all-packages" to check that "Base" and "Server" are selected' unless get_var('ADDONS') || get_var('DUD_ADDONS') || get_var('ADDONURL');
 
     if (get_var('SKIP_INSTALLER_SCREEN', 0)) {
         advance_installer_window('inst-addon');
