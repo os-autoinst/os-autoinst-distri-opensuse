@@ -33,7 +33,17 @@ use strict;
 use warnings;
 use testapi;
 use scheduler 'get_test_suite_data';
-use partitions_validator_utils 'validate_mounting_option';
+
+sub validate_mounting_option {
+    my $args = shift;
+    record_info("Check $args->{partition}",
+        "Check if $args->{partition} partition is mounted by $args->{mount_by} option");
+    my %mount_by = (
+        UUID          => "UUID",
+        "Device Name" => "/dev/$args->{partition}",
+        "Device Path" => "/dev/disk/by-path/");
+    assert_script_run("grep \"$mount_by{$args->{mount_by}}\" /etc/fstab | grep \" $args->{mount_point} \"");
+}
 
 sub run {
     my $test_data = get_test_suite_data;
