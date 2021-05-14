@@ -21,7 +21,8 @@ schedule:
   - autoyast/autoyast_reboot
   - installation/handle_reboot
   - installation/first_boot
-  - console/validate_file_system
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses
@@ -31,11 +32,23 @@ schedule:
   - console/orphaned_packages_check
   - autoyast/verify_cloned_profile
 test_data:
-  # partitioning validation
-  device: sda
-  table_type: gpt
-  file_system:
-    /home: xfs
-    /: btrfs
-  swap: 1
+  disks:
+    - name: sda
+      table_type: gpt
+      partitions:
+        - name: sda2
+          formatting_options:
+            filesystem: btrfs
+          mounting_options:
+            mount_point: /
+        - name: sda3
+          formatting_options:
+            filesystem: xfs
+          mounting_options:
+            mount_point: /home
+        - name: sda4
+          formatting_options:
+            filesystem: swap
+          mounting_options:
+            mount_point: '[SWAP]'
   <<: !include test_data/yast/autoyast/profiles/mini.yaml

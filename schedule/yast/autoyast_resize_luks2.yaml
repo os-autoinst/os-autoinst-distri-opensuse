@@ -18,13 +18,18 @@ schedule:
   - autoyast/console
   - autoyast/repos
   - autoyast/clone
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
   - console/validate_encrypt_unmounted
   - autoyast/verify_cloned_profile
 test_data:
-  device: vdb
-  table_type: gpt
-  encrypted_filesystem:
-    - partition: vdb1
-      size: 5G
-      luks_type: 2
+  disks:
+    - name: vdb
+      table_type: gpt
+      partitions:
+        - name: vdb1
+          size: 5G
+          formatting_options:
+            filesystem: crypto_LUKS
+            luks_type: 2
   <<: !include test_data/yast/autoyast/profiles/resize_luks2.yaml

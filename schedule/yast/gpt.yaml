@@ -27,10 +27,20 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/hostname
-  - console/validate_file_system
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
 test_data:
-  device: vda
-  table_type: gpt
-  file_system:
-    /home: xfs
-    /: btrfs
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

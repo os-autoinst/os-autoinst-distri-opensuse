@@ -41,7 +41,8 @@ schedule:
   - console/sshd_running
   - console/sshd
   - console/verify_default_target
-  - console/validate_file_system
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
   - console/validate_installed_packages
   - console/validate_installed_patterns
   - console/orphaned_packages_check

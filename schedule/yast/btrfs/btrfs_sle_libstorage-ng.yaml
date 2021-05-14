@@ -59,15 +59,15 @@ conditional_schedule:
     BACKEND:
       qemu:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
       svirt:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
       s390x:
         - console/verify_no_separate_home
 test_data:
-  device: vda
-  table_type: gpt
   subvolume:
     cow:
       - /root
@@ -78,6 +78,17 @@ test_data:
       - /opt
     no_cow:
       - /var
-  file_system:
-    /home: xfs
-    /: btrfs
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

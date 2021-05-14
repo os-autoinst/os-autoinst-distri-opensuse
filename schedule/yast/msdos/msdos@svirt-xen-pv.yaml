@@ -22,6 +22,7 @@ schedule:
   - installation/await_install
   - installation/reboot_after_installation
   - installation/first_boot
-  - console/validate_fs_table
-test_data:
-  <<: !include test_data/yast/msdos/msdos_pv.yaml
+  - console/validate_partition_table_via_parted
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
