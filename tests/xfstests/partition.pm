@@ -93,7 +93,7 @@ sub do_partition_for_xfstests {
         script_run("sed -i -e '/ \/home /d' /etc/fstab");
         script_run('mkdir /home/fsgqa; mkdir /home/fsgqa-123456');
     }
-    parted_print($para{dev});
+    parted_print(dev => $para{dev});
     # Prepare suitable partition type, if don't have extended then create one
     $part_table = partition_table($para{dev});
     if ($part_table =~ 'msdos') {
@@ -104,11 +104,11 @@ sub do_partition_for_xfstests {
     }
     if ($part_table =~ 'msdos' && partition_num_by_type($para{dev}, 'extended') == -1) {
         create_partition($para{dev}, 'extended', 'max');
-        parted_print($para{dev});
+        parted_print(dev => $para{dev});
     }
     # Create TEST_DEV
     $test_dev = create_partition($para{dev}, $part_type, $para{size});
-    parted_print($para{dev});
+    parted_print(dev => $para{dev});
     format_partition($test_dev, $para{fstype});
     # Create SCRATCH_DEV or SCRATCH_DEV_POOL
     my @scratch_dev;
@@ -119,7 +119,7 @@ sub do_partition_for_xfstests {
         format_partition($part, $para{fstype});
         push @scratch_dev, $part;
     }
-    parted_print($para{dev});
+    parted_print(dev => $para{dev});
     # Create mount points
     script_run('mkdir /mnt/test /mnt/scratch');
     # Setup configure file xfstests/local.config
