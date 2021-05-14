@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,6 +11,7 @@
 # Package: docker
 # Summary: Test docker installation and extended usage
 # - docker package can be installed
+# - firewall is configured correctly
 # - docker daemon can be started
 # - images can be searched on the Docker Hub
 # - images can be pulled from the Docker Hub
@@ -25,7 +26,7 @@
 # - attach a volume
 # - expose a port
 # - test networking outside of host
-# Maintainer: Flavio Castelli <fcastelli@suse.com>, Panagiotis Georgiadis <pgeorgiadis@suse.com>, Sergio Lindo Mansilla <slindomansilla@suse.com>, Anna Minou <anna.minou@suse.com>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -50,6 +51,7 @@ sub run {
     test_seccomp();
     allow_selected_insecure_registries(runtime => 'docker');
 
+    check_docker_firewall() if $self->firewall() eq 'firewalld';
     # Run basic docker tests
     basic_container_tests(runtime => "docker");
 
