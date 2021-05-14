@@ -20,7 +20,7 @@ use constant {
 };
 
 use testapi;
-use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty zypper_call);
+use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty);
 use Utils::Backends;
 use YuiRestClient::App;
 use YuiRestClient::Wait;
