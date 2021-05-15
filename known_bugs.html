@@ -41,7 +41,7 @@
 
 <h2 id="create_list_of_autoinst_failures">create_list_of_autoinst_failures</h2>
 
-<p>To add a known bug simply copy and adapt the following line: <code>push @$autoinst_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39; };&gt; type=soft will force the testmodule result to softfail type=hard will just emit a soft fail message but the module will do a normal fail</p>
+<p>To add a known bug simply copy and adapt the following line: <code>push @$autoinst_failures, {type =</code> soft/hard, message =&gt; &#39;Errormsg&#39;, pattern =&gt; quotemeta &#39;ErrorPattern&#39; };&gt; type=soft will force the testmodule result to softfail type=hard will just emit a soft fail message but the module will do a normal fail type=info will message the user but the module will not fail</p>
 
 <h2 id="create_list_of_journal_failures">create_list_of_journal_failures</h2>
 
