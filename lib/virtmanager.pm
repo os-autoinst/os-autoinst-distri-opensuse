@@ -594,8 +594,6 @@ sub detect_login_screen {
     wait_still_screen 3;         # Connecting to guest's console
     mouse_set(30, 200);          # Go inside of the guest's console
     save_screenshot();
-    hold_key "ctrl-alt";         # Escape from the guest's console
-    release_key "ctrl-alt";      # Now the mouse pointer is free
     mouse_set(300, 70);
 
     # esc, backspace
@@ -603,6 +601,12 @@ sub detect_login_screen {
     send_key 'esc';
     send_key 'backspace';
     send_key 'backspace';
+
+    # Escape from the guest's console
+    mouse_set(0, 0);
+    send_key "ctrl-alt";
+    send_key "ctrl-alt";
+    send_key 'esc';
 
     # ctrl+alt+f2
     return if check_screen 'virt-manager_login-screen', 5;
