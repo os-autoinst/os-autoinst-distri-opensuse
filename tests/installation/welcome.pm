@@ -40,6 +40,7 @@ sub switch_keyboard_layout {
     send_key 'alt-k';    # Keyboard Layout
     send_key_until_needlematch("keyboard-layout-$keyboard_layout", 'down', 60);
     if (check_var('DESKTOP', 'textmode')) {
+        assert_script_run('echo -e "\u2500" ');
         send_key 'ret';
         assert_screen "keyboard-layout-$keyboard_layout-selected";
         send_key 'alt-e';    # Keyboard Test in text mode
