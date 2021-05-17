@@ -62,12 +62,15 @@ conditional_schedule:
         - console/verify_no_separate_home
       x86_64:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
       aarch64:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
       ppc64le:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
 test_data:
   <<: !include test_data/yast/btrfs/btrfs_sle_libstorage.yaml
