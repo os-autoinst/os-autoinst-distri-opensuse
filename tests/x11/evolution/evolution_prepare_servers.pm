@@ -38,7 +38,7 @@ sub run() {
         zypper_call("ar ${dovecot_repo} dovecot_repo");
 
         zypper_call("--gpg-auto-import-keys ref");
-        zypper_call("in dovecot", exitcode => [0, 102, 103]);
+        zypper_call("in dovecot /usr/bin/openssl", exitcode => [0, 102, 103]);
         zypper_call("rr dovecot_repo");
     } else {
         if (is_opensuse) {
@@ -46,7 +46,7 @@ sub run() {
             zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
             systemctl 'start postfix';
         }
-        zypper_call("in dovecot",                    exitcode => [0, 102, 103]);
+        zypper_call("in dovecot /usr/bin/openssl",   exitcode => [0, 102, 103]);
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
