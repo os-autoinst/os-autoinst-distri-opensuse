@@ -25,7 +25,10 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-  - console/validate_fs_table
+  - console/validate_partition_table_via_parted
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
 conditional_schedule:
   disable_grub_timeout:
     ARCH:
@@ -48,5 +51,3 @@ conditional_schedule:
         - installation/logs_from_installation_system
       pvm_hmc:
         - installation/logs_from_installation_system
-test_data:
-  <<: !include test_data/yast/msdos/msdos.yaml

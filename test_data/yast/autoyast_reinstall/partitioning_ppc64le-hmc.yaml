@@ -1,23 +1,20 @@
 ---
 disks:
-  - name: vda
+  - name: sda
     table_type: gpt
-    allowed_unpartitioned: 0.00GB
     partitions:
-      - name: vda2
+      - name: sda2
         formatting_options:
-          filesystem: ext4
+          filesystem: btrfs
         mounting_options:
-          should_mount: 1
           mount_point: /
-      - name: vda3
+      - name: sda3
         formatting_options:
           filesystem: xfs
         mounting_options:
-          should_mount: 1
           mount_point: /home
-      - name: vda4
+      - name: sda4
         formatting_options:
           filesystem: swap
         mounting_options:
-          mount_point: SWAP
+          mount_point: '[SWAP]'

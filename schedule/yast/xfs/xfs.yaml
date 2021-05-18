@@ -35,7 +35,10 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-  - console/validate_fs_table
+  - '{{validate_partition_table}}'
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
 conditional_schedule:
   disk_activation:
     BACKEND:
@@ -47,6 +50,16 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
+  validate_partition_table:
+    BACKEND:
+      qemu:
+        - console/validate_partition_table_via_blkid
+      svirt:
+        - console/validate_partition_table_via_blkid
+      pvm_hmc:
+        - console/validate_partition_table_via_blkid
+      s390x:
+        - console/validate_partition_table_via_parted
 test_data:
   guided_partitioning:
     filesystem_options:

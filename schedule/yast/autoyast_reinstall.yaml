@@ -19,7 +19,7 @@ schedule:
   - autoyast/autoyast_reboot
   - installation/handle_reboot
   - installation/first_boot
-  - console/validate_file_system
+  - console/validate_blockdevices
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses

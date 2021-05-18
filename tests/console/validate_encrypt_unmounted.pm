@@ -7,12 +7,15 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: Validate that the partitions are encrypted, as described
-# in test_data. Example:
+# Summary: Validate LUKS version for encrypted partitions not mounted
+# in the system using test data. Example:
 # test_data:
-#   encrypted_filesystem:
-#     - partition: vdb1
-#       luks_type: 2
+#   disks:
+#     - name: vdb
+#       partitions:
+#         - name: vdb1
+#           formatting_options:
+#             luks_type: 2
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
@@ -23,16 +26,17 @@ use testapi;
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data            = get_test_suite_data();
-    my $encrypted_partitions = $test_data->{encrypted_filesystem};
-
+    my $disks = get_test_suite_data()->{disks};
     select_console 'root-console';
 
-    foreach (@{$encrypted_partitions}) {
-        my $luks_type = $_->{luks_type};
-        record_info("Encryption", "Verify that the partition encryptions is luks $luks_type");
-        validate_script_output "cryptsetup luksDump /dev/$_->{partition}",
-          sub { m/Version:\s+$luks_type.*/s };
+    my $luks_type;
+    foreach my $disk (@{$disks}) {
+        foreach my $part (@{$disk->{partitions}}) {
+            $luks_type = $part->{formatting_options}{luks_type};
+            record_info("Encryption", "Verify that the partition encryptions is LUKS $luks_type");
+            validate_script_output "cryptsetup luksDump /dev/$part->{name}",
+              sub { m/Version:\s+$luks_type.*/s };
+        }
     }
 }
 

@@ -4,27 +4,27 @@ disks:
     table_type: gpt
     allowed_unpartitioned: 0.00GB
     partitions:
-      - role: operating-system
+      - name: xvdb2
+        role: operating-system
         partition_type: primary
-        validation_flag: 1
         formatting_options:
           should_format: 1
           filesystem: xfs
         mounting_options:
           should_mount: 1
           mount_point: /
-      - role: data
+      - name: xvdb3
+        role: data
         partition_type: primary
-        validation_flag: 1
         formatting_options:
           should_format: 1
           filesystem: xfs
         mounting_options:
           should_mount: 1
           mount_point: /home
-      - role: swap
+      - name: xvdb4
+        role: swap
         partition_type: primary
-        validation_flag: 0
         formatting_options:
           should_format: 1
           filesystem: swap

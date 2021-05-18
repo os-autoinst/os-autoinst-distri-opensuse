@@ -31,6 +31,9 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-  - console/validate_fs_table
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
 test_data:
   <<: !include test_data/yast/xfs/xfs_partition_spvm.yaml

@@ -20,6 +20,17 @@ subvolume:
     - /var/lib/mysql
     - /var/lib/pgsql
     - /var/log
-  file_system:
-    /home: xfs
-    /: btrfs
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

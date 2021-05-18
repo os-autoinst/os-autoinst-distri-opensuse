@@ -31,11 +31,12 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-  - console/validate_ext4_fs
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
 test_data:
   guided_partitioning:
     filesystem_options:
       root_filesystem_type: ext4
-  <<: !include test_data/yast/ext4/ext4.yaml
-  device: /dev/vda
-  table_type: gpt
+  <<: !include test_data/yast/ext4/ext4_s390x.yaml
