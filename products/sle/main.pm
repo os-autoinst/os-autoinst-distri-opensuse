@@ -739,6 +739,14 @@ elsif (get_var("BTRFS_PROGS")) {
     loadtest "btrfs-progs/run";
     loadtest "btrfs-progs/generate_report";
 }
+elsif (get_var("PYNFS")) {
+    prepare_target;
+    if (check_var('PYNFS', 'installation')) {
+        loadtest "pynfs/install";
+        loadtest "pynfs/run";
+        loadtest "pynfs/generate_report";
+    }
+}
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
         #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
