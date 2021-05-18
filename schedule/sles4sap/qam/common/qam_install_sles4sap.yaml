@@ -1,0 +1,100 @@
+---
+name: qam_install_sles4sap_dvd
+description: >
+  Installation tests for SLES4SAP, use the DVD to boot the installer.
+
+  Can be used to generate a qcow2 image, used to test SAP components like
+  HANA, NetWeaver, WMP, etc.
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - '{{sles4sap_product_installation_mode_sle12}}'
+  - '{{update_test_repo}}'
+  - installation/addon_products_sle
+  - '{{system_role}}'
+  - '{{sles4sap_product_installation_mode}}'
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - '{{user_settings}}'
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - '{{patch_and_reboot}}'
+  - console/system_prepare
+  - '{{test_sles4sap}}'
+  - '{{scc_deregister}}'
+  - '{{generate_image}}'
+conditional_schedule:
+  sles4sap_product_installation_mode_sle12:
+    VERSION:
+      12-SP2:
+        - installation/sles4sap_product_installation_mode
+      12-SP3:
+        - installation/sles4sap_product_installation_mode
+      12-SP4:
+        - installation/sles4sap_product_installation_mode
+      12-SP5:
+        - installation/sles4sap_product_installation_mode
+  update_test_repo:
+    QAM_INCI:
+      1:
+        - installation/add_update_test_repo
+  system_role:
+    VERSION:
+      12-SP2:
+        - installation/system_role
+      12-SP3:
+        - installation/system_role
+      12-SP4:
+        - installation/system_role
+      15:
+        - installation/system_role
+      15-SP1:
+        - installation/system_role
+      15-SP2:
+        - installation/system_role
+  sles4sap_product_installation_mode:
+    SYSTEM_ROLE:
+      default:
+        - installation/sles4sap_product_installation_mode
+  user_settings:
+    VERSION:
+      12-SP2:
+        - installation/user_settings
+      12-SP3:
+        - installation/user_settings
+      12-SP4:
+        - installation/user_settings
+  patch_and_reboot:
+    FLAVOR:
+      SAP-DVD-Updates:
+        - qa_automation/patch_and_reboot
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - sles4sap/patterns
+        - sles4sap/sapconf
+        - sles4sap/saptune
+  scc_deregister:
+    SCC_DEREGISTER:
+      1:
+        - console/scc_deregistration
+  generate_image:
+    GENERATE_IMAGE:
+      1:
+        - console/hostname
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
