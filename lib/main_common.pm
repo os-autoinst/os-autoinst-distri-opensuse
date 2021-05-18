@@ -1750,9 +1750,9 @@ sub load_rollback_tests {
     # For continuous migration test from SLE11SP4, the filesystem is 'ext3' and btrfs snapshot is not supported.
     # For HPC migration test with 'management server' role, the filesystem is 'xfs', btrfs snapshot is not supported.
     loadtest "boot/grub_test_snapshot" unless check_var('VIRSH_VMM_TYPE', 'linux') || get_var('FILESYSTEM') =~ /ext3|xfs/;
-    # Skip load version switch for online migration
-    loadtest "migration/version_switch_origin_system" if (!get_var("ONLINE_MIGRATION"));
-    if (get_var('UPGRADE') || get_var('ZDUP')) {
+    # Skip load version switch for online migration and opensuse perfomance test
+    loadtest "migration/version_switch_origin_system" if (!get_var("ONLINE_MIGRATION") && !(is_opensuse && get_var('SOFTFAIL_BSC1063638') && get_var('ROLLBACK_AFTER_MIGRATION')));
+    if (get_var('UPGRADE') || get_var('ZDUP') || (is_opensuse && get_var('SOFTFAIL_BSC1063638') && get_var('ROLLBACK_AFTER_MIGRATION'))) {
         loadtest "boot/snapper_rollback";
     }
     if (get_var('MIGRATION_ROLLBACK')) {
