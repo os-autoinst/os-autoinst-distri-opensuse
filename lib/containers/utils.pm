@@ -49,9 +49,12 @@ sub check_docker_firewall {
     systemctl('is-active firewalld');
     my $running = script_output qq(docker ps -q | wc -l);
     validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running == 0;
-    # Docker zone is created only for SLE15-SP3 for version <20.10 unless is_opensuse
-    assert_script_run "firewall-cmd --list-all --zone=docker" if (is_opensuse() || is_sle('>=15-sp3'));
-    validate_script_output "firewall-cmd --list-interfaces --zone=docker", sub { /docker0/ } if (check_runtime_version($docker_version, ">=20.10") || is_sle('>=15-sp3'));
+    # Docker zone is created for docker version >= 20.10 (Tumbleweed), but it
+    # is backported to docker 19 for SLE15-SP3 and for Leap 15.3
+    if (check_runtime_version($docker_version, ">=20.10") || is_sle('>=15-sp3') || is_leap(">=15.3")) {
+        assert_script_run "firewall-cmd --list-all --zone=docker";
+        validate_script_output "firewall-cmd --list-interfaces --zone=docker", sub { /docker0/ };
+    }
     # Rules applied before DOCKER. Default is to listen to all tcp connections
     # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
     validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
