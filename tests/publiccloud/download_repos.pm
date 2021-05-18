@@ -81,6 +81,9 @@ sub run {
         assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
         upload_logs('/tmp/repos.list.txt');
         upload_logs('qem_download_status.txt');
+        # Ensure the repos are not empty, otherwise we have the wrong template link
+        $size = script_output('du -s ~/repos | awk \'{print$1}\'');
+        die "Empty test repositories" if (!get_var('QAM_PUBLICCLOUD_IGNORE_EMPTY_REPO', 0) && $size < 10000);
     }
     assert_script_run("cd");
 }
