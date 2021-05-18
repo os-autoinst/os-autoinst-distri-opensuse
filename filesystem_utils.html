@@ -21,12 +21,16 @@
       <li><a href="#free_space">free_space</a></li>
       <li><a href="#mountpoint_to_partition">mountpoint_to_partition</a></li>
       <li><a href="#partition_table">partition_table</a></li>
+      <li><a href="#get_partition_table_via_blkid">get_partition_table_via_blkid</a></li>
       <li><a href="#create_partition">create_partition</a></li>
       <li><a href="#remove_partition">remove_partition</a></li>
       <li><a href="#format_partition">format_partition</a></li>
       <li><a href="#df_command">df_command</a></li>
       <li><a href="#get_partition_size">get_partition_size</a></li>
       <li><a href="#get_used_partition_space">get_used_partition_space</a></li>
+      <li><a href="#lsblk_command">lsblk_command</a></li>
+      <li><a href="#create_lsblk_validation_test_data">create_lsblk_validation_test_data</a></li>
+      <li><a href="#validate_lsblk">validate_lsblk</a></li>
     </ul>
   </li>
 </ul><h1>lib/filesystem_utils.pm</h1>
@@ -37,7 +41,9 @@
 
 <h2 id="parted_print">parted_print</h2>
 
-<p>Print dev partition info by MB</p>
+<p>parted_print( dev =&gt; &#39;/dev/vda&#39;[, unit =&gt; &#39;GB&#39;]);</p>
+
+<p>Print partition of device <b>dev</b> in unit <b>unit</b>. By default <b>unit</b> is expressed in MB.</p>
 
 <h2 id="partition_num_by_start_end">partition_num_by_start_end</h2>
 
@@ -49,7 +55,9 @@
 
 <h2 id="free_space">free_space</h2>
 
-<p>Get all information (start, end, size) about the bigest free space Return a hash contain start, end and size</p>
+<pre><code>    free_space( dev =&gt; &#39;/dev/vda&#39;, unit =&gt; &#39;MB&#39;);</code></pre>
+
+<p>Using utility <code>parted</code> and passing named arguments <b>dev</b> and <b>unit</b> in which to perform the operation, get all information (start, end, size) about the bigest free space Return a hash containing start, end and size</p>
 
 <h2 id="mountpoint_to_partition">mountpoint_to_partition</h2>
 
@@ -58,6 +66,12 @@
 <h2 id="partition_table">partition_table</h2>
 
 <p>Get partition table information by giving device</p>
+
+<h2 id="get_partition_table_via_blkid">get_partition_table_via_blkid</h2>
+
+<pre><code>    get_partition_table_via_blkid(&#39;/dev/vda&#39;);</code></pre>
+
+<p>Get partition table information of giving device using blkid (for example, minimal role does not install parted)</p>
 
 <h2 id="create_partition">create_partition</h2>
 
@@ -88,6 +102,36 @@
 <p>Returns the value of used space of the defined partition</p>
 
 <pre><code>  get_used_partition_space($partition)</code></pre>
+
+<h2 id="lsblk_command">lsblk_command</h2>
+
+<pre><code> my $json = lsblk_command(output =&gt; $output);</code></pre>
+
+<p>Runs utility <code>lsblk</code> using flag -J to retrieve json and returns decoded json.</p>
+
+<p>Named argument <b>output</b> specifies a comma-separated list of columns selected for the output.</p>
+
+<h2 id="create_lsblk_validation_test_data">create_lsblk_validation_test_data</h2>
+
+<pre><code> my $validation_test_data = create_lsblk_validation_test_data($dev);</code></pre>
+
+<p>Converts test data to test data adapted for validation using <code>lsblk</code>.</p>
+
+<p>For the device passed converts its test data to corresponding lsblk columns if available in the mapping of this function. Returns the following hash ref structure: { &lt;lsblk_col_name_1&gt; =&gt; { test_data_name =&gt; &lt;test_data_col_name&gt;, value =&gt; &lt;value&gt; } &lt;lsblk_col_name_2&gt; =&gt; { ... } };</p>
+
+<h2 id="validate_lsblk">validate_lsblk</h2>
+
+<pre><code>    $errors .= validate_lsblk(device =&gt; $disk, type =&gt; &#39;disk&#39;);</code></pre>
+
+<p>Validates test data using <code>lsblk</code> and returns a summary of all errors found.</p>
+
+<p><b>device</b> represents the device which is used to get output from <code>lsblk</code> command. Use common structure in test data for partitioning, for example:</p>
+
+<p>disks: - name: vda table_type: gpt allowed_unpartitioned: 0.00GB partitions: - name: vda1 formatting_options: should_format: 1 filesystem: xfs mounting_options: should_mount: 1 mount_point: / ...</p>
+
+<p><b>type</b> represents the type of device. Valid values: &#39;disk&#39; and &#39;part&#39;;</p>
+
+<p>Returns string with all found errors.</p>
 
 
 </body>
