@@ -46,7 +46,6 @@ conditional_schedule:
                 - console/gdb
                 - console/perf
                 - console/salt
-                - console/machinery
                 - sysauth/sssd
                 - console/libgpiod
                 - console/libgcrypt

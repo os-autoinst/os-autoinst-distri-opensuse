@@ -28,7 +28,6 @@ schedule:
     - jeos/build_key
     - console/prjconf_excluded_rpms
     - console/suseconnect_scc
-    - console/machinery
     # - sysauth/sssd
     - containers/docker_compose
     - network/cifs
