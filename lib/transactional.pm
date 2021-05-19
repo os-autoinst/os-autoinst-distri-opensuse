@@ -149,7 +149,7 @@ sub trup_call {
     # Always wait for rollback.service to be finished before triggering manually transactional-update
     ensure_rollback_service_not_running();
 
-    script_run "transactional-update --no-selfupdate $cmd", 0;
+    script_run "transactional-update $cmd", 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
