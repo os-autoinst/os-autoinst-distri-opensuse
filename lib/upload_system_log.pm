@@ -24,7 +24,7 @@ our @EXPORT = qw(upload_system_logs upload_supportconfig_log);
 # Save the output of $cmd into $file and upload it
 sub system_status {
     my ($self, $log) = @_;
-    $log //= "/tmp/system-status.log";
+    $log //= "/tmp/system-status.txt";
 
     my %cmds = (
         kernel                     => "uname -a",
@@ -49,14 +49,14 @@ sub system_status {
 
 sub journalctl_log {
     my ($self, $log) = @_;
-    $log //= "/tmp/journalctl.log";
+    $log //= "/tmp/journalctl.txt";
     script_run("journalctl -b -o short-precise >$log", 40);
     return $log;
 }
 
 sub dmesg_log {
     my ($self, $log) = @_;
-    $log //= "/tmp/dmesg.log";
+    $log //= "/tmp/dmesg.txt";
     script_run("dmesg >$log", 40);
     return $log;
 }
