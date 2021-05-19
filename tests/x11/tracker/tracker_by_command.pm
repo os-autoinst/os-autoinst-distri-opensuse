@@ -34,9 +34,7 @@ sub run {
     else {
         my $trackercmd = (is_sle('<16') or is_leap('<16.0')) ? 'tracker' : 'tracker3';
         script_run "$trackercmd search emptyfile";
-        record_soft_failure 'bsc#1074582 tracker can not index empty file automatically' if check_screen 'tracker-cmdsearch-noemptyfile', 30;
-        # Wait 20s for tracker to index the test file
-        wait_still_screen 20;
+        assert_screen('tracker-cmdsearch-emptyfile');
         script_run "$trackercmd search newfile";
     }
     assert_screen 'tracker-cmdsearch-newfile';
