@@ -233,15 +233,41 @@ sub compare_lynis_section_content {
 
     # If an old section then compare baseline and current
     if ($found) {
+        # Delete the blank lines in case
+        chomp @section_baseline;
+        chomp @section_current;
         # Do not use "if (@section_baseline ~~ @section_current) {" to avoid
         # CI check Error "Smartmatch is experimental"
-        if ("join('', @section_baseline)" eq "join('', @section_current)") {
+        my $str_section_baseline = join('', @section_baseline);
+        my $str_section_current  = join('', @section_current);
+
+        if ($str_section_baseline eq $str_section_current) {
             record_info("Same", "Section contents of \"Current\" and \"Baseline\" are the same, exit and pass");
             $result = "ok";
             return $result;
         }
         else {
-            record_info("NotSame", "Section contents of \"Current\" and \"Baseline\" are NOT the same, check \"Current\" only");
+            # Filter out some exceptions, e.g., "execution time" as it changes
+            # "Boot and services": [WARNING]: Test CORE-1000 had a long execution: 25.848287 seconds
+            # "File systems": "[WARNING]: Test BINARY-1000 had a long execution: 123.139555 seconds"
+            # "Ports and packages": "[WARNING]: Test PKGS-7308 had a long execution: 21.594952 seconds"
+            #    "[WARNING]: Test PKGS-7328 had a long execution: 11.963337 seconds"
+            my @exceptions = ("\\[WARNING\\]: Test .* had a long execution: .* seconds");
+            for my $exception (@exceptions) {
+                if ($str_section_baseline =~ m/$exception/ || $str_section_current =~ m/$exception/) {
+                    $str_section_baseline =~ s/$exception//g;
+                    $str_section_current  =~ s/$exception//g;
+                    record_info("Warning", "Section contents need to be double checked manually: \"$exception\"");
+                }
+            }
+            # Compare again
+            if ($str_section_baseline eq $str_section_current) {
+                $result = "ok";
+                return $result;
+            }
+            else {
+                record_info("NotSame", "Section contents of \"Current\" and \"Baseline\" are NOT the same, check \"Current\" only");
+            }
         }
     }
 
@@ -282,7 +308,8 @@ sub compare_lynis_section_content {
                 "CPU support: No PAE or NoeXecute supported.*NONE.*",
                 "Program update status.*WARNING.*",
                 "Minimal of 2 responsive nameservers.*WARNING.*",
-                "Using Zypper to find vulnerable packages.*NONE.*"
+                "Using Zypper to find vulnerable packages.*NONE.*",
+                "Test .* had a long execution: .* seconds"
             );
             for my $exception (@exceptions) {
                 if (grep(/$exception/, @section_current)) {
@@ -292,7 +319,7 @@ sub compare_lynis_section_content {
             }
 
             $result = "softfail";
-            record_soft_failure("poo#78224, found $ret [ $s_lynis ] in current output");
+            record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
         }
     }
 
@@ -302,7 +329,7 @@ sub compare_lynis_section_content {
         if ($ret) {
             $result = "fail";
             # Invoke record_soft_failure() for better/notable openQA show
-            record_soft_failure("poo#78224, found $ret [ $s_lynis ] in current output");
+            record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
         }
     }
 

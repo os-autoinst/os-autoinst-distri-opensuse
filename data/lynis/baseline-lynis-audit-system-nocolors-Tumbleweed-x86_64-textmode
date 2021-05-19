@@ -1,5 +1,5 @@
 
-[ Lynis 3.0.3 ]
+[ Lynis 3.0.4 ]
 
 ################################################################################
   Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
@@ -17,11 +17,11 @@
 [2C- Checking profiles...[37C [ DONE ]
 
   ---------------------------------------------------
-  Program version:           3.0.3
+  Program version:           3.0.4
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210502
-  Kernel version:            5.12.0
+  Operating system version:  20210515
+  Kernel version:            5.12.3
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -94,10 +94,10 @@
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
 [8C- systemd-ask-password-plymouth.service:[13C [ UNSAFE ]
 [8C- systemd-initctl.service:[27C [ UNSAFE ]
-[8C- systemd-journald.service:[26C [ OK ]
-[8C- systemd-logind.service:[28C [ OK ]
+[8C- systemd-journald.service:[26C [ PROTECTED ]
+[8C- systemd-logind.service:[28C [ PROTECTED ]
 [8C- systemd-rfkill.service:[28C [ UNSAFE ]
-[8C- systemd-timesyncd.service:[25C [ OK ]
+[8C- systemd-timesyncd.service:[25C [ PROTECTED ]
 [8C- systemd-udevd.service:[29C [ MEDIUM ]
 [8C- user@0.service:[36C [ UNSAFE ]
 [8C- wickedd-auto4.service:[29C [ UNSAFE ]
@@ -193,7 +193,6 @@
 [4C- Module cramfs is blacklisted[27C [ OK ]
 [4C- Module freevxfs is blacklisted[25C [ OK ]
 [4C- Module hfs is blacklisted[30C [ OK ]
-[4C- Discovered kernel modules: cramfs freevxfs hfsplus jffs2 squashfs udf [0C
 
 [+] USB Devices
 ------------------------------------
@@ -382,7 +381,6 @@
 
 [+] Cryptography
 ------------------------------------
-[2C- Checking for expired SSL certificates [0/1][14C [ NONE ]
 [2C- Found 0 encrypted and 1 unencrypted swap devices in use.[1C [ OK ]
 [2C- Kernel entropy is sufficient[29C [ YES ]
 [2C- HW RNG & rngd[44C [ NO ]
@@ -493,7 +491,7 @@
 
 [+] Hardening
 ------------------------------------
-[4C- Installed compiler(s)[34C [ FOUND ]
+[4C- Installed compiler(s)[34C [ NOT FOUND ]
 [4C- Installed malware scanner[30C [ NOT FOUND ]
 [4C- Non-native binary formats[30C [ NOT FOUND ]
 
@@ -507,7 +505,7 @@
   [WARNING]: Deprecated function used (logtext)
 
 [4CWarning: Package systemd-246.13-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-4.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -534,7 +532,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CRPATH "//usr/lib64/bash" on /usr/bin/bash is not allowed[1C [ WARNING ]
+[4CNo bad RPATH usage found in 4244 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -542,7 +540,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 53.378980 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 30.115470 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -595,7 +593,7 @@
 
 ================================================================================
 
-  -[ Lynis 3.0.3 Results ]-
+  -[ Lynis 3.0.4 Results ]-
 
   Warnings (2):
   ----------------------------
@@ -605,7 +603,7 @@
   ! iptables module(s) loaded, but no rules active [FIRE-4512] 
       https://cisofy.com/lynis/controls/FIRE-4512/
 
-  Suggestions (41):
+  Suggestions (39):
   ----------------------------
   * Set a password on GRUB boot loader to prevent altering boot configuration (e.g. boot in single user mode without password) [BOOT-5122] 
       https://cisofy.com/lynis/controls/BOOT-5122/
@@ -622,11 +620,6 @@
 
   * When possible set expire dates for all password protected accounts [AUTH-9282] 
       https://cisofy.com/lynis/controls/AUTH-9282/
-
-  * Consider disabling unused kernel modules [FILE-6430] 
-    - Details  : /etc/modprobe.d/blacklist.conf
-    - Solution : Add 'install MODULENAME /bin/true' (without quotes)
-      https://cisofy.com/lynis/controls/FILE-6430/
 
   * Disable drivers like USB storage when not used, to prevent unauthorized storage or data theft [USB-1000] 
       https://cisofy.com/lynis/controls/USB-1000/
@@ -741,9 +734,6 @@
     - Solution : Change sysctl value or disable test (skip-test=KRNL-6000:<sysctl-key>)
       https://cisofy.com/lynis/controls/KRNL-6000/
 
-  * Harden compilers like restricting access to root user only [HRDN-7222] 
-      https://cisofy.com/lynis/controls/HRDN-7222/
-
   * Harden the system by installing at least one malware scanner, to perform periodic file system scans [HRDN-7230] 
     - Solution : Install a tool like rkhunter, chkrootkit, OSSEC
       https://cisofy.com/lynis/controls/HRDN-7230/
@@ -759,7 +749,7 @@
 
   Lynis security scan details:
 
-  Hardening index : 89 [#################   ]
+  Hardening index : 80 [################    ]
   Tests performed : 258
   Plugins enabled : 0
 
@@ -781,7 +771,7 @@
 
 ================================================================================
 
-  Lynis 3.0.3
+  Lynis 3.0.4
 
   Auditing, system hardening, and compliance for UNIX-based systems
   (Linux, macOS, BSD, and others)
