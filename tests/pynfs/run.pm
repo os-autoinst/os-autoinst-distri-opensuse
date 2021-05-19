@@ -24,7 +24,7 @@ sub server_test_all {
     my $self   = shift;
     my $folder = get_required_var('PYNFS') || 'nfs4.0';
     assert_script_run("cd ./$folder");
-    script_run('./testserver.py --outfile ${logf:-log.txt} --maketree ${serv:-localhost}:${export:-/exportdir} all', 3600);
+    script_run('./testserver.py --outfile log.txt --maketree localhost:/exportdir all', 3600);
 }
 
 
