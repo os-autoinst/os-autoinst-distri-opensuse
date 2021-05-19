@@ -38,11 +38,16 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_opensuse);
+use utils;
 
 sub add_logical_volume {
     my ($lvname, $role) = shift;
     wait_still_screen 1;
-    wait_screen_change { send_key "alt-a" };
+    if (is_sle("15-sp3+")) {
+        wait_screen_change { send_key "alt-g" };
+    } else {
+        wait_screen_change { send_key "alt-a" };
+    }
     wait_screen_change { type_string "$lvname" };
     wait_screen_change { send_key "alt-n" };
     # custom size
@@ -72,6 +77,15 @@ sub encrypt_partition {
 sub select_vdb {
     assert_and_click "yast2_storage_ng-select-vdb";
     wait_screen_change { send_key "alt-p" } if is_opensuse || is_sle("15-sp1+");
+}
+
+sub select_vdb1 {
+    assert_and_click "yast2_storage_ng-select-vdb";
+    send_key "tab";
+    wait_still_screen 1;
+    send_key "tab";
+    wait_still_screen 1;
+    send_key "down";
 }
 
 sub start_y2sn {
@@ -129,14 +143,21 @@ sub run {
     ### RESIZE PARTITION ###
     wait_still_screen 3;
     start_y2sn;
-    select_vdb;
+    select_vdb unless is_sle("15-sp3+");
     # resize partition
     if (is_opensuse) {
         wait_screen_change { send_key "alt-m" };
         wait_screen_change { send_key "alt-r" };
     } elsif (is_sle("15-sp1+")) {
-        hold_key "alt";
-        send_key "m";
+        if (is_sle("15-sp3+")) {
+            select_vdb1;
+            hold_key "alt";
+            send_key "d";
+        }
+        else {
+            hold_key "alt";
+            send_key "m";
+        }
         wait_still_screen 1;
         send_key "r";
         release_key "alt";
@@ -170,7 +191,11 @@ sub run {
     ### DELETE PARTITION ###
     wait_still_screen 3;
     start_y2sn;
-    select_vdb;
+    if (is_sle("15-sp3+")) {
+        select_vdb1;
+    } else {
+        select_vdb;
+    }
     wait_screen_change { send_key "alt-l" };
     wait_still_screen 1;
     wait_screen_change { send_key "alt-y" };
@@ -188,16 +213,19 @@ sub run {
     wait_screen_change { send_key "alt-a" };
     # alt-v doesn't work reliably, so we have to use assert_and_click
     assert_and_click "yast2_storage_ng-add-volume-group" if is_sle("<=15");
-    wait_screen_change { type_string "vgtest" };
+    send_key 'v'                                         if is_sle("15-sp3+");
+    type_string_very_slow "vgtest";
+    wait_still_screen 3;
     assert_and_click "yast2_storage_ng-vg-select-device";
     send_key "alt-a";
     wait_screen_change { send_key("alt-n") };
 
     #  go to system view
-    send_key "alt-s";
+    send_key "alt-s" unless is_sle("15-sp3+");
     assert_and_dclick "yast2_storage_ng-select-vgtest";
 
     my $fs_page_shortcut = "alt-n";
+
     wait_screen_change { send_key "alt-i" } if is_opensuse || is_sle("15-sp1+");
 
     # XFS, non encrypted
@@ -255,7 +283,11 @@ sub run {
     wait_still_screen 1;
     wait_screen_change { send_key "alt-n" };
     wait_still_screen 1;
-    wait_screen_change { send_key "alt-f" };
+    if (is_sle("15-sp3+")) {
+        wait_screen_change { send_key "alt-n" };
+    } else {
+        wait_screen_change { send_key "alt-f" };
+    }
 }
 
 1;
