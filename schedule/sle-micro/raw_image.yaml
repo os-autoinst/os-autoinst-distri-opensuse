@@ -11,10 +11,15 @@ conditional_schedule:
     FLAVOR:
       'MicroOS-Image-Updates':
         - transactional/install_updates
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - transactional/enable_selinux
 schedule:
   - microos/disk_boot
   - transactional/disable_grub
   - '{{registration}}'
+  - '{{selinux}}'
   - '{{maintenance}}'
   - microos/networking
   - microos/libzypp_config
