@@ -22,11 +22,11 @@ use power_action_utils 'power_action';
 
 sub server_test_all {
     my $self   = shift;
-    my $folder = get_required_var('PYNFS') || 'nfs4.0';
+    my $folder = get_required_var('PYNFS');
+
     assert_script_run("cd ./$folder");
     script_run('./testserver.py --outfile log.txt --maketree localhost:/exportdir all', 3600);
 }
-
 
 sub run {
     my $self = shift;

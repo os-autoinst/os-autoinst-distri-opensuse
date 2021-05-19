@@ -21,7 +21,7 @@ use upload_system_log;
 sub upload_log {
     my $log_file = "./log.txt";
     my $timeout  = 90;
-    my $folder   = get_required_var('PYNFS') || 'nfs4.0';
+    my $folder   = get_required_var('PYNFS');
     assert_script_run("cd ~/pynfs/$folder");
 
     #show failures and save to log
