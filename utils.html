@@ -72,6 +72,7 @@
       <li><a href="#script_output_retry">script_output_retry</a></li>
       <li><a href="#script_run_interactive">script_run_interactive</a></li>
       <li><a href="#create_btrfs_subvolume">create_btrfs_subvolume</a></li>
+      <li><a href="#create_raid_loop_device">create_raid_loop_device</a></li>
       <li><a href="#file_content_replace">file_content_replace</a></li>
       <li><a href="#assert_file_content-assert_file_content-path-value">assert_file_content assert_file_content( &quot;path&quot;, value );</a></li>
       <li><a href="#ensure_ca_certificates_suse_installed-ensure_ca_certificates_suse_installed">ensure_ca_certificates_suse_installed ensure_ca_certificates_suse_installed();</a></li>
@@ -544,6 +545,14 @@
 <pre><code> create_btrfs_subvolume();</code></pre>
 
 <p>Create btrfs subvolume for <code>/boot/grub2/arm64-efi</code> before migration. ref:bsc#1122591</p>
+
+<h2 id="create_raid_loop_device">create_raid_loop_device</h2>
+
+<pre><code> create_raid_loop_device([raid_type =&gt; $raid_type], [device_num =&gt; $device_num], [file_size =&gt; $file_size]);</code></pre>
+
+<p>Create a raid array over loop devices. Raid type is <code>$raid_type</code>, using <code>$device_num</code> number of loop device, with the size of each device being <code>$file_size</code> megabytes.</p>
+
+<p>Example to create a RAID <code>5</code> array over <code>3</code> loop devices, <code>200</code> Mb each: create_raid_loop_device(raid_type =&gt; 5, device_num =&gt; 3, file_size =&gt; 200)</p>
 
 <h2 id="file_content_replace">file_content_replace</h2>
 
