@@ -30,7 +30,8 @@ sub server_test_all {
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    $self->select_serial_terminal;
+
     script_run('cd ~/pynfs');
     server_test_all;
 }
