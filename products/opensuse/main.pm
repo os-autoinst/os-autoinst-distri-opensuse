@@ -268,6 +268,10 @@ if (is_kernel_test()) {
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
+elsif (get_var("PYNFS")) {
+    loadtest "boot/boot_to_desktop";
+    load_pynfs_tests;
+}
 elsif (get_var("REGRESSION")) {
     load_common_x11;
 }
