@@ -35,7 +35,7 @@ sub install_dependencies {
 sub install_pynfs {
     install_dependencies;
     assert_script_run('git clone -q --depth 1 git://git.linux-nfs.org/projects/bfields/pynfs.git && cd ./pynfs');
-    record_info('pynfs git version', script_output('git log -1 --pretty=format:"git-%h" | tee version.txt'));
+    record_info('pynfs git version', script_output('git log -1 --pretty=format:"git-%h" | tee'));
     assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
 }
 
