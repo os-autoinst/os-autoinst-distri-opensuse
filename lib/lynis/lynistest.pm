@@ -252,7 +252,7 @@ sub compare_lynis_section_content {
             # "File systems": "[WARNING]: Test BINARY-1000 had a long execution: 123.139555 seconds"
             # "Ports and packages": "[WARNING]: Test PKGS-7308 had a long execution: 21.594952 seconds"
             #    "[WARNING]: Test PKGS-7328 had a long execution: 11.963337 seconds"
-            my @exceptions = ("\\[WARNING\\]: Test .* had a long execution: .* seconds");
+            my @exceptions = ("  \\[WARNING\\]: Test .* had a long execution: .* seconds");
             for my $exception (@exceptions) {
                 if ($str_section_baseline =~ m/$exception/ || $str_section_current =~ m/$exception/) {
                     $str_section_baseline =~ s/$exception//g;
