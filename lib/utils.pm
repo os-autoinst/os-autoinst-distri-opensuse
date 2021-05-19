@@ -88,6 +88,7 @@ our @EXPORT = qw(
   script_retry
   script_run_interactive
   create_btrfs_subvolume
+  create_raid_loop_device
   file_content_replace
   ensure_ca_certificates_suse_installed
   is_efi_boot
@@ -1685,6 +1686,37 @@ sub create_btrfs_subvolume {
     assert_script_run("rm -fr /tmp/arm64-efi/");
 }
 
+=head2 create_raid_loop_device 
+    
+ create_raid_loop_device([raid_type => $raid_type], [device_num => $device_num], [file_size => $file_size]);
+
+Create a raid array over loop devices.
+Raid type is C<$raid_type>, using C<$device_num> number of loop device, 
+with the size of each device being C<$file_size> megabytes.
+
+Example to create a RAID C<5> array over C<3> loop devices, C<200> Mb each:
+    create_raid_loop_device(raid_type => 5, device_num => 3, file_size => 200)
+
+=cut
+sub create_raid_loop_device {
+    my %args         = @_;
+    my $raid_type    = $args{raid_type}  // 1;
+    my $device_num   = $args{device_num} // 2;
+    my $file_size    = $args{file_size}  // 100;
+    my $loop_devices = "";
+
+    for my $num (1 .. $device_num) {
+        my $raid_file = "raid_file" . $num;
+        assert_script_run("fallocate -l ${file_size}M $raid_file");
+
+        my $loop_device = script_output("losetup -f");
+        assert_script_run("losetup $loop_device $raid_file");
+
+        $loop_devices .= $loop_device . " ";
+    }
+
+    assert_script_run("yes|mdadm --create /dev/md/raid_over_loop --level=$raid_type --raid-devices=$device_num $loop_devices");
+}
 
 =head2 file_content_replace
 

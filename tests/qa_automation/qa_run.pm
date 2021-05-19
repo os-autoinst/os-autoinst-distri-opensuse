@@ -75,12 +75,9 @@ sub qaset_config {
         # Reset the failed state of all units so that only new failures are recorded
         assert_script_run("systemctl reset-failed");
 
-        # Workaround for bsc#1183229 (mdmonitor.service cannot run for newer mdadm versions)
-        my $mdadm_version         = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}\n' mdadm");
-        my $working_mdadm_version = '4.1-15.20.1';
-        if (package_version_cmp($mdadm_version, $working_mdadm_version) > 0) {
-            zypper_call("in -f mdadm-$working_mdadm_version");
-        }
+        # In order for mdmonitor.service to be running,
+        # create a RAID 1 array made of 2 loop devices with size 50 Mb each
+        create_raid_loop_device(raid_type => 1, device_num => 2, file_size => 50);
     }
 }
 
