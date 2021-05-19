@@ -32,11 +32,11 @@ q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppMod
     }
 };
 
-my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
 
 sub run {
     my ($self)            = @_;
     my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
+    my $ms_kernel_link    = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
     my $certs             = {
         opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt',
         sle      => '/wsl/SLES-UEFI-CA-Certificate.crt'
