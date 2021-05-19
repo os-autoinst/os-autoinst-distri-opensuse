@@ -1641,7 +1641,6 @@ sub load_extra_tests_console {
     loadtest "console/ca_certificates_mozilla";
     loadtest "console/unzip";
     loadtest "console/salt" if (is_jeos || is_opensuse);
-    loadtest "console/machinery" unless (is_updates_tests);
     loadtest "console/gpg";
     loadtest "console/rsync";
     loadtest "console/clamav";

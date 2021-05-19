@@ -6,7 +6,6 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/add_phub_extension
-    - console/machinery
     - console/python_scientific
     - '{{wpa_supplicant}}'
     - console/vmstat
