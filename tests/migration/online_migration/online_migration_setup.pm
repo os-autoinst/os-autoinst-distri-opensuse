@@ -27,7 +27,7 @@ sub run {
     #
     # If source system is minimal installation then boot to textmode
     # we don't care about source system start time because our SUT is upgraded one
-    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 300, ready_time => 600, nologin => is_sles4sap);
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 400, ready_time => 600, nologin => is_sles4sap);
     $self->setup_migration();
 }
 
