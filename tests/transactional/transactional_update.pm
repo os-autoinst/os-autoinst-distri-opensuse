@@ -99,7 +99,7 @@ sub run {
     if (is_leap) {
         record_info 'Broken packages test skipped';
     } else {
-        trup_call "cleanup up", 2;
+        trup_call "cleanup up", exit_code => 1;
         check_reboot_changes 0;
     }
 
