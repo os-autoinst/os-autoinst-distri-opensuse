@@ -1164,9 +1164,6 @@ else {
             loadtest 'x11/evolution/evolution_meeting_pop';
         }
     }
-    elsif (get_var('AUTOFS')) {
-        load_mm_autofs_tests;
-    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set origin and target version
         set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
