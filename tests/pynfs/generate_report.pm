@@ -19,6 +19,7 @@ use testapi;
 use upload_system_log;
 
 sub upload_log {
+    my $self   = shift;
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ~/pynfs/$folder");
@@ -30,13 +31,18 @@ sub upload_log {
 
     script_run('grep -A 2 FAILURE result-analysis.txt | grep -v PASS > result-fail.txt');
     upload_logs('result-fail.txt', failok => 1);
+
+    if (script_run('[ -s result-fail.txt ]') == 0) {
+        $self->result("fail");
+        record_info("failed tests", script_output('cat result-fail.txt'), result => 'fail');
+    }
 }
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    upload_log();
+    $self->upload_log();
     upload_system_logs();
 }
 
