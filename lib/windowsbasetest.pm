@@ -82,7 +82,6 @@ sub run_in_powershell {
         wait_screen_change(sub { send_key 'ret' }, 10);
         wait_serial("${rc_hash}True", timeout => (exists $args{timeout}) ? $args{timeout} : 30) or
           die "Expected string (${rc_hash}True) was not found on serial";
-        send_key 'ctrl-l';
     }
 }
 

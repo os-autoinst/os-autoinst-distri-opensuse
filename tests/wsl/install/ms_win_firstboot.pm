@@ -8,11 +8,9 @@
 # without any warranty.
 
 # Summary: Boot windows image for the first time and provide basic user environment configuration
-# Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
+# Maintainer: QAC team <qa-c@suse.de>
 
-use base "windowsbasetest";
-use strict;
-use warnings;
+use Mojo::Base qw(windowsbasetest);
 use testapi;
 
 sub run {
@@ -37,13 +35,13 @@ sub run {
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     assert_and_click 'windows-create-account';
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
-    type_string $realname;    # input account name
+    type_string $realname;
     wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     save_screenshot;
     assert_and_click 'windows-next';
     for (1 .. 2) {
         sleep 3;
-        type_password;        # input password
+        type_password;
         save_screenshot;
         assert_and_click 'windows-next';
     }
@@ -59,20 +57,13 @@ sub run {
         assert_and_click 'windows-next';
     }
 
-    foreach my $tag (qw(
-        windows-dont-use-speech-recognition
-        windows-turn-off-find-device
-        windows-dont-improve-inking&typing
-        windows-dont-user-my-location
-        windows-send-full-diagnostic-data
-        )) {
+    my $count        = 0;
+    my @privacy_menu = split(',', get_required_var('WIN_INSTALL_PRIVACY_NEEDLES'));
+    foreach my $tag (@privacy_menu) {
+        send_key('pgdn') if (++$count == 4);
         assert_and_click $tag;
         wait_still_screen stilltime => 2, timeout => 10, similarity_level => 43;
     }
-
-    send_key 'pgdn';
-    assert_and_click 'windows-dont-get-tailored-experiences';
-    assert_and_click 'windows-dont-use-adID';
     assert_and_click 'windows-accept';
 
     assert_screen 'windows-make-cortana-personal-assistant';
@@ -113,6 +104,8 @@ sub run {
     $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.XboxApp | Remove-AppxPackage');
     $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.XboxGamingOverlay | Remove-AppxPackage');
     $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.YourPhone | Remove-AppxPackage');
+    # remove cortana
+    $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage');
 
     # poweroff
     $self->reboot_or_shutdown();
