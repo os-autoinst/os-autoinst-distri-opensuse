@@ -19,28 +19,30 @@ use testapi;
 use upload_system_log;
 
 sub upload_log {
-    my $log_file = "./log.txt";
-    my $timeout  = 90;
-    my $folder   = get_required_var('PYNFS') || 'nfs4.0';
+    my $self   = shift;
+    my $folder = get_required_var('PYNFS');
+
     assert_script_run("cd ~/pynfs/$folder");
 
-    #show failures and save to log
-    script_run('../nfs4.0/showresults.py log.txt | grep -A 2 FAILURE | grep -v PASS | tee fails.txt');
-    upload_logs('fails.txt', timeout => $timeout, log_name => 'upload-failure');
+    upload_logs('result-raw.txt', failok => 1);
 
-    #raw log
-    upload_logs($log_file, timeout => $timeout, log_name => 'upload-raw');
+    script_run('../showresults.py result-raw.txt > result-analysis.txt');
+    upload_logs('result-analysis.txt', failok => 1);
 
-    #analys log
-    script_run('./showresults.py log.txt > result.txt');
-    upload_logs('result.txt', timeout => $timeout, log_name => 'upload-analys');
+    script_run('grep -A 2 FAILURE result-analysis.txt | grep -v PASS > result-fail.txt');
+    upload_logs('result-fail.txt', failok => 1);
+
+    if (script_run('[ -s result-fail.txt ]') == 0) {
+        $self->result("fail");
+        record_info("failed tests", script_output('cat result-fail.txt'), result => 'fail');
+    }
 }
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    upload_log();
+    $self->upload_log();
     upload_system_logs();
 }
 

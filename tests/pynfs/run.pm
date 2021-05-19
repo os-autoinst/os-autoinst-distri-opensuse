@@ -22,15 +22,16 @@ use power_action_utils 'power_action';
 
 sub server_test_all {
     my $self   = shift;
-    my $folder = get_required_var('PYNFS') || 'nfs4.0';
-    assert_script_run("cd ./$folder");
-    script_run('./testserver.py --outfile ${logf:-log.txt} --maketree ${serv:-localhost}:${export:-/exportdir} all', 3600);
-}
+    my $folder = get_required_var('PYNFS');
 
+    assert_script_run("cd ./$folder");
+    script_run('./testserver.py --outfile result-raw.txt --maketree localhost:/exportdir all', 3600);
+}
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    $self->select_serial_terminal;
+
     script_run('cd ~/pynfs');
     server_test_all;
 }
