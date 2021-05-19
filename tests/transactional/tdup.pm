@@ -39,7 +39,7 @@ sub run {
 
     zypper_call '--gpg-auto-import-keys ref';
 
-    trup_call 'dup';
+    trup_call 'dup', timeout => 600;
 
     check_reboot_changes;
 }
