@@ -77,6 +77,7 @@ our @EXPORT = qw(
   load_nfv_master_tests
   load_nfv_trafficgen_tests
   load_public_cloud_patterns_validation_tests
+  load_pynfs_tests
   load_transactional_role_tests
   load_reboot_tests
   load_rescuecd_tests
@@ -3238,6 +3239,12 @@ sub load_kernel_baremetal_tests {
     loadtest "toolchain/install";
     # some tests want to build and run a custom kernel
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
+}
+
+sub load_pynfs_tests {
+    loadtest "pynfs/install";
+    loadtest "pynfs/run";
+    loadtest "pynfs/generate_report";
 }
 
 1;

@@ -744,11 +744,7 @@ elsif (get_var("BTRFS_PROGS")) {
 }
 elsif (get_var("PYNFS")) {
     prepare_target;
-    if (check_var('PYNFS', 'installation')) {
-        loadtest "pynfs/install";
-        loadtest "pynfs/run";
-        loadtest "pynfs/generate_report";
-    }
+    load_pynfs_tests;
 }
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
