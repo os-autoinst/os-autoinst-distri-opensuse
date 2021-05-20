@@ -90,8 +90,7 @@ sub run {
         die "Empty test repositories" if ($check_empty_repos && $size < 1000);
     }
     # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
-    # Note: This is a temporary fix, the correct way is to use download.suse.de
-    assert_script_run("mv ~/repos/dist.suse.de ~/repos/download.suse.de");
+    assert_script_run("if [ -d ~/repos/dist.suse.de ]; then mv ~/repos/dist.suse.de ~/repos/download.suse.de; fi");
     assert_script_run("cd");
 }
 
