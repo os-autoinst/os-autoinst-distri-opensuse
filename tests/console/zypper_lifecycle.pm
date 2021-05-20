@@ -42,22 +42,19 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
 
-    # Workaround for bsc#1166549, zypper lifecycle error with 'Error building the cache'.
-    # Currently the only workaround option is to run zypper-lifecycle as root.
-
-    # Now we just hit bsc#1166549 on s390x and ppc64le, so we just need root console
-    # on these two platforms.
-    my $needs_root_console = 0;
-    if ((is_s390x || is_ppc64le) && is_sle('>=15-SP3') && is_upgrade) {
-        $needs_root_console = 1;
-        record_soft_failure 'bsc#1166549 - zypper lifecycle failed to create metadata cache directory';
-    }
     select_console 'root-console';
+    # First we'd make sure that we have a clean zypper cache env and all dirs have
+    # 0755 and all files have 0644 pemmission.
+    # For some reason the system will change the permission on /var/cache/zypp/{solv,raw}
+    # files. this cause the zypper lifecycle failed when building cache for non-root user.
+    script_run('rm -fr /var/cache/zypp/solv /var/cache/zypp/solv');
+    script_run('rm -fr /var/cache/zypp/raw /var/cache/zypp/raw');
 
     # We add 'zypper ref' here to download and preparse the metadata of packages,
-    # which will make the follow 'zypper lifecycle' runs faster.
-    script_run('zypper ref');
-    select_console 'user-console' unless $needs_root_console;
+    # which will make the following 'zypper lifecycle' runs faster.
+    script_run('zypper refresh', 300);
+
+    select_console 'user-console';
     my $overview = script_output('zypper lifecycle', 600);
     die "Missing header line:\nOutput: '$overview'" unless $overview =~ /Product end of support/;
     die "Missing link to lifecycle page:\nOutput: '$overview'"
@@ -111,7 +108,7 @@ sub run {
     mkdir -p /var/lib/lifecycle/data
     echo '$package, *, $testdate' > /var/lib/lifecycle/data/$prod.lifecycle";
     # verify eol from lifecycle data
-    select_console 'user-console' unless $needs_root_console;
+    select_console 'user-console';
     $output = script_output "zypper lifecycle $package", 300;
     die "$package lifecycle entry incorrect:\nOutput: '$output'" unless $output =~ /$package(-\S+)?\s+$testdate/;
 
@@ -143,7 +140,7 @@ sub run {
     }
     die "baseproduct eol not found in overview\nOutput: '$product_name'" unless $product_eol;
 
-    select_console 'user-console' unless $needs_root_console;
+    select_console 'user-console';
     # verify that package eol defaults to product eol
     $output = script_output "zypper lifecycle $package", 300;
     unless ($output =~ /$package(-\S+)?\s+$product_eol/) {
@@ -157,7 +154,7 @@ sub run {
         mv /var/lib/lifecycle/data/$prod.lifecycle.orig /var/lib/lifecycle/data/$prod.lifecycle
     fi";
     #
-    select_console 'user-console' unless $needs_root_console;
+    select_console 'user-console';
     # 4. verify that "zypper lifecycle --days N" and "zypper lifecycle --date
     # D" shows correct results
     assert_script_run 'zypper lifecycle --help';
