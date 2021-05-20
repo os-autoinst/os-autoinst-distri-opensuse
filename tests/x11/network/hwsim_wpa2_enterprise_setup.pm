@@ -20,7 +20,7 @@ use utils;
 
 sub run {
     my $self = shift;
-    $self->select_serial_terminal();
+    select_console('root-console');
     assert_script_run "modprobe mac80211_hwsim radios=2 |& tee /dev/$serialdev";
 
     $self->install_packages;
