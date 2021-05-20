@@ -31,6 +31,7 @@ conditional_schedule:
         - yast2_gui/yast2_security
         - yast2_gui/yast2_firewall
         - yast2_gui/yast2_bootloader
+        - yast2_gui/bootloader/bootcode_options
         - x11/yast2_snapper
         - yast2_gui/yast2_lang
         - yast2_gui/yast2_users
@@ -137,3 +138,4 @@ test_data:
       - yast2_basis
       - yast2_desktop
       - yast2_server
+  <<: !include test_data/yast/yast2_gui.yaml
