@@ -46,7 +46,7 @@ sub run {
 
     # Activate kdump
     prepare_for_kdump;
-    activate_kdump_cli;
+    activate_kdump_without_yast;
 
     # Reboot
     power_action('reboot');
