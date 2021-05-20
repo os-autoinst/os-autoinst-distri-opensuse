@@ -75,16 +75,23 @@ sub run {
                 }
             }
         }
+        # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
+        my $count             = scalar @repos;
+        my $check_empty_repos = get_var('QAM_PUBLICCLOUD_IGNORE_EMPTY_REPO', 0) == 0;
+        die "No test repositories" if ($check_empty_repos && $count == 0);
 
         my $size = script_output("du -hs ~/repos");
         record_info("Repo size", "Total repositories size: $size");
         assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
         upload_logs('/tmp/repos.list.txt');
         upload_logs('qem_download_status.txt');
-        # Ensure the repos are not empty, otherwise we have the wrong template link
+        # Failsafe 2: Ensure the repos are not empty (i.e. size >= 1 MB)
         $size = script_output('du -s ~/repos | awk \'{print$1}\'');
-        die "Empty test repositories" if (!get_var('QAM_PUBLICCLOUD_IGNORE_EMPTY_REPO', 0) && $size < 10000);
+        die "Empty test repositories" if ($check_empty_repos && $size < 1000);
     }
+    # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
+    # Note: This is a temporary fix, the correct way is to use download.suse.de
+    assert_script_run("mv ~/repos/dist.suse.de ~/repos/download.suse.de");
     assert_script_run("cd");
 }
 
