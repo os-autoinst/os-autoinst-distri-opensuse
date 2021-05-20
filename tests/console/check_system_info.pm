@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils;
 use registration;
 use List::MoreUtils 'uniq';
 
@@ -31,21 +31,21 @@ sub run {
     select_console('root-console');
     assert_script_run('setterm -blank 0') unless (check_var('ARCH', 's390x'));
 
-    assert_script_run("SUSEConnect --status-text > /dev/$serialdev", timeout => 180);
-
     if (!get_var('MILESTONE_VERSION')) {
         assert_script_run('cat /etc/issue');
     } else {
         my $milestone_version = get_var('MILESTONE_VERSION');
         assert_script_run("grep -w $milestone_version /etc/issue");
     }
-    assert_script_run('cat /etc/os-release');
+
+    script_run('zypper lr | tee /tmp/zypperlr.txt');
 
     my $myaddons = get_var('SCC_ADDONS', "");
-    $myaddons = $myaddons . ",base,serverapp"                             if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
-    $myaddons = $myaddons . ",base,desktop,we,python2"                    if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
-    $myaddons = $myaddons . ",base,serverapp,desktop,dev,lgm,python2,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
-    $myaddons = $myaddons . ",python2"                                    if (is_sle('=15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+    $myaddons .= ",base,serverapp"                                  if (is_sle('15+')                                   && check_var('SLE_PRODUCT', 'sles'));
+    $myaddons .= ",base,desktop,we,python2"                         if (is_sle('15+')                                   && check_var('SLE_PRODUCT', 'sled'));
+    $myaddons .= ",base,serverapp,desktop,dev,lgm,python2,wsm"      if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+    $myaddons .= ",python2"                                         if (is_sle('=15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+    $myaddons .= ",base,serverapp,desktop,dev,lgm,python2,wsm,phub" if (is_leap_migration);
 
     # After upgrade, system doesn't include ltss extension
     $myaddons =~ s/ltss,?//g;
@@ -68,6 +68,12 @@ sub run {
         my $build    = script_output("zypper lr --url | grep -i $build_id", 200, proceed_on_failure => 1);
         die "System does not upgrade to expected build ID: $build_id" if ($build eq '');
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    upload_logs '/tmp/zypperlr.txt';
+    $self->SUPER::post_fail_hook;
 }
 
 1;
