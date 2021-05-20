@@ -71,16 +71,16 @@ sub run {
 
     assert_screen([qw(windows-desktop windows-edge-decline networks-popup-be-discoverable)], 600);
 
-    if (match_has_tag 'network-popup-be-discoverable') {
+    if (match_has_tag 'networks-popup-be-discoverable') {
         assert_and_click 'network-discover-yes';
         wait_screen_change(sub { send_key 'ret' }, 10);
+        assert_screen([qw(windows-desktop windows-edge-decline)]);
     }
 
     if (match_has_tag 'windows-edge-decline') {
         assert_and_click 'windows-edge-decline';
+        assert_screen 'windows-desktop';
     }
-
-    assert_screen 'windows-desktop';
 
     # setup stable lock screen background
     $self->use_search_feature('lock screen settings');
