@@ -92,7 +92,7 @@ sub find_img {
 }
 
 sub upload_img {
-    my ($self, $file, $type) = @_;
+    my ($self, $file) = @_;
     my $img_name          = $self->file2name($file);
     my $uri               = $self->storage_name . '/' . $file;
     my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE');

@@ -26,9 +26,8 @@ sub run {
 
     my $provider = $self->provider_factory();
 
-    my $img_url    = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
+    my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
-    my $img_type   = get_var('PUBLIC_CLOUD_IMAGE_TYPE');
 
     if (my $img_id = $provider->find_img($img_name)) {
         record_info('Info', "Image $img_id already exists!");
@@ -36,7 +35,7 @@ sub run {
     }
 
     assert_script_run("wget --no-check-certificate $img_url -O $img_name", timeout => 60 * 10);
-    $provider->upload_img($img_name, $img_type);
+    $provider->upload_img($img_name);
 }
 
 sub test_flags {
