@@ -26,6 +26,7 @@ sub testsuiteinstall {
     # The isotovideo setting QA_TESTSUITE_REPO is not mandatory.
     # QA_TESTSUITE_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
     my $qa_testsuite_repo = get_var('QA_TESTSUITE_REPO', '');
+    my $systemd_build = get_var('SYSTEMD_BUILDVERSION', '');
     if (!$qa_testsuite_repo) {
         if (is_opensuse()) {
             my $sub_project;
@@ -60,7 +61,13 @@ sub testsuiteinstall {
     zypper_call '--gpg-auto-import-keys ref';
     # use systemd from the repo of the qa package
     if (get_var('SYSTEMD_FROM_TESTREPO')) {
-        zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1';
+        if (get_var('SYSTEMD_BUILDVERSION')) {
+	    zypper_call "in --force --from systemd-testrepo systemd=$systemd_build systemd-sysvinit=$systemd_build udev=$systemd_build libsystemd0=$systemd_build systemd-coredump=$systemd_build libudev1=$systemd_build systemd-journal-remote=$systemd_build";
+
+	}
+        else {
+            zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1';
+        }
         change_grub_config('=.*', '=9', 'GRUB_TIMEOUT');
         grub_mkconfig;
         wait_screen_change { enter_cmd "shutdown -r now" };
@@ -76,7 +83,13 @@ sub testsuiteinstall {
         reset_consoles;
         select_console('root-console');
     }
-    zypper_call 'in systemd-qa-testsuite';
+
+    if (get_var('SYSTEMD_BUILDVERSION')) {
+        zypper_call "in --force systemd-qa-testsuite=$systemd_build";
+    }
+    else {
+        zypper_call 'in systemd-qa-testsuite';
+    }	
 }
 
 sub testsuiteprepare {
