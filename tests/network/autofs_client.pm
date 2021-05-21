@@ -47,6 +47,9 @@ use strict;
 use warnings;
 
 sub run {
+    # autofs client needs mutex_wait
+    mutex_wait 'barrier_setup_done';
+
     select_console "root-console";
     my $nfs_server              = "10.0.2.101";
     my $remote_mount            = "/tmp/nfs/server";

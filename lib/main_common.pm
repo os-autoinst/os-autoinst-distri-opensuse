@@ -102,7 +102,6 @@ our @EXPORT = qw(
   load_hypervisor_tests
   load_yast2_gui_tests
   load_zdup_tests
-  load_mm_autofs_tests
   logcurrentenv
   map_incidents_to_repo
   need_clear_repos
@@ -3200,24 +3199,6 @@ sub load_lvm_tests {
         }
         else {
             loadtest 'installation/partitioning/lvm';
-        }
-    }
-}
-
-sub load_mm_autofs_tests {
-    if (get_var('AUTOFS')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('AUTOFS_SUITE_READY', 2);
-            barrier_create('AUTOFS_FINISHED',    2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest "network/autofs_server";
-        }
-        else {
-            loadtest "network/autofs_client";
         }
     }
 }
