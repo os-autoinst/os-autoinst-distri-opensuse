@@ -18,14 +18,14 @@ use testapi;
 use transactional qw(rpmver get_utt_packages trup_call);
 use Test::Assert 'assert_equals';
 
-# Verify that essential snapshots cannot be deleted, see https://jira.suse.com/browse/SLE-3804
 sub run {
     select_console 'root-console';
 
+    # Get the id number of the currently mounted snapshot.
     my @snapshots_before = split /\n/, script_output('snapper list --disable-used-space');
     my $current_snapshot_before;
     foreach (@snapshots_before) {
-        if ($_ =~ /(?<current_snapshot_before>^\d+)\*/) {
+        if ($_ =~ /(?<current_snapshot_before>^\s*\d+)\*/) {
             $current_snapshot_before = $+{current_snapshot_before};
             last;
         }
@@ -39,6 +39,8 @@ sub run {
     trup_call "ptf install" . rpmver('trivial');
     my $last_snapshot_number = script_output("snapper create -p -d \"Disposable snapshot #2\"");
 
+    # Get the id number of the currently mounted snapshot after the updates and compare
+    # it with the number found, before the updates.
     my @snapshots_after_update = split /\n/, script_output('snapper list --disable-used-space');
     my $next_snap_after_update;
     my $current_snap_after_update;
@@ -48,7 +50,8 @@ sub run {
     }
     die('Current snapshot was not marked with -') unless $current_snap_after_update;
     die('New snapshot not marked with +')         unless $next_snap_after_update;
-    assert_equals($current_snapshot_before, $current_snap_after_update, "Current snapshot number should not change after update");
+    assert_equals($current_snapshot_before, $current_snap_after_update, "Current snapshot number should not 
+	    change after update. \n before= $current_snapshot_before , after= $current_snap_after_update");
 
     my $delete_response = script_output("snapper delete 0-$last_snapshot_number 2>&1");
     unless ($delete_response =~ /^.*0.*current system\..*$current_snap_after_update.*currently mounted.*\..*$next_snap_after_update.*next to be mounted.*\./s) {
