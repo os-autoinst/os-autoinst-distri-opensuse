@@ -1149,13 +1149,11 @@ sub get_x11_console_tty {
       && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');
     # $newer_gdm means GDM version >= 3.32, which will start gnome desktop
-    # on tty2 including auto-login cases. Also exclude cases which boot from
-    # older versions in HDD
+    # on tty2 including auto-login cases.
     my $newer_gdm
       = $new_gdm
       && !is_sle('<15-SP2')
-      && !is_leap('<15.2')
-      && get_var('HDD_1', '') !~ /opensuse-42/;
+      && !is_leap('<15.2');
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
 }
 
