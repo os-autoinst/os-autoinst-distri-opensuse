@@ -133,7 +133,7 @@ sub setup_apache2 {
     assert_script_run 'echo "<html><h2>Hello Linux</h2></html>" > /srv/www/htdocs/hello.html';
 
     # create a test php page
-    assert_script_run qq{echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php};
+    assert_script_run 'echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php';
 
     # Verify apache+ssl works
     my $curl_option = ($mode =~ m/SSL|NSS/) ? '-k https' : 'http';
@@ -278,7 +278,8 @@ elif [[ $(echo $PG_VER|grep 94) ]]; then
 fi
 echo PG_LATEST=/usr/lib/$PG_LATEST >>/tmp/pg_versions
 EOF
-        script_run "echo '$pg_versions' > pg_versions.sh";
+        $pg_versions =~ s/\n/\\n/g;
+        script_run "echo -e '$pg_versions' > pg_versions.sh";
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
         assert_script_run 'sudo bash pg_versions.sh && . /tmp/pg_versions';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
@@ -329,9 +330,9 @@ Create the 'openQAdb' database with table 'test' and insert one element
 =cut
 sub test_mysql {
     # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
-    my $setup_openQAdb = "CREATE DATABASE openQAdb; USE openQAdb;
-    CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));
-    INSERT INTO test (entry) VALUE ('can you read this?');";
+    my $setup_openQAdb = "CREATE DATABASE openQAdb; USE openQAdb; " .
+      "CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id)); " .
+      "INSERT INTO test (entry) VALUE ('can you read this?');";
     assert_script_run qq{mysql -u root -e "$setup_openQAdb"};
 
     my $mysql_version = script_output qq{mysql -sN -u root -e "SELECT VERSION();"};
