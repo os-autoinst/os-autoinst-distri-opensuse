@@ -280,7 +280,6 @@
     <init-scripts config:type="list">
       <script>
         <filename>post.sh</filename>
-        <interpreter>shell</interpreter>
         <source><![CDATA[
 #!/bin/sh
 # turn off autorefresh on pool repos

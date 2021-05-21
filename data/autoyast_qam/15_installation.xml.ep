@@ -67,11 +67,9 @@
     <mode>
       <confirm config:type="boolean">false</confirm>
     </mode>
-    <final_reboot config:type="boolean">true</final_reboot>
   </general>
   <partitioning config:type="list">
     <drive>
-      <_id config:type="integer">0</_id>
       <device>/dev/disk/by-path/ccw-0.0.0000</device>
       <disklabel>gpt</disklabel>
       <enable_snapshots config:type="boolean">true</enable_snapshots>
