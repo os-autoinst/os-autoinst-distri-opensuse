@@ -344,6 +344,8 @@ sub run {
         install_from_repo();
     }
 
+    log_versions;
+
     zypper_call('in efivar') if is_sle('12+') || is_opensuse;
 
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');

@@ -34,6 +34,7 @@ our @EXPORT = qw(
   get_ltp_version_file
   init_ltp_tests
   loadtest_kernel
+  log_versions
   prepare_ltp_env
   schedule_tests
   shutdown_ltp
@@ -87,6 +88,30 @@ sub get_ltp_version_file {
     return get_ltproot($want_32bit) . '/version';
 }
 
+sub log_versions {
+    my $kernel_pkg     = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
+    my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
+    my $ver_linux_log  = '/tmp/ver_linux_before.txt';
+
+    upload_logs('/boot/config-$(uname -r)', failok => 1);
+
+    script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
+    upload_logs($kernel_pkg_log, failok => 1);
+
+    script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
+    upload_logs($ver_linux_log, failok => 1);
+
+    record_info('KERNEL VERSION',     script_output('uname -a'));
+    record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log",          proceed_on_failure => 1));
+    record_info('KERNEL EXTRA PKG',   script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
+    record_info('KERNEL CONFIG',      script_output('cat /boot/config-$(uname -r)'));
+    record_info('ver_linux',          script_output("cat $ver_linux_log", proceed_on_failure => 1));
+
+    script_run('env');
+    script_run('aa-enabled; aa-status');
+}
+
+
 # Set up basic shell environment for running LTP tests
 sub prepare_ltp_env {
     my $ltp_env = get_var('LTP_ENV');
@@ -115,19 +140,8 @@ sub init_ltp_tests {
     my $is_ima     = $cmd_file =~ m/^ima$/i;
 
     download_whitelist;
-    script_run('env');
-
-    my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
-    script_run('rpm -qi ' . ((is_jeos) ? 'kernel-default-base' : 'kernel-default') . " > $kernel_pkg_log 2>&1");
-    upload_logs($kernel_pkg_log, failok => 1);
-
-    my $ver_linux_log = '/tmp/ver_linux_before.txt';
-    script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
-    upload_logs($ver_linux_log, failok => 1);
 
     script_run('ps axf') if ($is_network || $is_ima);
-
-    script_run('aa-enabled; aa-status');
 
     if ($is_network) {
         # emulate $LTPROOT/testscripts/network.sh
