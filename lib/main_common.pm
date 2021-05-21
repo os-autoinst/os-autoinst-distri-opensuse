@@ -566,8 +566,8 @@ sub load_jeos_tests {
     load_boot_tests();
     loadtest "jeos/firstrun";
     loadtest "jeos/record_machine_id";
+    loadtest "console/force_scheduled_tasks";
     unless (get_var('INSTALL_LTP')) {
-        loadtest "console/force_scheduled_tasks";
         loadtest "jeos/grub2_gfxmode";
         loadtest "jeos/diskusage";
         loadtest "jeos/build_key";
