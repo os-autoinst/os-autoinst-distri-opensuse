@@ -33,6 +33,9 @@ use version_utils qw(is_upgrade is_sle is_tumbleweed is_leap is_opensuse);
 use services::sshd;
 use ssh_crypto_policy;
 
+# The test disables the firewall, if true reenable afterwards.
+my $reenable_firewall = 0;
+
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
@@ -58,8 +61,9 @@ sub run {
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
         record_info("SuSEfirewall2 not available", "bsc#1090178: SuSEfirewall2 service is not available after upgrade from SLES11 SP4 to SLES15");
     }
-    else {
-        systemctl('stop ' . $self->firewall) if (script_run("which " . $self->firewall) == 0);
+    elsif (script_run('systemctl is-active ' . $self->firewall) == 0) {
+        $reenable_firewall = 1;
+        systemctl('stop ' . $self->firewall);
     }
 
     # Restart sshd and check it's status
@@ -207,14 +211,20 @@ sub check_journal {
 
 sub post_run_hook {
     my $self = shift;
-    check_journal();
+    $self->cleanup();
     $self->SUPER::post_run_hook;
 }
 
 sub post_fail_hook {
     my $self = shift;
-    check_journal();
+    $self->cleanup();
     $self->SUPER::post_fail_hook;
+}
+
+sub cleanup() {
+    my $self = shift;
+    systemctl('start ' . $self->firewall) if $reenable_firewall;
+    check_journal();
 }
 
 sub test_flags {
