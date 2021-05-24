@@ -182,8 +182,9 @@ our %guest_params = (
     'guest_installation_session_command' => '', #If there is no [guest_installation_session] or [guest_installation_session] is terminated, start or re-connect to
         #guest installation screen using [guest_installation_session_command] = screen -t [guest_name] virsh console --force [guest_name]
     'guest_installation_attached' => '',    #This indicates whether guest installation screen is already connected or attached(true or false)
-    'start_run'                   => '',    #Guest creation start time
-    'stop_run'                    => ''     #Guest creation finish time
+    'guest_netaddr_attached' => '',  #Array reference that stores the actual subnets in which guest may reside, for example, ('10.10.10.0/24', '11.11.11.0/24').
+    'start_run'              => '',  #Guest creation start time
+    'stop_run'               => ''   #Guest creation finish time
 );
 
 our $AUTOLOAD;
@@ -795,6 +796,7 @@ sub config_guest_network_bridge_device {
     else {
         record_info("Guest $self->{guest_name} uses bridge device $_bridge_device or subnet $_bridge_network_in_route which had already been configured and active", script_output("ip addr show;ip route show all"));
     }
+    $self->{guest_netaddr_attached} = [split(/\n/, script_output("ip route show all | grep -v default | grep -i $_bridge_device | awk \'{print \$1}\'", proceed_on_failure => 1))];
     return $self;
 }
 
@@ -1150,22 +1152,24 @@ sub get_guest_ipaddr {
     my @subnets_in_route = @_;
 
     $self->reveal_myself;
-    return $self if (($self->{guest_ipaddr} ne '') or ($self->{guest_ipaddr_static} eq 'true'));
+    return $self if ((($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) or ($self->{guest_ipaddr_static} eq 'true'));
     @subnets_in_route = split(/\n+/, script_output("ip route show all | awk \'{print \$1}\' | grep -v default")) if (scalar(@subnets_in_route) eq 0);
     foreach (@subnets_in_route) {
         my $single_subnet = $_;
+        next if (!(grep { $_ eq $single_subnet } @{$self->{guest_netaddr_attached}}));
         $single_subnet =~ s/\.|\//_/g;
         my $_scan_timestamp = localtime();
         $_scan_timestamp =~ s/ |:/_/g;
         my $single_subnet_scan_results = "$common_log_folder/nmap_subnets_scan_results/nmap_scan_$single_subnet" . '_' . $_scan_timestamp;
         assert_script_run("mkdir -p $common_log_folder/nmap_subnets_scan_results");
-        script_run("nmap -sn $_ -oX $single_subnet_scan_results", timeout => 60);
+        script_run("nmap -T5 -sn $_ -oX $single_subnet_scan_results", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
         my $_guest_ipaddr = script_output("xmlstarlet sel -t -v //address/\@addr -n $single_subnet_scan_results | grep -i $self->{guest_macaddr} -B1 | grep -iv $self->{guest_macaddr}", proceed_on_failure => 1);
         $self->{guest_ipaddr} = ($_guest_ipaddr ? $_guest_ipaddr : 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT');
         last if ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT');
     }
 
     my $record_info = '';
+    $self->{guest_ipaddr} = 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT' if ($self->{guest_ipaddr} eq '');
     $record_info = $record_info . $self->{guest_name} . ' ' . $self->{guest_ipaddr} . ' ' . $self->{guest_macaddr} . "\n";
     record_info("Guest $self->{guest_name} address info", $record_info);
     return $self;

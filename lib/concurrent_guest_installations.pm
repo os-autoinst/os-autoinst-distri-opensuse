@@ -169,6 +169,7 @@ sub validate_guest_installations_results {
         if ($guest_instances{$_}->{guest_installation_result} eq '') {
             record_info("Guest $guest_instances{$_}->{guest_name} still has no installation result at the end.Makr it as UNKNOWN.", "It will be treated as a kind of failure !");
             $guest_instances{$_}->{guest_installation_result} = 'UNKNOWN';
+            $guest_instances{$_}->collect_guest_installation_logs_via_ssh;
         }
         $_overall_test_result = "$guest_instances{$_}->{guest_installation_result},$_overall_test_result";
     }
@@ -242,8 +243,8 @@ sub concurrent_guest_installations_run {
     $self->generate_guest_profiles(@_guest_profiles);
     $self->install_guest_instances;
     $self->monitor_concurrent_guest_installations;
-    $self->validate_guest_installations_results;
     $self->clean_up_guest_installations;
+    $self->validate_guest_installations_results;
     $self->junit_log_provision((caller(0))[3]);
     return $self;
 
@@ -254,7 +255,6 @@ sub post_fail_hook {
 
     $self->reveal_myself;
     $self->check_root_ssh_console;
-    $self->clean_up_guest_installations;
     $self->junit_log_provision((caller(0))[3]);
     $self->SUPER::post_fail_hook;
     return $self;
