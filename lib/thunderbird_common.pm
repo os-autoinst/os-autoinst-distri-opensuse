@@ -158,7 +158,7 @@ sub tb_check_email {
     wait_screen_change { send_key "shift-f5" };
     send_key "ctrl-shift-k";
     wait_screen_change { type_string "$mail_search" };
-    assert_screen "thunderbird_sent-message-received", 120;
+    send_key_until_needlematch "thunderbird_sent-message-received", 'shift-f5', 4, 30;
 
     # delete the message
     assert_and_click "thunderbird_select-message";
