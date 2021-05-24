@@ -127,6 +127,7 @@ sub tb_send_message {
     send_key "tab";
     type_string "Test email send and receive.";
     assert_and_click "thunderbird_send-message";
+    wait_still_screen(2);
 
     if ($hostname eq 'client') {
         if (check_var('SLE_PRODUCT', 'sled')) {
