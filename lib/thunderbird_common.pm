@@ -77,6 +77,8 @@ sub tb_setup_account {
 
     # If use multimachine, select correct needles to configure thunderbird.
     if ($hostname eq 'client') {
+        send_key_until_needlematch 'thunderbird_SSL_done_config', 'alt-t', 4, 2;
+        wait_still_screen(2);
         assert_and_click "thunderbird_SSL_done_config";
         wait_still_screen(3);
         assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
