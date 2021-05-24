@@ -57,19 +57,17 @@ sub tb_setup_account {
 
     if ($proto eq 'pop') {
         assert_and_click 'thunderbird_wizard-imap-selected';
+        assert_and_click 'thunderbird_wizard-imap-pop-open';
         if (is_tumbleweed) {
-            assert_and_click 'thunderbird_wizard-imap-pop-open';
             assert_and_click 'thunderbird_SSL_pop3-selection-click-TW';
             assert_and_click 'thunderbird_SSL_auth_click';
             assert_and_click 'thunderbird_wizard-pop-done';
         }
         else {
-            assert_screen 'thunderbird_wizard-imap-pop-open';
-            send_key 'down';
-            send_key 'ret';
             # If use multimachine, select correct needles to configure thunderbird.
             if ($hostname eq 'client') {
                 assert_and_click 'thunderbird_SSL_auth_click';
+                wait_still_screen(2);
                 send_key 'down';
                 send_key 'ret';
             }
