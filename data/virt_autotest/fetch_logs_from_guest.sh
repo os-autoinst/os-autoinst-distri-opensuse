@@ -289,7 +289,7 @@ for single_subnet in ${subnets_in_route[@]};do
     single_subnet_scan_results=${virt_logs_folder}'/nmap_subnets_scan_results/nmap_scan_'${single_subnet_transformed}'_'${scan_timestamp}
     subnets_scan_results[${subnets_scan_index}]=${single_subnet_scan_results}
     echo -e "nmap -sn $single_subnet -oX $single_subnet_scan_results" | tee -a ${fetch_logs_from_guest_log}
-    nmap -sn $single_subnet -oX $single_subnet_scan_results | tee -a ${fetch_logs_from_guest_log}
+    nmap -T5 -sn $single_subnet -oX $single_subnet_scan_results | tee -a ${fetch_logs_from_guest_log}
     subnets_scan_index=$(( ${subnets_scan_index} + 1 ))
 done
 
