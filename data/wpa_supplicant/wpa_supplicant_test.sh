@@ -14,7 +14,7 @@ function cleanup() {
 		kill $hostapd_pid
 	fi
 	modprobe -r mac80211_hwsim
-	rm -f wifi_scan.txt networks.txt status.txt hostapd.log hostapd.com dnsmasq.log dhclinet.log
+	rm -f wifi_scan.txt networks.txt status.txt hostapd.com dnsmasq.log dhclinet.log
 	rm -f /etc/sysconfig/network/ifcfg-wlan1
 	wpa_cli -i wlan1 terminate >/dev/null 2>/dev/null
 	ip netns pids wifi_master | xargs kill
