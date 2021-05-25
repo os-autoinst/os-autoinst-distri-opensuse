@@ -92,6 +92,7 @@ sub run {
         if ($robot_test eq "sysctl.robot") {
             # bsc#1181163 - unexpected values for net.ipv6.conf.lo.use_tempaddr and net.ipv6.conf.lo.accept_redirects
             add_softfail("sysctl.robot", "15-SP1", "bsc#1181163", qw(Sysctl_net_ipv6_conf_lo_accept_redirects Sysctl_net_ipv6_conf_lo_use_tempaddr));
+            add_softfail("sysctl.robot", "15-SP1", "poo#92566",   qw(Sysctl_net_ipv4_udp_mem));
         }
         parse_extra_log("XUnit", "$test_repo/$robot_test.xml");
         upload_logs("$test_repo/$robot_test.html", failok => 1);
