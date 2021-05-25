@@ -40,7 +40,7 @@ sub run {
 
 =head1 Configuration
 
-Example configuration for SLE:
+=head2 Example configuration for SLE:
 
 BOOT_HDD_IMAGE=1
 DESKTOP=textmode
@@ -48,5 +48,17 @@ HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_instal
 PYNFS=nfs4.0
 UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
 START_AFTER_TEST=create_hdd_minimal_base+sdk
+
+=head2 PYNFS_GIT_URL
+
+Overrides the official pynfs repository URL.
+
+=head2 PYNFS_RELEASE
+
+This can be set to a release tag, commit hash, branch name or whatever else Git
+will accept.
+
+If not set, then the default clone action will be performed, which probably
+means the latest master branch will be used.
 
 =cut
