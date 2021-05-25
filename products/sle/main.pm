@@ -467,6 +467,9 @@ sub load_online_migration_tests {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         loadtest "migration/online_migration/register_without_ltss";
     }
+    if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+        loadtest "console/check_system_info";
+    }
     loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "migration/version_switch_upgrade_target";
     loadtest "migration/online_migration/pre_migration";
@@ -507,6 +510,9 @@ sub load_patching_tests {
         # Lock package for offline migration by Yast installer
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
+        }
+        if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+            loadtest "console/check_system_info";
         }
         loadtest 'migration/record_disk_info';
         # Install service for offline migration by zypper
@@ -1175,6 +1181,9 @@ else {
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
         loadtest 'update/patch_sle';
+        if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+            loadtest "console/check_system_info";
+        }
         loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;
