@@ -57,19 +57,17 @@ sub tb_setup_account {
 
     if ($proto eq 'pop') {
         assert_and_click 'thunderbird_wizard-imap-selected';
+        assert_and_click 'thunderbird_wizard-imap-pop-open';
         if (is_tumbleweed) {
-            assert_and_click 'thunderbird_wizard-imap-pop-open';
             assert_and_click 'thunderbird_SSL_pop3-selection-click-TW';
             assert_and_click 'thunderbird_SSL_auth_click';
             assert_and_click 'thunderbird_wizard-pop-done';
         }
         else {
-            assert_screen 'thunderbird_wizard-imap-pop-open';
-            send_key 'down';
-            send_key 'ret';
             # If use multimachine, select correct needles to configure thunderbird.
             if ($hostname eq 'client') {
                 assert_and_click 'thunderbird_SSL_auth_click';
+                wait_still_screen(2);
                 send_key 'down';
                 send_key 'ret';
             }
@@ -79,7 +77,11 @@ sub tb_setup_account {
 
     # If use multimachine, select correct needles to configure thunderbird.
     if ($hostname eq 'client') {
+        send_key_until_needlematch 'thunderbird_SSL_done_config', 'alt-t', 4, 2;
+        wait_still_screen(2);
         assert_and_click "thunderbird_SSL_done_config";
+        wait_still_screen(3);
+        assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
         assert_and_click "thunderbird_confirm_security_exception";
         assert_and_click "thunderbird_skip-system-integration";
         assert_and_click "thunderbird_get-messages";
@@ -125,6 +127,7 @@ sub tb_send_message {
     send_key "tab";
     type_string "Test email send and receive.";
     assert_and_click "thunderbird_send-message";
+    wait_still_screen(2);
 
     if ($hostname eq 'client') {
         if (check_var('SLE_PRODUCT', 'sled')) {
@@ -158,7 +161,7 @@ sub tb_check_email {
     wait_screen_change { send_key "shift-f5" };
     send_key "ctrl-shift-k";
     wait_screen_change { type_string "$mail_search" };
-    assert_screen "thunderbird_sent-message-received", 120;
+    send_key_until_needlematch "thunderbird_sent-message-received", 'shift-f5', 4, 30;
 
     # delete the message
     assert_and_click "thunderbird_select-message";
