@@ -181,12 +181,11 @@ sub install_from_git {
     my $configure   = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
 
-    if ($rel) {
-        $rel = ' -b ' . $rel;
-    }
-    my $ret = script_run("git clone -q --depth 1 $url" . $rel, timeout => 360);
+    $rel = "-b $rel" if ($rel);
+
+    my $ret = script_run("git clone -q --depth 1 $url $rel", timeout => 360);
     if (!defined($ret) || $ret) {
-        assert_script_run("git clone -q $url" . $rel, timeout => 360);
+        assert_script_run("git clone -q $url $rel", timeout => 360);
     }
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
