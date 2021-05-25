@@ -148,7 +148,10 @@ sub trup_call {
     # Always wait for rollback.service to be finished before triggering manually transactional-update
     ensure_rollback_service_not_running();
 
-    script_run "transactional-update $cmd > /dev/$serialdev; echo trup-\$?- > /dev/$serialdev", 0;
+    my $script = "transactional-update $cmd > /dev/$serialdev";
+    # Only print trup-0- if it's reliably read later (see below)
+    $script .= "; echo trup-\$?- > /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
+    script_run $script, 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
@@ -161,6 +164,13 @@ sub trup_call {
         else {
             die "Confirmation dialog not shown";
         }
+    }
+
+    # If we expect a reboot on success, the trup-0- might not reach the console.
+    # Check for t-u's own output just before the reboot instead.
+    if ($cmd =~ /reboot / && $args{exit_code} == 0) {
+        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) || die "transactional-update didn't finish";
+        return;
     }
 
     my $res = wait_serial(qr/trup-\d+-/, timeout => $args{timeout}) || die "transactional-update didn't finish";
