@@ -39,7 +39,7 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
   remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
-  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file);
+  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service);
 
 # helper function: Trim string
 sub trim {
@@ -485,6 +485,22 @@ sub backup_file {
         my $destination_target     = $backup_target_basename . '_backup_' . $backup_timestamp;
         $destination_target = ($destination_folder eq '' ? "$backup_target_dirname/$destination_target" : "$destination_folder/$destination_target");
         script_run("cp -f -r $_ $destination_target");
+    }
+    return;
+}
+
+#This subroutine use systemctl or service command to manage system service operations, for example, start, stop, disable and etc.
+#The system service name to be managed is passed in as the first argument $service_name. The operations to be performed is passed in as the second argument $manage_operation.
+#For example, my @myoperations = ('stop', 'disable'); manage_system_service('named', \@myoperations);
+sub manage_system_service {
+    my ($service_name, $manage_operation) = @_;
+
+    $service_name     //= '';
+    $manage_operation //= '';
+    croak("The operation and service name must be given.") if (($service_name eq '') or ($manage_operation eq ''));
+    my @manage_operations = @$manage_operation;
+    foreach (@manage_operations) {
+        script_run("service $service_name $_") if (script_run("systemctl $_ $service_name") ne 0);
     }
     return;
 }

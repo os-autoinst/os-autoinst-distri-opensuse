@@ -880,6 +880,10 @@ systemctl stop firewalld
 systemctl disable firewalld
 systemctl stop apparmor
 systemctl disable apparmor
+systemctl stop named
+systemctl disable named
+systemctl stop dhcpd
+systemctl disable dhcpd
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
