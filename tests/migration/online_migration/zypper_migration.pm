@@ -141,7 +141,7 @@ sub run {
     # with other than the SAP Administrator
     #
     # sometimes reboot takes longer time after online migration, give more time
-    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 400, ready_time => 600, nologin => is_sles4sap);
+    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 500, ready_time => 600, nologin => is_sles4sap);
 }
 
 sub post_fail_hook {
