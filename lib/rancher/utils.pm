@@ -59,7 +59,15 @@ sub prepare_mm_network {
     configure_dhcp();
 
     assert_script_run "ssh-keygen -t rsa -P '' -C '`whoami`@`hostname`' -f ~/.ssh/id_rsa";
-    script_retry("nslookup " . get_required_var('OPENQA_HOSTNAME'), delay => 3, retry => 10);
+
+    # Check that we have default route
+    script_retry("ip r s | grep default", delay => 15, retry => 12);
+
+    # Check that we have nameserver to use
+    script_retry("cat /etc/resolv.conf | grep nameserver", delay => 15, retry => 12);
+
+    # Check that DNS works
+    script_retry("nslookup opensuse.org", delay => 15, retry => 12);
 }
 
 1;

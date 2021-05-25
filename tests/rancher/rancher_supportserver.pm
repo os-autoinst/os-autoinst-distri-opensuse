@@ -22,8 +22,13 @@ use Utils::Systemd 'disable_and_stop_service';
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    barrier_create('cluster_prepared',  3);
-    barrier_create('cluster_deployed',  3);
+    # All nodes are online with SSH enabled
+    barrier_create('networking_prepared', 3);
+    # Master node is ready to accept workers
+    barrier_create('cluster_prepared', 3);
+    # Cluster is fully deployed
+    barrier_create('cluster_deployed', 3);
+    # Testing is done, cluster can be destroyed
     barrier_create('cluster_test_done', 3);
 }
 
