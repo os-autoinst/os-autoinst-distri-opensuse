@@ -1054,7 +1054,7 @@ sub load_console_server_tests {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
         loadtest "console/pcre" if is_sle;
         # TODO test on SLE https://progress.opensuse.org/issues/31972
-        loadtest "console/mysql_odbc" if is_opensuse;
+        loadtest "console/mariadb_odbc" if is_opensuse;
         loadtest "console/php7";
         loadtest "console/php7_mysql";
         loadtest "console/php7_postgresql";
@@ -1201,7 +1201,7 @@ sub load_consoletests {
     }
     loadtest "console/mtab";
     if (!get_var("NOINSTALL") && !get_var("LIVETEST") && (check_var("DESKTOP", "textmode"))) {
-        loadtest "console/mysql_srv";
+        loadtest "console/mariadb_srv";
         # disable these tests of server packages for SLED (poo#36436)
         load_console_server_tests() unless is_desktop;
         load_extra_tests_docker()   unless (!is_opensuse || is_desktop || !is_released);
@@ -1649,7 +1649,7 @@ sub load_extra_tests_console {
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK
     if (is_sle('12-SP2+') && !(is_sle('15+'))) {
-        loadtest "console/mysql_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
+        loadtest "console/mariadb_odbc" if check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk');
     }
     # bind need source package and legacy and development module on SLE15+
     loadtest 'console/bind' if get_var('MAINT_TEST_REPO');
