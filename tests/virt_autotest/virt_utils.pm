@@ -714,8 +714,11 @@ sub cleanup_host_and_guest_logs {
     #Clean dhcpd and named services up explicity
     if (get_var('VIRT_AUTOTEST')) {
         script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
-        script_run("service dhcpd restart") if (script_run("systemctl restart dhcpd") ne '0');
-        script_run("service named restart") if (script_run("systemctl restart named") ne '0');
+        if (!get_var('VIRT_UEFI_GUEST_INSTALL')) {
+            my @control_operation = ('restart');
+            virt_autotest::utils::manage_system_service('dhcpd', \@control_operation);
+            virt_autotest::utils::manage_system_service('named', \@control_operation);
+        }
     }
     my $logs_cleanup_script_url = data_url("virt_autotest/clean_up_virt_logs.sh");
     script_output("curl -s -o ~/clean_up_virt_logs.sh $logs_cleanup_script_url", 180, type_command => 0, proceed_on_failure => 0);
