@@ -23,6 +23,7 @@ use utils 'assert_secureboot_status';
 sub run {
     my ($self) = @_;
     my $cmd_file = get_var('LTP_COMMAND_FILE') || '';
+
     # Use standard boot for ipmi backend with IPXE
     if (check_var('BACKEND', 'ipmi') && !get_var('IPXE_CONSOLE')) {
         record_info('INFO', 'IPMI boot');
@@ -41,13 +42,14 @@ sub run {
     $self->select_serial_terminal;
     assert_secureboot_status(1) if (get_var('SECUREBOOT'));
 
+    log_versions;
+
     # check kGraft patch if KGRAFT=1
     if (check_var('KGRAFT', '1') && !check_var('REMOVE_KGRAFT', '1')) {
         assert_script_run("uname -v| grep -E '(/kGraft-|/lp-)'");
     }
 
-    prepare_ltp_env();
-    upload_logs('/boot/config-$(uname -r)', failok => 1);
+    prepare_ltp_env;
     init_ltp_tests($cmd_file);
 
     # If the command file (runtest file) is set then we dynamically schedule
