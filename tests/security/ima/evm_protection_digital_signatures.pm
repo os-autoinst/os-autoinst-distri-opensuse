@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 SUSE LLC
+# Copyright (C) 2019-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # Summary: Test EVM protection using digital signatures
 # Note: This case should come after 'evm_protection_hmacs'
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#53582
+# Tags: poo#53582, poo#92347
 
 use base "opensusebasetest";
 use strict;
@@ -68,14 +68,18 @@ sub run {
     assert_script_run "setfattr -x security.evm $sample_app";
     validate_script_output "getfattr -m security.evm -d $sample_app", sub { m/^$/ };
 
-    replace_grub_cmdline_settings('evm=fix ima_appraise=fix', '', update_grub => 1);
+    if (script_run("grep CONFIG_INTEGRITY_TRUSTED_KEYRING=y /boot/config-`uname -r`") == 0) {
+        record_soft_failure("bsc#1157432 for SLE15SP2+: CA could not be loaded into the .ima or .evm keyring");
+    }
+    else {
+        replace_grub_cmdline_settings('evm=fix ima_appraise=fix', '', update_grub => 1);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(textmode => 1);
+        $self->select_serial_terminal;
 
-    power_action('reboot', textmode => 1);
-    $self->wait_boot(textmode => 1);
-    $self->select_serial_terminal;
-
-    my $ret = script_output($sample_cmd, 30, proceed_on_failure => 1);
-    die "$sample_app should not have permission to run" if ($ret !~ "\Q$sample_app\E: *Permission denied");
+        my $ret = script_output($sample_cmd, 30, proceed_on_failure => 1);
+        die "$sample_app should not have permission to run" if ($ret !~ "\Q$sample_app\E: *Permission denied");
+    }
 }
 
 sub test_flags {
