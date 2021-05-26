@@ -30,8 +30,7 @@ sub run {
 
     # open gnome file manager- nautilus for testing
     x11_start_program('nautilus');
-    send_key_until_needlematch("nautilus-Documents-matched", "right");
-    send_key "ret";
+    assert_and_dclick "nautilus-Documents-matched";
     wait_still_screen(3);
 
     # open test files of different formats
