@@ -68,8 +68,8 @@ sub run {
         $eula_page->select_language($translation->{language});
         my $eula_txt = $eula_page->get_eula_content();
         if ($eula_txt !~ /$translation->{text}/) {
-            $errors .= "EULA content for the language: '$translation->{language}' didn't validate.\n" .
-              "Expected:\n$translation->{text}\nActual:\n$eula_txt\n\n";
+            $errors .= "EULA content for the language: '$translation->{language}' didn't validate. Please, see autoints-log for the detailed content of EULA\n";
+            diag("EULA validation failed:\nExpected:\n$translation->{text}\nActual:\n$eula_txt\n\n");
         }
     }
     # Assert no errors
