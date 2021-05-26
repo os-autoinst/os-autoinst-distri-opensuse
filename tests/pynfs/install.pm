@@ -33,8 +33,13 @@ sub install_dependencies {
 }
 
 sub install_pynfs {
+    my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/bfields/pynfs.git');
+    my $rel = get_var('PYNFS_RELEASE');
+
+    $rel = "-b $rel" if ($rel);
+
     install_dependencies;
-    assert_script_run('git clone -q --depth 1 git://git.linux-nfs.org/projects/bfields/pynfs.git && cd ./pynfs');
+    assert_script_run("git clone -q --depth 1 $url $rel && cd ./pynfs");
     record_info('pynfs git version', script_output('git log -1 --pretty=format:"git-%h" | tee'));
     assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
 }
