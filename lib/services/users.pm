@@ -147,6 +147,9 @@ sub full_users_check {
         record_info('Unsupported on non-gnome', "This test is only supported on gnome, quit for your DESKTOP is $desktop", result => 'fail');
         return;
     }
+    # reset consoles before select x11 console will make the connect operation
+    # more stable on s390x
+    reset_consoles             if check_var('ARCH',    's390x');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     select_console 'x11', await_console => 0;
     wait_still_screen 5;
