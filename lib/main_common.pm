@@ -1006,11 +1006,13 @@ sub load_inst_tests {
         loadtest "installation/resolve_dependency_issues" unless get_var("DEPENDENCY_RESOLVER_FLAG");
         loadtest "installation/installation_overview";
         # On Xen PV we don't have GRUB on VNC
-        set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux');
+        # SELinux relabel reboots, so grub needs to timeout
+        set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || get_var('SELINUX');
         loadtest "installation/disable_grub_timeout" unless get_var('KEEP_GRUB_TIMEOUT');
         if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
             loadtest "installation/disable_grub_graphics";
         }
+        loadtest "installation/enable_selinux" if get_var('SELINUX');
 
         if (check_var("UPGRADE", "LOW_SPACE")) {
             loadtest "installation/disk_space_release";
@@ -2613,6 +2615,7 @@ sub load_system_prepare_tests {
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
+    loadtest 'console/check_selinux_fails' if get_var('SELINUX');
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
     replace_opensuse_repos_tests          if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
