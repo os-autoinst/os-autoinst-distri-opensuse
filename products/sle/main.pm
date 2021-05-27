@@ -1067,21 +1067,6 @@ else {
             loadtest "console/yast2_nfs4_client";
         }
     }
-    elsif (get_var('QAM_RSYNC')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('rsync_setup',    2);
-            barrier_create('rsync_finished', 2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest 'console/rsync_server';
-        }
-        else {
-            loadtest 'console/rsync_client';
-        }
-    }
     elsif (get_var('QAM_CURL')) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
