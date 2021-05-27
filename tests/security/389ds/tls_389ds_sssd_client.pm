@@ -17,7 +17,7 @@
 #          This test module covers the sssd client tests
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#88513, tc#1768672
+# Tags: poo#88513, poo#92410, tc#1768672
 
 use base 'consoletest';
 use testapi;
@@ -38,7 +38,7 @@ sub run {
     my $uid         = '1003';
 
     # Install 389-ds and sssd on client
-    zypper_call("in 389-ds sssd sssd-ldap");
+    zypper_call("in 389-ds sssd sssd-ldap openssl");
 
     # Disable and stop the nscd daemon because it conflicts with sssd
     disable_and_stop_service("nscd", ignore_failure => 1);

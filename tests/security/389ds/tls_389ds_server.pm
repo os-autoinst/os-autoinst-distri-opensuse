@@ -17,7 +17,7 @@
 #          This test module covers the server setup processes
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#88513, tc#1768672
+# Tags: poo#88513, poo#92410, tc#1768672
 
 use base 'consoletest';
 use testapi;
@@ -39,7 +39,7 @@ sub run {
     my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
 
     # Install 389-ds and create an server instance
-    zypper_call("in 389-ds");
+    zypper_call("in 389-ds openssl");
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
     assert_script_run("dscreate from-file /tmp/instance.inf");
     validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
@@ -106,6 +106,7 @@ sub run {
 
     # Set the ldap_uri with LDAP over SSL (LDAPS) Certificate
     assert_script_run("sed -i 's/^ldap_uri =.*\$/ldap_uri = ldaps:\\/\\/$local_name.example.com/' /tmp/sssd.conf");
+
     mutex_create("389DS_READY");
 
     # Finish job
