@@ -184,7 +184,7 @@ sub run {
         hyperv_cmd("$ps New-VM -VMName $name -Generation $vm_generation -SwitchName $hyperv_switch_name -MemoryStartupBytes ${ramsize}MB");
         # Create 'Standard' checkpoints with application's memory, on Hyper-V 2016
         # the default is 'Production' (i.e. snapshot on guest level).
-        hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016';
+        hyperv_cmd("$ps Set-VM -VMName $name -CheckpointType Standard") if $winserver eq '2016_or_2019';
         if ($iso) {
             hyperv_cmd("$ps Remove-VMDvdDrive -VMName $name -ControllerNumber 1 -ControllerLocation 0") unless $winserver eq '2012r2' and get_var('UEFI');
             hyperv_cmd("$ps Add-VMDvdDrive -VMName $name -Path $iso");
