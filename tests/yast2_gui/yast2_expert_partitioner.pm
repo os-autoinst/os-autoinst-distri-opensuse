@@ -52,7 +52,7 @@ sub pre_run_hook {
 sub add_custom_partition {
     my $disk = $test_data->{disks}[0];
     YaST::Module::run_actions {
-        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->confirm_only_use_if_familiar();
         $partitioner->add_partition_on_gpt_disk({
                 disk      => $disk->{name},
                 partition => $disk->{partitions}[0]
@@ -78,7 +78,7 @@ sub verify_custom_partition {
 
 sub resize_custom_partition {
     YaST::Module::run_actions {
-        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->confirm_only_use_if_familiar();
         $partitioner->resize_partition({
                 disk      => $test_data->{disks}[0]->{name},
                 partition => $test_data->{disks}[0]->{partitions}[1]
@@ -93,7 +93,7 @@ sub verify_resized_partition {
 
 sub delete_resized_partition {
     YaST::Module::run_actions {
-        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->confirm_only_use_if_familiar();
         $partitioner->delete_partition({
                 disk      => $test_data->{disks}[0]->{name},
                 partition => $test_data->{disks}[0]->{partitions}[1]
@@ -104,7 +104,7 @@ sub delete_resized_partition {
 
 sub add_logical_volumes {
     YaST::Module::run_actions {
-        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->confirm_only_use_if_familiar();
         $partitioner->setup_lvm($test_data->{lvm});
         $partitioner->show_summary_and_accept_changes();
     } module => 'storage', ui => 'qt';
@@ -122,7 +122,7 @@ sub verify_logical_volumes {
 
 sub delete_volume_group {
     YaST::Module::run_actions {
-        $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
+        $partitioner->confirm_only_use_if_familiar();
         my $vg = $test_data->{lvm}->{volume_groups}[0];
         $partitioner->delete_volume_group($vg->{name});
         $partitioner->show_summary_and_accept_changes();
