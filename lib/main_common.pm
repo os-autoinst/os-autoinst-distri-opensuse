@@ -1878,9 +1878,15 @@ sub load_nfv_trafficgen_tests {
 }
 
 sub load_iso_in_external_tests {
+    # Switch to the version of the booted HDD if different
+    if (get_var("ORIGIN_SYSTEM_VERSION")) {
+        set_var("UPGRADE_TARGET_VERSION", get_var("VERSION"));
+        loadtest "migration/version_switch_origin_system";
+    }
     loadtest "boot/boot_to_desktop";
     loadtest "console/copy_iso_to_external_drive";
     loadtest "x11/reboot_and_install";
+    loadtest "migration/version_switch_upgrade_target" if get_var("UPGRADE_TARGET_VERSION");
 }
 
 sub load_x11_installation {
@@ -2899,11 +2905,17 @@ sub load_common_opensuse_sle_tests {
 }
 
 sub load_ssh_key_import_tests {
+    # Switch to the version of the booted HDD if different
+    if (get_var("ORIGIN_SYSTEM_VERSION")) {
+        set_var("UPGRADE_TARGET_VERSION", get_var("VERSION"));
+        loadtest "migration/version_switch_origin_system";
+    }
     loadtest "boot/boot_to_desktop";
     # setup ssh key, we know what ssh keys we have and can verify if they are imported or not
     loadtest "x11/ssh_key_check";
     # reboot after test specific setup and start installation/update
     loadtest "x11/reboot_and_install";
+    loadtest "migration/version_switch_upgrade_target" if get_var("UPGRADE_TARGET_VERSION");
     load_inst_tests();
     load_reboot_tests();
     # verify previous defined ssh keys
