@@ -32,50 +32,49 @@
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2_installbase';
 use scheduler 'get_test_suite_data';
 use testapi;
 use List::Util 'first';
 use Test::Assert 'assert_true';
 
 sub run {
-    my ($self) = @_;
+    my ($self)            = @_;
+    my $test_data         = get_test_suite_data();
+    my $license_agreement = $testapi::distri->get_license_agreement();
 
-    my $test_data       = get_test_suite_data();
-    my $eula_controller = $testapi::distri->get_eula_controller();
-    my $eula_page       = $eula_controller->get_license_agreement_page();
+    my $license_agreement_info = $license_agreement->collect_current_license_agreement_info();
+    my $default_language       = $license_agreement_info->{language};
 
     # Accumulate errors
-    my $errors           = '';
-    my $default_language = $eula_page->get_selected_language();
-
-    if ($test_data->{license}->{default} ne $default_language) {
+    my $errors = '';
+    if ($test_data->{license}->{language} ne $default_language) {
         $errors = "Wrong EULA language is pre-selected, " .
-          "expected: $test_data->{license}->{default}, actual: $default_language.\n";
+          "expected: $test_data->{license}->{default}, actual: $license_agreement_info->{language}.\n";
     }
 
-    my @available_translations = $eula_page->get_available_languages();
-
+    my @available_translations = @{$license_agreement_info->{available_languages}};
     foreach my $translation (@{$test_data->{license}->{translations}}) {
         unless (first { $_ eq $translation->{language} } @available_translations)
         {
             $errors .= "Language: '$translation->{language}' cannot be found in the list of available EULA translations.\n";
             next;
         }
+
         # Select language and validate translation
-        $eula_page->select_language($translation->{language});
-        my $eula_txt = $eula_page->get_eula_content();
-        if ($eula_txt !~ /$translation->{text}/) {
+        $license_agreement->select_language($translation->{language});
+        $license_agreement_info = $license_agreement->collect_current_license_agreement_info();
+        if ($license_agreement_info->{text} !~ /$translation->{text}/) {
             $errors .= "EULA content for the language: '$translation->{language}' didn't validate. Please, see autoints-log for the detailed content of EULA\n";
-            diag("EULA validation failed:\nExpected:\n$translation->{text}\nActual:\n$eula_txt\n\n");
+            diag("EULA validation failed:\nExpected:\n$translation->{text}\nActual:\n$license_agreement_info->{text}\n\n");
         }
     }
     # Assert no errors
     assert_true(!$errors, $errors);
     # Set language back to default
-    $eula_page->select_language($default_language);
+    $license_agreement->select_language($default_language);
 }
 
 1;
