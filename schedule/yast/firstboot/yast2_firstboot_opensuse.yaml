@@ -19,7 +19,6 @@ schedule:
   - installation/yast_firstboot/firstboot_time_and_date
   - installation/yast_firstboot/firstboot_users
   - installation/yast_firstboot/firstboot_root_password
-  - installation/yast_firstboot/firstboot_customer_center
   - installation/yast_firstboot/firstboot_finish_setup
   - installation/first_boot
   - console/validate_yast2_firstboot_configuration

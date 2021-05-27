@@ -1,0 +1,27 @@
+---
+name:           yast2_firstboot_custom
+description:    >
+  Variant of YaST2 Firstboot module using custom control file. Allows us to test different scenarios,
+  and to see if the yast2-firstboot package remains stable whith an old, potentially deprecated control file.
+  It also allows to see if we can use custom parameters in /etc/sysconfig/firstboot
+vars:
+  YUI_REST_API: 1
+schedule:
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/hostname
+  - installation/enable_y2_firstboot
+  - installation/setup_libyui_firstboot
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/yast_firstboot/firstboot_keyboard_layout
+  - installation/yast_firstboot/firstboot_welcome
+  - installation/yast_firstboot/firstboot_license_agreement_custom
+  - installation/yast_firstboot/firstboot_hostname
+  - installation/yast_firstboot/firstboot_network
+  - installation/yast_firstboot/firstboot_ntp_client
+  - installation/yast_firstboot/firstboot_users
+  - installation/yast_firstboot/firstboot_finish_setup
+  - installation/first_boot
+  - console/validate_yast2_firstboot_configuration

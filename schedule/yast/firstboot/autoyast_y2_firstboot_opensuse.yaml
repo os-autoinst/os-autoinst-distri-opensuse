@@ -8,15 +8,18 @@ description:    >
   Firstboot.
 vars:
   DESKTOP: gnome
-  YAST2_FIRSTBOOT_USERNAME: firstbootuser
   AY_EXPAND_VARS: YUI_PORT,MIRROR_HTTP
   YUI_REST_API: 1
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
-  - installation/yast2_firstboot
+  - installation/yast_firstboot/firstboot_language_and_keyboard
+  - installation/yast_firstboot/firstboot_welcome
+  - installation/yast_firstboot/firstboot_license_agreement
+  - installation/yast_firstboot/firstboot_time_and_date
+  - installation/yast_firstboot/firstboot_users
+  - installation/yast_firstboot/firstboot_root_password
+  - installation/yast_firstboot/firstboot_finish_setup
   - installation/first_boot
   - console/validate_yast2_firstboot_configuration
-test_data:
-  <<: !include test_data/yast/firstboot/yast2_firstboot.yaml
