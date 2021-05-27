@@ -25,9 +25,6 @@ use version_utils;
 
 
 sub run {
-    barrier_create('rsync_setup',    2);
-    barrier_create('rsync_finished', 2);
-    mutex_create 'barrier_setup_done';
     select_console 'root-console';
 
     #preparation of rsync config files
@@ -68,6 +65,7 @@ true';
     assert_script_run 'echo "third file" > /srv/rsync_test/pub/file3';
 
     #setup of rsync server done
+    mutex_create 'barrier_setup_done';
     barrier_wait 'rsync_setup';
     #client tries to list and download files
     barrier_wait 'rsync_finished';
