@@ -614,7 +614,7 @@ sub select_bootmenu_more {
         # newer versions of qemu on arch automatically add 'console=ttyS0' so
         # we would end up nowhere. Setting console parameter explicitly
         # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64/;
+        push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64|aarch32/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         type_boot_parameters(" @params ");
