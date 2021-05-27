@@ -1,0 +1,13 @@
+---
+name: textmode_misc
+description: >
+    Maintainer: zluo
+    Extra console tests requires hdd of allmodules+allpattern gnome
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - update/zypper_up
+    - console/iotop
+    - console/gd
+    - console/journalctlLevels
+    - console/perf
