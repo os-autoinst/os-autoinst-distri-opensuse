@@ -7,11 +7,12 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces all accessing methods for
-# firstboot Language and Keyboard client
+# Summary: The class introduces all accessing methods for YaST Firstboot
+# NTP Configuration page
+#
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package YaST::Firstboot::LanguageAndKeyboardPage;
-use parent 'YaST::Firstboot::GenericPage';
+package YaST::Firstboot::NTPConfigurationPage;
 use strict;
 use warnings;
 
@@ -25,25 +26,19 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->SUPER::init();
-    $self->{cb_keyboard} = $self->{app}->combobox({id => 'keyboard'});
-    $self->{cb_language} = $self->{app}->combobox({id => 'language'});
+    $self->{btn_next}         = $self->{app}->button({id => 'next'});
+    $self->{rb_only_manually} = $self->{app}->radiobutton({id => '"never"'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{cb_language}->exist();
+    return $self->{rb_only_manually}->exist();
 }
 
-sub get_selected_language {
+sub press_next {
     my ($self) = @_;
-    return $self->{cb_language}->value();
-}
-
-sub get_selected_keyboard {
-    my ($self) = @_;
-    return $self->{cb_keyboard}->value();
+    return $self->{btn_next}->click();
 }
 
 1;

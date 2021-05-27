@@ -7,12 +7,10 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces all accessing methods for
-# Firstboot Keyboard Layout Configuration
-#
+# Summary: Handles Clock and Time Zone page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package YaST::Firstboot::KeyboardLayoutPage;
+package Installation::ClockAndTimeZone::ClockAndTimeZonePage;
 use strict;
 use warnings;
 
@@ -26,19 +24,31 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}             = $self->{app}->button({id => 'next'});
-    $self->{isel_keyboard_layout} = $self->{app}->itemselector({id => 'layout_list'});
+    $self->{btn_next}     = $self->{app}->button({id => 'next'});
+    $self->{cb_region}    = $self->{app}->combobox({id => 'region'});
+    $self->{cb_time_zone} = $self->{app}->combobox({id => 'timezone'});
+    $self->{chb_hw_clock} = $self->{app}->checkbox({id => 'hwclock'});
     return $self;
 }
 
-sub get_keyboard_layout {
+sub get_region {
     my ($self) = @_;
-    return ($self->{isel_keyboard_layout}->selected_items())[0];
+    return $self->{cb_region}->value();
+}
+
+sub get_time_zone {
+    my ($self) = @_;
+    return $self->{cb_time_zone}->value();
+}
+
+sub is_hw_clock_set_to_UTC {
+    my ($self) = @_;
+    return $self->{chb_hw_clock}->is_checked();
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{isel_keyboard_layout}->exist();
+    return $self->{cb_time_zone}->exist();
 }
 
 sub press_next {

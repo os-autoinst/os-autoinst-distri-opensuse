@@ -7,11 +7,11 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces all accessing methods for
-# firstboot LAN client
+# Summary: The module provides interface to act with Registration page
+#
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package YaST::Firstboot::LANSetupPage;
-use parent 'YaST::Firstboot::GenericPage';
+package Installation::Registration::RegisteredSystemPage;
 use strict;
 use warnings;
 
@@ -25,15 +25,19 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->SUPER::init();
-    $self->{tbl_devices} = $self->{app}->table({id => '"Y2Network::Widgets::InterfacesTable"'});
+    $self->{btn_next}              = $self->{app}->button({id => 'next'});
+    $self->{lbl_system_registered} = $self->{app}->label({label => 'The system is already registered.'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    # Just check if we can select the first listed interface.
-    return $self->{tbl_devices}->exist();
+    return $self->{lbl_system_registered}->exist();
+}
+
+sub press_next {
+    my ($self) = @_;
+    return $self->{btn_next}->click();
 }
 
 1;

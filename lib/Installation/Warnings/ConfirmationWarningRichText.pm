@@ -11,13 +11,14 @@
 # a generic confirmation warning containing the warning message in YRichText Widget.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningRichText;
+package Installation::Warnings::ConfirmationWarningRichText;
 use strict;
 use warnings;
-use parent 'Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning';
+use parent 'Installation::Warnings::ConfirmationWarning';
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{rt_warning} = $self->{app}->label({type => 'YRichText'});
     return $self;
 }
