@@ -52,7 +52,7 @@ conditional_schedule:
         - console/sshd
         - console/ssh_cleanup
         - console/mtab
-        - console/mysql_srv
+        - console/mariadb_srv
         - console/rsync
         - console/http_srv
         - console/apache

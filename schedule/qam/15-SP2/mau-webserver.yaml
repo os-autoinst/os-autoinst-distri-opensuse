@@ -42,7 +42,7 @@ schedule:
 - console/apache_nss
 - console/shibboleth
 - console/postgresql_server
-- console/mysql_srv
+- console/mariadb_srv
 - console/php7
 - console/php7_mysql
 - console/php7_postgresql

@@ -51,12 +51,12 @@ sub setup {
     assert_script_run "echo UsageCount=2 >> /etc/unixODBC/odbcinst.ini";
 
     # create the 'odbcTEST' database with table 'test' and insert one element
-    assert_script_run qq{mysql -u root -e "CREATE DATABASE odbcTEST; USE odbcTEST; CREATE TABLE test
+    assert_script_run qq{mariadb -u root -e "CREATE DATABASE odbcTEST; USE odbcTEST; CREATE TABLE test
 (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));
 INSERT INTO test (entry) VALUE ('can you read this?');"};
     # changes mysql password temporarly to "x" becase 'isql' does not support
     # blank password
-    assert_script_run qq{mysqladmin -u root password x};
+    assert_script_run qq{mariadb-admin -u root password x};
 
     # write a simple sql query to test connectivity
     assert_script_run qq{echo "SELECT * FROM test;" > query.sql};
@@ -67,10 +67,10 @@ sub run {
 
     # install requirements
     my $odbc = (!is_sle('<15') && !is_leap('<15.0')) ? 'mariadb-connector-odbc unixODBC' : 'MyODBC-unixODBC';
-    zypper_call 'in mysql mariadb-client sudo ' . $odbc;
+    zypper_call 'in mariadb mariadb-client sudo ' . $odbc;
 
-    # restart mysql server
-    systemctl "restart mysql";
+    # restart mariadb server
+    systemctl "restart mariadb";
 
     # setup config files
     setup;
@@ -89,7 +89,7 @@ sub run {
     assert_screen 'mysql_odbc-isql';
 
     # reverting mysql password to blank, else other mysql tests fail
-    assert_script_run qq{mysqladmin -u root -px password ''};
+    assert_script_run qq{mariadb-admin -u root -px password ''};
 }
 
 1;
