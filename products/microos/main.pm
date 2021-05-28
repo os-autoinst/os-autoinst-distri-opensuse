@@ -36,6 +36,7 @@ sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'microos/disk_boot';
     loadtest 'installation/system_workarounds' if is_aarch64;
+    loadtest 'transactional/enable_selinux'    if (get_var("ENABLE_SELINUX"));
     loadtest 'microos/networking';
 }
 
