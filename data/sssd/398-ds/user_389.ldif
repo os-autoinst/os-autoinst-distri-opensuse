@@ -1,0 +1,105 @@
+# extended LDIF
+#
+# LDAPv3
+# base <> with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# test.com
+dn: dc=sssdtest,dc=com
+objectClass: top
+objectClass: domain
+dc: sssdtest
+description: dc=sssdtest,dc=com
+
+# groups, test.com
+dn: ou=groups,dc=sssdtest,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: groups
+
+# users, test.com
+dn: ou=users,dc=sssdtest,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: users
+
+# permissions, test.com
+dn: ou=system,dc=sssdtest,dc=com
+objectClass: top
+objectClass: organizationalunit
+ou: system
+
+# demo_user, users, test.com
+dn: uid=mary,ou=users,dc=sssdtest,dc=com
+objectClass: top
+objectClass: nsPerson
+objectClass: nsAccount
+objectClass: nsOrgPerson
+objectClass: posixAccount
+uid: mary
+cn: mary
+displayName: sss01 User
+legalName: Mary
+uidNumber: 9997
+gidNumber: 99999
+userPassword: open5use
+homeDirectory: /home/mary
+loginShell: /bin/sh
+
+# demo_user, users, test.com
+dn: uid=alice,ou=users,dc=sssdtest,dc=com
+objectClass: top
+objectClass: nsPerson
+objectClass: nsAccount
+objectClass: nsOrgPerson
+objectClass: posixAccount
+uid: alice
+cn: alice
+displayName: sss02 User
+legalName: Alice
+uidNumber: 9998
+gidNumber: 99999
+userPassword: open5use
+homeDirectory: /home/alice
+loginShell: /bin/sh
+
+# demo_group, groups, test.com
+dn: cn=sss_group,ou=groups,dc=sssdtest,dc=com
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+objectClass: nsMemberOf
+cn: sss_group
+gidNumber: 99999
+memberUid: mary
+memberUid: alice
+member: uid=mary,ou=users,dc=sssdtest,dc=com
+member: uid=alice,ou=users,dc=sssdtest,dc=com
+#objectClass: GroupOfUniqueNames
+
+# user_admin, permissions, test.com
+dn: cn=binduser,ou=system,dc=sssdtest,dc=com
+objectClass: organizationalRole
+objectClass: simpleSecurityObject
+userPassword: novell
+description: user for binding
+cn: binduser
+
+#sudoers rule
+
+dn: ou=SUDOers,dc=sssdtest,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: SUDOers
+description: SUDOers container
+
+dn: cn=mary,ou=SUDOers,dc=sssdtest,dc=com
+objectClass: sudoRole
+objectClass: top
+cn: mary
+sudoUser: mary
+sudoRunAsUser: alice
+sudoHost: ALL
+sudoCommand: /usr/bin/cat /home/alice/hello
