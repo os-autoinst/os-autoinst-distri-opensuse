@@ -29,6 +29,7 @@ use registration qw(add_suseconnect_product);
 sub run {
     my $testfile        = "test_file";
     my $test_module     = "test_module";
+    my $original_audit  = "/var/log/audit/audit.log";
     my $audit_log       = "/var/log/audit/audit.txt";
     my $audit_log_short = "/var/log/audit/audit.short.txt";
 
@@ -37,6 +38,7 @@ sub run {
     assert_script_run("systemctl restart auditd");
 
     # read input from logs and translate to why
+    assert_script_run("cp $original_audit $audit_log");
     validate_script_output("audit2allow -a",            sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
     assert_script_run("tail -n 100 $audit_log > $audit_log_short");
