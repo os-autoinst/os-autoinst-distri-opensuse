@@ -132,6 +132,12 @@ sub test_http_instserver {
     # finish wizard
     send_key_and_wait("alt-f", 3);
     # check that the http instserver is working
+    if (is_sle("15-sp3+")) {
+        select_console "root-console";
+        zypper_call 'rm --clean-deps apache2';
+        zypper_call 'in apache2';
+        assert_script_run("systemctl start apache2");
+    }
     x11_start_program "xterm";
     wait_still_screen 2, 2;
     validate_script_output("curl -s http://localhost/test/instserver/CD1/ | grep title", sub { m/.*Index of \/test\/instserver\/CD1.*/ });
@@ -164,7 +170,7 @@ sub run {
     # clean existing config
     start_yast2_instserver;
     clean_env;
-}
 
+}
 1;
 
