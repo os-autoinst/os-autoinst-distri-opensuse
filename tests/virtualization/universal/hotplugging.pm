@@ -105,8 +105,8 @@ sub test_add_virtual_disk {
                 my $lsblk = script_run("ssh root\@$guest lsblk | grep 'vd[b-z]'", 60);
                 record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
             } elsif (is_xen_host) {
-                script_run("ssh root\@$guest lsblk");
-                record_soft_failure("poo#88460 Hotplugging disk check not yet implemented for xen host");
+                my $lsblk = script_run("ssh root\@$guest lsblk | grep 'xvd[b-z]'", 60);
+                record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
             } else {
                 my $msg = "Unknown virtualization hosts";
                 record_soft_failure($msg);
