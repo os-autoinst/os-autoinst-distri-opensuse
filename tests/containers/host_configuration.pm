@@ -23,7 +23,7 @@ sub run {
     $self->select_serial_terminal;
     my $interface;
     if (check_os_release('suse', 'PRETTY_NAME')) {
-        $interface = script_output q@ip r s default | awk '{printf $5}'@;
+        $interface = script_output q@ip r s default 0.0.0.0/0 | awk '{printf $5}'@;
         validate_script_output "ip a s '$interface'", sub { m/((\d{1,3}\.){3}\d{1,3}\/\d{1,2})/ };
         ensure_ca_certificates_suse_installed();
     }
@@ -42,4 +42,3 @@ sub test_flags {
 }
 
 1;
-
