@@ -67,5 +67,19 @@ sub run {
     systemctl('stop docker.service');
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+
+    my @targets = ("master", "worker1", "worker2");
+    foreach my $target (@targets) {
+        record_info $target, "Getting debug logs from $target host";
+        script_run "ssh root\@$target journalctl --no-pager";
+        script_run "ssh root\@$target docker ps";
+        script_run "ssh root\@$target 'docker ps -q | xargs -L 1 docker logs'";
+    }
+
+    $self->SUPER::post_fail_hook;
+}
+
 1;
 
