@@ -27,37 +27,42 @@ use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my $testfile    = "test_file";
-    my $test_module = "test_module";
-    my $audit_log   = "/var/log/audit/audit.log";
+    my $testfile        = "test_file";
+    my $test_module     = "test_module";
+    my $original_audit  = "/var/log/audit/audit.log";
+    my $audit_log       = "/var/log/audit/audit.txt";
+    my $audit_log_short = "/var/log/audit/audit.short.txt";
 
     select_console "root-console";
 
     assert_script_run("systemctl restart auditd");
 
     # read input from logs and translate to why
+    assert_script_run("cp $original_audit $audit_log");
     validate_script_output("audit2allow -a",            sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
+    assert_script_run("tail -n 100 $audit_log > $audit_log_short");
     validate_script_output(
-        "audit2allow -w -i $audit_log",
+        "audit2allow -w -i $audit_log_short",
         sub {
             m/
 	    type=.*AVC.*denied.*
 	    Was\ caused\ by:.*
 	    You\ can\ use\ audit2allow\ to\ generate\ a\ loadable\ module\ to\ allow\ this\ access.*/sx
-        }, 300);
+        }, 600);
 
     # upload aduit log for reference
     upload_logs($audit_log);
+    upload_logs($audit_log_short);
 
     # create an SELinux module, make this policy package active, check the new added module
     validate_script_output(
-        "cat $audit_log | audit2allow -M $test_module",
+        "cat $audit_log_short | audit2allow -M $test_module",
         sub {
             m/
             To\ make\ this\ policy\ package\ active,\ execute:.*
             semodule\ -i\ $test_module.*\./sx
-        }, 300);
+        }, 600);
     assert_script_run("semodule\ -i ${test_module}.pp");
     validate_script_output("semodule -lfull", sub { m/$test_module\ .*pp.*/sx });
 
@@ -86,14 +91,14 @@ sub run {
     # NOTE: the output depends on the contents of audit log it may change at any time
     #       so only check the policy format is OK
     validate_script_output(
-        "audit2allow -R -i $audit_log",
+        "audit2allow -R -i $audit_log_short",
         sub {
             m/
             .*require\ \{.*
             .*type\ .*;.*
             #=============.*==============.*
             .*allow.*;.*/sx
-        }, 300);
+        }, 600);
 }
 
 1;
