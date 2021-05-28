@@ -599,6 +599,36 @@ sub load_yast2_registration_tests {
     loadtest "console/yast2_registration";
 }
 
+sub load_virt_guest_install_tests {
+    if (get_var("VIRT_UEFI_GUEST_INSTALL")) {
+        loadtest "virt_autotest/uefi_guest_installation";
+        loadtest "virt_autotest/set_config_as_glue";
+        loadtest "virt_autotest/uefi_guest_verification";
+    }
+    else {
+        loadtest "virt_autotest/guest_installation_run";
+        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
+            loadtest "virt_autotest/set_config_as_glue";
+            loadtest "virt_autotest/setup_dns_service";
+        }
+    }
+}
+
+sub load_virt_feature_tests {
+    if (get_var("ENABLE_VIR_NET")) {
+        loadtest "virt_autotest/libvirt_virtual_network_init";
+        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+        loadtest "virt_autotest/libvirt_nated_virtual_network";
+        loadtest "virt_autotest/libvirt_routed_virtual_network";
+        loadtest "virt_autotest/libvirt_isolated_virtual_network";
+    }
+    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
+    loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
+    loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
+    loadtest "virt_autotest/virsh_internal_snapshot";
+    loadtest "virt_autotest/virsh_external_snapshot";
+}
+
 testapi::set_distribution(DistributionProvider->provide());
 
 # set failures
@@ -800,29 +830,9 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/reboot_and_wait_up_normal" if get_var('REPO_0_TO_INSTALL');
         loadtest "virt_autotest/download_guest_assets"     if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
-    if (get_var("VIRT_UEFI_GUEST_INSTALL")) {
-        loadtest "virt_autotest/uefi_guest_installation";
-        loadtest "virt_autotest/set_config_as_glue";
-        loadtest "virt_autotest/uefi_guest_verification";
-    }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
-        loadtest "virt_autotest/guest_installation_run";
-        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
-            loadtest "virt_autotest/set_config_as_glue";
-            loadtest "virt_autotest/setup_dns_service";
-            if (get_var("ENABLE_VIR_NET")) {
-                loadtest "virt_autotest/libvirt_virtual_network_init";
-                loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
-                loadtest "virt_autotest/libvirt_nated_virtual_network";
-                loadtest "virt_autotest/libvirt_routed_virtual_network";
-                loadtest "virt_autotest/libvirt_isolated_virtual_network";
-            }
-            loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
-            loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
-            loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
-            loadtest "virt_autotest/virsh_internal_snapshot";
-            loadtest "virt_autotest/virsh_external_snapshot";
-        }
+        load_virt_guest_install_tests;
+        load_virt_feature_tests if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS"));
     }
     #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passhthrough etc.
     #they can be seperated from prj1 if needed
