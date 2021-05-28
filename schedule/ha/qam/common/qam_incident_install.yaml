@@ -1,0 +1,19 @@
+name: qam_incident_install
+description: >
+  Test the maintenance update packages installation
+
+  The test is using an existing qcow2 (.*Installtest-HA.qcow2), which is updated
+  to the last version and then, the maintenance update package is installed.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: textmode
+  INSTALLTEST: '1'
+schedule:
+  - '{{bootloader_zkvm}}'
+  - boot/boot_to_desktop
+  - qam-updinstall/update_install_mr
+conditional_schedule:
+  bootloader_zkvm:
+    BACKEND:
+      svirt:
+        - installation/bootloader_zkvm
