@@ -15,7 +15,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call is_efi_boot);
 use version_utils qw(is_leap is_opensuse is_sle is_jeos);
-use Utils::Backends qw(is_hyperv is_svirt_except_s390x);
+use Utils::Architectures qw(is_x86_64);
 use jeos qw(reboot_image set_grub_gfxmode);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use constant {
@@ -97,9 +97,8 @@ sub check_efi_state {
     return if (get_var('DISABLE_SECUREBOOT', 0) || (!$found->{exec} && !$expected->{exec}));
 
     my $issuer_regex = qr/Secure\s+Boot\s+CA/;
-    diag("Verifying shim's certificate");
-    assert_script_run 'openssl x509 -in $(rpm -ql shim | grep crt) -inform DER -text -out shim.crt';
-    assert_script_run "sbverify --cert shim.crt $expected->{mount}/$found->{exec}";
+    diag("Check presence of signature in shim");
+    assert_script_run("pesign -S -i $expected->{mount}/$found->{exec}");
     push @errors, 'No openSUSE/SUSE keys found in keyring(/proc/keys)' if script_output('cat /proc/keys') !~ $issuer_regex;
 }
 
@@ -180,15 +179,7 @@ sub run {
 
     my $pkgs = 'efivar mokutil';
     $pkgs .= ' dosfstools' if (is_leap('<15.2') || is_sle('<15-sp2'));
-    unless (get_var('DISABLE_SECUREBOOT', 0)) {
-        $pkgs .= ' sbsigntools';
-        add_suseconnect_product 'PackageHub' if is_sle('=15-sp3');
-        # temporary hack for sle, due to missing sbsigntools package
-        if (is_sle('<=15-sp2') && !is_sle('=15')) {
-            (my $version = get_var('VERSION')) =~ s/-/_/g;
-            zypper_call("ar -p 101 --refresh --no-gpgcheck http://download.opensuse.org/repositories/Base:/System/SLE_$version/ sb_signtools");
-        }
-    }
+    $pkgs .= ' pesign' unless get_var('DISABLE_SECUREBOOT', 0);
     zypper_call "in $pkgs";
 
     my $exp_data = get_expected_efi_settings;
@@ -211,6 +202,7 @@ sub run {
         # enable verbosity in shim
         assert_script_run 'mokutil --set-verbosity true';
         $self->verification('After shim-install', $exp_data, sub {
+                assert_script_run('rpm -q shim');
                 assert_script_run('shim-install --config-file=' . GRUB_CFG);
                 assert_script_run('grub2-mkconfig -o ' . GRUB_CFG);
             }
@@ -236,23 +228,13 @@ sub run {
     die join("\n", @errors) if (@errors);
 }
 
-sub cleanup {
-    script_run 'zypper -n rm sbsigntools';
-    remove_suseconnect_product 'PackageHub' if is_sle('=15-sp3');
-    # temporary hack for sle, due to missing sbsigntools package
-    script_run 'zypper -n rr sb_signtools' if is_sle('<=15-sp2') && !is_sle('=15');
-}
-
 sub post_fail_hook {
     select_console('root-console');
 
-    cleanup unless get_var('DISABLE_SECUREBOOT', 0);
     upload_logs(GRUB_DEFAULT,        log_name => 'etc_default_grub.txt');
     upload_logs(GRUB_CFG,            log_name => 'grub.cfg');
     upload_logs(SYSCONFIG_BOOTLADER, log_name => 'etc_sysconfig_bootloader.txt');
     upload_logs('/etc/fstab',        log_name => 'fstab.txt');
 }
-
-sub post_run_hook { cleanup unless get_var('DISABLE_SECUREBOOT', 0); }
 
 1;
