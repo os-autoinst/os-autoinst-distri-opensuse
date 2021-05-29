@@ -630,7 +630,7 @@ Make sure the right user is logged in, e.g. when using remote shells
 =cut
 sub ensure_user {
     my ($user) = @_;
-    enter_cmd("su - $user") if $user ne 'root';
+    enter_cmd(sprintf('test "$(id -un)" == "%s" || su - "%s"', $user, $user)) if $user ne 'root';
 }
 
 =head2 hyperv_console_switch
