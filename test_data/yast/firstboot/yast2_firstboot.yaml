@@ -1,11 +1,28 @@
-clients:
-  - firstboot_language_keyboard
-  - firstboot_welcome
-  - firstboot_licenses
-  - firstboot_timezone
-  - firstboot_user
-  - firstboot_root
-  - firstboot_finish
-settings:
-  language: "English (US)"
-  keyboard: "English (US)"
+---
+language_and_keyboard:
+  language: English (US)
+  keyboard_layout: English (US)
+welcome:
+  text:
+    - Welcome!
+    - There are a few more steps to take before your system is ready
+    - YaST will now guide you through some basic configuration
+license_agreement:
+  language: English (US)
+  text:
+    - End User License Agreement
+time_and_date:
+  region: USA
+  time_zone: Eastern (New York)
+  hw_clock_set_to_UTC: 1
+users:
+  full_name: firstbootuser
+  username: firstbootuser
+finish_setup:
+  text:
+    - Congratulations!
+    - The installation of
+    - on your machine is complete
+    - Visit us at www.suse.com.
+    - Have a lot of fun!
+    - Your SUSE Development Team

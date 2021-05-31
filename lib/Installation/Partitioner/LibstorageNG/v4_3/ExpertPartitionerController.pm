@@ -21,8 +21,6 @@ use parent 'Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerContro
 use Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
 use Installation::Partitioner::LibstorageNG::v4_3::AddVolumeGroupPage;
 use Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog;
-use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning;
-use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningRichText;
 use Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage;
 use Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
 use Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog;
@@ -40,8 +38,9 @@ use Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
-use Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController;
 use Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage;
+use Installation::Warnings::ConfirmationWarning;
+use Installation::Warnings::ConfirmationWarningRichText;
 
 use YuiRestClient;
 
@@ -56,8 +55,6 @@ sub init {
     $self->SUPER::init($args);
     $self->{ExpertPartitionerPage}         = Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage->new({app => YuiRestClient::get_app()});
     $self->{ClonePartitionsDialog}         = Installation::Partitioner::LibstorageNG::v4_3::ClonePartitionsDialog->new({app => YuiRestClient::get_app()});
-    $self->{ConfirmationWarning}           = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning->new({app => YuiRestClient::get_app()});
-    $self->{ConfirmationWarningRichText}   = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
     $self->{CreatePartitionTablePage}      = Installation::Partitioner::LibstorageNG::v4_3::CreatePartitionTablePage->new({app => YuiRestClient::get_app()});
     $self->{DeletingCurrentDevicesWarning} = Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning->new({app => YuiRestClient::get_app()});
     $self->{ErrorDialog}                   = Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog->new({app => YuiRestClient::get_app()});
@@ -68,7 +65,6 @@ sub init {
     $self->{ResizePage}                    = Installation::Partitioner::LibstorageNG::v4_3::ResizePage->new({app => YuiRestClient::get_app()});
     $self->{MsdosPartitionTypePage}        = Installation::Partitioner::LibstorageNG::v4_3::MsdosPartitionTypePage->new({app => YuiRestClient::get_app()});
     $self->{SummaryPage}                   = Installation::Partitioner::LibstorageNG::v4_3::SummaryPage->new({app => YuiRestClient::get_app()});
-    $self->{ConfirmationWarningController} = Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarningController->new;
     $self->{NewPartitionSizePage}          = Installation::Partitioner::LibstorageNG::v4_3::NewPartitionSizePage->new({app => YuiRestClient::get_app()});
     $self->{RolePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RolePage->new({app => YuiRestClient::get_app()});
     $self->{PartitionIdFormatMountOptionsPage} = Installation::Partitioner::LibstorageNG::v4_3::PartitionIdFormatMountOptionsPage->new({app => YuiRestClient::get_app()});
@@ -78,6 +74,11 @@ sub init {
     $self->{RaidTypePage}                      = Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage->new({app => YuiRestClient::get_app()});
     $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{FstabOptionsPage}                  = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
+
+    $self->{OnlyUseIfFamiliarWarning}    = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{DeletePartitionWarning}      = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{DeleteVolumeGroupWarning}    = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarningRichText} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -102,14 +103,31 @@ sub get_clone_partition_dialog {
     return $self->{ClonePartitionsDialog};
 }
 
-sub get_confirmation_warning {
+sub get_only_use_if_familiar_warning {
     my ($self) = @_;
-    return $self->{ConfirmationWarning};
+    if ($self->{OnlyUseIfFamiliarWarning}->text() !~
+        /Only use this program if you are familiar with partitioning hard disks/) {
+        die "Only use if familiar warning is not displayed";
+    }
+    return $self->{OnlyUseIfFamiliarWarning};
 }
 
-sub get_confirmation_warning_controller {
-    my ($self) = @_;
-    return $self->{ConfirmationWarningController};
+sub get_delete_partition_warning {
+    my ($self, $part_name) = @_;
+    if ($self->{DeletePartitionWarning}->text() !~
+        /Really delete \/dev\/$part_name?/) {
+        die "Delete partition warning is not displayed";
+    }
+    return $self->{DeletePartitionWarning};
+}
+
+sub get_delete_volume_group_warning {
+    my ($self, $vg) = @_;
+    if ($self->{DeleteVolumeGroupWarning}->text() !~
+        /The volume group \"$vg\" contains at least one logical volume/) {
+        die "Delete volume warning is not displayed";
+    }
+    return $self->{DeleteVolumeGroupWarning};
 }
 
 sub get_confirmation_warning_rich_text {
@@ -383,7 +401,7 @@ sub delete_volume_group {
     my ($self, $vg) = @_;
     $self->get_expert_partitioner_page()->select_volume_group($vg);
     $self->get_expert_partitioner_page()->press_delete_volume_group_button();
-    $self->get_confirmation_warning_controller()->confirm_delete_volume_group($vg);
+    $self->get_delete_volume_group_warning($vg)->press_yes();
 }
 
 sub add_logical_volume {
@@ -527,7 +545,7 @@ sub delete_partition {
     my $part = $args->{partition};
     $self->get_expert_partitioner_page()->select_disk_partition({disk => $args->{disk}, partition => $part->{name}});
     $self->get_expert_partitioner_page()->press_delete_partition_button();
-    $self->get_confirmation_warning_controller()->confirm_delete_partition($part->{name});
+    $self->get_delete_partition_warning($part->{name})->press_yes();
 }
 
 sub resize_logical_volume {
@@ -606,6 +624,11 @@ sub show_summary_and_accept_changes {
     my ($self) = @_;
     $self->get_expert_partitioner_page()->press_next_button();
     $self->get_summary_page()->press_next_button();
+}
+
+sub confirm_only_use_if_familiar {
+    my ($self) = @_;
+    $self->get_only_use_if_familiar_warning()->press_yes();
 }
 
 1;

@@ -7,13 +7,16 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The module provides interface to act on pop-up when license is not
-#          accepted.
+# Summary: The class introduces all accessing methods for Overview Tab in YaST2
+# lan module dialog
+#
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::License::SLE::AcceptLicensePopup;
+package YaST::NetworkSettings::v4_3::OverviewTab;
+use parent 'YaST::NetworkSettings::OverviewTab';
 use strict;
 use warnings;
+use testapi;
 
 sub new {
     my ($class, $args) = @_;
@@ -25,20 +28,13 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_ok}   = $self->{app}->button({id => 'ok'});
-    $self->{lbl_text} = $self->{app}->checkbox({label => 'You must accept the license to install this product'});
-
+    $self->{tbl_devices} = $self->{app}->table({id => '"Y2Network::Widgets::InterfacesTable"'});
     return $self;
-}
-
-sub press_ok {
-    my ($self) = @_;
-    return $self->{btn_ok}->click();
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{lbl_text}->exist();
+    return $self->{tbl_devices}->exist();
 }
 
 1;

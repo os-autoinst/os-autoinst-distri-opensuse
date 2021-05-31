@@ -1,0 +1,23 @@
+---
+custom_control_file: firstboot_custom-opensuse.xml
+sysconfig_firstboot: sysconfig_firstboot
+keyboard_layout:
+  keyboard_layout: English (US)
+welcome:
+  text:
+    - Hi there !
+    - Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus
+license_agreement:
+  language: English (US)
+  text:
+    - UNFAIRCORP
+    - Extremely Unfair License Agreement for Beta Software
+    - By accepting the license terms, you agree to transfer all your belongings to UNFAIRCORP.
+users:
+  full_name: firstbootuser
+  username: firstbootuser
+  autologin: 1
+finish_setup:
+  text:
+    - All done
+    - Settings applied

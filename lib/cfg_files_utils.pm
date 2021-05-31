@@ -39,7 +39,7 @@ sub compare_settings {
     my ($args) = @_;
     eval {
         assert_deep_equals($args->{expected}, $args->{current});
-        record_info("Compare settings", "Settings comparison passed");
+        record_info("Compare settings", "Settings comparison passed") unless $args->{suppress_info};
     } or do {
         print "$@\n";
         die "The system settings deviate from expectations. \n

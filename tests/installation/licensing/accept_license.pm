@@ -18,13 +18,13 @@
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2_installbase';
 use testapi;
 
 sub run {
-    $testapi::distri->get_eula_controller()->accept_license();
+    $testapi::distri->get_license_agreement()->accept_license();
 }
 
 1;

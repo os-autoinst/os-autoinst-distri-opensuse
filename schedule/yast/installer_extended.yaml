@@ -42,7 +42,7 @@ conditional_schedule:
         - installation/data_integrity
 test_data:
   license:
-    default: English (US)
+    language: English (US)
     translations:
       - language: Czech
         text: Licenční smlouva společnosti

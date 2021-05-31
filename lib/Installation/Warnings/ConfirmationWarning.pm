@@ -7,11 +7,11 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces methods in Expert Partitioner to handle
-# a generic confirmation warning.
+# Summary: The class introduces methods to handle a generic
+# confirmation warning.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Partitioner::LibstorageNG::v4_3::ConfirmationWarning;
+package Installation::Warnings::ConfirmationWarning;
 use strict;
 use warnings;
 
@@ -44,32 +44,6 @@ sub press_no {
 sub text {
     my ($self) = @_;
     return $self->{lbl_warning}->text();
-}
-
-sub confirm_only_use_if_familiar {
-    my ($self) = @_;
-    $self->confirm(qr/Only use this program if you are familiar with partitioning hard disks/);
-}
-
-sub confirm_delete_partition {
-    my ($self, $part_name) = @_;
-    $self->confirm(qr/Really delete \/dev\/$part_name?/);
-}
-
-sub confirm_delete_volume_group {
-    my ($self, $vg) = @_;
-    $self->confirm(qr/The volume group \"$vg\" contains at least one logical volume/);
-}
-
-sub confirm {
-    my ($self, $expected) = @_;
-    my $text = $self->text();
-    # ensure correct text
-    if ($text !~ $expected) {
-        die "Unexpected warning found: text on warning does not match:\n" .
-          "text: $text\nregex:$expected";
-    }
-    $self->press_yes();
 }
 
 1;

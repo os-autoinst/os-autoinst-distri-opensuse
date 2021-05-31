@@ -8,10 +8,11 @@
 # without any warranty.
 
 # Summary: The class introduces all accessing methods for
-# firstboot Keyboard client
+# Firstboot Keyboard Layout Configuration
+#
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Firstboot::KeyboardLayoutPage;
-use parent 'YaST::Firstboot::GenericPage';
 use strict;
 use warnings;
 
@@ -25,14 +26,24 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->SUPER::init();
-    $self->{selectionbox} = $self->{app}->selectionbox({id => 'layout_list'});
+    $self->{btn_next}             = $self->{app}->button({id => 'next'});
+    $self->{isel_keyboard_layout} = $self->{app}->itemselector({id => 'layout_list'});
     return $self;
+}
+
+sub get_keyboard_layout {
+    my ($self) = @_;
+    return ($self->{isel_keyboard_layout}->selected_items())[0];
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{selectionbox}->exist();
+    return $self->{isel_keyboard_layout}->exist();
+}
+
+sub press_next {
+    my ($self) = @_;
+    return $self->{btn_next}->click();
 }
 
 1;

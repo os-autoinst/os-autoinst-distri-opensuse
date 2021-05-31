@@ -19,6 +19,7 @@ use YaST::NetworkSettings::TopNavigationBar;
 use YaST::NetworkSettings::HostnameDNSTab;
 use YaST::NetworkSettings::ActionButtons;
 use YaST::Warning::Notification;
+use YaST::NetworkSettings::v4_3::OverviewTab;
 use YuiRestClient;
 
 sub new {
@@ -31,6 +32,7 @@ sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
     $self->{TopNavigationBar}    = YaST::NetworkSettings::TopNavigationBar->new({app => YuiRestClient::get_app()});
+    $self->{OverviewTab}         = YaST::NetworkSettings::v4_3::OverviewTab->new({app => YuiRestClient::get_app()});
     $self->{HostnameDNSTab}      = YaST::NetworkSettings::HostnameDNSTab->new({app => YuiRestClient::get_app()});
     $self->{ActionButtons}       = YaST::NetworkSettings::ActionButtons->new({app => YuiRestClient::get_app()});
     $self->{NotificationWarning} = YaST::Warning::Notification->new({app => YuiRestClient::get_app()});
@@ -45,6 +47,11 @@ sub get_top_navigation_bar {
 sub get_hostname_dns_tab {
     my ($self) = @_;
     return $self->{HostnameDNSTab};
+}
+
+sub get_overview_tab {
+    my ($self) = @_;
+    return $self->{OverviewTab};
 }
 
 sub get_action_buttons {
@@ -79,6 +86,12 @@ sub set_hostname_via_dhcp {
 
 sub save_changes {
     my ($self) = @_;
+    $self->get_action_buttons()->press_ok();
+}
+
+sub proceed_with_current_configuration {
+    my ($self) = @_;
+    $self->get_overview_tab()->is_shown();
     $self->get_action_buttons()->press_ok();
 }
 

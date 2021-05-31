@@ -1,0 +1,34 @@
+---
+name:           yast2_firstboot
+description:    >
+  Smoke test for YaST2 firstboot module
+vars:
+  YUI_REST_API: 1
+  SCC_ADDONS: desktop,sdk
+schedule:
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/hostname
+  - installation/enable_y2_firstboot
+  - console/scc_cleanup_reregister
+  - console/install_packages_simple
+  - console/firewalld_add_port
+  - installation/setup_libyui_firstboot
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/yast_firstboot/firstboot_keyboard_layout
+  - installation/yast_firstboot/firstboot_welcome
+  - installation/yast_firstboot/firstboot_license_agreement_custom
+  - installation/yast_firstboot/firstboot_hostname
+  - installation/yast_firstboot/firstboot_network
+  - installation/yast_firstboot/firstboot_ntp_client
+  - installation/yast_firstboot/firstboot_users
+  - installation/yast_firstboot/firstboot_finish_setup
+  - installation/first_boot
+  - console/validate_yast2_firstboot_configuration
+test_data:
+  install_packages:
+    - libyui-rest-api
+  port: 30000-50000
+  zone: public

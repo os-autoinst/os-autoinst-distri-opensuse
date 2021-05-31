@@ -160,7 +160,6 @@ WAYLAND | boolean | false | Enables wayland tests in the system.
 XDMUSED | boolean | false | Indicates availability of xdm.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAML_TEST_DATA | string | | Defines yaml file containing test data.
-YAST2_FIRSTBOOT_USERNAME | string | | Defines username for the user to be created with YaST Firstboot
 YUI_PORT | integer | | Port being used for libyui REST API. See also YUI_SERVER and YUI_START_PORT.
 YUI_SERVER | string | | libyui REST API server name or ip address.
 YUI_START_PORT | integer | 39000 | Sets starting port for the libyui REST API, on qemu VNC port is then added to this port not to have conflicts.
