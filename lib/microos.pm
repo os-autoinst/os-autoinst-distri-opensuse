@@ -40,6 +40,7 @@ sub microos_login {
 # Process reboot with an option to trigger it
 sub microos_reboot {
     my $trigger = shift // 0;
+
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # No grub bootloader on xen-pv

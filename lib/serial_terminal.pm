@@ -15,7 +15,7 @@ use autotest;
 use base 'Exporter';
 use Exporter;
 use bmwqemu ();
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_sle_micro);
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
 use Mojo::File 'path';
 use File::Basename;
@@ -82,6 +82,7 @@ wait_serial(get_login_message(), 300);
 sub get_login_message {
     my $arch = get_required_var("ARCH");
     return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+      : is_sle_micro() ? qr/Welcome to SUSE Linux Enterprise Micro .*\($arch\)/
       : is_leap()   ? qr/Welcome to openSUSE Leap.*/
       :               qr/Welcome to openSUSE Tumbleweed 20.*/;
 }

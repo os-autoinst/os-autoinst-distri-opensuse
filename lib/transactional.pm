@@ -72,7 +72,7 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if (is_microos || is_sle_micro) {
+    if ((is_microos || is_sle_micro) && (!check_var('ARCH', 's390x'))) {
         microos_reboot $args{trigger};
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);

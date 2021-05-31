@@ -63,8 +63,12 @@ sub check_package {
 }
 
 sub run {
-    select_console 'root-console';
-
+    my ($self) = @_;
+    if (check_var('arch', 's390x')) {
+        $self->select_serial_terminal;
+    } else {
+        select_console 'root-console';
+    }
     script_run "rebootmgrctl set-strategy off";
 
     get_utt_packages;

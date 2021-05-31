@@ -7,6 +7,19 @@ conditional_schedule:
     FLAVOR:
       'DVD-Updates':
         - transactional/install_updates
+  boot:
+    ARCH:
+      's390x':
+        - boot/reconnect_mgmt_console
+        - installation/first_boot
+      'aarch64':
+        - microos/disk_boot
+      'x86_64':
+        - microos/disk_boot
+  force_scheduled_tasks:
+    ARCH:
+      's390x':
+        - console/force_scheduled_tasks
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -21,13 +34,14 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - microos/disk_boot
+  - '{{boot}}'
   - console/textinfo
   - '{{maintenance}}'
   - microos/networking
   - microos/libzypp_config
   - microos/one_line_checks
   - microos/services_enabled
+  - '{{force_scheduled_tasks}}'
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr
