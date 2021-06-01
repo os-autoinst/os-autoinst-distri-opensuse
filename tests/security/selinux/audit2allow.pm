@@ -41,7 +41,7 @@ sub run {
     assert_script_run("cp $original_audit $audit_log");
     validate_script_output("audit2allow -a",            sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
-    assert_script_run("tail -n 100 $audit_log > $audit_log_short");
+    assert_script_run("tail -n 500 $audit_log > $audit_log_short");
     validate_script_output(
         "audit2allow -w -i $audit_log_short",
         sub {
