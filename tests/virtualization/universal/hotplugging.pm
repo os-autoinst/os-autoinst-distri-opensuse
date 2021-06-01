@@ -207,7 +207,7 @@ sub run_test {
     my ($self) = @_;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
-    if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST")) {
+    if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST") && !get_var("VIRT_UEFI_GUEST_INSTALL")) {
         record_info("DNS Setup", "SLE 15+ host may have more strict rules on dhcp assigned ip conflict prevention, so guest ip may change");
         my $dns_bash_script_url = data_url("virt_autotest/setup_dns_service.sh");
         script_output("curl -s -o ~/setup_dns_service.sh $dns_bash_script_url", 180, type_command => 0, proceed_on_failure => 0);
