@@ -40,42 +40,39 @@ sub run {
     #$self->select_serial_terminal;  #uncomment this test will run in serial console
     select_console("root-console");
     my $docker = "podman";
-    if (!get_var("SSSD_389DS_FUNCTIONAL_SETUP")) {
-        if (is_sle) {
-            $docker = "docker";
-            add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
-            is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-        }
-        zypper_call("in sssd sssd-ldap openldap2-client sshpass $docker");
-
-        #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default).
-        my $pkgs = "systemd systemd-sysvinit 389-ds openssl";
-        my $tag  = get_var("BASE_IMAGE_TAG");
-        unless ($tag) {
-            if (is_opensuse) { $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
-            } else           { $tag = "registry.suse.com/suse/sle15:15.3"; }
-        }
-        systemctl("enable --now $docker") if ($docker eq "docker");
-        # build image, create container, setup 389-ds database and import testing data
-        assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
-        assert_script_run("curl " . "--remote-name-all " . data_url("sssd/398-ds/{user_389.ldif,access.ldif,Dockerfile_$docker,instance_389.inf}"));
-        assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
-        assert_script_run("$docker run -itd --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image") if ($docker eq "docker");
-        assert_script_run("$docker run -itd --name ds389_container --hostname ldapserver ds389_image") if ($docker eq "podman");
-        assert_script_run("$docker exec ds389_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
-        assert_script_run("$docker exec ds389_container dscreate from-file /tmp/instance_389.inf");
-        assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f user_389.ldif');
-        assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f access.ldif');
-
-        # Configure sssd on the host side
-        assert_script_run("$docker cp ds389_container:/etc/dirsrv/slapd-frist389/ca.crt /etc/sssd/ldapserver.crt");
-        assert_script_run("curl " . data_url("sssd/398-ds/sssd.conf") . " -o /etc/sssd/sssd.conf");
-        assert_script_run("curl " . data_url("sssd/398-ds/nsswitch.conf") . " -o /etc/nsswitch.conf");
-        assert_script_run("curl " . data_url("sssd/398-ds/config") . " --create-dirs -o ~/.ssh/config");
-        systemctl("disable --now nscd.service");
-        systemctl("enable --now sssd.service");
-        set_var("SSSD_389DS_FUNCTIONAL_SETUP", 1);
+    if (is_sle) {
+        $docker = "docker";
+        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
+        is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
+    zypper_call("in sssd sssd-ldap openldap2-client sshpass $docker");
+
+    #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default).
+    my $pkgs = "systemd systemd-sysvinit 389-ds openssl";
+    my $tag  = get_var("BASE_IMAGE_TAG");
+    unless ($tag) {
+        if (is_opensuse) { $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
+        } else           { $tag = "registry.suse.com/suse/sle15:15.3"; }
+    }
+    systemctl("enable --now $docker") if ($docker eq "docker");
+    # build image, create container, setup 389-ds database and import testing data
+    assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
+    assert_script_run("curl " . "--remote-name-all " . data_url("sssd/398-ds/{user_389.ldif,access.ldif,Dockerfile_$docker,instance_389.inf}"));
+    assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
+    assert_script_run("$docker run -itd --name ds389_container --hostname ldapserver --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro --restart=always ds389_image") if ($docker eq "docker");
+    assert_script_run("$docker run -itd --name ds389_container --hostname ldapserver ds389_image") if ($docker eq "podman");
+    assert_script_run("$docker exec ds389_container sed -n '/ldapserver/p' /etc/hosts >> /etc/hosts");
+    assert_script_run("$docker exec ds389_container dscreate from-file /tmp/instance_389.inf");
+    assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f user_389.ldif');
+    assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f access.ldif');
+
+    # Configure sssd on the host side
+    assert_script_run("$docker cp ds389_container:/etc/dirsrv/slapd-frist389/ca.crt /etc/sssd/ldapserver.crt");
+    assert_script_run("curl " . data_url("sssd/398-ds/sssd.conf") . " -o /etc/sssd/sssd.conf");
+    assert_script_run("curl " . data_url("sssd/398-ds/nsswitch.conf") . " -o /etc/nsswitch.conf");
+    assert_script_run("curl " . data_url("sssd/398-ds/config") . " --create-dirs -o ~/.ssh/config");
+    systemctl("disable --now nscd.service");
+    systemctl("enable --now sssd.service");
 
     #execute test cases
     #get remote user indentity
@@ -104,6 +101,10 @@ sub run {
     validate_script_output('sshpass -p open5use ssh mary@localhost whoami', sub { m/mary/ });
     #offline sudo run a command as another user
     validate_script_output('sshpass -p open5use ssh mary@localhost "echo open5use|sudo -S -u alice /usr/bin/cat /home/alice/hello"', sub { m/file read only by owner alice/ });
+}
+
+sub test_flags {
+    return {always_rollback => 1};
 }
 
 1;
