@@ -40,16 +40,16 @@ sub run {
 
     # Verify most important consoles
     select_console('root-console');
-    assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
-    assert_script_run('test $(id -un) == "root"');
+    script_retry('test -e /dev/' . get_var('SERIALDEV'), timeout => 120, retry => 3, delay => 30);
+    script_retry('test $(id -un) == "root"',             timeout => 120, retry => 3, delay => 30);
 
     select_console('user-console');
-    assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
-    assert_script_run('test $(id -un) == "' . $testapi::username . '"');
+    script_retry('test -e /dev/' . get_var('SERIALDEV'),           timeout => 120, retry => 3, delay => 30);
+    script_retry('test $(id -un) == "' . $testapi::username . '"', timeout => 120, retry => 3, delay => 30);
 
     $self->select_serial_terminal();
-    assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
-    assert_script_run('test $(id -un) == "root"');
+    script_retry('test -e /dev/' . get_var('SERIALDEV'), timeout => 120, retry => 3, delay => 30);
+    script_retry('test $(id -un) == "root"',             timeout => 120, retry => 3, delay => 30);
 }
 
 1;
