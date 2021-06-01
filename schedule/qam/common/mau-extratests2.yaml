@@ -30,6 +30,8 @@ schedule:
   - console/aaa_base
   - console/gd
   - console/systemtap
+  - console/openvswitch_ssl
+  - console/journald_fss
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
@@ -71,4 +73,7 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/mutt
+        - console/vsftpd
+      aarch64:
+        - console/vsftpd
 ...
