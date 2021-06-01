@@ -114,7 +114,6 @@ sub build_with_zypper_docker {
         return;
     }
 
-    # zypper docker can only update image if version is same as SUT
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
         my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
@@ -136,7 +135,9 @@ sub build_with_zypper_docker {
     die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
 
     record_info("Testing derived", "Derived image: $derived_image");
-    test_opensuse_based_image(image => $derived_image, runtime => $runtime);
+    test_opensuse_based_image(image => $derived_image, runtime => $runtime, version => $version);
+
+    assert_script_run("docker rmi -f $derived_image");
 }
 
 sub test_opensuse_based_image {
