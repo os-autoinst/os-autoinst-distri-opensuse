@@ -75,6 +75,8 @@ sub init {
     $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{FstabOptionsPage}                  = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
 
+    $self->{ConfirmationWarning}         = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarningRichText} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
     $self->{OnlyUseIfFamiliarWarning}    = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
     $self->{DeletePartitionWarning}      = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
     $self->{DeleteVolumeGroupWarning}    = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
@@ -128,6 +130,11 @@ sub get_delete_volume_group_warning {
         die "Delete volume warning is not displayed";
     }
     return $self->{DeleteVolumeGroupWarning};
+}
+
+sub get_confirmation_warning {
+    my ($self) = @_;
+    return $self->{ConfirmationWarning};
 }
 
 sub get_confirmation_warning_rich_text {
