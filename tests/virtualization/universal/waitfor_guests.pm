@@ -78,7 +78,7 @@ sub add_pci_bridge {
         assert_script_run("virt-xml-validate $xml");
         assert_script_run("virsh define $xml");
 
-    } elsif (is_xen_host() && is_pv_guest($guest)) {
+    } elsif (is_xen_host()) {
         # We're skipping to add an additional bridge on xen
     } else {
         my $msg = "Unknown machine type";

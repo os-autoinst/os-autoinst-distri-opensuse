@@ -12,7 +12,7 @@
 #
 # Stephane Lesimple
 #
-VERSION='0.43'
+VERSION='0.44'
 
 trap 'exit_cleanup' EXIT
 trap '_warn "interrupted, cleaning up..."; exit_cleanup; exit 1' INT
@@ -857,7 +857,7 @@ update_fwdb()
 
 	# second, get the Intel firmwares from GitHub
 	intel_tmp="$(mktemp -d /tmp/intelfw-XXXXXX)"
-	intel_url="https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/archive/master.zip"
+	intel_url="https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files/archive/main.zip"
 	_info_nol "Fetching Intel firmwares... "
 	## https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files.git
 	if command -v wget >/dev/null 2>&1; then
@@ -888,6 +888,8 @@ update_fwdb()
 		echo ERROR "downloaded file seems invalid"
 		return 1
 	fi
+	sqlite3 "$mcedb_tmp" "alter table Intel add column origin text"
+	sqlite3 "$mcedb_tmp" "update Intel set origin='mce'"
 
 	echo OK "MCExtractor database revision $mcedb_revision dated $mcedb_date"
 
@@ -898,7 +900,7 @@ update_fwdb()
 		return 1
 	fi
 	( cd "$intel_tmp" && unzip fw.zip >/dev/null; )
-	if ! [ -d "$intel_tmp/Intel-Linux-Processor-Microcode-Data-Files-master/intel-ucode" ]; then
+	if ! [ -d "$intel_tmp/Intel-Linux-Processor-Microcode-Data-Files-main/intel-ucode" ]; then
 		echo ERROR "expected the 'intel-ucode' folder in the downloaded zip file"
 		return 1
 	fi
@@ -915,7 +917,7 @@ update_fwdb()
 	fi
 	#  079/001: sig 0x000106c2, pf_mask 0x01, 2009-04-10, rev 0x0217, size 5120
 	#  078/004: sig 0x000106ca, pf_mask 0x10, 2009-08-25, rev 0x0107, size 5120
-	$iucode_tool -l "$intel_tmp/Intel-Linux-Processor-Microcode-Data-Files-master/intel-ucode" | grep -wF sig | while read -r _line
+	$iucode_tool -l "$intel_tmp/Intel-Linux-Processor-Microcode-Data-Files-main/intel-ucode" | grep -wF sig | while read -r _line
 	do
 		_line=$(   echo "$_line" | tr -d ',')
 		_cpuid=$(  echo "$_line" | awk '{print $3}')
@@ -925,10 +927,17 @@ update_fwdb()
 		_version=$(echo "$_line" | awk '{print $8}')
 		_version=$(( _version ))
 		_version=$(printf "0x%08X" "$_version")
-		_sqlstm="$(printf "INSERT INTO Intel (cpuid,version,yyyymmdd) VALUES (\"%s\",\"%s\",\"%s\");" "$(printf "%08X" "$_cpuid")" "$(printf "%08X" "$_version")" "$_date")"
+		_sqlstm="$(printf "INSERT INTO Intel (origin,cpuid,version,yyyymmdd) VALUES (\"%s\",\"%s\",\"%s\",\"%s\");" "intel" "$(printf "%08X" "$_cpuid")" "$(printf "%08X" "$_version")" "$_date")"
 		sqlite3 "$mcedb_tmp" "$_sqlstm"
 	done
-	_intel_latest_date=$(sqlite3 "$mcedb_tmp" "SELECT yyyymmdd from Intel ORDER BY yyyymmdd DESC LIMIT 1;")
+	_intel_timestamp=$(stat -c %Y "$intel_tmp/Intel-Linux-Processor-Microcode-Data-Files-main/license" 2>/dev/null)
+	if [ -n "$_intel_timestamp" ]; then
+		# use this date, it matches the last commit date
+		_intel_latest_date=$(date +%Y%m%d -d @"$_intel_timestamp")
+	else
+		echo "Falling back to the latest microcode date"
+		_intel_latest_date=$(sqlite3 "$mcedb_tmp" "SELECT yyyymmdd from Intel WHERE origin = 'intel' ORDER BY yyyymmdd DESC LIMIT 1;")
+	fi
 	echo DONE "(version $_intel_latest_date)"
 
 	dbdate=$(echo "$mcedb_date" | tr -d '/')
@@ -5553,7 +5562,7 @@ exit 0  # ok
 # The builtin version follows, but the user can download an up-to-date copy (to be stored in his $HOME) by using --update-fwdb
 # To update the builtin version itself (by *modifying* this very file), use --update-builtin-fwdb
 
-# %%% MCEDB v160.20200912+i20200722
+# %%% MCEDB v165.20201021+i20200616
 # I,0x00000611,0x00000B27,19961218
 # I,0x00000612,0x000000C6,19961210
 # I,0x00000616,0x000000C6,19961210
@@ -5777,7 +5786,7 @@ exit 0  # ok
 # I,0x000406D8,0x0000012D,20190916
 # I,0x000406E1,0x00000020,20141111
 # I,0x000406E2,0x0000002C,20150521
-# I,0x000406E3,0x000000E0,20200624
+# I,0x000406E3,0x000000E2,20200714
 # I,0x000406E8,0x00000026,20160414
 # I,0x000406F0,0x00000014,20150702
 # I,0x000406F1,0x0B000038,20190618
@@ -5806,7 +5815,7 @@ exit 0  # ok
 # I,0x000506E0,0x00000018,20141119
 # I,0x000506E1,0x0000002A,20150602
 # I,0x000506E2,0x0000002E,20150815
-# I,0x000506E3,0x000000E0,20200624
+# I,0x000506E3,0x000000E2,20200714
 # I,0x000506E8,0x00000034,20160710
 # I,0x000506F0,0x00000010,20160607
 # I,0x000506F1,0x00000032,20200307
@@ -5827,13 +5836,13 @@ exit 0  # ok
 # I,0x000706E2,0x00000042,20190420
 # I,0x000706E3,0x81000008,20181002
 # I,0x000706E4,0x00000046,20190905
-# I,0x000706E5,0x0000009E,20200722
+# I,0x000706E5,0x000000A0,20200730
 # I,0x00080650,0x00000018,20180108
 # I,0x000806A0,0x00000010,20190507
-# I,0x000806A1,0x00000027,20200612
-# I,0x000806C0,0x0000005E,20200213
-# I,0x000806C1,0x00000020,20200414
-# I,0x000806D0,0x00000018,20200311
+# I,0x000806A1,0x00000028,20200626
+# I,0x000806C0,0x00000068,20200402
+# I,0x000806C1,0x00000066,20200925
+# I,0x000806D0,0x0000002E,20200709
 # I,0x000806E9,0x000000DE,20200527
 # I,0x000806EA,0x000000E0,20200617
 # I,0x000806EB,0x000000DE,20200603
@@ -5846,13 +5855,13 @@ exit 0  # ok
 # I,0x000906ED,0x000000DE,20200524
 # I,0x000A0650,0x000000BE,20191010
 # I,0x000A0651,0x000000C2,20191113
-# I,0x000A0652,0x000000DE,20200607
-# I,0x000A0653,0x000000DE,20200607
+# I,0x000A0652,0x000000E0,20200708
+# I,0x000A0653,0x000000E0,20200708
 # I,0x000A0654,0x000000C6,20200123
-# I,0x000A0655,0x000000DE,20200607
-# I,0x000A0660,0x000000DE,20200607
-# I,0x000A0661,0x000000DE,20200607
-# I,0x000A0670,0x80000002,20200303
+# I,0x000A0655,0x000000E2,20200914
+# I,0x000A0660,0x000000E0,20200708
+# I,0x000A0661,0x000000E0,20200702
+# I,0x000A0670,0x00000002,20200304
 # I,0x000A0680,0x80000002,20200121
 # A,0x00000F00,0x02000008,20070614
 # A,0x00000F01,0x0000001C,20021031
@@ -5942,5 +5951,5 @@ exit 0  # ok
 # A,0x00A00F00,0x0A000033,20200413
 # A,0x00A00F10,0x0A00100F,20200624
 # A,0x00A20F00,0x0A200025,20200121
-# A,0x00A20F10,0x0A201006,20200709
-# A,0x00A50F00,0x0A500008,20200710
+# A,0x00A20F10,0x0A201009,20200821
+# A,0x00A50F00,0x0A50000B,20200821
