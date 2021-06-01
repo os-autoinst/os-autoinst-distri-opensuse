@@ -132,6 +132,8 @@ sub ssh_setup {
     my $dt              = DateTime->now;
     my $comment         = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
     if (script_run("[[ -s $default_ssh_key ]]") != 0) {
+        my $default_ssh_key_dir = dirname($default_ssh_key);
+        script_run("mkdir -p $default_ssh_key_dir");
         assert_script_run "ssh-keygen -t rsa -P '' -C '$comment' -f $default_ssh_key";
     }
 }
