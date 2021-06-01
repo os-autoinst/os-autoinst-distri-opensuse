@@ -43,7 +43,11 @@ sub run {
 
     record_info 'Test #1', 'Test: Installation';
     zypper_call("in docker-compose");
-    assert_script_run 'docker-compose --version';
+
+    if (script_output('docker-compose --version', proceed_on_failure => 1) =~ /distribution was not found/) {
+        record_soft_failure "bsc#1186691 - docker-compose probably missing dependency";
+        return 0;
+    }
 
     # Prepare docker-compose.yml and haproxy.cfg
     assert_script_run 'mkdir -p dcproject; cd dcproject';
