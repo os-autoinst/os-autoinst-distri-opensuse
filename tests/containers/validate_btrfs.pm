@@ -21,6 +21,14 @@ use Mojo::Base qw(consoletest);
 use testapi;
 use containers::runtime;
 
+# Get the total and used GiB of a given btrfs device
+sub _btrfs_fi {
+    my $dev    = shift;
+    my $output = script_output("btrfs fi df $dev");
+    die "Unexpected btrfs fi output" unless ($output =~ "^Data.+total=(?<total>[0-9]+\.[0-9]*)GiB, used=(?<used>[0-9]+\.[0-9]*)GiB");
+    return ($+{total}, $+{used});
+}
+
 sub _sanity_test_btrfs {
     my ($rt, $dev_path) = @_;
     my $dockerfile_path = '/root/sle_base_image/docker_build';
@@ -36,7 +44,7 @@ sub _test_btrfs_balancing {
     my ($dev_path) = shift;
     assert_script_run qq(btrfs balance start --full-balance $dev_path), timeout => 900;
     assert_script_run "btrfs fi show $dev_path/btrfs";
-    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+10.\d+G.+\/dev\/vdb/ };
+    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+[0-9]+.\d+G.+\/dev\/vdb/ };
 }
 
 sub _test_btrfs_thin_partitioning {
@@ -46,7 +54,7 @@ sub _test_btrfs_thin_partitioning {
     $rt->build($dockerfile_path, 'thin_image');
     # validate that new subvolume has been created. This should be improved.
     assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) == \$(cat $btrfs_head)};
-    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=[12].*GiB, used=\d+.+[KM]iB/ };
+    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=[1-9].*[KMG]iB, used=\d+.+[KMG]iB/ };
 }
 
 sub _test_btrfs_device_mgmt {
@@ -55,12 +63,15 @@ sub _test_btrfs_device_mgmt {
     my $btrfs_head = '/tmp/subvolumes_saved';
     record_info "test btrfs";
     script_run("df -h");
-    # /var is using its own partition which is size of 10G. Create file in the container
-    # enough to fill up the partition up to ~99%
-    $rt->up('huge_image', keep_container => 1, cmd => 'fallocate -l 9149000KiB bigfile.txt');
+    # Determine the remaining size of /var
+    my $var_free = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
+    # /var is using its own partition. Create file in the container enough to fill up the partition up to 99%
+    my $fill = int($var_free * 0.99 * 1024);    # df returns the size in KiB
+    $rt->up('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
     validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     # partition should be full
-    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=8.*GiB, used=8.*GiB/ };
+    my ($total, $used) = _btrfs_fi("/var");
+    die "partition should be full" unless (int($total) == int($used));
     # Due to disk space this should fail
     die("pull still works") if ($rt->pull("$container") == 0);
     assert_script_run "btrfs device add /dev/vdb $dev_path";
