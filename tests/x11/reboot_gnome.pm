@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,7 +23,8 @@ use utils 'is_boot_encrypted';
 sub run {
     my ($self) = @_;
     # 'keepconsole => 1' is workaround for bsc#1044072
-    power_action('reboot', keepconsole => 1);
+    # Poo#80184, it's not suitable to keep console for s390x after reboot.
+    power_action('reboot', keepconsole => (check_var('ARCH', 's390x')) ? 0 : 1);
 
     # In 88388900d2dfe267230972c6905b3cc18fb288cf the wait timeout was
     # bumped, due to tianocore being a bit slower, this brings this module
