@@ -247,10 +247,11 @@ sub ensure_online {
     my $skip_ping    = $args{skip_ping}     // 0;
     my $ping_delay   = $args{ping_delay}    // 15;
     my $ping_retry   = $args{ping_retry}    // 60;
+    my $use_virsh    = $args{use_virsh}     // 1;
 
     # Ensure guest is running
     # Only xen/kvm support to reboot guest at the moment
-    if (is_xen_host || is_kvm_host) {
+    if ($use_virsh && (is_xen_host || is_kvm_host)) {
         if (script_run("virsh list | grep '$guest'") != 0) {
             assert_script_run("virsh start '$guest'");
             wait_guest_online($guest);
