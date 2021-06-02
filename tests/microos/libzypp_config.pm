@@ -15,11 +15,12 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use version_utils qw(is_jeos);
 
 sub run {
     assert_script_run 'egrep -x "^solver.onlyRequires ?= ?true" /etc/zypp/zypp.conf';
     assert_script_run 'egrep -x "^rpm.install.excludedocs ?= ?yes" /etc/zypp/zypp.conf';
-    assert_script_run 'egrep -x "^multiversion ?=" /etc/zypp/zypp.conf';
+    assert_script_run sprintf('egrep -x "^multiversion ?=%s" /etc/zypp/zypp.conf', is_jeos ? ' ?provides:multiversion\(kernel\)' : '');
 }
 
 sub post_fail_hook {
