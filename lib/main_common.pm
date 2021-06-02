@@ -557,7 +557,6 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
-    # loadtest 'jeos/sccreg';
     if ((is_arm || is_aarch64) && is_opensuse()) {
         # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();
@@ -573,6 +572,8 @@ sub load_jeos_tests {
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
+    loadtest "microos/journal_check";
+    loadtest "microos/libzypp_config";
     if (is_sle) {
         loadtest "console/suseconnect_scc";
     }
