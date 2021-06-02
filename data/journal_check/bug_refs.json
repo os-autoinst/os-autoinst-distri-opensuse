@@ -1,0 +1,190 @@
+{
+    "bsc#1022527": {
+        "description": ".*wickedd.*ni_process_reap.*blocking waitpid.*",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "feature"
+    },
+    "bsc#1126272": {
+        "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1022525": {
+        "description": ".*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ]
+        },
+        "type": "bug"
+    },
+    "bsc#1184970": {
+        "description": ".*rpc\\.statd.*Failed to open directory sm.*|.*Failed to stat \/var\/lib\/nfs\/sm: No such file or directory",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1182500": {
+        "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1178033": {
+        "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "bug"
+    },
+    "bsc#1177695": {
+        "description": "kernel: parport_pc: `none' invalid for parameter `dma'",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ]
+        },
+        "type": "bug"
+    },
+    "bsc#1177693": {
+        "description": "kernel: intel_powerclamp: CPU does not support MWAIT",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1182961": {
+        "description": "could not read from '/sys/module/pcc_pufreq/initstate': No such device",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
+    },
+    "bsc#1177028": {
+        "description": "Started bpfilter",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "bug"
+    },
+    "bsc#1187618": {
+        "description": "systemd-vconsole-setup.service",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "bug"
+    },
+    "bsc#1187591": {
+        "description": "EFI secret key getting failed: EFI_NOT_FOUND|EFI secret key size 0 is less than 64. Please regenerate secret key",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "bug"
+    },
+    "bsc#1187613": {
+        "description": "kernel: Grant table initialized",
+        "products": {
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "bug"
+    },
+    "apci-bridge": {
+        "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "printk": {
+        "description": "kernel: printk: systemd:.*output lines suppressed due to ratelimiting",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "boot-marker": {
+        "description": "-- Boot\\s+\\w+\\s+--",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "vmware-cpuid": {
+        "description": "kernel: core: CPUID marked event:",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "hyperv-timer": {
+        "description": ".*Found PM-Timer Bug on the chipset. Due to workarounds for a bug.*|.*Unstable clock detected, switching default tracing clock to \"global\".*|If you want to keep using the local clock, then add:|\"trace_clock=local\"| on the kernel command line|.*this clock source is slow. Consider trying other clock sources.*",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "hyperv-mouse": {
+        "description": "kernel: psmouse serio1: trackpoint: failed to get extended button data, assuming 3 buttons",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "xen-trim-btrfs-on-mechaninal-drive": {
+        "description": "kernel: BTRFS warning.*: failed to trim.*, last error -512",
+        "products": {
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    },
+    "health-check": {
+        "description": "health-checker/fail.sh check\" failed|Machine didn't come up correct, do a rollback",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
+    },
+    "chrony": {
+        "description": "chronyd.*Received KoD RATE from|System clock wrong by.*, adjustment started|System clock was stepped by.*",
+        "products": {
+            "sle-micro": [ "5.0", "5.1" ],
+            "opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "microos":  ["Tumbleweed"],
+            "sle": ["15-SP2", "15-SP3"]
+        },
+        "type": "ignore"
+    }
+}

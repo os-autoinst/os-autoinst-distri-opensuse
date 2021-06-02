@@ -36,6 +36,8 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/prjconf_excluded_rpms
+    - microos/journal_check
+    - microos/libzypp_config
     - console/suseconnect_scc
     - '{{efi}}'
     - jeos/glibc_locale
