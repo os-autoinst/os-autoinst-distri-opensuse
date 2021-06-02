@@ -26,6 +26,7 @@ schedule:
   - microos/image_checks
   - microos/one_line_checks
   - microos/services_enabled
+  - microos/cockpit_check
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr
