@@ -157,59 +157,56 @@ resource "azurerm_image" "image" {
     }
 }
 
-resource "azurerm_virtual_machine" "openqa-vm" {
-    name                  = "${var.name}-${element(random_id.service.*.hex, count.index)}"
-    location              = var.region
-    resource_group_name   = azurerm_resource_group.openqa-group.name
-    network_interface_ids = [azurerm_network_interface.openqa-nic[count.index].id]
-    vm_size               = var.type
-    count                 = var.instance_count
+resource "azurerm_linux_virtual_machine" "openqa-vm" {
+  name                = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+  resource_group_name = azurerm_resource_group.openqa-group.name
+  location            = var.region
+  size                = var.type
+  computer_name  = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+  admin_username      = "azureuser"
+  disable_password_authentication = true
 
-    storage_image_reference {
-        id = var.image_id != "" ? azurerm_image.image.0.id : ""
-        publisher = var.image_id != "" ? "" : "SUSE"
-        offer     = var.image_id != "" ? "" : var.offer
-        sku       = var.image_id != "" ? "" : var.sku
-        version   = var.image_id != "" ? "" : "latest"
+  count                 = var.instance_count
+
+  network_interface_ids = [azurerm_network_interface.openqa-nic[count.index].id]
+
+  tags = merge({
+          openqa_created_by = var.name
+          openqa_created_date = timestamp()
+          openqa_created_id = element(random_id.service.*.hex, count.index)
+      }, var.tags)
+
+  admin_ssh_key {
+    username   = "azureuser"
+    public_key = file("/root/.ssh/id_rsa.pub")
+  }
+
+  os_disk {
+    name              = "${var.name}-${element(random_id.service.*.hex, count.index)}-osdisk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_id =  var.image_id != "" ? azurerm_image.image.0.id : null
+  dynamic "source_image_reference" {
+    for_each = range(var.image_id != "" ? 0 : 1)
+    content {
+      publisher = var.image_id != "" ? "" : "SUSE"
+      offer     = var.image_id != "" ? "" : var.offer
+      sku       = var.image_id != "" ? "" : var.sku
+      version   = var.image_id != "" ? "" : "latest"
     }
+  }
 
-    storage_os_disk {
-        name              = "${var.name}-${element(random_id.service.*.hex, count.index)}-osdisk"
-        caching           = "ReadWrite"
-        create_option     = "FromImage"
-        managed_disk_type = "Standard_LRS"
-    }
-
-    os_profile {
-        computer_name  = "${var.name}-${element(random_id.service.*.hex, count.index)}"
-        admin_username = "azureuser"
-    }
-
-    os_profile_linux_config {
-        disable_password_authentication = true
-        ssh_keys {
-            path     = "/home/azureuser/.ssh/authorized_keys"
-            key_data = file("/root/.ssh/id_rsa.pub")
-        }
-    }
-
-    tags = merge({
-            openqa_created_by = var.name
-            openqa_created_date = timestamp()
-            openqa_created_id = element(random_id.service.*.hex, count.index)
-        }, var.tags)
-
-
-    boot_diagnostics {
-        enabled = true
-        storage_uri = "https://${var.storage-account}.blob.core.windows.net/"
-    }
+  boot_diagnostics {
+    storage_account_uri = "https://${var.storage-account}.blob.core.windows.net/"
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {
     count              = var.create-extra-disk ? var.instance_count: 0
     managed_disk_id    = element(azurerm_managed_disk.ssd_disk.*.id, count.index)
-    virtual_machine_id = element(azurerm_virtual_machine.openqa-vm.*.id, count.index)
+    virtual_machine_id = element(azurerm_linux_virtual_machine.openqa-vm.*.id, count.index)
     lun                = "1"
     caching            = "ReadWrite"
 }
@@ -226,12 +223,12 @@ resource "azurerm_managed_disk" "ssd_disk" {
 
 
 output "vm_name" {
-    value = azurerm_virtual_machine.openqa-vm.*.id
+    value = azurerm_linux_virtual_machine.openqa-vm.*.id
 }
 
 data "azurerm_public_ip" "openqa-publicip" {
     name                = azurerm_public_ip.openqa-publicip[count.index].name
-    resource_group_name = azurerm_virtual_machine.openqa-vm.0.resource_group_name
+    resource_group_name = azurerm_linux_virtual_machine.openqa-vm.0.resource_group_name
     count               = var.instance_count
 }
 
