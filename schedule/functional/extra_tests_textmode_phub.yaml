@@ -9,7 +9,8 @@ schedule:
     - console/python_scientific
     - '{{wpa_supplicant}}'
     - console/vmstat
-    - sysauth/sssd
+    - console/sssd_389ds_functional
+    - console/sssd_openldap_functional
     - console/coredump_collect
 conditional_schedule:
     wpa_supplicant:
