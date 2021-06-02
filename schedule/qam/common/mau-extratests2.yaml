@@ -30,8 +30,6 @@ schedule:
   - console/aaa_base
   - console/gd
   - console/systemtap
-  - console/openvswitch_ssl
-  - console/journald_fss
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
@@ -44,31 +42,46 @@ conditional_schedule:
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
         - '{{arch_specific}}'
       15-SP1:
         - console/osinfo_db
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
         - '{{arch_specific}}'
       15:
         - console/osinfo_db
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
         - '{{arch_specific}}'
       12-SP5:
         - console/osinfo_db
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/openvswitch_ssl
         - '{{arch_specific}}'
+        - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
+        - console/journald_fss
+        - console/openvswitch_ssl
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
+        - console/journald_fss
+        - console/openvswitch_ssl
         - '{{arch_specific}}'
+      12-SP2:
+        - console/journald_fss
+        - console/vsftpd
   arch_specific:
     ARCH:
       x86_64:
@@ -76,4 +89,10 @@ conditional_schedule:
         - console/vsftpd
       aarch64:
         - console/vsftpd
+  arch_12sp5:
+    ARCH:
+      x86_64:
+        - console/journald_fss
+      aarch64:
+        - console/journald_fss
 ...
