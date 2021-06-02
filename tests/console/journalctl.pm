@@ -289,7 +289,9 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    # select_console('log-console');
     select_console 'log-console';
     script_run 'cp -a /var/log/journal /var/log/journal-backup';
     script_run 'tar Jcvf journal-backup.tar.xz /var/log/journal-backup';

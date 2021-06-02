@@ -38,6 +38,9 @@ sub run {
 }
 
 sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    # select_console('log-console');
     upload_logs 'mdadm.log';
 }
 
