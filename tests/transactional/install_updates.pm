@@ -27,7 +27,7 @@ sub run {
     }
     add_test_repositories;
     record_info 'Updates', script_output('zypper lu');
-    trup_call 'up';
+    trup_call 'up',        timeout => 300;
     check_reboot_changes;
 }
 
