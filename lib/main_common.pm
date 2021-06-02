@@ -1262,7 +1262,8 @@ sub load_x11tests {
         loadtest "x11/chromium";
     }
     if (xfcestep_is_applicable()) {
-        loadtest "x11/midori" unless (is_staging || is_livesystem);
+        # Midori got dropped from TW
+        loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16"));
         loadtest "x11/ristretto";
     }
     if (gnomestep_is_applicable()) {
