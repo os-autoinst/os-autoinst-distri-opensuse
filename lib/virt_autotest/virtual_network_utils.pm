@@ -63,7 +63,7 @@ sub check_guest_ip {
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
-        assert_script_run "ping -c3 $guest";
+        die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
 }
 
@@ -95,7 +95,7 @@ sub save_guest_ip {
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
-        assert_script_run "ping -c3 $guest";
+        die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
 }
 
