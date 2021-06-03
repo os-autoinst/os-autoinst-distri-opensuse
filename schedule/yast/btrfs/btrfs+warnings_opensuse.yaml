@@ -27,8 +27,7 @@ schedule:
   - installation/partitioning/warning/prep_small
   - installation/partitioning/warning/zipl_small
   - installation/partitioning/warning/rootfs_small
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
   - installation/resolve_dependency_issues
