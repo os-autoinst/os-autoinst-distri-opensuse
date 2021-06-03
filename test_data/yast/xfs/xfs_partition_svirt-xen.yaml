@@ -1,33 +1,24 @@
 ---
+guided_partitioning:
+  filesystem_options:
+    root_filesystem_type: xfs
 disks:
   - name: xvdb
     table_type: gpt
     allowed_unpartitioned: 0.00GB
     partitions:
       - name: xvdb2
-        role: operating-system
-        partition_type: primary
         formatting_options:
-          should_format: 1
           filesystem: xfs
         mounting_options:
-          should_mount: 1
           mount_point: /
       - name: xvdb3
-        role: data
-        partition_type: primary
         formatting_options:
-          should_format: 1
           filesystem: xfs
         mounting_options:
-          should_mount: 1
           mount_point: /home
       - name: xvdb4
-        role: swap
-        partition_type: primary
         formatting_options:
-          should_format: 1
           filesystem: swap
         mounting_options:
-          should_mount: 1
           mount_point: SWAP
