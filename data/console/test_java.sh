@@ -54,7 +54,7 @@ find_all_installed_java() {
     # Construct temp files which are needed in order to
     # determine how many java versions are installed along with their versions
     # ignore javadoc as per issue https://progress.opensuse.org/issues/72070
-    rpm -qa | grep ^java- | grep -v javadoc > $RPM_QUERY_JAVA
+    rpm -qa | grep ^java- | grep -vE 'javadoc|-32bit' > $RPM_QUERY_JAVA
 
     # File that contains all the IBM Java installed in the system
     grep "^java-" $RPM_QUERY_JAVA | grep "\-ibm" | awk -F 'ibm' '{print $1 "ibm"}' | sort -r | uniq > $LIST_INSTALLED_IBM_VERSIONS
@@ -112,7 +112,7 @@ test_java_alternatives () {
 test_javac_alternatives () {
     list_all_javac_alternatives
 #    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | wc -l)
-    javac_versions=$(rpm -qa | grep -v debuginfo | grep -c 'java.*devel')
+    javac_versions=$(rpm -qa | grep 'java.*devel' | grep -c -vE 'debuginfo|32bit')
     javac_alternatives=$(wc -l < $LIST_ALL_JAVAC_ALTERNATIVES)
     if [ "$javac_versions" -eq "$javac_alternatives" ]; then
         echo "javac: PASS"
@@ -122,7 +122,7 @@ test_javac_alternatives () {
         echo "Number of java versions: $javac_versions and number of javac_alternatives $javac_alternatives"
         echo
         echo "List all javac_versions"
-        rpm -qa | grep 'java.*devel' | grep -v debuginfo
+        rpm -qa | grep 'java.*devel' | grep -vE 'debuginfo|32bit'
         echo "List all javac alternatives"
         cat $LIST_ALL_JAVAC_ALTERNATIVES
         exit 1
@@ -133,7 +133,7 @@ test_javac_alternatives () {
 test_javaplugin_alternatives () {
     list_all_javaplugin_alternatives
     # This exists only for java-ibm so far
-    java_plugins=$(rpm -qa | grep -c 'java.*plugin')
+    java_plugins=$(rpm -qa | grep 'java.*plugin' | grep -c -vE 'debuginfo|32bit')
     javaplugin_alternatives=$(wc -l < $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
     if [ "$java_plugins" -eq "$javaplugin_alternatives" ]; then
         echo "javaplugin: PASS"
@@ -265,7 +265,7 @@ if [[ "$1" != "--transactional-server" ]]; then
 	    update-alternatives --set javac $javac
         else
 	    if echo $java_version | grep -q ibm; then
-	        if ! rpm -qa | grep 'java.*devel' | grep -q $dot_version; then
+	        if ! rpm -qa | grep 'java.*devel' | grep -v "32bit" | grep -q $dot_version; then
 		    echo "Warning: java compiler alternative not found for $java_version"
 		    echo "Reason : devel pkg is not installed, thus it is normal there is not javac"
 		    if zypper products -i | grep -q sle-sdk; then
