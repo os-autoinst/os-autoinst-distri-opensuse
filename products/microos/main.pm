@@ -51,6 +51,7 @@ sub load_feature_tests {
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     load_transactional_role_tests;
+    loadtest 'microos/cockpit_service';
     loadtest 'microos/journal_check';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
