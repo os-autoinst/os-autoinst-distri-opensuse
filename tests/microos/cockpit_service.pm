@@ -47,12 +47,11 @@ sub run {
 
     # Cockpit should survive a reboot. After reboot cockpit.socket should be
     # enabled, but the service is not active, we need to do a request as before
-    record_info('TEST', 'Cockpit survices a reboot');
+    record_info('TEST', 'Cockpit survives a reboot');
     process_reboot(trigger => 1);
     systemctl('is-enabled cockpit.socket');
     assert_script_run('curl http://localhost:9090', fail_message => 'Cannot fetch index page');
     systemctl('is-active cockpit.service');
-
 }
 
 1;

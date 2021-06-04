@@ -20,7 +20,7 @@ schedule:
   - microos/libzypp_config
   - microos/one_line_checks
   - microos/services_enabled
-  - microos/cockpit_check
+  - microos/cockpit_service
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr
