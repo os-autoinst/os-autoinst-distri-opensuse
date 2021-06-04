@@ -71,7 +71,7 @@ sub setup_disks_to_use {
 }
 
 sub setup_partitioning_scheme {
-    my ($self, $args) = @_;
+    my ($self) = @_;
     $self->get_partitioning_scheme_page()->press_next();
 }
 
