@@ -22,6 +22,13 @@ use registration 'add_suseconnect_product';
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
+sub create_script_file {
+    my ($filename, $fullpath, $content) = @_;
+    save_tmp_file($filename, $content);
+    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
+    assert_script_run(sprintf('chmod +x %s', $fullpath));
+}
+
 sub install_in_venv {
     my ($binary, %args) = @_;
     die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
@@ -48,12 +55,10 @@ exit_code=\$?
 deactivate
 exit \$exit_code
 EOT
-    my $run           = $binary . '-run-in-venv';
-    my $run_full_path = "$venv/bin/$run";
-    save_tmp_file($run, $script);
-    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $run_full_path, autoinst_url, $run));
-    assert_script_run(sprintf('chmod +x "%s"', $run_full_path));
-    assert_script_run(sprintf('ln -s "%s" "/usr/bin/%s"', $run_full_path, $binary));
+
+    my $fullpath = "$venv/bin/$binary-run-in-venv";
+    create_script_file($binary, $fullpath, $script);
+    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
 }
 
 sub run {
@@ -68,7 +73,7 @@ sub run {
     }
 
     # Install prerequesite packages test
-    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests');
+    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman');
     record_info('python', script_output('python --version'));
 
     # Install AWS cli
@@ -102,11 +107,16 @@ sub run {
     # Create some directories, ipa will need them
     assert_script_run("img-proof list");
     record_info('img-proof', script_output('img-proof --version'));
+    my $terraform_version = '0.14.1';
 
-    # Install Terraform from repo
-    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP2/systemsmanagement:terraform.repo');
-    zypper_call('--gpg-auto-import-keys -q in terraform');
-    record_info('Terraform', script_output('terraform -v'));
+    # Terraform in a container
+    my $terraform_wrapper = <<EOT;
+#!/bin/sh
+podman run -v /root/:/root/ --rm --env-host=true -w=\$PWD hashicorp/terraform:$terraform_version \$@
+EOT
+
+    create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
+    record_info('Terraform', script_output('terraform -version'));
 
     select_console 'root-console';
 }
