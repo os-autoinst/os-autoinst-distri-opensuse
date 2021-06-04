@@ -28,7 +28,6 @@ use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
 
 sub run {
-    my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = "docker";
 
@@ -36,16 +35,24 @@ sub run {
     allow_selected_insecure_registries(runtime => $runtime);
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    for my $iname (@{$image_names}) {
-        test_container_image(image => $iname, runtime => $runtime);
-        test_rpm_db_backend(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
-        if (check_os_release('suse', 'PRETTY_NAME')) {
-            test_opensuse_based_image(image => $iname, runtime => $runtime);
-            build_with_zypper_docker(image => $iname, runtime => $runtime);
-        }
-        else {
-            exec_on_container($iname, $runtime, 'cat /etc/os-release');
+    # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
+    my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
+
+    for my $version (split(/,/, $versions)) {
+        record_info "IMAGE", "We are testing image for $version now.";
+        my ($image_names, $stable_names) = get_suse_container_urls($version);
+
+        for my $iname (@{$image_names}) {
+            test_container_image(image => $iname, runtime => $runtime);
+            test_rpm_db_backend(image => $iname, runtime => $runtime);
+            build_container_image(image => $iname, runtime => $runtime);
+            if (check_os_release('suse', 'PRETTY_NAME')) {
+                test_opensuse_based_image(image => $iname, runtime => $runtime, version => $version);
+                build_with_zypper_docker(image => $iname, runtime => $runtime, version => $version);
+            }
+            else {
+                exec_on_container($iname, $runtime, 'cat /etc/os-release');
+            }
         }
     }
     scc_restore_docker_image_credentials();
