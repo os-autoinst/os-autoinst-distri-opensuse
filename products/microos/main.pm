@@ -9,6 +9,7 @@ BEGIN {
 }
 use utils;
 use Utils::Architectures qw(is_aarch64);
+use version_utils qw(is_staging);
 use main_common;
 
 init_main();
@@ -51,7 +52,7 @@ sub load_feature_tests {
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     load_transactional_role_tests;
-    loadtest 'microos/cockpit_service';
+    loadtest 'microos/cockpit_service' unless is_staging;
     loadtest 'microos/journal_check';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
