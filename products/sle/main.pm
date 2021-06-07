@@ -1048,21 +1048,6 @@ else {
             loadtest "network/openvpn_client";
         }
     }
-    elsif (get_var("QAM_SALT")) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'master')) {
-            barrier_create('SALT_MINIONS_READY', 2);
-            barrier_create('SALT_FINISHED',      2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'master')) {
-            loadtest "network/salt_master";
-        }
-        else {
-            loadtest "network/salt_minion";
-        }
-    }
     elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
