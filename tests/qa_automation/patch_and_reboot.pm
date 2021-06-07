@@ -30,6 +30,7 @@ use Utils::Backends 'use_ssh_serial_console';
 use power_action_utils qw(power_action);
 use version_utils qw(is_sle);
 use serial_terminal qw(add_serial_console);
+use version_utils qw(is_jeos);
 
 sub run {
     my $self = shift;
@@ -41,9 +42,17 @@ sub run {
 
     add_test_repositories;
 
-    fully_patch_system;
+    # JeOS is a bootable image and doesn't have installation where we can install
+    #   updates as for SLE DVD installation, so we need to update manually.
+    if (is_jeos) {
+        record_info('Updates', script_output('zypper lu'));
+        zypper_call('up', timeout => 300);
+    } else {
+        fully_patch_system;
+    }
 
-    assert_script_run('rpm -ql --changelog kernel-default >/tmp/kernel_changelog.log');
+    my $suffix = is_jeos ? '-base' : '';
+    assert_script_run("rpm -ql --changelog kernel-default$suffix > /tmp/kernel_changelog.log");
     upload_logs('/tmp/kernel_changelog.log');
 
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell

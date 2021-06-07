@@ -21,12 +21,17 @@ conditional_schedule:
         UEFI:
             '1':
                 - console/verify_efi_mok
+    maintenance:
+        FLAVOR:
+            'JeOS-for-kvm-and-xen-Updates':
+                - qa_automation/patch_and_reboot
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
     - jeos/record_machine_id
     - console/system_prepare
     - console/force_scheduled_tasks
+    - '{{maintenance}}'
     - jeos/grub2_gfxmode
     - jeos/diskusage
     - jeos/build_key
