@@ -169,6 +169,7 @@ sub validate_guest_installations_results {
         if ($guest_instances{$_}->{guest_installation_result} eq '') {
             record_info("Guest $guest_instances{$_}->{guest_name} still has no installation result at the end.Makr it as UNKNOWN.", "It will be treated as a kind of failure !");
             $guest_instances{$_}->{guest_installation_result} = 'UNKNOWN';
+            push(@guest_installations_done, $_);
             $guest_instances{$_}->collect_guest_installation_logs_via_ssh;
         }
         $_overall_test_result = "$guest_instances{$_}->{guest_installation_result},$_overall_test_result";
@@ -246,8 +247,24 @@ sub concurrent_guest_installations_run {
     $self->clean_up_guest_installations;
     $self->validate_guest_installations_results;
     $self->junit_log_provision((caller(0))[3]);
+    $self->save_guest_installations_assets;
     return $self;
 
+}
+
+#Call virt_autotest_base::upload_guest_assets to upload guest assets if it is successfully installed.
+sub save_guest_installations_assets {
+    my $self = shift;
+
+    $self->reveal_myself;
+    return $self if (!get_var('UPLOAD_GUEST_ASSETS'));
+    while (my ($_index, $_element) = each(@guest_installations_done)) {
+        delete $guest_installations_done[$_index] if ($guest_instances{$_element}->{guest_installation_result} ne 'PASSED');
+    }
+    @guest_installations_done = grep { defined $_ } @guest_installations_done;
+    $self->{success_guest_list} = \@guest_installations_done;
+    $self->virt_autotest_base::upload_guest_assets;
+    return $self;
 }
 
 sub post_fail_hook {
@@ -257,6 +274,7 @@ sub post_fail_hook {
     $self->check_root_ssh_console;
     $self->junit_log_provision((caller(0))[3]);
     $self->SUPER::post_fail_hook;
+    $self->save_guest_installations_assets;
     return $self;
 }
 

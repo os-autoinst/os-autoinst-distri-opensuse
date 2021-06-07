@@ -218,7 +218,7 @@
       <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
       <authorized_keys config:type="list">
-        <listentry>##Authorized-Keys</listentry>
+        <listentry>##Authorized-Keys##</listentry>
       </authorized_keys>
       <gid>0</gid>
       <home>/root</home>
