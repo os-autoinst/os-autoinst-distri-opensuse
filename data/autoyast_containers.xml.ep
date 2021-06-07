@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <reg_server>{{SCC_URL}}</reg_server>
+    <addons config:type="list">
+      <addon>
+        % if ($get_var->('VERSION') =~ /12-SP5|12-SP4|12-SP3/) {
+        <name>sle-module-containers</name>
+        <version>12</version>
+        % } else {
+        <name>sle-module-containers</name>
+        <version>{{VERSION}}</version>
+        % }
+        <arch>{{ARCH}}</arch>
+      </addon>
+      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3/) {
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      % }
+    </addons>
+  </suse_register>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <software>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <packages config:type="list">
+      <package>iputils</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+    </patterns>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>nots3cr3t</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <partitioning config:type="list">
+    <drive>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">false</format>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le')) {
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext2</filesystem>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <filesystem config:type="symbol">vfat</filesystem>
+          % }
+          % if ($check_var->('ARCH', 's390x')) {
+          <mount>/boot/zipl</mount>
+          <fstopt>acl,user_xattr</fstopt>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <mount>/boot/efi</mount>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          % }
+          % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <mount>/boot</mount>
+          % }
+          <mountby config:type="symbol">path</mountby>
+          % if ($check_var->('ARCH', 'ppc64le')) {
+          <partition_id config:type="integer">65</partition_id>
+          % }
+          % unless ($check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">131</partition_id>
+          % }
+          % if ($check_var->('UEFI', '1')) {
+          <partition_id config:type="integer">259</partition_id>
+          % }
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>500M</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>2G</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+</profile>
