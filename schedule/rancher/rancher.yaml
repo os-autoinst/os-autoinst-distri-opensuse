@@ -9,12 +9,12 @@ conditional_schedule:
         - console/zypper_add_repos
       '15.3':
         - console/zypper_add_repos
-runtime_test:
-  RUNTIME:
-    docker:
-      - rancher/docker_rancher
-    podman:
-      - rancher/podman_rancher
+  runtime_test:
+    RUNTIME:
+      docker:
+        - rancher/docker_rancher
+      podman:
+        - rancher/podman_rancher
 schedule:
   - boot/boot_to_desktop
   - '{{zypper_add_repos}}'
