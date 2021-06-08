@@ -54,31 +54,6 @@ sub armnn_tf_lite_test_run {
     assert_script_run("TfLiteMobilenetV2Quantized-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
 }
 
-sub armnn_tf_test_prepare {
-    assert_script_run('mkdir -p armnn/data');
-    # Copy data files from arm-ml-examples-data, used by TfMnist-Armnn
-    assert_script_run("cp /usr/share/armnn-mnist/data/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte");
-    assert_script_run("cp /usr/share/armnn-mnist/data/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte");
-
-    assert_script_run('mkdir -p armnn/models');
-    assert_script_run('pushd armnn/models');
-    # Copy model files from arm-ml-examples-data, used by TfMnist-Armnn
-    assert_script_run("cp /usr/share/armnn-mnist/model/* ./");
-    # inception_v3_2016_08_28_frozen.pb.tar.gz is big, so download it on demand
-    assert_script_run('wget https://storage.googleapis.com/download.tensorflow.org/models/inception_v3_2016_08_28_frozen.pb.tar.gz -O ~/data/ai_ml/models/inception_v3_2016_08_28_frozen.pb.tar.gz');
-    assert_script_run('tar xzf ~/data/ai_ml/models/inception_v3_2016_08_28_frozen.pb.tar.gz');
-    assert_script_run('popd');
-}
-
-sub armnn_tf_test_run {
-    my %opts = @_;
-    my $backend_opt;
-    $backend_opt = "-c $opts{backend}" if $opts{backend};    # Can be CpuRef, CpuAcc, GpuAcc, ...
-
-    assert_script_run("TfInceptionV3-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
-    assert_script_run("TfMnist-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
-}
-
 sub armnn_onnx_test_prepare {
     assert_script_run('mkdir -p armnn/data');
     # Copy data files from arm-ml-examples-data, used by OnnxMnist-Armnn
@@ -105,26 +80,6 @@ sub armnn_onnx_test_run {
     assert_script_run("OnnxMobileNet-Armnn --data-dir=armnn/data --model-dir=armnn/models -i 3 $backend_opt");
 }
 
-sub armnn_caffe_test_prepare {
-    assert_script_run('mkdir -p armnn/data');
-    # Copy data files from arm-ml-examples-data, used by TfMnist-Armnn
-    assert_script_run('cp /usr/share/armnn-mnist/data/t10k-labels-idx1-ubyte armnn/data/t10k-labels.idx1-ubyte');
-    assert_script_run('cp /usr/share/armnn-mnist/data/t10k-images-idx3-ubyte armnn/data/t10k-images.idx3-ubyte');
-
-    assert_script_run('mkdir -p armnn/models');
-    assert_script_run('pushd armnn/models');
-    assert_script_run('cp /usr/share/armnn-mnist/model/*.caffemodel ./');
-    assert_script_run('popd');
-}
-
-sub armnn_caffe_test_run {
-    my %opts = @_;
-    my $backend_opt;
-    $backend_opt = "-c $opts{backend}" if $opts{backend};    # Can be CpuRef, CpuAcc, GpuAcc, ...
-
-    assert_script_run("CaffeMnist-Armnn --data-dir=armnn/data --model-dir=armnn/models $backend_opt");
-}
-
 sub run {
     my ($self) = @_;
     my $armnn_backends = get_var("ARMNN_BACKENDS");          # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
@@ -148,13 +103,6 @@ sub run {
     armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
     cleanup_model_folder;
 
-    # Test TensorFlow backend
-    record_info('TensorFlow', "TensorFlow backend");
-    armnn_tf_test_prepare;
-    armnn_tf_test_run if !defined($armnn_backends);
-    armnn_tf_test_run(backend => $_) for split(/,/, $armnn_backends);
-    cleanup_model_folder;
-
     # Test ONNX backend
     if (is_tumbleweed) {
         # ArmNN does not support onnx 1.7.0 yet - https://github.com/ARM-software/armnn/issues/419
@@ -167,12 +115,6 @@ sub run {
         cleanup_model_folder;
     }
 
-    # Test Caffe backend
-    record_info('Caffe', "Caffe backend");
-    armnn_caffe_test_prepare;
-    armnn_caffe_test_run if !defined($armnn_backends);
-    armnn_caffe_test_run(backend => $_) for split(/,/, $armnn_backends);
-    cleanup_model_folder;
 }
 
 1;
