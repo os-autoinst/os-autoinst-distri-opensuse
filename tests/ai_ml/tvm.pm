@@ -22,7 +22,7 @@ sub run {
 
     $self->select_serial_terminal;
 
-    zypper_call 'in python3-tvm tvmc python3-onnx python3-Pillow python3-pytest python3-tornado gcc-c++';
+    zypper_call 'in python3-tvm tvmc python3-onnx python3-Pillow python3-pytest python3-tornado gcc-c++ tensorflow2';
 
     select_console 'user-console';
     record_info('AutoTVM');
