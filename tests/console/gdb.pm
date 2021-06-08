@@ -35,6 +35,12 @@ sub wait_serial_or_die {
     }
 }
 
+sub enter_gdb_cmd {
+    my $cmd = shift;
+    wait_serial_or_die("(gdb)");
+    enter_cmd($cmd);
+}
+
 sub run {
     my $self      = shift;
     my $test_deps = 'gcc glibc-devel gdb';
@@ -53,30 +59,30 @@ sub run {
     enter_cmd("gdb test1 | tee /dev/$serialdev");
     wait_serial_or_die("GNU gdb");
     #Needed because colour codes mess up the output on $serialdev
-    enter_cmd("set style enabled 0");
-    enter_cmd("break main");
-    enter_cmd("run");
+    enter_gdb_cmd("set style enabled 0");
+    enter_gdb_cmd("break main");
+    enter_gdb_cmd("run");
     wait_serial_or_die("Breakpoint 1, main");
-    enter_cmd("continue");
+    enter_gdb_cmd("continue");
     wait_serial_or_die("exited normally");
-    enter_cmd("quit");
+    enter_gdb_cmd("quit");
 
     #Test Case 2
     assert_script_run("curl -O " . data_url('gdb/test2.c'));
     assert_script_run("gcc -g -std=c99  test2.c -o test2");
     enter_cmd("gdb test2 | tee /dev/$serialdev");
     wait_serial_or_die(qr/GNU gdb/);
-    enter_cmd("set style enabled 0");
-    enter_cmd("run");
+    enter_gdb_cmd("set style enabled 0");
+    enter_gdb_cmd("run");
     wait_serial_or_die("Program received signal SIGSEGV");
-    enter_cmd("backtrace");
+    enter_gdb_cmd("backtrace");
     wait_serial_or_die(s.in main () at test2.c:16.);
-    enter_cmd("info locals");
-    enter_cmd("up");
+    enter_gdb_cmd("info locals");
+    enter_gdb_cmd("up");
     wait_serial_or_die(s.1 0x000000000040117b in main () at test2.c:16\n16 char * newstr = str_dup(cstr, 5);.);
-    enter_cmd("info locals");
+    enter_gdb_cmd("info locals");
     wait_serial_or_die("<error: Cannot access memory at ");
-    enter_cmd("quit");
+    enter_gdb_cmd("quit");
     wait_serial_or_die("Inferior");
     enter_cmd("y");
 
@@ -87,12 +93,12 @@ sub run {
     assert_script_run("pidof test3");    #Make sure the process was launched.
     enter_cmd("gdb -p \$(pidof test3) | tee /dev/$serialdev");
     wait_serial_or_die("Attaching to process", 10);
-    enter_cmd("set style enabled 0");
-    enter_cmd("break test3.c:9");
+    enter_gdb_cmd("set style enabled 0");
+    enter_gdb_cmd("break test3.c:9");
     wait_serial_or_die("Breakpoint 1 at");
-    enter_cmd("continue");
+    enter_gdb_cmd("continue");
     wait_serial_or_die(s.Breakpoint 1, main () at test3.c:9.);
-    enter_cmd("quit");
+    enter_gdb_cmd("quit");
     wait_serial("Quit anyway?");
     enter_cmd("y");
     enter_cmd("y");                      #Workaround to handle sshserial behavior
