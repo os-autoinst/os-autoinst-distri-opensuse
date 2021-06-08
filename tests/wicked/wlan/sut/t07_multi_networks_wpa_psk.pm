@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Test WiFi setup with wicked (WPA-PSK with DHCP)
+#          the configuration contains multiple network configurations.
 # - WiFi Access point:
 #   - Use virtual wlan devices
 #   - AP with hostapd is running in network namespace
@@ -48,25 +49,25 @@ has ifcfg_wlan => sub { [
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
-        WIRELESS_MODE='Managed'
+        WIRELESS_AUTH_MODE='psk'
+        WIRELESS_ESSID='NO_NOT_FIND_ME'
+        WIRELESS_WPA_PSK='SOMETHING!!'
+
+        WIRELESS_AUTH_MODE_1='psk'
+        WIRELESS_ESSID_1='{{ssid}}'
+        WIRELESS_WPA_PSK_1='{{psk}}'
+    ),
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
+
         WIRELESS_AUTH_MODE='psk'
         WIRELESS_ESSID='{{ssid}}'
         WIRELESS_WPA_PSK='{{psk}}'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
 
-        WIRELESS_AUTH_MODE='psk'
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
-
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
+        WIRELESS_AUTH_MODE_2='psk'
+        WIRELESS_ESSID_2='NO_NOT_FIND_ME'
+        WIRELESS_WPA_PSK_2='SOMETHING!!'
     ),
         q(
         BOOTPROTO='dhcp'
@@ -74,24 +75,11 @@ has ifcfg_wlan => sub { [
 
         WIRELESS_ESSID='{{ssid}}'
         WIRELESS_WPA_PSK='{{psk}}'
-        WIRELESS_CIPHER_PAIRWISE='CCMP'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
 
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-        WIRELESS_CIPHER_PAIRWISE='TKIP'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
-
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-        WIRELESS_CIPHER_PAIRWISE='TKIP CCMP'
+        WIRELESS_ESSID_2='NO_NOT_FIND_ME'
+        WIRELESS_WPA_PSK_2='SOMETHING!!'
     )
 ] };
+
 
 1;

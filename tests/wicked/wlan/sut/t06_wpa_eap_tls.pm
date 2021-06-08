@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test WiFi setup with wicked (WPA-EAP/PEAP/MSCHAPv2 with DHCP)
+# Summary: Test WiFi setup with wicked (WPA-EAP/TTLS/PAP with DHCP)
 # - WiFi Access point:
 #   - Use virtual wlan devices
 #   - AP with hostapd is running in network namespace
@@ -56,47 +56,37 @@ has hostapd_conf => q(
 );
 
 has ifcfg_wlan => sub { [
-        q(
+    q(
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
         # Global settings
         WIRELESS_AP_SCANMODE='1'
         WIRELESS_WPA_DRIVER='nl80211'
-
-        # Network settings
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_AUTH_MODE='eap'
-        WIRELESS_EAP_AUTH='mschapv2'
-        WIRELESS_EAP_MODE='PEAP'
         WIRELESS_MODE='Managed'
-        WIRELESS_WPA_ANONID='anonymous'
-        WIRELESS_WPA_IDENTITY='{{eap_user}}'
-        WIRELESS_WPA_PASSWORD='{{eap_password}}'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
 
         # Network settings
         WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_AUTH_MODE='eap'
-        WIRELESS_EAP_AUTH='mschapv2'
-        WIRELESS_EAP_MODE='PEAP'
+        WIRELESS_WPA_PROTO='RSN'
+        WIRELESS_AUTH_MODE='EAP'
+        WIRELESS_EAP_MODE='TLS'
         WIRELESS_WPA_IDENTITY='{{eap_user}}'
-        WIRELESS_WPA_PASSWORD='{{eap_password}}'
         WIRELESS_CA_CERT='{{ca_cert}}'
+        WIRELESS_CLIENT_CERT='{{client_cert}}'
+        WIRELESS_CLIENT_KEY='{{client_key}}'
+        WIRELESS_CLIENT_KEY_PASSWORD='{{client_key_password}}'
     ),
-      q(
+    q(
         BOOTPROTO='dhcp'
         STARTMODE='auto'
 
         # Network settings
         WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_EAP_MODE='PEAP'
-        WIRELESS_EAP_AUTH='mschapv2'
+        WIRELESS_EAP_MODE='TLS'
         WIRELESS_WPA_IDENTITY='{{eap_user}}'
-        WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        WIRELESS_CA_CERT='{{ca_cert}}'
+        WIRELESS_CLIENT_CERT='{{client_cert}}'
+        WIRELESS_CLIENT_KEY='{{client_key_no_pass}}'
     )
 ] };
 
