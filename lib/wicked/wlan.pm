@@ -138,6 +138,7 @@ sub before_test {
     $self->prepare_packages();
     $self->prepare_phys();
     $self->prepare_freeradius_server();
+    $self->adopt_apparmor();
 }
 
 sub prepare_packages {
@@ -181,6 +182,14 @@ sub prepare_freeradius_server {
     assert_script_run('time (cd /etc/raddb/certs && ./bootstrap)', timeout => 600);
     assert_script_run(sprintf(q(openssl rsa -in '%s' -out '%s' -passin pass:'%s'),
             $self->client_key, $self->client_key_no_pass, $self->client_key_password));
+}
+
+sub adopt_apparmor {
+    if (script_output('systemctl is-active apparmor', proceed_on_failure => 1) eq 'active') {
+        enter_cmd(q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/tmp\/** rw,\n}/' /etc/apparmor.d/usr.sbin.hostapd));
+        enter_cmd(q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/etc\/raddb\/certs\/** r,\n}/' /etc/apparmor.d/usr.sbin.hostapd));
+        assert_script_run('systemctl reload apparmor');
+    }
 }
 
 sub get_hw_address {
