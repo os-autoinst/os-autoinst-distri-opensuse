@@ -302,6 +302,10 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp2',
             ip   => 'd192.qam.suse.de',
         },
+        sles15sp3 => {
+            name => 'sles15sp3',
+            ip   => 'd215.qam.suse.de',
+        },
     );
 
     delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
@@ -313,6 +317,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15})       if (!is_sle('=15'));
     delete($guests{sles15sp1})    if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
+    delete($guests{sles15sp3})    if (!is_sle('=15-SP3'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
         sles11sp4x32 => {
@@ -351,6 +356,10 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp2',
             ip   => 'd196.qam.suse.de',
         },
+        sles15sp3 => {
+            name => 'sles15sp3',
+            ip   => 'd461.qam.suse.de',
+        },
     );
 
     delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
@@ -362,6 +371,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15})       if (!is_sle('=15'));
     delete($guests{sles15sp1})    if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
+    delete($guests{sles15sp3})    if (!is_sle('=15-SP3'));
 } else {
     %guests = ();
 }
