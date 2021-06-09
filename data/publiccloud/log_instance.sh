@@ -18,7 +18,7 @@ ec2_start_log()
     aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_start.log"
     set -e
     nohup ssh $SSH_OPTS "ec2-user@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
-    echo "$!" >> "${OUTPUT_DIR}/pid"
+    echo $! > "$PID_FILE"
 }
 
 ec2_stop_log()
@@ -27,12 +27,10 @@ ec2_stop_log()
     set +e
     aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_stop.log"
     set -e
-    local pids=$( test -f "$PID_FILE" && cat "$PID_FILE")
-    rm "$PID_FILE"
-
-    for pid in $pids; do
-        kill -9 "$pid"
-    done
+    if [ -f "$PID_FILE" ]; then
+      kill -9 $(cat "$PID_FILE")
+      rm "$PID_FILE"
+    fi
 }
 
 
@@ -81,7 +79,7 @@ gce_start_log()
 {
     gce_is_running && exit 2;
     ( while true; do gce_read_serial; sleep 30; done; ) &
-    echo $! >> "$PID_FILE"
+    echo $! > "$PID_FILE"
 }
 
 gce_stop_log()
@@ -102,7 +100,7 @@ azure_start_log()
     az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_start.txt" 2>&1
     set -e
     nohup ssh $SSH_OPTS "azureuser@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
-    echo "$!" >> "$PID_FILE"
+    echo $! > "$PID_FILE"
 
     true;
 }
@@ -115,12 +113,10 @@ azure_stop_log()
     sleep 30
     az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_stop.txt" 2>&1
     set -e
-    local pids=$(test -f "$PID_FILE" && cat "$PID_FILE")
-    rm "$PID_FILE"
-
-    for pid in $pids; do
-        kill -9 "$pid"
-    done
+    if [ -f "$PID_FILE" ]; then
+      kill -9 $(cat "$PID_FILE")
+      rm "$PID_FILE"
+    fi
 }
 
 read_unique_counter()
@@ -171,4 +167,3 @@ case $PROVIDER in
         exit 2;
         ;;
 esac
-
