@@ -44,6 +44,9 @@ sub run {
     # poo#68200. Confirm the ~/.ssh directory is exist in advance, in order to avoid the null backup
     assert_script_run 'if [ -d ~/.ssh ]; then mv ~/.ssh ~/.ssh_bck; fi';
 
+    # prepare /etc/ssh configuration for openssh with default config in /usr/etc
+    script_run 'test -f /usr/etc/ssh/sshd_config -a ! -f /etc/ssh/sshd_config && cp /usr/etc/ssh/sshd_config /etc/ssh/sshd_config';
+
     # Backup the /etc/ssh/sshd_config
     assert_script_run 'cp /etc/ssh/sshd_config{,_before}';
 
