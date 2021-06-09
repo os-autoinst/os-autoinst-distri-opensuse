@@ -15,4 +15,4 @@ vars:
   INSTALLTEST: '1'
 schedule:
   - boot/boot_to_desktop
-  - qam-updinstall/update_install_mr
+  - qam-updinstall/update_install_start
