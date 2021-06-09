@@ -27,7 +27,18 @@ use containers::utils qw(can_build_sle_base registry_url);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
   clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
-  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend);
+  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
+
+sub activate_containers_module {
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    my $suseconnect = script_output('SUSEConnect --status-text', timeout => 240);
+    if ($suseconnect !~ m/Containers/) {
+        $running_version eq '12' ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
+        $suseconnect = script_output('SUSEConnect --status-text', timeout => 240);
+    }
+    record_info('SUSEConnect', $suseconnect);
+}
+
 
 sub install_podman_when_needed {
     my $host_os = shift;
@@ -44,7 +55,7 @@ sub install_podman_when_needed {
             assert_script_run "apt-get -y install podman", timeout => 220;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-            add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
+            activate_containers_module;
             push(@pkgs, 'podman-cni-config') if is_jeos();
             push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
@@ -75,9 +86,7 @@ sub install_docker_when_needed {
                 assert_script_run "apt-get -y install docker-ce", timeout => 260;
             } else {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                if (can_build_sle_base && script_run("SUSEConnect --status-text | grep Containers", timeout => 240) != 0) {
-                    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-                }
+                activate_containers_module if (can_build_sle_base);
 
                 # docker package can be installed
                 zypper_call('in docker', timeout => 900);
@@ -99,7 +108,7 @@ sub install_buildah_when_needed {
     my @pkgs    = qw(buildah);
     if (script_run("which buildah") != 0) {
         # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-        add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
+        activate_containers_module;
         zypper_call "in @pkgs";
         record_info('buildah', script_output('buildah info'));
     }
