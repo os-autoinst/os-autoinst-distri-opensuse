@@ -29,6 +29,10 @@ sub run {
     my $gpiochipX = 'gpiochip0';
     if (script_run('gpioinfo | grep gpiochip0') == 0) {
         $gpiochipX = 'gpiochip1';
+        # Some boards (RPi3/4) have 2 gpiochips already
+        if (script_run('gpioinfo | grep gpiochip1') == 0) {
+            $gpiochipX = 'gpiochip2';
+        }
     }
 
     record_info('gpiochip', "$gpiochipX");
