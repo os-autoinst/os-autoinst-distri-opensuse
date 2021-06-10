@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Summary: Verify that "resume=" kernel parameter is absent in the list of default parameters on Sle15-SP2
 
-# Maintainer: Jonathan Rivrain <jrivrain@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base "consoletest";
 use strict;

@@ -13,7 +13,7 @@ This module provides common subroutines for YaST2 modules in graphical and text 
 # without any warranty.
 
 # Summary: This module provides common subroutines for YaST2 modules in graphical and text mode
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package y2_module_basetest;
 
