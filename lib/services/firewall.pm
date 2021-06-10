@@ -29,19 +29,6 @@ sub install_service {
     zypper_call('in ' . $pkg);
 }
 
-sub susefirewall2_to_firewalld {
-    my $timeout = 360;
-    $timeout = 1200 if check_var('ARCH', 'aarch64');
-    assert_script_run('susefirewall2-to-firewalld -c',                                     timeout => $timeout);
-    assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
-    # On some platforms such as Aarch64, the 'firewalld restart'
-    # can't finish in the default timeout.
-
-    systemctl 'restart firewalld', timeout => $timeout;
-    script_run('iptables -S', timeout => $timeout);
-    set_var('SUSEFIREWALL2_SERVICE_CHECK', 1);
-}
-
 sub enable_service {
     common_service_action $service, $service_type, 'enable';
 }
