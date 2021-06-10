@@ -11,7 +11,7 @@ vars:
 schedule:
   - '{{bootloader_zkvm}}'
   - boot/boot_to_desktop
-  - qam-updinstall/update_install_mr
+  - qam-updinstall/update_install_start
 conditional_schedule:
   bootloader_zkvm:
     BACKEND:
