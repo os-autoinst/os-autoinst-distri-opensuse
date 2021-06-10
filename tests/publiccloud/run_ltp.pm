@@ -21,6 +21,7 @@ use repo_tools 'generate_version';
 use Mojo::UserAgent;
 use LTP::utils "get_ltproot";
 use publiccloud::utils qw(is_byos select_host_console);
+use Mojo::JSON;
 
 our $root_dir = '/root';
 
@@ -55,7 +56,8 @@ sub run {
 
     select_host_console();
 
-    if (get_var('PUBLIC_CLOUD_QAM')) {
+    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
+    if ($qam) {
         $instance = $self->{my_instance} = $args->{my_instance};
         $provider = $self->{provider}    = $args->{my_provider};    # required for cleanup
     } else {
@@ -70,7 +72,8 @@ sub run {
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
 
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE, timeout => 600) if is_byos();
+    # Note: QAM test runs will always be registered at this point, as this is required for the updates to be installed
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $REG_CODE, timeout => 600) if (is_byos() && !$qam);
 
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
@@ -113,7 +116,6 @@ sub run {
     assert_script_run($cmd, timeout => get_var('LTP_TIMEOUT', 30 * 60));
 }
 
-
 sub cleanup {
     my ($self) = @_;
 
@@ -121,6 +123,19 @@ sub cleanup {
     type_string('', terminate_with => 'ETX');
 
     upload_logs('ltp_log.raw', failok => 1);
+
+    ## Apply LTP known issues
+    my $LTP_KNOWN_ISSUES = get_var('LTP_KNOWN_ISSUES', "");
+    if ($LTP_KNOWN_ISSUES ne "") {
+        my $command_file = get_required_var('COMMAND_FILE');
+        # Usage: ./apply_ltp_known_issues.py RESULTS KNOWNISSUES TESTSUITE ENVIRONMENT
+        # This helper script applies the knownissues json file to the results file
+        assert_script_run('curl -v -o apply_ltp_known_issues.py ' . data_url('publiccloud/apply_ltp_known_issues.py'));
+        assert_script_run('chmod 0755 apply_ltp_known_issues.py');
+        gen_ltp_env("env.json");
+        assert_script_run("apply_ltp_known_issues '$root_dir/ltp_log.json' '$LTP_KNOWN_ISSUES' '$command_file' env.json > '$root_dir/ltp_log.json'");
+    }
+
     parse_extra_log(LTP => "$root_dir/ltp_log.json") if (script_run("test -f $root_dir/ltp_log.json") == 0);
 
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
@@ -128,6 +143,27 @@ sub cleanup {
         assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
+}
+
+sub gen_ltp_env {
+    my $file        = shift // "env.json";
+    my $environment = {
+        product     => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
+        revision    => get_required_var('BUILD'),
+        flavor      => get_required_var('FLAVOR'),
+        arch        => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
+        backend     => get_required_var('BACKEND'),
+        kernel      => '',
+        libc        => '',
+        gcc         => '',
+        harness     => 'SUSE OpenQA',
+        ltp_version => ''
+    };
+
+    # Write environment into defined file
+    my $json = Mojo::JSON::encode_json($environment);
+    assert_script_run("echo '$json' > $file");
+    return $environment;
 }
 
 1;
