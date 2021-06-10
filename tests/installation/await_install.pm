@@ -49,6 +49,7 @@ use testapi;
 use lockapi;
 use mmapi;
 use utils;
+use Utils::Architectures 'is_arm';
 use version_utils qw(:VERSION :BACKEND);
 use ipmi_backend_utils;
 
@@ -154,7 +155,14 @@ sub run {
             die 'Installation cant continue. Check medium or hardware.';
         }
         if (match_has_tag('yast_error')) {
-            die 'YaST error detected. Test is terminated.';
+            if (match_has_tag('yast_error_mkinitrd_armv7') && is_arm) {
+                record_soft_failure 'boo#1171180 - mkinitrd broken on armv7';
+                send_key 'alt-o';    # ok
+                next;
+            }
+            else {
+                die 'YaST error detected. Test is terminated.';
+            }
         }
 
         if (match_has_tag('yast2_wrong_digest')) {
