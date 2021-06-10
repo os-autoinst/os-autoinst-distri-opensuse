@@ -47,6 +47,7 @@ sub run_test {
 sub check_guest_bootloader {
     my ($self, $guest_name) = @_;
 
+    record_info("Basic bootloader checking on $guest_name", "efibootmgr -v and mokutil --sb-state should return successfully");
     my $ssh_command_prefix = "ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     script_retry("$ssh_command_prefix root\@$guest_name efibootmgr -v");
     script_retry("$ssh_command_prefix root\@$guest_name mokutil --sb-state");
@@ -56,6 +57,7 @@ sub check_guest_bootloader {
 sub check_guest_bootcurrent {
     my ($self, $guest_name) = @_;
 
+    record_info("Booted os checking on $guest_name", "Booted os should be sles if $guest_name is installed as such judging by /etc/issue");
     my $ssh_command_prefix = "ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     my $current_boot_entry = script_output("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i BootCurrent | grep -oE [[:digit:]]+");
     assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i \"BootOrder: $current_boot_entry\"");
@@ -66,6 +68,7 @@ sub check_guest_bootcurrent {
 sub check_guest_uefi_boot {
     my ($self, $guest_name) = @_;
 
+    record_info("UEFI boot entries checking on $guest_name", "The latest UEFI should support PXEv6 and HTTPv6 boots if $guest_name is also configured correctly");
     my $ssh_command_prefix = "timeout 30 ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -iE \"uefi.*pxev6\"");
     assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -iE \"uefi.*HTTPv6\"");
@@ -75,6 +78,7 @@ sub check_guest_uefi_boot {
 sub check_guest_secure_boot {
     my ($self, $guest_name) = @_;
 
+    record_info("UEFI SecureBoot checking on $guest_name", "SecureBoot should be enabled if $guest_name is also configured correctly");
     my $ssh_command_prefix = "timeout 30 ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     assert_script_run("$ssh_command_prefix root\@$guest_name mokutil --sb-state | grep -iE \"secureboot.*enabled\"");
     return $self;
@@ -100,6 +104,7 @@ sub do_guest_pmsuspend {
     $suspend_target   //= 'mem';
     $suspend_duration //= 0;
 
+    record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports suspend to disk and hybrid modes");
     my $guest_state_after_suspend = 'pmsuspended';
     $guest_state_after_suspend = 'shut off' if ($suspend_target eq 'disk');
     assert_script_run("virsh dompmsuspend --domain $suspend_domain --target $suspend_target");
