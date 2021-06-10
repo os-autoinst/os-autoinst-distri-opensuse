@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
 #
 # Package: SUSEConnect
 # Summary: Verify milestone version and display some info.
-# Check repos info
-# Maintainer: Alynx Zhou <alynx.zhou@suse.com>
+# Check product info before and after migration
+# Maintainer: Yutao Wang <yuwang@suse.com>
 
 use base "consoletest";
 use strict;
@@ -44,11 +44,26 @@ sub check_addons {
     foreach my $addon (@unique_addons) {
         my $name = get_addon_fullname($addon);
         record_info("$addon module fullname: ", $name);
-        $name = "sle-product-we"      if (($name =~ /sle-we/)      && !get_var("MEDIA_UPGRADE"));
+        $name = "sle-product-we"      if (($name =~ /sle-we/) && !get_var("MEDIA_UPGRADE") && is_sle('15+'));
         $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
         my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
     }
+}
+
+sub check_product {
+    my ($mypro) = @_;
+    $mypro //= uc get_var('SLE_PRODUCT', '');
+    my $myver   = get_var('VERSION');
+    my $product = '';
+    if ($mypro =~ /HPC/) {
+        $product = 'SLE-Product-HPC-' . $myver;
+    }
+    if ($mypro ne '') {
+        $product = $mypro . $myver;
+    }
+    my $out = script_output("zypper lr | grep -i $product", 200, proceed_on_failure => 1);
+    die "zypper lr command output does not include $product" if ($out eq '');
 }
 
 sub check_buildid {
@@ -71,6 +86,7 @@ sub run {
         my $addons = get_var('SCC_ADDONS', "");
         $addons =~ s/ltss,?//g;
         check_addons($addons);
+        check_product;
     }
 
     # Check the expected information after migration
@@ -88,6 +104,7 @@ sub run {
         # For hpc, system doesn't include legacy module
         $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
         check_addons($myaddons);
+        check_product;
         check_buildid;
     }
 }
