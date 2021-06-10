@@ -414,7 +414,6 @@ Host *
     UserKnownHostsFile /dev/null
     StrictHostKeyChecking no
     User root
-    PreferredAuthentications publickey
 EOF
 ");
     }
