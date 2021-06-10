@@ -7,27 +7,20 @@ conditional_schedule:
     ARCH:
       's390x':
         - installation/bootloader_start
-  validate_btrfs:
-    ARCH:
-      x86_64:
-        - containers/validate_btrfs
   podman_buildah:
     HOST_VERSION:
       15-SP3:
         - containers/podman_image
         - containers/buildah_docker
         - containers/buildah_podman
-        - containers/rootless_podman
       15-SP2:
         - containers/podman_image
         - containers/buildah_docker
         - containers/buildah_podman
-        - containers/rootless_podman
       15-SP1:
         - containers/podman_image
         - containers/buildah_docker
         - containers/buildah_podman
-        - containers/rootless_podman
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
@@ -35,4 +28,3 @@ schedule:
   - containers/docker_image
   - '{{podman_buildah}}'
   - containers/container_diff
-  - '{{validate_btrfs}}'
