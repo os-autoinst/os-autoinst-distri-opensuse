@@ -30,7 +30,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my ($image_names, $stable_names) = get_suse_container_urls();
+    my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = "podman";
 
@@ -52,7 +52,7 @@ sub run {
 
     # smoke test
     assert_script_run "$runtime images -a";
-    for my $iname (@{$image_names}) {
+    for my $iname (@{$released_images}) {
         test_container_image(image => $iname, runtime => $runtime);
         build_container_image(image => $iname, runtime => $runtime);
         test_zypper_on_container($runtime, $iname);

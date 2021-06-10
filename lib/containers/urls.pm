@@ -57,52 +57,52 @@ sub get_suse_container_urls {
     my $dotversion = $version =~ s/-SP/./r;                    # 15 -> 15, 15-SP1 -> 15.1
     $dotversion = "${dotversion}.0" if $dotversion !~ /\./;    # 15 -> 15.0
 
-    my @image_names  = ();
-    my @stable_names = ();
+    my @untested_images = ();
+    my @released_images = ();
     if (is_sle(">=12-sp3", $version) && is_sle('<15', $version)) {
         my $lowerversion  = lc $version;
         my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
         if (!check_var('ARCH', 'aarch64')) {
-            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
-            push @stable_names, "registry.suse.com/suse/sles${nodashversion}";
+            push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
+            push @released_images, "registry.suse.com/suse/sles${nodashversion}";
         }
     }
     elsif (is_sle(">=15", $version) && is_released) {
         my $lowerversion = lc $version;
         # Location for maintenance builds
-        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
-        push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
-    elsif (is_sle(">=15-sp3", $version)) {
+    elsif (is_sle(">=15-sp4", $version)) {
         my $lowerversion = lc $version;
         # Location for GA builds
-        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/ga/test/images/suse/sle15:${dotversion}";
-        push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/ga/test/images/suse/sle15:${dotversion}";
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_sle_micro) {
-        push @image_names,
+        push @untested_images,
           "registry.suse.com/suse/sle15:15.0",
           "registry.suse.com/suse/sle15:15.1",
           "registry.suse.com/suse/sle15:15.2",
           "registry.suse.com/suse/sle15:15.3";
     }
     elsif (is_tumbleweed || is_microos("Tumbleweed")) {
-        push @image_names,  "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
-        push @stable_names, "registry.opensuse.org/opensuse/tumbleweed";
+        push @untested_images, "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
+        push @released_images, "registry.opensuse.org/opensuse/tumbleweed";
     }
     elsif (is_leap(">=15.3")) {
         # All archs in the same location
-        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif ((is_leap(">15.0") || is_microos(">15.0")) && check_var('ARCH', 'x86_64')) {
-        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif ((is_leap(">15.0") || is_microos(">15.0")) && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'arm'))) {
-        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif (is_leap(">15.0") && check_var('ARCH', 'ppc64le')) {
         # No image set up yet :-(
@@ -114,5 +114,5 @@ sub get_suse_container_urls {
         die("Unknown combination of distro/arch.");
     }
 
-    return (\@image_names, \@stable_names);
+    return (\@untested_images, \@released_images);
 }
