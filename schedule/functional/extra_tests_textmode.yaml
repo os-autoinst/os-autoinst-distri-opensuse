@@ -83,6 +83,7 @@ conditional_schedule:
             'Tumbleweed':
                 - console/parsec
                 - console/systemd_rpm_macros
+                - console/vsftpd
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
