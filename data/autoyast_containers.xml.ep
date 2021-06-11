@@ -47,6 +47,14 @@
     <packages config:type="list">
       <package>iputils</package>
       <package>acl</package>
+      <package>docker</package>
+      % if ($get_var->('VERSION') =~ /15-SP1|15-SP2|15-SP3/) {
+      <package>runc</package>
+      <package>docker-runc</package>
+      <package>zypper-docker</package>
+      <package>podman</package>
+      <package>podman-cni-config</package>
+      % }
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
@@ -65,6 +73,48 @@
       <username>root</username>
     </user>
   </users>
+  % unless ($check_var->('ARCH', 's390x')) {
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>gpt</disklabel>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        % if ($check_var->('ARCH', 'aarch64')) {
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <mount>/boot/efi</mount>
+        </partition>
+        % }
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <mount>swap</mount>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <mount>/</mount>
+        </partition>
+      </partitions>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  % }
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
   <report>
     <errors>
       <log config:type="boolean">true</log>
@@ -87,74 +137,4 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
-  <partitioning config:type="list">
-    <drive>
-      <disklabel>gpt</disklabel>
-      <enable_snapshots config:type="boolean">true</enable_snapshots>
-      <initialize config:type="boolean">true</initialize>
-      <partitions config:type="list">
-        <partition>
-          <create config:type="boolean">true</create>
-          % if ($check_var->('ARCH', 'ppc64le')) {
-          <format config:type="boolean">false</format>
-          % }
-          % unless ($check_var->('ARCH', 'ppc64le')) {
-          <format config:type="boolean">true</format>
-          <filesystem config:type="symbol">ext2</filesystem>
-          % }
-          % if ($check_var->('UEFI', '1')) {
-          <filesystem config:type="symbol">vfat</filesystem>
-          % }
-          % if ($check_var->('ARCH', 's390x')) {
-          <mount>/boot/zipl</mount>
-          <fstopt>acl,user_xattr</fstopt>
-          % }
-          % if ($check_var->('UEFI', '1')) {
-          <mount>/boot/efi</mount>
-          <fstopt>umask=0002,utf8=true</fstopt>
-          % }
-          % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
-          <mount>/boot</mount>
-          % }
-          <mountby config:type="symbol">path</mountby>
-          % if ($check_var->('ARCH', 'ppc64le')) {
-          <partition_id config:type="integer">65</partition_id>
-          % }
-          % unless ($check_var->('ARCH', 'ppc64le') or $check_var->('UEFI', '1')) {
-          <partition_id config:type="integer">131</partition_id>
-          % }
-          % if ($check_var->('UEFI', '1')) {
-          <partition_id config:type="integer">259</partition_id>
-          % }
-          <partition_nr config:type="integer">1</partition_nr>
-          <partition_type>primary</partition_type>
-          <size>500M</size>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
-          <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <partition_type>primary</partition_type>
-          <size>2G</size>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <format config:type="boolean">true</format>
-          <mount>/</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">3</partition_nr>
-          <partition_type>primary</partition_type>
-          <size>max</size>
-        </partition>
-      </partitions>
-      <pesize/>
-      <type config:type="symbol">CT_DISK</type>
-      <use>all</use>
-    </drive>
-  </partitioning>
 </profile>
