@@ -343,7 +343,7 @@ sub clean_up_all_guests {
     my $self = shift;
 
     $self->reveal_myself;
-    my @_guests_to_clean_up = split(/\n/, script_output("virsh list --all --name", proceed_on_failure => 1));
+    my @_guests_to_clean_up = split(/\n/, script_output("virsh list --all --name | grep -v Domain-0", proceed_on_failure => 1));
     if (scalar(@_guests_to_clean_up) gt 0) {
         diag("Going to clean up all guests on $self->{host_name}");
         foreach (@_guests_to_clean_up) {
