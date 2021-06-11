@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use testapi;
 use registration;
-use utils qw(zypper_call systemctl file_content_replace);
+use utils qw(zypper_call systemctl file_content_replace script_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
@@ -231,7 +231,8 @@ sub test_container_image {
     } else {
         # Pull the image if necessary
         if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
-            assert_script_run("$runtime pull $image", timeout => 300);
+            # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+            script_retry("$runtime pull $image", retry => 3, timeout => 420);
             assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
         }
         assert_script_run("$runtime container create --name testing $image $smoketest");
