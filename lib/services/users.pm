@@ -99,7 +99,7 @@ sub add_user {
     send_key "alt-f4";
 }
 
-#swtich to new added user then switch back
+# swtich to new added user then switch back
 sub switch_users {
     switch_user;
     wait_still_screen 5;
@@ -107,20 +107,20 @@ sub switch_users {
     assert_and_click 'displaymanager-test';
     assert_screen "testUser-login-dm";
     type_password "$pwd4newUser\n";
-    # Handle welcome screen, when needed
+    # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     assert_screen "generic-desktop", 120;
     switch_user;
     send_key "esc";
     assert_and_click "displaymanager-$username";
     assert_screen "originUser-login-dm";
-    #For poo#88247, we have to restore current user's password before migration,
-    #so here need to use the original password.
+    # for poo#88247, we have to restore current user's password before migration,
+    # so here need to use the original password.
     type_password(get_required_var('FLAVOR') =~ /Migration/ ? "$password\n" : "$newpwd\n");
     assert_screen "generic-desktop", 120;
 }
 
-#restore password to original value
+# restore password to original value
 sub restore_passwd {
     x11_start_program('gnome-terminal');
     enter_cmd "su";
@@ -141,7 +141,7 @@ sub full_users_check {
     my (%hash) = @_;
     my $stage = $hash{stage};
 
-    # Since the users test is only supported on gnome, will quit the test if not on gnome.
+    # since the users test is only supported on gnome, will quit the test if not on gnome.
     my $desktop = get_var('DESKTOP');
     if (!check_var("DESKTOP", "gnome")) {
         record_info('Unsupported on non-gnome', "This test is only supported on gnome, quit for your DESKTOP is $desktop", result => 'fail');
@@ -156,23 +156,30 @@ sub full_users_check {
     ensure_unlocked_desktop;
     assert_screen "generic-desktop";
     if ($stage eq 'before') {
-        #change pwd for current user and add new user for switch scenario
+        # change pwd for current user and add new user for switch scenario
         x11test::unlock_user_settings;
         change_pwd;
         add_user;
-        #verify changed password work well in the following scenario:
-        lock_screen;
+        # verify changed password work well in the following scenario:
+        # workaround the lock screen will cause vnc lost connection issue on
+        # SLE15+ on s390x for bsc#1182958.
+        if ((check_var('ARCH', 's390x')) && is_sle('15+')) {
+            record_soft_failure("bsc#1182958, openQA test fails in install_service - gdm crashed after lock screen on s390x");
+        }
+        else {
+            lock_screen;
+        }
         turn_off_gnome_screensaver;
         logout_and_login;
-        #For poo#88247, it is hard to deal with the authorization of bernhard in
-        #following migration process, we have to restore current user's password.
+        # for poo#88247, it is hard to deal with the authorization of bernhard in
+        # following migration process, we have to restore current user's password.
         record_soft_failure("poo#88247, it is hard to deal with the authorization of bernhard in following migration process, we have to restore current users password");
         restore_passwd;
     }
     else {
-        #switch to new added user then switch back
-        #It's not supported to switch user on s390x VM with vnc connection,
-        #so we have to change this test to logout and login new user.
+        # switch to new added user then switch back
+        # it's not supported to switch user on s390x VM with vnc connection,
+        # so we have to change this test to logout and login new user.
         if (check_var('ARCH', 's390x')) {
             logout_and_login($newUser, $pwd4newUser);
         }
