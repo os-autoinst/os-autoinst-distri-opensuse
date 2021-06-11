@@ -1,14 +1,10 @@
 ---
-name: xfs
 description: >
-  Installation with default parameters, except XFS being selected as filesystem
-  for the root partition. Installation is validated by successful boot and that
-  YaST does not report any issue.
-vars:
-  DESKTOP: gnome
-  FILESYSTEM: xfs
+  Conduct installation with encrypted LVM selected during installation.
+  Generated disk image used in downstream jobs. (crypt-)LVM installations can
+  take longer, especially on non-x86_64 architectures.
+name: cryptlvm
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
@@ -16,21 +12,23 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_filesystem
+  - installation/partitioning/encrypt_lvm
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
-  - installation/resolve_dependency_issues
   - installation/installation_overview
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/boot_encrypt
   - installation/first_boot
-  - console/validate_partition_table_via_blkid
-  - console/validate_blockdevices
-  - console/validate_free_space
-  - console/validate_read_write
-test_data:
-  <<: !include test_data/yast/xfs/xfs_partition_svirt-xen.yaml
+  - console/validate_lvm
+  - console/validate_encrypt
+  - console/zypper_lr
+  - console/yast2_i
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown

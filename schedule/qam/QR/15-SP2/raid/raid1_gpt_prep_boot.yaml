@@ -1,10 +1,10 @@
-name:           RAID0_gpt_prep_boot
+name:           RAID1_gpt_prep_boot
 description:    >
-  Configure RAID 0 on the disks with GPT partition tables and UEFI using Expert Partitioner.
+  Configure RAID 1 on the disks with GPT partition tables and UEFI using Expert Partitioner.
   Creates PReP boot, root and swap partitions on each of the 4 disks and then uses
-  them for RAID 0.
+  them for RAID 1.
 vars:
-  RAIDLEVEL: 0
+  RAIDLEVEL: 1
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -31,14 +31,60 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
-  - console/validate_md_raid
   - console/validate_raid
 test_data:
-  <<: !include test_data/yast/raid/raid_disks_prep_boot.yaml
+  disks:
+    - name: vda
+      partitions:
+        - size: 8mb
+          role: raw-volume
+          id: prep-boot
+        - size: 8000mb
+          role: raw-volume
+          id: linux-raid
+        - size: 310mb
+          role: raw-volume
+          id: linux-raid
+        - size: 100mb
+          role: raw-volume
+          id: linux-raid
+    - name: vdb
+      partitions:
+        - size: 8000mb
+          role: raw-volume
+          id: linux-raid
+        - size: 310mb
+          role: raw-volume
+          id: linux-raid
+        - size: 100mb
+          role: raw-volume
+          id: linux-raid
+    - name: vdc
+      partitions:
+        - size: 8000mb
+          role: raw-volume
+          id: linux-raid
+        - size: 310mb
+          role: raw-volume
+          id: linux-raid
+        - size: 100mb
+          role: raw-volume
+          id: linux-raid
+    - name: vdd
+      partitions:
+        - size: 8000mb
+          role: raw-volume
+          id: linux-raid
+        - size: 310mb
+          role: raw-volume
+          id: linux-raid
+        - size: 100mb
+          role: raw-volume
+          id: linux-raid
   mds:
-    - raid_level: 0
+    - raid_level: 1
       name: md0
-      chunk_size: 64
+      chunk_size: '64 KiB'
       device_selection_step: 3
       devices:
         - vda2
@@ -53,7 +99,7 @@ test_data:
           should_mount: 1
     - raid_level: 1
       name: md1
-      chunk_size: 64
+      chunk_size: '64 KiB'
       device_selection_step: 2
       devices:
         - vda3
@@ -70,7 +116,7 @@ test_data:
           mount_point: '/boot'
     - raid_level: 0
       name: md2
-      chunk_size: 64
+      chunk_size: '64 KiB'
       device_selection_step: 1
       devices:
         - vda4

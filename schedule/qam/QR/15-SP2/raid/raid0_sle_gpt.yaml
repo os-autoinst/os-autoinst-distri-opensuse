@@ -1,12 +1,10 @@
----
-name:           ext4@yast-xen-pv
+name:           RAID0_gpt
 description:    >
-  Test for ext4 filesystem in svirt-xen-pv.
-  Test modules 'grub_disable_timeout' and 'grub_test' in xen-pv are not scheduled
-  due to grub2 doesnt support xfb console.
+  Configure RAID 0 on the disks with GPT partition tables using Expert Partitioner.
+  Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
+  them for RAID 0.
 vars:
-  DESKTOP: gnome
-  FILESYSTEM: ext4
+  RAIDLEVEL: 0
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -15,21 +13,26 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
+  - installation/partitioning/raid_gpt
   - installation/installer_timezone
+  - installation/hostname_inst
   - installation/user_settings
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
+  - console/upload_asset
   - installation/reboot_after_installation
+  - installation/grub_test
   - installation/first_boot
-  - console/validate_partition_table_via_blkid
-  - console/validate_blockdevices
-  - console/validate_free_space
-  - console/validate_read_write
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - console/validate_md_raid
+  - console/validate_raid
 test_data:
-  <<: !include test_data/yast/ext4/ext4_xen.yaml
+  <<: !include test_data/qam/QR/15-SP2/raid/raid0_gpt_bios_boot.yaml
