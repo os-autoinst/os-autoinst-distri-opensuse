@@ -17,7 +17,7 @@
 #          This test module covers the server setup processes
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#88513, poo#92410, tc#1768672
+# Tags: poo#88513, poo#92410, poo#93832, tc#1768672
 
 use base 'consoletest';
 use testapi;
@@ -107,6 +107,8 @@ sub run {
     # Set the ldap_uri with LDAP over SSL (LDAPS) Certificate
     assert_script_run("sed -i 's/^ldap_uri =.*\$/ldap_uri = ldaps:\\/\\/$local_name.example.com/' /tmp/sssd.conf");
 
+    # Permit ssh/scp from client as root
+    permit_root_ssh();
     mutex_create("389DS_READY");
 
     # Finish job
