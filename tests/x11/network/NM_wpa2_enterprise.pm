@@ -22,6 +22,12 @@ sub run {
     my $self = shift;
 
     $self->connect_to_network;
+    if (check_screen("gnome_widget-connect-click", 5)) {
+        record_soft_failure 'boo#1176553';
+        assert_and_click("gnome_widget-network_cancel");
+        return 1;
+
+    }
     $self->enter_NM_credentials;
     $self->handle_polkit_root_auth;
 
