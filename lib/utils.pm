@@ -1460,7 +1460,7 @@ sub show_tasks_in_blocked_state {
         send_key 'alt-sysrq-t';
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
-        wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i, 1);
+        wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
         send_key 'ret';    # ensure clean shell prompt
     }
 }
