@@ -97,6 +97,7 @@ our @EXPORT = qw(
   script_output_retry
   get_secureboot_status
   assert_secureboot_status
+  susefirewall2_to_firewalld
 );
 
 =head1 SYNOPSIS
@@ -1405,8 +1406,9 @@ sub reconnect_mgmt_console {
             if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
                 select_console 'root-console';
                 if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
-                    record_soft_failure('bsc#1154156 - After upgrade from 12SP5, SuSEfirewall2 blocks xvnc.socket on s390x');
-                    script_run 'iptables -I input_ext -p tcp -m tcp --dport 5900:5999 -j ACCEPT';
+                    script_run('pkill zypper');
+                    zypper_call("in susefirewall2-to-firewalld");
+                    susefirewall2_to_firewalld();
                 }
             }
             select_console('x11', await_console => 0);
@@ -1987,6 +1989,19 @@ sub assert_secureboot_status {
     my $state    = get_secureboot_status;
     my $statestr = $state ? 'on' : 'off';
     die "Error: SecureBoot is $statestr" if $state xor $expected;
+}
+
+sub susefirewall2_to_firewalld {
+    my $timeout = 360;
+    $timeout = 1200 if check_var('ARCH', 'aarch64');
+    assert_script_run('susefirewall2-to-firewalld -c',                                     timeout => $timeout);
+    assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
+    # On some platforms such as Aarch64, the 'firewalld restart'
+    # can't finish in the default timeout.
+
+    systemctl 'restart firewalld', timeout => $timeout;
+    script_run('iptables -S', timeout => $timeout);
+    set_var('SUSEFIREWALL2_SERVICE_CHECK', 1);
 }
 
 1;
