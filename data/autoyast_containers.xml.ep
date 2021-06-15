@@ -32,12 +32,53 @@
     </addons>
   </suse_register>
   <bootloader>
+    % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'aarch64')) {
+    <device_map config:type="list">
+      <device_map_entry>
+        <firmware>hd0</firmware>
+        <linux>/dev/vda</linux>
+      </device_map_entry>
+    </device_map>
+    % }
     <global>
+      % if ($check_var->('ARCH', 's390x')) {
+      <activate>false</activate>
+      <boot_extended>false</boot_extended>
+      <boot_mbr>true</boot_mbr>
+      <boot_root>true</boot_root>
+      <generic_mbr>false</generic_mbr>
+      % } elsif ($check_var->('ARCH', 'ppc64le')) {
+      <append>showopts plymouth.ignore-serial-consoles console=hvc0 console=tty mitigations=auto crashkernel=201M</append>
+      <boot_boot>false</boot_boot>
+      % } elsif ($check_var->('ARCH', 'x86_64')) {
+      <append>splash=verbose</append>
+      % }
+      % if ($check_var->('ARCH', 'aarch64')) {
+      <timeout config:type="integer">20</timeout>
+      % } elsif ($check_var->('ARCH', 's390x')) {
+      <timeout config:type="integer">15</timeout>
+      % } else {
       <timeout config:type="integer">-1</timeout>
+      % }
     </global>
+    % if ($check_var->('ARCH', 'ppc64le') or $check_var->('ARCH', 's390x')) {
+    <loader_type>grub2</loader_type>
+    % }
   </bootloader>
+  % if ($check_var->('ARCH', 's390x') {
   <networking>
+    % if ($check_var->('ARCH', 's390x') {
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    % } else {
     <keep_install_network config:type="boolean">true</keep_install_network>
+    % }
   </networking>
   <software>
     <products config:type="list">
@@ -47,17 +88,12 @@
     <packages config:type="list">
       <package>iputils</package>
       <package>acl</package>
-      <package>docker</package>
-      % if ($get_var->('VERSION') =~ /15-SP1|15-SP2|15-SP3/) {
-      <package>runc</package>
-      <package>docker-runc</package>
-      <package>zypper-docker</package>
-      <package>podman</package>
-      <package>podman-cni-config</package>
-      % }
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
+      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3/ and $get_var->('ARCH') !~ /aarch64/) {
+      <pattern>enhanced_base</pattern>
+      % }
     </patterns>
   </software>
   <users config:type="list">
@@ -111,10 +147,53 @@
     </drive>
   </partitioning>
   % }
-  <firewall>
-    <enable_firewall config:type="boolean">false</enable_firewall>
-    <start_firewall config:type="boolean">false</start_firewall>
-  </firewall>
+  % if ($check_var->('ARCH', 's390x')) {
+  <partitioning config:type="list">
+    <drive>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">true</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext2</filesystem>
+          <mount>/boot/zipl</mount>
+          <fstopt>acl,user_xattr</fstopt>
+          <mountby config:type="symbol">path</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>500M</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>2G</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <mount>/</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <partition_type>primary</partition_type>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  % }
   <report>
     <errors>
       <log config:type="boolean">true</log>
