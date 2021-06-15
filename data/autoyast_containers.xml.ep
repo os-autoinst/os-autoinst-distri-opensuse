@@ -65,9 +65,8 @@
     <loader_type>grub2</loader_type>
     % }
   </bootloader>
-  % if ($check_var->('ARCH', 's390x') {
   <networking>
-    % if ($check_var->('ARCH', 's390x') {
+    % if ($check_var->('ARCH', 's390x')) {
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
