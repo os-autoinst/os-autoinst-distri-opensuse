@@ -32,7 +32,7 @@
     </addons>
   </suse_register>
   <bootloader>
-    % unless ($check_var->('ARCH', 's390x') or $check_var->('ARCH', 'aarch64')) {
+    % unless ($check_var->('ARCH', 's390x')) {
     <device_map config:type="list">
       <device_map_entry>
         <firmware>hd0</firmware>
@@ -50,11 +50,11 @@
       % } elsif ($check_var->('ARCH', 'ppc64le')) {
       <append>showopts plymouth.ignore-serial-consoles console=hvc0 console=tty mitigations=auto crashkernel=201M</append>
       <boot_boot>false</boot_boot>
-      % } elsif ($check_var->('ARCH', 'x86_64')) {
+      % } else {
       <append>splash=verbose</append>
       % }
       % if ($check_var->('ARCH', 'aarch64')) {
-      <timeout config:type="integer">20</timeout>
+      <timeout config:type="integer">1</timeout>
       % } elsif ($check_var->('ARCH', 's390x')) {
       <timeout config:type="integer">15</timeout>
       % } else {
