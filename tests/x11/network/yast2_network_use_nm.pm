@@ -12,8 +12,7 @@
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
-use base 'x11test';
-use y2_module_guitest 'launch_yast2_module_x11';
+use base 'y2_module_guitest';
 use y2_base;
 use strict;
 use warnings;
@@ -54,13 +53,6 @@ sub configure_system {
         record_soft_failure 'boo#1049097';
         assert_and_click 'yast2_network-error_dialog';
     }
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    select_console 'log-console';
-    y2_base::save_upload_y2logs($self);
-    $self->SUPER::post_fail_hook;
 }
 
 1;
