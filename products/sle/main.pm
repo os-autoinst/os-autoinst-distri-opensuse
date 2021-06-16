@@ -782,6 +782,10 @@ elsif (get_var("PYNFS")) {
     prepare_target;
     load_pynfs_tests;
 }
+elsif (get_var("BTRFSMAINTENANCE")) {
+    prepare_target;
+    loadtest "btrfsmaintenance/btrfsmaintenance";
+}
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
         #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
