@@ -106,6 +106,9 @@ sub run {
     $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.YourPhone | Remove-AppxPackage');
     # remove cortana
     $self->run_in_powershell(cmd => 'Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage');
+    # disable "Let’s finish setting up your device"
+    $self->run_in_powershell(cmd => q{New-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\" -Name UserProfileEngagement -Force});
+    $self->run_in_powershell(cmd => q{New-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" -Name ScoobeSystemSettingEnabled -Value 0 -PropertyType DWORD});
 
     # poweroff
     $self->reboot_or_shutdown();
