@@ -12,7 +12,7 @@
 # - Select OK and reboot system
 # - Keep console and reconnect VNC, unless DESKTOP is minimalx and shutdown
 # timeouts
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base 'y2_installbase';
 use strict;

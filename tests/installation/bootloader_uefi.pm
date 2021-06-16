@@ -31,7 +31,7 @@
 # - Save bootloader parameters in a screenshot
 # - if "USE_SUPPORT_SERVER" is defined, wait for mutex to unlock before sending
 # "F10"
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 package bootloader_uefi;
 

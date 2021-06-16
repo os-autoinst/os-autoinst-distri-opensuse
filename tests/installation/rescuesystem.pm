@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Ensure rescue system can be booted into a shell prompt
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base "opensusebasetest";
 use strict;

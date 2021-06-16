@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Prepare system for reboot after zdup upgrade
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base "installbasetest";
 use strict;
