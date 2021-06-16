@@ -24,7 +24,7 @@ sub run {
     select_console 'root-console';
 
     # print repos to screen and serial console after online migration
-    zypper_call('lr -u');
+    assert_script_run "zypper lr --uri | tee /dev/$serialdev";
 
     # Save output info to logfile
     my $out;
