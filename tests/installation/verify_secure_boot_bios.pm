@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Checks Secure Boot status, before installation.
-# Maintainer: Sofia Syrianidou <ssyrianidou@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

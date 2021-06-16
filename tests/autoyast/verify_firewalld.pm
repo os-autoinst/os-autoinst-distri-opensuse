@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Package: firewalld
 # Summary: Verify firewall configuration after installation using ay profile
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'basetest';
 use strict;

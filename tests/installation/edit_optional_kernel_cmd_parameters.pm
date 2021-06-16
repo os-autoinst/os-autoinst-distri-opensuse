@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 #   Is required in some scenarios to disable plymouth, for instance.
 #   All default parameters are removed before entering requested settings.
 #   Using OPT_KERNEL_PARAMS to get wanted boot options.
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

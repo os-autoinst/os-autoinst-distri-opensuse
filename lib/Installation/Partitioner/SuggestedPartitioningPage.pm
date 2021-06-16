@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 # Partitioning Page, that are common for all the versions of the page (e.g. for
 # both Libstorage and Libstorage-NG).
 
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::SuggestedPartitioningPage;
 use strict;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@
 # - Get IP address from system variables
 # - Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE
 # - Modify profile with obtained values and upload new autoyast profile
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

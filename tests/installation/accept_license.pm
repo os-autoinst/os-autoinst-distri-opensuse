@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #   being accepted
 #   - Unless sles is 15+, set language to English US
 # - Press next
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

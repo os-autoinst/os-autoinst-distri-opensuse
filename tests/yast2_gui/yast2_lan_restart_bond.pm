@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,7 +24,7 @@
 #
 # Post-condition:
 # Delete the Bond device.
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_module_guitest';
 use strict;

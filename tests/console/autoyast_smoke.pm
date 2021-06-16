@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Package: iproute2 systemd
 # Summary: smoke test for autoyast post-installation
-# Maintainer: Yiannis Bonatakis <ybonatakis@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

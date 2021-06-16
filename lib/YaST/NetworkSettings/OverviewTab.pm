@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Summary: The class introduces all accessing methods for Overview Tab in YaST2
 # lan module dialog.
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::NetworkSettings::OverviewTab;
 use strict;

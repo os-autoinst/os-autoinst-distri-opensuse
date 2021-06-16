@@ -14,7 +14,7 @@
 # - Display the exclusive space used by each snapshot
 # - Query the exclusive space when data is included in a single snapshot
 # - Query the exclusive space when data is included in several snapshots (pre- and post-)
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'btrfs_test';
 use strict;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Shortcuts for yast modules
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package yast2_shortcuts;
 

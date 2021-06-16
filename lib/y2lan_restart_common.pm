@@ -5,7 +5,7 @@ Library for non-destructive testing using yast2 lan.
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@ Library for non-destructive testing using yast2 lan.
 # without any warranty.
 
 # Summary: YaST logic on Network Restart while no config changes were made
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 # Tags: fate#318787 poo#11450
 
 package y2lan_restart_common;

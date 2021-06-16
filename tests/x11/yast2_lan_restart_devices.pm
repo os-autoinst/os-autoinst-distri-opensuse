@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@
 # - Check the network status for each device (if network was restarted after
 # changes made)
 # - Delete all created devices
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 # Tags: fate#318787 poo#11450
 
 use base 'y2_installbase';
