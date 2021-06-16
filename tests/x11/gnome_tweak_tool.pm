@@ -21,20 +21,9 @@ use warnings;
 use testapi;
 
 sub run {
-    my @gnome_tweak_matches = qw(gnome-tweaks gnome-tweak-tool command-not-found gnome-tweak-extensions-moved);
+    my ($self) = shift;
+    $self->start_gnome_tweak_tool;
 
-    mouse_hide(1);
-    x11_start_program('gnome-tweaks', target_match => \@gnome_tweak_matches);
-    if (match_has_tag('command-not-found')) {
-        # GNOME Tweak tool was renamed to GNOME Tweaks during 3.28 dev branch
-        # As the new name yielded a 'command-not-found', start as old command
-        send_key 'esc';
-        x11_start_program('gnome-tweak-tool');
-    }
-    if (match_has_tag('gnome-tweak-extensions-moved')) {
-        # GNOME 40 moved extensions out of tweak tool, pops a warning
-        assert_and_click('gnome-tweak-extensions-moved');
-    }
     assert_and_click "gnome-tweak-tool-fonts";
     assert_screen "gnome-tweak-tool-fonts-dialog";
     send_key "alt-f4";
