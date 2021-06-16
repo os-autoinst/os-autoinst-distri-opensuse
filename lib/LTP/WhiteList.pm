@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use bmwqemu;
+use bugzilla;
 use Exporter;
 use Mojo::UserAgent;
 use Mojo::JSON;
@@ -98,6 +99,27 @@ sub override_known_failures {
     }
 
     return 0 unless defined($entry);
+
+    if (exists $entry->{bugzilla}) {
+        my $info = bugzilla_buginfo($entry->{bugzilla});
+
+        if (!defined($info) || !exists $info->{bug_status}) {
+            $self->record_resultfile('Bugzilla error',
+                "Failed to query bug #$entry->{bugzilla} status",
+                result => 'fail');
+            return;
+        }
+
+        my $status = lc $info->{bug_status};
+
+        if ($status eq 'resolved' || $status eq 'verified') {
+            $self->record_resultfile('Bug closed',
+                "Bug #$entry->{bugzilla} is closed, ignoring whitelist entry",
+                result => 'fail');
+            return;
+        }
+    }
+
     my $msg = "Failure in LTP:$suite:$test is known, overriding to softfail";
     bmwqemu::diag($msg);
     $self->{result} = 'softfail';
