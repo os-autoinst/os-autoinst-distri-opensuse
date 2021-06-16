@@ -16,6 +16,7 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use utils;
+use Utils::Systemd qw(disable_and_stop_service);
 use version_utils qw(check_os_release is_sle);
 
 sub run {
@@ -26,6 +27,7 @@ sub run {
         $interface = script_output q@ip r s default 0.0.0.0/0 | awk '{printf $5}'@;
         validate_script_output "ip a s '$interface'", sub { m/((\d{1,3}\.){3}\d{1,3}\/\d{1,2})/ };
         ensure_ca_certificates_suse_installed();
+        disable_and_stop_service(opensusebasetest::firewall, ignore_failure => 1);
     }
     else {
         assert_script_run "dhclient -v";
