@@ -98,6 +98,7 @@ our @EXPORT = qw(
   get_secureboot_status
   assert_secureboot_status
   susefirewall2_to_firewalld
+  permit_root_ssh
 );
 
 =head1 SYNOPSIS
@@ -2002,6 +2003,29 @@ sub susefirewall2_to_firewalld {
     systemctl 'restart firewalld', timeout => $timeout;
     script_run('iptables -S', timeout => $timeout);
     set_var('SUSEFIREWALL2_SERVICE_CHECK', 1);
+}
+
+=head2 permit_root_ssh
+    permit_root_ssh();
+
+Due to bsc#1173067, openssh now no longer allows RootLogin
+using password auth on Tumbleweed, the latest SLE16 and
+Leap16 will sync with Tumbleweed as well.
+
+=cut
+
+sub permit_root_ssh {
+    if (is_sle('<16') || is_leap('<16.0')) {
+        my $results = script_run("grep 'PermitRootLogin yes' /etc/ssh/sshd_config");
+        if (!$results) {
+            assert_script_run("sed -i 's/^PermitRootLogin.*\$/PermitRootLogin yes/' /etc/ssh/sshd_config");
+            assert_script_run("systemctl restart sshd");
+        }
+    }
+    else {
+        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
+        assert_script_run("systemctl restart sshd");
+    }
 }
 
 1;
