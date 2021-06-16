@@ -272,8 +272,8 @@ guest_hash_index=0
 dhcpd_lease_file="/var/lib/dhcp/db/dhcpd.leases"
 
 #Install necessary packages
-echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet libguestfs*" | tee -a ${fetch_logs_from_guest_log}
-zypper install -y sshpass nmap xmlstarlet libguestfs* | tee -a ${fetch_logs_from_guest_log}
+echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet libguestfs* guestfs-tools" | tee -a ${fetch_logs_from_guest_log}
+zypper install -y sshpass nmap xmlstarlet libguestfs* guestfs-tools | tee -a ${fetch_logs_from_guest_log}
 
 #Establish reachable networks and hosts database on host
 subnets_in_route=`ip route show all | awk '{print $1}' | grep -v default`
