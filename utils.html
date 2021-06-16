@@ -77,6 +77,7 @@
       <li><a href="#assert_file_content-assert_file_content-path-value">assert_file_content assert_file_content( &quot;path&quot;, value );</a></li>
       <li><a href="#ensure_ca_certificates_suse_installed-ensure_ca_certificates_suse_installed">ensure_ca_certificates_suse_installed ensure_ca_certificates_suse_installed();</a></li>
       <li><a href="#install_patterns-install_patterns">install_patterns install_patterns();</a></li>
+      <li><a href="#permit_root_ssh-permit_root_ssh">permit_root_ssh permit_root_ssh();</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -578,6 +579,10 @@
 <h2 id="install_patterns-install_patterns">install_patterns install_patterns();</h2>
 
 <p>This functions install extra patterns if var PATTERNS is set.</p>
+
+<h2 id="permit_root_ssh-permit_root_ssh">permit_root_ssh permit_root_ssh();</h2>
+
+<p>Due to bsc#1173067, openssh now no longer allows RootLogin using password auth on Tumbleweed, the latest SLE16 and Leap16 will sync with Tumbleweed as well.</p>
 
 
 </body>
