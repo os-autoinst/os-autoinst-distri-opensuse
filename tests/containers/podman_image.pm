@@ -30,9 +30,10 @@ sub run {
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
 
     for my $version (split(/,/, $versions)) {
-        record_info "IMAGE", "We are testing image for $version now.";
-        my ($image_names, $stable_names) = get_suse_container_urls($version);
-        for my $iname (@{$image_names}) {
+        my ($untested_images, $released_images) = get_suse_container_urls($version);
+        my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
+        for my $iname (@{$images_to_test}) {
+            record_info "IMAGE", "Testing image: $iname";
             test_container_image(image => $iname, runtime => $runtime);
             test_rpm_db_backend(image => $iname, runtime => $runtime);
             build_container_image(image => $iname, runtime => $runtime);

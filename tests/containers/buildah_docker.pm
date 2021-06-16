@@ -22,33 +22,37 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
-use version_utils 'is_sle';
 
 sub run {
-    my ($image_names, $stable_names) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
+
     install_buildah_when_needed($host_distri);
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => 'docker');
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    for my $iname (@{$image_names}) {
-        record_info 'testing image', $iname;
-        test_container_image(image => $iname, runtime => 'buildah');
-        if (check_os_release('suse', 'PRETTY_NAME')) {
-            # Use container which it is created in test_container_image
-            # Buildah default name is conducted by <image-name>-working-container
-            my ($prefix_img_name) = $iname =~ /([^\/:]+)(:.+)?$/;
-            test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah');
-            # Due to the steps from the test_opensuse_based_image previously,
-            # the image has been committed as refreshed
-            test_containered_app(runtime => 'docker',
-                buildah    => 1,
-                dockerfile => 'Dockerfile.suse',
-                base       => 'refreshed');
+    # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
+    my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
+    for my $version (split(/,/, $versions)) {
+        my ($untested_images, $released_images) = get_suse_container_urls($version);
+        my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
+        for my $iname (@{$images_to_test}) {
+            record_info "IMAGE", "Testing image: $iname";
+            test_container_image(image => $iname, runtime => 'buildah');
+            if (check_os_release('suse', 'PRETTY_NAME')) {
+                # Use container which it is created in test_container_image
+                # Buildah default name is conducted by <image-name>-working-container
+                my ($prefix_img_name) = $iname =~ /([^\/:]+)(:.+)?$/;
+                test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah');
+                # Due to the steps from the test_opensuse_based_image previously,
+                # the image has been committed as refreshed
+                test_containered_app(runtime => 'docker',
+                    buildah    => 1,
+                    dockerfile => 'Dockerfile.suse',
+                    base       => 'refreshed');
+            }
         }
     }
-
     scc_restore_docker_image_credentials();
     clean_container_host(runtime => 'docker');
     clean_container_host(runtime => 'buildah');
