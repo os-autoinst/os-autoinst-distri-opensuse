@@ -844,7 +844,7 @@ sub config_guest_network_bridge_services {
     }
     else {
         record_info("DHCP and DNS services had already been running on $self->{guest_network_device} which is ready for use", "The command used is ((nohup $_dnsmasq_command  &>$_dnsmasq_log) &)");
-        if (script_output("cat $common_log_folder/root_cron_job | grep -i $_dnsmasq_command", proceed_on_failure => 1) eq '') {
+        if (script_output("cat $common_log_folder/root_cron_job | grep -i \"$_dnsmasq_command\"", proceed_on_failure => 1) eq '') {
             type_string("cat >> $common_log_folder/root_cron_job <<EOF
 \@reboot ((nohup $_dnsmasq_command  &>$_dnsmasq_log) &)
 EOF
