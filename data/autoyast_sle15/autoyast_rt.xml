@@ -4,7 +4,9 @@
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
     <email/>
-    <reg_code>5ed98f8c543b5b75</reg_code>
+    <!-- Reg code HACK!!!-->
+    <!-->5ed98f8c543b5b75<-->
+    <reg_code>deedc51104e549deb</reg_code>
     <install_updates config:type="boolean">true</install_updates>
     <addons config:type="list">
       <addon>
@@ -27,29 +29,41 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      <!-- HACK!!! Should be added in normal installation
       <addon>
         <name>sle-module-rt</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      END OF HACK!!!<-->
     </addons>
   </suse_register>
+  <!-- REPO HACK!!!-->
   <add-on>
     <add_on_products config:type="list">
       <listentry>
-        <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP2:/Update:/Products:/SLERT/standard</media_url>
-        <product>SLE_RT_TEST</product>
+        <media_url>http://download.suse.de/ibs/SUSE:/SLE-15-SP3:/Update:/Products:/SLERT/standard/</media_url>
         <alias>SLE_RT_IBS_REPO</alias>
+        <product>SLE_RT_TEST</product>
         <product_dir>/</product_dir>
         <priority config:type="integer">85</priority>
-	    <name>Latest RT packages from IBS</name>
+        <name>Latest RT packages from IBS</name>
         <confirm_license config:type="boolean">false</confirm_license>
         <ask_on_error config:type="boolean">false</ask_on_error>
-        <ask_user config:type="boolean">false</ask_user>
-        <selected config:type="boolean">true</selected>
+	  </listentry>
+      <listentry>
+        <media_url>http://openqa.suse.de/assets/repo/SLE-15-SP3-Module-RT-POOL-x86_64-CURRENT/</media_url>
+        <alias>SLE_RT_OPENQA</alias>
+        <product>SLE_RT_TEST_OPENQA</product>
+        <product_dir>/</product_dir>
+        <priority config:type="integer">86</priority>
+        <name>Latest RT packages from IBS2</name>
+        <confirm_license config:type="boolean">false</confirm_license>
+        <ask_on_error config:type="boolean">false</ask_on_error>
 	  </listentry>
 	</add_on_products>
   </add-on>
+  <!-- END OF HACK!!!-->
   <general>
     <mode>
       <confirm config:type="boolean">false</confirm>
@@ -83,74 +97,12 @@
       <timeout config:type="integer">0</timeout>
     </yesno_messages>
   </report>
-  <partitioning config:type="list">
-    <drive>
-      <device>/dev/vda</device>
-      <disklabel>msdos</disklabel>
-      <enable_snapshots config:type="boolean">true</enable_snapshots>
-      <initialize config:type="boolean">true</initialize>
-      <partitions config:type="list">
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">swap</filesystem>
-          <format config:type="boolean">true</format>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>swap</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">130</partition_id>
-          <partition_nr config:type="integer">1</partition_nr>
-          <resize config:type="boolean">false</resize>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">btrfs</filesystem>
-          <format config:type="boolean">true</format>
-          <fstopt>rw,relatime,space_cache</fstopt>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <resize config:type="boolean">false</resize>
-          <subvolumes config:type="list">
-            <subvolume>
-              <copy_on_write config:type="boolean">true</copy_on_write>
-              <path>opt</path>
-            </subvolume>
-            <subvolume>
-              <copy_on_write config:type="boolean">false</copy_on_write>
-              <path>tmp</path>
-            </subvolume>
-            <subvolume>
-              <path>usr/local</path>
-            </subvolume>
-          </subvolumes>
-          <!-- Create empty prefix, see bsc#1090095 -->
-          <subvolumes_prefix><![CDATA[]]></subvolumes_prefix>
-        </partition>
-        <partition>
-          <create config:type="boolean">true</create>
-          <crypt_fs config:type="boolean">false</crypt_fs>
-          <filesystem config:type="symbol">btrfs</filesystem>
-          <format config:type="boolean">true</format>
-          <fstopt>rw,relatime,nobarrier,nodatacow</fstopt>
-          <loop_fs config:type="boolean">false</loop_fs>
-          <mount>/var/log</mount>
-          <mountby config:type="symbol">uuid</mountby>
-          <partition_id config:type="integer">131</partition_id>
-          <partition_nr config:type="integer">2</partition_nr>
-          <resize config:type="boolean">false</resize>
-        </partition>
-      </partitions>
-      <type config:type="symbol">CT_DISK</type>
-      <use>all</use>
-    </drive>
-  </partitioning>
   <software>
     <products config:type="list">
-      <product>SLE_RT</product>
+    <!-- HACK!!! -->
+        <!--product>SLE_RT</product-->
+      <product>SLES</product>
+    <!-- END OF HACK!!!-->
     </products>
     <install_recommended config:type="boolean">true</install_recommended>
     <kernel>kernel-rt</kernel>
@@ -158,7 +110,6 @@
       <package>sle-module-server-applications-release</package>
       <package>sle-module-development-tools-release</package>
       <package>sle-module-basesystem-release</package>
-      <package>cpuset</package>
     </packages>
     <patterns config:type="list">
       <pattern>apparmor</pattern>
@@ -171,6 +122,9 @@
       <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
       <pattern>x11_enhanced</pattern>
+      <!-- HACK!!!-->
+      <pattern>rt_sles</pattern>
+      <!-- END OF HACK!!!-->
     </patterns>
   </software>
   <networking>
