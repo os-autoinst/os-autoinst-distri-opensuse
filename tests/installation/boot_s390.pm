@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Helper to boot into existing s390x zvm guest
-# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base "installbasetest";
 
