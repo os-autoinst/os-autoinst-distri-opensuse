@@ -19,6 +19,7 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'Distribution::Sle::15_current';
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
+use Installation::License::Opensuse::LicenseAgreementController;
 
 =head2 get_firstboot_license_agreement
 
@@ -28,6 +29,10 @@ openSUSE use a different UI flow to accept the default license.
 =cut
 sub get_firstboot_license_agreement {
     return Installation::License::Opensuse::Firstboot::LicenseAgreementController->new();
+}
+
+sub get_license_agreement {
+    return Installation::License::Opensuse::LicenseAgreementController->new();
 }
 
 1;
