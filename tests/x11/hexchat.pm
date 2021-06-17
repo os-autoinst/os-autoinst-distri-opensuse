@@ -27,7 +27,7 @@ sub run {
     my $name = ref($_[0]);
     ensure_installed($name);
     x11_start_program($name, target_match => "$name-network-select");
-    enter_cmd "freenode";
+    enter_cmd "Libera";
     assert_and_click "hexchat-nick-$username";
     send_key 'home';
     send_key_until_needlematch 'hexchat-nick-empty', 'delete';
