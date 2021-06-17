@@ -229,21 +229,18 @@ Die, if this is not the case.
 
 =cut
 sub integration_services_check_ip {
-    # Workaround for poo#44771 "Can't call method "exec" on an undefined value"
-    select_console('svirt');
-    select_console('sut');
     # Host-side of Integration Services
     my $vmname = console('svirt')->name;
     my $ips_host_pov;
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        $ips_host_pov = console('svirt')->get_cmd_output(
-            'powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
+        (undef, $ips_host_pov) = console('svirt')->run_cmd(
+            'powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"', wantarray => 1);
     }
     elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        $ips_host_pov = console('svirt')->get_cmd_output(
+        (undef, $ips_host_pov) = console('svirt')->run_cmd(
             "set -x; vmid=\$(vim-cmd vmsvc/getallvms | awk '/$vmname/ { print \$1 }');" .
               "if [ \$vmid ]; then vim-cmd vmsvc/get.guest \$vmid | awk '/ipAddress/ {print \$3}' " .
-              "| head -n1 | sed -e 's/\"//g' | sed -e 's/,//g'; fi", {domain => 'sshVMwareServer'});
+              "| head -n1 | sed -e 's/\"//g' | sed -e 's/,//g'; fi", domain => 'sshVMwareServer', wantarray => 1);
     }
     $ips_host_pov =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
     $ips_host_pov = $1;
@@ -264,8 +261,8 @@ are present and in working condition.
 
 =cut
 sub integration_services_check {
+    integration_services_check_ip();
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        integration_services_check_ip;
         # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
@@ -283,7 +280,6 @@ sub integration_services_check {
         assert_script_run('systemctl list-unit-files | grep hv_fcopy_daemon.service');
     }
     elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        integration_services_check_ip;
         assert_script_run('rpmquery open-vm-tools');
         assert_script_run('rpmquery open-vm-tools-desktop') unless check_var('DESKTOP', 'textmode');
         assert_script_run('modinfo vmw_vmci');
