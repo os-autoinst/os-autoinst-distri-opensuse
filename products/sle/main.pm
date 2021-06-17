@@ -636,7 +636,10 @@ $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures())
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 if (load_yaml_schedule) {
-    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::set_libyui_backend_vars;
+        YuiRestClient::init_logger;
+    }
     return 1;
 }
 

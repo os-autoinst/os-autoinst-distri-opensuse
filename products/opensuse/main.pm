@@ -126,7 +126,10 @@ logcurrentenv(
 );
 
 if (load_yaml_schedule) {
-    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::set_libyui_backend_vars;
+        YuiRestClient::init_logger;
+    }
     return 1;
 }
 

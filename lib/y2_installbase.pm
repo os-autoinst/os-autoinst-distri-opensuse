@@ -529,13 +529,6 @@ sub save_remote_upload_y2logs {
     $self->investigate_yast2_failure();
 }
 
-sub post_run_hook {
-    my $self = shift;
-
-    $self->SUPER::post_run_hook;
-    save_screenshot;
-}
-
 sub post_fail_hook {
     my $self = shift;
 
