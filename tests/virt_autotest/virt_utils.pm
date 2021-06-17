@@ -344,12 +344,20 @@ sub get_guest_disk_name_from_guest_xml {
 }
 
 # Should only do compress from qcow2 disk to qcow2 in our automation(upload guest asset scheme).
+# If disk compression fails at the first time, try again with --force-share option to avoid shared "write" lock conflict.
+# Generally speaking, guest image compressing and uploading should only be done on successful guest installation and after any other operations is done on the guest.
+# If qemu image operation on the guest still can not proceed due to failing to get "write" lock, then "--force-share" option can be tried to solve the problem.
+# And "--force-share" is a new option that is introduced to modern SLES, it might be available on some older SLES, for example, 11-SP4 or some 12-SPx.
+# Please refer to https://qemu.readthedocs.io/en/latest/tools/qemu-img.html to ease your mind on working with --force-share and convert and many others.
 sub compress_single_qcow2_disk {
     my ($orig_disk, $compressed_disk) = @_;
 
     if ($orig_disk =~ /qcow2/) {
         my $cmd = "nice ionice qemu-img convert -c -p -O qcow2 $orig_disk $compressed_disk";
-        assert_script_run($cmd, 360);
+        if (script_run($cmd, 360) ne 0) {
+            $cmd = "nice ionice qemu-img convert --force-share -c -p -O qcow2 $orig_disk $compressed_disk";
+            die("Disk compression failed from $orig_disk to $compressed_disk.") if (script_run($cmd, 360) ne 0);
+        }
         save_screenshot;
         record_info('Disk compression', "Disk compression done from $orig_disk to $compressed_disk.");
     }
