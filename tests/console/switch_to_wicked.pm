@@ -18,8 +18,9 @@ use testapi;
 
 sub run {
     my ($self) = shift;
-    select_console 'root-console';
     return unless is_network_manager_default;
+    ensure_installed 'wicked';
+    select_console 'root-console';
     $self->use_wicked_network_manager;
 }
 
