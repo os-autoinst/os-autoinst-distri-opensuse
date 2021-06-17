@@ -63,7 +63,7 @@ sub create_credentials_file {
     }
 
     save_tmp_file(CREDENTIALS_FILE, $credentials_file);
-    assert_script_run('curl -O ' . autoinst_url . "/files/" . CREDENTIALS_FILE);
+    assert_script_run('curl ' . autoinst_url . '/files/' . CREDENTIALS_FILE . ' -o ' . CREDENTIALS_FILE);
 }
 
 sub get_credentials_file_name {
