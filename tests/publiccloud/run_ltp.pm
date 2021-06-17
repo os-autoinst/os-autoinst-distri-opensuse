@@ -19,10 +19,13 @@ use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
-use LTP::utils "get_ltproot";
+use LTP::utils qw(get_ltproot get_ltp_version_file);
+use LTP::WhiteList qw(download_whitelist);
+use Mojo::File;
 use publiccloud::utils qw(is_byos select_host_console);
 
-our $root_dir = '/root';
+our $root_dir      = '/root';
+our $ver_linux_log = '';
 
 sub get_ltp_rpm
 {
@@ -87,6 +90,8 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp',                              timeout => 600);
     }
 
+    $ver_linux_log = $instance->run_ssh_command(cmd => get_ltproot() . "/ver_linux");
+
     my $runltp_ng_repo   = get_var("LTP_RUN_NG_REPO",   "https://github.com/metan-ucw/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
@@ -120,14 +125,66 @@ sub cleanup {
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
 
-    upload_logs('ltp_log.raw', failok => 1);
-    parse_extra_log(LTP => "$root_dir/ltp_log.json") if (script_run("test -f $root_dir/ltp_log.json") == 0);
-
+    upload_logs('ltp_log.raw',            failok => 1);
+    upload_logs("$root_dir/ltp_log.json", failok => 1);
+    if (script_run("test -f $root_dir/ltp_log.json") == 0) {
+        my $known_issues = download_whitelist();
+        process_ltp_known_issues("$root_dir/ltp_log.json") if $known_issues;
+        parse_extra_log(LTP => "$root_dir/ltp_log.json");
+    }
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
         assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
+}
+
+sub process_ltp_known_issues {
+    my ($self, $ltp_log) = @_;
+    my $decoded_ltp_log = Mojo::JSON::from_json($ltp_log);
+    my $env             = gen_ltp_env();
+    my $suite           = get_required_var('COMMAND_FILE');
+
+    foreach my $test (@{$decoded_ltp_log->{results}}) {
+        if (($test->{status} eq 'fail' || $test->{status} eq 'brok' || $test->{status} eq 'warn')) {
+            my $entry = find_whitelist_entry($env, $suite, $test->{test_fqn});
+            bmwqemu::diag(sprintf("Failure in LTP:%s:%s is known, overriding to softfail", $suite, $test->{test_fqn}));
+            $test->{status} = 'softfail';
+        }
+    }
+    my $final_ltp_log = Mojo::JSON::to_json($decoded_ltp_log);
+    Mojo::File::path($ltp_log)->spurt($final_ltp_log);
+}
+
+sub gen_ltp_env {
+    my $environment = {
+        product     => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
+        revision    => get_required_var('BUILD'),
+        flavor      => get_required_var('FLAVOR'),
+        arch        => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
+        backend     => get_required_var('BACKEND'),
+        kernel      => '',
+        libc        => '',
+        gcc         => '',
+        harness     => 'SUSE OpenQA',
+        ltp_version => '',
+        #TODO currently we getting only pass or fail due to use of '--openqa-filter' need to properly solve retval issue
+        # from runltp-ng side to get smarter logic on this side
+        retval => '1'
+    };
+    if ($ver_linux_log =~ qr'^Linux\s+(.*?)\s*$'m) {
+        $environment->{kernel} = $1;
+    }
+    if ($ver_linux_log =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
+        $environment->{libc} = $1;
+    }
+    if ($ver_linux_log =~ qr'^Gnu C\s*(.*?)\s*$'m) {
+        $environment->{gcc} = $1;
+    }
+    $environment->{ltp_version} = script_output("cat " . get_ltp_version_file());
+    record_info("LTP version", $environment->{ltp_version});
+
+    return $environment;
 }
 
 1;
