@@ -138,7 +138,15 @@ sub upload_img {
             # suse-sles-15-sp2-v20210303-hvm-ssd-arm64
             'eu-central-1-arm64' => 'ami-0b01dd8e9169233b8',
             # suse-sles-15-sp2-byos-v20210303-hvm-ssd-arm64
-            'eu-central-1-byos-arm64' => 'ami-0c8748d383cef954d'
+            'eu-central-1-byos-arm64' => 'ami-0c8748d383cef954d',
+            # suse-sles-15-sp2-v20210612-hvm-ssd-x86_64
+            'eu-west-1' => 'ami-0262d8a22ca5eae95',
+            # suse-sles-15-sp2-byos-v20210612-hvm-ssd-x86_64
+            'eu-west-1-byos' => 'ami-076b2a39e235b7d33',
+            # suse-sles-15-sp2-v20210604-hvm-ssd-arm64
+            'eu-west-1-arm64' => 'ami-0f3c8cfb9639c3b6d',
+            # suse-sles-15-sp2-byos-v20210604-hvm-ssd-arm64
+            'eu-west-1-byos-arm64' => 'ami-02eae5be24d203db3',
         };
 
         my $ami_id_key = $self->region;
