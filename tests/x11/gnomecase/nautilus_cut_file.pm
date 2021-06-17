@@ -28,10 +28,9 @@ sub run {
     x11_start_program('nautilus');
     x11_start_program("touch newfile", valid => 0);
 
-    send_key_until_needlematch 'nautilus-newfile-matched', 'right', 15;
+    assert_and_click "nautilus-newfile-matched";
     send_key "ctrl-x";
-    send_key_until_needlematch 'nautilus-Downloads-matched', 'left', 5;
-    send_key "ret";
+    assert_and_dclick "nautilus-Downloads-matched";
     # paste to ~/Downloads
     send_key "ctrl-v";
     # assure file moved, no matter file is highlighted or not

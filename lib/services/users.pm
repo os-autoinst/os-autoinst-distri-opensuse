@@ -86,6 +86,7 @@ sub change_pwd {
 
 sub add_user {
     assert_and_click "add-user";
+    assert_screen("before-input-username-test");
     type_string $newUser;
     assert_screen("input-username-test");
     assert_and_click "set-password-option";
