@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,6 +20,9 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use containers::runtime;
+use containers::common;
+use containers::urls 'get_suse_container_urls';
+use version_utils qw(get_os_release);
 
 # Get the total and used GiB of a given btrfs device
 sub _btrfs_fi {
@@ -30,9 +33,13 @@ sub _btrfs_fi {
 }
 
 sub _sanity_test_btrfs {
-    my ($rt, $dev_path) = @_;
-    my $dockerfile_path = '/root/sle_base_image/docker_build';
-    my $btrfs_head      = '/tmp/subvolumes_saved';
+    my ($rt, $dev_path, $img) = @_;
+    my $dockerfile_path = "~/sle_base_image/docker_build";
+    unless (script_run("test -d $dockerfile_path")) {
+        script_run "mkdir -p $dockerfile_path";
+    }
+    assert_script_run("echo -e 'FROM $img\\nENV WORLD_VAR Arda' > $dockerfile_path/Dockerfile");
+    my $btrfs_head = '/tmp/subvolumes_saved';
     $rt->info(property => 'Driver', value => 'btrfs');
     $rt->build($dockerfile_path, 'huge_image');
     assert_script_run "btrfs fi df $dev_path/btrfs/";
@@ -50,7 +57,7 @@ sub _test_btrfs_balancing {
 
 sub _test_btrfs_thin_partitioning {
     my ($rt, $dev_path) = @_;
-    my $dockerfile_path = '/root/sle_base_image/docker_build';
+    my $dockerfile_path = '~/sle_base_image/docker_build';
     my $btrfs_head      = '/tmp/subvolumes_saved';
     $rt->build($dockerfile_path, 'thin_image');
     # validate that new subvolume has been created. This should be improved.
@@ -88,13 +95,32 @@ sub _test_btrfs_device_mgmt {
 }
 
 sub run {
+    my ($self) = @_;
+    $self->select_serial_terminal;
+    die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    install_docker_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => 'docker');
     my $docker    = containers::runtime->new(runtime => 'docker');
     my $btrfs_dev = '/var/lib/docker';
-    _sanity_test_btrfs($docker, $btrfs_dev);
+    my ($untested_images, $released_images) = get_suse_container_urls();
+    _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
     _test_btrfs_device_mgmt($docker, $btrfs_dev);
     _test_btrfs_balancing($btrfs_dev);
     $docker->cleanup_system_host;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    script_run "rm -rf ~/sle_base_image/docker_build";
+    $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my $self = shift;
+    script_run "rm -rf ~/sle_base_image/docker_build";
+    $self->SUPER::post_run_hook;
 }
 
 1;
