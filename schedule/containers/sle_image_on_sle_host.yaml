@@ -11,16 +11,13 @@ conditional_schedule:
     HOST_VERSION:
       15-SP3:
         - containers/podman_image
-        - containers/buildah_docker
-        - containers/buildah_podman
+        - containers/buildah
       15-SP2:
         - containers/podman_image
-        - containers/buildah_docker
-        - containers/buildah_podman
+        - containers/buildah
       15-SP1:
         - containers/podman_image
-        - containers/buildah_docker
-        - containers/buildah_podman
+        - containers/buildah
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
