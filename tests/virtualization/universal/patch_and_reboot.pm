@@ -40,12 +40,15 @@ sub run {
     add_test_repositories;
     fully_patch_system;
 
+    # useful for debugging
+    script_run("virsh list --all | grep -v Domain-0");
+
     # Check that all guests are still running
     script_retry("nmap $_ -PN -p ssh | grep open", delay => 60, retry => 60) foreach (keys %virt_autotest::common::guests);
 
     if (is_xen_host) {
         # Shut all guests down so the reboot will be easier
-        assert_script_run "virsh shutdown $_" foreach (keys %virt_autotest::common::guests);
+        script_run "virsh shutdown $_" foreach (keys %virt_autotest::common::guests);
         script_retry "virsh list --all | grep -v Domain-0 | grep running", delay => 3, retry => 30, expect => 1;
     }
 
