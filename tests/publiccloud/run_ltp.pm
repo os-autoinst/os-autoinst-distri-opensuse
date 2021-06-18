@@ -99,7 +99,7 @@ sub run {
     assert_script_run($log_start_cmd);
 
     my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
-    $cmd .= '--logname=ltp_log ';
+    $cmd .= '--logname=ltp_log --verbose ';
     $cmd .= '--timeout=1200 ';
     $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
     $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
