@@ -35,7 +35,7 @@ sub _btrfs_fi {
 sub _sanity_test_btrfs {
     my ($rt, $dev_path, $img) = @_;
     my $dockerfile_path = "~/sle_base_image/docker_build";
-    unless (script_run("test -d $dockerfile_path")) {
+    if (script_run("test -d $dockerfile_path") != 0) {
         script_run "mkdir -p $dockerfile_path";
     }
     assert_script_run("echo -e 'FROM $img\\nENV WORLD_VAR Arda' > $dockerfile_path/Dockerfile");
