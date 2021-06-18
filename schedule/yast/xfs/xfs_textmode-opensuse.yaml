@@ -5,8 +5,6 @@ description: >
   for the root partition. Installation is validated by successful boot and checking
   that the correct filesystem was installed.
 vars:
-  DESKTOP: textmode
-  FILESYSTEM: xfs
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start

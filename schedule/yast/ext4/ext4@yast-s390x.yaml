@@ -5,7 +5,6 @@ description:    >
   Grub is not displayed due to console reconnection.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: ext4
   FORMAT_DASD: install
   YUI_REST_API: 1
 schedule:

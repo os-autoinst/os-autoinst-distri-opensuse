@@ -3,8 +3,6 @@ name:           ext4_textmode
 description:    >
   Test for ext4 filesystem in text mode.
 vars:
-  DESKTOP: textmode
-  FILESYSTEM: ext4
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start

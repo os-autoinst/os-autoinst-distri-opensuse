@@ -1,10 +1,8 @@
 ---
 name:           ext3_textmode
 description:    >
-  Test for ext3 filesystem.
+  Test for ext3 filesystem in text mode.
 vars:
-  DESKTOP: textmode
-  FILESYSTEM: ext3
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start

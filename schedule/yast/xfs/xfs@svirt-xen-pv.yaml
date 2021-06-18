@@ -6,7 +6,6 @@ description: >
   YaST does not report any issue.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: xfs
   YUI_REST_API: 1
 schedule:
   - installation/isosize

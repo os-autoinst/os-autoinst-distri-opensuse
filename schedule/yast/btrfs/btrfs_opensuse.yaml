@@ -2,7 +2,7 @@ name:           btrfs
 description:    >
   Validate default installation with btrfs.
 vars:
-  FILESYSTEM: btrfs
+  FILESYSTEM: btrfs  # Used for log collection in lib/y2_base
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
