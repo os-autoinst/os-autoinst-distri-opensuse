@@ -170,8 +170,9 @@ sub test_opensuse_based_image {
             my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
             if ($runtime =~ /buildah/) {
+                # We are testing different image versions on the same host, so we just validate for `SUSE Linux Enterprise Server`
                 validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
-                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
+                    sub { m/SUSE Linux Enterprise Server/ });
             } else {
                 # zypper-docker changes the layout of the image
                 validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
