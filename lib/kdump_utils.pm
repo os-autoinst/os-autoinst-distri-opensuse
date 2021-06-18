@@ -107,10 +107,9 @@ sub prepare_for_kdump {
         zypper_call("rr $snapshot_debuginfo_repo");
         return;
     }
-    my $opensuse_debug_repos = 'repo-debug ';
-    if (!check_var('VERSION', 'Tumbleweed')) {
-        $opensuse_debug_repos .= 'repo-debug-update ';
-    }
+    my $opensuse_debug_repos = 'repo-debug';
+    $opensuse_debug_repos .= ' repo-debug-update' unless is_tumbleweed;
+    $opensuse_debug_repos .= ' repo-sle-debug-update' if is_leap("15.3+");
     zypper_call("mr -e $opensuse_debug_repos");
     install_kernel_debuginfo;
     zypper_call("mr -d $opensuse_debug_repos");
