@@ -2038,7 +2038,7 @@ sub load_x11_message {
         }
         loadtest "x11/groupwise/groupwise" if is_sle || is_tumbleweed;
     }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && is_sle || is_tumbleweed) {
+    if (get_var("DESKTOP") =~ /kde|gnome/ && is_tumbleweed) {
         loadtest "x11/pidgin/prep_pidgin";
         loadtest "x11/pidgin/pidgin_IRC";
         loadtest "x11/pidgin/clean_pidgin";
