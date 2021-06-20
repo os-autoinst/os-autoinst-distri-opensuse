@@ -249,6 +249,9 @@ sub test_built_img {
     sleep 5;
     assert_script_run("$runtime ps -a");
     script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
+
+    # Clean up
+    assert_script_run("$runtime stop `$runtime ps -q`");
     assert_script_run("rm -rf /root/templates");
 }
 

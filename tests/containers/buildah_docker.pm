@@ -21,7 +21,7 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(get_os_release check_os_release);
+use version_utils qw(get_os_release check_os_release is_sle);
 
 sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
@@ -43,13 +43,10 @@ sub run {
                 # Use container which it is created in test_container_image
                 # Buildah default name is conducted by <image-name>-working-container
                 my ($prefix_img_name) = $iname =~ /([^\/:]+)(:.+)?$/;
-                test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah');
+                test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => 'buildah', version => $version);
                 # Due to the steps from the test_opensuse_based_image previously,
                 # the image has been committed as refreshed
-                test_containered_app(runtime => 'docker',
-                    buildah    => 1,
-                    dockerfile => 'Dockerfile.suse',
-                    base       => 'refreshed');
+                test_containered_app(runtime => 'docker', buildah => 1, dockerfile => 'Dockerfile.suse', base => 'refreshed') unless is_sle('<15', $version);
             }
         }
     }
