@@ -16,8 +16,8 @@ use warnings;
 use testapi;
 use lockapi;
 use mm_network 'setup_static_mm_network';
-use utils 'zypper_call';
-use Utils::Systemd 'disable_and_stop_service';
+use utils qw(zypper_call permit_root_ssh);
+use Utils::Systemd qw(disable_and_stop_service systemctl);
 use version_utils qw(is_sle is_opensuse);
 
 sub is_networkmanager {
@@ -60,7 +60,7 @@ sub run {
             assert_script_run "nmcli connection up '$nm_id'";
         }
         else {
-            assert_script_run 'systemctl restart  wicked';
+            systemctl("restart wicked");
         }
     }
 
@@ -68,6 +68,11 @@ sub run {
     assert_script_run "hostnamectl set-hostname $hostname";
     assert_script_run "hostnamectl status|grep $hostname";
     assert_script_run "hostname|grep $hostname";
+
+    # Make sure that PermitRootLogin is set to yes
+    # This is needed only when the new SSH config directory exists
+    # See: poo#93850
+    permit_root_ssh();
 }
 
 1;
