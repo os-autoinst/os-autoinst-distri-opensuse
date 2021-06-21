@@ -30,7 +30,9 @@ sub run {
     my $self     = shift;
     my $username = 'Administrator';
 
+    # Remove already existing guests to ensure a fresh start (needed for restarting jobs)
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
+    shutdown_guests();    # Shutdown SLES guests as they are not needed here
 
     import_guest $_,       'virt-install'                            foreach (values %virt_autotest::common::imports);
     add_guest_to_hosts $_, $virt_autotest::common::imports{$_}->{ip} foreach (keys %virt_autotest::common::imports);
@@ -44,8 +46,18 @@ sub run {
     assert_script_run "ssh $username\@$_ 'systeminfo' | tee /tmp/$_-systeminfo.txt"                            foreach (keys %virt_autotest::common::imports);
     upload_logs "/tmp/$_-systeminfo.txt"                                                                       foreach (keys %virt_autotest::common::imports);
     assert_script_run "ssh $username\@$_ 'systeminfo' | grep '$virt_autotest::common::imports{$_}->{version}'" foreach (keys %virt_autotest::common::imports);
+}
 
+sub post_fail_hook {
+    my $self = shift;
+    # Note: Don't cleanup guests on test failure, so their state is preserved for debugging purposes!
+    $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my $self = shift;
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
+    $self->SUPER::post_run_hook;
 }
 
 1;

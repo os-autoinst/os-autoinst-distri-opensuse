@@ -2659,6 +2659,7 @@ sub load_virtualization_tests {
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
     return unless get_var('VIRT_PART');
+    my $windows = check_var('VIRT_PART', 'windows');
 
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
@@ -2688,15 +2689,15 @@ sub load_hypervisor_tests {
         loadtest "virt_autotest/login_console";
     }
 
-    loadtest "virtualization/universal/list_guests";                # List all guests and ensure they are running
+    loadtest "virtualization/universal/list_guests" unless ($windows);    # List all guests and ensure they are running
 
     if (check_var('VIRT_PART', 'install')) {
-        loadtest "virtualization/universal/kernel";                 # Virtualization kernel functions
+        loadtest "virtualization/universal/kernel";                       # Virtualization kernel functions
     }
 
     if (check_var('VIRT_PART', 'virtmanager')) {
-        loadtest 'virtualization/universal/virtmanager_init';       # Connect to the Xen hypervisor using virt-manager
-        loadtest 'virtualization/universal/virtmanager_offon';      # Turn all VMs off and then on again
+        loadtest 'virtualization/universal/virtmanager_init';             # Connect to the Xen hypervisor using virt-manager
+        loadtest 'virtualization/universal/virtmanager_offon';            # Turn all VMs off and then on again
 
         if (is_sle('12-SP3+')) {
             loadtest 'virtualization/universal/virtmanager_add_devices';    # Add some aditional HV to all VMs
@@ -2751,7 +2752,7 @@ sub load_hypervisor_tests {
         loadtest "console/oprofile" unless (get_var("REGRESSION", '') =~ /xen/);
     }
 
-    if (check_var('VIRT_PART', 'windows')) {
+    if ($windows) {
         loadtest "virtualization/universal/download_image";       # Download Windows disk image(s)
         loadtest "virtualization/universal/windows";              # Import and test Windows
     }

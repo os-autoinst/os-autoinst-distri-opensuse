@@ -203,6 +203,15 @@ sub test_vmem_change {
     set_guest_memory($guest, 2048, 1500, 2252);
 }
 
+sub increase_max_memory {
+    my $guest          = shift;
+    my $increase       = shift // 2048;
+    my $guest_instance = $virt_autotest::common::guests{$guest};
+    my $maxmemory      = $guest_instance->{maxmemory} // "4096";
+    $maxmemory += $increase;
+    assert_script_run("virsh setmaxmem $guest $maxmemory" . "M --config");
+}
+
 sub run_test {
     my ($self) = @_;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
@@ -215,6 +224,12 @@ sub run_test {
         upload_logs("/var/log/virt_dns_setup.log");
         save_screenshot;
     }
+
+    ## 0. Guest preparation
+    shutdown_guests();
+    # Increase maximum memory for this test run
+    increase_max_memory($_) foreach (keys %virt_autotest::common::guests);
+    start_guests();
 
     # 1. Add network interfaces
     my %mac = ();
@@ -241,11 +256,16 @@ sub run_test {
         record_info "Reboot All Guests", "Mis-handling of live and config provisions by other test modules may have negative impact on 12-SP5 and 15-SP1 KVM scenarios due to bsc#1171946. So here is the workaround to drop all live provisions by rebooting all vm guests.";
         perform_guest_restart;
     }
+
+    ## 5. Cleanup
+    shutdown_guests();
+    reset_guest($_) foreach (keys %virt_autotest::common::guests);
 }
 
-sub clean_guest {
+sub reset_guest {
     my $guest = shift;
     return if $guest == "";
+    my $guest_instance = $virt_autotest::common::guests{$guest};
 
     ## Network
     # Remove temporary NIC devices, those are identified by a MAC starting with "$MAC_PREFIX"
@@ -256,7 +276,11 @@ sub clean_guest {
     script_run("rm -f $disk_image");
     ## CPU and memory
     set_vcpus($guest, 2);
-    set_guest_memory($guest, 2048);
+    my $memory = $guest_instance->{memory} // "2048";
+    set_guest_memory($guest, $memory);
+    # max memory
+    my $maxmemory = $guest_instance->{maxmemory} // "4096";
+    script_run("virsh setmaxmem $_ $maxmemory" . "M --config") foreach (keys %virt_autotest::common::guests);
 }
 
 sub post_fail_hook {
@@ -265,7 +289,7 @@ sub post_fail_hook {
     # Call parent post_fail_hook to collect logs on failure
     $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
-    clean_guest($_) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_) foreach (keys %virt_autotest::common::guests);
 }
 
 1;

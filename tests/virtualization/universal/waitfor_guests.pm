@@ -106,13 +106,14 @@ sub run {
     assert_script_run "cat /etc/hosts";
 
     # Wait for guests to finish installation
-    script_run("wait", timeout => 1200);
+    # script_run("wait", timeout => 1200);
     #script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
     # Unfortunately this doesn't cover the second step of the installation, where ssh is available
-    script_run("sleep 600", timeout => 660);    # XXX No idea yet how to prevent this sleep :-(
+    my $sleep_delay = 1200;
+    $sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
+    sleep($sleep_delay);                     # XXX Get rid of this sleep!
     start_guests();
     record_info("guests installed", "Guest installation completed");
-    wait_guest_online($_, 120) foreach (keys %virt_autotest::common::guests);
 
     # Adding the PCI bridges requires the guests to be shutdown
     record_info("shutdown guests", "Shutting down all guests");
