@@ -675,22 +675,30 @@ the second run will update the system.
 
 =cut
 sub fully_patch_system {
-    # first run, possible update of packager -- exit code 103
-    zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     # special handle for 11-SP4 s390 install
     if (is_sle('=11-SP4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x')) {
+        # first run, possible update of packager -- exit code 103
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
         handle_patch_11sp4_zvm();
-    } else {
-        # second run, full system update
-        my $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102], timeout => 6000);
-        if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
-            record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
-            my $para = '';
-            $para = '--force-resolution' if get_var('FORCE_DEPS');
-            zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
-            save_screenshot;
-        }
+        return;
     }
+
+    # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
+    my $ret = 1;
+    for (1 .. 3) {
+        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
+        last if $ret != 103;
+    }
+
+    if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
+        record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
+        my $para = '';
+        $para = '--force-resolution' if get_var('FORCE_DEPS');
+        $ret  = zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
+        save_screenshot;
+    }
+
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
 }
 
 =head2 ssh_fully_patch_system
