@@ -22,7 +22,7 @@ use utils;
 use version_utils;
 use publiccloud::ssh_interactive;
 
-our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
+our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce is_staging_image);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -82,6 +82,11 @@ sub is_azure() {
 # Check if we are on an GCP test run
 sub is_gce() {
     return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+}
+
+# Check if we are a Staging images test run
+sub is_staging_image() {
+    return (get_required_var('FLAVOR') =~ '.*-Staging-Images');
 }
 
 1;

@@ -18,7 +18,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::utils qw(select_host_console is_staging_image);
 
 sub run {
     my ($self, $args) = @_;
@@ -30,6 +30,8 @@ sub run {
     # Trigger to skip the download to speed up verification runs
     if (get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD') == 1) {
         record_info('Skip download', 'Skipping download triggered by setting (QAM_PUBLICCLOUD_SKIP_DOWNLOAD = 1)');
+    } elsif (is_staging_image()) {
+        record_info('Skip download', 'Skipping download triggered by FLAVOR');
     } else {
         assert_script_run('du -sh ~/repos');
         assert_script_run("rsync -uva -e ssh ~/repos root@" . $args->{my_instance}->public_ip . ":'/tmp/repos'", timeout => 900);

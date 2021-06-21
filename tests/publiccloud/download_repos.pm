@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils "select_host_console";
+use publiccloud::utils qw(select_host_console is_staging_image);
 
 # Get the status of the update repos
 # 0 = no repo, 1 = repos already downloaded, 2 = repos downloading
@@ -35,6 +35,8 @@ sub run {
     # Trigger to skip the download to speed up verification runs
     if (get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD') == 1) {
         record_info('Skip download', 'Skipping download triggered by setting (QAM_PUBLICCLOUD_SKIP_DOWNLOAD = 1)');
+    } elsif (is_staging_image()) {
+        record_info('Skip download', 'Skipping download triggered by FLAVOR');
     } else {
         # Skip if we already downloaded the repos
         if (get_repo_status() == 1) {
@@ -88,9 +90,10 @@ sub run {
         # Failsafe 2: Ensure the repos are not empty (i.e. size >= 1 MB)
         $size = script_output('du -s ~/repos | awk \'{print$1}\'');
         die "Empty test repositories" if ($check_empty_repos && $size < 1000);
+
+        # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
+        assert_script_run("if [ -d ~/repos/dist.suse.de ]; then mv ~/repos/dist.suse.de ~/repos/download.suse.de; fi");
     }
-    # The maintenance *.repo files all point to download.suse.de, but we are using dist.suse.de, so we need to rename the directory
-    assert_script_run("if [ -d ~/repos/dist.suse.de ]; then mv ~/repos/dist.suse.de ~/repos/download.suse.de; fi");
     assert_script_run("cd");
 }
 
