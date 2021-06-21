@@ -8,10 +8,10 @@
 # without any warranty.
 
 # Package: docker podman
-# Summary: Pull and test several base images (alpine, openSUSE, debian, ubuntu, fedora, centos) for their base functionality
+# Summary: Pull and test several base images (alpine, openSUSE, debian, ubuntu, fedora, centos, ubi) for their base functionality
 #          Log the test results in containers_3rd_party.txt
 #          Docker or Podman tests can be skipped by setting SKIP_DOCKER_IMAGE_TESTS=1 or SKIP_PODMAN_IMAGE_TESTS=1 in the job
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 use base 'consoletest';
 use strict;
@@ -34,6 +34,7 @@ sub run_image_tests {
     my $engine = shift;
     my @images = @_;
     foreach my $image (@images) {
+        record_info('IMAGE', "Testing $image with $engine");
         if ((check_var('ARCH', 's390x')) && ($image =~ /leap/)) {
             record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
         } elsif ((check_var('ARCH', 's390x')) && ($image =~ /centos/)) {
@@ -72,7 +73,13 @@ sub run {
         "$ex_reg/library/debian",
         "$ex_reg/library/ubuntu",
         "$ex_reg/library/centos",
-        "$ex_reg/library/fedora");
+        "$ex_reg/library/fedora",
+        "registry.access.redhat.com/ubi7/ubi",
+        "registry.access.redhat.com/ubi7/ubi-minimal",
+        "registry.access.redhat.com/ubi7/ubi-init",
+        "registry.access.redhat.com/ubi8/ubi",
+        "registry.access.redhat.com/ubi8/ubi-minimal",
+        "registry.access.redhat.com/ubi8/ubi-init");
 
     script_run('echo "Container base image tests:" > /var/tmp/containers_3rd_party_log.txt');
     # Run docker tests
