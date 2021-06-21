@@ -1349,6 +1349,7 @@ sub _handle_login_not_found {
 =head2 reconnect_mgmt_console
 
  reconnect_mgmt_console([timeout => $timeout]);
+ permit_root_ssh();
 
 After each reboot we have to reconnect to the management console on remote backends.
 C<$timeout> can be set to some specific time and if during reboot GRUB is shown twice C<grub_expected_twice>
