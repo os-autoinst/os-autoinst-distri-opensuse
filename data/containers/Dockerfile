@@ -2,19 +2,16 @@
 # use base variable when you call test_containered_app
 FROM baseimage_var
 
-RUN zypper -n in python3 python3-pip curl
+RUN zypper -n in apache2 && zypper clean -a
 
 # set a directory for the app
-WORKDIR /usr/src/app
+WORKDIR /srv/www/htdocs/
 
 # copy all the files to the container
-COPY . .
-
-# install dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+COPY index.html .
 
 # tell the port number the container should expose
 EXPOSE 5000
 
 # run the command
-ENTRYPOINT ["python3", "./app.py"]
+ENTRYPOINT ["/usr/sbin/start_apache2", "-DFOREGROUND", "-k", "start"]
