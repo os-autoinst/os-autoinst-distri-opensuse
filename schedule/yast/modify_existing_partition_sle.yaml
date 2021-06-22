@@ -8,7 +8,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -30,4 +30,5 @@ schedule:
   - installation/first_boot
   - console/validate_modify_existing_partition
 test_data:
+  product: SLES
   <<: !include test_data/yast/modify_existing_partition/modify_existing_partition.yaml

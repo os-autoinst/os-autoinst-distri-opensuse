@@ -7,7 +7,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - '{{disk_activation}}'
   - installation/scc_registration
@@ -31,6 +31,7 @@ schedule:
   - console/system_prepare
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/validate_product_name_installed
   - console/verify_network
   - locale/keymap_or_locale
   - console/validate_installed_patterns
@@ -44,6 +45,7 @@ conditional_schedule:
       s390x:
         - installation/disk_activation
 test_data:
+  product: SLES
   system_role:
     default: 'Text Mode'
   software:

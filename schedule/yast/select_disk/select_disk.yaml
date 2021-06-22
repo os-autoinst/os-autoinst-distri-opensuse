@@ -9,7 +9,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -37,6 +37,7 @@ conditional_schedule:
       pvm_hmc:
         - installation/edit_optional_kernel_cmd_parameters
 test_data:
+  product: SLES
   guided_partitioning:
     disks:
       - vda

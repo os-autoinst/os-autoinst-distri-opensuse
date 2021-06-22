@@ -13,9 +13,11 @@ vars:
   SCC_REGISTER: console
   ENABLE_ALL_SCC_MODULES: 1
   ADDONS: all-packages
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
@@ -46,3 +48,5 @@ schedule:
   - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+test_data:
+  product: SLES

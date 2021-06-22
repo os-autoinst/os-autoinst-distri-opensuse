@@ -16,9 +16,11 @@ vars:
   DESKTOP: textmode
   SYSTEM_ROLE: textmode
   SCC_ADDONS: desktop,legacy,sdk,script,contm
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -46,3 +48,5 @@ schedule:
   - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+test_data:
+  product: SLES

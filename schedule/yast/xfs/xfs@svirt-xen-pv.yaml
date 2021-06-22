@@ -12,7 +12,7 @@ schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -35,4 +35,5 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
+  product: SLES
   <<: !include test_data/yast/xfs/xfs_partition_svirt-xen.yaml

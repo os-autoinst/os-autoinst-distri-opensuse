@@ -8,10 +8,11 @@ vars:
   EXIT_AFTER_START_INSTALL: '1'
   EXPECTED_INSTALL_HOSTNAME: linuxrchostname
   EXTRABOOTPARAMS: hostname=linuxrchostname
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -26,3 +27,5 @@ schedule:
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
+test_data:
+  product: SLES

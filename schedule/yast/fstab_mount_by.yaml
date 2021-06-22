@@ -10,7 +10,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -32,6 +32,7 @@ schedule:
   - installation/first_boot
   - console/validate_fstab
 test_data:
+  product: SLES
   disks:
     - name: vda
       partitions:

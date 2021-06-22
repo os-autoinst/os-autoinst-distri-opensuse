@@ -8,9 +8,11 @@ name: activate_encrypted_volume
 vars:
   ENCRYPT_ACTIVATE_EXISTING: 1
   FORMAT_DASD: pre_install
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
@@ -33,4 +35,5 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
 test_data:
+  product: SLES
   <<: !include test_data/yast/encryption/activate_encrypted_volume.yaml
