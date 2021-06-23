@@ -18,7 +18,7 @@ use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
 use utils;
-use version_utils qw(is_microos is_jeos is_leap is_sle is_tumbleweed);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
 use Utils::Backends 'is_pvm';
 
@@ -993,6 +993,14 @@ sub zkvm_add_disk {
         else {
             enter_cmd("# copying image...");
             $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
+        }
+        # in MicroOS or SLEM we need to add ignition drive to proceed with image basic setup
+        if (is_microos || is_sle_micro) {
+            my $ignition_drive = get_var('HDD_2');
+            $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $ignition_drive | head -n1 | tr -d '\n'");
+            die "Unable to find image $basename in $hdd_dir" unless $hdd_path;
+            enter_cmd("# copying $ignition_drive...");
+            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'b'});    # Copy disk to local storage
         }
     }
     else {
