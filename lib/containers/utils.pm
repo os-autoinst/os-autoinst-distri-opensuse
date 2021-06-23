@@ -228,7 +228,7 @@ sub build_img {
         # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
         script_retry("$runtime image pull $py_repo", retry => 3, timeout => 420);
         assert_script_run("$runtime tag $py_repo python:3");
-        assert_script_run("$runtime build -t myapp BuildTest");
+        assert_script_run("$runtime build -t myapp BuildTest", timeout => 300);
     }
     elsif ($runtime =~ /buildah/) {
         assert_script_run("$runtime bud -t myapp BuildTest");
