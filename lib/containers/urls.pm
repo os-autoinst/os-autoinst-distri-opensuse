@@ -23,6 +23,7 @@ use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_
 our @EXPORT = qw(
   get_opensuse_registry_prefix
   get_suse_container_urls
+  get_3rd_party_images
 );
 
 # Returns a string which should be prepended to every pull from registry.opensuse.org.
@@ -115,4 +116,32 @@ sub get_suse_container_urls {
     }
 
     return (\@untested_images, \@released_images);
+}
+
+sub get_3rd_party_images {
+    my $ex_reg = get_var('REGISTRY', 'docker.io');
+    my @images = (
+        "registry.opensuse.org/opensuse/leap",
+        "registry.opensuse.org/opensuse/tumbleweed",
+        "$ex_reg/library/alpine",
+        "$ex_reg/library/debian",
+        "$ex_reg/library/fedora",
+        "registry.access.redhat.com/ubi8/ubi",
+        "registry.access.redhat.com/ubi8/ubi-minimal",
+        "registry.access.redhat.com/ubi8/ubi-init");
+
+    # poo#72124 Ubuntu image (occasionally) fails on s390x
+    push @images, "$ex_reg/library/ubuntu" unless check_var('ARCH', 's390x');
+
+    # Missing centos container image for s390x.
+    push @images, "$ex_reg/library/centos" unless check_var('ARCH', 's390x');
+
+    # RedHat UBI7 images are not built for aarch64
+    push @images, (
+        "registry.access.redhat.com/ubi7/ubi",
+        "registry.access.redhat.com/ubi7/ubi-minimal",
+        "registry.access.redhat.com/ubi7/ubi-init"
+    ) unless (check_var('ARCH', 'aarch64'));
+
+    return (\@images);
 }

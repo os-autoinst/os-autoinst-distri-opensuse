@@ -44,7 +44,8 @@ schedule:
   - '{{supported}}'
   - containers/docker_compose
   - containers/zypper_docker
-  - containers/containers_3rd_party
+  - containers/docker_3rd_party_images
+  - containers/podman_3rd_party_images
   - containers/registry
   - console/coredump_collect
   - '{{validate_btrfs}}'
