@@ -54,7 +54,8 @@ sub run {
 
     select_host_console();
 
-    if (get_var('PUBLIC_CLOUD_QAM')) {
+    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
+    if ($qam) {
         $instance = $self->{my_instance} = $args->{my_instance};
         $provider = $self->{provider}    = $args->{my_provider};    # required for cleanup
     } else {
@@ -69,7 +70,7 @@ sub run {
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
 
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . get_required_var('SCC_REGCODE'), timeout => 600) if is_byos();
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . get_required_var('SCC_REGCODE'), timeout => 600) if (is_byos() && !$qam);
 
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
