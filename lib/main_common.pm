@@ -29,7 +29,6 @@ use lockapi 'barrier_create';
 use Carp 'croak';
 use strict;
 use warnings;
-use isotovideo;
 
 our @EXPORT = qw(
   any_desktop_is_applicable
@@ -134,10 +133,6 @@ sub init_main {
         my $errors = verify_checksum();
         set_var('CHECKSUM_FAILED', $errors) if $errors;
     }
-
-    # requiring os-autoinst with support for "enter_cmd"
-    # https://github.com/os-autoinst/os-autoinst/pull/1619
-    isotovideo::VERSION(undef, 22);
 }
 
 sub loadtest {
