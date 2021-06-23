@@ -23,10 +23,11 @@ use warnings;
 use version_utils;
 use version;
 use containers::utils;
+use containers::common 'test_container_image';
 
 our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app
-  test_zypper_on_container verify_userid_on_container);
+  test_zypper_on_container verify_userid_on_container test_3rd_party_image upload_3rd_party_images_logs);
 
 # Build any container image using a basic Dockerfile. Not applicable for buildah builds
 sub build_container_image {
@@ -303,6 +304,24 @@ sub exec_on_container {
     my ($image, $runtime, $command, $timeout) = @_;
     $timeout //= 120;
     assert_script_run("$runtime run --rm $image $command", $timeout);
+}
+
+sub test_3rd_party_image {
+    my ($runtime, $image) = @_;
+    record_info('IMAGE', "Testing $image with $runtime");
+    test_container_image(image => $image, runtime => $runtime);
+    script_run("echo 'OK: $runtime - $image:latest' >> /var/tmp/$runtime-3rd_party_images_log.txt");
+}
+
+sub upload_3rd_party_images_logs {
+    my $runtime = shift;
+    # Rename for better visibility in Uploaded Logs
+    if (script_run("mv /var/tmp/$runtime-3rd_party_images_log.txt /tmp/$runtime-3rd_party_images_log.txt") != 0) {
+        record_info("No logs", "No logs found");
+    } else {
+        upload_logs("/tmp/$runtime-3rd_party_images_log.txt");
+        script_run("rm /tmp/$runtime-3rd_party_images_log.txt");
+    }
 }
 
 1;

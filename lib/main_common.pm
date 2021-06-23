@@ -1698,11 +1698,12 @@ sub load_extra_tests_docker {
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
         loadtest 'containers/podman';
         loadtest "containers/podman_image" unless is_public_cloud;
+        loadtest "containers/podman_3rd_party_images";
     }
 
     loadtest "containers/docker";
     loadtest "containers/docker_runc";
-    loadtest "containers/containers_3rd_party";
+    loadtest "containers/docker_3rd_party_images";
     if ((!is_public_cloud() && is_sle(">=12-sp3")) || is_opensuse()) {
         loadtest "containers/docker_image";
         loadtest "containers/container_diff";
