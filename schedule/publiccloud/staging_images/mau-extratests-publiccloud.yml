@@ -22,7 +22,6 @@ schedule:
   - console/syslog
   - console/mta
   - console/check_default_network_manager
-  - console/gdb
   - console/sysctl
   - console/sysstat
   - console/wget_ipv6
@@ -40,5 +39,4 @@ schedule:
   - console/aaa_base
   - console/osinfo_db
   - console/libgcrypt
-  - console/valgrind
   - publiccloud/ssh_interactive_end
