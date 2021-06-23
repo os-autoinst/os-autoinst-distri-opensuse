@@ -4,6 +4,7 @@ mds:
   - raid_level: 0
     name: md0
     chunk_size: '64 KiB'
+    device_selection_step: 2
     devices:
       - vda2
       - vdb2
@@ -18,6 +19,7 @@ mds:
   - raid_level: 0
     name: md1
     chunk_size: '64 KiB'
+    device_selection_step: 1
     devices:
       - vda3
       - vdb3
