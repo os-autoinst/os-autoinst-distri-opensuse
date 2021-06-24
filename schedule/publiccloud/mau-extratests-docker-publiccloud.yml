@@ -7,8 +7,10 @@ conditional_schedule:
     VERSION:
       15-SP1:
         - containers/podman
+        - containers/podman_3rd_party_images
       15-SP2:
         - containers/podman
+        - containers/podman_3rd_party_images
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
@@ -25,7 +27,6 @@ schedule:
   - containers/docker
   - containers/docker_runc
   - containers/docker_3rd_party_images
-  - containers/podman_3rd_party_images
   - containers/registry
   - containers/zypper_docker
   - publiccloud/ssh_interactive_end
