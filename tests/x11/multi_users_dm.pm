@@ -77,6 +77,7 @@ sub run {
     handle_login($user, 1);
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     assert_screen 'generic-desktop', 60;
+    send_key 'esc' if match_has_tag('gnome-activities');
     # verify correct user is logged in
     x11_start_program('xterm');
     wait_still_screen;
@@ -84,7 +85,8 @@ sub run {
     assert_script_sudo "grep $user /tmp/whoami.log";
     # logout user
     handle_logout;
-    wait_still_screen;
+    # Wait some more seconds before selecting root-console, as it fails sporadically in aarch64
+    wait_still_screen 10;
 
     # restore previous config
     select_console 'root-console';
