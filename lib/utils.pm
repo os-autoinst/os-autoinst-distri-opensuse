@@ -23,7 +23,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use version_utils qw(is_microos is_sle_micro is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
@@ -1401,7 +1401,7 @@ sub reconnect_mgmt_console {
                       diag 'Could not find boot selection, continuing nevertheless, trying to boot';
                     type_line_svirt '';
                 }
-                wait_serial('GNU GRUB', $args{grub_timeout}) ||
+                wait_serial(is_sle_micro ? 'Welcome to GRUB' : 'GNU GRUB', $args{grub_timeout}) ||
                   diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
                 type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
             }
