@@ -6,7 +6,6 @@ description:    >
   module is scheduled and OPT_KERNEL_PARAMS variable is set.
 vars:
   DESKTOP: textmode
-  FILESYSTEM: ext4
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:

@@ -4,7 +4,6 @@ description:    >
   Test for ext4 filesystem.
   Requires disk activation and grub is not displayed due to console reconnection.
 vars:
-  FILESYSTEM: ext4
   FORMAT_DASD: pre_install
   YUI_REST_API: 1
 schedule:

@@ -6,7 +6,6 @@ description:    >
   due to grub2 doesnt support xfb console.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: ext4
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start

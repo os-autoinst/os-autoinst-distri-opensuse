@@ -1,34 +1,29 @@
 ---
-name:           ext4@yast-s390x
+name:           ext3_textmode
 description:    >
-  Test for ext4 filesystem.
-  Grub is not displayed due to console reconnection.
+  Test for ext3 filesystem in text mode.
 vars:
-  DESKTOP: gnome
-  FORMAT_DASD: install
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/welcome
-  - installation/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
   - installation/system_role
   - installation/partitioning/select_guided_setup
   - installation/partitioning/guided_setup
   - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/user_settings
-  - installation/user_settings_root
-  - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/handle_reboot
+  - installation/grub_test
   - installation/first_boot
   - console/validate_partition_table_via_blkid
   - console/validate_blockdevices
@@ -37,5 +32,20 @@ schedule:
 test_data:
   guided_partitioning:
     filesystem_options:
-      root_filesystem_type: ext4
-  <<: !include test_data/yast/ext4/ext4_s390x.yaml
+      root_filesystem_type: ext3
+  disks:
+    - name: vda
+      table_type: gpt
+      allowed_unpartitioned: 0.00GB
+      partitions:
+        - name: vda2
+          formatting_options:
+            filesystem: ext3
+          mounting_options:
+            should_mount: 1
+            mount_point: /
+        - name: vda3
+          formatting_options:
+            filesystem: swap
+          mounting_options:
+            mount_point: SWAP
