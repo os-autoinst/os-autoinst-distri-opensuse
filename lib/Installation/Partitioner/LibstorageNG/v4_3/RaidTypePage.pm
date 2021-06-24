@@ -83,11 +83,33 @@ sub get_added_devices {
     return $self->{tbl_selected_devices}->items();
 }
 
+=head2 bidi_strip
+
+  bidi_strip("\x{2066}/\x{2068}dev\x{2069}/\x{2068}sdb1\x{2069}\x{2069}");
+  # -> "/dev/sdb1"
+
+Remove BiDirectional Text formatting characters from a string.
+
+In Right-to-left languages such as Arabic and Hebrew, /dev/sda1 looked like
+dev/sda1/ so we fixed it in YaST by adding BiDi control characters.
+https://en.wikipedia.org/wiki/Bidirectional_text#Explicit_formatting
+
+But if you look for "/dev/sda1" in partitioner tables, it is no longer there
+unless you apply bidi_strip first.
+
+=cut
+
+sub bidi_strip {
+    my ($self, $string) = @_;
+
+    return $string =~ tr/\x{202A}\x{202B}\x{202C}\x{202D}\x{202E}\x{2066}\x{2067}\x{2068}\x{2069}//rd;
+}
+
 sub is_device_added {
     my ($self, $device) = @_;
     my @added_devices = $self->get_added_devices();
     my $device_clmn   = $self->{tbl_selected_devices}->get_index('Device');
-    return (grep { $_->[$device_clmn] eq "/dev/$device" } @added_devices);
+    return (grep { $self->bidi_strip($_->[$device_clmn]) eq "/dev/$device" } @added_devices);
 }
 
 sub add_device {
