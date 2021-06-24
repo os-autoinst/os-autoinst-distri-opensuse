@@ -28,6 +28,7 @@ schedule:
   - installation/first_boot
   - console/validate_no_cow_attribute
   - console/verify_no_separate_home
+  - console/validate_subvolumes
 test_data:
   device: vda
   table_type: gpt
@@ -42,3 +43,6 @@ test_data:
       - /opt
     no_cow:
       - /var
+  validate_subvolumes:
+    - subvolume: home
+      mount_point: /
