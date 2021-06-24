@@ -61,37 +61,49 @@ has ifcfg_wlan => sub { [
         WIRELESS_ESSID='{{ssid}}'
         WIRELESS_WPA_PSK='{{psk}}'
     ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-        WIRELESS_CIPHER_PAIRWISE='CCMP'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_CIPHER_PAIRWISE='CCMP'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-        WIRELESS_CIPHER_PAIRWISE='TKIP'
-    ),
-        q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_CIPHER_PAIRWISE='TKIP'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_WPA_PSK='{{psk}}'
-        WIRELESS_CIPHER_PAIRWISE='TKIP CCMP'
-    )
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_CIPHER_PAIRWISE='TKIP CCMP'
+        )
+        }
 ] };
 
 1;

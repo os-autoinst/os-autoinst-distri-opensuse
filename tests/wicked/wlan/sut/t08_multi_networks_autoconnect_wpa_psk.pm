@@ -18,8 +18,9 @@
 use Mojo::Base 'wicked::wlan';
 use testapi;
 
-has ssid => 'Virtual WiFi PSK Secured';
-has psk  => 'TopSecretWifiPassphrase!';
+has wicked_version => '>=0.6.66';
+has ssid           => 'Virtual WiFi PSK Secured';
+has psk            => 'TopSecretWifiPassphrase!';
 
 has ssid_2 => 'Second WiFi PSK Secured';
 has psk_2  => 'TopSecret2222!';
@@ -72,6 +73,8 @@ sub run {
     my $self         = shift;
     my $WAIT_SECONDS = get_var("WICKED_WAIT_SECONDS", 70);
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
+
 
     $self->setup_ref();
 

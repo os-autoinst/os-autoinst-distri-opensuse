@@ -19,10 +19,11 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 use utils qw(script_retry script_output_retry);
 
-has ssid   => 'First SSID';
-has ssid_1 => 'Second SSID';
-has ssid_2 => 'Third SSID';
-has ssid_3 => 'Fourth SSID';
+has wicked_version => '>=0.6.66';
+has ssid           => 'First SSID';
+has ssid_1         => 'Second SSID';
+has ssid_2         => 'Third SSID';
+has ssid_3         => 'Fourth SSID';
 
 has psk   => 'aun5AhCo';
 has psk_1 => 'Eyoh4Woo';
@@ -149,6 +150,7 @@ sub run {
     my $self         = shift;
     my $WAIT_SECONDS = get_var("WICKED_WAIT_SECONDS", 70);
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
 
     $self->setup_ref();
 

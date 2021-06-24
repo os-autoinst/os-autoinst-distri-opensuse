@@ -16,7 +16,8 @@
 use Mojo::Base 'wicked::wlan';
 use testapi;
 
-has stderr_file => '/tmp/wicked_stderr';
+has wicked_version => '>=0.6.66';
+has stderr_file    => '/tmp/wicked_stderr';
 
 has ifcfg_wlan_enabled => sub { [
         q(
@@ -87,6 +88,7 @@ sub check_error {
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
 
     for my $config (@{$self->ifcfg_wlan_enabled}) {
         $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $config);

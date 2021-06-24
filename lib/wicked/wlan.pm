@@ -24,6 +24,7 @@ use Encode qw/encode_utf8/;
 use File::Basename;
 use testapi;
 
+has wicked_version      => undef;
 has eap_user            => 'tester';
 has eap_password        => 'test1234';
 has ca_cert             => '/etc/raddb/certs/ca.pem';
@@ -239,7 +240,7 @@ sub write_cfg {
     $content =~ s/^[ \t]+$//mg;
 
     if ($args{encode_base64}) {
-        $content = encode_utf8($content);
+        $content       = encode_utf8($content);
         $content_orig  = $content;
         $filename_orig = $filename;
         $content       = b64_encode($content);
@@ -346,28 +347,68 @@ sub __as_array {
     }
 }
 
+sub __as_config_array {
+    my $param = shift;
+    my @ret;
+    foreach my $in (__as_array($param)) {
+        my $cfg = {config => '', wicked_version => '>=0.0.0'};
+        if (ref($in) eq 'HASH') {
+            $cfg = {%{$cfg}, %{$in}};
+        } else {
+            $cfg->{config} = $in;
+        }
+        push @ret, $cfg;
+    }
+    return @ret;
+}
+
+sub skip_by_wicked_version
+{
+    my ($self, $v) = @_;
+    $v //= $self->wicked_version;
+
+    if ($v && !$self->check_wicked_version($v)) {
+        $self->result('skip');
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
 
     $self->setup_ref();
 
-    for my $hostapd_conf (__as_array($self->hostapd_conf())) {
+    for my $hostapd_conf (__as_config_array($self->hostapd_conf())) {
 
-        $self->hostapd_start($hostapd_conf);
+        if (!$self->check_wicked_version($hostapd_conf->{wicked_version})) {
+            record_info("Skip cfg", $hostapd_conf->{config});
+            next;
+        }
 
-        for my $ifcfg_wlan (__as_array($self->ifcfg_wlan())) {
-            # Setup sut
-            $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $ifcfg_wlan);
-            $self->wicked_command('ifup', $self->sut_ifc);
+        $self->hostapd_start($hostapd_conf->{config});
 
-            # Check
-            $self->assert_sta_connected();
-            $self->assert_connection();
+        for my $ifcfg_wlan (__as_config_array($self->ifcfg_wlan())) {
 
-            $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
-            $self->wicked_command('show-config',        $self->sut_ifc);
-            $self->wicked_command('show-xml',           $self->sut_ifc);
+            if ($self->check_wicked_version($ifcfg_wlan->{wicked_version})) {
+                # Setup sut
+                $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $ifcfg_wlan->{config});
+                $self->wicked_command('ifup', $self->sut_ifc);
+
+                # Check
+                $self->assert_sta_connected();
+                $self->assert_connection();
+
+                $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
+                $self->wicked_command('show-config',        $self->sut_ifc);
+                $self->wicked_command('show-xml',           $self->sut_ifc);
+
+            } else {
+                record_info("Skip cfg", $ifcfg_wlan->{config});
+            }
         }
 
         # Cleanup

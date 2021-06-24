@@ -87,17 +87,20 @@ has ifcfg_wlan => sub { [
         WIRELESS_WPA_PASSWORD='{{eap_password}}'
         WIRELESS_CA_CERT='{{ca_cert}}'
     ),
-      q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        # Network settings
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_EAP_MODE='PEAP'
-        WIRELESS_EAP_AUTH='mschapv2'
-        WIRELESS_WPA_IDENTITY='{{eap_user}}'
-        WIRELESS_WPA_PASSWORD='{{eap_password}}'
-    )
+            # Network settings
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_EAP_MODE='PEAP'
+            WIRELESS_EAP_AUTH='mschapv2'
+            WIRELESS_WPA_IDENTITY='{{eap_user}}'
+            WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        )
+        }
 ] };
 
 1;

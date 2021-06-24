@@ -21,6 +21,7 @@ use testapi;
 use utils qw(random_string);
 use Encode qw/encode_utf8/;
 
+has wicked_version => '>=0.6.66';
 
 has ssid_0       => '00010203';
 has ssid_0_ifcfg => '\x00\x01\x02\x03';

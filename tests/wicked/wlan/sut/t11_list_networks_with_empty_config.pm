@@ -19,10 +19,11 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 use utils qw(random_string);
 
-has ssid   => 'First SSID';
-has ssid_1 => 'Second SSID';
-has ssid_2 => 'Third SSID';
-has ssid_3 => 'Fourth SSID';
+has wicked_version => '>=0.6.66';
+has ssid           => 'First SSID';
+has ssid_1         => 'Second SSID';
+has ssid_2         => 'Third SSID';
+has ssid_3         => 'Fourth SSID';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -66,6 +67,7 @@ has ifcfg_wlan => sub { [
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
 
     $self->setup_ref();
 

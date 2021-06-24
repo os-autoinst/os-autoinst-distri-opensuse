@@ -21,6 +21,7 @@ use serial_terminal;
 use Carp;
 use Mojo::File 'path';
 use Regexp::Common 'net';
+use version_utils 'check_version';
 
 use strict;
 use warnings;
@@ -46,6 +47,28 @@ sub wicked_command {
     assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
     assert_script_run(q(echo -e "\n# ip addr" >> /tmp/wicked_serial.log));
     assert_script_run('ip addr 2>&1 | tee -a /tmp/wicked_serial.log');
+}
+
+=head2 get_wicked_version
+
+    get_wicked_version()
+
+Return the current installed wicked version
+=cut
+sub get_wicked_version {
+    my $v = script_output(q(rpm -qa 'wicked' --qf '%{VERSION}\n'));
+    die("Unable to get wicked version '$v'") unless $v =~ /^\d+\.\d+\.\d+$/;
+    return $v;
+}
+
+=head2 check_wicked_version
+
+    check_wicked_version('>=0.6.66')
+
+=cut
+sub check_wicked_version {
+    my ($self, $query) = @_;
+    return check_version($query, $self->get_wicked_version());
 }
 
 =head2 assert_wicked_state
