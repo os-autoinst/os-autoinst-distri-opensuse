@@ -1033,25 +1033,6 @@ else {
         loadtest 'console/microcode_update';
         return 1;
     }
-    elsif (get_var("QAM_OPENVPN")) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('OPENVPN_STATIC_START',    2);
-            barrier_create('OPENVPN_STATIC_STARTED',  2);
-            barrier_create('OPENVPN_STATIC_FINISHED', 2);
-            barrier_create('OPENVPN_CA_START',        2);
-            barrier_create('OPENVPN_CA_STARTED',      2);
-            barrier_create('OPENVPN_CA_FINISHED',     2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest "network/openvpn_server";
-        }
-        else {
-            loadtest "network/openvpn_client";
-        }
-    }
     elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;

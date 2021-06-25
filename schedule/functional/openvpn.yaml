@@ -1,0 +1,15 @@
+name: openVPN
+description: >
+  Maintainer: pdostal.
+  openVPN test
+conditional_schedule:
+  openvpn:
+    HOSTNAME:
+      'server':
+        - network/openvpn_server
+      'client':
+        - network/openvpn_client
+schedule:
+  - boot/boot_to_desktop
+  - network/setup_multimachine
+  - '{{openvpn}}'
