@@ -3,9 +3,12 @@ description:    >
   Test a rolling update in a two nodes cluster
   Further info about the test suite
 schedule:
+  - info/show_hdd_info
   - boot/boot_to_desktop
   - migration/online_migration/register_system
   - update/zypper_up
+  - info/show_hdd_info
+  - console/check_boot_files
   - console/console_reboot
   - ha/wait_barriers
   - console/system_prepare
