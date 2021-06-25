@@ -733,6 +733,9 @@ sub select_addons_in_textmode {
 sub registration_bootloader_cmdline {
     # https://www.suse.com/documentation/smt11/book_yep/data/smt_client_parameters.html
     # SCC_URL=https://smt.example.com
+    # prevent rogue RMT servers to show up in unexpected selection dialogs
+    # https://progress.opensuse.org/issues/94696
+    set_var('SCC_URL', 'https://scc.suse.com') unless get_var('SCC_URL');
     my $cmdline = '';
     if (my $url = get_var('SMT_URL') || get_var('SCC_URL')) {
         $cmdline .= " regurl=$url";
