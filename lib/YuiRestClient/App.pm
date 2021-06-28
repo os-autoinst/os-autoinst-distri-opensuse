@@ -65,6 +65,8 @@ sub check_connection {
         host => $self->{host},
         port => $self->{port},
         path => $self->{api_version} . '/widgets');
+
+    YuiRestClient::Logger->get_instance()->debug("Check connection to the app by url: $uri");
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
             return $response->json if $response;

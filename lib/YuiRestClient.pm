@@ -24,7 +24,9 @@ use utils qw(enter_cmd_slow type_line_svirt save_svirt_pty);
 use Utils::Backends;
 use YuiRestClient::App;
 use YuiRestClient::Wait;
+use YuiRestClient::Logger;
 use Utils::Architectures 'is_s390x';
+use bmwqemu;
 
 my $app;
 my $port;
@@ -40,6 +42,13 @@ sub get_host {
     my (%args) = @_;
     $host = init_host(%args) unless $host;
     return $host;
+}
+
+sub init_logger {
+    my $path_to_log   = 'ulogs/yui-log.txt';
+    my $yui_log_level = get_var('YUI_LOG_LEVEL', 'debug');
+    mkdir('ulogs') if (!-d 'ulogs');
+    YuiRestClient::Logger->get_instance({format => \&bmwqemu::log_format_callback, path => $path_to_log, level => $yui_log_level});
 }
 
 sub get_port {

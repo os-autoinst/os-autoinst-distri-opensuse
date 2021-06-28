@@ -27,6 +27,7 @@ use File::Path 'make_path';
 use Mojo::JSON 'to_json';
 
 use YuiRestClient;
+use YuiRestClient::Logger;
 
 =head1 y2_base
 
@@ -162,4 +163,18 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 }
 
+sub pre_run_hook {
+    my $self = shift;
+
+    $self->SUPER::pre_run_hook;
+    YuiRestClient::Logger->info($autotest::current_test->{name} . " test module started") if YuiRestClient::is_libyui_rest_api;
+}
+
+sub post_run_hook {
+    my $self = shift;
+
+    $self->SUPER::post_run_hook;
+    save_screenshot;
+    YuiRestClient::Logger->info($autotest::current_test->{name} . " test module finished") if YuiRestClient::is_libyui_rest_api;
+}
 1;
