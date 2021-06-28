@@ -33,7 +33,16 @@ sub run {
     record_info('PORT',   "Used port for libyui: " . $port);
 
     if (is_ssh_installation) {
-        my $cmd = (is_s390x && is_svirt) ? "TERM=linux " : "";
+        my $cmd = '';
+        if (is_s390x) {
+            if (is_svirt) {
+                $cmd = 'TERM=linux ';
+            }
+            elsif (get_var('BACKEND') eq 's390x') {
+                $cmd = 'QT_XCB_GL_INTEGRATION=none ';
+                record_soft_failure('bsc#1142040');
+            }
+        }
         $cmd .= YuiRestClient::get_yui_params_string($port) . " yast.ssh";
         enter_cmd($cmd);
     }
