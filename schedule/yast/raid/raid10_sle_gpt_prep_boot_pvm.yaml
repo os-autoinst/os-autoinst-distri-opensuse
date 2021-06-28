@@ -13,7 +13,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -35,6 +35,7 @@ schedule:
   - console/validate_md_raid
   - console/validate_raid
 test_data:
+  product: SLES
   # We have same partitioning layout for all raid tests, except mds
   <<: !include test_data/yast/raid/raid_prep_boot_test_data_pvm.yaml
   mds:

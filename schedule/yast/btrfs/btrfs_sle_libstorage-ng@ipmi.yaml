@@ -9,7 +9,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -31,9 +31,11 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - console/check_resume
+  - console/validate_product_name_installed
   - console/validate_no_cow_attribute
   - console/verify_separate_home
 test_data:
+  product: SLES
   guided_partitioning:
     disks:
       - sda

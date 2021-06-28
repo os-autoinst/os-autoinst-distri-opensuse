@@ -10,7 +10,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -37,5 +37,6 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/lvm_thin_check
 test_data:
+  product: SLES
   system_role:
     default: 'SLES with GNOME'

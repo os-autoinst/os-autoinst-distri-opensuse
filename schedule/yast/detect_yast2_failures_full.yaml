@@ -6,11 +6,11 @@ description: >
 vars:
   ASSERT_Y2LOGS:  '1'
   RAIDLEVEL:  '0'
-  YUI_REST_API: '1'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -31,4 +31,5 @@ schedule:
   - installation/grub_test
   - installation/first_boot
 test_data:
+  product: SLES
   <<: !include test_data/yast/raid/raid0_gpt_bios_boot.yaml

@@ -7,9 +7,11 @@ description:    >
   any issue.
 vars:
   INSTALLER_SELF_UPDATE: 'http://openqa.suse.de/assets/repo/%REPO_SLE_PRODUCT_SLES%'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/validate_self_update
   - installation/accept_license
   - installation/scc_registration
@@ -30,3 +32,5 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
+test_data:
+  product: SLES

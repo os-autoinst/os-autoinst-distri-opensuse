@@ -6,9 +6,11 @@ description:    >
 vars:
   DESKTOP: gnome
   MULTIPATH: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
@@ -31,6 +33,7 @@ schedule:
   - console/validate_zfcp
   - console/validate_multipath
 test_data:
+  product: SLES
   software:
     packages:
       # Device Mapper Tools

@@ -10,9 +10,11 @@ name: cryptlvm
 vars:
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -36,3 +38,5 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
+test_data:
+  product: SLES

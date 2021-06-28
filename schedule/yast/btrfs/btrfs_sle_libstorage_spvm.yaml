@@ -11,7 +11,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -34,11 +34,13 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - console/check_resume
+  - console/validate_product_name_installed
   - console/verify_separate_home
   - console/validate_partition_table_via_blkid
   - console/validate_blockdevices
 test_data:
   <<: !include test_data/yast/btrfs/btrfs_sle_libstorage.yaml
+  product: SLES
   disks:
   - name: sda
     table_type: gpt

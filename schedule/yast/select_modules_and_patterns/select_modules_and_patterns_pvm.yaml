@@ -10,9 +10,11 @@ vars:
   DESKTOP: textmode
   ENABLE_ALL_SCC_MODULES: 1
   SYSTEM_ROLE: textmode
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -36,3 +38,5 @@ schedule:
   - console/validate_installed_packages
   - console/validate_installed_patterns
   - console/yast2_i
+test_data:
+  product: SLES

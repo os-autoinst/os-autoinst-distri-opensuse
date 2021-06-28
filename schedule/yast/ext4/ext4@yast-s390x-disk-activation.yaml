@@ -9,7 +9,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/disk_activation
   - installation/scc_registration
@@ -33,4 +33,5 @@ schedule:
   - console/validate_partition_table_via_parted
   - console/validate_blockdevices
 test_data:
+  product: SLES
   <<: !include test_data/yast/ext4/ext4_s390x-disk-activation.yaml

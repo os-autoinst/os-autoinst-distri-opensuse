@@ -20,7 +20,7 @@ conditional_schedule:
 schedule:
     - installation/bootloader_start
     - installation/setup_libyui
-    - installation/welcome
+    - installation/product_selection/select_product
     - installation/accept_license
     - installation/scc_registration
     - installation/addon_products_sle
@@ -49,5 +49,6 @@ schedule:
     - shutdown/shutdown
     - "{{shutdown_svirt}}"
 test_data:
+    product: SLES
     system_role:
         default: 'Transactional Server'

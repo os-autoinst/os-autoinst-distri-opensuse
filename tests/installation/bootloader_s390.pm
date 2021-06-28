@@ -317,9 +317,12 @@ sub run {
 
     # We have textmode installation via ssh and the default vnc installation so far
     if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
-        # Workaround for bsc#1142040
-        # enter_cmd("yast.ssh");
-        enter_cmd("QT_XCB_GL_INTEGRATION=none yast.ssh") && record_soft_failure('bsc#1142040');
+        # If libyui REST API is used, we set it up in installation/setup_libyui
+        unless (get_var('YUI_REST_API')) {
+            # Workaround for bsc#1142040
+            # enter_cmd("yast.ssh");
+            enter_cmd("QT_XCB_GL_INTEGRATION=none yast.ssh") && record_soft_failure('bsc#1142040');
+        }
     }
     wait_still_screen;
 

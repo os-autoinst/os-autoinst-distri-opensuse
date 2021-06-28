@@ -6,9 +6,11 @@ description:    >
 vars:
   SCC_REGISTER: 'none'
   ADDONS: all-packages
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -34,3 +36,5 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+test_data:
+  product: SLES

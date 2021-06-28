@@ -9,9 +9,11 @@ vars:
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
   ENCRYPT_ACTIVATE_EXISTING: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
@@ -35,6 +37,7 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
 test_data:
+  product: SLES
   mapped_device: '/dev/mapper/cr-auto-1'
   device_status:
     message: 'is active.'

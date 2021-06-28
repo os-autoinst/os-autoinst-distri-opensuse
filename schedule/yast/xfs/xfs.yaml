@@ -10,7 +10,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/product_selection/select_product
   - installation/accept_license
   # Called only on BACKEND: s390x
   - '{{disk_activation}}'
@@ -60,6 +60,7 @@ conditional_schedule:
       s390x:
         - console/validate_partition_table_via_parted
 test_data:
+  product: SLES
   guided_partitioning:
     filesystem_options:
       root_filesystem_type: xfs

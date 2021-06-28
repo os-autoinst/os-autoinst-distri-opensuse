@@ -7,9 +7,11 @@ vars:
   SCC_ADDONS: sdk
   SCC_REGISTER: console
   SYSTEM_ROLE: textmode
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -28,3 +30,5 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
   - installation/addon_products_via_SCC_yast2_ncurses
+test_data:
+  product: SLES
