@@ -26,7 +26,7 @@ use containers::utils;
 use containers::common 'test_container_image';
 
 our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker
-  test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app
+  test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
   test_zypper_on_container verify_userid_on_container test_3rd_party_image upload_3rd_party_images_logs);
 
 # Build any container image using a basic Dockerfile. Not applicable for buildah builds
@@ -56,9 +56,9 @@ sub build_container_image {
     assert_script_run("$runtime images");
 }
 
-=head2 test_containered_app
+=head2 build_and_run_image
 
- test_containered_app($runtime, [$buildah], $dockerfile, $base);
+ build_and_run_image($runtime, [$buildah], $dockerfile, $base);
 
 Create a container using a C<dockerfile> and run smoke test against that.
  C<base> can be used to setup base repo in the dockerfile in case that the file
@@ -68,11 +68,11 @@ The main container runtimes do not need C<buildah> variable in general, unless
 you want to build the image with buildah but run it with $<runtime>
 
 =cut
-sub test_containered_app {
+sub build_and_run_image {
     my %args       = @_;
     my $runtime    = $args{runtime};
-    my $buildah    = $args{buildah} // 0;
-    my $dockerfile = $args{dockerfile};
+    my $buildah    = $args{buildah}    // 0;
+    my $dockerfile = $args{dockerfile} // 'Dockerfile';
     my $base       = $args{base};
 
     die "You must define the runtime!"    unless $runtime;
@@ -81,7 +81,7 @@ sub test_containered_app {
     my $dir = "/root/containerapp";
 
     # Setup the environment
-    container_set_up("$dir", $dockerfile, $base);
+    prepare_img("$dir", $dockerfile, $base);
 
     # Build the image
     $buildah ? build_img("$dir", 'buildah') : build_img("$dir", $runtime);
@@ -90,7 +90,7 @@ sub test_containered_app {
         script_run "$runtime images";
     }
     # Run the built image
-    test_built_img($runtime);
+    run_img($runtime);
 }
 
 # Build a sle container image using zypper_docker

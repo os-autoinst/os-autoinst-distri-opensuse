@@ -23,7 +23,7 @@ use warnings;
 use version_utils;
 use Mojo::Util 'trim';
 
-our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base
+our @EXPORT = qw(test_seccomp basic_container_tests get_vars prepare_img build_img run_img can_build_sle_base
   check_docker_firewall get_docker_version check_runtime_version container_ip registry_url);
 
 sub test_seccomp {
@@ -201,18 +201,16 @@ sub basic_container_tests {
 }
 
 # Setup environment
-sub container_set_up {
+sub prepare_img {
     my ($dir, $file, $base) = @_;
     die "You must define the directory!"  unless $dir;
     die "You must define the Dockerfile!" unless $file;
 
-    record_info('Downloading', "Dockerfile: containers/$file\nApplication: containers/app.py\nRequirements: containers/requirements.txt\nTemplate: containers/index.html");
-    assert_script_run "mkdir -p $dir/BuildTest/templates";
-    assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
+    record_info('Downloading', "Dockerfile: containers/$file\nHTML: containers/index.html");
+    assert_script_run "mkdir -p $dir/BuildTest";
     assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
-    assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
-    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/templates/index.html";
+    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
 }
 
 # Build the image
@@ -221,13 +219,10 @@ sub build_img {
     die "You must define the directory!" unless $dir;
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
-    my $py_repo = registry_url('python', '3');
 
     assert_script_run("cd $dir");
     if ($runtime =~ /docker|podman/) {
         # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-        script_retry("$runtime image pull $py_repo", retry => 3, timeout => 420);
-        assert_script_run("$runtime tag $py_repo python:3");
         assert_script_run("$runtime build -t myapp BuildTest", timeout => 300);
     }
     elsif ($runtime =~ /buildah/) {
@@ -237,22 +232,22 @@ sub build_img {
         die "Unsupported runtime: $runtime";
     }
     assert_script_run("cd");
-    assert_script_run("$runtime images| grep myapp");
+    assert_script_run("$runtime images | grep myapp");
+    assert_script_run("rm -rf $dir");
 }
 
 # Run the built image
-sub test_built_img {
+sub run_img {
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
 
-    assert_script_run("$runtime run -dit -p 8888:5000 myapp www.google.com");
+    assert_script_run("$runtime run -dit -p 8888:80 myapp");
     sleep 5;
     assert_script_run("$runtime ps -a");
-    script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
+    script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
 
     # Clean up
     assert_script_run("$runtime stop `$runtime ps -q`");
-    assert_script_run("rm -rf /root/templates");
 }
 
 =head2 can_build_sle_base
