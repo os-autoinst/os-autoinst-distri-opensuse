@@ -1359,7 +1359,6 @@ sub reconnect_mgmt_console {
     my (%args) = @_;
     $args{timeout}             //= 300;
     $args{grub_expected_twice} //= 0;
-    permit_root_ssh();
 
     if (check_var('ARCH', 's390x')) {
         my $login_ready = serial_terminal::get_login_message();
