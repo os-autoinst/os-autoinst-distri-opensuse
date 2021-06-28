@@ -25,6 +25,7 @@ schedule:
   - console/mta
   - console/check_default_network_manager
   - console/git
+  - console/osc
   - console/clamav
   - console/cups
   - console/java
