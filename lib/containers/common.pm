@@ -100,7 +100,7 @@ sub install_docker_when_needed {
     # docker start, but taking bsc#1187479 into account. Please remove softfailure handling, once bsc#1187479 is solved.
     if (systemctl('start docker', ignore_failure => 1) != 0) {
         # Check for docker start timeout, bsc#1187479
-        if (script_run('journalctl -e | grep "timeout waiting for containerd to start"')) {
+        if (script_run('journalctl -e | grep "timeout waiting for containerd to start"') == 0) {
             # Retry one more time
             record_soft_failure("bsc#1187479");
             sleep(120);    # give background services time to complete to prevent another failure
