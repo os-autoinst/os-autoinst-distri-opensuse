@@ -141,7 +141,7 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi7/ubi",
         "registry.access.redhat.com/ubi7/ubi-minimal",
         "registry.access.redhat.com/ubi7/ubi-init"
-    ) unless (check_var('ARCH', 'aarch64'));
+    ) unless (check_var('ARCH', 'aarch64') or check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
 }
