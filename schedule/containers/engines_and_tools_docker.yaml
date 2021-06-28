@@ -1,8 +1,8 @@
-name:           extra_tests_textmode_containers
+name:           engines_and_tools_docker
 description:    >
-  Maintainer: qa-c@suse.de.
+  Maintainer: qa-c@suse.de
   This schedule is focused on testing the related container packages and features,
-  but not the official container images from SUSE and openSUSE.
+  with docker but not the official container images from SUSE and openSUSE
 conditional_schedule:
   boot:
     ARCH:
@@ -21,23 +21,11 @@ conditional_schedule:
   supported:
     HOST_VERSION:
       15-SP3:
-        - containers/podman
-        - containers/buildah_podman
         - containers/buildah_docker
-        - containers/rootless_podman
-        - containers/podman_3rd_party_images
       15-SP2:
-        - containers/podman
-        - containers/buildah_podman
         - containers/buildah_docker
-        - containers/rootless_podman
-        - containers/podman_3rd_party_images
       15-SP1:
-        - containers/podman
-        - containers/buildah_podman
         - containers/buildah_docker
-        - containers/rootless_podman
-        - containers/podman_3rd_party_images
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop

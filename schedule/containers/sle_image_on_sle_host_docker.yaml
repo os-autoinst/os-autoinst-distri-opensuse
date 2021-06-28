@@ -1,30 +1,24 @@
-name:           sle_image_on_sle_host
+name:           sle_image_on_sle_host_docker
 description:    >
-  Maintainer: jalausuch@suse.com, qa-c@suse.de.
-  Extra tests about software in containers module
+  Maintainer: qa-c@suse.de
+  Container images specific tests with docker
 conditional_schedule:
   boot:
     ARCH:
       's390x':
         - installation/bootloader_start
-  podman_buildah:
+  buildah_docker:
     HOST_VERSION:
       15-SP3:
-        - containers/podman_image
         - containers/buildah_docker
-        - containers/buildah_podman
       15-SP2:
-        - containers/podman_image
         - containers/buildah_docker
-        - containers/buildah_podman
       15-SP1:
-        - containers/podman_image
         - containers/buildah_docker
-        - containers/buildah_podman
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
   - containers/host_configuration
   - containers/docker_image
-  - '{{podman_buildah}}'
+  - '{{buildah_docker}}'
   - containers/container_diff
