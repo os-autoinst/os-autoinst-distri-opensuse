@@ -23,8 +23,8 @@ use warnings;
 use version_utils;
 use Mojo::Util 'trim';
 
-our @EXPORT = qw(test_seccomp basic_container_tests get_vars prepare_img build_img run_img can_build_sle_base
-  check_docker_firewall get_docker_version check_runtime_version container_ip registry_url);
+our @EXPORT = qw(test_seccomp basic_container_tests get_vars can_build_sle_base check_docker_firewall
+  get_docker_version check_runtime_version container_ip registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -198,63 +198,6 @@ sub basic_container_tests {
     die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
     record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
     record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
-}
-
-# Setup environment
-sub prepare_img {
-    my ($dir, $file, $base) = @_;
-    die "You must define the directory!"  unless $dir;
-    die "You must define the Dockerfile!" unless $file;
-
-    record_info('Downloading', "Dockerfile: containers/$file\nHTML: containers/index.html");
-    assert_script_run "mkdir -p $dir/BuildTest";
-    assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
-    file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
-    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
-}
-
-# Build the image
-sub build_img {
-    my $dir = shift;
-    die "You must define the directory!" unless $dir;
-    my $runtime = shift;
-    die "You must define the runtime!" unless $runtime;
-
-    assert_script_run("cd $dir");
-    if ($runtime =~ /docker|podman/) {
-        # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-        assert_script_run("$runtime build -t myapp BuildTest", timeout => 300);
-    }
-    elsif ($runtime =~ /buildah/) {
-        assert_script_run("$runtime bud -t myapp BuildTest");
-    }
-    else {
-        die "Unsupported runtime: $runtime";
-    }
-    assert_script_run("cd");
-    assert_script_run("$runtime images | grep myapp");
-    assert_script_run("rm -rf $dir");
-}
-
-# Run the built image
-sub run_img {
-    my $runtime = shift;
-    die "You must define the runtime!" unless $runtime;
-
-    # Test that we can execute programs in the container and test container's variables
-    assert_script_run("$runtime run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-
-    # Run the container with port 80 exported as port 8888
-    assert_script_run("$runtime run -dit -p 8888:80 myapp");
-
-    # Make sure our container is running
-    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);
-
-    # Test that the exported port is reachable
-    script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
-
-    # Clean up
-    assert_script_run("$runtime stop `$runtime ps -q`");
 }
 
 =head2 can_build_sle_base
