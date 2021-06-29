@@ -16,7 +16,6 @@ schedule:
   - '{{registration}}'
   - '{{maintenance}}'
   - microos/toolbox
-  - containers/docker_3rd_party_images
   - containers/podman_3rd_party_images
   - containers/podman
   - containers/podman_image
