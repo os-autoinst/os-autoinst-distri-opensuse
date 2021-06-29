@@ -6,11 +6,9 @@ description:    >
 vars:
   SCC_REGISTER: 'none'
   ADDONS: all-packages
-  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/setup_libyui
-  - installation/product_selection/select_product
+  - installation/welcome
   - installation/accept_license
   - installation/network_configuration
   - installation/scc_registration
@@ -46,5 +44,4 @@ schedule:
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
 test_data:
-  product: SLES
   <<: !include test_data/yast/skip_registration/default_repos.yaml
