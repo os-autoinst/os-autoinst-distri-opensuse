@@ -20,6 +20,8 @@ use YuiRestClient::Sanitizer;
 
 sub select {
     my ($self, $item) = @_;
+    my $items = $self->property('items');
+    ($item) = grep { YuiRestClient::Sanitizer::sanitize($_) eq $item } map { $_->{label} } @{$items};
     return $self->action(action => YuiRestClient::Action::YUI_SELECT, value => $item);
 }
 
