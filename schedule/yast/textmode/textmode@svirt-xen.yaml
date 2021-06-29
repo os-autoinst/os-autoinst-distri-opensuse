@@ -8,7 +8,7 @@ schedule:
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/product_selection/select_product
-  - installation/accept_license
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role/validate_default_role

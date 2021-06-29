@@ -1,10 +1,13 @@
 name: cryptlvm
 description: >
   Conduct installation with encrypted LVM selected during installation.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
