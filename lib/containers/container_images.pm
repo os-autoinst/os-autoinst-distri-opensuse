@@ -25,36 +25,9 @@ use version;
 use containers::utils;
 use containers::common 'test_container_image';
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker
+our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
   test_zypper_on_container verify_userid_on_container test_3rd_party_image upload_3rd_party_images_logs);
-
-# Build any container image using a basic Dockerfile. Not applicable for buildah builds
-sub build_container_image {
-    my %args    = @_;
-    my $image   = $args{image};
-    my $runtime = $args{runtime};
-
-    die 'Argument $image not provided!'   unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
-
-    my $dir = "~/sle_base_image/docker_build";
-
-    record_info("Building $image", "Building $image using $runtime");
-
-    assert_script_run("mkdir -p $dir");
-    assert_script_run("cd $dir");
-
-    # Create basic Dockerfile
-    assert_script_run("echo -e 'FROM $image\\nENV WORLD_VAR Arda' > Dockerfile");
-
-    # Build the image
-    assert_script_run("$runtime build -t dockerfile_derived .");
-    assert_script_run("cd");
-
-    assert_script_run("$runtime run --entrypoint 'printenv' dockerfile_derived WORLD_VAR | grep Arda");
-    assert_script_run("$runtime images");
-}
 
 =head2 build_and_run_image
 
@@ -78,7 +51,7 @@ sub build_and_run_image {
     die "You must define the runtime!"    unless $runtime;
     die "You must define the Dockerfile!" unless $dockerfile;
 
-    my $dir = "/root/containerapp";
+    my $dir = "~/containerapp";
 
     # Setup the environment
     prepare_img("$dir", $dockerfile, $base);
