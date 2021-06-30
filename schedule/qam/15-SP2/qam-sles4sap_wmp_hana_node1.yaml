@@ -38,9 +38,9 @@ schedule:
   - ha/ha_cluster_init
   - sles4sap/hana_cluster
   - sles4sap/sap_suse_cluster_connector
-  - sles4sap/wmp_basic_test
+  - sles4sap/wmp_check_process
   - ha/fencing
   - boot/boot_to_desktop
   - ha/check_after_reboot
   - ha/check_logs
-  - sles4sap/wmp_basic_test
+  - sles4sap/wmp_check_process
