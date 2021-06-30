@@ -34,7 +34,8 @@ sub run {
     assert_script_run('echo "PREFIX=' . $opensuse_prefix . '" > /etc/regproxy.conf');
     assert_script_run('systemctl daemon-reload && systemctl enable --now regproxy.service');
     # Install the MITM cert
-    assert_script_run('ln -s $PWD/regproxy-cert.pem /etc/pki/trust/anchors && update-ca-certificates');
+    assert_script_run('ln -s $PWD/regproxy-cert.pem /etc/pki/trust/anchors');
+    systemctl('start ca-certificates');
     assert_script_run('popd');
 
     # Redirect to localhost
