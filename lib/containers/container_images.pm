@@ -66,7 +66,7 @@ sub build_and_run_image {
         # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
         assert_script_run("$runtime build -t myapp BuildTest", timeout => 300);
         assert_script_run("$runtime images | grep myapp");
-    } ele {
+    } else {
         assert_script_run("buildah bud -t myapp BuildTest", timeout => 300);
         assert_script_run("buildah images | grep myapp");
     }
