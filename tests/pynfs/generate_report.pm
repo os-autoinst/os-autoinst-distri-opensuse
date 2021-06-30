@@ -29,7 +29,7 @@ sub upload_log {
     script_run('../showresults.py result-raw.txt > result-analysis.txt');
     upload_logs('result-analysis.txt', failok => 1);
 
-    script_run('grep -A 2 FAILURE result-analysis.txt | grep -v PASS > result-fail.txt');
+    script_run('../showresults.py --hidepass result-raw.txt > result-fail.txt');
     upload_logs('result-fail.txt', failok => 1);
 
     if (script_run('[ -s result-fail.txt ]') == 0) {
