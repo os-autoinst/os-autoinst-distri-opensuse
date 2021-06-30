@@ -241,9 +241,16 @@ sub run_img {
     my $runtime = shift;
     die "You must define the runtime!" unless $runtime;
 
+    # Test that we can execute programs in the container and test container's variables
+    assert_script_run("$runtime run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
+
+    # Run the container with port 80 exported as port 8888
     assert_script_run("$runtime run -dit -p 8888:80 myapp");
-    sleep 5;
-    assert_script_run("$runtime ps -a");
+
+    # Make sure our container is running
+    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);
+
+    # Test that the exported port is reachable
     script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
 
     # Clean up

@@ -54,7 +54,7 @@ sub run {
     assert_script_run "$runtime images -a";
     for my $iname (@{$released_images}) {
         test_container_image(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
+        build_and_run_image(base => $iname, runtime => $runtime);
         test_zypper_on_container($runtime, $iname);
         verify_userid_on_container($runtime, $iname, $subuid_start);
     }

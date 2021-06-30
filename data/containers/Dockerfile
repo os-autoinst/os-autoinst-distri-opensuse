@@ -13,5 +13,8 @@ COPY index.html .
 # tell the port number the container should expose
 EXPOSE 5000
 
+# Set experimental variable
+ENV WORLD_VAR Arda
+
 # run the command
 ENTRYPOINT ["/usr/sbin/start_apache2", "-DFOREGROUND", "-k", "start"]
