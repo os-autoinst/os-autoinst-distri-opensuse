@@ -50,6 +50,7 @@ conditional_schedule:
                 - console/libgpiod
                 - console/libgcrypt
                 - console/gd
+                - console/gcc
                 - console/valgrind
                 - console/wpa_supplicant
                 - appgeo/gdal
