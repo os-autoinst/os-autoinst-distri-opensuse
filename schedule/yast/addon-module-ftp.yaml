@@ -8,8 +8,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role/validate_default_role
@@ -41,6 +41,7 @@ conditional_schedule:
       svirt:
         - installation/hostname_inst
 test_data:
+  product: SLES
   system_role:
     default: 'HA node'
     selection: 'Text Mode'

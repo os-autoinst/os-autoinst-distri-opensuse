@@ -6,10 +6,12 @@ vars:
   CHECK_RELEASENOTES_ORIGIN: '1'
   EXIT_AFTER_START_INSTALL: '1'
   SCC_REGISTER: 'none'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/releasenotes_origin
@@ -23,3 +25,5 @@ schedule:
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
+test_data:
+  product: SLES

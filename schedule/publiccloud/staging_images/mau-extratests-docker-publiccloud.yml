@@ -21,7 +21,8 @@ schedule:
   - '{{podman}}'
   - containers/docker
   - containers/docker_runc
-  - containers/containers_3rd_party
+  - containers/docker_3rd_party_images
+  - containers/podman_3rd_party_images
   - containers/registry
   - containers/zypper_docker
   - publiccloud/ssh_interactive_end

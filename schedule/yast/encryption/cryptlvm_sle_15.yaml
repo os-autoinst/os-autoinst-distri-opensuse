@@ -4,10 +4,13 @@ description: >
   Generated disk image used in downstream jobs. (crypt-)LVM installations can
   take longer, especially on non-x86_64 architectures.
 name: cryptlvm
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -32,3 +35,5 @@ schedule:
   - console/yast2_i
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+test_data:
+  product: SLES

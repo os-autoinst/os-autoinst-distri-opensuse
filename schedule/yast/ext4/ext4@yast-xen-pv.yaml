@@ -6,13 +6,12 @@ description:    >
   due to grub2 doesnt support xfb console.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: ext4
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -34,6 +33,7 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
+  product: SLES
   guided_partitioning:
     filesystem_options:
       root_filesystem_type: ext4

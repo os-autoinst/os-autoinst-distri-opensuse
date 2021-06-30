@@ -22,6 +22,7 @@ use parent 'Distribution::Opensuse::Tumbleweed';
 
 use Installation::License::Sle::LicenseAgreementController;
 use Installation::License::Sle::Firstboot::LicenseAgreementController;
+use Installation::ProductSelection::ProductSelectionController;
 
 =head2 get_license_agreement
 
@@ -36,6 +37,10 @@ sub get_license_agreement {
 
 sub get_firstboot_license_agreement {
     return Installation::License::Sle::Firstboot::LicenseAgreementController->new();
+}
+
+sub get_product_selection {
+    return Installation::ProductSelection::ProductSelectionController->new();
 }
 
 1;

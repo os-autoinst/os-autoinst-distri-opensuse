@@ -243,10 +243,8 @@ sub schedule_tests {
         harness     => 'SUSE OpenQA',
         ltp_version => ''
     };
+
     my $ver_linux_out = script_output("cat /tmp/ver_linux_before.txt");
-    if ($ver_linux_out =~ qr'^Linux\s+(.*?)\s*$'m) {
-        $environment->{kernel} = $1;
-    }
     if ($ver_linux_out =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
         $environment->{libc} = $1;
     }
@@ -255,6 +253,7 @@ sub schedule_tests {
     }
 
     my $file = get_ltp_version_file();
+    $environment->{kernel}      = script_output('uname -r');
     $environment->{ltp_version} = script_output("touch $file; cat $file");
     record_info("LTP version", $environment->{ltp_version});
 

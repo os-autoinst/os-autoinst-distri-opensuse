@@ -636,7 +636,10 @@ $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures())
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 if (load_yaml_schedule) {
-    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::set_libyui_backend_vars;
+        YuiRestClient::init_logger;
+    }
     return 1;
 }
 
@@ -1032,25 +1035,6 @@ else {
         loadtest 'boot/boot_from_pxe';
         loadtest 'console/microcode_update';
         return 1;
-    }
-    elsif (get_var("QAM_OPENVPN")) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('OPENVPN_STATIC_START',    2);
-            barrier_create('OPENVPN_STATIC_STARTED',  2);
-            barrier_create('OPENVPN_STATIC_FINISHED', 2);
-            barrier_create('OPENVPN_CA_START',        2);
-            barrier_create('OPENVPN_CA_STARTED',      2);
-            barrier_create('OPENVPN_CA_FINISHED',     2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest "network/openvpn_server";
-        }
-        else {
-            loadtest "network/openvpn_client";
-        }
     }
     elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);

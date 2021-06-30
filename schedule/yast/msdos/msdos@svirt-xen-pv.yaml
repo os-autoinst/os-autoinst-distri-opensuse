@@ -7,8 +7,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -26,3 +26,5 @@ schedule:
   - console/validate_blockdevices
   - console/validate_free_space
   - console/validate_read_write
+test_data:
+  product: SLES

@@ -2,11 +2,14 @@
 name: gpt
 description: >
   Test installation on a very large hard disk which needs GPT partition format.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -30,6 +33,7 @@ schedule:
   - console/validate_partition_table_via_blkid
   - console/validate_blockdevices
 test_data:
+  product: SLES
   disks:
   - name: vda
     table_type: gpt

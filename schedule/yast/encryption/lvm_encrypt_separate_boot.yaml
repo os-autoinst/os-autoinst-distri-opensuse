@@ -22,8 +22,8 @@ conditional_schedule:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -49,3 +49,5 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_lvm
   - console/validate_encrypt
+test_data:
+  product: SLES

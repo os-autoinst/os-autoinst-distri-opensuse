@@ -19,8 +19,10 @@ use parent 'susedistribution';
 use Installation::AuthenticationForRoot::AuthenticationForRootController;
 use Installation::ClockAndTimeZone::ClockAndTimeZoneController;
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
+use Installation::License::Opensuse::LicenseAgreementController;
 use Installation::License::LicenseAgreementCustomController;
 use Installation::LocalUser::LocalUserController;
+use Installation::Navigation::NavigationController;
 use Installation::Overview::OverviewController;
 use Installation::Registration::RegisteredSystemController;
 use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
@@ -82,6 +84,10 @@ sub get_firstboot_welcome {
     return YaST::Firstboot::WelcomeController->new();
 }
 
+sub get_navigation {
+    return Installation::Navigation::NavigationController->new();
+}
+
 sub get_overview_controller {
     return Installation::Overview::OverviewController->new();
 }
@@ -120,6 +126,10 @@ sub get_registration_of_registered_system {
 
 sub get_bootloader {
     return YaST::Bootloader::BootloaderController->new();
+}
+
+sub get_license_agreement {
+    return Installation::License::Opensuse::LicenseAgreementController->new();
 }
 
 1;

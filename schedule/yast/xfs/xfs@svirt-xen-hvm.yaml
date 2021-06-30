@@ -6,14 +6,13 @@ description: >
   YaST does not report any issue.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: xfs
   YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -37,4 +36,5 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
+  product: SLES
   <<: !include test_data/yast/xfs/xfs_partition_svirt-xen.yaml

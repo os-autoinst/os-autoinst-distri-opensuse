@@ -13,10 +13,12 @@ vars:
   SCC_REGISTER: console
   ENABLE_ALL_SCC_MODULES: 1
   ADDONS: all-packages
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -47,3 +49,5 @@ schedule:
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
   - shutdown/svirt_upload_assets
+test_data:
+  product: SLES

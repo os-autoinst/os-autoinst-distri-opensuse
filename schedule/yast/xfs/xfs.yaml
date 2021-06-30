@@ -6,13 +6,12 @@ description: >
   that the correct filesystem was installed.
 vars:
   DESKTOP: gnome
-  FILESYSTEM: xfs
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   # Called only on BACKEND: s390x
   - '{{disk_activation}}'
   - installation/scc_registration
@@ -61,6 +60,7 @@ conditional_schedule:
       s390x:
         - console/validate_partition_table_via_parted
 test_data:
+  product: SLES
   guided_partitioning:
     filesystem_options:
       root_filesystem_type: xfs

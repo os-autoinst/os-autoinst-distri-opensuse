@@ -7,11 +7,13 @@ vars:
   IBFT: '1'
   NBF: iqn.2016-02.openqa.de:for.openqa
   NICTYPE: user
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/iscsi_configuration
   - installation/scc_registration
   - installation/addon_products_sle
@@ -37,3 +39,5 @@ schedule:
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - installation/validation/ibft
+test_data:
+  product: SLES

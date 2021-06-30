@@ -5,8 +5,8 @@
     <do_registration config:type="boolean">true</do_registration>
     <email/>
     <!-- Reg code HACK!!!-->
-    <!-->5ed98f8c543b5b75<-->
-    <reg_code>deedc51104e549deb</reg_code>
+    <!--><reg_code>{{SCC_REGCODE_RT}}</reg_code><-->
+    <reg_code>{{SCC_REGCODE}}</reg_code>
     <install_updates config:type="boolean">true</install_updates>
     <addons config:type="list">
       <addon>

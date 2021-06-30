@@ -8,10 +8,12 @@ vars:
   DEPENDENCY_RESOLVER_FLAG: 1
   DESKTOP: textmode
   PATTERNS: base,enhanced_base
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -41,6 +43,7 @@ schedule:
   - console/validate_installed_patterns
   - console/consoletest_finish
 test_data:
+  product: SLES
   software:
     patterns:
       - base

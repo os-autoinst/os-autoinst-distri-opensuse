@@ -7,13 +7,11 @@ vars:
   RAIDLEVEL: 1
   LVM: 1
   YUI_REST_API: 1
-test_data:
-  <<: !include test_data/yast/lvm_raid1/lvm+raid1_hyperv.yaml
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -31,3 +29,6 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm_raid1
+test_data:
+  product: SLES
+  <<: !include test_data/yast/lvm_raid1/lvm+raid1_hyperv.yaml

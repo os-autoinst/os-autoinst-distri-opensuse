@@ -8,10 +8,12 @@ vars:
   LVM: 1
   SEPARATE_HOME: 0
   HDDMODEL: scsi-hd
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/multipath
   - installation/addon_products_sle
@@ -41,4 +43,5 @@ schedule:
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
 test_data:
+  product: SLES
   <<: !include test_data/yast/multipath.yaml

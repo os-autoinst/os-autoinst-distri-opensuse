@@ -6,10 +6,12 @@ name: lvm+cancel_existing_cryptlvm
 vars:
   ENCRYPT_CANCEL_EXISTING: 1
   LVM: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
   - console/validate_encrypted_partition_not_activated
@@ -35,4 +37,5 @@ schedule:
   - console/force_scheduled_tasks
   - console/validate_lvm
 test_data:
+  product: SLES
   enc_disk_part: vda2

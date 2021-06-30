@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use Mojo::UserAgent;
+use YuiRestClient::Logger;
 
 my $ua = Mojo::UserAgent->new;
 
@@ -23,6 +24,7 @@ sub http_get {
     my $res = $ua->get($url)->result;
     return $res if $res->is_success;
     # Die if non OK response code
+    YuiRestClient::Logger->get_instance()->error('Widget not found by url: ' . $url);
     die $res->message . "\n" . $res->body . "\n$url";
 }
 
@@ -32,6 +34,7 @@ sub http_post {
     my $res = $ua->post($url)->result;
     return $res if $res->is_success;
     # Die if non OK response code
+    YuiRestClient::Logger->get_instance()->error('Widget not found by url: ' . $url);
     die $res->message . "\n" . $res->body . "\n$url";
 }
 

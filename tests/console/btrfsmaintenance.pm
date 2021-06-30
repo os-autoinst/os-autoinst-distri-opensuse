@@ -62,9 +62,6 @@ sub run {
     if (is_sle("<15-SP2")) {
         assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep enabled');
         record_soft_failure('boo#1165780 - Preset is wrong and enables btrfsmaintenance-refresh.service instead of .path');
-    } elsif (is_sle("<=15-SP3") || is_leap("<=15.3")) {
-        # Preset is correct, btrfsmaintenance-refresh.service still has the [Install] section
-        assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep disabled');
     } else {
         # Preset is correct, btrfsmaintenance-refresh.service dropped the [Install] section
         assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.service || :) | grep static');

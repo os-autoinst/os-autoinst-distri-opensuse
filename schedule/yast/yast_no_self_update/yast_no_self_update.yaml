@@ -7,11 +7,13 @@ description:    >
   any issue.
 vars:
   INSTALLER_NO_SELF_UPDATE: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
+  - installation/setup_libyui
+  - installation/product_selection/select_product
   - installation/validate_no_self_update
-  - installation/accept_license
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -30,3 +32,5 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
+test_data:
+  product: SLES

@@ -10,11 +10,13 @@ vars:
   LVM: 1
   RESIZE_ROOT_VOLUME: 1
   SEPARATE_HOME: 0
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -42,6 +44,7 @@ schedule:
   - console/consoletest_finish
   - console/validate_modify_existing_partition
 test_data:
+  product: SLES
   volume_groups:
     - name: system
       logical_volumes:

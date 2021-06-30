@@ -10,10 +10,12 @@ vars:
   ENCRYPT_ACTIVATE_EXISTING: 1
   ETC_PASSWD: "bernhard:x:1000:100:bernhard:/home/bernhard:/bin/bash"
   ETC_SHADOW: "bernhard:$6$ZQ2QptdwejF6$QAEuGvFZJCsyA0oWlrFsWXcMSNcgkU4y3oVPGHhoOjuEHU7BhKAm8DN5L8FnwQlngmNheB.vZqyz1HripbwKL0:18435:0:99999:7:::"
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
   - installation/addon_products_sle
@@ -33,3 +35,5 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_user_login_textmode
+test_data:
+  product: SLES

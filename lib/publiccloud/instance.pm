@@ -219,7 +219,7 @@ sub wait_for_ssh
 
     # Check ssh command
     while ((my $duration = time() - $start_time) < $args{timeout}) {
-        return $duration if ($self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default)"', proceed_on_failure => 1, quiet => 1, username => $args{username}) =~ m/Reached target.*/);
+        return $duration if ($self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, quiet => 1, username => $args{username}) =~ m/Reached target.*/);
         sleep 1;
     }
 

@@ -252,7 +252,7 @@ sub do_kdump {
 
 #
 # Install debug kernel and use yast2 kdump to enable kdump service.
-# we use $args{test_type} to distingush  migration or function check.
+# we use $args{test_type} to distingush migration from function check.
 #
 # For migration test we just do activate kdump. migration test do
 # not need to run prepare_for_kdump function because it can't get
@@ -274,7 +274,7 @@ sub configure_service {
         }
     }
 
-    prepare_for_kdump($args{test_type});
+    prepare_for_kdump(%args);
     if ($args{yast_interface} eq 'cli') {
         activate_kdump_cli;
     } else {

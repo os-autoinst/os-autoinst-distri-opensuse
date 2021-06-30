@@ -20,8 +20,8 @@
   Program version:           3.0.4
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210515
-  Kernel version:            5.12.3
+  Operating system version:  20210626
+  Kernel version:            5.12.12
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -52,7 +52,7 @@
 [+] Boot and services
 ------------------------------------
 
-  [WARNING]: Test CORE-1000 had a long execution: 15.772212 seconds
+  [WARNING]: Test CORE-1000 had a long execution: 22.223113 seconds
 
 [2C- Service Manager[42C [ systemd ]
 [2C- Checking UEFI boot[39C [ DISABLED ]
@@ -70,7 +70,7 @@
 [8C- after-local.service:[31C [ UNSAFE ]
 [8C- alsa-state.service:[32C [ UNSAFE ]
 [8C- appstream-sync-cache.service:[22C [ UNSAFE ]
-[8C- auditd.service:[36C [ UNSAFE ]
+[8C- auditd.service:[36C [ EXPOSED ]
 [8C- avahi-daemon.service:[30C [ UNSAFE ]
 [8C- chronyd.service:[35C [ EXPOSED ]
 [8C- colord.service:[36C [ EXPOSED ]
@@ -169,6 +169,7 @@
 [2C- Accounts without password[32C [ OK ]
 [2C- Locked accounts[42C [ OK ]
 [2C- Checking expired passwords[31C [ OK ]
+[2C- Checking Linux single user mode authentication[11C [ OK ]
 [2C- Determining default umask[32C
 [4C- umask (/etc/profile)[35C [ NOT FOUND ]
 [2C- LDAP authentication support[30C [ NOT ENABLED ]
@@ -176,7 +177,7 @@
 [+] Shells
 ------------------------------------
 [2C- Checking shells from /etc/shells[25C
-[4CResult: found 26 shells (valid shells: 9).[15C
+[4CResult: found 26 shells (valid shells: 6).[15C
 [4C- Session timeout settings/tools[25C [ NONE ]
 [2C- Checking default umask values[28C
 [4C- Checking default umask in /etc/bash.bashrc[13C [ NONE ]
@@ -243,7 +244,10 @@
 [4C- Searching RPM package manager[26C [ FOUND ]
 [6C- Querying RPM package manager[25C
 
-  [WARNING]: Test PKGS-7308 had a long execution: 17.144066 seconds
+  [WARNING]: Test PKGS-7308 had a long execution: 22.035645 seconds
+
+
+  [WARNING]: Test PKGS-7328 had a long execution: 11.819022 seconds
 
 [2C- Using Zypper to find vulnerable packages[17C [ NONE ]
 [2C- Checking package audit tool[30C [ INSTALLED ]
@@ -302,7 +306,26 @@
 [+] SSH Support
 ------------------------------------
 [2C- Checking running SSH daemon[30C [ FOUND ]
-[4C- Searching SSH configuration[28C [ FOUND ]
+[4C- Searching SSH configuration[28C [ NOT FOUND ]
+
+=================================================================
+
+  Exception found!
+
+  Function/test:  [SSH-7404:1]
+  Message:        SSH daemon is running, but no readable configuration file found
+
+  Help improving the Lynis community with your feedback!
+
+  Steps:
+  - Ensure you are running the latest version (/usr/bin/lynis update check)
+  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
+  - Include relevant parts of the log file or configuration file
+
+  Thanks!
+
+=================================================================
+
 [4C- OpenSSH option: AllowTcpForwarding[21C [ SUGGESTION ]
 [4C- OpenSSH option: ClientAliveCountMax[20C [ SUGGESTION ]
 [4C- OpenSSH option: ClientAliveInterval[20C [ OK ]
@@ -314,11 +337,11 @@
 [4C- OpenSSH option: LogLevel[31C [ SUGGESTION ]
 [4C- OpenSSH option: MaxAuthTries[27C [ SUGGESTION ]
 [4C- OpenSSH option: MaxSessions[28C [ SUGGESTION ]
-[4C- OpenSSH option: PermitRootLogin[24C [ SUGGESTION ]
+[4C- OpenSSH option: PermitRootLogin[24C [ OK ]
 [4C- OpenSSH option: PermitUserEnvironment[18C [ OK ]
 [4C- OpenSSH option: PermitTunnel[27C [ OK ]
 [4C- OpenSSH option: Port[35C [ SUGGESTION ]
-[4C- OpenSSH option: PrintLastLog[27C [ OK ]
+[4C- OpenSSH option: PrintLastLog[27C [ SUGGESTION ]
 [4C- OpenSSH option: StrictModes[28C [ OK ]
 [4C- OpenSSH option: TCPKeepAlive[27C [ SUGGESTION ]
 [4C- OpenSSH option: UseDNS[33C [ OK ]
@@ -456,7 +479,6 @@
 [4CFile: /etc/motd[42C [ OK ]
 [4CFile: /etc/passwd[40C [ OK ]
 [4CFile: /etc/passwd-[39C [ OK ]
-[4CFile: /etc/ssh/sshd_config[31C [ SUGGESTION ]
 [4CFile: /etc/hosts.equiv[35C [ OK ]
 [4CDirectory: /root/.ssh[36C [ OK ]
 [4CDirectory: /etc/cron.d[35C [ SUGGESTION ]
@@ -475,9 +497,9 @@
 ------------------------------------
 [2C- Comparing sysctl key pairs with scan profile[13C
 [4C- dev.tty.ldisc_autoload (exp: 0)[24C [ DIFFERENT ]
-[4C- fs.protected_fifos (exp: 2)[28C [ DIFFERENT ]
+[4C- fs.protected_fifos (exp: 2)[28C [ OK ]
 [4C- fs.protected_hardlinks (exp: 1)[24C [ OK ]
-[4C- fs.protected_regular (exp: 2)[26C [ DIFFERENT ]
+[4C- fs.protected_regular (exp: 2)[26C [ OK ]
 [4C- fs.protected_symlinks (exp: 1)[25C [ OK ]
 [4C- fs.suid_dumpable (exp: 0)[30C [ OK ]
 [4C- kernel.core_uses_pid (exp: 1)[26C [ DIFFERENT ]
@@ -527,13 +549,13 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package iio-sensor-proxy-3.0-1.6.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.SensorProxy.conf[0C [ WARNING ]
-[4CWarning: Package bluez-5.58-1.3.x86_64 installs an unknown D-BUS autostart/system service: org.bluez.service[0C [ WARNING ]
-[4CWarning: Package flatpak-1.11.1-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.Flatpak.SystemHelper.service[0C [ WARNING ]
-[4CWarning: Package bolt-0.9-1.8.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.bolt.service[0C [ WARNING ]
-[4CWarning: Package fwupd-1.5.8-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.fwupd.service[0C [ WARNING ]
-[4CWarning: Package systemd-246.13-1.2.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-4.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package iio-sensor-proxy-3.1-1.1.x86_64 installs an unknown D-BUS autostart/system service: net.hadess.SensorProxy.conf[0C [ WARNING ]
+[4CWarning: Package bluez-5.58-1.5.x86_64 installs an unknown D-BUS autostart/system service: org.bluez.service[0C [ WARNING ]
+[4CWarning: Package flatpak-1.11.2-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.Flatpak.SystemHelper.service[0C [ WARNING ]
+[4CWarning: Package bolt-0.9.1-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.bolt.service[0C [ WARNING ]
+[4CWarning: Package fwupd-1.5.8-1.3.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.fwupd.service[0C [ WARNING ]
+[4CWarning: Package systemd-246.13-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-5.2.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -560,7 +582,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CNo bad RPATH usage found in 7934 executables[13C [ OK ]
+[4CNo bad RPATH usage found in 7970 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -568,7 +590,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 46.768346 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 60.080100 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -711,11 +733,11 @@
       https://cisofy.com/lynis/controls/SSH-7408/
 
   * Consider hardening SSH configuration [SSH-7408] 
-    - Details  : PermitRootLogin (set YES to (FORCED-COMMANDS-ONLY|NO|PROHIBIT-PASSWORD|WITHOUT-PASSWORD))
+    - Details  : Port (set 22 to )
       https://cisofy.com/lynis/controls/SSH-7408/
 
   * Consider hardening SSH configuration [SSH-7408] 
-    - Details  : Port (set 22 to )
+    - Details  : PrintLastLog (set NO to YES)
       https://cisofy.com/lynis/controls/SSH-7408/
 
   * Consider hardening SSH configuration [SSH-7408] 
@@ -800,6 +822,15 @@
   Files:
   - Test and debug information      : /var/log/lynis.log
   - Report data                     : /var/log/lynis-report.dat
+
+================================================================================
+
+  Exceptions found
+  Some exceptional events or information was found!
+
+  What to do:
+  You can help by providing your log file (/var/log/lynis.log).
+  Go to https://cisofy.com/contact/ and send your file to the e-mail address listed
 
 ================================================================================
 

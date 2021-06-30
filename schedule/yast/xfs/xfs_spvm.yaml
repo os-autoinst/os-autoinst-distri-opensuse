@@ -6,15 +6,14 @@ description:    >
   For spvm we have to disable plymouth, so edit_optional_kernel_cmd_parameters
   module is scheduled and OPT_KERNEL_PARAMS variable is set.
 vars:
-  FILESYSTEM: xfs
   DESKTOP: textmode
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -38,4 +37,5 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
+  product: SLES
   <<: !include test_data/yast/xfs/xfs_partition_spvm.yaml

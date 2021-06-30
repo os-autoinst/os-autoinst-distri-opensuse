@@ -12,10 +12,12 @@ vars:
   ENCRYPT_FORCE_RECOMPUTE: 1
   LVM: 1
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
   - installation/addon_products_sle
@@ -38,3 +40,5 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
+test_data:
+  product: SLES

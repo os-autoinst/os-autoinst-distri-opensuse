@@ -3,11 +3,14 @@ name: select_modules_and_patterns
 description: |
   Perform an installation enabling some modules and selecting some
   patterns.This test suite always registers to have access to some modules.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -35,3 +38,5 @@ schedule:
   - console/yast2_i
   - console/verify_no_separate_home
   - console/validate_subvolumes
+test_data:
+  product: SLES

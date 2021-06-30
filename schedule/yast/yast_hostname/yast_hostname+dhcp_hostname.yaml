@@ -9,10 +9,12 @@ vars:
   EXPECTED_INSTALL_HOSTNAME: dhcphostname
   EXTRABOOTPARAMS: ifcfg=*=dhcp
   NICTYPE_USER_OPTIONS: hostname=dhcphostname
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -31,3 +33,5 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+test_data:
+  product: SLES

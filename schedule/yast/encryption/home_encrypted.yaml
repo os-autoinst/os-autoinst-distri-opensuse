@@ -3,12 +3,12 @@ name: home_encrypted
 description: >
   Test interactive installation with encrypted home partition.
 vars:
-  YUI_REST_API: '1'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -30,6 +30,7 @@ schedule:
   - console/verify_separate_home
   - console/validate_encrypt
 test_data:
+  product: SLES
   crypttab:
     num_devices_encrypted: 1
   cryptsetup:

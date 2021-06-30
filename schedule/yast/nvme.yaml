@@ -4,10 +4,13 @@ description: >
   Basic installation test to confirm that installing and booting to an nvme as
   your root disk works. Installation is validated by successful boot and that
   YaST does not report any issue in first place. Smoke testing and validation of partitioning of NVMe.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -33,6 +36,7 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
+  product: SLES
   nvm_disk: nvme0n1
   nvm_char_device: nvme0
   nvme_sys_path: /sys/class/nvme

@@ -4,10 +4,12 @@ description: >
   generated and no error reported by YaST. No validation of the profile is done.
 vars:
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -29,3 +31,5 @@ schedule:
   - console/consoletest_setup
   - console/yast2_clone_system
   - console/consoletest_finish
+test_data:
+  product: SLES

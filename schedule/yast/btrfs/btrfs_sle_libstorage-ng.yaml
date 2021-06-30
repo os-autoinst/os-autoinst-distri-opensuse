@@ -10,8 +10,8 @@ schedule:
   - '{{isosize}}'
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   # Called only on BACKEND: s390x
   - '{{disk_activation}}'
   - installation/scc_registration
@@ -37,6 +37,7 @@ schedule:
   - console/system_prepare
   - console/force_scheduled_tasks
   - console/check_resume
+  - console/validate_product_name_installed
   - console/validate_no_cow_attribute
   # On all the backends except s390x, /home is located on a separate partition
   - '{{validate_home_partition}}'
@@ -78,6 +79,7 @@ test_data:
       - /opt
     no_cow:
       - /var
+  product: SLES
   disks:
   - name: vda
     table_type: gpt

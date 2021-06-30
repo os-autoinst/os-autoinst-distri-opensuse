@@ -7,8 +7,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -51,3 +51,5 @@ conditional_schedule:
         - installation/logs_from_installation_system
       pvm_hmc:
         - installation/logs_from_installation_system
+test_data:
+  product: SLES

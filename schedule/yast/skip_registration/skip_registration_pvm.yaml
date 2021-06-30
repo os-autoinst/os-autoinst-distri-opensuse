@@ -7,10 +7,12 @@ description:    >
   test suites on other architectures as it does not publish HDD in the end.
 vars:
   SCC_REGISTER: 'none'
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
@@ -38,3 +40,5 @@ schedule:
   - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish
+test_data:
+  product: SLES

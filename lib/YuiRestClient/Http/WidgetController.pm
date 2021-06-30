@@ -13,6 +13,7 @@ package YuiRestClient::Http::WidgetController;
 use strict;
 use warnings;
 
+use YuiRestClient::Logger;
 use YuiRestClient::Wait;
 use YuiRestClient::Http::HttpClient;
 
@@ -58,6 +59,8 @@ sub find {
         params => $args
     );
 
+    YuiRestClient::Logger->get_instance()->debug('Finding widget by url: ' . $uri);
+
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
             return $response->json if $response; },
@@ -75,6 +78,8 @@ sub send_action {
         path   => $self->{api_version} . '/widgets',
         params => $args
     );
+
+    YuiRestClient::Logger->get_instance()->debug('Sending action to widget by url: ' . $uri);
 
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_post($uri);

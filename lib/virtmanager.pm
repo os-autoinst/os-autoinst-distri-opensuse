@@ -685,7 +685,7 @@ sub powercycle {
     if (!check_screen 'virt-manager_notrunning', 120) {
         assert_and_click 'virt-manager_shutdown_menu';
         assert_and_click 'virt-manager_shutdown_item';
-        # There migh me 'Are you sure' dialog window
+        # There might be a 'Are you sure' dialog window
         if (check_screen "virt-manager_shutdown_sure", 2) {
             assert_and_click "virt-manager_shutdown_sure";
         }
