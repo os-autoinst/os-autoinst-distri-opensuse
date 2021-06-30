@@ -18,6 +18,8 @@ time_and_date:
 users:
   full_name: firstbootuser
   username: firstbootuser
+root_authentication:
+  warning: 'The password is too simple:\nit is based on a dictionary word.'
 finish_setup:
   text:
     - Congratulations!
