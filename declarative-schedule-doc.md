@@ -86,6 +86,7 @@ There are a few exceptions:
   - `HDD_1`: if added, openQA will not publish the image in openQA WebUI due to it depends on os-autoinst.
   - `START_AFTER_TEST`: if added, openQA will not link dependencies on the corresponding tab in openQA WebUI due to it depends on os-autoinst.
 -   `UEFI_PFLASH_VARS`: if added, openQA will not publish in UI
+- `QEMUCPUS` and `QEMURAM`: openQA cannot set these from the declarative yaml schedule and will use the defaults instead
 
 #### conditional_schedule
 Depending on different values of an environmental variable we can schedule different set of modules.
