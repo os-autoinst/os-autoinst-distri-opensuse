@@ -28,37 +28,25 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{AuthenticationForRootPage} = Installation::AuthenticationForRoot::AuthenticationForRootPage->new({app => YuiRestClient::get_app()});
-    $self->{TooSimplePasswordWarning}  = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning}       = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
 sub get_authentication_for_root_page {
     my ($self) = @_;
-    die 'Authentication For Root page is not displayed' unless $self->is_authentication_for_root_page_shown();
+    die 'Authentication For Root page is not displayed' unless $self->{AuthenticationForRootPage}->is_shown();
     return $self->{AuthenticationForRootPage};
 }
 
-sub is_authentication_for_root_page_shown {
+sub get_weak_password_warning {
     my ($self) = @_;
-    return $self->{AuthenticationForRootPage}->is_shown();
+    return $self->{WeakPasswordWarning};
 }
 
-sub get_too_simple_password_warning {
-    my ($self) = @_;
-    if ($self->{TooSimplePasswordWarning}->text() !~ /The password is too simple/) {
-        die 'Too simple password warning is not displayed';
-    }
-    return $self->{TooSimplePasswordWarning};
-}
-
-sub add_authentication_using_simple_password {
-    my ($self, $args) = @_;
-    $self->get_authentication_for_root_page()->setup($args);
-    $self->get_authentication_for_root_page()->press_next();
-    $self->get_too_simple_password_warning()->press_yes();
-    YuiRestClient::Wait::wait_until(object => sub {
-            return !$self->is_authentication_for_root_page_shown();
-    }, timeout => 30);
+sub add_weak_password {
+    my ($self, $password) = @_;
+    $self->get_authentication_for_root_page()->enter_password($password);
+    $self->get_authentication_for_root_page()->enter_confirm_password($password);
 }
 
 1;
