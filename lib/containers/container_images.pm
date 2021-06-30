@@ -54,16 +54,44 @@ sub build_and_run_image {
     my $dir = "~/containerapp";
 
     # Setup the environment
-    prepare_img("$dir", $dockerfile, $base);
+    record_info('Downloading', "Dockerfile: containers/$dockerfile\nHTML: containers/index.html");
+    assert_script_run "mkdir -p $dir/BuildTest";
+    assert_script_run "curl -f -v " . data_url("containers/$dockerfile") . " > $dir/BuildTest/Dockerfile";
+    file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
+    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
 
     # Build the image
-    $buildah ? build_img("$dir", 'buildah') : build_img("$dir", $runtime);
+    assert_script_run("cd $dir");
+    if (!$buildah) {
+        # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+        assert_script_run("$runtime build -t myapp BuildTest", timeout => 300);
+        assert_script_run("$runtime images | grep myapp");
+    } ele {
+        assert_script_run("buildah bud -t myapp BuildTest", timeout => 300);
+        assert_script_run("buildah images | grep myapp");
+    }
+    assert_script_run("cd");
+    assert_script_run("rm -rf $dir");
+
     if ($runtime eq 'docker' && $buildah) {
         assert_script_run "buildah push myapp docker-daemon:myapp:latest";
         script_run "$runtime images";
     }
-    # Run the built image
-    run_img($runtime);
+
+    # Test that we can execute programs in the container and test container's variables
+    assert_script_run("$runtime run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
+
+    # Run the container with port 80 exported as port 8888
+    assert_script_run("$runtime run -dit -p 8888:80 myapp");
+
+    # Make sure our container is running
+    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);
+
+    # Test that the exported port is reachable
+    script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
+
+    # Clean up
+    assert_script_run("$runtime stop `$runtime ps -q`");
 }
 
 # Build a sle container image using zypper_docker
