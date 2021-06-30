@@ -27,7 +27,7 @@ use YuiRestClient;
 sub run {
     select_console 'root-console';
 
-    my $app  = YuiRestClient::get_app();
+    my $app  = YuiRestClient::get_app(timeout => 60, interval => 1);
     my $port = $app->get_port();
     record_info('SERVER', "Used host for libyui: " . $app->get_host());
     record_info('PORT',   "Used port for libyui: " . $port);

@@ -31,6 +31,11 @@ sub init {
     return $self;
 }
 
+sub is_shown {
+    my ($self) = @_;
+    return $self->{btn_yes}->exist();
+}
+
 sub press_yes {
     my ($self) = @_;
     return $self->{btn_yes}->click();

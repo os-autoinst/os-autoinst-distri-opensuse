@@ -19,6 +19,8 @@ users:
   full_name: firstbootuser
   username: firstbootuser
   autologin: 1
+root_authentication:
+  warning: 'The password is too simple:\nit is based on a dictionary word.'
 finish_setup:
   text:
     - Congratulations!

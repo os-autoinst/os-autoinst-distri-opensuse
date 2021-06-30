@@ -18,7 +18,7 @@ schedule:
   - installation/yast_firstboot/firstboot_license_agreement
   - installation/yast_firstboot/firstboot_time_and_date
   - installation/yast_firstboot/firstboot_users
-  - installation/yast_firstboot/firstboot_root_password
+  - installation/authentication/add_weak_password_for_root
   - installation/yast_firstboot/firstboot_customer_center
   - installation/yast_firstboot/firstboot_finish_setup
   - installation/first_boot
