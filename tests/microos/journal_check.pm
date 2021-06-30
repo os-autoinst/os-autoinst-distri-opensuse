@@ -46,6 +46,7 @@ sub run {
         bsc_1182961         => 'could not read from \'/sys/module/pcc_cpufreq/initstate\': No such device',
         bsc_1184970         => '.*rpc\.statd.*Failed to stat \/var\/lib\/nfs\/sm: No such file or directory',
         bsc_000000_FEATURE  => 'health-checker/fail.sh check" failed|Machine didn\'t come up correct, do a rollback',
+        bsc_000001_FEATURE  => '-- Boot\\s+\\w+\\s+--',
     };
     my $master_pattern = "(" . join('|', map { "$_" } values %$bug_pattern) . ")";
 
