@@ -105,7 +105,7 @@ test-spec:
 	tools/update_spec --check
 
 .PHONY: test-static
-test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax
+test-static: tidy-check test-yaml-valid test-modules-in-yaml-schedule test-merge test-dry test-no-wait_idle test-deleted-renamed-referenced-files test-unused-modules-changed test-soft_failure-no-reference test-spec test-invalid-syntax test-code-style
 
 .PHONY: test
 ifeq ($(TESTS),compile)
@@ -146,3 +146,7 @@ test-soft_failure-no-reference:
 .PHONY: test-invalid-syntax
 test-invalid-syntax:
 	tools/check_invalid_syntax
+
+.PHONY: test-code-style
+test-code-style:
+	tools/check_code_style

@@ -556,11 +556,11 @@ sub adminer_setup {
     enter_cmd("firefox http://localhost/adminer/$adminer_file &");
 
     my $ret;
-    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
     if (!defined($ret)) {
         # Wait more time
         record_info("Firefox loading adminer failed", "Retrying workaround");
-        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);       # nocheck: old code, should be updated
     }
     if (match_has_tag("unresponsive-script")) {
         send_key_until_needlematch("adminer-login", 'ret', 5, 5);

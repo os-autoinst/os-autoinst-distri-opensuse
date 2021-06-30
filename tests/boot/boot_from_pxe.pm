@@ -45,7 +45,7 @@ sub run {
             select_console 'sol', await_console => 0;
         }
     }
-    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {
+    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {    # nocheck: old code, should be updated
         ipmi_backend_utils::ipmitool 'chassis power reset';
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
