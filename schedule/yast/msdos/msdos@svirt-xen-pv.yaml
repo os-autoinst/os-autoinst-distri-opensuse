@@ -16,7 +16,6 @@ schedule:
   - installation/partitioning/msdos_partition_table
   - installation/installer_timezone
   - installation/user_settings
-  - installation/user_settings_root
   - installation/installation_overview
   - installation/start_install
   - installation/await_install
