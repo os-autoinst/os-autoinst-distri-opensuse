@@ -43,7 +43,7 @@ sub get_weak_password_warning {
     return $self->{WeakPasswordWarning};
 }
 
-sub add_weak_password {
+sub set_password {
     my ($self, $password) = @_;
     $self->get_authentication_for_root_page()->enter_password($password);
     $self->get_authentication_for_root_page()->enter_confirm_password($password);

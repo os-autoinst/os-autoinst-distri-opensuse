@@ -26,38 +26,56 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{LocalUserPage}            = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
-    $self->{TooSimplePasswordWarning} = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{LocalUserPage}       = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning} = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
 sub get_local_user_page {
     my ($self) = @_;
-    die 'Local User page is not displayed' unless $self->is_local_user_page_shown();
+    die 'Local User page is not displayed' unless $self->{LocalUserPage}->is_shown();
     return $self->{LocalUserPage};
 }
 
-sub is_local_user_page_shown {
+sub get_weak_password_warning {
     my ($self) = @_;
-    return $self->{LocalUserPage}->is_shown();
+    return $self->{WeakPasswordWarning};
 }
 
-sub get_too_simple_password_warning {
-    my ($self) = @_;
-    if ($self->{TooSimplePasswordWarning}->text() !~ /The password is too simple/) {
-        die 'Too simple password warning is not displayed';
-    }
-    return $self->{TooSimplePasswordWarning};
+sub create_user {
+    my ($self, %args) = @_;
+    my $full_name = $args{full_name};
+    my $username  = $args{username};
+    my $password  = $args{password};
+    $self->get_local_user_page()->enter_full_name($full_name);
+    $self->get_local_user_page()->enter_username($username) if defined $username;
+    $self->get_local_user_page()->enter_password($password);
+    $self->get_local_user_page()->enter_confirm_password($password);
 }
 
-sub create_new_user_with_simple_password {
-    my ($self, $args) = @_;
-    $self->get_local_user_page()->setup($args);
-    $self->get_local_user_page()->press_next();
-    $self->get_too_simple_password_warning()->press_yes();
-    YuiRestClient::Wait::wait_until(object => sub {
-            return !$self->is_local_user_page_shown();
-    }, timeout => 30);
+sub use_same_password_for_admin {
+    my ($self) = @_;
+    $self->get_local_user_page()->select_use_this_password_for_admin();
+}
+
+sub enable_automatic_login {
+    my ($self) = @_;
+    $self->get_local_user_page()->set_autologin(1);
+}
+
+sub disable_automatic_login {
+    my ($self) = @_;
+    $self->get_local_user_page()->set_autologin(0);
+}
+
+sub is_autologin {
+    my ($self) = @_;
+    $self->get_local_user_page()->has_autologin_checked();
+}
+
+sub is_use_same_password_for_admin {
+    my ($self) = @_;
+    $self->get_local_user_page()->has_use_same_password_for_admin_checked();
 }
 
 1;
