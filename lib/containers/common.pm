@@ -130,21 +130,7 @@ sub allow_selected_insecure_registries {
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     my $registry = registry_url();
-
-    assert_script_run "echo $runtime ...";
-    if ($runtime =~ /docker/) {
-        # Allow our internal 'insecure' registry
-        assert_script_run(
-'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
-        assert_script_run('cat /etc/docker/daemon.json');
-        systemctl('restart docker');
-    } elsif ($runtime =~ /podman/) {
-        assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
-        assert_script_run "chmod 644 /etc/containers/registries.conf";
-        file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
-    } else {
-        die "Unsupported runtime - " . $runtime;
-    }
+    $runtime->setup_registry();
 }
 
 sub clean_container_host {
@@ -231,7 +217,7 @@ sub test_container_image {
 
     my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
-    if ($runtime =~ /buildah/) {
+    if ($runtime->runtime =~ /buildah/) {
         if (script_run("buildah images | grep '$image'") != 0) {
             assert_script_run("buildah pull $image", timeout => 300);
             assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
@@ -242,16 +228,17 @@ sub test_container_image {
         assert_script_run("buildah run $container $smoketest");
     } else {
         # Pull the image if necessary
-        if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
+        if (script_run("$runtime->{runtime} image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
             # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-            script_retry("$runtime pull $image", retry => 3, timeout => 420);
-            assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
+            $runtime->pull($image, timeout => 420);
+            $runtime->check_image_in_host_registry($image);
         }
-        assert_script_run("$runtime container create --name testing $image $smoketest");
-        assert_script_run("$runtime container start 'testing'");
-        assert_script_run("$runtime wait 'testing'", 90);
-        assert_script_run("$runtime container logs 'testing' | tee '$logfile'");
-        assert_script_run("$runtime container rm 'testing'");
+        $runtime->create_container($image, 'testing', $smoketest);
+        $runtime->start_container('testing');
+        $runtime->halt_container('testing');
+        my $logs = $runtime->get_container_logs('testing');
+        assert_script_run "echo '$logs' | tee '$logfile'";
+        $runtime->remove_container('testing');
         if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
             upload_logs("$logfile");
             die "Kernel smoke test failed for $image";
@@ -282,10 +269,10 @@ sub test_rpm_db_backend {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
+    my ($running_version, $sp, $host_distri) = get_os_release("$runtime->{runtime} run $image");
     # TW and SLE 15-SP3+ uses rpm-ndb in the image
     if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
-        validate_script_output "$runtime run $image rpm --eval %_db_backend", sub { m/ndb/ };
+        validate_script_output "$runtime->{runtime} run $image rpm --eval %_db_backend", sub { m/ndb/ };
     }
 }
 

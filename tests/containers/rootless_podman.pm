@@ -28,13 +28,14 @@ use containers::urls 'get_suse_container_urls';
 use containers::utils 'registry_url';
 use version_utils qw(get_os_release);
 use version_utils 'is_sle';
+use containers::runtime;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = "podman";
+    my $runtime = containers::runtime::podman->new();
 
     install_podman_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
@@ -60,7 +61,7 @@ sub run {
         test_zypper_on_container($runtime, $iname);
         verify_userid_on_container($runtime, $iname, $subuid_start);
     }
-    clean_container_host(runtime => $runtime);
+    $runtime->cleanup_system_host();
 }
 
 sub softfail_and_skip_on_bsc1182874 {

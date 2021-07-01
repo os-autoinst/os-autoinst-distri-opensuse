@@ -99,11 +99,12 @@ sub run {
     $self->select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
     my ($running_version, $sp, $host_distri) = get_os_release;
-    install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
-    my $docker    = containers::runtime->new(runtime => 'docker');
     my $btrfs_dev = '/var/lib/docker';
     my ($untested_images, $released_images) = get_suse_container_urls();
+    my $docker = containers::runtime::docker->new();
+    install_docker_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => $docker);
+
     _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
     _test_btrfs_device_mgmt($docker, $btrfs_dev);

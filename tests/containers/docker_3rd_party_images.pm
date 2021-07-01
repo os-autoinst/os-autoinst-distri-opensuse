@@ -22,16 +22,16 @@ use containers::common;
 use containers::urls 'get_3rd_party_images';
 use containers::container_images qw(test_3rd_party_image upload_3rd_party_images_logs);
 use registration;
-
+use containers::runtime;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = 'docker';
+    my $runtime = containers::runtime::docker->new();
 
-    script_run("echo 'Container base image tests:' > /var/tmp/$runtime-3rd_party_images_log.txt");
+    script_run("echo 'Container base image tests:' > /var/tmp/docker-3rd_party_images_log.txt");
     # In SLE we need to add the Containers module
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
@@ -39,7 +39,7 @@ sub run {
     for my $image (@{$images}) {
         test_3rd_party_image($runtime, $image);
     }
-    clean_container_host(runtime => $runtime);
+    $runtime->cleanup_system_host();
 }
 
 sub post_fail_hook {

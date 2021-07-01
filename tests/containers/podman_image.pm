@@ -19,14 +19,14 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
+use containers::runtime;
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal();
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = "podman";
-
+    my $runtime = containers::runtime::podman->new();
     install_podman_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
 
@@ -50,7 +50,7 @@ sub run {
             }
         }
     }
-    clean_container_host(runtime => $runtime);
+    $runtime->cleanup_system_host();
 }
 
 1;

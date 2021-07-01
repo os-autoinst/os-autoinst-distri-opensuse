@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,7 +21,7 @@
 #      * containers can be stopped
 #      * containers can be deleted
 #      * images can be deleted
-# Maintainer: Richard Brown <rbrown@suse.com>
+# Maintainer: qac team <qa-c@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -33,26 +33,27 @@ use containers::common;
 use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
+use containers::runtime;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $dir = "/root/DockerTest";
-
+    my $dir    = "/root/DockerTest";
+    my $podman = containers::runtime::podman->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'podman');
+    allow_selected_insecure_registries(runtime => $podman);
 
     # Run basic tests for podman
-    basic_container_tests(runtime => "podman");
+    basic_container_tests(runtime => $podman);
 
     # Build an image from Dockerfile and test it
-    build_and_run_image(runtime => 'podman', base => 'registry.opensuse.org/opensuse/leap:latest');
+    build_and_run_image(runtime => $podman, base => 'registry.opensuse.org/opensuse/leap:latest');
 
     # Clean container
-    clean_container_host(runtime => "podman");
+    $podman->cleanup_system_host();
 }
 
 sub post_fail_hook {
