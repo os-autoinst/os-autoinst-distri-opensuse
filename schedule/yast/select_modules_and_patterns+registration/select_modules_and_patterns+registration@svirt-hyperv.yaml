@@ -26,7 +26,6 @@ schedule:
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
-  - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/select_patterns
   - installation/installation_overview

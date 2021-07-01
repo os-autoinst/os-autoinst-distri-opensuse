@@ -22,7 +22,6 @@ schedule:
   # Called on BACKEND: qemu, svirt
   - '{{hostname_inst}}'
   - installation/user_settings
-  - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout

@@ -22,7 +22,6 @@ schedule:
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/user_import
-  - installation/user_settings_root
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install

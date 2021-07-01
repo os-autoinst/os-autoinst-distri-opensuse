@@ -24,7 +24,6 @@ schedule:
   # Called on all, except BACKEND: s390x
   - '{{hostname_inst}}'
   - installation/user_settings
-  - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
