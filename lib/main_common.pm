@@ -749,6 +749,12 @@ sub check_env {
             die sprintf("%s must be one of %s\n", $k, join(',', @{$valueranges{$k}}));
         }
     }
+
+    my $mirror = get_var('SUSEMIRROR');
+    if ($mirror && $mirror =~ s{^(\w+)://}{}) {    # strip & check proto
+        set_var('SUSEMIRROR', $mirror);
+        die "only http mirror URLs are currently supported but found '$1'." if $1 ne "http";
+    }
 }
 
 sub unregister_needle_tags {
