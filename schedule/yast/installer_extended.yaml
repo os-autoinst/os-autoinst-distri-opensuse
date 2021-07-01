@@ -28,8 +28,8 @@ schedule:
   - installation/partitioning_finish
   - installation/releasenotes
   - installation/installer_timezone
-  - installation/user_settings
-  - installation/authentication/add_weak_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/authentication/root_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -71,5 +71,3 @@ test_data:
         text: 版軟體的
   system_role:
     default: 'Text Mode'
-  root_authentication:
-    warning: 'The password is too simple:\nit is based on a dictionary word.'

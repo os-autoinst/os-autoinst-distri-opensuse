@@ -22,7 +22,8 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/user_settings
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/select_patterns
   - installation/installation_overview
   - installation/disable_grub_timeout

@@ -21,7 +21,8 @@ schedule:
   - installation/installer_timezone
   # Called on BACKEND: qemu, svirt
   - '{{hostname_inst}}'
-  - installation/user_settings
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
