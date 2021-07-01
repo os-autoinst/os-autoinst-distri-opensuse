@@ -99,10 +99,10 @@ sub run {
     $self->select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $docker = containers::runtime::docker->new();
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => 'docker');
     my $docker         = containers::runtime->new(runtime => 'docker');
-    my $btrfs_dev      = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
     _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
