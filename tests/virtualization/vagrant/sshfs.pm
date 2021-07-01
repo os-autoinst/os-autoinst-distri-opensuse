@@ -42,18 +42,18 @@ sub run() {
     #
     assert_script_run('echo "Foo" > testfile');
 
-    assert_script_run('vagrant init opensuse/Tumbleweed.' . get_required_var('ARCH'));
+    run_vagrant_cmd('init opensuse/Tumbleweed.' . get_required_var('ARCH'));
 
     assert_script_run('sed -i \'s/# config\.vm\.synced_folder .*$/config\.vm\.synced_folder "\.", "\/vagrant", type: "sshfs"/\' Vagrantfile');
 
-    assert_script_run('vagrant up', timeout => 1200);
+    run_vagrant_cmd('up', timeout => 1200);
 
     assert_script_run('[[ $(vagrant ssh -- cat /vagrant/testfile) = "Foo" ]]');
     assert_script_run('vagrant ssh -- "echo \"Bar\" > /vagrant/testfile"');
     assert_script_run('[[ $(cat testfile) = "Bar" ]]');
 
-    assert_script_run('vagrant halt');
-    assert_script_run('vagrant destroy -f');
+    run_vagrant_cmd('halt');
+    run_vagrant_cmd('destroy -f');
     assert_script_run('rm -rf Vagrantfile testfile .vagrant');
 
     #
