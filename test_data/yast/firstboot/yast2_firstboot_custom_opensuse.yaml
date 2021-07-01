@@ -13,10 +13,6 @@ license_agreement:
     - UNFAIRCORP
     - Extremely Unfair License Agreement for Beta Software
     - By accepting the license terms, you agree to transfer all your belongings to UNFAIRCORP.
-users:
-  full_name: firstbootuser
-  username: firstbootuser
-  autologin: 1
 finish_setup:
   text:
     - All done
