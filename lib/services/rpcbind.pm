@@ -39,28 +39,28 @@ sub config_service {
 }
 
 sub enable_service {
-    common_service_action('rpcbind',   $service_type, 'enable');
-    common_service_action($nfs_server, $service_type, 'enable');
+    common_service_action('rpcbind.socket', $service_type, 'enable');
+    common_service_action($nfs_server,      $service_type, 'enable');
 }
 
 sub start_service {
-    common_service_action('rpcbind',   $service_type, 'start');
-    common_service_action($nfs_server, $service_type, 'start');
+    common_service_action('rpcbind.socket', $service_type, 'start');
+    common_service_action($nfs_server,      $service_type, 'start');
 }
 
 sub stop_service {
-    common_service_action('rpcbind',   $service_type, 'stop');
-    common_service_action($nfs_server, $service_type, 'stop');
+    common_service_action($nfs_server,       $service_type, 'stop');
+    common_service_action('rpcbind.service', $service_type, 'stop');
 }
 
 sub check_enabled {
-    common_service_action('rpcbind',   $service_type, 'is-enabled');
-    common_service_action($nfs_server, $service_type, 'is-enabled');
+    common_service_action('rpcbind.socket', $service_type, 'is-enabled');
+    common_service_action($nfs_server,      $service_type, 'is-enabled');
 }
 
 sub check_service {
-    common_service_action('rpcbind', $service_type, 'is-enabled');
-    common_service_action('rpcbind', $service_type, 'is-active');
+    common_service_action('rpcbind.socket', $service_type, 'is-enabled');
+    common_service_action('rpcbind.socket', $service_type, 'is-active');
 }
 
 sub check_function {
