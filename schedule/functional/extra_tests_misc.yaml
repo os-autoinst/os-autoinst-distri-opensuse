@@ -9,6 +9,7 @@ conditional_schedule:
             opensuse:
                 - console/ndctl
                 - console/openvswitch_ssl
+                - x11/ghostscript
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
