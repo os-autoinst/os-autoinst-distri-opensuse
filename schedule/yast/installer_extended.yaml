@@ -29,7 +29,7 @@ schedule:
   - installation/releasenotes
   - installation/installer_timezone
   - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/add_weak_password_for_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -71,3 +71,5 @@ test_data:
         text: 版軟體的
   system_role:
     default: 'Text Mode'
+  root_authentication:
+    warning: 'The password is too simple:\nit is based on a dictionary word.'
