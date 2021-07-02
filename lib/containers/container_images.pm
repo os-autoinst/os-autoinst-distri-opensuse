@@ -251,18 +251,20 @@ sub test_zypper_on_container {
     # zypper lr
     assert_script_run("$runtime run $image zypper lr -s", 120);
 
+    my $zypper_ref = 'zypper -nv ref | grep \"All repositories have been refreshed\"';
+
     if ($runtime =~ /buildah/) {
         # zypper ref
-        assert_script_run("$runtime run $image -- zypper -v ref | grep \"All repositories have been refreshed\"", 120);
+        assert_script_run("$runtime run $image -- $zypper_ref", 120);
 
         # Create new image and remove the working container
         assert_script_run("$runtime commit --rm $image refreshed", 120);
 
         # Verify the new image works
-        assert_script_run("$runtime run \$($runtime from refreshed) -- zypper -v ref | grep \"All repositories have been refreshed\" ", 120);
+        assert_script_run("$runtime run \$($runtime from refreshed) -- $zypper_ref ", 120);
     } else {
         # zypper ref
-        assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("$runtime run --name refreshed $image sh -c '$zypper_ref'", 120);
 
         # Commit the image
         assert_script_run("$runtime commit refreshed refreshed-image", 120);
@@ -271,7 +273,7 @@ sub test_zypper_on_container {
         assert_script_run("$runtime rm refreshed", 120);
 
         # Verify the image works
-        assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("$runtime run --rm refreshed-image sh -c '$zypper_ref'", 120);
     }
     record_info "The End", "zypper test completed";
 }
