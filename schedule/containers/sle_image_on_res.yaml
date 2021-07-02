@@ -1,0 +1,7 @@
+name:         sle_image_on_res
+description:  |
+  Run sle container on SLES Expanded Support (RHEL)
+schedule:
+  - boot/boot_to_desktop
+  - containers/host_configuration
+  - containers/podman_image
