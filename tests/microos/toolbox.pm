@@ -28,8 +28,7 @@ sub cleanup {
 
 sub create_user {
     assert_script_run "useradd -m $user ";
-    my $password_hash = script_output "openssl passwd -1 -salt 5RPVAd $password";
-    assert_script_run "usermod --password '$password_hash' $user";
+    assert_script_run "echo '$user:$password' | chpasswd";
 
     # Make sure user has access to tty group
     my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
