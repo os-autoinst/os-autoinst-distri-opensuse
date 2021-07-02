@@ -51,7 +51,7 @@ sub configure_static_ip {
     my ($ip_no_mask, $mask) = split('/', $ip);
     script_run "arping -w 1 -I \$NIC $ip_no_mask";    # check for duplicate IP
 
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip'\nMTU='$mtu'\" > /etc/sysconfig/network/ifcfg-\$NIC";
+    assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'\" > /etc/sysconfig/network/ifcfg-\$NIC";
     save_screenshot;
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
