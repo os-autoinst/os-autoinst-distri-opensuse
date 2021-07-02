@@ -31,7 +31,7 @@ sub run {
     }
     else {
         assert_script_run "dhclient -v";
-        $interface = script_output q@ip r s default | awk '{printf $5}'@;
+        $interface = script_output q@ip r s default | head -1 | awk '{printf $5}'@;
         validate_script_output "ip a s '$interface'", sub { m/((\d{1,3}\.){3}\d{1,3}\/\d{1,2})/ };
         assert_script_run "curl http://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/ssl/certs/SUSE_Trust_Root.crt" if is_sle();
         # Stop unattended-upgrades on Ubuntu hosts to prevent interference from automatic updates
