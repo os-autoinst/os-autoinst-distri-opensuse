@@ -28,8 +28,8 @@ schedule:
   - installation/partitioning_finish
   - installation/releasenotes
   - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/authentication/root_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout

@@ -18,7 +18,7 @@ schedule:
   - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
-  - installation/user_settings
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout

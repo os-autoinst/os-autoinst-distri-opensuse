@@ -21,8 +21,8 @@ schedule:
   - installation/partitioning/guided_setup
   - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
