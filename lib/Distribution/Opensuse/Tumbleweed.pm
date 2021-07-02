@@ -18,6 +18,7 @@ use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::AuthenticationForRoot::AuthenticationForRootController;
 use Installation::ClockAndTimeZone::ClockAndTimeZoneController;
+use Installation::LanguageKeyboard::LanguageKeyboardController;
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use Installation::License::Opensuse::LicenseAgreementController;
 use Installation::License::LicenseAgreementCustomController;
@@ -39,6 +40,10 @@ use YaST::Firstboot::NTPConfigurationController;
 use YaST::Firstboot::WelcomeController;
 use YaST::NetworkSettings::v4_3::NetworkSettingsController;
 use YaST::SystemSettings::SystemSettingsController;
+
+sub get_language_keyboard {
+    return Installation::LanguageKeyboard::LanguageKeyboardController->new();
+}
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
