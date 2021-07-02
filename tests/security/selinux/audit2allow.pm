@@ -97,7 +97,7 @@ sub run {
             .*require\ \{.*
             .*type\ .*;.*
             #=============.*==============.*
-            .*allow.*;.*/sx
+            .*(?:allow.*;|systemd_config_generic_services).*/sx
         }, 600);
 }
 
