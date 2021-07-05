@@ -56,8 +56,8 @@ sub run {
     }
 
     assert_script_run("rpm -qa > /tmp/rpm.list.txt");
-    upload_logs('/tmp/rpm.list.txt');
-    upload_logs('/var/log/zypper.log');
+    upload_logs('/tmp/rpm.list.txt',   timeout => 180, failok => 1);
+    upload_logs('/var/log/zypper.log', timeout => 180, failok => 1);
 
     assert_script_run("SUSEConnect --status-text");
     zypper_call("lr -d");
