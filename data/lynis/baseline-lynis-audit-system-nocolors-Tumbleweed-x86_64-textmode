@@ -1,5 +1,5 @@
 
-[ Lynis 3.0.4 ]
+[ Lynis 3.0.5 ]
 
 ################################################################################
   Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
@@ -17,11 +17,11 @@
 [2C- Checking profiles...[37C [ DONE ]
 
   ---------------------------------------------------
-  Program version:           3.0.4
+  Program version:           3.0.5
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210626
-  Kernel version:            5.12.12
+  Operating system version:  20210703
+  Kernel version:            5.12.13
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -49,8 +49,49 @@
 [0C [0C
 [2C- Plugins enabled[42C [ NONE ]
 
+=================================================================
+
+  Exception found!
+
+  Function/test:  [GetHostID]
+  Message:        Can't create hostid (no MAC addresses found)
+
+  Help improving the Lynis community with your feedback!
+
+  Steps:
+  - Ensure you are running the latest version (/usr/bin/lynis update check)
+  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
+  - Include relevant parts of the log file or configuration file
+
+  Thanks!
+
+=================================================================
+
+
+=================================================================
+
+  Exception found!
+
+  Function/test:  [GetHostID]
+  Message:        Can't create HOSTID, command ip not found
+
+  Help improving the Lynis community with your feedback!
+
+  Steps:
+  - Ensure you are running the latest version (/usr/bin/lynis update check)
+  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
+  - Include relevant parts of the log file or configuration file
+
+  Thanks!
+
+=================================================================
+
+
 [+] Boot and services
 ------------------------------------
+
+  [WARNING]: Test CORE-1000 had a long execution: 17.226488 seconds
+
 [2C- Service Manager[42C [ systemd ]
 [2C- Checking UEFI boot[39C [ DISABLED ]
 [2C- Checking presence GRUB2[34C [ FOUND ]
@@ -183,13 +224,13 @@
 [2C- Checking /var/tmp sticky bit[29C [ OK ]
 [2C- ACL support root file system[29C [ ENABLED ]
 [2C- Mount options of /[39C [ OK ]
-[2C- Mount options of /dev[36C [ HARDENED ]
+[2C- Mount options of /dev[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /dev/shm[32C [ PARTIALLY HARDENED ]
 [2C- Mount options of /home[35C [ NON DEFAULT ]
 [2C- Mount options of /run[36C [ HARDENED ]
 [2C- Mount options of /tmp[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /var[36C [ NON DEFAULT ]
-[2C- Total without nodev:14 noexec:16 nosuid:12 ro or noexec (W^X): 16 of total 30[0C
+[2C- Total without nodev:14 noexec:17 nosuid:12 ro or noexec (W^X): 17 of total 30[0C
 [2C- Disable kernel support of some filesystems[15C
 [4C- Module cramfs is blacklisted[27C [ OK ]
 [4C- Module freevxfs is blacklisted[25C [ OK ]
@@ -405,6 +446,7 @@
 [2C- Kernel entropy is sufficient[29C [ YES ]
 [2C- HW RNG & rngd[44C [ NO ]
 [2C- SW prng[50C [ YES ]
+[2C- MOR variable not found[35C [ WEAK ]
 
 [+] Virtualization
 ------------------------------------
@@ -523,8 +565,8 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package systemd-246.13-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-5.2.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package systemd-248.3-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-6.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -551,7 +593,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CNo bad RPATH usage found in 4245 executables[13C [ OK ]
+[4CNo bad RPATH usage found in 4262 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -559,7 +601,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 31.328624 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 30.047560 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -612,7 +654,7 @@
 
 ================================================================================
 
-  -[ Lynis 3.0.4 Results ]-
+  -[ Lynis 3.0.5 Results ]-
 
   Warnings (2):
   ----------------------------
@@ -769,7 +811,7 @@
   Lynis security scan details:
 
   Hardening index : 81 [################    ]
-  Tests performed : 258
+  Tests performed : 259
   Plugins enabled : 0
 
   Components:
@@ -799,7 +841,7 @@
 
 ================================================================================
 
-  Lynis 3.0.4
+  Lynis 3.0.5
 
   Auditing, system hardening, and compliance for UNIX-based systems
   (Linux, macOS, BSD, and others)
