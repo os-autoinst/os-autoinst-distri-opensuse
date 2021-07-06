@@ -24,6 +24,7 @@ conditional_schedule:
     maintenance:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':
+                - jeos/update_system
                 - qa_automation/patch_and_reboot
 schedule:
     - '{{bootloader}}'
