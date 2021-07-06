@@ -59,7 +59,7 @@ sub run {
     upload_logs('/tmp/rpm.list.txt',   timeout => 180, failok => 1);
     upload_logs('/var/log/zypper.log', timeout => 180, failok => 1);
 
-    assert_script_run("SUSEConnect --status-text");
+    assert_script_run("SUSEConnect --status-text", 90);
     zypper_call("lr -d");
 }
 
