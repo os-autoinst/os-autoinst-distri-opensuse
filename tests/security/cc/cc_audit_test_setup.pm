@@ -45,7 +45,7 @@ sub run {
     assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');
     assert_script_run('systemctl daemon-reload');
 
-    # modify audit rules
+    # Modify audit rules
     assert_script_run('sed -i \'s/-a task,never/#&/\' /etc/audit/rules.d/audit.rules');
     assert_script_run('systemctl restart auditd.service');
 

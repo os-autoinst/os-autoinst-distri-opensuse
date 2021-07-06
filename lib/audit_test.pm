@@ -43,7 +43,8 @@ our $current_file  = 'run.log';
 our $baseline_file = 'baseline_run.log';
 
 # Run the specific test case
-# input: $testcase - test case name (the actual test case name in 'audit-test' test suite, etc)
+# input: $testcase - test case name (the actual test case name is in corresponding 'audit-test' test suite,
+# e.g. "kvm", 'audit-tools', 'syscalls')
 sub run_testcase {
     my ($testcase, %args) = @_;
 
