@@ -19,6 +19,7 @@ use warnings;
 use testapi;
 use utils;
 use Mojo::File 'path';
+use Mojo::Util 'trim';
 
 our @EXPORT = qw(
   $testdir
@@ -28,8 +29,8 @@ our @EXPORT = qw(
   $mode
   get_testsuite_name
   run_testcase
-  parse_testcase_log
   compare_run_log
+  parse_lines
 );
 
 our $testdir      = '/tmp/';
@@ -47,35 +48,30 @@ sub run_testcase {
     my ($testcase, %args) = @_;
 
     # Run test case
-    assert_script_run("cd ${testdir}${testfile_tar}/audit-test/${testcase}/");
-    assert_script_run('./run.bash', %args);
+    assert_script_run("cd ${testdir}${testfile_tar}/audit-test/");
+    assert_script_run('make') if ($args{make});
+    assert_script_run("cd ${testcase}/");
+
+    # Export MODE
+    assert_script_run("export MODE=$audit_test::mode");
+
+    assert_script_run('./run.bash', timeout => $args{timeout});
 
     # Upload logs
     upload_logs("$current_file");
     upload_logs("$baseline_file");
 }
 
-# Parse all test cases in *.log (run.log, etc)
-# input: $file - file name
-# output: @testcase_list - test case list
-sub parse_testcase_log {
-    my ($file) = @_;
-
-    # Test case token, it is a number within []: e.g., [0], [1], [12]
-    my $s_tok         = '\[\d+\] ';
-    my @testcase_list = ();
-
-    my @lines = split(/\n/, path("$file")->slurp);
-    my $i     = 0;
-    # Parse the test cases of input file
-    for my $line (@lines) {
-        if ($line =~ /$s_tok/) {
-            push @testcase_list, "$line\n";
-            $i++;
+sub parse_lines {
+    my ($lines) = @_;
+    my @results;
+    foreach my $line (@$lines) {
+        if ($line =~ /(\[\d+\])\s+(.*)\s+(PASS|FAIL|ERROR)/) {
+            my $name = trim $2;
+            push @results, {id => $1, name => $name, result => $3};
         }
     }
-    record_info("T: $i", "Total \"$i\" test cases found in file \"$file\":\n @testcase_list");
-    return @testcase_list;
+    return @results;
 }
 
 # Compare baseline testing result and current testing result
@@ -83,42 +79,70 @@ sub parse_testcase_log {
 # if test module is 'audit_tools.pm' then $testcase = audit_tools, etc)
 sub compare_run_log {
     my ($testcase) = @_;
-    my $c_file     = "ulogs/${testcase}-${current_file}";
-    my $b_file     = "ulogs/${testcase}-${baseline_file}";
 
-    # Define Test case (name and result) list
-    my @testcase_list_current  = ();
-    my @testcase_list_baseline = ();
-    my $result                 = 'ok';
+    # Read the current test result from rollup.log
+    my $output          = script_output('cat ./rollup.log');
+    my @lines           = split(/\n/, $output);
+    my @current_results = parse_lines(\@lines);
 
-    # Parse the test cases in baseline file
-    record_info('Baseline', 'Parse baseline test results');
-    @testcase_list_baseline = parse_testcase_log($b_file);
-    record_info('Current', 'Parse current test results');
-    @testcase_list_current = parse_testcase_log($c_file);
-    my $str_baseline = join('', @testcase_list_baseline);
-    my $str_current  = join('', @testcase_list_current);
-    record_info('Compare', "Compare the testing results of current file \"$c_file\" with baseline file \"$b_file\".");
-    if ($str_baseline eq $str_current) {
-        $result = 'ok';
+    my %baseline_results;
+    my $baseline_file = "ulogs/$testcase-baseline_run.log";
+    if (!-e $baseline_file) {
+        diag "The file $baseline_file does not exist";
     }
     else {
-        my $size = @testcase_list_baseline;
-        for (my $i = 0; $i < $size; $i++) {
-            if ($testcase_list_current[$i] !~ m/PASS/ && "$testcase_list_current[$i]" ne "$testcase_list_baseline[$i]") {
-                record_info(
-                    'Not Same',
-                    "Current testing results are not same with baseline! FYI:\n\"Baseline\"=$testcase_list_baseline[$i]\" Current\"=$testcase_list_current[$i]"
-                );
-                $result = 'fail';
-            }
+        my @lines = split(/\n/, path("$baseline_file")->slurp);
+        %baseline_results = map { $_->{name} => {id => $_->{id}, result => $_->{result}} } parse_lines(\@lines);
+    }
+
+    my $flag = 'ok';
+    foreach my $current_result (@current_results) {
+        my $c_id     = $current_result->{id};
+        my $c_result = $current_result->{result};
+        my $key      = $current_result->{name};
+        unless ($baseline_results{$key}) {
+            my $msg = "poo#93441\nNo baseline found(defined).\n$c_id $key $c_result";
+            $flag = _parse_results_with_diff_baseline($key, $c_result, $msg, $flag);
+            next;
         }
+        my $b_id     = $baseline_results{$key}->{id};
+        my $b_result = $baseline_results{$key}->{result};
+        if ($c_result ne $b_result) {
+            my $info = "poo#93441\nTest result is NOT same as baseline \nCurrent:  $c_id $key $c_result\nBaseline: $b_id $key $b_result";
+            $flag = _parse_results_with_diff_baseline($key, $c_result, $info, $flag);
+            next;
+        }
+        record_info($key, "Test result is the same as baseline\n$c_id $key $c_result", result => 'ok');
     }
-    if ($result eq 'ok') {
-        # Current run.log is the same with baseline_run.log
-        record_info('Same', 'Current testing results are the same with baseline');
+    return $flag;
+}
+
+# When the current result is different with baseline, according to current result
+# the test result shown on openQA is different.
+# Rules for test result
+# No baseline:
+# Current result    test result shown on openQA
+# PASS              softfail
+# ERROR             fail
+# FAIL              fail
+#
+# different with baseline:
+# Current result   Baseline     test result shown on openQA
+# PASS             FAIL/ERROR   softfail
+# FAIL             PASS/ERROR   fail
+# ERROR            PASS/FAIL    fail
+#
+sub _parse_results_with_diff_baseline {
+    my ($name, $result, $msg, $flag) = @_;
+    if ($result eq 'PASS') {
+        record_soft_failure($msg);
+        $flag = 'softfail' if ($flag ne 'fail');
     }
-    return $result;
+    else {
+        record_info($name, $msg, result => 'fail');
+        $flag = 'fail';
+    }
+    return $flag;
 }
 
 1;
