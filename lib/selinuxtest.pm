@@ -24,6 +24,7 @@ use testapi;
 use utils;
 
 use base "opensusebasetest";
+use version_utils qw (is_microos is_sle_micro)
 
 our @EXPORT = qw(
   $file_contexts_local
@@ -31,6 +32,9 @@ our @EXPORT = qw(
 );
 
 our $file_contexts_local = "/etc/selinux/minimum/contexts/files/file_contexts.local";
+if (is_microos || is_sle_micro) {
+    our $file_contexts_local = "/etc/selinux/targeted/contexts/files/file_contexts.local";
+}
 our $file_output         = "/tmp/cmd_output";
 
 # creat a test dir/file
