@@ -31,12 +31,12 @@ schedule:
     - jeos/record_machine_id
     - console/system_prepare
     - console/force_scheduled_tasks
-    - '{{maintenance}}'
     - jeos/grub2_gfxmode
     - jeos/diskusage
     - jeos/build_key
     - console/prjconf_excluded_rpms
     - console/suseconnect_scc
+    - '{{maintenance}}'
     - '{{efi}}'
     - jeos/glibc_locale
     - console/check_network
