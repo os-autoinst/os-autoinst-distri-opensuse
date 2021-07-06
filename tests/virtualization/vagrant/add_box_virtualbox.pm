@@ -30,12 +30,12 @@ sub run() {
     select_console('user-console');
     assert_script_run('echo "test" > testfile');
 
-    assert_script_run('vagrant init centos/7');
-    assert_script_run('vagrant up --provider virtualbox', timeout => 1200);
+    run_vagrant_cmd('init centos/7');
+    run_vagrant_cmd('up --provider virtualbox', timeout => 1200);
 
-    assert_script_run('vagrant ssh -c "[ $(cat testfile) = \"test\" ]"');
-    assert_script_run('vagrant halt');
-    assert_script_run('vagrant destroy -f');
+    run_vagrant_cmd('ssh -c "[ $(cat testfile) = \"test\" ]"');
+    run_vagrant_cmd('halt');
+    run_vagrant_cmd('destroy -f');
 
     assert_script_run('rm -rf Vagrantfile testfile .vagrant');
 }

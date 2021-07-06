@@ -31,13 +31,13 @@ sub run_test_per_provider {
     my $boxname = "$version-$provider";
 
     # Test the box *only*: bring it up and destroy it immediately afterwards
-    assert_script_run("vagrant up $boxname --provider $provider", timeout => 1200);
+    run_vagrant_cmd("up $boxname --provider $provider", timeout => 1200);
 
     # test if the box survives a reboot
-    assert_script_run("vagrant halt");
-    assert_script_run("vagrant up $boxname", timeout => 1200);
+    run_vagrant_cmd('halt');
+    run_vagrant_cmd("up $boxname", timeout => 1200);
 
-    assert_script_run("vagrant destroy -f $boxname");
+    run_vagrant_cmd("destroy -f $boxname");
 }
 
 sub run() {
@@ -104,7 +104,7 @@ sub run() {
     # cleanup after all the tests ran
     foreach my $provider (@providers) {
         my $boxname = "$boxes{$provider}";
-        assert_script_run("vagrant box remove --force --provider $provider ../$boxname");
+        run_vagrant_cmd("box remove --force --provider $provider ../$boxname");
         assert_script_run("rm ../$boxname");
     }
 

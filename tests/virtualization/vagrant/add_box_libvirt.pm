@@ -37,13 +37,13 @@ sub run() {
     assert_script_run('echo "test" > testfile');
 
     # Available from https://app.vagrantup.com/opensuse
-    assert_script_run("vagrant init opensuse/Tumbleweed." . get_required_var('ARCH'));
+    run_vagrant_cmd('init opensuse/Tumbleweed.' . get_required_var('ARCH'));
 
-    assert_script_run('vagrant up', timeout => 1200);
+    run_vagrant_cmd('up', timeout => 1200);
 
-    assert_script_run('vagrant ssh -c "[ $(cat testfile) = \"test\" ]"');
-    assert_script_run('vagrant halt');
-    assert_script_run('vagrant destroy -f');
+    run_vagrant_cmd('ssh -c "[ $(cat testfile) = \"test\" ]"');
+    run_vagrant_cmd('halt');
+    run_vagrant_cmd('destroy -f');
 
     assert_script_run('rm -rf Vagrantfile testfile .vagrant');
 }
