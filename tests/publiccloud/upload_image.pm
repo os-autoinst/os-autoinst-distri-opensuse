@@ -34,7 +34,15 @@ sub run {
         return;
     }
 
-    assert_script_run("wget --no-check-certificate $img_url -O $img_name", timeout => 60 * 10);
+    # Download the given image. Check for 404 errors and make them better visible
+    my $cmd = "wget --no-check-certificate $img_url -O $img_name";
+    my $rc  = script_run("$cmd 2>download.txt", timeout => 60 * 10);
+    if ($rc != 0) {
+        upload_logs("download.txt");
+        script_run("cat download.txt");
+        die "404 - Image not found" if (script_run("grep '404' download.txt") == 0);
+        die "command '$cmd' failed with rc=$rc";
+    }
     $provider->upload_img($img_name);
 }
 
