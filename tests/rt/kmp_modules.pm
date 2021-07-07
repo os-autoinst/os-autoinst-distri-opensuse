@@ -92,7 +92,7 @@ sub run {
     push @kernel_modules, grep { /.*\.ko/ } split("\n", script_output "rpm -ql $_") foreach (@kmp_rpms);
     # load kernel modules
     foreach my $full_module (@kernel_modules) {
-        my ($basename, $dir, $suffix) = fileparse($full_module, '.ko');
+        my ($basename, $dir, $suffix) = fileparse($full_module, qr/.ko.*/);
         assert_script_run 'modprobe -v ' . $basename . ' 2>&1 | tee -a /var/log/modprobe.out';
         assert_script_run "modinfo $basename";
         save_screenshot;
