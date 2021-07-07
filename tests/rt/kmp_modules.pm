@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,7 +12,7 @@
 #    test kmp modules & boot RT kernel script for further automated and regression RT tests
 #    list of KMP rpms: cluster-md-kmp-rt, gfs2-kmp-rt, dlm-kmp-rt, crash-kmp-rt, oracleasm-kmp-rt
 #    lttng-modules-kmp-rt, ocfs2-kmp-rt
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use base "opensusebasetest";
 use strict;
