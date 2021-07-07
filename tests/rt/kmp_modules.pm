@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,7 +12,7 @@
 #    test kmp modules & boot RT kernel script for further automated and regression RT tests
 #    list of KMP rpms: cluster-md-kmp-rt, gfs2-kmp-rt, dlm-kmp-rt, crash-kmp-rt, oracleasm-kmp-rt
 #    lttng-modules-kmp-rt, ocfs2-kmp-rt
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -92,7 +92,7 @@ sub run {
     push @kernel_modules, grep { /.*\.ko/ } split("\n", script_output "rpm -ql $_") foreach (@kmp_rpms);
     # load kernel modules
     foreach my $full_module (@kernel_modules) {
-        my ($basename, $dir, $suffix) = fileparse($full_module, '.ko');
+        my ($basename, $dir, $suffix) = fileparse($full_module, qr/.ko.*/);
         assert_script_run 'modprobe -v ' . $basename . ' 2>&1 | tee -a /var/log/modprobe.out';
         assert_script_run "modinfo $basename";
         save_screenshot;
