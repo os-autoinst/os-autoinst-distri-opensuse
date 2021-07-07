@@ -298,7 +298,7 @@ sub replace_opensuse_repos_tests {
 sub is_updates_tests {
     my $flavor = get_required_var('FLAVOR');
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+    return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/ || $flavor =~ /~Backports/;
 }
 
 sub is_updates_test_repo {
