@@ -27,9 +27,10 @@ sub run_python_script {
     assert_script_run("chmod a+rx '$script'");
     assert_script_run("./$script 2>&1 | tee $logfile");
     if (script_run("grep 'Softfail' $logfile") == 0) {
-        # bsc#1180605 is only relevant for SLE >= 15-SP2 but not yet available for 15-SP3
-        # Note: Remote 'is_sle(">15-SP2")' when available in PackageHub
-        if (script_run("grep 'Softfail' $logfile | grep 'bsc#1180605'") == 0 && (is_sle("<15-SP2") || is_sle(">15-SP2"))) {
+        # bsc#1180605 is only relevant for SLE and will be hopefully solved soon by a package update
+        # since there is no timeframe when this happens, we ignore this bsc for sle completely for now
+        # Note: Remove 'is_sle' when available in PackageHub
+        if (script_run("grep 'Softfail' $logfile | grep 'bsc#1180605'") == 0 && (is_sle)) {
             record_info("scipy-fft", "scipy-fft module not available for SLE <= 15-SP2");
         } else {
             my $failmsg = script_output("grep 'Softfail' '$logfile'");
