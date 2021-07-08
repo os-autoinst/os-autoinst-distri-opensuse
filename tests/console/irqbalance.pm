@@ -1,7 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -23,27 +22,28 @@ sub run {
     $self->select_serial_terminal;
 
     # Return when balancing is ineffective on system with a single cpu
-    zypper_call("in coreutils") if (script_run("which nproc") != 0);
-    if (script_output('nproc') <= 1) {
-        record_info("Low CPUs amount", "Balancing is ineffective on systems with a single cpu");
-        return;
+    my $nproc = script_output('cat /proc/cpuinfo | grep processor | wc -l');
+    die("Balancing is ineffective on systems with a single cpu (nproc=$nproc)") unless ($nproc > 1);
+
+    zypper_call("in irqbalance");
+    systemctl('enable --now irqbalance.service');
+
+    # Generate CPU load
+    assert_script_run('dd if=/dev/urandom of=/dev/null count=30 bs=16M iflag=fullblock', 90);
+
+    # Test that local timer interrupts are distributed over CPUs
+    my @locs = split(' ', script_output("grep 'LOC' /proc/interrupts | sed -E -e 's/[[:blank:]]+/ /g' | cut -d' ' -f 2-\$((${nproc}+1))"));
+    for (my $i = 0; $i < $nproc; $i++) {
+        die("The value of local timer interrupts for CPU" . ($i + 1) . " is 0") unless ($locs[$i] > 0);
     }
 
-    # Install irqbalance
-    zypper_call("in irqbalance") if (script_run("which irqbalance") != 0);
+    systemctl('stop irqbalance.service');
 
-    # Enable and start irqbalance.service if needed
-    systemctl('start irqbalance.service')  if (script_run('systemctl -n is-active irqbalance.service'));
-    systemctl('enable irqbalance.service') if (script_run('systemctl -n is-enabled irqbalance.service'));
+    # Test that irqbalance succeeds as standalone application
+    assert_script_run('irqbalance --oneshot --debug', 360);
 
-    # Check that the irqbalance.service is running
-    systemctl('is-active irqbalance.service');
-    systemctl('status irqbalance.service');
-
-    # Run the irqbalance in oneshot debug modes
-    assert_script_run("irqbalance --oneshot --debug", 360);
-
-    assert_script_run("cat /proc/interrupts");
+    # start irqbalance.service again
+    systemctl('start irqbalance.service');
 
     # Clear the remains from background commands
     clear_console if !is_serial_terminal;
