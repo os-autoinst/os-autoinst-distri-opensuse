@@ -47,6 +47,7 @@ sub load_tdup_tests {
 
 sub load_feature_tests {
     # Feature tests for Micro OS operating system
+    loadtest 'containers/k3s_cli_check' if get_required_var('FLAVOR') =~ /-k3s/;
     loadtest 'microos/libzypp_config';
     loadtest 'microos/image_checks' if is_image_flavor;
     loadtest 'microos/one_line_checks';
