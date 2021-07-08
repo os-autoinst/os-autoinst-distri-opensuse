@@ -27,8 +27,28 @@ use version_utils qw(is_pre_15 is_sle is_opensuse is_leap);
 sub install_extra_packages_requested {
     if (check_screen 'yast2_apparmor_extra_packages_requested', 15) {
         send_key 'alt-i';
+        wait_still_screen 5;
         save_screenshot;
-        wait_still_screen 15;
+    }
+}
+
+sub toggle_mode {
+    wait_still_screen(3);
+    if (is_pre_15()) {
+        record_soft_failure 'bsc#1126289 - yast2_apparmor - cannot toggle first profile in the list';
+        # try out with second element in the list
+        send_key 'tab';
+        wait_still_screen(2);
+        send_key 'down';
+        wait_still_screen(2);
+    }
+    send_key(is_pre_15() ? 'alt-t' : 'alt-c');
+    # toggle takes some seconds:
+    wait_still_screen(stilltime => 5);
+    if (is_pre_15()) {
+        send_key 'tab';
+        wait_still_screen(2);
+        send_key 'end';
     }
 }
 
@@ -70,6 +90,8 @@ sub run {
         }
     }
 
+    # wait for the configure keyboard shortcut being active
+    wait_still_screen(3);
     # part 1: open profile mode configuration and check toggle/show all profiles
     send_key(is_pre_15() ? 'alt-n' : 'alt-c');
 
@@ -89,12 +111,7 @@ sub run {
 
     #Show all profiles
     send_key(is_pre_15() ? 'alt-o' : 'alt-s');
-    wait_still_screen(3);
-    assert_screen 'yast2_apparmor_profile_mode_configuration_show_all';
-    send_key 'tab';    # focus on first element in the list
-    wait_still_screen(3);
-    send_key(is_pre_15() ? 'alt-t' : 'alt-c');
-    wait_still_screen(3);
+    toggle_mode;
     assert_screen [qw(
           yast2_apparmor_profile_mode_configuration_toggle
           yast2_apparmor_profile_mode_configuration_show_all
@@ -107,23 +124,7 @@ sub run {
         send_key_until_needlematch('yast2_apparmor_profile_mode_configuration_toggle', 'right');
     }
     elsif (match_has_tag 'yast2_apparmor_profile_mode_configuration_show_all') {
-        record_soft_failure 'bsc#1126289 - yast2_apparmor - cannot toggle first profile in the list';
-        # try out with second element in the list
-        wait_still_screen(2);
-        send_key 'tab';
-        wait_still_screen(2);
-        if (is_pre_15()) {
-            send_key 'down';
-            wait_still_screen(2);
-        }
-        send_key(is_pre_15() ? 'alt-t' : 'alt-c');
-        # toggle takes some seconds:
-        wait_still_screen(stilltime => 5);
-        if (is_pre_15()) {
-            send_key 'tab';
-            wait_still_screen(2);
-            send_key 'end';
-        }
+        toggle_mode;
         assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';
     }
     wait_screen_change { send_key 'alt-b' } if is_pre_15();
