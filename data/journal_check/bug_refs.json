@@ -1,5 +1,5 @@
 {
-    "jeos-firstboot_PR#83": {
+    "gh#openSUSE/jeos-firstboot#83": {
         "description": "DHCPv4 not supported on 'lo'",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
