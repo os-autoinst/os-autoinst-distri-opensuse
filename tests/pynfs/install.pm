@@ -45,7 +45,10 @@ sub install_pynfs {
 }
 
 sub setup_nfs_server {
-    assert_script_run('mkdir -p /exportdir && echo \'/exportdir *(rw,no_root_squash,insecure)\' >/etc/exports && systemctl restart nfs-server');
+    assert_script_run('mkdir -p /exportdir && echo \'/exportdir *(rw,no_root_squash,insecure)\' >> /etc/exports');
+    assert_script_run('echo "NFSD_V4_GRACE=15" >> /etc/sysconfig/nfs && echo "NFSD_V4_LEASE=15" >> /etc/sysconfig/nfs');
+    assert_script_run('echo "options lockd nlm_grace_period=15" >> /etc/modprobe.d/lockd.conf && echo "options lockd nlm_timeout=5" >> /etc/modprobe.d/lockd.conf');
+    assert_script_run('systemctl enable nfs-server.service && systemctl restart nfs-server');
 }
 
 sub run {

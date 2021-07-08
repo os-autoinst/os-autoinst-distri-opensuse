@@ -25,7 +25,6 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{lbl_import_public_ssh_key} = $self->{app}->label({label => 'Import Public SSH Key'});
-    $self->{btn_next}                  = $self->{app}->button({id => 'next'});
     $self->{tb_confirm_password}       = $self->{app}->textbox({id => 'pw2'});
     $self->{tb_password}               = $self->{app}->textbox({id => 'pw1'});
     return $self;
@@ -44,17 +43,6 @@ sub enter_confirm_password {
 sub is_shown {
     my ($self) = @_;
     return $self->{lbl_import_public_ssh_key}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
-}
-
-sub setup {
-    my ($self, $args) = @_;
-    $self->enter_password($args->{password});
-    return $self->enter_confirm_password($args->{password});
 }
 
 1;

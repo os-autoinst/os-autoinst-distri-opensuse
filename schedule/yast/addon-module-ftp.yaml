@@ -18,8 +18,8 @@ schedule:
   - installation/partitioning_finish
   - installation/installer_timezone
   - '{{hostname_inst}}'
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout

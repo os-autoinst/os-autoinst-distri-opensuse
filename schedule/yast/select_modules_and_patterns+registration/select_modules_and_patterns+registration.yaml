@@ -26,8 +26,8 @@ schedule:
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/hostname_inst
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/select_patterns
   - installation/installation_overview

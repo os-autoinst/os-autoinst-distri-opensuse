@@ -1,18 +1,12 @@
-# Copyright (C) 2020 SUSE LLC
+# SUSE's openQA tests
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# Copyright © 2020-2021 SUSE LLC
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
 #
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
-
 # Summary: Base module for SELinux test cases
 # Maintainer: llzhao <llzhao@suse.com>
 
@@ -22,16 +16,31 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Backends 'is_pvm';
+use bootloader_setup 'add_grub_cmdline_settings';
+use power_action_utils 'power_action';
 
 use base "opensusebasetest";
 
 our @EXPORT = qw(
   $file_contexts_local
   $file_output
+  $policyfile_tar
+  download_policy_pkgs
 );
 
-our $file_contexts_local = "/etc/selinux/minimum/contexts/files/file_contexts.local";
-our $file_output         = "/tmp/cmd_output";
+our $file_contexts_local = '/etc/selinux/minimum/contexts/files/file_contexts.local';
+our $file_output         = '/tmp/cmd_output';
+our $policypkg_repo      = get_var('SELINUX_POLICY_PKGS');
+our $policyfile_tar      = 'testing-master';
+our $dir                 = '/tmp/';
+
+# download SELinux policy pkgs
+sub download_policy_pkgs {
+    # download SELinux 'policy' pkgs
+    assert_script_run("wget --no-check-certificate $policypkg_repo -O ${dir}${policyfile_tar}.tar");
+    assert_script_run("tar -xvf ${dir}${policyfile_tar}.tar -C ${dir}");
+}
 
 # creat a test dir/file
 sub create_test_file {
@@ -91,6 +100,60 @@ sub check_category {
         record_info("WARNING", "file \"$file_name\" is abnormal", result => "softfail");
         assert_script_run("ls -lZd $file_name");
     }
+}
+
+sub reboot_and_reconnect {
+    my ($self, %args) = @_;
+    power_action('reboot', textmode => $args{textmode});
+    reconnect_mgmt_console if is_pvm;
+    $self->wait_boot(textmode => $args{textmode}, ready_time => 600, bootloader_time => 300);
+}
+
+sub set_sestatus {
+    my ($self, $mode, $type) = @_;
+    my $selinux_config_file = '/etc/selinux/config';
+    select_console 'root-console';
+
+    # SELinux by default
+    validate_script_output('sestatus', sub { m/SELinux status: .*disabled/ });
+
+    # workaround for 'selinux-auto-relabel' in case: auto relabel then trigger reboot
+    my $results = script_run("zypper --non-interactive se selinux-autorelabel");
+    if (!$results) {
+        assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub");
+    }
+
+    # enable SELinux in grub
+    die "Need mode 'enforcing' or 'permissive'" unless $mode =~ /enforcing|permissive/;
+    add_grub_cmdline_settings('security=selinux selinux=1 enforcing=' . ($mode eq 'enforcing' ? 1 : 0), update_grub => 1);
+
+    # control (enable) the status of SELinux on the system, e.g., "enforcing" or "permissive"
+    assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' $selinux_config_file");
+    assert_script_run("echo SELINUX=$mode >> $selinux_config_file");
+
+    # set SELINUXTYPE, e.g., 'minimum' or 'targeted'
+    assert_script_run("sed -i -e 's/^SELINUXTYPE=/#SELINUXTYPE=/' $selinux_config_file");
+    assert_script_run("echo SELINUXTYPE=$type >> $selinux_config_file");
+    assert_script_run('systemctl enable auditd');
+
+    # reboot the vm and reconnect the console
+    $self->reboot_and_reconnect(textmode => 1);
+    select_console 'root-console';
+
+    validate_script_output(
+        'sestatus',
+        sub {
+            m/
+            SELinux\ status:\ .*enabled.*
+            SELinuxfs\ mount:\ .*\/sys\/fs\/selinux.*
+            SELinux\ root\ directory:\ .*\/etc\/selinux.*
+            Loaded\ policy\ name:\ .*$type.*
+            Current\ mode:\ .*$mode.*
+            Mode\ from\ config\ file:\ .*$mode.*
+            Policy\ MLS\ status:\ .*enabled.*
+            Policy\ deny_unknown\ status:\ .*allowed.*
+            Max\ kernel\ policy\ version:\ .*[0-9]+.*/sx
+        });
 }
 
 1;

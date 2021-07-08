@@ -42,7 +42,12 @@ sub run {
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
     record_info 'Test #1', 'Test: Installation';
-    zypper_call("in docker-compose");
+
+    my $ret = zypper_call "in docker-compose", exitcode => [0, 4];
+    if ($ret == 4 && (is_sle('=12-sp4') || is_sle('=12-sp5'))) {
+        record_soft_failure "bsc#1186748 - [12-SP4][12-SP5] Can't install docker-compose on s390x due to missing python-docker-py dependency";
+        return 0;
+    }
 
     if (script_output('docker-compose --version', proceed_on_failure => 1) =~ /distribution was not found/) {
         record_soft_failure "bsc#1186691 - docker-compose probably missing dependency";

@@ -749,6 +749,12 @@ sub check_env {
             die sprintf("%s must be one of %s\n", $k, join(',', @{$valueranges{$k}}));
         }
     }
+
+    my $mirror = get_var('SUSEMIRROR');
+    if ($mirror && $mirror =~ s{^(\w+)://}{}) {    # strip & check proto
+        set_var('SUSEMIRROR', $mirror);
+        die "only http mirror URLs are currently supported but found '$1'." if $1 ne "http";
+    }
 }
 
 sub unregister_needle_tags {
@@ -1681,6 +1687,7 @@ sub load_extra_tests_console {
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
+    loadtest 'console/gcc'               unless is_sle('<=12-SP3');
     loadtest 'console/valgrind'          unless is_sle('<=12-SP3');
     loadtest 'console/sssd_samba'        unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
     loadtest 'console/wpa_supplicant'    unless (!is_x86_64    || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
@@ -2408,6 +2415,24 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/chcat";
 }
 
+sub load_security_tests_cc {
+    # Setup environment for cc testing: 'audit-test' test suite setup
+    # Such as: download code branch; install needed packages
+    loadtest 'security/cc/cc_audit_test_setup';
+
+    # Run test cases of 'audit-test' test suite which do NOT need SELinux env
+    loadtest 'security/cc/audit_tools';
+
+    # Setup environment for cc testing: SELinux setup
+    # Such as: set up SELinux with permissive mode and specific policy type
+    loadtest 'security/selinux/selinux_setup';
+    loadtest 'security/cc/cc_selinux_setup';
+
+    # Run test cases of 'audit-test' test suite which do need SELinux env
+    # Please add these test cases here: poo#93441
+}
+
+
 sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
 }
@@ -2599,6 +2624,7 @@ sub load_security_tests {
       swtpm
       grub_auth
       lynis
+      cc
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.

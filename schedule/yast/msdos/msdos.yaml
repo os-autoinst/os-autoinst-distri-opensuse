@@ -15,8 +15,8 @@ schedule:
   - installation/partitioning
   - installation/partitioning/msdos_partition_table
   - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - '{{disable_grub_timeout}}'
   - installation/start_install

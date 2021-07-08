@@ -30,7 +30,7 @@ conditional_schedule:
       1:
         - sles4sap/hana_install
         - sles4sap/wmp_setup
-        - sles4sap/wmp_basic_test
+        - sles4sap/wmp_check_process
   scc_deregister:
     SCC_DEREGISTER:
       1:

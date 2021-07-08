@@ -25,12 +25,12 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}            = $self->{app}->button({id => 'next'});
     $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
     $self->{tb_full_name}        = $self->{app}->textbox({id => 'full_name'});
     $self->{tb_username}         = $self->{app}->textbox({id => 'username'});
     $self->{tb_password}         = $self->{app}->textbox({id => 'pw1'});
     $self->{ch_autologin}        = $self->{app}->checkbox({id => 'autologin'});
+    $self->{ch_use_for_admin}    = $self->{app}->checkbox({id => 'root_pw'});
     return $self;
 }
 
@@ -59,24 +59,25 @@ sub is_shown {
     return $self->{tb_full_name}->exist();
 }
 
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
+sub set_autologin {
+    my ($self, $is_checked) = @_;
+    $self->{ch_autologin}->check()   if $is_checked;
+    $self->{ch_autologin}->uncheck() if !$is_checked;
 }
 
-sub select_autologin {
+sub has_autologin_checked {
     my ($self) = @_;
-    return $self->{ch_autologin}->check();
+    $self->{ch_autologin}->is_checked();
 }
 
-sub setup {
-    my ($self, $args) = @_;
-    $self->enter_full_name($args->{full_name});
-    $self->enter_username($args->{username});
-    $self->enter_password($args->{password});
-    $self->enter_confirm_password($args->{password});
-    $self->select_autologin() if $args->{autologin};
-    return $self;
+sub select_use_this_password_for_admin {
+    my ($self) = @_;
+    return $self->{ch_use_for_admin}->check();
+}
+
+sub has_use_same_password_for_admin_checked {
+    my ($self) = @_;
+    return $self->{ch_use_for_admin}->is_checked();
 }
 
 1;

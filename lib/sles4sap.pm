@@ -701,7 +701,7 @@ sub reboot {
     }
     else {
         power_action('reboot', textmode => 1);
-        $self->wait_boot(nologin => 1);
+        $self->wait_boot(nologin => 1, bootloader_time => 300);
     }
     $self->select_serial_terminal;
 }

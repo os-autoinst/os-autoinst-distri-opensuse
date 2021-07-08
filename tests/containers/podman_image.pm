@@ -36,7 +36,7 @@ sub run {
             record_info "IMAGE", "Testing image: $iname";
             test_container_image(image => $iname, runtime => $runtime);
             test_rpm_db_backend(image => $iname, runtime => $runtime);
-            build_container_image(image => $iname, runtime => $runtime);
+            build_and_run_image(base => $iname, runtime => $runtime);
             if (check_os_release('suse', 'PRETTY_NAME')) {
                 test_opensuse_based_image(image => $iname, runtime => $runtime, version => $version);
             }

@@ -37,8 +37,8 @@ schedule:
   - sles4sap/wmp_setup
   - ha/ha_cluster_join
   - sles4sap/hana_cluster
-  - sles4sap/wmp_basic_test
+  - sles4sap/wmp_check_process
   - ha/fencing
   - ha/check_after_reboot
   - ha/check_logs
-  - sles4sap/wmp_basic_test
+  - sles4sap/wmp_check_process

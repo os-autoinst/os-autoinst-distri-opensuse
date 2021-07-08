@@ -52,15 +52,33 @@ sub check_addons {
 }
 
 sub check_product {
-    my ($mypro) = @_;
-    $mypro //= uc get_var('SLE_PRODUCT', '');
+    my ($status) = @_;
+    $status //= "before";
     my $myver   = get_var('VERSION');
+    my %proname = (
+        HPC       => 'SLE-Product-HPC-' . $myver,
+        SLES      => 'SLES' . $myver,
+        SLED      => 'SLED' . $myver,
+        SLE_HPC   => 'SLE-Product-HPC-' . $myver,
+        leap      => "openSUSE-Leap",
+        Media_HPC => $myver . '-HPC',
+    );
+    my $mypro   = uc get_var('SLE_PRODUCT', '');
     my $product = '';
-    if ($mypro =~ /HPC/) {
-        $product = 'SLE-Product-HPC-' . $myver;
-    }
-    if ($mypro ne '') {
-        $product = $mypro . $myver;
+    if ($status eq 'before') {
+        if ((get_var("HDDVERSION") =~ /leap/)) {
+            $product = $proname{leap};
+        } elsif ($mypro eq "SLE_HPC") {
+            $product = $proname{SLES};
+        } else {
+            $product = $proname{$mypro};
+        }
+    } else {
+        if (($mypro eq "HPC") && get_var("MEDIA_UPGRADE")) {
+            $product = $proname{Media_HPC};
+        } else {
+            $product = $proname{$mypro};
+        }
     }
     my $out = script_output("zypper lr | grep -i $product", 200, proceed_on_failure => 1);
     die "zypper lr command output does not include $product" if ($out eq '');
@@ -86,7 +104,7 @@ sub run {
         my $addons = get_var('SCC_ADDONS', "");
         $addons =~ s/ltss,?//g;
         check_addons($addons);
-        check_product;
+        check_product("before");
     }
 
     # Check the expected information after migration
@@ -104,7 +122,7 @@ sub run {
         # For hpc, system doesn't include legacy module
         $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
         check_addons($myaddons);
-        check_product;
+        check_product("after");
         check_buildid;
     }
 }

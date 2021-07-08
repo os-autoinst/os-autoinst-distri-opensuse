@@ -71,10 +71,15 @@ sub run {
             diag("EULA validation failed:\nExpected:\n$translation->{text}\nActual:\n$license_agreement_info->{text}\n\n");
         }
     }
-    # Assert no errors
-    assert_true(!$errors, $errors);
     # Set language back to default
     $license_agreement->select_language($default_language);
+
+    # Assert no errors
+    assert_true(!$errors, $errors);
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

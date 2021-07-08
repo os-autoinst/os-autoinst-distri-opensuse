@@ -18,8 +18,8 @@ conditional_schedule:
             x86_64:
                 - console/yast2_lan_device_settings
     update_repos:
-        DISTRI:
-            opensuse:
+        VERSION:
+            'Tumbleweed':
                 - update/zypper_clear_repos
                 - console/zypper_ar
                 - console/zypper_ref
@@ -50,6 +50,7 @@ conditional_schedule:
                 - console/libgpiod
                 - console/libgcrypt
                 - console/gd
+                - console/gcc
                 - console/valgrind
                 - console/wpa_supplicant
                 - appgeo/gdal

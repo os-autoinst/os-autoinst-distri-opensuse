@@ -49,7 +49,7 @@ sub run {
     } else {
         #SLES >=15 imediatelly asks for extra packages, not after main menu:
         install_extra_packages_requested;
-        assert_screen 'yast2_apparmor';
+        assert_screen 'yast2_apparmor', 60;
         send_key 'alt-l';
     }
 
@@ -109,13 +109,19 @@ sub run {
     elsif (match_has_tag 'yast2_apparmor_profile_mode_configuration_show_all') {
         record_soft_failure 'bsc#1126289 - yast2_apparmor - cannot toggle first profile in the list';
         # try out with second element in the list
-        wait_screen_change { send_key 'tab' };
-        wait_screen_change { send_key 'down' };
+        wait_still_screen(2);
+        send_key 'tab';
+        wait_still_screen(2);
+        if (is_pre_15()) {
+            send_key 'down';
+            wait_still_screen(2);
+        }
         send_key(is_pre_15() ? 'alt-t' : 'alt-c');
         # toggle takes some seconds:
         wait_still_screen(stilltime => 5);
         if (is_pre_15()) {
-            wait_screen_change { send_key 'tab' };
+            send_key 'tab';
+            wait_still_screen(2);
             send_key 'end';
         }
         assert_screen 'yast2_apparmor_profile_mode_configuration_toggle';

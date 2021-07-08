@@ -30,6 +30,7 @@ use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
+    $self->select_serial_terminal;
     my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = "podman";
@@ -50,15 +51,23 @@ sub run {
     ensure_serialdev_permissions;
     select_console "user-console";
 
-    # smoke test
-    assert_script_run "$runtime images -a";
+    return if softfail_and_skip_on_bsc1182874();
+
     for my $iname (@{$released_images}) {
         test_container_image(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
+        build_and_run_image(base => $iname, runtime => $runtime);
         test_zypper_on_container($runtime, $iname);
         verify_userid_on_container($runtime, $iname, $subuid_start);
     }
     clean_container_host(runtime => $runtime);
+}
+
+sub softfail_and_skip_on_bsc1182874 {
+    if (script_run("podman run alpine", timeout => 120) != 0) {
+        record_soft_failure "bsc#1182874 - container fails to run in rootless mode";
+        return 1;
+    }
+    return 0;
 }
 
 sub get_user_subuid {

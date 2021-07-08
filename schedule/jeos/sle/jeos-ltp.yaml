@@ -11,10 +11,10 @@ schedule:
   - jeos/record_machine_id
   - console/system_prepare
   - console/force_scheduled_tasks
-  - '{{maintenance}}'
   - jeos/grub2_gfxmode
   - jeos/diskusage
   - jeos/build_key
   - console/suseconnect_scc
+  - '{{maintenance}}'
   - console/consoletest_setup
   - kernel/install_ltp

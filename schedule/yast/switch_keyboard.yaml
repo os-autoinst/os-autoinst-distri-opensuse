@@ -4,9 +4,11 @@ description: >
   Basic installation testing keyboard layout and switching back to default.
 vars:
   INSTALL_KEYBOARD_LAYOUT: fr
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader
+  - installation/setup_libyui
   - installation/welcome
   - installation/licensing/accept_license
   - installation/scc_registration
@@ -15,8 +17,8 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout

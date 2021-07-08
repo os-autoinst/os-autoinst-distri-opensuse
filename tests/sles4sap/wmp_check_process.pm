@@ -20,7 +20,7 @@ use warnings;
 
 sub run {
     my ($self)        = @_;
-    my $testname      = 'wmp_basic_tests';
+    my $testname      = 'wmp_check_process';
     my $logdir        = '/root/wmp_logs';
     my $sapsvc        = '/usr/sap/sapservices';
     my $wmp_test_repo = get_required_var('WMP_TEST_REPO');
