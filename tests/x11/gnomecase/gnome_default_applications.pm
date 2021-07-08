@@ -101,11 +101,11 @@ sub check_default_apps {
     my $returnCode = 1;
     my @message    = ();
     for my $app (@apps) {
-        if (is_sle('15+')) {
-            $returnCode = script_run("[ '$app->[1]' == \$(gio mime '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+        if (is_sle('<15')) {
+            $returnCode = script_run("[ '$app->[1]' == \$(gvfs-mime --query '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
         }
         else {
-            $returnCode = script_run("[ '$app->[1]' == \$(gvfs-mime --query '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+            $returnCode = script_run("[ '$app->[1]' == \$(gio mime '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
         }
         if ($returnCode) {
             push @message, "The mimetype $app->[0] should open with $app->[1]";
