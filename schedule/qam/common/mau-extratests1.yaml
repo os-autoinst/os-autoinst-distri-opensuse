@@ -33,6 +33,7 @@ schedule:
   - console/perf
   - console/sysctl
   - console/sysstat
+  - console/irqbalance
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
