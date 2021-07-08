@@ -97,18 +97,18 @@ sub open_default_apps {
 sub check_default_apps {
     my @apps = @_;
 
-    my $default    = 1;
-    my $returnCode = 1;
-    my @message    = ();
+    my $default     = 1;
+    my $application = "";
+    my @message     = ();
     for my $app (@apps) {
         if (is_sle('<15')) {
-            $returnCode = script_run("[ '$app->[1]' == \$(gvfs-mime --query '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+            $application = script_output("gvfs-mime --query '$app->[0]' | awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//'");
         }
         else {
-            $returnCode = script_run("[ '$app->[1]' == \$(gio mime '$app->[0]' |  awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//' ) ]");
+            $application = script_output("gio mime '$app->[0]' | awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//'");
         }
-        if ($returnCode) {
-            push @message, "The mimetype $app->[0] should open with $app->[1]";
+        if ($application ne $app->[1]) {
+            push @message, "The mimetype $app->[0] should open with $app->[1], but opens with $application";
             $default = 0;
         }
     }
