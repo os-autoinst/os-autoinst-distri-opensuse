@@ -29,7 +29,7 @@ sub run {
         gcc6  => 'Now',
         gcc7  => 'Now',
         gcc8  => 'Now',
-        gcc9  => '2021-05',
+        gcc9  => 'Now',
         gcc10 => '2024-10',
     );
 
