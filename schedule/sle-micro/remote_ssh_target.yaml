@@ -14,5 +14,5 @@ schedule:
   - microos/libzypp_config
   - microos/one_line_checks
   - microos/services_enabled
-  - microos/journal_check
+  - console/journal_check
   - shutdown/shutdown
