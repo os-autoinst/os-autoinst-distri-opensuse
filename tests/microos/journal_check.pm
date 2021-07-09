@@ -24,6 +24,9 @@ sub parse_bug_refs {
     my $tested_version = get_required_var('VERSION');
     my %bp;
 
+    # Treat staging projects like the full product
+    $tested_version = 'Tumbleweed' if (is_opensuse && $tested_version =~ /^Staging:/);
+
     my $data;
     {
         open(my $fh_json, '<', $bug_file) or die "Can't open \"$bug_file\": $!\n";
