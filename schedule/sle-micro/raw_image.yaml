@@ -23,8 +23,8 @@ schedule:
   - microos/disk_boot
   - transactional/disable_grub
   - '{{registration}}'
-  - '{{selinux}}'
   - '{{maintenance}}'
+  - '{{selinux}}'
   - '{{k3s}}'
   - microos/networking
   - microos/libzypp_config
