@@ -7,14 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Basic MicroOS journal tests
+# Summary: Basic journal tests
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use microos;
 use version_utils 'is_opensuse';
 use Mojo::JSON qw(decode_json);
 

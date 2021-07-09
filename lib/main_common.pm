@@ -572,7 +572,7 @@ sub load_jeos_tests {
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
-    loadtest "microos/journal_check";
+    loadtest "console/journal_check";
     loadtest "microos/libzypp_config";
     if (is_sle) {
         loadtest "console/suseconnect_scc";
