@@ -33,6 +33,11 @@ sub run {
     my ($self) = shift;
     my $log_file = $apparmortest::audit_log;
 
+    # Install traceroute if not present
+    if (script_run("which traceroute")) {
+        zypper_call("in traceroute");
+    }
+
     # set the AppArmor security profile to enforce mode
     my $profile_name = "usr.sbin.traceroute";
     validate_script_output("aa-enforce $profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
