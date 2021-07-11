@@ -50,7 +50,7 @@ use lockapi;
 use mmapi;
 use utils;
 use Utils::Architectures 'is_arm';
-use version_utils qw(:VERSION :BACKEND);
+use version_utils qw(:VERSION :BACKEND is_sle is_leap is_sle_micro);
 use ipmi_backend_utils;
 
 sub handle_livecd_screenlock {
@@ -125,6 +125,7 @@ sub run {
     }
     # on s390 we might need to install additional packages depending on the installation method
     if (check_var('ARCH', 's390x')) {
+        ssh_password_possibility();
         push(@tags, 'additional-packages');
     }
     # For poo#64228, we need ensure the timeout value less than the MAX_JOB_TIME
@@ -232,5 +233,16 @@ sub run {
         }
     }
 }
+
+# Add password possibility for root on s390x because of poo#93949
+sub ssh_password_possibility {
+    if (!is_sle && !is_leap && !is_sle_micro) {
+        select_console 'install-shell';
+        assert_script_run('mountpoint /mnt && mkdir -p /mnt/etc/ssh/sshd_config.d');
+        assert_script_run('echo PermitRootLogin yes > /mnt/etc/ssh/sshd_config.d/allow-root-with-password.conf');
+        select_console 'installation';
+    }
+}
+
 
 1;
