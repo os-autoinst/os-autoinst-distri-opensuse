@@ -125,6 +125,13 @@ sub run {
     }
     # on s390 we might need to install additional packages depending on the installation method
     if (check_var('ARCH', 's390x')) {
+      #For poo#93949, we need password possibility
+      if  (!check_var('S390_DISK', 'ZFCP')) {
+        select_console 'install-shell';
+        assert_script_run("mkdir -p /mnt/etc/ssh/sshd_config.d");
+        assert_script_run("(echo 'PermitRootLogin yes'; echo 'PasswordAuthentication yes'; echo 'ChallengeResponseAuthentication yes') > /mnt/etc/ssh/sshd_config.d/allow-root-with-password.conf");
+        select_console 'installation';
+      }
         push(@tags, 'additional-packages');
     }
     # For poo#64228, we need ensure the timeout value less than the MAX_JOB_TIME
