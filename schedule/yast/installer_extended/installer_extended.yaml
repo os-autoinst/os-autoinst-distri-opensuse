@@ -2,7 +2,8 @@
 name: installer_extended
 description: >
   Test suite performs additional UI checks. As of now following is tested:
-     - License has to be accepted and there is pop-up with a hint;
+     - Switch keyboard layout and test it.
+     - License has to be accepted and there is pop-up with a hint.
      - License translations (except SLE 15 due to missing translations in the
        beta phase).
 vars:
@@ -12,10 +13,10 @@ vars:
   EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
   YUI_REST_API: 1
 schedule:
-  # Called on BACKEND: qemu
   - '{{compare_checksums}}'
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/language_keyboard/switch_keyboard_layout
   - installation/product_selection/select_product
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
