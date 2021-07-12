@@ -22,8 +22,11 @@ use testapi;
 use utils qw(clear_console zypper_call);
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     zypper_call 'in dialog';
+    select_console 'root-console';
+
     # Try to draw a bold red line
     script_run('echo "$(tput smacs;tput setaf 1;tput bold)lqqqqqqqqqqqqqqk$(tput rmacs;tput sgr0)"');
     # Try a simple yes/no dialog
