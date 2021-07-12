@@ -20,6 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use known_bugs;
+use publiccloud::utils qw(select_host_console is_publiccloud);
 
 =head1 consoletest
 
@@ -48,13 +49,21 @@ Method executed when run() finishes and the module has result => 'fail'
 
 =cut
 sub post_fail_hook {
-    my ($self) = shift;
+    my ($self) = @_;
     $self->SUPER::post_fail_hook;
     select_console('log-console');
     $self->remount_tmp_if_ro;
     $self->export_logs_basic;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     $self->export_logs_desktop;
+
+    # Destroy the public cloud instance in case of fatal test failure
+    # Currently there is theoretical chance to call cleanup two times. See details in poo#95780
+    my $flags = $self->test_flags();
+    if (is_publiccloud() && $flags->{fatal}) {
+        select_host_console(force => 1);
+        $self->{run_args}->{my_provider}->cleanup();
+    }
 }
 
 =head2 use_wicked_network_manager
