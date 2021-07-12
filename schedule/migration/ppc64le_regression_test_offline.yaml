@@ -92,6 +92,7 @@ conditional_schedule:
         - console/mtab
         - console/zypper_lifecycle
         - console/orphaned_packages_check
+        - console/kdump_and_crash
         - console/consoletest_finish
       2:
         - console/supportutils
