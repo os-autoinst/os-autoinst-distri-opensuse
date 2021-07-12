@@ -93,13 +93,10 @@ sub check_efi_state {
         record_info "Fallback", "EFI label: $found->{label}";
     }
 
-    # return only if SecureBoot is off or image has booted n Fallback mode
-    return if (get_var('DISABLE_SECUREBOOT', 0) || (!$found->{exec} && !$expected->{exec}));
-
-    my $issuer_regex = qr/Secure\s+Boot\s+CA/;
-    diag("Check presence of signature in shim");
-    assert_script_run("pesign -S -i $expected->{mount}/$found->{exec}");
-    push @errors, 'No openSUSE/SUSE keys found in keyring(/proc/keys)' if script_output('cat /proc/keys') !~ $issuer_regex;
+    if (!get_var('DISABLE_SECUREBOOT', 0) && $found->{exec} && $expected->{exec}) {
+        diag("Check presence of signature in shim");
+        assert_script_run("pesign -S -i $expected->{mount}/$found->{exec}");
+    }
 }
 
 sub check_mok {
@@ -169,6 +166,11 @@ sub run {
     $self->select_serial_terminal;
     is_efi_boot or die "Image did not boot in UEFI mode!\n";
 
+    my $pkgs = 'efivar mokutil';
+    $pkgs .= ' dosfstools' if (is_leap('<15.2') || is_sle('<15-sp2'));
+    $pkgs .= ' pesign' unless get_var('DISABLE_SECUREBOOT', 0);
+    zypper_call "in $pkgs";
+
     my $esp_details = get_esp_info;
 
     # run fs check on ESP
@@ -176,11 +178,6 @@ sub run {
     assert_script_run "umount $esp_details->{mount}";
     assert_script_run "fsck.vfat -tvV $esp_details->{partition}";
     assert_script_run "mount $esp_details->{mount}";
-
-    my $pkgs = 'efivar mokutil';
-    $pkgs .= ' dosfstools' if (is_leap('<15.2') || is_sle('<15-sp2'));
-    $pkgs .= ' pesign' unless get_var('DISABLE_SECUREBOOT', 0);
-    zypper_call "in $pkgs";
 
     my $exp_data = get_expected_efi_settings;
     ## default efi boot, no restart, but set gfxmode before reboot

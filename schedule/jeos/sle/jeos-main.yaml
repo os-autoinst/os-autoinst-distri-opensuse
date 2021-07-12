@@ -38,8 +38,8 @@ schedule:
     - console/journal_check
     - microos/libzypp_config
     - console/suseconnect_scc
-    - '{{maintenance}}'
     - '{{efi}}'
+    - '{{maintenance}}'
     - jeos/glibc_locale
     - console/check_network
     - console/system_state
