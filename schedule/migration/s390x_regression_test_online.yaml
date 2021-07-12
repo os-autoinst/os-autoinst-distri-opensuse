@@ -72,6 +72,7 @@ conditional_schedule:
         - console/ssh_cleanup
         - console/mtab
         - console/orphaned_packages_check
+        - console/kdump_and_crash
         - console/consoletest_finish
       2:
         - console/check_upgraded_service
