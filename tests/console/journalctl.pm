@@ -9,7 +9,6 @@
 
 # Package: systemd
 # Summary: Test basic journalctl functionality
-# - assert bsc#1063066 is not present (Verify "man -P cat journalctl" for broken man page format)
 # - setup persistent journal
 # - setup FSS, rotate log, verify, reboot and verify again (See bsc#1171858)
 # - check if log entry from previous boots are present
@@ -141,11 +140,10 @@ sub run {
     );
     my @boots;
 
-    # create dropin directory for further journal.conf updates
-    assert_script_run "mkdir -p ${\ DROPIN_DIR }/";
-    # Test for possible resurrection of bsc#1063066
-    die "Systemd: broken manpage!\n"
-      if ((script_run('command -v man') == 0) && (script_output('man -P cat journalctl') =~ m/\s+\.SH /));
+    # create dropin directory for further journal.conf updates if it does not exists
+    if (script_run "test -d ${\ DROPIN_DIR }") {
+        assert_script_run "mkdir -p ${\ DROPIN_DIR }/";
+    }
 
     # Enable persistent journal or check if it is enabled by default in opensuse
     # journald.conf is almost identical for opensuse and sle
@@ -182,7 +180,7 @@ sub run {
         my @listed_boots = split('\n', script_output 'journalctl --list-boots');
         die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
         is_journal_empty('--boot=-1', "journalctl-1.txt");
-        assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot");
+        script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
         script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
         die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
     } else {
@@ -290,7 +288,7 @@ sub cleanup {
 
 sub post_fail_hook {
 
-    select_console 'log-console';
+    shift->SUPER::post_fail_hook;
     script_run 'cp -a /var/log/journal /var/log/journal-backup';
     script_run 'tar Jcvf journal-backup.tar.xz /var/log/journal-backup';
     sleep 5;
