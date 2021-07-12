@@ -15,9 +15,10 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call is_efi_boot);
 use version_utils qw(is_leap is_opensuse is_sle is_jeos);
-use Utils::Architectures qw(is_x86_64);
+use Utils::Architectures qw(is_x86_64 is_aarch64);
 use jeos qw(reboot_image set_grub_gfxmode);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
+use main_common qw(is_updates_tests);
 use constant {
     SYSFS_EFI_BITS      => '/sys/firmware/efi/fw_platform_size',
     GRUB_DEFAULT        => '/etc/default/grub',
@@ -56,7 +57,7 @@ sub efibootmgr_current_boot {
     (exists($h->{label}) && $h->{label}) or die "Missing label in Boot$h->{bootid} entry";
 
     ($h->{exec}) = $ebm_raw =~ /^Boot$h->{bootid}\*.*File\(([^\)]+)\).*/m;
-    $h->{exec} =~ s'\\'/'g;
+    defined($h->{exec}) && $h->{exec} =~ s'\\'/'g;
 
     return $h;
 }
@@ -93,13 +94,18 @@ sub check_efi_state {
         record_info "Fallback", "EFI label: $found->{label}";
     }
 
-    # return only if SecureBoot is off or image has booted n Fallback mode
-    return if (get_var('DISABLE_SECUREBOOT', 0) || (!$found->{exec} && !$expected->{exec}));
-
-    my $issuer_regex = qr/Secure\s+Boot\s+CA/;
-    diag("Check presence of signature in shim");
-    assert_script_run("pesign -S -i $expected->{mount}/$found->{exec}");
-    push @errors, 'No openSUSE/SUSE keys found in keyring(/proc/keys)' if script_output('cat /proc/keys') !~ $issuer_regex;
+    if (!get_var('DISABLE_SECUREBOOT', 0) && $found->{exec} && $expected->{exec}) {
+        diag("Check presence of signature in shim");
+        assert_script_run("pesign -S -i $expected->{mount}/$found->{exec}");
+        #check if MokListRT is present in kernel's keyring
+        if (script_output('cat /proc/keys') !~ qr/Secure\s+Boot\s+CA/) {
+            if (is_aarch64) {
+                record_soft_failure 'bsc#1188366 - MokListRT is not loaded into keyring on aarch64';
+            } else {
+                push @errors, 'No openSUSE/SUSE keys found in keyring(/proc/keys)';
+            }
+        }
+    }
 }
 
 sub check_mok {
@@ -169,6 +175,11 @@ sub run {
     $self->select_serial_terminal;
     is_efi_boot or die "Image did not boot in UEFI mode!\n";
 
+    my $pkgs = 'efivar mokutil';
+    $pkgs .= ' dosfstools' if (is_leap('<15.2') || is_sle('<15-sp2'));
+    $pkgs .= ' pesign' unless get_var('DISABLE_SECUREBOOT', 0);
+    zypper_call "in $pkgs";
+
     my $esp_details = get_esp_info;
 
     # run fs check on ESP
@@ -177,14 +188,19 @@ sub run {
     assert_script_run "fsck.vfat -tvV $esp_details->{partition}";
     assert_script_run "mount $esp_details->{mount}";
 
-    my $pkgs = 'efivar mokutil';
-    $pkgs .= ' dosfstools' if (is_leap('<15.2') || is_sle('<15-sp2'));
-    $pkgs .= ' pesign' unless get_var('DISABLE_SECUREBOOT', 0);
-    zypper_call "in $pkgs";
+    # SUT can boot from removable (firstboot of HDD, ISO, USB bootable medium) or boot entry (non-removable)
+    # JeOS always boots firstly from removable, but the boot record will be changed to non-removable by updates
+    # Therefore the expected boot for JeOS under development and maintenance updates test slow might be different
+    # Installed SUT by YaST2 boots from non-removable by default
+    my $exp_data              = get_expected_efi_settings;
+    my $booted_from_removable = is_jeos;
+    if ($booted_from_removable && is_updates_tests) {
+        # Updates got installed, so it might no longer be removable
+        $booted_from_removable = efibootmgr_current_boot()->{label} ne $exp_data->{label};
+    }
 
-    my $exp_data = get_expected_efi_settings;
     ## default efi boot, no restart, but set gfxmode before reboot
-    $self->verification(undef, ((is_jeos) ? undef : $exp_data), sub {
+    $self->verification(undef, $booted_from_removable ? undef : $exp_data, sub {
             set_grub_gfxmode;
             assert_script_run('grub2-script-check --verbose ' . GRUB_CFG);
         }
@@ -212,6 +228,7 @@ sub run {
                 assert_script_run "openssl x509 -in cert.pem -outform der -out ${\MOCK_CRT}";
                 assert_script_run "mokutil --import ${\MOCK_CRT} --root-pw";
                 assert_script_run 'mokutil --list-new';
+                set_var('_EXPECT_EFI_MOK_MANAGER', 1);
             }
         ) if get_var('CHECK_MOK_IMPORT');
     }
@@ -224,12 +241,14 @@ sub run {
         }
     );
 
+    set_var('_EXPECT_EFI_MOK_MANAGER', 0);
     # Print errors
     die join("\n", @errors) if (@errors);
 }
 
 sub post_fail_hook {
     select_console('root-console');
+    set_var('_EXPECT_EFI_MOK_MANAGER', 0);
 
     upload_logs(GRUB_DEFAULT,        log_name => 'etc_default_grub.txt');
     upload_logs(GRUB_CFG,            log_name => 'grub.cfg');

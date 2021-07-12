@@ -642,8 +642,6 @@ sub wait_grub {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $in_grub         = $args{in_grub}         // 0;
     my @tags;
-    push @tags, 'shim-key-management'           if (get_var('CHECK_MOK_IMPORT') && get_var('UEFI'));
-    push @tags, 'bootloader-shim-verification'  if get_var('MOK_VERBOSITY');
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
     push @tags, 'grub2';
     push @tags, 'boot-live-' . get_var('DESKTOP')     if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
@@ -651,6 +649,32 @@ sub wait_grub {
     push @tags, 'encrypted-disk-password-prompt-grub' if get_var('ENCRYPT');
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
+    }
+    # if there was a request to enroll or remove a certificate used for SecureBoot process
+    if (get_var('_EXPECT_EFI_MOK_MANAGER')) {
+        wait_serial('Shim UEFI key management', 60) or die 'MokManager has not been started!';
+        send_key 'ret';
+        assert_screen 'shim-perform-mok-management';
+        send_key 'down';
+        assert_screen([qw(shim-enroll-mok shim-delete-mok)]);
+        send_key 'ret';
+        assert_screen 'shim-view-key';
+        send_key 'ret';
+        assert_screen 'shim-imported-mock-cert';
+        send_key 'ret';
+        assert_screen 'shim-view-key';
+        send_key 'down';
+        assert_screen 'shim-enroll-mok-continue';
+        send_key 'ret';
+        assert_screen 'shim-keys-confirm-dialog';
+        send_key 'down';
+        assert_screen 'shim-keys-confirm-yes';
+        send_key 'ret';
+        assert_screen 'shim-mok-password';
+        type_password;
+        send_key 'ret';
+        assert_screen 'shim-perform-mok-reboot';
+        send_key 'ret';
     }
     # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
     # order on UEFI" the USB install medium is priority and will always be
@@ -679,38 +703,6 @@ sub wait_grub {
             send_key 'ret';
         }
         assert_screen "grub2", 15;
-    }
-    elsif (match_has_tag('bootloader-shim-verification') || match_has_tag('shim-key-management')) {
-        if (match_has_tag('bootloader-shim-verification')) {
-            send_key 'ret';
-            assert_screen([qw(shim-key-management grub2)]);
-        }
-        if (match_has_tag 'shim-key-management') {
-            send_key 'ret';
-            assert_screen 'shim-perform-mok-management';
-            send_key 'down';
-            assert_screen([qw(shim-enroll-mok shim-delete-mok)]);
-            send_key 'ret';
-            assert_screen 'shim-view-key';
-            send_key 'ret';
-            assert_screen 'shim-imported-mock-cert';
-            send_key 'ret';
-            assert_screen 'shim-view-key';
-            send_key 'down';
-            assert_screen 'shim-enroll-mok-continue';
-            send_key 'ret';
-            assert_screen 'shim-keys-confirm-dialog';
-            send_key 'down';
-            assert_screen 'shim-keys-confirm-yes';
-            send_key 'ret';
-            assert_screen 'shim-mok-password';
-            type_password;
-            send_key 'ret';
-            assert_screen 'shim-perform-mok-reboot';
-            send_key 'ret';
-            assert_screen([qw(grub2 bootloader-shim-verification)]);
-            send_key 'ret' if (match_has_tag 'bootloader-shim-verification');
-        }
     }
     elsif (get_var("LIVETEST")) {
         # prevent if one day booting livesystem is not the first entry of the boot list
