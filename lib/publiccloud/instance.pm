@@ -207,13 +207,18 @@ sub wait_for_ssh
 {
     my ($self, %args) = @_;
     $args{timeout}            //= 600;
+    $args{hardtimeout}        //= $args{timeout};
     $args{proceed_on_failure} //= 0;
     $args{username}           //= $self->username();
     my $start_time = time();
+    my ($port_reachable, $delayed_success) = (0, 0);
 
     # Check port 22
-    while ((my $duration = time() - $start_time) < $args{timeout}) {
-        last if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
+    while ((time() - $start_time) < $args{timeout}) {
+        if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0) {
+            $port_reachable = 1;
+            last;
+        }
         sleep 1;
     }
 
@@ -223,9 +228,36 @@ sub wait_for_ssh
         sleep 1;
     }
 
-    croak(sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds",
-            $self->{instance_id}, $self->{public_ip}, $args{timeout}))
-      unless ($args{proceed_on_failure});
+    # We already considering waiting as failed but sometimes it make sense to wait a bit longer to see that instance become available after all
+    my $duration = 0;
+    while (($duration = time() - $start_time) < $args{hardtimeout}) {
+        unless ($port_reachable) {
+            if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0) {
+                $port_reachable = 1;
+            }
+        }
+        if ($self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, quiet => 1, username => $args{username}) =~ m/Reached target.*/) {
+            $delayed_success = 1;
+            last;
+        }
+        sleep 1;
+    }
+
+
+    unless ($args{proceed_on_failure}) {
+        if ($delayed_success) {
+            croak(sprintf("SSH port of instance %s was reached only after %d seconds while timeout was set to %d",
+                    $self->{instance_id}, $duration, $args{timeout}));
+        }
+        elsif ($port_reachable) {
+            croak(sprintf("SSH port of instance %s was reached but system didn't manage to get into operable state",
+                    $self->{instance_id}));
+        }
+        else {
+            croak(sprintf("Unable to reach SSH port of instance %s within %d seconds",
+                    $self->{instance_id}, $self->{public_ip}, $args{hardtimeout}));
+        }
+    }
     return;
 }
 
@@ -240,8 +272,9 @@ reachable anymore. The second one is the estimated bootup time.
 sub softreboot
 {
     my ($self, %args) = @_;
-    $args{timeout}  //= 600;
-    $args{username} //= $self->username();
+    $args{timeout}     //= 600;
+    $args{hardtimeout} //= $args{timeout};
+    $args{username}    //= $self->username();
 
     my $duration;
 
@@ -256,7 +289,7 @@ sub softreboot
     }
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
-    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username});
+    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, hardtimeout => $args{hardtimeout});
     return ($shutdown_time, $bootup_time);
 }
 

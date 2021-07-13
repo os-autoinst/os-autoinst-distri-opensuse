@@ -26,7 +26,7 @@ sub run {
 
     $args->{my_instance}->retry_ssh_command(cmd => "sudo zypper -n ref", timeout => 240, retry => 6);
     ssh_fully_patch_system($args->{my_instance}->public_ip);
-    $args->{my_instance}->softreboot();
+    $args->{my_instance}->softreboot( hardtimeout => get_var('PUBLIC_CLOUD_HARDTIMEOUT', 600));
 }
 
 1;
