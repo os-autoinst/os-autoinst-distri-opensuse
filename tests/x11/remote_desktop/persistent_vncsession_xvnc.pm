@@ -69,7 +69,6 @@ sub run {
     # First time login and configure the visibility
     $self->start_vncviewer;
     handle_login;
-    assert_screen 'generic-desktop';
     # Hold Alt key inside the vncviewer
     send_key 'f8';
     assert_screen 'vncviewer-menu';
