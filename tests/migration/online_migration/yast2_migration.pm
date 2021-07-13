@@ -209,7 +209,11 @@ sub run {
     send_key "alt-p";    # focus on the item of possible migration targets
     assert_screen 'yast2-migration-target-list-selected', 60;
     send_key_until_needlematch 'migration-target-' . get_var("VERSION"), 'down', 20, 3;
-    send_key "alt-n";
+
+    # On some platforms such as Aarch64 and x86_64, after sending alt-n keys,
+    # we need to send_key alt-n more than once for the next screen to show up.
+    wait_screen_change { send_key('alt-n', wait_screen_change => 1) };
+
     # migration via smt will install packagehub and NVIDIA compute, we need click trust
     # gpg keys; Same with leap to sle migration, need to trust packagehub gpg key.
     if (get_var('SMT_URL') =~ /smt/) {
