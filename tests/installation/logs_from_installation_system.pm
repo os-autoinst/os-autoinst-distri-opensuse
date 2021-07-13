@@ -41,6 +41,7 @@ sub run {
             die "IPL device was not set correctly";
         }
     }
+
     # while technically SUT has a different network than the BMC
     # we require ssh installation anyway
     if (get_var('BACKEND', '') =~ /ipmi|spvm/) {
