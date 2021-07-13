@@ -129,6 +129,14 @@ sub handle_warning_not_supported {
     }
 }
 
+sub handle_warning_install_os_prober {
+    if (assert_screen('os-prober-warning', 200)) {
+        send_key('alt-i');
+        wait_still_screen;
+        wait_screen_change { send_key 'alt-n' };
+    }
+}
+
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
     # restart info will appear only when change has been done
@@ -171,6 +179,7 @@ sub activate_kdump {
     }
     send_key('alt-o');
     if ($expect_restart_info == 1) {
+        handle_warning_install_os_prober();
         assert_screen('yast2-kdump-restart-info', 200);
         send_key('alt-o');
     }
