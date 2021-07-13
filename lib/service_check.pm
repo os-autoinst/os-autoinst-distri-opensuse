@@ -37,6 +37,7 @@ use services::users;
 use autofs_utils;
 use services::postfix;
 use services::firewall;
+use services::libvirtd;
 use kdump_utils;
 use version_utils 'is_sle';
 
@@ -179,6 +180,12 @@ our $default_services = {
         srv_proc_name      => 'kdump',
         support_ver        => $support_ver_def,
         service_check_func => \&full_kdump_check
+    },
+    libvirtd => {
+        srv_pkg_name       => 'libvirtd',
+        srv_proc_name      => 'libvirtd',
+        support_ver        => $support_ver_def,
+        service_check_func => \&services::libvirtd::full_libvirtd_check
     },
 };
 
