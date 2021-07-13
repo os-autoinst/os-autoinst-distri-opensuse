@@ -26,6 +26,17 @@ use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends 'use_ssh_serial_console';
 
+sub check_kernel_package {
+    my $kernel_name = shift;
+
+    script_run('ls -1 /boot/vmlinux*');
+    my $packs = script_output('rpm -qf --qf "%{NAME}\n" /boot/vmlinux*');
+
+    for my $packname (split /\s+/, $packs) {
+        die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
+          if $packname ne $kernel_name;
+    }
+}
 
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
@@ -50,6 +61,7 @@ sub prepare_azure {
 
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    check_kernel_package('kernel-azure');
     power_action('reboot', textmode => 1);
     boot_to_console($self);
 }
@@ -59,6 +71,7 @@ sub prepare_kernel_base {
 
     remove_kernel_packages();
     zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    check_kernel_package('kernel-default-base');
     power_action('reboot', textmode => 1);
     boot_to_console($self);
 }
@@ -380,12 +393,16 @@ sub run {
         zypper_call("ar -G -f http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON");
     }
 
-    my $repo        = get_var('KOTD_REPO');
-    my $incident_id = undef;
+    my $repo           = get_var('KOTD_REPO');
+    my $incident_id    = undef;
+    my $kernel_package = 'kernel-default';
+
     unless ($repo) {
         $repo        = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
     }
+
+    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
 
     if (get_var('KGRAFT')) {
         my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
@@ -408,6 +425,8 @@ sub run {
         kgraft_state;
     }
     elsif (get_var('AZURE')) {
+        $kernel_package = 'kernel-azure';
+
         if (get_var('AZURE_FIRST_RELEASE')) {
             first_azure_release($repo);
         }
@@ -417,6 +436,7 @@ sub run {
         }
     }
     elsif (get_var('KERNEL_BASE')) {
+        $kernel_package = 'kernel-default-base';
         $self->prepare_kernel_base;
         update_kernel($repo, $incident_id);
     }
@@ -426,6 +446,8 @@ sub run {
     else {
         update_kernel($repo, $incident_id);
     }
+
+    check_kernel_package($kernel_package);
 
     if (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);
