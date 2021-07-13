@@ -1,0 +1,35 @@
+---
+name: message
+description: >
+    Maintainer: zluo
+    desktop message test modules, can be used by qam regression,
+    sled desktop and openSUSE
+conditional_schedule:
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - x11/pidgin/prep_pidgin
+                - x11/pidgin/pidgin_IRC
+                - x11/pidgin/clean_pidgin
+    sle_tests:
+        DISTRI:
+            sle:
+                - x11/evolution/evolution_smoke
+                - x11/evolution/evolution_prepare_servers
+                - x11/evolution/evolution_mail_imap
+                - x11/evolution/evolution_mail_pop
+                - x11/evolution/evolution_timezone_setup
+                - x11/evolution/evolution_meeting_imap
+                - x11/evolution/evolution_meeting_pop
+                - x11/thunderbird/thunderbird_install
+                - x11/thunderbird/thunderbird_imap
+                - x11/thunderbird/thunderbird_pop
+                - x11/groupwise/groupwise
+                - x11/pidgin/prep_pidgin
+                - x11/pidgin/pidgin_IRC
+                - x11/pidgin/clean_pidgin
+schedule:
+    - boot/boot_to_desktop
+    - x11/window_system
+    - '{{sle_tests}}'
+    - '{{opensuse_tests}}'

@@ -27,8 +27,9 @@ use testapi;
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
-    my ($self) = @_;
+    my ($self)      = @_;
     my $CHANNELNAME = "susetesting";
+    my $SERVERNAME  = "irc.libera.chat";
     x11_start_program('pidgin');
 
     # Focus the welcome window in SLE15
@@ -47,6 +48,9 @@ sub run {
     send_key "alt-u";
     wait_still_screen 2;
     type_string "$CHANNELNAME";
+    wait_still_screen 2;
+    send_key "alt-s";
+    type_string "$SERVERNAME";
     wait_still_screen 2;
     send_key "alt-a";
 
