@@ -20,7 +20,7 @@
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
         "products": {
             "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["15.3"]
+            "opensuse": ["Tumbleweed", "15.3", "15.2"]
         },
         "type": "bug"
     },
