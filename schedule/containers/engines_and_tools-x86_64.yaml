@@ -1,0 +1,38 @@
+name:           engines_and_tools-x86_64
+description:    >
+  Maintainer: qa-c@suse.de.
+  This schedule is focused on testing the related container packages and features,
+  but not the official container images from SUSE and openSUSE.
+conditional_schedule:
+  supported:
+    HOST_VERSION:
+      15-SP3:
+        - containers/podman
+        - containers/buildah_podman
+        - containers/buildah_docker
+        - containers/podman_3rd_party_images
+        - containers/rootless_podman
+      15-SP2:
+        - containers/podman
+        - containers/buildah_podman
+        - containers/buildah_docker
+        - containers/podman_3rd_party_images
+        - containers/rootless_podman
+      15-SP1:
+        - containers/podman
+        - containers/buildah_podman
+        - containers/buildah_docker
+        - containers/podman_3rd_party_images
+        - containers/rootless_podman
+
+schedule:
+  - boot/boot_to_desktop
+  - containers/docker
+  - containers/docker_runc
+  - containers/docker_3rd_party_images
+  - '{{supported}}'
+  - containers/docker_compose
+  - containers/zypper_docker
+  - containers/registry
+  - console/coredump_collect
+  - containers/validate_btrfs
