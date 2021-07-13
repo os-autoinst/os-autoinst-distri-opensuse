@@ -51,7 +51,6 @@ sub run {
     wait_still_screen 3;
     send_key 'ret';
     handle_login;
-    assert_screen 'generic-desktop';
 
     # Launch gnome-terminal and nautilus remotely
     x11_start_program('gnome-terminal');

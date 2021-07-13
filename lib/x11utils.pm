@@ -223,6 +223,9 @@ sub handle_login {
     assert_screen 'displaymanager-password-prompt';
     type_password;
     send_key 'ret';
+    assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 60);
+    send_key('esc') if match_has_tag('gnome-activities');
+    assert_screen('generic-desktop') unless match_has_tag('generic-desktop');
 }
 
 =head2 handle_logout

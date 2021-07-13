@@ -54,7 +54,6 @@ sub run {
     # Setup the first remote connection and minimize the vncviewer
     $self->start_vncviewer;
     handle_login;
-    assert_screen 'generic-desktop';
     send_key 'f8';
     assert_screen 'vncviewer-menu';
     send_key 'z';
