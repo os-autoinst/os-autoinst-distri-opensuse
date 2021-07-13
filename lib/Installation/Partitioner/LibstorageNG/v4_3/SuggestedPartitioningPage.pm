@@ -27,7 +27,6 @@ sub init {
     my $self = shift;
     $self->{summary}          = $self->{app}->richtext({id => 'summary'});
     $self->{btn_guided_setup} = $self->{app}->button({id => 'guided'});
-    $self->{btn_next}         = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -39,11 +38,6 @@ sub is_shown {
 sub select_guided_setup {
     my ($self) = @_;
     return $self->{btn_guided_setup}->click();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;
