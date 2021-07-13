@@ -24,6 +24,13 @@
         },
         "type": "bug"
     },
+    "bsc#1188270": {
+        "description": "lan78xx 1-1.1.1:1.0 eth0: No phy led trigger registered for speed\\(-1\\)",
+        "products": {
+            "opensuse": ["Tumbleweed"]
+        },
+        "type": "bug"
+    },    
     "bsc#1188237": {
         "description": "kevent 4 may have been dropped",
         "products": {
