@@ -41,7 +41,7 @@
     "bsc#1188238": {
         "description": "BCM: Reset failed \\(-110\\)|hci0: command .* tx timeout",
         "products": {
-            "opensuse": ["15.3"]
+            "opensuse": ["Tumbleweed", "15.3"]
         },
         "type": "bug"
     },
