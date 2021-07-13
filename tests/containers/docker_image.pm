@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,10 +26,11 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
+use containers::runtime;
 
 sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = "docker";
+    my $runtime = containers::runtime::docker->new();
 
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
@@ -56,7 +57,7 @@ sub run {
         }
     }
     scc_restore_docker_image_credentials();
-    clean_container_host(runtime => $runtime);
+    $runtime->cleanup_system_host();
 }
 
 1;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -14,7 +14,7 @@
 #      * create specification files
 #      * run the container
 #      * complete lifecycle (create, start, pause, resume, kill, delete)
-# Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>, George Gkioulis <ggkioulis@suse.com>
+# Maintainer: qac team <qa-c@suse.de>
 
 use base "consoletest";
 use testapi;
@@ -23,20 +23,21 @@ use version_utils qw(is_leap is_sle get_os_release);
 use containers::common;
 use strict;
 use warnings;
+use containers::runtime;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-
+    my $docker   = containers::runtime->new(runtime => 'docker');
     my @runtimes = ();
     push @runtimes, "runc" if (is_leap(">15.1") or !is_sle('=15'));
 
     record_info 'Setup', 'Setup the environment';
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
+    allow_selected_insecure_registries(runtime => $docker);
 
     # create the rootfs directory
     assert_script_run('mkdir rootfs');
@@ -67,7 +68,7 @@ sub run {
     install_docker_when_needed($host_distri);
 
     # remove leftover containers and images
-    clean_container_host(runtime => 'docker');
+    $docker->cleanup_system_host();
 }
 
 1;

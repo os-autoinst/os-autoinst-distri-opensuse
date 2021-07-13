@@ -38,6 +38,7 @@ use version_utils qw(is_sle is_leap is_tumbleweed is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
 use publiccloud::utils;
+use containers::runtime;
 
 my $stop_firewall = 0;    # Post-run flag to stop the firewall (failsafe)
 
@@ -49,10 +50,10 @@ sub run {
     my $dir        = "/root/DockerTest";
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-
+    my $runtime = containers::runtime::docker->new();
     install_docker_when_needed($host_distri);
     test_seccomp();
-    allow_selected_insecure_registries(runtime => 'docker');
+    allow_selected_insecure_registries(runtime => $runtime);
 
     if ($self->firewall() eq 'firewalld') {
         # on publiccloud we need to install firewalld first
@@ -60,13 +61,13 @@ sub run {
         check_docker_firewall();
     }
     # Run basic docker tests
-    basic_container_tests(runtime => "docker");
+    basic_container_tests(runtime => $runtime);
 
     # Build an image from Dockerfile and test it
-    build_and_run_image(runtime => 'docker', base => 'registry.opensuse.org/opensuse/leap:latest');
+    build_and_run_image(runtime => $runtime, base => 'registry.opensuse.org/opensuse/leap:latest');
 
     # Clean container
-    clean_container_host(runtime => "docker");
+    $runtime->cleanup_system_host();
 }
 
 sub post_fail_hook {
