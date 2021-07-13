@@ -24,6 +24,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
 use Utils::Backends 'is_pvm';
+use Utils::Architectures qw(is_s390x);
 
 our @EXPORT = qw(
   process_reboot
@@ -55,7 +56,7 @@ sub get_utt_packages {
 # Here it is handled the first time GRUB is displayed
 sub handle_first_grub {
     enter_cmd "reboot";
-    if (check_var('ARCH', 's390x') || is_pvm) {
+    if (is_s390x || is_pvm) {
         reconnect_mgmt_console(timeout => 500, grub_expected_twice => 1);
     }
     else {
@@ -72,14 +73,14 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if ((is_microos || is_sle_micro) && (!check_var('ARCH', 's390x'))) {
+    if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
-        if (check_var('ARCH', 's390x') || is_pvm) {
+        if (is_s390x || is_pvm) {
             reconnect_mgmt_console(timeout => 500) unless $args{automated_rollback};
         }
-        if (!check_var('ARCH', 's390x') && $args{expected_grub}) {
+        if (!is_s390x && $args{expected_grub}) {
             # Replace by wait_boot if possible
             assert_screen 'grub2', 150;
             wait_screen_change { send_key 'ret' };
