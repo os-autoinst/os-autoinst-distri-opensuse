@@ -45,6 +45,7 @@ schedule:
   - '{{check_upgraded_service}}'
   - '{{openldap_to_389ds}}'
   - '{{regression_tests}}'
+  - console/kdump_and_crash
   - boot/grub_test_snapshot
   - migration/version_switch_origin_system
   - boot/snapper_rollback
