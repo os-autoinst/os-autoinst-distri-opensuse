@@ -21,9 +21,6 @@ sub run() {
     boot_grub_item(2, 3);
     assert_screen 'displaymanager', 60;
     handle_login;
-    assert_screen 'generic-desktop';
 }
 
 1;
-
-# vim: set sw=4 et:
