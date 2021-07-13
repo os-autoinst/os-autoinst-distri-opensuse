@@ -73,7 +73,7 @@ sub use_wicked_network_manager {
 }
 
 sub test_flags {
-    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
+    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1, fatal => 0} : {};
 }
 
 1;
