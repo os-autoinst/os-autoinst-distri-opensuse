@@ -44,7 +44,6 @@ sub run {
     assert_and_click 'sddm_session_plasma_wayland';    # Select Plasma 5 (Wayland) session
 
     handle_login;
-    assert_screen 'generic-desktop', 60;
 
     # We're now in a wayland session, which is in a different VT
     x11_start_program('xterm');

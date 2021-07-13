@@ -1058,7 +1058,7 @@ sub wait_boot_past_bootloader {
     # Starting with GNOME 40, upon login, the activities screen is open (assuming the
     # user will want to start something. For openQA, we simply press 'esc' to close
     # it again and really end up on the desktop
-    send_key('esc') if match_has_tag('gnome-activities');
+    send_key('esc') if match_has_tag('gnome-activities') || match_has_tag('opensuse-welcome-gnome40-activities');
     # if we reached a logged in desktop we are done here
     return 1 if match_has_tag('generic-desktop') || match_has_tag('opensuse-welcome');
     # the last check after previous intervals must be fatal

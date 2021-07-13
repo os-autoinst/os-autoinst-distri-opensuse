@@ -76,8 +76,6 @@ sub run {
     wait_still_screen;
     handle_login($user, 1);
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
-    assert_screen 'generic-desktop', 60;
-    send_key 'esc' if match_has_tag('gnome-activities');
     # verify correct user is logged in
     x11_start_program('xterm');
     wait_still_screen;

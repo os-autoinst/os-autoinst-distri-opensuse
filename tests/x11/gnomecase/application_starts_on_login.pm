@@ -172,8 +172,6 @@ sub run {
     assert_screen "generic-desktop";
 
     handle_relogin;
-    assert_screen "generic-desktop";
-    send_key('esc') if match_has_tag('gnome-activities');    # GNOME 40 logs in with activities opened
 
     # save session, available only for GNOME<3.34.2, see bsc#1158851
     if (is_sle('<15-sp2') || is_leap('<15.2')) {
