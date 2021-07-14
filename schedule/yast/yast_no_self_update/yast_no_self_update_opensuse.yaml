@@ -1,20 +1,24 @@
-name: cryptlvm
-description: >
-  Conduct installation with encrypted LVM selected during installation.
+---
+name: yast_no_self_update
+description:    >
+  Test suite conducts installation with self-update explicitly disabled. No
+  hard checks are done that the self-updating is really disabled.
+  Installation is validated by successful boot and that YaST does not report
+  any issue.
 vars:
+  INSTALLER_NO_SELF_UPDATE: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/validate_no_self_update
   - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning/encrypt_lvm
   - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
-  - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -23,11 +27,5 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
-  - installation/boot_encrypt
   - installation/first_boot
-  - console/validate_lvm
-  - console/validate_encrypt
-test_data:
-  crypttab:
-    num_devices_encrypted: 1
-  <<: !include test_data/yast/encryption/default_enc.yaml
+  - installation/opensuse_welcome

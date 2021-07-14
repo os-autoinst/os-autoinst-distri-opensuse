@@ -1,7 +1,15 @@
-name: cryptlvm
+---
+name: crypt_no_lvm
 description: >
-  Conduct installation with encrypted LVM selected during installation.
+  Test installation with encrypted partitions but without lvm enabled.
+  This is supported only by storage-ng, hence, do NOT enable test suite on
+  distris without storage-ng.
+  Encrypted installations can take longer, especially on non-x86_64
+  architectures.
 vars:
+  ENCRYPT: 1
+  LVM: 0
+  MAX_JOB_TIME: 14400
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -11,7 +19,7 @@ schedule:
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning/encrypt_lvm
+  - installation/partitioning/encrypt_no_lvm
   - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/authentication/disable_autologin
@@ -25,9 +33,8 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
-  - console/validate_lvm
   - console/validate_encrypt
 test_data:
   crypttab:
-    num_devices_encrypted: 1
+    num_devices_encrypted: 2
   <<: !include test_data/yast/encryption/default_enc.yaml
