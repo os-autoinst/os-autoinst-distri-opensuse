@@ -90,7 +90,8 @@ sub run {
     # bsc#694167 bsc#1183786
     # create RSA certificate for ftp server at first which can be used for SSL configuration
     if (is_sle('<=12-SP2')) {
-        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
+        # script_run is used due to semicolon breaks the output
+        script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
               . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
               . "-keyout $vsftpd_directives->{dsa_cert_file} -out $vsftpd_directives->{dsa_cert_file}\n");
     }
