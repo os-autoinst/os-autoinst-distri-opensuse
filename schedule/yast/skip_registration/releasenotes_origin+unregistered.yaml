@@ -12,8 +12,7 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/releasenotes_origin
-  - installation/partitioning
-  - installation/partitioning_finish
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/authentication/use_same_password_for_root

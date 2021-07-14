@@ -12,9 +12,8 @@ schedule:
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/encrypt_lvm
-  - installation/partitioning_finish
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
