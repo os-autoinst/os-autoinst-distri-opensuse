@@ -351,7 +351,11 @@ sub uefi_bootmenu_params {
         assert_screen "gfxpayload_changed", 10;
         # back to the entry position
         send_key "home";
-        for (1 .. 10) { send_key "down"; }
+        for (1 .. 6) { send_key "down"; }
+        # On Leap/SLE we need to move down (grub 2.04)
+        if (is_sle('<16') || is_leap('<16')) {
+            for (1 .. 4) { send_key "down"; }
+        }
     }
     else {
         if (is_microos && get_var('BOOT_HDD_IMAGE')) {
