@@ -1,0 +1,7 @@
+name: cc_audit_trail_protection
+description:    >
+    This is for audit_test audit-trail-protection
+schedule:
+    - boot/boot_to_desktop
+    - security/cc/cc_audit_test_setup
+    - security/cc/audit_trail_protection
