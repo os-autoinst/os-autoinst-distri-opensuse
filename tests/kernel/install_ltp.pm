@@ -23,7 +23,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -210,12 +210,18 @@ sub add_ltp_repo {
             return;
         }
 
-        my $arch = '';
-        $arch = "_PowerPC"  if is_ppc64le();
-        $arch = "_zSystems" if is_s390x();
-
-        $arch = ((is_x86_64 || is_aarch64) ? "Tumbleweed" : "Factory") . $arch;
-        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$arch/";
+        # ltp for leap15.2 is available only x86_64
+        # ltp for leap15.3+ is missing only s390x
+        if (is_leap('=15.2') && is_x86_64 || is_leap('15.3+') && !is_s390x) {
+            $repo = sprintf("Leap_%s", get_var('VERSION'));
+        } elsif (is_tumbleweed) {
+            $repo = "Tumbleweed";
+            $repo = "Factory_PowerPC"  if is_ppc64le();
+            $repo = "Factory_zSystems" if is_s390x();
+        } else {
+            die sprintf("Unexpected combination of version (%s) and architecture (%s) used", get_var('VERSION'), get_var('ARCH'));
+        }
+        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$repo/";
     }
 
     zypper_ar($repo, name => 'ltp_repo');
