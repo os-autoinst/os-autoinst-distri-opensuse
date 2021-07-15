@@ -1,10 +1,11 @@
 # Last Modified: Thu Mar 21 15:39:34 2019
 #include <tunables/global>
 
-/usr/sbin/httpd-prefork {
+/usr/sbin/httpd-prefork flags=(attach_disconnected) {
   #include <abstractions/apache2-common>
   #include <abstractions/base>
   #include <abstractions/php5>
+  #include <abstractions/openssl>
 
   capability kill,
   capability net_admin,
@@ -32,6 +33,7 @@
   /etc/php7/conf.d/xmlreader.ini r,
   /etc/php7/conf.d/xmlwriter.ini r,
   /run/httpd.pid rw,
+  /run/httpd.pid.?????? rw,
   /usr/lib{,32,64}/** mr,
   /usr/lib{,32,64}/apache2*/** mr,
   /var/log/apache2/** rw,
