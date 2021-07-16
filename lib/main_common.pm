@@ -578,8 +578,9 @@ sub load_jeos_tests {
         loadtest "console/suseconnect_scc";
     }
 
-    replace_opensuse_repos_tests      if is_repo_replacement_required;
-    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    replace_opensuse_repos_tests              if is_repo_replacement_required;
+    loadtest 'console/verify_efi_mok'         if get_var 'CHECK_MOK_IMPORT';
 }
 
 sub installzdupstep_is_applicable {
