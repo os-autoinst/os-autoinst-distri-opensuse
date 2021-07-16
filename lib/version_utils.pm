@@ -276,7 +276,7 @@ sub is_leap {
     $version =~ s/:(Core|S)[:\w]*//i;
     $version =~ s/^Jump://i;
 
-    return check_version($query, $version, qr/\d{2,}\.\d/);
+    return check_version($query, $version, qr/\d{2,}(:?.\d)?/);
 }
 
 =head2 is_opensuse
