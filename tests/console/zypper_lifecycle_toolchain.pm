@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright (C) 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: test for 'zypper lifecycle' for toolchain module
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+#          Fail when latest gcc does have EOS Now or n/a
+# Maintainer: Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#322050
 
 use base "consoletest";
@@ -25,24 +26,14 @@ use testapi;
 use utils 'zypper_call';
 
 sub run {
-    my %expiration = (
-        gcc6  => 'Now',
-        gcc7  => 'Now',
-        gcc8  => 'Now',
-        gcc9  => 'Now',
-        gcc10 => '2024-10',
-    );
-
-    select_console 'root-console';
-    zypper_call("in sle-module-toolchain-release " . join(' ', keys %expiration), timeout => 1500);
-    for my $package (sort keys %expiration) {
-        # Get lifecycle information for installed toolchain packages
-        my $output = script_output "zypper lifecycle $package", 300;
-        diag($output);
-        my $expected_date = $expiration{$package};
-        if ($output !~ m/.*\Q$package\E\s*$expected_date.*/) {
-            die("For toolchain module $package expected $expected_date as expiration date, lifecycle output:\n $output");
-        }
+    my $self = shift;
+    $self->select_serial_terminal;
+    my $latest_gcc = script_output(q(zypper se -t package 'gcc>10'|awk '/\s+gcc[0-9]+\s+/ {print$2}'|sort -Vr|head -n1));
+    zypper_call("in sle-module-toolchain-release $latest_gcc", timeout => 1500);
+    my $output = script_output("zypper lifecycle $latest_gcc", 300);
+    diag($output);
+    if ($output =~ m/.*$latest_gcc\s*(Now|n\/a).*/) {
+        die("For toolchain module $latest_gcc end of support should be not Now, lifecycle output:\n $output");
     }
 }
 
