@@ -353,7 +353,7 @@ sub uefi_bootmenu_params {
         send_key "home";
         for (1 .. 6) { send_key "down"; }
         # On Leap/SLE we need to move down (grub 2.04)
-        if (is_sle('<16') || is_leap('<16')) {
+        if (is_sle('<16') || is_leap('<16.0')) {
             for (1 .. 4) { send_key "down"; }
         }
     }
