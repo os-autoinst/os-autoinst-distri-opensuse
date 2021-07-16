@@ -310,8 +310,8 @@ sub is_sle {
 Returns true if called on a transactional server
 =cut
 sub is_transactional {
-    return 1 if is_microos;
-    return check_var('SYSTEM_ROLE', 'serverro');
+    return 1 if (is_microos || is_sle_micro);
+    return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 
 =head2 is_sles4migration
