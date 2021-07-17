@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,8 +24,8 @@
 # - Restore original lifecycle data
 # - Check output of "zypper lifecycle --help"
 # - Check return of "zypper lifecycle --days 0"
-# - Check output of "zypper lifecycle --days 9999"
 # - Check output of "zypper lifecycle --date $(date --iso-8601)"
+# - Check output of "zypper lifecycle --days 9999"
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#320597
 
@@ -38,6 +38,20 @@ use version_utils qw(is_sle is_jeos is_upgrade);
 use Utils::Architectures;
 
 our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
+
+sub lifecycle_output_check {
+    my $output = shift;
+    if (get_var('SCC_REGCODE_LTSS')) {
+        if ($output =~ /No products.*before/) {
+            record_soft_failure('poo#95593 https://jira.suse.com/browse/MSC-70');
+            return;
+        }
+        die "SUSE Linux Enterprise Server is end of support\nOutput: '$output'" unless $output =~ /SUSE Linux Enterprise Server/;
+    }
+    else {
+        die "All products should be supported as of today\nOutput: '$output'" unless $output =~ /No products.*before/;
+    }
+}
 
 sub run {
     diag('fate#320597: Introduce \'zypper lifecycle\' to provide information about life cycle of individual products and packages');
@@ -165,16 +179,16 @@ sub run {
     # report should be empty - exit code 1 is expected
     # but it can show maintenance updates released during last few minutes
     $output = script_output 'zypper lifecycle --days 0 || test $? -le 1', 300;
-    die "All products should be supported as of today\nOutput: '$output'" unless $output =~ /No products.*before/;
-
-    $output = script_output 'zypper lifecycle --days 9999', 300;
-    die "Product 'end of support' line not found\nOutput: '$output'"         unless $output =~ /Product end of support before/;
-    die "Current product should not be supported anymore\nOutput: '$output'" unless $output =~ /$product_name\s+$product_eol/;
+    lifecycle_output_check($output);
 
     # report should be empty - exit code 1 is expected
     # but it can show maintenance updates released during last few minutes
     $output = script_output 'zypper lifecycle --date $(date --iso-8601) || test $? -le 1', 300;
-    die "All products should be supported as of today\nOutput: '$output'" unless $output =~ /No products.*before/;
+    lifecycle_output_check($output);
+
+    $output = script_output 'zypper lifecycle --days 9999', 300;
+    die "Product 'end of support' line not found\nOutput: '$output'"         unless $output =~ /Product end of support before/;
+    die "Current product should not be supported anymore\nOutput: '$output'" unless $output =~ /$product_name\s+$product_eol/;
 }
 
 sub test_flags {
