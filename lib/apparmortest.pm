@@ -146,10 +146,7 @@ sub get_named_profile {
     my ($self, $profile_name) = @_;
 
     # Recalculate profile name in case
-    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//' | head -1");
-    if ($profile_name =~ m/profile /) {
-        $profile_name = script_output("echo $profile_name | cut -d ' ' -f2");
-    }
+    $profile_name = script_output("/sbin/apparmor_parser -N /etc/apparmor.d/$profile_name | head -1");
     return $profile_name;
 }
 
