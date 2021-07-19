@@ -27,7 +27,7 @@ schedule:
   - installation/system_role/select_role
   - installation/partitioning/accept_proposed_layout
   - installation/releasenotes
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
   - installation/authentication/root_simple_pwd
   - installation/resolve_dependency_issues

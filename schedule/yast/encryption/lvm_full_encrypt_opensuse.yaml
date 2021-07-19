@@ -19,7 +19,7 @@ schedule:
   - installation/logpackages
   - installation/system_role
   - installation/partitioning/new_partitioning_gpt
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview

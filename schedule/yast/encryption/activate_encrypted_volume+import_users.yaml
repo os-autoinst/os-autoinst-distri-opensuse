@@ -18,7 +18,7 @@ schedule:
   - installation/system_role
   - installation/partitioning/encrypt_lvm_reuse_existing
   - installation/partitioning/accept_proposed_layout
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
   - installation/user_import
   - installation/authentication/root_simple_pwd

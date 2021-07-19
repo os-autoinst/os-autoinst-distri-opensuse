@@ -18,7 +18,7 @@ schedule:
   - installation/system_role
   - installation/partitioning/lvm_no_separate_home
   - installation/partitioning/resize_existing_lv
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues

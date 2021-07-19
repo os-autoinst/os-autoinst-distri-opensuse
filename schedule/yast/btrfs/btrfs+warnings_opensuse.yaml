@@ -27,7 +27,7 @@ schedule:
   - installation/partitioning/warning/zipl_small
   - installation/partitioning/warning/rootfs_small
   - installation/partitioning/accept_proposed_layout
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview

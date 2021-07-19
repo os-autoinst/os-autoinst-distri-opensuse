@@ -19,7 +19,7 @@ schedule:
   - installation/system_role
   - installation/partitioning/lvm_ignore_existing
   - installation/partitioning/accept_proposed_layout
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd

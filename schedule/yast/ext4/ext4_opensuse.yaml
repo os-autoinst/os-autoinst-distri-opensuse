@@ -16,7 +16,7 @@ schedule:
   - installation/partitioning/select_guided_setup
   - installation/partitioning/guided_setup
   - installation/partitioning/accept_proposed_layout
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
