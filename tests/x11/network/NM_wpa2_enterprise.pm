@@ -21,6 +21,8 @@ use utils;
 sub run {
     my $self = shift;
 
+    # sleep 300s, validate claim https://bugzilla.opensuse.org/show_bug.cgi?id=1176553#c1
+    sleep 300;
     $self->connect_to_network;
     $self->enter_NM_credentials;
     $self->handle_polkit_root_auth;
