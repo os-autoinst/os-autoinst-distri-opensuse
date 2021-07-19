@@ -27,7 +27,7 @@
     "bsc#1188270": {
         "description": "lan78xx 1-1.1.1:1.0 eth0: No phy led trigger registered for speed\\(-1\\)",
         "products": {
-            "opensuse": ["Tumbleweed"]
+            "opensuse": ["Tumbleweed", "15.3"]
         },
         "type": "bug"
     },    
