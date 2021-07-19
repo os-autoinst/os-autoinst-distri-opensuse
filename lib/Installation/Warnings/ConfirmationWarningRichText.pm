@@ -20,12 +20,18 @@ sub init {
     my $self = shift;
     $self->SUPER::init();
     $self->{rt_warning} = $self->{app}->label({type => 'YRichText'});
+    $self->{btn_ok}     = $self->{app}->button({id => 'ok'});
     return $self;
 }
 
 sub text {
     my ($self) = @_;
     return $self->{rt_warning}->text();
+}
+
+sub press_ok {
+    my ($self) = @_;
+    $self->{btn_ok}->click();
 }
 
 1;
