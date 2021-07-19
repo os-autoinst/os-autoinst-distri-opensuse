@@ -1024,6 +1024,7 @@ sub wait_boot_past_bootloader {
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
+    push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
 
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
@@ -1050,7 +1051,10 @@ sub wait_boot_past_bootloader {
     # Starting with GNOME 40, upon login, the activities screen is open (assuming the
     # user will want to start something. For openQA, we simply press 'esc' to close
     # it again and really end up on the desktop
-    send_key('esc') if match_has_tag('gnome-activities');
+    if (match_has_tag('gnome-activities')) {
+        send_key 'esc';
+        check_screen 'generic-desktop', $check_interval;
+    }
     # if we reached a logged in desktop we are done here
     return 1 if match_has_tag('generic-desktop') || match_has_tag('opensuse-welcome');
     # the last check after previous intervals must be fatal
