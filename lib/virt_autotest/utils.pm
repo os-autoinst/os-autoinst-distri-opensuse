@@ -39,7 +39,7 @@ our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest i
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
   remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
-  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service);
+  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host);
 
 # helper function: Trim string
 sub trim {
@@ -510,6 +510,39 @@ sub manage_system_service {
     foreach (@manage_operations) {
         script_run("service $service_name $_") if (script_run("systemctl $_ $service_name") ne 0);
     }
+    return;
+}
+
+#Standardized system logging is implemented by the rsyslog service. System programs can send syslog messages to the local rsyslogd service which will then redirect those messages
+#to remote log servers, namely the centralized log host. The centralized log host can be customized by modifying /etc/rsyslog.conf with desired communication protocol, port, log
+#file and log folder. Once syslog reception has been activated and the desired rules for log separation by host has been created, restart the rsyslog service for the configuration
+#changes to take effect. An examaple of how to call this subroutine is setup_centralized_log_host('/tmp/temp_log_folder', 'udp', '555').
+sub setup_rsyslog_host {
+    my ($log_host_folder, $log_host_protocol, $log_host_port) = @_;
+
+    $log_host_folder   //= '/var/log/loghost';
+    $log_host_protocol //= 'udp';
+    $log_host_port     //= '514';
+
+    zypper_call("--gpg-auto-import-keys ref");
+    zypper_call("in rsyslog");
+    assert_script_run("mkdir -p $log_host_folder");
+    my $log_host_protocol_directive = ($log_host_protocol eq 'udp' ? '\$UDPServerRun' : '\$InputTCPServerRun');
+    if (script_output("cat /etc/rsyslog.conf | grep \"#Setup centralized rsyslog host\"", proceed_on_failure => 1) eq '') {
+        save_screenshot;
+        type_string("cat >> /etc/rsyslog.conf <<EOF
+#Setup centralized rsyslog host
+\\\$ModLoad im${log_host_protocol}.so
+$log_host_protocol_directive ${log_host_port}
+\\\$template DynamicFile,\"${log_host_folder}/%HOSTNAME%/%syslogfacility-text%.log\"
+EOF
+");
+    }
+    save_screenshot;
+    record_info("Content of /etc/rsyslog.conf after configured as centralized rsyslog host", script_output("cat /etc/rsyslog.conf"));
+    my @myoperations = ('start', 'restart', 'status --no-pager');
+    manage_system_service('syslog', \@myoperations);
+    save_screenshot;
     return;
 }
 

@@ -111,12 +111,14 @@ sub install_guest_instances {
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
-        if (!(check_screen('guest-installation-yast2-started', timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
+        save_screenshot;
+        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
             record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progess, so this is not treated as fatal error at the moment.");
         }
         else {
             record_info("Guest $guest_instances{$_}->{guest_name} has installation window opened", "Will continue to monitor its installation progess");
         }
+        save_screenshot;
         $guest_instances{$_}->detach_guest_installation_screen;
     }
     return $self;
@@ -191,6 +193,7 @@ sub clean_up_guest_installations {
         }
         $guest_instances{$_}->print_guest_params;
     }
+    $self->detach_all_nfs_mounts;
     return $self;
 }
 
