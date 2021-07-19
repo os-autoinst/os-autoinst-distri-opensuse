@@ -25,6 +25,16 @@ sub run {
     }
 }
 
+sub post_fail_hook {
+    my $self = shift;
+
+    diag("Module restore_guests post fail hook starts.");
+    my $downloaded_xml_dir = "/tmp/download_vm_xml";
+    upload_virt_logs($downloaded_xml_dir, "downloaded_guest_xml");
+    $self->SUPER::post_fail_hook;
+}
+
+
 sub test_flags {
     return {fatal => 1};
 }

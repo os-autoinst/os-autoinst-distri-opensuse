@@ -36,7 +36,7 @@ use warnings;
 use utils;
 use testapi;
 use virt_autotest::common;
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
 use set_config_as_glue;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
@@ -56,7 +56,8 @@ sub run_test {
     my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
     if (@host_pfs == ()) {
-        $self->{test_results}->{host}->{"Error: there are not SR-IOV ethernet devices in the host, or no carrier for them!"}->{status} = 'FAILED';
+        record_info("Error: No SR-IOV ethernet card!", "There are not SR-IOV ethernet devices in the host!", result => 'fail');
+        $self->{test_results}->{host}->{"Error: there are not SR-IOV ethernet devices in the host!"}->{status} = 'FAILED';
         return 1;
     }
     record_info("Find SR-IOV devices", "@host_pfs");
@@ -234,15 +235,17 @@ sub prepare_guest_for_sriov_passthrough {
         assert_script_run "virsh dumpxml --inactive $vm > $vm.xml";
         script_run "virsh destroy $vm";
 
-        if (is_sle('>=15-SP2') && is_kvm_host) {
-            #for sles15sp1+, PCIe replaces PCI. We need add pcie controllers to allow hotplug more SR-IOV Ethernet vf devices
-            my $cmd = "xmlstarlet edit -L \\
+        if (is_kvm_host) {
+            unless (is_sle('<15-SP2')) {
+                #for sles15sp2+, PCIe replaces PCI. We need add pcie controllers to allow hotplug more SR-IOV Ethernet vf devices
+                my $cmd = "xmlstarlet edit -L \\
                            -s //devices -t elem -n pcicontroller -v '' \\
                            -i //devices/pcicontroller -t attr -n type -v pci \\
                            -i //devices/pcicontroller -t attr -n model -v pcie-root-port \\
                            -r //devices/pcicontroller -v controller \\
                            $vm.xml";
-            assert_script_run "$cmd; $cmd; $cmd";
+                assert_script_run "$cmd; $cmd; $cmd";
+            }
         }
         elsif (is_xen_host) {
 
@@ -254,7 +257,7 @@ sub prepare_guest_for_sriov_passthrough {
             #enable pci-passthrough on sles15sp2+
             #set e820_host for pv guest
             #refer to bug #1167217 and but #1185081 for the reason
-            if (is_pv_guest($vm) || (is_fv_guest($vm) && is_sle('>=15-SP2'))) {
+            unless (is_fv_guest($vm) && is_sle('<15-SP2')) {
                 unless (script_run("xmlstarlet sel -t -c /domain/features $vm.xml") == 0) {
                     assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $vm.xml";
                 }
@@ -264,7 +267,7 @@ sub prepare_guest_for_sriov_passthrough {
                 assert_script_run "xmlstarlet edit -L \\
                                        -s /domain/features/xen -t elem -n passthrough -v '' \\
                                        -s ////passthrough -t attr -n state -v on \\
-                                       $vm.xml" if is_sle('>=15-SP2');
+                                       $vm.xml" unless is_sle('<15-SP2');
                 assert_script_run "xmlstarlet edit -L \\
                                            -s /domain/features/xen -t elem -n e820_host -v '' \\
                                            -s ////e820_host -t attr -n state -v on \\
