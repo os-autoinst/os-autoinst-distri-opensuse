@@ -14,7 +14,6 @@ schedule:
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/separate_usr_partition
   - installation/installer_timezone
   - installation/authentication/disable_autologin

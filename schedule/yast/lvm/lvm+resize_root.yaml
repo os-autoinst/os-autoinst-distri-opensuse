@@ -20,10 +20,9 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/lvm_no_separate_home
   - installation/partitioning_resize_root
-  - installation/partitioning_finish
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd

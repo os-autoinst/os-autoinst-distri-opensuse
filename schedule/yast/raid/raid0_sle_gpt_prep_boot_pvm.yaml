@@ -18,7 +18,6 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/raid_gpt
   - installation/installer_timezone
   - installation/authentication/use_same_password_for_root

@@ -1,39 +1,30 @@
 ---
 description: >
   Conduct installation with LVM selected during installation using guided setup.
-  For spvm we have to disable plymouth, so edit_optional_kernel_cmd_parameters
-  module is scheduled and OPT_KERNEL_PARAMS variable is set. Also, as of now
-  spvm backend doesn't support x11 tests, hence use textmode. In comparison to
-  SLE 12 we register the installation and have system roles wizard screen.
-name: lvm
+name: cryptlvm
 vars:
-  DESKTOP: textmode
+  LVM: 1
   MAX_JOB_TIME: '14400'
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/product_selection/select_product
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
   - installation/system_role
   - installation/partitioning/lvm
   - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
-  - installation/authentication/use_same_password_for_root
+  - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/handle_reboot
-  - installation/boot_encrypt
+  - installation/grub_test
   - installation/first_boot
   - console/validate_lvm
-test_data:
-  product: SLES

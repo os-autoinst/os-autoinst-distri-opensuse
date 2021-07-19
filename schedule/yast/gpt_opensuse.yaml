@@ -5,21 +5,17 @@ description: >
 vars:
   YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/product_selection/select_product
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
   - installation/system_role
   - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
-  - installation/hostname_inst
-  - installation/authentication/use_same_password_for_root
+  - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
-  - installation/change_desktop
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -32,7 +28,6 @@ schedule:
   - console/validate_partition_table_via_blkid
   - console/validate_blockdevices
 test_data:
-  product: SLES
   disks:
   - name: vda
     table_type: gpt
@@ -42,8 +37,3 @@ test_data:
         filesystem: btrfs
       mounting_options:
         mount_point: /
-    - name: vda3
-      formatting_options:
-        filesystem: xfs
-      mounting_options:
-        mount_point: /home

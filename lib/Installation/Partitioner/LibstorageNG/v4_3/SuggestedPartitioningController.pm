@@ -15,10 +15,8 @@
 package Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
 use strict;
 use warnings;
-
-use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningPage;
-
 use YuiRestClient;
+use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningPage;
 
 sub new {
     my ($class, $args) = @_;
@@ -41,11 +39,6 @@ sub get_suggested_partitioning_page {
 sub select_guided_setup {
     my ($self) = @_;
     return $self->get_suggested_partitioning_page()->select_guided_setup();
-}
-
-sub next {
-    my ($self) = @_;
-    return $self->get_suggested_partitioning_page()->press_next();
 }
 
 1;

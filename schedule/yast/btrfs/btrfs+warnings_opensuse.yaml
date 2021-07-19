@@ -18,7 +18,6 @@ schedule:
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/warning/no_root
   - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning/warning/no_boot
