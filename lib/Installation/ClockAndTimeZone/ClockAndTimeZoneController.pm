@@ -44,9 +44,4 @@ sub collect_current_clock_and_time_zone_info {
         hw_clock_set_to_UTC => $self->get_clock_and_time_zone_page()->is_hw_clock_set_to_UTC()};
 }
 
-sub proceed_with_current_configuration {
-    my ($self) = @_;
-    $self->get_clock_and_time_zone_page()->press_next();
-}
-
 1;

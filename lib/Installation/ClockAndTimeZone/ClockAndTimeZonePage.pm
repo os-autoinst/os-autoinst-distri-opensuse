@@ -24,7 +24,6 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}     = $self->{app}->button({id => 'next'});
     $self->{cb_region}    = $self->{app}->combobox({id => 'region'});
     $self->{cb_time_zone} = $self->{app}->combobox({id => 'timezone'});
     $self->{chb_hw_clock} = $self->{app}->checkbox({id => 'hwclock'});
@@ -49,11 +48,6 @@ sub is_hw_clock_set_to_UTC {
 sub is_shown {
     my ($self) = @_;
     return $self->{cb_time_zone}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;
