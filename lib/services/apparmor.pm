@@ -78,12 +78,12 @@ sub check_aa_enforce {
     my $named_profile   = "";
     systemctl('restart apparmor');
 
+    # Recalculate profile name in case
+    $named_profile = $self->get_named_profile($profile_name);
+
     validate_script_output "aa-disable $executable_name", sub {
         m/Disabling.*nscd/;
     }, timeout => 180;
-
-    # Recalculate profile name in case
-    $named_profile = $self->get_named_profile($profile_name);
 
     # Check if /usr/sbin/ntpd is really disabled
     die "$executable_name should be disabled"
