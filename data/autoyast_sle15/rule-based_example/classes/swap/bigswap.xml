@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <partitioning config:type="list">
+    <drive>
+      <partitions config:type="list">
+        <partition>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>swap</mount>
+          <size>2000mb</size>
+        </partition>
+      </partitions>
+    </drive>
+  </partitioning>
+</profile>
