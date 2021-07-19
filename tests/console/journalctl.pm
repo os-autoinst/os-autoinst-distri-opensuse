@@ -39,7 +39,7 @@ use constant {
 
 # by default persistent journal is set for opensuse, except of leap 15.3+
 sub has_default_persistent_journal {
-    return is_opensuse && !is_leap('>=15.3');
+    return is_opensuse && (!is_leap('15.3+') || check_var('FLAVOR', 'JeOS-for-AArch64'));
 }
 
 # If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
