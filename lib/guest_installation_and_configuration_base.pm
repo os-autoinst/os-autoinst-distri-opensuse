@@ -788,7 +788,15 @@ sub config_guest_network_bridge_device {
         if ($self->{guest_netaddr} ne 'host-default') {
             $self->write_guest_network_bridge_device_config($_bridge_network, $_bridge_device, 'static', 'auto', '', 'yes');
             my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $_bridge_device;
-            script_retry("wicked ifup $_bridge_device_config_file $_bridge_device", retry => 3, die => 0);
+            if (is_opensuse) {
+                #NIC in openSUSE TW guest is unable to get the IP from its network configration file with 'wicked ifup' or 'ifup'
+                #Not sure if it is a bug yet. This is just a temporary solution.
+                my $_bridge_ipaddr = script_output("grep IPADDR $_bridge_device_config_file | cut -d \"'\" -f2");
+                script_retry("brctl addbr $_bridge_device && ip addr add $_bridge_ipaddr dev $_bridge_device && ip link set $_bridge_device up", retry => 3, die => 0);
+            }
+            else {
+                script_retry("wicked ifup $_bridge_device_config_file $_bridge_device", retry => 3, die => 0);
+            }
             $_detect_active_route = script_output("ip route show | grep -i $_bridge_device", proceed_on_failure => 1);
         }
         else {
@@ -952,7 +960,7 @@ sub config_guest_installation_media {
     my $self = shift;
 
     $self->reveal_myself;
-    $self->{guest_installation_media} =~ s/Build12345/Build$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
+    $self->{guest_installation_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
 #This is just auxiliary functionality to help correct and set correct installation media major and minor version if it mismatches with guest_version.It is not mandatory
 #necessary and can be skipped without causing any issue.The end user should always pay attention and use meaningful and correct guest parameters and profiles.
     if ($self->{guest_os_name} =~ /sles|oraclelinux/im) {

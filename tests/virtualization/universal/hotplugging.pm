@@ -203,11 +203,12 @@ sub set_guest_memory {
 
 sub test_vmem_change {
     my $guest = shift;
-    my ($sles_running_version, $sles_running_sp) = get_os_release;
-
-    if (get_var('VIRT_AUTOTEST') && ($sles_running_version lt '12' or ($sles_running_version eq '12' and $sles_running_sp lt '3'))) {
-        record_info('Skip memory hotplugging on outdated before-12-SP3 SLES product because immature memory handling situations');
-        return;
+    if (is_sle) {
+        my ($sles_running_version, $sles_running_sp) = get_os_release;
+        if (get_var('VIRT_AUTOTEST') && ($sles_running_version lt '12' or ($sles_running_version eq '12' and $sles_running_sp lt '3'))) {
+            record_info('Skip memory hotplugging on outdated before-12-SP3 SLES product because immature memory handling situations');
+            return;
+        }
     }
     return if (is_xen_host && $guest =~ m/hvm/i);    # memory change not supported on HVM guest
     set_guest_memory($guest, 2048, 1500, 2252);      # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G

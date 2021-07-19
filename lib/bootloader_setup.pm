@@ -1356,7 +1356,8 @@ sub prepare_disks {
     # Delete partition table before starting installation
     select_console('install-shell');
 
-    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
+    #exclude device 254(zram) as wipefs fails on /dev/zram1 in openSUSE
+    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11,254');
     for my $d (split('\n', $disks)) {
         script_run "wipefs -af /dev/$d";
         script_run "sync";

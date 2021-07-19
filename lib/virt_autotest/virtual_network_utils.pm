@@ -315,7 +315,7 @@ sub check_guest_status {
 }
 
 sub get_free_mem {
-    if (check_var('SYSTEM_ROLE', 'xen')) {
+    if (is_xen_host) {
         # ensure the free memory size on xen host
         my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
         $mem = int($mem / 1024);
