@@ -19,7 +19,7 @@
     <guest_metadata></guest_metadata>
     <guest_xpath>./os/boot[@dev='hd']/@order=1#./os/boot[@dev='network']/@order=2</guest_xpath>
     <guest_installation_automation>autoyast</guest_installation_automation>
-    <guest_installation_autoyast_file>sles_15_plus_kvm_hvm_guest_graphical_x86_64.xml</guest_installation_autoyast_file>
+    <guest_installation_automation_file>sles_15_plus_kvm_hvm_guest_graphical_x86_64.xml</guest_installation_automation_file>
     <guest_installation_method>location</guest_installation_method>
     <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>

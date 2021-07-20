@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <guest>
-    <guest_os_name>sles</guest_os_name>
-    <guest_version>15-sp3</guest_version>
-    <guest_version_major>15</guest_version_major>
-    <guest_version_minor>3</guest_version_minor>
+    <guest_os_name>oraclelinux</guest_os_name>
+    <guest_version>r6-u10</guest_version>
+    <guest_version_major>6</guest_version_major>
+    <guest_version_minor>10</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build></guest_build>
     <host_hypervisor_uri></host_hypervisor_uri>
-    <host_virt_type>xen</host_virt_type>
+    <host_virt_type>kvm</host_virt_type>
     <guest_virt_type>hvm</guest_virt_type>
     <guest_machine_type></guest_machine_type>
     <guest_arch>x86_64</guest_arch>
@@ -18,17 +18,17 @@
     <guest_cpumodel></guest_cpumodel>
     <guest_metadata></guest_metadata>
     <guest_xpath></guest_xpath>
-    <guest_installation_automation>autoyast</guest_installation_automation>
-    <guest_installation_automation_file>sles_15_plus_xen_hvm_guest_graphical_x86_64.xml</guest_installation_automation_file>
+    <guest_installation_automation>kickstart</guest_installation_automation>
+    <guest_installation_automation_file>oracle_linux_6_10_graphical_server.ks</guest_installation_automation_file>
     <guest_installation_method>location</guest_installation_method>
-    <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
+    <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#inst.noverifyssl#inst.waitfornet=60#inst.sshd#inst.debug#inst.notmux#inst.cmdline#inst.geoloc=provider_hostip#inst.geoloc-use-with-ks#inst.resolution=1024x768#inst.gpt</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>
     <guest_installation_method_others></guest_installation_method_others>
-    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-15-SP3-Full-x86_64-Build12345-Media1</guest_installation_media>
+    <guest_installation_media>OracleLinux-R6-U10-Server-x86_64-dvd.iso</guest_installation_media>
     <guest_installation_fine_grained></guest_installation_fine_grained>
-    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-ms.bin,loader_type=pflash</guest_boot_settings>
-    <guest_secure_boot>true</guest_secure_boot>
-    <guest_os_variant></guest_os_variant>
+    <guest_boot_settings></guest_boot_settings>
+    <guest_secure_boot></guest_secure_boot>
+    <guest_os_variant>ol6.10</guest_os_variant>
     <guest_storage_path></guest_storage_path>
     <guest_storage_type>disk</guest_storage_type>
     <guest_storage_format>qcow2</guest_storage_format>
@@ -72,7 +72,7 @@
     <guest_memorybacking></guest_memorybacking>
     <guest_features></guest_features>
     <guest_clock></guest_clock>
-    <guest_power_management>suspend_to_mem.enabled=yes,suspend_to_disk.enabled=yes</guest_power_management>
+    <guest_power_management></guest_power_management>
     <guest_events></guest_events>
     <guest_resource></guest_resource>
     <guest_sysinfo></guest_sysinfo>
