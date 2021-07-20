@@ -212,7 +212,7 @@ sub add_ltp_repo {
 
         # ltp for leap15.2 is available only x86_64
         # ltp for leap15.3+ is missing only s390x
-        if (is_leap('=15.2') && is_x86_64 || is_leap('15.3+') && !is_s390x) {
+        if ((is_leap('=15.2') && is_x86_64) || (is_leap('15.3+') && !is_s390x)) {
             $repo = sprintf("Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
             $repo = "Tumbleweed";
