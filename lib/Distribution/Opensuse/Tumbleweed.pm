@@ -31,6 +31,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use Installation::SystemRole::SystemRoleController;
+use Installation::Warnings::WarningsController;
 use YaST::Bootloader::BootloaderController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
@@ -135,6 +136,10 @@ sub get_bootloader {
 
 sub get_license_agreement {
     return Installation::License::Opensuse::LicenseAgreementController->new();
+}
+
+sub get_warnings_controller {
+    return Installation::Warnings::WarningsController->new();
 }
 
 1;
