@@ -32,7 +32,7 @@
 #   - Handle warning pop ups
 #   - Handle autoyast errors during second stage
 #   - Handle grub to boot on local disk (aarch64)
-# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
