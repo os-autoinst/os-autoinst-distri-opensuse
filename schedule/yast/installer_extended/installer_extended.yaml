@@ -16,6 +16,7 @@ schedule:
   - '{{compare_checksums}}'
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/validate_beta_popup
   - '{{switch_keyboard_layout}}'
   - installation/product_selection/select_product
   - installation/licensing/verify_license_translations

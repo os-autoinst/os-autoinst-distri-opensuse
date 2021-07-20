@@ -8,6 +8,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/validate_beta_popup
   - installation/product_selection/select_product
   - installation/licensing/accept_license
   - installation/disk_activation
