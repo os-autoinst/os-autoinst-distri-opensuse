@@ -17,10 +17,8 @@
 # there should be profile file called vm_profile_1.xml,vm_profile_2.xml
 # and vm_profile_3.xml in the folder if UNIFIED_GUEST_PROFILES="vm_profile_1,
 # vm_profile_2,vm_profile_3".Then vm_name_1 will be created and installed
-# using vm_profile_1 and so on by calling:
-# generate_guest_instances,
-# generate_guest_profiles and
-# install_guest_instances.
+# using vm_profile_1 and so on by calling instantiate_guests_and_profiles
+# and install_guest_instances.
 # Installation progress monitoring,result validation, junit log provision,
 # environment cleanup and failure handling are also included and supported
 # by calling other subroutines:
@@ -50,7 +48,9 @@ sub run {
     my @guest_names    = split(/,/, get_required_var('UNIFIED_GUEST_LIST'));
     my @guest_profiles = split(/,/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
-    $self->concurrent_guest_installations_run(\@guest_names, \@guest_profiles);
+    my %store_of_guests;
+    @store_of_guests{@guest_names} = @guest_profiles;
+    $self->concurrent_guest_installations_run(\%store_of_guests);
     return $self;
 }
 
