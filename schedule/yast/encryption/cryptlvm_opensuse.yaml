@@ -13,7 +13,7 @@ schedule:
   - installation/system_role
   - installation/partitioning/encrypt_lvm
   - installation/partitioning/accept_proposed_layout
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview

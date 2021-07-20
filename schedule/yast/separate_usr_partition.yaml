@@ -15,7 +15,7 @@ schedule:
   - installation/logpackages
   - installation/system_role
   - installation/partitioning/separate_usr_partition
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues

@@ -20,7 +20,7 @@ schedule:
   - installation/partitioning/select_guided_setup
   - installation/partitioning/guided_setup
   - installation/partitioning/accept_proposed_layout
-  - installation/installer_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
   # Called on all, except BACKEND: s390x
   - '{{hostname_inst}}'
   - installation/authentication/use_same_password_for_root
