@@ -89,7 +89,6 @@ schedule:
   - ha/filesystem
   - ha/drbd_passive
   - ha/filesystem
-  - ha/ctdb
   - ha/haproxy
   - ha/await_upgrade_or_update
   - migration/version_switch_upgrade_target
