@@ -557,7 +557,6 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
-    # loadtest 'jeos/sccreg';
     if ((is_arm || is_aarch64) && is_opensuse()) {
         # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();
@@ -573,12 +572,15 @@ sub load_jeos_tests {
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
+    loadtest "console/journal_check";
+    loadtest "microos/libzypp_config";
     if (is_sle) {
         loadtest "console/suseconnect_scc";
     }
 
-    replace_opensuse_repos_tests      if is_repo_replacement_required;
-    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    replace_opensuse_repos_tests              if is_repo_replacement_required;
+    loadtest 'console/verify_efi_mok'         if get_var 'CHECK_MOK_IMPORT';
 }
 
 sub installzdupstep_is_applicable {
@@ -1271,7 +1273,7 @@ sub load_x11tests {
     }
     if (xfcestep_is_applicable()) {
         # Midori got dropped from TW
-        loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16"));
+        loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16.0"));
         loadtest "x11/ristretto";
     }
     if (gnomestep_is_applicable()) {
@@ -1555,7 +1557,7 @@ sub load_extra_tests_desktop {
 sub load_extra_tests_zypper {
     # Add non-oss and debug repos for o3 and remove other by default (skipped, if already done)
     replace_opensuse_repos_tests if is_repo_replacement_required;
-    loadtest "console/zypper_lr_validate";
+    loadtest "console/zypper_lr_validate" unless is_sle '15+';
     loadtest "console/zypper_ref";
     unless (is_jeos) {
         loadtest "console/zypper_info";
@@ -1968,7 +1970,7 @@ sub load_x11_gnome {
 sub load_x11_other {
     if (check_var("DESKTOP", "gnome")) {
         loadtest "x11/brasero/brasero_launch";
-        loadtest "x11/gnomeapps/gnome_documents" if (is_sle('<16') || is_leap('<16'));
+        loadtest "x11/gnomeapps/gnome_documents" if (is_sle('<16') || is_leap('<16.0'));
         loadtest "x11/totem/totem_launch";
         if (is_sle '15+') {
             loadtest "x11/xterm";

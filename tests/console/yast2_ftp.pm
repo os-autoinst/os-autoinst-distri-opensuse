@@ -51,7 +51,7 @@ sub vsftpd_firewall_checker {
 
 sub run {
     my $self = shift;
-    $self->{cert_directive} = 'rsa_cert_file';
+    $self->{cert_directive} = (is_sle('>12-SP2') || is_opensuse) ? 'rsa_cert_file' : 'dsa_cert_file';
     my $vsftpd_directives = {
         pasv_min_port           => '30000',
         pasv_max_port           => '30100',
@@ -89,9 +89,17 @@ sub run {
 
     # bsc#694167 bsc#1183786
     # create RSA certificate for ftp server at first which can be used for SSL configuration
-    assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048" .
-          " -subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost'" .
-          " -keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}");
+    if (is_sle('<=12-SP2')) {
+        # script_run is used due to semicolon breaks the output
+        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
+              . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
+              . "-keyout $vsftpd_directives->{dsa_cert_file} -out $vsftpd_directives->{dsa_cert_file}");
+    }
+    else {
+        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
+              . " -subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
+              . " -keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}");
+    }
 
     # check vsftpd.pem is created
     assert_script_run("ls /etc/vsftpd.pem");
@@ -196,7 +204,11 @@ sub run {
     wait_still_screen;
     wait_screen_change { send_key 'alt-s' };                # give path for RSA certificate
 
-    type_string_slow($vsftpd_directives->{rsa_cert_file});
+    if (is_sle('>=12-SP3') || is_opensuse) {
+        type_string_slow($vsftpd_directives->{rsa_cert_file});
+    } else {
+        type_string_slow($vsftpd_directives->{dsa_cert_file});
+    }
 
     assert_screen 'yast2_ftp_port_closed';
     send_key 'alt-p';                                       # open port in firewall
@@ -216,7 +228,12 @@ sub run {
 
     # let's try to run it
     systemctl 'start vsftpd';
-    systemctl 'is-active vsftpd', fail_message => 'bsc#975538';
+
+    if (is_sle('<=12-SP2')) {
+        record_soft_failure 'bsc#975538 - yast sets dsa instead rsa in /etc/vsftpd.conf';
+    } else {
+        systemctl 'is-active vsftpd', fail_message => 'bsc#975538';
+    }
 }
 
 sub post_fail_hook {

@@ -23,7 +23,7 @@ my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
 my $AD_ip       = '10.162.30.119';
 
 sub samba_sssd_install {
-    zypper_call('in samba adcli samba-winbind krb5-client sssd-ad');
+    zypper_call('in expect samba adcli samba-winbind krb5-client sssd-ad');
 
     # sssd versions prior to 1.14 don't support conf.d
     # https://github.com/SSSD/sssd/issues/3289
@@ -51,6 +51,44 @@ sub samba_sssd_install {
     script_run('dig srv _ldap._tcp.geeko.com');
 }
 
+sub update_password {
+    # Array @params contains tuples with [$params-for-adcli, $adcli-output-substring]
+    # first  tuple: no extra parameter for adcli so '', look for the string 'WBC_ERR_AUTH_ERROR'
+    # second tuple: add the extra parameter for adcli '--add-samba-data', look for the string 'succeeded'
+    my @params = (['', 'WBC_ERR_AUTH_ERROR'], ['--add-samba-data', 'succeeded']);
+
+    my $retries = 15;
+
+    # First invalidate the password, then update/restore it using --add-samba-data
+    for my $i (0 .. $#params) {
+        my $cmd = 'adcli update --verbose --computer-password-lifetime=0 --domain geeko.com ' . $params[$i][0];
+
+        # If the command fails, re-join as Administrator and retry the command (max 15 times)
+        for (1 .. $retries) {
+            my $ret = script_run($cmd);
+            if ($ret eq "0") {
+                # if the adcli command returned succesfully, stop retrying and break out of the loop
+                last;
+            } else {
+                # adcli update failed, check bsc#1188390
+                record_soft_failure("bsc#1188390");
+
+                # Retrying the adcli join is needed, probably due to https://bugs.freedesktop.org/show_bug.cgi?id=55487
+                script_retry 'adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 5, timeout => 60;
+            }
+        }
+
+        # Check the trust secret for the domain
+        my $output = script_output('wbinfo -tP', proceed_on_failure => 1);
+        my $substr = $params[$i][1];
+        if (index($output, $substr) == -1) {
+            die("wbinfo output does not contain $substr");
+        }
+    }
+
+    record_info('passw updated');
+}
+
 sub run {
     my $self = shift;
     # select_console 'root-console';
@@ -60,6 +98,7 @@ sub run {
     #Join the Active Directory
     assert_script_run "expect kinit.exp";
 
+    # Retrying the adcli join is needed, probably due to https://bugs.freedesktop.org/show_bug.cgi?id=55487
     script_retry 'adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 5, timeout => 60;
 
     #Verify if machine already added
@@ -92,6 +131,10 @@ sub run {
     assert_script_run "wbinfo -i Administrator\@geeko.com";
 
     assert_script_run "expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;expect geekouser>;send exit\\n;interact'";
+
+    # poo#91950 (update machine password with adcli --add-samba-data option)
+    update_password();
+
     assert_script_run "echo Nots3cr3t  | net ads leave --domain geeko.com -U Administrator -i";
 
     # For futher extensions

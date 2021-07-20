@@ -18,7 +18,7 @@ use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
 use utils;
-use version_utils qw(is_microos is_jeos is_leap is_sle is_tumbleweed);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
 use Utils::Backends 'is_pvm';
 
@@ -351,7 +351,11 @@ sub uefi_bootmenu_params {
         assert_screen "gfxpayload_changed", 10;
         # back to the entry position
         send_key "home";
-        for (1 .. 10) { send_key "down"; }
+        for (1 .. 6) { send_key "down"; }
+        # On Leap/SLE we need to move down (grub 2.04)
+        if (is_sle('<16') || is_leap('<16.0')) {
+            for (1 .. 4) { send_key "down"; }
+        }
     }
     else {
         if (is_microos && get_var('BOOT_HDD_IMAGE')) {
@@ -976,35 +980,40 @@ sub tianocore_http_boot {
 }
 
 sub zkvm_add_disk {
-    my ($svirt) = @_;
-    if (my $hdd = get_var('HDD_1')) {
-        my $basename = basename($hdd);
-        my $basedir  = svirt_host_basedir();
-        my $hdd_dir  = "$basedir/openqa/share/factory/hdd";
-        my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
-        die "Unable to find image $basename in $hdd_dir" unless $hdd_path;
-        diag("HDD path found: $hdd_path");
-        if (get_var('PATCHED_SYSTEM')) {
+    my ($svirt)  = @_;
+    my $numdisks = get_var('NUMDISKS') // 1;
+    my $hdd_dir  = sprintf("%s/openqa/share/factory/hdd", svirt_host_basedir());
+    my $dev_id   = 'a';
+    for my $di (1 .. $numdisks) {
+        if (get_var('PATCHED_SYSTEM') && $dev_id eq 'a') {
             diag('in patched systems just load the patched image');
             my $name        = $svirt->name;
             my $patched_img = "$zkvm_img_path/$name" . "a.img";
             $svirt->add_disk({file => $patched_img, dev_id => 'a'});
+        } else {
+            # Copy existing disk image to local storage
+            if (get_var("HDD_$di")) {
+                my $basename = basename(get_var("HDD_$di"));
+                my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
+                $hdd_path or die "Unable to find image $basename in $hdd_dir";
+                diag("HDD path found: $hdd_path");
+
+                enter_cmd("# copying image ($basename)...");
+                if (my $size = get_var("HDDSIZEGB_$di")) {
+                    $size .= "G";
+                    $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
+                } else {
+                    $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id});
+                }
+            } else {
+                # Create a new image, most likely it can be image for installation
+                # or additional optional drive for further testing
+                my $size = sprintf("%dG", get_var("HDDSIZEGB_$di", get_var('HDDSIZEGB', 4)));
+                $svirt->add_disk({size => $size, create => 1, dev_id => $dev_id});
+            }
         }
-        else {
-            enter_cmd("# copying image...");
-            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
-        }
-    }
-    else {
-        # Add new disks according to NUMDISKS
-        my $size_i   = get_var('HDDSIZEGB') || '4';
-        my $numdisks = get_var('NUMDISKS')  || '1';
-        my $dev_id   = 'a';
-        foreach my $n (1 .. $numdisks) {
-            $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => $dev_id});
-            # apply next letter as dev_id
-            $dev_id = chr((ord $dev_id) + 1);
-        }
+        # apply next letter as dev_id
+        $dev_id = chr((ord 'a') + $di);
     }
 }
 

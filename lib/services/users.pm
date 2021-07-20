@@ -193,4 +193,16 @@ sub full_users_check {
     }
 }
 
+# Cleanup for exceptions during before and after migration
+sub users_cleanup {
+    my (%hash) = @_;
+    my $stage = $hash{stage};
+    select_console "root-console";
+    if ($stage eq 'before') {
+        script_run("pkill -KILL -u $newUser");
+        script_run("userdel -r $newUser");
+    }
+    reset_consoles;
+}
+
 1;

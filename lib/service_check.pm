@@ -37,6 +37,7 @@ use services::users;
 use autofs_utils;
 use services::postfix;
 use services::firewall;
+use services::libvirtd;
 use kdump_utils;
 use version_utils 'is_sle';
 
@@ -61,10 +62,11 @@ our %srv_check_results = (
 
 our $default_services = {
     users => {
-        srv_pkg_name       => 'users',
-        srv_proc_name      => 'users',
-        support_ver        => $support_ver_ge12,
-        service_check_func => \&services::users::full_users_check
+        srv_pkg_name         => 'users',
+        srv_proc_name        => 'users',
+        support_ver          => $support_ver_ge12,
+        service_check_func   => \&services::users::full_users_check,
+        service_cleanup_func => \&services::users::users_cleanup
     },
     hpcpackage_remain => {
         srv_pkg_name       => 'hpcpackage_remain',
@@ -180,6 +182,12 @@ our $default_services = {
         support_ver        => $support_ver_def,
         service_check_func => \&full_kdump_check
     },
+    libvirtd => {
+        srv_pkg_name       => 'libvirtd',
+        srv_proc_name      => 'libvirtd',
+        support_ver        => $support_ver_def,
+        service_check_func => \&services::libvirtd::full_libvirtd_check
+    },
 };
 
 =head2 check_services
@@ -242,6 +250,8 @@ sub install_services {
         my $service_type  = 'SystemV';
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check before migration");
+        # We assume this service $service->{$s} passed at install_service
+        $service->{$s}->{before_migration} = 'PASS';
         eval {
             if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
                 if (check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
@@ -263,10 +273,14 @@ sub install_services {
             }
         };
         if ($@) {
+            # This service $service->{$s} failed at install_service
+            $service->{$s}->{before_migration} = 'FAIL';
+            if (exists $service->{$s}->{service_cleanup_func}) {
+                $service->{$s}->{service_cleanup_func}->(%{$service->{$s}}, service_type => $service_type, stage => 'before');
+            }
             record_info($srv_pkg_name, "failed reason: $@", result => 'fail');
-            $srv_check_results{'before_migration'} = 'FAIL' if $srv_check_results{'before_migration'} eq 'PASS';
+            $srv_check_results{'before_migration'} = 'FAIL';
         }
-
     }
 }
 
@@ -284,7 +298,7 @@ sub check_services {
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
         my $support_ver   = $service->{$s}->{support_ver};
         my $service_type  = 'Systemd';
-        next unless _is_applicable($srv_pkg_name);
+        next unless (($service->{$s}->{before_migration} eq 'PASS') && _is_applicable($srv_pkg_name));
         record_info($srv_pkg_name, "service check after migration");
         eval {
             if (is_sle($support_ver, get_var('ORIGIN_SYSTEM_VERSION'))) {
@@ -298,8 +312,11 @@ sub check_services {
             }
         };
         if ($@) {
+            if (exists $service->{$s}->{service_cleanup_func}) {
+                $service->{$s}->{service_cleanup_func}->(%{$service->{$s}}, service_type => $service_type, stage => 'after');
+            }
             record_info($srv_pkg_name, "failed reason: $@", result => 'fail');
-            $srv_check_results{'after_migration'} = 'FAIL' if $srv_check_results{'after_migration'} eq 'PASS';
+            $srv_check_results{'after_migration'} = 'FAIL';
         }
     }
 }

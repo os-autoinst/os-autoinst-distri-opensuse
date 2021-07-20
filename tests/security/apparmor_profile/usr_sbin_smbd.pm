@@ -106,9 +106,8 @@ sub samba_client_access {
     x11_start_program("nautilus", target_match => "nautilus-other-locations", match_timeout => 200);
 
     # Connect to samba server
-    send_key_until_needlematch("nautilus-other-locations-selected", 'pgdn', 10, 2);
-    send_key "ret";
-    send_key_until_needlematch("nautilus-connect-to-server", 'tab', 10, 2);
+    assert_and_click("nautilus-other-locations");
+    send_key_until_needlematch("nautilus-connect-to-server", 'tab', 20, 2);
     type_string("smb://$ip");
     send_key "ret";
     wait_still_screen(2);

@@ -210,22 +210,32 @@ sub wait_for_ssh
     $args{proceed_on_failure} //= 0;
     $args{username}           //= $self->username();
     my $start_time = time();
+    my $check_port = 1;
 
-    # Check port 22
+    # Looping until reaching timeout or passing two conditions :
+    # - SSH port 22 is reachable
+    # - journalctl got message about reaching one of certain targets
     while ((my $duration = time() - $start_time) < $args{timeout}) {
-        last if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
+        if ($check_port) {
+            $check_port = 0 if (script_run('nc -vz -w 1 ' . $self->{public_ip} . ' 22', quiet => 1) == 0);
+        }
+        elsif ($self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, quiet => 1, username => $args{username}) =~ m/Reached target.*/) {
+            return $duration;
+        }
         sleep 1;
     }
 
-    # Check ssh command
-    while ((my $duration = time() - $start_time) < $args{timeout}) {
-        return $duration if ($self->run_ssh_command(cmd => 'sudo journalctl -b | grep -E "Reached target (Cloud-init|Default|Main User Target)"', proceed_on_failure => 1, quiet => 1, username => $args{username}) =~ m/Reached target.*/);
-        sleep 1;
+    unless ($args{proceed_on_failure}) {
+        my $error_msg;
+        if ($check_port) {
+            $error_msg = sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip}, $args{timeout});
+        }
+        else {
+            $error_msg = sprintf("Can not reach systemd target on instance %s with public IP:%s within %d seconds", $self->{instance_id}, $self->{public_ip}, $args{timeout});
+        }
+        croak($error_msg);
     }
 
-    croak(sprintf("Unable to reach SSH port of instance %s with public IP:%s within %d seconds",
-            $self->{instance_id}, $self->{public_ip}, $args{timeout}))
-      unless ($args{proceed_on_failure});
     return;
 }
 

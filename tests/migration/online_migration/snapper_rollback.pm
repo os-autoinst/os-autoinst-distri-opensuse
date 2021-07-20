@@ -22,7 +22,7 @@ use migration 'check_rollback_system';
 sub run {
     my ($self) = @_;
 
-    if (!check_screen 'linux-login', 200) {
+    if (!check_screen 'linux-login', 200) {    # nocheck: old code, should be updated
         assert_screen 'displaymanager', 90;
     }
     select_console 'root-console';

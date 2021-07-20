@@ -26,8 +26,17 @@ sub run {
 
     my @tags = qw(generic-desktop);
     push(@tags, qw(opensuse-welcome)) if opensuse_welcome_applicable;
+    push(@tags, 'gnome-activities')   if check_var('DESKTOP', 'gnome');
 
     assert_screen \@tags, $timeout;
+    # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+    # user will want to start something. For openQA, we simply press 'esc' to close
+    # it again and really end up on the desktop
+    if (match_has_tag('gnome-activities')) {
+        send_key 'esc';
+        @tags = grep { !/gnome-activities/ } @tags;
+        assert_screen \@tags, $timeout;
+    }
 }
 
 sub post_fail_hook {

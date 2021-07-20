@@ -1,0 +1,7 @@
+name: cc_syscalls
+description:    >
+    This is for audit_test syscalls
+schedule:
+    - boot/boot_to_desktop
+    - security/cc/cc_audit_test_setup
+    - security/cc/syscalls

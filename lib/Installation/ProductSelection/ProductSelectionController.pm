@@ -30,7 +30,7 @@ sub init {
 
 sub get_product_selection_page {
     my ($self) = @_;
-    die 'Language, Keyboard and Product Selection page is not displayed' unless $self->{ProductSelectionPage}->is_shown();
+    die 'Product Selection page is not displayed' unless $self->{ProductSelectionPage}->is_shown();
     return $self->{ProductSelectionPage};
 }
 

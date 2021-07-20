@@ -4,7 +4,6 @@ description: >
 vars:
   YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/licensing/accept_license
@@ -12,12 +11,11 @@ schedule:
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/encrypt_lvm
-  - installation/partitioning_finish
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
+  - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -29,32 +27,7 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
-  - update/zypper_clear_repos
-  - console/zypper_ar
-  - console/zypper_ref
-  - update/zypper_up
-  - console/system_prepare
-  - console/check_network
-  - console/prepare_test_data
-  - console/consoletest_setup
-  - locale/keymap_or_locale
-  - console/force_scheduled_tasks
-  - console/textinfo
-  - console/hostname
-  - console/x_vt
-  - console/zypper_lr
-  - console/ncurses
-  - console/yast2_lan
-  - console/curl_https
-  - console/salt
-  - console/glibc_sanity
-  - console/zypper_in
-  - console/yast2_i
-  - console/yast2_bootloader
-  - console/vim
-  - console/firewall_enabled
-  - console/sshd
-  - console/ssh_cleanup
-  - console/sshfs
-  - console/mtab
-  - console/consoletest_finish
+test_data:
+  crypttab:
+    num_devices_encrypted: 1
+  <<: !include test_data/yast/encryption/default_enc.yaml

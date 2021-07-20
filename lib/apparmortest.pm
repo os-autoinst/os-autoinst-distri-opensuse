@@ -146,10 +146,7 @@ sub get_named_profile {
     my ($self, $profile_name) = @_;
 
     # Recalculate profile name in case
-    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//' | head -1");
-    if ($profile_name =~ m/profile /) {
-        $profile_name = script_output("echo $profile_name | cut -d ' ' -f2");
-    }
+    $profile_name = script_output("/sbin/apparmor_parser -N /etc/apparmor.d/$profile_name | head -1");
     return $profile_name;
 }
 
@@ -556,11 +553,11 @@ sub adminer_setup {
     enter_cmd("firefox http://localhost/adminer/$adminer_file &");
 
     my $ret;
-    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
     if (!defined($ret)) {
         # Wait more time
         record_info("Firefox loading adminer failed", "Retrying workaround");
-        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);       # nocheck: old code, should be updated
     }
     if (match_has_tag("unresponsive-script")) {
         send_key_until_needlematch("adminer-login", 'ret', 5, 5);

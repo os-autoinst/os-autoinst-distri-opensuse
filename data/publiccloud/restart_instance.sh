@@ -66,5 +66,8 @@ esac
 wait_for_power_off "$HOST" "$CNT"
 wait_for_power_on "$HOST" "$CNT"
 echo "Instance $INSTANCE_ID restarted";
-test -x $LOG_SCRIPT && $LOG_SCRIPT start "$PROVIDER" "$INSTANCE_ID" "$HOST" "$ZONE"
+## Not needed, because the log_instance.sh does not depend on the running instance
+## Leaving it here in case we need to revert it. If no issues arise, this can be
+## removed after some time.
+#test -x $LOG_SCRIPT && $LOG_SCRIPT start "$PROVIDER" "$INSTANCE_ID" "$HOST" "$ZONE"
 

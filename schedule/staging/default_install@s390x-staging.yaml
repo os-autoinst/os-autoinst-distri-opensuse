@@ -1,15 +1,8 @@
 ---
-name:           lvm+raid1@64bit
+name:           default_install@s390x-staging
 description:    >
-  Validation of partitioning for raid1 on lvm
-  Installation of RAID1 using expert partitioner.
-vars:
-  RAIDLEVEL: 1
-  LVM: 1
-test_data:
-  <<: !include test_data/yast/lvm_raid1/lvm+raid1_sle12_svirt-xen.yaml
+  Test for default installation, with default options.
 schedule:
-  - installation/isosize
   - installation/bootloader_start
   - installation/welcome
   - installation/accept_license
@@ -17,7 +10,6 @@ schedule:
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
-  - installation/partitioning_raid
   - installation/partitioning_finish
   - installation/installer_timezone
   - installation/user_settings
@@ -29,6 +21,5 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
-  - console/validate_lvm_raid1

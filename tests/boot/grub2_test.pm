@@ -60,7 +60,7 @@ sub run {
         my $version = get_var('VERSION') . $LTSS;
         zypper_ar "http://download.suse.de/ibs/Devel:/Kernel:/SLE$version/standard/", name => 'KERNEL_DEVEL';
     }
-    zypper_call 'in kernel-vanilla';
+    zypper_call 'in kernel-vanilla', exitcode => [0, 107];
     assert_script_run 'uname -r >kernel.txt';
     my $boot_entry = script_output(q(grub2-once --list | grep $(uname -r) | grep -v 'recovery mode' | awk '{print $1}'));
     reboot;

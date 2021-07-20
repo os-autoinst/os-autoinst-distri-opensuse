@@ -3,6 +3,15 @@ description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
 conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - microos/disk_boot
+      'aarch64':
+        - microos/disk_boot
   registration:
     SCC_REGISTER:
       'installation':
@@ -20,11 +29,11 @@ conditional_schedule:
       '1':
         - containers/k3s_cli_check
 schedule:
-  - microos/disk_boot
+  - '{{boot}}'
   - transactional/disable_grub
   - '{{registration}}'
-  - '{{selinux}}'
   - '{{maintenance}}'
+  - '{{selinux}}'
   - '{{k3s}}'
   - microos/networking
   - microos/libzypp_config
@@ -36,5 +45,5 @@ schedule:
   - transactional/transactional_update
   - transactional/rebootmgr
   - transactional/health_check
-  - microos/journal_check
+  - console/journal_check
   - shutdown/shutdown

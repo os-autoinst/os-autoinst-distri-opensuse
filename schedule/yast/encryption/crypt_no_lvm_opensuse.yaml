@@ -1,0 +1,40 @@
+---
+name: crypt_no_lvm
+description: >
+  Test installation with encrypted partitions but without lvm enabled.
+  This is supported only by storage-ng, hence, do NOT enable test suite on
+  distris without storage-ng.
+  Encrypted installations can take longer, especially on non-x86_64
+  architectures.
+vars:
+  ENCRYPT: 1
+  LVM: 0
+  MAX_JOB_TIME: 14400
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/licensing/accept_license
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role
+  - installation/partitioning/encrypt_no_lvm
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  - installation/authentication/disable_autologin
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - console/validate_encrypt
+test_data:
+  crypttab:
+    num_devices_encrypted: 2
+  <<: !include test_data/yast/encryption/default_enc.yaml

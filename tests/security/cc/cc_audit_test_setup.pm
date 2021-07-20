@@ -41,8 +41,13 @@ sub run {
     # Install audit packages
     zypper_call('in audit audit-audispd-plugins');
 
-    # Export MODE
-    assert_script_run("export MODE=$audit_test::mode");
+    # Workaround for restarting audit service
+    assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');
+    assert_script_run('systemctl daemon-reload');
+
+    # modify audit rules
+    assert_script_run('sed -i \'s/-a task,never/#&/\' /etc/audit/rules.d/audit.rules');
+    assert_script_run('systemctl restart auditd.service');
 
     # Download "audit-test"
     assert_script_run("wget --no-check-certificate $audit_test::code_repo -O ${dir}${file_tar}");

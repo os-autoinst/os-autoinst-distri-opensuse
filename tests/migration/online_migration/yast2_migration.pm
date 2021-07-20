@@ -97,6 +97,12 @@ sub yast2_migration_handle_conflicts_text {
     }
 }
 
+sub yast2_migration_handle_license_agreement {
+    wait_screen_change { send_key "alt-a" };
+    assert_screen 'yast2_migration-license-agreenment-accepted', 60;
+    send_key "alt-n";
+}
+
 sub run {
     my $self = shift;
 
@@ -220,10 +226,16 @@ sub run {
             send_key 'alt-t';
         }
     }
-    assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 700;
-    if (match_has_tag 'yast2-migration-installupdate') {
+    assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 300;
+    if (match_has_tag 'yast2-migration-installupdate', 150) {    # Not all cases have install update message.
         send_key 'alt-y';
+        assert_screen 'yast2_migration-license-agreement', 60;
+        yast2_migration_handle_license_agreement;
     }
+    if (match_has_tag 'yast2_migration-license-agreement', 150) {
+        yast2_migration_handle_license_agreement;
+    }
+    assert_screen 'yast2-migration-proposal', 60;
     if (yast2_migration_gnome_x11) {
         yast2_migration_handle_conflicts_x11($self);
     }

@@ -46,5 +46,5 @@ schedule:
   - transactional/transactional_update
   - transactional/rebootmgr
   - transactional/health_check
-  - microos/journal_check
+  - console/journal_check
   - shutdown/shutdown

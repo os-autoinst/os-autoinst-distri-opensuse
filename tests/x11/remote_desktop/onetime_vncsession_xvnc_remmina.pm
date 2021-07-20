@@ -71,7 +71,6 @@ sub run {
     # Enter the full screen mode
     send_key 'z-f';
     handle_login;
-    assert_screen 'generic-desktop';
 
     # Disconnect with the remote server
     send_key 'z-f4';

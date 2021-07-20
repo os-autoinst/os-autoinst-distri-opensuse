@@ -7,18 +7,16 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary:
-#
+# Summary: Accept proposed partitioning layout
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use parent 'y2_installbase';
 use strict;
 use warnings FATAL => 'all';
-use testapi;
 
 sub run {
-    my $suggested_partitioning = $testapi::distri->get_suggested_partitioning();
-    $suggested_partitioning->next();
+    $testapi::distri->get_suggested_partitioning()->get_suggested_partitioning_page();
+    $testapi::distri->get_navigation()->proceed_next_screen();
 }
 
 1;

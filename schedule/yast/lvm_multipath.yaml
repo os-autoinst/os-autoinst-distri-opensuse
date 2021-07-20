@@ -18,9 +18,8 @@ schedule:
   - installation/multipath
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/lvm_no_separate_home
-  - installation/partitioning_finish
+  - installation/partitioning/accept_proposed_layout
   - installation/installer_timezone
   - installation/hostname_inst
   - installation/authentication/use_same_password_for_root
