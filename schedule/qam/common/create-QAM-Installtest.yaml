@@ -1,0 +1,31 @@
+---
+name: create-QAM-Installtest-image
+schedule:
+- autoyast/prepare_profile
+- installation/bootloader_start
+- autoyast/installation
+- autoyast/console
+- autoyast/repos
+- autoyast/clone
+- autoyast/autoyast_reboot
+- '{{boot}}'
+- installation/first_boot
+- console/system_prepare
+- console/hostname
+- console/force_scheduled_tasks
+- shutdown/grub_set_bootargs
+- shutdown/cleanup_before_shutdown
+- shutdown/shutdown
+- '{{s390x_upload}}'
+conditional_schedule:
+    boot:
+        BACKEND:
+            svirt:
+                - boot/reconnect_mgmt_console
+            qemu:
+                - installation/grub_test
+    s390x_upload:
+        BACKEND:
+            svirt:
+                - shutdown/svirt_upload_assets
+...
