@@ -47,6 +47,7 @@ sub tb_setup_account {
     my $mail_recvport   = $config->{$account}->{$port_key};
 
     send_key "alt-n";
+    wait_still_screen(2, 4);
     type_string "SUSE Test";
     send_key "alt-e";
     wait_screen_change { type_string "$mail_box" };
