@@ -7,8 +7,13 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Prepare AutoYaST xml profile by expanding variables
-# before installation and setting correct URL for the installer.
+# Summary: Expand variables in the autoyast profiles and make it accessible for SUT
+#
+# - Get profile from autoyast template
+# - Map version names
+# - Get IP address from system variables
+# - Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE
+# - Modify profile with obtained values and upload new autoyast profile
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
@@ -17,20 +22,29 @@ use base "opensusebasetest";
 use testapi;
 use autoyast qw(
   detect_profile_directory
-  prepare_ay_file);
+  expand_template
+  expand_version
+  adjust_network_conf
+  expand_variables
+  upload_profile);
 
 sub run {
-    my $ay_path = get_required_var('AUTOYAST');
+    my $path = get_required_var('AUTOYAST');
+    # Get file from data directory
+    my $profile = get_test_data($path);
 
-    # get file from data directory and guess path if needed
-    my $profile = get_test_data($ay_path);
-    $ay_path = detect_profile_directory(profile => $profile, path => $ay_path);
+    $path    = detect_profile_directory(profile => $profile, path => $path);
+    $profile = get_test_data($path);
+    die "Empty profile" unless $profile;
 
-    # expand/map variables in the xml file processed
-    prepare_ay_file($ay_path);
+    # if profile is a template, expand and rename
+    $profile = expand_template($profile) if $path =~ s/^(.*\.xml)\.ep$/$1/;
+    die $profile                         if $profile->isa('Mojo::Exception');
 
-    # set AutoYaST path as URL
-    set_var('AUTOYAST', autoinst_url . "/files/$ay_path");
+    $profile = expand_version($profile);
+    $profile = adjust_network_conf($profile);
+    $profile = expand_variables($profile);
+    upload_profile(profile => $profile, path => $path);
 }
 
 sub test_flags {
