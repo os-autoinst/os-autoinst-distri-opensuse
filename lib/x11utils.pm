@@ -231,7 +231,7 @@ sub handle_login {
     assert_screen 'displaymanager-password-prompt';
     type_password;
     send_key 'ret';
-    assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 60);
+    assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
         send_key('esc');
         assert_screen([qw(generic-desktop opensuse-welcome)]);
