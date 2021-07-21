@@ -76,8 +76,16 @@ sub ensure_unlocked_desktop {
 
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
-        push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
+        push(@tags, 'blackscreen')      if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
+        push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
         assert_screen \@tags, no_wait => 1;
+        # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+        # user will want to start something. For openQA, we simply press 'esc' to close
+        # it again and really end up on the desktop
+        if (match_has_tag('gnome-activities')) {
+            send_key 'esc';
+            @tags = grep { !/gnome-activities/ } @tags;
+        }
         if (match_has_tag 'oh-no-something-has-gone-wrong') {
             # bsc#1159950 - gnome-session-failed is detected
             # Note: usually happens on *big* hardware with lot of cpus/memory
@@ -224,8 +232,10 @@ sub handle_login {
     type_password;
     send_key 'ret';
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 60);
-    send_key('esc') if match_has_tag('gnome-activities');
-    assert_screen('generic-desktop') unless match_has_tag('generic-desktop');
+    if (match_has_tag('gnome-activities')) {
+        send_key('esc');
+        assert_screen([qw(generic-desktop opensuse-welcome)]);
+    }
 }
 
 =head2 handle_logout
