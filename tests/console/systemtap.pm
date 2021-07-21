@@ -26,7 +26,7 @@ sub run {
     $self->select_serial_terminal;
     prepare_for_kdump();
     zypper_call("in systemtap systemtap-docs kernel-devel systemtap-server");
-    assert_script_run("stap /usr/share/doc/packages/systemtap/examples/general/helloworld.stp | grep 'hello world'");
+    assert_script_run("stap /usr/share/doc/packages/systemtap/examples/general/helloworld.stp | grep 'hello world'", 200);
     assert_script_run("stap-server condrestart | grep --line-buffered \"managed\"");
     assert_script_run("stap -v -e 'probe vfs.read {printf(\"read performed\\n\"); exit()}'");
 }
