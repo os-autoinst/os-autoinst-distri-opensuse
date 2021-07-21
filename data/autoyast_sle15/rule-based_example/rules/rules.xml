@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<autoinstall xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <rules config:type="list">
+    <rule>
+      <disksize>
+        <match>/dev/sda 19000</match>
+        <match_type>greater</match_type>
+      </disksize>
+      <result>
+        <profile>profile_a.xml</profile>
+        <continue config:type="boolean">false</continue>
+      </result>
+    </rule>
+    <rule>
+      <disksize>
+        <match>/dev/vda 10000-19000</match>
+        <match_type>range</match_type>
+      </disksize>
+      <result>
+        <profile>profile_b.xml</profile>
+        <continue config:type="boolean">false</continue>
+      </result>
+    </rule>
+  </rules>
+</autoinstall>
