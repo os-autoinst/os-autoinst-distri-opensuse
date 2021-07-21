@@ -1032,6 +1032,10 @@ sub wait_boot_past_bootloader {
         # Workaround for bsc#1169723
         push(@tags, 'guest-disable-display');
     }
+    # boo#1188559 - autologin fails on aarch64 with XFCE on current Tumbleweed
+    if (is_tumbleweed && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'xfce')) {
+        push(@tags, 'displaymanager');
+    }
     # bsc#1177446 - Polkit popup appears at first login, again
     if (is_sle && !is_sle('<=15-SP1')) {
         push(@tags, 'authentication-required-user-settings');
@@ -1061,7 +1065,11 @@ sub wait_boot_past_bootloader {
     assert_screen \@tags, $check_interval;
     handle_emergency_if_needed;
 
-    handle_broken_autologin_boo1102563() if match_has_tag('displaymanager');
+    if (match_has_tag('displaymanager') && check_var('DESKTOP', 'xfce')) {
+        record_soft_failure 'boo#1188559 - XFCE autologin broken. Login manually';
+        handle_login();
+    }
+    handle_broken_autologin_boo1102563() if match_has_tag('displaymanager') && check_var('DESKTOP', 'gnome');
     handle_additional_polkit_windows     if match_has_tag('authentication-required-user-settings');
     if (match_has_tag('guest-disable-display')) {
         record_soft_failure 'bsc#1169723 - [Build 174.1] openQA test fails in first_boot - Guest disabled display shown when boot up after migration';
