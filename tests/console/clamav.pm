@@ -112,7 +112,7 @@ sub run {
     # Clean up
     script_run "rm -f test.hdb";
     script_run "rm -rf eicar_test_files/";
-    systemctl('stop clamd freshclam');
+    systemctl('stop clamd freshclam', timeout => 500);
 }
 
 sub post_run_hook {
