@@ -722,7 +722,7 @@ sub cleanup_host_and_guest_logs {
     #Clean dhcpd and named services up explicity
     if (get_var('VIRT_AUTOTEST')) {
         script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
-        if (!get_var('VIRT_UEFI_GUEST_INSTALL')) {
+        if (!get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
             my @control_operation = ('restart');
             virt_autotest::utils::manage_system_service('dhcpd', \@control_operation);
             virt_autotest::utils::manage_system_service('named', \@control_operation);
