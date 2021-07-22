@@ -41,6 +41,7 @@ our @EXPORT = qw(
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
   workaround_boo1170586
+  handle_gnome_activities
 );
 
 =head1 X11_UTILS
@@ -200,8 +201,9 @@ Example:
 
 =cut
 sub handle_login {
-    my ($myuser, $user_selected) = @_;
+    my ($myuser, $user_selected, $mypwd) = @_;
     $myuser        //= $username;
+    $mypwd         //= $testapi::password;
     $user_selected //= 0;
 
     save_screenshot();
@@ -229,7 +231,7 @@ sub handle_login {
         }
     }
     assert_screen 'displaymanager-password-prompt';
-    type_password;
+    type_password($mypwd);
     send_key 'ret';
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 60);
     if (match_has_tag('gnome-activities')) {
@@ -417,6 +419,29 @@ sub start_root_shell_in_xterm {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
     become_root;
+}
+
+=head2 handle_gnome_activities
+
+    handle_gnome_activities()
+
+handle_gnome_activities
+=cut
+sub handle_gnome_activities {
+    my @tags    = 'generic-desktop';
+    my $timeout = 600;
+
+    push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
+
+    assert_screen \@tags, $timeout;
+    # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+    # user will want to start something. For openQA, we simply press 'esc' to close
+    # it again and really end up on the desktop
+    if (match_has_tag('gnome-activities')) {
+        send_key 'esc';
+        @tags = grep { !/gnome-activities/ } @tags;
+        assert_screen \@tags, $timeout;
+    }
 }
 
 1;

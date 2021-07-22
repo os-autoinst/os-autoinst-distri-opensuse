@@ -47,13 +47,7 @@ sub logout_and_login {
     my $test_user = $login_user // $username;
     my $test_pw   = $login_pw   // $newpwd;
     handle_logout;
-    send_key_until_needlematch 'displaymanager', 'esc', 9, 10;
-    mouse_hide();
-    wait_still_screen;
-    assert_and_click "displaymanager-$test_user";
-    assert_screen 'displaymanager-password-prompt', no_wait => 1;
-    type_password "$test_pw\n";
-    assert_screen 'generic-desktop', 120;
+    handle_login($test_user, 0, $test_pw);
 }
 
 sub switch_user {
