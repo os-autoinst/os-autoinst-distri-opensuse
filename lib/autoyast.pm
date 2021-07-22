@@ -786,6 +786,7 @@ Map version names
 Get IP address from system variables
 Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE
 Modify profile with obtained values
+Return new path in case of using AutoYaST templates
 
  $path is the path of the AutoYaST profile or one of the xml files when
  using rules and classes.
@@ -805,6 +806,7 @@ sub prepare_ay_file {
     $profile = adjust_network_conf($profile);
     $profile = expand_variables($profile);
     upload_profile(profile => $profile, path => $path);
+    return $path;
 }
 
 1;

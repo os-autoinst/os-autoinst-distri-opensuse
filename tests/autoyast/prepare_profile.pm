@@ -27,7 +27,8 @@ sub run {
     $ay_path = detect_profile_directory(profile => $profile, path => $ay_path);
 
     # expand/map variables in the xml file processed
-    prepare_ay_file($ay_path);
+    # AutoYaST path is updated in case of using templates
+    $ay_path = prepare_ay_file($ay_path);
 
     # set AutoYaST path as URL
     set_var('AUTOYAST', autoinst_url . "/files/$ay_path");
