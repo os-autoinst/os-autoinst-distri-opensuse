@@ -106,8 +106,8 @@ sub run {
         # Select boot from HDD
         send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
         send_key 'ret';
-        # use firmware boot manager of aarch64 to boot HDD
-        $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64'));
+        # use firmware boot manager of aarch64 and uefi to boot HDD
+        $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64') || get_var('UEFI'));
         assert_screen("grub2");
         return;
     }
