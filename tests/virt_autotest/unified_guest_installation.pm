@@ -7,15 +7,15 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 #
-# Summary: This module supports concurrent multiple uefi virtual machine
-# installations with vm names and profiles obtained from UEFI_GUEST_LIST
-# and UEFI_GUEST_PROFILES respectively. There is no restriction on vm names
-# to be used, so any desired vm names can be given to UEFI_GUEST_LIST=
+# Summary: This module supports concurrent multiple virtual machines
+# installations with vm names and profiles obtained from UNIFIED_GUEST_LIST
+# and UNIFIED_GUEST_PROFILES respectively. There is no restriction on vm names
+# to be used, so any desired vm names can be given to UNIFIED_GUEST_LIST=
 # "vm_name_1,vm_name_2,vm_name_3". Similary,any vm profile names can be
-# given to UEFI_GUEST_PROFILES,as long as there are corresponding profile
+# given to UNIFIED_GUEST_PROFILES,as long as there are corresponding profile
 # files in data/virt_autotest/guest_params_xml_files folder, for example,
 # there should be profile file called vm_profile_1.xml,vm_profile_2.xml
-# and vm_profile_3.xml in the folder if UEFI_GUEST_PROFILES="vm_profile_1,
+# and vm_profile_3.xml in the folder if UNIFIED_GUEST_PROFILES="vm_profile_1,
 # vm_profile_2,vm_profile_3".Then vm_name_1 will be created and installed
 # using vm_profile_1 and so on by calling:
 # generate_guest_instances,
@@ -35,7 +35,7 @@
 # about subroutines in base module being called.
 #
 # Maintainer: Wayne Chen <wchen@suse.com>
-package uefi_guest_installation;
+package unified_guest_installation;
 
 use base 'concurrent_guest_installations';
 use strict;
@@ -47,8 +47,8 @@ sub run {
     my $self = shift;
 
     $self->reveal_myself;
-    my @guest_names    = split(/,/, get_required_var('UEFI_GUEST_LIST'));
-    my @guest_profiles = split(/,/, get_required_var('UEFI_GUEST_PROFILES'));
+    my @guest_names    = split(/,/, get_required_var('UNIFIED_GUEST_LIST'));
+    my @guest_profiles = split(/,/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     $self->concurrent_guest_installations_run(\@guest_names, \@guest_profiles);
     return $self;
