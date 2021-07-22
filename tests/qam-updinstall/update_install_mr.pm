@@ -62,7 +62,6 @@ sub install_packages {
             record_info('Not present', "$package is added in patch") && next if (script_run("zypper -n se -t package -x $package") == 104);
             # install package
             zypper_call("in -l $package", timeout => 1500, exitcode => [0, 102, 103]);
-            save_screenshot;
         }
     }
 }
@@ -91,7 +90,7 @@ sub run {
     my $incident_id = get_required_var('INCIDENT_ID');
     my $repos       = get_required_var('INCIDENT_REPO');
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
 
