@@ -14,6 +14,8 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP3:
+        - '{{sle15_x86_64}}'
       15-SP2:
         - '{{sle15_x86_64}}'
       15-SP1:
