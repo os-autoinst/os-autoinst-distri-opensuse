@@ -37,6 +37,8 @@
       <li><a href="#upload_profile">upload_profile</a></li>
       <li><a href="#inject_registration">inject_registration</a></li>
       <li><a href="#test_ayp_url">test_ayp_url</a></li>
+      <li><a href="#get_test_data_files-get_test_data-dir_relative_path">get_test_data_files get_test_data($dir_relative_path)</a></li>
+      <li><a href="#prepare_ay_file">prepare_ay_file</a></li>
     </ul>
   </li>
 </ul><h1>lib/autoyast.pm</h1>
@@ -248,12 +250,12 @@
 <pre><code> upload_profile(profile =&gt; $profile, path =&gt; $path)
 
  Upload modified profile
- Update url
  Update path
  Make available profile in job logs
 
- $profile is the AutoYaST profile &#39;autoinst.xml&#39;.
- $path is AutoYaST profile path</code></pre>
+ $profile is the AutoYaST profile &#39;autoinst.xml&#39;
+ $path is the path of the AutoYaST profile or one of the xml files when
+ using rules and classes.</code></pre>
 
 <h2 id="inject_registration">inject_registration</h2>
 
@@ -266,6 +268,21 @@
 <pre><code> test_ayp_url();
 
  Test if the autoyast profile url is reachable, before the autoyast installation begins.</code></pre>
+
+<h2 id="get_test_data_files-get_test_data-dir_relative_path">get_test_data_files get_test_data($dir_relative_path)</h2>
+
+<p>Returns list of all relative xml file paths for a relative directory path.</p>
+
+<p>Example: get_test_data_files(&#39;autoyast_sle15/rule-based_example/&#39;) This could return a reference to an array with content: - autoyast_sle15/rule-based_example/profile_a.xml - autoyast_sle15/rule-based_example/profile_b.xml - autoyast_sle15/rule-based_example/rules/rules.xml - autoyast_sle15/rule-based_example/classes/swap/smallswap.xml - autoyast_sle15/rule-based_example/classes/swap/bigswap.xml - autoyast_sle15/rule-based_example/classes/general/software.xml - autoyast_sle15/rule-based_example/classes/general/registration.xml - autoyast_sle15/rule-based_example/classes/general/users.xml</p>
+
+<h2 id="prepare_ay_file">prepare_ay_file</h2>
+
+<pre><code> prepare_ay_file(profile =&gt; $profile, path =&gt; $path)</code></pre>
+
+<p>Get profile from autoyast template Map version names Get IP address from system variables Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE Modify profile with obtained values Return new path in case of using AutoYaST templates</p>
+
+<pre><code> $path is the path of the AutoYaST profile or one of the xml files when
+ using rules and classes.</code></pre>
 
 
 </body>
