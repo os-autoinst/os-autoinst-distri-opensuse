@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <software>
+    <install_recommended config:type="boolean">false</install_recommended>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+    <packages config:type="list">
+      <package>apache2</package>
+    </packages>
+  </software>
+</profile>
