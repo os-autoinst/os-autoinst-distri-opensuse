@@ -96,6 +96,9 @@ conditional_schedule:
     ARCH:
       x86_64:
         - console/mutt
+        - network/samba/samba_adcli
+      aarch64:
+        - network/samba/samba_adcli
   arch_12sp5:
     ARCH:
       x86_64:
