@@ -81,12 +81,18 @@ sub update_password {
         # Check the trust secret for the domain
         my $output = script_output('wbinfo -tP', proceed_on_failure => 1);
         my $substr = $params[$i][1];
+
         if (index($output, $substr) == -1) {
-            die("wbinfo output does not contain $substr");
+            # If the output of the 1st command is not expected, and SUT is 12-SP3 or 12-SP4
+            if (($i == 0) && (is_sle('=12-SP3') || is_sle('=12-SP4'))) {
+                # Known issue, adcli update does not invalidate password (bsc#1188575)
+                record_soft_failure("bsc#1188575");
+                last;
+            } else {
+                die("wbinfo output does not contain $substr");
+            }
         }
     }
-
-    record_info('passw updated');
 }
 
 sub run {
