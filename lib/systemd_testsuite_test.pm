@@ -27,6 +27,7 @@ sub testsuiteinstall {
     # QA_TESTSUITE_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
     my $qa_testsuite_repo = get_var('QA_TESTSUITE_REPO', '');
     my $systemd_build = get_var('SYSTEMD_BUILDVERSION', '');
+    my $testsuite_pkg = 'systemd-qa-testsuite';
     if (!$qa_testsuite_repo) {
         if (is_opensuse()) {
             my $sub_project;
@@ -73,8 +74,9 @@ sub testsuiteinstall {
         wait_screen_change { enter_cmd "shutdown -r now" };
         if (is_s390x) {
             $self->wait_boot(bootloader_time => 180);
-        } else {
-            $self->handle_uefi_boot_disk_workaround if (is_aarch64);
+        } 
+        else {
+            $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64'));
             wait_still_screen 10;
             send_key 'ret';
             wait_serial('Welcome to', 300) || die "System did not boot in 300 seconds.";
@@ -84,11 +86,16 @@ sub testsuiteinstall {
         select_console('root-console');
     }
 
+    if (is_tumbleweed()) {
+        $testsuite_pkg = 'systemd-tests';
+         script_run "echo testsuite package is $testsuite_pkg";
+    }
+
     if (get_var('SYSTEMD_BUILDVERSION')) {
-        zypper_call "in --force systemd-qa-testsuite=$systemd_build";
+        zypper_call "in --force $testsuite_pkg=$systemd_build";
     }
     else {
-        zypper_call 'in systemd-qa-testsuite';
+        zypper_call "in $testsuite_pkg";
     }	
 }
 
