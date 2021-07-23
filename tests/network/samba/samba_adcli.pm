@@ -133,7 +133,7 @@ sub run {
     assert_script_run "expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;expect geekouser>;send exit\\n;interact'";
 
     # poo#91950 (update machine password with adcli --add-samba-data option)
-    update_password();
+    update_password() unless is_sle('=15');    # sle 15 does not support the `--add-samba-data` option
 
     assert_script_run "echo Nots3cr3t  | net ads leave --domain geeko.com -U Administrator -i";
 
