@@ -24,6 +24,7 @@ use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
+    zypper_call 'in openssl';
 
     my $enc_passwd = "pass1234";
     my $hash_alg   = "sha256";
@@ -51,7 +52,7 @@ sub run {
     for my $cipher (@invalid_cipher) {
         validate_script_output
           "openssl enc -$cipher -e -pbkdf2 -in $file_raw -out $file_enc -k $enc_passwd -md $hash_alg 2>&1 || true",
-          sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown cipher/ };
+          sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown cipher|enc: Unrecognized flag/ };
     }
 
     script_run 'cd - && rm -rf fips-test';

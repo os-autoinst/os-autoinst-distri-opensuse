@@ -23,6 +23,7 @@ use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
+    zypper_call 'in openssl';
 
     # Seperate the diffrent openssl command usage between SLE12 and SLE15
     if (is_sle('<15')) {

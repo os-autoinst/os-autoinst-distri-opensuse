@@ -2170,8 +2170,9 @@ sub load_applicationstests {
 
 sub load_security_console_prepare {
     loadtest "console/consoletest_setup";
-    loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/);
+    loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/ && !is_opensuse);
     loadtest "fips/fips_setup"          if (get_var("FIPS_ENABLED"));
+    loadtest "console/openssl_alpn";
 }
 
 # The function name load_security_tests_crypt_* is to avoid confusing
@@ -2194,11 +2195,9 @@ sub load_security_tests_crypt_core {
     loadtest "fips/openssl/openssl_tlsv1_3";
     loadtest "fips/openssl/openssl_pubkey_rsa";
     loadtest "fips/openssl/openssl_pubkey_dsa";
-    loadtest "console/openssl_alpn";
-
     loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
     loadtest "console/sshd";
-    loadtest "console/ssh_pubkey";
+    loadtest "console/ssh_pubkey" unless is_jeos;
     loadtest "console/ssh_cleanup";
 }
 

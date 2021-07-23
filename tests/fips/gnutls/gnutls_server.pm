@@ -23,9 +23,11 @@ use base "consoletest";
 use testapi;
 use strict;
 use warnings;
+use utils qw(zypper_call);
 
 sub run {
     select_console "root-console";
+    zypper_call 'in gnutls';
 
     # Create test folder
     my $test_dir = "gnutls";

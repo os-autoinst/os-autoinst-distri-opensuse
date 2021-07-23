@@ -75,6 +75,7 @@ sub run {
 
     # Workaround to resolve console switch issue
     select_console 'root-console';
+    assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
 }
 
 sub test_flags {

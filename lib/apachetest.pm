@@ -22,7 +22,7 @@ use warnings;
 
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap check_version);
+use version_utils qw(is_sle is_leap check_version is_tumbleweed);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
@@ -43,6 +43,9 @@ sub setup_apache2 {
     my $mode = uc $args{mode} || "";
     # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
     my @packages = qw(apache2 /bin/hostname);
+
+    # For gensslcert
+    push @packages, 'apache2-utils' if is_tumbleweed;
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
@@ -82,7 +85,7 @@ sub setup_apache2 {
     }
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
-        my $gensslcert_C_opt = !is_sle('15+') ? '-C $(hostname)' : '';
+        my $gensslcert_C_opt = is_sle('<15') ? '-C $(hostname)' : '';
         assert_script_run "gensslcert -n \$(hostname) $gensslcert_C_opt -e webmaster@\$(hostname)", 900;
         assert_script_run 'ls /etc/apache2/ssl.crt/$(hostname)-server.crt /etc/apache2/ssl.key/$(hostname)-server.key';
     }
