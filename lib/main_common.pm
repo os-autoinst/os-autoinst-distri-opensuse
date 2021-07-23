@@ -2424,7 +2424,9 @@ sub load_security_tests_cc {
 
     # Run test cases of 'audit-test' test suite which do NOT need SELinux env
     loadtest 'security/cc/audit_tools';
+    loadtest 'security/cc/fail_safe';
 
+    # Some audit tests must be run in selinux enabled mode. so load selinux setup here
     # Setup environment for cc testing: SELinux setup
     # Such as: set up SELinux with permissive mode and specific policy type
     loadtest 'security/selinux/selinux_setup';
@@ -2432,6 +2434,7 @@ sub load_security_tests_cc {
 
     # Run test cases of 'audit-test' test suite which do need SELinux env
     # Please add these test cases here: poo#93441
+    loadtest 'security/cc/crypto';
 }
 
 
