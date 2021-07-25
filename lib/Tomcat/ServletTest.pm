@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test the tomcat Servlet examples
-# Maintainer: George Gkioulis <ggkioulis@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::ServletTest;
 use base "x11test";
@@ -24,14 +24,21 @@ use constant TIMEOUT => 60;
 
 # test all Servlet examples
 sub test_all_examples() {
-    my ($self) = shift;
+    my ($self, $mod_jk) = @_;
 
     # array with example test function and number of tabs required to select the example
     # the two servlet 4.0 examples are skipped
-    my @servlet_examples = ([\&hello, 2], [\&request_information, 4], [\&request_header, 4], [\&request_parameters, 4], [\&cookies, 4], [\&sessions, 4], [\&async0, 3], [\&async1, 1], [\&async2, 1], [\&async3, 1], [\&stocksticker, 1], [\&byte_counter, is_sle('<12-sp4') ? 2 : 1], [\&number_writer, 1]);
+    my @servlet_examples = ([\&hello, 2], [\&request_information, 4], [\&request_header, 4], [\&request_parameters, 4], [\&cookies, 4], [\&sessions, 4]);
+    if (!$mod_jk) {
+        push(@servlet_examples, [\&async0, 3], [\&async1, 1], [\&async2, 1], [\&async3, 1], [\&stocksticker, 1], [\&byte_counter, is_sle('<12-sp4') ? 2 : 1], [\&number_writer, 1]);
+    }
 
     # access the tomcat servlets examples page
-    $self->firefox_open_url('localhost:8080/examples/servlets');
+    if ($mod_jk) {
+        $self->firefox_open_url('localhost/examples/servlets');
+    } else {
+        $self->firefox_open_url('localhost:8080/examples/servlets');
+    }
     send_key_until_needlematch('tomcat-servlet-examples-page', 'ret');
 
     # Navigate with keyboard to each example and test it
@@ -39,7 +46,6 @@ sub test_all_examples() {
         Tomcat::Utils->browse_with_keyboard('tomcat-servlet-fallback', $servlet_examples[$i][0], $servlet_examples[$i][1]);
     }
 }
-
 
 # test hello example
 sub hello() {
