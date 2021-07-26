@@ -2,7 +2,6 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <software>
-    <install_recommended config:type="boolean">false</install_recommended>
     <products config:type="list">
       <product>SLES</product>
     </products>

@@ -11,6 +11,10 @@
       <configuration>software.xml</configuration>
     </class>
     <class>
+      <class_name>general</class_name>
+      <configuration>registration.xml</configuration>
+    </class>
+    <class>
       <class_name>swap</class_name>
       <configuration>bigswap.xml</configuration>
       <dont_merge config:type="list">

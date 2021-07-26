@@ -62,7 +62,7 @@
       </partitions>
     </drive>
     </partitioning>
-        <classes config:type="list">
+    <classes config:type="list">
       <class>
         <class_name>general</class_name>
         <configuration>users.xml</configuration>
