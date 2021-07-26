@@ -97,6 +97,11 @@ and additionally the following rules:
 * Avoid "dead code": Don't add disabled code as nobody but you will understand
   why this is not active. Better leave it out and keep in your local git
   repository, either in `git stash` or a temporary "WIP"-commit.
+* Avoid using TODO/FIXME especially in library code, e.g. in the lib/ folder
+  or a baseclass, as these will likely rot. Whenever an idea needs to be
+  expressed use plain comments or add a reference to a ticket in
+  an issue tracker even though those may rot too but that is also expected and
+  does not pollute the code.
 * Details in commit messages: The commit message should have enough details,
   e.g. what issue is fixed, why this needs to change, to which versions of which
   product it applies, link to a bug or a feature entry, the choices you made,
