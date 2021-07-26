@@ -22,7 +22,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
     if (is_sle_micro) {
-        assert_script_run 'curl http://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt';
+        assert_script_run 'curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt';
         assert_script_run 'update-ca-certificates -v';
     }
     add_test_repositories;
