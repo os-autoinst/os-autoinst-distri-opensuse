@@ -13,6 +13,8 @@ prepare:
 	$(MAKE) check-links
 	cd os-autoinst && cpanm -nq --installdeps .
 	cpanm -nq --installdeps .
+	# ensure high enough limit for rename detection
+	git config diff.renameLimit || git config diff.renameLimit 4000
 
 os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
