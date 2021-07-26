@@ -19,7 +19,7 @@ use mmapi;
 
 # This tells the module whether the test is running in a supportserver or in node1
 sub is_not_supportserver_scenario {
-    return (get_var('HOSTNAME') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
+    return (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
 }
 
 sub run {
@@ -140,7 +140,7 @@ sub run {
         barrier_create("PREFLIGHT_CHECK_INIT_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
 
         # ROLLING UPGRADE / UPDATE barriers
-        my $update_type = (get_var('UPDATE_TYPE') eq "update") ? "UPDATED" : "UPGRADED";
+        my $update_type = (get_var('UPDATE_TYPE', '') eq "update") ? "UPDATED" : "UPGRADED";
         barrier_create("NODE_${update_type}_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
 
         # Create barriers for multiple tests
