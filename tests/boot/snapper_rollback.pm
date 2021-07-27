@@ -19,11 +19,12 @@ use migration 'check_rollback_system';
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
 use version_utils;
+use x11utils 'handle_gnome_activities';
 
 sub run {
     my ($self) = @_;
     if ((is_leap_migration || is_opensuse) && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'kde'))) {
-        assert_screen 'generic-desktop', 90;
+        handle_gnome_activities;
     }
     else {
         assert_screen [qw(linux-login displaymanager)], 300;
