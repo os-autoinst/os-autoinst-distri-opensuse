@@ -121,7 +121,7 @@ result="FAILED Test 1 on $(uname -a)"
 for i in 1 2 3
 do
   echo "Creating disk image $i of size $(($IMAGE_SIZE/1048576))MiB ..."
-  run dd if=/dev/zero of=disk$i.img bs=$IMAGE_SIZE count=1
+  run fallocate -l $IMAGE_SIZE disk$i.img
 done
 
 echo "Done!"
@@ -188,7 +188,7 @@ result="FAILED Test 2 on $(uname -a)"
 for i in 1 2 3
 do
   echo "Creating disk image $i of size $(($IMAGE_SIZE/1048576))MiB ..."
-  run dd if=/dev/zero of=disk$i.img bs=$IMAGE_SIZE count=1
+  run fallocate -l $IMAGE_SIZE disk$i.img
 done
 
 echo "Done!"
@@ -275,7 +275,7 @@ done
 
 run losetup -d $DEV_2
 run rm disk2.img
-run dd if=/dev/zero of=disk2.img bs=$IMAGE_SIZE count=1
+run fallocate -l $IMAGE_SIZE disk2.img
 
 run losetup $DEV_2 disk2.img
 run mdadm --add $MD_DEVICE $DEV_2
@@ -332,7 +332,7 @@ result="FAILED Test 3 on $(uname -a)"
 for i in 1 2 3
 do
   echo "Creating disk image $i of size $(($IMAGE_SIZE/1048576))MiB ..."
-  run dd if=/dev/zero of=disk$i.img bs=$IMAGE_SIZE count=1
+  run fallocate -l $IMAGE_SIZE disk$i.img
 done
 
 echo "Done!"
@@ -407,7 +407,7 @@ done
 
 run losetup -d $DEV_1
 run rm disk1.img
-run dd if=/dev/zero of=disk1.img bs=$IMAGE_SIZE count=1
+run fallocate -l $IMAGE_SIZE disk1.img
 
 run losetup $DEV_1 disk1.img
 run mdadm --add $MD_DEVICE $DEV_1
