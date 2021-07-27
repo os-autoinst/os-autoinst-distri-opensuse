@@ -30,7 +30,11 @@ sub check_kernel_package {
     my $kernel_name = shift;
 
     script_run('ls -1 /boot/vmlinu[xz]*');
-    my $packs = script_output('rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]*');
+    # Only check versioned kernels in livepatch tests. Some old kernel
+    # packages install /boot/vmlinux symlink but don't set package ownership.
+    my $glob  = get_var('KGRAFT', 0) ? '-*' : '*';
+    my $cmd   = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
+    my $packs = script_output($cmd);
 
     for my $packname (split /\s+/, $packs) {
         die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
