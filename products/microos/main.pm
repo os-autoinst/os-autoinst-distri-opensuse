@@ -92,8 +92,16 @@ sub load_installation_tests {
         load_tdup_tests             if (get_var 'TDUP');
         loadtest 'console/regproxy' if is_regproxy_required;
         load_feature_tests          if (check_var 'EXTRA', 'FEATURES');
+        load_qemu_tests()           if (check_var 'EXTRA', 'VIRTUALIZATION');
         loadtest 'shutdown/shutdown';
     }
+}
+
+sub load_qemu_tests {
+    loadtest 'qemu/info';
+    loadtest 'qemu/qemu';
+    loadtest 'qemu/kvm';
+    loadtest 'qemu/user';
 }
 
 #######################

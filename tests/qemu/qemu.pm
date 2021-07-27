@@ -15,20 +15,39 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
+use transactional qw(trup_call check_reboot_changes);
+use Utils::Architectures qw(is_x86_64 is_ppc64le is_s390x is_aarch64);
+use version_utils qw(is_sle_micro is_transactional);
 
+# 'patterns-microos-kvm_host' is required for SUMA client use case
+sub is_qemu_preinstalled {
+    if (is_sle_micro && check_var('FLAVOR', 'MicroOS-Image')) {
+        assert_script_run('rpm -q patterns-microos-kvm_host');
+        return 1;
+    }
+    return 0;
+}
+
+sub install_qemu {
+    my $qpkg = shift;
+    if (is_transactional) {
+        trup_call("pkg install $qpkg");
+        check_reboot_changes;
+    } else {
+        zypper_call("in $qpkg");
+    }
+}
 
 sub run {
     select_console 'root-console';
 
-    zypper_call 'in qemu';
-
-    if (check_var('ARCH', 'x86_64')) {
-        zypper_call 'in qemu-x86';
+    if (is_x86_64) {
+        is_qemu_preinstalled or install_qemu('qemu-x86');
         enter_cmd "qemu-system-x86_64 -nographic";
         assert_screen 'qemu-no-bootable-device', 60;
     }
-    elsif (check_var('ARCH', 'ppc64le')) {
-        zypper_call 'in qemu-ppc';
+    elsif (is_ppc64le) {
+        is_qemu_preinstalled or install_qemu('qemu-ppc');
         enter_cmd "qemu-system-ppc64 -nographic";
         assert_screen ['qemu-open-firmware-ready', 'qemu-ppc64-no-trans-mem'], 60;
         if (match_has_tag 'qemu-ppc64-no-trans-mem') {
@@ -38,8 +57,8 @@ sub run {
             assert_screen 'qemu-open-firmware-ready', 60;
         }
     }
-    elsif (check_var('ARCH', 's390x')) {
-        zypper_call 'in qemu-s390';
+    elsif (is_s390x) {
+        is_qemu_preinstalled or install_qemu('qemu-s390x');
         # use kernel from host system for booting
         enter_cmd "qemu-system-s390x -nographic -kernel /boot/image -initrd /boot/initrd";
         assert_screen ['qemu-reached-target-basic-system', 'qemu-s390x-exec-0x7f4-not-impl', 'qemu-linux-req-more-recent-proc-hw'], 60;
@@ -52,14 +71,17 @@ sub run {
             return;
         }
     }
-    elsif (check_var('ARCH', 'aarch64')) {
-        zypper_call 'in qemu-arm';
+    elsif (is_aarch64) {
+        is_qemu_preinstalled or install_qemu('qemu-arm');
         # create pflash volumes for UEFI as described on https://wiki.ubuntu.com/ARM64/QEMU
         assert_script_run 'dd if=/dev/zero of=flash0.img bs=1M count=64';
         assert_script_run 'dd if=/usr/share/qemu/qemu-uefi-aarch64.bin of=flash0.img conv=notrunc';
         assert_script_run 'dd if=/dev/zero of=flash1.img bs=1M count=64';
         enter_cmd "qemu-system-aarch64 -M virt,usb=off -cpu cortex-a57 -nographic -pflash flash0.img -pflash flash1.img";
         assert_screen 'qemu-uefi-shell', 600;
+    }
+    else {
+        die sprintf("Test case is missing support for %s architecture", get_var('ARCH'));
     }
 
     # close qemu

@@ -1,0 +1,37 @@
+name:           qemu_smoke_test
+description:    >
+    Maintainer: qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - microos/disk_boot
+      'aarch64':
+        - microos/disk_boot
+  kvm:
+    ARCH:
+      # nested kvm is not yet implemented on ARM and kvm not supported on ppc64le
+      'x86_64':
+        - qemu/kvm
+      's390x':
+        - qemu/kvm
+  registration:
+    SCC_REGISTER:
+      'installation':
+        - console/suseconnect_scc
+  maintenance:
+    FLAVOR:
+      'MicroOS-Image-Updates':
+        - transactional/install_updates
+schedule:
+  - '{{boot}}'
+  - transactional/disable_grub
+  - '{{registration}}'
+  - '{{maintenance}}'
+  - qemu/info
+  - qemu/qemu
+  - '{{kvm}}'
