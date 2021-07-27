@@ -31,4 +31,8 @@ sub run {
     $self->set_sestatus('permissive', 'minimum');
 }
 
+sub test_flags {
+    return {milestone => 1, fatal => 1};
+}
+
 1;
