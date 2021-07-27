@@ -153,7 +153,9 @@ sub set_libyui_backend_vars {
     my $yuiport = get_port();
     if (check_var('BACKEND', 'qemu')) {
         # On qemu we connect to the worker using port forwarding
-        set_var('NICTYPE_USER_OPTIONS', "hostfwd=tcp::$yuiport-:$yuiport");
+        set_var('NICTYPE_USER_OPTIONS', join(' ', grep($_, (
+                        get_var('NICTYPE_USER_OPTIONS'),
+                        "hostfwd=tcp::$yuiport-:$yuiport"))));
     }
     set_var('EXTRABOOTPARAMS', get_var('EXTRABOOTPARAMS', '')
           . " extend=libyui-rest-api " . get_yui_params_string($yuiport));
