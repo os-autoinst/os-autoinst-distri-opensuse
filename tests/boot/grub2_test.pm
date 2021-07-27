@@ -50,26 +50,6 @@ sub run {
     assert_script_run 'sed -i \'/CMDLINE/s/ quiet//\' /etc/default/grub';
     assert_script_run 'sed -i \'/CMDLINE/s/splash=silent //\' /etc/default/grub';
     assert_script_run 'grep CMDLINE /etc/default/grub';
-    record_info 'grub2 menu entry', 'install another kernel, boot the previous one';
-    zypper_call 'in -t pattern yast2_basis' if is_sle('15+');
-    if (is_sle('15-sp2+')) {
-        zypper_ar "http://download.suse.de/ibs/Devel:/Kernel:/vanilla/standard/", name => 'KERNEL_DEVEL';
-    }
-    else {
-        my $LTSS    = get_var('SCC_REGCODE_LTSS') ? '-LTSS' : '';
-        my $version = get_var('VERSION') . $LTSS;
-        zypper_ar "http://download.suse.de/ibs/Devel:/Kernel:/SLE$version/standard/", name => 'KERNEL_DEVEL';
-    }
-    zypper_call 'in kernel-vanilla', exitcode => [0, 107];
-    assert_script_run 'uname -r >kernel.txt';
-    my $boot_entry = script_output(q(grub2-once --list | grep $(uname -r) | grep -v 'recovery mode' | awk '{print $1}'));
-    reboot;
-    boot_grub_item(2, $boot_entry);
-    assert_screen 'linux-login', 200;
-    select_console 'root-console';
-    assert_script_run 'uname -r|grep $(cat kernel.txt)';
-    zypper_call 'rr KERNEL_DEVEL';
-    zypper_call 'rm kernel-vanilla';
     zypper_call 'in -t pattern fips';
     assert_script_run 'mkinitrd';
     reboot;
