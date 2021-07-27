@@ -29,8 +29,8 @@ use Utils::Backends 'use_ssh_serial_console';
 sub check_kernel_package {
     my $kernel_name = shift;
 
-    script_run('ls -1 /boot/vmlinux*');
-    my $packs = script_output('rpm -qf --qf "%{NAME}\n" /boot/vmlinux*');
+    script_run('ls -1 /boot/vmlinu[xz]*');
+    my $packs = script_output('rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]*');
 
     for my $packname (split /\s+/, $packs) {
         die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
