@@ -125,12 +125,12 @@ sub cleanup {
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
 
-    upload_logs('ltp_log.raw',            failok => 1);
-    upload_logs("$root_dir/ltp_log.json", failok => 1);
+    upload_logs('ltp_log.raw', failok => 1);
+    upload_logs("$root_dir/ltp_log.json", failok => 1, log_name => 'ltp_log.json');
     if (script_run("test -f $root_dir/ltp_log.json") == 0) {
         my $known_issues = download_whitelist();
-        process_ltp_known_issues("$root_dir/ltp_log.json") if $known_issues;
-        parse_extra_log(LTP => "$root_dir/ltp_log.json");
+        $self->process_ltp_known_issues("ulogs/ltp_log.json") if $known_issues;
+        parse_extra_log(LTP => "ltp_log.json");
     }
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
@@ -141,12 +141,14 @@ sub cleanup {
 
 sub process_ltp_known_issues {
     my ($self, $ltp_log) = @_;
-    my $decoded_ltp_log = Mojo::JSON::from_json($ltp_log);
-    my $env             = gen_ltp_env();
+    my $content         = Mojo::File::path($ltp_log)->slurp;
+    my $decoded_ltp_log = Mojo::JSON::from_json($content);
+    my $env             = $self->gen_ltp_env();
     my $suite           = get_required_var('COMMAND_FILE');
 
     foreach my $test (@{$decoded_ltp_log->{results}}) {
         if (($test->{status} eq 'fail' || $test->{status} eq 'brok' || $test->{status} eq 'warn')) {
+            $env->{retval} = $test->{retval};
             my $entry = find_whitelist_entry($env, $suite, $test->{test_fqn});
             bmwqemu::diag(sprintf("Failure in LTP:%s:%s is known, overriding to softfail", $suite, $test->{test_fqn}));
             $test->{status} = 'softfail';
@@ -157,6 +159,7 @@ sub process_ltp_known_issues {
 }
 
 sub gen_ltp_env {
+    my ($self) = @_;
     my $environment = {
         product     => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
         revision    => get_required_var('BUILD'),
@@ -167,10 +170,7 @@ sub gen_ltp_env {
         libc        => '',
         gcc         => '',
         harness     => 'SUSE OpenQA',
-        ltp_version => '',
-        #TODO currently we getting only pass or fail due to use of '--openqa-filter' need to properly solve retval issue
-        # from runltp-ng side to get smarter logic on this side
-        retval => '1'
+        ltp_version => ''
     };
     if ($ver_linux_log =~ qr'^Linux\s+(.*?)\s*$'m) {
         $environment->{kernel} = $1;
@@ -181,7 +181,7 @@ sub gen_ltp_env {
     if ($ver_linux_log =~ qr'^Gnu C\s*(.*?)\s*$'m) {
         $environment->{gcc} = $1;
     }
-    $environment->{ltp_version} = script_output("cat " . get_ltp_version_file());
+    $environment->{ltp_version} = $self->{my_instance}->run_ssh_command("rpm -qi ltp");
     record_info("LTP version", $environment->{ltp_version});
 
     return $environment;
