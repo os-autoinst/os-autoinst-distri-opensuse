@@ -1546,8 +1546,8 @@ sub script_retry {
         $ret = script_run($exec, ($timeout + 3));
         last if defined($ret) && $ret == $ecode;
 
-        die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
-        sleep $delay                   if ($delay > 0);
+        die("Max retries reached ($retry): $cmd") if $retry == $_ && $die == 1;
+        sleep $delay                              if ($delay > 0);
     }
 
     return $ret;
