@@ -18,6 +18,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use Utils::Architectures;
 
 my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
 my $AD_ip       = '10.162.30.119';
@@ -95,10 +96,17 @@ sub update_password {
     }
 }
 
+sub disable_ipv6 {
+    my $self = shift;
+    $self->select_serial_terminal;
+    assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=1");
+}
+
 sub run {
     my $self = shift;
     # select_console 'root-console';
     $self->select_serial_terminal;
+    $self->disable_ipv6 if is_s390x;
     samba_sssd_install;
 
     #Join the Active Directory
