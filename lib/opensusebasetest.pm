@@ -466,14 +466,12 @@ sub export_logs {
     $self->problem_detection;
 
     $self->export_logs_basic;
+    $self->export_logs_desktop;
 
     # Just after the setup: let's see the network configuration
     $self->save_and_upload_log("ip addr show",         "/tmp/ip-addr-show.log");
     $self->save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.log");
 
-    save_screenshot;
-
-    $self->export_logs_desktop;
 
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
     $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
@@ -545,9 +543,6 @@ Upload several KDE, GNOME, X11, GDM and SDDM related logs and configs.
 =cut
 sub export_logs_desktop {
     my ($self) = @_;
-    select_log_console;
-    save_screenshot;
-
     if (check_var("DESKTOP", "kde")) {
         if (get_var('PLASMA5')) {
             $self->tar_and_upload_log("/home/$username/.config/*rc", '/tmp/plasma5_configs.tar.bz2');
