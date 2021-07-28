@@ -556,14 +556,14 @@ Wrapper around C<<$self->vault_api()>> to get retry capability.
 sub vault_api {
     my ($self, $path, %args) = @_;
     my $ret;
-    my $tries = 3;
+    my $tries = get_var('PUBLICCLOUD_VAULT_TRIES', 3);
 
     while ($tries-- > 0) {
         eval {
             $ret = $self->__vault_api($path, %args);
         };
         return $ret unless ($@);
-        sleep 10;
+        sleep get_var('PUBLICCLOUD_VAULT_TIMEOUT', 60);
     }
     die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
 }
