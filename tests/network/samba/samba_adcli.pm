@@ -100,6 +100,14 @@ sub disable_ipv6 {
     my $self = shift;
     $self->select_serial_terminal;
     assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=1");
+    set_var('SYSCTL_IPV6_DISABLED', '1');
+}
+
+sub enable_ipv6 {
+    my $self = shift;
+    $self->select_serial_terminal;
+    assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=0");
+    set_var('SYSCTL_IPV6_DISABLED', '0');
 }
 
 sub run {
@@ -157,6 +165,7 @@ sub run {
     # - delete the computer OU after the test is done in post_run_hook
     # - test winbind (samba?) authentication
 
+    $self->enable_ipv6 if is_s390x;
 }
 
 sub post_fail_hook {
@@ -165,6 +174,7 @@ sub post_fail_hook {
     $self->select_serial_terminal;
     script_run 'tar Jcvf samba_adcli.tar.xz /etc/sssd /var/log/samba /var/log/sssd /var/log/krb5';
     upload_logs('./samba_adcli.tar.xz');
+    $self->enable_ipv6 if is_s390x;
 }
 
 1;
