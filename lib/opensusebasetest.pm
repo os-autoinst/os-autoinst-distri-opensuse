@@ -461,6 +461,7 @@ sub export_logs {
     select_log_console;
     save_screenshot;
     show_oom_info;
+    $self->select_serial_terminal;
     $self->remount_tmp_if_ro;
     $self->problem_detection;
 
