@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -42,7 +42,7 @@ sub run {
     my $self = shift;
 
     # load kernel module
-    assert_script_run('modprobe mce-inject');
+    assert_script_run('modprobe mce-inject') if (check_var('ARCH', 'x86_64') && check_var('VERSION', '15-SP2'));
 
     zypper_call('in rasdaemon');
 
