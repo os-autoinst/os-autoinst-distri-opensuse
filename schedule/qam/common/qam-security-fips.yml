@@ -22,3 +22,11 @@ schedule:
 - fips/curl_fips_rc4_seed
 - fips/mozilla_nss/apache_nssfips
 - fips/mozilla_nss/firefox_nss
+- '{{version_specific}}'
+conditional_schedule:
+    version_specific:
+        VERSION:
+            15-SP3:
+            - console/ntp_client
+            15-SP2:
+            - console/ntp_client
