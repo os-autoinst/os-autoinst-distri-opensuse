@@ -30,7 +30,7 @@ conditional_schedule:
         - containers/k3s_cli_check
 schedule:
   - '{{boot}}'
-  - transactional/disable_grub
+  - transactional/host_config
   - '{{registration}}'
   - '{{maintenance}}'
   - '{{selinux}}'
