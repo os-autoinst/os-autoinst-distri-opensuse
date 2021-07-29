@@ -7,18 +7,18 @@ conditional_schedule:
         VERSION:
             'Tumbleweed':
                 - systemd_testsuite/test_16_extend_timeout
-                - systemd_testsuite/test_17_udev_wants
+                - systemd_testsuite/test_17_udev
                 - systemd_testsuite/test_18_failureaction
                 - systemd_testsuite/test_19_delegate
                 - systemd_testsuite/test_20_mainpidgames
                 - systemd_testsuite/test_21_sysusers
                 - systemd_testsuite/test_23_type_exec
-                - systemd_testsuite/test_24_unit_tests
+                - systemd_testsuite/test_24_cryptsetup
                 - systemd_testsuite/test_25_import
                 - systemd_testsuite/test_26_setenv
                 - systemd_testsuite/test_27_stdoutfile
                 - systemd_testsuite/test_28_percentj_wantedby
-                - systemd_testsuite/test_29_udev_id_renaming
+                - systemd_testsuite/test_29_portable
                 - systemd_testsuite/test_30_onclockchange
                 - systemd_testsuite/test_31_device_enumeration
                 - systemd_testsuite/test_32_oompolicy
@@ -35,11 +35,10 @@ conditional_schedule:
                 - systemd_testsuite/test_47_issue_14566
             '15-SP3':
                 - systemd_testsuite/test_16_extend_timeout
-                - systemd_testsuite/test_17_udev_wants
+                - systemd_testsuite/test_17_udev
                 - systemd_testsuite/test_18_failureaction
                 - systemd_testsuite/test_19_delegate
                 - systemd_testsuite/test_20_mainpidgames
-                - systemd_testsuite/test_21_sysusers
                 - systemd_testsuite/test_24_unit_tests
                 - systemd_testsuite/test_25_import
                 - systemd_testsuite/test_23_type_exec
@@ -66,7 +65,7 @@ schedule:
     - systemd_testsuite/prepare_systemd_and_testsuite
     - systemd_testsuite/binary_tests
     - systemd_testsuite/test_01_basic
-    - systemd_testsuite/test_02_cryptsetup
+    - systemd_testsuite/test_02_unittests
     - systemd_testsuite/test_03_jobs
     - systemd_testsuite/test_04_journal
     - systemd_testsuite/test_05_rlimits

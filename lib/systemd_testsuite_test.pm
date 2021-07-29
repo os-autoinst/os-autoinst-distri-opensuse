@@ -27,7 +27,7 @@ sub testsuiteinstall {
     # QA_TESTSUITE_REPO is meant to override the default repos with a custom OBS repo to test changes on the test suite package.
     my $qa_testsuite_repo = get_var('QA_TESTSUITE_REPO', '');
     my $systemd_build = get_var('SYSTEMD_BUILDVERSION', '');
-    my $testsuite_pkg = 'systemd-qa-testsuite';
+    my $testsuite_pkg = 'systemd-testsuite';
     if (!$qa_testsuite_repo) {
         if (is_opensuse()) {
             my $sub_project;
@@ -67,7 +67,7 @@ sub testsuiteinstall {
 
 	}
         else {
-            zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1';
+            zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1 systemd-lang';
         }
         change_grub_config('=.*', '=9', 'GRUB_TIMEOUT');
         grub_mkconfig;
