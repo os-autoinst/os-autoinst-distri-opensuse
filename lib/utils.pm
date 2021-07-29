@@ -438,7 +438,7 @@ Typing a string with C<SLOW_TYPING_SPEED> to avoid losing keys.
 sub type_string_slow {
     my ($string) = @_;
 
-    type_string $string, SLOW_TYPING_SPEED;
+    type_string $string, max_interval => SLOW_TYPING_SPEED;
 }
 
 =head2 type_string_very_slow
@@ -462,7 +462,7 @@ also scaled by C<TIMEOUT_SCALE> which we do not need here.
 sub type_string_very_slow {
     my ($string) = @_;
 
-    type_string $string, VERY_SLOW_TYPING_SPEED;
+    type_string $string, max_interval => VERY_SLOW_TYPING_SPEED;
 
     if (get_var('WINTER_IS_THERE')) {
         sleep 3;
@@ -482,7 +482,7 @@ Enter a command with C<SLOW_TYPING_SPEED> to avoid losing keys.
 sub enter_cmd_slow {
     my ($cmd) = @_;
 
-    enter_cmd $cmd, SLOW_TYPING_SPEED;
+    enter_cmd $cmd, max_interval => SLOW_TYPING_SPEED;
 }
 
 =head2 enter_cmd_very_slow
@@ -496,7 +496,7 @@ C<type_string_very_slow>.
 sub enter_cmd_very_slow {
     my ($cmd) = @_;
 
-    enter_cmd $cmd, VERY_SLOW_TYPING_SPEED;
+    enter_cmd $cmd, max_interval => VERY_SLOW_TYPING_SPEED;
     wait_still_screen(1, 3);
 }
 
