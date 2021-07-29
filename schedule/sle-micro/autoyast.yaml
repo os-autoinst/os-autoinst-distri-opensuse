@@ -7,6 +7,10 @@ conditional_schedule:
     FLAVOR:
       'DVD-Updates':
         - transactional/install_updates
+  host_config:
+    ARCH:
+      's390x':
+        - transactional/host_config
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
@@ -15,6 +19,7 @@ schedule:
   - autoyast/login
   - autoyast/logs
   - console/textinfo
+  - '{{host_config}}'
   - '{{maintenance}}'
   - microos/networking
   - microos/libzypp_config

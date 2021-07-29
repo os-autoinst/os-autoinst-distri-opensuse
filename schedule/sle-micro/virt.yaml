@@ -29,7 +29,7 @@ conditional_schedule:
         - transactional/install_updates
 schedule:
   - '{{boot}}'
-  - transactional/disable_grub
+  - transactional/host_config
   - '{{registration}}'
   - '{{maintenance}}'
   - qemu/info

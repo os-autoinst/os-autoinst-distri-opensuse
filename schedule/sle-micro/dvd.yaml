@@ -16,10 +16,11 @@ conditional_schedule:
         - microos/disk_boot
       'x86_64':
         - microos/disk_boot
-  force_scheduled_tasks:
+  host_config:
     ARCH:
       's390x':
-        - console/force_scheduled_tasks
+        - transactional/host_config
+
 schedule:
   - installation/bootloader_start
   - installation/welcome
@@ -36,6 +37,7 @@ schedule:
   - installation/reboot_after_installation
   - '{{boot}}'
   - console/textinfo
+  - '{{host_config}}'
   - '{{maintenance}}'
   - microos/networking
   - microos/libzypp_config

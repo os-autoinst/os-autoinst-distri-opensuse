@@ -13,7 +13,7 @@ conditional_schedule:
         - transactional/install_updates
 schedule:
   - microos/disk_boot
-  - transactional/disable_grub
+  - transactional/host_config
   - '{{registration}}'
   - '{{maintenance}}'
   - microos/toolbox
