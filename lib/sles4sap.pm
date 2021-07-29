@@ -350,7 +350,7 @@ sub copy_media {
     # First copy media
     my $mnt_path   = '/mnt';
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
-    assert_script_run "mkdir $target";
+    assert_script_run "mkdir -p $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
     $media_path = $mnt_path if script_run "[[ -d $media_path ]]";    # Check if specific ARCH subdir exists
     assert_script_run "cp -ax $media_path/. $target/", $nettout;
