@@ -50,8 +50,16 @@ sub run {
     assert_script_run 'sed -i \'/CMDLINE/s/ quiet//\' /etc/default/grub';
     assert_script_run 'sed -i \'/CMDLINE/s/splash=silent //\' /etc/default/grub';
     assert_script_run 'grep CMDLINE /etc/default/grub';
+    record_info 'grub2 menu entry', 'install another kernel, boot the previous one';
+    assert_script_run 'uname -r >kernel.txt';
+    assert_script_run q(sed -i '/BEGIN.*10_linux/a menuentry "SLES Fake boot" {\nlinux\n}' /boot/grub2/grub.cfg);
+    reboot;
+    boot_grub_item(2);
+    assert_screen 'linux-login', 200;
+    select_console 'root-console';
+    assert_script_run 'uname -r|grep $(cat kernel.txt)';
+    # install fips and reset the grub config
     zypper_call 'in -t pattern fips';
-    assert_script_run 'mkinitrd';
     reboot;
 
     record_info 'grub2 command line', 'ls /boot and help command';
