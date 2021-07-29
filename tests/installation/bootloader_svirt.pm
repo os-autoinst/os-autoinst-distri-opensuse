@@ -139,6 +139,7 @@ sub run {
         if (my $full_hdd = get_var('HDD_' . $n)) {
             my $hdd     = basename($full_hdd);
             my $hddpath = search_image_on_svirt_host($svirt, $hdd, $hdddir);
+            $size_i = get_var("HDDSIZEGB_$n") if get_var("HDDSIZEGB_$n");
             if ($hddpath =~ m/vmdk\.xz$/) {
                 my $nfs_ro = $hddpath;
                 $hddpath = "$vmware_openqa_datastore/$hdd" =~ s/vmdk\.xz/vmdk/r;
@@ -154,7 +155,8 @@ sub run {
                 {
                     backingfile => 1,
                     dev_id      => $dev_id,
-                    file        => $hddpath
+                    file        => $hddpath,
+                    size        => $size_i
                 });
         }
         else {
@@ -162,7 +164,7 @@ sub run {
                 {
                     create => 1,
                     dev_id => $dev_id,
-                    size   => $size_i . 'G'
+                    size   => $size_i
                 });
         }
         $dev_id = chr((ord $dev_id) + 1);    # return next letter in alphabet

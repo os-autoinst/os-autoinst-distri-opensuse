@@ -1000,7 +1000,6 @@ sub zkvm_add_disk {
 
                 enter_cmd("# copying image ($basename)...");
                 if (my $size = get_var("HDDSIZEGB_$di")) {
-                    $size .= "G";
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
                 } else {
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id});
