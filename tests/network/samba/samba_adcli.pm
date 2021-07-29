@@ -18,6 +18,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use Utils::Architectures;
 
 my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
 my $AD_ip       = '10.162.30.119';
@@ -95,10 +96,25 @@ sub update_password {
     }
 }
 
+sub disable_ipv6 {
+    my $self = shift;
+    $self->select_serial_terminal;
+    assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=1");
+    set_var('SYSCTL_IPV6_DISABLED', '1');
+}
+
+sub enable_ipv6 {
+    my $self = shift;
+    $self->select_serial_terminal;
+    assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=0");
+    set_var('SYSCTL_IPV6_DISABLED', '0');
+}
+
 sub run {
     my $self = shift;
     # select_console 'root-console';
     $self->select_serial_terminal;
+    $self->disable_ipv6 if is_s390x;
     samba_sssd_install;
 
     #Join the Active Directory
@@ -147,10 +163,18 @@ sub run {
     # - Mount //GEEKO
     # - smbclient //10.162.30.119/openQA as geekouser will be denied, as berhard is the owner
     # - delete the computer OU after the test is done in post_run_hook
-    # - add the post_fail_hook to upload all relevant logs
     # - test winbind (samba?) authentication
 
+    $self->enable_ipv6 if is_s390x;
 }
 
+sub post_fail_hook {
+    my ($self) = shift;
+    $self->SUPER::post_fail_hook;
+    $self->select_serial_terminal;
+    script_run 'tar Jcvf samba_adcli.tar.xz /etc/sssd /var/log/samba /var/log/sssd /var/log/krb5';
+    upload_logs('./samba_adcli.tar.xz');
+    $self->enable_ipv6 if is_s390x;
+}
 
 1;
