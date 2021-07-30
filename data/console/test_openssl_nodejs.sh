@@ -8,13 +8,24 @@ test_result_wrapper(){
 
   local NODE="/usr/bin/node$VERSION"
   local OUTPUT="/tmp/test_output"
+  local RESULT=0;
 
-  # Run the test (using common and custom flags if present) and save the output
-  echo "Running $NODE_FULL_VERSION $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]}$FILE"
-  set +e
-  $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]} $FILE &> $OUTPUT
-  RESULT=$?
-  set -e
+  # Try same test 3 times before giving up
+  local i=0;
+  while [ $i -le 2 ]
+  do
+    # Run the test (using common and custom flags if present) and save the output
+    echo "Running $NODE_FULL_VERSION $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]}$FILE - Try #$i"
+    set +e
+    $NODE $GLOBAL_FLAGS ${node_flags[$VERSION $FILE]} $FILE &> $OUTPUT
+    RESULT=$?
+    set -e
+    if [ $RESULT -eq 0 ]; then
+      break
+    fi
+    echo "Did not work out this time."
+    ((i+=1))
+  done
 
   # If test failed, keep track of failure and print out its output
   if [ $RESULT -ne 0 ]; then
