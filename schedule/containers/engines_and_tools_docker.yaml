@@ -18,16 +18,6 @@ conditional_schedule:
         - containers/docker_runc
       s390x:
         - containers/docker_runc
-  supported:
-    HOST_VERSION:
-      15-SP4:
-        - containers/buildah_docker
-      15-SP3:
-        - containers/buildah_docker
-      15-SP2:
-        - containers/buildah_docker
-      15-SP1:
-        - containers/buildah_docker
   package_hub_dependent:
     FLAVOR:
       Server-DVD-Updates:
@@ -42,7 +32,6 @@ schedule:
   - boot/boot_to_desktop
   - containers/docker
   - '{{runc}}'
-  - '{{supported}}'
   - containers/zypper_docker
   - containers/docker_3rd_party_images
   - '{{package_hub_dependent}}'

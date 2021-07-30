@@ -9,6 +9,8 @@ conditional_schedule:
         - installation/bootloader_start
   buildah_docker:
     HOST_VERSION:
+      15-SP4:
+        - containers/buildah_docker
       15-SP3:
         - containers/buildah_docker
       15-SP2:
