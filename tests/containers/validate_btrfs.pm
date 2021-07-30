@@ -103,12 +103,17 @@ sub run {
     allow_selected_insecure_registries(runtime => 'docker');
     my $docker    = containers::runtime->new(runtime => 'docker');
     my $btrfs_dev = '/var/lib/docker';
-    my ($untested_images, $released_images) = get_suse_container_urls();
-    _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
-    _test_btrfs_thin_partitioning($docker, $btrfs_dev);
-    _test_btrfs_device_mgmt($docker, $btrfs_dev);
-    _test_btrfs_balancing($btrfs_dev);
-    $docker->cleanup_system_host;
+
+    # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
+    my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
+    for my $version (split(/,/, $versions)) {
+        my ($untested_images, $released_images) = get_suse_container_urls($version);
+        _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
+        _test_btrfs_thin_partitioning($docker, $btrfs_dev);
+        _test_btrfs_device_mgmt($docker, $btrfs_dev);
+        _test_btrfs_balancing($btrfs_dev);
+        $docker->cleanup_system_host;
+    }
 }
 
 sub post_fail_hook {
