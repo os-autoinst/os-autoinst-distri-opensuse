@@ -24,7 +24,7 @@ test_result_wrapper(){
       break
     fi
     echo "Did not work out this time."
-    ((i++))
+    ((i+=1))
   done
 
   # If test failed, keep track of failure and print out its output
