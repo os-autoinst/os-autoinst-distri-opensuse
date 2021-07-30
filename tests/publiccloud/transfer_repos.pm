@@ -35,10 +35,10 @@ sub run {
         my $timeout = 2400;
         assert_script_run("rsync --timeout=$timeout -uvahP -e ssh ~/repos root@" . $args->{my_instance}->public_ip . ":'/tmp/repos'", timeout => $timeout + 10);
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
-        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar '{}' \\;");
+        $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
 
-        $args->{my_instance}->run_ssh_command(cmd => "zypper lr");
+        $args->{my_instance}->run_ssh_command(cmd => "zypper lr -P");
     }
 }
 
