@@ -25,7 +25,7 @@ sub yast2_console_exec {
     # Kepp only the first 10 characters of a magic string plus a dash ('-')
     # and up to a three digit exit code.
     $module_name = substr($module_name, 0, 10) if is_hyperv('2012r2');
-    if (!script_run($y2_start . " echo $module_name-\$? > /dev/$serialdev", 90)) {
+    if (!script_run($y2_start . " echo $module_name-\$? > /dev/$serialdev", 0)) {
         return $module_name;
     } else {
         die "Yast2 module failed to execute!\n";
