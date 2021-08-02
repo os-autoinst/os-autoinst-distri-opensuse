@@ -25,7 +25,7 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(get_os_release check_os_release);
+use version_utils qw(get_os_release check_os_release is_tumbleweed);
 
 sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
@@ -48,7 +48,7 @@ sub run {
             build_and_run_image(base => $iname, runtime => $runtime);
             if (check_os_release('suse', 'PRETTY_NAME')) {
                 test_opensuse_based_image(image => $iname, runtime => $runtime, version => $version);
-                build_with_zypper_docker(image => $iname, runtime => $runtime, version => $version);
+                build_with_zypper_docker(image => $iname, runtime => $runtime, version => $version) unless is_tumbleweed;
             }
             else {
                 exec_on_container($iname, $runtime, 'cat /etc/os-release');
