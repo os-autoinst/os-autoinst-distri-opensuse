@@ -271,9 +271,9 @@ if (is_kernel_test()) {
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
-elsif (get_var("PYNFS")) {
+elsif (get_var("PYNFS") || get_var("CTHON04")) {
     loadtest "boot/boot_to_desktop";
-    load_pynfs_tests;
+    load_nfs_tests;
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;

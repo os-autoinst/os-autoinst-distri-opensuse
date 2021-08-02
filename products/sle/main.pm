@@ -781,9 +781,9 @@ elsif (get_var("BTRFS_PROGS")) {
     loadtest "btrfs-progs/run";
     loadtest "btrfs-progs/generate_report";
 }
-elsif (get_var("PYNFS")) {
+elsif (get_var("PYNFS") || get_var("CTHON04")) {
     prepare_target;
-    load_pynfs_tests;
+    load_nfs_tests;
 }
 elsif (get_var("BTRFSMAINTENANCE")) {
     prepare_target;
