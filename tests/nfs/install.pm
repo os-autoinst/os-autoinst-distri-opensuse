@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 #
-# Summary: Install pynfs
+# Summary: Install pynfs/cthon04 testsuite
 # Maintainer: Yong Sun <yosun@suse.com>
 package install;
 
@@ -18,7 +18,7 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 
-sub install_dependencies {
+sub install_dependencies_pynfs {
     my @deps = qw(
       git
       krb5-devel
@@ -32,16 +32,38 @@ sub install_dependencies {
     zypper_call('in ' . join(' ', @deps));
 }
 
-sub install_pynfs {
-    my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/bfields/pynfs.git');
-    my $rel = get_var('PYNFS_RELEASE');
+sub install_dependencies_cthon04 {
+    my @deps = qw(
+      git
+      gcc
+      make
+      patch
+      nfs-client
+      nfs-kernel-server
+      libtirpc-devel
+    );
+    zypper_call('in ' . join(' ', @deps));
+}
 
-    $rel = "-b $rel" if ($rel);
+sub install_testsuite {
+    my $testsuite = shift;
+    if (get_var("PYNFS")) {
+        my $url = get_var('PYNFS_GIT_URL', 'git://git.linux-nfs.org/projects/bfields/pynfs.git');
+        my $rel = get_var('PYNFS_RELEASE');
 
-    install_dependencies;
-    assert_script_run("git clone -q --depth 1 $url $rel && cd ./pynfs");
-    record_info('pynfs git version', script_output('git log -1 --pretty=format:"git-%h" | tee'));
-    assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
+        $rel = "-b $rel" if ($rel);
+
+        install_dependencies_pynfs;
+        assert_script_run("git clone -q --depth 1 $url $rel && cd ./pynfs");
+        assert_script_run('./setup.py build && ./setup.py build_ext --inplace');
+    }
+    elsif (get_var("CTHON04")) {
+        my $url = get_var('CTHON04_GIT_URL', 'git://git.linux-nfs.org/projects/steved/cthon04.git');
+        install_dependencies_cthon04;
+        assert_script_run("git clone -q --depth 1 $url && cd ./cthon04");
+        assert_script_run('make');
+    }
+    record_info('git version', script_output('git log -1 --pretty=format:"git-%h" | tee'));
 }
 
 sub setup_nfs_server {
@@ -58,7 +80,7 @@ sub run {
     # Disable PackageKit
     quit_packagekit;
 
-    install_pynfs;
+    install_testsuite;
     setup_nfs_server;
 }
 
