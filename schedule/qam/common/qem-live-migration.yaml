@@ -1,0 +1,34 @@
+---
+name: live_migration
+description:    >
+    scheduling tests of live migration
+schedule:
+   - '{{host_install}}'
+   - '{{migrate_src}}'
+   - '{{migrate_dst}}'
+conditional_schedule:
+   host_install:
+      HOST_INSTALL:
+         1:
+            - autoyast/prepare_profile
+            - boot/boot_from_pxe
+            - autoyast/installation
+            - virt_autotest/login_console
+   migrate_src:
+      MIGRATION_ROLE:
+         src:
+            - virtualization/livemigration/live_migration_src
+   migrate_dst:
+      MIGRATION_ROLE:
+         dst:
+            - virtualization/livemigration/live_migration_dst
+
+test_data:
+   location:
+      "sles-15": "http://dist.suse.de/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/"
+      "sles-15-sp1": "http://dist.suse.de/install/SLP/SLE-15-SP1-Installer-LATEST/x86_64/DVD1/"
+      "sles-15-sp2": "http://dist.suse.de/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/"
+      "sles-15-sp3": "http://dist.suse.de/install/SLP/SLE-15-SP3-Full-GM/x86_64/DVD1/"
+      "sles-12-sp5": "http://dist.suse.de/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/"
+      "sles-12-sp4": "http://dist.suse.de/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/"
+      "sles-12-sp3": "http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/"
