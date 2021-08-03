@@ -389,9 +389,8 @@ sub run {
             next;
         }
 
-        $self->hostapd_start($hostapd_conf->{config});
-
         for my $ifcfg_wlan (__as_config_array($self->ifcfg_wlan())) {
+            $self->hostapd_start($hostapd_conf->{config});
 
             if ($self->check_wicked_version($ifcfg_wlan->{wicked_version})) {
                 # Setup sut
@@ -409,11 +408,12 @@ sub run {
             } else {
                 record_info("Skip cfg", $ifcfg_wlan->{config});
             }
+
+            # Cleanup
+            $self->wicked_command('ifdown', $self->sut_ifc);
+            $self->hostapd_kill();
         }
 
-        # Cleanup
-        $self->wicked_command('ifdown', $self->sut_ifc);
-        $self->hostapd_kill();
     }
 }
 
