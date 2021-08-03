@@ -54,4 +54,8 @@ sub run {
     assert_script_run("tar -xvf ${dir}${file_tar} -C ${dir}");
 }
 
+sub test_flags {
+    return {milestone => 1, fatal => 1};
+}
+
 1;
