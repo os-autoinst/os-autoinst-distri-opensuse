@@ -31,12 +31,8 @@ sub run {
         if (match_has_tag('firefox-accept-youtube-cookies')) {
             # get to the accept button with tab and space
             wait_still_screen(2);
-            send_key('tab');
-            wait_still_screen(2);
-            send_key('spc');
-            wait_still_screen(2);
+            send_key_until_needlematch('firefox-accept-youtube-cookies-agree', 'tab', 7, 1);
             assert_and_click('firefox-accept-youtube-cookies-agree');
-            wait_still_screen(2);
             next;
         }
         elsif (match_has_tag('firefox-youtube-signin')) {
