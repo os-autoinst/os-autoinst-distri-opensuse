@@ -99,8 +99,10 @@ sub run {
 
     script_run('zypper lr | tee /tmp/zypperlr.txt');
 
+    # Need make sure the system is registered then check modules
+    my $output = script_output 'SUSEConnect -s';
     # Check the expected addons before migration
-    if (check_var('VERSION', get_required_var('ORIGIN_SYSTEM_VERSION')) && !get_var("MEDIA_UPGRADE")) {
+    if (check_var('VERSION', get_required_var('ORIGIN_SYSTEM_VERSION')) && ($output !~ /Not Registered/)) {
         my $addons = get_var('SCC_ADDONS', "");
         $addons =~ s/ltss,?//g;
         check_addons($addons);
@@ -111,11 +113,10 @@ sub run {
     if (check_var('VERSION', get_required_var('UPGRADE_TARGET_VERSION'))) {
         check_milestone_version;
         my $myaddons = get_var('SCC_ADDONS', "");
-        $myaddons .= ",base,serverapp"                             if (is_sle('15+')                                   && check_var('SLE_PRODUCT', 'sles'));
-        $myaddons .= ",base,desktop,we,python2"                    if (is_sle('15+')                                   && check_var('SLE_PRODUCT', 'sled'));
-        $myaddons .= ",base,serverapp,desktop,dev,lgm,python2,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
-        $myaddons .= ",python2"                                    if (is_sle('=15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
-        $myaddons .= ",base,serverapp,desktop,dev,lgm,python2,wsm,phub" if (is_leap_migration);
+        $myaddons .= ",base,serverapp"                          if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
+        $myaddons .= ",base,desktop,we"                         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
+        $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm"      if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+        $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm,phub" if (is_leap_migration);
 
         # After upgrade, system doesn't include ltss extension
         $myaddons =~ s/ltss,?//g;
