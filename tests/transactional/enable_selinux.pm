@@ -36,7 +36,7 @@ sub run {
     assert_script_run('selinuxenabled');
     record_info('SELinux',       script_output('sestatus'));
     record_info('Audit report',  script_output('aureport'));
-    record_info('Audit denials', script_output('aureport -a'));
+    record_info('Audit denials', script_output('aureport -a', proceed_on_failure => 1));
     upload_logs($audit_log);
 }
 
