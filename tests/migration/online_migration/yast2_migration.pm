@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -226,7 +226,7 @@ sub run {
             send_key 'alt-t';
         }
     }
-    assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 300;
+    assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 600;
     if (match_has_tag 'yast2-migration-installupdate', 150) {    # Not all cases have install update message.
         send_key 'alt-y';
         assert_screen 'yast2_migration-license-agreement', 60;
