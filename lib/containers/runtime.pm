@@ -168,12 +168,9 @@ Returns an array ref with the names of the images.
 sub get_images_by_repo_name {
     my ($self) = @_;
     my $repo_images;
-    unless ($self->runtime eq 'buildah') {
-        $repo_images = $self->_rt_script_output("images --format '{{.Repository}}'");
-    }
-    else {
-        $repo_images = $self->_rt_script_output("images --format '{{.Name}}'");
-    }
+
+    $repo_images = $self->_rt_script_output("images --format '{{.Repository}}'");
+
     my @images = split /[\n\t ]/, $repo_images;
     return \@images;
 }
@@ -240,23 +237,12 @@ sub check_image_in_host_registry {
 Updates the registry files for the running container runtime to allow access to
 insecure registries.
 
+Implementation is subject to the the subclass otherwise call to this subroutine dies.
+
 =cut
 sub setup_registry {
     my ($self) = shift;
-    my $registry = registry_url();
-    if ($self->runtime =~ /docker/) {
-        # Allow our internal 'insecure' registry
-        assert_script_run(
-'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
-        assert_script_run('cat /etc/docker/daemon.json');
-        systemctl('restart docker');
-    } elsif ($self->runtime =~ /podman/) {
-        assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
-        assert_script_run "chmod 644 /etc/containers/registries.conf";
-        file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
-    } else {
-        die "Unsupported runtime - " . $self->runtime;
-    }
+    die "Unsupported runtime - " . $self->runtime;
 }
 
 =head2 cleanup_system_host
@@ -266,20 +252,11 @@ Asserts that everything was cleaned up unless c<assert> is set to 0.
 
 =cut
 sub cleanup_system_host {
-    my ($self, $assert) = @_;
-    $assert // 1;
-    if ($self->runtime eq 'buildah') {
-        $self->_rt_assert_script_run("rm --all");
-        $self->_rt_assert_script_run("rmi --all --force");
-    }
-    else {
-        $self->_rt_assert_script_run("ps -q | xargs -r $self->{runtime} stop", 180);
-        $self->_rt_assert_script_run("system prune -a -f",                     180);
-    }
-    if ($assert) {
-        assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-        assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
-    }
+    my ($self) = @_;
+    $self->_rt_assert_script_run("ps -q | xargs -r $self->{runtime} stop", 180);
+    $self->_rt_assert_script_run("system prune -a -f",                     180);
+    assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
+    assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
 }
 
 # Container runtime subclasses here
@@ -287,12 +264,52 @@ package containers::runtime::docker;
 use Mojo::Base 'containers::runtime';
 has runtime => 'docker';
 
+sub setup_registry {
+    my ($self) = shift;
+    my $registry = registry_url();
+    # Allow our internal 'insecure' registry
+    assert_script_run(
+	'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
+    assert_script_run('cat /etc/docker/daemon.json');
+    systemctl('restart docker');
+}
+
 package containers::runtime::podman;
 use Mojo::Base 'containers::runtime';
 has runtime => "podman";
+use testapi;
+sub setup_registry {
+    my ($self) = shift;
+    my $registry = registry_url();
+
+    assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
+    assert_script_run "chmod 644 /etc/containers/registries.conf";
+    file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
+}
 
 package containers::runtime::buildah;
 use Mojo::Base 'containers::runtime';
 has runtime => "buildah";
+
+sub cleanup_system_host {
+    my ($self, $assert) = @_;
+    $assert // 1;
+    $self->_rt_assert_script_run("rm --all");
+    $self->_rt_assert_script_run("rmi --all --force");
+
+    if ($assert) {
+        assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
+        assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
+    }
+}
+
+sub get_images_by_repo_name {
+    my ($self) = @_;
+    my $repo_images;
+
+    $repo_images = $self->_rt_script_output("images --format '{{.Name}}'");
+    my @images = split /[\n\t ]/, $repo_images;
+    return \@images;
+}
 
 1;
