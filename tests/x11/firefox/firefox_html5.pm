@@ -33,6 +33,7 @@ sub run {
             wait_still_screen(2);
             send_key_until_needlematch('firefox-accept-youtube-cookies-agree', 'tab', 7, 1);
             assert_and_click('firefox-accept-youtube-cookies-agree');
+            wait_still_screen(2);
             next;
         }
         elsif (match_has_tag('firefox-youtube-signin')) {
