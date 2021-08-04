@@ -1007,7 +1007,7 @@ sub zkvm_add_disk {
             } else {
                 # Create a new image, most likely it can be image for installation
                 # or additional optional drive for further testing
-                my $size = sprintf("%dG", get_var("HDDSIZEGB_$di", get_var('HDDSIZEGB', 4)));
+                my $size = sprintf("%d", get_var("HDDSIZEGB_$di", get_var('HDDSIZEGB', 4)));
                 $svirt->add_disk({size => $size, create => 1, dev_id => $dev_id});
             }
         }
