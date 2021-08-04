@@ -43,7 +43,7 @@ sub run {
         }
         last;
     }
-    send_key_until_needlematch('firefox-testvideo', 'spc', 5, 5);
+    send_key_until_needlematch('firefox-testvideo', 'spc', 15, 5);
     $self->exit_firefox;
 }
 1;
