@@ -19,6 +19,7 @@ use LWP::Simple;
 use Config::Tiny;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
+use x11utils 'select_user_gnome';
 use POSIX 'strftime';
 use mm_network;
 
@@ -30,16 +31,13 @@ sub post_run_hook {
 
 sub dm_login {
     assert_screen('displaymanager', 60);
-    # The keyboard focus was losing in gdm of SLE15 bgo#657996
-    mouse_set(520, 350) if is_sle('15+');
-    send_key('ret');
+    select_user_gnome;
     assert_screen('originUser-login-dm');
     type_password;
 }
 
 # logout and switch window-manager
 sub switch_wm {
-    mouse_set(1000, 30);
     assert_and_click "system-indicator";
     assert_and_click "user-logout-sector";
     assert_and_click "logout-system";
