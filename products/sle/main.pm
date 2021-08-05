@@ -600,10 +600,10 @@ sub load_yast2_registration_tests {
 }
 
 sub load_virt_guest_install_tests {
-    if (get_var("VIRT_UEFI_GUEST_INSTALL")) {
-        loadtest "virt_autotest/uefi_guest_installation";
+    if (get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
+        loadtest "virt_autotest/unified_guest_installation";
         loadtest "virt_autotest/set_config_as_glue";
-        loadtest "virt_autotest/uefi_guest_verification";
+        loadtest "virt_autotest/uefi_guest_verification" if get_var("VIRT_UEFI_GUEST_INSTALL");
     }
     else {
         loadtest "virt_autotest/guest_installation_run";
@@ -781,9 +781,9 @@ elsif (get_var("BTRFS_PROGS")) {
     loadtest "btrfs-progs/run";
     loadtest "btrfs-progs/generate_report";
 }
-elsif (get_var("PYNFS")) {
+elsif (get_var("PYNFS") || get_var("CTHON04")) {
     prepare_target;
-    load_pynfs_tests;
+    load_nfs_tests;
 }
 elsif (get_var("BTRFSMAINTENANCE")) {
     prepare_target;

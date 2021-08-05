@@ -22,7 +22,6 @@ sub run {
     my ($self)        = @_;
     my $testname      = 'wmp_check_process';
     my $logdir        = '/root/wmp_logs';
-    my $sapsvc        = '/usr/sap/sapservices';
     my $wmp_test_repo = get_required_var('WMP_TEST_REPO');
     my @testphases    = qw(initial takeover takeback);
 
@@ -44,15 +43,13 @@ sub run {
           unless (defined $ret and $ret == 0);
         assert_script_run "mv -i $dirname $testname";
         zypper_call 'in python3-psutil python3-PyYAML';
-        file_content_replace("/root/$testname/config/config.yml", '^log_path: .*' => "log_path: '$logdir/'",
-            '^sapservices_path: .*' => "sapservices_path: '$sapsvc'");
     }
 
     # Run script
     my $current_test = get_var('WMP_PHASE', $testphases[0]);
     $current_test = $testphases[0] unless (grep /^$current_test$/, @testphases);
     enter_cmd "cd /root/$testname";
-    my $out = script_output "python3 check_process.py -n $current_test 2>&1";
+    my $out = script_output "python3 check_process.py -o $logdir -n $current_test 2>&1";
     die "$testname failed with error [$out]" if ($out =~ /ERROR:/);
     my ($index) = grep { $testphases[$_] eq $current_test } (0 .. $#testphases);
     $index = ($index == $#testphases) ? $#testphases : ($index + 1);

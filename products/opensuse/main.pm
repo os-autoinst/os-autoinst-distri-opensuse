@@ -271,9 +271,9 @@ if (is_kernel_test()) {
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
-elsif (get_var("PYNFS")) {
+elsif (get_var("PYNFS") || get_var("CTHON04")) {
     loadtest "boot/boot_to_desktop";
-    load_pynfs_tests;
+    load_nfs_tests;
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
@@ -313,6 +313,21 @@ elsif (get_var('CPU_BUGS')) {
 elsif (get_var('SECURITY_TEST')) {
     prepare_target();
     load_security_tests;
+}
+elsif (get_var('VIRT_AUTOTEST')) {
+    prepare_target() unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    loadtest "virt_autotest/switch_to_ssh_and_install_hypervisor";
+    loadtest "virt_autotest/reboot_and_wait_up_normal"  unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    loadtest "virt_autotest/unified_guest_installation" unless get_var('SKIP_GUEST_INSTALL');
+    loadtest "virt_autotest/set_config_as_glue";
+    if (get_var('ENABLE_VIR_NET')) {
+        loadtest "virt_autotest/libvirt_virtual_network_init";
+        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+        loadtest "virt_autotest/libvirt_nated_virtual_network";
+    }
+    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH');
+    loadtest "virtualization/universal/hotplugging"             if get_var('ENABLE_HOTPLUGGING');
+    loadtest "virtualization/universal/storage"                 if get_var('ENABLE_STORAGE');
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {

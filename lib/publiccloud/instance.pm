@@ -225,6 +225,9 @@ sub wait_for_ssh
         sleep 1;
     }
 
+    # Debug output: We have ocasional error in 'journalctl -b' - see poo#96464 - this will be removed soon.
+    $self->run_ssh_command(cmd => 'sudo journalctl -b', proceed_on_failure => 1, username => $args{username});
+
     unless ($args{proceed_on_failure}) {
         my $error_msg;
         if ($check_port) {

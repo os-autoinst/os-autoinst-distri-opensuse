@@ -60,11 +60,13 @@ test-compile-changed: os-autoinst/
 test-yaml-valid:
 	$(eval YAMLS=$(shell sh -c "git ls-files schedule/ test_data/ | grep '\\.ya\?ml$$'"))
 	if test -n "$(YAMLS)"; then \
-      export PERL5LIB=${PERL5LIB_} ; tools/test_yaml_valid $(YAMLS);\
-	  which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
-	  yamllint -c .yamllint $(YAMLS);\
-	else \
-	  echo "No yamls modified.";\
+		export PERL5LIB=${PERL5LIB_} ; echo "$(YAMLS)" | xargs tools/test_yaml_valid ;\
+		else \
+		echo "No yamls modified.";\
+	fi
+	if test -n "$(YAMLS)"; then \
+		which yamllint >/dev/null 2>&1 || echo "Command 'yamllint' not found, can not execute YAML syntax checks";\
+		echo "$(YAMLS)" | xargs yamllint -c .yamllint;\
 	fi
 
 .PHONY: test-modules-in-yaml-schedule

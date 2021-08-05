@@ -96,7 +96,7 @@ sub handle_all_packages_medium {
     my $counter           = 2 + (scalar @addons_license_tags);
     my $addon_license_num = 0;
     while ($counter--) {
-        assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 180);
+        assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 240);
         last if (match_has_tag 'addon-products-nonempty');
         if (match_has_tag 'sle-product-license-agreement') {
             if (@addons_license_tags && check_screen(\@addons_license_tags, 30)) {
@@ -179,7 +179,7 @@ sub run {
             $sr_number++ unless (is_sle('15+') && $sr_number == 1);
             # in full_installer the dialog to choose the installation media
             # does not appear, thus we have to skip it
-            unless ((check_var('FLAVOR', 'Full')) || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
+            unless ((check_var('FLAVOR', 'Full')) || check_var('FLAVOR', 'Full-QR') || ((is_sle('15-SP2+') && get_var('MEDIA_UPGRADE')))) {
                 assert_screen 'addon-menu-active';
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};

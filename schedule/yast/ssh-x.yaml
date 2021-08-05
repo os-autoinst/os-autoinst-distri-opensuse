@@ -17,7 +17,7 @@ schedule:
   - installation/system_role
   - installation/partitioning
   - installation/partitioning_finish
-  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/installer_timezone
   - installation/user_settings
   - installation/user_settings_root
   - installation/select_patterns

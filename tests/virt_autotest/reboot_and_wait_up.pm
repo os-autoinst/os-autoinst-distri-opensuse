@@ -42,6 +42,9 @@ sub reboot_and_wait_up {
     else {
         #leave ssh console and switch to sol console
         switch_from_ssh_to_sol_console(reset_console_flag => 'off');
+        #on some SUTs, fg. a HP machine in Beijing lab, screen of sol console is cleared at the second reboot.
+        #and the 'return' key must be typed then 'login' prompt appears in sol console
+        send_key 'ret' unless check_screen('text-logged-in-root');
 
         my ($package_name, $file_name, $line_num) = caller;
         diag("The package $package_name defined from file $file_name called me at line $line_num");

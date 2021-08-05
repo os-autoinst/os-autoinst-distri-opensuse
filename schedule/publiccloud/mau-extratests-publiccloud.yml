@@ -12,7 +12,6 @@ schedule:
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
   - console/system_prepare
-  - console/prepare_test_data
   - console/consoletest_setup
   - console/check_os_release
   - console/cleanup_qam_testrepos
@@ -28,7 +27,6 @@ schedule:
   - console/gdb
   - console/sysctl
   - console/sysstat
-  - console/wget_ipv6
   - console/gpg
   - console/shells
   - console/sudo

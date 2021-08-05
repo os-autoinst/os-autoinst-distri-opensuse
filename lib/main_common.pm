@@ -74,10 +74,10 @@ our @EXPORT = qw(
   load_jeos_tests
   load_kernel_baremetal_tests
   load_kernel_tests
+  load_nfs_tests
   load_nfv_master_tests
   load_nfv_trafficgen_tests
   load_public_cloud_patterns_validation_tests
-  load_pynfs_tests
   load_transactional_role_tests
   load_reboot_tests
   load_rescuecd_tests
@@ -1720,7 +1720,7 @@ sub load_extra_tests_docker {
     }
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
     loadtest 'containers/registry';
-    loadtest "containers/zypper_docker";
+    loadtest "containers/zypper_docker"   unless is_tumbleweed;
     loadtest "containers/rootless_podman" unless is_sle('<15-SP2');
 }
 
@@ -2425,6 +2425,7 @@ sub load_security_tests_cc {
     # Run test cases of 'audit-test' test suite which do NOT need SELinux env
     loadtest 'security/cc/audit_tools';
     loadtest 'security/cc/fail_safe';
+    loadtest 'security/cc/ip_eb_tables';
 
     # Some audit tests must be run in selinux enabled mode. so load selinux setup here
     # Setup environment for cc testing: SELinux setup
@@ -2435,6 +2436,7 @@ sub load_security_tests_cc {
     # Run test cases of 'audit-test' test suite which do need SELinux env
     # Please add these test cases here: poo#93441
     loadtest 'security/cc/crypto';
+    loadtest 'security/cc/misc';
 }
 
 
@@ -3270,10 +3272,10 @@ sub load_kernel_baremetal_tests {
     loadtest "kernel/build_git_kernel" if get_var('KERNEL_GIT_TREE');
 }
 
-sub load_pynfs_tests {
-    loadtest "pynfs/install";
-    loadtest "pynfs/run";
-    loadtest "pynfs/generate_report";
+sub load_nfs_tests {
+    loadtest "nfs/install";
+    loadtest "nfs/run";
+    loadtest "nfs/generate_report";
 }
 
 1;

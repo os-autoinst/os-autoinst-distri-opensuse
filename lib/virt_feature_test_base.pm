@@ -111,7 +111,7 @@ sub junit_log_params_provision {
     my $start_time = $self->{"start_run"};
     my $stop_time  = $self->{"stop_run"};
     $self->{"test_time"}         = strftime("\%H:\%M:\%S", gmtime($stop_time - $start_time));
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io \"SUSE.*\$(arch))\"");
+    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
     $self->{"product_name"}      = ref($self);
     $self->{"package_name"}      = ref($self);
 }

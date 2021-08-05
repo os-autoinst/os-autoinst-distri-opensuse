@@ -69,9 +69,6 @@ sub run {
     $self->select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
 
-    # Package Hub is not enabled on 15-SP3 yet.
-    return if is_sle '=15-SP3';
-
     # Install and check that it's running
     add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle(">=15");
     zypper_call 'se -v docker-distribution-registry';

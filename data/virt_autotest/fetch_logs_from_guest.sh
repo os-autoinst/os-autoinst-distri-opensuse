@@ -262,7 +262,7 @@ fi
 
 unset guest_hash_ipaddr
 declare -a guest_hash_ipaddr=""
-guest_domain_types="sles"
+guest_domain_types="sles|opensuse|tumbleweed|leap|oracle"
 guests_inactive_array=`virsh list --inactive | grep -E "${guest_domain_types}" | awk '{print $2}'`
 guest_domains_array=`virsh list  --all | grep -E "${guest_domain_types}" | awk '{print $2}'`
 guest_current=""
@@ -289,7 +289,7 @@ for single_subnet in ${subnets_in_route[@]};do
     single_subnet_scan_results=${virt_logs_folder}'/nmap_subnets_scan_results/nmap_scan_'${single_subnet_transformed}'_'${scan_timestamp}
     subnets_scan_results[${subnets_scan_index}]=${single_subnet_scan_results}
     echo -e "nmap -sn $single_subnet -oX $single_subnet_scan_results" | tee -a ${fetch_logs_from_guest_log}
-    nmap -T5 -sn $single_subnet -oX $single_subnet_scan_results | tee -a ${fetch_logs_from_guest_log}
+    nmap -T4 -sn $single_subnet -oX $single_subnet_scan_results | tee -a ${fetch_logs_from_guest_log}
     subnets_scan_index=$(( ${subnets_scan_index} + 1 ))
 done
 

@@ -8,20 +8,21 @@
 # without any warranty.
 #
 # Summary: This module supports concurrent multiple virtual machine
-# installations with vm names and profiles obtained from @_guest_lists
-# passed to generate_guest_instances and @_guest_profiles passed to
-# generate_guest_profiles respectively. For example, if guest lists
-# "vm_name_1,vm_name_2,vm_name_3" and "vm_profile_1,vm_profile_2,vm_profile_3"
-# are passed to generate_guest_instances and generate_guest_profiles,
-# then vm_name_1 will be created and installed using vm_profile_1 and
-# so on. Any vm profile names can be given as long as there are corresponding
-# profile files in data/virt_autotest/guest_params_xml_files folder,
-# for example, there should be profile file called vm_profile_1.xml,
-# vm_profile_2.xml and vm_profile_3.xml in the folder in this example.
-# Installation progress monitoring,result validation, junit log provision,
-# environment cleanup and failure handling are also included and supported.
-# Subroutine concurrent_guest_installations_run is the convenient one
-# to be called to perform all the above operations if necessary.
+# installations with vm names and profiles obtained from %_store_of_guests
+# which maintains the mapping between vm names and their profiles.
+# It is then passed to instantiate_guests_and_profiles to instantiate
+# guests. For example, if %_store_of_guests = ( "vm_name_1" => "vm_profile_1",
+# "vm_name_2" => "vm_profile_2", "vm_name_3" => "vm_profile_3")
+# is passed to instantiate_guests_and_profiles, then vm_name_1 will be
+# created and installed using vm_profile_1 and so on. Any vm profile names
+# can be given as long as there are corresponding profile files in
+# data/virt_autotest/guest_params_xml_files folder, for example, there
+# should be profile file called vm_profile_1.xml, vm_profile_2.xml and
+# vm_profile_3.xml in the folder in this example. Installation progress
+# monitoring,result validation, junit log provision,environment cleanup
+# and failure handling are also included and supported. Subroutine
+# concurrent_guest_installations_run is the convenient one to be called
+# to perform all the above operations if necessary.
 #
 # Please refer to lib/guest_installation_and_configuration_base for
 # detailed information about subroutines in base module being called.
@@ -50,34 +51,23 @@ our %guest_instances_profiles = ();
 #@guest_installations_done stores guest instances names that finish installations
 our @guest_installations_done = ();
 
-#Get guest names from array argument passed in, for example:
-#my @testarray = ('vm1','vm2','vm3'),$self->generate_guest_instances(@testarray)
+#Get guest names from hash argument passed in, for example: foreach my $_element (keys(%_store_of_guests))
 #There is no restriction on the form or format of guest instance name.
-sub generate_guest_instances {
-    my $self         = shift;
-    my @_guest_lists = @_;
+#Get guest profiles names also from hash argument passed in, for example, $_store_of_guests{$_element}
+#These names should be the file name without extension in data/virt_autotest/guest_params_xml_files folder.
+#Guest profile xml file will be guest profile name + '.xml' extension and fetched using HTTP::Request and
+#parsed using XML::Simple.
+sub instantiate_guests_and_profiles {
+    my $self                       = shift;
+    my $_guests_to_be_instantiated = shift;
+    my %_store_of_guests           = %$_guests_to_be_instantiated;
 
     $self->reveal_myself;
-    while (my ($_index, $_element) = each(@_guest_lists)) {
+    foreach my $_element (keys(%_store_of_guests)) {
         $guest_instances{$_element} = bless({%$self}, ref($self));
         diag "Guest $_element is blessed";
-    }
-    return $self;
-}
-
-#Get guest profiles names from array argument passed in, for example:
-#my @testarray = ('vm_profile1','vm_profile2','vm_profile3'),$self->generate_guest_profiles(@testarray)
-#These names should be the file name without extension in data/virt_autotest/guest_params_xml_files folder.
-#Guest profile xml file will be fetched using HTTP::Request and parsed using XML::Simple.
-sub generate_guest_profiles {
-    my $self            = shift;
-    my @_guest_profiles = @_;
-
-    $self->reveal_myself;
-    my @_guest_lists = (keys %guest_instances);
-    while (my ($_index, $_element) = each(@_guest_lists)) {
         my $_ua            = LWP::UserAgent->new;
-        my $_geturl        = data_url("virt_autotest/guest_params_xml_files/$_guest_profiles[$_index].xml");
+        my $_geturl        = data_url("virt_autotest/guest_params_xml_files/$_store_of_guests{$_element}.xml");
         my $_req           = HTTP::Request->new(GET => "$_geturl");
         my $_res           = $_ua->request($_req);
         my $_guest_profile = (XML::Simple->new)->XMLin($_res->content, SuppressEmpty => '');
@@ -85,6 +75,7 @@ sub generate_guest_profiles {
         $guest_instances_profiles{$_element} = $_guest_profile;
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
+
     return $self;
 }
 
@@ -111,12 +102,14 @@ sub install_guest_instances {
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
-        if (!(check_screen('guest-installation-yast2-started', timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
+        save_screenshot;
+        if (!(check_screen([qw(guest-installation-yast2-started guest-installation-anaconda-started)], timeout => 180 / get_var('TIMEOUT_SCALE', 1)))) {
             record_info("Failed to detect or guest $guest_instances{$_}->{guest_name} does not have installation window opened", "This might be caused by improper console settings or reboot after installaton finishes. Will continue to monitor its installation progess, so this is not treated as fatal error at the moment.");
         }
         else {
             record_info("Guest $guest_instances{$_}->{guest_name} has installation window opened", "Will continue to monitor its installation progess");
         }
+        save_screenshot;
         $guest_instances{$_}->detach_guest_installation_screen;
     }
     return $self;
@@ -134,7 +127,7 @@ sub monitor_concurrent_guest_installations {
     my $_installation_timeout             = 0;
     my $_guest_installations_left         = scalar(keys %guest_instances) - scalar(@guest_installations_done);
     my $_guest_installations_not_the_last = 1;
-    while ($_installation_timeout < 1800) {
+    while ($_installation_timeout < 3600) {
         foreach (keys %guest_instances) {
             if ($guest_instances{$_}->{guest_installation_result} eq '') {
                 $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
@@ -191,6 +184,7 @@ sub clean_up_guest_installations {
         }
         $guest_instances{$_}->print_guest_params;
     }
+    $self->detach_all_nfs_mounts;
     return $self;
 }
 
@@ -206,7 +200,7 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run}  = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io \"SUSE.*\$(arch))\"");
+    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
     $self->{"product_name"}      = ref($self);
     $self->{"package_name"}      = ref($self);
     my $_guest_installation_xml_results = virt_autotest_base::generateXML($self, $_guest_installations_results);
@@ -230,18 +224,17 @@ sub check_root_ssh_console {
     return $self;
 }
 
-#Perform concurrent guest installations by calling generate_guest_instances,generate_guest_profiles,install_guest_instances,monitor_concurrent_guest_installations,
-#validate_guest_installations_results,clean_up_guest_installations and junit_log_provision.Argument $_guest_names_list is a reference to array that holds all guest
-#names to be created and $_guest_profiles_list is a reference to array that holds all guest profiles to be used for guest configurations and installations.
+#Perform concurrent guest installations by calling instantiate_guests_and_profiles,install_guest_instances,monitor_concurrent_guest_installations,
+#validate_guest_installations_results,clean_up_guest_installations and junit_log_provision.Argument $_guest_names_list is a reference to array that
+#holds all guest names to be created and $_guest_profiles_list is a reference to array that holds all guest profiles to be used for guest configurations
+#and installations.
 sub concurrent_guest_installations_run {
-    my ($self, $_guest_names_list, $_guest_profiles_list) = @_;
+    my $self             = shift;
+    my $_store_of_guests = shift;
 
     $self->reveal_myself;
-    my @_guest_names    = @$_guest_names_list;
-    my @_guest_profiles = @$_guest_profiles_list;
-    croak("Guest names and profile must be given to create, configure and install guests.") if ((scalar(@_guest_names) eq 0) or (scalar(@_guest_profiles) eq 0));
-    $self->generate_guest_instances(@_guest_names);
-    $self->generate_guest_profiles(@_guest_profiles);
+    croak("Guest names and profile must be given to create, configure and install guests.") if ((scalar(keys(%$_store_of_guests)) eq 0) or (scalar(values(%$_store_of_guests)) eq 0));
+    $self->instantiate_guests_and_profiles($_store_of_guests);
     $self->install_guest_instances;
     $self->monitor_concurrent_guest_installations;
     $self->clean_up_guest_installations;

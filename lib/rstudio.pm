@@ -91,7 +91,7 @@ sub rstudio_create_and_test_new_project {
 
     # open commit log and close it again
     assert_and_click("$prefix-project_commit-log-button");
-    assert_screen("$prefix-project_commit-history");
+    assert_screen("$prefix-project_commit-history", timeout => 120);
     send_key('alt-f4');
 
     # close the project
@@ -190,7 +190,7 @@ sub rstudio_test_notebook {
     if ($popup_blocked) {
         click_lastmatch();
         assert_and_click("rstudio_server-Firefox-allow_for_localhost");
-        assert_screen("$prefix-R_notebook-preview");
+        assert_screen("$prefix-R_notebook-preview", timeout => 240);
     }
 
     send_key("alt-f4", wait_screen_change => 1);
