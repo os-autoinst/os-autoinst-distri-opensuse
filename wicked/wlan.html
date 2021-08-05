@@ -21,7 +21,7 @@
 
 <h2 id="write_cfg">write_cfg</h2>
 
-<pre><code>  write_cfg($filename, $content[, $env]);</code></pre>
+<pre><code>  write_cfg($filename, $content[, env =&gt; {}, encode_base64 =&gt; 0 ]);</code></pre>
 
 <p>Write all data at once to the file. Replace all ocurance of <code>{{name}}</code>. First lookup is the given c&lt;$env&gt; hash and if it doesn&#39;t exists it try to lookup a member function with the given c&lt;name&gt; and replace the string with return value</p>
 

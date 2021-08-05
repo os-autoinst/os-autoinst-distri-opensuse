@@ -15,6 +15,8 @@
   <li>
     <ul>
       <li><a href="#wicked_command">wicked_command</a></li>
+      <li><a href="#get_wicked_version">get_wicked_version</a></li>
+      <li><a href="#check_wicked_version">check_wicked_version</a></li>
       <li><a href="#assert_wicked_state">assert_wicked_state</a></li>
       <li><a href="#get_remote_ip">get_remote_ip</a></li>
       <li><a href="#get_ip">get_ip</a></li>
@@ -43,6 +45,16 @@
 <p>Executes wicked command given the action on the corresponding interface.</p>
 
 <p>The mandatory parameter <code>action</code> specifies the action [ifup|ifdown|ifreaload]. The mandatory parameter <code>iface</code> specifies the interface which action will be executed on. This function saves the command and the stdout and stderr to a file to be uploaded later.</p>
+
+<h2 id="get_wicked_version">get_wicked_version</h2>
+
+<pre><code>    get_wicked_version()</code></pre>
+
+<p>Return the current installed wicked version</p>
+
+<h2 id="check_wicked_version">check_wicked_version</h2>
+
+<pre><code>    check_wicked_version(&#39;&gt;=0.6.66&#39;)</code></pre>
 
 <h2 id="assert_wicked_state">assert_wicked_state</h2>
 
