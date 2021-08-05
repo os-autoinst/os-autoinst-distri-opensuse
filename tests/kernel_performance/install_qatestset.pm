@@ -31,6 +31,7 @@ sub setup_environment {
     my $ver_path          = "/root";
 
     assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
+    assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
         assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $runid $mitigation_switch");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
