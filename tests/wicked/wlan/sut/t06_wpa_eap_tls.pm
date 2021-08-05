@@ -34,15 +34,15 @@ has hostapd_conf => q(
     driver=nl80211
     country_code=DE
     ssid={{ssid}}
-    channel=1
-    hw_mode=g
+    channel=4
     ieee80211n=1
+    hw_mode=g
     auth_algs=3
     wpa=2
     wpa_key_mgmt=WPA-EAP
+    group_cipher=CCMP
     wpa_pairwise=CCMP
     rsn_pairwise=CCMP
-    group_cipher=CCMP
 
     # Require IEEE 802.1X authorization
     ieee8021x=1
@@ -51,9 +51,9 @@ has hostapd_conf => q(
 
     ## RADIUS authentication server
     nas_identifier=the_ap
+    auth_server_shared_secret=testing123
     auth_server_addr=127.0.0.1
     auth_server_port=1812
-    auth_server_shared_secret=testing123
 );
 
 has ifcfg_wlan => sub { [

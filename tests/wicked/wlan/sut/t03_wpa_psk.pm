@@ -39,8 +39,8 @@ has hostapd_conf => q(
     wpa_key_mgmt=WPA-PSK
     wpa_pairwise=TKIP CCMP
     wpa_passphrase={{psk}}
-    auth_algs=3
     beacon_int=100
+    auth_algs=3
 );
 
 has ifcfg_wlan => sub { [
