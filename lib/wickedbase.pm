@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,7 @@ use serial_terminal;
 use Carp;
 use Mojo::File 'path';
 use Regexp::Common 'net';
+use version_utils 'check_version';
 
 use strict;
 use warnings;
@@ -46,6 +47,28 @@ sub wicked_command {
     assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
     assert_script_run(q(echo -e "\n# ip addr" >> /tmp/wicked_serial.log));
     assert_script_run('ip addr 2>&1 | tee -a /tmp/wicked_serial.log');
+}
+
+=head2 get_wicked_version
+
+    get_wicked_version()
+
+Return the current installed wicked version
+=cut
+sub get_wicked_version {
+    my $v = script_output(q(rpm -qa 'wicked' --qf '%{VERSION}\n'));
+    die("Unable to get wicked version '$v'") unless $v =~ /^\d+\.\d+\.\d+$/;
+    return $v;
+}
+
+=head2 check_wicked_version
+
+    check_wicked_version('>=0.6.66')
+
+=cut
+sub check_wicked_version {
+    my ($self, $query) = @_;
+    return check_version($query, $self->get_wicked_version());
 }
 
 =head2 assert_wicked_state
@@ -130,26 +153,32 @@ sub get_ip {
     my $ips_hash =
       {
         #                       SUT                       REF
-        host         => ['10.0.2.11/15',              '10.0.2.10/15'],
-        host6        => ['fd00:deca:fbad:50::11/64',  'fd00:deca:fbad:50::10/64'],
-        gre1         => ['192.168.1.2',               '192.168.1.1'],
-        sit1         => ['2001:0db8:1234::000f',      '2001:0db8:1234::000e'],
-        tunl1        => ['3.3.3.11',                  '3.3.3.10'],
-        tun1         => ['192.168.2.11',              '192.168.2.10'],
-        tap1         => ['192.168.2.11',              '192.168.2.10'],
-        br0          => ['10.0.2.11',                 '10.0.2.10'],
-        vlan         => ['192.0.2.11/24',             '192.0.2.10/24'],
-        vlan_changed => ['192.0.2.111/24',            '192.0.2.110/24'],
-        macvtap      => ['10.0.2.18/15',              '10.0.2.17/15'],
-        bond         => ['10.0.2.18',                 '10.0.2.17'],
-        dhcp_2nic    => ['10.20.30.',                 '10.20.30.12'],                 # dhcp_2nic in SUT, we don't know the last octect
-        second_card  => ['10.0.3.11',                 '10.0.3.12'],
-        gateway      => ['10.0.2.2',                  '10.0.2.2'],
-        wlan         => ['10.6.6.2',                  '10.6.6.1'],
-        wlan_dhcp    => ['10.6.6.10',                 '10.6.6.1'],
-        ipv6         => ['fd00:dead:beef:',           'fd00:dead:beef:'],
-        dhcp6        => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
-        dns_advice   => ['fd00:dead:beef:6021::42',   'fd00:dead:beef:6021::42'],
+        host           => ['10.0.2.11/15',              '10.0.2.10/15'],
+        host6          => ['fd00:deca:fbad:50::11/64',  'fd00:deca:fbad:50::10/64'],
+        gre1           => ['192.168.1.2',               '192.168.1.1'],
+        sit1           => ['2001:0db8:1234::000f',      '2001:0db8:1234::000e'],
+        tunl1          => ['3.3.3.11',                  '3.3.3.10'],
+        tun1           => ['192.168.2.11',              '192.168.2.10'],
+        tap1           => ['192.168.2.11',              '192.168.2.10'],
+        br0            => ['10.0.2.11',                 '10.0.2.10'],
+        vlan           => ['192.0.2.11/24',             '192.0.2.10/24'],
+        vlan_changed   => ['192.0.2.111/24',            '192.0.2.110/24'],
+        macvtap        => ['10.0.2.18/15',              '10.0.2.17/15'],
+        bond           => ['10.0.2.18',                 '10.0.2.17'],
+        dhcp_2nic      => ['10.20.30.',                 '10.20.30.12'],                 # dhcp_2nic in SUT, we don't know the last octect
+        second_card    => ['10.0.3.11',                 '10.0.3.12'],
+        gateway        => ['10.0.2.2',                  '10.0.2.2'],
+        wlan           => ['10.6.6.2/24',               '10.6.6.1/24'],
+        wlan_dhcp      => ['10.6.6.10/24',              '10.6.6.1/24'],
+        wlan_bss1      => ['10.6.7.2/24',               '10.6.7.1/24'],
+        wlan_dhcp_bss1 => ['10.6.7.10/24',              '10.6.7.1/24'],
+        wlan_bss2      => ['10.6.8.2/24',               '10.6.8.1/24'],
+        wlan_dhcp_bss2 => ['10.6.8.10/24',              '10.6.8.1/24'],
+        wlan_bss3      => ['10.6.9.2/24',               '10.6.9.1/24'],
+        wlan_dhcp_bss3 => ['10.6.9.10/24',              '10.6.9.1/24'],
+        ipv6           => ['fd00:dead:beef:',           'fd00:dead:beef:'],
+        dhcp6          => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
+        dns_advice     => ['fd00:dead:beef:6021::42',   'fd00:dead:beef:6021::42'],
       };
     my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
     die "$args{type} not exists" unless $ip;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -39,18 +39,71 @@ has hostapd_conf => q(
     wpa_key_mgmt=WPA-PSK
     wpa_pairwise=TKIP CCMP
     wpa_passphrase={{psk}}
-    auth_algs=3
     beacon_int=100
+    auth_algs=3
 );
 
-has ifcfg_wlan => q(
-    BOOTPROTO='dhcp'
-    STARTMODE='auto'
+has ifcfg_wlan => sub { [
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
 
-    WIRELESS_MODE='Managed'
-    WIRELESS_AUTH_MODE='psk'
-    WIRELESS_ESSID='{{ssid}}'
-    WIRELESS_WPA_PSK='{{psk}}'
-);
+        WIRELESS_MODE='Managed'
+        WIRELESS_AUTH_MODE='psk'
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
+    ),
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
+
+        WIRELESS_AUTH_MODE='psk'
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_WPA_PSK='{{psk}}'
+    ),
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_CIPHER_PAIRWISE='CCMP'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_CIPHER_PAIRWISE='TKIP'
+        )
+        },
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_WPA_PSK='{{psk}}'
+            WIRELESS_CIPHER_PAIRWISE='TKIP CCMP'
+        )
+        }
+] };
 
 1;
