@@ -51,10 +51,10 @@ sub run {
     wait_serial "Please enter the email address to be used to register", timeout => 5;
     send_key 'ret';
     wait_serial "Please enter your activation code", timeout => 5;
-    enter_cmd "${regcode}";
+    enter_cmd "$regcode";
 
     # test either a failing migration or a working one
-    if ("${regcode}" eq "invalid_key") {
+    if ($regcode eq "invalid_key") {
         wait_serial "Unknown Registration Code.", timeout => 5;
         wait_serial "Rolling back to", timeout => 5;
         wait_serial "Exiting.", timeout => 5;
