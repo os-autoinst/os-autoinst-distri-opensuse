@@ -51,8 +51,6 @@ sub run {
     zypper_call 'in php7-pgsql postgresql*-contrib sudo unzip';
 
     # start postgresql service
-    # with workaround for poo#88439
-    assert_script_run '/usr/share/postgresql/postgresql-script start && /usr/share/postgresql/postgresql-script stop';
     systemctl 'start postgresql';
 
     # setup database
