@@ -74,6 +74,10 @@ variable "tags" {
     default = {}
 }
 
+variable "enable_confidential_vm" {
+	default=false
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -83,16 +87,24 @@ resource "random_id" "service" {
 }
 
 resource "google_compute_instance" "openqa" {
-    count        = var.instance_count
-    name         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
-    machine_type = var.type
-    zone         = var.region
+    count                        = var.instance_count
+    name                         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+    machine_type                 = var.type
+    zone                         = var.region
+    
+    confidential_instance_config {
+    	enable_confidential_compute = var.enable_confidential_vm ? true : false
+    }
 
     boot_disk {
         device_name = "${var.name}-${element(random_id.service.*.hex, count.index)}"
         initialize_params {
             image = var.image_id
         }
+    }
+    
+    scheduling {
+    	on_host_maintenance = "TERMINATE"
     }
 
     metadata = merge({
@@ -148,4 +160,8 @@ output "public_ip" {
 
 output "vm_name" {
     value = google_compute_instance.openqa.*.name
+}
+
+output "confidential_instance_config" {
+  value   = google_compute_instance.openqa.*.confidential_instance_config
 }
