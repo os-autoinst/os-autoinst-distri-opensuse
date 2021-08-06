@@ -1005,11 +1005,12 @@ sub start_gnome_tweak_tool {
 sub add_input_resource {
     my ($self, $tag) = @_;
 
-    # send_key 'super';
-    # wait_still_screen;
-    x11_start_program "gnome-control-center keyboard", target_match => "gnome-control-center-keyboard";
+    if (is_sle('<=15-sp3') || is_leap('<=15.3')) {
+        x11_start_program "gnome-control-center region", target_match => "g-c-c-region-language";
+    } else {
+        x11_start_program "gnome-control-center keyboard", target_match => "g-c-c-keyboard";
+    }
 
-    # assert_screen 'g-c-c-keyboard-input-source';
     assert_and_click 'ibus-input-source-add';
     assert_and_click 'ibus-input-language-list';
     type_string $tag;
