@@ -209,7 +209,6 @@ sub run {
     select_console('root-console');
     ensure_serialdev_permissions;
     (test_users_locale($rc_lc_reverted, $test_data_lang{$lang_ref}) eq $original_glibc_string) or die "Locale has changed after reboot!\n";
-    reset_consoles;
 }
 
 1;
