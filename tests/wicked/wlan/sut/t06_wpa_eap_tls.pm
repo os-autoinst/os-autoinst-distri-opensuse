@@ -51,15 +51,15 @@ has hostapd_conf => q(
 
     ## RADIUS authentication server
     nas_identifier=the_ap
-    auth_server_shared_secret=testing123
     auth_server_addr=127.0.0.1
     auth_server_port=1812
+    auth_server_shared_secret=testing123
 );
 
 has ifcfg_wlan => sub { [
         q(
-        BOOTPROTO='dhcp'
         STARTMODE='auto'
+        BOOTPROTO='dhcp'
 
         # Global settings
         WIRELESS_AP_SCANMODE='1'
