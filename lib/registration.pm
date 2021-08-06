@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2020 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,6 +47,8 @@ our @EXPORT = qw(
   investigate_log_empty_license
   register_addons_cmd
   register_addons
+  handle_scc_popups
+  process_modules
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   %ADDONS_REGCODE
@@ -565,15 +567,6 @@ sub process_scc_register_addons {
     }
 }
 
-sub process_scc_register {
-    if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
-        process_scc_register_addons;
-    }
-    elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
-        send_key $cmd{next};
-    }
-}
-
 sub show_development_versions {
     assert_screen('scc-beta-filter-checkbox');
     send_key('alt-i');
@@ -581,9 +574,12 @@ sub show_development_versions {
 }
 
 sub fill_in_registration_data {
-    my ($addon, $uc_addon);
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
+    handle_scc_popups();
+    process_modules();
+}
 
+sub handle_scc_popups {
     unless (get_var('SCC_REGISTER', '') =~ /addon|network/) {
         my $counter = ADDONS_COUNT;
         my @tags
@@ -668,38 +664,6 @@ sub fill_in_registration_data {
             }
         }
     }
-
-    # Process modules on sle 15
-    if (is_sle '15+') {
-        my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
-        # Check needle 'scc-beta-filter-checkbox', if yes means product still in BETA phase, then continue assert process;
-        # if not means product already out of BETA phase, then do not need to assert the 'scc-beta-filter-checkbox' any more.
-
-        # Assert multi tags scc-beta-filter-checkbox and scc-without-beta-filter-checkbox to ensure catch all conditions.
-        assert_screen [qw(scc-beta-filter-checkbox scc-without-beta-filter-checkbox)];
-        if (match_has_tag('scc-beta-filter-checkbox')) {
-            if (check_var('BETA', '1')) {
-                show_development_versions;
-            }
-            elsif (!check_screen($modules_needle, 0)) {
-                record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
-                show_development_versions;
-            }
-        }
-
-        verify_preselected_modules($modules_needle) if get_var('CHECK_PRESELECTED_MODULES');
-        # Add desktop module for SLES if desktop is gnome
-        # Need desktop application for minimalx to make change_desktop work
-        if ((check_var('SLE_PRODUCT', 'sles') && !is_leap_migration)
-            && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
-            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we)/)
-        {
-            $addons = $addons ? $addons . ',desktop' : 'desktop';
-            set_var('SCC_ADDONS', $addons);
-        }
-    }
-
-    process_scc_register;
 }
 
 sub select_addons_in_textmode {
@@ -958,6 +922,45 @@ sub investigate_log_empty_license {
               "In case of licence available, check if the asset for the license has been properly synchronized\n" .
               "by taking a look in http://openqa.suse.de/assets/repo/ for the corresponding product/build\n" .
               "and searching for a path ending in \'.license/license.txt\' .Otherwise, please file a Progress ticket.");
+    }
+}
+
+sub process_modules {
+    # Process modules on sle 15
+    if (is_sle '15+') {
+        my $modules_needle = "modules-preselected-" . get_required_var('SLE_PRODUCT');
+        # Check needle 'scc-beta-filter-checkbox', if yes means product still in BETA phase, then continue assert process;
+        # if not means product already out of BETA phase, then do not need to assert the 'scc-beta-filter-checkbox' any more.
+
+        # Assert multi tags scc-beta-filter-checkbox and scc-without-beta-filter-checkbox to ensure catch all conditions.
+        assert_screen [qw(scc-beta-filter-checkbox scc-without-beta-filter-checkbox)];
+        if (match_has_tag('scc-beta-filter-checkbox')) {
+            if (check_var('BETA', '1')) {
+                show_development_versions;
+            }
+            elsif (!check_screen($modules_needle, 0)) {
+                record_info('bsc#1094457 : SLE 15 modules are still in BETA while product enter GMC phase');
+                show_development_versions;
+            }
+        }
+
+        verify_preselected_modules($modules_needle) if get_var('CHECK_PRESELECTED_MODULES');
+        # Add desktop module for SLES if desktop is gnome
+        # Need desktop application for minimalx to make change_desktop work
+        if ((check_var('SLE_PRODUCT', 'sles') && !is_leap_migration)
+            && (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'minimalx'))
+            && (my $addons = get_var('SCC_ADDONS')) !~ /(?:desktop|we)/) {
+            $addons = $addons ? $addons . ',desktop' : 'desktop';
+            set_var('SCC_ADDONS', $addons);
+        }
+    }
+
+    # Process modules
+    if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
+        process_scc_register_addons;
+    }
+    elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
+        send_key $cmd{next};
     }
 }
 
