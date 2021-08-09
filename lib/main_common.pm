@@ -2417,7 +2417,7 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/chcat";
 }
 
-sub load_security_tests_cc {
+sub load_security_tests_cc_audit_test {
     # Setup environment for cc testing: 'audit-test' test suite setup
     # Such as: download code branch; install needed packages
     loadtest 'security/cc/cc_audit_test_setup';
@@ -2439,6 +2439,14 @@ sub load_security_tests_cc {
     loadtest 'security/cc/misc';
 }
 
+sub load_security_tests_cc_audit_remote {
+    # Setup environment for cc testing: 'audit-test' test suite setup
+    # Such as: download code branch; install needed packages
+    loadtest 'security/cc/cc_audit_test_setup';
+
+    # Run test cases of 'audit-test' test suite which do NOT need SELinux env
+    loadtest 'security/cc/audit_remote_libvirt';
+}
 
 sub load_security_tests_mok_enroll {
     loadtest "security/mokutil_sign";
@@ -2631,7 +2639,8 @@ sub load_security_tests {
       swtpm
       grub_auth
       lynis
-      cc
+      cc_audit_test
+      cc_audit_remote
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
