@@ -76,7 +76,7 @@ sub run {
     mouse_hide;
     # kiwi-templates-JeOS images (sle, opensuse x86_64 only) are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
-    if (is_sle('15+') && (is_sle('<15-sp3') || (is_leap('<15.3') && is_x86_64))) {
+    if ((is_sle('15+') && is_sle('<15-sp3')) || (is_leap('<15.3') && is_x86_64)) {
         assert_screen 'jeos-lang-notice', 300;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
