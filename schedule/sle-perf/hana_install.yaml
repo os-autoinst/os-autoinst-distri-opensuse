@@ -75,6 +75,7 @@ conditional_schedule:
         - installation/partitioning_firstdisk
       ppc64le:
         - installation/partitioning_smalldisk_storageng
+        - '{{fix_sle_15gm_multi_disks}}'
   change_desktop:
     VERSION:
       12-SP4:
