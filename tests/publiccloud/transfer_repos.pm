@@ -22,14 +22,14 @@ use publiccloud::utils "select_host_console";
 
 sub run {
     my ($self, $args) = @_;
-
-    my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-
     select_host_console();    # select console on the host, not the PC instance
 
+    my @addons  = split(/,/, get_var('SCC_ADDONS', ''));
+    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD', 0));
+
     # Trigger to skip the download to speed up verification runs
-    if (get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD') == 1) {
-        record_info('Skip download', 'Skipping download triggered by setting (QAM_PUBLICCLOUD_SKIP_DOWNLOAD = 1)');
+    if ($skip_mu) {
+        record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
     } else {
         assert_script_run('du -sh ~/repos');
         my $timeout = 2400;
