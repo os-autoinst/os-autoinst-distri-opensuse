@@ -12,20 +12,19 @@
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
-use base "publiccloud::basetest";
-use strict;
-use warnings;
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
 use repo_tools 'generate_version';
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot get_ltp_version_file);
-use LTP::WhiteList qw(download_whitelist);
+use LTP::WhiteList qw(download_whitelist find_whitelist_testsuite find_whitelist_entry list_skipped_tests override_known_failures);
 use Mojo::File;
+use Mojo::JSON;
 use publiccloud::utils qw(is_byos select_host_console);
+use Data::Dumper;
 
-our $root_dir      = '/root';
-our $ver_linux_log = '';
+our $root_dir = '/root';
 
 sub get_ltp_rpm
 {
@@ -46,6 +45,43 @@ sub instance_log_args
         $self->{my_instance}->instance_id,
         $self->{my_instance}->public_ip,
         $self->{provider}->region);
+}
+
+sub upload_ltp_logs
+{
+    my ($self)        = @_;
+    my $log_file      = Mojo::File::path('ulogs/ltp_log.json');
+    my $ltp_testsuite = get_required_var('COMMAND_FILE');
+
+    upload_logs("$root_dir/ltp_log.raw",  log_name => 'ltp_log.raw',       failok => 1);
+    upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
+
+    return unless -e $log_file->to_string;
+
+    local @INC = ($ENV{OPENQA_LIBPATH} // testapi::OPENQA_LIBPATH, @INC);
+    eval {
+        require OpenQA::Parser::Format::LTP;
+
+        my $ltp_log = Mojo::JSON::decode_json($log_file->slurp());
+        my $parser  = OpenQA::Parser::Format::LTP->new()->load($log_file->to_string);
+
+        if (find_whitelist_testsuite($ltp_testsuite)) {
+            my %ltp_log_results = map { $_->{test_fqn} => $_->{test} } @{$ltp_log->{results}};
+            for my $result (@{$parser->results()}) {
+                if (override_known_failures($self, {%{$self->{ltp_env}}, retval => $ltp_log_results{$result->{test_fqn}}->{retval}}, $ltp_testsuite, $result->{test_fqn})) {
+                    $result->{result} = 'softfail';
+                }
+            }
+        }
+
+        $parser->write_output(bmwqemu::result_dir());
+        $parser->write_test_result(bmwqemu::result_dir());
+
+        $parser->tests->each(sub {
+                $autotest::current_test->register_extra_test_results([$_->to_openqa]);
+        });
+    };
+    die $@ if $@;
 }
 
 sub run {
@@ -90,7 +126,20 @@ sub run {
         $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp',                              timeout => 600);
     }
 
-    $ver_linux_log = $instance->run_ssh_command(cmd => get_ltproot() . "/ver_linux");
+    download_whitelist();
+    my $ltp_env = gen_ltp_env($instance);
+    $self->{ltp_env} = $ltp_env;
+
+    # Use lib/LTP/WhiteList module to exclude tests
+    if (get_var('LTP_KNOWN_ISSUES')) {
+        my $exclude       = get_var('COMMAND_EXCLUDE', '');
+        my @skipped_tests = list_skipped_tests($ltp_env, get_required_var('COMMAND_FILE'));
+        if (@skipped_tests) {
+            $exclude .= '|' if (length($exclude) > 0);
+            $exclude .= '^(' . join('|', @skipped_tests) . ')$';
+            set_var('COMMAND_EXCLUDE', $exclude);
+        }
+    }
 
     my $runltp_ng_repo   = get_var("LTP_RUN_NG_REPO",   "https://github.com/metan-ucw/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
@@ -124,14 +173,8 @@ sub cleanup {
 
     # Ensure that the ltp script gets killed
     type_string('', terminate_with => 'ETX');
+    $self->upload_ltp_logs();
 
-    upload_logs('ltp_log.raw',            failok => 1);
-    upload_logs("$root_dir/ltp_log.json", failok => 1);
-    if (script_run("test -f $root_dir/ltp_log.json") == 0) {
-        my $known_issues = download_whitelist();
-        process_ltp_known_issues("$root_dir/ltp_log.json") if $known_issues;
-        parse_extra_log(LTP => "$root_dir/ltp_log.json");
-    }
     if ($self->{my_instance} && script_run("test -f $root_dir/log_instance.sh") == 0) {
         assert_script_run($root_dir . '/log_instance.sh stop ' . $self->instance_log_args());
         assert_script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
@@ -139,50 +182,19 @@ sub cleanup {
     }
 }
 
-sub process_ltp_known_issues {
-    my ($self, $ltp_log) = @_;
-    my $decoded_ltp_log = Mojo::JSON::from_json($ltp_log);
-    my $env             = gen_ltp_env();
-    my $suite           = get_required_var('COMMAND_FILE');
-
-    foreach my $test (@{$decoded_ltp_log->{results}}) {
-        if (($test->{status} eq 'fail' || $test->{status} eq 'brok' || $test->{status} eq 'warn')) {
-            my $entry = find_whitelist_entry($env, $suite, $test->{test_fqn});
-            bmwqemu::diag(sprintf("Failure in LTP:%s:%s is known, overriding to softfail", $suite, $test->{test_fqn}));
-            $test->{status} = 'softfail';
-        }
-    }
-    my $final_ltp_log = Mojo::JSON::to_json($decoded_ltp_log);
-    Mojo::File::path($ltp_log)->spurt($final_ltp_log);
-}
-
 sub gen_ltp_env {
+    my $instance    = shift;
     my $environment = {
         product     => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
         revision    => get_required_var('BUILD'),
-        flavor      => get_required_var('FLAVOR'),
         arch        => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
+        kernel      => $instance->run_ssh_command('uname -r'),
         backend     => get_required_var('BACKEND'),
-        kernel      => '',
-        libc        => '',
-        gcc         => '',
-        harness     => 'SUSE OpenQA',
-        ltp_version => '',
-        #TODO currently we getting only pass or fail due to use of '--openqa-filter' need to properly solve retval issue
-        # from runltp-ng side to get smarter logic on this side
-        retval => '1'
+        flavor      => get_required_var('FLAVOR'),
+        ltp_version => $instance->run_ssh_command(q(rpm -q --qf '%{VERSION}\n' ltp)),
     };
-    if ($ver_linux_log =~ qr'^Linux\s+(.*?)\s*$'m) {
-        $environment->{kernel} = $1;
-    }
-    if ($ver_linux_log =~ qr'^Linux C Library\s*>?\s*(.*?)\s*$'m) {
-        $environment->{libc} = $1;
-    }
-    if ($ver_linux_log =~ qr'^Gnu C\s*(.*?)\s*$'m) {
-        $environment->{gcc} = $1;
-    }
-    $environment->{ltp_version} = script_output("cat " . get_ltp_version_file());
-    record_info("LTP version", $environment->{ltp_version});
+
+    record_info("LTP Environment", Dumper($environment));
 
     return $environment;
 }
@@ -207,6 +219,11 @@ This regex is used to exclude tests from command file.
 =head2 LTP_REPO
 
 The repo which will be added and is used to install LTP package.
+
+=head2 LTP_KNOWN_ISSUES
+
+Used to specify a url for a json file with well known LTP issues. If an error occur
+which is listed, then the result is overwritten with softfailure.
 
 =head2 PUBLIC_CLOUD_LTP
 
