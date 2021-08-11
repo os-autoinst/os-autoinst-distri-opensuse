@@ -33,7 +33,10 @@ sub run {
     } else {
         assert_script_run('du -sh ~/repos');
         my $timeout = 2400;
-        assert_script_run("rsync --timeout=$timeout -uvahP -e ssh ~/repos root@" . $args->{my_instance}->public_ip . ":'/tmp/repos'", timeout => $timeout + 10);
+
+        # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
+        # Delay of 2 minutes between the tries to give their network some time to recover after a failure
+        script_retry("rsync --timeout=$timeout -uvahP -e ssh ~/repos 'root@" . $args->{my_instance}->public_ip . ":/tmp/repos'", timeout => $timeout + 10, retry => 3, delay => 120);
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec sed -i 's,http://,/tmp/repos/repos/,g' '{}' \\;");
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec zypper ar -p10 '{}' \\;");
         $args->{my_instance}->run_ssh_command(cmd => "sudo find /tmp/repos/ -name *.repo -exec echo '{}' \\;");
