@@ -18,10 +18,6 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
-    maintenance:
-        FLAVOR:
-            'JeOS-for-kvm-and-xen-Updates':
-                - qa_automation/patch_and_reboot
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
@@ -33,7 +29,8 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
-    - '{{maintenance}}'
+    - jeos/efi_tid
+    - qa_automation/patch_and_reboot
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/validate_packages_and_patterns
