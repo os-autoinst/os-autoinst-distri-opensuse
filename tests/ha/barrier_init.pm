@@ -124,6 +124,8 @@ sub run {
         barrier_create("QNETD_TESTS_DONE_$cluster_name",       $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
+        barrier_create("QNETD_STONITH_DISABLED_$cluster_name", $num_nodes + 1);
+        barrier_create("DISKLESS_SBD_QDEVICE_$cluster_name",   $num_nodes);
 
         # PRIORITY_FENCING_DELAY barriers
         barrier_create("PRIORITY_FENCING_CONF_$cluster_name", $num_nodes);
