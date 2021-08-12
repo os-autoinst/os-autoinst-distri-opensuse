@@ -7,18 +7,9 @@ conditional_schedule:
     ARCH:
       's390x':
         - installation/bootloader_start
-  buildah_docker:
-    HOST_VERSION:
-      15-SP3:
-        - containers/buildah_docker
-      15-SP2:
-        - containers/buildah_docker
-      15-SP1:
-        - containers/buildah_docker
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
   - containers/host_configuration
   - containers/docker_image
-  - '{{buildah_docker}}'
   - containers/container_diff

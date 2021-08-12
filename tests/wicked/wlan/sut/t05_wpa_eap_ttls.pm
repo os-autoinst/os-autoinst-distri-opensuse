@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Test WiFi setup with wicked (WPA-EAP/PEAP/MSCHAPv2 with DHCP)
+# Summary: Test WiFi setup with wicked (WPA-EAP/TTLS/PAP with DHCP)
 # - WiFi Access point:
 #   - Use virtual wlan devices
 #   - AP with hostapd is running in network namespace
@@ -24,8 +24,9 @@
 use Mojo::Base 'wicked::wlan';
 use testapi;
 
-has use_radius => 1;
-has ssid       => 'EAP protected WLAN';
+has wicked_version => '>=0.6.66';
+has use_radius     => 1;
+has ssid           => 'EAP protected WLAN';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -33,7 +34,7 @@ has hostapd_conf => q(
     driver=nl80211
     country_code=DE
     ssid={{ssid}}
-    channel=1
+    channel=6
     hw_mode=g
     ieee80211n=1
     auth_algs=3
@@ -46,61 +47,59 @@ has hostapd_conf => q(
     # Require IEEE 802.1X authorization
     ieee8021x=1
     eapol_version=2
-    eap_message=ping-from-hostapd
+    eap_message=msg-from-hostapd
 
     ## RADIUS authentication server
-    nas_identifier=the_ap
     auth_server_addr=127.0.0.1
     auth_server_port=1812
     auth_server_shared_secret=testing123
+    nas_identifier=the_ap
 );
 
 has ifcfg_wlan => sub { [
         q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
 
-        # Global settings
-        WIRELESS_AP_SCANMODE='1'
-        WIRELESS_WPA_DRIVER='nl80211'
+            # Global settings
+            WIRELESS_AP_SCANMODE='1'
+            WIRELESS_WPA_DRIVER='nl80211'
+            WIRELESS_MODE='Managed'
 
-        # Network settings
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_AUTH_MODE='eap'
-        WIRELESS_EAP_AUTH='mschapv2'
-        WIRELESS_EAP_MODE='PEAP'
-        WIRELESS_MODE='Managed'
-        WIRELESS_WPA_ANONID='anonymous'
-        WIRELESS_WPA_IDENTITY='{{eap_user}}'
-        WIRELESS_WPA_PASSWORD='{{eap_password}}'
-    ),
+            # Network settings
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_AUTH_MODE='eap'
+            WIRELESS_EAP_AUTH='pap'
+            WIRELESS_EAP_MODE='TTLS'
+            WIRELESS_CA_CERT='{{ca_cert}}'
+            WIRELESS_WPA_IDENTITY='{{eap_user}}'
+            WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        ),
         q(
-        BOOTPROTO='dhcp'
-        STARTMODE='auto'
-
-        # Network settings
-        WIRELESS_ESSID='{{ssid}}'
-        WIRELESS_AUTH_MODE='eap'
-        WIRELESS_EAP_AUTH='mschapv2'
-        WIRELESS_EAP_MODE='PEAP'
-        WIRELESS_WPA_IDENTITY='{{eap_user}}'
-        WIRELESS_WPA_PASSWORD='{{eap_password}}'
-        WIRELESS_CA_CERT='{{ca_cert}}'
-    ),
-        {
-            wicked_version => '>=0.6.66',
-            config         => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 
             # Network settings
             WIRELESS_ESSID='{{ssid}}'
-            WIRELESS_EAP_MODE='PEAP'
-            WIRELESS_EAP_AUTH='mschapv2'
+            WIRELESS_AUTH_MODE='EAP'
+            WIRELESS_EAP_AUTH='PAP'
+            WIRELESS_EAP_MODE='TTLS'
+            WIRELESS_CA_CERT='{{ca_cert}}'
             WIRELESS_WPA_IDENTITY='{{eap_user}}'
             WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        ),
+        q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            # Network settings
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_EAP_MODE='TTLS'
+            WIRELESS_EAP_AUTH='PAP'
+            WIRELESS_WPA_IDENTITY='{{eap_user}}'
+            WIRELESS_WPA_PASSWORD='{{eap_password}}'
+            WIRELESS_CA_CERT='{{ca_cert}}'
         )
-        }
 ] };
 
 1;

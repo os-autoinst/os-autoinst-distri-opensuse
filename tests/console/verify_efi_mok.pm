@@ -247,8 +247,8 @@ sub run {
 }
 
 sub post_fail_hook {
-    select_console('root-console');
     set_var('_EXPECT_EFI_MOK_MANAGER', 0);
+    select_console('log-console');
 
     upload_logs(GRUB_DEFAULT,        log_name => 'etc_default_grub.txt');
     upload_logs(GRUB_CFG,            log_name => 'grub.cfg');

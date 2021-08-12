@@ -41,6 +41,7 @@ sub run_one_by_one {
     }
     assert_script_run("echo \"$case\" >> /root/qaset/list");
     assert_script_run("echo \')\' >> /root/qaset/list");
+    assert_script_run("systemctl enable qaperf.service");
     for (; $i <= $repeat; $i++) {
         # clean fail.list
         script_run("rm $fail_path/$fail_list");

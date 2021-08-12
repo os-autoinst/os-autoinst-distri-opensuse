@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,30 +19,31 @@ use version_utils qw(is_sle);
 use repo_tools qw(add_qa_head_repo generate_version);
 use utils qw(zypper_call);
 use Mojo::File 'path';
+use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
+use Encode qw/encode_utf8/;
 use File::Basename;
 use testapi;
 
-has dhcp_enabled => 0;
-has eap_user     => 'tester';
-has eap_password => 'test1234';
+has wicked_version      => undef;
+has eap_user            => 'tester';
+has eap_password        => 'test1234';
+has ca_cert             => '/etc/raddb/certs/ca.pem';
+has client_cert         => '/etc/raddb/certs/client.crt';
+has client_key          => '/etc/raddb/certs/client.key';
+has client_key_no_pass  => '/etc/raddb/certs/client_no_pass.key';
+has client_key_password => 'whatever';
 
 has netns_name => 'wifi_ref';
 has ref_ifc    => 'wlan0';
 has ref_phy    => 'phy0';
-
 sub ref_ip {
-    my $self = shift;
-    my $type = $self->dhcp_enabled ? 'wlan_dhcp' : 'wlan';
-    return $self->get_ip(type => $type, is_wicked_ref => 1);
+    return shift->get_ip(is_wicked_ref => 1, @_);
 }
 
 has sut_ifc => 'wlan1';
 has sut_phy => 'phy1';
-
 sub sut_ip {
-    my $self = shift;
-    my $type = $self->dhcp_enabled ? 'wlan_dhcp' : 'wlan';
-    return $self->get_ip(type => $type, is_wicked_ref => 0);
+    return shift->get_ip(is_wicked_ref => 0, @_);
 }
 
 # Test config, needed because of code duplication checks
@@ -57,6 +58,38 @@ sub sut_hw_addr {
     return $self->{sut_hw_addr};
 }
 
+# Get the ref_ifc for a specific bss subinterface
+sub ref_bss {
+    my ($self, %args) = @_;
+    my $nr = extract_bss_nr($args{bss});
+
+    if ($nr > 0) {
+        return $self->ref_ifc . "_$nr";
+    }
+    return $self->ref_ifc;
+}
+
+sub ref_bss1 { return shift->ref_bss(bss => 1); }
+sub ref_bss2 { return shift->ref_bss(bss => 2); }
+sub ref_bss3 { return shift->ref_bss(bss => 3); }
+
+sub get_ip {
+    my ($self, %args) = @_;
+    my $bss_nr = extract_bss_nr($args{bss});
+
+    my $suffix = $bss_nr > 0     ? "_bss$bss_nr"      : "";
+    my $type   = $self->use_dhcp ? "wlan_dhcp$suffix" : "wlan$suffix";
+    return $self->SUPER::get_ip(type => $type, is_wicked_ref => $args{is_wicked_ref}, netmask => $args{netmask});
+}
+
+sub extract_bss_nr {
+    my ($self, $nr) = @_;
+    $nr = $self unless (ref($self));    # allow as static function
+    $nr //= 0;
+    $nr = $1 if $nr =~ /_(\d+)$/;       # extract number, e.g. `bss_1` would result in `1`
+    return $nr;
+}
+
 sub netns_exec {
     my ($self, $cmd, @args) = @_;
     $cmd = 'ip netns exec ' . $self->netns_name . ' ' . $cmd;
@@ -69,18 +102,36 @@ sub netns_output {
     return script_output($cmd, @args);
 }
 
-sub restart_DHCP_server {
-    my $self = shift;
-    $self->stop_DHCP_server();
-    $self->dhcp_enabled(1);
-    $self->netns_exec(sprintf('dnsmasq --no-resolv --interface=%s --dhcp-range=%s,static --dhcp-host=%s,%s',
-            $self->ref_ifc, $self->sut_ip, $self->sut_hw_addr, $self->sut_ip));
+sub netns_run {
+    my ($self, $cmd, @args) = @_;
+    $cmd = 'ip netns exec ' . $self->netns_name . ' ' . $cmd;
+    my $ret = script_run($cmd, @args);
+    die("Timeout on script_run($cmd)") unless defined($ret);
+    return $ret;
 }
 
-sub stop_DHCP_server {
-    my $self = shift;
-    $self->dhcp_enabled(0);
-    assert_script_run('test -e /var/run/dnsmasq.pid && kill $(cat /var/run/dnsmasq.pid) || true');
+sub dhcp_pidfile {
+    my ($self, %args) = @_;
+    $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
+    return "/var/run/dnsmasq_$args{ref_ifc}.pid";
+}
+
+sub restart_dhcp_server {
+    my ($self, %args) = @_;
+
+    $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
+    $args{sut_ip}  //= $self->sut_ip(bss => $args{bss});
+
+    $self->stop_dhcp_server(%args);
+    $self->netns_exec(sprintf('dnsmasq --no-resolv --pid-file=%s --interface=%s --except-interface=lo --bind-interfaces --dhcp-range=%s,static --dhcp-host=%s,%s',
+            $self->dhcp_pidfile(%args), $args{ref_ifc}, $args{sut_ip}, $self->sut_hw_addr, $args{sut_ip}));
+}
+
+sub stop_dhcp_server {
+    my ($self, %args) = @_;
+
+    my $pidfile = $self->dhcp_pidfile(%args);
+    assert_script_run(sprintf('test -e %s && kill $(cat %s) || true', $pidfile, $pidfile));
 }
 
 sub before_test {
@@ -88,6 +139,7 @@ sub before_test {
     $self->prepare_packages();
     $self->prepare_phys();
     $self->prepare_freeradius_server();
+    $self->adopt_apparmor();
 }
 
 sub prepare_packages {
@@ -129,16 +181,29 @@ sub prepare_freeradius_server {
     assert_script_run(sprintf(q(echo '%s ClearText-Password := "%s"' >> /etc/raddb/users),
             $self->eap_user, $self->eap_password));
     assert_script_run('time (cd /etc/raddb/certs && ./bootstrap)', timeout => 600);
-    assert_script_run(q(openssl rsa -in /etc/raddb/certs/client.key -out /etc/raddb/certs/client_no_pass.key -passin pass:'whatever'));
+    assert_script_run(sprintf(q(openssl rsa -in '%s' -out '%s' -passin pass:'%s'),
+            $self->client_key, $self->client_key_no_pass, $self->client_key_password));
 }
 
-# Candidate for wickedbase.pm
+sub adopt_apparmor {
+    if (script_output('systemctl is-active apparmor', proceed_on_failure => 1) eq 'active') {
+        enter_cmd(q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/tmp\/** rw,\n}/' /etc/apparmor.d/usr.sbin.hostapd));
+        enter_cmd(q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/etc\/raddb\/certs\/** r,\n}/' /etc/apparmor.d/usr.sbin.hostapd));
+        assert_script_run('systemctl reload apparmor');
+    }
+}
+
 sub get_hw_address {
     my ($self, $ifc) = @_;
-    my $path   = "/sys/class/net/$ifc/address";
-    my $output = script_output("test -e '$path' && cat '$path'");
-    die("Interface $ifc doesn't exists") if ($output eq "");
-    return $output;
+    my $path = "/sys/class/net/$ifc/address";
+    my $hw_addr;
+    if ($self->netns_run("test -e '$path'") == 0) {
+        $hw_addr = $self->netns_output("cat '$path'");
+    } else {
+        $hw_addr = script_output("test -e '$path' && cat '$path'");
+    }
+    die("Interface $ifc doesn't exists") if ($hw_addr eq "");
+    return $hw_addr;
 }
 
 sub lookup {
@@ -153,7 +218,7 @@ sub lookup {
 
 =head2 write_cfg
 
-  write_cfg($filename, $content[, $env]);
+  write_cfg($filename, $content[, env => {}, encode_base64 => 0 ]);
 
 Write all data at once to the file. Replace all ocurance of C<{{name}}>.
 First lookup is the given c<$env> hash and if it doesn't exists
@@ -162,63 +227,194 @@ with return value
 
 =cut
 sub write_cfg {
-    my ($self, $filename, $content, $env) = @_;
-    $env //= {};
+    my ($self, $filename, $content, %args) = @_;
+    my ($filename_orig, $content_orig);
+    $args{env}           //= {};
+    $args{encode_base64} //= 0;
     my $rand = random_string;
     # replace variables
-    $content =~ s/\{\{(\w+)\}\}/$self->lookup($1, $env)/eg;
+    $content =~ s/\{\{(\w+)\}\}/$self->lookup($1, $args{env})/eg;
     # unwrap content
     my ($indent) = $content =~ /^\r?\n?([ ]*)/m;
     $content =~ s/^$indent//mg;
+    $content =~ s/^[ \t]+$//mg;
+
+    if ($args{encode_base64}) {
+        $content       = encode_utf8($content);
+        $content_orig  = $content;
+        $filename_orig = $filename;
+        $content       = b64_encode($content);
+        $filename .= '.base64';
+    }
+
     script_output(qq(cat > '$filename' << 'END_OF_CONTENT_$rand'
 $content
 END_OF_CONTENT_$rand
 ));
-    system('test -d ulogs/ || mkdir ulogs/');
-    path('ulogs/' . $self->{name} . '-' . basename($filename))->spurt($content);
+
+    if ($args{encode_base64}) {
+        $content = $content_orig;
+        assert_script_run("base64 -d '$filename' > '$filename_orig'");
+        assert_script_run("rm '$filename'");
+    }
+
+    record_info(basename($filename), $content);
+    return $content;
 }
 
 sub assert_sta_connected {
-    my ($self, $sta) = @_;
-    $sta //= $self->sut_hw_addr;
+    my ($self, %args) = @_;
+    $args{sta}     //= $self->sut_hw_addr;
+    $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
+    $args{timeout} //= 0;
+    $args{sleep}   //= 1;
+    my $endtime = time() + $args{timeout};
 
-    my $output = $self->netns_output(sprintf(q(hostapd_cli -i '%s' sta '%s'), $self->ref_ifc, $sta));
-    die("STA($sta) isn't found on that hostapd") if ($output =~ /FAIL/);
-    my %opts = $output =~ /^(\S+)=(.*)$/gm;
-    die 'Missing "flags" in hostapd_cli sta output' unless exists $opts{flags};
-    for my $flag (qw([AUTH] [ASSOC] [AUTHORIZED])) {
-        die("STA($sta) missing flag $flag") if (index($opts{flags}, $flag) == -1);
+    while (1) {
+        eval {
+            my $output = $self->netns_output(sprintf(q(hostapd_cli -i '%s' sta '%s'), $args{ref_ifc}, $args{sta}));
+            die("STA($args{sta}) isn't found on that hostapd") if ($output =~ /FAIL/);
+            my %opts = $output =~ /^(\S+)=(.*)$/gm;
+            die 'Missing "flags" in hostapd_cli sta output' unless exists $opts{flags};
+            for my $flag (qw([AUTH] [ASSOC] [AUTHORIZED])) {
+                die("STA($args{sta}) missing flag $flag") if (index($opts{flags}, $flag) == -1);
+            }
+        };
+        return 1 unless ($@);    # no error
+        die($@) if (time() > $endtime || $args{timeout} == 0);
+
+        sleep($args{sleep});
     }
 
-    return 1;
+    die("This should never reached!");
+}
+
+sub hostapd_start {
+    my ($self, $config, %args) = @_;
+    $args{name} //= 'hostapd';
+    $config = $self->write_cfg("/tmp/$args{name}.conf", $config);
+    $self->netns_exec("hostapd -P '/tmp/$args{name}.pid' -B '/tmp/$args{name}.conf'");
+
+    ## Check for multi BSS setup
+    my @bsss = $config =~ (/^bss=(.*)$/gm);
+    for my $bss (@bsss) {
+        $self->netns_exec('ip addr add dev ' . $bss . ' ' . $self->ref_ip(bss => $bss, netmask => 1));
+        $self->restart_dhcp_server(bss => $bss) if ($self->use_dhcp());
+    }
+}
+
+sub hostapd_kill {
+    my ($self, %args) = @_;
+    $args{name} //= 'hostapd';
+    assert_script_run("kill \$(cat /tmp/$args{name}.pid)");
 }
 
 sub assert_connection {
+    my ($self, %args) = @_;
+    $args{timeout} //= 0;
+    $args{sleep}   //= 1;
+    my $endtime = time() + $args{timeout};
+
+    while (1) {
+        eval {
+            assert_script_run('ping -c 1 -I ' . $self->sut_ifc . ' ' . $self->ref_ip(bss => $args{bss}));
+            $self->netns_exec('ping -c 1 -I ' . $self->ref_bss(bss => $args{bss}) . ' ' . $self->sut_ip(bss => $args{bss}));
+        };
+        return 1 unless ($@);    # no error
+        die($@) if (time() > $endtime || $args{timeout} == 0);
+
+        sleep($args{sleep});
+    }
+}
+
+sub setup_ref {
     my $self = shift;
 
-    assert_script_run('ping -c 1 -I ' . $self->sut_ifc . ' ' . $self->ref_ip);
-    $self->netns_exec('ping -c 1 -I ' . $self->ref_ifc . ' ' . $self->sut_ip);
+    $self->netns_exec('ip addr add dev ' . $self->ref_ifc() . ' ' . $self->ref_ip(netmask => 1));
+    $self->restart_dhcp_server()                if ($self->use_dhcp());
+    $self->netns_exec('radiusd -d /etc/raddb/') if ($self->use_radius());
+}
+
+sub __as_array {
+    my $ref = shift;
+
+    if (ref($ref) eq 'ARRAY') {
+        return @$ref;
+    } elsif (ref($ref) eq 'HASH') {
+        die("Unsupported config format");
+    } else {
+        return ($ref);
+    }
+}
+
+sub __as_config_array {
+    my $param = shift;
+    my @ret;
+    foreach my $in (__as_array($param)) {
+        my $cfg = {config => '', wicked_version => '>=0.0.0'};
+        if (ref($in) eq 'HASH') {
+            $cfg = {%{$cfg}, %{$in}};
+        } else {
+            $cfg->{config} = $in;
+        }
+        push @ret, $cfg;
+    }
+    return @ret;
+}
+
+sub skip_by_wicked_version
+{
+    my ($self, $v) = @_;
+    $v //= $self->wicked_version;
+
+    if ($v && !$self->check_wicked_version($v)) {
+        $self->result('skip');
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
 
-    # Setup ref
-    $self->netns_exec('ip addr add dev wlan0 ' . $self->ref_ip . '/24');
-    $self->restart_DHCP_server()                if ($self->use_dhcp());
-    $self->netns_exec('radiusd -d /etc/raddb/') if ($self->use_radius());
+    $self->setup_ref();
 
-    $self->write_cfg('hostapd.conf', $self->hostapd_conf());
-    $self->netns_exec('hostapd -B hostapd.conf');
+    for my $hostapd_conf (__as_config_array($self->hostapd_conf())) {
 
-    # Setup sut
-    $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $self->ifcfg_wlan());
-    $self->wicked_command('ifup', $self->sut_ifc);
+        if (!$self->check_wicked_version($hostapd_conf->{wicked_version})) {
+            record_info("Skip cfg", $hostapd_conf->{config});
+            next;
+        }
 
-    # Check
-    $self->assert_sta_connected();
-    $self->assert_connection();
+        for my $ifcfg_wlan (__as_config_array($self->ifcfg_wlan())) {
+            $self->hostapd_start($hostapd_conf->{config});
+
+            if ($self->check_wicked_version($ifcfg_wlan->{wicked_version})) {
+                # Setup sut
+                $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $ifcfg_wlan->{config});
+                $self->wicked_command('ifup', $self->sut_ifc);
+
+                # Check
+                $self->assert_sta_connected();
+                $self->assert_connection();
+
+                $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
+                $self->wicked_command('show-config',        $self->sut_ifc);
+                $self->wicked_command('show-xml',           $self->sut_ifc);
+
+            } else {
+                record_info("Skip cfg", $ifcfg_wlan->{config});
+            }
+
+            # Cleanup
+            $self->wicked_command('ifdown', $self->sut_ifc);
+            $self->hostapd_kill();
+        }
+
+    }
 }
 
 sub test_flags {

@@ -40,6 +40,11 @@ sub run {
     }
 
     $self->select_serial_terminal;
+
+    # Debug code for poo#81142
+    script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
+    upload_logs('framebuffer.dat.gz', failok => 1);
+
     assert_secureboot_status(1) if (get_var('SECUREBOOT'));
 
     log_versions;

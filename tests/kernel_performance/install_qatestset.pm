@@ -31,6 +31,7 @@ sub setup_environment {
     my $ver_path          = "/root";
 
     assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
+    assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
         my $rel_ver = get_var('VERSION');
         assert_script_run("if [ ! -f /root/.product_version_cfg ]; then cp /root/.product_version_cfg.$rel_ver /root/.product_version_cfg; fi");

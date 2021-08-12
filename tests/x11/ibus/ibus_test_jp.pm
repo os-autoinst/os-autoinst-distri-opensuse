@@ -10,32 +10,13 @@
 
 # Package: gedit ibus
 # Summary: setup and test ibus japanese input
-# Maintainer: Gao Zhiyuan <zgao@suse.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
 use strict;
 use warnings;
 use testapi;
 use utils;
-
-sub ibus_enable_source_jp {
-    send_key 'super';
-    wait_still_screen;
-    type_string_slow ' region & language';
-    wait_still_screen(3);
-    send_key 'ret';
-
-    assert_screen 'ibus-region-language';
-    assert_and_click 'ibus-input-source-options';
-    assert_and_click 'ibus-input-language-list';
-    type_string 'japanese';
-
-    assert_and_click 'ibus-input-japanese';
-    assert_and_dclick 'ibus-input-japanese-kkc';
-    assert_screen 'ibus-input-added-jp';
-    send_key 'alt-f4';
-    assert_screen 'generic-desktop';
-}
 
 sub test_jp {
     x11_start_program('gedit');
@@ -62,8 +43,8 @@ sub run {
 
     assert_screen "generic-desktop";
 
-    # enable Japanses input sources
-    ibus_enable_source_jp;
+    # add Japanses input source
+    $self->add_input_resource("japanese");
 
     # open gedit and test chinese
     test_jp;

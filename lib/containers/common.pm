@@ -236,7 +236,8 @@ sub test_container_image {
             assert_script_run("buildah pull $image", timeout => 300);
             assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
         }
-        my $container = script_output("buildah from $image");
+        # Ignore stderr explicitly, script_output with serial_terminal captures that as well.
+        my $container = script_output("buildah from $image 2>/dev/null");
         record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
         assert_script_run("buildah run $container $smoketest");
     } else {
