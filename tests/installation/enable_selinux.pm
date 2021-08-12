@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Enable SELinux during installation
+# Maintainer: Ludwig Nussel <lnussel@suse.com>
 
 use strict;
 use warnings;
