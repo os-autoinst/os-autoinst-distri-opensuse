@@ -19,7 +19,7 @@ conditional_schedule:
       s390x:
         - containers/docker_runc
   supported:
-    HOST_VERSION:
+    VERSION:
       15-SP4:
         - containers/buildah_docker
       15-SP3:

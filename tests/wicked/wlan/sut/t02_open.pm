@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -35,11 +35,27 @@ has hostapd_conf => q(
     hw_mode=g
 );
 
-has ifcfg_wlan => q(
-    STARTMODE='auto'
-    BOOTPROTO='dhcp'
-    WIRELESS_MODE='Managed'
-    WIRELESS_ESSID='{{ssid}}'
-);
+has ifcfg_wlan => sub { [
+        q(
+            STARTMODE='auto'
+            BOOTPROTO='dhcp'
+
+            WIRELESS_MODE='Managed'
+            WIRELESS_ESSID='{{ssid}}'
+        ),
+        q(
+            STARTMODE='auto'
+            BOOTPROTO='dhcp'
+
+            WIRELESS_ESSID='{{ssid}}'
+        ),
+        q(
+            STARTMODE='auto'
+            BOOTPROTO='dhcp'
+
+            WIRELESS_AUTH_MODE='open'
+            WIRELESS_ESSID='{{ssid}}'
+        )
+] };
 
 1;

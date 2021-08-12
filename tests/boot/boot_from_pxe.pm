@@ -178,6 +178,7 @@ sub run {
 
         # Proceed if the 'installation' console is ready
         # otherwise the 'sol' console may be just freezed
+        wait_still_screen(stilltime => 180, timeout => 185);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
@@ -185,13 +186,13 @@ sub run {
                 my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
                 my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
                 $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}/initrd" if (!is_orthos_machine);
-                wait_still_screen 5;
-                type_string $args;
+                type_string_slow $args;
                 send_key 'ret';
                 #Detect orthos-grub-boot-initrd and qa-net-grub-boot-initrd for aarch64 in orthos and openQA networks respectively
+                wait_still_screen(stilltime => 480, timeout => 485);
                 assert_screen [qw(orthos-grub-boot-initrd qa-net-grub-boot-initrd)], $ssh_vnc_wait_time;
                 $args = "boot";
-                type_string $args;
+                type_string_slow $args;
                 send_key "ret";
                 assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
             }

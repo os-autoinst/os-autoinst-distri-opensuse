@@ -997,4 +997,33 @@ sub start_gnome_tweak_tool {
     }
 }
 
+# Since GNOME 40 or later, the 'Input Sources' is no longer in the 'Region & Language' panel
+# The 'Input Sources' is in the gnome-control-center 'Keyboard' panel now
+# Navigate to the 'Keyboard' panel first and then add the input source that to be tested
+sub add_input_resource {
+    my ($self, $tag) = @_;
+
+    if (is_sle('<=15-sp3') || is_leap('<=15.3')) {
+        x11_start_program "gnome-control-center region", target_match => "g-c-c-region-language";
+    } else {
+        x11_start_program "gnome-control-center keyboard", target_match => "g-c-c-keyboard";
+    }
+
+    assert_and_click 'ibus-input-source-add';
+    assert_and_click 'ibus-input-language-list';
+    type_string $tag;
+
+    assert_and_click "ibus-input-$tag";
+    if ($tag eq "japanese") {
+        assert_and_dclick 'ibus-input-japanese-kkc';
+    } elsif ($tag eq "chinese") {
+        assert_and_dclick 'ibus-input-chinese-pinyin';
+    } elsif ($tag eq "korean") {
+        assert_and_dclick 'ibus-input-korean-hangul';
+    }
+    assert_screen "ibus-input-added-$tag";
+    send_key 'alt-f4';
+    assert_screen 'generic-desktop';
+}
+
 1;

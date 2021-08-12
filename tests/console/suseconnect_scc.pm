@@ -49,8 +49,8 @@ sub run {
     if (is_sle) {
         # What has been activated by default
         assert_script_run q[SUSEConnect --list-extensions | grep -e '\(Activated\)'];
-        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"';
-        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'        \e\[1mWeb and Scripting Module\')"';
+        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mServer Applications Module\')"' unless is_sle('=12-sp5');
+        assert_script_run 'SUSEConnect --list-extensions | grep "$(echo -en \'    \e\[1mWeb and Scripting Module\')"';
     }
 
     # add modules

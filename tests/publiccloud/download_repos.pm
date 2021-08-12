@@ -29,12 +29,15 @@ sub get_repo_status {
 
 sub run {
     my ($self, $args) = @_;
-
     select_host_console();    # select console on the host, not the PC instance
 
+    # Skip maintenance updates. This is useful for debug runs
+    # Note: QAM_PUBLICCLOUD_SKIP_DOWNLOAD is left for backwards compatability and will be removed in the future
+    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD', 0));
+
     # Trigger to skip the download to speed up verification runs
-    if (get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD') == 1) {
-        record_info('Skip download', 'Skipping download triggered by setting (QAM_PUBLICCLOUD_SKIP_DOWNLOAD = 1)');
+    if ($skip_mu) {
+        record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
     } else {
         # Skip if we already downloaded the repos
         if (get_repo_status() == 1) {

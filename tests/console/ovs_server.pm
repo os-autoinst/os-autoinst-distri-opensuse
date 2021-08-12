@@ -87,7 +87,7 @@ sub run {
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
     add_bridge("$server_vpn");
-    assert_script_run("mkdir $dir && cd $dir");
+    assert_script_run("mkdir -p $dir && cd $dir");
 
     # Setup IPsec tunnel using self-signed certificate
     # Generate self-signed certificate

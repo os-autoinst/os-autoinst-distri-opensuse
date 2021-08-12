@@ -369,7 +369,7 @@ sub run {
         assert_script_run('generate_lvm_runfile.sh');
     }
 
-    is_jeos && zypper_call 'in system-user-bin system-user-daemon';
+    (is_jeos && is_sle('>15')) && zypper_call 'in system-user-bin system-user-daemon';
 
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command
     # file
