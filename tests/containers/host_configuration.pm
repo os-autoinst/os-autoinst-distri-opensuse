@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Setup system which will host containers
-# - setup networking via dhclient
+# - setup networking via dhclient when is needed
 # - make sure that ca certifications were installed
 # - import SUSE CA certificates
 # Maintainer: qa-c team <qa-c@suse.de>
@@ -30,7 +30,8 @@ sub run {
         disable_and_stop_service(opensusebasetest::firewall, ignore_failure => 1);
     }
     else {
-        assert_script_run "dhclient -v";
+        # Re-running dhclient on RHEL is confusing the routing tables
+        assert_script_run "dhclient -v" unless get_var("HDD_1") =~ /rhel/;
         $interface = script_output q@ip r s default | head -1 | awk '{printf $5}'@;
         validate_script_output "ip a s '$interface'", sub { m/((\d{1,3}\.){3}\d{1,3}\/\d{1,2})/ };
         assert_script_run "curl http://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/ssl/certs/SUSE_Trust_Root.crt" if is_sle();
