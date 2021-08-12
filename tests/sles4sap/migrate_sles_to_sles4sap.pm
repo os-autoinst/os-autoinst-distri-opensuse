@@ -9,6 +9,10 @@
 
 # Summary: Perform an horizontal migration from SLES to SLES4SAP
 # Maintainer: Ricardo Branco <rbranco@suse.de>
+# Note: This test will pass if the migration from SLES to SLES4SAP is
+#       successful, but as well if the SCC_REGCODE_SLES4SAP var holds
+#       the special value "invalid_key" and the migrate-sles-to-sles4sap
+#       script does a roll back to SLES.
 
 use base 'sles4sap';
 use strict;
@@ -47,12 +51,18 @@ sub run {
     wait_serial "Please enter the email address to be used to register", timeout => 5;
     send_key 'ret';
     wait_serial "Please enter your activation code", timeout => 5;
-    enter_cmd "${regcode}";
-    assert_script_run "ls /tmp/OK";
-    zypper_call "in -y -t pattern sap_server";
+    enter_cmd $regcode;
 
-    # We have now a SLES4SAP product, so we need to notify the test(s)
-    set_var('SLE_PRODUCT', 'sles4sap');
+    # test either a failing migration or a working one
+    if ($regcode eq "invalid_key") {
+        wait_serial("Rolling back to", timeout => 5) || die "$cmd didn't roll back with an invalid key as expected.";
+        assert_script_run "! test -f /tmp/OK";
+    } else {
+        assert_script_run "ls /tmp/OK";
+        zypper_call "in -y -t pattern sap_server";
+        # We have now a SLES4SAP product, so we need to notify the test(s)
+        set_var('SLE_PRODUCT', 'sles4sap');
+    }
 }
 
 sub test_flags {
