@@ -9,6 +9,7 @@
 
 # Summary:
 #
+# Summary: This test module selects the guided setup
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use parent 'y2_installbase';

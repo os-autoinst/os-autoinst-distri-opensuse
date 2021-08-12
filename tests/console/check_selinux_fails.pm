@@ -7,7 +7,8 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: Look for selinux fails in audit log
+# Summary: This test looks for selinux fails in audit log
+# Maintainer: Ludwig Nussel <lnussel@suse.com>
 
 use base "consoletest";
 use strict;
