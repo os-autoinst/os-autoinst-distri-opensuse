@@ -99,6 +99,7 @@ our @EXPORT = qw(
   assert_secureboot_status
   susefirewall2_to_firewalld
   permit_root_ssh
+  permit_root_ssh_in_sol
 );
 
 =head1 SYNOPSIS
@@ -2030,6 +2031,22 @@ sub permit_root_ssh {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         assert_script_run("systemctl restart sshd");
     }
+}
+
+=head2 permit_root_ssh_in_sol
+    permit_root_ssh_in_sol();
+
+for ipmi backend, PermitRootLogin has to be set in sol console
+however, assert_script_run and script_run is not stable in sole console
+enter_cmd or type_string are acceptable
+
+=cut
+
+sub permit_root_ssh_in_sol {
+    my $sshd_config_file = shift;
+
+    $sshd_config_file //= "/etc/ssh/sshd_config";
+    enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)");
 }
 
 1;

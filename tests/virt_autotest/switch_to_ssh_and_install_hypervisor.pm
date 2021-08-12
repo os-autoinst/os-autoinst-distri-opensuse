@@ -20,18 +20,25 @@ use base 'virt_autotest_base';
 use testapi;
 use ipmi_backend_utils;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend);
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl permit_root_ssh_in_sol);
 use virt_autotest::utils qw(is_kvm_host is_xen_host);
 
 sub run {
 
-    #skip TW host installation and directly login if you'd like to run test on an SUT with TW installed
-    if (get_var('IPMI_DO_NOT_RESTART_HOST')) {
-        select_console 'sol', await_console => 0;
-        send_key 'ret';
+    #enable ssh root access for openSUSE TW in sol console
+    #root access is not permitted by default in TW, see bsc#1173067#c2
+    select_console 'sol', await_console => 1;
+    send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+    if (check_screen('text-login')) {
+        enter_cmd "root";
+        assert_screen "password-prompt";
+        type_password;
+        send_key('ret');
     }
-
-    use_ssh_serial_console unless check_screen('text-logged-in-root');
+    assert_screen "text-logged-in-root";
+    #skip TW host installation and directly login if you'd like to run test on an SUT with TW installed
+    permit_root_ssh_in_sol unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    select_console('root-ssh');
 
     return if get_var('IPMI_DO_NOT_RESTART_HOST');
 
@@ -42,13 +49,6 @@ sub run {
     set_serial_console_on_vh('', '', $hypervisor);
 
     virt_autotest::utils::install_default_packages();
-    zypper_call('in bridge-utils');
-
-    #check status of libvirtd
-    systemctl 'status libvirtd', ignore_failure => 1;
-    save_screenshot;
-    systemctl 'restart libvirtd', ignore_failure => 1;
-    systemctl 'status libvirtd',  ignore_failure => 1;
     save_screenshot;
 }
 

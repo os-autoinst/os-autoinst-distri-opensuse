@@ -792,7 +792,7 @@ sub config_guest_network_bridge_device {
                 #NIC in openSUSE TW guest is unable to get the IP from its network configration file with 'wicked ifup' or 'ifup'
                 #Not sure if it is a bug yet. This is just a temporary solution.
                 my $_bridge_ipaddr = script_output("grep IPADDR $_bridge_device_config_file | cut -d \"'\" -f2");
-                script_retry("brctl addbr $_bridge_device && ip addr add $_bridge_ipaddr dev $_bridge_device && ip link set $_bridge_device up", retry => 3, die => 0);
+                script_retry("ip link add $_bridge_device type bridge && ip addr add $_bridge_ipaddr dev $_bridge_device && ip link set $_bridge_device up", retry => 3, die => 0);
             }
             else {
                 script_retry("wicked ifup $_bridge_device_config_file $_bridge_device", retry => 3, die => 0);
