@@ -51,20 +51,18 @@ sub run {
     wait_serial "Please enter the email address to be used to register", timeout => 5;
     send_key 'ret';
     wait_serial "Please enter your activation code", timeout => 5;
-    enter_cmd "$regcode";
+    enter_cmd $regcode;
 
     # test either a failing migration or a working one
     if ($regcode eq "invalid_key") {
-        wait_serial "Unknown Registration Code.", timeout => 5;
-        wait_serial "Rolling back to", timeout => 5;
-        wait_serial "Exiting.", timeout => 5;
+        wait_serial("Rolling back to", timeout => 5) || die "$cmd didn't roll back with an invalid key as expected.";
+        assert_script_run "! test -f /tmp/OK";
     } else {
         assert_script_run "ls /tmp/OK";
         zypper_call "in -y -t pattern sap_server";
+        # We have now a SLES4SAP product, so we need to notify the test(s)
+        set_var('SLE_PRODUCT', 'sles4sap');
     }
-
-    # We have now a SLES4SAP product, so we need to notify the test(s)
-    set_var('SLE_PRODUCT', 'sles4sap');
 }
 
 sub test_flags {
