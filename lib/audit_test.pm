@@ -115,27 +115,27 @@ sub compare_run_log {
     }
     else {
         my @lines = split(/\n/, path("$baseline_file")->slurp);
-        %baseline_results = map { $_->{name} => {id => $_->{id}, result => $_->{result}} } parse_lines(\@lines);
+        %baseline_results = map { $_->{id} => {name => $_->{name}, result => $_->{result}} } parse_lines(\@lines);
     }
 
     my $flag = 'ok';
     foreach my $current_result (@current_results) {
         my $c_id     = $current_result->{id};
         my $c_result = $current_result->{result};
-        my $key      = $current_result->{name};
-        unless ($baseline_results{$key}) {
-            my $msg = "poo#93441\nNo baseline found(defined).\n$c_id $key $c_result";
-            $flag = _parse_results_with_diff_baseline($key, $c_result, $msg, $flag);
+        my $name     = $current_result->{name};
+        unless ($baseline_results{$c_id}) {
+            my $msg = "poo#93441\nNo baseline found(defined).\n$c_id $name $c_result";
+            $flag = _parse_results_with_diff_baseline($name, $c_result, $msg, $flag);
             next;
         }
-        my $b_id     = $baseline_results{$key}->{id};
-        my $b_result = $baseline_results{$key}->{result};
+        my $b_name   = $baseline_results{$c_id}->{name};
+        my $b_result = $baseline_results{$c_id}->{result};
         if ($c_result ne $b_result) {
-            my $info = "poo#93441\nTest result is NOT same as baseline \nCurrent:  $c_id $key $c_result\nBaseline: $b_id $key $b_result";
-            $flag = _parse_results_with_diff_baseline($key, $c_result, $info, $flag);
+            my $info = "poo#93441\nTest result is NOT same as baseline \nCurrent:  $c_id $name $c_result\nBaseline: $c_id $b_name $b_result";
+            $flag = _parse_results_with_diff_baseline($name, $c_result, $info, $flag);
             next;
         }
-        record_info($key, "Test result is the same as baseline\n$c_id $key $c_result", result => 'ok');
+        record_info($name, "Test result is the same as baseline\n$c_id $name $c_result", result => 'ok');
     }
     return $flag;
 }
