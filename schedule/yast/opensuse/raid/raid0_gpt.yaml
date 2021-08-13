@@ -1,10 +1,10 @@
-name:           RAID5_gpt_opensuse
+name:           RAID0_gpt
 description:    >
-  Configure RAID 5 on the disks with GPT partition tables using Expert Partitioner.
+  Configure RAID 0 on the disks with GPT partition tables using Expert Partitioner.
   Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
-  them for RAID 5.
+  them for RAID 0.
 vars:
-  RAIDLEVEL: 5
+  RAIDLEVEL: 0
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -16,6 +16,7 @@ schedule:
   - installation/system_role
   - installation/partitioning/raid_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
@@ -33,35 +34,4 @@ schedule:
   - console/validate_md_raid
   - console/validate_raid
 test_data:
-  <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
-  mds:
-    - raid_level: 5
-      name: md0
-      chunk_size: '64 KiB'
-      devices:
-        - vda2
-        - vdb2
-        - vdc2
-        - vdd2
-      partition:
-        role: operating-system
-        formatting_options:
-          should_format: 1
-        mounting_options:
-          should_mount: 1
-    - raid_level: 0
-      name: md1
-      chunk_size: '64 KiB'
-      devices:
-        - vda3
-        - vdb3
-        - vdc3
-        - vdd3
-      device_selection_step: 1
-      partition:
-        role: swap
-        formatting_options:
-          should_format: 1
-          filesystem: swap
-        mounting_options:
-          should_mount: 1
+  <<: !include test_data/yast/raid/raid0_gpt_bios_boot.yaml

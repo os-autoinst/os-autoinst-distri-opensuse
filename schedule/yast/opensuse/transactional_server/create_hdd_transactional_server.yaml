@@ -1,5 +1,5 @@
 ---
-name: create_hdd_transactional_server_opensuse
+name: create_hdd_transactional_server
 description: >
   Installation of a Transactional Server which uses a read-only
   root filesystem to provide atomic, automatic updates of a

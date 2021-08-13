@@ -1,5 +1,5 @@
 ---
-name: btrfs+warnings_opensuse
+name: btrfs+warnings
 description: >
   Test suite verifies variety of warning which are expected to be shown when
   something is missing during manual partitioning using Expert Partitioner.

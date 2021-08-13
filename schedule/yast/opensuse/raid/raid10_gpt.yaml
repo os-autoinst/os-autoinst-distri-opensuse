@@ -1,10 +1,10 @@
-name:           RAID1_gpt_opensuse
+name:           RAID10_gpt
 description:    >
-  Configure RAID 1 on the disks with GPT partition tables using Expert Partitioner.
+  Configure RAID 10 on the disks with GPT partition tables using Expert Partitioner.
   Creates BIOS boot, root and swap partitions on each of the 4 disks and then uses
-  them for RAID 1.
+  them for RAID 10.
 vars:
-  RAIDLEVEL: 1
+  RAIDLEVEL: 10
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -16,7 +16,6 @@ schedule:
   - installation/system_role
   - installation/partitioning/raid_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
-  - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
@@ -36,7 +35,7 @@ schedule:
 test_data:
   <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
   mds:
-    - raid_level: 1
+    - raid_level: 10
       name: md0
       chunk_size: '64 KiB'
       devices:
@@ -44,7 +43,6 @@ test_data:
         - vdb2
         - vdc2
         - vdd2
-      device_selection_step: 2
       partition:
         role: operating-system
         formatting_options:

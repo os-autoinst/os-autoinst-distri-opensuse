@@ -1,5 +1,5 @@
 ---
-name: installer_extended_opensuse
+name: installer_extended
 description: >
   Test suite performs additional UI checks. As of now following is tested:
      - Switch keyboard layout and test it (only when is not VNC installation)

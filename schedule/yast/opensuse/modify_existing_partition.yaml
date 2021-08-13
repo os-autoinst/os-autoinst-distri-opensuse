@@ -1,4 +1,4 @@
-name:           modify_existing_partition_opensuse
+name:           modify_existing_partition
 description:    >
   Installation where we modify some pre-existing partitions. Must depend on some create_hdd test suite.
 vars:

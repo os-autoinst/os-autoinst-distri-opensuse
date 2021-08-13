@@ -1,0 +1,6 @@
+name:           yast_oneclick_install
+description:    >
+    Test OneClickInstallCLI and OneClickInstallUI
+schedule:
+  - boot/boot_to_desktop
+  - console/oneclick_install
