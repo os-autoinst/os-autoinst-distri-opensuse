@@ -63,47 +63,35 @@ sub run() {
     my $websocket_test = Tomcat::WebSocketsTest->new();
     $websocket_test->test_all_examples();
 
-    # Close firefox
-    $self->close_firefox();
-    assert_screen('generic-desktop');
-
     # Install and configure apache2 and apache2-mod_jk connector
     Tomcat::ModjkTest->mod_jk_setup();
     $self->switch_to_desktop();
 
-    # start firefox
-    $self->start_firefox_with_profile();
     $self->firefox_open_url('http://localhost/examples/servlets');
     send_key_until_needlematch('tomcat-servlet-examples-page', 'ret');
 
     $self->firefox_open_url('http://localhost/examples/jsp');
     send_key_until_needlematch('tomcat-jsp-examples', 'ret');
-    $self->close_firefox();
 
     $self->select_serial_terminal();
     systemctl('start tomcat');
 
+    record_info("Test modjk");
+
     my $with_modjk = 1;
     $self->switch_to_desktop();
-    # start firefox
-    $self->start_firefox_with_profile();
+
     record_info('Servlet Testing');
     $servlet_test->test_all_examples($with_modjk);
 
     record_info('JSP Testing');
     $jsp_test->test_all_examples($with_modjk);
 
-    $self->close_firefox();
-
-    $self->select_serial_terminal();
     # Connection from apache2 to tomcat: Functionality test
     Tomcat::ModjkTest->func_conn_apache2_tomcat();
 
     # switch to desktop
     $self->switch_to_desktop();
-
-    # start firefox
-    $self->start_firefox_with_profile();
 
     $self->firefox_open_url('http://localhost');
     send_key_until_needlematch('tomcat-succesfully-installed', 'ret');
