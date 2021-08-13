@@ -20,8 +20,18 @@ use testapi;
 use repo_tools 'add_qa_head_repo';
 
 sub install_pkg {
+    my $sleperf_source = get_var('SLE_SOURCE');
+    my $ver_path       = "/root";
     add_qa_head_repo;
-    zypper_call("install qa_testset_automation");
+    if (get_var("SLEPERF")) {
+        assert_script_run("wget --quiet -P $ver_path $sleperf_source 2>&1");
+        assert_script_run("tar xf /root/sleperf.tar -C /root");
+        assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh scheduler-service");
+        assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh common-infra");
+    }
+    else {
+        zypper_call("install qa_testset_automation");
+    }
 }
 
 sub setup_environment {
