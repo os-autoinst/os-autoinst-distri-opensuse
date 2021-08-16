@@ -75,7 +75,10 @@ sub update_password {
                 record_soft_failure("bsc#1188390");
 
                 # Retrying the adcli join is needed, probably due to https://bugs.freedesktop.org/show_bug.cgi?id=55487
-                script_retry 'adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 5, timeout => 60;
+                if (script_retry('adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 15, timeout => 60, die => 0) != 0) {
+                    record_soft_failure('poo#96983');
+                    return;
+                }
             }
         }
 
@@ -121,7 +124,10 @@ sub run {
     assert_script_run "expect kinit.exp";
 
     # Retrying the adcli join is needed, probably due to https://bugs.freedesktop.org/show_bug.cgi?id=55487
-    script_retry 'adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 5, timeout => 60;
+    if (script_retry('adcli join -v -W --domain geeko.com -U Administrator -C', delay => 10, retry => 15, timeout => 60, die => 0) != 0) {
+        record_soft_failure('poo#96983');
+        return;
+    }
 
     #Verify if machine already added
     assert_script_run "adcli info -D geeko.com  -S $AD_hostname -v";
@@ -131,7 +137,10 @@ sub run {
     # if something is not working in the future: i.e authentication is not working, switching to using expect
     # would be a better idea
     assert_script_run "klist";
-    assert_script_run "echo Nots3cr3t  | net ads join --domain geeko.com -U Administrator --no-dns-updates -i";
+    if (script_run("echo Nots3cr3t  | net ads join --domain geeko.com -U Administrator --no-dns-updates -i") != 0) {
+        record_soft_failure('poo#96986');
+        return;
+    }
 
     #systemctl('restart nmb');
     #systemctl('restart winbind');
@@ -146,13 +155,17 @@ sub run {
 
     systemctl('restart nscd');
     #Verify users and groups  from AD
-    assert_script_run "wbinfo -u | grep foursixnine";
+    if (script_run("wbinfo -u | grep foursixnine") != 0) {
+        record_soft_failure('poo#96513');
+    }
     assert_script_run "wbinfo -g | grep dnsupdateproxy";
     assert_script_run "wbinfo -D geeko.com";
     assert_script_run "wbinfo -i geekouser\@geeko.com";
     assert_script_run "wbinfo -i Administrator\@geeko.com";
 
-    assert_script_run "expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;expect geekouser>;send exit\\n;interact'";
+    if (script_run("expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;expect geekouser>;send exit\\n;interact'") != 0) {
+        record_soft_failure('poo#96512');
+    }
 
     # poo#91950 (update machine password with adcli --add-samba-data option)
     update_password() unless is_sle('=15');    # sle 15 does not support the `--add-samba-data` option
