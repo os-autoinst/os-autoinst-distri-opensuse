@@ -56,7 +56,17 @@ sub run_testcase {
     # Export MODE
     assert_script_run("export MODE=$audit_test::mode");
 
-    assert_script_run('./run.bash', timeout => $args{timeout});
+    # Test case 'audit-remote-libvirt' does not generate any logs
+    if ($testcase eq 'audit-remote-libvirt') {
+        # Note: the outputs of run.bash can not be saved to "./$file" so save to "../$file"
+        script_run("./run.bash 1>../$current_file 2>&1", timeout => $args{timeout});
+        assert_script_run("mv ../$current_file $current_file");
+        assert_script_run("cat $current_file");
+        assert_script_run("cp $current_file ./rollup.log");
+    }
+    else {
+        assert_script_run('./run.bash', timeout => $args{timeout});
+    }
 
     # Upload logs
     upload_logs("$current_file");
