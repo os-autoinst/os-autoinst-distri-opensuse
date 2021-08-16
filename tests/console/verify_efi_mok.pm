@@ -149,7 +149,9 @@ sub get_esp_info {
         if (!defined($drive) && $line =~ /gpt/ && $line =~ /$vbd/) {
             ($drive) = split(/:/, $line, 2);
         }
-        if (!defined($esp_part_no) && $line =~ /boot,\s?esp/) {
+        # older versions of parted used in sle12+ do not detect ESP specifically
+        # it is only labelled with "boot" flag instead of "boot, esp" as in sle15+
+        if (!defined($esp_part_no) && $line =~ /boot,\s?esp|boot/) {
             ($esp_part_no) = split(/:/, $line, 2);
         }
     }
@@ -185,7 +187,7 @@ sub run {
     # run fs check on ESP
     record_info "ESP", "Partition [$esp_details->{partition}], \nFilesystem [$esp_details->{fs}],\nMountPoint [$esp_details->{mount}]";
     assert_script_run "umount $esp_details->{mount}";
-    assert_script_run "fsck.vfat -tvV $esp_details->{partition}";
+    assert_script_run "fsck.vfat -vV $esp_details->{partition}";
     assert_script_run "mount $esp_details->{mount}";
 
     # SUT can boot from removable (firstboot of HDD, ISO, USB bootable medium) or boot entry (non-removable)
