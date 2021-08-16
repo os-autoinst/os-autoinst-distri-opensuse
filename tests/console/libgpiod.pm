@@ -1,3 +1,7 @@
+# SUSE's openQA tests
+#
+# Copyright © 2016-2021 SUSE LLC
+#
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
@@ -5,7 +9,7 @@
 
 # Package: libgpiod
 # Summary: Test libgpiod
-#  More information can be found on https://en.opensuse.org/openSUSE:GPIO
+# More information can be found on https://en.opensuse.org/openSUSE:GPIO
 # Maintainer: Guillaume Gardet <guillaume@opensuse.org>
 
 use base "consoletest";
