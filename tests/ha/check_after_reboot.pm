@@ -78,7 +78,11 @@ sub run {
         systemctl 'restart pacemaker', timeout => $default_timeout;
     }
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;
-    systemctl 'status pacemaker',        timeout => $default_timeout;
+    if (get_var('USE_DISKLESS_SBD') and check_var('QDEVICE_TEST_ROLE', 'client')) {
+        assert_script_run 'crm cluster restart';
+        record_soft_failure 'bsc#1189398 - Node reboots too fast in DISKLESS SBD with QDEVICE';
+    }
+    systemctl 'status pacemaker', timeout => $default_timeout;
 
     # Wait for resources to be started
     if (is_sles4sap) {
