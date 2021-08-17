@@ -87,6 +87,8 @@ sub run {
     my $WAIT_SECONDS = get_var("WICKED_WAIT_SECONDS", 70);
 
     $self->select_serial_terminal;
+    return if ($self->skip_by_wicked_version());
+
     $self->setup_ref();
 
     # Start hostapd
