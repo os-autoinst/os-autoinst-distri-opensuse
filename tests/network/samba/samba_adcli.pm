@@ -117,7 +117,7 @@ sub run {
     my $self = shift;
     # select_console 'root-console';
     $self->select_serial_terminal;
-    $self->disable_ipv6 if is_s390x;
+    $self->disable_ipv6;
     samba_sssd_install;
 
     #Join the Active Directory
@@ -178,7 +178,7 @@ sub run {
     # - delete the computer OU after the test is done in post_run_hook
     # - test winbind (samba?) authentication
 
-    $self->enable_ipv6 if is_s390x;
+    $self->enable_ipv6;
 }
 
 sub post_fail_hook {
@@ -187,7 +187,7 @@ sub post_fail_hook {
     $self->select_serial_terminal;
     script_run 'tar Jcvf samba_adcli.tar.xz /etc/sssd /var/log/samba /var/log/sssd /var/log/krb5';
     upload_logs('./samba_adcli.tar.xz');
-    $self->enable_ipv6 if is_s390x;
+    $self->enable_ipv6;
 }
 
 1;
