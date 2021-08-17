@@ -818,6 +818,8 @@ sub get_addon_fullname {
         tsm       => 'sle-module-transactional-server',
         espos     => 'ESPOS',
         nvidia    => 'sle-module-NVIDIA-compute',
+        idu       => is_sle('15+') ? 'IBM-POWER-Tools'         : 'IBM-DLPAR-utils',
+        ids       => is_sle('15+') ? 'IBM-POWER-Adv-Toolchain' : 'IBM-DLPAR-SDK',
     );
     return $product_list{"$addon"};
 }
