@@ -1,0 +1,16 @@
+---
+name: publiccloud-smoketest
+description: |
+  Basic smoketests on public cloud instances
+schedule:
+  - boot/boot_to_desktop
+  - publiccloud/download_repos
+  - publiccloud/ssh_interactive_init
+  - publiccloud/register_system
+  - publiccloud/transfer_repos
+  - publiccloud/patch_and_reboot
+  - publiccloud/ssh_interactive_start
+  - publiccloud/instance_overview
+  - publiccloud/smoketest
+  - publiccloud/sev
+  - publiccloud/ssh_interactive_end

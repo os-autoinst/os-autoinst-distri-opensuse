@@ -123,6 +123,7 @@ sub img_proof {
 sub terraform_apply {
     my ($self, %args) = @_;
     $args{project} //= $self->project_id;
+    $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
     return $self->SUPER::terraform_apply(%args);
 }
 
