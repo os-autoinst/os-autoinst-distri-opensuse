@@ -2197,7 +2197,6 @@ sub load_security_tests_crypt_core {
     loadtest "fips/openssl/openssl_pubkey_dsa";
     loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
     loadtest "console/sshd";
-    loadtest "console/ssh_pubkey" unless is_jeos;
     loadtest "console/ssh_cleanup";
 }
 
