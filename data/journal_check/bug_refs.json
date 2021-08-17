@@ -30,7 +30,7 @@
             "opensuse": ["Tumbleweed", "15.3"]
         },
         "type": "bug"
-    },    
+    },
     "bsc#1188237": {
         "description": "kevent 4 may have been dropped",
         "products": {
@@ -160,6 +160,13 @@
     },
     "bsc#1032323": {
         "description": "Initialization of hypfs failed|The hardware system does not support hypfs",
+        "products": {
+            "sle-micro": [ "5.1" ]
+        },
+        "type": "bug"
+    },
+    "bsc#1188215": {
+        "description": "Failed to start Create missing directories from rpmdb",
         "products": {
             "sle-micro": [ "5.1" ]
         },
