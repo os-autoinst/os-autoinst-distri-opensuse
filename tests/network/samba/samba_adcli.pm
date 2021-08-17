@@ -154,14 +154,19 @@ sub run {
     }
 
     systemctl('restart nscd');
+
     #Verify users and groups  from AD
-    if (script_run("wbinfo -u | grep foursixnine") != 0) {
+    my $wbinfo_ret = 0;
+    $wbinfo_ret += script_run "wbinfo -u | grep foursixnine";
+    $wbinfo_ret += script_run "wbinfo -g | grep dnsupdateproxy";
+    $wbinfo_ret += script_run "wbinfo -D geeko.com";
+    $wbinfo_ret += script_run "wbinfo -i geekouser\@geeko.com";
+    $wbinfo_ret += script_run "wbinfo -i Administrator\@geeko.com";
+
+    # If any of the wbinfo commands did not return successfully, softfail
+    if ($wbinfo_ret != 0) {
         record_soft_failure('poo#96513');
     }
-    assert_script_run "wbinfo -g | grep dnsupdateproxy";
-    assert_script_run "wbinfo -D geeko.com";
-    assert_script_run "wbinfo -i geekouser\@geeko.com";
-    assert_script_run "wbinfo -i Administrator\@geeko.com";
 
     if (script_run("expect -c 'spawn ssh -l geekouser\@geeko.com localhost -t;expect sword:;send Nots3cr3t\\n;expect geekouser>;send exit\\n;interact'") != 0) {
         record_soft_failure('poo#96512');
@@ -170,7 +175,10 @@ sub run {
     # poo#91950 (update machine password with adcli --add-samba-data option)
     update_password() unless is_sle('=15');    # sle 15 does not support the `--add-samba-data` option
 
-    assert_script_run "echo Nots3cr3t  | net ads leave --domain geeko.com -U Administrator -i";
+    if ((script_run "echo Nots3cr3t  | net ads leave --domain geeko.com -U Administrator -i") != 0) {
+        record_soft_failure('poo#96986');
+        return;
+    }
 
     # For futher extensions
     # - Mount //GEEKO
