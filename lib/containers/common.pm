@@ -133,19 +133,6 @@ sub allow_selected_insecure_registries {
     $runtime->setup_registry();
 }
 
-sub clean_container_host {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-    if ($runtime =~ /buildah/) {
-        assert_script_run("$runtime rm --all",          timeout => 180);
-        assert_script_run("$runtime rmi --all --force", timeout => 300);
-    } else {
-        assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
-        assert_script_run("$runtime system prune -a -f",             300);
-    }
-}
-
 sub test_container_runtime {
     my $runc = shift;
     die "You must define the runtime!" unless $runc;
@@ -217,22 +204,22 @@ sub test_container_image {
 
     my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
-    if ($runtime->runtime =~ /buildah/) {
-        if (script_run("buildah images | grep '$image'") != 0) {
-            assert_script_run("buildah pull $image", timeout => 300);
-            assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
-        }
+    #if ($runtime->runtime =~ /buildah/) {
+        #if (script_run("buildah images | grep '$image'") != 0) {
+        #    assert_script_run("buildah pull $image", timeout => 300);
+        #    assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
+        #}
         # Ignore stderr explicitly, script_output with serial_terminal captures that as well.
-        my $container = script_output("buildah from $image 2>/dev/null");
-        record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
-        assert_script_run("buildah run $container $smoketest");
-    } else {
+       # my $container = script_output("buildah from $image 2>/dev/null");
+       # record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
+       # assert_script_run("buildah run $container $smoketest");
+    #} else {
         # Pull the image if necessary
-        if (script_run("$runtime->{runtime} image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
+        #if (script_run("$runtime->{runtime} image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
             # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
             $runtime->pull($image, timeout => 420);
             $runtime->check_image_in_host_registry($image);
-        }
+        #}
         $runtime->create_container($image, 'testing', $smoketest);
         $runtime->start_container('testing');
         $runtime->halt_container('testing');
@@ -248,7 +235,7 @@ sub test_container_image {
             die "Heartbeat test failed for $image";
         }
         assert_script_run "rm -f $logfile";
-    }
+    #}
 }
 
 sub scc_apply_docker_image_credentials {

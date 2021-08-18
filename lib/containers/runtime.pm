@@ -88,13 +88,9 @@ Give C<timeout> if you want to change the timeout passed to C<assert_script_run>
 sub build {
     my ($self, $dockerfile_path, $container_tag, %args) = @_;
     die 'wrong number of arguments' if @_ < 3;
-    unless ($self->runtime eq 'buildah') {
-        #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
-        $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", $args{timeout} // 300);
-    }
-    else {
-        $self->_rt_assert_script_run("bud -t $container_tag $dockerfile_path", $args{timeout} // 300);
-    }
+    
+    #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
+    $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", $args{timeout} // 300);
     record_info "$container_tag created", "";
 }
 
@@ -130,8 +126,12 @@ C<args> passes parameters to C<script_run>
 =cut
 sub pull {
     my ($self, $image_name, %args) = @_;
-    my $ret = $self->_rt_script_run("pull $image_name", timeout => $args{timeout} // 300);
-    return $ret;
+    if  (script_run("$self->runtime image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") != 0) {
+	return;
+    }
+    # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+    return $self->_rt_script_run("pull $image_name", timeout => $args{timeout} // 300);
+    #return $ret;
 }
 
 =head2 enum_images
@@ -262,6 +262,9 @@ sub cleanup_system_host {
 # Container runtime subclasses here
 package containers::runtime::docker;
 use Mojo::Base 'containers::runtime';
+use testapi;
+use containers::utils qw(registry_url);
+use utils qw(systemctl file_content_replace);
 has runtime => 'docker';
 
 sub setup_registry {
@@ -276,8 +279,11 @@ sub setup_registry {
 
 package containers::runtime::podman;
 use Mojo::Base 'containers::runtime';
-has runtime => "podman";
 use testapi;
+use containers::utils qw(registry_url);
+use utils qw(systemctl file_content_replace);
+has runtime => "podman";
+
 sub setup_registry {
     my ($self) = shift;
     my $registry = registry_url();
@@ -289,6 +295,9 @@ sub setup_registry {
 
 package containers::runtime::buildah;
 use Mojo::Base 'containers::runtime';
+use testapi;
+use containers::utils qw(registry_url);
+use utils qw(systemctl file_content_replace);
 has runtime => "buildah";
 
 sub cleanup_system_host {
@@ -312,4 +321,26 @@ sub get_images_by_repo_name {
     return \@images;
 }
 
+sub create_container {
+    my ($self, $image, $name, $args) = @_;
+    die 'wrong number of arguments' if @_ < 3;
+    my $container = $self->_rt_script_output("from $image 2>/dev/null");
+    record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
+    #$self->_rt_assert_script_run("container create --name $name $image $args", 300);
+    #record_info "$name container created", "";
+}
+
+sub start_container {
+    my ($self, $image_name) = @_;
+    die 'wrong number of arguments' if @_ < 2;
+    $self->_rt_assert_script_run("run $image_name");
+    record_info "$image_name container started", "";
+}
+
+sub build {
+    my ($self, $dockerfile_path, $container_tag, %args) = @_;
+    die 'wrong number of arguments' if @_ < 3;
+    $self->_rt_assert_script_run("bud -t $container_tag $dockerfile_path", $args{timeout} // 300);
+    record_info "$container_tag created", "";
+}
 1;
