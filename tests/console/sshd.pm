@@ -70,7 +70,15 @@ sub run {
     }
 
     # Restart sshd and check it's status
-    systemctl 'restart sshd';
+    my $ret          = systemctl('restart sshd', ignore_failure => 1);
+    my $fips_enabled = script_output('cat /proc/sys/crypto/fips_enabled') eq '1';
+
+    # If restarting sshd service is not successful and fips is enabled, we have encountered bsc#1189534
+    if (($ret != 0) && ($fips_enabled)) {
+        record_soft_failure("bsc#1189534");
+        return;
+    }
+
     systemctl 'status sshd';
 
     # Check that the daemons listens on right addresses/ports
