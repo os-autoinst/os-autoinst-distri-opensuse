@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,7 @@ use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
 
 sub run {
+    select_console "root-console";
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = "podman";
     install_podman_when_needed($host_distri);
@@ -29,6 +30,7 @@ sub run {
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
 
+    my $dockerfile = ($host_distri ne 'suse') ? 'Dockerfile.python3' : 'Dockerfile';
     for my $version (split(/,/, $versions)) {
         my ($untested_images, $released_images) = get_suse_container_urls($version);
         my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
@@ -36,7 +38,7 @@ sub run {
             record_info "IMAGE", "Testing image: $iname";
             test_container_image(image => $iname, runtime => $runtime);
             test_rpm_db_backend(image => $iname, runtime => $runtime);
-            build_and_run_image(base => $iname, runtime => $runtime);
+            build_and_run_image(base => $iname, runtime => $runtime, dockerfile => $dockerfile);
             if (check_os_release('suse', 'PRETTY_NAME')) {
                 test_opensuse_based_image(image => $iname, runtime => $runtime, version => $version);
             }
