@@ -24,6 +24,7 @@ use testapi;
 use strict;
 use warnings;
 use utils 'zypper_call';
+use version_utils qw(is_tumbleweed);
 
 sub run {
     select_console 'root-console';
@@ -42,14 +43,15 @@ sub run {
 
     # Lists all ciphers, check the certificate types and double confirm TLS1.3,DTLS1.2 and SSL3.0
     assert_script_run 'gnutls-cli -l | grep "Certificate types" | grep "CTYPE-X.509"';
-    assert_script_run 'gnutls-cli -l | grep Protocols | grep VERS-SSL3.0 | grep VERS-TLS1.3 | grep VERS-DTLS1.2';
+    my $re_proto = is_tumbleweed ? 'grep -e VERS-TLS1.2 -e VERS-TLS1.3 -e VERS-DTLS1.2' : 'grep -e VERS-SSL3.0 -e VERS-TLS1.3 -e VERS-DTLS1.2';
+    assert_script_run "gnutls-cli -l | grep Protocols | $re_proto";
 
     # Check google's imap server and verify basic function
     validate_script_output 'echo | gnutls-cli -d 1 imap.gmail.com -p 993', sub {
         m/
             Certificate\stype:\sX\.509.*
             Status:\sThe\scertificate\sis\strusted.*
-            Description:\s\(TLS1\.3\).*
+            Description:\s\(TLS1\.3.*\).*
             Handshake\swas\scompleted.*/sx
     };
 }
