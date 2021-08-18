@@ -144,10 +144,12 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
         assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
-    }
-    else {
+    } elsif (is_leap("<16") || is_sle("<16")) {
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | wc -l > /tmp/nr_rules_nat_pre.txt");
         assert_script_run("nft list chain ip firewalld nat_POST_public_allow | wc -l > /tmp/nr_rules_nat_post.txt");
+    } else {
+        assert_script_run("nft list chain inet firewalld nat_PRE_public_allow | wc -l > /tmp/nr_rules_nat_pre.txt");
+        assert_script_run("nft list chain inet firewalld nat_POST_public_allow | wc -l > /tmp/nr_rules_nat_post.txt");
     }
 
     assert_script_run("firewall-cmd --zone=public --add-masquerade");
@@ -156,10 +158,12 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow | grep 'to::22'");
         assert_script_run("iptables -t nat -L POST_public_allow | grep MASQUERADE");
-    }
-    else {
+    } elsif (is_leap("<16") || is_sle("<16")) {
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | grep 'redirect to :22'");
         assert_script_run("nft list chain ip firewalld nat_POST_public_allow | grep masquerade");
+    } else {
+        assert_script_run("nft list chain inet firewalld nat_PRE_public_allow | grep 'redirect to :22'");
+        assert_script_run("nft list chain inet firewalld nat_POST_public_allow | grep masquerade");
     }
 
     # Reload default configuration
@@ -168,10 +172,12 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("test `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
-    }
-    else {
+    } elsif (is_leap("<16") || is_sle("<16")) {
         assert_script_run("test `nft list chain ip firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `nft list chain ip firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
+    } else {
+        assert_script_run("test `nft list chain inet firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
+        assert_script_run("test `nft list chain inet firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     }
 }
 
