@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_vmware is_jeos);
+use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
 use Carp 'croak';
 
 our @EXPORT = qw(
@@ -81,7 +81,8 @@ sub reboot_x11 {
     my ($self) = @_;
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
-        if (is_tumbleweed) {
+        # For systems with GNOME 40+, use mouse click instead of 'ctrl-alt-delete'.
+        if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4')) {
             assert_and_click('reboot-power-icon');
             assert_and_click('reboot-power-menu');
             assert_and_click('reboot-click-restart');
