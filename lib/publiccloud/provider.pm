@@ -448,7 +448,9 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
     }
-    my $ret = script_run('terraform destroy -no-color -auto-approve', get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT));
+    # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
+    # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
+    my $ret = script_retry('terraform destroy -no-color -auto-approve', retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal

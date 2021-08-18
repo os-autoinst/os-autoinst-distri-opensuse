@@ -27,7 +27,7 @@ use testapi;
 sub post_fail_hook {
     select_host_console(force => 1);
     assert_script_run('cd /root/terraform');
-    script_run('terraform destroy -no-color -auto-approve', 240);
+    script_retry('terraform destroy -no-color -auto-approve', retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', 240), die => 0);
 }
 
 sub test_flags {
