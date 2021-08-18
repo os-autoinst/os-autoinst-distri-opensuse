@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 SUSE LLC
+# Copyright (C) 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
 # Package: kexec-tools systemd
 # Summary:  [qa_automation] kexec testsuite
-# Maintainer: Nathan Zhao <jtzhao@suse.com>
+# Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -25,7 +25,7 @@ use utils;
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    $self->select_serial_terminal;
     # clear console to prevent linux-login to match before reboot
     clear_console;
     # Copy kernel image and rename it
@@ -50,8 +50,8 @@ sub run {
     # don't use built-in systemctl api, see poo#31180
     script_run("systemctl kexec", 0);
     reset_consoles;
-    assert_screen('linux-login', 300);
-    select_console('root-console');
+    $self->wait_boot_past_bootloader;
+    $self->select_serial_terminal;
     # Check kernel cmdline parameter
     my $result = script_output("cat /proc/cmdline", 120);
     print "Checking kernel boot parameter...\nCurrent:  $result\nExpected: $cmdline\n";
