@@ -152,8 +152,9 @@ sub test_opensuse_based_image {
     my $image   = $args{image};
     my $runtime = $args{runtime};
 
-    my $distri  = $args{distri}  //= get_required_var("DISTRI");
-    my $version = $args{version} //= get_required_var("VERSION");
+    my $distri  = $args{distri}  // get_required_var("DISTRI");
+    my $version = $args{version} // get_required_var("VERSION");
+    my $beta    = $args{beta}    // get_var('BETA', 0);
 
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
@@ -174,7 +175,7 @@ sub test_opensuse_based_image {
     if ($image_id =~ 'sles') {
         if ($host_id =~ 'sles') {
             my $pretty_version = $version =~ s/-SP/ SP/r;
-            my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+            my $betaversion    = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
             if ($runtime =~ /buildah/) {
                 validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",

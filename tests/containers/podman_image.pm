@@ -43,7 +43,8 @@ sub run {
             test_rpm_db_backend(image => $iname, runtime => $runtime);
             build_and_run_image(base => $iname, runtime => $runtime, dockerfile => $dockerfile);
             if (check_os_release('suse', 'PRETTY_NAME')) {
-                test_opensuse_based_image(image => $iname, runtime => $runtime, version => $version);
+                my $beta = $version eq get_var('VERSION') ? get_var(BETA => 0) : 0;
+                test_opensuse_based_image(image => $iname, runtime => $runtime, version => $version, beta => $beta);
             }
             else {
                 exec_on_container($iname, $runtime, 'cat /etc/os-release');
