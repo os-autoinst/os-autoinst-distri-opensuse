@@ -38,7 +38,7 @@ sub run {
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
     my $versions   = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
-    my $dockerfile = ($host_distri ne 'suse') ? 'Dockerfile.python3' : 'Dockerfile';
+    my $dockerfile = $host_distri !~ m/^(sle|opensuse)/i ? 'Dockerfile.python3' : 'Dockerfile';
     for my $version (split(/,/, $versions)) {
         my ($untested_images, $released_images) = get_suse_container_urls($version);
         my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
