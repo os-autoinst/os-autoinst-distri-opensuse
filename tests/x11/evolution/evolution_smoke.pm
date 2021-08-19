@@ -28,7 +28,7 @@ use version_utils qw(is_sle is_tumbleweed);
 sub run {
     my $self        = shift;
     my $mail_box    = 'nooops_test3@aim.com';
-    my $mail_passwd = 'opensuse';
+    my $mail_passwd = 'hkiworexcmmeqmzt';
 
     mouse_hide(1);
     x11_start_program('xterm -e "gsettings set org.gnome.desktop.session idle-delay 0"', valid => 0);
