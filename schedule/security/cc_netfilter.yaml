@@ -1,0 +1,37 @@
+name: cc_netfilter
+description:    >
+    This is for audit_test netfilter
+schedule:
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - security/selinux/selinux_setup
+    - security/cc/cc_selinux_setup
+    - security/cc/cc_audit_test_setup
+    - security/cc/netfilter
+test_data:
+    server:
+        first_interface:
+            netcard: eth0.0
+            mac_addr: 00:11:11:11:11:00
+            ipv4: 192.168.0.1/24
+            ipv6: fd00::1
+            route: fd00::2
+        second_interface:
+            netcard: eth0.1
+            mac_addr: 00:11:11:11:11:01
+            ipv4: 192.168.1.1/24
+            ipv6: fd00:1::1
+            route: fd00:1::2
+    client:
+        first_interface:
+            netcard: eth0.0
+            mac_addr: 00:11:11:11:11:10
+            ipv4: 192.168.0.2/24
+            ipv6: fd00::2
+            route: fd00::1
+        second_interface:
+            netcard: eth0.1
+            mac_addr: 00:11:11:11:11:11
+            ipv4: 192.168.1.2/24
+            ipv6: fd00:1::2
+            route: fd00:1::1
