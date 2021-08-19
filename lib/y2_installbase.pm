@@ -267,6 +267,11 @@ sub select_specific_patterns_by_iteration {
     # delete special 'all' and 'default' keys from the check
     delete $patterns{default};
     delete $patterns{all};
+
+    if (is_sle('>=15-sp3')) {
+        record_soft_failure('bsc#1189550 - Problem with scroll bar event in pattern selection');
+    }
+
     while (1) {
         die "looping for too long" unless ($counter--);
         my $needs_to_be_selected;
@@ -297,6 +302,7 @@ sub select_specific_patterns_by_iteration {
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
         if ($selected && $selected->{needle}->has_tag('on-category')) {
             move_down;
+            workaround_bsc1189550() if is_sle('>=15-sp3');
             next;
         }
         if ($needs_to_be_selected && !$selected) {
@@ -314,6 +320,7 @@ sub select_specific_patterns_by_iteration {
         last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
 
         move_down;
+        workaround_bsc1189550() if is_sle('>=15-sp3');
     }
     # check if we have processed all patterns mentioned in the test suite settings
     my @unseen = keys %patterns;
@@ -557,6 +564,11 @@ sub post_fail_hook {
 # All steps in the installation are 'fatal'.
 sub test_flags {
     return {fatal => 1};
+}
+
+sub workaround_bsc1189550 {
+    move_down;
+    wait_screen_change { send_key 'up' };
 }
 
 1;
