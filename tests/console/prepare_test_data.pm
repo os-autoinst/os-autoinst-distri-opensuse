@@ -25,7 +25,7 @@ sub run {
     check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
 
     select_console 'user-console';
-    assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => 300;
+    assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => get_var('PUBLIC_CLOUD') ? 600 : 300;
     script_run "ls -al data";
 }
 
