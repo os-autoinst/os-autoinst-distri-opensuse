@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/bugzilla.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#bugzilla_buginfo">bugzilla_buginfo</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/bugzilla.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Tools for querying bug info from Bugzilla.</p>
+
+<h2 id="bugzilla_buginfo">bugzilla_buginfo</h2>
+
+<pre><code> bugzilla_buginfo($bug_id);</code></pre>
+
+<p>Query bug status for given bug ID. <code>BUGZILLA_URL</code> job setting is required, otherwise this function will simply return <code>undef</code>. The URL must contain the string <code>@BUGID@</code> which will be replace by the bug ID.</p>
+
+<p>Returns a hash with bug status fields, or <code>undef</code> on error.</p>
+
+<p>Note that Bugzilla may return permission error in which case the hash will contain only two entries: <code>bug_id</code> and <code>error</code>. It is up to you to handle this possibility.</p>
+
+
+</body>
+
+</html>
+
+
