@@ -28,7 +28,9 @@ use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release is_tumbleweed);
 
 sub run {
-    select_console "root-console";
+    my $self = shift;
+    $self->select_serial_terminal();
+
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = "docker";
 
