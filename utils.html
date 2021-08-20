@@ -78,6 +78,7 @@
       <li><a href="#ensure_ca_certificates_suse_installed-ensure_ca_certificates_suse_installed">ensure_ca_certificates_suse_installed ensure_ca_certificates_suse_installed();</a></li>
       <li><a href="#install_patterns-install_patterns">install_patterns install_patterns();</a></li>
       <li><a href="#permit_root_ssh-permit_root_ssh">permit_root_ssh permit_root_ssh();</a></li>
+      <li><a href="#permit_root_ssh_in_sol-permit_root_ssh_in_sol">permit_root_ssh_in_sol permit_root_ssh_in_sol();</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -583,6 +584,10 @@
 <h2 id="permit_root_ssh-permit_root_ssh">permit_root_ssh permit_root_ssh();</h2>
 
 <p>Due to bsc#1173067, openssh now no longer allows RootLogin using password auth on Tumbleweed, the latest SLE16 and Leap16 will sync with Tumbleweed as well.</p>
+
+<h2 id="permit_root_ssh_in_sol-permit_root_ssh_in_sol">permit_root_ssh_in_sol permit_root_ssh_in_sol();</h2>
+
+<p>for ipmi backend, PermitRootLogin has to be set in sol console however, assert_script_run and script_run is not stable in sole console enter_cmd or type_string are acceptable</p>
 
 
 </body>
