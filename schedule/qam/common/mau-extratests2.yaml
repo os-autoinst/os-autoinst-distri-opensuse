@@ -45,8 +45,7 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       15-SP2:
         - console/osinfo_db
@@ -57,8 +56,7 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       15-SP1:
         - console/osinfo_db
@@ -67,8 +65,7 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       15:
         - console/osinfo_db
@@ -77,8 +74,7 @@ conditional_schedule:
         - console/zziplib
         - console/journald_fss
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP5:
         - console/osinfo_db
@@ -86,23 +82,20 @@ conditional_schedule:
         - console/valgrind
         - console/zziplib
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
         - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
         - console/journald_fss
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
         - console/journald_fss
         - console/openvswitch_ssl
-        # https://progress.opensuse.org/issues/96512
-        # - network/samba/samba_adcli
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP2:
         - console/journald_fss
