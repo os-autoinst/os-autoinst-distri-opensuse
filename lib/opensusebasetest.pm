@@ -328,9 +328,9 @@ sub investigate_yast2_failure {
         "<3>.*Label has no shortcut or more than 1 shortcuts"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*diff failed"                                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Failed to stat"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Bad directive: options"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*OPEN_FAILED opening"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*rpmdbInit error"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Bad directive: options"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<5>.*Failed to initialize database"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "(<3>|<5>).*Rpm Exception"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Cleanup on error"                                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
@@ -375,7 +375,7 @@ sub investigate_yast2_failure {
     # String to accumulate unknown detected issues
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
-        if (my $y2log_error_result = script_output("$cmd_prefix -C 5 -E \"$y2log_error\" $cmd_postfix")) {
+        if (my $y2log_error_result = script_output("$cmd_prefix -m 20 -C 5 -E \"$y2log_error\" $cmd_postfix")) {
             # Save detected error to indetify if have new regressions
             push @detected_errors, $y2log_error;
             if (my $bug = $y2log_errors{$y2log_error}) {
