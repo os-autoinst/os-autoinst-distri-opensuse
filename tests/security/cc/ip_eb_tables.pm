@@ -23,8 +23,31 @@ sub run {
 
     select_console 'root-console';
 
+    #Configure bridge for ip_eb_tables workaround
+    assert_script_run("echo "BOOTPROTO='dhcp'" > /etc/sysconfig/network/ifcfg-br0")
+    assert_script_run("echo "STARTMODE='auto'" >> /etc/sysconfig/network/ifcfg-br0")
+    assert_script_run("echo "BRIDGE='yes'" >> /etc/sysconfig/network/ifcfg-br0")
+    assert_script_run("echo "BRIDGE_PORTS='eth0'" >> /etc/sysconfig/network/ifcfg-br0")
+    assert_script_run("echo "BRIDGE_STP='off'" >> /etc/sysconfig/network/ifcfg-br0")
+    assert_script_run("echo "BRIDGE_FORWARDDELAY='15'" >> /etc/sysconfig/network/ifcfg-br0")
+
+    assert_script_run("cp /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-eth0.bak")
+
+    assert_script_run("echo "IPADDR='0.0.0.0'" > /etc/sysconfig/network/ifcfg-eth0")
+    assert_script_run("echo "BOOTPROTO='none'" >> /etc/sysconfig/network/ifcfg-eth0")
+    assert_script_run("echo "STARTMODE='auto'" >> /etc/sysconfig/network/ifcfg-eth0")
+
+    assert_script_run("service network restart")
+    assert_script_run("bridge link show")
+	
     # Run test case
     run_testcase('ip+eb-tables', timeout => 300);
+
+    # Clean-up
+    assert_script_run("rm /etc/sysconfig/network/ifcfg-br0")
+    assert_script_run("rm /etc/sysconfig/network/ifcfg-eth0")
+    assert_script_run("cp /etc/sysconfig/network/ifcfg-eth0.bak /etc/sysconfig/network/ifcfg-eth0")
+    assert_script_run("service network restart")
 
     # Compare current test results with baseline
     my $result = compare_run_log('ip_eb_tables');
