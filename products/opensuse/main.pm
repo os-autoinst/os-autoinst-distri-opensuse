@@ -329,6 +329,21 @@ elsif (get_var('VIRT_AUTOTEST')) {
     loadtest "virtualization/universal/hotplugging"             if get_var('ENABLE_HOTPLUGGING');
     loadtest "virtualization/universal/storage"                 if get_var('ENABLE_STORAGE');
 }
+elsif (get_var('XFSTESTS')) {
+    prepare_target();
+    if (check_var('XFSTESTS', 'installation')) {
+        loadtest 'xfstests/install';
+        unless (get_var('NO_KDUMP')) {
+            loadtest 'xfstests/enable_kdump';
+        }
+        loadtest 'shutdown/shutdown';
+    }
+    else {
+        loadtest 'xfstests/partition';
+        loadtest 'xfstests/run';
+        loadtest 'xfstests/generate_report';
+    }
+}
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
         load_boot_tests();
