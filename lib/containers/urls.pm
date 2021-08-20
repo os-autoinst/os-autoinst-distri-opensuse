@@ -82,11 +82,8 @@ sub get_suse_container_urls {
         push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_sle_micro) {
-        push @untested_images,
-          "registry.suse.com/suse/sle15:15.0",
-          "registry.suse.com/suse/sle15:15.1",
-          "registry.suse.com/suse/sle15:15.2",
-          "registry.suse.com/suse/sle15:15.3";
+        # Untested images are not validated in SLE Micro, so leave it empty
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_tumbleweed || is_microos("Tumbleweed")) {
         push @untested_images, "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
