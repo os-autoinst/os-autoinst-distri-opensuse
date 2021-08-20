@@ -2,6 +2,11 @@
 name: publiccloud-smoketest
 description: |
   Basic smoketests on public cloud instances
+conditional_schedule:
+  sev:
+    PUBLIC_CLOUD_CONFIDENTIAL_VM:
+      '1':
+        - publiccloud/sev
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
@@ -12,5 +17,5 @@ schedule:
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
   - publiccloud/smoketest
-  - publiccloud/sev
+  - '{{sev}}'
   - publiccloud/ssh_interactive_end
