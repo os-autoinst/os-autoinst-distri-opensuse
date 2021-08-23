@@ -110,6 +110,7 @@ sub enable_ipv6 {
     my $self = shift;
     $self->select_serial_terminal;
     assert_script_run("sysctl -w net.ipv6.conf.all.disable_ipv6=0");
+    systemctl('restart network');
     set_var('SYSCTL_IPV6_DISABLED', '0');
 }
 
@@ -185,7 +186,10 @@ sub run {
     # - smbclient //10.162.30.119/openQA as geekouser will be denied, as berhard is the owner
     # - delete the computer OU after the test is done in post_run_hook
     # - test winbind (samba?) authentication
+}
 
+sub post_run_hook {
+    my ($self) = shift;
     $self->enable_ipv6;
 }
 
