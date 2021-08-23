@@ -28,6 +28,7 @@ use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
+use zypper qw(wait_quit_zypper);
 
 our @EXPORT = qw(
   check_console_font
@@ -1412,7 +1413,7 @@ sub reconnect_mgmt_console {
             if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
                 select_console 'root-console';
                 if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
-                    script_run('pkill zypper');
+                    wait_quit_zypper;
                     zypper_call("in susefirewall2-to-firewalld");
                     susefirewall2_to_firewalld();
                 }
