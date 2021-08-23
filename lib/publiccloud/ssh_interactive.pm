@@ -29,10 +29,13 @@ sub ssh_interactive_tunnel {
     my $upload_host = testapi::host_ip();
 
     $instance->run_ssh_command(
-        cmd => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' | tee /dev/$serialdev ", # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
-        timeout  => 0,    # This will also cause script_run instead of script_output to be used so the test will not wait for the command to end
+        # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
+        #   timeout => switches to script_run instead of script_output to be used so the test will not wait for the command to end
+        #   tunnel the worker port (for downloading from data/ and uploading assets / logs
+        cmd      => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' 2>&1 | tee /dev/$serialdev; clear",
+        timeout  => 0,
         no_quote => 1,
-        ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",    # Tunnel the worker port (for downloading from data/ and uploading assets / logs
+        ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",
         username => 'root'
     );
     sleep 3;
