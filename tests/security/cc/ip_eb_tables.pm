@@ -20,24 +20,22 @@ use audit_test qw(run_testcase compare_run_log);
 
 sub run {
     my ($self) = shift;
+    my $f_ifcfg_br0 = '/etc/sysconfig/network/ifcfg-br0';
+    my $f_ifcfg_eth0 = '/etc/sysconfig/network/ifcfg-eth0';
+    my $bakf_ifcfg_eth0 = '/etc/sysconfig/network/ifcfg-eth0.bak';
+    my $br0_config = "BOOTPROTO='dhcp'\nSTARTMODE='auto'\nBRIDGE='yes'\nBRIDGE_PORTS='eth0'\nBRIDGE_STP='off'\nBRIDGE_FORWARDDELAY='15'\n";
+    my $eth0_config = "IPADDR='0.0.0.0'\nBOOTPROTO='none'\nSTARTMODE='auto'\n";
 
     select_console 'root-console';
 
-    #Configure bridge for ip_eb_tables workaround
-    assert_script_run("echo \"BOOTPROTO='dhcp'\" > /etc/sysconfig/network/ifcfg-br0");
-    assert_script_run("echo \"STARTMODE='auto'\" >> /etc/sysconfig/network/ifcfg-br0");
-    assert_script_run("echo \"BRIDGE='yes'\" >> /etc/sysconfig/network/ifcfg-br0");
-    assert_script_run("echo \"BRIDGE_PORTS='eth0'\" >> /etc/sysconfig/network/ifcfg-br0");
-    assert_script_run("echo \"BRIDGE_STP='off'\" >> /etc/sysconfig/network/ifcfg-br0");
-    assert_script_run("echo \"BRIDGE_FORWARDDELAY='15'\" >> /etc/sysconfig/network/ifcfg-br0");
+    # Configure bridge for ip_eb_tables workaround
+    assert_script_run("cat > $f_ifcfg_br0 <<'END'\n$br0_config\nEND\n( exit \$?)");
     
-    # Backup eth0 configuration
-    assert_script_run("cp /etc/sysconfig/network/ifcfg-eth0 /etc/sysconfig/network/ifcfg-eth0.bak");
-
-    # eth0 coniguration
-    assert_script_run("echo \"IPADDR='0.0.0.0'\" > /etc/sysconfig/network/ifcfg-eth0");
-    assert_script_run("echo \"BOOTPROTO='none'\" >> /etc/sysconfig/network/ifcfg-eth0");
-    assert_script_run("echo \"STARTMODE='auto'\" >> /etc/sysconfig/network/ifcfg-eth0");
+    # Creating backup for eth0 configuration
+    assert_script_run("cp $f_ifcfg_eth0 $bakf_ifcfg_eth0");
+    
+    # Configure eth0 for ip_eb_tables workaround
+    assert_script_run("cat > $f_ifcfg_eth0 <<'END'\n$eth0_config\nEND\n( exit \$?)");
 
     assert_script_run("service network restart");
     assert_script_run("bridge link show");
@@ -45,10 +43,10 @@ sub run {
     # Run test case
     run_testcase('ip+eb-tables', timeout => 300);
 
-    # Restore eth0 configuration
-    assert_script_run("rm /etc/sysconfig/network/ifcfg-br0");
-    assert_script_run("rm /etc/sysconfig/network/ifcfg-eth0");
-    assert_script_run("cp /etc/sysconfig/network/ifcfg-eth0.bak /etc/sysconfig/network/ifcfg-eth0");
+    # Clean-up and restore configuration
+    assert_script_run("rm $f_ifcfg_br0");
+    assert_script_run("rm $f_ifcfg_eth0");
+    assert_script_run("cp $bakf_ifcfg_eth0 $f_ifcfg_eth0");
     assert_script_run("service network restart");
 
     # Compare current test results with baseline
