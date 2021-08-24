@@ -7,8 +7,7 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces business actions for Registration dialog
-# when the system is already registered.
+# Summary: The class introduces business actions for Registration dialog.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
@@ -38,22 +37,24 @@ sub get_registration_page {
     return $self->{RegistrationPage};
 }
 
-sub get_update_repository_popup {
-    my ($self, $expected_popup) = @_;
-    # Check that that a "yesno" popup is shown and that it contains expected text.
-    $self->{UseUpdateReposPopup}->check_text($expected_popup) if $self->{UseUpdateReposPopup}->is_shown;
+sub get_enable_update_repositories_popup {
+    my ($self) = @_;
+    die "Update repositories popup is not displayed"               unless $self->{UseUpdateReposPopup}->is_shown();
+    die "Update repositories popup contains an unexpected message" unless (
+        $self->{UseUpdateReposPopup}->text() =~ /The registration server offers update repos.*/);
     return $self->{UseUpdateReposPopup};
 }
 
-sub register_product_with_regcode {
-    my ($self, $reg_code) = @_;
-    $self->get_registration_page->enter_reg_code($reg_code);
+sub register_via_scc {
+    my ($self, $args) = @_;
+    $self->get_registration_page->enter_email($args->{email}) if $args->{email};
+    $self->get_registration_page->enter_reg_code($args->{reg_code});
     $self->get_registration_page->press_next();
 }
 
 sub enable_update_repositories {
-    my ($self, $expected_popup) = @_;
-    $self->get_update_repository_popup($expected_popup)->press_yes();
+    my ($self) = @_;
+    $self->get_enable_update_repositories_popup()->press_yes();
 }
 
 1;
