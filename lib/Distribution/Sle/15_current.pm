@@ -24,6 +24,7 @@ use Installation::License::Sle::LicenseAgreementController;
 use Installation::License::Sle::Firstboot::LicenseAgreementController;
 use Installation::ProductSelection::ProductSelectionController;
 use Installation::Registration::RegistrationController;
+use Installation::ModuleSelection::ModuleSelectionController;
 
 =head2 get_license_agreement
 
@@ -46,6 +47,10 @@ sub get_product_selection {
 
 sub get_registration {
     return Installation::Registration::RegistrationController->new();
+}
+
+sub get_module_selection {
+    return Installation::ModuleSelection::ModuleSelectionController->new();
 }
 
 1;
