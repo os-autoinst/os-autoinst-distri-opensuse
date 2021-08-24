@@ -575,7 +575,7 @@ sub show_development_versions {
 
 sub fill_in_registration_data {
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
-    handle_scc_popups();
+    return               if handle_scc_popups();
     process_modules();
 }
 
@@ -644,7 +644,7 @@ sub handle_scc_popups {
                 last;
             }
             elsif (match_has_tag('inst-addon')) {
-                return;
+                return 1;
             }
             elsif (match_has_tag('expired-gpg-key')) {
                 record_soft_failure 'bsc#1180619';
@@ -660,7 +660,7 @@ sub handle_scc_popups {
             }
             elsif (match_has_tag('leap-to-sle-registrition-finished')) {
                 # leap to sle do not need to add any addons
-                return;
+                return 1;
             }
         }
     }
