@@ -34,15 +34,10 @@ sub get_product_selection_page {
     return $self->{ProductSelectionPage};
 }
 
-sub select_product {
+sub install_product {
     my ($self, $product) = @_;
-    $product =~ s/ /_/g;
-    if (my $selector = $self->get_product_selection_page()->can("select_$product")) {
-        $selector->($self->get_product_selection_page());
-    }
-    else {
-        die "No handler defined for product '$product'";
-    }
+    $self->get_product_selection_page()->install_product($product);
+    $self->get_product_selection_page()->press_next();
 }
 
 1;
