@@ -11,8 +11,6 @@ schedule:
   - publiccloud/patch_and_reboot
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
-  - console/system_prepare
-  - console/consoletest_setup
   - console/check_os_release
   - console/cleanup_qam_testrepos
   - console/openvswitch
