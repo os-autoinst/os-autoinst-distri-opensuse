@@ -3,6 +3,15 @@ description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
 conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - microos/disk_boot
+      'aarch64':
+        - microos/disk_boot
   registration:
     SCC_REGISTER:
       'installation':
@@ -12,7 +21,7 @@ conditional_schedule:
       'MicroOS-Image-Updates':
         - transactional/install_updates
 schedule:
-  - microos/disk_boot
+  - '{{boot}}'
   - transactional/host_config
   - '{{registration}}'
   - '{{maintenance}}'
