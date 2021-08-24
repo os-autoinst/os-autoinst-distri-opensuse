@@ -10,8 +10,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -31,5 +31,4 @@ schedule:
   - installation/first_boot
   - console/validate_lvm_raid1
 test_data:
-  product: SLES
   <<: !include test_data/yast/lvm_raid1/lvm+raid1_svirt-xen.yaml

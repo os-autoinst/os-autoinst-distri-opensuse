@@ -7,8 +7,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -30,7 +30,6 @@ schedule:
   - console/verify_separate_home
   - console/validate_encrypt
 test_data:
-  product: SLES
   crypttab:
     num_devices_encrypted: 1
   cryptsetup:

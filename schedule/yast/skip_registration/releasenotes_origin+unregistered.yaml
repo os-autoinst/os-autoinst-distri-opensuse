@@ -7,8 +7,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -22,5 +22,3 @@ schedule:
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
-test_data:
-  product: SLES

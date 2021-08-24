@@ -9,8 +9,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
@@ -36,7 +36,6 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
-  product: SLES
   nvm_disk: nvme0n1
   nvm_char_device: nvme0
   nvme_sys_path: /sys/class/nvme
