@@ -13,19 +13,15 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test module to validate beta popup and accept it.
+# Summary: Validate access to Beta Distribution
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;
 use warnings;
-use Test::Assert ':all';
 
 sub run {
-    my $warnings = $testapi::distri->get_warnings_controller();
-    assert_matches(qr/You are accessing our Beta Distribution/, $warnings->get_text(),
-        "Warning Dialog for BETA did not appear, while it was expected.");
-    $warnings->accept_warning();
+    $testapi::distri->get_product_selection()->access_beta_distribution();
 }
 
 1;
