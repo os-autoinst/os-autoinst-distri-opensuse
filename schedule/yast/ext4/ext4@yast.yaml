@@ -11,7 +11,7 @@ schedule:
   - installation/validate_beta_popup
   - installation/product_selection/select_product
   - installation/licensing/accept_license
-  - installation/registration/registration_regcode
+  - installation/registration/register_via_scc
   - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/system_role
