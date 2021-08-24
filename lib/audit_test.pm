@@ -37,7 +37,8 @@ our @EXPORT = qw(
 
 our $testdir      = '/tmp/';
 our $code_repo    = get_var('CODE_BASE', 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar');
-our $testfile_tar = 'audit-test-sle15-master';
+my @lines         = split(/[\/\.]+/, $code_repo);
+our $testfile_tar = $lines[-2];
 our $mode         = get_var('MODE', 64);
 
 # $current_file: current output file name; $baseline_file: baseline file name
