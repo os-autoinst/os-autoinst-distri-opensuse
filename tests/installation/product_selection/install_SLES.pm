@@ -19,13 +19,9 @@
 use base 'y2_installbase';
 use strict;
 use warnings;
-use testapi;
-use scheduler 'get_test_suite_data';
 
 sub run {
-    $testapi::distri->get_product_selection()
-      ->select_product(get_test_suite_data()->{product});
-    $testapi::distri->get_navigation()->proceed_next_screen();
+    $testapi::distri->get_product_selection()->install_product('SLES');
 }
 
 1;
