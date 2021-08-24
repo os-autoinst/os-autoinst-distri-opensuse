@@ -35,7 +35,7 @@ sub run {
         select_console($setup_console);
         # The verbose output is visible only at the tunnel-console -
         #   it doesn't interfere with tests as it isn't piped to /dev/sshserial
-        script_run('ssh -vt sut', timeout => 0);
+        script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', timeout => 0);
     }
 
     die("expect ssh serial") unless (get_var('SERIALDEV') =~ /ssh/);

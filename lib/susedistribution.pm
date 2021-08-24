@@ -840,7 +840,7 @@ sub activate_console {
     if (get_var('TUNNELED') && $name !~ /tunnel/) {
         die "Console '$console' activated in TUNNEL mode activated but tunnel(s) are not yet initialized, use the 'tunnel' console and call 'setup_ssh_tunnels' first" unless get_var('_SSH_TUNNELS_INITIALIZED');
         # The verbose output is visible only at the tunnel-console - it doesn't interfere with tests as it isn't piped to /dev/sshserial
-        $self->script_run('ssh -vt sut', 0);
+        $self->script_run('ssh -E /var/tmp/ssh_sut.log -vt sut', 0);
         ensure_user($user) unless (get_var('PUBLIC_CLOUD'));
     }
     set_var('CONSOLE_JUST_ACTIVATED', 1);
