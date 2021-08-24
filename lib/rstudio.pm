@@ -131,7 +131,7 @@ sub rstudio_run_profiler {
     type_string("profvis(expr = {sub.test1 <- system.time(for (i in 1:50000) {df[3, 2]})})");
     send_key("ret");
 
-    assert_screen("$prefix-profile_flame-graph_close");
+    assert_and_click("$prefix-profile_flame-graph_close");
 }
 
 sub rstudio_test_notebook {
