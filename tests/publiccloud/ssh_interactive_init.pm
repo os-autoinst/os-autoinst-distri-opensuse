@@ -66,6 +66,11 @@ sub run {
     # Copy SSH settings for remote user
     $instance->run_ssh_command("sudo install -o $testapi::username -g users -m 0700 -dD /home/$testapi::username/.ssh");
     $instance->run_ssh_command("sudo install -o $testapi::username -g users -m 0644 ~/.ssh/authorized_keys /home/$testapi::username/.ssh/");
+
+    # Create log file for ssh tunnel
+    my $ssh_sut = '/var/tmp/ssh_sut.log';
+    assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+
 }
 
 sub test_flags {
