@@ -33,14 +33,16 @@ sub run {
     # first activation hook in susedistribution:activate_console()
     if ($setup_console !~ /tunnel/) {
         select_console($setup_console);
-        script_run('ssh -t sut', timeout => 0);
+        # The verbose output is visible only at the tunnel-console -
+        #   it doesn't interfere with tests as it isn't piped to /dev/sshserial
+        script_run('ssh -vt sut', timeout => 0);
     }
 
     die("expect ssh serial") unless (get_var('SERIALDEV') =~ /ssh/);
 
     # Verify most important consoles
     select_console('root-console');
-    assert_script_run('test -e /dev/' . get_var('SERIALDEV'));
+    assert_script_run('test -e /dev/' . get_var('SERIALDEV'), 180);
     assert_script_run('test $(id -un) == "root"');
 
     select_console('user-console');
