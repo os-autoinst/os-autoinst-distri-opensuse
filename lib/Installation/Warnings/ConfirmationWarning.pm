@@ -14,7 +14,6 @@
 package Installation::Warnings::ConfirmationWarning;
 use strict;
 use warnings;
-use Test::Assert ':all';
 
 sub new {
     my ($class, $args) = @_;
@@ -50,12 +49,6 @@ sub press_no {
 sub text {
     my ($self) = @_;
     return $self->{lbl_warning}->text();
-}
-
-sub check_text {
-    my ($self, $expected_text) = @_;
-    assert_matches(qr/$expected_text/, $self->{lbl_warning}->text(),
-        "Unexpected text in popup");
 }
 
 1;
