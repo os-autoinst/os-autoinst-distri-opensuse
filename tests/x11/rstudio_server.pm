@@ -62,13 +62,17 @@ sub run() {
     # log out at last and close firefox
     assert_and_click("rstudio_server-sign-out");
     assert_screen("rstudio_server-login-username");
-    send_key('alt-f4');
 
-    # optionally click away the close all tabs window
-    assert_screen([qw(rstudio_server-firefox_quit-and-close-tabs generic-desktop)]);
-    if (match_has_tag('rstudio_server-firefox_quit-and-close-tabs')) {
-        click_lastmatch();
-        assert_screen('generic-desktop');
+    for my $i (1 .. 5) {
+        send_key('ctrl-w', wait_screen_change => 1);
+        last if defined(check_screen('generic-desktop'));
+    }
+
+    if (!defined(check_screen('generic-desktop'))) {
+        # firefox is stuck and just greys out but does not display the "close
+        # all tabs" dialog => kill it
+        record_info('Workaround', 'Firefox froze for 60s and does not want to close');
+        script_run('pkill -9 firefox');
     }
 }
 
