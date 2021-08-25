@@ -57,12 +57,17 @@ sub post_fail_hook {
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     $self->export_logs_desktop;
 
-    # Destroy the public cloud instance in case of fatal test failure
-    # Currently there is theoretical chance to call cleanup two times. See details in poo#95780
-    my $flags = $self->test_flags();
-    if (is_publiccloud() && $flags->{fatal}) {
+    if (is_publiccloud()) {
         select_host_console(force => 1);
-        $self->{run_args}->{my_provider}->cleanup();
+
+        # Destroy the public cloud instance in case of fatal test failure
+        # Currently there is theoretical chance to call cleanup two times. See details in poo#95780
+        my $flags = $self->test_flags();
+        $self->{run_args}->{my_provider}->cleanup() if ($flags->{fatal});
+
+        # When tunnel-console is used we upload the log
+        my $ssh_sut = '/var/tmp/ssh_sut.log';
+        upload_logs($ssh_sut) unless (script_run("test -f $ssh_sut") != 0);
     }
 }
 
