@@ -26,8 +26,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{RegistrationPage}    = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
-    $self->{UseUpdateReposPopup} = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{RegistrationPage}      = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
+    $self->{UseUpdateReposPopup}   = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{SkipRegistrationPopup} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -45,10 +46,25 @@ sub get_enable_update_repositories_popup {
     return $self->{UseUpdateReposPopup};
 }
 
+sub get_skip_registration_popup {
+    my ($self) = @_;
+    die "Warning for skipping registration is not displayed"               unless $self->{SkipRegistrationPopup}->is_shown();
+    die "Warning for skipping registration contains an unexpected message" unless (
+        $self->{SkipRegistrationPopup}->text() =~ /.*Please confirm to proceed without updates.*/);
+    return $self->{SkipRegistrationPopup};
+}
+
 sub register_via_scc {
     my ($self, $args) = @_;
     $self->get_registration_page->enter_email($args->{email}) if $args->{email};
     $self->get_registration_page->enter_reg_code($args->{reg_code});
+    $self->get_registration_page->press_next();
+}
+
+sub skip_registration {
+    my ($self) = @_;
+    $self->get_registration_page->select_skip_registration();
+    $self->get_skip_registration_warning->press_ok();
     $self->get_registration_page->press_next();
 }
 
