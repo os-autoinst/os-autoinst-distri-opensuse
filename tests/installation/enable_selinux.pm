@@ -37,6 +37,9 @@ sub run {
     send_key 'ret' if $textmode;
 
     send_key $cmd{ok};
+
+    # yast needs some time to think
+    assert_screen 'installation-settings-overview-loaded';
 }
 
 1;
