@@ -179,7 +179,7 @@ sub activate_kdump {
     if ($expect_restart_info == 1) {
         my @tags = qw(yast2-kdump-restart-info os-prober-warning);
         do {
-            assert_screen(\@tags);
+            assert_screen(\@tags, 200);
             handle_warning_install_os_prober() if match_has_tag('os-prober-warning');
         } until (match_has_tag('yast2-kdump-restart-info'));
         send_key('alt-o');
@@ -292,7 +292,7 @@ sub configure_service {
     }
 
     # restart to activate kdump
-    power_action('reboot', keepconsole => is_pvm);
+    power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => 300);
 
