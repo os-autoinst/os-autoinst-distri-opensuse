@@ -47,7 +47,7 @@ sub upload_subdirs {
     for my $subdir (split(/\n/, $output)) {
         my $tarball = "$subdir.tar.xz";
         assert_script_run("ll; tar cJf $tarball -C $dir " . basename($subdir), $timeout);
-        upload_logs($tarball, timeout => $timeout, log_name => basename($dir));
+        upload_logs($tarball, timeout => $timeout);
     }
 }
 
@@ -64,7 +64,7 @@ sub run {
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);
-    upload_logs($STATUS_LOG, timeout => 60, log_name => "test");
+    upload_logs($STATUS_LOG, timeout => 60, log_name => $STATUS_LOG);
 
     # Upload test logs
     upload_subdirs($LOG_DIR, 1200);
