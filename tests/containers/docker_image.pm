@@ -42,7 +42,7 @@ sub run {
     my $versions   = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     my $dockerfile = $host_distri !~ m/^(sle|opensuse)/i ? 'Dockerfile.python3' : 'Dockerfile';
     for my $version (split(/,/, $versions)) {
-        my ($untested_images, $released_images) = get_suse_container_urls($version);
+        my ($untested_images, $released_images) = get_suse_container_urls(version => $version);
         my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
         for my $iname (@{$images_to_test}) {
             record_info "IMAGE", "Testing image: $iname";
