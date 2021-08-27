@@ -61,7 +61,7 @@ sub run {
         check_docker_firewall();
     }
     # Run basic docker tests
-    basic_container_tests(runtime => $runtime);
+    basic_container_tests(runtime => $runtime->runtime);
 
     # Build an image from Dockerfile and test it
     build_and_run_image(runtime => $runtime, base => 'registry.opensuse.org/opensuse/leap:latest');

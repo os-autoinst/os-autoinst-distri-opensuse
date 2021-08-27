@@ -204,38 +204,24 @@ sub test_container_image {
 
     my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
-    #if ($runtime->runtime =~ /buildah/) {
-        #if (script_run("buildah images | grep '$image'") != 0) {
-        #    assert_script_run("buildah pull $image", timeout => 300);
-        #    assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
-        #}
-        # Ignore stderr explicitly, script_output with serial_terminal captures that as well.
-       # my $container = script_output("buildah from $image 2>/dev/null");
-       # record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
-       # assert_script_run("buildah run $container $smoketest");
-    #} else {
-        # Pull the image if necessary
-        #if (script_run("$runtime->{runtime} image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
-            # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-            $runtime->pull($image, timeout => 420);
-            $runtime->check_image_in_host_registry($image);
-        #}
-        $runtime->create_container($image, 'testing', $smoketest);
-        $runtime->start_container('testing');
-        $runtime->halt_container('testing');
-        my $logs = $runtime->get_container_logs('testing');
-        assert_script_run "echo '$logs' | tee '$logfile'";
-        $runtime->remove_container('testing');
-        if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
-            upload_logs("$logfile");
-            die "Kernel smoke test failed for $image";
-        }
-        if (script_run("grep \"Heartbeat from $image\" '$logfile'") != 0) {
-            upload_logs("$logfile");
-            die "Heartbeat test failed for $image";
-        }
-        assert_script_run "rm -f $logfile";
-    #}
+    $runtime->pull($image, timeout => 420);
+    $runtime->check_image_in_host_registry($image);
+    $runtime->create_container($image, 'testing', $smoketest);
+    return if $runtime->runtime eq 'buildah';
+    $runtime->start_container('testing');
+    $runtime->halt_container('testing');
+    my $logs = $runtime->get_container_logs('testing');
+    assert_script_run "echo '$logs' | tee '$logfile'";
+    $runtime->remove_container('testing');
+    if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
+        upload_logs("$logfile");
+        die "Kernel smoke test failed for $image";
+    }
+    if (script_run("grep \"Heartbeat from $image\" '$logfile'") != 0) {
+        upload_logs("$logfile");
+        die "Heartbeat test failed for $image";
+    }
+    assert_script_run "rm -f $logfile";
 }
 
 sub scc_apply_docker_image_credentials {

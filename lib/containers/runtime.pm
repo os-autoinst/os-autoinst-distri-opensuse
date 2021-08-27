@@ -65,7 +65,7 @@ sub start_container {
 =head2 halt_container($container_name)
 
 Blocks a container until exits.
-C<container_name> which runs. 
+C<container_name> which runs.
 https://docs.docker.com/engine/reference/commandline/wait/
 
 =cut
@@ -88,18 +88,19 @@ Give C<timeout> if you want to change the timeout passed to C<assert_script_run>
 sub build {
     my ($self, $dockerfile_path, $container_tag, %args) = @_;
     die 'wrong number of arguments' if @_ < 3;
-    
+
     #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
     $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", $args{timeout} // 300);
     record_info "$container_tag created", "";
 }
 
-=head2 up($image_name, [mode, remote, keep_container, timeout])
+=head2 up($image_name, [mode, name, remote, keep_container, timeout])
 
 Run a container.
 C<image_name> is required and can be the image id, the name or name with tag.
 If C<daemon> is enabled then container will run in the detached mode. Otherwise will be in the 
 interactive mode.
+Set C<name> is you want to name the container.
 if C<cmd> found then it will execute the given command into the container.
 The container is always removed after exit.
 if C<keep_container> is 1 the container is not removed after creation. Default to get removed
@@ -109,11 +110,13 @@ when it exits or when the daemon exits
 sub up {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
-    my $mode           = $args{daemon}         ? '-d'    : '-it';
-    my $remote         = $args{cmd}            ? 'sh -c' : '';
-    my $keep_container = $args{keep_container} ? ''      : '--rm';
-    my $ret = $self->_rt_script_run(sprintf qq(run %s %s %s %s '%s'), $keep_container, $mode, $image_name, $remote, $args{cmd}, timeout => $args{timeout});
-    record_info "Remote run on $image_name", "options $keep_container $mode $image_name $remote $args{cmd}";
+    my $mode           = $args{daemon}         ? '-d'                    : '-i';
+    my $remote         = $args{cmd}            ? "-- sh -c '$args{cmd}'" : '';
+    my $name           = $args{name}           ? "--name $args{name}"    : '';
+    my $keep_container = $args{keep_container} ? ''                      : '--rm';
+    my $params         = sprintf qq(%s %s %s), $keep_container, $mode, $name;
+    my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
+    record_info "Remote run on $image_name", "options $keep_container $mode $name $image_name $remote";
     return $ret;
 }
 
@@ -126,12 +129,21 @@ C<args> passes parameters to C<script_run>
 =cut
 sub pull {
     my ($self, $image_name, %args) = @_;
-    if  (script_run("$self->runtime image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") != 0) {
-	return;
+    if (script_run("$self->runtime image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") == 0) {
+        return;
     }
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
     return $self->_rt_script_run("pull $image_name", timeout => $args{timeout} // 300);
-    #return $ret;
+}
+
+=head2 commit
+
+Save a existing container as a new image in the local registry
+
+=cut
+sub commit {
+    my ($self, $mycontainer, $new_image_name, %args) = @_;
+    $self->_rt_assert_script_run("commit $mycontainer $new_image_name", timeout => $args{timeout});
 }
 
 =head2 enum_images
@@ -192,7 +204,7 @@ sub info {
 
 Request container's logs.
 C<container> the running container.
-C<logs> returns a string. 
+C<logs> returns a string.
 
 =cut
 sub get_container_logs {
@@ -227,7 +239,7 @@ Returns true if host contains C<img> or false.
 
 =cut
 sub check_image_in_host_registry {
-    my ($self, $img) = shift;
+    my ($self, $img) = @_;
     my @lregistry = $self->enum_images();
     $img =~ @lregistry;
 }
@@ -247,16 +259,20 @@ sub setup_registry {
 
 =head2 cleanup_system_host
 
-Remove containers and then all the images respectively. 
+Remove containers and then all the images respectively.
 Asserts that everything was cleaned up unless c<assert> is set to 0.
 
 =cut
 sub cleanup_system_host {
-    my ($self) = @_;
-    $self->_rt_assert_script_run("ps -q | xargs -r $self->{runtime} stop", 180);
-    $self->_rt_assert_script_run("system prune -a -f",                     180);
-    assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-    assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
+    my ($self, $assert) = @_;
+    $assert // 1;
+    $self->_rt_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
+    $self->_rt_assert_script_run("system prune -a -f",                           180);
+
+    if ($assert) {
+        assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
+        assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
+    }
 }
 
 # Container runtime subclasses here
@@ -272,9 +288,23 @@ sub setup_registry {
     my $registry = registry_url();
     # Allow our internal 'insecure' registry
     assert_script_run(
-	'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
+        'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
     assert_script_run('cat /etc/docker/daemon.json');
     systemctl('restart docker');
+    record_info "setup $self->runtime", "deamon.json ready";
+}
+
+sub up {
+    my ($self, $image_name, %args) = @_;
+    die 'image name or id is required' unless $image_name;
+    my $mode           = $args{daemon}         ? '-d'                 : '-i';
+    my $remote         = $args{cmd}            ? "'$args{cmd}'"       : '';
+    my $name           = $args{name}           ? "--name $args{name}" : '';
+    my $keep_container = $args{keep_container} ? ''                   : '--rm';
+    my $params         = sprintf qq(%s %s %s), $keep_container, $mode, $name;
+    my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
+    record_info "Remote run on $image_name", "options $keep_container $mode $name $image_name $remote";
+    return $ret;
 }
 
 package containers::runtime::podman;
@@ -292,6 +322,7 @@ sub setup_registry {
     assert_script_run "chmod 644 /etc/containers/registries.conf";
     file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
 }
+
 
 package containers::runtime::buildah;
 use Mojo::Base 'containers::runtime';
@@ -321,13 +352,30 @@ sub get_images_by_repo_name {
     return \@images;
 }
 
+sub up {
+    my ($self, $image_name, %args) = @_;
+    die 'image name or id is required' unless $image_name;
+    my $remote = $args{cmd} ? "-- $args{cmd}" : '';
+    $image_name = $args{name} ? "\$(buildah from $args{name})" : '$image_name';
+    my $ret = $self->_rt_script_run(sprintf qq(run %s %s %s), $image_name, $remote, timeout => $args{timeout});
+    record_info "Remote run on $image_name", "options $image_name $remote";
+    return $ret;
+}
+
+sub pull {
+    my ($self, $image_name, %args) = @_;
+    if (my $rc = $self->_rt_script_run("images | grep '$image_name'") == 0) {
+        return;
+    }
+    # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+    return $self->_rt_script_run("pull $image_name", timeout => $args{timeout} // 300);
+}
+
 sub create_container {
     my ($self, $image, $name, $args) = @_;
     die 'wrong number of arguments' if @_ < 3;
     my $container = $self->_rt_script_output("from $image 2>/dev/null");
     record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
-    #$self->_rt_assert_script_run("container create --name $name $image $args", 300);
-    #record_info "$name container created", "";
 }
 
 sub start_container {
@@ -342,5 +390,10 @@ sub build {
     die 'wrong number of arguments' if @_ < 3;
     $self->_rt_assert_script_run("bud -t $container_tag $dockerfile_path", $args{timeout} // 300);
     record_info "$container_tag created", "";
+}
+
+sub commit {
+    my ($self, $mycontainer, $new_image_name, %args) = @_;
+    $self->_rt_assert_script_run("commit --rm $mycontainer $new_image_name", timeout => $args{timeout});
 }
 1;

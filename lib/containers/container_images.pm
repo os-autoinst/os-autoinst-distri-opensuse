@@ -249,27 +249,17 @@ sub test_zypper_on_container {
     die 'Argument $runtime not provided!' unless $runtime;
 
     # zypper lr
-    $runtime->up($image, cmd => "zypper lr -s", daemon => 1, keep_container => 1);
+    $runtime->up($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
 
-    if ($runtime =~ /buildah/) {
-        assert_script_run("$runtime run $image -- zypper -nv ref", 120);
-
-        # Create new image and remove the working container
-        assert_script_run("$runtime->{runtime} commit --rm $image refreshed", 120);
-
-        # Verify the new image works
-        assert_script_run("$runtime run \$($runtime from refreshed) -- zypper -nv ref", 120);
-    } else {
-        assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -nv ref'", 120);
-
-        # Commit the image
-        assert_script_run("$runtime->{runtime} commit refreshed refreshed-image", 120);
-
-        # Remove it
-        assert_script_run("$runtime->{runtime} rm refreshed", 120);
-
-        # Verify the image works
-        assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -nv ref'", 120);
+    # if ($runtime->runtime =~ /buildah/) {
+    # 	$runtime->up($image, cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
+    # } else {
+    $runtime->up($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
+    # }
+    unless ($runtime->runtime eq 'buildah') {
+        $runtime->commit('refreshed', "refreshed-image", timeout => 120);
+        $runtime->remove_container('refreshed');
+        $runtime->up($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 120);
     }
     record_info "The End", "zypper test completed";
 }

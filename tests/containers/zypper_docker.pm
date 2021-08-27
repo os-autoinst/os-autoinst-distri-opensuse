@@ -26,11 +26,12 @@ use version_utils 'get_os_release';
 use strict;
 use warnings;
 use containers::common;
+use containers::runtime;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
+    my $docker = containers::runtime::docker->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);
@@ -59,7 +60,7 @@ sub run {
         assert_script_run("zypper-docker list-patches-container tmp_container", timeout => 600);
         # apply all the updates to a new_image
         assert_script_run("zypper-docker update --auto-agree-with-licenses $testing_image new_image", timeout => 900);
-        clean_container_host(runtime => 'docker');
+        $docker->cleanup_system_host();
     }
 
 }

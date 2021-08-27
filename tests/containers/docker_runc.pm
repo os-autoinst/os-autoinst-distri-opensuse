@@ -30,7 +30,7 @@ sub run {
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $docker   = containers::runtime->new(runtime => 'docker');
+    my $docker   = containers::runtime::docker->new();
     my @runtimes = ();
     push @runtimes, "runc" if (is_leap(">15.1") or !is_sle('=15'));
 
