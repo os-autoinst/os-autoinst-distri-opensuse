@@ -12,7 +12,8 @@ schedule:
   - installation/accept_license
   # Required on zVM
   - '{{disk_activation}}'
-  - installation/scc_registration
+  - installation/registration/register_via_scc
+  - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning

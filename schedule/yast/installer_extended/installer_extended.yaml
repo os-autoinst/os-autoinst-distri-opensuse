@@ -22,7 +22,8 @@ schedule:
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
   - installation/licensing/accept_license
-  - installation/scc_registration
+  - installation/registration/register_via_scc
+  - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/system_role/validate_default_role
   - installation/system_role/select_role

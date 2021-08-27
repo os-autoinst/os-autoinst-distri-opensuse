@@ -29,7 +29,8 @@ schedule:
   - '{{multipath_on_full_medium}}'
   # for some odd reason multipath is on different positions
   # in the installation depending on the medium
-  - installation/scc_registration
+  - installation/registration/register_via_scc
+  - installation/registration/modules_selection
   - '{{multipath_on_online_medium}}'
   - installation/addon_products_sle
   - installation/system_role

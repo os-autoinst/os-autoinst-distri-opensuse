@@ -11,7 +11,8 @@ schedule:
   - remote/remote_controller
   - installation/welcome
   - installation/accept_license
-  - installation/scc_registration
+  - installation/registration/register_via_scc
+  - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
