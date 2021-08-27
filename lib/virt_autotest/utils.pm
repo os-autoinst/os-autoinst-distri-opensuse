@@ -397,6 +397,11 @@ sub shutdown_guests {
 sub wait_guests_shutdown {
     my $retries = shift // 240;
     # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
+    # Firstly wait for guest shutdown for a while, turn it off forcibly using "virsh destroy" if timed-out.
+    # Then wait for guest shutdown again with default "die => 1".
+    if (script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries, die => 0) ne '0') {
+        script_run("virsh destroy $_") foreach (keys %virt_autotest::common::guests);
+    }
     script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries);
 }
 

@@ -86,7 +86,7 @@ sub save_guest_ip {
     my $name = $args{name};
 
     # If we don't know guest's address or the address is wrong so the guest is not responding to ICMP
-    if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30) != 0) {
+    if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30, die => 0) != 0) {
         script_run "sed -i '/ $guest /d' /etc/hosts";
         assert_script_run "virsh domiflist $guest";
         my $mac_guest  = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
