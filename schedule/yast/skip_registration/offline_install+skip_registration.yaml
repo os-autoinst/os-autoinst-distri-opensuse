@@ -11,7 +11,8 @@ schedule:
   - installation/welcome
   - installation/accept_license
   - installation/network_configuration
-  - installation/scc_registration
+  - installation/registration/skip_registration
+  - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
