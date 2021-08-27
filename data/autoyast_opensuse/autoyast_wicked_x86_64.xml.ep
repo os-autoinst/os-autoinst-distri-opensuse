@@ -26,7 +26,7 @@
   <software>
     <install_recommended config:type="boolean">true</install_recommended>
     <products config:type="list">
-        <product>openSUSE</product>
+        <product><%= $get_var->('VERSION') =~ /^Tumbleweed|15\.2$/ ? 'openSUSE' : 'Leap' %></product>
     </products>
     <patterns config:type="list">
       <pattern>base</pattern>
