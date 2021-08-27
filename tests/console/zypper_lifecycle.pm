@@ -41,11 +41,6 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub lifecycle_output_check {
     my $output = shift;
-    if ($output =~ /Legacy Module.*2021-07-30|Python 2 Module.*2021-07-30/) {
-        # https://chat.suse.de/channel/qem-openqa-review/thread/KLrXWR5Sy7zprLFcx?jump=e2dxZRDbkXHE5DXQt
-        record_soft_failure 'bsc#123456 Temporary soft fail until EOS is fixed.';
-        return;
-    }
     if (get_var('SCC_REGCODE_LTSS')) {
         if ($output =~ /No products.*before/) {
             record_soft_failure('poo#95593 https://jira.suse.com/browse/MSC-70');
