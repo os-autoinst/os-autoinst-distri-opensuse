@@ -14,7 +14,7 @@
 # - Launch eog
 # - Check if eog is running
 # - Close eog
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

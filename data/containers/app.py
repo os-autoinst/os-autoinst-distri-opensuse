@@ -1,28 +1,18 @@
+#!/usr/bin/env python3
+##
+## Simple Flask test program (see https://flask.palletsprojects.com/en/2.0.x/quickstart/)
+## Serve 'index.html' from the `templates` directory
+##
+## Usage: python3 app.py
+## Bind to port 80 or to the PORT environment variable, if set
 from flask import Flask, render_template
 import os, sys, ssl
- 
+
 app = Flask(__name__)
-message = ""
 
 @app.route("/")
 def index():
-    return render_template("index.html", message = message)
+    return render_template("index.html")
 
 if __name__ == "__main__":
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    
-    if len(sys.argv) > 1:
-        url = sys.argv[1]
-    else:
-        print("Program requires at least one argument!")
-        sys.exit()
-
-    cmd = "curl -I " + url
-    response = os.system(cmd)
-    if response == 0:
-        message = "pass"
-    else:
-        message = "not pass"
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 80)))

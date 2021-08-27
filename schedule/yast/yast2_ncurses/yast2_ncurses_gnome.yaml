@@ -4,11 +4,16 @@ description:    >
   Test for yast2 UI, ncurses only. Running on created gnome images
   which provides both text console for ncurses UI tests as well as
   the gnome environment for the GUI tests.
+vars:
+  YUI_REST_API: 1
+  SCC_ADDONS: sdk
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/suseconnect_scc
+  - console/setup_libyui_running_system
   - console/yast2_i
   - "{{yast_modules}}"
   - console/coredump_collect
@@ -26,7 +31,9 @@ conditional_schedule:
         - console/yast2_ftp
         - console/yast2_apparmor
         - console/yast2_lan
-        - console/yast2_lan_hostname
+        - console/yast2_lan_hostname/dhcp_no
+        - console/yast2_lan_hostname/dhcp_yes
+        - console/yast2_lan_hostname/dhcp_yes_eth
         - console/yast2_settings
         - console/yast2_dns_server
         - console/yast2_nfs_server
@@ -44,7 +51,12 @@ conditional_schedule:
         - console/yast2_ntpclient
         - console/yast2_tftp
         - console/yast2_lan
-        - console/yast2_lan_hostname
+        - console/yast2_lan_hostname/dhcp_no
+        - console/yast2_lan_hostname/dhcp_yes
+        - console/yast2_lan_hostname/dhcp_yes_eth
         - console/yast2_dns_server
         - console/yast2_nfs_client
         - console/yast2_snapper_ncurses
+test_data:
+  yast2_lan_hostname:
+    ui: ncurses

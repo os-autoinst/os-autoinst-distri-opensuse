@@ -23,9 +23,11 @@ use base "consoletest";
 use testapi;
 use strict;
 use warnings;
+use utils qw(zypper_call);
 
 sub run {
     select_console "root-console";
+    zypper_call 'in gnutls';
 
     # Create test folder
     my $test_dir = "gnutls";
@@ -83,7 +85,7 @@ EOF
 
     # Start a server with support for PSK. This would require a password file created with psktool
     type_string "nohup gnutls-serv --http --priority NORMAL:+ECDHE-PSK:+PSK --pskpasswd $passwd&";
-    type_string "\n";
+    send_key 'ret';
 }
 
 sub test_flags {

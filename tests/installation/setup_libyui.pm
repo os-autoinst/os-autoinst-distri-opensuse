@@ -1,4 +1,4 @@
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,42 +21,32 @@
 use strict;
 use warnings;
 use base "installbasetest";
-use Utils::Backends qw(is_pvm is_hyperv);
-
+use Utils::Backends qw(is_svirt is_ssh_installation);
+use Utils::Architectures qw(is_s390x);
 use testapi;
 use YuiRestClient;
-use YuiRestClient::Wait;
-
-my $ip_regexp    = qr/(?<ip>(\d+\.){3}\d+)/i;
-my $boot_timeout = 500;
 
 sub run {
-    # We setup libyui in bootloader on PowerVM and s390x zKVM
-    return if (is_pvm || get_var('S390_ZKVM'));
-    YuiRestClient::process_start_shell();
+    my $app  = YuiRestClient::get_app(installation => 1, timeout => 60, interval => 1);
+    my $port = $app->get_port();
+    record_info('SERVER', "Used host for libyui: " . $app->get_host());
+    record_info('PORT',   "Used port for libyui: " . $port);
 
-    if (is_hyperv) {
-        my $svirt = select_console('svirt');
-        my $name  = $svirt->name;
-        my $cmd   = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
-        my $ip    = YuiRestClient::Wait::wait_until(object => sub {
-                my $ip = $svirt->get_cmd_output($cmd);
-                return $+{ip} if ($ip =~ $ip_regexp);
-        }, timeout => $boot_timeout, interval => 30);
-        set_var('YUI_SERVER', $ip);
-        select_console('sut', await_console => 0);
-    } elsif (check_var('BACKEND', 'svirt')) {
-        assert_screen('yast-still-running', $boot_timeout);
-        select_console('install-shell');
-        my $ip = YuiRestClient::Wait::wait_until(object => sub {
-                my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
-                return $+{ip} if ($ip =~ $ip_regexp);
-        });
-        set_var('YUI_SERVER', $ip);
-        select_console('installation');
+    if (is_ssh_installation) {
+        my $cmd = '';
+        if (is_s390x) {
+            if (is_svirt) {
+                $cmd = 'TERM=linux ';
+            }
+            elsif (get_var('BACKEND') eq 's390x') {
+                $cmd = 'QT_XCB_GL_INTEGRATION=none ';
+                record_soft_failure('bsc#1142040');
+            }
+        }
+        $cmd .= YuiRestClient::get_yui_params_string($port) . " yast.ssh";
+        enter_cmd($cmd);
     }
-
-    YuiRestClient::connect_to_app();
+    $app->check_connection(timeout => 500, interval => 10);
 }
 
 1;

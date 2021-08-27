@@ -13,7 +13,7 @@
 # - Start nautilus
 # - Check if nautilus was launched
 # - Close nautilus
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

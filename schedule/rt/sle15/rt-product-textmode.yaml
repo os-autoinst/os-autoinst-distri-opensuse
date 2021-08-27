@@ -1,9 +1,12 @@
 ---
 description: 'GUI installation of RT product without gnome pattern.'
 name: 'rt-product-textmode@64bit ( qemu )'
+vars:
+  EXTRABOOTPARAMS: startshell=1
 schedule:
   - installation/isosize
   - installation/bootloader
+  - rt/add_product
   - installation/welcome
   - installation/accept_license
   - installation/scc_registration
@@ -22,5 +25,6 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
+  - installation/exit_startshell
   - installation/grub_test
   - installation/first_boot

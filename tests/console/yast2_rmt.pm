@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Package: rmt-server yast2-rmt
 # Summary: Test for the yast2-rmt module
-# Maintainer: Jonathan Rivrain <JRivrain@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use parent "y2_module_consoletest";
 
@@ -58,6 +58,7 @@ sub test_ui {
     send_key "spc";
     send_key "alt-n";
     assert_screen "yast2_rmt_service_status";
+    wait_still_screen;
     send_key "alt-n";
     assert_screen "yast2_rmt_config_summary";
     send_key "alt-f";

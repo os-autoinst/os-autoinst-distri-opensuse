@@ -23,14 +23,14 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
-    return if (is_opensuse);
+    return if (is_opensuse || is_jeos);
 
     my ($ar_url, $we_repo);
     $we_repo = get_var('REPO_SLE_PRODUCT_WE');
@@ -177,29 +177,28 @@ sub install_from_git {
     my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel         = get_var('LTP_RELEASE');
     my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
-    my $configure   = './configure --with-open-posix-testsuite --with-realtime-testsuite';
+    my $prefix      = get_ltproot();
+    my $configure   = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
-    if ($rel) {
-        $rel = ' -b ' . $rel;
-    }
-    my $ret = script_run("git clone -q --depth 1 $url" . $rel, timeout => 360);
+
+    $rel = "-b $rel" if ($rel);
+
+    my $ret = script_run("git clone -q --depth 1 $url $rel", timeout => 360);
     if (!defined($ret) || $ret) {
-        assert_script_run("git clone -q $url" . $rel, timeout => 360);
+        assert_script_run("git clone -q $url $rel", timeout => 360);
     }
     assert_script_run 'cd ltp';
-    # It is a shallow clone so 'git describe' won't work
-    script_run 'git log -1 --pretty=format:"git-%h" | tee /opt/ltp_version';
-
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
-    assert_script_run "find /opt/ltp -name '*.run-test' > ~/openposix-test-list";
-}
+    assert_script_run "find $prefix -name '*.run-test' > "
+      . get_ltp_openposix_test_list_file();
 
-sub want_stable {
-    return get_var('LTP_STABLE', is_sle && is_released);
+    # It is a shallow clone so 'git describe' won't work
+    record_info("LTP git", script_output('git log -1 --pretty=format:"git-%h" | tee '
+              . get_ltp_version_file()));
 }
 
 sub add_ltp_repo {
@@ -211,28 +210,51 @@ sub add_ltp_repo {
             return;
         }
 
-        my $arch = '';
-        $arch = "_ARM"      if is_aarch64();
-        $arch = "_PowerPC"  if is_ppc64le();
-        $arch = "_zSystems" if is_s390x();
-
-        if (want_stable) {
-            $repo = "https://download.opensuse.org/repositories/benchmark/openSUSE_Factory$arch/";
+        # ltp for leap15.2 is available only x86_64
+        # ltp for leap15.3+ is missing only s390x
+        if ((is_leap('=15.2') && is_x86_64) || (is_leap('15.3+') && !is_s390x)) {
+            $repo = sprintf("Leap_%s", get_var('VERSION'));
+        } elsif (is_tumbleweed) {
+            $repo = "Tumbleweed";
+            $repo = "Factory_PowerPC"  if is_ppc64le();
+            $repo = "Factory_zSystems" if is_s390x();
         } else {
-            $arch = ((is_x86_64) ? "Tumbleweed" : "Factory") . $arch;
-            $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$arch/";
+            die sprintf("Unexpected combination of version (%s) and architecture (%s) used", get_var('VERSION'), get_var('ARCH'));
         }
+        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$repo/";
     }
 
     zypper_ar($repo, name => 'ltp_repo');
 }
 
-sub install_from_repo {
-    my $pkg = get_var('LTP_PKG', (want_stable && is_sle) ? 'qa_test_ltp' : 'ltp');
+sub get_default_pkg {
+    my @packages;
 
-    zypper_call("in --recommends $pkg");
-    script_run "rpm -qi $pkg | tee /opt/ltp_version";
-    assert_script_run q(find /opt/ltp/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > ~/openposix-test-list);
+    if (is_sle && is_released) {
+        push @packages, 'qa_test_ltp';
+        # temporarily disabled due to package conflict with qa_test_ltp
+        #push @packages, 'qa_test_ltp-32bit' if is_x86_64;
+    } else {
+        push @packages, 'ltp';
+        push @packages, 'ltp-32bit' if is_x86_64 && !is_jeos;
+    }
+
+    return join(' ', @packages);
+}
+
+sub install_from_repo {
+    my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
+
+    zypper_call("in --recommends " . join(' ', @pkgs));
+
+    for my $pkg (@pkgs) {
+        my $want_32bit = $pkg =~ m/32bit/;
+        record_info("LTP pkg: $pkg", script_output("rpm -qi $pkg | tee "
+                  . get_ltp_version_file($want_32bit)));
+        assert_script_run "find " . get_ltproot($want_32bit) .
+          q(/testcases/bin/openposix/conformance/interfaces/ -name '*.run-test' > )
+          . get_ltp_openposix_test_list_file($want_32bit);
+    }
 }
 
 sub setup_network {
@@ -327,6 +349,8 @@ sub run {
         install_from_repo();
     }
 
+    log_versions;
+
     zypper_call('in efivar') if is_sle('12+') || is_opensuse;
 
     $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
@@ -338,12 +362,14 @@ sub run {
     add_custom_grub_entries if (is_sle('12+') || is_opensuse) && !is_jeos;
     setup_network;
 
+    # we don't run LVM tests in 32bit, thus not generating the runtest file
+    # for 32 bit packages
     if (!is_sle('<12')) {
         prepare_ltp_env();
         assert_script_run('generate_lvm_runfile.sh');
     }
 
-    is_jeos && zypper_call 'in system-user-bin system-user-daemon';
+    (is_jeos && is_sle('>15')) && zypper_call 'in system-user-bin system-user-daemon';
 
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command
     # file
@@ -394,27 +420,6 @@ Runtime dependencies are needed to be listed both in this module (for git
 installation) and for all LTP rpm packages (for installation from repo), where
 listed as 'Recommends:'. See list of available LTP packages in LTP_PKG section.
 
-=head2 Example
-
-Example SLE test suite configuration for installation from repository:
-
-BOOT_HDD_IMAGE=1
-DESKTOP=textmode
-HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_sdk_installed.qcow2
-INSTALL_LTP=from_repo
-ISO=SLE-%VERSION%-Server-DVD-%ARCH%-Build%BUILD%-Media1.iso
-ISO_1=SLE-%VERSION%-SDK-DVD-%ARCH%-Build%BUILD_SDK%-Media1.iso
-ISO_2=SLE-%VERSION%-WE-DVD-%ARCH%-Build%BUILD_WE%-Media1.iso
-PUBLISH_HDD_1=SLES-%VERSION%-%ARCH%-minimal_with_ltp_installed.qcow2
-QEMUCPUS=4
-QEMURAM=4096
-RUN_AFTER_TEST=sles12_minimal_base+sdk_create_hdd
-
-For openSUSE the configuration should be simpler as you can install git and the
-other dev tools from the main repository. You just need a text mode installation
-image to boot from (a graphical one will probably work as well). Depending how
-OpenQA is configured the ISO variable may not be necessary either.
-
 =head2 INSTALL_LTP
 
 Either should contain 'git' or 'repo'. Git is recommended for now. If you decide
@@ -429,10 +434,9 @@ platforms which do not support QCOW2 image snapshot (PowerVM, s390x backend).
 
 =head2 LTP_REPOSITORY
 
-When installing from repository default repository URL is generated (for SLES
+When installing from repository the default repository URL is generated (for SLES
 uses QA head repository in IBS, using QA_HEAD_REPO variable; for openSUSE
-Tumbleweed benchmark repository in OBS), with respect whether stable or nightly
-build LTP is required (see LTP_STABLE). Variable allows to use custom repository.
+Tumbleweed benchmark repository in OBS). Variable allows to use custom repository.
 When defined, it requires LTP_PKG to be set properly.
 
 Examples (these are set by default):
@@ -442,14 +446,6 @@ QA head repository for SLE12 SP5.
 
 https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_Tumbleweed_PowerPC
 Nightly build for openSUSE Tumbleweed ppc64le.
-
-https://download.opensuse.org/repositories/benchmark/openSUSE_Factory
-Stable release for openSUSE Tumbleweed x86_64.
-
-=head2 LTP_STABLE
-
-When defined and installing from repository stable release. Default is stable
-for SLES QAM, otherwise nightly builds.
 
 =head2 LTP_PKG
 
@@ -463,20 +459,23 @@ LTP_EXTRA_CONF_FLAGS="CFLAGS=-m32 LDFLAGS=-m32").
 
 LTP_PKG=qa_test_ltp
 Stable LTP package in QA head repository.
+This is the default for QA for SLE released products.
+
+LTP_PKG=ltp ltp-32bit
+Install both 64bit and 32bit LTP packages from nightly build.
+This is the default on x86_64 for QA for SLE product development and Tumbleweed.
 
 =head3 Available LTP packages
+
 https://confluence.suse.com/display/qasle/LTP+repositories
 
-* QA:Head/qa_test_ltp (IBS, stable - latest release, used by QAM)
+* QA:Head/qa_test_ltp (IBS, stable - latest release, used for released products testing)
 https://build.suse.de/package/show/QA:Head/qa_test_ltp
 Configured via
 https://github.com/SUSE/qa-testsuites
 
 * QA:Head/ltp (IBS, nightly build)
 https://build.suse.de/package/show/QA:Head/ltp
-
-* benchmark/ltp (OBS, stable - latest release)
-https://build.opensuse.org/package/show/benchmark/ltp
 
 * benchmark:ltp:devel/ltp (OBS, nightly build)
 https://build.opensuse.org/package/show/benchmark:ltp:devel/ltp
@@ -497,5 +496,102 @@ Overrides the official LTP GitHub repository URL.
 
 Append custom group entries with appended group param via
 add_custom_grub_entries().
+
+=head2 SLES CONFIGURATION
+
+=head3 install_ltp+sle+Online
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
+HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
+INSTALL_LTP=from_repo
+LTP_PKG=ltp ltp-32bit
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+START_AFTER_TEST=create_hdd_minimal_base+sdk
+UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
+
+=head3 install_ltp+sle+Online-KOTD
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
+HDD_1=%KOTD_HDD%
+INSTALL_KOTD=1
+INSTALL_LTP=from_repo
+LTP_PKG=ltp ltp-32bit
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+UEFI_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
+
+=head3 install_ltp_spvm
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb
+INSTALL_LTP=from_repo
+NOVIDEO=1
+START_DIRECTLY_AFTER_TEST=default_kernel_spvm
+
+=head3 install_ltp_baremetal
+
+DESKTOP=textmode
+GA_REPO=http://dist.suse.de/ibs/SUSE:/SLE-%VERSION%:/GA/standard/SUSE:SLE-%VERSION%:GA.repo
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU
+GRUB_TIMEOUT=300
+INSTALL_LTP=from_repo
+LTP_PKG=ltp ltp-32bit
+START_DIRECTLY_AFTER_TEST=prepare_baremetal
+VNC_TYPING_LIMIT=50
+
+=head3 install_ltp+sle+Server-DVD-Incidents-Kernel-KOTD
+
+Incidents Kernel (released products) use qa_test_ltp package.
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb
+HDDSIZEGB=60
+HDD_1=SLES-%VERSION%-%ARCH%-minimal_installed_for_LTP.qcow2
+INSTALL_LTP=from_repo
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-minimal_installed_for_LTP-uefi-vars.qcow2
+
+=head2 JeOS
+
+JeOS does not use install_ltp, it installs LTP for each runtest file.
+
+=head3 jeos-ltp-syscalls
+
+INSTALL_LTP=from_repo
+LTP_COMMAND_EXCLUDE=quotactl(01|04|06)|msgstress(03|04)
+LTP_COMMAND_FILE=syscalls
+SCC_ADDONS=base
+YAML_SCHEDULE=schedule/jeos/sle/jeos-ltp.yaml
+
+=head2 openSUSE CONFIGURATION
+
+=head3 install_ltp+opensuse+DVD
+
+BOOT_HDD_IMAGE=1
+DESKTOP=textmode
+GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb
+HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%DESKTOP%@%MACHINE%.qcow2
+INSTALL_LTP=from_repo
+LTP_ENV=LVM_DIR=/var/tmp/
+PUBLISH_HDD_1=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp.qcow2
+PUBLISH_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%FLAVOR%@%MACHINE%-with-ltp-uefi-vars.qcow2
+QEMUCPUS=4
+QEMURAM=4096
+START_AFTER_TEST=create_hdd_textmode
+UEFI_PFLASH_VARS=%DISTRI%-%VERSION%-%ARCH%-%BUILD%-%DESKTOP%@%MACHINE%-uefi-vars.qcow2
 
 =cut

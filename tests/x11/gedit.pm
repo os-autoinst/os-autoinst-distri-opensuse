@@ -13,7 +13,7 @@
 # - Launch gedit and check if it is running
 # - Type "If you can see this text gedit is working." and check
 # - Close gedit
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

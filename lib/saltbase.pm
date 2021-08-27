@@ -102,6 +102,7 @@ sub logs_from_salt {
     my $error = "cat /var/log/salt/* | grep -i 'CRITICAL\\|ERROR\\|Traceback' ";
     $error .= "| grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError' ";
     $error .= "| grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'";
+    $error .= "| grep -vi 'Error while bringing up minion for multi-master'";
     if (script_run("$error") != 1) {
         die "Salt logs are containing errors!";
     }
@@ -122,7 +123,7 @@ sub post_run_hook {
     stop();
 
     # start next test in home directory
-    type_string "cd\n";
+    enter_cmd "cd";
 
     # clear screen to make screen content ready for next test
     $self->clear_and_verify_console;

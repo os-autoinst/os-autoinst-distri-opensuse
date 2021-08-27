@@ -32,15 +32,15 @@ sub setup_local_server() {
     zypper_call('in samba');
     assert_script_run("useradd geekotest");
     assert_script_run("mkdir -p /srv/samba/{currywurst,filedrop}");
-    assert_script_run("echo -e '[currywurst]\npath = /srv/samba/currywurst\nread only = yes\nbrowseable = yes\nguest ok = yes\n\n' >> /etc/samba/smb.conf");
-    assert_script_run("echo -e '[filedrop]\npath = /srv/samba/filedrop\nbrowseable = no\nwrite list = geekotest\ncreate mask = 0644\ndirectory mask = 0755\n' >> /etc/samba/smb.conf");
+    assert_script_run('echo -e \'[currywurst]\npath = /srv/samba/currywurst\nread only = yes\nbrowseable = yes\nguest ok = yes\n\n\' >> /etc/samba/smb.conf');
+    assert_script_run('echo -e \'[filedrop]\npath = /srv/samba/filedrop\nbrowseable = no\nwrite list = geekotest\ncreate mask = 0644\ndirectory mask = 0755\n\' >> /etc/samba/smb.conf');
     assert_script_run('curl ' . data_url('samba/Currywurst.txt') . ' -o /srv/samba/currywurst/Recipe.txt');
     assert_script_run("chown -R geekotest /srv/samba/{currywurst,filedrop}");
     assert_script_run("chmod -R 0755 /srv/samba/currywurst");
     assert_script_run("chmod -R 0750 /srv/samba/filedrop");
     systemctl("start smb");
     assert_script_run("systemctl status smb | grep 'active (running)'");
-    assert_script_run("echo -ne 'nots3cr3t\nnots3cr3t' | smbpasswd -a -s geekotest");
+    assert_script_run('echo -ne \'nots3cr3t\nnots3cr3t\' | smbpasswd -a -s geekotest');
 }
 
 sub run {

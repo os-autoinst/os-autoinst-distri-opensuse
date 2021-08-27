@@ -35,7 +35,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # Start vncviewer and login with fullscreen
@@ -51,7 +51,6 @@ sub run {
     wait_still_screen 3;
     send_key 'ret';
     handle_login;
-    assert_screen 'generic-desktop';
 
     # Launch gnome-terminal and nautilus remotely
     x11_start_program('gnome-terminal');

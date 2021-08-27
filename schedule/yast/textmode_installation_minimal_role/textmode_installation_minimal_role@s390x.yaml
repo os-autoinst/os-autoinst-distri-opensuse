@@ -11,18 +11,20 @@ vars:
   VIDEOMODE: text
   SYSTEM_ROLE: minimal
   DESKTOP: textmode
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -30,7 +32,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/installation_snapshots
@@ -41,3 +43,5 @@ schedule:
   - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish
+test_data:
+  product: SLES

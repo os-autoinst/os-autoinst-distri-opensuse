@@ -14,7 +14,7 @@
 #      chrome). This allows us not having to handle special cases there for
 #      creating new keyring databases (Which, potentially, every application
 #      could be asking for).
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

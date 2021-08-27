@@ -1,16 +1,19 @@
-FROM python:3
+FROM baseimage_var
 
 # set a directory for the app
-WORKDIR /usr/src/app
+WORKDIR /srv/www/
 
 # copy all the files to the container
 COPY . .
+RUN mkdir templates/ && cp index.html templates
 
 # install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # tell the port number the container should expose
-EXPOSE 5000
+EXPOSE 80
+
+ENV WORLD_VAR Arda
 
 # run the command
 ENTRYPOINT ["python", "./app.py"]

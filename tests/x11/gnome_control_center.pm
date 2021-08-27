@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,6 +30,12 @@ sub run {
     mouse_hide(1);
     # for timeout selection see bsc#965857
     x11_start_program('gnome-control-center', match_timeout => 120);
+    # If the default page of gnome control center changed by other test, need to
+    # back to default page and continue for the test.
+    if (match_has_tag('gnome-control-center-detail-layout')) {
+        assert_and_click "gnome-control-center-back";
+        assert_screen "gnome-control-center";
+    }
     if (match_has_tag('gnome-control-center-new-layout')) {
         # with GNOME 3.26, the control-center got a different layout / workflow
         type_string "about";

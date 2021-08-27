@@ -1,5 +1,5 @@
 
-[ Lynis 3.0.3 ]
+[ Lynis 3.0.5 ]
 
 ################################################################################
   Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
@@ -17,11 +17,11 @@
 [2C- Checking profiles...[37C [ DONE ]
 
   ---------------------------------------------------
-  Program version:           3.0.3
+  Program version:           3.0.5
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210222
-  Kernel version:            5.10.16
+  Operating system version:  20210703
+  Kernel version:            5.12.13
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -49,8 +49,49 @@
 [0C [0C
 [2C- Plugins enabled[42C [ NONE ]
 
+=================================================================
+
+  Exception found!
+
+  Function/test:  [GetHostID]
+  Message:        Can't create hostid (no MAC addresses found)
+
+  Help improving the Lynis community with your feedback!
+
+  Steps:
+  - Ensure you are running the latest version (/usr/bin/lynis update check)
+  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
+  - Include relevant parts of the log file or configuration file
+
+  Thanks!
+
+=================================================================
+
+
+=================================================================
+
+  Exception found!
+
+  Function/test:  [GetHostID]
+  Message:        Can't create HOSTID, command ip not found
+
+  Help improving the Lynis community with your feedback!
+
+  Steps:
+  - Ensure you are running the latest version (/usr/bin/lynis update check)
+  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
+  - Include relevant parts of the log file or configuration file
+
+  Thanks!
+
+=================================================================
+
+
 [+] Boot and services
 ------------------------------------
+
+  [WARNING]: Test CORE-1000 had a long execution: 17.226488 seconds
+
 [2C- Service Manager[42C [ systemd ]
 [2C- Checking UEFI boot[39C [ DISABLED ]
 [2C- Checking presence GRUB2[34C [ FOUND ]
@@ -62,7 +103,7 @@
 [2C- Check startup files (permissions)[24C [ OK ]
 [2C- Running 'systemd-analyze security'[23C
 [8C- after-local.service:[31C [ UNSAFE ]
-[8C- auditd.service:[36C [ UNSAFE ]
+[8C- auditd.service:[36C [ EXPOSED ]
 [8C- chronyd.service:[35C [ EXPOSED ]
 [8C- cron.service:[38C [ UNSAFE ]
 [8C- cups.service:[38C [ UNSAFE ]
@@ -89,15 +130,15 @@
 [8C- serial-getty@ttyS1.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS2.service:[24C [ UNSAFE ]
 [8C- smartd.service:[36C [ UNSAFE ]
-[8C- snapperd.service:[34C [ UNSAFE ]
+[8C- snapperd.service:[34C [ MEDIUM ]
 [8C- sshd.service:[38C [ UNSAFE ]
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
 [8C- systemd-ask-password-plymouth.service:[13C [ UNSAFE ]
 [8C- systemd-initctl.service:[27C [ UNSAFE ]
-[8C- systemd-journald.service:[26C [ OK ]
-[8C- systemd-logind.service:[28C [ OK ]
+[8C- systemd-journald.service:[26C [ PROTECTED ]
+[8C- systemd-logind.service:[28C [ PROTECTED ]
 [8C- systemd-rfkill.service:[28C [ UNSAFE ]
-[8C- systemd-timesyncd.service:[25C [ OK ]
+[8C- systemd-timesyncd.service:[25C [ PROTECTED ]
 [8C- systemd-udevd.service:[29C [ MEDIUM ]
 [8C- user@0.service:[36C [ UNSAFE ]
 [8C- wickedd-auto4.service:[29C [ UNSAFE ]
@@ -114,7 +155,7 @@
 [2C- Checking kernel version and release[22C [ DONE ]
 [2C- Checking kernel type[37C [ DONE ]
 [2C- Checking loaded kernel modules[27C [ DONE ]
-[6CFound 107 active modules[31C
+[6CFound 101 active modules[31C
 [2C- Checking Linux kernel configuration file[17C [ FOUND ]
 [2C- Checking default I/O kernel scheduler[20C [ NOT FOUND ]
 [2C- Checking core dumps configuration[24C
@@ -154,6 +195,7 @@
 [2C- Accounts without password[32C [ OK ]
 [2C- Locked accounts[42C [ OK ]
 [2C- Checking expired passwords[31C [ OK ]
+[2C- Checking Linux single user mode authentication[11C [ OK ]
 [2C- Determining default umask[32C
 [4C- umask (/etc/profile)[35C [ NOT FOUND ]
 
@@ -182,18 +224,17 @@
 [2C- Checking /var/tmp sticky bit[29C [ OK ]
 [2C- ACL support root file system[29C [ ENABLED ]
 [2C- Mount options of /[39C [ OK ]
-[2C- Mount options of /dev[36C [ HARDENED ]
+[2C- Mount options of /dev[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /dev/shm[32C [ PARTIALLY HARDENED ]
 [2C- Mount options of /home[35C [ NON DEFAULT ]
 [2C- Mount options of /run[36C [ HARDENED ]
 [2C- Mount options of /tmp[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /var[36C [ NON DEFAULT ]
-[2C- Total without nodev:14 noexec:16 nosuid:12 ro or noexec (W^X): 16 of total 43[0C
+[2C- Total without nodev:14 noexec:17 nosuid:12 ro or noexec (W^X): 17 of total 30[0C
 [2C- Disable kernel support of some filesystems[15C
 [4C- Module cramfs is blacklisted[27C [ OK ]
 [4C- Module freevxfs is blacklisted[25C [ OK ]
 [4C- Module hfs is blacklisted[30C [ OK ]
-[4C- Discovered kernel modules: cramfs freevxfs hfsplus jffs2 squashfs udf [0C
 
 [+] USB Devices
 ------------------------------------
@@ -281,7 +322,26 @@
 [+] SSH Support
 ------------------------------------
 [2C- Checking running SSH daemon[30C [ FOUND ]
-[4C- Searching SSH configuration[28C [ FOUND ]
+[4C- Searching SSH configuration[28C [ NOT FOUND ]
+
+=================================================================
+
+  Exception found!
+
+  Function/test:  [SSH-7404:1]
+  Message:        SSH daemon is running, but no readable configuration file found
+
+  Help improving the Lynis community with your feedback!
+
+  Steps:
+  - Ensure you are running the latest version (/usr/bin/lynis update check)
+  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
+  - Include relevant parts of the log file or configuration file
+
+  Thanks!
+
+=================================================================
+
 [4C- OpenSSH option: AllowTcpForwarding[21C [ SUGGESTION ]
 [4C- OpenSSH option: ClientAliveCountMax[20C [ SUGGESTION ]
 [4C- OpenSSH option: ClientAliveInterval[20C [ OK ]
@@ -293,11 +353,11 @@
 [4C- OpenSSH option: LogLevel[31C [ SUGGESTION ]
 [4C- OpenSSH option: MaxAuthTries[27C [ SUGGESTION ]
 [4C- OpenSSH option: MaxSessions[28C [ SUGGESTION ]
-[4C- OpenSSH option: PermitRootLogin[24C [ SUGGESTION ]
+[4C- OpenSSH option: PermitRootLogin[24C [ OK ]
 [4C- OpenSSH option: PermitUserEnvironment[18C [ OK ]
 [4C- OpenSSH option: PermitTunnel[27C [ OK ]
 [4C- OpenSSH option: Port[35C [ SUGGESTION ]
-[4C- OpenSSH option: PrintLastLog[27C [ OK ]
+[4C- OpenSSH option: PrintLastLog[27C [ SUGGESTION ]
 [4C- OpenSSH option: StrictModes[28C [ OK ]
 [4C- OpenSSH option: TCPKeepAlive[27C [ SUGGESTION ]
 [4C- OpenSSH option: UseDNS[33C [ OK ]
@@ -382,11 +442,11 @@
 
 [+] Cryptography
 ------------------------------------
-[2C- Checking for expired SSL certificates [0/1][14C [ NONE ]
 [2C- Found 0 encrypted and 1 unencrypted swap devices in use.[1C [ OK ]
 [2C- Kernel entropy is sufficient[29C [ YES ]
 [2C- HW RNG & rngd[44C [ NO ]
 [2C- SW prng[50C [ YES ]
+[2C- MOR variable not found[35C [ WEAK ]
 
 [+] Virtualization
 ------------------------------------
@@ -398,9 +458,8 @@
 ------------------------------------
 [2C- Checking presence AppArmor[31C [ FOUND ]
 [4C- Checking AppArmor status[31C [ ENABLED ]
-[8CFound 35 unconfined processes[24C
-[2C- Checking presence SELinux[32C [ FOUND ]
-[4C- Checking SELinux status[32C [ DISABLED ]
+[8CFound 34 unconfined processes[24C
+[2C- Checking presence SELinux[32C [ NOT FOUND ]
 [2C- Checking presence TOMOYO Linux[27C [ NOT FOUND ]
 [2C- Checking presence grsecurity[29C [ NOT FOUND ]
 [2C- Checking for implemented MAC framework[19C [ OK ]
@@ -436,7 +495,6 @@
 [4CFile: /etc/motd[42C [ OK ]
 [4CFile: /etc/passwd[40C [ OK ]
 [4CFile: /etc/passwd-[39C [ OK ]
-[4CFile: /etc/ssh/sshd_config[31C [ SUGGESTION ]
 [4CFile: /etc/hosts.equiv[35C [ OK ]
 [4CDirectory: /root/.ssh[36C [ OK ]
 [4CDirectory: /etc/cron.d[35C [ SUGGESTION ]
@@ -455,9 +513,9 @@
 ------------------------------------
 [2C- Comparing sysctl key pairs with scan profile[13C
 [4C- dev.tty.ldisc_autoload (exp: 0)[24C [ DIFFERENT ]
-[4C- fs.protected_fifos (exp: 2)[28C [ DIFFERENT ]
+[4C- fs.protected_fifos (exp: 2)[28C [ OK ]
 [4C- fs.protected_hardlinks (exp: 1)[24C [ OK ]
-[4C- fs.protected_regular (exp: 2)[26C [ DIFFERENT ]
+[4C- fs.protected_regular (exp: 2)[26C [ OK ]
 [4C- fs.protected_symlinks (exp: 1)[25C [ OK ]
 [4C- fs.suid_dumpable (exp: 0)[30C [ OK ]
 [4C- kernel.core_uses_pid (exp: 1)[26C [ DIFFERENT ]
@@ -494,7 +552,7 @@
 
 [+] Hardening
 ------------------------------------
-[4C- Installed compiler(s)[34C [ FOUND ]
+[4C- Installed compiler(s)[34C [ NOT FOUND ]
 [4C- Installed malware scanner[30C [ NOT FOUND ]
 [4C- Non-native binary formats[30C [ NOT FOUND ]
 
@@ -507,8 +565,8 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package systemd-246.10-2.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.8.15-2.2.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package systemd-248.3-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-6.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -535,7 +593,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CRPATH "//usr/lib64/bash" on /usr/bin/bash is not allowed[1C [ WARNING ]
+[4CNo bad RPATH usage found in 4262 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -543,7 +601,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 40.963852 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 30.047560 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -596,7 +654,7 @@
 
 ================================================================================
 
-  -[ Lynis 3.0.3 Results ]-
+  -[ Lynis 3.0.5 Results ]-
 
   Warnings (2):
   ----------------------------
@@ -606,7 +664,7 @@
   ! iptables module(s) loaded, but no rules active [FIRE-4512] 
       https://cisofy.com/lynis/controls/FIRE-4512/
 
-  Suggestions (41):
+  Suggestions (39):
   ----------------------------
   * Set a password on GRUB boot loader to prevent altering boot configuration (e.g. boot in single user mode without password) [BOOT-5122] 
       https://cisofy.com/lynis/controls/BOOT-5122/
@@ -623,11 +681,6 @@
 
   * When possible set expire dates for all password protected accounts [AUTH-9282] 
       https://cisofy.com/lynis/controls/AUTH-9282/
-
-  * Consider disabling unused kernel modules [FILE-6430] 
-    - Details  : /etc/modprobe.d/blacklist.conf
-    - Solution : Add 'install MODULENAME /bin/true' (without quotes)
-      https://cisofy.com/lynis/controls/FILE-6430/
 
   * Disable drivers like USB storage when not used, to prevent unauthorized storage or data theft [USB-1000] 
       https://cisofy.com/lynis/controls/USB-1000/
@@ -687,11 +740,11 @@
       https://cisofy.com/lynis/controls/SSH-7408/
 
   * Consider hardening SSH configuration [SSH-7408] 
-    - Details  : PermitRootLogin (set YES to (FORCED-COMMANDS-ONLY|NO|PROHIBIT-PASSWORD|WITHOUT-PASSWORD))
+    - Details  : Port (set 22 to )
       https://cisofy.com/lynis/controls/SSH-7408/
 
   * Consider hardening SSH configuration [SSH-7408] 
-    - Details  : Port (set 22 to )
+    - Details  : PrintLastLog (set NO to YES)
       https://cisofy.com/lynis/controls/SSH-7408/
 
   * Consider hardening SSH configuration [SSH-7408] 
@@ -742,9 +795,6 @@
     - Solution : Change sysctl value or disable test (skip-test=KRNL-6000:<sysctl-key>)
       https://cisofy.com/lynis/controls/KRNL-6000/
 
-  * Harden compilers like restricting access to root user only [HRDN-7222] 
-      https://cisofy.com/lynis/controls/HRDN-7222/
-
   * Harden the system by installing at least one malware scanner, to perform periodic file system scans [HRDN-7230] 
     - Solution : Install a tool like rkhunter, chkrootkit, OSSEC
       https://cisofy.com/lynis/controls/HRDN-7230/
@@ -760,7 +810,7 @@
 
   Lynis security scan details:
 
-  Hardening index : 89 [#################   ]
+  Hardening index : 81 [################    ]
   Tests performed : 259
   Plugins enabled : 0
 
@@ -782,7 +832,16 @@
 
 ================================================================================
 
-  Lynis 3.0.3
+  Exceptions found
+  Some exceptional events or information was found!
+
+  What to do:
+  You can help by providing your log file (/var/log/lynis.log).
+  Go to https://cisofy.com/contact/ and send your file to the e-mail address listed
+
+================================================================================
+
+  Lynis 3.0.5
 
   Auditing, system hardening, and compliance for UNIX-based systems
   (Linux, macOS, BSD, and others)

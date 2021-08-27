@@ -10,7 +10,7 @@
 # Summary: Keyboard layout test in console and display manager after boot
 # - Open xterm and type keys for the keyboard layout
 # - Close xterm
-# Maintainer: Oliver Kurz <okurz@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "locale";
 use strict;

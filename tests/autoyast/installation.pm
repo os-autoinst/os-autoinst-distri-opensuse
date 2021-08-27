@@ -32,7 +32,7 @@
 #   - Handle warning pop ups
 #   - Handle autoyast errors during second stage
 #   - Handle grub to boot on local disk (aarch64)
-# Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
@@ -307,7 +307,7 @@ sub run {
         }
         elsif (match_has_tag('linuxrc-start-shell-after-installation')) {
             @needles = grep { $_ ne 'linuxrc-start-shell-after-installation' } @needles;
-            type_string "exit\n";
+            enter_cmd "exit";
         }
         elsif (match_has_tag 'expired-gpg-key') {
             send_key 'alt-y';
@@ -330,7 +330,7 @@ sub run {
 
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
     if (check_var('ARCH', 's390x')) {
-        reconnect_mgmt_console(timeout => 500, grub_timeout => 180);
+        reconnect_mgmt_console(timeout => 700, grub_timeout => 180);
         return;
     }
     # For powerVM need to switch to mgmt console to handle the reboot properly

@@ -1,0 +1,45 @@
+---
+name: qam_sles4sap_online_dvd_gnome_hana
+description: >
+  HANA tests for SLES4SAP with the hdblcm cli
+vars:
+  INSTANCE_ID: '00'
+  INSTANCE_SID: NDB
+schedule:
+  - boot/boot_from_pxe
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - '{{update_test_repo}}'
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/sles4sap_product_installation_mode
+  - installation/partitioning
+  - installation/partitioning_firstdisk
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - sles4sap/patterns
+  - sles4sap/reclaim_free_space_in_pv
+  - '{{ndctl}}'
+  - sles4sap/hana_install
+  - sles4sap/hana_test
+  - sles4sap/forkbomb
+conditional_schedule:
+  ndctl:
+    NVDIMM:
+      1:
+        - console/ndctl
+  update_test_repo:
+    QAM_INCI:
+      1:
+        - installation/add_update_test_repo

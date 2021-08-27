@@ -6,31 +6,34 @@ description:    >
 vars:
   DESKTOP: gnome
   MULTIPATH: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/disk_activation
   - installation/scc_registration
   - installation/multipath
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_zfcp
   - console/validate_multipath
 test_data:
+  product: SLES
   software:
     packages:
       # Device Mapper Tools
@@ -49,11 +52,11 @@ test_data:
           online: 1
           port_type: 'NPIV VPORT'
         fcp_luns:
-          - wwpn: '0x500507630718d3b3'
+          - wwpn: '0x500507630708d3b3'
             scsi:
               peripheral_type: disk
               vendor_model_revision: 'IBM'
-          - wwpn: '0x500507630713d3b3'
+          - wwpn: '0x500507630703d3b3'
             scsi:
               peripheral_type: disk
               vendor_model_revision: 'IBM'

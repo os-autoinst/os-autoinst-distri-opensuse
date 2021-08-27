@@ -28,11 +28,11 @@ my %software = ();
 # Define test data
 
 $software{'salt-minion'} = {
-    repo      => 'Basesystem',
-    installed => is_jeos() ? 1 : 0,       # On JeOS Salt is present in the default image
+    repo      => get_var('SCC_REGCODE_LTSS') ? 'LTSS' : 'Basesystem',
+    installed => is_jeos()                   ? 1      : 0,              # On JeOS Salt is present in the default image
     condition => sub { is_sle('15+') },
 };
-$software{'update-test-feature'} = {      # See poo#36451
+$software{'update-test-feature'} = {                                    # See poo#36451
     repo      => is_sle('15+') ? 'Basesystem' : 'SLES',
     installed => 0,
     available => sub { get_var('BETA') },

@@ -70,7 +70,7 @@ sub run {
     }
 
     # Terminate xterm session
-    type_string "exit\n";
+    enter_cmd "exit";
     wait_screen_change { send_key 'alt-f4' };
     x11_start_program('gnome-session-quit --logout --force', valid => 0);
 

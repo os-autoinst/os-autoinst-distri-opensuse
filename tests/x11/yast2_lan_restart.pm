@@ -107,7 +107,7 @@ sub run {
         $service_status_after_conf = (is_sle('<=15-SP1')) ? 'restart' : 'reload';
         verify_network_configuration(\&change_hw_device_name, $service_status_after_conf, 'dyn0');
     }
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

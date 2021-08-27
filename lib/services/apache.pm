@@ -39,7 +39,7 @@ sub check_service {
 # check httpd function
 sub check_function {
     # verify httpd serves index.html
-    type_string "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html\n";
+    enter_cmd "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html";
     assert_script_run(
         "curl -f http://localhost/ | grep 'Lorem ipsum dolor sit amet'",
         timeout      => 90,
@@ -50,15 +50,17 @@ sub check_function {
 # check apache service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_apache_check {
-    my ($stage, $type) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage  = $hash{stage};
+    my $type   = $hash{service_type};
+    my $pkg    = $hash{srv_pkg_name};
     if ($stage eq 'before') {
         install_service();
-        common_service_action('apache2', $type, 'enable');
-        common_service_action('apache2', $type, 'start');
+        common_service_action($pkg, $type, 'enable');
+        common_service_action($pkg, $type, 'start');
     }
-    common_service_action('apache2', $type, 'is-enabled');
-    common_service_action('apache2', $type, 'is-active');
+    common_service_action($pkg, $type, 'is-enabled');
+    common_service_action($pkg, $type, 'is-active');
     check_function();
 }
 

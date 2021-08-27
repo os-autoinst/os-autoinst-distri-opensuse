@@ -146,10 +146,7 @@ sub get_named_profile {
     my ($self, $profile_name) = @_;
 
     # Recalculate profile name in case
-    $profile_name = script_output("grep ' {\$' /etc/apparmor.d/$profile_name | sed 's/ {//' | head -1");
-    if ($profile_name =~ m/profile /) {
-        $profile_name = script_output("echo $profile_name | cut -d ' ' -f2");
-    }
+    $profile_name = script_output("/sbin/apparmor_parser -N /etc/apparmor.d/$profile_name | head -1");
     return $profile_name;
 }
 
@@ -552,15 +549,15 @@ sub adminer_setup {
     # Clean and Start Firefox
     x11_start_program('xterm');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
-    type_string("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* \n");
-    type_string("firefox http://localhost/adminer/$adminer_file &\n");
+    enter_cmd("killall -9 firefox; rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/* ");
+    enter_cmd("firefox http://localhost/adminer/$adminer_file &");
 
     my $ret;
-    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+    $ret = check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
     if (!defined($ret)) {
         # Wait more time
         record_info("Firefox loading adminer failed", "Retrying workaround");
-        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);       # nocheck: old code, should be updated
     }
     if (match_has_tag("unresponsive-script")) {
         send_key_until_needlematch("adminer-login", 'ret', 5, 5);
@@ -631,6 +628,11 @@ sub adminer_database_delete {
     send_key_until_needlematch("adminer-database-dropped", 'ret', 10, 1);
     # Exit x11 and turn to console
     send_key "alt-f4";
+    # Handle exceptions when "Quit and close tabs" in Firefox, the warning FYI:
+    # "You are about to close 2 tabs. Are you sure want to continue?"
+    if (check_screen("firefox-quit-and-close-tabs", 5)) {
+        assert_and_click("firefox-close-tabs");
+    }
     assert_screen("generic-desktop");
     select_console("root-console");
     send_key "ctrl-c";
@@ -651,7 +653,7 @@ sub yast2_apparmor_setup {
 
 # Yast2 Apparmor: check apparmor is enabled
 sub yast2_apparmor_is_enabled {
-    type_string("yast2 apparmor &\n");
+    enter_cmd("yast2 apparmor &");
     assert_screen("AppArmor-Configuration-Settings", timeout => 180);
     send_key "alt-l";
     assert_screen("AppArmor-Settings-Enable-Apparmor");

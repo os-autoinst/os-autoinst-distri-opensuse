@@ -66,7 +66,7 @@ sub testsuiteinstall {
         zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1';
         change_grub_config('=.*', '=9', 'GRUB_TIMEOUT');
         grub_mkconfig;
-        wait_screen_change { type_string "shutdown -r now\n" };
+        wait_screen_change { enter_cmd "shutdown -r now" };
         if (check_var('ARCH', 's390x')) {
             $self->wait_boot(bootloader_time => 180);
         } else {
@@ -104,7 +104,7 @@ sub testsuiteprepare {
         assert_script_run 'ls -l /etc/systemd/system/testsuite.service';
         #virtual machines do a vm reset instead of reboot
         if (!check_var('BACKEND', 'qemu') || ($option eq 'needreboot')) {
-            wait_screen_change { type_string "shutdown -r now\n" };
+            wait_screen_change { enter_cmd "shutdown -r now" };
             if (check_var('ARCH', 's390x')) {
                 $self->wait_boot(bootloader_time => 180);
             }

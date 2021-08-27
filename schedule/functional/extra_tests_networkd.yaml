@@ -1,0 +1,11 @@
+name:           extra_tests_networkd
+description:    >
+    Maintainer: dheidler.
+    Extra networkd tests
+schedule:
+    - boot/boot_to_desktop
+    - networkd/networkd_init
+    - networkd/networkd_dhcp
+    - networkd/networkd_vlan
+    - networkd/networkd_bridge
+    - console/coredump_collect

@@ -1,0 +1,8 @@
+name: firewalld_policy_objects
+description: >
+    Maintainer: qe-core
+    Summary: Schedule to run firewalld policy objects multi-machine test with 3 vms
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - network/firewalld_policy_objects

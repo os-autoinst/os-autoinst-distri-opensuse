@@ -1,0 +1,36 @@
+---
+name: pacemaker_cts_regression
+description: >
+  HA Pacemaker Cluster Test Suite - Single Machine Regression Test.
+
+  Schedule to test Pacemaker Cluster Test Suite in a single machine
+  job for the purpose of identifying regressions in pacemaker and
+  pacemaker-cts.
+
+  Most settings required by this test are defined below, but the
+  following extra settings must be provided via CLI, YAML job
+  group configuration or test suites.
+
+  HDD_1 must be defined to the path of the qcow2 image to use as SUT's
+  disk/boot device.
+  Similarly, if using UEFI boot, set UEFI_PFLASH_VARS to the patch of the
+  UEFI vars qcow2 image.
+  Finally, add any scheduler related settings such as START_AFTER_TEST
+  or PARALLEL_WITH.
+  And of course, YAML_SCHEDULE must point to this file.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  DESKTOP: textmode
+  HA_CLUSTER: '1'
+  HDDMODEL: scsi-hd
+  HOSTNAME: cts-node
+  PACEMAKER_CTS_REG: '1'
+  QEMU_DISABLE_SNAPSHOTS: '1'
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/hostname
+  - ha/pacemaker_cts_regression

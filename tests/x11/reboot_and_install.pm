@@ -27,6 +27,13 @@ sub run {
     power_action('reboot');
     workaround_type_encrypted_passphrase;
 
+    # If the target has a different version, make sure the matching needles are used
+    # for the bootmenu below already.
+    if (get_var('UPGRADE_TARGET_VERSION')) {
+        # Switch to upgrade target version and reload needles
+        set_var('VERSION', get_var('UPGRADE_TARGET_VERSION'), reload_needles => 1);
+    }
+
     # on s390 zKVM we handle the boot of the patched system differently
     set_var('PATCHED_SYSTEM', 1) if get_var('PATCH');
     return                       if get_var('S390_ZKVM');

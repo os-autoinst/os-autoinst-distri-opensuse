@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures 'is_aarch64';
 
 sub run {
     mouse_hide();
@@ -43,7 +44,7 @@ sub run {
         assert_screen 'enlightenment_compositing';
     }
     assert_and_click "enlightenment_assistant_next";
-    assert_and_click 'enlightenment_acpid_missing';
+    assert_and_click 'enlightenment_acpid_missing' if (get_required_var('ARCH') =~ /86/ || is_aarch64);
     assert_screen 'enlightenment_generic_desktop';
 }
 

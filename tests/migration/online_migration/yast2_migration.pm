@@ -1,6 +1,6 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use utils;
 use version_utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_desktop_installed is_sle);
-use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver);
+use x11utils qw(ensure_unlocked_desktop turn_off_screensaver);
 use Utils::Backends 'is_pvm';
 
 sub yast2_migration_gnome_remote {
@@ -97,6 +97,12 @@ sub yast2_migration_handle_conflicts_text {
     }
 }
 
+sub yast2_migration_handle_license_agreement {
+    wait_screen_change { send_key "alt-a" };
+    assert_screen 'yast2_migration-license-agreenment-accepted', 60;
+    send_key "alt-n";
+}
+
 sub run {
     my $self = shift;
 
@@ -112,8 +118,8 @@ sub run {
         mouse_hide(1);
         assert_screen 'generic-desktop';
 
+        turn_off_screensaver();
         x11_start_program('xterm');
-        turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
         become_root;
         if (check_var('HDDVERSION', '12') && get_var('MIGRATION_REMOVE_ADDONS')) {
             # use latest yast2-registration version because is not officially available
@@ -212,7 +218,7 @@ sub run {
     send_key "alt-n";
     # migration via smt will install packagehub and NVIDIA compute, we need click trust
     # gpg keys; Same with leap to sle migration, need to trust packagehub gpg key.
-    if ((get_var('SMT_URL') =~ /smt/) || (is_leap_migration)) {
+    if (get_var('SMT_URL') =~ /smt/) {
         assert_screen 'import-untrusted-gpg-key', 60;
         send_key 'alt-t';
         if ((check_var('ARCH', 'x86_64')) && (!(is_leap_migration)) || (check_var('ARCH', 'aarch64'))) {
@@ -220,10 +226,16 @@ sub run {
             send_key 'alt-t';
         }
     }
-    assert_screen ['yast2-migration-installupdate', 'yast2-migration-proposal'], 700;
-    if (match_has_tag 'yast2-migration-installupdate') {
+    assert_screen [qw(yast2-migration-installupdate yast2_migration-license-agreement)], 600;
+    if (match_has_tag 'yast2-migration-installupdate', 150) {    # Not all cases have install update message.
         send_key 'alt-y';
+        assert_screen 'yast2_migration-license-agreement', 60;
+        yast2_migration_handle_license_agreement;
     }
+    if (match_has_tag 'yast2_migration-license-agreement', 150) {
+        yast2_migration_handle_license_agreement;
+    }
+    assert_screen 'yast2-migration-proposal', 60;
     if (yast2_migration_gnome_x11) {
         yast2_migration_handle_conflicts_x11($self);
     }
@@ -286,7 +298,7 @@ sub run {
     }
     else {
         wait_serial("yast2-migration-done-0", $timeout) || die "yast2 migration failed";
-        type_string "exit\n" if (is_desktop_installed());
+        enter_cmd "exit" if (is_desktop_installed());
     }
 }
 

@@ -31,9 +31,9 @@ sub run {
 
     # test function provided by external module (php7-json RPM)
     zypper_call 'in php-json';
-    assert_script_run('php -r \'echo json_encode(array("foo" => true))."\n";\' | grep :true');
+    assert_script_run('php -r \'echo json_encode(array("foo" => true))."\\n";\' | grep :true');
 
     # test reading file
-    assert_script_run('php -r \'echo readfile("/etc/hosts")."\n";\' | grep localhost');
+    assert_script_run('php -r \'echo readfile("/etc/hosts")."\\n";\' | grep localhost');
 }
 1;

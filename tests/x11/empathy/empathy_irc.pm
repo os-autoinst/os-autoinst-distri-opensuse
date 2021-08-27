@@ -54,7 +54,7 @@ sub run {
 
     # send a message and then leave the channel
     assert_screen 'empathy-room-window';
-    type_string "This test message was sent by openQA\n";
+    enter_cmd "This test message was sent by openQA";
     assert_screen 'empathy-sent-message';
     send_key "ctrl-w";
     assert_screen 'empathy-leave-room';

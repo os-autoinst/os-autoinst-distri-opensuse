@@ -1,0 +1,80 @@
+---
+name: installer_extended
+description: >
+  Test suite performs additional UI checks. As of now following is tested:
+     - Switch keyboard layout and test it (only when is not VNC installation)
+     - License has to be accepted and there is pop-up with a hint.
+     - License translations (except SLE 15 due to missing translations in the
+       beta phase).
+vars:
+  CHECK_PRESELECTED_MODULES: '1'
+  CHECK_RELEASENOTES: '1'
+  EXIT_AFTER_START_INSTALL: '1'
+  EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
+  YUI_REST_API: 1
+schedule:
+  - '{{compare_checksums}}'
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - '{{switch_keyboard_layout}}'
+  - installation/product_selection/select_product
+  - installation/licensing/verify_license_translations
+  - installation/licensing/verify_license_has_to_be_accepted
+  - installation/licensing/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
+  - installation/partitioning/accept_proposed_layout
+  - installation/releasenotes
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
+  - installation/authentication/root_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+conditional_schedule:
+  compare_checksums:
+    BACKEND:
+      qemu:
+        - installation/isosize
+        - installation/data_integrity
+  switch_keyboard_layout:
+    # Include only installations not using remote protocol, because on those,
+    # VNC client (or its X server) determines the keyboard layout
+    BACKEND:
+      qemu:
+        - installation/language_keyboard/switch_keyboard_layout
+test_data:
+  product: SLES
+  license:
+    language: English (US)
+    translations:
+      - language: Czech
+        text: Licenční smlouva společnosti
+      - language: English (US)
+        text: End User License Agreement
+      - language: French
+        text: Contrat de licence utilisateur final
+      - language: German
+        text: Endbenutzer-Lizenzvereinbarung
+      - language: Italian
+        text: Contratto di licenza
+      - language: Japanese
+        text: 版ソフトウェア
+      - language: Korean
+        text: 소프트웨어
+      - language: Portuguese (Brazilian)
+        text: Contrato de Licença para Usuário Final
+      - language: Russian
+        text: Лицензионное соглашение
+      - language: Simplified Chinese
+        text: 软件的
+      - language: Spanish
+        text: Acuerdo de licencia de usuario final
+      - language: Traditional Chinese
+        text: 版軟體的
+  system_role:
+    default: 'Text Mode'

@@ -15,7 +15,7 @@ use autotest;
 use base 'Exporter';
 use Exporter;
 use bmwqemu ();
-use version_utils qw(is_sle is_leap);
+use version_utils qw(is_sle is_leap is_sle_micro);
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
 use Mojo::File 'path';
 use File::Basename;
@@ -81,9 +81,10 @@ wait_serial(get_login_message(), 300);
 =cut
 sub get_login_message {
     my $arch = get_required_var("ARCH");
-    return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
-      : is_leap()   ? qr/Welcome to openSUSE Leap.*/
-      :               qr/Welcome to openSUSE Tumbleweed 20.*/;
+    return is_sle()    ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+      : is_sle_micro() ? qr/Welcome to SUSE Linux Enterprise Micro .*\($arch\)/
+      : is_leap()      ? qr/Welcome to openSUSE Leap.*/
+      :                  qr/Welcome to openSUSE Tumbleweed 20.*/;
 }
 
 =head2 login
@@ -109,19 +110,22 @@ sub login {
     wait_serial(qr/login:\s*$/i, timeout => 5, quiet => 1);
     # newline nudges the guest to display the login prompt, if this behaviour
     # changes then remove it
-    type_string("\n");
+    send_key 'ret';
     die 'Failed to wait for login prompt' unless wait_serial(qr/login:\s*$/i);
-    type_string("$user\n");
+    enter_cmd("$user");
     if (length $testapi::password) {
         die 'Failed to wait for password prompt' unless wait_serial(qr/Password:\s*$/i);
         type_password;
-        type_string("\n");
+        send_key 'ret';
     }
     die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
-    type_string(qq/PS1="$serial_term_prompt"\n/);
+    # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
+    enter_cmd('export TERM=dumb; stty cols 2048; exec $SHELL');
+    die 'Failed to confirm that shell re-exec was successful' unless wait_serial(qr/$escseq* \w+:~\s\# $escseq* \s*$/x);
+    enter_cmd(qq/PS1="$serial_term_prompt"/);
     wait_serial(qr/PS1="$serial_term_prompt"/);
     # TODO: Send 'tput rmam' instead/also
-    assert_script_run('export TERM=dumb; stty cols 2048');
+    assert_script_run('export TERM=dumb');
     assert_script_run('echo Logged into $(tty)', timeout => $bmwqemu::default_timeout, result_title => 'vconsole_login');
 }
 

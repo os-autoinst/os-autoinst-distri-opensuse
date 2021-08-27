@@ -32,7 +32,7 @@ sub run {
 
     select_console 'root-console';
     # We don't need any logs from support server when running on REMOTE_CONTROLLER for remote SLE installation tests
-    type_string("journalctl -f -o short-monotonic |tee /dev/$serialdev\n") unless (get_var('REMOTE_CONTROLLER'));
+    enter_cmd("journalctl -f -o short-monotonic |tee /dev/$serialdev") unless (get_var('REMOTE_CONTROLLER'));
 
     if (check_var("REMOTE_CONTROLLER", "ssh") || check_var("REMOTE_CONTROLLER", "vnc")) {
         mutex_create("installation_done");

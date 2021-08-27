@@ -27,7 +27,7 @@ sub run {
     my $name = ref($_[0]);
     ensure_installed($name);
     x11_start_program($name, target_match => "$name-network-select");
-    type_string "freenode\n";
+    enter_cmd "Libera";
     assert_and_click "hexchat-nick-$username";
     send_key 'home';
     send_key_until_needlematch 'hexchat-nick-empty', 'delete';
@@ -38,13 +38,13 @@ sub run {
     assert_screen \@tags;
     if (match_has_tag("$name-connection-complete-dialog")) {
         assert_and_click "$name-join-channel";
-        type_string "openqa\n";
+        enter_cmd "openqa";
         send_key 'ret';
         assert_screen "$name-main-window";
-        type_string "hello, this is openQA running $name!\n";
+        enter_cmd "hello, this is openQA running $name!";
         assert_screen "$name-message-sent-to-channel";
-        type_string "/quit I'll be back\n";
-        assert_screen "$name-quit";
+        enter_cmd "/quit I'll be back";
+        assert_screen "$name-quit", 60;
     }
     elsif (match_has_tag("$name-SASL-only-error")) {
         record_info('SASL required', 'The public IP of the current worker has been blacklisted on freenode, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');

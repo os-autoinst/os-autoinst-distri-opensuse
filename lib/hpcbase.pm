@@ -53,7 +53,7 @@ sub get_remote_logs {
 
 sub switch_user {
     my ($self, $username) = @_;
-    type_string("su - $username\n");
+    enter_cmd("su - $username");
     type_string(qq/PS1="# "\n/);
     wait_serial(qr/PS1="# "/);
     assert_script_run("whoami|grep $username");

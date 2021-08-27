@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# Maintainer: Zaoliang Luo <zluo@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base "y2_module_guitest";
 use strict;
@@ -23,7 +23,6 @@ use y2_module_basetest 'is_network_manager_default';
 use version_utils 'is_sle';
 
 sub run {
-    my $self = shift;
 
     # keyboard shorcuts
     $cmd{global_options_tab} = 'alt-g';
@@ -35,7 +34,7 @@ sub run {
     $cmd{routing_tab}        = 'alt-u';
 
     select_console 'x11';
-    $self->launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 120);
     if (match_has_tag 'yast2_still_susefirewall2') {
         send_key $cmd{install};
         wait_still_screen;

@@ -10,7 +10,7 @@
 
 # Summary: Offline migration using the DVD medium as repository with
 #   `zypper dup`
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base "installbasetest";
 use strict;

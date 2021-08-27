@@ -24,7 +24,14 @@ use strict;
 use warnings;
 use testapi;
 use scheduler 'get_test_suite_data';
-use partitions_validator_utils 'validate_subvolume';
+
+sub validate_subvolume {
+    my $args = shift;
+    record_info("Check $args->{subvolume}",
+        "Check if $args->{subvolume} subvolume exists in $args->{mount_point} partition");
+    assert_script_run("btrfs subvolume list $args->{mount_point} | grep $args->{subvolume}",
+        fail_message => "Subvolume $args->{subvolume} does not exist in $args->{mount_point} partition");
+}
 
 sub run {
     my $test_data = get_test_suite_data;

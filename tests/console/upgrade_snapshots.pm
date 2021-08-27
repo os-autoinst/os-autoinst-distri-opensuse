@@ -10,7 +10,7 @@
 
 # Package: snapper
 # Summary: Test for the snapshots created during upgrade
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'consoletest';
 use strict;

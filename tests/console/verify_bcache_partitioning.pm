@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@
 # Scenarios covered:
 # - Verify that certain values are set correctly in a bcache setup after installation.
 # - Write operation in a backing device can be performed and validate that cache is working watching the cache hits.
-# Maintainer: yiannis bonatakis <ybonatakis@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

@@ -44,10 +44,10 @@ sub run {
 
     # start
     if (check_var("VERSION", "Tumbleweed")) {
-        type_string "wireshark-gtk\n";
+        enter_cmd "wireshark-gtk";
     }
     else {    # works for SLE12-SP1+
-        type_string "wireshark\n";
+        enter_cmd "wireshark";
     }
     assert_screen "wireshark-welcome", 30;
     send_key "super-up";
@@ -118,7 +118,7 @@ sub run {
         send_key "ctrl-/";
     }
     assert_screen "wireshark-filter-selected";
-    type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
+    enter_cmd "dns.a and dns.qry.name == \"www.suse.com\"";
     assert_screen "wireshark-filter-applied";
     assert_screen "wireshark-capturing";
 
@@ -146,19 +146,19 @@ sub run {
     assert_and_click "wireshark-quit-save";
     assert_and_click "wireshark-quit-save-filename";
     wait_still_screen 1, 2;
-    type_string "/tmp/wireshark-openQA-test\n";
+    enter_cmd "/tmp/wireshark-openQA-test";
     wait_still_screen 1;
-    type_string "\n";    # 2 times return for SP2
+    send_key 'ret';    # 2 times return for SP2
     wait_still_screen 2;
     assert_script_run "test -f /tmp/wireshark-openQA-test.pcapng";
 
     # start and load capture
-    type_string "wireshark /tmp/wireshark-openQA-test.pcapng\n";
+    enter_cmd "wireshark /tmp/wireshark-openQA-test.pcapng";
     wait_still_screen 3;
     # QT menu requires user to place focus in the filter field
     send_key "ctrl-/" if $wireshark_gui_version eq "qt";
     assert_screen "wireshark-filter-selected";
-    type_string "dns.a and dns.qry.name == \"www.suse.com\"\n";
+    enter_cmd "dns.a and dns.qry.name == \"www.suse.com\"";
     # Sometimes checksum error window popup, then we need close this windows since this caused by offload feature
     assert_screen([qw(wireshark-filter-applied wireshark-checksum-error)]);
     if (match_has_tag('wireshark-checksum-error')) {
@@ -184,7 +184,7 @@ sub run {
     send_key "ctrl-shift-a";
     assert_screen "wireshark-profiles";
     assert_and_click "wireshark-profiles-new";
-    type_string "openQA\n";
+    enter_cmd "openQA";
     # QT GUI does not close Profiles menu window after creating new profile
     if ($wireshark_gui_version eq "qt") {
         wait_still_screen 1;
@@ -224,7 +224,7 @@ sub run {
     assert_screen "generic-desktop-with-terminal";
     # clean-up
     assert_script_run "rm /tmp/wireshark-openQA-test.pcapng";
-    type_string "exit\n";
-    type_string "exit\n";
+    enter_cmd "exit";
+    enter_cmd "exit";
 }
 1;

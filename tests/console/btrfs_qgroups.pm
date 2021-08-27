@@ -77,8 +77,8 @@ sub run {
     assert_script_run "for c in {5..10}; do dd if=/dev/zero bs=1M count=10 of=k/file\$c; done";
 
     # Show structure
-    type_string "sync\n";
-    type_string "btrfs qgroup show --mbytes -pcre .\n";
+    enter_cmd "sync";
+    enter_cmd "btrfs qgroup show --mbytes -pcre .";
 
     # Check limits
     assert_script_run "dd if=/dev/zero bs=10M count=3 of=nofile";

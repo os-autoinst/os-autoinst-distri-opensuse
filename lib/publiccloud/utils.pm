@@ -20,19 +20,37 @@ use warnings;
 use testapi;
 use utils;
 use version_utils;
+use publiccloud::ssh_interactive;
 
 our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
 
-# Select console on the test host, regardless of the TUNNELED variable.
+# Select console on the test host, if force is set, the interactive session will
+# be destroyed. If called in TUNNELED environment, this function die.
+#
+# select_host_console(force => 1)
+#
 sub select_host_console {
-    my (@args) = @_;
-    if (check_var('TUNNELED', '1')) {
-        select_console('tunnel-console', @args);
-    } else {
-        select_console('root-console', @args);
+    my (%args) = @_;
+    $args{force} //= 0;
+    my $tunneled = get_var('TUNNELED');
+
+    if ($tunneled && check_var('_SSH_TUNNELS_INITIALIZED', 1)) {
+        die("Called select_host_console but we are in TUNNELED mode") unless ($args{force});
+
+        opensusebasetest::select_serial_terminal();
+        ssh_interactive_leave();
+
+        select_console('tunnel-console', await_console => 0);
+        send_key 'ctrl-c';
+        send_key 'ret';
+
+        set_var('_SSH_TUNNELS_INITIALIZED', 0);
+        opensusebasetest::clear_and_verify_console();
+        save_screenshot;
     }
-    send_key "ctrl-c";
-    send_key "ret";
+    set_var('TUNNELED', 0) if $tunneled;
+    opensusebasetest::select_serial_terminal();
+    set_var('TUNNELED', $tunneled) if $tunneled;
 }
 
 sub is_publiccloud() {

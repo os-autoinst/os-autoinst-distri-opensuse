@@ -142,7 +142,7 @@ sub run {
     mutex_wait('nis_nfs_client_ready', $child_id);
     # Read content of a file created by the client
     setup_verification();
-    type_string "killall xterm\n";    # game over -> xterm
+    enter_cmd "killall xterm";    # game over -> xterm
 }
 
 sub test_flags {

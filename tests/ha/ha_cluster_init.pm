@@ -45,11 +45,11 @@ sub cluster_init {
     my $redirection = is_serial_terminal() ? '' : "> /dev/$serialdev";
 
     if ($init_method eq 'ha-cluster-init') {
-        type_string "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection\n";
+        enter_cmd "ha-cluster-init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection";
         type_qnetd_pwd if get_var('QDEVICE');
     }
     elsif ($init_method eq 'crm-debug-mode') {
-        type_string "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection\n";
+        enter_cmd "crm -dR cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo ha-cluster-init-finished-\$? $redirection";
         type_qnetd_pwd if get_var('QDEVICE');
         if (!wait_serial("ha-cluster-init-finished-0", $join_timeout)) {
             # ha-cluster-init failed in debug mode. Wait some seconds and attempt to start pacemaker

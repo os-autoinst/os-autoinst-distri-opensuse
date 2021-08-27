@@ -27,6 +27,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use version_utils qw(is_leap is_sle);
 
 our @EXPORT = qw(
   $oval_result
@@ -82,16 +83,22 @@ sub ensure_generated_file {
 }
 
 sub prepare_remediate_validation {
-    validate_script_output "[ -f /usr/etc/securetty ] && cat /usr/etc/securetty || cat /etc/securetty", sub { m/tty[1-6]/ };
-    validate_script_output "cat /proc/sys/kernel/sysrq",                                                sub { m/[1-9]+$/ };
+    if (is_sle('<16') || is_leap('<16.0')) {
+        validate_script_output "[ -f /etc/securetty ] && cat /etc/securetty || cat /usr/etc/securetty", sub { m/tty[1-6]/ };
+    } else {
+        # No securetty config at all
+        assert_script_run "! [ -f /usr/etc/securetty ] && ! [ -f /etc/securetty ]";
+    }
 
-    assert_script_run "[ -f /usr/etc/securetty ] && cp /usr/etc/securetty /tmp/ || true";
+    validate_script_output "cat /proc/sys/kernel/sysrq", sub { m/[1-9]+$/ };
+
     assert_script_run "[ -f /etc/securetty ] && cp /etc/securetty /tmp/ || true";
     assert_script_run "cp /proc/sys/kernel/sysrq /tmp/";
 }
 
 sub finish_remediate_validation {
-    assert_script_run "mv /tmp/securetty /etc/";
+    # Revert /etc/securetty to old state (copy old content or remove if it didn't exist)
+    assert_script_run "if [ -f /tmp/securetty ]; then mv /tmp/securetty /etc/; else rm -f /etc/securetty; fi";
     assert_script_run "cat /tmp/sysrq > /proc/sys/kernel/sysrq";
 }
 

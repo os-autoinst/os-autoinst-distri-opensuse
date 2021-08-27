@@ -34,7 +34,8 @@ fi
 set -e
 
 echo "Compiling test program ... "
-gcc -Wall -Werror -Wextra -std=c99 -g2 -O0 -o valgrind-test valgrind-test.c
+# Disable -Wmaybe-uninitialized because we test a use of an uninitiazed memory.
+gcc -Wall -Werror -Wextra -Wno-maybe-uninitialized -std=c99 -g2 -O0 -o valgrind-test valgrind-test.c
 
 echo "Testing valgrind ... "
 valgrind --tool=memcheck --trace-children=yes ./valgrind-test 2>/dev/null

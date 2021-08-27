@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # Summary: Process online repos during installation, relevant for openSUSE only
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;
@@ -56,6 +56,19 @@ sub run {
     ## List possible screens if pop-up is not there as a fallback
     my @needles = qw(online-repos-popup before-role-selection inst-networksettings partitioning-edit-proposal-button inst-instmode network-not-configured list-of-online-repositories);
     assert_screen(\@needles, timeout => 60);
+
+    if (match_has_tag('network-not-configured')) {
+        # On slow workers the network may be unconfigured - poo#87719
+        send_key("alt-i");                                       # Edit button
+        assert_screen('static-ip-address-set');
+        send_key("alt-y");                                       # Select Dynamic address
+        assert_screen('dynamic-ip-address-set');
+        send_key $cmd{next};                                     # Next
+        assert_screen('inst-networksettings');
+        send_key $cmd{next};                                     # Next
+        @needles = grep { !/inst-networksettings/ } @needles;    # Do not match the previous screen
+        assert_screen(\@needles, timeout => 60);                 # Check the screen again with network up and running
+    }
 
     # Do nothing if pop-up is not found
     return unless match_has_tag('online-repos-popup');

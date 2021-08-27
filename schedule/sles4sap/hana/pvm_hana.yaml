@@ -31,8 +31,7 @@ schedule:
   - installation/start_install
   - installation/await_install
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - sles4sap/patterns

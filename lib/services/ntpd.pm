@@ -69,10 +69,10 @@ sub check_function {
 # Check ntp service before and after migration.
 # Stage is 'before' or 'after' system migration.
 sub full_ntpd_check {
-    my ($stage, $type) = @_;
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
     $service_name = ($service_type eq 'SystemV') ? 'ntp' : 'ntpd';
-    $stage //= '';
     if ((get_var('ORIGIN_SYSTEM_VERSION') eq '11-SP4') || $stage eq 'before') {
         install_service();
         config_service();

@@ -11,7 +11,7 @@ schedule:
 - autoyast/clone
 - autoyast/logs
 - autoyast/autoyast_reboot
-- '{{grub}}'
+- installation/handle_reboot
 - installation/first_boot
 - qa_automation/patch_and_reboot
 - console/system_prepare
@@ -60,14 +60,6 @@ schedule:
 - shutdown/cleanup_before_shutdown
 - shutdown/shutdown
 conditional_schedule:
-  grub:
-    ARCH:
-      s390x:
-        - boot/reconnect_mgmt_console
-      x86_64:
-        - installation/grub_test
-      aarch64:
-        - installation/grub_test
   x86_64_tests:
     ARCH:
       x86_64:

@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# Maintainer: Zaoliang Luo <zluo@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base "y2_module_guitest";
 use strict;
@@ -21,9 +21,8 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self = shift;
     select_console 'x11';
-    $self->launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf require_install_chrony)], match_timeout => 90);
+    y2_module_guitest::launch_yast2_module_x11('timezone', target_match => [qw(yast2-datetime-ui yast2-datetime_ntp-conf require_install_chrony)], match_timeout => 90);
     if (match_has_tag 'yast2-datetime_ntp-conf') {
         send_key 'alt-d';
         send_key 'alt-o';

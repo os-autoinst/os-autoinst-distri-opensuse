@@ -38,6 +38,9 @@ use lockapi;
 use utils qw(script_retry zypper_call);
 
 sub run {
+    barrier_create('SALT_MINIONS_READY', 2);
+    barrier_create('SALT_FINISHED',      2);
+    mutex_create 'barrier_setup_done';
     my $self = shift;
     $self->select_serial_terminal;
 
@@ -48,7 +51,6 @@ sub run {
     $self->minion_prepare();
 
     # Both machines are ready
-    mutex_create 'barrier_setup_done';
     barrier_wait 'SALT_MINIONS_READY';
 
     # List and accept both minions when they are ready

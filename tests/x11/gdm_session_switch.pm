@@ -64,12 +64,12 @@ sub run {
     # Smoke test: launch some applications
     send_key "super-spc";
     wait_still_screen(2);
-    type_string "gnome-terminal\n";
+    enter_cmd "gnome-terminal";
     assert_screen "gnome-terminal";
     send_key "alt-f4";
     send_key "super-spc";
     wait_still_screen(2);
-    type_string "nautilus\n";
+    enter_cmd "nautilus";
     assert_screen "test-nautilus-1";
     send_key "alt-f4";
     wait_still_screen;

@@ -1,4 +1,4 @@
-mapped_device: '/dev/mapper/cr-auto-2'
+mapped_device: '/dev/mapper/cr-auto-1'
 device_status:
   message: 'is active and is in use.'
   properties:

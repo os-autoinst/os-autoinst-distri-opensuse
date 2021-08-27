@@ -79,8 +79,8 @@ sub create_list_of_serial_failures {
 
     push @$serial_failures, {type => 'soft', message => 'Low memory problem detected bsc#1166955', pattern => quotemeta 'kswapd0 Kdump'};
 
-    # Disable CPU soft lockup detection on aarch64 until https://progress.opensuse.org/issues/46502 get resolved
-    push @$serial_failures, {type => 'hard', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'} unless check_var('ARCH', 'aarch64');
+    # CPU soft lockup detection will lead to a message instead of a soft or hard failure
+    push @$serial_failures, {type => 'info', message => 'CPU soft lockup detected', pattern => quotemeta 'soft lockup - CPU'};
 
     # Detect Out of Memory condition
     push @$serial_failures, {type => 'hard', message => 'Out of memory', pattern => quotemeta 'Out of memory:'} if !(is_ltp_test());
@@ -94,6 +94,7 @@ To add a known bug simply copy and adapt the following line:
 C<push @$autoinst_failures, {type => soft/hard, message => 'Errormsg', pattern => quotemeta 'ErrorPattern' };>
 type=soft will force the testmodule result to softfail
 type=hard will just emit a soft fail message but the module will do a normal fail
+type=info will message the user but the module will not fail
 
 =cut
 sub create_list_of_autoinst_failures {

@@ -5,6 +5,7 @@
 use strict;
 use warnings;
 use YAML::PP;
+use YAML::PP::Schema::Include;
 use File::Basename;
 use Data::Dumper;
 
@@ -19,8 +20,13 @@ YAML schedule file.
 
 sub parse_modules_in_schedule {
     my ($schedule_file_path) = @_;
-    my $ypp                  = YAML::PP->new;
-    my $schedule             = $ypp->load_file($schedule_file_path);
+
+    my $root_project_dir = dirname(__FILE__) . '/../';
+    my $include          = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+    my $ypp              = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+    $include->yp($ypp);
+    my $schedule = $ypp->load_file($schedule_file_path);
+
     my @scheduled;
     for my $module (@{$schedule->{schedule}}) {
         push(@scheduled, parse_schedule_module($schedule, $module));

@@ -1,0 +1,80 @@
+name: sles_ha_installation
+description: >
+  Install SLES+HA.
+
+  In order to generate a qcow2 image with this schedule so it can be used by other tests,
+  add the settings CREATE_HDD and set it to 1 and PUBLISH_HDD_1 and set it to the name
+  of the qcow2 image to save; add these settings either in the job group configuration,
+  test suite or command line. Also add PUBLISH_PFLASH_VARS on uefi scenarios.
+
+  Add an SCC_REGISTER setting via job group configuration, command line or testsuite and
+  set it to 'installation' so the SUT is registered to SCC, or set it to 'never' to skip
+  registration. If setting it to 'never', also add an ADDONS setting defined to 'ha' so
+  the HA extension is added during installation. The corresponding setting for SCC (SCC_ADDONS)
+  is not needed as its defined in this schedule.
+
+  Also set SYSTEM_ROLE to default, minimal or textmode depending on the test; do not leave it
+  out as schedule can be used with either of the three values, but if default is not explicitly
+  set, test will chose textmode system role as DESKTOP is set to textmode in the schedule.
+
+  Below are optional settings.
+
+  Set CHECK_ISO_MAXSIZE to 1 to schedule the installation/isosize test module to check the ISO
+  size against the ISO_MAXSIZE setting. It is recommended to not schedule this module when
+  ISO_MAXSIZE is not defined in the medium.
+  Set CHECK_PRESELECTED_MODULES to true to verify pre-selected modules during registration
+  Set CHECK_RELEASENOTES to 1 to check release notes during installation
+  Use HDDMODEL to set the type of HDD, either virtio-blk, scsi-hd, etc.
+  Set VIDEOMODE to text to perform text-based installation.
+vars:
+  DESKTOP: textmode
+  HDDSIZEGB: '15'
+  INSTALLONLY: '1'
+  SCC_ADDONS: ha
+schedule:
+  - '{{check_iso_maxsize}}'
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - '{{releasenotes}}'
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - '{{create_hdd_tests}}'
+conditional_schedule:
+  check_iso_maxsize:
+    CHECK_ISO_MAXSIZE:
+      1:
+        - installation/isosize
+  releasenotes:
+    CHECK_RELEASENOTES:
+      1:
+        - installation/releasenotes
+  svirt_upload_assets:
+    BACKEND:
+      svirt:
+        - shutdown/svirt_upload_assets
+  create_hdd_tests:
+    CREATE_HDD:
+      1:
+        - console/system_prepare
+        - console/hostname
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown
+        - '{{svirt_upload_assets}}'

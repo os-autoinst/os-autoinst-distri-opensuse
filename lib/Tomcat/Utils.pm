@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,8 +9,7 @@
 
 # Summary: Provide functionality for tomcat installation and configuration,
 # accessing the tomcat manager page, and browsing tomcat examples using keyboard.
-# Maintainer: George Gkioulis <ggkioulis@suse.com>
-
+# Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::Utils;
 use base "x11test";
@@ -34,7 +33,6 @@ sub browse_with_keyboard {
     send_key('ctrl-tab');
 
     $test_func->();
-
     send_key('ctrl-w');
 }
 

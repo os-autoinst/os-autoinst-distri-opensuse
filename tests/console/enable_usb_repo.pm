@@ -9,7 +9,7 @@
 
 # Summary: Ensure USB installation repo is enabled for the case we want to use
 #   it to install additional packages.
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#1012258
 
 use base "consoletest";

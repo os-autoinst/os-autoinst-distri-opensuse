@@ -63,13 +63,12 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # First time login and configure the visibility
     $self->start_vncviewer;
     handle_login;
-    assert_screen 'generic-desktop';
     # Hold Alt key inside the vncviewer
     send_key 'f8';
     assert_screen 'vncviewer-menu';
@@ -82,14 +81,14 @@ sub run {
     assert_screen 'vncviewer-menu';
     send_key 'a';
     wait_still_screen 3;
-    type_string "gnome-terminal\n";
+    enter_cmd "gnome-terminal";
     assert_screen 'gnome-terminal-launched';
-    type_string "vncmanager-controller\n";
+    enter_cmd "vncmanager-controller";
     assert_screen 'vncmanager-controller';
     assert_and_click 'vncmanager-controller-visibility';
     assert_and_click 'vncmanager-controller-sharing';
     send_key 'alt-o';
-    type_string "clear\n";
+    enter_cmd "clear";
 
     # Exit the vncviewer
     send_key 'f8';

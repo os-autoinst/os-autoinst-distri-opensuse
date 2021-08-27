@@ -30,7 +30,7 @@ sub run_test {
     my ($self) = @_;
 
     #x11_start_program 'virt-manager';
-    type_string "virt-manager\n";
+    enter_cmd "virt-manager";
 
     establish_connection();
 
@@ -69,8 +69,10 @@ sub run_test {
                 send_key 'tab';
                 send_key 'tab';
                 send_key 'tab';
-                send_key 'tab' if is_sle('15-sp2+');
+                send_key 'tab' if is_sle('15-sp2+');    # Details / XML panel
+                send_key 'tab' if is_sle('15-sp3+');    # Device name input field
                 type_string '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+                save_screenshot();
                 assert_and_click 'virt-manager_add-hardware-finish';
                 # Live-attaching sometimes failes because of bsc#1172356
                 # the test should not die because of this

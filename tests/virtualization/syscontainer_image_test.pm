@@ -61,7 +61,7 @@ sub run() {
     # Tests on the container
 
     # Test login on the container
-    type_string("root\n");
+    enter_cmd("root");
     type_password("test\n");
 
     # Wait for the login to be done before continuing

@@ -1,0 +1,7 @@
+[general]
+config_version = 2
+[slapd]
+instance_name = frist389
+root_password = opensuse
+[backend-userroot]
+suffix = dc=sssdtest,dc=com

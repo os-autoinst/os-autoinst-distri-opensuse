@@ -26,7 +26,7 @@ sub run {
     if (is_tumbleweed || is_leap(">=15.2")) {
         type_string "about xfce";
     } else {
-        type_string "about\n";
+        enter_cmd "about";
     }
     assert_screen 'test-xfce4_appfinder-1';
     send_key "ret";

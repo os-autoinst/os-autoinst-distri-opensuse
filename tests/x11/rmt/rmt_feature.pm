@@ -108,7 +108,7 @@ sub run {
     assert_script_run("rmt-cli repo list | grep 4203");
 
 
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

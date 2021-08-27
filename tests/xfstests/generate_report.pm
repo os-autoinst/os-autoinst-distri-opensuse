@@ -35,7 +35,7 @@ my $JUNIT_FILE = '/opt/output.xml';
 sub log_end {
     my $file = shift;
     my $cmd  = "echo '\nTest run complete' >> $file";
-    type_string("\n");
+    send_key 'ret';
     assert_script_run($cmd);
 }
 

@@ -17,22 +17,10 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
-    kdump:
-        MACHINE:
-            '64bit-virtio-vga':
-                - console/kdump_and_crash
-            'uefi-virtio-vga':
-                - console/kdump_and_crash
-            'svirt-hyperv-uefi':
-                - console/kdump_and_crash
-            'svirt-hyperv':
-                - console/kdump_and_crash
-            'svirt-vmware65':
-                - console/kdump_and_crash
-            'svirt-xen-pv':
-                - console/kdump_and_crash
-            'aarch64':
-                - console/kdump_and_crash
+    maintenance:
+        FLAVOR:
+            'JeOS-for-kvm-and-xen-Updates':
+                - qa_automation/patch_and_reboot
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
@@ -44,6 +32,7 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
+    - '{{maintenance}}'
     - console/zypper_lr_validate
     - console/zypper_ref
     - console/validate_packages_and_patterns
@@ -70,4 +59,4 @@ schedule:
     - console/dstat
     - console/journalctl
     - console/procps
-    - '{{kdump}}'
+    - console/kdump_and_crash

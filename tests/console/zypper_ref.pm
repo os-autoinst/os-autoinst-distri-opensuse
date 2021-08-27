@@ -13,7 +13,7 @@
 # medium used was a dvd
 # - Enable install dvd
 # - Import gpg keys and refresh repositories
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use strict;

@@ -19,6 +19,7 @@ use parent 'susedistribution';
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4::ExpertPartitionerController;
 use YaST::NetworkSettings::v4::NetworkSettingsController;
+use YaST::SystemSettings::SystemSettingsController;
 
 sub get_partitioner {
     return Installation::Partitioner::LibstorageNG::GuidedSetupController->new();
@@ -30,6 +31,10 @@ sub get_expert_partitioner {
 
 sub get_network_settings {
     return YaST::NetworkSettings::v4::NetworkSettingsController->new();
+}
+
+sub get_system_settings {
+    return YaST::SystemSettings::SystemSettingsController->new();
 }
 
 1;

@@ -9,6 +9,10 @@
 
 # Summary: Perform an horizontal migration from SLES to SLES4SAP
 # Maintainer: Ricardo Branco <rbranco@suse.de>
+# Note: This test will pass if the migration from SLES to SLES4SAP is
+#       successful, but as well if the SCC_REGCODE_SLES4SAP var holds
+#       the special value "invalid_key" and the migrate-sles-to-sles4sap
+#       script does a roll back to SLES.
 
 use base 'sles4sap';
 use strict;
@@ -39,20 +43,26 @@ sub run {
     zypper_call 'in -y migrate-sles-to-sles4sap';
 
     # Do the migration!
-    type_string "$cmd && touch /tmp/OK\n";
+    enter_cmd "$cmd && touch /tmp/OK";
     wait_serial 'Do you want to continue\?', timeout => 5;
-    type_string "y\n";
+    enter_cmd "y";
     wait_serial 'This script can use a local RMT or SMT', timeout => 5;
-    type_string "c\n";    # Use SCC for now, TODO: add support for SMT/RMT
+    enter_cmd "c";    # Use SCC for now, TODO: add support for SMT/RMT
     wait_serial "Please enter the email address to be used to register", timeout => 5;
-    type_string "\n";
+    send_key 'ret';
     wait_serial "Please enter your activation code", timeout => 5;
-    type_string "${regcode}\n";
-    assert_script_run "ls /tmp/OK";
-    zypper_call "in -y -t pattern sap_server";
+    enter_cmd $regcode;
 
-    # We have now a SLES4SAP product, so we need to notify the test(s)
-    set_var('SLE_PRODUCT', 'sles4sap');
+    # test either a failing migration or a working one
+    if ($regcode eq "invalid_key") {
+        wait_serial("Rolling back to", timeout => 5) || die "$cmd didn't roll back with an invalid key as expected.";
+        assert_script_run "! test -f /tmp/OK";
+    } else {
+        assert_script_run "ls /tmp/OK";
+        zypper_call "in -y -t pattern sap_server";
+        # We have now a SLES4SAP product, so we need to notify the test(s)
+        set_var('SLE_PRODUCT', 'sles4sap');
+    }
 }
 
 sub test_flags {

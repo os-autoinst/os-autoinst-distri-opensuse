@@ -37,10 +37,20 @@ sub run {
     my $output = script_output $lsblkcmd;
     $output =~ /\[([\w\.]+)\]/;
     my $device = $1;
+    # Provide an interface to set small disk name
+    if (get_var('SMALL_DISK')) {
+        $device = get_var('SMALL_DISK');
+    }
     record_info "$device selected", "Will use disk [$device] for installation";
 
     select_console 'installation';
-    send_key $cmd{guidedsetup};    # select guided setup
+    # Detect SLE-12 and use ALT-C shortcut
+    if (get_var('VERSION') =~ /^12/ && check_var('VIDEOMODE', 'text')) {
+        send_key 'alt-c';
+    }
+    else {
+        send_key $cmd{guidedsetup};    # select guided setup
+    }
     assert_screen 'select-hard-disks';
     # Ensure all devices are deselected. We deselect at least one
     my $extra_disks_to_deselect = 0;
@@ -49,6 +59,10 @@ sub run {
     $extra_disks_to_deselect += 2 if match_has_tag 'select-hard-disks-three-selected';
     # First focus on disks list
     send_key 'tab';
+    if (check_var('VIDEOMODE', 'text')) {
+        wait_still_screen 3;
+        send_key 'tab';
+    }
     # Deselect the disks. Scrolling through the list of devices is different in textmode
     my $scrolldown = check_var('VIDEOMODE', 'text') ? 'tab'       : 'down';
     my $scrollup   = check_var('VIDEOMODE', 'text') ? 'shift-tab' : 'up';

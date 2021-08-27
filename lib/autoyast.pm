@@ -26,6 +26,7 @@ use testapi;
 use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
+use File::Find qw(finddepth);
 use File::Path 'make_path';
 use LWP::Simple 'head';
 
@@ -42,6 +43,8 @@ our @EXPORT = qw(
   init_autoyast_profile
   test_ayp_url
   validate_autoyast_profile
+  get_test_data_files
+  prepare_ay_file
 );
 
 =head2 expand_patterns
@@ -217,7 +220,42 @@ so hashes and arrays in the yaml should represent nodes in the xml file.
 Generates a list of XPATH expressions based on the YAML file provided, run those
 expressions and create a summary based with the errors found and all the expressions.
 
-See function 'generate_expressions' for further info.
+There are special keys to handle xml attributes for the node types, or in case
+exact number of nodes has to be validated, e.g. C<_t> for the type, C<__text> for
+the text value of the node, C<__count> to specify exact number of child nodes.
+
+See 'has_properties' and 'generate_expressions' functions for the further info.
+
+In order to validate following xml:
+<profile>
+    <suse_register t="map">
+        <addons t="list">
+            <addon t="map">
+                <name>sle-module-server-applications</name>
+            </addon>
+            <addon t="map">
+                <arch>ppc64le</arch>
+                <name>sle-module-basesystem</name>
+            </addon>
+        </addons>
+        <do_registration t="boolean">true</do_registration>
+        <install_updates t="boolean">false</install_updates>
+    </suse_register>
+</profile>
+
+YAML example to validate given xml:
+profile:
+  suse_register:
+    addons:
+      _t: list
+      __count: 2
+      addon:
+        - name: sle-module-server-applications
+        - name: sle-module-basesystem
+    do_registration:
+      _t: boolean
+      __text: 'true'
+
 
 =cut
 sub validate_autoyast_profile {
@@ -290,7 +328,7 @@ sub is_processable {
 
     YAML:
             drive:
-            - label: 
+            - label:
                 _descendant: any
                 __text: root_multi_btrfs
                 disklabel: none
@@ -298,10 +336,10 @@ sub is_processable {
                 partition:
                 - filesystem: btrfs
                     label: root_multi_btrfs
-            - label: 
+            - label:
                 _descendant: any
                 __text: test_multi_btrfs
-                disklabel: none        
+                disklabel: none
                 partitions:
                 partition:
                 - filesystem: btrfs
@@ -323,7 +361,7 @@ sub has_properties {
 
     create_xpath_predicate($node);
 
-Based on the properties of the node will create a predicate for the XPATH expression.  
+Based on the properties of the node will create a predicate for the XPATH expression.
 
 =cut
 sub create_xpath_predicate {
@@ -633,12 +671,12 @@ sub expand_variables {
  upload_profile(profile => $profile, path => $path)
 
  Upload modified profile
- Update url
  Update path
  Make available profile in job logs
 
- $profile is the AutoYaST profile 'autoinst.xml'.
- $path is AutoYaST profile path
+ $profile is the AutoYaST profile 'autoinst.xml'
+ $path is the path of the AutoYaST profile or one of the xml files when
+ using rules and classes.
 
 =cut
 sub upload_profile {
@@ -652,10 +690,13 @@ sub upload_profile {
     save_tmp_file($path, $profile);
     # Copy profile to ulogs directory, so profile is available in job logs
     make_path('ulogs');
-    copy(hashed_string($path), 'ulogs/autoyast_profile.xml');
-    # Set AUTOYAST variable with new url
-    my $url = autoinst_url . "/files/$path";
-    set_var('AUTOYAST', $url);
+    my $file_path = $path;
+
+    # just to shorten the path (specially useful for AutoYaST rules and classes)
+    $path =~ s/^.*?\///;
+    $path =~ s/\//-/g;
+
+    copy(hashed_string($file_path), 'ulogs/' . $path);
 }
 
 =head2 inject_registration
@@ -703,6 +744,69 @@ sub test_ayp_url {
             record_info("Failure", "Autoyast profile url $ayp_url is unreachable from the worker");
         }
     }
+}
+
+# get relative path to all test data files in a directory
+=head2 get_test_data_files
+  get_test_data($dir_relative_path)
+
+Returns list of all relative xml file paths for a relative directory path.
+
+Example:
+  get_test_data_files('autoyast_sle15/rule-based_example/')
+This could return a reference to an array with content:
+  - autoyast_sle15/rule-based_example/profile_a.xml
+  - autoyast_sle15/rule-based_example/profile_b.xml
+  - autoyast_sle15/rule-based_example/rules/rules.xml
+  - autoyast_sle15/rule-based_example/classes/swap/smallswap.xml
+  - autoyast_sle15/rule-based_example/classes/swap/bigswap.xml
+  - autoyast_sle15/rule-based_example/classes/general/software.xml
+  - autoyast_sle15/rule-based_example/classes/general/registration.xml
+  - autoyast_sle15/rule-based_example/classes/general/users.xml
+
+=cut
+sub get_test_data_files {
+    my ($path) = @_;
+    my $casedir_data = get_var('CASEDIR') . '/data/';
+    my @files;
+    finddepth(sub {
+            return if ($_ !~ /\.xml$/);
+            $File::Find::name =~ s/^$casedir_data//;
+            push @files, $File::Find::name;
+    }, $casedir_data . $path);
+    return \@files;
+}
+
+=head2 prepare_ay_file
+
+ prepare_ay_file(profile => $profile, path => $path)
+
+Get profile from autoyast template
+Map version names
+Get IP address from system variables
+Get values from SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC SCC_URL ARCH LOADER_TYPE
+Modify profile with obtained values
+Return new path in case of using AutoYaST templates
+
+ $path is the path of the AutoYaST profile or one of the xml files when
+ using rules and classes.
+
+=cut
+sub prepare_ay_file {
+    my ($path) = @_;
+
+    my $profile = get_test_data($path);
+    die "Empty AutoYaST xml file" unless $profile;
+
+    # if profile is a template, expand and rename
+    $profile = expand_template($profile) if $path =~ s/^(.*\.xml)\.ep$/$1/;
+    die $profile                         if $profile->isa('Mojo::Exception');
+
+    $profile = expand_version($profile);
+    $profile = adjust_network_conf($profile);
+    $profile = expand_variables($profile);
+    upload_profile(profile => $profile, path => $path);
+    return $path;
 }
 
 1;

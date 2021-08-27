@@ -18,8 +18,8 @@ conditional_schedule:
             x86_64:
                 - console/yast2_lan_device_settings
     update_repos:
-        DISTRI:
-            opensuse:
+        VERSION:
+            'Tumbleweed':
                 - update/zypper_clear_repos
                 - console/zypper_ar
                 - console/zypper_ref
@@ -46,11 +46,11 @@ conditional_schedule:
                 - console/gdb
                 - console/perf
                 - console/salt
-                - console/machinery
-                - sysauth/sssd
+                - console/sssd_389ds_functional
                 - console/libgpiod
                 - console/libgcrypt
                 - console/gd
+                - console/gcc
                 - console/valgrind
                 - console/wpa_supplicant
                 - appgeo/gdal
@@ -66,6 +66,7 @@ conditional_schedule:
                 - '{{steamcmd}}'
                 - console/libqca2
                 - console/python_scientific
+                - console/vmstat
                 - console/kdump_and_crash
     validate_packages_and_patterns:
         DISTRI:
@@ -77,11 +78,13 @@ conditional_schedule:
                 - console/supportutils
                 - console/zziplib
                 - console/vsftpd
+                - network/samba/samba_adcli
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
                 - console/parsec
                 - console/systemd_rpm_macros
+                - console/vsftpd
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -144,6 +147,7 @@ schedule:
     - console/kmod
     - console/suse_module_tools
     - console/firewalld
+    - console/nftables
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'

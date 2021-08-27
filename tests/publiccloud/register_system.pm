@@ -24,13 +24,13 @@ use publiccloud::utils qw(select_host_console is_ondemand);
 sub run {
     my ($self, $args) = @_;
 
+    select_host_console();    # select console on the host, not the PC instance
+
     if (is_ondemand) {
         # on OnDemand image we use `registercloudguest` to register and configure the repositories
         $args->{my_instance}->retry_ssh_command("sudo registercloudguest", timeout => 420, retry => 3);
     } else {
         my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-
-        select_host_console();    # select console on the host, not the PC instance
 
         # note: ssh_script_retry dies on failure
         my $regcode = get_required_var('SCC_REGCODE');

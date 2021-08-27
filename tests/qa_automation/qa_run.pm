@@ -10,7 +10,7 @@
 #
 package qa_run;
 # Summary: base class for qa_automation tests in openQA
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use strict;
 use warnings;
@@ -63,21 +63,21 @@ sub qaset_config {
     my $testsuites = "\n\t" . join("\n\t", @list) . "\n";
     assert_script_run("echo 'SQ_TEST_RUN_LIST=($testsuites)' > /root/qaset/config");
 
-    if (is_sle('>=15')) {
-        # poo88597 We need an executable boot.local to avoid failing rc-local service test for sle15+
-        my $boot_local = "/etc/init.d/boot.local";
-        assert_script_run("echo '#!/bin/sh' > $boot_local");
-        assert_script_run("chmod +x $boot_local");
-    }
+    # If running the systemd testsuite we need to workaround several issues
+    if (index($testsuites, "systemd") != -1) {
+        if (is_sle('>=15')) {
+            # poo88597 We need an executable boot.local to avoid failing rc-local service test for sle15+
+            my $boot_local = "/etc/init.d/boot.local";
+            assert_script_run("echo '#!/bin/sh' > $boot_local");
+            assert_script_run("chmod +x $boot_local");
+        }
 
-    # Reset the failed state of all units so that only new failures are recorded
-    assert_script_run("systemctl reset-failed");
+        # Reset the failed state of all units so that only new failures are recorded
+        assert_script_run("systemctl reset-failed");
 
-    # Workaround for bsc#1183229 (mdmonitor.service cannot run for newer mdadm versions)
-    my $mdadm_version         = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}\n' mdadm");
-    my $working_mdadm_version = '4.1-15.20.1';
-    if (package_version_cmp($mdadm_version, $working_mdadm_version) > 0) {
-        zypper_call("in -f mdadm-$working_mdadm_version");
+        # In order for mdmonitor.service to be running,
+        # create a RAID 1 array made of 2 loop devices with size 50 Mb each
+        create_raid_loop_device(raid_type => 1, device_num => 2, file_size => 50);
     }
 }
 
@@ -122,14 +122,14 @@ sub wait_testrun {
     my $code    = int(rand(999999));
     my $redir   = (is_serial_terminal) ? "" : " >> /dev/$serialdev";
     my $cmd     = "code=$code; while [[ ! -f $fdone ]]; do sleep $sleep; done; echo \"$pattern-\$code\" $redir";
-    type_string("bash -c '$cmd' &\n");
+    enter_cmd("bash -c '$cmd' &");
     # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or
     # MAX_JOB_TIME(can be set on openQA webui) reached
     my $ret = wait_serial("$pattern-$code", $timeout);
     if (is_serial_terminal()) {
         # Print new terminal prompt for script_run
-        type_string("\n");
+        send_key 'ret';
     }
     return $ret ? 1 : 0;
 }

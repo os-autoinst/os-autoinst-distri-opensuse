@@ -14,16 +14,16 @@
 # - Display the exclusive space used by each snapshot
 # - Query the exclusive space when data is included in a single snapshot
 # - Query the exclusive space when data is included in several snapshots (pre- and post-)
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'btrfs_test';
 use strict;
 use warnings;
 use testapi;
 
-use constant COLUMN_FILTER    => "awk -F '|' '{print \$1  \$6}'";                   # Filter by columns: # and Used Space
-use constant SUBVOLUME_FILTER => "tail -n4 | sed -n 2,3p | cut -d ' ' -f2";         # Subvolume IDs
-use constant CREATE_BIG_FILE  => "dd if=/dev/zero of=/big-data bs=1M count=1024";
+use constant COLUMN_FILTER    => "awk -F '|' '{print \$1  \$6}'";              # Filter by columns: # and Used Space
+use constant SUBVOLUME_FILTER => "tail -n4 | sed -n 2,3p | cut -d ' ' -f2";    # Subvolume IDs
+use constant CREATE_BIG_FILE  => "touch /big-data && btrfs prop set /big-data compression '' && dd if=/dev/zero of=/big-data bs=1M count=1024";
 use constant REMOVE_BIG_FILE  => "rm /big-data";
 
 =head2 ensure_size_displayed

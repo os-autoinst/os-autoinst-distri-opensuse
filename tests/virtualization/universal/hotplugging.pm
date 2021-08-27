@@ -105,8 +105,8 @@ sub test_add_virtual_disk {
                 my $lsblk = script_run("ssh root\@$guest lsblk | grep 'vd[b-z]'", 60);
                 record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
             } elsif (is_xen_host) {
-                script_run("ssh root\@$guest lsblk");
-                record_soft_failure("poo#88460 Hotplugging disk check not yet implemented for xen host");
+                my $lsblk = script_run("ssh root\@$guest lsblk | grep 'xvd[b-z]'", 60);
+                record_soft_failure("lsblk failed - please check the output manually") if $lsblk != 0;
             } else {
                 my $msg = "Unknown virtualization hosts";
                 record_soft_failure($msg);
@@ -140,7 +140,10 @@ sub test_add_vcpu {
     die "Setting vcpus failed" unless (set_vcpus($guest, 2));
     assert_script_run("ssh root\@$guest nproc | grep 2", 60);
     # Add 1 CPU
-    if ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
+    if ($sles_running_version eq '15' && $sles_running_sp eq '4' && is_xen_host && is_fv_guest($guest)) {
+        record_soft_failure('bsc#1188898 Failed to set live vcpu count on fv guest on 15-SP4 Xen host');
+    }
+    elsif ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
         record_soft_failure('bsc#1180350 Failed to set live vcpu count on fv guest on 15-SP3 Xen host');
     }
     else {
@@ -153,6 +156,18 @@ sub test_add_vcpu {
         }
         # Reset CPU count to two
         die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
+
+        ## Check for bsc#1187341. This whole section can be removed once bsc#1187341 is fixed
+        if ($guest eq 'sles12sp3PV') {
+            sleep(60);    # Bug needs some time to actually be triggered
+            if (script_run("virsh list --all | grep $guest | grep running") != 0) {
+                record_soft_failure("bsc#1187341", "$guest changing number of vspus crashes $guest");
+                script_run("xl dump-core > xl_coredump_$guest.log");
+                upload_logs("xl_coredump_$guest.log");
+                script_run("virsh start $guest");
+                ensure_online("$guest");
+            }
+        }
     }
 }
 
@@ -191,11 +206,12 @@ sub set_guest_memory {
 
 sub test_vmem_change {
     my $guest = shift;
-    my ($sles_running_version, $sles_running_sp) = get_os_release;
-
-    if (get_var('VIRT_AUTOTEST') && ($sles_running_version lt '12' or ($sles_running_version eq '12' and $sles_running_sp lt '3'))) {
-        record_info('Skip memory hotplugging on outdated before-12-SP3 SLES product because immature memory handling situations');
-        return;
+    if (is_sle) {
+        my ($sles_running_version, $sles_running_sp) = get_os_release;
+        if (get_var('VIRT_AUTOTEST') && ($sles_running_version lt '12' or ($sles_running_version eq '12' and $sles_running_sp lt '3'))) {
+            record_info('Skip memory hotplugging on outdated before-12-SP3 SLES product because immature memory handling situations');
+            return;
+        }
     }
     return if (is_xen_host && $guest =~ m/hvm/i);    # memory change not supported on HVM guest
     set_guest_memory($guest, 2048, 1500, 2252);      # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G
@@ -203,11 +219,20 @@ sub test_vmem_change {
     set_guest_memory($guest, 2048, 1500, 2252);
 }
 
+sub increase_max_memory {
+    my $guest          = shift;
+    my $increase       = shift // 2048;
+    my $guest_instance = $virt_autotest::common::guests{$guest};
+    my $maxmemory      = $guest_instance->{maxmemory} // "4096";
+    $maxmemory += $increase;
+    assert_script_run("virsh setmaxmem $guest $maxmemory" . "M --config");
+}
+
 sub run_test {
     my ($self) = @_;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
-    if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST")) {
+    if ($sles_running_version eq '15' && get_var("VIRT_AUTOTEST") && !get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
         record_info("DNS Setup", "SLE 15+ host may have more strict rules on dhcp assigned ip conflict prevention, so guest ip may change");
         my $dns_bash_script_url = data_url("virt_autotest/setup_dns_service.sh");
         script_output("curl -s -o ~/setup_dns_service.sh $dns_bash_script_url", 180, type_command => 0, proceed_on_failure => 0);
@@ -215,6 +240,12 @@ sub run_test {
         upload_logs("/var/log/virt_dns_setup.log");
         save_screenshot;
     }
+
+    ## 0. Guest preparation
+    shutdown_guests();
+    # Increase maximum memory for this test run
+    increase_max_memory($_) foreach (keys %virt_autotest::common::guests);
+    start_guests();
 
     # 1. Add network interfaces
     my %mac = ();
@@ -241,11 +272,16 @@ sub run_test {
         record_info "Reboot All Guests", "Mis-handling of live and config provisions by other test modules may have negative impact on 12-SP5 and 15-SP1 KVM scenarios due to bsc#1171946. So here is the workaround to drop all live provisions by rebooting all vm guests.";
         perform_guest_restart;
     }
+
+    ## 5. Cleanup
+    shutdown_guests();
+    reset_guest($_) foreach (keys %virt_autotest::common::guests);
 }
 
-sub clean_guest {
+sub reset_guest {
     my $guest = shift;
     return if $guest == "";
+    my $guest_instance = $virt_autotest::common::guests{$guest};
 
     ## Network
     # Remove temporary NIC devices, those are identified by a MAC starting with "$MAC_PREFIX"
@@ -256,7 +292,11 @@ sub clean_guest {
     script_run("rm -f $disk_image");
     ## CPU and memory
     set_vcpus($guest, 2);
-    set_guest_memory($guest, 2048);
+    my $memory = $guest_instance->{memory} // "2048";
+    set_guest_memory($guest, $memory);
+    # max memory
+    my $maxmemory = $guest_instance->{maxmemory} // "4096";
+    script_run("virsh setmaxmem $_ $maxmemory" . "M --config") foreach (keys %virt_autotest::common::guests);
 }
 
 sub post_fail_hook {
@@ -265,7 +305,7 @@ sub post_fail_hook {
     # Call parent post_fail_hook to collect logs on failure
     $self->SUPER::post_fail_hook;
     # Ensure guests remain in a consistent state also on failure
-    clean_guest($_) foreach (keys %virt_autotest::common::guests);
+    reset_guest($_) foreach (keys %virt_autotest::common::guests);
 }
 
 1;

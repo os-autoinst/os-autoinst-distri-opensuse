@@ -10,6 +10,7 @@ vars:
   SOFTFAIL_BSC1063638: 1
   VALIDATE_ETC_HOSTS: 1
   YUI_REST_API: 1
+  SCC_ADDONS: sdk
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
@@ -17,18 +18,20 @@ schedule:
   - console/consoletest_setup
   - console/hostname
   - "{{yast2_modules}}"
+  - console/validate_installed_patterns
 conditional_schedule:
   yast2_modules:
     ARCH:
       x86_64:
-        - console/scc_cleanup_reregister
         - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
         - yast2_gui/yast2_control_center
         - yast2_gui/yast2_expert_partitioner
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
         - yast2_gui/yast2_firewall
         - yast2_gui/yast2_bootloader
+        - yast2_gui/bootloader/bootcode_options
         - x11/yast2_snapper
         - yast2_gui/yast2_lang
         - yast2_gui/yast2_users
@@ -41,6 +44,8 @@ conditional_schedule:
         - yast2_gui/yast2_lan_restart_vlan
         - yast2_gui/yast2_lan_restart_bond
       aarch64:
+        - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
         - x11/yast2_snapper
@@ -53,8 +58,8 @@ conditional_schedule:
         - yast2_gui/yast2_lan_restart_vlan
         - yast2_gui/yast2_lan_restart_bond
       ppc64le:
-        - console/scc_cleanup_reregister
         - console/setup_libyui_running_system
+        - yast2_gui/yast2_system_settings
         - yast2_gui/yast2_expert_partitioner
         - yast2_gui/yast2_software_management
         - yast2_gui/yast2_security
@@ -122,3 +127,15 @@ test_data:
             should_format: 1
             filesystem: xfs
           encrypt_device: 1
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - fonts
+      - gnome_basic
+      - x11
+      - yast2_basis
+      - yast2_desktop
+      - yast2_server
+  <<: !include test_data/yast/yast2_gui.yaml

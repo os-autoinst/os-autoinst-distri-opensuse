@@ -31,7 +31,6 @@ sub run {
     fully_patch_system;
     install_patterns() if (get_var('PATTERNS'));
     remove_ltss;
-    remove_espos;
     power_action('reboot', keepconsole => 1, textmode => 1);
     reconnect_mgmt_console if is_pvm;
 

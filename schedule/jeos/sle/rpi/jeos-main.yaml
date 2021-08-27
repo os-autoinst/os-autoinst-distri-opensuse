@@ -43,7 +43,7 @@ schedule:
   - console/sshd
   - console/ssh_cleanup
   - console/mtab
-  - console/mysql_srv
+  - console/mariadb_srv
   - console/rsync
   - console/zypper_lifecycle
   - console/orphaned_packages_check

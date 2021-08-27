@@ -39,7 +39,7 @@ sub run {
         become_root();
         zypper_call('in polkit-gnome');
         # exit root, and be the default user
-        wait_screen_change { type_string "exit\n" };
+        wait_screen_change { enter_cmd "exit" };
         type_string 'nohup /usr/lib/polkit-gnome-authentication-agent-1 &';
         send_key 'ret';
     }

@@ -24,6 +24,9 @@ use virt_autotest::utils;
 
 sub run {
     my ($self) = @_;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
+
     my $kernel_log = '/tmp/guests_kernel_results.txt';
     my ($host_running_version, $host_running_sp) = get_os_release();
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));

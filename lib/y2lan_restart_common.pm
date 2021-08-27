@@ -5,7 +5,7 @@ Library for non-destructive testing using yast2 lan.
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@ Library for non-destructive testing using yast2 lan.
 # without any warranty.
 
 # Summary: YaST logic on Network Restart while no config changes were made
-# Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 # Tags: fate#318787 poo#11450
 
 package y2lan_restart_common;
@@ -73,7 +73,7 @@ sub initialize_y2lan
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
-    type_string "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &\n";
+    enter_cmd "journalctl -f -o short-precise|egrep -i --line-buffered '$query_pattern_for_restart|Reloaded wicked' > journal.log &";
     clear_journal_log();
 }
 
@@ -87,7 +87,7 @@ Accept warning for Networkmanager controls network device.
 
 =cut
 sub open_network_settings {
-    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
+    $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan', extra_vars => get_var('YUI_PARAMS'));
     # 'Global Options' tab is opened after accepting the warning on the systems
     # with Network Manager.
     # Thus, there is no way to select device in Overview tab on such systems, so
@@ -128,7 +128,7 @@ sub close_network_settings {
         wait_serial("$module_name-0", 180) || die "'yast2 lan' didn't finish or exited with non-zero code";
     }
 
-    type_string "\n\n";    # make space for better readability of the console
+    enter_cmd "\n";    # make space for better readability of the console
 }
 
 =head2 check_network_status
@@ -330,7 +330,7 @@ Confirm if a warning popup for Networkmanager controls networking.
 
 =cut
 sub handle_Networkmanager_controlled {
-    assert_screen 'Networkmanager_controlled', 90;
+    assert_screen 'Networkmanager_controlled', 300;
     send_key "ret";    # confirm networkmanager popup
     assert_screen "Networkmanager_controlled-approved";
     send_key "alt-c";
@@ -438,7 +438,7 @@ so that the existing logs will not interfere with the new ones.
 
 =cut
 sub clear_journal_log {
-    type_string "\n\n";
+    enter_cmd "\n";
     assert_script_run '> journal.log';
 }
 
@@ -467,7 +467,7 @@ further tests.
 
 =cut
 sub close_xterm {
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 1;

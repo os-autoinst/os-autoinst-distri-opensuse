@@ -18,7 +18,6 @@ use x11utils 'handle_relogin';
 
 sub run {
     handle_relogin;
-    assert_screen 'generic-desktop', 90;    # x11test is checking generic-desktop in post_run_hook but after login it can take longer than 30 sec
 }
 
 1;

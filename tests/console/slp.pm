@@ -67,7 +67,8 @@ sub run {
 
     # Deregister one NTP service and find the other one
     assert_script_run 'slptool deregister ntp://tik.cesnet.cz:123,en,65535';
-    assert_script_run 'if [[ $(slptool findsrvs ntp | grep "tik\|tak" | wc -l) = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
+    assert_script_run 'slptool findsrvs ntp';
+    assert_script_run 'if [[ $(slptool findsrvs ntp | grep -c "tik\|tak") = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
 
     # Turn off slpd
     systemctl 'stop slpd';
@@ -77,6 +78,7 @@ sub post_fail_hook {
     my $self = shift;
     select_console('log-console');
 
+    assert_script_run 'slptool findsrvs ntp';
     upload_logs '/var/log/slpd.log';
     upload_logs '/var/log/zypper.log';
     $self->save_and_upload_log('journalctl --no-pager -o short-precise', '/tmp/journal.log',            {screenshot => 1});

@@ -70,32 +70,32 @@ EOF
 
         script_run("gpg2 -vv --gen-key &> /dev/$serialdev", 0);
         assert_screen 'gpg-set-keytype';    # Your Selection?
-        type_string "1\n";
+        enter_cmd "1";
         assert_screen 'gpg-set-keysize';       # What keysize do you want?
-        type_string "$key_size\n";
+        enter_cmd "$key_size";
         assert_screen 'gpg-set-expiration';    # Key is valid for? (0)
         send_key 'ret';
         assert_screen 'gpg-set-correct';       # Is this correct? (y/N)
-        type_string "y\n";
+        enter_cmd "y";
         assert_screen 'gpg-set-realname';      # Real name:
-        type_string "$username\n";
+        enter_cmd "$username";
         assert_screen 'gpg-set-email';         # Email address:
-        type_string "$email\n";
+        enter_cmd "$email";
         assert_screen 'gpg-set-comment';       # Comment:
         send_key 'ret';
         assert_screen 'gpg-set-okay';          # Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
-        type_string "O\n";
+        enter_cmd "O";
     }
 
     assert_screen("gpg-passphrase-enter");
-    type_string "REALSECRETPHRASE\n";          # Input insecure passphrase
+    enter_cmd "REALSECRETPHRASE";              # Input insecure passphrase
     assert_screen("gpg-passphrase-insecure");
     send_key 'tab';
     send_key 'ret';
     assert_screen("gpg-passphrase-enter");
-    type_string "$passwd\n";
+    enter_cmd "$passwd";
     assert_screen("gpg-passphrase-reenter");
-    type_string "$passwd\n";
+    enter_cmd "$passwd";
 
     # According to FIPS PUB 186-4 Digital Signature Standard (DSS), only the
     # 2048 and 4096 key length should be supported. See bsc#1125740 comment#15
@@ -121,7 +121,7 @@ EOF
     assert_script_run("test -e $tfile_gpg");
     script_run("gpg2 -u $email -d $tfile_gpg &> /dev/$serialdev", 0);
     assert_screen("gpg-passphrase-unlock", 10);
-    type_string "$passwd\n";
+    enter_cmd "$passwd";
     wait_serial("foo test content", 90) || die "File decryption failed!";
 
     # Reload gpg-agent (if it is running) to disable the passphrase caching
@@ -130,7 +130,7 @@ EOF
     # Signing function
     script_run("gpg2 -u $email --clearsign $tfile &> /dev/$serialdev", 0);
     assert_screen("gpg-passphrase-unlock", 10);
-    type_string "$passwd\n";
+    enter_cmd "$passwd";
     assert_script_run("test -e $tfile_asc");
     assert_script_run("gpg2 -u $email --verify --verbose $tfile_asc");
 

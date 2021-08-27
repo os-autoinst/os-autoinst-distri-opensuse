@@ -1,4 +1,4 @@
-# Copyright (C) 2015-2020 SUSE LLC
+# Copyright (C) 2015-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
+use zypper qw(wait_quit_zypper);
 
 our @EXPORT = qw(
   check_console_font
@@ -35,6 +36,8 @@ our @EXPORT = qw(
   type_string_slow
   type_string_very_slow
   type_string_slow_extended
+  enter_cmd_slow
+  enter_cmd_very_slow
   save_svirt_pty
   type_line_svirt
   integration_services_check
@@ -86,6 +89,7 @@ our @EXPORT = qw(
   script_retry
   script_run_interactive
   create_btrfs_subvolume
+  create_raid_loop_device
   file_content_replace
   ensure_ca_certificates_suse_installed
   is_efi_boot
@@ -94,6 +98,9 @@ our @EXPORT = qw(
   script_output_retry
   get_secureboot_status
   assert_secureboot_status
+  susefirewall2_to_firewalld
+  permit_root_ssh
+  permit_root_ssh_in_sol
 );
 
 =head1 SYNOPSIS
@@ -131,8 +138,8 @@ Does B<not> work on B<Hyper-V>.
 sub save_svirt_pty {
     return if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     my $name = console('svirt')->name;
-    type_string "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`\n";
-    type_string "echo \$pty\n";
+    enter_cmd "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
+    enter_cmd "echo \$pty";
 }
 
 =head2 type_line_svirt
@@ -146,7 +153,7 @@ If the expected text is not found, it will fail with C<$fail_message>.
 =cut
 sub type_line_svirt {
     my ($string, %args) = @_;
-    type_string "echo $string > \$pty\n";
+    enter_cmd "echo $string > \$pty";
     if ($args{expect}) {
         wait_serial($args{expect}, $args{timeout}) || die $args{fail_message} // 'expected \'' . $args{expect} . '\' not found';
     }
@@ -207,11 +214,11 @@ If yes, import the key, otherwise don't.
 sub handle_untrusted_gpg_key {
     if (match_has_tag('import-known-untrusted-gpg-key')) {
         record_info('Import', 'Known untrusted gpg key is imported');
-        wait_screen_change { send_key 'alt-t' };    # import
+        wait_screen_change { send_key 'alt-t'; send_key 'alt-y' };    # import/yes, depending on variant
     }
     else {
         record_info('Cancel import', 'Untrusted gpg key is NOT imported');
-        wait_screen_change { send_key 'alt-c' };    # cancel
+        wait_screen_change { send_key 'alt-c'; send_key 'spc' };      # cancel/no, depending on variant
     }
 }
 
@@ -224,21 +231,18 @@ Die, if this is not the case.
 
 =cut
 sub integration_services_check_ip {
-    # Workaround for poo#44771 "Can't call method "exec" on an undefined value"
-    select_console('svirt');
-    select_console('sut');
     # Host-side of Integration Services
     my $vmname = console('svirt')->name;
     my $ips_host_pov;
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        $ips_host_pov = console('svirt')->get_cmd_output(
-            'powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"');
+        (undef, $ips_host_pov) = console('svirt')->run_cmd(
+            'powershell -Command "Get-VM ' . $vmname . ' | Get-VMNetworkAdapter | Format-Table -HideTableHeaders IPAddresses"', wantarray => 1);
     }
     elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        $ips_host_pov = console('svirt')->get_cmd_output(
+        (undef, $ips_host_pov) = console('svirt')->run_cmd(
             "set -x; vmid=\$(vim-cmd vmsvc/getallvms | awk '/$vmname/ { print \$1 }');" .
               "if [ \$vmid ]; then vim-cmd vmsvc/get.guest \$vmid | awk '/ipAddress/ {print \$3}' " .
-              "| head -n1 | sed -e 's/\"//g' | sed -e 's/,//g'; fi", {domain => 'sshVMwareServer'});
+              "| head -n1 | sed -e 's/\"//g' | sed -e 's/,//g'; fi", domain => 'sshVMwareServer', wantarray => 1);
     }
     $ips_host_pov =~ m/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/;
     $ips_host_pov = $1;
@@ -259,8 +263,8 @@ are present and in working condition.
 
 =cut
 sub integration_services_check {
+    integration_services_check_ip();
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
-        integration_services_check_ip;
         # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
@@ -278,7 +282,6 @@ sub integration_services_check {
         assert_script_run('systemctl list-unit-files | grep hv_fcopy_daemon.service');
     }
     elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        integration_services_check_ip;
         assert_script_run('rpmquery open-vm-tools');
         assert_script_run('rpmquery open-vm-tools-desktop') unless check_var('DESKTOP', 'textmode');
         assert_script_run('modinfo vmw_vmci');
@@ -349,7 +352,7 @@ So this function will simply type C<clear\n>.
 
 =cut
 sub clear_console {
-    type_string "clear\n";
+    enter_cmd "clear";
 }
 
 =head2 assert_gui_app
@@ -437,7 +440,7 @@ Typing a string with C<SLOW_TYPING_SPEED> to avoid losing keys.
 sub type_string_slow {
     my ($string) = @_;
 
-    type_string $string, SLOW_TYPING_SPEED;
+    type_string $string, max_interval => SLOW_TYPING_SPEED;
 }
 
 =head2 type_string_very_slow
@@ -461,7 +464,7 @@ also scaled by C<TIMEOUT_SCALE> which we do not need here.
 sub type_string_very_slow {
     my ($string) = @_;
 
-    type_string $string, VERY_SLOW_TYPING_SPEED;
+    type_string $string, max_interval => VERY_SLOW_TYPING_SPEED;
 
     if (get_var('WINTER_IS_THERE')) {
         sleep 3;
@@ -469,6 +472,34 @@ sub type_string_very_slow {
     else {
         wait_still_screen(1, 3);
     }
+}
+
+=head2 enter_cmd_slow
+
+ enter_cmd_slow($cmd);
+
+Enter a command with C<SLOW_TYPING_SPEED> to avoid losing keys.
+
+=cut
+sub enter_cmd_slow {
+    my ($cmd) = @_;
+
+    enter_cmd $cmd, max_interval => SLOW_TYPING_SPEED;
+}
+
+=head2 enter_cmd_very_slow
+
+ enter_cmd_very_slow($cmd);
+
+Enter a command even slower with C<VERY_SLOW_TYPING_SPEED>. Compare to
+C<type_string_very_slow>.
+
+=cut
+sub enter_cmd_very_slow {
+    my ($cmd) = @_;
+
+    enter_cmd $cmd, max_interval => VERY_SLOW_TYPING_SPEED;
+    wait_still_screen(1, 3);
 }
 
 
@@ -646,22 +677,30 @@ the second run will update the system.
 
 =cut
 sub fully_patch_system {
-    # first run, possible update of packager -- exit code 103
-    zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
     # special handle for 11-SP4 s390 install
     if (is_sle('=11-SP4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x')) {
+        # first run, possible update of packager -- exit code 103
+        zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
         handle_patch_11sp4_zvm();
-    } else {
-        # second run, full system update
-        my $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102], timeout => 6000);
-        if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
-            record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
-            my $para = '';
-            $para = '--force-resolution' if get_var('FORCE_DEPS');
-            zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
-            save_screenshot;
-        }
+        return;
     }
+
+    # Repeatedly call zypper patch until it returns something other than 103 (package manager updates)
+    my $ret = 1;
+    for (1 .. 3) {
+        $ret = zypper_call('patch --with-interactive -l', exitcode => [0, 4, 102, 103], timeout => 6000);
+        last if $ret != 103;
+    }
+
+    if (($ret == 4) && is_sle('>=12') && is_sle('<15')) {
+        record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
+        my $para = '';
+        $para = '--force-resolution' if get_var('FORCE_DEPS');
+        $ret  = zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
+        save_screenshot;
+    }
+
+    die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
 }
 
 =head2 ssh_fully_patch_system
@@ -875,7 +914,7 @@ sub handle_livecd_reboot_failure {
     if (match_has_tag('generic-desktop-after_installation')) {
         record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
         select_console 'install-shell';
-        type_string "reboot\n";
+        enter_cmd "reboot";
         save_screenshot;
     }
 }
@@ -1118,13 +1157,11 @@ sub get_x11_console_tty {
       && !check_var('VIRSH_VMM_TYPE',   'linux')
       && !get_var('VERSION_LAYERED');
     # $newer_gdm means GDM version >= 3.32, which will start gnome desktop
-    # on tty2 including auto-login cases. Also exclude cases which boot from
-    # older versions in HDD
+    # on tty2 including auto-login cases.
     my $newer_gdm
       = $new_gdm
       && !is_sle('<15-SP2')
-      && !is_leap('<15.2')
-      && get_var('HDD_1', '') !~ /opensuse-42/;
+      && !is_leap('<15.2');
     return (check_var('DESKTOP', 'gnome') && (get_var('NOAUTOLOGIN') || $newer_gdm) && $new_gdm) ? 2 : 7;
 }
 
@@ -1239,7 +1276,7 @@ sub exec_and_insert_password {
     clear_console if !is_serial_terminal();
     type_string "$cmd";
     if (is_serial_terminal()) {
-        type_string " ; echo $hashed_cmd-\$?-\n";
+        enter_cmd " ; echo $hashed_cmd-\$?-";
         wait_serial(qr/Password:\s*$/i);
     }
     else {
@@ -1376,8 +1413,9 @@ sub reconnect_mgmt_console {
             if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
                 select_console 'root-console';
                 if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
-                    record_soft_failure('bsc#1154156 - After upgrade from 12SP5, SuSEfirewall2 blocks xvnc.socket on s390x');
-                    script_run 'iptables -I input_ext -p tcp -m tcp --dport 5900:5999 -j ACCEPT';
+                    wait_quit_zypper;
+                    zypper_call("in susefirewall2-to-firewalld");
+                    susefirewall2_to_firewalld();
                 }
             }
             select_console('x11', await_console => 0);
@@ -1397,7 +1435,7 @@ sub reconnect_mgmt_console {
     elsif (check_var('ARCH', 'x86_64')) {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
-            assert_screen([qw(qa-net-selection prague-pxe-menu)], 300) unless get_var('IPXE_CONSOLE');
+            assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
             # boot to hard disk is default
             send_key 'ret';
         }
@@ -1406,7 +1444,8 @@ sub reconnect_mgmt_console {
         if (check_var('BACKEND', 'ipmi')) {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
-            assert_screen([qw(qa-net-selection prague-pxe-menu)], 600) unless get_var('IPXE_CONSOLE');
+            assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
+            send_key 'ret';
         }
     }
     else {
@@ -1430,7 +1469,7 @@ sub show_tasks_in_blocked_state {
         send_key 'alt-sysrq-t';
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
-        wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i, 1);
+        wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
         send_key 'ret';    # ensure clean shell prompt
     }
 }
@@ -1654,6 +1693,37 @@ sub create_btrfs_subvolume {
     assert_script_run("rm -fr /tmp/arm64-efi/");
 }
 
+=head2 create_raid_loop_device 
+    
+ create_raid_loop_device([raid_type => $raid_type], [device_num => $device_num], [file_size => $file_size]);
+
+Create a raid array over loop devices.
+Raid type is C<$raid_type>, using C<$device_num> number of loop device, 
+with the size of each device being C<$file_size> megabytes.
+
+Example to create a RAID C<5> array over C<3> loop devices, C<200> Mb each:
+    create_raid_loop_device(raid_type => 5, device_num => 3, file_size => 200)
+
+=cut
+sub create_raid_loop_device {
+    my %args         = @_;
+    my $raid_type    = $args{raid_type}  // 1;
+    my $device_num   = $args{device_num} // 2;
+    my $file_size    = $args{file_size}  // 100;
+    my $loop_devices = "";
+
+    for my $num (1 .. $device_num) {
+        my $raid_file = "raid_file" . $num;
+        assert_script_run("fallocate -l ${file_size}M $raid_file");
+
+        my $loop_device = script_output("losetup -f");
+        assert_script_run("losetup $loop_device $raid_file");
+
+        $loop_devices .= $loop_device . " ";
+    }
+
+    assert_script_run("yes|mdadm --create /dev/md/raid_over_loop --level=$raid_type --raid-devices=$device_num $loop_devices");
+}
 
 =head2 file_content_replace
 
@@ -1822,7 +1892,8 @@ sub install_patterns {
     my @pt_list;
     my @pt_list_un;
     my @pt_list_in;
-    my $pcm_list = 0;
+    my $pcm_list    = 0;
+    my $cf_selected = 0;
 
     if (is_sle('15+')) {
         $pcm_list = 'Amazon_Web_Services|Google_Cloud_Platform|Microsoft_Azure';
@@ -1861,28 +1932,23 @@ sub install_patterns {
             $pt .= '*';
             $pcm = 1;
         }
+        # Only one CFEngine pattern can be installed
+        if ($pt =~ /CFEngine|CFEngien/) {
+            if ($cf_selected == 0) {
+                $cf_selected = 1;
+            }
+            elsif ($cf_selected == 1) {
+                record_soft_failure 'bsc#950763 CFEngine pattern is listed twice in installer';
+                next;
+            }
+        }
         # skip the installation of "SAP Application Server Base", poo#75058.
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
             next;
         }
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
-        my $ret = zypper_call("in -t pattern $pt", exitcode => [0, 4], timeout => 1800);
-        if ($ret == 4) {
-            if (($pt =~ /CFEngine/) && is_sle('>=12') && is_sle('<15')) {
-                record_soft_failure 'bsc#1175704 pattern:CFEngine-12-8.1.s390x requires patterns-adv-sys-mgmt-CFEngine, but this requirement cannot be provided';
-                my $para = '';
-                $para = '--force-resolution' if get_var('FORCE_DEPS');
-                zypper_call("in $para -t pattern $pt", timeout => 1800, exitcode => [0, 102, 103]);
-            }
-            else {
-                script_run('tac /var/log/zypper.log | grep -F -m1 -B10000 "Hi, me zypper" | tac | grep \'Exception.cc\' > /tmp/zlog.txt');
-                my $msg = "'zypper -n in -t pattern $pt failed with code $ret";
-                $msg .= "\n\nRelated zypper logs:\n";
-                $msg .= script_output('cat /tmp/zlog.txt');
-                die $msg;
-            }
-        }
+        zypper_call("in -t pattern $pt", timeout => 1800);
     }
 }
 
@@ -1930,6 +1996,58 @@ sub assert_secureboot_status {
     my $state    = get_secureboot_status;
     my $statestr = $state ? 'on' : 'off';
     die "Error: SecureBoot is $statestr" if $state xor $expected;
+}
+
+sub susefirewall2_to_firewalld {
+    my $timeout = 360;
+    $timeout = 1200 if check_var('ARCH', 'aarch64');
+    assert_script_run('susefirewall2-to-firewalld -c',                                     timeout => $timeout);
+    assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
+    # On some platforms such as Aarch64, the 'firewalld restart'
+    # can't finish in the default timeout.
+
+    systemctl 'restart firewalld', timeout => $timeout;
+    script_run('iptables -S', timeout => $timeout);
+    set_var('SUSEFIREWALL2_SERVICE_CHECK', 1);
+}
+
+=head2 permit_root_ssh
+    permit_root_ssh();
+
+Due to bsc#1173067, openssh now no longer allows RootLogin
+using password auth on Tumbleweed, the latest SLE16 and
+Leap16 will sync with Tumbleweed as well.
+
+=cut
+
+sub permit_root_ssh {
+    if (is_sle('<16') || is_leap('<16.0')) {
+        my $results = script_run("grep 'PermitRootLogin yes' /etc/ssh/sshd_config");
+        if (!$results) {
+            assert_script_run("sed -i 's/^PermitRootLogin.*\$/PermitRootLogin yes/' /etc/ssh/sshd_config");
+            assert_script_run("systemctl restart sshd");
+        }
+    }
+    else {
+        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
+        assert_script_run("systemctl restart sshd");
+    }
+}
+
+=head2 permit_root_ssh_in_sol
+    permit_root_ssh_in_sol();
+
+for ipmi backend, PermitRootLogin has to be set in sol console
+however, assert_script_run and script_run is not stable in sole console
+enter_cmd or type_string are acceptable
+
+=cut
+
+sub permit_root_ssh_in_sol {
+    my $sshd_config_file = shift;
+
+    $sshd_config_file //= "/etc/ssh/sshd_config";
+    enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)");
 }
 
 1;

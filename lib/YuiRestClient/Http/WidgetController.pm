@@ -13,6 +13,7 @@ package YuiRestClient::Http::WidgetController;
 use strict;
 use warnings;
 
+use YuiRestClient::Logger;
 use YuiRestClient::Wait;
 use YuiRestClient::Http::HttpClient;
 
@@ -28,6 +29,26 @@ sub new {
     }, $class;
 }
 
+sub set_timeout {
+    my ($self, $timeout) = @_;
+    $self->{timeout} = $timeout;
+}
+
+sub set_interval {
+    my ($self, $interval) = @_;
+    $self->{interval} = $interval;
+}
+
+sub set_host {
+    my ($self, $host) = @_;
+    $self->{host} = $host;
+}
+
+sub set_port {
+    my ($self, $port) = @_;
+    $self->{port} = $port;
+}
+
 sub find {
     my ($self, $args) = @_;
 
@@ -37,6 +58,8 @@ sub find {
         path   => $self->{api_version} . '/widgets',
         params => $args
     );
+
+    YuiRestClient::Logger->get_instance()->debug('Finding widget by url: ' . $uri);
 
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
@@ -55,6 +78,8 @@ sub send_action {
         path   => $self->{api_version} . '/widgets',
         params => $args
     );
+
+    YuiRestClient::Logger->get_instance()->debug('Sending action to widget by url: ' . $uri);
 
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_post($uri);

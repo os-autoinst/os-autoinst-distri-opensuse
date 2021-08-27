@@ -23,7 +23,7 @@ use x11utils qw(handle_login handle_logout handle_welcome_screen);
 use main_common 'opensuse_welcome_applicable';
 
 sub ensure_multi_user_target {
-    type_string "systemctl isolate multi-user.target\n";
+    enter_cmd "systemctl isolate multi-user.target";
     wait_still_screen 5;
     send_key "ctrl-alt-f" . get_root_console_tty;
     wait_screen_change {
@@ -36,7 +36,7 @@ sub ensure_multi_user_target {
 }
 
 sub ensure_graphical_target {
-    type_string "systemctl isolate graphical.target\n";
+    enter_cmd "systemctl isolate graphical.target";
     reset_consoles;
 }
 
@@ -64,27 +64,27 @@ sub run {
         # select created user #01
         send_key_until_needlematch(['user-01-selected', 'user-freetext-input-selected'], 'down', 1, 3);
         if (match_has_tag 'user-freetext-input-selected') {
-            type_string "$user\n";
+            enter_cmd "$user";
         }
     }
     elsif (check_var('DESKTOP', 'kde')) {
         wait_screen_change { send_key 'shift-tab' };
         send_key 'ctrl-a';
-        type_string "$user\n";
+        enter_cmd "$user";
     }
     # Make sure screen changed before calling handle_login function (for slow workers)
     wait_still_screen;
     handle_login($user, 1);
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
-    assert_screen 'generic-desktop', 60;
     # verify correct user is logged in
     x11_start_program('xterm');
     wait_still_screen;
-    type_string "whoami|grep $user > /tmp/whoami.log\n";
+    enter_cmd "whoami|grep $user > /tmp/whoami.log";
     assert_script_sudo "grep $user /tmp/whoami.log";
     # logout user
     handle_logout;
-    wait_still_screen;
+    # Wait some more seconds before selecting root-console, as it fails sporadically in aarch64
+    wait_still_screen 10;
 
     # restore previous config
     select_console 'root-console';

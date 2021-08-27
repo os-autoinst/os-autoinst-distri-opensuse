@@ -18,7 +18,7 @@
 #   - Handle registration (gpg key, nvidia validation, registration server,
 #   repositories, beta, products, addons)
 # - Otherwise, skip registration
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

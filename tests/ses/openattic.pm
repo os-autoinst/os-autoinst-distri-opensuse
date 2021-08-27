@@ -24,18 +24,18 @@ sub run {
     if (check_var('HOSTNAME', 'master')) {
         # install firefox and icewm to test openattic
         zypper_call 'in firefox icewm xinit xorg-x11-server';
-        type_string "startx\n";                   # start icewm
+        enter_cmd "startx";                       # start icewm
         assert_screen 'generic-desktop';
         mouse_set 100, 100;
         mouse_click 'right';
         send_key_until_needlematch 'xterm', 'ret';
-        type_string "firefox http://master\n";    # open openattic web running on master node
+        enter_cmd "firefox http://master";        # open openattic web running on master node
         $self->x11test::firefox_check_default;    # close default browser pop-up
         assert_screen 'openattic-login';
         send_key 'tab';                           # username login field
         type_string 'openattic';
         send_key 'tab';                           # password field
-        type_string "openattic\n";
+        enter_cmd "openattic";
         assert_and_click 'firefox-passwd-confirm_remember';
         send_key 'esc';                           # get rid of unsecure connection pop-up
         assert_screen 'openattic-dashboard';

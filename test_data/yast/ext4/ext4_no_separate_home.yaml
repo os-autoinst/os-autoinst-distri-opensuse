@@ -1,7 +1,17 @@
 ---
-allowed_unpartitioned: 0.00GB
-partitions:
-  - mnt_point: /
-    fs_type: ext4
-  - mnt_point: '[SWAP]'
-    fs_type: swap
+disks:
+  - name: vda
+    table_type: gpt
+    allowed_unpartitioned: 0.00GB
+    partitions:
+      - name: vda2
+        formatting_options:
+          filesystem: ext4
+        mounting_options:
+          should_mount: 1
+          mount_point: /
+      - name: vda3
+        formatting_options:
+          filesystem: swap
+        mounting_options:
+          mount_point: SWAP

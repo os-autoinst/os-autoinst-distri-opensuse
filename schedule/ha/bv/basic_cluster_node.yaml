@@ -8,9 +8,10 @@ description: >
   The other settings required in the job group are.
 
   CLUSTER_NAME must be defined for all jobs as a string.
-  HA_CLUSTER_INIT must be defined to a non false value in the parent job
+  HA_CLUSTER_INIT must be defined to yes in the job that initializes the cluster, and to no
+  in the remaining cluster node jobs
   HA_CLUSTER_JOIN must be defined for the rest of the jobs, and it must contain the
-  hostname of the parent job (the job where HA_CLUSTER_SETUP is defined to init)
+  hostname of the job where HA_CLUSTER_INIT is defined to yes
   HOSTNAME must be defined to different hostnames for each node.
   All jobs with the exception of the parent job must include a PARALLEL_WITH setting
   referencing the parent job.
@@ -69,10 +70,10 @@ schedule:
   - ha/check_logs
 conditional_schedule:
   cluster_setup:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - ha/ha_cluster_init
-      join:
+      no:
         - ha/ha_cluster_join
   drbd:
     HA_CLUSTER_DRBD:
@@ -84,8 +85,8 @@ conditional_schedule:
       server:
         - ha/ctdb
   boot_to_desktop_node01:
-    HA_CLUSTER_SETUP:
-      init:
+    HA_CLUSTER_INIT:
+      yes:
         - boot/boot_to_desktop
   remove_node:
     HA_REMOVE_NODE:

@@ -35,7 +35,7 @@ sub run {
 
     # mirror and sync a base repo from SCC
     smt_mirror_repo();
-    type_string "killall xterm\n";
+    enter_cmd "killall xterm";
 }
 
 sub test_flags {

@@ -21,11 +21,11 @@ use utils;
 
 sub run {
     # login
-    type_string("root\n");
+    enter_cmd("root");
     sleep(2);
     type_password("linux\n");
     # and reboot
-    type_string("reboot\n");
+    enter_cmd("reboot");
     # bootloader screen is too fast for openqa
     sleep(10);
     send_key 'down';

@@ -39,6 +39,7 @@ use warnings;
 use testapi;
 use YuiRestClient;
 use scheduler 'get_test_suite_data';
+use YaST::Module;
 
 my $partitioner;
 my $test_data;
@@ -48,22 +49,16 @@ sub pre_run_hook {
     $test_data   = get_test_suite_data();
 }
 
-sub open_expert_partitioner {
-    my ($self) = shift;
-    $self->launch_yast2_module_x11('storage', extra_vars => get_var('YUI_PARAMS'));
-    YuiRestClient::connect_to_app_running_system();
-    $partitioner->get_confirmation_warning_controller()->confirm_only_use_if_familiar();
-}
-
 sub add_custom_partition {
-    my ($self) = shift;
     my $disk = $test_data->{disks}[0];
-    $self->open_expert_partitioner;
-    $partitioner->add_partition_on_gpt_disk({
-            disk      => $disk->{name},
-            partition => $disk->{partitions}[0]
-    });
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->confirm_only_use_if_familiar();
+        $partitioner->add_partition_on_gpt_disk({
+                disk      => $disk->{name},
+                partition => $disk->{partitions}[0]
+        });
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub verify_custom_partition {
@@ -82,13 +77,14 @@ sub verify_custom_partition {
 }
 
 sub resize_custom_partition {
-    my ($self) = shift;
-    $self->open_expert_partitioner;
-    $partitioner->resize_partition({
-            disk      => $test_data->{disks}[0]->{name},
-            partition => $test_data->{disks}[0]->{partitions}[1]
-    });
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->confirm_only_use_if_familiar();
+        $partitioner->resize_partition({
+                disk      => $test_data->{disks}[0]->{name},
+                partition => $test_data->{disks}[0]->{partitions}[1]
+        });
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub verify_resized_partition {
@@ -96,20 +92,22 @@ sub verify_resized_partition {
 }
 
 sub delete_resized_partition {
-    my ($self) = shift;
-    $self->open_expert_partitioner;
-    $partitioner->delete_partition({
-            disk      => $test_data->{disks}[0]->{name},
-            partition => $test_data->{disks}[0]->{partitions}[1]
-    });
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->confirm_only_use_if_familiar();
+        $partitioner->delete_partition({
+                disk      => $test_data->{disks}[0]->{name},
+                partition => $test_data->{disks}[0]->{partitions}[1]
+        });
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub add_logical_volumes {
-    my ($self) = shift;
-    $self->open_expert_partitioner;
-    $partitioner->setup_lvm($test_data->{lvm});
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->confirm_only_use_if_familiar();
+        $partitioner->setup_lvm($test_data->{lvm});
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub verify_logical_volumes {
@@ -123,26 +121,25 @@ sub verify_logical_volumes {
 }
 
 sub delete_volume_group {
-    my ($self) = shift;
-    $self->open_expert_partitioner;
-    my $vg = $test_data->{lvm}->{volume_groups}[0];
-
-    $partitioner->delete_volume_group($vg->{name});
-    $partitioner->show_summary_and_accept_changes();
+    YaST::Module::run_actions {
+        $partitioner->confirm_only_use_if_familiar();
+        my $vg = $test_data->{lvm}->{volume_groups}[0];
+        $partitioner->delete_volume_group($vg->{name});
+        $partitioner->show_summary_and_accept_changes();
+    } module => 'storage', ui => 'qt';
 }
 
 sub run {
-    my ($self) = shift;
     select_console "x11";
 
-    $self->add_custom_partition;
+    add_custom_partition;
     verify_custom_partition;
-    $self->resize_custom_partition;
+    resize_custom_partition;
     verify_resized_partition;
-    $self->delete_resized_partition;
-    $self->add_logical_volumes;
+    delete_resized_partition;
+    add_logical_volumes;
     verify_logical_volumes;
-    $self->delete_volume_group;
+    delete_volume_group;
 }
 
 1;

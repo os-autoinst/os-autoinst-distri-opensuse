@@ -2,18 +2,48 @@ name:           sle_micro_raw_image
 description:    >
     Maintainer: jalausuch@suse.com, qa-c@suse.de.
     SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+        - boot/boot_to_desktop
+      'x86_64':
+        - microos/disk_boot
+      'aarch64':
+        - microos/disk_boot
+  registration:
+    SCC_REGISTER:
+      'installation':
+        - console/suseconnect_scc
+  maintenance:
+    FLAVOR:
+      'MicroOS-Image-Updates':
+        - transactional/install_updates
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - transactional/enable_selinux
+  k3s:
+    SLE_MICRO_K3S:
+      '1':
+        - containers/k3s_cli_check
 schedule:
-    - microos/disk_boot
-    - transactional/disable_grub
-    - console/suseconnect_scc
-    - microos/networking
-    - microos/libzypp_config
-    - microos/image_checks
-    - microos/one_line_checks
-    - microos/services_enabled
-    - transactional/filesystem_ro
-    - transactional/transactional_update
-    - transactional/rebootmgr
-    - transactional/health_check
-    - microos/journal_check
-    - shutdown/shutdown
+  - '{{boot}}'
+  - transactional/host_config
+  - '{{registration}}'
+  - '{{maintenance}}'
+  - '{{selinux}}'
+  - '{{k3s}}'
+  - microos/networking
+  - microos/libzypp_config
+  - microos/image_checks
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/cockpit_service
+  - transactional/filesystem_ro
+  - transactional/transactional_update
+  - transactional/rebootmgr
+  - transactional/health_check
+  - console/journal_check
+  - shutdown/shutdown

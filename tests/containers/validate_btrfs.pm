@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,11 +20,26 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use containers::runtime;
+use containers::common;
+use containers::urls 'get_suse_container_urls';
+use version_utils qw(get_os_release);
+
+# Get the total and used GiB of a given btrfs device
+sub _btrfs_fi {
+    my $dev    = shift;
+    my $output = script_output("btrfs fi df $dev");
+    die "Unexpected btrfs fi output" unless ($output =~ "^Data.+total=(?<total>[0-9]+\.[0-9]*)GiB, used=(?<used>[0-9]+\.[0-9]*)GiB");
+    return ($+{total}, $+{used});
+}
 
 sub _sanity_test_btrfs {
-    my ($rt, $dev_path) = @_;
-    my $dockerfile_path = '/root/sle_base_image/docker_build';
-    my $btrfs_head      = '/tmp/subvolumes_saved';
+    my ($rt, $dev_path, $img) = @_;
+    my $dockerfile_path = "~/sle_base_image/docker_build";
+    if (script_run("test -d $dockerfile_path") != 0) {
+        script_run "mkdir -p $dockerfile_path";
+    }
+    assert_script_run("echo -e 'FROM $img\\nENV WORLD_VAR Arda' > $dockerfile_path/Dockerfile");
+    my $btrfs_head = '/tmp/subvolumes_saved';
     $rt->info(property => 'Driver', value => 'btrfs');
     $rt->build($dockerfile_path, 'huge_image');
     assert_script_run "btrfs fi df $dev_path/btrfs/";
@@ -34,50 +49,78 @@ sub _sanity_test_btrfs {
 
 sub _test_btrfs_balancing {
     my ($dev_path) = shift;
-    assert_script_run qq(btrfs balance start --full-balance $dev_path), timeout => 600;
+    # use -dusage and -musage to prevent "No space left on device" errors, see https://www.suse.com/support/kb/doc/?id=000019789
+    assert_script_run qq(btrfs balance start --full-balance -dusage=0 -musage=0 $dev_path), timeout => 900;
     assert_script_run "btrfs fi show $dev_path/btrfs";
-    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+10.\d+G.+\/dev\/vdb/ };
+    validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+[0-9]+.\d+G.+\/dev\/vdb/ };
 }
 
 sub _test_btrfs_thin_partitioning {
     my ($rt, $dev_path) = @_;
-    my $dockerfile_path = '/root/sle_base_image/docker_build';
+    my $dockerfile_path = '~/sle_base_image/docker_build';
     my $btrfs_head      = '/tmp/subvolumes_saved';
     $rt->build($dockerfile_path, 'thin_image');
     # validate that new subvolume has been created. This should be improved.
     assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) == \$(cat $btrfs_head)};
-    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=[12].*GiB, used=\d+.+[KM]iB/ };
+    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=[1-9].*[KMG]iB, used=\d+.+[KMG]iB/ };
 }
 
+# Fill up the btrfs subvolume, check if it is full and then increase the available size by adding another disk
 sub _test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
     my $container  = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
     record_info "test btrfs";
     script_run("df -h");
-    # /var is using its own partition which is size of 10G. Create file in the container
-    # enough to fill up the partition up to ~99%
-    $rt->up('huge_image', keep_container => 1, cmd => 'fallocate -l 9149000KiB bigfile.txt');
+    # Determine the remaining size of /var
+    my $var_free   = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
+    my $var_blocks = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
+    # Create file in the container enough to fill the "/var" partition (where the container is located)
+    my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
+    $rt->up('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
     validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
-    # partition should be full
-    validate_script_output "btrfs fi df $dev_path", sub { m/^Data.+total=8.*GiB, used=8.*GiB/ };
-    # Due to disk space this should fail
-    die("pull still works") if ($rt->pull("$container") == 0);
+    # check if the partition is full
+    my ($total, $used) = _btrfs_fi("/var");
+    die "partition should be full" unless (int($used) >= int($total * 0.99));
+    die("pull should fail on full partition") if ($rt->pull("$container") == 0);
+    # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
-    validate_script_output "lsblk | grep vdb", sub { m/vdb.+20G/ };
+    validate_script_output "lsblk | grep vdb", sub { m/vdb.+[2-9][0-9]G/ };
+    my $var_blocks_after = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
+    record_info("btrfs blocks", "before adding vdb: $var_blocks\nafter: $var_blocks_after");
+    die "available number of block didn't increase" if ($var_blocks >= $var_blocks_after);
     $rt->pull($container);
     assert_script_run qq{test \$(ls -t $dev_path/btrfs/subvolumes/ | head -n 1) != \$(cat $btrfs_head)};
 }
 
 sub run {
+    my ($self) = @_;
+    $self->select_serial_terminal;
+    die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    install_docker_when_needed($host_distri);
+    allow_selected_insecure_registries(runtime => 'docker');
     my $docker    = containers::runtime->new(runtime => 'docker');
     my $btrfs_dev = '/var/lib/docker';
-    _sanity_test_btrfs($docker, $btrfs_dev);
+    my ($untested_images, $released_images) = get_suse_container_urls();
+    _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
     _test_btrfs_device_mgmt($docker, $btrfs_dev);
     _test_btrfs_balancing($btrfs_dev);
     $docker->cleanup_system_host;
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    script_run "rm -rf ~/sle_base_image/docker_build";
+    $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my $self = shift;
+    script_run "rm -rf ~/sle_base_image/docker_build";
+    $self->SUPER::post_run_hook;
 }
 
 1;

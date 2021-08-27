@@ -1,0 +1,19 @@
+---
+name: qam_sles4sap_test
+description: >
+  Test suite for sapconf/saptune.
+vars:
+  BOOT_HDD_IMAGE: '1'
+  EXTRATEST: ''
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/patterns
+  - '{{module_to_test}}'
+conditional_schedule:
+  module_to_test:
+    MODULE_TO_TEST:
+      sapconf:
+        - sles4sap/sapconf
+      saptune:
+        - sles4sap/saptune

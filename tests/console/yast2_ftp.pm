@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2019 SUSE LLC
+# Copyright (c) 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -25,7 +25,6 @@ use base "y2_module_consoletest";
 use testapi;
 use utils;
 use version_utils;
-use y2_installbase;
 
 sub vsftd_setup_checker {
     my ($self, $config_ref) = @_;
@@ -88,18 +87,18 @@ sub run {
     script_run("rm /etc/vsftpd.conf");
     assert_script_run("rm -f /etc/vsftpd.pem");    #-f to not trigger error if file does not exist
 
-    # bsc#694167
+    # bsc#694167 bsc#1183786
     # create RSA certificate for ftp server at first which can be used for SSL configuration
     if (is_sle('<=12-SP2')) {
-        script_run("openssl req -x509 -nodes -days 365 -newkey rsa:1024 \\\n"
+        # script_run is used due to semicolon breaks the output
+        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
               . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
-              . "-keyout $vsftpd_directives->{dsa_cert_file} -out $vsftpd_directives->{dsa_cert_file}\n");
-    } else {
-        # create DSA certificate for ftp server at first which can be used for SSL configuration
-        script_run("openssl dsaparam -out dsaparam.pem 1024");
-        type_string_slow("openssl req -x509 -nodes -days 365 -newkey dsa:dsaparam.pem \\\n"
-              . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
-              . "-keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}\n");
+              . "-keyout $vsftpd_directives->{dsa_cert_file} -out $vsftpd_directives->{dsa_cert_file}");
+    }
+    else {
+        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
+              . " -subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
+              . " -keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}");
     }
 
     # check vsftpd.pem is created
@@ -158,15 +157,15 @@ sub run {
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'ret' };
     send_key 'alt-m';                                                              # max idle time in minutes to 10
-    type_string_slow($vsftpd_directives->{idle_session_timeout} / 60 . "\n");
+    enter_cmd_slow($vsftpd_directives->{idle_session_timeout} / 60 . "");
     send_key 'alt-e';                                                              # change max client for one IP
-    type_string_slow($vsftpd_directives->{max_per_ip} . "\n");
+    enter_cmd_slow($vsftpd_directives->{max_per_ip} . "");
     send_key 'alt-x';                                                              # change max clients to 20
-    type_string_slow($vsftpd_directives->{max_clients} . "\n");
+    enter_cmd_slow($vsftpd_directives->{max_clients} . "");
     send_key 'alt-l';                                                              # change local max rate to 100 kb/s
-    type_string_slow($vsftpd_directives->{local_max_rate} / 1024 . "\n");
+    enter_cmd_slow($vsftpd_directives->{local_max_rate} / 1024 . "");
     send_key 'alt-r';                                                              # change anonymous max rate to 50 kb/s
-    type_string_slow($vsftpd_directives->{anon_max_rate} / 1024 . "\n");
+    enter_cmd_slow($vsftpd_directives->{anon_max_rate} / 1024 . "");
     assert_screen 'yast2_ftp_performance-settings';                                # check performance settings
 
     # Authentication
@@ -198,12 +197,12 @@ sub run {
     assert_screen 'yast2_ftp_expert_settings';              # check passive mode value and enable SSL
     wait_still_screen;                                      # wait until yast loads expert settings data
     send_key 'alt-m';
-    type_string_slow($vsftpd_directives->{pasv_min_port} . "\n");
+    enter_cmd_slow($vsftpd_directives->{pasv_min_port} . "");
     send_key 'alt-a';
-    type_string_slow($vsftpd_directives->{pasv_max_port} . "\n");
+    enter_cmd_slow($vsftpd_directives->{pasv_max_port} . "");
     wait_screen_change { send_key 'alt-l' };                # enable SSL, and wait with next step
     wait_still_screen;
-    wait_screen_change { send_key 'alt-s' };                # give path for DSA certificate
+    wait_screen_change { send_key 'alt-s' };                # give path for RSA certificate
 
     if (is_sle('>=12-SP3') || is_opensuse) {
         type_string_slow($vsftpd_directives->{rsa_cert_file});
@@ -242,7 +241,7 @@ sub post_fail_hook {
 
     upload_logs('/etc/vsftpd.conf');
     upload_logs('/tmp/failed_vsftpd_directives.log');
-    y2_installbase::save_upload_y2logs;
+    $self->save_upload_y2logs();
 }
 
 1;

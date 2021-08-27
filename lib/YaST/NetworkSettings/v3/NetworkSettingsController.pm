@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -9,7 +9,7 @@
 
 # Summary: The class introduces business actions for Network Settings Dialog
 # (yast2 lan module), version 3.
-# Maintainer: Oleksandr Orlov <oorlov@suse.de>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::NetworkSettings::v3::NetworkSettingsController;
 use parent 'YaST::NetworkSettings::AbstractNetworkSettingsController';
@@ -21,7 +21,13 @@ use YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab;
 
 sub new {
     my ($class, $args) = @_;
-    my $self = $class->SUPER::new($args);
+    my $self = bless {}, $class;
+    return $self->init($args);
+}
+
+sub init {
+    my ($self, $args) = @_;
+    $self->SUPER::init($args);
     $self->{HardwareDialog}    = YaST::NetworkSettings::NetworkCardSetup::HardwareDialog->new();
     $self->{BridgedDevicesTab} = YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab->new({tab_shortcut => 'alt-i', bridged_devices_shortcut => 'alt-d'});
     $self->{BondSlavesTab}     = YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab->new({tab_shortcut => 'alt-o'});

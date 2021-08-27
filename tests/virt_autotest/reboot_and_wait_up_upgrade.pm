@@ -17,6 +17,7 @@ use testapi;
 use virt_utils 'clean_up_red_disks';
 use base 'reboot_and_wait_up';
 use virt_autotest::utils;
+use opensusebasetest;
 
 sub run {
     my $self = shift;
@@ -52,10 +53,20 @@ sub run {
 sub post_fail_hook {
     my ($self) = shift;
     reset_consoles;
-    select_console('root-console');
-    if (check_var('offline_upgrade', 'yes')) {
-        $self->upload_y2logs;
-        upload_logs("/mnt/root/autoupg.xml", failok => 1);
+    select_console('root-ssh');
+    if (get_var('VIRT_PRJ2_HOST_UPGRADE')) {
+        if (check_var('offline_upgrade', 'yes')) {
+            #host offline upgrade
+            $self->upload_y2logs;
+            upload_logs("/mnt/root/autoupg.xml", failok => 1);
+        }
+        else {
+            #host online upgrade
+            opensusebasetest::upload_coredumps;
+            save_screenshot;
+
+            virt_utils::collect_host_and_guest_logs;
+        }
     }
     $self->SUPER::post_fail_hook;
 }

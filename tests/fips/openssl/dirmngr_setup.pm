@@ -53,10 +53,10 @@ sub dirmngr_setup {
     assert_script_run 'echo 01 > ca/root-ca/db/root-ca.crl.srl';
 
     # Use expect for openssl Interactive mode
-    zypper_call("--no-refresh in expect");
+    zypper_call("--no-refresh in expect dirmngr");
 
     # Create and download the root-ca.conf file
-    assert_script_run "wget --quiet " . data_url('openssl/root-ca/root-ca.conf') . " -O $ca_cfg";
+    assert_script_run "curl --silent " . data_url('openssl/root-ca/root-ca.conf') . " --output $ca_cfg";
 
     # Create root ca certificate
     # assert_script_run("openssl req -new -config $ca_cfg -out $ca_csr -keyout $ca_key");

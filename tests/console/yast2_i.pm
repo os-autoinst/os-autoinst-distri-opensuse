@@ -113,7 +113,7 @@ sub run {
     # Testcase according to https://fate.suse.com/318099
     # UC1:
     # Select a certain package, check that another gets selected/installed
-    type_string("$pkgname\n");
+    enter_cmd("$pkgname");
     assert_screen "$pkgname-selected";
     wait_still_screen 3;
     send_key "+";    # select for install
@@ -122,7 +122,7 @@ sub run {
     if (!check_var('VERSION', '12')) {    #this functionality isn't avivable in SLE12SP0
         send_key "alt-p";                 # go to search box again
         for (1 .. length($pkgname)) { send_key "backspace" }
-        type_string("$recommended\n");
+        enter_cmd("$recommended");
         assert_screen "$recommended-selected-for-install", 10;
 
         # UC2b:
@@ -136,7 +136,7 @@ sub run {
         assert_screen "$recommended-not-selected-for-install", 5;
         send_key "alt-p";    # go to search box again
         for (1 .. length($recommended)) { send_key "backspace" }
-        type_string("$pkgname\n");
+        enter_cmd("$pkgname");
         assert_screen "$pkgname-selected-for-install", 10;
     }
     send_key "alt-a";        # accept

@@ -37,14 +37,14 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # Start firefox
     $self->start_firefox;
     send_key 'esc';
     send_key 'alt-d';
-    type_string "10.0.2.1:5801\n";
+    enter_cmd "10.0.2.1:5801";
     assert_screen 'firefox-ssl-untrusted';
     assert_and_click 'firefox-ssl-untrusted-advanced';
     assert_and_click 'firefox-ssl-addexception-button';

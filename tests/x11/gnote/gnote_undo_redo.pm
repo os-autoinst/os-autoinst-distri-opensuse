@@ -46,14 +46,12 @@ sub run {
     x11_start_program('gnote');
     send_key "ctrl-n";
     assert_screen 'gnote-new-note';
-    type_string "opensuse\nOPENSUSE\n";
+    enter_cmd "opensuse\nOPENSUSE";
     $self->undo_redo_once;
 
     #assure undo and redo take effect after save note and re-enter note
     assert_and_click 'gnote-back2allnotes';
-    send_key_until_needlematch 'gnote-new-note-matched', 'down', 6;
-    wait_still_screen 3;
-    send_key "ret";
+    assert_and_dclick 'gnote-new-note-matched';
     $self->undo_redo_once;
 
     #clean: remove the created new note

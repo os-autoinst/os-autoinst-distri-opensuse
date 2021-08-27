@@ -17,7 +17,7 @@
 # - Start firefox opening file "1d5d9dD.oga" from datadir
 # - Check recorded sound
 # - Exit firefox
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

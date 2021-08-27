@@ -116,7 +116,8 @@ sub check_function {
 # check apache service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_cups_check {
-    my ($stage, $type) = @_;
+    my (%hash) = @_;
+    my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
     if ($stage eq 'before') {
         install_service();

@@ -47,7 +47,7 @@ sub run {
     @section_list_current = lynis::lynistest::parse_lynis_section_list("assets_private/$current_file");
 
     if (@section_list_baseline != @section_list_current) {
-        record_soft_failure("poo#78224, Section quantity are not the same");
+        record_soft_failure("poo#91383, Section quantity are not the same");
     }
 
     # Generate test cases/modules dynamically according to the sections,

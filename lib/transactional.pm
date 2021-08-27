@@ -24,6 +24,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
 use Utils::Backends 'is_pvm';
+use Utils::Architectures qw(is_s390x);
 
 our @EXPORT = qw(
   process_reboot
@@ -54,8 +55,8 @@ sub get_utt_packages {
 # After automated rollback initialization passes by GRUB twice.
 # Here it is handled the first time GRUB is displayed
 sub handle_first_grub {
-    type_string "reboot\n";
-    if (check_var('ARCH', 's390x') || is_pvm) {
+    enter_cmd "reboot";
+    if (is_s390x || is_pvm) {
         reconnect_mgmt_console(timeout => 500, grub_expected_twice => 1);
     }
     else {
@@ -72,14 +73,14 @@ sub process_reboot {
 
     handle_first_grub if ($args{automated_rollback});
 
-    if (is_microos || is_sle_micro) {
+    if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
-        if (check_var('ARCH', 's390x') || is_pvm) {
+        if (is_s390x || is_pvm) {
             reconnect_mgmt_console(timeout => 500) unless $args{automated_rollback};
         }
-        if (!check_var('ARCH', 's390x') && $args{expected_grub}) {
+        if (!is_s390x && $args{expected_grub}) {
             # Replace by wait_boot if possible
             assert_screen 'grub2', 150;
             wait_screen_change { send_key 'ret' };
@@ -141,20 +142,22 @@ sub rpmver {
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub trup_call {
-    my $cmd   = shift;
-    my $check = shift // 1;
-    $cmd .= " > /dev/$serialdev";
-    $cmd .= " ; echo trup-\$?- > /dev/$serialdev" if $check;
+    my ($cmd, %args) = @_;
+    $args{timeout}   //= 90;
+    $args{exit_code} //= 0;
 
     # Always wait for rollback.service to be finished before triggering manually transactional-update
     ensure_rollback_service_not_running();
 
-    script_run "transactional-update --no-selfupdate $cmd", 0;
+    my $script = "transactional-update $cmd > /dev/$serialdev";
+    # Only print trup-0- if it's reliably read later (see below)
+    $script .= "; echo trup-\$?- > /dev/$serialdev" unless $cmd =~ /reboot / && $args{exit_code} == 0;
+    script_run $script, 0;
     if ($cmd =~ /pkg |ptf /) {
         if (wait_serial "Continue?") {
             send_key "ret";
             # Abort update of broken package
-            if ($cmd =~ /\bup(date)?\b/ && $check == 2) {
+            if ($cmd =~ /\bup(date)?\b/ && $args{exit_code} == 1) {
                 die 'Abort dialog not shown' unless wait_serial('Abort');
                 send_key 'ret';
             }
@@ -163,10 +166,17 @@ sub trup_call {
             die "Confirmation dialog not shown";
         }
     }
-    # Check if trup passed
-    wait_serial 'trup-0-' if $check == 1;
-    # Broken package update fails
-    wait_serial 'trup-1-' if $check == 2;
+
+    # If we expect a reboot on success, the trup-0- might not reach the console.
+    # Check for t-u's own output just before the reboot instead.
+    if ($cmd =~ /reboot / && $args{exit_code} == 0) {
+        wait_serial(qr/New default snapshot is/, timeout => $args{timeout}) || die "transactional-update didn't finish";
+        return;
+    }
+
+    my $res = wait_serial(qr/trup-\d+-/, timeout => $args{timeout}) || die "transactional-update didn't finish";
+    my $ret = ($res =~ /trup-(\d+)-/)[0];
+    die "transactional-update returned with $ret, expected $args{exit_code}" unless $ret == $args{exit_code};
 }
 
 # Install a pkg in MicroOS
@@ -196,10 +206,10 @@ sub trup_shell {
     my ($cmd, %args) = @_;
     $args{reboot} //= 1;
 
-    type_string("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev\n");
+    enter_cmd("transactional-update shell; echo trup_shell-status-\$? > /dev/$serialdev");
     wait_still_screen;
-    type_string("$cmd\n");
-    type_string("exit\n");
+    enter_cmd("$cmd");
+    enter_cmd("exit");
     wait_serial('trup_shell-status-0') || die "'transactional-update shell' didn't finish";
 
     process_reboot(trigger => 1) if $args{reboot};

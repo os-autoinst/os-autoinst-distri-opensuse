@@ -1,3 +1,12 @@
+# SUSE's openQA tests
+#
+# Copyright © 2021 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
+
 # Summary: make the guests(specified by test suite settings) ready(virsh define).
 # Maintainer: Julie CAO <jcao@suse.com>
 package restore_guests;
@@ -24,6 +33,16 @@ sub run {
         }
     }
 }
+
+sub post_fail_hook {
+    my $self = shift;
+
+    diag("Module restore_guests post fail hook starts.");
+    my $downloaded_xml_dir = "/tmp/download_vm_xml";
+    upload_virt_logs($downloaded_xml_dir, "downloaded_guest_xml");
+    $self->SUPER::post_fail_hook;
+}
+
 
 sub test_flags {
     return {fatal => 1};

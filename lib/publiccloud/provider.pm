@@ -369,6 +369,7 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->region . "' ";
         $cmd .= "-var 'name=" . $name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
+        $cmd .= "-var 'enable_confidential_vm=true' "    if $args{confidential_compute};
         $cmd .= sprintf(q(-var 'tags={"openqa_ttl":"%d"}' ), get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
@@ -447,7 +448,9 @@ sub terraform_destroy {
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
     }
-    my $ret = script_run('terraform destroy -no-color -auto-approve', get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT));
+    # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
+    # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
+    my $ret = script_retry('terraform destroy -no-color -auto-approve', retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
@@ -556,14 +559,14 @@ Wrapper around C<<$self->vault_api()>> to get retry capability.
 sub vault_api {
     my ($self, $path, %args) = @_;
     my $ret;
-    my $tries = 3;
+    my $tries = get_var('PUBLICCLOUD_VAULT_TRIES', 3);
 
     while ($tries-- > 0) {
         eval {
             $ret = $self->__vault_api($path, %args);
         };
         return $ret unless ($@);
-        sleep 10;
+        sleep get_var('PUBLICCLOUD_VAULT_TIMEOUT', 60);
     }
     die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
 }

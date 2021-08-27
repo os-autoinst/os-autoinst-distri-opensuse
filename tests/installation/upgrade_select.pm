@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Select existing partition(s) for upgrade
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;
@@ -39,6 +39,8 @@ sub run {
         send_key $cmd{next};
     }
     if (match_has_tag("select-for-update")) {
+        my $arch = get_var("ARCH");
+        assert_screen('select-for-update-' . "$arch");
         send_key $cmd{next};
     }
     # The SLE15-SP2 license page moved after registration.

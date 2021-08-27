@@ -18,7 +18,7 @@ use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
 use utils;
-use version_utils qw(is_microos is_jeos is_leap is_sle is_tumbleweed);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
 use Utils::Backends 'is_pvm';
 
@@ -265,7 +265,9 @@ sub boot_into_snapshot {
     send_key_until_needlematch('boot-menu-snapshot', 'down', 10, 5);
     send_key 'ret';
     # assert needle to avoid send down key early in grub_test_snapshot.
-    assert_screen('snap-default', 120) if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc'));
+    if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
+        send_key_until_needlematch('snap-default', 'down', 60, 5);
+    }
     # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
     if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
         send_key_until_needlematch('snap-before-update', 'down', 40, 5);
@@ -349,7 +351,11 @@ sub uefi_bootmenu_params {
         assert_screen "gfxpayload_changed", 10;
         # back to the entry position
         send_key "home";
-        for (1 .. 10) { send_key "down"; }
+        for (1 .. 6) { send_key "down"; }
+        # On Leap/SLE we need to move down (grub 2.04)
+        if (is_sle('<16') || is_leap('<16.0')) {
+            for (1 .. 4) { send_key "down"; }
+        }
     }
     else {
         if (is_microos && get_var('BOOT_HDD_IMAGE')) {
@@ -393,7 +399,7 @@ sub uefi_bootmenu_params {
     }
 
     # changed the line before typing video params
-    wait_screen_change(sub { type_string " \\\n"; }, 3);
+    wait_screen_change(sub { enter_cmd " \\"; }, 3);
     save_screenshot;
 }
 
@@ -571,7 +577,7 @@ sub select_installation_source {
     # Type variables into fields
     type_string_slow "$m_server\t";
     type_string_slow "$m_share\t" if $m_protocol eq "smb";
-    type_string_slow "$m_directory\n";
+    enter_cmd_slow "$m_directory";
     save_screenshot;
 
     # HTTP-proxy
@@ -582,7 +588,7 @@ sub select_installation_source {
             send_key "down";
         }
         send_key "ret";
-        type_string_slow "$proxyhost\t$proxyport\n";
+        enter_cmd_slow "$proxyhost\t$proxyport";
         assert_screen "inst-proxy_is_setup";
 
         # add boot parameters
@@ -614,7 +620,7 @@ sub select_bootmenu_more {
         # newer versions of qemu on arch automatically add 'console=ttyS0' so
         # we would end up nowhere. Setting console parameter explicitly
         # See https://bugzilla.suse.com/show_bug.cgi?id=1032335 for details
-        push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64/;
+        push @params, 'console=tty1' if get_var('MACHINE') =~ /aarch64|aarch32/;
         # Hyper-V defaults to 1280x1024, we need to fix it here
         push @params, get_hyperv_fb_video_resolution if check_var('VIRSH_VMM_FAMILY', 'hyperv');
         type_boot_parameters(" @params ");
@@ -894,7 +900,7 @@ sub tianocore_disable_secureboot {
     assert_screen 'grub2';
     send_key 'c';
     sleep 2;
-    type_string "exit\n";
+    enter_cmd "exit";
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
     send_key_until_needlematch('tianocore-devicemanager', 'down', 5, 5);
@@ -974,35 +980,40 @@ sub tianocore_http_boot {
 }
 
 sub zkvm_add_disk {
-    my ($svirt) = @_;
-    if (my $hdd = get_var('HDD_1')) {
-        my $basename = basename($hdd);
-        my $basedir  = svirt_host_basedir();
-        my $hdd_dir  = "$basedir/openqa/share/factory/hdd";
-        my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
-        die "Unable to find image $basename in $hdd_dir" unless $hdd_path;
-        diag("HDD path found: $hdd_path");
-        if (get_var('PATCHED_SYSTEM')) {
+    my ($svirt)  = @_;
+    my $numdisks = get_var('NUMDISKS') // 1;
+    my $hdd_dir  = sprintf("%s/openqa/share/factory/hdd", svirt_host_basedir());
+    my $dev_id   = 'a';
+    for my $di (1 .. $numdisks) {
+        if (get_var('PATCHED_SYSTEM') && $dev_id eq 'a') {
             diag('in patched systems just load the patched image');
             my $name        = $svirt->name;
             my $patched_img = "$zkvm_img_path/$name" . "a.img";
             $svirt->add_disk({file => $patched_img, dev_id => 'a'});
+        } else {
+            # Copy existing disk image to local storage
+            if (get_var("HDD_$di")) {
+                my $basename = basename(get_var("HDD_$di"));
+                my $hdd_path = $svirt->get_cmd_output("find $hdd_dir -name $basename | head -n1 | tr -d '\n'");
+                $hdd_path or die "Unable to find image $basename in $hdd_dir";
+                diag("HDD path found: $hdd_path");
+
+                enter_cmd("# copying image ($basename)...");
+                if (my $size = get_var("HDDSIZEGB_$di")) {
+                    $size .= "G";
+                    $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
+                } else {
+                    $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id});
+                }
+            } else {
+                # Create a new image, most likely it can be image for installation
+                # or additional optional drive for further testing
+                my $size = sprintf("%dG", get_var("HDDSIZEGB_$di", get_var('HDDSIZEGB', 4)));
+                $svirt->add_disk({size => $size, create => 1, dev_id => $dev_id});
+            }
         }
-        else {
-            type_string("# copying image...\n");
-            $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => 'a'});    # Copy disk to local storage
-        }
-    }
-    else {
-        # Add new disks according to NUMDISKS
-        my $size_i   = get_var('HDDSIZEGB') || '4';
-        my $numdisks = get_var('NUMDISKS')  || '1';
-        my $dev_id   = 'a';
-        foreach my $n (1 .. $numdisks) {
-            $svirt->add_disk({size => $size_i . "G", create => 1, dev_id => $dev_id});
-            # apply next letter as dev_id
-            $dev_id = chr((ord $dev_id) + 1);
-        }
+        # apply next letter as dev_id
+        $dev_id = chr((ord 'a') + $di);
     }
 }
 
@@ -1345,19 +1356,24 @@ sub prepare_disks {
     # Delete partition table before starting installation
     select_console('install-shell');
 
-    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11');
+    #exclude device 254(zram) as wipefs fails on /dev/zram1 in openSUSE
+    my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11,254');
     for my $d (split('\n', $disks)) {
         script_run "wipefs -af /dev/$d";
-        if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING'))
-        {
+        script_run "sync";
+        if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING')) {
             create_encrypted_part(disk => $d);
             if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
                 mimic_user_to_import(disk => $d,
                     passwd => get_var('ETC_PASSWD'),
                     shadow => get_var('ETC_SHADOW'));
             }
+        } else {
+            script_run "parted /dev/$d mklabel gpt";
+            script_run "sync";
         }
     }
+    script_run "lsblk";
 }
 
 1;

@@ -78,12 +78,12 @@ sub check_aa_enforce {
     my $named_profile   = "";
     systemctl('restart apparmor');
 
+    # Recalculate profile name in case
+    $named_profile = $self->get_named_profile($profile_name);
+
     validate_script_output "aa-disable $executable_name", sub {
         m/Disabling.*nscd/;
     }, timeout => 180;
-
-    # Recalculate profile name in case
-    $named_profile = $self->get_named_profile($profile_name);
 
     # Check if /usr/sbin/ntpd is really disabled
     die "$executable_name should be disabled"
@@ -142,8 +142,8 @@ sub check_function {
 # check apparmor service before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_apparmor_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
     if ($stage eq 'before') {
         install_service();
         enable_service();

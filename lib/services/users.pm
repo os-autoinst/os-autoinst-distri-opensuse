@@ -43,14 +43,11 @@ sub lock_screen {
 }
 
 sub logout_and_login {
+    my ($login_user, $login_pw) = @_;
+    my $test_user = $login_user // $username;
+    my $test_pw   = $login_pw   // $newpwd;
     handle_logout;
-    send_key_until_needlematch 'displaymanager', 'esc', 9, 10;
-    mouse_hide();
-    wait_still_screen;
-    assert_and_click "displaymanager-$username";
-    assert_screen 'displaymanager-password-prompt', no_wait => 1;
-    type_password "$newpwd\n";
-    assert_screen 'generic-desktop', 120;
+    handle_login($test_user, 0, $test_pw);
 }
 
 sub switch_user {
@@ -83,6 +80,7 @@ sub change_pwd {
 
 sub add_user {
     assert_and_click "add-user";
+    assert_screen("before-input-username-test");
     type_string $newUser;
     assert_screen("input-username-test");
     assert_and_click "set-password-option";
@@ -96,7 +94,7 @@ sub add_user {
     send_key "alt-f4";
 }
 
-#swtich to new added user then switch back
+# swtich to new added user then switch back
 sub switch_users {
     switch_user;
     wait_still_screen 5;
@@ -104,27 +102,27 @@ sub switch_users {
     assert_and_click 'displaymanager-test';
     assert_screen "testUser-login-dm";
     type_password "$pwd4newUser\n";
-    # Handle welcome screen, when needed
+    # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     assert_screen "generic-desktop", 120;
     switch_user;
     send_key "esc";
     assert_and_click "displaymanager-$username";
     assert_screen "originUser-login-dm";
-    #For poo#88247, we have to restore current user's password before migration,
-    #so here need to use the original password.
+    # for poo#88247, we have to restore current user's password before migration,
+    # so here need to use the original password.
     type_password(get_required_var('FLAVOR') =~ /Migration/ ? "$password\n" : "$newpwd\n");
     assert_screen "generic-desktop", 120;
 }
 
-#restore password to original value
+# restore password to original value
 sub restore_passwd {
     x11_start_program('gnome-terminal');
-    type_string "su\n";
+    enter_cmd "su";
     assert_screen "pwd4root-terminal";
     type_password "$password\n";
     assert_screen "root-gnome-terminal";
-    type_string "passwd $username\n";
+    enter_cmd "passwd $username";
     assert_screen "pwd4user-terminal";
     type_password "$password\n";
     assert_screen "pwd4user-confirm-terminal";
@@ -135,35 +133,70 @@ sub restore_passwd {
 # check users before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_users_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
+    # since the users test is only supported on gnome, will quit the test if not on gnome.
+    my $desktop = get_var('DESKTOP');
+    if (!check_var("DESKTOP", "gnome")) {
+        record_info('Unsupported on non-gnome', "This test is only supported on gnome, quit for your DESKTOP is $desktop", result => 'fail');
+        return;
+    }
+    # reset consoles before select x11 console will make the connect operation
+    # more stable on s390x
+    reset_consoles             if check_var('ARCH',    's390x');
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     select_console 'x11', await_console => 0;
     wait_still_screen 5;
     ensure_unlocked_desktop;
     assert_screen "generic-desktop";
     if ($stage eq 'before') {
-        #change pwd for current user and add new user for switch scenario
+        # change pwd for current user and add new user for switch scenario
         x11test::unlock_user_settings;
         change_pwd;
         add_user;
-        #verify changed password work well in the following scenario:
-        lock_screen;
+        # verify changed password work well in the following scenario:
+        # workaround the lock screen will cause vnc lost connection issue on
+        # SLE15+ on s390x for bsc#1182958.
+        if ((check_var('ARCH', 's390x')) && is_sle('15+')) {
+            record_soft_failure("bsc#1182958, openQA test fails in install_service - gdm crashed after lock screen on s390x");
+        }
+        else {
+            lock_screen;
+        }
         turn_off_gnome_screensaver;
         logout_and_login;
-        #For poo#88247, it is hard to deal with the authorization of bernhard in
-        #following migration process, we have to restore current user's password.
+        # for poo#88247, it is hard to deal with the authorization of bernhard in
+        # following migration process, we have to restore current user's password.
         record_soft_failure("poo#88247, it is hard to deal with the authorization of bernhard in following migration process, we have to restore current users password");
         restore_passwd;
     }
     else {
-        #swtich to new added user then switch back
-        switch_users;
+        # switch to new added user then switch back
+        # it's not supported to switch user on s390x VM with vnc connection,
+        # so we have to change this test to logout and login new user.
+        if (check_var('ARCH', 's390x')) {
+            logout_and_login($newUser, $pwd4newUser);
+        }
+        else {
+            switch_users;
+        }
         send_key "alt-f4";
         send_key "ret";
         select_console 'root-console';
     }
+}
+
+# Cleanup for exceptions during before and after migration
+sub users_cleanup {
+    my (%hash) = @_;
+    my $stage = $hash{stage};
+    select_console "root-console";
+    if ($stage eq 'before') {
+        script_run("pkill -KILL -u $newUser");
+        script_run("userdel -r $newUser");
+    }
+    reset_consoles;
 }
 
 1;

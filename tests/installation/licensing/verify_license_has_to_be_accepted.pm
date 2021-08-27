@@ -18,23 +18,18 @@
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2_installbase';
 use testapi;
 use Test::Assert 'assert_true';
 
 sub run {
-    my ($self) = @_;
-
-    my $eula_controller = $testapi::distri->get_eula_controller();
-
-    $eula_controller->proceed_to_next_page();
-
-    my $accept_license_popup = $eula_controller->get_accept_license_popup();
-    assert_true($accept_license_popup->is_shown(), "Accept License popup is not shown when license is not accepted.");
-
-    $eula_controller->process_accept_license_pop_up();
+    my $accept_license_popup = $testapi::distri->get_license_agreement()
+      ->proceed_without_explicit_agreement();
+    assert_true($accept_license_popup->is_shown(),
+        'Accept License popup is not shown when license is not explicitly accepted.');
+    $accept_license_popup->press_ok();
 }
 
 1;

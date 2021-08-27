@@ -12,7 +12,7 @@
 # - Select OK and reboot system
 # - Keep console and reconnect VNC, unless DESKTOP is minimalx and shutdown
 # timeouts
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base 'y2_installbase';
 use strict;
@@ -64,18 +64,7 @@ sub run {
         # socket end
         send_key 'alt-o';
     }
-    # Process exiting from the startshell
-    if (YuiRestClient::is_libyui_rest_api) {
-        if (is_pvm) {
-            select_console 'powerhmc-ssh', await_console => 0;
-            YuiRestClient::teardown_libyui();
-        } elsif (get_var('S390_ZKVM')) {
-            select_console 'svirt';
-            YuiRestClient::teardown_libyui();
-        } elsif (check_var('BACKEND', 'svirt')) {
-            YuiRestClient::teardown_libyui();
-        }
-    }
+
     if (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {
         # "Press ESC for boot menu"
         # Expected: match in about 5 seconds

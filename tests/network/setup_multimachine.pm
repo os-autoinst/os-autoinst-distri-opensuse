@@ -16,14 +16,19 @@ use warnings;
 use testapi;
 use lockapi;
 use mm_network 'setup_static_mm_network';
-use utils 'zypper_call';
-use Utils::Systemd 'disable_and_stop_service';
+use utils qw(zypper_call permit_root_ssh);
+use Utils::Systemd qw(disable_and_stop_service systemctl);
 use version_utils qw(is_sle is_opensuse);
+
+sub is_networkmanager {
+    return (script_run('readlink /etc/systemd/system/network.service | grep NetworkManager') == 0);
+}
 
 sub run {
     my ($self) = @_;
     my $hostname = get_var('HOSTNAME');
     select_console 'root-console';
+    my $nm_id = is_sle('15-sp3+') ? 'eth0' : 'Wired connection 1';
 
     # Do not use external DNS for our internal hostnames
     assert_script_run('echo "10.0.2.101 server master" >> /etc/hosts');
@@ -36,33 +41,26 @@ sub run {
     # Configure the internal network an  try it
     if ($hostname =~ /server|master/) {
         setup_static_mm_network('10.0.2.101/24');
-        # If server running openSUSE.
-        if (is_opensuse) {
-            assert_script_run 'systemctl restart  wicked';
+
+        if (is_networkmanager) {
+            assert_script_run "nmcli connection modify '$nm_id' ifname 'eth0' ip4 '10.0.2.101/24' gw4 10.0.2.2 ipv4.method manual ";
+            assert_script_run "nmcli connection down '$nm_id'";
+            assert_script_run "nmcli connection up '$nm_id'";
         }
-        # If server running on SLED
-        if (check_var('SLE_PRODUCT', 'sled')) {
-            assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.101/24' gw4 10.0.2.2 ipv4.method manual ";
-            assert_script_run "nmcli connection down 'Wired connection 1'";
-            assert_script_run "nmcli connection up 'Wired connection 1'";
+        else {
+            assert_script_run 'systemctl restart  wicked';
         }
     }
     else {
         setup_static_mm_network('10.0.2.102/24');
 
-        if (check_var('SLE_PRODUCT', 'sled')) {
-            if (is_sle('=15')) {
-                assert_script_run 'systemctl restart  wicked';
-            }
-            else {
-                assert_script_run "nmcli connection modify 'Wired connection 1' ifname 'eth0' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
-                assert_script_run "nmcli connection down 'Wired connection 1'";
-                assert_script_run "nmcli connection up 'Wired connection 1'";
-            }
+        if (is_networkmanager) {
+            assert_script_run "nmcli connection modify '$nm_id' ifname 'eth0' ip4 '10.0.2.102/24' gw4 10.0.2.2 ipv4.method manual ";
+            assert_script_run "nmcli connection down '$nm_id'";
+            assert_script_run "nmcli connection up '$nm_id'";
         }
-        # To openSUSE versions
-        if (is_opensuse) {
-            assert_script_run 'systemctl restart  wicked';
+        else {
+            systemctl("restart wicked");
         }
     }
 
@@ -70,6 +68,11 @@ sub run {
     assert_script_run "hostnamectl set-hostname $hostname";
     assert_script_run "hostnamectl status|grep $hostname";
     assert_script_run "hostname|grep $hostname";
+
+    # Make sure that PermitRootLogin is set to yes
+    # This is needed only when the new SSH config directory exists
+    # See: poo#93850
+    permit_root_ssh();
 }
 
 1;

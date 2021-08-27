@@ -20,6 +20,8 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use virt_utils;
+use Utils::Architectures;
+use upload_system_log;
 
 sub analyzeResult {
     die "You need to overload analyzeResult in your class";
@@ -162,7 +164,7 @@ sub execute_script_run {
         $timeout = 10;
     }
 
-    type_string "(" . $cmd . "; echo $pattern) 2>&1 | tee -a /dev/$serialdev\n";
+    enter_cmd "(" . $cmd . "; echo $pattern) 2>&1 | tee -a /dev/$serialdev";
     $self->{script_output} = wait_serial($pattern, $timeout);
     save_screenshot;
 
@@ -192,7 +194,7 @@ sub run_test {
 
     my $test_cmd = $self->get_script_run();
     #FOR S390X LPAR
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         virt_utils::lpar_cmd("$test_cmd");
         return;
     }
@@ -254,10 +256,24 @@ sub upload_guest_assets {
 sub post_fail_hook {
     my ($self) = shift;
 
+    #FOR S390X LPAR
+    if (is_s390x) {
+        #collect and upload supportconfig log from S390X LPAR
+        upload_system_log::upload_supportconfig_log();
+        script_run "rm -rf scc_*";
+        return;
+    }
+
     $self->post_run_test;
     save_screenshot;
 
-    if (get_var('VIRT_PRJ2_HOST_UPGRADE')) {
+    if (get_var('VIRT_PRJ1_GUEST_INSTALL')) {
+        #collect and upload guest autoyast control files
+        assert_script_run "cp -r /srv/www/htdocs/install/autoyast /guest_autoyast_files";
+        virt_utils::collect_host_and_guest_logs('', '/guest_autoyast_files', '');
+        assert_script_run "rm -rf /guest_autoyast_files";
+    }
+    elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         virt_utils::collect_host_and_guest_logs('', '/root/autoupg.xml', '');
     }
     else {

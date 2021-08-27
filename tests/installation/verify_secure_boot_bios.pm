@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Checks Secure Boot status, before installation.
-# Maintainer: Sofia Syrianidou <ssyrianidou@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
@@ -21,7 +21,7 @@ sub run {
     my $test_data = get_test_suite_data();
     assert_screen 'linuxrc-start-shell-before-installation', 90;
     assert_script_run("bootctl status | grep \"Secure Boot: $test_data->{secure_boot}\"");
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

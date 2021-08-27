@@ -14,7 +14,7 @@
 # - Launch yast2 bootloader
 # - Handle missing package screen
 # - Wait to yast2 to finish (initrd regenerated)
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use base 'y2_module_consoletest';

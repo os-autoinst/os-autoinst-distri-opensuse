@@ -10,21 +10,23 @@ vars:
   DUD_ADDONS: sdk
   DESKTOP: gnome
   SCC_ADDONS: base,serverapp,desktop
+  YUI_REST_API: 1
 schedule:
   - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/dud_addon
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -40,6 +42,7 @@ schedule:
   - console/validate_dud_addon_repos
   - console/orphaned_packages_check
 test_data:
+  product: SLES
   dud_repos:
     # repos here should correspond with repos in 'data/add_on_products.xml'
     REPO_SLE_MODULE_DEVELOPMENT_TOOLS:

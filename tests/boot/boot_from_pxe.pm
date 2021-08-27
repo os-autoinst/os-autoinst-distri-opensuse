@@ -19,7 +19,7 @@ use lockapi;
 use testapi;
 use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks);
 use registration 'registration_bootloader_cmdline';
-use utils 'type_string_slow';
+use utils qw(type_string_slow enter_cmd_slow);
 use Utils::Backends 'is_remote_backend';
 use Utils::Architectures qw(is_aarch64 is_orthos_machine is_supported_suse_domain);
 use version_utils 'is_upgrade';
@@ -44,6 +44,9 @@ sub run {
         else {
             select_console 'sol', await_console => 0;
         }
+    }
+    if (!check_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600)) {    # nocheck: old code, should be updated
+        ipmi_backend_utils::ipmitool 'chassis power reset';
     }
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
 
@@ -110,7 +113,7 @@ sub run {
         else {
             my $device  = (check_var('BACKEND', 'ipmi') && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
             my $release = get_var('BETA')                                                     ? 'LATEST'             : 'GM';
-            $image_name = get_var('ISO') =~ s/.*\/(.*)-DVD-${arch}-.*\.iso/$1-$release/r;
+            $image_name = get_var('ISO') =~ s/(.*\/)?(.*)-DVD-${arch}-.*\.iso/$2-$release/r;
             $image_name = get_var('PXE_PRODUCT_NAME') if get_var('PXE_PRODUCT_NAME');
             $image_path = "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
             $image_path .= "initrd=/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/initrd ";
@@ -175,6 +178,7 @@ sub run {
 
         # Proceed if the 'installation' console is ready
         # otherwise the 'sol' console may be just freezed
+        wait_still_screen(stilltime => 180, timeout => 185);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;
@@ -182,13 +186,13 @@ sub run {
                 my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
                 my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
                 $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}/initrd" if (!is_orthos_machine);
-                wait_still_screen 5;
-                type_string $args;
+                type_string_slow $args;
                 send_key 'ret';
                 #Detect orthos-grub-boot-initrd and qa-net-grub-boot-initrd for aarch64 in orthos and openQA networks respectively
+                wait_still_screen(stilltime => 480, timeout => 485);
                 assert_screen [qw(orthos-grub-boot-initrd qa-net-grub-boot-initrd)], $ssh_vnc_wait_time;
                 $args = "boot";
-                type_string $args;
+                type_string_slow $args;
                 send_key "ret";
                 assert_screen $ssh_vnc_tag, $ssh_vnc_wait_time;
             }
@@ -202,7 +206,7 @@ sub run {
         # We have textmode installation via ssh and the default vnc installation so far
         if (check_var('VIDEOMODE', 'text') || check_var('VIDEOMODE', 'ssh-x')) {
             type_string_slow('DISPLAY= ') if check_var('VIDEOMODE', 'text');
-            type_string_slow("yast.ssh\n");
+            enter_cmd_slow("yast.ssh");
         }
         wait_still_screen;
     }

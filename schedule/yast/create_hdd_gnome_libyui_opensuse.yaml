@@ -1,0 +1,14 @@
+---
+name:          create_hdd_gnome_libyui
+description:    >
+    Boot into gnome HDD and republish image for tests that use libyui.
+schedule:
+   - boot/boot_to_desktop
+   - console/install_packages_simple
+   - console/firewalld_add_port
+   - shutdown/shutdown
+test_data:
+   install_packages:
+      - libyui-rest-api
+   port: 30000-50000
+   zone: public

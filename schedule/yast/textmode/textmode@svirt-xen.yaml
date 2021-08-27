@@ -2,18 +2,22 @@
 name: textmode@svirt-xen
 description: |
   Installation in textmode which selects System Role 'Text Mode'.
+vars:
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/system_role/validate_default_role
+  - installation/system_role/select_role
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/start_install
@@ -24,9 +28,22 @@ schedule:
   - console/system_prepare
   - console/prepare_test_data
   - console/consoletest_setup
+  - console/validate_product_name_installed
   - console/verify_network
   - locale/keymap_or_locale
+  - console/validate_installed_patterns
   - console/force_scheduled_tasks
   - console/textinfo
   - console/orphaned_packages_check
   - console/consoletest_finish
+test_data:
+  product: SLES
+  system_role:
+    default: 'Text Mode'
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - x11
+      - yast2_basis

@@ -21,6 +21,8 @@ use virt_autotest::common;
 
 sub run {
     my ($self) = @_;
+    # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
+    $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
 
     script_run("mkdir /root/update_guests");
     foreach my $guest (keys %virt_autotest::common::guests) {
@@ -31,7 +33,7 @@ sub run {
         # Try update three times - this sometimes helps to prevent failures due to infrastructure problems
         assert_script_run("ssh root\@$guest 'zypper ref; (zypper -n dup || zypper -n dup || zypper -n dup)' </dev/null >/root/update_guests/$guest.txt 2>&1 & true");
     }
-    assert_script_run("wait", timeout => 1200);    # this can take some time, but wait at most 20 minutes
+    assert_script_run("wait", timeout => 2400);    # this can take some time (max 40 minutes)
 
     # Make sure there are no phantom zypper processes present anymore
     script_retry("! ssh root\@$_ ps | grep zypper", delay => 5, retry => 60) foreach (keys %virt_autotest::common::guests);

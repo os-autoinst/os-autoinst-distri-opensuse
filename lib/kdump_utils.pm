@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -24,10 +24,11 @@ use utils 'ensure_serialdev_permissions';
 our @EXPORT = qw(install_kernel_debuginfo prepare_for_kdump
   activate_kdump activate_kdump_cli activate_kdump_without_yast
   kdump_is_active do_kdump configure_service check_function
-  full_kdump_check);
+  full_kdump_check deactivate_kdump_cli);
 
 sub install_kernel_debuginfo {
-    zypper_call 'ref';
+    my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
+    zypper_call "$import_gpg ref";
     # Using the provided capabilities of the currently active kernel, get the
     # name and version of the shortest flavor and add "-debuginfo" to the name.
     # Before kernel-default-base was built separately (< 15 SP2/15.2):
@@ -58,6 +59,8 @@ sub prepare_for_kdump_sle {
         return;
     }
     my $counter = 0;
+    # use INCIDENT_REPO if defined, MR's contain also MAINT_TEST_REPO, but INCIDENT_REPO is relevant
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     if (get_var('MAINT_TEST_REPO')) {
         # append _debug to the incident repo
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
@@ -76,20 +79,21 @@ sub prepare_for_kdump_sle {
 }
 
 sub prepare_for_kdump {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type} //= '';
 
     # disable packagekitd
     quit_packagekit;
-    if ($test_type eq 'before') {
-        zypper_call('in yast2-kdump kdump');
-    }
-    else {
-        zypper_call('in yast2-kdump kdump crash');
-    }
-    zypper_call('in mokutil') if is_jeos && get_var('UEFI') && !check_var('ARCH', 'aarch64');
+    my @pkgs = qw(yast2-kdump kdump);
+    push @pkgs, qw(crash);
 
-    return if ($test_type eq 'before');
+    if (is_jeos && get_var('UEFI')) {
+        push @pkgs, is_aarch64 ? qw(mokutil shim) : qw(mokutil);
+    }
+
+    zypper_call "in @pkgs";
+
+    return if ($args{test_type} eq 'before');
 
     # add debuginfo channels
     if (check_var('DISTRI', 'sle')) {
@@ -103,10 +107,9 @@ sub prepare_for_kdump {
         zypper_call("rr $snapshot_debuginfo_repo");
         return;
     }
-    my $opensuse_debug_repos = 'repo-debug ';
-    if (!check_var('VERSION', 'Tumbleweed')) {
-        $opensuse_debug_repos .= 'repo-debug-update ';
-    }
+    my $opensuse_debug_repos = 'repo-debug';
+    $opensuse_debug_repos .= ' repo-debug-update' unless is_tumbleweed;
+    $opensuse_debug_repos .= ' repo-sle-debug-update' if is_leap("15.3+");
     zypper_call("mr -e $opensuse_debug_repos");
     install_kernel_debuginfo;
     zypper_call("mr -d $opensuse_debug_repos");
@@ -124,6 +127,12 @@ sub handle_warning_not_supported {
     } else {
         die "Unknown warning message\n";
     }
+}
+
+sub handle_warning_install_os_prober {
+    send_key('alt-i');
+    wait_still_screen;
+    wait_screen_change { send_key 'alt-n' };
 }
 
 # use yast2 kdump to enable the kdump service
@@ -168,7 +177,11 @@ sub activate_kdump {
     }
     send_key('alt-o');
     if ($expect_restart_info == 1) {
-        assert_screen('yast2-kdump-restart-info', 200);
+        my @tags = qw(yast2-kdump-restart-info os-prober-warning);
+        do {
+            assert_screen(\@tags);
+            handle_warning_install_os_prober() if match_has_tag('os-prober-warning');
+        } until (match_has_tag('yast2-kdump-restart-info'));
         send_key('alt-o');
     }
     wait_serial("$module_name-0", 240) || die "'yast2 kdump' didn't finish";
@@ -193,6 +206,14 @@ sub activate_kdump_cli {
     assert_script_run('yast2 kdump fadump enable', 180) if check_var('FADUMP');
     assert_script_run('yast kdump show',           180);
     systemctl('enable kdump');
+}
+
+# Deactivate kdump using yast command line interface
+sub deactivate_kdump_cli {
+    # Disable the crashkernel option from the kernel grub cmdline
+    assert_script_run('yast kdump startup disable alloc_mem=0', 180);
+    # Disable the kdump service at boot time
+    systemctl('disable kdump');
 }
 
 sub activate_kdump_without_yast {
@@ -241,7 +262,7 @@ sub do_kdump {
 
 #
 # Install debug kernel and use yast2 kdump to enable kdump service.
-# we use $test_type to distingush  migration or function check.
+# we use $args{test_type} to distingush migration from function check.
 #
 # For migration test we just do activate kdump. migration test do
 # not need to run prepare_for_kdump function because it can't get
@@ -250,12 +271,12 @@ sub do_kdump {
 # For function test we need to install the debug kernel and activate kdump.
 #
 sub configure_service {
-    my ($test_type, %args) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type}      //= '';
     $args{yast_interface} //= '';
 
     my $self = y2_module_consoletest->new();
-    if ($test_type eq 'function') {
+    if ($args{test_type} eq 'function') {
         # preparation for crash test
         if (is_sle '15+') {
             add_suseconnect_product('sle-module-desktop-applications');
@@ -263,7 +284,7 @@ sub configure_service {
         }
     }
 
-    prepare_for_kdump($test_type);
+    prepare_for_kdump(%args);
     if ($args{yast_interface} eq 'cli') {
         activate_kdump_cli;
     } else {
@@ -294,8 +315,8 @@ sub configure_service {
 # and can be debugged by crash.
 #
 sub check_function {
-    my ($test_type) = @_;
-    $test_type //= '';
+    my %args = @_;
+    $args{test_type} //= '';
 
     my $self = y2_module_consoletest->new();
 
@@ -311,7 +332,8 @@ sub check_function {
         wait_screen_change { send_key 'ret' };
     }
     elsif (is_pvm || is_ipmi) {
-        reconnect_mgmt_console;
+        # Reconnect management console on pvm only after the crash, IPMI console is managed by wait_boot
+        reconnect_mgmt_console if is_pvm;
     }
     else {
         power_action('reboot', observe => 1, keepconsole => 1);
@@ -323,7 +345,9 @@ sub check_function {
 
     assert_script_run 'find /var/crash/';
 
-    if ($test_type eq 'function') {
+    if ($args{test_type} eq 'function') {
+        # Check, that vmcore exists, otherwise fail
+        assert_script_run('ls -lah /var/crash/*/vmcore');
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` /boot/vmlinux-`uname -r`*";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
@@ -353,13 +377,13 @@ sub check_function {
 # parameter $stage is 'before' or 'after' of a system migration stage.
 #
 sub full_kdump_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
 
     select_console 'root-console';
 
     if ($stage eq 'before') {
-        configure_service('before');
+        configure_service(test_type => $stage);
     }
     check_function();
 

@@ -3,6 +3,14 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
     <add_on_products config:type="list">
+      # https://progress.opensuse.org/issues/90522
+      % if ($check_var->('VERSION', '12-SP2')) {
+      <listentry>
+        <name>SLES-LTSS-ERICSSON:12-SP2::update</name>
+        <alias>SLES-LTSS-ERICSSON:12-SP2::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
       % if ($is_ltss) {
       <listentry>
         <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
@@ -131,7 +139,6 @@
         <alias>sle-we:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % }
       % }
     </add_on_products>
   </add-on>

@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Select and install product addons based on test variables
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

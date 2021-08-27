@@ -39,12 +39,11 @@ use utils;
 use version_utils "is_sle";
 
 sub run {
-    my $self = shift;
     select_console("x11");
     my $accept_keybind = is_sle("<=15-SP1") ? "alt-o" : "alt-a";
 
     # 1. start yast2 keyboard
-    $self->launch_yast2_module_x11("keyboard", match_timeout => 120);
+    y2_module_guitest::launch_yast2_module_x11("keyboard", match_timeout => 120);
     send_key "alt-k";
     wait_still_screen 1;
     send_key "g";
@@ -74,21 +73,21 @@ sub run {
     send_key "alt-k";
     wait_still_screen 2;
     send_key "e";
-    send_key "n" if is_sle("=15-SP2");
+    send_key "n" if is_sle("15-SP2+");
     send_key_until_needlematch("yast2_keyboard-layout-us", "down");
     send_key $accept_keybind;
     assert_screen "generic-desktop", timeout => 90;
 
     # 5. Reproduce bug 1142559
     x11_start_program("xterm");
-    type_string "/sbin/yast2 keyboard\n";
+    enter_cmd "/sbin/yast2 keyboard";
     if (check_screen("yast2-keyboard-ui", 5)) {
         record_soft_failure "bsc#1142559, yast2 keyboard should not start as non root user";
         send_key "alt-c";
         wait_still_screen 2;
     }
 
-    type_string "exit\n";
+    enter_cmd "exit";
     assert_screen "generic-desktop", timeout => 90;
 
 

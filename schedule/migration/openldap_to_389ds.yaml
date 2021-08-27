@@ -1,0 +1,7 @@
+name:   openldap_to_389ds
+description:    >
+    This yaml file is used for call module openldap_to_389ds.pm(check function of openldap_to_ds tools)
+schedule:
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - migration/openldap_to_389ds

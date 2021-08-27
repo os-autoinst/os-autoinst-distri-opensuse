@@ -1,0 +1,11 @@
+name:           virtualization
+description:    >
+  Test virtualization stack using libvirt and virt-manager.
+schedule:
+  - boot/boot_to_desktop
+  - x11/disable_screensaver
+  - virtualization/yast_virtualization
+  - virtualization/virt_install
+  - virtualization/virt_top
+  - virtualization/virtman_install
+  - virtualization/virtman_view

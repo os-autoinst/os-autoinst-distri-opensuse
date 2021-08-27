@@ -25,6 +25,9 @@ sub run_test {
     my ($self) = @_;
 
     record_info "Prepare";
+    foreach (keys %virt_autotest::common::guests) {
+        start_guests() unless is_guest_online($_);
+    }
     assert_script_run "mkdir -p /pool_testing";
     script_run "virsh pool-destroy testing";
     script_run "virsh vol-delete --pool testing $_-storage" foreach (keys %virt_autotest::common::guests);

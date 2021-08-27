@@ -1,0 +1,15 @@
+name:           sle_image_on_sle_host_docker
+description:    >
+  Maintainer: qa-c@suse.de
+  Container images specific tests with docker
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_start
+schedule:
+  - '{{boot}}'
+  - boot/boot_to_desktop
+  - containers/host_configuration
+  - containers/docker_image
+  - containers/container_diff

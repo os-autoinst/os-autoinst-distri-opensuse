@@ -109,7 +109,7 @@ sub selenium_driver {
     x11_start_program('xterm');
     assert_screen('xterm');
 
-    type_string("/usr/lib64/chromium/chromedriver --port=$port --url-base=wd/hub --whitelisted-ips | tee /dev/$serialdev\n");
+    enter_cmd("/usr/lib64/chromium/chromedriver --port=$port --url-base=wd/hub --whitelisted-ips | tee /dev/$serialdev");
     save_screenshot;
     wait_serial(qr(Starting ChromeDriver .* on port $port));
     save_screenshot;

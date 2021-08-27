@@ -9,6 +9,7 @@ BEGIN {
 }
 use utils;
 use Utils::Architectures qw(is_aarch64);
+use version_utils qw(is_staging);
 use main_common;
 
 init_main();
@@ -36,6 +37,7 @@ sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'microos/disk_boot';
     loadtest 'installation/system_workarounds' if is_aarch64;
+    loadtest 'transactional/enable_selinux'    if (get_var("ENABLE_SELINUX"));
     loadtest 'microos/networking';
 }
 
@@ -45,16 +47,19 @@ sub load_tdup_tests {
 
 sub load_feature_tests {
     # Feature tests for Micro OS operating system
+    loadtest 'containers/k3s_cli_check' if get_required_var('FLAVOR') =~ /-k3s/;
     loadtest 'microos/libzypp_config';
     loadtest 'microos/image_checks' if is_image_flavor;
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
     load_transactional_role_tests;
-    loadtest 'microos/journal_check';
+    loadtest 'microos/cockpit_service' unless is_staging;
+    loadtest 'console/journal_check';
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         loadtest 'console/kubeadm';
     }
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
+        loadtest 'microos/toolbox';
         loadtest 'containers/podman';
         loadtest 'containers/podman_image';
     }
@@ -87,8 +92,16 @@ sub load_installation_tests {
         load_tdup_tests             if (get_var 'TDUP');
         loadtest 'console/regproxy' if is_regproxy_required;
         load_feature_tests          if (check_var 'EXTRA', 'FEATURES');
+        load_qemu_tests()           if (check_var 'EXTRA', 'VIRTUALIZATION');
         loadtest 'shutdown/shutdown';
     }
+}
+
+sub load_qemu_tests {
+    loadtest 'qemu/info';
+    loadtest 'qemu/qemu';
+    loadtest 'qemu/kvm';
+    loadtest 'qemu/user';
 }
 
 #######################

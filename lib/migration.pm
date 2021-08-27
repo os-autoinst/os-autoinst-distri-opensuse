@@ -26,14 +26,13 @@ use utils;
 use zypper;
 use registration;
 use qam 'remove_test_repositories';
-use version_utils qw(is_sle is_sles4sap);
+use version_utils qw(is_sle is_sles4sap is_leap_migration);
 
 our @EXPORT = qw(
   setup_sle
   setup_migration
   register_system_in_textmode
   remove_ltss
-  remove_espos
   disable_installation_repos
   record_disk_info
   check_rollback_system
@@ -58,7 +57,7 @@ sub setup_sle {
     ensure_serialdev_permissions;
 
     # Enable Y2DEBUG for error debugging
-    type_string "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local\n";
+    enter_cmd "echo 'export Y2DEBUG=1' >> /etc/bash.bashrc.local";
     script_run "source /etc/bash.bashrc.local";
 }
 
@@ -77,7 +76,7 @@ sub register_system_in_textmode {
     # so set SMT_URL here if register system via smt server
     # otherwise must register system via real SCC before online migration
     if (my $u = get_var('SMT_URL')) {
-        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
+        enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
     }
 
     # register system and addons in textmode for all archs
@@ -121,19 +120,6 @@ sub remove_ltss {
     }
 }
 
-# Remove ESPOS product before migration
-# Also remove espos from SCC_ADDONS setting for registration in upgrade target
-sub remove_espos {
-    if (get_var('SCC_ADDONS', '') =~ /espos/) {
-        my $scc_addons = get_var_array('SCC_ADDONS');
-        record_info 'remove espos', 'got all updates from espos channel, now remove espos and drop it from SCC_ADDONS before migration';
-        if (check_var('SLE_PRODUCT', 'hpc')) {
-            remove_suseconnect_product('SLE_HPC-ESPOS');
-            set_var('SCC_ADDONS', join(',', grep { $_ ne 'espos' } @$scc_addons));
-        }
-    }
-}
-
 # Disable installation repos before online migration
 # s390x: use ftp remote repos as installation repos
 # Other archs: use local DVDs as installation repos
@@ -154,7 +140,9 @@ sub record_disk_info {
     if ($out =~ /btrfs/) {
         assert_script_run 'btrfs filesystem df / | tee /tmp/btrfs-filesystem-df.txt';
         assert_script_run 'btrfs filesystem usage / | tee /tmp/btrfs-filesystem-usage.txt';
-        assert_script_run('snapper list | tee /tmp/snapper-list.txt', 180) unless (is_sles4sap());
+        # we can use disable-used-space option to make 'snapper list' faster, if it has that option.
+        assert_script_run("(snapper --help | grep -q -- --disable-used-space && snapper list --disable-used-space || snapper list) | tee /tmp/snapper-list.txt", 180) unless (is_sles4sap());
+
         upload_logs '/tmp/btrfs-filesystem-df.txt';
         upload_logs '/tmp/btrfs-filesystem-usage.txt';
         upload_logs '/tmp/snapper-list.txt' unless (is_sles4sap());
@@ -172,7 +160,10 @@ sub check_rollback_system {
         base_version=\$(echo \$version | cut -d'-' -f1)
         zypper lr | cut -d'|' -f3 | gawk '/SLE/ || /openSUSE/' | sed \"/\$version\\|Module.*\$base_version/d\"
     ", 100);
-    record_info('Incorrect Repos', $incorrect_repos, result => 'fail') if $incorrect_repos;
+    # for leap to sle migration, we'll have SLE-$VERSION-Updates in the leap repo.
+    if ($incorrect_repos) {
+        record_info('Incorrect Repos', $incorrect_repos, result => 'fail') unless (is_leap_migration && $incorrect_repos eq 'SLE-' . get_var("VERSION") . '-Updates');
+    }
 
     return unless is_sle;
     # Check SUSEConnect status for SLE
@@ -203,7 +194,7 @@ sub reset_consoles_tty {
 # Register the already installed system on a specific SCC server/proxy if needed
 sub set_scc_proxy_url {
     if (my $u = get_var('SCC_PROXY_URL')) {
-        type_string "echo 'url: $u' > /etc/SUSEConnect\n";
+        enter_cmd "echo 'url: $u' > /etc/SUSEConnect";
     }
     save_screenshot;
 }

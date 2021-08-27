@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Functionality concerning the testing of container images
-# Maintainer: George Gkioulis <ggkioulis@suse.com>
+# Maintainer: qa-c team <qa-c@suse.de>
 
 package containers::container_images;
 
@@ -23,57 +23,80 @@ use warnings;
 use version_utils;
 use version;
 use containers::utils;
+use containers::common 'test_container_image';
 
-our @EXPORT = qw(build_container_image build_with_zypper_docker build_with_sle2docker
-  test_opensuse_based_image exec_on_container ensure_container_rpm_updates test_containered_app
-  test_zypper_on_container verify_userid_on_container);
+our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
+  test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
+  test_zypper_on_container verify_userid_on_container test_3rd_party_image upload_3rd_party_images_logs);
 
-# Build any container image using a basic Dockerfile. Not applicable for buildah builds
-sub build_container_image {
-    my %args    = @_;
-    my $image   = $args{image};
-    my $runtime = $args{runtime};
+=head2 build_and_run_image
 
-    die 'Argument $image not provided!'   unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
+ build_and_run_image($runtime, [$buildah], $dockerfile, $base);
 
-    my $dir = "~/sle_base_image/docker_build";
+Create a container using a C<dockerfile> and run smoke test against that.
+ C<base> can be used to setup base repo in the dockerfile in case that the file
+does not have a defined one.
 
-    record_info("Building $image", "Building $image using $runtime");
+The main container runtimes do not need C<buildah> variable in general, unless
+you want to build the image with buildah but run it with $<runtime>
 
-    assert_script_run("mkdir -p $dir");
-    assert_script_run("cd $dir");
-
-    # Create basic Dockerfile
-    assert_script_run("echo -e 'FROM $image\nENV WORLD_VAR Arda' > Dockerfile");
-
-    # Build the image
-    assert_script_run("$runtime build -t dockerfile_derived .");
-
-    assert_script_run("$runtime run --entrypoint 'printenv' dockerfile_derived WORLD_VAR | grep Arda");
-    assert_script_run("$runtime images");
-}
-
-sub test_containered_app {
+=cut
+sub build_and_run_image {
     my %args       = @_;
     my $runtime    = $args{runtime};
-    my $dockerfile = $args{dockerfile};
+    my $buildah    = $args{buildah}    // 0;
+    my $dockerfile = $args{dockerfile} // 'Dockerfile';
     my $base       = $args{base};
 
     die "You must define the runtime!"    unless $runtime;
     die "You must define the Dockerfile!" unless $dockerfile;
 
-    my $dir = "/root/containerapp";
+    my $dir = "~/containerapp";
 
     # Setup the environment
-    container_set_up("$dir", $dockerfile, $base);
+    record_info('Downloading', "Dockerfile: containers/$dockerfile\nHTML: containers/index.html");
+    assert_script_run "mkdir -p $dir/BuildTest";
+    assert_script_run "curl -f -v " . data_url("containers/$dockerfile") . " > $dir/BuildTest/Dockerfile";
+    if ($dockerfile eq 'Dockerfile.python3') {
+        $base = registry_url('python', 3);
+        assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
+        assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
+    }
+    file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
+    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
 
     # Build the image
-    build_img("$dir", $runtime);
+    assert_script_run("cd $dir");
+    if (!$buildah) {
+        # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+        assert_script_run("$runtime build -t myapp BuildTest", timeout => 600);
+        assert_script_run("$runtime images | grep myapp");
+    } else {
+        assert_script_run("buildah bud -t myapp BuildTest", timeout => 600);
+        assert_script_run("buildah images | grep myapp");
+    }
+    assert_script_run("cd");
+    assert_script_run("rm -rf $dir");
 
-    # Run the built image
-    $runtime = 'podman' if $runtime eq 'buildah';
-    test_built_img($runtime);
+    if ($runtime eq 'docker' && $buildah) {
+        assert_script_run "buildah push myapp docker-daemon:myapp:latest";
+        script_run "$runtime images";
+    }
+
+    # Test that we can execute programs in the container and test container's variables
+    assert_script_run("$runtime run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
+
+    # Run the container with port 80 exported as port 8888
+    assert_script_run("$runtime run -dit -p 8888:80 myapp");
+
+    # Make sure our container is running
+    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);
+
+    # Test that the exported port is reachable
+    script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
+
+    # Clean up
+    assert_script_run("$runtime stop `$runtime ps -q`");
 }
 
 # Build a sle container image using zypper_docker
@@ -94,11 +117,10 @@ sub build_with_zypper_docker {
 
     # The zypper-docker works only on openSUSE or on SLE based image on SLE host
     unless (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
-        record_info 'The zypper-docker only works for openSUSE based images and SLE based images on SLE host.';
+        record_info 'Warning!', 'The zypper-docker only works for openSUSE based images and SLE based images on SLE host.';
         return;
     }
 
-    # zypper docker can only update image if version is same as SUT
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
         my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
@@ -119,8 +141,10 @@ sub build_with_zypper_docker {
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
 
-    record_info("Testing derived");
-    test_opensuse_based_image(image => $derived_image, runtime => $runtime);
+    record_info("Testing derived", "Derived image: $derived_image");
+    test_opensuse_based_image(image => $derived_image, runtime => $runtime, version => $version);
+
+    assert_script_run("docker rmi -f $derived_image");
 }
 
 sub test_opensuse_based_image {
@@ -128,8 +152,9 @@ sub test_opensuse_based_image {
     my $image   = $args{image};
     my $runtime = $args{runtime};
 
-    my $distri  = $args{distri}  //= get_required_var("DISTRI");
-    my $version = $args{version} //= get_required_var("VERSION");
+    my $distri  = $args{distri}  // get_required_var("DISTRI");
+    my $version = $args{version} // get_required_var("VERSION");
+    my $beta    = $args{beta}    // get_var('BETA', 0);
 
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
@@ -150,7 +175,7 @@ sub test_opensuse_based_image {
     if ($image_id =~ 'sles') {
         if ($host_id =~ 'sles') {
             my $pretty_version = $version =~ s/-SP/ SP/r;
-            my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+            my $betaversion    = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
             if ($runtime =~ /buildah/) {
                 validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
@@ -177,7 +202,16 @@ sub test_opensuse_based_image {
         }
     } else {
         $version =~ s/^Jump://i;
-        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        if ($runtime =~ /buildah/) {
+            if (script_output("$runtime run $image grep PRETTY_NAME /etc/os-release") =~ /WARN.+from \"\/etc\/containers\/mounts.conf\" doesn\'t exist, skipping/) {
+                record_soft_failure "bcs#1183482 - libcontainers-common contains SLE files on TW";
+            }
+            validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+                sub { /"openSUSE (Leap )?${version}.*"/ });
+        }
+        else {
+            validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        }
     }
 
     # Zypper is supported only on openSUSE or on SLE based image on SLE host
@@ -187,9 +221,9 @@ sub test_opensuse_based_image {
 }
 
 sub verify_userid_on_container {
-    my ($runtime, $image) = @_;
-    record_info "host uid", script_output "echo \$UID";
-
+    my ($runtime, $image, $start_id) = @_;
+    my $huser_id = script_output "echo \$UID";
+    record_info "host uid",          "$huser_id";
     record_info "root default user", "rootless mode process runs with the default container user(root)";
     my $cid = script_output "$runtime run -d --rm --name test1 $image sleep infinity";
     validate_script_output "$runtime top $cid user huser", sub { /root\s+1000/ };
@@ -197,7 +231,8 @@ sub verify_userid_on_container {
 
     record_info "non-root user", "process runs under the range of subuids assigned for regular user";
     $cid = script_output "$runtime run -d --rm --name test2 --user 1000 $image sleep infinity";
-    validate_script_output "$runtime top $cid user huser", sub { /1000\s+200999/ };
+    my $id = $start_id + $huser_id - 1;
+    validate_script_output "$runtime top $cid user huser", sub { /1000\s+${id}/ };
     validate_script_output "$runtime top $cid capeff",     sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
@@ -244,7 +279,7 @@ sub test_zypper_on_container {
         # Verify the image works
         assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
     }
-    record_info "zypper test completed";
+    record_info "The End", "zypper test completed";
 }
 
 sub ensure_container_rpm_updates {
@@ -272,6 +307,24 @@ sub exec_on_container {
     my ($image, $runtime, $command, $timeout) = @_;
     $timeout //= 120;
     assert_script_run("$runtime run --rm $image $command", $timeout);
+}
+
+sub test_3rd_party_image {
+    my ($runtime, $image) = @_;
+    record_info('IMAGE', "Testing $image with $runtime");
+    test_container_image(image => $image, runtime => $runtime);
+    script_run("echo 'OK: $runtime - $image:latest' >> /var/tmp/$runtime-3rd_party_images_log.txt");
+}
+
+sub upload_3rd_party_images_logs {
+    my $runtime = shift;
+    # Rename for better visibility in Uploaded Logs
+    if (script_run("mv /var/tmp/$runtime-3rd_party_images_log.txt /tmp/$runtime-3rd_party_images_log.txt") != 0) {
+        record_info("No logs", "No logs found");
+    } else {
+        upload_logs("/tmp/$runtime-3rd_party_images_log.txt");
+        script_run("rm /tmp/$runtime-3rd_party_images_log.txt");
+    }
 }
 
 1;

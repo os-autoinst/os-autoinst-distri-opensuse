@@ -17,7 +17,7 @@ use warnings;
 use testapi;
 use lockapi;
 use mmapi;
-use virt_utils 'upload_supportconfig_log';
+use upload_system_log 'upload_supportconfig_log';
 use virt_autotest::utils qw(is_xen_host);
 
 sub run {
@@ -37,7 +37,7 @@ sub run {
     my $hypervisor   = (is_xen_host) ? 'xen' : 'kvm';
     my $args         = "-d $src_ip -v $hypervisor -u $src_user -p $src_pass";
     my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/guest_migrate.sh " . $args;
-    type_string("$pre_test_cmd \n");
+    enter_cmd("$pre_test_cmd ");
     save_screenshot;
     send_key("ctrl-c");
     save_screenshot;
@@ -67,7 +67,8 @@ sub run {
     }
     my $logs = "/var/log/libvirt /var/log/messages $xen_logs";
     virt_autotest_base::upload_virt_logs($logs, "guest-migration-dst-logs");
-    virt_utils::upload_supportconfig_log;
+    upload_system_log::upload_supportconfig_log();
+    script_run("rm -rf scc_* nts_*");
     save_screenshot;
 
     #mark dst upload log done

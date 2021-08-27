@@ -19,9 +19,9 @@ use utils;
 
 sub run {
     x11_start_program('xterm');
-    type_string "gsettings set org.gnome.software download-updates false\n";
+    enter_cmd "gsettings set org.gnome.software download-updates false";
     save_screenshot;
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

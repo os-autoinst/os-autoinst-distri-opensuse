@@ -19,13 +19,13 @@
 #          at the same time, install some required packages.
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81256, tc#1768671
+# Tags: poo#81256, tc#1768671, poo#93835
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use utils qw(zypper_call permit_root_ssh);
 use power_action_utils 'power_action';
 
 sub run {
@@ -48,6 +48,9 @@ sub run {
     my $nic_name       = script_output("ls /etc/sysconfig/network | grep ifcfg- | grep -v lo | awk -F '-' '{print \$2}'");
     assert_script_run("wget --quiet " . data_url("swtpm/70-persistent-net.rules") . " -O $udev_rule_file");
     assert_script_run("sed -i 's/NAME=\"\"/ NAME=\"$nic_name\"/' $udev_rule_file");
+
+    # Permit ssh login as root
+    permit_root_ssh();
 
     # Power down the vm
     power_action('poweroff');

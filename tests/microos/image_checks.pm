@@ -33,10 +33,8 @@ sub run {
     my $varsize = script_output "findmnt -rnboSIZE -T/var";
     die "/var did not grow, got $varsize B" unless $varsize > (5 * 1024 * 1024 * 1024);
 
-    # Verify that combustion ran (not on Leap 15.2 and SUSE yet)
-    unless (is_sle_micro || is_microos('=15.2')) {
-        validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
-    }
+    # Verify that combustion ran
+    validate_script_output('cat /usr/share/combustion-welcome', qr/Combustion was here/);
 }
 
 1;

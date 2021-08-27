@@ -4,9 +4,5 @@ paths:
   - /var/lib/polkit/.bashrc
   - /var/lib/nobody/.bashrc
   - /var/lib/pulseaudio/.bashrc
-device: sda
-table_type: gpt
-file_system:
-  /: btrfs
-swap: 1
+<<: !include test_data/yast/autoyast_reinstall/partitioning_ppc64le-hmc.yaml
 <<: !include test_data/yast/autoyast/profiles/reinstall_ppc64le-hmc.yaml

@@ -30,7 +30,7 @@ use virt_autotest::utils;
 use version_utils qw(is_sle get_os_release);
 
 our @EXPORT
-  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk upload_supportconfig_log get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
+  = qw(enable_debug_logging update_guest_configurations_with_daily_build repl_addon_with_daily_build_module_in_files repl_module_in_sourcefile handle_sp_in_settings handle_sp_in_settings_with_fcs handle_sp_in_settings_with_sp0 clean_up_red_disks lpar_cmd upload_virt_logs generate_guest_asset_name get_guest_disk_name_from_guest_xml compress_single_qcow2_disk get_guest_list remove_vm download_guest_assets restore_downloaded_guests is_installed_equal_upgrade_major_release generateXML_from_data check_guest_disk_type recreate_guests perform_guest_restart collect_host_and_guest_logs cleanup_host_and_guest_logs monitor_guest_console start_monitor_guest_console stop_monitor_guest_console is_developing_sles is_registered_sles);
 
 sub enable_debug_logging {
 
@@ -41,9 +41,9 @@ sub enable_debug_logging {
     #log filter is set to store component logs with different levels.
     my $libvirtd_conf_file = "/etc/libvirt/libvirtd.conf";
     if (!script_run "ls $libvirtd_conf_file") {
-        script_run "sed -i '/log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
-        script_run "sed -i '/log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
-        script_run "sed -i '/log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $libvirtd_conf_file";
+        script_run "sed -i '/^[# ]*log_level *=/{h;s/^[# ]*log_level *= *[0-9].*\$/log_level = 1/};\${x;/^\$/{s//log_level = 1/;H};x}' $libvirtd_conf_file";
+        script_run "sed -i '/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%};\${x;/^\$/{s%%log_outputs=\"1:file:/var/log/libvirt/libvirtd.log\"%;H};x}' $libvirtd_conf_file";
+        script_run "sed -i '/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters=\"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}' $libvirtd_conf_file";
         script_run "grep -e log_level -e log_outputs -e log_filters $libvirtd_conf_file";
     }
     save_screenshot;
@@ -51,7 +51,7 @@ sub enable_debug_logging {
     # enable journal log with prvious reboot
     my $journald_conf_file = "/etc/systemd/journald.conf";
     if (!script_run "ls $journald_conf_file") {
-        script_run "sed -i '/Storage *=/{h;s/^[# ]*Storage *=.*\$/Storage=persistent/};\${x;/^\$/{s//Storage=persistent/;H};x}' $journald_conf_file";
+        script_run "sed -i '/^[# ]*Storage *=/{h;s/^[# ]*Storage *=.*\$/Storage=persistent/};\${x;/^\$/{s//Storage=persistent/;H};x}' $journald_conf_file";
         script_run "grep Storage $journald_conf_file";
         script_run 'systemctl restart systemd-journald';
     }
@@ -344,12 +344,20 @@ sub get_guest_disk_name_from_guest_xml {
 }
 
 # Should only do compress from qcow2 disk to qcow2 in our automation(upload guest asset scheme).
+# If disk compression fails at the first time, try again with --force-share option to avoid shared "write" lock conflict.
+# Generally speaking, guest image compressing and uploading should only be done on successful guest installation and after any other operations is done on the guest.
+# If qemu image operation on the guest still can not proceed due to failing to get "write" lock, then "--force-share" option can be tried to solve the problem.
+# And "--force-share" is a new option that is introduced to modern SLES, it might be available on some older SLES, for example, 11-SP4 or some 12-SPx.
+# Please refer to https://qemu.readthedocs.io/en/latest/tools/qemu-img.html to ease your mind on working with --force-share and convert and many others.
 sub compress_single_qcow2_disk {
     my ($orig_disk, $compressed_disk) = @_;
 
     if ($orig_disk =~ /qcow2/) {
         my $cmd = "nice ionice qemu-img convert -c -p -O qcow2 $orig_disk $compressed_disk";
-        assert_script_run($cmd, 360);
+        if (script_run($cmd, 360) ne 0) {
+            $cmd = "nice ionice qemu-img convert --force-share -c -p -O qcow2 $orig_disk $compressed_disk";
+            die("Disk compression failed from $orig_disk to $compressed_disk.") if (script_run($cmd, 360) ne 0);
+        }
         save_screenshot;
         record_info('Disk compression', "Disk compression done from $orig_disk to $compressed_disk.");
     }
@@ -390,16 +398,6 @@ sub remove_vm {
     if ($is_persistent_vm eq "yes") {
         assert_script_run("virsh undefine $vm", 30);
     }
-}
-
-
-sub upload_supportconfig_log {
-    my $datetab = script_output("date '+%Y%m%d%H%M%S'");
-    script_run("cd;supportconfig -t . -B supportconfig.$datetab", 600);
-    script_run("tar zcvfP supportconfig.$datetab.tar.gz *supportconfig.$datetab");
-    upload_logs("supportconfig.$datetab.tar.gz");
-    script_run("rm -rf *supportconfig.*");
-    save_screenshot;
 }
 
 # Download guest image and xml from a NFS location to local
@@ -724,8 +722,11 @@ sub cleanup_host_and_guest_logs {
     #Clean dhcpd and named services up explicity
     if (get_var('VIRT_AUTOTEST')) {
         script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
-        script_run("service dhcpd restart") if (script_run("systemctl restart dhcpd") ne '0');
-        script_run("service named restart") if (script_run("systemctl restart named") ne '0');
+        if (!get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
+            my @control_operation = ('restart');
+            virt_autotest::utils::manage_system_service('dhcpd', \@control_operation);
+            virt_autotest::utils::manage_system_service('named', \@control_operation);
+        }
     }
     my $logs_cleanup_script_url = data_url("virt_autotest/clean_up_virt_logs.sh");
     script_output("curl -s -o ~/clean_up_virt_logs.sh $logs_cleanup_script_url", 180, type_command => 0, proceed_on_failure => 0);

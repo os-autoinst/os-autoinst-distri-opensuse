@@ -43,7 +43,7 @@ sub run {
     }
     else {
         record_info("NotSame", "\"Hardening index\" is NOT the same.\n Baseline: $out_b\n Current: $out_c");
-        record_soft_failure("poo#78224, \"Hardening index\" is NOT the same please check");
+        record_soft_failure("poo#91383, \"Hardening index\" is NOT the same please check");
     }
 }
 

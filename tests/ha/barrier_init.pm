@@ -19,7 +19,7 @@ use mmapi;
 
 # This tells the module whether the test is running in a supportserver or in node1
 sub is_not_supportserver_scenario {
-    return (get_var('HOSTNAME') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
+    return (get_var('HOSTNAME', '') =~ /node01$/ and !get_var('USE_SUPPORT_SERVER'));
 }
 
 sub run {
@@ -108,9 +108,11 @@ sub run {
         barrier_create("PACEMAKER_CTS_CHECKED_$cluster_name", $num_nodes + 1);
 
         # HAWK_GUI_ barriers also have to wait in the client
-        barrier_create("HAWK_GUI_INIT_$cluster_name",    $num_nodes + 1);
-        barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
-        barrier_create("HAWK_FENCE_$cluster_name",       $num_nodes + 1);
+        barrier_create("HAWK_GUI_INIT_$cluster_name",            $num_nodes + 1);
+        barrier_create("HAWK_GUI_CHECKED_$cluster_name",         $num_nodes + 1);
+        barrier_create("HAWK_GUI_CPU_TEST_START_$cluster_name",  $num_nodes + 1);
+        barrier_create("HAWK_GUI_CPU_TEST_FINISH_$cluster_name", $num_nodes + 1);
+        barrier_create("HAWK_FENCE_$cluster_name",               $num_nodes + 1);
 
         # CTDB barriers
         barrier_create("CTDB_INIT_$cluster_name", $num_nodes + 1);
@@ -122,12 +124,25 @@ sub run {
         barrier_create("QNETD_TESTS_DONE_$cluster_name",       $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
+        barrier_create("QNETD_STONITH_DISABLED_$cluster_name", $num_nodes + 1);
+        barrier_create("DISKLESS_SBD_QDEVICE_$cluster_name",   $num_nodes);
+
+        # PRIORITY_FENCING_DELAY barriers
+        barrier_create("PRIORITY_FENCING_CONF_$cluster_name", $num_nodes);
+        barrier_create("PRIORITY_FENCING_DONE_$cluster_name", $num_nodes);
+        if (get_var('STONITH_COUNT')) {
+            my $count = get_var('STONITH_COUNT');
+            while ($count ne 0) {
+                barrier_create("STONITH_COUNTER_${count}_${cluster_name}", $num_nodes);
+                $count--;
+            }
+        }
 
         # Preflight-check barriers
         barrier_create("PREFLIGHT_CHECK_INIT_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
 
         # ROLLING UPGRADE / UPDATE barriers
-        my $update_type = (get_var('UPDATE_TYPE') eq "update") ? "UPDATED" : "UPGRADED";
+        my $update_type = (get_var('UPDATE_TYPE', '') eq "update") ? "UPDATED" : "UPGRADED";
         barrier_create("NODE_${update_type}_${cluster_name}_NODE$_", $num_nodes) foreach (1 .. $num_nodes);
 
         # Create barriers for multiple tests
@@ -160,6 +175,7 @@ sub run {
         barrier_create("HANA_INIT_CONF_$cluster_name",       $num_nodes);
         barrier_create("HANA_CREATED_CONF_$cluster_name",    $num_nodes);
         barrier_create("HANA_LOADED_CONF_$cluster_name",     $num_nodes);
+        barrier_create("MONITORING_CONF_DONE_$cluster_name", $num_nodes);
         # We have to create barriers for each nodes if we want to be able to fence *all* nodes
         foreach (1 .. $num_nodes) {
             barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_",      $num_nodes);

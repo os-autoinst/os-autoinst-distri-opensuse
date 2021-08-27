@@ -9,7 +9,6 @@
 
 # Package: systemd
 # Summary: Test basic journalctl functionality
-# - assert bsc#1063066 is not present (Verify "man -P cat journalctl" for broken man page format)
 # - setup persistent journal
 # - setup FSS, rotate log, verify, reboot and verify again (See bsc#1171858)
 # - check if log entry from previous boots are present
@@ -27,16 +26,26 @@ use Mojo::Base qw(consoletest);
 use Date::Parse qw(str2time);
 use testapi;
 use utils qw(zypper_call script_retry systemctl);
-use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud);
+use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud is_leap);
 use Utils::Backends qw(is_hyperv);
 use Utils::Architectures qw(is_s390x);
 use power_action_utils qw(power_action);
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
-    DROPIN_DIR         => '/etc/systemd/journald.conf.d/',
+    DROPIN_DIR         => '/etc/systemd/journald.conf.d',
     SYSLOG             => '/var/log/messages',
     SEALING_DELAY      => 10
 };
+
+# by default persistent journal is set for opensuse, except of leap 15.3+
+sub has_default_persistent_journal {
+    return is_opensuse && (!is_leap('15.3+') || check_var('FLAVOR', 'JeOS-for-AArch64'));
+}
+
+# If the daemon is stopped uncleanly, or if the files are found to be corrupted, they are renamed using the ".journal~" suffix
+sub corrupted_logfiles {
+    return script_output('find /var/log/journal/ -iname "*.journal~" -type f -print0') ne "";
+}
 
 sub is_journal_empty {
     my ($args, $filename) = @_;
@@ -51,7 +60,7 @@ sub verify_journal {
     my $cmd = 'journalctl --verify';
     $cmd .= " --verify-key=$fss_key" if defined($fss_key);
 
-    script_run('journactl --flush');    # ensure data is written to persistent log
+    assert_script_run('journalctl --flush');    # ensure data is written to persistent log
     return if (script_run("$cmd 2>&1 | tee errs") == 0);
     # Check for https://bugzilla.suse.com/show_bug.cgi?id=1171858, corruption bug when FSS is enabled
     if (defined($fss_key) && (script_run("grep 'tag/entry realtime timestamp out of synchronization' errs") == 0)) {
@@ -61,8 +70,10 @@ sub verify_journal {
     } elsif (defined($fss_key) && (script_run("egrep 'No sealing yet,.*of entries not sealed.' errs") == 0)) {
         die "Sealing is not working!\n";
         # Check for https://bugzilla.suse.com/show_bug.cgi?id=1178193, a race condition for `journalctl --verify`
-    } elsif ((script_run("grep 'File corruption detected' errs") == 0) && script_run("$cmd")) {
+    } elsif (script_run("grep 'File corruption detected' errs") == 0) {
         record_soft_failure("bsc#1178193 - Journal corruption race condition");
+    } elsif (corrupted_logfiles) {
+        die "The daemon is stopped not in a clean way, or corrupted files have been detected\n";
     } else {
         assert_script_run("mv errs journalctl-verify-err.txt");
         upload_logs('journalctl-verify-err.txt');
@@ -95,7 +106,26 @@ sub assert_test_log_entries {
         foreach (keys(%{$entries})) {
             script_retry("journalctl --boot=$bootid --identifier=batman --priority=$_ --output=short | grep $entries->{$_}",
                 retry => 5, delay => 2);
-            assert_script_run("grep $entries->{$_} ${\ SYSLOG }") if is_sle;
+            script_retry("grep $entries->{$_} ${\ SYSLOG }", retry => 5, delay => 2, die => 0) if !has_default_persistent_journal;
+        }
+    }
+}
+
+sub rotatelogs_and_verify {
+    my @existing_rotations    = split('\n', script_output('find /var/log/journal/ -regex ".*system\@.*" -o -regex ".*user-.*"'));
+    my $systemd_journal_birth = script_output 'stat -c %W /var/log/journal/$(cat /etc/machine-id)/system.journal';
+    my @errors;
+    assert_script_run('journalctl --rotate');
+    ($systemd_journal_birth >= script_output('stat -c %W /var/log/journal/$(cat /etc/machine-id)/system.journal')) &&
+      push @errors, 'New system.journal file has not been created!';
+    (@existing_rotations >= script_output('find /var/log/journal/ -regex ".*system\@.*" -o -regex ".*user-.*" |wc -l')) &&
+      push @errors, 'Logs have not been rotated!';
+
+    foreach my $emsg (@errors) {
+        if (($emsg eq 'New system.journal file has not been created!') && (is_leap('<15.3') || is_sle('<15-sp3'))) {
+            record_soft_failure 'bsc#1183721 - brtime of file is empty';
+        } else {
+            die join('\n', @errors);
         }
     }
 }
@@ -104,17 +134,16 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my %log_entries = (
-        info  => q{'We need to call batman'},
-        err   => q{'We NEED to call the batman NOW'},
-        emerg => q{'CALL THE BATMAN NOW!1!! AARRGGH!!'}
+        info  => q{'(Testing, journalctl.pm) We need to call batman'},
+        err   => q{'(Testing, journalctl.pm) We NEED to call the batman NOW'},
+        emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!'}
     );
     my @boots;
 
-    # create dropin directory for further journal.conf updates
-    assert_script_run "mkdir -p ${\ DROPIN_DIR }/";
-    # Test for possible resurrection of bsc#1063066
-    die "Systemd: broken manpage!\n"
-      if ((script_run('command -v man') == 0) && (script_output('man -P cat journalctl') =~ m/\s+\.SH /));
+    # create dropin directory for further journal.conf updates if it does not exists
+    if (script_run "test -d ${\ DROPIN_DIR }") {
+        assert_script_run "mkdir -p ${\ DROPIN_DIR }/";
+    }
 
     # Enable persistent journal or check if it is enabled by default in opensuse
     # journald.conf is almost identical for opensuse and sle
@@ -123,7 +152,7 @@ sub run {
     # Other configuration changes should be overridden using _drop-in_ file
     # To enable persistent logging in opensuse, we use systemd-logger.rpm that creates */var/log/journal/* directory
     get_current_boot_id \@boots;
-    if (is_opensuse) {
+    if (has_default_persistent_journal) {
         assert_script_run 'rpm -q systemd-logger';
         assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
     } else {
@@ -134,7 +163,7 @@ sub run {
         # rsyslog must be there by design
         assert_script_run 'rpm -q rsyslog';
         assert_script_run 'test -S /run/systemd/journal/syslog';
-        upload_logs('/var/log/messages');
+        upload_logs(${\SYSLOG});
         systemctl 'restart systemd-journald';
     }
 
@@ -151,7 +180,7 @@ sub run {
         my @listed_boots = split('\n', script_output 'journalctl --list-boots');
         die "journal lists less than 2 boots" if (scalar(@listed_boots) < 2);
         is_journal_empty('--boot=-1', "journalctl-1.txt");
-        assert_script_run('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', fail_message => "Error getting beacon from previous boot");
+        script_retry('journalctl --identifier=batman --boot=-1| grep "The batman is going to sleep"', retry => 5, delay => 2);
         script_run('echo -e "Reboot time:  `cat /var/tmp/reboottime`\nCurrent time: `date -u \'+%F %T\'`"');
         die "journalctl after reboot empty" if is_journal_empty('-S "`cat /var/tmp/reboottime`"', "journalctl-after.txt");
     } else {
@@ -186,12 +215,12 @@ sub run {
     verify_journal();
     # Note: Detailled error message is "Specifying boot ID or boot offset has no effect, no persistent journal was found."
     # Create virtual serial console for journal redirecting
-    if (is_opensuse) {
+    if (is_opensuse && !is_leap('>=15.3')) {
         zypper_call 'in socat';
         script_run('socat pty,raw,echo=0,link=/dev/ttyS100 pty,raw,echo=0,link=/dev/ttyS101 & true');
         assert_script_run('jobs | grep socat', fail_message => "socat is not running");
         # Redirect journal to virtual serial console and syslog
-        assert_script_run "echo -e '[Journal]\nForwardToConsole=yes\nTTYPath=/dev/ttyS100\nMaxLevelConsole=info' | tee ${\ DROPIN_DIR }/fw-ttyS100.conf";
+        assert_script_run qq(echo -e '[Journal]\\nForwardToConsole=yes\\nTTYPath=/dev/ttyS100\\nMaxLevelConsole=info' |tee ${\ DROPIN_DIR }/fw-ttyS100.conf);
         systemctl 'restart systemd-journald.service';
         script_run('cat /dev/ttyS101 > /var/tmp/journal_serial.out & true');
         assert_script_run('echo "journal redirect output started (grep for: aeru4Poh eiDeik5l)" | systemd-cat -p info -t redirect');
@@ -208,7 +237,6 @@ sub run {
     assert_script_run 'journalctl --sync';
     assert_script_run 'journalctl --flush';
     verify_journal();
-    # Write second series of messages with different log priority
 
     if (is_sle('=15') && is_s390x) {
         zypper_call 'in haveged';
@@ -228,12 +256,13 @@ sub run {
 
     # Set new log entries for FSS checks
     %log_entries = (
-        info  => q{'We need to call batman-after sealing'},
-        err   => q{'We NEED to call the batman NOW-after sealing'},
-        emerg => q{'CALL THE BATMAN NOW!1!! AARRGGH!!-after sealing'}
+        info  => q{'(Testing, journalctl.pm) We need to call batman-after sealing'},
+        err   => q{'(Testing, journalctl.pm) We NEED to call the batman NOW-after sealing'},
+        emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!-after sealing'}
     );
-    assert_script_run('journalctl --rotate');
+    rotatelogs_and_verify;
     # remove first bootid
+    # Write second series of messages with different log priority
     shift @boots;
     write_test_log_entries \%log_entries;
     assert_test_log_entries(\%log_entries, \@boots);
@@ -241,7 +270,7 @@ sub run {
     sleep ${\SEALING_DELAY};
     verify_journal($keyid);
     # Rotate once more and verify the journal afterwards
-    assert_script_run('journalctl --rotate');
+    rotatelogs_and_verify;
     # Additional journalctl commands/use cases
     assert_script_run('journalctl --vacuum-size=100M');
     assert_script_run('journalctl --vacuum-time=1years');
@@ -258,12 +287,18 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-    select_console 'log-console';
-    shift->save_and_upload_log('journalctl', '/tmp/journalctl.txt', {screenshot => 1});
+
+    shift->SUPER::post_fail_hook;
+    script_run 'cp -a /var/log/journal /var/log/journal-backup';
+    script_run 'tar Jcvf journal-backup.tar.xz /var/log/journal-backup';
+    sleep 5;
+    script_run 'tar Jcvf journal.tar.xz /var/log/journal/';
     if (script_run('test -s /var/tmp/journalctl-setup-keys.txt') == 0) {
         upload_logs('/var/tmp/journalctl-setup-keys.txt');
     }
     upload_logs('/etc/systemd/journald.conf');
+    upload_logs('./journal.tar.xz');
+    upload_logs('./journal-backup.tar.xz');
     cleanup();
 }
 

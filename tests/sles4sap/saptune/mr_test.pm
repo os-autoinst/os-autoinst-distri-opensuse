@@ -35,7 +35,7 @@ sub reboot_wait {
 sub setup {
     my ($self) = @_;
 
-    my $tarball = get_var('MR_TEST_TARBALL', 'https://gitlab.suse.de/rbranco/mr_test/-/archive/master/mr_test-master.tar.gz');
+    my $tarball = get_var('MR_TEST_TARBALL', 'https://gitlab.suse.de/qa/mr_test/-/archive/master/mr_test-master.tar.gz');
 
     $self->select_serial_terminal;
     # Disable packagekit

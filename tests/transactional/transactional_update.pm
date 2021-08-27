@@ -67,12 +67,6 @@ sub run {
 
     script_run "rebootmgrctl set-strategy off";
 
-    if (is_opensuse && get_var('BETA')) {
-        record_info 'Remove pkgs', 'Remove preinstalled packages on Leap BETA';
-        trup_call "pkg remove update-test-[^t]*";
-        process_reboot(trigger => 1);
-    }
-
     get_utt_packages;
 
     record_info 'Install ptf', 'Install package - snapshot #1';
@@ -95,18 +89,18 @@ sub run {
         record_info 'Update #2', 'System should be up to date - no changes expected';
         trup_call 'cleanup up';
         check_reboot_changes 0;
-    }
 
-    # Check that zypper does not return 0 if update was aborted
-    record_info 'Broken pkg', 'Install broken package poo#18644 - snapshot #3';
-    trup_call "pkg install" . rpmver('broken');
-    check_reboot_changes;
-    # Systems with repositories would downgrade on DUP
-    if (is_leap) {
-        record_info 'Broken packages test skipped';
-    } else {
-        trup_call "cleanup up", 2;
-        check_reboot_changes 0;
+        # Check that zypper does not return 0 if update was aborted
+        record_info 'Broken pkg', 'Install broken package poo#18644 - snapshot #3';
+        trup_call "pkg install" . rpmver('broken');
+        check_reboot_changes;
+        # Systems with repositories would downgrade on DUP
+        if (is_leap) {
+            record_info 'Broken packages test skipped';
+        } else {
+            trup_call "cleanup up", exit_code => 1;
+            check_reboot_changes 0;
+        }
     }
 
     record_info 'Remove pkg', 'Remove package - snapshot #4';

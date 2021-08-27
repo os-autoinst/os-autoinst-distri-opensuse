@@ -1,4 +1,4 @@
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,7 +19,7 @@ use migration;
 use registration;
 use qam;
 use Utils::Backends 'is_pvm';
-use y2_installbase;
+use y2_base;
 
 
 sub patching_sle {
@@ -67,7 +67,7 @@ sub patching_sle {
             # Open gdm debug info for poo#45236, this issue happen sometimes in openqa env
             script_run('sed -i s/#Enable=true/Enable=true/g /etc/gdm/custom.conf');
             # Remove '-f' for reboot for poo#65226
-            type_string "reboot\n";
+            enter_cmd "reboot";
             reconnect_mgmt_console if is_pvm;
             $self->wait_boot(textmode => !is_desktop_installed(), ready_time => 600, bootloader_time => 300, nologin => $nologin);
             # Setup again after reboot
@@ -93,8 +93,6 @@ sub patching_sle {
     #migration with LTSS is not possible, remove it before upgrade
     remove_ltss;
 
-    #migration with ESPOS is not possible, remove it before upgrade
-    remove_espos;
     if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
         # The system is registered.
         set_var('HDD_SCC_REGISTERED', 1);
@@ -226,6 +224,6 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-    y2_installbase::save_upload_y2logs;
+    y2_base::save_upload_y2logs;
 }
 1;

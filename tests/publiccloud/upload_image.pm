@@ -26,17 +26,24 @@ sub run {
 
     my $provider = $self->provider_factory();
 
-    my $img_url    = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
+    my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
     my ($img_name) = $img_url =~ /([^\/]+)$/;
-    my $img_type   = get_var('PUBLIC_CLOUD_IMAGE_TYPE');
 
     if (my $img_id = $provider->find_img($img_name)) {
         record_info('Info', "Image $img_id already exists!");
         return;
     }
 
-    assert_script_run("wget $img_url -O $img_name", timeout => 60 * 10);
-    $provider->upload_img($img_name, $img_type);
+    # Download the given image. Check for 404 errors and make them better visible
+    my $cmd = "wget --no-check-certificate $img_url -O $img_name";
+    my $rc  = script_run("$cmd 2>download.txt", timeout => 60 * 10);
+    if ($rc != 0) {
+        upload_logs("download.txt");
+        script_run("cat download.txt");
+        die "404 - Image not found" if (script_run("grep '404' download.txt") == 0);
+        die "command '$cmd' failed with rc=$rc";
+    }
+    $provider->upload_img($img_name);
 }
 
 sub test_flags {

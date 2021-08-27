@@ -22,17 +22,25 @@ use registration 'add_suseconnect_product';
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
+sub create_script_file {
+    my ($filename, $fullpath, $content) = @_;
+    save_tmp_file($filename, $content);
+    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
+    assert_script_run(sprintf('chmod +x %s', $fullpath));
+}
+
 sub install_in_venv {
-    my ($pip_packages, $binary) = @_;
-    die("Missing pip packages") unless ($pip_packages);
-    die("Missing binary name")  unless ($binary);
+    my ($binary, %args) = @_;
+    die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
+    die("Missing binary name")                                         unless ($binary);
     my $install_timeout = 15 * 60;
-    $pip_packages = [$pip_packages] unless ref $pip_packages eq 'ARRAY';
+    assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
     my $venv = '/root/.venv_' . $binary;
     assert_script_run("virtualenv '$venv'");
     assert_script_run(". '$venv/bin/activate'");
-    assert_script_run('pip install --force-reinstall ' . join(' ', map("'$_'", @$pip_packages)), timeout => $install_timeout);
+    my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
+    assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
     assert_script_run('deactivate');
     my $script = <<EOT;
 #!/bin/sh
@@ -47,12 +55,10 @@ exit_code=\$?
 deactivate
 exit \$exit_code
 EOT
-    my $run           = $binary . '-run-in-venv';
-    my $run_full_path = "$venv/bin/$run";
-    save_tmp_file($run, $script);
-    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $run_full_path, autoinst_url, $run));
-    assert_script_run(sprintf('chmod +x "%s"', $run_full_path));
-    assert_script_run(sprintf('ln -s "%s" "/usr/bin/%s"', $run_full_path, $binary));
+
+    my $fullpath = "$venv/bin/$binary-run-in-venv";
+    create_script_file($binary, $fullpath, $script);
+    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
 }
 
 sub run {
@@ -67,23 +73,29 @@ sub run {
     }
 
     # Install prerequesite packages test
-    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests');
+    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman');
     record_info('python', script_output('python --version'));
 
     # Install AWS cli
-    install_in_venv('awscli', 'aws');
+    install_in_venv('aws', requirements => 1);
     record_info('EC2', script_output('aws --version'));
 
     # Install ec2imgutils
-    install_in_venv('ec2imgutils', 'ec2uploadimg');
+    install_in_venv('ec2uploadimg', requirements => 1);
     record_info('ec2imgutils', 'ec2uploadimg:' . script_output('ec2uploadimg --version'));
 
     # Install Azure cli
-    install_in_venv('azure-cli', 'az');
+    install_in_venv('az', requirements => 1);
     my $azure_error = '/tmp/azure_error';
     record_info('Azure', script_output('az -v 2>' . $azure_error));
     assert_script_run('cat ' . $azure_error);
-    assert_script_run('test ! -s ' . $azure_error);
+    if (script_run('test -s ' . $azure_error)) {
+        die("Unexpected error in azure-cli") unless validate_script_output("cat $azure_error", m/Please let us know how we are doing .* and let us know if you're interested in trying out our newest features .*/);
+    }
+
+    # Install OpenStack cli
+    install_in_venv('openstack', requirements => 1);
+    record_info('OpenStack', script_output('openstack --version'));
 
     # Install Google Cloud SDK
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
@@ -95,11 +107,16 @@ sub run {
     # Create some directories, ipa will need them
     assert_script_run("img-proof list");
     record_info('img-proof', script_output('img-proof --version'));
+    my $terraform_version = '0.14.1';
 
-    # Install Terraform from repo
-    zypper_call('ar https://download.opensuse.org/repositories/systemsmanagement:/terraform/SLE_15_SP2/systemsmanagement:terraform.repo');
-    zypper_call('--gpg-auto-import-keys -q in terraform');
-    record_info('Terraform', script_output('terraform -v'));
+    # Terraform in a container
+    my $terraform_wrapper = <<EOT;
+#!/bin/sh
+podman run -v /root/:/root/ --rm --env-host=true -w=\$PWD hashicorp/terraform:$terraform_version \$@
+EOT
+
+    create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
+    record_info('Terraform', script_output('terraform -version'));
 
     select_console 'root-console';
 }

@@ -33,6 +33,7 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use utils 'script_retry';
+use upload_system_log 'upload_supportconfig_log';
 use proxymode;
 use version_utils 'is_sle';
 use virt_autotest_base;
@@ -62,7 +63,7 @@ sub check_guest_ip {
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
-        assert_script_run "ping -c3 $guest";
+        die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
 }
 
@@ -94,7 +95,7 @@ sub save_guest_ip {
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         assert_script_run "echo '$gi_guest $guest # virtualization' >> /etc/hosts";
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
-        assert_script_run "ping -c3 $guest";
+        die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
 }
 
@@ -294,7 +295,8 @@ sub upload_debug_log {
         script_run("xl dmesg > /tmp/xl-dmesg.log");
         virt_autotest_base::upload_virt_logs("/tmp/dmesg.log /var/log/libvirt /var/log/messages /var/log/xen /var/lib/xen/dump /tmp/xl-dmesg.log", "libvirt-virtual-network-debug-logs");
     }
-    virt_utils::upload_supportconfig_log;
+    upload_system_log::upload_supportconfig_log();
+    script_run("rm -rf scc_* nts_*");
 }
 
 sub check_guest_status {
@@ -313,7 +315,7 @@ sub check_guest_status {
 }
 
 sub get_free_mem {
-    if (check_var('SYSTEM_ROLE', 'xen')) {
+    if (is_xen_host) {
         # ensure the free memory size on xen host
         my $mem = script_output q@xl info | grep ^free_memory | awk '{print $3}'@;
         $mem = int($mem / 1024);

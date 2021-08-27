@@ -21,10 +21,10 @@
 #                authenticate the access of grub options at boot loader screen
 #             2) Reboot the OS to make sure both super user and maintain user
 #                can access into the corresponding grub menu entry
-#             3) Wrong user/password is not able access the grub
+#             3) Wrong user/password is not able to access the grub
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81721, tc#1768659
+# Tags: poo#81721, poo#95548, tc#1768659
 
 use base 'opensusebasetest';
 use strict;
@@ -39,45 +39,56 @@ my $maint_passwd = 'pw_maintainer';
 my $test_user    = 'tester';
 my $test_passwd  = 'pw_test';
 
+sub switch_boot_menu {
+    my $switch = shift;
+    if (get_var('UEFI')) {
+        assert_screen("grub_uefi_firmware_menu_entry", timeout => 90);
+        send_key_until_needlematch("grub_auth_boot_menu_entry", "down", 5, 2) if $switch;
+    }
+    else {
+        assert_screen("grub_auth_boot_menu_entry", timeout => 90);
+    }
+}
+
 sub grub_auth_oper {
     my $para = shift;
-    type_string("reboot\n");
+    enter_cmd("reboot");
     if ($para eq "operator") {
-        assert_screen("grub_auth_boot_menu_entry", timeout => 90);
+        switch_boot_menu(1);
         send_key("ret");
         assert_screen("grub_auth_super_user_login");
-        type_string("$sup_user\n");
-        type_string("$sup_passwd\n");
+        enter_cmd("$sup_user");
+        enter_cmd("$sup_passwd");
     }
     elsif ($para eq "maintainer") {
-        assert_screen("grub_auth_boot_menu_entry_maintainer", timeout => 90);
-        send_key("down");
+        switch_boot_menu();
+        send_key_until_needlematch("grub_auth_boot_menu_entry_maintainer", "down", 5, 2);
         send_key("ret");
         assert_screen("grub_auth_maintain_user_login");
-        type_string("$maint_user\n");
-        type_string("$maint_passwd\n");
+        enter_cmd("$maint_user");
+        enter_cmd("$maint_passwd");
     }
     elsif ($para eq "grub_edit_mode") {
-        assert_screen("grub_auth_boot_menu_entry", timeout => 90);
+        switch_boot_menu(1);
         send_key("e");
         assert_screen("grub_auth_super_user_login");
-        type_string("$sup_user\n");
-        type_string("$sup_passwd\n");
+        enter_cmd("$sup_user");
+        enter_cmd("$sup_passwd");
         assert_screen("grub_auth_edit_mode");
         send_key("ctrl-x");
     }
     elsif ($para eq "wrong_user_passwd") {
-        assert_screen("grub_auth_boot_menu_entry", timeout => 90);
+        switch_boot_menu(1);
         send_key("ret");
         assert_screen("grub_auth_super_user_login");
-        type_string("$test_user\n");
-        type_string("$test_passwd\n");
-        assert_screen("grub_auth_boot_menu_entry");
+        enter_cmd("$test_user");
+        enter_cmd("$test_passwd");
+        switch_boot_menu(1);
         send_key("ret");
         assert_screen("grub_auth_super_user_login");
-        type_string("$sup_user\n");
-        type_string("$test_passwd\n");
-        assert_screen("grub_auth_boot_menu_entry");
+        enter_cmd("$sup_user");
+        enter_cmd("$test_passwd");
+        switch_boot_menu();
     }
 }
 
@@ -94,8 +105,8 @@ sub run {
     assert_script_run("rm -rf /tmp/sup_passwd_hash");
     assert_script_run("rm -rf /tmp/maint_passwd_hash");
 
-    # Make sure both super user and maintainer can access the grub
-    # the sure user can edit the existing boot menu entries
+    # Make sure both super user and maintainer can access the grub,
+    # the super user can edit the existing boot menu entries
     foreach my $i ("operator", "maintainer", "grub_edit_mode") {
         grub_auth_oper($i);
         assert_screen("linux-login", timeout => 90);

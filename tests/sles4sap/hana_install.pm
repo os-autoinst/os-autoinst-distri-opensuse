@@ -1,6 +1,6 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -61,6 +61,15 @@ sub get_hana_device_from_system {
     return $device;
 }
 
+sub debug_locked_device {
+    my ($self) = @_;
+    for ('dmsetup info', 'dmsetup ls', 'mount', 'df -h', 'pvscan', 'vgscan', 'lvscan', 'pvdisplay', 'vgdisplay', 'lvdisplay') {
+        my $filename = $_;
+        $filename =~ s/[^\w]/_/g;
+        $self->save_and_upload_log($_, "$filename.txt");
+    }
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
@@ -111,16 +120,19 @@ sub run {
             # We need 2.5 times $RAM + 50G for HANA installation.
             my $device = get_var('HANA_INST_DEV', '');
             if ($device) {
-                die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)\d+|);
-                my $disk = $1;
+                die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)(\d+)|);
+                my $disk    = $1;
+                my $partnum = $2;
                 if (script_run "test -b $device") {
                     # Need to create the partition if it does not exist
                     my $lastsector = script_output "parted --machine --script $disk -- unit MB print | tail -1 | cut -d: -f3";
                     $lastsector =~ /(\d+)MB/;
                     $lastsector = $1 + 1;
                     assert_script_run "parted --script $disk -- mkpart primary $lastsector -1";
+                    assert_script_run "parted --script $disk -- set $partnum lvm on";
                     assert_script_run "test -b $device";    # Check partition was created successfully
                     script_run "wipefs -a -f $device";      # This is a new partition, but it could have traces of old tests. We do some cleanup
+                    script_run "partprobe $device";         # Reload kernel table
                 }
             }
             else {
@@ -130,11 +142,27 @@ sub run {
                 assert_script_run "parted --script $device --wipesignatures -- mklabel gpt mkpart primary 1 -1";
                 $device .= is_multipath() ? '-part1' : '1';
             }
+
             # Remove traces of LVM structures from previous tests before configuring
-            script_run "lvremove -f $volgroup";
-            script_run "vgremove -f $volgroup";
-            script_run "pvremove -f $device";
             foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
+            foreach my $lv_cmd ('lv', 'vg', 'pv') {
+                my $looptime  = 20;
+                my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
+                until (script_run "${lv_cmd}remove -f $lv_device 2>&1 | grep -q \"Can't open .* exclusively\.\"") {
+                    sleep bmwqemu::scale_timeout(2);
+                    # Try to fix device-mapper table as a workaround
+                    script_run("dmsetup remove $lv_device");
+                    last if (--$looptime <= 0);
+                }
+                if ($looptime <= 0) {
+                    record_info('ERROR', "Device $lv_device seems to be locked!", result => 'fail');
+                    # Retry the $lv_cmd one last time to have a "proper" error message, and run some debug commands
+                    script_run "${lv_cmd}remove -f $lv_device";
+                    $self->debug_locked_device;
+                    die 'poo#96833 - locked block device';    # Device is locked. We cannot remove or create a PV there. Fail the test
+                }
+            }
+
             # Now configure LVs and file systems for HANA
             assert_script_run "pvcreate -y $device";
             assert_script_run "vgcreate -f $volgroup $device";

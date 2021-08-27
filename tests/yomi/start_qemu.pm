@@ -35,7 +35,7 @@ sub start_qemu {
 
     assert_script_run 'curl -O ' . autoinst_url . '/data/yomi/run_qemu';
     assert_script_run 'chmod a+x run_qemu';
-    type_string "nohup ./run_qemu $scenario 2>&1 | tee -i /dev/$serialdev &\n";
+    enter_cmd "nohup ./run_qemu $scenario 2>&1 | tee -i /dev/$serialdev &";
 
     wait_serial('localhost login:', 360) || die 'login not found, QEMU not launched';
 

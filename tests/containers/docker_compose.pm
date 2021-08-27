@@ -42,8 +42,17 @@ sub run {
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
     record_info 'Test #1', 'Test: Installation';
-    zypper_call("in docker-compose");
-    assert_script_run 'docker-compose --version';
+
+    my $ret = zypper_call "in docker-compose", exitcode => [0, 4];
+    if ($ret == 4 && (is_sle('=12-sp4') || is_sle('=12-sp5'))) {
+        record_soft_failure "bsc#1186748 - [12-SP4][12-SP5] Can't install docker-compose on s390x due to missing python-docker-py dependency";
+        return 0;
+    }
+
+    if (script_output('docker-compose --version', proceed_on_failure => 1) =~ /distribution was not found/) {
+        record_soft_failure "bsc#1186691 - docker-compose probably missing dependency";
+        return 0;
+    }
 
     # Prepare docker-compose.yml and haproxy.cfg
     assert_script_run 'mkdir -p dcproject; cd dcproject';
@@ -51,8 +60,7 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
     allow_selected_insecure_registries(runtime => 'docker');
-    my $registry = get_var('REGISTRY', 'docker.io');
-    assert_script_run("sed -i 's/REGISTRY/$registry/' docker-compose.yml");
+    file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
     assert_script_run 'docker-compose pull', 600;
 
     # Start all containers in background

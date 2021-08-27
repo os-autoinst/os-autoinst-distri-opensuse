@@ -36,7 +36,7 @@ sub run {
     unless (script_run "zypper if ucode-$vendor|grep 'not installed'") {
         zypper_call "in ucode-$vendor";
         console('root-ssh')->kill_ssh;
-        type_string "reboot\n";
+        enter_cmd "reboot";
         $self->wait_boot;
         use_ssh_serial_console;
     }

@@ -77,7 +77,7 @@ sub run {
         record_info("NotFound", "Not found \"$section_orig\" in baseline file");
         record_info("WARNING",  "New section \"$section_orig\" detected, please check and update the baseline!");
         # Set softfail for checking and updating the baseline
-        record_soft_failure("poo#78224, Not found \"$section_orig\" in baseline file, set softfail and only check results in \"current\"");
+        record_soft_failure("poo#91383, Not found \"$section_orig\" in baseline file, set softfail and only check results in \"current\"");
         @section_content_baseline = lynis::lynistest::parse_lynis_section_content($section_orig, "assets_private/$baseline_file");
         @section_content_current  = lynis::lynistest::parse_lynis_section_content($section_orig, "assets_private/$current_file");
         $results                  = lynis::lynistest::compare_lynis_section_content($found, \@section_content_baseline, \@section_content_current);

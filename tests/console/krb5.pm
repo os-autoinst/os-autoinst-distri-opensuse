@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,10 +18,17 @@
 # rckadmind service start, stop, restart, status
 
 use base 'consoletest';
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl script_retry);
 use strict;
 use warnings;
 use testapi;
+
+sub logout_and_verify_shell_availability {
+    script_run 'logout', 0;
+    # verify shell is ready with simple command
+    # avoid fail due to following command being typed while logout in progress
+    script_retry('w', delay => 2, retry => 5);
+}
 
 sub run {
     my $self = shift;
@@ -76,19 +83,19 @@ sub run {
 
     #confirm we have no existing kinit tickets cache:
     script_run 'su - tester', 0;
-    type_string "klist 2> /tmp/krb5\n";
-    script_run 'logout',                                                       0;
+    enter_cmd "klist 2> /tmp/krb5";
+    logout_and_verify_shell_availability;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #create kinit tickets cache for the user:
     script_run 'su - tester', 0;
-    type_string "kinit\n";
+    enter_cmd "kinit";
     #just a fast paced and harmless pwd:
-    type_string "1234wert\n";
+    enter_cmd "1234wert";
 
     #confirm the users tickets cache is created, also confirm its on the FQDN:
-    type_string "klist > /tmp/krb5-klist-cache 2> /dev/null\n";
-    script_run 'logout',                                                                                         0;
+    enter_cmd "klist > /tmp/krb5-klist-cache 2> /dev/null";
+    logout_and_verify_shell_availability;
     validate_script_output "grep -c \"krbtgt\/openqa.kerberus.org\@openqa.kerberus.org\" /tmp/krb5-klist-cache", sub { /1/ };
 
     #validate tickets cache output integrity:
@@ -96,9 +103,9 @@ sub run {
 
     #test the destroy kinit cache command:
     script_run 'su - tester', 0;
-    type_string "kdestroy\n";
-    type_string "klist 2> /tmp/krb5\n";
-    script_run 'logout',                                                       0;
+    enter_cmd "kdestroy";
+    enter_cmd "klist 2> /tmp/krb5";
+    logout_and_verify_shell_availability;
     validate_script_output "grep -iEc \"credentials|not|found|no\" /tmp/krb5", sub { /1/ };
 
     #test the service management script:
@@ -118,6 +125,8 @@ sub run {
     script_run 'rm /tmp/krb5';
     script_run 'hostname `cat /tmp/hostname`';
     script_run 'rm /tmp/hostname';
+    assert_script_run 'rckadmind stop';
+    systemctl 'stop kadmind krb5kdc';
 
     #confirm hostname returned:
     validate_script_output "hostname", sub { /susetest/ };

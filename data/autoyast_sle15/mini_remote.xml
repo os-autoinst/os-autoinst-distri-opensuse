@@ -24,6 +24,12 @@
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
+    <partitioning config:type="list">
+        <drive>
+            <device>/dev/sda</device>
+            <initialize config:type="boolean">true</initialize> 
+        </drive>
+    </partitioning>
     <services-manager>
         <default_target>multi-user</default_target>
         <services>

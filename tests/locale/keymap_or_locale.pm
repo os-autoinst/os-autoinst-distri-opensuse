@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -12,14 +12,13 @@
 #   - Type keystrokes for selected language (default = us)
 # - Access console as user
 #   - Type keystrokes for selected language (default = us)
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "locale";
 use strict;
 use warnings;
 use Utils::Backends 'has_ttys';
 use testapi qw(assert_screen get_var select_console);
-use utils 'ensure_serialdev_permissions';
 
 sub run {
     my ($self) = @_;
@@ -34,7 +33,7 @@ sub run {
     return $self->verify_default_keymap_textmode_non_us($keystrokes, "${expected}_keymap") if ($expected ne 'us');
     $self->verify_default_keymap_textmode($keystrokes, "${expected}_keymap");
     $self->verify_default_keymap_textmode($keystrokes, "${expected}_keymap", console => 'root-console');
-    ensure_serialdev_permissions;
+    # ensure_serialdev_permissions is not needed as it is executing by system_prepare
     $self->verify_default_keymap_textmode($keystrokes, "${expected}_keymap", console => 'user-console');
 }
 

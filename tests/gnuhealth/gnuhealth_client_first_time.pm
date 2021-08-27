@@ -22,7 +22,7 @@ sub run {
     wait_screen_change { send_key 'tab' };
     send_key 'ret';
     assert_screen "$gnuhealth-login_password";
-    type_string "susetesting\n";
+    enter_cmd "susetesting";
     assert_screen "$gnuhealth-module_configuration_wizard_start";
     send_key $gnuhealth_34 ? 'ret' : 'alt-o';
     assert_screen "$gnuhealth-module_configuration_wizard-add_users-welcome";

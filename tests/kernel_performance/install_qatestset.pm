@@ -20,18 +20,29 @@ use testapi;
 use repo_tools 'add_qa_head_repo';
 
 sub install_pkg {
+    my $sleperf_source = get_var('SLE_SOURCE');
+    my $ver_path       = "/root";
     add_qa_head_repo;
-    zypper_call("install qa_testset_automation");
+    if (get_var("SLEPERF")) {
+        assert_script_run("wget --quiet -O $ver_path/sleperf.tar $sleperf_source 2>&1");
+        assert_script_run("tar xf /root/sleperf.tar -C /root");
+        assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh scheduler-service");
+        assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh common-infra");
+    }
+    else {
+        zypper_call("install qa_testset_automation");
+    }
 }
 
 sub setup_environment {
     my $runid             = get_required_var('QASET_RUNID');
     my $mitigation_switch = get_required_var('MITIGATION_SWITCH');
     my $ver_cfg           = get_required_var('VER_CFG');
-    my $ver_path          = "/root";
 
-    assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
+    assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
+        my $rel_ver = get_var('VERSION');
+        assert_script_run("if [ ! -f /root/.product_version_cfg ]; then cp /root/.product_version_cfg.$rel_ver /root/.product_version_cfg; fi");
         assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $runid $mitigation_switch");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
         if (my $qaset_config = get_var("QASET_CONFIG")) {
@@ -47,6 +58,12 @@ sub setup_environment {
             "/usr/share/qa/qaset/bin/deploy_performance.sh $runid $mitigation_switch"
         );
         assert_script_run("cat /root/qaset/qaset-setup.log");
+    }
+    my @fields = split(/;/, $ver_cfg);
+    if (scalar @fields > 0) {
+        foreach my $ver_cfg (@fields) {
+            assert_script_run("echo ${ver_cfg} >> /root/qaset/config");
+        }
     }
 }
 

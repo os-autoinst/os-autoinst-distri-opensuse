@@ -117,7 +117,7 @@ sub login_to_console {
             use_ssh_serial_console;
             save_screenshot;
             #start upgrade
-            type_string("DISPLAY= yast.ssh\n");
+            enter_cmd("DISPLAY= yast.ssh");
             save_screenshot;
             #wait upgrade finish
             assert_screen('rebootnow', 2700);
@@ -155,6 +155,20 @@ sub login_to_console {
 sub run {
     my $self = shift;
     $self->login_to_console;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    if (check_var('PERF_KERNEL', '1')) {
+        select_console 'log-console';
+        save_screenshot;
+        script_run "save_y2logs /tmp/y2logs.tar.bz2";
+        upload_logs "/tmp/y2logs.tar.bz2";
+        save_screenshot;
+    }
+    else {
+        $self->SUPER::post_fail_hook;
+    }
 }
 
 1;

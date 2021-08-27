@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
+# Copyright (c) 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -16,7 +16,7 @@ use warnings;
 use base "y2_module_consoletest";
 
 use testapi;
-use utils qw(type_string_slow zypper_call systemctl);
+use utils qw(enter_cmd_slow zypper_call systemctl);
 use version_utils qw(is_sle is_leap);
 
 sub run {
@@ -75,7 +75,7 @@ sub run {
 
     # change Interval of Synchronization
     send_key $cmd{sync_interval};
-    type_string_slow "1\n";
+    enter_cmd_slow "1";
 
     # check new interval of synchronization time
     assert_screen 'yast2_ntp-client_new_interval';

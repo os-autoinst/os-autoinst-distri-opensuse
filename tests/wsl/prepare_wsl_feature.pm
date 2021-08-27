@@ -32,11 +32,11 @@ q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppMod
     }
 };
 
-my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
 
 sub run {
     my ($self)            = @_;
     my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
+    my $ms_kernel_link    = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
     my $certs             = {
         opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt',
         sle      => '/wsl/SLES-UEFI-CA-Certificate.crt'
@@ -47,8 +47,8 @@ sub run {
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
     $self->run_in_powershell(
-        cmd     => 'Invoke-WebRequest -Uri ' . autoinst_url("/assets/other/$wsl_appx_filename") . ' -O C:\\' . $wsl_appx_filename . ' -UseBasicParsing',
-        timeout => 600
+        cmd     => "Start-BitsTransfer -Source \\\\10.0.2.4\\qemu\\$wsl_appx_filename -Destination C:\\\\$wsl_appx_filename",
+        timeout => 60
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
 

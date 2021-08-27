@@ -6,21 +6,23 @@ description: >
 name: activate_encrypted_volume+import_users
 vars:
   ENCRYPT_ACTIVATE_EXISTING: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/encrypt_lvm_reuse_existing
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
   - installation/user_import
-  - installation/user_settings_root
+  - installation/authentication/root_simple_pwd
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -29,3 +31,5 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+test_data:
+  product: SLES

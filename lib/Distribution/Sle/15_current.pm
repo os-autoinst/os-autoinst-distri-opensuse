@@ -20,17 +20,32 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'Distribution::Opensuse::Tumbleweed';
 
-use Installation::License::SLE::LicenseAgreementController;
+use Installation::License::Sle::LicenseAgreementController;
+use Installation::License::Sle::Firstboot::LicenseAgreementController;
+use Installation::ProductSelection::ProductSelectionController;
+use Installation::Registration::RegistrationController;
 
-=head2 get_eula_controller
+=head2 get_license_agreement
 
 Returns controller for the EULA page. This page significantly differs
 from the openSUSE distributions, therefore has its own controller.
 
 =cut
 
-sub get_eula_controller() {
-    return Installation::License::SLE::LicenseAgreementController->new();
+sub get_license_agreement {
+    return Installation::License::Sle::LicenseAgreementController->new();
+}
+
+sub get_firstboot_license_agreement {
+    return Installation::License::Sle::Firstboot::LicenseAgreementController->new();
+}
+
+sub get_product_selection {
+    return Installation::ProductSelection::ProductSelectionController->new();
+}
+
+sub get_registration {
+    return Installation::Registration::RegistrationController->new();
 }
 
 1;

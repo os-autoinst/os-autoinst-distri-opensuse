@@ -16,15 +16,13 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-
+use upload_system_log 'upload_supportconfig_log';
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
     assert_script_run('hostname | grep -q suse1', fail_message => 'It seems we are not on the right remote SUT host');
-    assert_script_run('supportconfig',            600);
-    assert_script_run('mv $(ls -t /var/log/*.tbz | head -1) supportconfig.tbz');
-    upload_logs('supportconfig.tbz');
+    upload_supportconfig_log();
 }
 
 1;

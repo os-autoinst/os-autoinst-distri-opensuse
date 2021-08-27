@@ -9,7 +9,7 @@
 
 # Summary: Installation of munge package from HPC module and sanity check
 # of this package
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>, soulofdestiny <mgriessmeier@suse.com>
+# Maintainer: soulofdestiny <mgriessmeier@suse.com>
 
 use base 'hpcbase';
 use strict;
@@ -41,4 +41,3 @@ sub post_fail_hook {
 }
 
 1;
-

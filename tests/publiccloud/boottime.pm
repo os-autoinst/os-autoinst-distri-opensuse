@@ -16,6 +16,7 @@ use Mojo::Util 'trim';
 use Data::Dumper;
 use testapi;
 use db_utils;
+use publiccloud::utils qw(select_host_console);
 
 our $default_analyze_thresholds = {
     # First boot after provisioning
@@ -92,6 +93,42 @@ our $thresholds_by_flavor = {
         analyze => $default_azure_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
+    'AZURE-Basic-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-Basic-gen2-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-Standard-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-Standard-gen2-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-Standard-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-BYOS-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'AZURE-BYOS-gen2-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-Image-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'Azure-Image-Updates' => {
+        analyze => $default_azure_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
 
     # EC2
     'EC2-CHOST-BYOS' => {
@@ -107,14 +144,44 @@ our $thresholds_by_flavor = {
         analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
-
     'EC2-HVM-ARM' => {
         analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
-
     'EC2-HVM-BYOS' => {
         analyze => $default_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-ARM-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-ARM-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-BYOS-ARM-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'EC2-ARM-Image-Updates' => {
+        analyze => $default_ec2_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
 
@@ -123,11 +190,27 @@ our $thresholds_by_flavor = {
         analyze => $default_gce_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
+    'GCE-Updates' => {
+        analyze => $default_gce_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
     'GCE-BYOS' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
+    'GCE-BYOS-Updates' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
     'GCE-CHOST-BYOS' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'GCE-Image-Updates' => {
+        analyze => $default_gce_BYOS_analyze_thresholds,
+        blame   => $default_blame_thresholds,
+    },
+    'GCE-BYOS-Image-Updates' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
         blame   => $default_blame_thresholds,
     },
@@ -195,7 +278,9 @@ sub do_systemd_analyze {
 }
 
 sub measure_timings {
-    my ($self) = @_;
+    my ($self, $args) = @_;
+    my $provider;
+    my $instance;
 
     my $ret = {
         kernel_release => undef,
@@ -205,10 +290,16 @@ sub measure_timings {
             first => {}, soft => {}, hard => {}
         },
     };
-    my $provider = $self->provider_factory();
 
-    # Provision the instance
-    my $instance = $provider->create_instance(check_connectivity => 0);
+    if (get_var('PUBLIC_CLOUD_QAM')) {
+        $instance         = $args->{my_instance};
+        $provider         = $args->{my_provider};
+        $self->{provider} = $args->{my_provider};    # required for cleanup
+    } else {
+        $provider = $self->provider_factory();
+        $instance = $self->{my_instance} = $provider->create_instance(check_connectivity => 0);
+    }
+
     $ret->{analyze}->{ssh_access} = $instance->wait_for_ssh(timeout => 300);
 
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze($instance);
@@ -255,11 +346,12 @@ sub store_in_db {
         os_flavor         => get_required_var('FLAVOR'),
         os_version        => get_required_var('VERSION'),
         os_build          => get_required_var('BUILD'),
-        os_pc_build       => get_required_var('PUBLIC_CLOUD_BUILD'),
-        os_pc_kiwi_build  => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
+
+    $tags->{os_pc_build}      = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD');
+    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
 
     # Store values in influx-db
     my $data = {
@@ -311,10 +403,10 @@ sub check_thresholds {
 }
 
 sub run {
-    my ($self) = @_;
-    $self->select_serial_terminal;
+    my ($self, $args) = @_;
+    select_host_console();
 
-    my $results = $self->measure_timings();
+    my $results = $self->measure_timings($args);
     $self->store_in_db($results);
     $self->check_thresholds($results);
 }

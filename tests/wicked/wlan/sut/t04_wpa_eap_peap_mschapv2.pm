@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -55,23 +55,52 @@ has hostapd_conf => q(
     auth_server_shared_secret=testing123
 );
 
-has ifcfg_wlan => q(
-    BOOTPROTO='dhcp'
-    STARTMODE='auto'
+has ifcfg_wlan => sub { [
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
 
-    # Global settings
-    WIRELESS_AP_SCANMODE='1'
-    WIRELESS_WPA_DRIVER='nl80211'
+        # Global settings
+        WIRELESS_AP_SCANMODE='1'
+        WIRELESS_WPA_DRIVER='nl80211'
 
-    # Network settings
-    WIRELESS_ESSID='{{ssid}}'
-    WIRELESS_AUTH_MODE='eap'
-    WIRELESS_EAP_AUTH='mschapv2'
-    WIRELESS_EAP_MODE='PEAP'
-    WIRELESS_MODE='Managed'
-    WIRELESS_WPA_ANONID='anonymous'
-    WIRELESS_WPA_IDENTITY='{{eap_user}}'
-    WIRELESS_WPA_PASSWORD='{{eap_password}}'
-);
+        # Network settings
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_AUTH_MODE='eap'
+        WIRELESS_EAP_AUTH='mschapv2'
+        WIRELESS_EAP_MODE='PEAP'
+        WIRELESS_MODE='Managed'
+        WIRELESS_WPA_ANONID='anonymous'
+        WIRELESS_WPA_IDENTITY='{{eap_user}}'
+        WIRELESS_WPA_PASSWORD='{{eap_password}}'
+    ),
+        q(
+        BOOTPROTO='dhcp'
+        STARTMODE='auto'
+
+        # Network settings
+        WIRELESS_ESSID='{{ssid}}'
+        WIRELESS_AUTH_MODE='eap'
+        WIRELESS_EAP_AUTH='mschapv2'
+        WIRELESS_EAP_MODE='PEAP'
+        WIRELESS_WPA_IDENTITY='{{eap_user}}'
+        WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        WIRELESS_CA_CERT='{{ca_cert}}'
+    ),
+        {
+            wicked_version => '>=0.6.66',
+            config         => q(
+            BOOTPROTO='dhcp'
+            STARTMODE='auto'
+
+            # Network settings
+            WIRELESS_ESSID='{{ssid}}'
+            WIRELESS_EAP_MODE='PEAP'
+            WIRELESS_EAP_AUTH='mschapv2'
+            WIRELESS_WPA_IDENTITY='{{eap_user}}'
+            WIRELESS_WPA_PASSWORD='{{eap_password}}'
+        )
+        }
+] };
 
 1;

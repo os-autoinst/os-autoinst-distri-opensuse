@@ -1,0 +1,30 @@
+bootcode_options:
+  bootloader_type: GRUB2
+  write_to_partition: 0
+  write_to_mbr: 1
+  select_custom_boot_partition: 0
+  set_active_flag: 1
+  write_generic_to_mbr: 0
+  trusted_boot_support: 0
+  protective_mbr_flag: "do not change"
+bootcode_applied_params:
+  verify_current_options:
+    - path: /etc/default/grub_installdevice
+      entries:
+        - by-path
+        - activate
+  write_generic_to_mbr:
+    - path: /etc/default/grub_installdevice
+      entries:
+        - generic_mbr
+  dont_write_to_mbr:
+    - path: /etc/default/grub_installdevice
+      not_entries:
+        - by-path
+  write_to_partition:
+    - path: /etc/default/grub_installdevice
+      entries:
+        - by-uuid
+bootcode_device:
+  default: /dev/vda
+  write_to_partition: /dev/vda2

@@ -82,13 +82,15 @@ sub add_test_repositories {
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
     my @repos   = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    my $gpg     = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.
     @repos = split(',', $oldrepo) if ($oldrepo);
 
+
     for my $var (@repos) {
-        zypper_call("--no-gpg-checks ar -f -n 'TEST_$counter' $var 'TEST_$counter'");
+        zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
         $counter++;
     }
     # refresh repositories, inf 106 is accepted because repositories with test
@@ -122,14 +124,20 @@ sub ssh_add_test_repositories {
 sub remove_test_repositories {
 
     type_string 'repos=($(zypper lr -e - | grep "name=TEST|baseurl=ftp" | cut -d= -f2)); if [ ${#repos[@]} -ne 0 ]; then zypper rr ${repos[@]}; fi';
-    type_string "\n";
+    send_key 'ret';
 }
 
 sub advance_installer_window {
     my ($screenName) = @_;
+    my $build = get_var('BUILD');
 
     send_key $cmd{next};
     die 'Unable to create repository' if check_screen('unable-to-create-repo', 5);
+    if ($build =~ m/^MR:/) {
+        if (check_screen("import-untrusted-gpg-key", 20)) {
+            send_key "alt-t";
+        }
+    }
     unless (check_screen "$screenName", 60) {
         my $key = check_screen('cannot-access-installation-media') ? "alt-y" : "$cmd{next}";
         send_key_until_needlematch $screenName, $key, 5, 60;

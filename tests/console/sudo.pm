@@ -24,6 +24,7 @@ use warnings;
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';
+use publiccloud::utils qw(is_publiccloud);
 
 sub sudo_with_pw {
     my ($command, %args) = @_;
@@ -33,7 +34,7 @@ sub sudo_with_pw {
     my $password = $args{password} //= $testapi::password;
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {
-        type_string "expect -c 'spawn $command;expect \"password\";send \"$password\\r\";interact'\n";
+        enter_cmd "expect -c 'spawn $command;expect \"password\";send \"$password\\r\";interact'";
         sleep 2;
     }
     else {
@@ -54,11 +55,18 @@ sub run {
     # Prepare a file with content '1' for later IO redirection test
     assert_script_run 'echo 1 >/run/openqa_sudo_test';
     # prepare sudoers and test user
-    assert_script_run 'echo "bernhard ALL = (root) NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su" >/etc/sudoers.d/test';
+    assert_script_run 'echo "bernhard ALL = (root) NOPASSWD: /usr/bin/journalctl, /usr/bin/dd, /usr/bin/cat, PASSWD: /usr/bin/zypper, /usr/bin/su, /usr/bin/id, /bin/bash" >/etc/sudoers.d/test';
     # use script_run because yes is still writing to the pipe and then command is exiting with 141
     script_run "groupadd sudo_group && useradd -m -d /home/sudo_test -G sudo_group,\$(stat -c %G /dev/$serialdev) sudo_test && yes $test_password|passwd -q sudo_test";
     assert_script_run 'echo "%sudo_group ALL = (root) NOPASSWD: /usr/bin/journalctl, PASSWD: /usr/bin/zypper" >/etc/sudoers.d/sudo_group';
+    # on publiccloud the root password is not yet set
+    # note: due to security reasons, the root password must be reset afterwards
+    my $password = $testapi::password;
+    assert_script_run("echo -e '$password\n$password' | passwd root") if is_publiccloud;
     select_console 'user-console';
+    # check if password is required
+    assert_script_run 'sudo -K && ! timeout 5 sudo id -un';
+    assert_script_run "(! sudo -n id -un) 2>&1 | grep -e '.*password .*required'";
     # single command
     assert_script_run 'id -un|grep ^bernhard';
     sudo_with_pw 'sudo id -un', grep => '^root';
@@ -76,11 +84,11 @@ sub run {
     sudo_with_pw 'sudo -i';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /root';
-    type_string "exit\n", wait_still_screen => 3;
+    enter_cmd "exit", wait_still_screen => 3;
     sudo_with_pw 'sudo -s';
     assert_script_run 'whoami|grep ^root';
     assert_script_run 'pwd|grep /home/bernhard';
-    type_string "exit\n", wait_still_screen => 3;
+    enter_cmd "exit", wait_still_screen => 3;
     # environment variables
     assert_script_run 'ENVVAR=test132 env | grep ENVVAR=test132';
     sudo_with_pw 'sudo env', grep => '-v ENVVAR=test132', env => 'ENVVAR test132';
@@ -92,7 +100,7 @@ sub run {
     test_sudoers $test_password;
     sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password";
     assert_script_run 'grep -i "not allowed" check_err.log';
-    type_string "exit\n", wait_still_screen => 3;
+    enter_cmd "exit", wait_still_screen => 3;
 }
 
 sub post_run_hook {
@@ -103,6 +111,8 @@ sub post_run_hook {
     assert_script_run 'rm -f /etc/sudoers.d/test /etc/sudoers.d/sudo_group';
     # remove test user
     assert_script_run 'userdel -r sudo_test && groupdel sudo_group';
+    # remove root password on publiccloud again
+    assert_script_run("passwd root --lock") if is_publiccloud;
 }
 
 1;

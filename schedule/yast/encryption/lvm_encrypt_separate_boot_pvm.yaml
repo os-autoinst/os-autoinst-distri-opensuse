@@ -15,16 +15,16 @@ vars:
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
-  - installation/installer_timezone
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - installation/edit_optional_kernel_cmd_parameters
   - installation/disable_grub_timeout
@@ -32,11 +32,12 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/boot_encrypt
   - installation/first_boot
   - console/system_prepare
   - console/force_scheduled_tasks
   - console/validate_lvm
   - console/validate_encrypt
+test_data:
+  product: SLES

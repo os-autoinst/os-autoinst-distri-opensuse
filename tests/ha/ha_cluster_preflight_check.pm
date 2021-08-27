@@ -19,60 +19,64 @@ use hacluster qw(check_cluster_state get_cluster_name get_node_index get_node_nu
 use utils qw(zypper_call);
 use Mojo::JSON qw(encode_json);
 
-our $dir_log = '/var/lib/ha-cluster-preflight-check/';
+our $dir_log = '/var/lib/crmsh/preflight_check/';
 
 sub upload_preflight_check_logs {
     my @report_files = split(/\n/, script_output("ls $dir_log 2>/dev/null", proceed_on_failure => 1));
-    upload_logs("$dir_log/$_",                             failok => 1) foreach (@report_files);
-    upload_logs('/var/log/ha-cluster-preflight-check.log', failok => 1);
+    upload_logs("$dir_log/$_",                        failok => 1) foreach (@report_files);
+    upload_logs('/var/log/crmsh/preflight_check.log', failok => 1);
 }
 
 sub run {
-    my ($self) = @_;
-    my $cluster_name = get_cluster_name;
-
-    # Install needed package
-    $self->select_serial_terminal;
-    zypper_call 'in python3-cluster-preflight-check';
+    my ($self)          = @_;
+    my $cluster_name    = get_cluster_name;
+    my $node_was_fenced = 0;
 
     # Ensure that the cluster state is correct before executing the checks
+    $self->select_serial_terminal;
     check_cluster_state;
 
     # We have to wait for previous nodes to finish the tests, as they can't be done in parallel without any damages!
     barrier_wait("PREFLIGHT_CHECK_INIT_${cluster_name}_NODE$_") foreach (1 .. (get_node_index) - 1);
 
     # List of things to check
-    my @checks    = qw(env-check cluster-check kill-sbd kill-corosync kill-pacemaker split-brain-iptables);
-    my @can_fence = qw(kill-sbd kill-corosync kill-pacemaker split-brain-iptables);
+    my @checks = qw(kill-sbd kill-corosync kill-pacemaker split-brain-iptables);
+
+    # Check the overall cluster status first
+    my $preflight_start_time = time;
+    my $cmd_status           = "crm analyze preflight_check";
+    record_info("cluster status", "Executing ${cmd_status}");
+    my $cmd_fails = script_run "${cmd_status}";
+    record_info('ERROR', "Failure while executing '$cmd_status'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
 
     # Loop on each check
-    my $preflight_start_time = time;
     foreach my $check (@checks) {
-        # Is the check can trigger a fencing?
-        my $trigger_fencing = grep { $_ eq $check } @can_fence;
-
         # Execute the command
-        my $cmd = "ha-cluster-preflight-check --yes --${check}";
+        my $cmd = "crm analyze preflight_check --yes --${check}";
         record_info("${check}", "Executing ${cmd}");
         my $cmd_fails = script_run "${cmd}";
-        record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless ((defined $cmd_fails and $cmd_fails == 0) or $trigger_fencing);
-        save_screenshot;
+        #record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
 
-        # Some commands may lead to a reboot of the node
-        if ($trigger_fencing) {
-            my $loop_count = bmwqemu::scale_timeout(15);    # Wait 1 minute (15*4) maximum, can be scaled with SCALE_TIMEOUT
-            while (1) {
-                last if ($loop_count-- <= 0);
-                if (check_screen('grub2', 0, no_wait => 1)) {
-                    # Wait for boot and reconnect to root console
-                    $self->wait_boot;
-                    $self->select_serial_terminal;
-                    last;
-                }
-                sleep 4;
+        # All the commands leads to a reboot of the node
+        my $loop_count = bmwqemu::scale_timeout(15);    # Wait 1 minute (15*4) maximum, can be scaled with SCALE_TIMEOUT
+        while (1) {
+            last if ($loop_count-- <= 0);
+            if (check_screen('grub2', 0, no_wait => 1)) {
+                # Wait for boot and reconnect to root console
+                $self->wait_boot;
+                $self->select_serial_terminal;
+                $node_was_fenced = 1;
+                last;
             }
+            sleep 4;
+        }
+        if ($node_was_fenced == 1) {
+            record_info('WARNING', "The node was fenced while executing '$cmd'");
+        } else {
+            record_info('ERROR', "Failure while executing '$cmd'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
         }
     }
+
     my $preflight_end_time = time;
     upload_preflight_check_logs;
 

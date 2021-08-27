@@ -22,14 +22,31 @@ schedule:
   - autoyast/autoyast_reboot
   - installation/grub_test
   - installation/first_boot
-  - console/validate_file_system
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
   - console/verify_bcache_partitioning
   - autoyast/verify_cloned_profile
 test_data:
   backingdev: vda4
-  device: vdb
-  table_type: bcache
-  file_system:
-    /: btrfs
-    /boot: ext3
+  disks:
+  - name: vda
+    partitions:
+      - name: vda3
+        formatting_options:
+          filesystem: ext3
+        mounting_options:
+          mount_point: /boot
+      - name: vda4
+        formatting_options:
+          filesystem: bcache
+      - name: bcache0p1
+        formatting_options:
+          filesystem: btrfs
+        mounting_options:
+          mount_point: /
+  - name: vdb
+    table_type: bcache
+    formatting_options:
+      filesystem: bcache
+  - name: bcache0
   <<: !include test_data/yast/autoyast/profiles/bcache.yaml

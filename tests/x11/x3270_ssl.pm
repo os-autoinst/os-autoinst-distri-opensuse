@@ -61,7 +61,7 @@ sub run {
     }
 
     #Setup openssl s_server
-    type_string "openssl s_server -accept 8443 -cert $cert_file -key $key_file 2>&1 | tee /dev/$serialdev\n";
+    enter_cmd "openssl s_server -accept 8443 -cert $cert_file -key $key_file 2>&1 | tee /dev/$serialdev";
 
     wait_serial "ACCEPT", 10 || die "openssl s_server output doesn't match";
 
@@ -73,8 +73,7 @@ sub run {
     # Launch x3270
     # Add noverifycert option if x3270 is or greater than v3.6ga
     my $noverifycert = ($current_ver < 3.6 ? '' : '-noverifycert');
-    type_string "x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443\n";
-
+    script_run "x3270 -trace $noverifycert -tracefile $tracelog_file L:localhost:8443";
     assert_screen 'x3270_fips_launched_with_TLS_SSL';
 
     # Exit and back to generic desktop
@@ -88,8 +87,14 @@ sub run {
     send_key "ctrl-c";
     clear_console;
 
-    type_string "cat $tracelog_file | tee /dev/$serialdev\n";
-    wait_serial "TLS/SSL tunneled connection complete", 5 || die "x3270 output doesn't match";
+    enter_cmd "cat $tracelog_file | tee /dev/$serialdev";
+
+    if ($current_ver >= 3.6) {
+        wait_serial "SSL_connect trace: SSLOK  SSL negotiation finished successfully", 5 || die "x3270 output doesn't match";
+    }
+    else {
+        wait_serial "TLS/SSL tunneled connection complete", 5 || die "x3270 output doesn't match";
+    }
 
     #Clean
     script_run "rm -f $tracelog_file $cert_file $key_file";

@@ -25,7 +25,7 @@ use utils qw(zypper_call zypper_ar);
 use version_utils 'is_sle';
 
 sub reboot {
-    type_string "reboot\n";
+    enter_cmd "reboot";
     reset_consoles;
     assert_screen 'grub2', 120;
     stop_grub_timeout;
@@ -51,34 +51,22 @@ sub run {
     assert_script_run 'sed -i \'/CMDLINE/s/splash=silent //\' /etc/default/grub';
     assert_script_run 'grep CMDLINE /etc/default/grub';
     record_info 'grub2 menu entry', 'install another kernel, boot the previous one';
-    zypper_call 'in -t pattern yast2_basis' if is_sle('15+');
-    if (is_sle('15-sp2+')) {
-        zypper_ar "http://download.suse.de/ibs/Devel:/Kernel:/vanilla/standard/", name => 'KERNEL_DEVEL';
-    }
-    else {
-        my $LTSS    = get_var('SCC_REGCODE_LTSS') ? '-LTSS' : '';
-        my $version = get_var('VERSION') . $LTSS;
-        zypper_ar "http://download.suse.de/ibs/Devel:/Kernel:/SLE$version/standard/", name => 'KERNEL_DEVEL';
-    }
-    zypper_call 'in kernel-vanilla';
     assert_script_run 'uname -r >kernel.txt';
-    my $boot_entry = script_output(q(grub2-once --list | grep $(uname -r) | grep -v 'recovery mode' | awk '{print $1}'));
+    assert_script_run q(sed -i '/BEGIN.*10_linux/a menuentry "SLES Fake boot" {\nlinux\n}' /boot/grub2/grub.cfg);
     reboot;
-    boot_grub_item(2, $boot_entry);
+    boot_grub_item(2);
     assert_screen 'linux-login', 200;
     select_console 'root-console';
     assert_script_run 'uname -r|grep $(cat kernel.txt)';
-    zypper_call 'rr KERNEL_DEVEL';
-    zypper_call 'rm kernel-vanilla';
+    # install fips and reset the grub config
     zypper_call 'in -t pattern fips';
-    assert_script_run 'mkinitrd';
     reboot;
 
     record_info 'grub2 command line', 'ls /boot and help command';
     send_key 'c';
-    type_string "ls /boot\n";
+    enter_cmd "ls /boot";
     assert_screen 'grub2-command-line-ls';
-    type_string "help\n";
+    enter_cmd "help";
     assert_screen 'grub2-command-line-help';
     send_key 'esc';
     sleep 1;

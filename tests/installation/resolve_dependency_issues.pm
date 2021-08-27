@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 #   - If BREAK_DEPS is set, choose option to break dependencies
 # - Handle license, automatic changes, unsupported packages, errors with
 # patterns.
-# Maintainer: Yiannis Bonatakis <ybonatakis@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base "y2_installbase";
 use strict;

@@ -14,10 +14,10 @@ schedule:
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/separate_usr_partition
-  - installation/installer_timezone
-  - installation/user_settings
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/disable_autologin
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -25,7 +25,6 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/hostname

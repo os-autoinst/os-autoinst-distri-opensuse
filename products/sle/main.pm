@@ -467,6 +467,9 @@ sub load_online_migration_tests {
     if (get_var('SCC_ADDONS', '') =~ /ltss/) {
         loadtest "migration/online_migration/register_without_ltss";
     }
+    if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+        loadtest "console/check_system_info";
+    }
     loadtest 'installation/install_service' if (is_sle && !is_desktop && !get_var('INSTALLONLY'));
     loadtest "migration/version_switch_upgrade_target";
     loadtest "migration/online_migration/pre_migration";
@@ -480,7 +483,10 @@ sub load_online_migration_tests {
         loadtest "migration/online_migration/zypper_migration";
     }
     loadtest "migration/online_migration/post_migration";
-    loadtest "console/check_system_info" if (is_sle && (get_var('FLAVOR') =~ /Milestone/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
+    if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+        loadtest "console/check_os_release";
+        loadtest "console/check_system_info";
+    }
 }
 
 sub load_patching_tests {
@@ -504,6 +510,9 @@ sub load_patching_tests {
         # Lock package for offline migration by Yast installer
         if (get_var('LOCK_PACKAGE') && !installzdupstep_is_applicable) {
             loadtest 'console/lock_package';
+        }
+        if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+            loadtest "console/check_system_info";
         }
         loadtest 'migration/record_disk_info';
         # Install service for offline migration by zypper
@@ -590,6 +599,38 @@ sub load_yast2_registration_tests {
     loadtest "console/yast2_registration";
 }
 
+sub load_virt_guest_install_tests {
+    if (get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
+        loadtest "virt_autotest/unified_guest_installation";
+        loadtest "virt_autotest/set_config_as_glue";
+        loadtest "virt_autotest/uefi_guest_verification" if get_var("VIRT_UEFI_GUEST_INSTALL");
+    }
+    else {
+        loadtest "virt_autotest/guest_installation_run";
+        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
+            loadtest "virt_autotest/set_config_as_glue";
+            loadtest "virt_autotest/setup_dns_service";
+        }
+    }
+}
+
+sub load_virt_feature_tests {
+    if (get_var("ENABLE_VIR_NET")) {
+        loadtest "virt_autotest/libvirt_virtual_network_init";
+        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+        loadtest "virt_autotest/libvirt_nated_virtual_network";
+        loadtest "virt_autotest/libvirt_routed_virtual_network";
+        loadtest "virt_autotest/libvirt_isolated_virtual_network";
+    }
+    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
+    loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
+    loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
+    if (get_var("ENABLE_SNAPSHOT")) {
+        loadtest "virt_autotest/virsh_internal_snapshot";
+        loadtest "virt_autotest/virsh_external_snapshot";
+    }
+}
+
 testapi::set_distribution(DistributionProvider->provide());
 
 # set failures
@@ -597,7 +638,10 @@ $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures())
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 if (load_yaml_schedule) {
-    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::set_libyui_backend_vars;
+        YuiRestClient::init_logger;
+    }
     return 1;
 }
 
@@ -624,10 +668,6 @@ elsif (get_var("REGRESSION")) {
 elsif (get_var("FEATURE")) {
     prepare_target();
     load_feature_tests();
-}
-elsif (is_mediacheck) {
-    load_svirt_vm_setup_tests;
-    loadtest "installation/mediacheck";
 }
 elsif (is_memtest) {
     if (!get_var("OFW")) {    #no memtest on PPC
@@ -743,6 +783,14 @@ elsif (get_var("BTRFS_PROGS")) {
     loadtest "btrfs-progs/run";
     loadtest "btrfs-progs/generate_report";
 }
+elsif (get_var("PYNFS") || get_var("CTHON04")) {
+    prepare_target;
+    load_nfs_tests;
+}
+elsif (get_var("BTRFSMAINTENANCE")) {
+    prepare_target;
+    loadtest "btrfsmaintenance/btrfsmaintenance";
+}
 elsif (get_var("VIRT_AUTOTEST")) {
     if (get_var('REPO_0_TO_INSTALL', '')) {
         #Before host installation starts, swtich to version REPO_0_TO_INSTALL if it is set
@@ -762,8 +810,16 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reboot_and_wait_up_normal";
     }
+    elsif (get_var('START_DIRECTLY_AFTER_TEST')) {
+        #Skip host installation for tests run after another test which already installs host on same SUT
+        loadtest "virt_autotest/login_console";
+        if (get_var("SKIP_GUEST_INSTALL")) {
+            loadtest "virt_autotest/cleanup_service";
+            loadtest "virt_autotest/download_guest_assets";
+        }
+    }
     else {
-        if (!check_var('ARCH', 's390x')) {
+        if (!is_s390x) {
             load_boot_tests();
             if (get_var("AUTOYAST")) {
                 loadtest "autoyast/installation";
@@ -774,39 +830,26 @@ elsif (get_var("VIRT_AUTOTEST")) {
                 loadtest "virt_autotest/login_console";
             }
         }
-        elsif (check_var('ARCH', 's390x')) {
+        else {
             loadtest "virt_autotest/login_console";
         }
         loadtest "virt_autotest/install_package";
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reset_partition";
         loadtest "virt_autotest/reboot_and_wait_up_normal" if get_var('REPO_0_TO_INSTALL');
-        loadtest "virt_autotest/download_guest_assets"     if (get_var("SKIP_GUEST_INSTALL") && is_x86_64);
+        loadtest "virt_autotest/download_guest_assets"     if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
-        loadtest "virt_autotest/guest_installation_run";
-        if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS")) {
-            loadtest "virt_autotest/set_config_as_glue";
-            loadtest "virt_autotest/setup_dns_service";
-            if (get_var("ENABLE_VIR_NET")) {
-                loadtest "virt_autotest/libvirt_virtual_network_init";
-                loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
-                loadtest "virt_autotest/libvirt_nated_virtual_network";
-                loadtest "virt_autotest/libvirt_routed_virtual_network";
-                loadtest "virt_autotest/libvirt_isolated_virtual_network";
-            }
-            loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
-            loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
-            loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
-            loadtest "virt_autotest/virsh_internal_snapshot";
-            loadtest "virt_autotest/virsh_external_snapshot";
-        }
+        load_virt_guest_install_tests;
+        load_virt_feature_tests if (!(get_var("GUEST_PATTERN") =~ /win/img) && is_x86_64 && !get_var("LTSS"));
     }
-    elsif (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
-        loadtest "virt_autotest/restore_guests";
+    #those tests which test extended features, such as hotpluggin, virtual network and SRIOV passhthrough etc.
+    #they can be seperated from prj1 if needed
+    elsif (get_var("DIRECT_CHAINED_VIRT_FEATURE_TEST")) {
+        loadtest "virt_autotest/restore_guests" if get_var("SKIP_GUEST_INSTALL");
         loadtest "virt_autotest/set_config_as_glue";
         loadtest "virt_autotest/setup_dns_service";
-        loadtest "virt_autotest/sriov_network_card_pci_passthrough";
+        loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
     }
     elsif (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
         loadtest "virt_autotest/host_upgrade_generate_run_file";
@@ -896,7 +939,12 @@ elsif (get_var("QAM_MINIMAL")) {
 }
 elsif (get_var("INSTALLTEST")) {
     boot_hdd_image;
-    loadtest "qam-updinstall/update_install";
+    if (get_var('BUILD') =~ m/^MR:/) {
+        loadtest "qam-updinstall/update_install_mr";
+    }
+    else {
+        loadtest "qam-updinstall/update_install";
+    }
 }
 elsif (get_var('LIBSOLV_INSTALLCHECK')) {
     boot_hdd_image;
@@ -990,40 +1038,6 @@ else {
         loadtest 'console/microcode_update';
         return 1;
     }
-    elsif (get_var("QAM_OPENVPN")) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('OPENVPN_STATIC_START',    2);
-            barrier_create('OPENVPN_STATIC_STARTED',  2);
-            barrier_create('OPENVPN_STATIC_FINISHED', 2);
-            barrier_create('OPENVPN_CA_START',        2);
-            barrier_create('OPENVPN_CA_STARTED',      2);
-            barrier_create('OPENVPN_CA_FINISHED',     2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest "network/openvpn_server";
-        }
-        else {
-            loadtest "network/openvpn_client";
-        }
-    }
-    elsif (get_var("QAM_SALT")) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'master')) {
-            barrier_create('SALT_MINIONS_READY', 2);
-            barrier_create('SALT_FINISHED',      2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'master')) {
-            loadtest "network/salt_master";
-        }
-        else {
-            loadtest "network/salt_minion";
-        }
-    }
     elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
         set_var('INSTALLONLY', 1);
         boot_hdd_image;
@@ -1042,47 +1056,6 @@ else {
         }
         else {
             loadtest "console/yast2_nfs4_client";
-        }
-    }
-    elsif (get_var('QAM_RSYNC')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('rsync_setup',    2);
-            barrier_create('rsync_finished', 2);
-        }
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest 'console/rsync_server';
-        }
-        else {
-            loadtest 'console/rsync_client';
-        }
-    }
-    elsif (get_var('OVS')) {
-        set_var('INSTALLONLY', 1);
-        if (check_var('HOSTNAME', 'server')) {
-            barrier_create('ipsec_done',          2);
-            barrier_create('traffic_check_done',  2);
-            barrier_create('certificate_signed',  2);
-            barrier_create('ipsec1_done',         2);
-            barrier_create('traffic_check_done1', 2);
-            barrier_create('ipsec2_done',         2);
-            barrier_create('traffic_check_done2', 2);
-            barrier_create('cert_done',           2);
-            barrier_create('empty_directories',   2);
-            barrier_create('host2_cert_ready',    2);
-            barrier_create('cacert_done',         2);
-            barrier_create('end_of_test',         2);
-        }
-        loadtest 'installation/bootloader_start';
-        boot_hdd_image;
-        loadtest 'network/setup_multimachine';
-        if (check_var('HOSTNAME', 'server')) {
-            loadtest 'console/ovs_server';
-        }
-        else {
-            loadtest 'console/ovs_client';
         }
     }
     elsif (get_var('QAM_CURL')) {
@@ -1146,6 +1119,7 @@ else {
         }
         else {
             loadtest 'x11/window_system';
+            loadtest 'x11/disable_screensaver';
             loadtest 'x11/thunderbird/thunderbird_install';
             loadtest 'x11/thunderbird/thunderbird_imap';
             loadtest 'x11/thunderbird/thunderbird_pop';
@@ -1169,9 +1143,6 @@ else {
             loadtest 'x11/evolution/evolution_meeting_pop';
         }
     }
-    elsif (get_var('AUTOFS')) {
-        load_mm_autofs_tests;
-    }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set origin and target version
         set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
@@ -1181,6 +1152,9 @@ else {
         load_default_autoyast_tests;
         # Load this to perform some other actions before upgrade even though registration and patching is controlled by autoyast
         loadtest 'update/patch_sle';
+        if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+            loadtest "console/check_system_info";
+        }
         loadtest 'migration/record_disk_info';
         loadtest "migration/version_switch_upgrade_target";
         load_default_tests;
@@ -1214,7 +1188,10 @@ else {
             loadtest "console/consoletest_setup";
             loadtest 'console/integration_services' if is_hyperv || is_vmware;
             loadtest "console/zypper_lr";
-            loadtest "console/check_system_info" if (is_sle && (get_var('FLAVOR') =~ /Milestone/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE')));
+            if (is_sle && (get_var('FLAVOR') =~ /Migration/) && (get_var('SCC_ADDONS') !~ /ha/) && !is_sles4sap && (is_upgrade || get_var('MEDIA_UPGRADE'))) {
+                loadtest "console/check_os_release";
+                loadtest "console/check_system_info";
+            }
         }
     }
     elsif (get_var("BOOT_HDD_IMAGE") && !is_jeos) {

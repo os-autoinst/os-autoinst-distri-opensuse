@@ -25,38 +25,58 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
+use containers::utils 'registry_url';
 use version_utils qw(get_os_release);
 use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
-    my ($image_names, $stable_names) = get_suse_container_urls();
+    $self->select_serial_terminal;
+    my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = "podman";
 
     install_podman_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
-    my $user      = $testapi::username;
-    my $check_msg = 'Checking allocation range of user';
-    script_run "grep $user /etc/subuid || echo /etc/subuid has no uid range for $user", output => $check_msg;
-    script_run "grep $user /etc/subgid || echo /etc/subgid has no gid range for $user", output => $check_msg;
-    assert_script_run "usermod --add-subuids 200000-201000 --add-subgids 200000-201000 $user";
+    my $user         = $testapi::username;
+    my $subuid_start = get_user_subuid($user);
+    if ($subuid_start eq '') {
+        record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';
+        $subuid_start = 200000;
+        my $subuid_range = $subuid_start + 1000;
+        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
+    }
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "grep $user /etc/subgid", fail_message => "subgid range not assigned for $user";
-    # Set read bits for $user
     assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
     ensure_serialdev_permissions;
     select_console "user-console";
 
-    # smoke test
-    assert_script_run "$runtime images -a";
-    for my $iname (@{$image_names}) {
+    return if softfail_and_skip_on_bsc1182874();
+
+    for my $iname (@{$released_images}) {
         test_container_image(image => $iname, runtime => $runtime);
-        build_container_image(image => $iname, runtime => $runtime);
+        build_and_run_image(base => $iname, runtime => $runtime);
         test_zypper_on_container($runtime, $iname);
-        verify_userid_on_container($runtime, $iname);
+        verify_userid_on_container($runtime, $iname, $subuid_start);
     }
     clean_container_host(runtime => $runtime);
+}
+
+sub softfail_and_skip_on_bsc1182874 {
+    my $alpine = registry_url('alpine');
+    if (script_run("podman run $alpine", timeout => 180) != 0) {
+        record_soft_failure "bsc#1182874 - container fails to run in rootless mode";
+        return 1;
+    }
+    return 0;
+}
+
+sub get_user_subuid {
+    my ($user) = shift;
+    my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid",
+        proceed_on_failure => 1);
+    return $start_range;
 }
 
 sub post_run_hook {
@@ -75,6 +95,7 @@ sub post_fail_hook {
         $self->save_and_upload_log('ls -la /etc/zypp/credentials.d', "/tmp/credentials.d.perm.txt");
         assert_script_run "setfacl -x u:$testapi::username /etc/zypp/credentials.d/*";
     }
+    $self->SUPER::post_fail_hook;
 }
 
 1;

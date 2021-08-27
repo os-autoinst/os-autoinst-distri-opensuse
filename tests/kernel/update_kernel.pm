@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,6 +26,21 @@ use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends 'use_ssh_serial_console';
 
+sub check_kernel_package {
+    my $kernel_name = shift;
+
+    script_run('ls -1 /boot/vmlinu[xz]*');
+    # Only check versioned kernels in livepatch tests. Some old kernel
+    # packages install /boot/vmlinux symlink but don't set package ownership.
+    my $glob  = get_var('KGRAFT', 0) ? '-*' : '*';
+    my $cmd   = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
+    my $packs = script_output($cmd);
+
+    for my $packname (split /\s+/, $packs) {
+        die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
+          if $packname ne $kernel_name;
+    }
+}
 
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
@@ -50,6 +65,7 @@ sub prepare_azure {
 
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    check_kernel_package('kernel-azure');
     power_action('reboot', textmode => 1);
     boot_to_console($self);
 }
@@ -59,6 +75,7 @@ sub prepare_kernel_base {
 
     remove_kernel_packages();
     zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
+    check_kernel_package('kernel-default-base');
     power_action('reboot', textmode => 1);
     boot_to_console($self);
 }
@@ -134,12 +151,30 @@ sub override_shim {
 
     my $shim_versions = {
         '12-SP2' => [['4.4.121-92.135.1', '0.9-20.3']],
-        '12-SP3' => [['4.4.180-94.124.1', '14-25.3.2']],
-        '12-SP4' => [['4.12.14-95.54.1',  '14-25.6.1']],
-        '12-SP5' => [['4.12.14-122.26.1', '14-25.6.1']],
-        '15'     => [['4.12.14-150.52.1', '14-7.10.1']],
-        '15-SP1' => [['4.12.14-197.45.1', '15+git47-3.3.1']],
-        '15-SP2' => [['5.3.18-22.2',      '15+git47-3.3.1']]
+        '12-SP3' => [
+            ['4.4.180-94.124.1', '14-25.3.2'],
+            ['4.4.180-94.138.1', '15+git47-25.11.1'],
+        ],
+        '12-SP4' => [
+            ['4.12.14-95.54.1', '14-25.6.1'],
+            ['4.12.14-95.68.1', '15+git47-25.11.1'],
+        ],
+        '12-SP5' => [
+            ['4.12.14-122.26.1', '14-25.6.1'],
+            ['4.12.14-122.60.1', '15+git47-25.11.1']
+        ],
+        '15' => [
+            ['4.12.14-150.52.1', '14-7.10.1'],
+            ['4.12.14-150.66.1', '15+git47-7.15.1'],
+        ],
+        '15-SP1' => [
+            ['4.12.14-197.45.1', '15+git47-3.3.1'],
+            ['4.12.14-197.83.1', '15+git47-3.13.1']
+        ],
+        '15-SP2' => [
+            ['5.3.18-22.2',    '15+git47-3.3.1'],
+            ['5.3.18-24.49.2', '15+git47-3.13.1']
+        ]
     };
     my $version_list;
 
@@ -172,6 +207,8 @@ sub install_lock_kernel {
             '4.4.126-94.22.1'  => '4.4.126-94.22.2',
             '4.4.178-94.91.2'  => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
+            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
+            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
         },
         'kernel-macros' => {
             '4.4.59-92.17.3'   => '4.4.59-92.17.2',
@@ -179,6 +216,8 @@ sub install_lock_kernel {
             '4.4.126-94.22.1'  => '4.4.126-94.22.2',
             '4.4.178-94.91.2'  => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
+            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
+            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
         },
         'kernel-devel' => {
             '4.4.59-92.17.3'   => '4.4.59-92.17.2',
@@ -186,6 +225,8 @@ sub install_lock_kernel {
             '4.4.126-94.22.1'  => '4.4.126-94.22.2',
             '4.4.178-94.91.2'  => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
+            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
+            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
         }};
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
@@ -362,12 +403,22 @@ sub run {
         boot_to_console($self);
     }
 
-    my $repo        = get_var('KOTD_REPO');
-    my $incident_id = undef;
+    # https://progress.opensuse.org/issues/90522
+    if (is_sle('=12-SP2')) {
+        my $arch = get_var('ARCH');
+        zypper_call("ar -G -f http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON");
+    }
+
+    my $repo           = get_var('KOTD_REPO');
+    my $incident_id    = undef;
+    my $kernel_package = 'kernel-default';
+
     unless ($repo) {
         $repo        = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
     }
+
+    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
 
     if (get_var('KGRAFT')) {
         my $incident_klp_pkg = prepare_kgraft($repo, $incident_id);
@@ -390,6 +441,8 @@ sub run {
         kgraft_state;
     }
     elsif (get_var('AZURE')) {
+        $kernel_package = 'kernel-azure';
+
         if (get_var('AZURE_FIRST_RELEASE')) {
             first_azure_release($repo);
         }
@@ -399,6 +452,7 @@ sub run {
         }
     }
     elsif (get_var('KERNEL_BASE')) {
+        $kernel_package = 'kernel-default-base';
         $self->prepare_kernel_base;
         update_kernel($repo, $incident_id);
     }
@@ -408,6 +462,8 @@ sub run {
     else {
         update_kernel($repo, $incident_id);
     }
+
+    check_kernel_package($kernel_package);
 
     if (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);

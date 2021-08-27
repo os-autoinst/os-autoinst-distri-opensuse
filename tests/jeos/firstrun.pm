@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2018 SUSE LLC
+# Copyright © 2015-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -76,12 +76,12 @@ sub run {
     mouse_hide;
     # kiwi-templates-JeOS images (sle, opensuse x86_64 only) are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
-    if (is_sle('<15-sp3') || (is_leap('<15.3') && is_x86_64)) {
+    if ((is_sle('15+') && is_sle('<15-sp3')) || (is_leap('<15.3') && is_x86_64)) {
         assert_screen 'jeos-lang-notice', 300;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
         send_key 'ret';
-    } elsif (is_opensuse && !is_x86_64) {
+    } elsif ((is_opensuse && !is_x86_64) || is_sle('=12-sp5')) {
         assert_screen 'jeos-locale', 300;
         send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 50;
         send_key 'ret';
@@ -141,7 +141,7 @@ sub run {
     if ($lang ne 'en_US') {
         # With the foreign keyboard, type 'loadkeys us'
         my %loadkeys_reset = ('de_DE' => 'loadkezs us');
-        type_string("$loadkeys_reset{$lang}\n");
+        enter_cmd("$loadkeys_reset{$lang}");
         wait_still_screen;
     }
     # Manually configure root-console as we skipped some parts in root-console's activation
@@ -158,7 +158,7 @@ sub run {
 
     my $console = select_console 'user-console';
     verify_user_info;
-    type_string "exit\n";
+    enter_cmd "exit";
     $console->reset();
 
     select_console 'root-console';

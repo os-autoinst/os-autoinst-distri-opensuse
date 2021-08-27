@@ -30,7 +30,7 @@ sub run {
     x11_start_program('xterm');
     become_root;
     assert_script_run 'dhclient';
-    type_string "exit\n";
+    enter_cmd "exit";
     send_key 'alt-f4';
 
     # Start Remmina and login the remote server
@@ -71,7 +71,6 @@ sub run {
     # Enter the full screen mode
     send_key 'z-f';
     handle_login;
-    assert_screen 'generic-desktop';
 
     # Disconnect with the remote server
     send_key 'z-f4';

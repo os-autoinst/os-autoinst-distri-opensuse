@@ -79,15 +79,15 @@ sub check_pkg {
     my @before = del_num(@diffpkg);
     my %hash_a = map  { $_ => 1 } @after;
     my @b_only = grep { !$hash_a{$_} } @before;
-    my @remain = grep { $_ !~ /LMOD_SH_DBG_ON=1/ } @b_only;
-    if (@remain) {
-        die "After migration, some packages are miss: " . Dumper(\@remain);
+    if (@b_only) {
+        die "After migration, some packages are miss: " . Dumper(\@b_only);
     }
 }
 
 sub full_pkgcompare_check {
-    my ($stage) = @_;
-    $stage //= '';
+    my (%hash) = @_;
+    my $stage = $hash{stage};
+
     if ($stage eq 'before') {
         list_pkg("orignalq1w2.txt");
         install_pkg();

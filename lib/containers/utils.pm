@@ -21,8 +21,10 @@ use utils;
 use strict;
 use warnings;
 use version_utils;
+use Mojo::Util 'trim';
 
-our @EXPORT = qw(test_seccomp basic_container_tests container_set_up get_vars build_img test_built_img can_build_sle_base);
+our @EXPORT = qw(test_seccomp basic_container_tests get_vars can_build_sle_base check_docker_firewall
+  get_docker_version check_runtime_version container_ip registry_url);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -41,20 +43,67 @@ sub test_seccomp {
     }
 }
 
+sub check_docker_firewall {
+    my $container_name = 'sut_container';
+    my $docker_version = get_docker_version();
+    systemctl('is-active firewalld');
+    my $running = script_output qq(docker ps -q | wc -l);
+    validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running == 0;
+    # Docker zone is created for docker version >= 20.10 (Tumbleweed), but it
+    # is backported to docker 19 for SLE15-SP3 and for Leap 15.3
+    if (check_runtime_version($docker_version, ">=20.10") || is_sle('>=15-sp3') || is_leap(">=15.3")) {
+        assert_script_run "firewall-cmd --list-all --zone=docker";
+        validate_script_output "firewall-cmd --list-interfaces --zone=docker", sub { /docker0/ };
+    }
+    # Rules applied before DOCKER. Default is to listen to all tcp connections
+    # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
+    validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
+    assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine');
+    my $container_ip = container_ip($container_name, "docker");
+    # Each running container should have added a new entry to the DOCKER zone.
+    # ex. output: "1           0        0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.2           tcp dpt:1234"
+    validate_script_output "iptables -L DOCKER -nvx --line-numbers", sub { /1.+ACCEPT.+!docker0 docker0.+$container_ip\s+tcp dpt:1234/ };
+    assert_script_run "docker kill $container_name ";
+}
+
+sub get_docker_version {
+    my $v = script_output("docker --version");
+    record_info "$v", $v =~ /(\d{2}\.\d{2})/;
+    return $v =~ /(\d{2}\.\d{2})/;
+}
+
+sub check_runtime_version {
+    my ($current, $other) = @_;
+    return check_version($other, $current, qr/\d{2}(?:\.\d+)/);
+}
+
+sub container_ip {
+    my ($container, $runtime) = @_;
+    my $ip = script_output "$runtime inspect $container --format='{{.NetworkSettings.IPAddress}}'";
+    record_info "container IP", "$ip";
+    return $ip;
+}
+
+sub registry_url {
+    my ($container_name, $version_tag) = @_;
+    my $registry = trim(get_var('REGISTRY', 'docker.io'));
+    $registry =~ s{/$}{};
+    # Images from docker.io registry are listed without the 'docker.io/library/'
+    # Images from custom registry are listed with the 'server/library/'
+    # We also filter images the same way they are listed.
+    my $repo = ($registry =~ /docker\.io/) ? "" : "$registry/library";
+    return $registry unless $container_name;
+    return sprintf("%s/%s", $repo, $container_name) unless $version_tag;
+    return sprintf("%s/%s:%s", $repo, $container_name, $version_tag);
+}
+
 sub basic_container_tests {
     my %args    = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
-
-    my $registry = get_var('REGISTRY', 'docker.io');
-    # Images from docker.io registry are listed without the 'docker.io/library/'
-    # Images from custom registry are listed with the 'server/library/'
-    # We also filter images the same way they are listed.
-    my $prefix = ($registry =~ /docker\.io/) ? "" : "$registry/library/";
-
     my $alpine_image_version = '3.6';
-    my $alpine               = "${prefix}alpine:$alpine_image_version";
-    my $hello_world          = "${prefix}hello-world";
+    my $alpine               = registry_url('alpine', $alpine_image_version);
+    my $hello_world          = registry_url('hello-world');
     my $leap                 = "registry.opensuse.org/opensuse/leap";
     my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
 
@@ -112,7 +161,7 @@ sub basic_container_tests {
     if (script_run("$runtime container exec $container_name zypper -n in curl", 300)) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
-        die('error: curl not installed in the container') unless ($output =~ m/Installing: curl.*done/);
+        die('error: curl not installed in the container') unless (($output =~ m/Installing: curl.*done/) || ($output =~ m/\'curl\' .* already installed/));
     }
     assert_script_run("$runtime container commit $container_name tw:saved", 240);
 
@@ -149,62 +198,6 @@ sub basic_container_tests {
     die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
     record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
     record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
-}
-
-# Setup environment
-sub container_set_up {
-    my ($dir, $file, $base) = @_;
-    die "You must define the directory!"  unless $dir;
-    die "You must define the Dockerfile!" unless $file;
-    my $basename_expected = script_run("grep baseimage_var $dir/BuildTest/$file");
-    die "Base image name is required for $file" if !$basename_expected && $base;
-
-    record_info "Dockerfile: $file";
-    assert_script_run("mkdir -p $dir/BuildTest");
-    assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
-    record_info('app.py', script_output("cat $dir/BuildTest/app.py"));
-    assert_script_run "curl -f -v " . data_url("containers/$file") . " > $dir/BuildTest/Dockerfile";
-    assert_script_run "sed -i 's,baseimage_var,$base,1' $dir/BuildTest/Dockerfile" if defined $base;
-    record_info('Dockerfile', script_output("cat $dir/BuildTest/Dockerfile"));
-    assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
-    record_info('requirements.txt', script_output("cat $dir/BuildTest/requirements.txt"));
-}
-
-# Build the image
-sub build_img {
-    my $dir = shift;
-    die "You must define the directory!" unless $dir;
-    my $runtime = shift;
-    die "You must define the runtime!" unless $runtime;
-    my $registry = get_var('REGISTRY', 'docker.io');
-
-    assert_script_run("cd $dir");
-    if ($runtime =~ /docker|podman/) {
-        assert_script_run("$runtime image pull $registry/library/python:3", timeout => 300);
-        assert_script_run("$runtime tag $registry/library/python:3 python:3");
-        assert_script_run("$runtime build -t myapp BuildTest");
-    }
-    elsif ($runtime =~ /buildah/) {
-        assert_script_run("$runtime bud -t myapp BuildTest");
-    }
-    else {
-        die "Unsupported runtime: $runtime";
-    }
-    assert_script_run("$runtime images| grep myapp");
-}
-
-# Run the built image
-sub test_built_img {
-    my $runtime = shift;
-    die "You must define the runtime!" unless $runtime;
-
-    assert_script_run("mkdir /root/templates");
-    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > /root/templates/index.html";
-    assert_script_run("$runtime run -dit -p 8888:5000 -v ~/templates:\/usr/src/app/templates myapp www.google.com");
-    sleep 5;
-    assert_script_run("$runtime ps -a");
-    script_retry('curl http://localhost:8888/ | grep "Networking test shall pass"', delay => 5, retry => 6);
-    assert_script_run("rm -rf /root/templates");
 }
 
 =head2 can_build_sle_base

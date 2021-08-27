@@ -1,4 +1,4 @@
-# Copyright (C) 2017 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # Summary: Test verifies installation using autoyast_sle_12_btrfs.xml profile
 # configuration for btrfs partitions. Verify subvolumes stcructure, mount options
 # subvolume attributes configured in profile.
-# Maintainer: Rodion Iafarov <riafarov@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'basetest';
 use strict;

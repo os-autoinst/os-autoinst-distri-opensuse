@@ -9,7 +9,7 @@
 # without any warranty.
 
 # Summary: Prepare system for reboot after zdup upgrade
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base "installbasetest";
 use strict;

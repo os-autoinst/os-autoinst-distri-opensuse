@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 our @ISA    = qw(Exporter);
-our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_join ssh_interactive_leave);
+our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_leave);
 
 sub ssh_interactive_tunnel {
     my ($instance) = @_;
@@ -29,10 +29,13 @@ sub ssh_interactive_tunnel {
     my $upload_host = testapi::host_ip();
 
     $instance->run_ssh_command(
-        cmd => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' | tee /dev/$serialdev ", # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
-        timeout  => 0,    # This will also cause script_run instead of script_output to be used so the test will not wait for the command to end
+        # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
+        #   timeout => switches to script_run instead of script_output to be used so the test will not wait for the command to end
+        #   tunnel the worker port (for downloading from data/ and uploading assets / logs
+        cmd      => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' 2>&1 | tee /dev/$serialdev; clear",
+        timeout  => 0,
         no_quote => 1,
-        ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",    # Tunnel the worker port (for downloading from data/ and uploading assets / logs
+        ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",
         username => 'root'
     );
     sleep 3;
@@ -40,18 +43,9 @@ sub ssh_interactive_tunnel {
 
     set_var('SERIALDEV_',               $serialdev);
     set_var('_SSH_TUNNELS_INITIALIZED', 1);
-}
 
-sub ssh_interactive_join {
-    # Open SSH interactive session and check the serial console works
-    type_string("ssh -yt sut\n");
-    wait_serial("ssh_serial_ready", 90) if (get_var("AUTOINST_URL_HOSTNAME", '') !~ /localhost/);
-
-    # Prepare the environment to use the SSH tunnel for upload/download from the worker
     set_var('AUTOINST_URL_HOSTNAME', 'localhost');
     set_sshserial_dev();
-
-    $testapi::distri->set_standard_prompt('root');
 }
 
 sub ssh_interactive_leave {

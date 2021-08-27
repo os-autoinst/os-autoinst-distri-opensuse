@@ -1,3 +1,20 @@
+terraform {
+  required_providers {
+    google = {
+      version = "= 3.65.0"
+      source = "hashicorp/google"
+    }
+    random = {
+      version = "= 3.1.0"
+      source = "hashicorp/random"
+    }
+    external = {
+      version = "= 2.1.0"
+      source = "hashicorp/external"
+    }
+  }
+}
+
 variable "cred_file" {
     default = "/root/google_credentials.json"
 }
@@ -57,6 +74,10 @@ variable "tags" {
     default = {}
 }
 
+variable "enable_confidential_vm" {
+	default=false
+}
+
 resource "random_id" "service" {
     count = var.instance_count
     keepers = {
@@ -66,10 +87,14 @@ resource "random_id" "service" {
 }
 
 resource "google_compute_instance" "openqa" {
-    count        = var.instance_count
-    name         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
-    machine_type = var.type
-    zone         = var.region
+    count                        = var.instance_count
+    name                         = "${var.name}-${element(random_id.service.*.hex, count.index)}"
+    machine_type                 = var.type
+    zone                         = var.region
+    
+    confidential_instance_config {
+    	enable_confidential_compute = var.enable_confidential_vm ? true : false
+    }
 
     boot_disk {
         device_name = "${var.name}-${element(random_id.service.*.hex, count.index)}"
@@ -77,12 +102,16 @@ resource "google_compute_instance" "openqa" {
             image = var.image_id
         }
     }
+    
+    scheduling {
+    	on_host_maintenance = "TERMINATE"
+    }
 
     metadata = merge({
             sshKeys = "susetest:${file("/root/.ssh/id_rsa.pub")}"
             openqa_created_by = var.name
-            openqa_created_date = "${timestamp()}"
-            openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+            openqa_created_date = timestamp()
+            openqa_created_id = element(random_id.service.*.hex, count.index)
         }, var.tags)
 
     network_interface {
@@ -121,14 +150,18 @@ resource "google_compute_disk" "default" {
     physical_block_size_bytes = 4096
     labels = {
         openqa_created_by = var.name
-        openqa_created_id = "${element(random_id.service.*.hex, count.index)}"
+        openqa_created_id = element(random_id.service.*.hex, count.index)
     }
 }
 
 output "public_ip" {
-    value = "${google_compute_instance.openqa.*.network_interface.0.access_config.0.nat_ip}"
+    value = google_compute_instance.openqa.*.network_interface.0.access_config.0.nat_ip
 }
 
 output "vm_name" {
-    value = "${google_compute_instance.openqa.*.name}"
+    value = google_compute_instance.openqa.*.name
+}
+
+output "confidential_instance_config" {
+  value   = google_compute_instance.openqa.*.confidential_instance_config
 }

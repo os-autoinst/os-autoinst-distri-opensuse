@@ -25,7 +25,7 @@ sub run_developers_tests {
 
     # Download and unpack the test scripts supplied by the developers
     # Continue if it can not be downloaded
-    type_string "cd /tmp\n";
+    enter_cmd "cd /tmp";
     my $ret = script_run "curl -k $devel_repo | tar -zxvf -";
     unless (defined $ret and $ret == 0) {
         record_info 'Download problem', 'Could not download developer test script';
@@ -67,7 +67,7 @@ sub run_developers_tests {
     }
 
     # Return to homedir just in case
-    type_string "cd\n";
+    enter_cmd "cd";
 }
 
 sub verify_sapconf_service {

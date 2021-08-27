@@ -1,0 +1,42 @@
+---
+name: mau-extratests-publiccloud
+description: |
+  Run mau-extratests on public cloud instances
+schedule:
+  - boot/boot_to_desktop
+  - publiccloud/ssh_interactive_init
+  - publiccloud/register_system
+  - publiccloud/ssh_interactive_start
+  - publiccloud/instance_overview
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/check_os_release
+  - console/cleanup_qam_testrepos
+  - console/openvswitch
+  - console/sshd
+  - console/rpm
+  - console/command_not_found
+  - console/openssl_alpn
+  - console/cron
+  - console/syslog
+  - console/mta
+  - console/check_default_network_manager
+  - console/sysctl
+  - console/sysstat
+  - console/wget_ipv6
+  - console/gpg
+  - console/shells
+  - console/sudo
+  - console/supportutils
+  - console/journalctl
+  - console/quota
+  - console/rpcbind
+  - console/timezone
+  - console/procps
+  - console/suse_module_tools
+  - console/firewalld
+  - console/aaa_base
+  - console/osinfo_db
+  - console/libgcrypt
+  - publiccloud/ssh_interactive_end

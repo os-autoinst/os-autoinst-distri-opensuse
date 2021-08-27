@@ -19,7 +19,7 @@ use testapi;
 
 sub run {
     assert_screen 'startshell', 90;
-    type_string "exit\n";
+    enter_cmd "exit";
 }
 
 1;

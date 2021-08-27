@@ -16,7 +16,7 @@
 # Summary: Make sure we are logged in
 # - Wait for boot if BACKEND is ipmi
 # - Set root-console
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;

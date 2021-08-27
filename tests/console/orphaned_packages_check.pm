@@ -9,7 +9,7 @@
 
 # Summary: Check for any orphaned packages. There should be none in fully
 #   supported systems
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#19606
 
 use base "consoletest";

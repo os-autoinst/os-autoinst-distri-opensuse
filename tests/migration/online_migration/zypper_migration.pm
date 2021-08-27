@@ -1,15 +1,15 @@
-# SLE12 online migration tests
+# SLE online migration tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Package: zypper
-# Summary: SLE 12 online migration using zypper migration
-# Maintainer: yutao <yuwang@suse.com>
+# Package: zypper, transactional-update
+# Summary: SLE online migration using zypper migration or transactional update
+# Maintainer: yutao <yuwang@suse.com>, <qa-c@suse.de>
 
 use base "installbasetest";
 use strict;
@@ -17,8 +17,15 @@ use warnings;
 use testapi;
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration);
+use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro);
 use Utils::Backends 'is_pvm';
+use transactional;
+
+sub check_migrated_version {
+    # check if the migration success or not by checking the /etc/os-release file with the VERSION
+    my $target_version = get_var("VERSION");
+    assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
+}
 
 sub run {
     my $self = shift;
@@ -40,8 +47,12 @@ sub run {
 
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
-    my $option = (is_leap_migration) ? " --allow-vendor-change " : " ";
-    script_run("(zypper migration $option; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
+    if (is_sle_micro) {
+        script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
+    } else {
+        my $option = (is_leap_migration) ? " --allow-vendor-change " : " ";
+        script_run("(zypper migration $option; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
+    }
     # migration process take long time
     my $timeout          = 7200;
     my $migration_checks = [
@@ -83,7 +94,9 @@ sub run {
         elsif ($out =~ $zypper_migration_conflict)
         {
             if (check_var("BREAK_DEPS", '1')) {
-                send_key '1';
+                # This is a workaround for leap to sle migration, we need choose 2 to resolve conflicts.
+                # Normally we do not need resolve any conflicts during migration.
+                is_leap_migration ? send_key '2' : send_key '1';
                 send_key 'ret';
             } else {
                 save_screenshot;
@@ -121,9 +134,8 @@ sub run {
         }
         $out = wait_serial($migration_checks, $timeout);
     }
-    # check if the migration success or not by checking the /etc/os-release file with the VERSION
-    my $target_version = get_var("VERSION");
-    assert_script_run("grep VERSION= /etc/os-release | grep $target_version");
+
+    check_migrated_version unless is_sle_micro;
 
     select_console('root-console', await_console => 0);
     # wait long time for snapper to settle down
@@ -131,15 +143,19 @@ sub run {
 
     # We can't use 'keepconsole' here, because sometimes a display-manager upgrade can lead to a screen change
     # during restart of the X/GDM stack
-    power_action('reboot', textmode => 1);
-    reconnect_mgmt_console if is_pvm;
-
-    # Do not attempt to log into the desktop of a system installed with SLES4SAP
-    # being prepared for upgrade, as it does not have an unprivileged user to test
-    # with other than the SAP Administrator
-    #
-    # sometimes reboot takes longer time after online migration, give more time
-    $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 400, ready_time => 600, nologin => is_sles4sap);
+    if (is_sle_micro) {
+        check_reboot_changes;
+        check_migrated_version;
+    } else {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
+        # Do not attempt to log into the desktop of a system installed with SLES4SAP
+        # being prepared for upgrade, as it does not have an unprivileged user to test
+        # with other than the SAP Administrator
+        #
+        # sometimes reboot takes longer time after online migration, give more time
+        $self->wait_boot(textmode => !is_desktop_installed, bootloader_time => 500, ready_time => 600, nologin => is_sles4sap);
+    }
 }
 
 sub post_fail_hook {

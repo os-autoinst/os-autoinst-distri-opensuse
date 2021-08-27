@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -19,14 +19,16 @@ sub new {
 
     return bless {
         widget_controller => $args->{widget_controller},
-        filter            => $args->{filter},
+        filter            => $args->{filter}
     }, $class;
 }
 
 sub action {
     my ($self, %args) = @_;
+
+    $self->resolve_filter() unless $self->{filter}->is_resolved();
     # Inject filter parameters to the request
-    my $params = {%args, %{$self->{filter}}};
+    my $params = {%args, %{$self->{filter}->get_filter()}};
     $self->{widget_controller}->send_action($params);
 
     return $self;
@@ -55,7 +57,17 @@ sub property {
 sub find_widgets {
     my ($self) = @_;
 
-    return $self->{widget_controller}->find($self->{filter});
+    $self->resolve_filter() unless $self->{filter}->is_resolved();
+    return $self->{widget_controller}->find($self->{filter}->get_filter());
+}
+
+sub resolve_filter {
+    my ($self) = @_;
+
+    # get json with widgets according to current filter (which does not include regex)
+    my $json = $self->{widget_controller}->find($self->{filter}->get_filter());
+    # replace regex by found value in the filter
+    $self->{filter}->resolve($json);
 }
 
 1;

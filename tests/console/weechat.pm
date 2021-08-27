@@ -37,7 +37,7 @@ sub run {
     assert_screen('weechat-welcome_to_znc');
 
     run_weechat_command("/query *status");
-    type_string("\n");
+    send_key 'ret';
 
     run_weechat_command("Version");
     assert_screen('weechat-znc-status-version');
@@ -50,7 +50,7 @@ sub run_weechat_command {
     type_string(shift);
     wait_still_screen 2;
     save_screenshot;
-    type_string("\n");
+    send_key 'ret';
 }
 
 1;

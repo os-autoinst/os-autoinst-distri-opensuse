@@ -117,9 +117,9 @@ EOF
     upload_logs($pam_mount_cfg);
 
     # Test and make sure user's home directory can mount/unmount during login/logout
-    type_string "su - $user\n";
+    enter_cmd "su - $user";
     assert_script_run "df -k | grep /home/$user";
-    type_string "exit\n";
+    enter_cmd "exit";
     validate_script_output "df -k | grep /home/$user || echo 'check pass'", sub { m/check pass/ };
 
     # Tear down, clear the pam configuration changes

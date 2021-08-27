@@ -17,6 +17,14 @@ conditional_schedule:
             'svirt-vmware65':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
+    efi:
+        UEFI:
+            '1':
+                - console/verify_efi_mok
+    maintenance:
+        FLAVOR:
+            'JeOS-for-kvm-and-xen-Updates':
+                - qa_automation/patch_and_reboot
 schedule:
     - '{{bootloader}}'
     - jeos/firstrun
@@ -27,7 +35,11 @@ schedule:
     - jeos/diskusage
     - jeos/build_key
     - console/prjconf_excluded_rpms
+    - console/journal_check
+    - microos/libzypp_config
     - console/suseconnect_scc
+    - '{{maintenance}}'
+    - '{{efi}}'
     - jeos/glibc_locale
     - console/check_network
     - console/system_state
@@ -61,7 +73,7 @@ schedule:
     - console/sshd
     - console/ssh_cleanup
     - console/mtab
-    - console/mysql_srv
+    - console/mariadb_srv
     - console/rsync
     - console/openvswitch
     - console/zypper_lifecycle

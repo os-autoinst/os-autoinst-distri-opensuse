@@ -13,12 +13,12 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
-  - installation/accept_license
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/warning/no_root
   - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning/warning/no_boot
@@ -27,12 +27,11 @@ schedule:
   - installation/partitioning/warning/prep_small
   - installation/partitioning/warning/zipl_small
   - installation/partitioning/warning/rootfs_small
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   - '{{hostname_inst}}'
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -40,11 +39,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
-  # Called on BACKEND: svirt
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
 conditional_schedule:
   hostname_inst:
@@ -53,15 +48,5 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
-  reconnect_mgmt_console:
-    BACKEND:
-      svirt:
-        - boot/reconnect_mgmt_console
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
-      pvm_hmc:
-        - installation/grub_test
+test_data:
+  product: SLES

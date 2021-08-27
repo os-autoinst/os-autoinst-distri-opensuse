@@ -1,0 +1,21 @@
+---
+name: textmode_misc
+description: >
+    Maintainer: zluo
+    Extra console tests requires hdd of allmodules+allpattern gnome
+conditional_schedule:
+    tw_tests:
+        DISTRI:
+            opensuse:
+                - console/ndctl
+                - console/openvswitch_ssl
+                - x11/ghostscript
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - update/zypper_up
+    - console/iotop
+    - console/gd
+    - console/journalctlLevels
+    - console/perf
+    - '{{tw_tests}}'

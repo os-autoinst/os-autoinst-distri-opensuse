@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: C and C++ source compilation to check that gcc from toolchain module
-# Maintainer: Anton Smorodskyi <asmorodskyi@suse.com> , Michal Nowak <mnowak@suse.com>
+# Maintainer: qe-core@suse.de
 
 use base "opensusebasetest";
 use strict;

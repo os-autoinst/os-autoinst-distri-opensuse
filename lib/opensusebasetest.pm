@@ -157,7 +157,7 @@ The files will be uploaded as a single tarball called C<problem_detection_logs.t
 sub problem_detection {
     my $self = shift;
 
-    type_string "pushd \$(mktemp -d)\n";
+    enter_cmd "pushd \$(mktemp -d)";
     $self->detect_bsc_1063638;
     # Slowest services
     $self->save_and_upload_log("systemd-analyze blame", "systemd-analyze-blame.txt", {noupload => 1});
@@ -191,9 +191,8 @@ sub problem_detection {
     $self->save_and_upload_log("coredumpctl list", "segmentation-faults-list.txt", {screenshot => 1, noupload => 1});
     $self->save_and_upload_log("coredumpctl info", "segmentation-faults-info.txt", {screenshot => 1, noupload => 1});
     # Save core dumps
-    type_string "mkdir -p coredumps\n";
-    type_string 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
-    type_string "\n";
+    enter_cmd "mkdir -p coredumps";
+    enter_cmd 'awk \'/Storage|Coredump/{printf("cp %s ./coredumps/\n",$2)}\' segmentation-faults-info.txt | sh';
     clear_console;
 
     # Broken links
@@ -226,7 +225,7 @@ done", "binaries-with-missing-libraries.txt", {timeout => 60, noupload => 1});
 
     script_run 'tar cvvJf problem_detection_logs.tar.xz *';
     upload_logs('problem_detection_logs.tar.xz', failok => 1);
-    type_string "popd\n";
+    enter_cmd "popd";
 }
 
 =head2 investigate_yast2_failure
@@ -329,9 +328,9 @@ sub investigate_yast2_failure {
         "<3>.*Label has no shortcut or more than 1 shortcuts"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*diff failed"                                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Failed to stat"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Bad directive: options"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*OPEN_FAILED opening"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*rpmdbInit error"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Bad directive: options"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<5>.*Failed to initialize database"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "(<3>|<5>).*Rpm Exception"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Cleanup on error"                                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
@@ -376,7 +375,7 @@ sub investigate_yast2_failure {
     # String to accumulate unknown detected issues
     my $detected_errors_detailed = '';
     for my $y2log_error (keys %y2log_errors) {
-        if (my $y2log_error_result = script_output("$cmd_prefix -C 5 -E \"$y2log_error\" $cmd_postfix")) {
+        if (my $y2log_error_result = script_output("$cmd_prefix -m 20 -C 5 -E \"$y2log_error\" $cmd_postfix")) {
             # Save detected error to indetify if have new regressions
             push @detected_errors, $y2log_error;
             if (my $bug = $y2log_errors{$y2log_error}) {
@@ -400,10 +399,10 @@ sub investigate_yast2_failure {
     # Send last lines to serial to copy in case of new critical bugs
     # If yast log file exists
     if (script_run("test -e $logs_path/y2log") == 0) {
-        type_string "echo $delimiter > /dev/$serialdev\n";
-        type_string "echo 'YaST LOGS' > /dev/$serialdev\n";
-        type_string "tail -n 150 $logs_path/y2log > /dev/$serialdev\n";
-        type_string "echo $delimiter > /dev/$serialdev\n";
+        enter_cmd "echo $delimiter > /dev/$serialdev";
+        enter_cmd "echo 'YaST LOGS' > /dev/$serialdev";
+        enter_cmd "tail -n 150 $logs_path/y2log > /dev/$serialdev";
+        enter_cmd "echo $delimiter > /dev/$serialdev";
     }
     if ($detected_errors_detailed) {
         record_info(
@@ -610,9 +609,24 @@ sub handle_uefi_boot_disk_workaround {
     send_key_until_needlematch 'tianocore-select_opensuse_or_sles', 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
-    # efi file
-    send_key_until_needlematch 'tianocore-select_grubaa64_efi', 'up';
-    wait_screen_change { send_key 'ret' };
+    # efi file, first check shim.efi exist or not
+    my $counter        = 10;
+    my $shim_efi_found = 1;
+    while (!check_screen('tianocore-select_shim_efi', 2)) {
+        wait_screen_change {
+            send_key 'up';
+        };
+        if (!$counter--) {
+            $shim_efi_found = 0;
+            last;
+        }
+    }
+    if ($shim_efi_found == 1) {
+        wait_screen_change { send_key 'ret' };
+    } else {
+        send_key_until_needlematch 'tianocore-select_grubaa64_efi', 'up';
+        wait_screen_change { send_key 'ret' };
+    }
 }
 
 =head2 wait_grub
@@ -628,15 +642,39 @@ sub wait_grub {
     my $bootloader_time = $args{bootloader_time} // 100;
     my $in_grub         = $args{in_grub}         // 0;
     my @tags;
-    push @tags, 'shim-key-management'           if get_var('CHECK_MOK_IMPORT');
-    push @tags, 'bootloader-shim-verification'  if get_var('MOK_VERBOSITY');
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
     push @tags, 'grub2';
-    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
-    push @tags, 'bootloader'                      if get_var('OFW');
-    push @tags, 'encrypted-disk-password-prompt'  if get_var('ENCRYPT');
+    push @tags, 'boot-live-' . get_var('DESKTOP')     if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+    push @tags, 'bootloader'                          if get_var('OFW');
+    push @tags, 'encrypted-disk-password-prompt-grub' if get_var('ENCRYPT');
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
+    }
+    # if there was a request to enroll or remove a certificate used for SecureBoot process
+    if (get_var('_EXPECT_EFI_MOK_MANAGER')) {
+        wait_serial('Shim UEFI key management', 60) or die 'MokManager has not been started!';
+        send_key 'ret';
+        assert_screen 'shim-perform-mok-management';
+        send_key 'down';
+        assert_screen([qw(shim-enroll-mok shim-delete-mok)]);
+        send_key 'ret';
+        assert_screen 'shim-view-key';
+        send_key 'ret';
+        assert_screen 'shim-imported-mock-cert';
+        send_key 'ret';
+        assert_screen 'shim-view-key';
+        send_key 'down';
+        assert_screen 'shim-enroll-mok-continue';
+        send_key 'ret';
+        assert_screen 'shim-keys-confirm-dialog';
+        send_key 'down';
+        assert_screen 'shim-keys-confirm-yes';
+        send_key 'ret';
+        assert_screen 'shim-mok-password';
+        type_password;
+        send_key 'ret';
+        assert_screen 'shim-perform-mok-reboot';
+        send_key 'ret';
     }
     # after gh#os-autoinst/os-autoinst#641 68c815a "use bootindex for boot
     # order on UEFI" the USB install medium is priority and will always be
@@ -666,38 +704,6 @@ sub wait_grub {
         }
         assert_screen "grub2", 15;
     }
-    elsif (match_has_tag('bootloader-shim-verification') || match_has_tag('shim-key-management')) {
-        if (match_has_tag('bootloader-shim-verification')) {
-            send_key 'ret';
-            assert_screen([qw(shim-key-management grub2)]);
-        }
-        if (match_has_tag 'shim-key-management') {
-            send_key 'ret';
-            assert_screen 'shim-perform-mok-management';
-            send_key 'down';
-            assert_screen([qw(shim-enroll-mok shim-delete-mok)]);
-            send_key 'ret';
-            assert_screen 'shim-view-key';
-            send_key 'ret';
-            assert_screen 'shim-imported-mock-cert';
-            send_key 'ret';
-            assert_screen 'shim-view-key';
-            send_key 'down';
-            assert_screen 'shim-enroll-mok-continue';
-            send_key 'ret';
-            assert_screen 'shim-keys-confirm-dialog';
-            send_key 'down';
-            assert_screen 'shim-keys-confirm-yes';
-            send_key 'ret';
-            assert_screen 'shim-mok-password';
-            type_password;
-            send_key 'ret';
-            assert_screen 'shim-perform-mok-reboot';
-            send_key 'ret';
-            assert_screen([qw(grub2 bootloader-shim-verification)]);
-            send_key 'ret' if (match_has_tag 'bootloader-shim-verification');
-        }
-    }
     elsif (get_var("LIVETEST")) {
         # prevent if one day booting livesystem is not the first entry of the boot list
         if (!match_has_tag("boot-live-" . get_var("DESKTOP"))) {
@@ -707,7 +713,7 @@ sub wait_grub {
     elsif (match_has_tag('inst-bootmenu')) {
         $self->wait_grub_to_boot_on_local_disk;
     }
-    elsif (match_has_tag('encrypted-disk-password-prompt')) {
+    elsif (match_has_tag('encrypted-disk-password-prompt-grub')) {
         # unlock encrypted disk before grub
         workaround_type_encrypted_passphrase;
         assert_screen("grub2", timeout => ((is_pvm) ? 300 : 90));
@@ -786,7 +792,7 @@ sub reconnect_s390 {
         select_console('svirt');
         save_svirt_pty;
 
-        wait_serial('GNU GRUB', 180) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
+        wait_serial('GNU GRUB|Welcome to GRUB!', 180) || diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
         grub_select;
 
         type_line_svirt '', expect => $login_ready, timeout => $ready_time + 100, fail_message => 'Could not find login prompt';
@@ -1018,6 +1024,7 @@ sub wait_boot_past_bootloader {
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
+    push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
 
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
     if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
@@ -1040,6 +1047,13 @@ sub wait_boot_past_bootloader {
         my $ret = check_screen \@tags, $check_interval;
         last if $ret;
         $timeout -= $check_interval;
+    }
+    # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+    # user will want to start something. For openQA, we simply press 'esc' to close
+    # it again and really end up on the desktop
+    if (match_has_tag('gnome-activities')) {
+        send_key 'esc';
+        @tags = grep { !/gnome-activities/ } @tags;
     }
     # if we reached a logged in desktop we are done here
     return 1 if match_has_tag('generic-desktop') || match_has_tag('opensuse-welcome');

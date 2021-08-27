@@ -6,10 +6,11 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/add_phub_extension
-    - console/machinery
     - console/python_scientific
     - '{{wpa_supplicant}}'
-    - sysauth/sssd
+    - console/vmstat
+    - console/sssd_389ds_functional
+    - console/sssd_openldap_functional
     - console/coredump_collect
 conditional_schedule:
     wpa_supplicant:

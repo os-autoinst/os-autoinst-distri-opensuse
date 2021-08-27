@@ -12,7 +12,7 @@
 #    this allows to better check and compare versions
 #    to find what might have introduced a bug
 #    or if the new version with a proposed fix is already included.
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE LSG <qa-team@suse.de>
 
 use base 'y2_installbase';
 use strict;

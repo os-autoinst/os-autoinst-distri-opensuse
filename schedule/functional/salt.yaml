@@ -1,0 +1,16 @@
+---
+name: salt
+description: >
+    Maintainer: zluo
+    Install and test salt server and minion on SLES
+conditional_schedule:
+    salt:
+        HOSTNAME:
+            'minion':
+                - network/salt_minion
+            'master':
+                - network/salt_master
+schedule:
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - '{{salt}}'

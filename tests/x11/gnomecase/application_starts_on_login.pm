@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -46,21 +46,9 @@ use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
 use x11utils qw(handle_relogin turn_off_gnome_screensaver);
 
 sub tweak_startupapp_menu {
-    my ($self) = @_;
-    if (!is_sle('<15-sp2') && !is_leap('<15.2')) {
-        x11_start_program 'gnome-tweaks';
-    }
-    elsif (is_sle('15+')) {
-        # tweak-tool entry is not in gnome-control-center of SLE15;
-        x11_start_program 'gnome-tweak-tool';
-    }
-    else {
-        $self->start_gnome_settings;
-        type_string "tweak";
-        assert_screen "settings-tweak-selected";
-        send_key "ret";
-    }
-    assert_screen "tweak-tool";
+    my ($self) = shift;
+
+    $self->start_gnome_tweak_tool;
     # increase the default timeout - the switching can be slow
     send_key_until_needlematch "tweak-startapp", "down", 10, 2;
 }
@@ -171,10 +159,8 @@ sub run {
         click_lastmatch;
         assert_screen 'xterm';
     }
-    send_key "alt-f4";
-    wait_still_screen;
-    send_key "ret";
-    wait_still_screen;
+    send_key "esc";
+    assert_and_click "xterm-close-window";
     assert_screen "generic-desktop";
 
     #remove xterm from startup application
@@ -186,7 +172,6 @@ sub run {
     assert_screen "generic-desktop";
 
     handle_relogin;
-    assert_screen "generic-desktop";
 
     # save session, available only for GNOME<3.34.2, see bsc#1158851
     if (is_sle('<15-sp2') || is_leap('<15.2')) {

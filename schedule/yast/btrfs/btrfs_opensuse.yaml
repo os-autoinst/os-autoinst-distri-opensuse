@@ -2,20 +2,21 @@ name:           btrfs
 description:    >
   Validate default installation with btrfs.
 vars:
-  FILESYSTEM: btrfs
+  FILESYSTEM: btrfs  # Used for log collection in lib/y2_base
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
-  - installation/bootloader
-  - installation/welcome
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -27,6 +28,7 @@ schedule:
   - installation/first_boot
   - console/validate_no_cow_attribute
   - console/verify_no_separate_home
+  - console/validate_subvolumes
 test_data:
   device: vda
   table_type: gpt
@@ -41,3 +43,6 @@ test_data:
       - /opt
     no_cow:
       - /var
+  validate_subvolumes:
+    - subvolume: home
+      mount_point: /

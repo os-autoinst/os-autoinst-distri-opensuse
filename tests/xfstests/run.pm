@@ -85,12 +85,12 @@ END_CMD
 
 # Start heartbeat, setup environment variables(Call it everytime SUT reboots)
 sub heartbeat_start {
-    type_string(". ~/.xfstests; nohup sh $HB_SCRIPT &\n");
+    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
 }
 
 # Stop heartbeat
 sub heartbeat_stop {
-    type_string("\n");
+    send_key 'ret';
     assert_script_run("touch $HB_EXIT_FILE");
 }
 
@@ -106,7 +106,7 @@ sub heartbeat_wait {
         }
         else {
             my $status;
-            type_string("\n");
+            send_key 'ret';
             my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
             $ret =~ s/^\s+|\s+$//g;
             if ($ret == 0) {
@@ -157,7 +157,7 @@ sub log_add {
     my $name = test_name($test);
     unless ($name and $status) { return; }
     my $cmd = "echo '$name ... ... $status (${time}s)' >> $file && sync $file";
-    type_string("\n");
+    send_key 'ret';
     assert_script_run($cmd);
     sleep 5;
     my $ret = script_output("cat $file", 20);
@@ -376,7 +376,7 @@ $cmd
 umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
-    type_string("$cmd\n");
+    enter_cmd("$cmd");
 }
 
 sub reload_loop_device {
@@ -438,7 +438,7 @@ sub run {
 
         # Run test and wait for it to finish
         my ($category, $num) = split(/\//, $test);
-        type_string("echo $test > /dev/$serialdev\n");
+        enter_cmd("echo $test > /dev/$serialdev");
         test_run($test);
         my ($type, $status, $time) = test_wait($MAX_TIME);
         if ($type eq $HB_DONE) {

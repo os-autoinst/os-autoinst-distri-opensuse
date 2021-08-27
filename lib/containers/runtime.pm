@@ -44,7 +44,7 @@ sub build {
     die 'wrong number of arguments' if @_ < 3;
     #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
     $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", 300);
-    record_info "$container_tag created";
+    record_info "$container_tag created", "";
 }
 
 =head2 up

@@ -38,8 +38,8 @@ sub run {
     else {
         # Login with default credentials (root:linux)
         assert_screen('linux-login', 300);
-        type_string("root\n",              wait_still_screen => 5);
-        type_string("$default_password\n", wait_still_screen => 5);
+        enter_cmd("root",              wait_still_screen => 5);
+        enter_cmd("$default_password", wait_still_screen => 5);
     }
 
     # Install jeos-firstboot, when needed
@@ -48,7 +48,6 @@ sub run {
     if ($is_generalhw_via_ssh) {
         # Do not set network down as we are connected through ssh!
         my $filetoedit = is_leap('<=15.2') ? '/usr/lib/jeos-firstboot' : '/usr/share/jeos-firstboot/jeos-firstboot-dialogs';
-        $filetoedit = '/usr/sbin/jeos-firstboot' unless is_leap;    # Change is not in TW just yet
         assert_script_run("sed -i 's/ip link set down /# ip link set down/g' $filetoedit");
     }
     # Remove current root password
@@ -67,10 +66,10 @@ sub run {
         # Trigger *-firstboot at next boot
         assert_script_run("touch /var/lib/YaST2/reconfig_system");
 
-        type_string("reboot\n");
+        enter_cmd("reboot");
     }
     else {
-        type_string(is_leap('<=15.2') ? "/usr/lib/jeos-firstboot\n" : "jeos-firstboot\n");
+        enter_cmd(is_leap('<=15.2') ? "/usr/lib/jeos-firstboot\n" : "jeos-firstboot");
     }
 }
 

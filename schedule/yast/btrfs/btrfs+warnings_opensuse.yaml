@@ -13,12 +13,11 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/warning/no_root
   - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning/warning/no_boot
@@ -27,10 +26,9 @@ schedule:
   - installation/partitioning/warning/prep_small
   - installation/partitioning/warning/zipl_small
   - installation/partitioning/warning/rootfs_small
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
-  - installation/installer_timezone
-  - installation/user_settings
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -38,7 +36,6 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   # On Tumbleweed process Welcome pop-up screen

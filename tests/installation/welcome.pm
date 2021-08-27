@@ -21,7 +21,7 @@
 # - Save screenshot
 # - If necessary, change keyboard layout
 # - Proceed install (Next, next) until license on welcome screen is found
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
@@ -71,6 +71,7 @@ sub get_product_shortcuts {
             sled => 'x',
             sles4sap => is_ppc64le() ? 'i'
             : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
+            : (is_sle('15-SP3+') && is_x86_64()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
             rt  => is_x86_64() ? 't' : undef
@@ -155,7 +156,7 @@ sub run {
 
     ensure_fullscreen;
 
-    if (is_sle_micro || (is_sle('15+') && get_var('UPGRADE'))) {
+    if (is_sle('15+') && get_var('UPGRADE')) {
         assert_screen('inst-welcome-no-product-list');
     }
     else {

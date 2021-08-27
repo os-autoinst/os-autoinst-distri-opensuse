@@ -19,6 +19,7 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
+  - installation/disable_kdump
   - installation/start_install
   - installation/await_install
   - installation/reboot_after_installation

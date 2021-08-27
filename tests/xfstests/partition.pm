@@ -93,7 +93,7 @@ sub do_partition_for_xfstests {
         script_run("sed -i -e '/ \/home /d' /etc/fstab");
         script_run('mkdir /home/fsgqa; mkdir /home/fsgqa-123456');
     }
-    parted_print($para{dev});
+    parted_print(dev => $para{dev});
     # Prepare suitable partition type, if don't have extended then create one
     $part_table = partition_table($para{dev});
     if ($part_table =~ 'msdos') {
@@ -104,11 +104,11 @@ sub do_partition_for_xfstests {
     }
     if ($part_table =~ 'msdos' && partition_num_by_type($para{dev}, 'extended') == -1) {
         create_partition($para{dev}, 'extended', 'max');
-        parted_print($para{dev});
+        parted_print(dev => $para{dev});
     }
     # Create TEST_DEV
     $test_dev = create_partition($para{dev}, $part_type, $para{size});
-    parted_print($para{dev});
+    parted_print(dev => $para{dev});
     format_partition($test_dev, $para{fstype});
     # Create SCRATCH_DEV or SCRATCH_DEV_POOL
     my @scratch_dev;
@@ -119,7 +119,7 @@ sub do_partition_for_xfstests {
         format_partition($part, $para{fstype});
         push @scratch_dev, $part;
     }
-    parted_print($para{dev});
+    parted_print(dev => $para{dev});
     # Create mount points
     script_run('mkdir /mnt/test /mnt/scratch');
     # Setup configure file xfstests/local.config
@@ -135,6 +135,13 @@ sub do_partition_for_xfstests {
         my $SCRATCH_DEV_POOL = join(' ', @scratch_dev);
         script_run("echo 'export SCRATCH_DEV_POOL=\"$SCRATCH_DEV_POOL\"' >> $CONFIG_FILE");
         set_var('XFSTESTS_SCRATCH_DEV_POOL', $SCRATCH_DEV_POOL);
+    }
+    # Create SCRATCH_LOGDEV with disk partition
+    if (get_var('XFSTESTS_LOGDEV')) {
+        my $logdev = create_partition($para{dev}, $part_type, 100);
+        format_partition($logdev, $para{fstype});
+        script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
+        script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
     }
     # Sync
     script_run('sync');
@@ -186,6 +193,17 @@ sub create_loop_device_by_rootsize {
     else {
         script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5\"' >> $CONFIG_FILE");
         set_var('XFSTESTS_SCRATCH_DEV_POOL', '/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5');
+    }
+    # Create SCRATCH_LOGDEV with loop device
+    if (get_var('XFSTESTS_LOGDEV')) {
+        my $logdev      = "/dev/loop100";
+        my $logdev_name = "logdev";
+
+        assert_script_run("fallocate -l 100M $INST_DIR/$logdev_name",  300);
+        assert_script_run("losetup -P $logdev $INST_DIR/$logdev_name", 300);
+        format_partition("$INST_DIR/logdev_name", $para{fstype});
+        script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
+        script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
     }
     # Sync
     script_run('sync');

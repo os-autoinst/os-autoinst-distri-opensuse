@@ -56,7 +56,7 @@ use constant {
           get_os_release
           check_os_release
           package_version_cmp
-          )
+        )
     ],
     BACKEND => [
         qw(
@@ -65,7 +65,7 @@ use constant {
           is_hyperv_in_gui
           is_aarch64_uefi_boot_hdd
           is_svirt_except_s390x
-          )
+        )
     ],
     SCENARIO => [
         qw(
@@ -86,7 +86,7 @@ use constant {
           has_license_to_accept
           uses_qa_net_hardware
           has_test_issues
-          )
+        )
     ]
 };
 
@@ -310,8 +310,8 @@ sub is_sle {
 Returns true if called on a transactional server
 =cut
 sub is_transactional {
-    return 1 if is_microos;
-    return check_var('SYSTEM_ROLE', 'serverro');
+    return 1 if (is_microos || is_sle_micro);
+    return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 
 =head2 is_sles4migration
@@ -359,7 +359,7 @@ sub is_hpc {
 Returns true if called on a released build
 =cut
 sub is_released {
-    return get_var('FLAVOR') =~ /Incidents/ || get_var('FLAVOR') =~ /Updates/;
+    return get_var('FLAVOR') =~ /Incidents|Updates|QR/;
 }
 
 

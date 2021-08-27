@@ -153,6 +153,24 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
+        sles15sp3PV => {
+            name         => 'sles15sp3PV',
+            autoyast     => 'autoyast_xen/sles15sp3PV_PRG.xml',
+            extra_params => '--os-variant sles12',
+            macaddress   => '52:54:00:78:73:b1',
+            ip           => '192.168.122.117',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+        },
+        sles15sp3HVM => {
+            name         => 'sles15sp3HVM',
+            autoyast     => 'autoyast_xen/sles15sp3HVM_PRG.xml',
+            extra_params => '--os-variant sles12',
+            macaddress   => '52:54:00:78:73:b2',
+            ip           => '192.168.122.118',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+        },
         sles12sp5HVM => {
             name         => 'sles12sp5HVM',
             autoyast     => 'autoyast_xen/sles12sp5HVM_PRG.xml',
@@ -227,6 +245,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro       => 'SLE_15',
             location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
+        sles15sp3 => {
+            name         => 'sles15sp3',
+            autoyast     => 'autoyast_kvm/sles15sp3_PRG.xml',
+            extra_params => '--os-variant sles12',
+            macaddress   => '52:54:00:78:73:b1',
+            ip           => '192.168.122.117',
+            distro       => 'SLE_15',
+            location     => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+        },
         sles12sp5 => {
             name         => 'sles12sp5',
             autoyast     => 'autoyast_kvm/sles12sp5_PRG.xml',
@@ -275,6 +302,10 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp2',
             ip   => 'd192.qam.suse.de',
         },
+        sles15sp3 => {
+            name => 'sles15sp3',
+            ip   => 'd215.qam.suse.de',
+        },
     );
 
     delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
@@ -286,6 +317,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15})       if (!is_sle('=15'));
     delete($guests{sles15sp1})    if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
+    delete($guests{sles15sp3})    if (!is_sle('=15-SP3'));
 } elsif (get_var("REGRESSION", '') =~ /hyperv/) {
     %guests = (
         sles11sp4x32 => {
@@ -324,6 +356,10 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp2',
             ip   => 'd196.qam.suse.de',
         },
+        sles15sp3 => {
+            name => 'sles15sp3',
+            ip   => 'd461.qam.suse.de',
+        },
     );
 
     delete($guests{sles11sp4x32}) if (!is_sle('=11-SP4'));
@@ -335,6 +371,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     delete($guests{sles15})       if (!is_sle('=15'));
     delete($guests{sles15sp1})    if (!is_sle('=15-SP1'));
     delete($guests{sles15sp2})    if (!is_sle('=15-SP2'));
+    delete($guests{sles15sp3})    if (!is_sle('=15-SP3'));
 } else {
     %guests = ();
 }

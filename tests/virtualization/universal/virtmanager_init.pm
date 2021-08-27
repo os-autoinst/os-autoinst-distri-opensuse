@@ -41,7 +41,7 @@ sub run_test {
     }
 
     #x11_start_program 'virt-manager';
-    type_string "virt-manager\n";
+    enter_cmd "virt-manager";
 
     establish_connection();
 

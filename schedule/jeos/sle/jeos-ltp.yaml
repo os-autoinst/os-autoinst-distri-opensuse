@@ -1,6 +1,11 @@
 ---
 description: 'General LTP JeOS test suite, selection of LTP test cases is driven by OpenQA variable LTP_COMMAND_FILE={ltp_testsuite}'
 name: 'jeos-ltp'
+conditional_schedule:
+  maintenance:
+    FLAVOR:
+      'JeOS-for-kvm-and-xen-Updates':
+        - qa_automation/patch_and_reboot
 schedule:
   - jeos/firstrun
   - jeos/record_machine_id
@@ -10,5 +15,6 @@ schedule:
   - jeos/diskusage
   - jeos/build_key
   - console/suseconnect_scc
+  - '{{maintenance}}'
   - console/consoletest_setup
   - kernel/install_ltp

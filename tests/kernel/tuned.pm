@@ -33,7 +33,7 @@ sub run {
     $known_errors{bsc_1148789} = 'Executing cpupower error: Error setting perf-bias value on CPU' if is_sle '<15';
     $known_errors{bsc_1148789} = 'Failed to set energy_perf_bias on cpu'                          if (is_sle('>=15') || is_tumbleweed);
 
-    select_console 'root-console';
+    $self->select_serial_terminal;
     # Install tuned package
     zypper_call 'in tuned';
     # Start daemon

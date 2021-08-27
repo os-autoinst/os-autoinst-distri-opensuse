@@ -1,0 +1,7 @@
+---
+name: rancher
+description:    >
+    Tests for Rancher in openSUSE
+schedule:
+    - boot/boot_to_desktop
+    - rancher/rancher_rke1_worker

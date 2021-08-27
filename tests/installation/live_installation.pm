@@ -15,7 +15,7 @@
 #  issue with the live installer has been found and is worked around while
 #  recording a reference to the bug.
 #
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use base "installbasetest";
 use warnings;

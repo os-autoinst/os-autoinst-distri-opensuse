@@ -6,11 +6,13 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Backends 'is_hyperv';
+use Exporter 'import';
+our @EXPORT_OK = qw(yast2_console_exec);
 
 sub yast2_console_exec {
     my %args = @_;
     die "Yast2 module has not been found among function arguments!\n" unless (defined($args{yast2_module}));
-    my $y2_start    = y2_module_basetest::with_yast_env_variables() . ' yast2 ';
+    my $y2_start    = y2_module_basetest::with_yast_env_variables($args{extra_vars}) . ' yast2 ';
     my $module_name = 'yast2-' . $args{yast2_module} . '-status';
     $y2_start .= (defined($args{yast2_opts})) ?
       $args{yast2_opts} . ' ' . $args{yast2_module} :

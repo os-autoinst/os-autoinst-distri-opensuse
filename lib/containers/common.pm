@@ -21,13 +21,24 @@ use strict;
 use warnings;
 use testapi;
 use registration;
-use utils qw(zypper_call systemctl);
-use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud);
-use containers::utils 'can_build_sle_base';
+use utils qw(zypper_call systemctl file_content_replace script_retry);
+use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
+use containers::utils qw(can_build_sle_base registry_url);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
   clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
-  scc_restore_docker_image_credentials install_buildah_when_needed);
+  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
+
+sub activate_containers_module {
+    my ($running_version, $sp, $host_distri) = get_os_release;
+    my $suseconnect = script_output('SUSEConnect --status-text', timeout => 240);
+    if ($suseconnect !~ m/Containers/) {
+        $running_version eq '12' ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
+        $suseconnect = script_output('SUSEConnect --status-text', timeout => 240);
+    }
+    record_info('SUSEConnect', $suseconnect);
+}
+
 
 sub install_podman_when_needed {
     my $host_os = shift;
@@ -44,13 +55,13 @@ sub install_podman_when_needed {
             assert_script_run "apt-get -y install podman", timeout => 220;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-            add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
+            activate_containers_module if $host_os =~ 'sles';
             push(@pkgs, 'podman-cni-config') if is_jeos();
             push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
         }
-        assert_script_run('podman info');
     }
+    assert_script_run('podman info');
 }
 
 sub install_docker_when_needed {
@@ -75,9 +86,7 @@ sub install_docker_when_needed {
                 assert_script_run "apt-get -y install docker-ce", timeout => 260;
             } else {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
-                if (can_build_sle_base && script_run("SUSEConnect --status-text | grep Containers", timeout => 240) != 0) {
-                    is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
-                }
+                activate_containers_module if $host_os =~ 'sles';
 
                 # docker package can be installed
                 zypper_call('in docker', timeout => 900);
@@ -86,8 +95,21 @@ sub install_docker_when_needed {
     }
 
     # docker daemon can be started
-    systemctl('enable docker') if systemctl('is-enabled docker', ignore_failure => 1);
-    systemctl('start docker')  if systemctl('is-active docker',  ignore_failure => 1);
+    systemctl('enable docker');
+    systemctl('is-enabled docker');
+    # docker start, but taking bsc#1187479 into account. Please remove softfailure handling, once bsc#1187479 is solved.
+    if (systemctl('start docker', ignore_failure => 1) != 0) {
+        # Check for docker start timeout, bsc#1187479
+        if (script_run('journalctl -e | grep "timeout waiting for containerd to start"') == 0) {
+            # Retry one more time
+            record_soft_failure("bsc#1187479");
+            sleep(120);    # give background services time to complete to prevent another failure
+            systemctl('start docker');
+        } else {
+            die "docker start failed";
+        }
+    }
+    systemctl('is-active docker');
     systemctl('status docker', timeout => 120);
     assert_script_run('docker info');
 }
@@ -97,7 +119,7 @@ sub install_buildah_when_needed {
     my @pkgs    = qw(buildah);
     if (script_run("which buildah") != 0) {
         # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-        add_suseconnect_product('sle-module-containers') if ($host_os =~ 'sles' && is_sle('>=15'));
+        activate_containers_module if $host_os =~ 'sles';
         zypper_call "in @pkgs";
         record_info('buildah', script_output('buildah info'));
     }
@@ -107,23 +129,21 @@ sub allow_selected_insecure_registries {
     my %args    = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
-    my $registry = get_var('REGISTRY', 'docker.io');
+    my $registry = registry_url();
 
     assert_script_run "echo $runtime ...";
     if ($runtime =~ /docker/) {
         # Allow our internal 'insecure' registry
-        assert_script_run("mkdir -p /etc/docker");
-        assert_script_run('cat /etc/docker/daemon.json; true');
         assert_script_run(
-            'echo "{ \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
+'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
         assert_script_run('cat /etc/docker/daemon.json');
         systemctl('restart docker');
     } elsif ($runtime =~ /podman/) {
         assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
         assert_script_run "chmod 644 /etc/containers/registries.conf";
-        assert_script_run("sed -i 's/REGISTRY/$registry/' /etc/containers/registries.conf");
+        file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
     } else {
-        die "You must define the runtime!";
+        die "Unsupported runtime - " . $runtime;
     }
 }
 
@@ -132,11 +152,11 @@ sub clean_container_host {
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     if ($runtime =~ /buildah/) {
-        assert_script_run("$runtime rm --all");
-        assert_script_run("$runtime rmi --all --force");
+        assert_script_run("$runtime rm --all",          timeout => 180);
+        assert_script_run("$runtime rmi --all --force", timeout => 300);
     } else {
         assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
-        assert_script_run("$runtime system prune -a -f",             180);
+        assert_script_run("$runtime system prune -a -f",             300);
     }
 }
 
@@ -209,23 +229,25 @@ sub test_container_image {
     # Images from custom registry are listed with the '$registry/library/'
     $image =~ s/^docker\.io\/library\///;
 
-    my $smoketest = "/bin/uname -r; /bin/echo \"Heartbeat from $image\"";
+    my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
     if ($runtime =~ /buildah/) {
         if (script_run("buildah images | grep '$image'") != 0) {
             assert_script_run("buildah pull $image", timeout => 300);
             assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
         }
-        my $container = script_output("buildah from $image");
-        record_info $container;
+        # Ignore stderr explicitly, script_output with serial_terminal captures that as well.
+        my $container = script_output("buildah from $image 2>/dev/null");
+        record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
         assert_script_run("buildah run $container $smoketest");
     } else {
         # Pull the image if necessary
         if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
-            assert_script_run("$runtime pull $image", timeout => 300);
+            # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
+            script_retry("$runtime pull $image", retry => 3, timeout => 420);
             assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
         }
-        assert_script_run("$runtime container create --name 'testing' '$image' /bin/sh -c '$smoketest'");
+        assert_script_run("$runtime container create --name testing $image $smoketest");
         assert_script_run("$runtime container start 'testing'");
         assert_script_run("$runtime wait 'testing'", 90);
         assert_script_run("$runtime container logs 'testing' | tee '$logfile'");
@@ -250,6 +272,21 @@ sub scc_apply_docker_image_credentials {
 
 sub scc_restore_docker_image_credentials {
     assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
+}
+
+sub test_rpm_db_backend {
+    my %args    = @_;
+    my $image   = $args{image};
+    my $runtime = $args{runtime};
+
+    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $runtime not provided!' unless $runtime;
+
+    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
+    # TW and SLE 15-SP3+ uses rpm-ndb in the image
+    if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
+        validate_script_output "$runtime run $image rpm --eval %_db_backend", sub { m/ndb/ };
+    }
 }
 
 1;

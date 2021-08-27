@@ -30,7 +30,7 @@ sub run_test {
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
     #x11_start_program 'virt-manager';
-    type_string "virt-manager\n";
+    enter_cmd "virt-manager";
 
     establish_connection();
 

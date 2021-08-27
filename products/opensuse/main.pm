@@ -126,7 +126,10 @@ logcurrentenv(
 );
 
 if (load_yaml_schedule) {
-    YuiRestClient::set_libyui_backend_vars if YuiRestClient::is_libyui_rest_api;
+    if (YuiRestClient::is_libyui_rest_api) {
+        YuiRestClient::set_libyui_backend_vars;
+        YuiRestClient::init_logger;
+    }
     return 1;
 }
 
@@ -265,33 +268,21 @@ if (is_jeos) {
 if (is_kernel_test()) {
     load_kernel_tests();
 }
-elsif (get_var("NETWORKD")) {
-    boot_hdd_image();
-    load_networkd_tests();
-}
 elsif (get_var('NFV')) {
     load_nfv_tests();
 }
+elsif (get_var("PYNFS") || get_var("CTHON04")) {
+    loadtest "boot/boot_to_desktop";
+    load_nfs_tests;
+}
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-}
-elsif (is_mediacheck) {
-    load_svirt_vm_setup_tests;
-    loadtest "installation/mediacheck";
 }
 elsif (is_memtest) {
     if (!get_var("OFW")) {    #no memtest on PPC
         load_svirt_vm_setup_tests;
         loadtest "installation/memtest";
     }
-}
-elsif (get_var('GNUHEALTH')) {
-    boot_hdd_image;
-    loadtest 'gnuhealth/gnuhealth_install';
-    loadtest 'gnuhealth/gnuhealth_setup';
-    loadtest 'gnuhealth/gnuhealth_client_install';
-    loadtest 'gnuhealth/gnuhealth_client_preconfigure';
-    loadtest 'gnuhealth/gnuhealth_client_first_time';
 }
 elsif (is_rescuesystem) {
     loadtest "installation/rescuesystem";
@@ -323,8 +314,35 @@ elsif (get_var('SECURITY_TEST')) {
     prepare_target();
     load_security_tests;
 }
-elsif (get_var('AUTOFS')) {
-    load_mm_autofs_tests;
+elsif (get_var('VIRT_AUTOTEST')) {
+    prepare_target() unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    loadtest "virt_autotest/switch_to_ssh_and_install_hypervisor";
+    loadtest "virt_autotest/reboot_and_wait_up_normal"  unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    loadtest "virt_autotest/unified_guest_installation" unless get_var('SKIP_GUEST_INSTALL');
+    loadtest "virt_autotest/set_config_as_glue";
+    if (get_var('ENABLE_VIR_NET')) {
+        loadtest "virt_autotest/libvirt_virtual_network_init";
+        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
+        loadtest "virt_autotest/libvirt_nated_virtual_network";
+    }
+    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH');
+    loadtest "virtualization/universal/hotplugging"             if get_var('ENABLE_HOTPLUGGING');
+    loadtest "virtualization/universal/storage"                 if get_var('ENABLE_STORAGE');
+}
+elsif (get_var('XFSTESTS')) {
+    prepare_target();
+    if (check_var('XFSTESTS', 'installation')) {
+        loadtest 'xfstests/install';
+        unless (get_var('NO_KDUMP')) {
+            loadtest 'xfstests/enable_kdump';
+        }
+        loadtest 'shutdown/shutdown';
+    }
+    else {
+        loadtest 'xfstests/partition';
+        loadtest 'xfstests/run';
+        loadtest 'xfstests/generate_report';
+    }
 }
 else {
     if (get_var("LIVETEST") || get_var('LIVE_INSTALLATION') || get_var('LIVE_UPGRADE')) {
@@ -356,33 +374,6 @@ else {
             set_var('INSTALLONLY', 1);
             loadtest "iscsi/iscsi_client";
         }
-        if (get_var('OVS')) {
-            set_var('INSTALLONLY', 1);
-            if (check_var('HOSTNAME', 'server')) {
-                barrier_create('ipsec_done',          2);
-                barrier_create('traffic_check_done',  2);
-                barrier_create('certificate_signed',  2);
-                barrier_create('ipsec1_done',         2);
-                barrier_create('traffic_check_done1', 2);
-                barrier_create('ipsec2_done',         2);
-                barrier_create('traffic_check_done2', 2);
-                barrier_create('cert_done',           2);
-                barrier_create('host2_cert_ready',    2);
-                barrier_create('empty_directories',   2);
-                barrier_create('cacert_done',         2);
-                barrier_create('end_of_test',         2);
-            }
-            loadtest 'installation/bootloader_start';
-            loadtest 'network/setup_multimachine';
-            if (check_var('HOSTNAME', 'server')) {
-                loadtest 'console/ovs_server';
-            }
-            else {
-                loadtest 'console/ovs_client';
-            }
-            return 1;
-        }
-
         if (get_var("REMOTE_CONTROLLER")) {
             loadtest "remote/remote_controller";
             load_inst_tests();

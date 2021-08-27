@@ -49,8 +49,13 @@ sub registry_push_pull {
 
     # Remove $image as well as the local registry $image
     # The localhost:5000/$image must be removed first
-    assert_script_run "$runtime image rm -f localhost:5000/$image",       90;
-    assert_script_run "$runtime image rm -f $image",                      90;
+    assert_script_run "$runtime image rm -f localhost:5000/$image", 90;
+    if (script_run("$runtime images | grep '$image'") == 0) {
+        assert_script_run "$runtime image rm -f $image", 90;
+    } else {
+        record_soft_failure("containers/podman#10685",
+            "Known issue - containers/podman#10685: podman image rm --force also untags other images (3.2.0 regression)");
+    }
     assert_script_run "! $runtime images | grep '$image'",                60;
     assert_script_run "! $runtime images | grep 'localhost:5000/$image'", 60;
 
@@ -63,9 +68,6 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
-
-    # Package Hub is not enabled on 15-SP3 yet.
-    return if is_sle '=15-SP3';
 
     # Install and check that it's running
     add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle(">=15");

@@ -95,7 +95,7 @@ sub run {
             assert_script_run "ctdb status";
 
             # Add SMB password for root
-            type_string "smbpasswd -a root ; echo smbpasswd-finished-\$? > /dev/$serialdev\n";
+            enter_cmd "smbpasswd -a root ; echo smbpasswd-finished-\$? > /dev/$serialdev";
             assert_screen 'smbpasswd-password', $ctdb_timeout;
             type_password;
             send_key 'ret';
@@ -113,7 +113,7 @@ sub run {
     # Tests done by a client server
     if (check_var('CTDB_TEST_ROLE', 'client')) {
         # Mount the shared filesystem and test access
-        type_string "mount -t cifs //$vip_ip/ctdb /mnt/ -o rw,user=root ; echo smbmount-finished-\$? > /dev/$serialdev\n";
+        enter_cmd "mount -t cifs //$vip_ip/ctdb /mnt/ -o rw,user=root ; echo smbmount-finished-\$? > /dev/$serialdev";
         assert_screen 'smbmount-password', $ctdb_timeout;
         type_password;
         send_key 'ret';

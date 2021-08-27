@@ -19,6 +19,7 @@ use warnings;
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
 use hacluster qw(is_package_installed);
+use kdump_utils qw(deactivate_kdump_cli);
 
 sub remove_value {
     my ($module, $parameter) = @_;
@@ -67,6 +68,15 @@ sub run {
         select_console 'root-console';
     }
 
+    # It can only happen on sle product
+    # Only use by test not fully migrated to YAML
+    if (get_var('DISABLE_KDUMP') && is_package_installed('kdump')) {
+        record_info('Disabling kdump', 'Disabling kdump and crashkernel option');
+        deactivate_kdump_cli;
+        $self->reboot;
+        select_console 'root-console';
+    }
+
     # Execute each test and upload its results
     assert_script_run "cd $test_repo";
     foreach my $robot_test (split /\n/, script_output "ls $test_repo") {
@@ -80,10 +90,9 @@ sub run {
         # PARAMETER  : What parameters have changed.
         # TEST_NAME  : The function needs to be trigger only in the targeted test.
         if ($robot_test eq "sysctl.robot") {
-            # bsc#1181925 - kernel.panic_on_oops is not consistent
-            add_softfail("sysctl.robot", "15-SP1", "bsc#1181925", qw(Sysctl_kernel_panic_on_oops));
             # bsc#1181163 - unexpected values for net.ipv6.conf.lo.use_tempaddr and net.ipv6.conf.lo.accept_redirects
             add_softfail("sysctl.robot", "15-SP1", "bsc#1181163", qw(Sysctl_net_ipv6_conf_lo_accept_redirects Sysctl_net_ipv6_conf_lo_use_tempaddr));
+            add_softfail("sysctl.robot", "15-SP1", "poo#92566",   qw(Sysctl_net_ipv4_udp_mem));
         }
         parse_extra_log("XUnit", "$test_repo/$robot_test.xml");
         upload_logs("$test_repo/$robot_test.html", failok => 1);

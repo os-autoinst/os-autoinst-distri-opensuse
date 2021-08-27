@@ -50,7 +50,7 @@ schedule:
   - console/sshd
   - console/ssh_cleanup
   - console/mtab
-  - console/mysql_srv
+  - console/mariadb_srv
   - console/yast2_nfs_server
   - console/rsync
   - console/http_srv

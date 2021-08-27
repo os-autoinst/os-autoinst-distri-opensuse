@@ -12,7 +12,7 @@
 # Summary: Basic functionality of xterm terminal emulator
 # - Launch xterm
 # - Type "If you can see this text xterm is working" in the terminal
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "x11test";
 use strict;

@@ -51,23 +51,23 @@ sub run {
     if (check_var("REMOTE_CONTROLLER", "vnc")) {
         select_console 'x11';
         x11_start_program('xterm');
-        type_string "vncviewer -fullscreen $lease_ip:1\n";
+        enter_cmd "vncviewer -fullscreen $lease_ip:1";
         # wait for password prompt
         assert_screen "remote_master_password";
-        type_string "$password\n";
+        enter_cmd "$password";
     }
     elsif (check_var("REMOTE_CONTROLLER", "ssh")) {
         set_var 'TARGET_IP', $lease_ip;
         set_var 'PASSWD',    $password;
         select_console 'user-console';
         clear_console;
-        type_string "ssh root\@$lease_ip\n";
+        enter_cmd "ssh root\@$lease_ip";
         assert_screen "remote-ssh-login";
-        type_string "yes\n";
+        enter_cmd "yes";
         assert_screen 'password-prompt';
-        type_string "$password\n";
+        enter_cmd "$password";
         assert_screen "remote-ssh-login-ok";
-        type_string "yast.ssh\n";
+        enter_cmd "yast.ssh";
     }
     else {
         die("REMOTE_CONTROLLER has wrong value");

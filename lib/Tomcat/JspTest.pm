@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test the tomcat JSP examples
-# Maintainer: George Gkioulis <ggkioulis@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::JspTest;
 use base "x11test";
@@ -17,30 +17,39 @@ use warnings;
 use testapi;
 use utils;
 use Tomcat::Utils;
+use version_utils 'is_sle';
 
 # allow a 60 second timeout for asserting needles
 use constant TIMEOUT => 60;
 
 # test all JSP examples
 sub test_all_examples() {
-    my ($self) = shift;
+    my ($self, $mod_jk) = @_;
 
     # array with example test function and number of tabs required to select the example
     # shuffle example is skipped
-    my @jsp_examples = ([\&basic_arithmetics, 2], [\&basic_comparisons, 4], [\&implicit_objects, 4], [\&functions, 4], [\&composite_expressions, 4], [\&hello_world_tag, 4], [\&repeat_simple_tag, 4], [\&book_tag, 4], [\&tag_file, 4], [\&panel_tag, 4], [\&display_product, 4], [\&xhtml_basic, 4], [\&attribute_body, 8], [\&dynamic_attributes, 8], [\&jsp_configuration, 4], [\&number_guess, 4], [\&date, 4], [\&snoop, 4], [\&error, 4], [\&carts, 4], [\&checkbox, 4], [\&color, 4], [\&calendar, 4], [\&include, 4], [\&forward, 4], [\&plugin, 4], [\&servlet_jsp, 4], [\&simple_tag, 4], [\&jsp_xml, 4], [\&if, 4], [\&foreach, 4], [\&choose, 4], [\&form, 4]);
+    my @jsp_examples = ([\&basic_arithmetics, 2], [\&basic_comparisons, 4], [\&implicit_objects, 4], [\&functions, 4], [\&composite_expressions, 4], [\&hello_world_tag, 4]);
+    if (!$mod_jk) {
+        push(@jsp_examples, ([\&repeat_simple_tag, 4], [\&book_tag, 4], [\&tag_file, 4], [\&panel_tag, 4], [\&display_product, 4], [\&xhtml_basic, 4], [\&attribute_body, 8], [\&dynamic_attributes, 8], [\&jsp_configuration, 4], [\&number_guess, 4], [\&date, 4], [\&snoop, 4], [\&error, 4], [\&carts, 4], [\&checkbox, 4], [\&color, 4], [\&calendar, 4], [\&include, 4], [\&forward, 4], [\&plugin, 4], [\&servlet_jsp, 4], [\&simple_tag, 4], [\&jsp_xml, 4], [\&if, 4], [\&foreach, 4], [\&choose, 4], [\&form, 4]));
+    }
 
     # access the tomcat jsp examples page
-    $self->firefox_open_url('localhost:8080/examples/jsp');
+    if ($mod_jk) {
+        $self->firefox_open_url('localhost/examples/jsp');
+    } else {
+        $self->firefox_open_url('localhost:8080/examples/jsp');
+    }
     send_key_until_needlematch('tomcat-jsp-examples', 'ret');
 
     # Navigate with keyboard to each example and test it
     for my $i (0 .. $#jsp_examples) {
         Tomcat::Utils->browse_with_keyboard('tomcat-jsp-fallback', $jsp_examples[$i][0], $jsp_examples[$i][1]);
     }
-
     # test xhtml svg example
-    $self->firefox_open_url('localhost:8080/examples/jsp/jsp2/jspx/textRotate.jspx?name=testing');
-    send_key_until_needlematch('tomcat-xhtml-svg', 'ret');
+    if (!$mod_jk) {
+        $self->firefox_open_url('localhost:8080/examples/jsp/jsp2/jspx/textRotate.jspx?name=testing');
+        send_key_until_needlematch('tomcat-xhtml-svg', 'ret');
+    }
 }
 
 

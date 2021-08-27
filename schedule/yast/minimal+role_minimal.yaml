@@ -7,21 +7,22 @@ description: >
 vars:
   BSC1167736: '1'
   SYSTEM_ROLE: minimal
+  YUI_REST_API: 1
 schedule:
-  - installation/isosize
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   # Called on BACKEND: qemu, svirt
   - '{{hostname_inst}}'
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -29,10 +30,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  # Called on BACKEND: svirt, pvm_hmc
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu, pvm_hmc
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/consoletest_setup
@@ -44,8 +42,10 @@ schedule:
   - console/sshd_running
   - console/sshd
   - console/verify_default_target
-  - console/validate_file_system
-  - console/validate_installed_software
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_installed_packages
+  - console/validate_installed_patterns
   - console/orphaned_packages_check
 conditional_schedule:
   hostname_inst:
@@ -54,15 +54,5 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
-  reconnect_mgmt_console:
-    BACKEND:
-      svirt:
-        - boot/reconnect_mgmt_console
-      pvm_hmc:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
-      pvm_hmc:
-        - installation/grub_test
+test_data:
+  product: SLES

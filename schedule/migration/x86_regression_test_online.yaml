@@ -19,10 +19,12 @@ schedule:
   - '{{migration_method}}'
   - migration/online_migration/post_migration
   - console/system_prepare
+  - console/check_system_info
   - console/check_network
   - console/system_state
   - console/prepare_test_data
   - console/consoletest_setup
+  - migration/openldap_to_389ds
   - '{{regression_tests}}'
   - boot/grub_test_snapshot
   - migration/version_switch_origin_system
@@ -76,6 +78,7 @@ conditional_schedule:
         - console/mtab
         - console/zypper_lifecycle
         - console/orphaned_packages_check
+        - console/kdump_and_crash
         - console/consoletest_finish
 
       2:

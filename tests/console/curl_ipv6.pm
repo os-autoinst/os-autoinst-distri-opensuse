@@ -13,7 +13,7 @@
 # - switch to normal user
 # - curl a website
 # - ensure that curl and libcurl4 are installed
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#598574
 
 use base "consoletest";

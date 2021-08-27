@@ -1,4 +1,4 @@
-# Copyright (C) 2021 SUSE LLC
+# Copyright © 2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
+use base 'y2_installbase';
 use strict;
 use warnings;
-use base 'y2_installbase';
 use testapi;
 
 sub run {
-    $testapi::distri->get_eula_controller()->accept_license();
+    $testapi::distri->get_license_agreement()->accept_license();
 }
 
 1;

@@ -26,15 +26,27 @@ use Exporter;
 use strict;
 use warnings;
 use utils;
+use upload_system_log 'upload_supportconfig_log';
 use version_utils;
 use testapi;
 use DateTime;
+use NetAddr::IP;
+use Net::IP qw(:PROC);
+use File::Basename;
 use Utils::Architectures 'is_s390x';
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_xen_host is_kvm_host
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
-  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown);
+  remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
+  setup_common_ssh_config add_alias_in_ssh_config parse_subnet_address_ipv4 backup_file manage_system_service setup_rsyslog_host);
+
+# helper function: Trim string
+sub trim {
+    my $text = shift;
+    $text =~ s/^\s+|\s+$//g;
+    return $text;
+}
 
 sub restart_libvirtd {
     is_sle '12+' ? systemctl "restart libvirtd", timeout => 180 : assert_script_run "service libvirtd restart", 180;
@@ -62,6 +74,17 @@ sub is_fv_guest {
 sub is_pv_guest {
     my $guest = shift;
     return $guest =~ /\bpv\b/;
+}
+
+#return 1 if max_mem > memory in vm configuration file in libvirt
+sub is_guest_ballooned {
+    my $guest = shift;
+
+    my $mem     = "";
+    my $cur_mem = "";
+    $mem     = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //memory";
+    $cur_mem = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //currentMemory";
+    return $mem > $cur_mem;
 }
 
 #return 1 if test is expected to run on KVM hypervisor
@@ -109,6 +132,8 @@ sub ssh_setup {
     my $dt              = DateTime->now;
     my $comment         = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
     if (script_run("[[ -s $default_ssh_key ]]") != 0) {
+        my $default_ssh_key_dir = dirname($default_ssh_key);
+        script_run("mkdir -p $default_ssh_key_dir");
         assert_script_run "ssh-keygen -t rsa -P '' -C '$comment' -f $default_ssh_key";
     }
 }
@@ -150,11 +175,17 @@ sub create_guest {
     my $location     = $guest->{location};
     my $autoyast     = $guest->{autoyast};
     my $macaddress   = $guest->{macaddress};
-    my $extra_params = $guest->{extra_params} // "";
+    my $on_reboot    = $guest->{on_reboot}    // "restart";      # configurable on_reboot policy
+    my $extra_params = $guest->{extra_params} // "";             # extra-parameters
+    my $memory       = $guest->{memory}       // "2048";
+    my $maxmemory    = $guest->{maxmemory}    // $memory + 16;   # use by default just a bit more, so that we don't waste memory but still use the functionality
+    my $vcpus        = $guest->{vcpus}        // "2";
+    my $maxvcpus     = $guest->{maxvcpus}     // $vcpus + 1;     # same as for memory, test functionality but don't waste resources
+    my $extra_args   = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
+    $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
-        record_info "$name", "Going to create $name guest";
-        send_key 'ret';    # Make some visual separator
+        send_key 'ret';                                          # Make some visual separator
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
@@ -165,13 +196,17 @@ sub create_guest {
         assert_script_run "sync",                                                                             180;
         script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
 
-        $virtinstall = "virt-install $extra_params --name $name --vcpus=2,maxvcpus=4 --memory=2048,maxmemory=4096 --vnc";
+        $extra_args  = "autoyast=$autoyastURL $extra_args";
+        $extra_args  = trim($extra_args);
+        $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
-        $virtinstall .= " --events on_reboot=destroy --extra-args 'autoyast=$autoyastURL usessh=0 ssh=0'";
-        # Note: true is required because openQA adds ""; echo ... > /dev/serial" after the & and bash does not allow empty commands
-        assert_script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";
+        $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
+        $virtinstall .= " --extra-args '$extra_args'"    unless ($extra_args eq '');
+        record_info("$name", "Creating $name guests:\n$virtinstall");
+        script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
 
+        # wait for initrd to ensure the installation is starting
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     }
 }
@@ -183,13 +218,17 @@ sub import_guest {
     my $disk         = $guest->{disk};
     my $macaddress   = $guest->{macaddress};
     my $extra_params = $guest->{extra_params} // "";
+    my $memory       = $guest->{memory}       // "4096";
+    my $maxmemory    = $guest->{maxmemory}    // $memory;
+    my $vcpus        = $guest->{vcpus}        // "4";
+    my $maxvcpus     = $guest->{maxvcpus}     // $vcpus;
 
     if ($method eq 'virt-install') {
         record_info "$name", "Going to import $name guest";
         send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
-        my $virtinstall = "virt-install $extra_params --name $name --vcpus=4,maxvcpus=4 --memory=4096,maxmemory=4096 --cpu host";
+        my $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --cpu host";
         $virtinstall .= " --graphics vnc --disk $disk --network network=default,mac=$macaddress,model=e1000 --noautoconsole  --autostart --import";
         assert_script_run $virtinstall;
     }
@@ -216,10 +255,11 @@ sub ensure_online {
     my $skip_ping    = $args{skip_ping}     // 0;
     my $ping_delay   = $args{ping_delay}    // 15;
     my $ping_retry   = $args{ping_retry}    // 60;
+    my $use_virsh    = $args{use_virsh}     // 1;
 
     # Ensure guest is running
     # Only xen/kvm support to reboot guest at the moment
-    if (is_xen_host || is_kvm_host) {
+    if ($use_virsh && (is_xen_host || is_kvm_host)) {
         if (script_run("virsh list | grep '$guest'") != 0) {
             assert_script_run("virsh start '$guest'");
             wait_guest_online($guest);
@@ -326,6 +366,8 @@ sub collect_virt_system_logs {
     assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
     assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
     upload_asset '/tmp/dumpxml.tar.gz';
+
+    upload_system_log::upload_supportconfig_log();
 }
 
 # is_guest_online($guest) check if the given guests is online by probing for an open ssh port
@@ -360,10 +402,148 @@ sub wait_guests_shutdown {
 
 # Start all guests and wait until they are online
 sub start_guests {
-    assert_script_run "virsh start $_" foreach (keys %virt_autotest::common::guests);
-    # Wait for guests to show up as running
-    script_retry("virsh list | grep $_ | grep running", delay => 5, retry => 10) foreach (keys %virt_autotest::common::guests);
+    script_run("virsh start '$_'") foreach (keys %virt_autotest::common::guests);
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
+}
+
+#Add common ssh options to host ssh config file to be used for all ssh connections when host tries to ssh to another host/guest.
+sub setup_common_ssh_config {
+    my $ssh_config_file = shift;
+
+    $ssh_config_file //= '/root/.ssh/config';
+    if (script_run("test -f $ssh_config_file") ne 0) {
+        script_run "mkdir -p " . dirname($ssh_config_file);
+        assert_script_run("touch $ssh_config_file");
+    }
+    if (script_run("grep \"Host \\\*\" $ssh_config_file") ne 0) {
+        type_string("cat >> $ssh_config_file <<EOF
+Host *
+    UserKnownHostsFile /dev/null
+    StrictHostKeyChecking no
+    User root
+EOF
+");
+    }
+    assert_script_run("chmod 600 $ssh_config_file");
+    record_info("Content of $ssh_config_file after common ssh config setup", script_output("cat $ssh_config_file;ls -lah $ssh_config_file"));
+    return;
+}
+
+#If certain host or guest is assigned a transient hostname from DNS server in company wide space, so the transient hostname becomes the real hostname to be indentified
+#on the network.In order to ensure its good ssh connection using predefined hostname or just a more desired one, add alias to its real hostname in host ssh config.
+sub add_alias_in_ssh_config {
+    my ($ssh_config_file, $real_name, $domain_name, $alias_name) = @_;
+
+    $ssh_config_file //= '/root/.ssh/config';
+    $real_name       //= '';
+    $domain_name     //= '';
+    $alias_name      //= '';
+    croak("Real name, domain name and alias name have to be given.") if (($real_name eq '') or ($domain_name eq '') or ($alias_name eq ''));
+    if (script_run("test -f $ssh_config_file") ne 0) {
+        script_run "mkdir -p " . dirname($ssh_config_file);
+        assert_script_run("touch $ssh_config_file");
+    }
+    if (script_run("grep -i \"Host $alias_name\" $ssh_config_file") ne 0) {
+        type_string("cat >> $ssh_config_file <<EOF
+Host $alias_name
+    HostName $real_name.$domain_name
+    User root
+EOF
+");
+    }
+    assert_script_run("chmod 600 $ssh_config_file");
+    record_info("Content of $ssh_config_file after adding alias $alias_name to real $real_name.", script_output("cat $ssh_config_file"));
+    return;
+}
+
+#Parsed detaild subnet information, including subnet ip address, network mask, network mask length, gateway ip address, start ip address, end ip address and reverse ip address
+#from ipv4 subnet address given.
+sub parse_subnet_address_ipv4 {
+    my $subnet_address = shift;
+
+    $subnet_address //= '';
+    croak("Subnet address argument must be given in the form of \"10.11.12.13/24\"") if (!($subnet_address =~ /\d+\.\d+\.\d+\.\d+\/\d+/));
+    my $subnet              = NetAddr::IP->new($subnet_address);
+    my $subnet_mask         = $subnet->mask();
+    my $subnet_mask_len     = $subnet->masklen();
+    my $subnet_ipaddr       = (split(/\//, $subnet->network()))[0];
+    my $subnet_ipaddr_rev   = ip_reverse($subnet_ipaddr, $subnet_mask_len);
+    my $subnet_ipaddr_gw    = (split(/\//, $subnet->first()))[0];
+    my $subnet_ipaddr_start = (split(/\//, $subnet->nth(1)))[0];
+    my $subnet_ipaddr_end   = (split(/\//, $subnet->last()))[0];
+    return ($subnet_ipaddr, $subnet_mask, $subnet_mask_len, $subnet_ipaddr_gw, $subnet_ipaddr_start, $subnet_ipaddr_end, $subnet_ipaddr_rev);
+}
+
+#This subroutine receives array reference that contains file or folder name in absolute path form as $backup_target. Then back it up by appending 'backup' and timestamp to its
+#original name. If $destination_folder is given, the file or folder will be backed up in it. Otherwise it will be backed up in the orginal parent folder. For example,
+#my @something_to_be_backed_up = ('file1', 'folder2', 'folder3'); backup_file(\@something_to_be_backed_up) or backup_file(\@something_to_be_backed_up, '/tmp').
+sub backup_file {
+    my ($backup_target, $destination_folder) = @_;
+
+    $backup_target      //= '';
+    $destination_folder //= '';
+    croak("The file or folder to be backed up must be given.") if ($backup_target eq '');
+    my $backup_timestamp = localtime();
+    $backup_timestamp   =~ s/ |:/_/g;
+    $destination_folder =~ s/\/$//g;
+    my @backup_target_array = @$backup_target;
+    foreach (@backup_target_array) {
+        my $backup_target_basename = basename($_);
+        my $backup_target_dirname  = dirname($_);
+        my $destination_target     = $backup_target_basename . '_backup_' . $backup_timestamp;
+        $destination_target = ($destination_folder eq '' ? "$backup_target_dirname/$destination_target" : "$destination_folder/$destination_target");
+        script_run("cp -f -r $_ $destination_target");
+    }
+    return;
+}
+
+#This subroutine use systemctl or service command to manage system service operations, for example, start, stop, disable and etc.
+#The system service name to be managed is passed in as the first argument $service_name. The operations to be performed is passed in as the second argument $manage_operation.
+#For example, my @myoperations = ('stop', 'disable'); manage_system_service('named', \@myoperations);
+sub manage_system_service {
+    my ($service_name, $manage_operation) = @_;
+
+    $service_name     //= '';
+    $manage_operation //= '';
+    croak("The operation and service name must be given.") if (($service_name eq '') or ($manage_operation eq ''));
+    my @manage_operations = @$manage_operation;
+    foreach (@manage_operations) {
+        script_run("service $service_name $_") if (script_run("systemctl $_ $service_name") ne 0);
+    }
+    return;
+}
+
+#Standardized system logging is implemented by the rsyslog service. System programs can send syslog messages to the local rsyslogd service which will then redirect those messages
+#to remote log servers, namely the centralized log host. The centralized log host can be customized by modifying /etc/rsyslog.conf with desired communication protocol, port, log
+#file and log folder. Once syslog reception has been activated and the desired rules for log separation by host has been created, restart the rsyslog service for the configuration
+#changes to take effect. An examaple of how to call this subroutine is setup_centralized_log_host('/tmp/temp_log_folder', 'udp', '555').
+sub setup_rsyslog_host {
+    my ($log_host_folder, $log_host_protocol, $log_host_port) = @_;
+
+    $log_host_folder   //= '/var/log/loghost';
+    $log_host_protocol //= 'udp';
+    $log_host_port     //= '514';
+
+    zypper_call("--gpg-auto-import-keys ref");
+    zypper_call("in rsyslog");
+    assert_script_run("mkdir -p $log_host_folder");
+    my $log_host_protocol_directive = ($log_host_protocol eq 'udp' ? '\$UDPServerRun' : '\$InputTCPServerRun');
+    if (script_output("cat /etc/rsyslog.conf | grep \"#Setup centralized rsyslog host\"", proceed_on_failure => 1) eq '') {
+        save_screenshot;
+        type_string("cat >> /etc/rsyslog.conf <<EOF
+#Setup centralized rsyslog host
+\\\$ModLoad im${log_host_protocol}.so
+$log_host_protocol_directive ${log_host_port}
+\\\$template DynamicFile,\"${log_host_folder}/%HOSTNAME%/%syslogfacility-text%.log\"
+EOF
+");
+    }
+    save_screenshot;
+    record_info("Content of /etc/rsyslog.conf after configured as centralized rsyslog host", script_output("cat /etc/rsyslog.conf"));
+    my @myoperations = ('start', 'restart', 'status --no-pager');
+    manage_system_service('syslog', \@myoperations);
+    save_screenshot;
+    return;
 }
 
 1;

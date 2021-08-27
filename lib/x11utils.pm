@@ -41,6 +41,7 @@ our @EXPORT = qw(
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
   workaround_boo1170586
+  handle_gnome_activities
 );
 
 =head1 X11_UTILS
@@ -76,8 +77,16 @@ sub ensure_unlocked_desktop {
 
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
-        push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
+        push(@tags, 'blackscreen')      if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
+        push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
         assert_screen \@tags, no_wait => 1;
+        # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+        # user will want to start something. For openQA, we simply press 'esc' to close
+        # it again and really end up on the desktop
+        if (match_has_tag('gnome-activities')) {
+            send_key 'esc';
+            @tags = grep { !/gnome-activities/ } @tags;
+        }
         if (match_has_tag 'oh-no-something-has-gone-wrong') {
             # bsc#1159950 - gnome-session-failed is detected
             # Note: usually happens on *big* hardware with lot of cpus/memory
@@ -192,8 +201,9 @@ Example:
 
 =cut
 sub handle_login {
-    my ($myuser, $user_selected) = @_;
+    my ($myuser, $user_selected, $mypwd) = @_;
     $myuser        //= $username;
+    $mypwd         //= $testapi::password;
     $user_selected //= 0;
 
     save_screenshot();
@@ -206,10 +216,10 @@ sub handle_login {
             assert_and_click 'displaymanager-username-notlisted';
             wait_still_screen 3;
         }
-        type_string "root\n";
+        enter_cmd "root";
     }
     elsif (match_has_tag('displaymanager-user-prompt') || get_var('DM_NEEDS_USERNAME')) {
-        type_string "$myuser\n";
+        enter_cmd "$myuser";
     }
     elsif (check_var('DESKTOP', 'gnome')) {
         if ($user_selected || (is_sle('<15') || is_leap('<15.0'))) {
@@ -221,8 +231,21 @@ sub handle_login {
         }
     }
     assert_screen 'displaymanager-password-prompt';
-    type_password;
+    type_password($mypwd);
     send_key 'ret';
+    wait_still_screen;
+    # for S390x testing, since they are not using qemu built-in vnc, it is
+    # expected that polkit authentication window can open for first time login.
+    # see bsc#1177446 for more information.
+    if (check_screen(qw[authentication-required-user-settings authentication-required-modify-system], 5)) {
+        type_password($mypwd);
+        send_key 'ret';
+    }
+    assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
+    if (match_has_tag('gnome-activities')) {
+        send_key('esc');
+        assert_screen([qw(generic-desktop opensuse-welcome)]);
+    }
 }
 
 =head2 handle_logout
@@ -275,7 +298,6 @@ sub select_user_gnome {
     assert_screen [qw(displaymanager-user-selected displaymanager-user-notselected dm-nousers)];
     if (match_has_tag('displaymanager-user-notselected')) {
         assert_and_click "displaymanager-$myuser";
-        record_soft_failure 'bsc#1086425- user account not selected by default, have to use mouse to login';
     }
     elsif (match_has_tag('displaymanager-user-selected')) {
         send_key 'ret';
@@ -387,7 +409,8 @@ Also handle workarounds when needed.
 =cut
 sub handle_welcome_screen {
     my (%args) = @_;
-    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203)], $args{timeout});
+    assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203 opensuse-welcome-gnome40-activities)], $args{timeout});
+    send_key 'esc'                              if match_has_tag('opensuse-welcome-gnome40-activities');
     workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
@@ -403,6 +426,29 @@ sub start_root_shell_in_xterm {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
     become_root;
+}
+
+=head2 handle_gnome_activities
+
+    handle_gnome_activities()
+
+handle_gnome_activities
+=cut
+sub handle_gnome_activities {
+    my @tags    = 'generic-desktop';
+    my $timeout = 600;
+
+    push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
+
+    assert_screen \@tags, $timeout;
+    # Starting with GNOME 40, upon login, the activities screen is open (assuming the
+    # user will want to start something. For openQA, we simply press 'esc' to close
+    # it again and really end up on the desktop
+    if (match_has_tag('gnome-activities')) {
+        send_key 'esc';
+        @tags = grep { !/gnome-activities/ } @tags;
+        assert_screen \@tags, $timeout;
+    }
 }
 
 1;

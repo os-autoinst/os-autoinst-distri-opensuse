@@ -16,7 +16,6 @@ vars:
   UPGRADE_TARGET_VERSION: '%VERSION%'
   HDDVERSION: '%ORIGIN_SYSTEM_VERSION%'
   BOOTFROM: d
-  TIMEOUT_SCALE: 2
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: sle-%HDDVERSION%-%ARCH%-sap-nw-noscc.qcow2
 schedule:

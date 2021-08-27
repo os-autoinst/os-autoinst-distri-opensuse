@@ -29,11 +29,24 @@ schedule:
   - console/suse_module_tools
   - console/aaa_base
   - console/gd
+  - console/systemtap
+  - console/vsftpd
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
   version_specific:
     VERSION:
+      15-SP3:
+        - console/osinfo_db
+        - console/ovn
+        - console/firewalld
+        - console/libgcrypt
+        - console/valgrind
+        - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
+        - '{{arch_specific}}'
       15-SP2:
         - console/osinfo_db
         - console/ovn
@@ -41,33 +54,59 @@ conditional_schedule:
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       15-SP1:
         - console/osinfo_db
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       15:
         - console/osinfo_db
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/journald_fss
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP5:
         - console/osinfo_db
         - console/libgcrypt
         - console/valgrind
         - console/zziplib
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
+        - '{{arch_12sp5}}'
       12-SP4:
         - console/osinfo_db
+        - console/journald_fss
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
       12-SP3:
         - console/osinfo_db
+        - console/journald_fss
+        - console/openvswitch_ssl
+        - network/samba/samba_adcli
         - '{{arch_specific}}'
+      12-SP2:
+        - console/journald_fss
   arch_specific:
     ARCH:
       x86_64:
         - console/mutt
+  arch_12sp5:
+    ARCH:
+      x86_64:
+        - console/journald_fss
+      aarch64:
+        - console/journald_fss
 ...

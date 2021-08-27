@@ -35,6 +35,7 @@ my $root_project_dir = dirname(__FILE__) . '/../';
 my $include          = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
 my $ypp              = YAML::PP->new(schema => ['Core', $include, 'Merge']);
 $include->yp($ypp);
+$Data::Dumper::Terse = 1;
 
 sub parse_vars {
     my ($schedule) = shift;
@@ -43,6 +44,8 @@ sub parse_vars {
         $value =~ s/%(.*?)%/get_var($1)/eg;
         $vars{$var} = $value;
     }
+    my $varlog = Dumper(\%vars);
+    diag("parse_vars (variables parsed from YAML schedule): " . $varlog);
     return %vars;
 }
 
@@ -99,7 +102,7 @@ sub expand_test_data_vars {
     } elsif (ref $node eq 'ARRAY') {
         $_ = expand_test_data_vars($_) foreach (@$node);
     } else {
-        $node =~ s/%(.*?)%/get_var($1,'')/eg;
+        $node =~ s/%(.*?)%/get_var($1,'')/eg if $node;
     }
     return $node;
 }
@@ -124,10 +127,9 @@ sub parse_test_suite_data {
         $test_suite_data = {%$test_suite_data, %{$include_yaml}};
     }
     expand_test_data_vars($test_suite_data);
-    local $Data::Dumper::Terse = 1;
     my $out = Dumper($test_suite_data);
     chomp($out);
-    diag("parse_test_suite_data: $out");
+    diag("parse_test_suite_data (data parsed from YAML test_data): $out");
 }
 
 =head2 load_yaml_schedule

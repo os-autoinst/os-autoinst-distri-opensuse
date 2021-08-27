@@ -1,6 +1,6 @@
 name:   extra_tests_gnome
 description:    >
-    Maintainer: asmorodskyi, okurz.
+    Maintainer: qe-core@suse.de
     Extra tests for software in desktop applications which were designed to run on gnome
     VNC_STALL_THRESHOLD is needed for xen svirt to don't turn off the scrreen after default 4 sec
 conditional_schedule:

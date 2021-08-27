@@ -51,7 +51,7 @@ sub run {
             # https://bugzilla.redhat.com/show_bug.cgi?id=1075131
             systemctl 'set-default --force multi-user.target';
             # The CD was ejected in the bootloader test
-            type_string("/sbin/reboot\n");
+            enter_cmd("/sbin/reboot");
 
             reset_consoles;
             reconnect_mgmt_console if is_pvm;

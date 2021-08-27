@@ -30,16 +30,16 @@ sub run {
       cat /usr/lib/SLEPOS/defaults
     ';
 
-    type_string "posInitAdminserver 2>&1 | tee /dev/$serialdev\n";
-    wait_serial "company name.*:"                                   and type_string get_var('ORGANIZATION') . "\n";
-    wait_serial "2 letter abbreviation.*:"                          and type_string get_var('COUNTRY') . "\n";
-    wait_serial "LDAP administrator password.*:"                    and type_string get_var('ADMINPASS') . "\n";
-    wait_serial "password again.*:"                                 and type_string get_var('ADMINPASS') . "\n";
-    wait_serial "Enable secure connection"                          and type_string get_var('SSL') . "\n";
-    wait_serial "Please enter LDAP configuration database password" and type_string "\n";
-    wait_serial "Recreate LDAP database?"                           and type_string "yes\n";
-    wait_serial "Enable SUSE Manager integration.*"                 and type_string "no\n";
-    wait_serial "Continue with configuration"                       and type_string "\n";
+    enter_cmd "posInitAdminserver 2>&1 | tee /dev/$serialdev";
+    wait_serial "company name.*:"                                   and enter_cmd get_var('ORGANIZATION') . "";
+    wait_serial "2 letter abbreviation.*:"                          and enter_cmd get_var('COUNTRY') . "";
+    wait_serial "LDAP administrator password.*:"                    and enter_cmd get_var('ADMINPASS') . "";
+    wait_serial "password again.*:"                                 and enter_cmd get_var('ADMINPASS') . "";
+    wait_serial "Enable secure connection"                          and enter_cmd get_var('SSL') . "";
+    wait_serial "Please enter LDAP configuration database password" and send_key 'ret';
+    wait_serial "Recreate LDAP database?"                           and enter_cmd "yes";
+    wait_serial "Enable SUSE Manager integration.*"                 and enter_cmd "no";
+    wait_serial "Continue with configuration"                       and send_key 'ret';
     wait_serial "configuration successful";
 
     script_output "

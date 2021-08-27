@@ -1,0 +1,40 @@
+name:  create-hdd-allmodules-allpatterns
+description:    >
+    Maintainer: zluo.
+    Installation with all patterns selected for installation to check for
+    potential package conflicts, how the system handles big space usage, etc.
+    allpatterns installations can take longer, especially on non-x86_64
+    architectures. publish an HDD.
+
+    All SLE modules that are compatible between them can be selected by adding
+    the setting ENABLE_ALL_SCC_MODULES=1 to the test suite
+conditional_schedule:
+    disk_activation:
+        BACKEND:
+            's390x':
+                - installation/disk_activation
+schedule:
+    - installation/bootloader_start
+    - installation/welcome
+    - installation/accept_license
+    - '{{disk_activation}}'
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/select_patterns
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/handle_reboot
+    - installation/first_boot
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown

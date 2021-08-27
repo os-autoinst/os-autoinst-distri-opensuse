@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
+# Copyright © 2020-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -42,8 +42,11 @@ sub run {
 
     # Test build of multipath-tools on tw, or SLE >= 15
     if (is_sle '>=15') {
+        # enable & disable source repo for multipat-tools source
+        assert_script_run(q(zypper mr -e --refresh $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
         add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
         build_mt();
+        assert_script_run(q(zypper mr -d $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
     } elsif (is_tumbleweed) {
         zypper_call("ar -f http://download.opensuse.org/source/tumbleweed/repo/oss/ my-source-repo");
         build_mt();

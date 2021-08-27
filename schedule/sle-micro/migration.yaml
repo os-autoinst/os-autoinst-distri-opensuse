@@ -1,0 +1,19 @@
+name:           sle_micro_containers
+description:    >
+    Maintainer: qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+schedule:
+  - microos/disk_boot
+  - transactional/host_config
+  - console/suseconnect_scc
+  - transactional/install_updates
+  - migration/online_migration/zypper_migration
+  - microos/networking
+  - microos/libzypp_config
+  - microos/image_checks
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/cockpit_service
+  - microos/toolbox
+  - console/journal_check
+  - shutdown/shutdown

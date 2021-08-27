@@ -124,7 +124,7 @@ Helper function to write a file at path (including filename) C<$file> with the c
 =cut
 sub write_file {
     my ($self, $file, $content) = @_;
-    type_string("cat > $file <<EOF\n$content\nEOF\n");
+    enter_cmd("cat > $file <<EOF\n$content\nEOF");
     assert_script_run("test \$? == 0");
 }
 

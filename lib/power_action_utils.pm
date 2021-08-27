@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_vmware is_jeos);
+use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
 use Carp 'croak';
 
 our @EXPORT = qw(
@@ -81,7 +81,8 @@ sub reboot_x11 {
     my ($self) = @_;
     wait_still_screen;
     if (check_var('DESKTOP', 'gnome')) {
-        if (is_tumbleweed) {
+        # For systems with GNOME 40+, use mouse click instead of 'ctrl-alt-delete'.
+        if (is_tumbleweed || is_sle('>=15-SP4') || is_leap('>=15.4')) {
             assert_and_click('reboot-power-icon');
             assert_and_click('reboot-power-menu');
             assert_and_click('reboot-click-restart');
@@ -158,7 +159,7 @@ sub poweroff_x11 {
         wait_screen_change { type_string "\t\t" };    # select shutdown
 
         # assert_screen 'test-shutdown-1', 3;
-        type_string "\n";
+        send_key 'ret';
     }
 
     if (check_var("DESKTOP", "lxde")) {
@@ -230,7 +231,7 @@ sub handle_livecd_reboot_failure {
     if (match_has_tag('generic-desktop-after_installation')) {
         record_soft_failure 'boo#993885 Kde-Live net installer does not reboot after installation';
         select_console 'install-shell';
-        type_string "reboot\n";
+        enter_cmd "reboot";
         save_screenshot;
     }
 }
@@ -263,7 +264,7 @@ sub power_action {
     }
     unless ($args{observe}) {
         if ($args{textmode}) {
-            type_string "$action\n";
+            enter_cmd "$action";
         }
         else {
             if ($action eq 'reboot') {
@@ -273,7 +274,7 @@ sub power_action {
                 if (check_var('BACKEND', 's390x')) {
                     record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
                     select_console 'root-console';
-                    type_string "$action\n";
+                    enter_cmd "$action";
                 }
                 else {
                     poweroff_x11;

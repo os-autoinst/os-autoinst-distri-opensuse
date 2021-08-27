@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -30,8 +30,6 @@ use testapi;
 use utils;
 
 sub inject_error {
-    # load kernel module
-    assert_script_run('modprobe mce-inject');
     # Inject some software errors
     script_run('echo 0x9c00410000080f2b > /sys/kernel/debug/mce-inject/status');
     script_run('echo d5a099a9 > /sys/kernel/debug/mce-inject/addr');
@@ -42,6 +40,9 @@ sub inject_error {
 
 sub run {
     my $self = shift;
+
+    # load kernel module
+    assert_script_run('modprobe mce-inject') if (check_var('ARCH', 'x86_64') && check_var('VERSION', '15-SP2'));
 
     zypper_call('in rasdaemon');
 

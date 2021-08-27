@@ -1,0 +1,26 @@
+name:           extra_tests_textmode_containers
+description:    >
+  Maintainer: qa-c@suse.de.
+  Schedule for SLE base image updates
+conditional_schedule:
+  boot:
+    ARCH:
+      's390x':
+        - installation/bootloader_zkvm
+  podman:
+    VERSION:
+      15-SP1:
+        - containers/podman
+        - containers/podman_image
+      15-SP2:
+        - containers/podman
+        - containers/podman_image
+schedule:
+  - '{{boot}}'
+  - boot/boot_to_desktop
+  - console/cleanup_qam_testrepos
+  - '{{podman}}'
+  - containers/docker
+  - containers/docker_image
+  - containers/container_diff
+  - console/coredump_collect

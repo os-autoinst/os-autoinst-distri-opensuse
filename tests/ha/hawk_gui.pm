@@ -35,6 +35,13 @@ sub run {
     my ($self) = @_;
     my $cluster_name = get_cluster_name;
 
+    # For facilitating the QEM process, the hawk client system will always be a 15-SP3 version
+    # That means we need to change the version and reload the needles
+    if (get_var('CLIENT_VERSION')) {
+        set_var('VERSION', get_var('CLIENT_VERSION'), reload_needles => 1);
+        record_info('Version switch', 'New version = ' . get_var('VERSION'));
+    }
+
     # Wait for each cluster node to check for its hawk service
     barrier_wait("HAWK_GUI_INIT_$cluster_name");
 
@@ -79,9 +86,10 @@ sub run {
     add_to_known_hosts($node2);
     assert_script_run "mkdir -m 1777 $path";
     assert_script_run "xhost +";
+    barrier_wait("HAWK_GUI_CPU_TEST_START_$cluster_name");
     my $docker_cmd = "docker run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
     $docker_cmd .= "$docker_image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
-    type_string "$docker_cmd | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode\n";
+    enter_cmd "$docker_cmd | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
     assert_screen "hawk-$browser", 60;
 
     my $loop_count = 360;    # 30 minutes (360*5)
@@ -107,6 +115,7 @@ sub run {
     save_screenshot;
 
     assert_screen "generic-desktop";
+    barrier_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name");
 
     # Error, log and results handling
     select_console 'user-console';

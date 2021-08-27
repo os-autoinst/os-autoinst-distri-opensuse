@@ -47,7 +47,7 @@ schedule:
 - console/yast2_lan
 - console/yast2_nfs_server
 - console/mtab
-- console/mysql_srv
+- console/mariadb_srv
 - console/rsync
 - console/curl_https
 - console/http_srv

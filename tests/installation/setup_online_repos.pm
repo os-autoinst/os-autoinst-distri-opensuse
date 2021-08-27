@@ -24,6 +24,10 @@ sub run {
     if (is_leap('<15.1')) {
         @default_repos = qw(update-non-oss update-oss main-non-oss main-oss debug-main untested-update debug-update source);
     }
+    elsif (is_leap('>=15.3')) {
+        # 15.3 has introduced additional repositories
+        @default_repos = qw(update-sle update-backports update-non-oss main-non-oss update-oss main-oss debug-backports-update debug-update untested-update source debug-main);
+    }
     else {
         @default_repos = qw(update-non-oss main-non-oss update-oss main-oss debug-update untested-update source debug-main);
     }

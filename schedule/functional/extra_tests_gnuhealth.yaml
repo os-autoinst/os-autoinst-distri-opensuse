@@ -1,0 +1,11 @@
+name:           extra_tests_gnuhealth
+description:    >
+    Maintainer: dheidler.
+    Extra gnuhealth tests
+schedule:
+    - boot/boot_to_desktop
+    - gnuhealth/gnuhealth_install
+    - gnuhealth/gnuhealth_setup
+    - gnuhealth/gnuhealth_client_install
+    - gnuhealth/gnuhealth_client_preconfigure
+    - gnuhealth/gnuhealth_client_first_time

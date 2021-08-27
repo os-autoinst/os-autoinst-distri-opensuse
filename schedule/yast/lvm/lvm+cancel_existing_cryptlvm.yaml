@@ -6,22 +6,24 @@ name: lvm+cancel_existing_cryptlvm
 vars:
   ENCRYPT_CANCEL_EXISTING: 1
   LVM: 1
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/encrypted_volume_activation
   - console/validate_encrypted_partition_not_activated
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/lvm_ignore_existing
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - installation/disable_grub_timeout
   - installation/start_install
@@ -31,6 +33,9 @@ schedule:
   - installation/grub_test
   - installation/boot_encrypt
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_lvm
 test_data:
+  product: SLES
   enc_disk_part: vda2

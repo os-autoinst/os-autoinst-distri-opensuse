@@ -211,7 +211,7 @@ sub run {
 
     ', 2000);
 
-    type_string("ls -l /tmp/slenkins/\n");
+    enter_cmd("ls -l /tmp/slenkins/");
     parse_junit_log("/tmp/slenkins/junit-results.xml");
     save_screenshot;
 }

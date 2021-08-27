@@ -15,11 +15,12 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - boot/reconnect_mgmt_console
+  - installation/handle_reboot
   - migration/post_upgrade
   - console/system_prepare
   - console/consoletest_setup
   - console/zypper_lr
+  - console/check_system_info
   - '{{regression_tests}}'
 conditional_schedule:
   regression_tests:
@@ -51,7 +52,7 @@ conditional_schedule:
         - console/sshd
         - console/ssh_cleanup
         - console/mtab
-        - console/mysql_srv
+        - console/mariadb_srv
         - console/rsync
         - console/http_srv
         - console/apache

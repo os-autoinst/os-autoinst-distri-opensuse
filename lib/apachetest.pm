@@ -22,7 +22,7 @@ use warnings;
 
 use testapi;
 use utils;
-use version_utils qw(is_sle is_leap check_version);
+use version_utils qw(is_sle is_leap check_version is_tumbleweed);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
@@ -43,6 +43,9 @@ sub setup_apache2 {
     my $mode = uc $args{mode} || "";
     # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
     my @packages = qw(apache2 /bin/hostname);
+
+    # For gensslcert
+    push @packages, 'apache2-utils' if is_tumbleweed;
 
     if (($mode eq "NSS") && get_var("FIPS")) {
         $mode = "NSSFIPS";
@@ -82,7 +85,7 @@ sub setup_apache2 {
     }
     # Create x509 certificate for this apache server
     if ($mode eq "SSL") {
-        my $gensslcert_C_opt = !is_sle('15+') ? '-C $(hostname)' : '';
+        my $gensslcert_C_opt = is_sle('<15') ? '-C $(hostname)' : '';
         assert_script_run "gensslcert -n \$(hostname) $gensslcert_C_opt -e webmaster@\$(hostname)", 900;
         assert_script_run 'ls /etc/apache2/ssl.crt/$(hostname)-server.crt /etc/apache2/ssl.key/$(hostname)-server.key';
     }
@@ -133,7 +136,7 @@ sub setup_apache2 {
     assert_script_run 'echo "<html><h2>Hello Linux</h2></html>" > /srv/www/htdocs/hello.html';
 
     # create a test php page
-    assert_script_run qq{echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php};
+    assert_script_run 'echo -e "<?php\nphpinfo()\n?>" > /srv/www/htdocs/index.php';
 
     # Verify apache+ssl works
     my $curl_option = ($mode =~ m/SSL|NSS/) ? '-k https' : 'http';
@@ -212,15 +215,15 @@ Set up a postgres database and configure for:
 sub test_pgsql {
     # configuration so that PHP can access PostgreSQL
     # setup password
-    type_string "sudo -u postgres psql postgres\n";
+    enter_cmd "sudo -u postgres psql postgres";
     wait_still_screen(1);
-    type_string "\\password postgres\n";
+    enter_cmd "\\password postgres";
     wait_still_screen(1);
-    type_string "postgres\n";
+    enter_cmd "postgres";
     wait_still_screen(1);
-    type_string "postgres\n";
+    enter_cmd "postgres";
     wait_still_screen(1);
-    type_string "\\q\n";
+    enter_cmd "\\q";
     wait_still_screen(1);
     # comment out default configuration
     assert_script_run "sed -i 's/^host/#host/g' /var/lib/pgsql/data/pg_hba.conf";
@@ -232,7 +235,7 @@ sub test_pgsql {
     # configure the PHP code that:
     #  1. reads table 'test' from the 'openQAdb' database (created in 'console/postgresql...' test)
     #  2. inserts a new element 'can php write this?' into the same table
-    type_string "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php\n";
+    enter_cmd "curl " . data_url('console/test_postgresql_connector.php') . " -o /srv/www/htdocs/test_postgresql_connector.php";
     systemctl 'restart apache2.service';
 
     # access the website and verify that it can read the database
@@ -244,8 +247,8 @@ sub test_pgsql {
     # add sudo rights to switch postgresql version and run script to determine oldest and latest version
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
-    type_string "su - postgres\n", wait_still_screen => 1;
-    type_string "PS1='# '\n",      wait_still_screen => 1;
+    enter_cmd "su - postgres", wait_still_screen => 1;
+    enter_cmd "PS1='# '",      wait_still_screen => 1;
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
@@ -278,13 +281,18 @@ elif [[ $(echo $PG_VER|grep 94) ]]; then
 fi
 echo PG_LATEST=/usr/lib/$PG_LATEST >>/tmp/pg_versions
 EOF
-        script_run "echo '$pg_versions' > pg_versions.sh";
+        $pg_versions =~ s/\n/\\n/g;
+        script_run "echo -e '$pg_versions' > pg_versions.sh";
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
         assert_script_run 'sudo bash pg_versions.sh && . /tmp/pg_versions';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
         assert_script_run 'initdb -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
-        assert_script_run 'pg_ctl -D /tmp/psql status';
+        if (script_run('pg_ctl -D /tmp/psql status')) {
+            record_info('status', 'wait 5s more before status query');
+            sleep(5);
+            assert_script_run 'pg_ctl -D /tmp/psql status';
+        }
         assert_script_run 'pg_ctl -D /tmp/psql stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
@@ -313,7 +321,7 @@ EOF
     # check if db contains old and new table row
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE first_name = \'openQA\'"|grep openQA';
     assert_script_run 'p -d dvdrental -c "SELECT * FROM customer WHERE last_name = \'Davidson\'"|grep Davidson';
-    type_string "exit\n", wait_still_screen => 1;
+    enter_cmd 'exit', wait_still_screen => 3;
 }
 
 =head2 test_mysql
@@ -325,9 +333,9 @@ Create the 'openQAdb' database with table 'test' and insert one element
 =cut
 sub test_mysql {
     # create the 'openQAdb' database with table 'test' and insert one element 'can php read this?'
-    my $setup_openQAdb = "CREATE DATABASE openQAdb; USE openQAdb;
-    CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id));
-    INSERT INTO test (entry) VALUE ('can you read this?');";
+    my $setup_openQAdb = "CREATE DATABASE openQAdb; USE openQAdb; " .
+      "CREATE TABLE test (id int NOT NULL AUTO_INCREMENT, entry varchar(255) NOT NULL, PRIMARY KEY(id)); " .
+      "INSERT INTO test (entry) VALUE ('can you read this?');";
     assert_script_run qq{mysql -u root -e "$setup_openQAdb"};
 
     my $mysql_version = script_output qq{mysql -sN -u root -e "SELECT VERSION();"};

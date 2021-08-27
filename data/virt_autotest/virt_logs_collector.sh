@@ -1,4 +1,6 @@
 #!/bin/bash
+set -o pipefail
+shopt -s nocasematch
 
 #Obtain SLES release version and service pack level
 function get_sles_release() {
@@ -52,8 +54,8 @@ function collect_logs_via_guest_console() {
         touch ${expfile}
         chmod 777 ${expfile}
         local hypervisor=`get_sles_hypervisor`
-
 cat <<EOF > ${expfile}
+#!/usr/bin/expect
 set hypervisor [lindex \$argv 0]
 set guest_domain [lindex \$argv 1]
 set guest_transformed [lindex \$argv 2]
@@ -75,7 +77,7 @@ while { \${retry_times} > 0 } {
       expect  {
          -nocase "escape character" {send "\r\r"; exp_continue -continue_timer}
          -nocase "password:" {send "\r"}
-         " #" {send "exit\r"}
+         -re "( |\\\])#" {send "exit\r"}
          -nocase "mistake|wrong|fault|error|fail|exception|not*found|timed*out" {puts "Can not establish virsh console to \${guest_domain}\r"; set ret_result 1}
       }
       expect {
@@ -86,22 +88,26 @@ while { \${retry_times} > 0 } {
 
       if { \${ret_result} == 0 } {
          set timeout 1200
-         expect "~ #"
+         expect -re "~( |\\\])#"
          send "mkdir -p \${logs_folder};export time_stamp=\`date \'+%Y%m%d%H%M%S\'\`\r"
-         expect "~ #"
+         expect -re "~( |\\\])#"
          if { \${extra_logs} == {support_config} } {
             send "rm -f -r \${logs_folder}/*supportconfig*\r"
             send "supportconfig -y -A -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
          }
-         if { \${extra_logs} != {support_config} && \${extra_logs} != "" } {
+         if { \${extra_logs} == {sos_report} } {
+            send "rm -f -r \${logs_folder}/*sosreport*\r"
+            send "sosreport --batch --debug -v --alloptions --all-logs -z xz --tmp-dir \${logs_folder}\r"
+         }
+         if { \${extra_logs} != {support_config} && \${extra_logs} != {sos_report} && \${extra_logs} != "" } {
             send "rm -f -r \${logs_folder}/*extra_logs*\r"
             send "mkdir -p \${logs_folder}/guest_\${guest_transformed}_extra_logs;cp --parent -r -f \${extra_logs} \${logs_folder}/guest_\${guest_transformed}_extra_logs\r"
          }
          expect {
-            "~ #" {send "export ret=\\\$?;cd /tmp;(if \[\[ \\\$ret -ne 0 ]];then echo \${fail_string};else echo \${pass_string};fi)\r"; exp_continue -continue_timer}
+            -re "~( |\\\])#" {send "export ret=\\\$?;cd /tmp;(if \[\[ \\\$ret -ne 0 ]];then echo \${fail_string};else echo \${pass_string};fi)\r"; exp_continue -continue_timer}
             "sad_to_fail" {puts "Can not collect \${extra_logs} from \${guest_domain}\r"; set ret_result 1;  exp_continue -continue_timer}
             "glad_go_pass" {puts "Finished collecting \${extra_logs} from \${guest_domain}\r"; set ret_result 0;  exp_continue -continue_timer}
-            "tmp #" {send "cd ~\r"; send "exit\r"}
+            -re "tmp( |\\\])#" {send "cd ~\r"; send "exit\r"}
          }
       }
 
@@ -143,10 +149,10 @@ EOF
 	fi
 }
 
-#This function supports collecting supportconfig from both host and guest. The argument target_type will be given 'host' or 'guest'
+#This function supports collecting supportconfig or sosreport from both host and guest. The argument target_type will be given 'host' or 'guest'
 #Will resort to guest virsh console if collecting from guest ssh failed. Collecting logs from host only supports local host
-#Typical usage: collect_supportconfig logs_folder host or collect_supportconfig logs_folder guest guest_ip guest_domain_name
-function collect_supportconfig() {
+#Typical usage: collect_system_log_and_diagnosis logs_folder host or collect_system_log_and_diagnosis logs_folder guest guest_ip guest_domain_name
+function collect_system_log_and_diagnosis() {
 	local logs_folder=$1
 	local target_type=$2
 	local target_ipaddr=$3
@@ -158,7 +164,7 @@ function collect_supportconfig() {
 	if [[ ${target_type} == "guest" ]];then
 	   target_user="root"
 	   target_pass="novell"
-	   sshpass_ssh_cmd="sshpass -p ${target_pass} ssh ${target_user}@${target_ipaddr}"
+	   sshpass_ssh_cmd="sshpass -p ${target_pass} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${target_user}@${target_ipaddr}"
 	fi	
 
 	if [[ ${target_domain} != "" ]];then
@@ -171,23 +177,36 @@ function collect_supportconfig() {
 	local ret_result=128
 	local retry_times=0
 	while [[ ${retry_times} -lt 3 ]] && [[ ${ret_result} -ne 0 ]];
-	do	
-    	   local time_stamp=`date '+%Y%m%d%H%M%S'`
-	   ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
-	   echo -e "${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
-	   ${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	do
+	   if [[ ${target_type} == "host" && `cat /etc/issue` =~ oracle|rhel|red.*hat|fedora ]] || [[ ${target_type} == "guest" && ${target_transformed} =~ oracle|rhel|fedora ]];then
+	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*sosreport*
+	      echo -e "${sshpass_ssh_cmd} mkdir -p ${logs_folder}"
+	      echo -e "${sshpass_ssh_cmd} sosreport --batch --debug -v --alloptions --all-logs -z xz --tmp-dir ${logs_folder}"
+	      ${sshpass_ssh_cmd} mkdir -p ${logs_folder}
+	      ${sshpass_ssh_cmd} sosreport --batch --debug -v --alloptions --all-logs -z xz --tmp-dir ${logs_folder}
+	   else	   
+    	      local time_stamp=`date '+%Y%m%d%H%M%S'`
+	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*supportconfig*
+	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	      ${sshpass_ssh_cmd} supportconfig -y -A -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	   fi
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then
-	      echo -e "Successfully collected supportconfig from ${target_type} ${target_domain} via ssh."
+	      echo -e "Successfully collected supportconfig or sosreport from ${target_type} ${target_domain} via ssh."
 	      break
 	   fi
 	   retry_times=$((${retry_times}+1))
 	done
 
 	if [[ ${target_type} == "guest" ]] && [[ ${ret_result} -ne 0 ]];then
-	   echo -e "Can not collect supportconfig from ${target_type} ${target_domain} via ssh. Try to use guest virsh console."
-	   echo -e "collect_supportconfig_via_guest_console ${target_domain} ${logs_folder}"
-	   collect_supportconfig_via_guest_console ${target_domain} ${logs_folder}
+	   echo -e "Can not collect supportconfig or sosreport from ${target_type} ${target_domain} via ssh. Try to use guest virsh console."
+	   if [[ ${target_domain} =~ oracle|rhel|fedora ]];then
+	      echo -e "collect_sosreport_via_guest_console ${target_domain} ${logs_folder}"
+	      collect_sosreport_via_guest_console ${target_domain} ${logs_folder}
+	   else 
+	      echo -e "collect_supportconfig_via_guest_console ${target_domain} ${logs_folder}"
+	      collect_supportconfig_via_guest_console ${target_domain} ${logs_folder}
+	   fi
 	   if [[ $? -eq 0 ]];then
 	      return 0
 	   else
@@ -205,6 +224,17 @@ function collect_supportconfig_via_guest_console() {
         local guest_domain=$1
         local logs_folder=$2
         collect_logs_via_guest_console ${guest_domain} ${logs_folder} support_config
+        if [[ $? -eq 0 ]];then
+           return 0
+        else
+           return 1
+        fi
+}
+
+function collect_sosreport_via_guest_console() {
+        local guest_domain=$1
+        local logs_folder=$2
+        collect_logs_via_guest_console ${guest_domain} ${logs_folder} sos_report
         if [[ $? -eq 0 ]];then
            return 0
         else
@@ -239,7 +269,7 @@ function collect_extra_logs_from_guest() {
         if [[ ${extra_logs} != "" ]];then
            local guest_user="root"
            local guest_pass="novell"
-           local sshpass_ssh_cmd="sshpass -p ${guest_pass} ssh ${guest_user}@${guest_ipaddr}"
+           local sshpass_ssh_cmd="sshpass -p ${guest_pass} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${guest_user}@${guest_ipaddr}"
            local guest_transformed=${guest_domain//./_}
            local ret_result=128
            local retry_times=0
@@ -404,7 +434,7 @@ fi
 
 unset guest_hash_ipaddr
 declare -a guest_hash_ipaddr=""
-guest_domain_types="sles"
+guest_domain_types="sles|opensuse|tumbleweed|leap|oracle"
 guests_inactive_array=`virsh list --inactive | grep -E "${guest_domain_types}" | awk '{print $2}'`
 guest_domains_array=`virsh list  --all | grep -E "${guest_domain_types}" | awk '{print $2}'`
 guest_macaddresses_array=""
@@ -413,10 +443,43 @@ guest_hash_index=0
 guest_current=""
 dhcpd_lease_file="/var/lib/dhcp/db/dhcpd.leases"
 
+#Install necessary packages
+echo -e "Install necessary packages. zypper install -y sshpass nmap xmlstarlet" | tee -a ${virt_logs_collecor_log}
+zypper install -y sshpass nmap xmlstarlet | tee -a ${virt_logs_collecor_log}
+
+#Establish reachable networks and hosts database on host
+subnets_in_route=`ip route show all | awk '{print $1}' | grep -v default`
+subnets_scan_results=""
+subnets_scan_index=0
+echo -e "Subnets ${subnets_in_route[@]} are reachable on host judging by ip route show all" | tee -a ${virt_logs_collecor_log}
+echo -e "Establishing reachable hosts in subnets ${subnets_in_route[@]} database on host" | tee -a ${virt_logs_collecor_log}
+for single_subnet in ${subnets_in_route[@]};do
+    single_subnet_transformed=${single_subnet//./_}
+    single_subnet_transformed=${single_subnet_transformed/\//_}
+    scan_timestamp=`date "+%F-%H-%M-%S"`
+    mkdir -p "${virt_logs_folder}/nmap_subnets_scan_results"
+    single_subnet_scan_results=${virt_logs_folder}'/nmap_subnets_scan_results/nmap_scan_'${single_subnet_transformed}'_'${scan_timestamp}
+    subnets_scan_results[${subnets_scan_index}]=${single_subnet_scan_results}
+    echo -e "nmap -sn $single_subnet -oX $single_subnet_scan_results" | tee -a ${virt_logs_collecor_log}
+    nmap -T4 -sn $single_subnet -oX $single_subnet_scan_results  | tee -a ${virt_logs_collecor_log}
+    subnets_scan_index=$(( ${subnets_scan_index} + 1 ))
+done
+
 #Establish virtual machine domain name and ip address mapping
 for guest_current in ${guest_domains_array[@]};do
     guest_macaddresses_array[${guest_hash_index}]=`virsh domiflist --domain ${guest_current} | grep -oE "([0-9|a-z]{2}:){5}[0-9|a-z]{2}"`
     guest_ipaddress=`tac $dhcpd_lease_file | awk '!($0 in S) {print; S[$0]}' | tac | grep -iE "${guest_macaddresses_array[${guest_hash_index}]}" -B8 | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | tail -1`
+    if [[ -z ${guest_ipaddress} ]];then
+       for single_subnet_scan_results in ${subnets_scan_results[@]};do
+           guest_ipaddress=`xmlstarlet sel -t -v //address/@addr -n $single_subnet_scan_results | grep -i ${guest_macaddresses_array[${guest_hash_index}]} -B1 | grep -iv ${guest_macaddresses_array[${guest_hash_index}]}`
+           if [[ ! -z ${guest_ipaddress} ]];then
+               break
+           fi
+       done
+    fi
+    if [[ -z ${guest_ipaddress} ]];then
+       guest_ipaddress="NO_IP_ADDRESS_FOUND"
+    fi
     guest_hash_ipaddr[${guest_hash_index}]=${guest_ipaddress}
     echo -e ${guest_current}:${guest_hash_ipaddr[${guest_hash_index}]} | tee -a ${virt_logs_collecor_log}
     guest_hash_index=$(( ${guest_hash_index} + 1 ))
@@ -424,10 +487,10 @@ done
 
 #Start collecing logs from host and virtual machine
 setup_common_logs_folder ${virt_logs_folder}	
-echo -e "collect_supportconfig ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}"
-collect_supportconfig ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}
+echo -e "collect_system_log_and_diagnosis ${virt_logs_folder} host" | tee -a ${virt_logs_collecor_log}
+collect_system_log_and_diagnosis ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
-echo -e "collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}"
+echo -e "collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host}" | tee -a ${virt_logs_collecor_log}
 collect_extra_logs_from_host ${virt_logs_folder} "" ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
 if [[ ${virt_guests_wanted} == "none" ]];then
@@ -439,8 +502,8 @@ else
           if [[ ${guests_inactive_array[@]} =~ .*${guest_current}.* ]];then 
              echo -e "Virtual machine ${guest_current} in shutdown state. Skip collecting logs from it." | tee -a ${virt_logs_collecor_log}
           else
-             echo -e "collect_supportconfig ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current}" | tee -a ${virt_logs_collecor_log}
-             collect_supportconfig ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} | tee -a ${virt_logs_collecor_log}
+             echo -e "collect_system_log_and_diagnosis ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current}" | tee -a ${virt_logs_collecor_log}
+             collect_system_log_and_diagnosis ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} | tee -a ${virt_logs_collecor_log}
              virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
              echo -e "collect_extra_logs_from_guest ${virt_logs_folder} ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current}  ${virt_extra_logs_guest}" | tee -a ${virt_logs_collecor_log}
              collect_extra_logs_from_guest ${virt_logs_folder} ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} ${virt_extra_logs_guest} | tee -a ${virt_logs_collecor_log}

@@ -61,11 +61,9 @@ sub run {
     validate_script_output(
         "semanage boolean -l -C",
         sub {
-            m/
-            SELinux.*boolean.*State.*Default.*Description.*
-            ${test_boolean}.*(on.*,.*on).*Allow.*to.*
-            selinuxuser_execmod.*(on.*,.*on).*Allow.*to.*/sx
+            m/(?=.*SELinux\s+boolean\s+State\s+Default\s+Description)(?=.*${test_boolean}\s+\(on\s+,\s+on\))(?=.*selinuxuser_execmod\s+\(on\s+,\s+on\))/s;
         });
+
 
     # test option "-D": to delete boolean local customizations
     assert_script_run("semanage boolean -D");

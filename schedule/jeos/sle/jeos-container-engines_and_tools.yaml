@@ -30,8 +30,14 @@ schedule:
     - console/zypper_ref
     - containers/podman
     - containers/podman_image
+    - containers/buildah_podman
     - containers/docker
     - containers/docker_runc
     - containers/docker_image
-    - containers/containers_3rd_party
+    - containers/docker_3rd_party_images
+    - containers/podman_3rd_party_images
+    - containers/registry
     - containers/zypper_docker
+    - containers/container_diff
+    - containers/rootless_podman
+    - containers/buildah_docker

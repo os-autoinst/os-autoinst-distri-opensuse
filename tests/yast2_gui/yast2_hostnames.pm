@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -13,7 +13,7 @@
 #    Make sure those yast2 modules can opened properly. We can add more
 #    feature test against each module later, it is ensure it will not crashed
 #    while launching atm.
-# Maintainer: Zaoliang Luo <zluo@suse.com>
+# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base "y2_module_guitest";
 use strict;
@@ -22,7 +22,6 @@ use testapi;
 use utils qw(type_string_slow_extended clear_console);
 
 sub run {
-    my $self         = shift;
     my $module       = "host";
     my $hosts_params = {
         ip    => '195.135.221.134',
@@ -35,7 +34,7 @@ sub run {
     script_run "echo '80.92.65.53    n-tv.de ntv' >> /etc/hosts";
     clear_console;
     select_console 'x11';
-    $self->launch_yast2_module_x11($module, match_timeout => 90);
+    y2_module_guitest::launch_yast2_module_x11($module, match_timeout => 90);
     assert_and_click "yast2_hostnames_added";
     send_key 'alt-i';
     assert_screen 'yast2_hostnames_edit_popup';

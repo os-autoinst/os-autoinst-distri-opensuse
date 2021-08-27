@@ -17,7 +17,7 @@
 # - Check if system is at login screen in console
 # - Run "cat /proc/cmdline"
 # - Save screenshot
-# Maintainer: Oliver Kurz <okurz@suse.de>
+# Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
@@ -38,7 +38,7 @@ sub run {
         use_ssh_serial_console;
     }
     assert_script_run 'echo "checking serial port"';
-    type_string "cat /proc/cmdline\n";
+    enter_cmd "cat /proc/cmdline";
     save_screenshot;
     $self->result('ok');
 }

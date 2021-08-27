@@ -22,12 +22,13 @@ use utils;
 
 sub run {
     my $self = shift;
+    # Switch to root console to prevent test issues from the desktop environment
+    # See https://progress.opensuse.org/issues/93204
+    select_console('root-console');
     $self->select_serial_terminal;
 
     # Show all guests
     assert_script_run 'virsh list --all';
-    wait_still_screen 1;
-
     script_run 'history -a';
 
     collect_virt_system_logs();

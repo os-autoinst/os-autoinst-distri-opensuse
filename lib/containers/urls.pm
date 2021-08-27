@@ -18,11 +18,12 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_micro);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_micro is_released);
 
 our @EXPORT = qw(
   get_opensuse_registry_prefix
   get_suse_container_urls
+  get_3rd_party_images
 );
 
 # Returns a string which should be prepended to every pull from registry.opensuse.org.
@@ -57,45 +58,49 @@ sub get_suse_container_urls {
     my $dotversion = $version =~ s/-SP/./r;                    # 15 -> 15, 15-SP1 -> 15.1
     $dotversion = "${dotversion}.0" if $dotversion !~ /\./;    # 15 -> 15.0
 
-    my @image_names  = ();
-    my @stable_names = ();
+    my @untested_images = ();
+    my @released_images = ();
     if (is_sle(">=12-sp3", $version) && is_sle('<15', $version)) {
         my $lowerversion  = lc $version;
         my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
         if (!check_var('ARCH', 'aarch64')) {
-            push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
-            push @stable_names, "registry.suse.com/suse/sles${nodashversion}";
+            push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
+            push @released_images, "registry.suse.com/suse/sles${nodashversion}";
         }
     }
-    elsif (is_sle(">=15", $version)) {
+    elsif (is_sle(">=15", $version) && is_released) {
         my $lowerversion = lc $version;
-        push @image_names,  "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
-        push @stable_names, "registry.suse.com/suse/sle15:${dotversion}";
+        # Location for maintenance builds
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
+    }
+    elsif (is_sle(">=15-sp4", $version)) {
+        my $lowerversion = lc $version;
+        # Location for GA builds
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/ga/test/images/suse/sle15:${dotversion}";
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_sle_micro) {
-        push @image_names,
-          "registry.suse.com/suse/sle15:15.0",
-          "registry.suse.com/suse/sle15:15.1",
-          "registry.suse.com/suse/sle15:15.2",
-          "registry.suse.com/suse/sle15:15.3";
+        # Untested images are not validated in SLE Micro, so leave it empty
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_tumbleweed || is_microos("Tumbleweed")) {
-        push @image_names,  "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
-        push @stable_names, "registry.opensuse.org/opensuse/tumbleweed";
+        push @untested_images, "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
+        push @released_images, "registry.opensuse.org/opensuse/tumbleweed";
     }
-    elsif ($version eq "Jump:15.2") {
-        # Jump 15.2 uses opensuse/leap:15.2.1, just hardcode this special case
-        push @image_names,  "registry.opensuse.org/opensuse/jump/15.2/images/totest/containers/opensuse/leap:15.2.1";
-        push @stable_names, "registry.opensuse.org/opensuse/leap:15.2.1";
+    elsif (is_leap(">=15.3")) {
+        # All archs in the same location
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif ((is_leap(">15.0") || is_microos(">15.0")) && check_var('ARCH', 'x86_64')) {
-        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif ((is_leap(">15.0") || is_microos(">15.0")) && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'arm'))) {
-        push @image_names,  "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
-        push @stable_names, "registry.opensuse.org/opensuse/leap:${version}";
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
     elsif (is_leap(">15.0") && check_var('ARCH', 'ppc64le')) {
         # No image set up yet :-(
@@ -107,5 +112,33 @@ sub get_suse_container_urls {
         die("Unknown combination of distro/arch.");
     }
 
-    return (\@image_names, \@stable_names);
+    return (\@untested_images, \@released_images);
+}
+
+sub get_3rd_party_images {
+    my $ex_reg = get_var('REGISTRY', 'docker.io');
+    my @images = (
+        "registry.opensuse.org/opensuse/leap",
+        "registry.opensuse.org/opensuse/tumbleweed",
+        "$ex_reg/library/alpine",
+        "$ex_reg/library/debian",
+        "$ex_reg/library/fedora",
+        "registry.access.redhat.com/ubi8/ubi",
+        "registry.access.redhat.com/ubi8/ubi-minimal",
+        "registry.access.redhat.com/ubi8/ubi-init");
+
+    # poo#72124 Ubuntu image (occasionally) fails on s390x
+    push @images, "$ex_reg/library/ubuntu" unless check_var('ARCH', 's390x');
+
+    # Missing centos container image for s390x.
+    push @images, "$ex_reg/library/centos" unless check_var('ARCH', 's390x');
+
+    # RedHat UBI7 images are not built for aarch64
+    push @images, (
+        "registry.access.redhat.com/ubi7/ubi",
+        "registry.access.redhat.com/ubi7/ubi-minimal",
+        "registry.access.redhat.com/ubi7/ubi-init"
+    ) unless (check_var('ARCH', 'aarch64') or check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
+
+    return (\@images);
 }

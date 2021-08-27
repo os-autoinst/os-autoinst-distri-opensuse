@@ -29,7 +29,7 @@ use version_utils qw(is_sle is_tumbleweed);
 sub run {
     my ($self) = @_;
     $self->gnote_start_with_new_note;
-    type_string "Start Here\n";
+    enter_cmd "Start Here";
     assert_screen 'gnote-new-note-link';
     wait_screen_change { send_key 'up' };
     send_key 'ctrl-ret';    #switch to link

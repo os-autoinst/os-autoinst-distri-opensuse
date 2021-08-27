@@ -9,15 +9,14 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/welcome
+  - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/raid_gpt
-  - installation/installer_timezone
-  - installation/user_settings
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -25,18 +24,19 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/teardown_libyui
   - installation/grub_test
   - installation/first_boot
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
+  - console/validate_md_raid
   - console/validate_raid
 test_data:
   <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
   mds:
     - raid_level: 5
+      name: md0
       chunk_size: '64 KiB'
       devices:
         - vda2
@@ -50,6 +50,7 @@ test_data:
         mounting_options:
           should_mount: 1
     - raid_level: 0
+      name: md1
       chunk_size: '64 KiB'
       devices:
         - vda3

@@ -321,10 +321,10 @@ sub run {
         wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
         type_string($cmd_text);
         wait_serial($cmd_text, undef, 0, no_regex => 1);
-        type_string("\n");
+        send_key 'ret';
     }
     else {
-        type_string("($cmd_text) | tee /dev/$serialdev\n");
+        enter_cmd("($cmd_text) | tee /dev/$serialdev");
     }
     my $test_log = wait_serial(qr/$fin_msg\d+/, $timeout, 0, record_output => 1);
     my ($timed_out, $result_export) = $self->record_ltp_result($runfile, $test, $test_log, $fin_msg, thetime() - $start_time, $is_posix);

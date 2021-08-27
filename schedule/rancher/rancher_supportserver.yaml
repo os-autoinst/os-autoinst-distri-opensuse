@@ -1,0 +1,9 @@
+---
+name: rancher
+description: >
+    Rancher support server test suite schedule
+schedule:
+ - support_server/login
+ - support_server/setup
+ - rancher/rancher_supportserver
+ - support_server/wait_children

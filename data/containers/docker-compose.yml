@@ -17,6 +17,10 @@ services:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
       - "8080:80"
+    # Port 80 is privileged but haproxy 2.4 runs as user by default.
+    # Docker on Tumbleweed has this by default
+    sysctls:
+      - net.ipv4.ip_unprivileged_port_start=0
     networks:
       - backend
       - frontend

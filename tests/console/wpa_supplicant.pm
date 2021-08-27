@@ -20,7 +20,7 @@
 #    - Connect to WPA2 network
 #    - Ping access point (static IP-addresses)
 #    - Unassign static IP
-#    - Get new IP address using dhcp with wicked
+#   - Get new IP address using dhcp with wicked
 #    - Ping access point (now dhcp IP-address)
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
@@ -37,13 +37,23 @@ sub run {
     zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip';
     assert_script_run 'cd $(mktemp -d)';
     assert_script_run('curl -L -s ' . data_url('wpa_supplicant') . ' | cpio --make-directories --extract && cd data');
+    $self->adopt_apparmor;
     assert_script_run('bash -x ./wpa_supplicant_test.sh 2>&1 | tee wpa-supplicant_test.txt', timeout => 600);
+}
+
+sub adopt_apparmor {
+    if (script_output('systemctl is-active apparmor', proceed_on_failure => 1) eq 'active') {
+        assert_script_run('echo "# adopt AppArmor"');
+        assert_script_run(q(test ! -e /etc/apparmor.d/usr.sbin.hostapd ||  sed -i "s|^}$|  $PWD/\hostapd.conf r,\n}|g"  /etc/apparmor.d/usr.sbin.hostapd));
+        systemctl 'reload apparmor';
+    }
 }
 
 sub post_fail_hook {
     # Upload logs if present
     upload_logs("wicked.log")              if (script_run("stat wicked.log") == 0);
     upload_logs("wpa-supplicant_test.txt") if (script_run("stat wpa-supplicant_test.txt") == 0);
+    upload_logs("hostapd.log")             if (script_run("stat hostapd.log") == 0);
 }
 
 1;

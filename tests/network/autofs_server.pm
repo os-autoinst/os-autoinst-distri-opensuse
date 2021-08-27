@@ -42,6 +42,11 @@ use strict;
 use warnings;
 
 sub run {
+    # MM tests autofs requires barrier_create
+    barrier_create('AUTOFS_SUITE_READY', 2);
+    barrier_create('AUTOFS_FINISHED',    2);
+    mutex_create 'barrier_setup_done';
+
     select_console "root-console";
     my $test_share_dir     = "/tmp/nfs/server";
     my $nfsidmap_share_dir = "/home/tux";
@@ -70,7 +75,6 @@ sub run {
     # common
     assert_script_run "cat /etc/exports";
     systemctl 'restart nfs-server';
-    mutex_create 'barrier_setup_done';
     barrier_wait 'AUTOFS_SUITE_READY';
     barrier_wait 'AUTOFS_FINISHED';
 }

@@ -9,21 +9,23 @@ vars:
   ENCRYPT: 1
   SEPARATE_HOME: 0
   HDDMODEL: scsi-hd
+  YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   - installation/scc_registration
   - installation/multipath
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
   - installation/partitioning/encrypt_lvm
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -45,6 +47,7 @@ schedule:
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
 test_data:
+  product: SLES
   crypttab:
     num_devices_encrypted: 1
   cryptsetup:

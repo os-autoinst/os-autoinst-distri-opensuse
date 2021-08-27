@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -51,8 +51,14 @@ sub run {
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
         record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
     }
-    # Initialize and download ClamAV database which needs time
-    assert_script_run('freshclam', 700);
+
+    # Initialize and download ClamAV database
+    # First from local mirror, it's much faster, then from official clamav db
+    my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
+    assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
+    assert_script_run('freshclam');
+    assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
+    assert_script_run('freshclam');
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
@@ -68,7 +74,8 @@ sub run {
     # Verify the database
     assert_script_run 'sigtool -i /var/lib/clamav/main.cvd';
     assert_script_run 'sigtool -i /var/lib/clamav/bytecode.cvd';
-    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd';
+    # CLD files are uncompressed and unsigned versions of the CVD that have had CDIFFs applied
+    assert_script_run 'sigtool -i /var/lib/clamav/daily.cvd || sigtool -i /var/lib/clamav/daily.cld';
 
     # Clamd start timeout sometimes. The default systemd timeout is 90s,
     # override it with a longer duration in runtime.
@@ -87,7 +94,7 @@ sub run {
     # signature to viruses database, then scan the virus
     for my $alg (qw(md5 sha1 sha256)) {
         assert_script_run "sigtool --$alg /usr/bin/vim > test.hdb";
-        type_string "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev\n";
+        enter_cmd "clamscan -d test.hdb  /usr/bin/vim | tee /dev/$serialdev";
         die "Virus scan result was not expected" unless (wait_serial qr/vim\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
 
@@ -105,6 +112,7 @@ sub run {
     # Clean up
     script_run "rm -f test.hdb";
     script_run "rm -rf eicar_test_files/";
+    systemctl('stop clamd freshclam', timeout => 500);
 }
 
 sub post_run_hook {

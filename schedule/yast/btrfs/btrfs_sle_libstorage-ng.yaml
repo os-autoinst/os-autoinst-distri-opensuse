@@ -1,28 +1,31 @@
 name:           btrfs_libstorage-ng
 description:    >
-  Validate default installation with btrfs and Libstorage NG.
+  Validate default installation with btrfs and libstorage-ng.
 vars:
   DESKTOP: gnome
   FILESYSTEM: btrfs
+  YUI_REST_API: 1
 schedule:
   # Called on BACKEND: qemu
   - '{{isosize}}'
   - installation/bootloader_start
-  - installation/welcome
-  - installation/accept_license
+  - installation/setup_libyui
+  - installation/validate_beta_popup
+  - installation/product_selection/select_product
+  - installation/licensing/accept_license
   # Called only on BACKEND: s390x
   - '{{disk_activation}}'
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning
-  - installation/partitioning_filesystem
-  - installation/partitioning_finish
-  - installation/installer_timezone
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
   # Called on all, except BACKEND: s390x
   - '{{hostname_inst}}'
-  - installation/user_settings
-  - installation/user_settings_root
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
@@ -30,12 +33,12 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  # Called on BACKEND: s390x, svirt
-  - '{{reconnect_mgmt_console}}'
-  # Called on BACKEND: qemu
-  - '{{grub_test}}'
+  - installation/handle_reboot
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/check_resume
+  - console/validate_product_name_installed
   - console/validate_no_cow_attribute
   # On all the backends except s390x, /home is located on a separate partition
   - '{{validate_home_partition}}'
@@ -48,16 +51,6 @@ conditional_schedule:
     BACKEND:
       s390x:
         - installation/disk_activation
-  reconnect_mgmt_console:
-    BACKEND:
-      s390x:
-        - boot/reconnect_mgmt_console
-      svirt:
-        - boot/reconnect_mgmt_console
-  grub_test:
-    BACKEND:
-      qemu:
-        - installation/grub_test
   hostname_inst:
     BACKEND:
       qemu:
@@ -68,15 +61,15 @@ conditional_schedule:
     BACKEND:
       qemu:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
       svirt:
         - console/verify_separate_home
-        - console/validate_file_system
+        - console/validate_partition_table_via_blkid
+        - console/validate_blockdevices
       s390x:
         - console/verify_no_separate_home
 test_data:
-  device: vda
-  table_type: gpt
   subvolume:
     cow:
       - /root
@@ -87,6 +80,18 @@ test_data:
       - /opt
     no_cow:
       - /var
-  file_system:
-    /home: xfs
-    /: btrfs
+  product: SLES
+  disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+    - name: vda2
+      formatting_options:
+        filesystem: btrfs
+      mounting_options:
+        mount_point: /
+    - name: vda3
+      formatting_options:
+        filesystem: xfs
+      mounting_options:
+        mount_point: /home

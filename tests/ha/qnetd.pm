@@ -20,6 +20,14 @@ use lockapi;
 use hacluster;
 use utils qw(zypper_call exec_and_insert_password);
 
+sub handle_diskless_sbd_scenario_cluster_node {
+    my $cluster_name = get_cluster_name;
+    if (get_var('USE_DISKLESS_SBD') && !check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
+        barrier_wait("DISKLESS_SBD_QDEVICE_$cluster_name");
+        assert_script_run 'crm cluster restart';
+    }
+}
+
 sub qdevice_status {
     my ($expected_status) = @_;
     my $num_nodes         = get_required_var('NUM_NODES');
@@ -34,13 +42,13 @@ sub qdevice_status {
 
     # Check qdevice status
     $output = script_output "$qnetd_status_cmd"                if ($expected_status ne 'stopped');
-    die "Heuristics script for quorum is failing in all nodes" if ($expected_status =~ /^split-brain/ and $output !~ /Heuristics:\s+Pass\s/);
+    die "Heuristics script for quorum is failing in all nodes" if ($expected_status =~ /^split-brain/ && $output !~ /Heuristics:\s+Pass\s/);
 
     $output = script_output "$quorum_status_cmd";
 
     # Check split brain situation
     if ($expected_status eq 'split-brain-blocked') {
-        die "Unexpected output for split-brain situation" unless ($output =~ /Activity blocked/ and $output =~ /Quorate:\s+No/);
+        die "Unexpected output for split-brain situation" unless ($output =~ /Activity blocked/ && $output =~ /Quorate:\s+No/);
         return;
     }
 
@@ -49,11 +57,11 @@ sub qdevice_status {
     push @regexps, 'Total votes:\s+' . $total_votes;
     push @regexps, 'Quorum:\s+' . $num_nodes;
 
-    push @regexps, 'Flags:\s+Quorate\s+Qdevice' if ($expected_status eq 'started' or $expected_status eq 'split-brain-check');
+    push @regexps, 'Flags:\s+Quorate\s+Qdevice' if ($expected_status eq 'started' || $expected_status eq 'split-brain-check');
     push @regexps, 'Flags:\s+2Node\s+Quorate'   if ($expected_status eq 'stopped');
 
-    die "Qdevice membership information does not match expected info" if ($expected_status eq 'started' and $output !~ /\s+0\s+1\s+Qdevice/);
-    die "Qdevice membership information shown when stopped"           if ($expected_status eq 'stopped' and $output =~ /\s+0\s+1\s+Qdevice/);
+    die "Qdevice membership information does not match expected info" if ($expected_status eq 'started' && $output !~ /\s+0\s+1\s+Qdevice/);
+    die "Qdevice membership information shown when stopped"           if ($expected_status eq 'stopped' && $output =~ /\s+0\s+1\s+Qdevice/);
 
     foreach my $exp (@regexps) { die "Unexpected output. Output does not match [$exp]" unless ($output =~ /$exp/) }
 }
@@ -92,30 +100,34 @@ sub run {
 
         # Add qdevice to a running cluster with heuristic check
         assert_script_run "crm cluster init qdevice --qnetd-hostname=$qnet_node_ip -y --qdevice-heuristics=/etc/corosync/qdevice/check_master.sh --qdevice-heuristics-mode=on";
+        handle_diskless_sbd_scenario_cluster_node;
         # Qdevice should be started again
         qdevice_status('started');
-    }
 
-    # Ensure promotable resource is in node 1
-    script_run 'crm resource migrate promotable-1 ' . choose_node(1) if is_node(1);
+        # Ensure promotable resource is in node 1
+        script_run 'crm resource move promotable-1 ' . choose_node(1);
+    }
+    else {
+        handle_diskless_sbd_scenario_cluster_node;
+    }
 
     # Perform Split Brain test
     barrier_wait("SPLIT_BRAIN_TEST_READY_$cluster_name");
 
     record_info('Split-brain info', 'Split brain test');
 
-    record_info('Stopping stonith', 'Stop stonith to prevent fencing of node before our check');
-    assert_script_run "crm resource stop stonith-sbd" if is_node(1);
-
+    record_info('Disabling stonith', 'Disable stonith to prevent fencing of node before our check');
+    assert_script_run 'crm configure property stonith-enabled="false"' if is_node(1);
     # Add firewall rules to provoke a split brain situation and confirm that
     # the qdevice node gives its vote to the node1 (where the master resource is running)
     # Firewall rules go in both nodes in multicast cluster, and only in node 2 in unicast
+    barrier_wait("QNETD_STONITH_DISABLED_$cluster_name");
     my $partner_ip = is_node(1) ? get_ip(choose_node(2)) : get_ip(choose_node(1));
     assert_script_run "iptables -A INPUT -s $partner_ip -j DROP; iptables -A OUTPUT -d $partner_ip -j DROP"
-      if ((is_node(1) and !get_var('HA_UNICAST')) or is_node(2));
+      if ((is_node(1) && !get_var('HA_UNICAST')) || is_node(2));
     sleep $default_timeout;
 
-    if (is_node(2)) {
+    if (is_node(2) && !get_var('USE_DISKLESS_SBD')) {
         # Activity must be blocked in node2 due to split brain situation
         record_info('Split-brain check', 'Check if activity is blocked');
         qdevice_status('split-brain-blocked');
@@ -132,10 +144,10 @@ sub run {
     barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
 
     # Show cluster status before ending the test
-    save_state if (!check_var('QDEVICE_TEST_ROLE', 'qnetd_server'));
+    save_state if (is_node(1) || !(get_var('USE_DISKLESS_SBD') || check_var('QDEVICE_TEST_ROLE', 'qnetd_server')));
 
     # Restart stonith. This should fence node 2
-    assert_script_run "crm resource start stonith-sbd" if is_node(1);
+    assert_script_run 'crm configure property stonith-enabled="true"' if is_node(1);
 
     barrier_wait("QNETD_SERVER_DONE_$cluster_name");
 

@@ -87,7 +87,7 @@ sub setup_yast2_ldap_server {
     wait_still_screen(2);
     foreach (sort keys %ldap_options_to_dirs) {
         wait_screen_change { send_key "alt-$_" };
-        type_string($ldap_directives{$ldap_options_to_dirs{$_}} . "\n");
+        enter_cmd($ldap_directives{$ldap_options_to_dirs{$_}} . "");
     }
     assert_screen 'yast2_samba-389ds-setup';
     send_key $cmd{ok};
