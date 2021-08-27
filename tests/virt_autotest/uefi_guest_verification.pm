@@ -26,6 +26,7 @@ use utils;
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
+use version_utils "is_sle";
 
 sub run_test {
     my $self = shift;
@@ -40,7 +41,12 @@ sub run_test {
     else {
         record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
     }
-    $self->check_guest_pmsuspend_enabled;
+    if (is_sle('>=15')) {
+        $self->check_guest_pmsuspend_enabled;
+    }
+    else {
+        record_info("SLES that is eariler than 15 does not support power management functionality with uefi", "Skip check_guest_pmsuspend_enabled");
+    }
     return $self;
 }
 
@@ -89,8 +95,20 @@ sub check_guest_pmsuspend_enabled {
 
     $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
     if (is_kvm_host) {
-        $self->do_guest_pmsuspend($_, 'hybrid') foreach (keys %virt_autotest::common::guests);
-        $self->do_guest_pmsuspend($_, 'disk')   foreach (keys %virt_autotest::common::guests);
+        foreach (keys %virt_autotest::common::guests) {
+            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
+                record_info("PMSUSPEND to hyrbrid is not supported here", "Guest $_ on kvm sles 15+ host");
+                next;
+            }
+            $self->do_guest_pmsuspend($_, 'hybrid');
+        }
+        foreach (keys %virt_autotest::common::guests) {
+            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
+                record_info("PMSUSPEND to disk is not supported here", "Guest $_ on kvm sles 15+ host");
+                next;
+            }
+            $self->do_guest_pmsuspend($_, 'disk');
+        }
     }
     else {
         record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
