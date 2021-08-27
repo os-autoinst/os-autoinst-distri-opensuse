@@ -51,11 +51,12 @@ sub run_testcase {
     my ($testcase, %args) = @_;
 
     # Configure the test enviornment for test
-    prepare_for_test($testcase, %args) unless ($args{skip_prepare});
+    prepare_for_test(%args) unless ($args{skip_prepare});
 
+    assert_script_run("cd ${testcase}/");
     # Test case 'audit-remote-libvirt' does not generate any logs
     if ($testcase eq 'audit-remote-libvirt') {
-        # Note: the outputs of run.bash can not be saved to "./$file" so save to "../$file"
+        # Note: the outputs of run.bash can not be saved to "./$file", so save to "../$file"
         script_run("./run.bash 1>../$current_file 2>&1", timeout => $args{timeout});
         assert_script_run("mv ../$current_file $current_file");
         assert_script_run("cat $current_file");
@@ -73,13 +74,12 @@ sub upload_audit_test_logs {
 }
 
 sub prepare_for_test {
-    my ($testcase, %args) = @_;
+    my (%args) = @_;
 
     # Run test case
     assert_script_run("cd ${testdir}${testfile_tar}/audit-test/");
     assert_script_run('make')           if ($args{make});
     assert_script_run('make netconfig') if ($args{make_netconfig});
-    assert_script_run("cd ${testcase}/");
 
     # Export MODE
     assert_script_run("export MODE=$audit_test::mode");
