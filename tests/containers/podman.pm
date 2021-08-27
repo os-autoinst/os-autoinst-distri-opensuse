@@ -47,7 +47,7 @@ sub run {
     allow_selected_insecure_registries(runtime => $podman);
 
     # Run basic tests for podman
-    basic_container_tests(runtime => $podman);
+    basic_container_tests(runtime => $podman->runtime);
 
     # Build an image from Dockerfile and test it
     build_and_run_image(runtime => $podman, base => 'registry.opensuse.org/opensuse/leap:latest');

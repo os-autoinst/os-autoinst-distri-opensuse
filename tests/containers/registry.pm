@@ -38,31 +38,31 @@ sub registry_push_pull {
     die 'Argument $runtime not provided!' unless $runtime;
 
     # Pull $image
-    assert_script_run "$runtime->{runtime} pull $image",            600;
-    assert_script_run "$runtime->{runtime} images | grep '$image'", 60;
+    assert_script_run $runtime->runtime . " pull $image",            600;
+    assert_script_run $runtime->runtime . " images | grep '$image'", 60;
 
     # Tag $image for the local registry
-    assert_script_run "$runtime->{runtime} tag $image localhost:5000/$image",      90;
-    assert_script_run "$runtime->{runtime} images | grep 'localhost:5000/$image'", 60;
+    assert_script_run $runtime->runtime . " tag $image localhost:5000/$image",      90;
+    assert_script_run $runtime->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # Push $image to the local registry
-    assert_script_run "$runtime->{runtime} push localhost:5000/$image", 90;
+    assert_script_run $runtime->runtime . " push localhost:5000/$image", 90;
 
     # Remove $image as well as the local registry $image
     # The localhost:5000/$image must be removed first
-    assert_script_run "$runtime->{runtime} image rm -f localhost:5000/$image", 90;
-    if (script_run("$runtime->{runtime} images | grep '$image'") == 0) {
-        assert_script_run "$runtime->{runtime} image rm -f $image", 90;
+    assert_script_run $runtime->runtime . " image rm -f localhost:5000/$image", 90;
+    if (script_run($runtime->runtime . " images | grep '$image'") == 0) {
+        assert_script_run $runtime->runtime . " image rm -f $image", 90;
     } else {
         record_soft_failure("containers/podman#10685",
             "Known issue - containers/podman#10685: podman image rm --force also untags other images (3.2.0 regression)");
     }
-    assert_script_run "! $runtime->{runtime} images | grep '$image'",                60;
-    assert_script_run "! $runtime->{runtime} images | grep 'localhost:5000/$image'", 60;
+    assert_script_run "! " . $runtime->runtime . " images | grep '$image'",                60;
+    assert_script_run "! " . $runtime->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # Pull $image from the local registry
-    assert_script_run "$runtime->{runtime} pull localhost:5000/$image",            90;
-    assert_script_run "$runtime->{runtime} images | grep 'localhost:5000/$image'", 60;
+    assert_script_run $runtime->runtime . " pull localhost:5000/$image",            90;
+    assert_script_run $runtime->runtime . " images | grep 'localhost:5000/$image'", 60;
 }
 
 sub run {

@@ -82,7 +82,7 @@ sub _test_btrfs_device_mgmt {
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
-    die("pull should fail on full partition") if ($rt->pull("$container") == 0);
+    die("pull should fail on full partition") if ($rt->pull($container) == 0);
     # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
@@ -101,8 +101,8 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $docker = containers::runtime::docker->new();
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
-    my $docker         = containers::runtime->new(runtime => 'docker');
+    allow_selected_insecure_registries(runtime => $docker);
+    my $btrfs_dev      = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
     _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
