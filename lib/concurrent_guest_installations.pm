@@ -97,7 +97,7 @@ sub install_guest_instances {
         else {
             $guest_instances{$_}->guest_installation_run(@_);
         }
-        if ($guest_instances{$_}->{guest_autoconsole} eq '') {
+        if ($guest_instances{$_}->has_noautoconsole_for_sure) {
             assert_screen('text-logged-in-root');
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;
         }
