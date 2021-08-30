@@ -24,6 +24,11 @@ sub init {
     return $self;
 }
 
+sub is_shown {
+    my ($self) = @_;
+    return $self->{btn_ok}->exist();
+}
+
 sub text {
     my ($self) = @_;
     return $self->{rt_warning}->text();
