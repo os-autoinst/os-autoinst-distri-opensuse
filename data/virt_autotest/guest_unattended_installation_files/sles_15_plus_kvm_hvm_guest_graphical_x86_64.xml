@@ -1,72 +1,67 @@
 <?xml version="1.0"?>
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
-  <add-on>
-    <add_on_products config:type="list">
-      <listentry>
-        <ask_on_error config:type="boolean">false</ask_on_error>
+  <add-on t="map">
+    <add_on_products t="list">
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
         <media_url>##Module-Basesystem##</media_url>
         <product>sle-module-basesystem</product>
         <product_dir>/</product_dir>
       </listentry>
-      <listentry>
-        <ask_on_error config:type="boolean">false</ask_on_error>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
         <media_url>##Module-Desktop-Applications##</media_url>
         <product>sle-module-desktop-applications</product>
         <product_dir>/</product_dir>
       </listentry>
-      <listentry>
-        <ask_on_error config:type="boolean">false</ask_on_error>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
         <media_url>##Module-Legacy##</media_url>
         <product>sle-module-legacy</product>
         <product_dir>/</product_dir>
       </listentry>
-      <listentry>
-        <ask_on_error config:type="boolean">false</ask_on_error>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
         <media_url>##Module-Server-Applications##</media_url>
         <product>sle-module-server-applications</product>
         <product_dir>/</product_dir>
       </listentry>
-      <listentry>
-        <ask_on_error config:type="boolean">false</ask_on_error>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
         <media_url>##Module-Web-Scripting##</media_url>
         <product>sle-module-web-scripting</product>
         <product_dir>/</product_dir>
       </listentry>
-      <listentry>
-        <ask_on_error config:type="boolean">false</ask_on_error>
+      <listentry t="map">
+        <ask_on_error t="boolean">false</ask_on_error>
         <media_url>##Product-SLES##</media_url>
         <product>sle-product-sles</product>
         <product_dir>/</product_dir>
       </listentry>
     </add_on_products>
   </add-on>
-  <deploy_image>
-    <image_installation config:type="boolean">false</image_installation>
-  </deploy_image>
-  <general>
-    <ask-list config:type="list"/>
-    <mode>
-      <confirm config:type="boolean">false</confirm>
-      <second_stage config:type="boolean">false</second_stage>
-      <final_reboot config:type="boolean">true</final_reboot>
-      <final_halt config:type="boolean">false</final_halt>
-      <final_restart_services config:type="boolean">true</final_restart_services>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+      <second_stage t="boolean">false</second_stage>
+      <final_reboot t="boolean">true</final_reboot>
+      <final_halt t="boolean">false</final_halt>
+      <final_restart_services t="boolean">true</final_restart_services>
     </mode>
-    <proposals config:type="list"/>
     <signature-handling>
-      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
-      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
-      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
-      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
-      <accept_verification_failed config:type="boolean">true</accept_verification_failed>
-      <import_gpg_key config:type="boolean">true</import_gpg_key>
+      <accept_file_without_checksum t="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key t="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key t="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file t="boolean">true</accept_unsigned_file>
+      <accept_verification_failed t="boolean">true</accept_verification_failed>
+      <import_gpg_key t="boolean">true</import_gpg_key>
     </signature-handling>
     <storage>
-      <start_multipath config:type="boolean">false</start_multipath>
+      <start_multipath t="boolean">false</start_multipath>
     </storage>
   </general>
-    <bootloader t="map">
+  <bootloader t="map">
     <global t="map">
       <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>
       <cpu_mitigations>auto</cpu_mitigations>
@@ -84,7 +79,7 @@
   <keyboard>
     <keyboard_values>
       <delay/>
-      <discaps config:type="boolean">false</discaps>
+      <discaps t="boolean">false</discaps>
       <numlock>bios</numlock>
       <rate/>
     </keyboard_values>
@@ -94,25 +89,25 @@
     <language>en_US</language>
     <languages/>
   </language>
-  <drive>
+  <drive t="map">
     <device>/dev/vda</device>
     <disklabel>##Disk-Label##</disklabel>
     <use>all</use>
   </drive>
-  <networking>
-    <dns>
-      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+  <networking t="map">
+    <dns t="map">
+      <dhcp_hostname t="boolean">true</dhcp_hostname>
       <domain>##Domain-Name##</domain>
       <hostname>##Host-Name##</hostname>
       <resolv_conf_policy>auto</resolv_conf_policy>
     </dns>
-    <interfaces config:type="list">
-      <interface>
+    <interfaces t="list">
+      <interface t="map">
         <bootproto>dhcp</bootproto>
         <device>eth0</device>
         <startmode>auto</startmode>
       </interface>
-      <interface>
+      <interface t="map">
         <bootproto>static</bootproto>
         <broadcast>127.255.255.255</broadcast>
         <device>lo</device>
@@ -124,114 +119,139 @@
         <startmode>auto</startmode>
       </interface>
     </interfaces>
-    <ipv6 config:type="boolean">true</ipv6>
-    <keep_install_network config:type="boolean">true</keep_install_network>
-    <managed config:type="boolean">false</managed>
-    <routing>
-      <ipv4_forward config:type="boolean">true</ipv4_forward>
-      <ipv6_forward config:type="boolean">true</ipv6_forward>
+    <ipv6 t="boolean">true</ipv6>
+    <keep_install_network t="boolean">true</keep_install_network>
+    <managed t="boolean">false</managed>
+     <routing t="map">
+      <ipv4_forward t="boolean">true</ipv4_forward>
+      <ipv6_forward t="boolean">true</ipv6_forward>
     </routing>
   </networking>
-  <ssh_import>
-    <import config:type="boolean">true</import>
-    <copy_config config:type="boolean">false</copy_config>
+  <ssh_import t="map">
+    <import t="boolean">false</import>
+    <copy_config t="boolean">false</copy_config>
   </ssh_import>
+  <suse_register t="map">
+    <do_registration t="boolean">false</do_registration>
+  </suse_register>
   <report>
     <errors>
-      <log config:type="boolean">true</log>
-      <show config:type="boolean">true</show>
-      <timeout config:type="integer">30</timeout>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">30</timeout>
     </errors>
     <messages>
-      <log config:type="boolean">true</log>
-      <show config:type="boolean">true</show>
-      <timeout config:type="integer">30</timeout>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">30</timeout>
     </messages>
     <warnings>
-      <log config:type="boolean">true</log>
-      <show config:type="boolean">true</show>
-      <timeout config:type="integer">30</timeout>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">30</timeout>
     </warnings>
     <yesno_messages>
-      <log config:type="boolean">true</log>
-      <show config:type="boolean">true</show>
-      <timeout config:type="integer">30</timeout>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">30</timeout>
     </yesno_messages>
   </report>
-  <services-manager>
+  <services-manager t="map">
     <default_target>graphical</default_target>
-    <services>
-      <disable config:type="list"/>
-      <enable config:type="list">
+    <services t="map">
+      <enable t="list">
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>cron</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>display-manager</service>
+        <service>issue-generator</service>
+        <service>wicked</service>
+        <service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
         <service>sshd</service>
+        <service>systemd-remount-fs</service>
       </enable>
     </services>
   </services-manager>
-  <software>
-    <products config:type="list">
-        <product>SLES</product>
-    </products>
-    <packages config:type="list">
+  <software t="map">
+    <install_recommended t="boolean">true</install_recommended>
+    <instsource/>
+    <packages t="list">
+      <package>wicked</package>
+      <package>snapper</package>
       <package>sles-release</package>
       <package>sle-module-web-scripting-release</package>
       <package>sle-module-server-applications-release</package>
       <package>sle-module-legacy-release</package>
       <package>sle-module-desktop-applications-release</package>
       <package>sle-module-basesystem-release</package>
-      <package>less</package>
-      <package>wicked</package>
       <package>openssh</package>
-      <package>numactl</package>
       <package>kexec-tools</package>
-      <package>irqbalance</package>
-      <package>iproute2</package>
-      <package>grub2</package>
       <package>glibc</package>
       <package>e2fsprogs</package>
-      <package>chrony</package>
+      <package>dosfstools</package>
       <package>btrfsprogs</package>
-      <package>biosdevname</package>
       <package>autoyast2</package>
+      <package>autoyast2-installation</package>
     </packages>
-    <patterns config:type="list">
+    <patterns t="list">
       <pattern>base</pattern>
       <pattern>basesystem</pattern>
-      <pattern>minimal_base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>fonts</pattern>
       <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>minimal_base</pattern>
       <pattern>x11</pattern>
+      <pattern>x11_enhanced</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
     </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
   </software>
-  <timezone>
+  <timezone t="map">
     <hwclock>UTC</hwclock>
     <timezone>America/Denver</timezone>
   </timezone>
-  <user_defaults>
+  <user_defaults t="map">
     <expire/>
     <group>500</group>
     <groups/>
     <home>/home</home>
-    <inactive/>
-    <no_groups config:type="boolean">true</no_groups>
-    <shell/>
-    <skel/>
+    <inactive>-1</inactive>
+    <no_groups t="boolean">true</no_groups>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
     <umask>022</umask>
   </user_defaults>
-  <users config:type="list">
-    <user>
-      <encrypted config:type="boolean">true</encrypted>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
       <fullname>root</fullname>
-      <authorized_keys config:type="list">
+      <authorized_keys t="list">
         <listentry>##Authorized-Keys##</listentry>
       </authorized_keys>
       <gid>0</gid>
       <home>/root</home>
-      <password_settings>
-        <expire></expire>
-        <flag></flag>
-        <inact></inact>
-        <max></max>
-        <min></min>
-        <warn></warn>
+      <password_settings t="map">
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>

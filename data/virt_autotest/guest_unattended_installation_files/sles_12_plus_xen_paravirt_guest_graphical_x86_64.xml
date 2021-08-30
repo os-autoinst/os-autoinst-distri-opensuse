@@ -2,8 +2,8 @@
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <add-on>
-    <add_on_products config:type="list">
-  </add-on>
+    <add_on_products config:type="list"/>
+  </add-on>      
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
@@ -11,7 +11,7 @@
     <ask-list config:type="list"/>
     <mode>
       <confirm config:type="boolean">false</confirm>
-      <second_stage config:type="boolean">false</second_stage>
+      <second_stage config:type="boolean">true</second_stage>
       <final_reboot config:type="boolean">true</final_reboot>
       <final_halt config:type="boolean">false</final_halt>
       <final_restart_services config:type="boolean">true</final_restart_services>
@@ -29,18 +29,20 @@
       <start_multipath config:type="boolean">false</start_multipath>
     </storage>
   </general>
-  <bootloader t="map">
-    <global t="map">
+  <bootloader>
+    <global>
       <append>console=tty console=hvc0,115200n8 mitigations=auto</append>      
+      <boot_boot>false</boot_boot>
+      <boot_extended>false</boot_extended>
+      <boot_root>true</boot_root>
       <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
-      <secure_boot>##Secure-Boot##</secure_boot>
       <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
-      <terminal>console serial</terminal>
+      <terminal>serial</terminal>
       <timeout t="integer">3</timeout>
-      <update_nvram>true</update_nvram>
+      <xen_kernel_append>vga=gfx-1024x768x16</xen_kernel_append>
     </global>
     <loader_type>##Boot-Loader-Type##</loader_type>
   </bootloader>
@@ -57,11 +59,13 @@
     <language>en_US</language>
     <languages/>
   </language>
-  <drive>
-    <device>/dev/xvda</device>
-    <disklabel>##Disk-Label##</disklabel>
-    <use>all</use>
-  </drive>
+  <partitioning>
+    <drive>
+      <device>/dev/xvda</device>
+      <disklabel>##Disk-Label##</disklabel>
+      <use>all</use>
+    </drive>
+  </partitioning>
   <networking>
     <dns>
       <dhcp_hostname config:type="boolean">true</dhcp_hostname>
@@ -96,7 +100,7 @@
     </routing>
   </networking>
   <ssh_import>
-    <import config:type="boolean">true</import>
+    <import config:type="boolean">false</import>
     <copy_config config:type="boolean">false</copy_config>
   </ssh_import>
   <report>
@@ -126,42 +130,49 @@
     <services>
       <disable config:type="list"/>
       <enable config:type="list">
+        <service>cron</service>
+        <service>display-manager</service>
+        <service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
         <service>sshd</service>
+        <service>wicked</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+        <service>getty@tty1</service>
       </enable>
     </services>
   </services-manager>
   <software>
+    <install_recommended config:type="boolean">true</install_recommended>
     <products config:type="list">
         <product>SLES</product>
     </products>
     <packages config:type="list">
+      <package>snapper</package>
       <package>sles-release</package>
-      <package>sle-module-web-scripting-release</package>
-      <package>sle-module-server-applications-release</package>
-      <package>sle-module-legacy-release</package>
-      <package>sle-module-desktop-applications-release</package>
-      <package>sle-module-basesystem-release</package>
-      <package>less</package>
-      <package>wicked</package>
       <package>openssh</package>
-      <package>numactl</package>
       <package>kexec-tools</package>
-      <package>irqbalance</package>
-      <package>iproute2</package>
       <package>grub2</package>
       <package>glibc</package>
       <package>e2fsprogs</package>
-      <package>chrony</package>
       <package>btrfsprogs</package>
-      <package>biosdevname</package>
-      <package>autoyast2</package>
     </packages>
     <patterns config:type="list">
+      <pattern>32bit</pattern>
+      <pattern>Minimal</pattern>
       <pattern>base</pattern>
-      <pattern>basesystem</pattern>
-      <pattern>minimal_base</pattern>
-      <pattern>gnome_basic</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>sles-yast2</pattern>
       <pattern>x11</pattern>
+      <pattern>yast2</pattern>
     </patterns>
   </software>
   <timezone>
@@ -173,13 +184,13 @@
     <group>500</group>
     <groups/>
     <home>/home</home>
-    <inactive/>
+    <inactive>-1</inactive>
     <no_groups config:type="boolean">true</no_groups>
-    <shell/>
-    <skel/>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
     <umask>022</umask>
   </user_defaults>
-  <users config:type="list">
+  <users>
     <user>
       <encrypted config:type="boolean">true</encrypted>
       <fullname>root</fullname>
@@ -189,12 +200,12 @@
       <gid>0</gid>
       <home>/root</home>
       <password_settings>
-        <expire></expire>
-        <flag></flag>
-        <inact></inact>
-        <max></max>
-        <min></min>
-        <warn></warn>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
