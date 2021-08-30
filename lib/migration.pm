@@ -109,14 +109,14 @@ sub remove_ltss {
         my $scc_addons = get_var_array('SCC_ADDONS');
         record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
         if (check_var('SLE_PRODUCT', 'hpc')) {
-            remove_suseconnect_product('SLE_HPC-LTSS');
+              remove_suseconnect_product('SLE_HPC-LTSS');
         } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
             remove_suseconnect_product('SLES-LTSS');
         } else {
             zypper_call 'rm -t product SLES-LTSS';
             zypper_call 'rm sles-ltss-release-POOL';
         }
-        set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
+      set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
     }
 }
 

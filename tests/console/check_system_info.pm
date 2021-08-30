@@ -118,8 +118,6 @@ sub run {
         $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm"      if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
         $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm,phub" if (is_leap_migration);
 
-        # After upgrade, system doesn't include ltss extension
-        $myaddons =~ s/ltss,?//g;
         # For hpc, system doesn't include legacy module
         $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
         check_addons($myaddons);

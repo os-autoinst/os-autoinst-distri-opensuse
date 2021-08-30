@@ -59,7 +59,7 @@ sub check_upgraded_addons {
     $addonls //= get_var('SCC_ADDONS');
     $addonls =~ s/ltss,?//g;
     # Check auto-select modules after migration base is <15 and upgrade system is 15+
-    $addonls = $addonls . ",base,desktop,sdk,lgm,python2,serverapp,wsm" if (is_sle('<15', get_var('HDDVERSION')) and is_sle('15+', get_var('VERSION')));
+    $addonls = $addonls . ",base,desktop,sdk,lgm,serverapp,wsm" if (is_sle('<15', get_var('HDDVERSION')) and is_sle('15+', get_var('VERSION')));
     check_registered_addons($addonls);
 }
 
