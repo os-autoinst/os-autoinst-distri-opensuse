@@ -136,14 +136,16 @@ sub test_add_vcpu {
     }
     return if (is_xen_host && $guest =~ m/hvm/i);    # not supported on HVM guest
 
+    if ($sles_running_version eq '15' && $sles_running_sp eq '4' && is_xen_host && is_fv_guest($guest)) {
+        record_soft_failure('bsc#1188898 Failed to set live vcpu count on fv guest on 15-SP4 Xen host');
+        return;
+    }
+
     # Ensure guest CPU count is 2
     die "Setting vcpus failed" unless (set_vcpus($guest, 2));
     assert_script_run("ssh root\@$guest nproc | grep 2", 60);
     # Add 1 CPU
-    if ($sles_running_version eq '15' && $sles_running_sp eq '4' && is_xen_host && is_fv_guest($guest)) {
-        record_soft_failure('bsc#1188898 Failed to set live vcpu count on fv guest on 15-SP4 Xen host');
-    }
-    elsif ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
+    if ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
         record_soft_failure('bsc#1180350 Failed to set live vcpu count on fv guest on 15-SP3 Xen host');
     }
     else {
