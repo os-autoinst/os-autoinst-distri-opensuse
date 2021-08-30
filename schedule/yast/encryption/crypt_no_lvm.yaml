@@ -12,7 +12,6 @@ vars:
   LVM: 0
   MAX_JOB_TIME: 14400
   YUI_REST_API: 1
-  QEMURAM: 2048
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
