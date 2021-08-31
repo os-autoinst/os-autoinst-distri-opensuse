@@ -143,7 +143,7 @@ sub rpmver {
 # Optionally skip exit status check in case immediate reboot is expected
 sub trup_call {
     my ($cmd, %args) = @_;
-    $args{timeout}   //= 90;
+    $args{timeout}   //= 180;
     $args{exit_code} //= 0;
 
     # Always wait for rollback.service to be finished before triggering manually transactional-update
