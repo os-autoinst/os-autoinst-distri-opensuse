@@ -1,8 +1,0 @@
-name:           rstudio
-description:    >
-    Tests for rstudio and rstudio server
-schedule:
-  - boot/boot_to_desktop
-  - x11/rstudio_prepare
-  - x11/rstudio_desktop
-  - x11/rstudio_server
