@@ -358,7 +358,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp3 => {
             name => 'sles15sp3',
-            ip   => 'd461.qam.suse.de',
+            ip   => 'win2k19-sle15-SP3.qa.suse.cz',
         },
     );
 
