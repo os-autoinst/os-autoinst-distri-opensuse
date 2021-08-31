@@ -27,6 +27,8 @@ use utils qw(type_string_slow zypper_call);
 use lockapi;
 use mmapi;
 
+my $workaround_bsc1189550_done;
+
 =head1 y2_installbase
 
 C<y2_installbase> - Base class for Yast installer related functionality
@@ -160,8 +162,9 @@ highlight cursor one item down.
 =cut
 sub move_down {
     my $ret = wait_screen_change { send_key 'down' };
-    last         if (!$ret);                      # down didn't change the screen, so exit here
-    check12qtbug if check_var('VERSION', '12');
+    workaround_bsc1189550() if (!$workaround_bsc1189550_done && is_sle('>=15-sp3'));
+    last                    if (!$ret);                                                # down didn't change the screen, so exit here
+    check12qtbug            if check_var('VERSION', '12');
 }
 
 =head2 process_patterns
@@ -268,10 +271,6 @@ sub select_specific_patterns_by_iteration {
     delete $patterns{default};
     delete $patterns{all};
 
-    if (is_sle('>=15-sp3')) {
-        record_soft_failure('bsc#1189550 - Problem with scroll bar event in pattern selection');
-    }
-
     while (1) {
         die "looping for too long" unless ($counter--);
         my $needs_to_be_selected;
@@ -302,7 +301,6 @@ sub select_specific_patterns_by_iteration {
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
         if ($selected && $selected->{needle}->has_tag('on-category')) {
             move_down;
-            workaround_bsc1189550() if is_sle('>=15-sp3');
             next;
         }
         if ($needs_to_be_selected && !$selected) {
@@ -320,7 +318,6 @@ sub select_specific_patterns_by_iteration {
         last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
 
         move_down;
-        workaround_bsc1189550() if is_sle('>=15-sp3');
     }
     # check if we have processed all patterns mentioned in the test suite settings
     my @unseen = keys %patterns;
@@ -561,14 +558,16 @@ sub post_fail_hook {
     }
 }
 
+sub workaround_bsc1189550 {
+    record_soft_failure('bsc#1189550 - Problem with scroll bar event in pattern selection');
+    wait_screen_change { send_key 'end' };
+    wait_screen_change { send_key 'home' };
+    $workaround_bsc1189550_done = 1;
+}
+
 # All steps in the installation are 'fatal'.
 sub test_flags {
     return {fatal => 1};
-}
-
-sub workaround_bsc1189550 {
-    move_down;
-    wait_screen_change { send_key 'up' };
 }
 
 1;
