@@ -84,7 +84,14 @@ sub run_test {
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
         #Prepare the new guest network interface files for libvirt virtual network
-        assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
+        #for some guests, interfaces are named eth0, eth1, eth2, ...
+        #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
+        my $primary_nic = script_output("ssh root\@$guest \"ip a|awk -F': ' '/state UP/ {print \\\$2}'|head -n1\"");
+        $primary_nic =~ /([a-zA-Z]*)(\d)(\w*)/;
+        for (my $i = 1; $i <= 6; $i++) {
+            my $nic = $1 . (int($2) + $i) . $3;
+            assert_script_run("ssh root\@$guest 'cp /etc/sysconfig/network/ifcfg-$primary_nic /etc/sysconfig/network/ifcfg-$nic'");
+        }
         #enable guest wickedd debugging
         assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g' /etc/sysconfig/network/config\"";
         assert_script_run "ssh root\@$guest 'grep 'WICKED_DEBUG' /etc/sysconfig/network/config'";
