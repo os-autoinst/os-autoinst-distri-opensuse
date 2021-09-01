@@ -576,6 +576,7 @@ sub load_jeos_tests {
     loadtest "microos/libzypp_config";
     if (is_sle) {
         loadtest "console/suseconnect_scc";
+        loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
     }
 
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
