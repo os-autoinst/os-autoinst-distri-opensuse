@@ -50,9 +50,21 @@ sub run {
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call("in -t pattern ${hypervisor}_server ${hypervisor}_tools", 1800);
     set_serial_console_on_vh('', '', $hypervisor);
+    systemctl 'enable libvirtd', ignore_failure => 1;
 
     virt_autotest::utils::install_default_packages();
     save_screenshot;
+
+    #set up necessary network bridge br0 for kvm/xen hypervisor.
+    #SLE sets up br0 during installation as kvm/xen role, while openSUSE TW does not.
+    #change MACAddressPolicy to none, or the network bridge will get a different MAC address from its enslave
+    #it is specific to TW because it uses udev naming scheme v247, see bsc#1136600
+    my $bridge_rule_file = "/usr/lib/systemd/network/98-default-bridge.link";
+    assert_script_run("echo \"[Match]\nDriver=bridge\n\n[Link]\nMACAddressPolicy=none\" > $bridge_rule_file", 60);
+    my $default_netdevice = get_var('SUT_NETDEVICE', 'eno1');
+    script_run("echo \"BOOTPROTO='dhcp'\nSTARTMODE='auto'\nBRIDGE='yes'\nBRIDGE_PORTS='$default_netdevice'\" > /etc/sysconfig/network/ifcfg-br0");
+    script_run("echo \"BOOTPROTO='none'\nSTARTMODE='auto'\" > /etc/sysconfig/network/ifcfg-$default_netdevice");
+
 }
 
 sub test_flags { {fatal => 1} }
