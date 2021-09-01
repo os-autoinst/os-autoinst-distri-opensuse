@@ -14,7 +14,7 @@
 use base "sles4sap";
 use testapi;
 use version_utils qw(is_staging is_sle is_upgrade);
-use Utils::Architectures 'is_x86_64';
+use Utils::Architectures;
 use Utils::Systemd 'systemctl';
 use strict;
 use warnings;

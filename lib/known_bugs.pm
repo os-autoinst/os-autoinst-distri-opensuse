@@ -20,6 +20,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use main_common;
 use version_utils;
 
@@ -61,7 +62,7 @@ sub create_list_of_serial_failures {
     push @$serial_failures, {type => 'soft', message => 'rogue workqueue lockup bsc#1126782', pattern => quotemeta 'BUG: workqueue lockup'};
 
     # Detect bsc#1093797 on aarch64
-    if (is_sle('=12-SP4') && check_var('ARCH', 'aarch64')) {
+    if (is_sle('=12-SP4') && is_aarch64) {
         push @$serial_failures, {type => 'hard', message => 'bsc#1093797', pattern => quotemeta 'Internal error: Oops: 96000006'};
     }
 

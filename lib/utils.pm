@@ -24,9 +24,9 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
-use Utils::Architectures qw(is_aarch64 is_ppc64le);
+use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
-use Utils::Backends 'has_ttys';
+use Utils::Backends;
 use Mojo::UserAgent;
 use zypper qw(wait_quit_zypper);
 
@@ -678,7 +678,7 @@ the second run will update the system.
 =cut
 sub fully_patch_system {
     # special handle for 11-SP4 s390 install
-    if (is_sle('=11-SP4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x')) {
+    if (is_sle('=11-SP4') && is_s390x && check_var('BACKEND', 's390x')) {
         # first run, possible update of packager -- exit code 103
         zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
         handle_patch_11sp4_zvm();
@@ -839,7 +839,7 @@ Sets C<BRIDGED_NETWORKING> to C<1> if applicable.
 =cut
 sub set_bridged_networking {
     my $ret = 0;
-    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+    if (is_svirt and !is_s390x) {
         my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
         $ret = ($vmm_family =~ /xen|vmware|hyperv/);
     }
@@ -1251,7 +1251,7 @@ sub disable_serial_getty {
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
-    my $mask = check_var('BACKEND', 'qemu');
+    my $mask = is_qemu;
     my $cmd  = $mask ? 'mask' : 'disable';
     disable_and_stop_service($service_name, mask_service => $mask, ignore_failure => 1);
     record_info 'serial-getty', "Serial getty $cmd for $testapi::serialdev";
@@ -1370,7 +1370,7 @@ sub reconnect_mgmt_console {
     $args{timeout}             //= 300;
     $args{grub_expected_twice} //= 0;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         my $login_ready = serial_terminal::get_login_message();
         console('installation')->disable_vnc_stalls;
 
@@ -1421,7 +1421,7 @@ sub reconnect_mgmt_console {
             select_console('x11', await_console => 0);
         }
     }
-    elsif (check_var('ARCH', 'ppc64le')) {
+    elsif (is_ppc64le) {
         if (check_var('BACKEND', 'spvm')) {
             select_console 'novalink-ssh', await_console => 0;
         } elsif (check_var('BACKEND', 'pvm_hmc')) {
@@ -1432,16 +1432,16 @@ sub reconnect_mgmt_console {
             }
         }
     }
-    elsif (check_var('ARCH', 'x86_64')) {
-        if (check_var('BACKEND', 'ipmi')) {
+    elsif (is_x86_64) {
+        if (is_ipmi) {
             select_console 'sol', await_console => 0;
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
             # boot to hard disk is default
             send_key 'ret';
         }
     }
-    elsif (check_var('ARCH', 'aarch64')) {
-        if (check_var('BACKEND', 'ipmi')) {
+    elsif (is_aarch64) {
+        if (is_ipmi) {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
@@ -2000,7 +2000,7 @@ sub assert_secureboot_status {
 
 sub susefirewall2_to_firewalld {
     my $timeout = 360;
-    $timeout = 1200 if check_var('ARCH', 'aarch64');
+    $timeout = 1200 if is_aarch64;
     assert_script_run('susefirewall2-to-firewalld -c',                                     timeout => $timeout);
     assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
     # On some platforms such as Aarch64, the 'firewalld restart'

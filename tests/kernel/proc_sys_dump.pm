@@ -21,7 +21,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use serial_terminal;
 require bmwqemu;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     my ($self)         = @_;

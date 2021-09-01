@@ -17,7 +17,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures qw(is_aarch64 is_arm);
+use Utils::Architectures;
 use version_utils qw(is_sle is_leap);
 
 sub run {

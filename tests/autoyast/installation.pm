@@ -38,12 +38,13 @@ use strict;
 use warnings;
 use base 'y2_installbase';
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 use version_utils qw(is_sle is_microos is_released is_upgrade);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
@@ -138,9 +139,9 @@ sub run {
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || (is_pvm && !is_upgrade);
+    push @needles, 'autoyast-stage1-reboot-upcoming' if is_s390x || (is_pvm && !is_upgrade);
     # Similar situation over IPMI backend, we can check against PXE menu
-    push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
+    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
     # Import untrusted certification for SMT
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
@@ -163,7 +164,7 @@ sub run {
     push @needles, 'expired-gpg-key' if is_sle('=15');
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
-    push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
+    push(@needles, 'inst-bootmenu') if (is_aarch64 && get_var('UPGRADE'));
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
@@ -329,7 +330,7 @@ sub run {
     }
 
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         reconnect_mgmt_console(timeout => 700, grub_timeout => 180);
         return;
     }
@@ -340,7 +341,7 @@ sub run {
     }
 
     # If we didn't see pxe, the reboot is going now
-    $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
+    $self->wait_boot if is_ipmi and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
     # Second stage starts here
     $maxtime = 1000 * get_var('TIMEOUT_SCALE', 1);    # Max waiting time for stage 2
@@ -355,7 +356,7 @@ sub run {
     # match openSUSE Welcome dialog on matching distros
     push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     # There will be another reboot for IPMI backend
-    push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
+    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
     until (match_has_tag 'reboot-after-installation') {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);

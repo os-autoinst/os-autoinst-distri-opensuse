@@ -16,9 +16,9 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use strict;
 use warnings;
 use utils;
-use Utils::Backends qw(has_serial_over_ssh is_pvm is_hyperv);
+use Utils::Backends;
 use Utils::Systemd;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 use lockapi 'mutex_wait';
 use serial_terminal 'get_login_message';
 use version_utils;
@@ -682,7 +682,7 @@ sub wait_grub {
     # because of broken firmware, bootindex doesn't work on aarch64 bsc#1022064
     push @tags, 'inst-bootmenu'
       if (get_var('USBBOOT') && get_var('UEFI')
-        || (check_var('ARCH', 'aarch64') && get_var('UEFI'))
+        || (is_aarch64 && get_var('UEFI'))
         || get_var('OFW')
         || (check_var('BOOTFROM', 'd')));
     # Enable all migration path on aarch64
@@ -736,7 +736,7 @@ sub wait_grub_to_boot_on_local_disk {
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
 
     # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
-    if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && check_var('ARCH', 'x86_64') && get_var('UEFI')) {
+    if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && is_x86_64 && get_var('UEFI')) {
         if (!check_screen(\@tags, 15)) {
             record_soft_failure 'bsc#1180080';
             wait_screen_change { send_key 'e' };
@@ -751,7 +751,7 @@ sub wait_grub_to_boot_on_local_disk {
     }
 
     # We need to wait more time for aarch64's tianocore-mainmenu
-    (check_var('ARCH', 'aarch64')) ? assert_screen(\@tags, 30) : assert_screen(\@tags, 15);
+    (is_aarch64) ? assert_screen(\@tags, 30) : assert_screen(\@tags, 15);
     if (match_has_tag('tianocore-mainmenu')) {
         opensusebasetest::handle_uefi_boot_disk_workaround();
         check_screen('encrypted-disk-password-prompt', 10);
@@ -766,7 +766,7 @@ sub reconnect_s390 {
     my (%args)     = @_;
     my $ready_time = $args{ready_time};
     my $textmode   = $args{textmode};
-    return undef unless check_var('ARCH', 's390x');
+    return undef unless is_s390x;
     my $login_ready = get_login_message();
     if (check_var('BACKEND', 's390x')) {
         my $console = console('x3270');
@@ -904,7 +904,7 @@ sub handle_grub {
 
     # On Xen PV and svirt we don't see a Grub menu
     # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
-    return if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && check_var('BACKEND', 'svirt') || check_var('KEEP_GRUB_TIMEOUT', '1'));
+    return if (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux') && is_svirt || check_var('KEEP_GRUB_TIMEOUT', '1'));
     $self->wait_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
     if (my $boot_params = get_var('EXTRABOOTPARAMS_BOOT_LOCAL')) {
         wait_screen_change { send_key 'e' };
@@ -926,7 +926,7 @@ sub wait_boot_textmode {
     my ($self, %args) = @_;
     # For s390x we validate system boot in reconnect_mgmt_console test module
     # and use ssh connection to operate on the SUT, so do early return
-    return if check_var('ARCH', 's390x');
+    return if is_s390x;
 
     my $ready_time       = $args{ready_time};
     my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
@@ -1001,7 +1001,7 @@ sub wait_boot_past_bootloader {
 
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
     # select_console('x11'); also performs a login, so we should be at generic-desktop.
-    my $gnome_ipmi = (check_var('BACKEND', 'ipmi') && check_var('DESKTOP', 'gnome'));
+    my $gnome_ipmi = (is_ipmi && check_var('DESKTOP', 'gnome'));
     if ($gnome_ipmi) {
         # first boot takes sometimes quite long time, ensure that it reaches login prompt
         $self->wait_boot_textmode(ready_time => $ready_time);
@@ -1027,7 +1027,7 @@ sub wait_boot_past_bootloader {
     push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
 
     # boo#1102563 - autologin fails on aarch64 with GNOME on current Tumbleweed
-    if (!is_sle('<=15') && !is_leap('<=15.0') && check_var('ARCH', 'aarch64') && check_var('DESKTOP', 'gnome')) {
+    if (!is_sle('<=15') && !is_leap('<=15.0') && is_aarch64 && check_var('DESKTOP', 'gnome')) {
         push(@tags, 'displaymanager');
         # Workaround for bsc#1169723
         push(@tags, 'guest-disable-display');
@@ -1090,9 +1090,9 @@ the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot {
     my ($self, %args) = @_;
-    my $bootloader_time = $args{bootloader_time} // ((is_pvm || check_var('BACKEND', 'ipmi')) ? 300 : 100);
+    my $bootloader_time = $args{bootloader_time} // ((is_pvm || is_ipmi) ? 300 : 100);
     my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('BACKEND', 'ipmi')) ? 500 : 300);
+    my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_ipmi) ? 500 : 300);
     my $in_grub         = $args{in_grub}    // 0;
 
     die "wait_boot: got undefined class" unless $self;
@@ -1108,7 +1108,7 @@ sub wait_boot {
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
-    select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
+    select_console('sol', await_console => 0) if is_ipmi;
     if (reconnect_s390(textmode => $textmode, ready_time => $ready_time)) {
     }
     elsif (get_var('USE_SUPPORT_SERVER') && get_var('USE_SUPPORT_SERVER_PXE_CUSTOMKERNEL')) {

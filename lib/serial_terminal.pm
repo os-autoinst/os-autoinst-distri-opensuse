@@ -10,6 +10,7 @@ package serial_terminal;
 use 5.018;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use autotest;
 use base 'Exporter';
@@ -61,7 +62,7 @@ sub prepare_serial_console {
     # poo#18860 Enable console on hvc0 on SLES < 12-SP2
     # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
     if (!check_var('VIRTIO_CONSOLE', 0)) {
-        if (is_sle('<12-SP2') && !check_var('ARCH', 's390x')) {
+        if (is_sle('<12-SP2') && !is_s390x) {
             add_serial_console('hvc0');
         }
         elsif (get_var('OFW')) {

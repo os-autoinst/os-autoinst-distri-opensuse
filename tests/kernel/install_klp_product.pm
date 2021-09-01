@@ -20,7 +20,7 @@ use testapi;
 use utils;
 use klp;
 use power_action_utils 'power_action';
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures;
 use Utils::Backends qw(is_pvm);
 
 sub do_reboot {

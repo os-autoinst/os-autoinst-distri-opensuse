@@ -16,7 +16,7 @@ use warnings;
 use testapi;
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 
 sub boot {
     my $self = shift;

@@ -25,6 +25,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use Utils::Architectures;
 use qam;
 use Utils::Backends 'use_ssh_serial_console';
 use power_action_utils qw(power_action);
@@ -47,7 +48,7 @@ sub run {
     if (is_jeos) {
         record_info('Updates', script_output('zypper lu'));
         zypper_call('up', timeout => 300);
-        if (check_var('ARCH', 'aarch64')) {
+        if (is_aarch64) {
             # Disable grub timeout for aarch64 cases so that the test doesn't stall
             assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub");
             assert_script_run('grub2-mkconfig -o /boot/grub2/grub.cfg');

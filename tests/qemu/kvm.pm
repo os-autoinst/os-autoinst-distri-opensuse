@@ -14,17 +14,18 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils;
 
 
 sub run {
     select_console 'root-console';
 
-    if (check_var('ARCH', 'x86_64')) {
+    if (is_x86_64) {
         enter_cmd "qemu-system-x86_64 -nographic -enable-kvm";
         assert_screen 'qemu-no-bootable-device', 60;
     }
-    elsif (check_var('ARCH', 'ppc64le')) {
+    elsif (is_ppc64le) {
         enter_cmd "qemu-system-ppc64 -nographic -enable-kvm";
         assert_screen ['qemu-open-firmware-ready', 'qemu-does-not-support-1tib-segments', 'qemu-ppc64-no-trans-mem'], 60;
         if (match_has_tag 'qemu-does-not-support-1tib-segments') {
@@ -38,11 +39,11 @@ sub run {
             assert_screen 'qemu-open-firmware-ready', 60;
         }
     }
-    elsif (check_var('ARCH', 's390x')) {
+    elsif (is_s390x) {
         enter_cmd "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd";
         assert_screen 'qemu-reached-target-basic-system', 60;
     }
-    elsif (check_var('ARCH', 'aarch64')) {
+    elsif (is_aarch64) {
         enter_cmd "qemu-system-aarch64 -M virt,usb=off,gic-version=host -cpu host -enable-kvm -nographic -pflash flash0.img -pflash flash1.img";
         assert_screen 'qemu-uefi-shell', 600;
     }

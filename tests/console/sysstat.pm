@@ -19,7 +19,7 @@
 
 use base 'consoletest';
 use utils qw(zypper_call systemctl);
-use Utils::Architectures 'is_arm';
+use Utils::Architectures;
 use version_utils qw(is_sle is_leap is_opensuse);
 use strict;
 use warnings;

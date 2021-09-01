@@ -16,6 +16,7 @@ use base 'consoletest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
 
@@ -41,7 +42,7 @@ sub run {
     # Check status
     systemctl 'status tuned';
     # Set virtual-guest profile for QEMU backends and throughput-performance for the rest
-    tuned_set_profile(check_var('BACKEND', 'qemu') ? 'virtual-guest' : 'throughput-performance');
+    tuned_set_profile(is_qemu ? 'virtual-guest' : 'throughput-performance');
     # Stop tuned daemon
     systemctl 'stop tuned';
     # Delete and ignore logs from first run without proper profile set

@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     mouse_hide();

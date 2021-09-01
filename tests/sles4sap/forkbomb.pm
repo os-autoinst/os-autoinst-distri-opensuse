@@ -13,6 +13,7 @@
 
 use base "sles4sap";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 
@@ -21,7 +22,7 @@ sub run {
 
     # NOTE: Do not call this function on the qemu backend
     # The first forkbomb can create 3 times as many processes as the second due to unknown bug
-    return if check_var('BACKEND', 'qemu');
+    return if is_qemu;
 
     $self->select_serial_terminal;
 

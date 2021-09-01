@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use lockapi;
 use testapi;
+use Utils::Architectures;
 use mmapi;
 use version_utils qw(is_sle is_upgrade);
 
@@ -108,7 +109,7 @@ sub run {
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
         && !check_var('VIDEOMODE', 'text')
-        && (!is_sle('=11-sp4') || !check_var('ARCH', 's390x') || !check_var('BACKEND', 's390x')))
+        && (!is_sle('=11-sp4') || !is_s390x || !check_var('BACKEND', 's390x')))
     {
         my $counter = 20;
         while ($counter--) {

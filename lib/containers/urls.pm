@@ -18,6 +18,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_opensuse is_tumbleweed is_leap is_microos is_sle_micro is_released);
 
 our @EXPORT = qw(
@@ -29,19 +30,19 @@ our @EXPORT = qw(
 # Returns a string which should be prepended to every pull from registry.opensuse.org.
 sub get_opensuse_registry_prefix {
     # Can't use is_tumbleweed as that would also return true for stagings
-    if (check_var("VERSION", "Tumbleweed") && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+    if (check_var("VERSION", "Tumbleweed") && (is_i586 || is_x86_64)) {
         return "opensuse/factory/totest/containers/";
     }
-    elsif (check_var("VERSION", "Tumbleweed") && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'arm'))) {
+    elsif (check_var("VERSION", "Tumbleweed") && (is_aarch64 || is_arm)) {
         return "opensuse/factory/arm/totest/containers/";
     }
-    elsif (check_var("VERSION", "Tumbleweed") && check_var('ARCH', 'ppc64le')) {
+    elsif (check_var("VERSION", "Tumbleweed") && is_ppc64le) {
         return "opensuse/factory/powerpc/totest/containers/";
     }
-    elsif (check_var("VERSION", "Tumbleweed") && check_var('ARCH', 's390x')) {
+    elsif (check_var("VERSION", "Tumbleweed") && is_s390x) {
         return "opensuse/factory/zsystems/totest/containers/";
     }
-    elsif (get_var("VERSION") =~ /^Staging:(?<letter>.)$/ && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+    elsif (get_var("VERSION") =~ /^Staging:(?<letter>.)$/ && (is_i586 || is_x86_64)) {
         # Tumbleweed letter staging
         my $lowercaseletter = lc $+{letter};
         return "opensuse/factory/staging/${lowercaseletter}/images/";
@@ -64,7 +65,7 @@ sub get_suse_container_urls {
         my $lowerversion  = lc $version;
         my $nodashversion = $version =~ s/-sp/sp/ir;
         # No aarch64 image
-        if (!check_var('ARCH', 'aarch64')) {
+        if (!is_aarch64) {
             push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
             push @released_images, "registry.suse.com/suse/sles${nodashversion}";
         }
@@ -94,15 +95,15 @@ sub get_suse_container_urls {
         push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
         push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
-    elsif ((is_leap(">15.0") || is_microos(">15.0")) && check_var('ARCH', 'x86_64')) {
+    elsif ((is_leap(">15.0") || is_microos(">15.0")) && is_x86_64) {
         push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
         push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
-    elsif ((is_leap(">15.0") || is_microos(">15.0")) && (check_var('ARCH', 'aarch64') || check_var('ARCH', 'arm'))) {
+    elsif ((is_leap(">15.0") || is_microos(">15.0")) && (is_aarch64 || is_arm)) {
         push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
         push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
     }
-    elsif (is_leap(">15.0") && check_var('ARCH', 'ppc64le')) {
+    elsif (is_leap(">15.0") && is_ppc64le) {
         # No image set up yet :-(
     }
     elsif (is_sle("<=12-sp2", $version)) {
@@ -128,17 +129,17 @@ sub get_3rd_party_images {
         "registry.access.redhat.com/ubi8/ubi-init");
 
     # poo#72124 Ubuntu image (occasionally) fails on s390x
-    push @images, "$ex_reg/library/ubuntu" unless check_var('ARCH', 's390x');
+    push @images, "$ex_reg/library/ubuntu" unless is_s390x;
 
     # Missing centos container image for s390x.
-    push @images, "$ex_reg/library/centos" unless check_var('ARCH', 's390x');
+    push @images, "$ex_reg/library/centos" unless is_s390x;
 
     # RedHat UBI7 images are not built for aarch64
     push @images, (
         "registry.access.redhat.com/ubi7/ubi",
         "registry.access.redhat.com/ubi7/ubi-minimal",
         "registry.access.redhat.com/ubi7/ubi-init"
-    ) unless (check_var('ARCH', 'aarch64') or check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
+    ) unless (is_aarch64 or check_var('PUBLIC_CLOUD_ARCH', 'arm64'));
 
     return (\@images);
 }

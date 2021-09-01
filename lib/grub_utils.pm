@@ -7,6 +7,7 @@ use strict;
 use warnings;
 use opensusebasetest qw(handle_uefi_boot_disk_workaround);
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_livecd);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
@@ -37,7 +38,7 @@ sub grub_test {
     stop_grub_timeout;
     boot_into_snapshot                                               if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 10, 5) if get_var('XEN');
-    if ((check_var('ARCH', 'aarch64') && is_sle && get_var('PLYMOUTH_DEBUG'))
+    if ((is_aarch64 && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
         bug_workaround_bsc1005313() unless get_var("BOOT_TO_SNAPSHOT");
@@ -68,7 +69,7 @@ sub handle_installer_medium_bootup {
     send_key 'ret';
 
     # use firmware boot manager of aarch64 to boot upgraded system
-    'opensusebasetest'->handle_uefi_boot_disk_workaround() if (check_var('ARCH', 'aarch64'));
+    'opensusebasetest'->handle_uefi_boot_disk_workaround() if (is_aarch64);
 }
 
 sub bug_workaround_bsc1005313 {

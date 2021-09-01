@@ -24,7 +24,7 @@ use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed);
-use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
+use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
 

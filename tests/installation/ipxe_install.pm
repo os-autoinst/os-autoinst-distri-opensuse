@@ -20,7 +20,7 @@ use bmwqemu;
 use ipmi_backend_utils;
 use version_utils 'is_upgrade';
 use bootloader_setup 'prepare_disks';
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures;
 
 use HTTP::Tiny;
 use IPC::Run;

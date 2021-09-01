@@ -22,7 +22,7 @@ use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
 use power_action_utils qw(power_action);
-use Utils::Backends qw(use_ssh_serial_console);
+use Utils::Backends;
 use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
@@ -212,7 +212,7 @@ Returns the total memory configured in SUT.
 =cut
 
 sub get_total_mem {
-    return get_required_var('QEMURAM') if (check_var('BACKEND', 'qemu'));
+    return get_required_var('QEMURAM') if (is_qemu);
     my $mem = script_output q@grep ^MemTotal /proc/meminfo | awk '{print $2}'@;
     $mem /= 1024;
     return $mem;
@@ -694,7 +694,7 @@ Restart the SUT and reconnect to the console right after.
 sub reboot {
     my ($self) = @_;
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console;
         $self->wait_boot(textmode => 1, nologin => get_var('NOAUTOLOGIN', '0'));

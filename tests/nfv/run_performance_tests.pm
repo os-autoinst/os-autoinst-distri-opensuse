@@ -12,6 +12,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use lockapi;
@@ -26,9 +27,9 @@ sub run_test {
     my $cmd      = "./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch $vswitch $test";
     record_info("INFO", "Running test case $testname");
     record_info("INFO", "Command to run: $cmd");
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         assert_script_run($cmd, timeout => 60 * 60 * 1.5);
-    } elsif (check_var('BACKEND', 'qemu')) {
+    } elsif (is_qemu) {
         record_info("INFO", "Skip test as this is a virtual environment. Generate dummy results instead.");
         assert_script_run("mkdir -p $results_dir/results_dummy");
         assert_script_run("curl " . data_url('nfv/result_0_dummy.csv') . " -o $results_dir/results_dummy/result_0_dummy.csv");

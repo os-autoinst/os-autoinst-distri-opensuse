@@ -17,6 +17,7 @@ use base "consoletest";
 use bootloader_setup;
 use strict;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 
@@ -58,7 +59,7 @@ sub smt_status_qemu {
 }
 
 sub run {
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         smt_status_qemu();
     }
     my $obj = Mitigation->new(\%mitigations_list);

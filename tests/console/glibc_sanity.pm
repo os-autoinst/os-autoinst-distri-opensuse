@@ -22,19 +22,20 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils 'zypper_call';
 
 sub run {
     select_console 'root-console';
 
     my $libcstr = 'GNU C Library';
-    if (check_var('ARCH', 'x86_64')) {
+    if (is_x86_64) {
         # On Tumbleweed we still support 32-bit x86
         zypper_call 'in -C libc.so.6';
         assert_script_run "/lib/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
         assert_script_run '/lib/libc.so.6 | grep --color "i686-suse-linux"';
     }
-    if (check_var('ARCH', 'x86_64') || check_var('ARCH', 'aarch64')) {
+    if (is_x86_64 || is_aarch64) {
         zypper_call 'in -C "libc.so.6()(64bit)"';
         assert_script_run "/lib64/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
         assert_script_run '/lib64/libc.so.6 | grep --color "' . get_var('ARCH') . '-suse-linux"';

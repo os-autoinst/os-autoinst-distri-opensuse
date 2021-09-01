@@ -25,7 +25,7 @@ use Utils::Backends;
 use YuiRestClient::App;
 use YuiRestClient::Wait;
 use YuiRestClient::Logger;
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 use bmwqemu;
 
 my $app;
@@ -113,7 +113,7 @@ sub init_host {
                 return $+{ip} if ($ip =~ $ip_regexp);
         });
     };
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         $host = 'localhost';
     } elsif (is_pvm || is_ipmi) {
         $host = get_var('SUT_IP');
@@ -151,7 +151,7 @@ sub is_libyui_rest_api {
 
 sub set_libyui_backend_vars {
     my $yuiport = get_port();
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         # On qemu we connect to the worker using port forwarding
         set_var('NICTYPE_USER_OPTIONS', join(' ', grep($_, (
                         get_var('NICTYPE_USER_OPTIONS'),

@@ -50,6 +50,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils qw(zypper_call);
 use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
 
@@ -181,7 +182,7 @@ sub run {
     #Enter zypper shell and run the lr command | echo lr
     assert_script_run('echo lr |zypper shell');
 
-    if (check_var('ARCH', 'x86_64') && !is_jeos && (is_sle('>=15-SP3') || is_leap('>=15.3') || is_tumbleweed())) {
+    if (is_x86_64 && !is_jeos && (is_sle('>=15-SP3') || is_leap('>=15.3') || is_tumbleweed())) {
         # - It is enough to test it on x86_64.
         # - MariaDB-server provides MariaDB
         # - mariadb provides mariadb

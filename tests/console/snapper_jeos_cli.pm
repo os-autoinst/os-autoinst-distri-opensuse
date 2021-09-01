@@ -13,6 +13,7 @@
 
 use base 'consoletest';
 use testapi;
+use Utils::Architectures;
 use utils;
 use strict;
 use warnings;
@@ -42,7 +43,7 @@ sub rollback_and_reboot {
     assert_script_run("snapper rollback $rollback_id");
     assert_script_run("snapper list");
     power_action('reboot');
-    if (check_var('ARCH', 'aarch64')) {
+    if (is_aarch64) {
         $self->wait_boot(bootloader_time => 300);
     }
     else {

@@ -20,8 +20,8 @@ use testapi;
 use bootloader_setup qw(bootmenu_default_params specific_bootmenu_params prepare_disks);
 use registration 'registration_bootloader_cmdline';
 use utils qw(type_string_slow enter_cmd_slow);
-use Utils::Backends 'is_remote_backend';
-use Utils::Architectures qw(is_aarch64 is_orthos_machine is_supported_suse_domain);
+use Utils::Backends;
+use Utils::Architectures;
 use version_utils 'is_upgrade';
 
 sub run {
@@ -29,14 +29,14 @@ sub run {
     my $arch      = get_var('ARCH');
     my $interface = get_var('SUT_NETDEVICE', 'eth0');
     # In autoyast tests we need to wait until pxe is available
-    if (get_var('AUTOYAST') && get_var('DELAYED_START') && !check_var('BACKEND', 'ipmi')) {
+    if (get_var('AUTOYAST') && get_var('DELAYED_START') && !is_ipmi) {
         mutex_lock('pxe');
         mutex_unlock('pxe');
         resume_vm();
     }
 
-    if (check_var('BACKEND', 'ipmi')) {
-        if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx') {
+    if (is_ipmi) {
+        if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx') {
             select_console 'sol', await_console => 1;
             send_key 'ret';
             ipmi_backend_utils::ipmitool 'chassis power reset';
@@ -51,7 +51,7 @@ sub run {
     assert_screen([qw(virttest-pxe-menu qa-net-selection prague-pxe-menu pxe-menu)], 600);
 
     # boot bare-metal/IPMI machine
-    if (check_var('BACKEND', 'ipmi') && get_var('BOOT_IPMI_SYSTEM')) {
+    if (is_ipmi && get_var('BOOT_IPMI_SYSTEM')) {
         send_key 'ret';
         assert_screen 'linux-login', 100;
         return 1;
@@ -101,7 +101,7 @@ sub run {
         }
 
         #IPMI Backend
-        $image_path .= "?device=$interface " if (check_var('BACKEND', 'ipmi') && !get_var('SUT_NETDEVICE_SKIPPED'));
+        $image_path .= "?device=$interface " if (is_ipmi && !get_var('SUT_NETDEVICE_SKIPPED'));
     }
     elsif (match_has_tag('prague-pxe-menu')) {
         send_key_until_needlematch 'qa-net-boot', 'esc', 8, 3;
@@ -111,8 +111,8 @@ sub run {
             send_key 'tab';
         }
         else {
-            my $device  = (check_var('BACKEND', 'ipmi') && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
-            my $release = get_var('BETA')                                                     ? 'LATEST'             : 'GM';
+            my $device  = (is_ipmi && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
+            my $release = get_var('BETA')                                ? 'LATEST'             : 'GM';
             $image_name = get_var('ISO') =~ s/(.*\/)?(.*)-DVD-${arch}-.*\.iso/$2-$release/r;
             $image_name = get_var('PXE_PRODUCT_NAME') if get_var('PXE_PRODUCT_NAME');
             $image_path = "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
@@ -125,7 +125,7 @@ sub run {
         send_key "down";
         send_key "tab";
     }
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         $image_path .= " ipv6.disable=1 "         if get_var('LINUX_BOOT_IPV6_DISABLE');
         $image_path .= " ifcfg=$interface=dhcp4 " if (!get_var('NETWORK_INIT_PARAM') && !get_var('SUT_NETDEVICE_SKIPPED'));
         $image_path .= ' plymouth.enable=0 ';
@@ -134,7 +134,7 @@ sub run {
     type_string_slow ${image_path} . " ";
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
-    if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
+    if (is_ipmi && !get_var('AUTOYAST')) {
         if (check_var('VIDEOMODE', 'text')) {
             $cmdline .= 'ssh=1 ';    # trigger ssh-text installation
         }
@@ -163,14 +163,14 @@ sub run {
 
     # try to avoid blue screen issue on osd ipmi tests
     # local test passes, if validated on osd, will switch on to all ipmi tests
-    if (check_var('BACKEND', 'ipmi') && check_var('VIDEOMODE', 'text') && check_var('VIRT_AUTOTEST', 1)) {
+    if (is_ipmi && check_var('VIDEOMODE', 'text') && check_var('VIRT_AUTOTEST', 1)) {
         type_string_slow(" vt.color=0x07 ");
     }
 
     send_key 'ret';
     save_screenshot;
 
-    if (check_var('BACKEND', 'ipmi') && !get_var('AUTOYAST')) {
+    if (is_ipmi && !get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 420;
         my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         #Detect orthos-grub-boot-linux and qa-net-grub-boot-linux for aarch64 in orthos and openQA networks respectively
@@ -215,7 +215,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
 
-    if (check_var('BACKEND', 'ipmi') && check_var('VIDEOMODE', 'text')) {
+    if (is_ipmi && check_var('VIDEOMODE', 'text')) {
         select_console 'log-console';
         save_screenshot;
         script_run "save_y2logs /tmp/y2logs_clone.tar.bz2";

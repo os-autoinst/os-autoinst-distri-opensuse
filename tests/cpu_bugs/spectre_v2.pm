@@ -18,6 +18,7 @@ use bootloader_setup;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use testapi;
+use Utils::Backends;
 use utils;
 
 use Mitigation;
@@ -50,7 +51,7 @@ our %mitigations_list =
   );
 sub run {
     my $obj = Mitigation->new(\%mitigations_list);
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         if (get_var('MACHINE', '') =~ /NO-IBRS$/) {
             $obj->check_cpu_flags();
             return;

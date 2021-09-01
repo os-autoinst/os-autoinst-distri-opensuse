@@ -25,7 +25,7 @@ use testapi;
 use serial_terminal 'prepare_serial_console';
 use utils;
 use version_utils;
-use Utils::Backends qw(is_qemu is_image_backend);
+use Utils::Backends;
 
 sub run {
     select_console('root-console');

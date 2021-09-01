@@ -24,7 +24,7 @@ use kernel 'remove_kernel_packages';
 use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 
 sub check_kernel_package {
     my $kernel_name = shift;
@@ -388,7 +388,7 @@ sub install_kotd {
 sub boot_to_console {
     my ($self) = @_;
 
-    select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
+    select_console('sol', await_console => 0) if is_ipmi;
     $self->wait_boot;
     $self->select_serial_terminal;
 }
@@ -396,7 +396,7 @@ sub boot_to_console {
 sub run {
     my $self = shift;
 
-    if (check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL')) {
+    if (is_ipmi && get_var('LTP_BAREMETAL')) {
         # System is already booted after installation, just switch terminal
         $self->select_serial_terminal;
     } else {

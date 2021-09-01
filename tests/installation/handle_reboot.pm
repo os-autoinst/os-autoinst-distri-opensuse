@@ -18,7 +18,8 @@ use strict;
 use warnings;
 use grub_utils qw(grub_test);
 use testapi;
-use Utils::Backends 'is_remote_backend';
+use Utils::Architectures;
+use Utils::Backends;
 use utils qw(reconnect_mgmt_console);
 
 sub run {
@@ -27,7 +28,7 @@ sub run {
         reconnect_mgmt_console();
     }
 
-    unless (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi')) {
+    unless (is_s390x || is_ipmi) {
         record_info 'Handle GRUB';
         grub_test();
     }

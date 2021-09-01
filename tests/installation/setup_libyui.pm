@@ -21,8 +21,8 @@
 use strict;
 use warnings;
 use base "installbasetest";
-use Utils::Backends qw(is_svirt is_ssh_installation);
-use Utils::Architectures qw(is_s390x);
+use Utils::Backends;
+use Utils::Architectures;
 use testapi;
 use YuiRestClient;
 

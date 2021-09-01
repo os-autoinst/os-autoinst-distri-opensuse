@@ -13,6 +13,7 @@
 
 use base 'opensusebasetest';
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils;
 use strict;
@@ -83,7 +84,7 @@ sub run {
     assert_script_run 'wget -O oci_testbundle.tgz ' . data_url('oci_testbundle.tgz');
     assert_script_run 'tar xf oci_testbundle.tgz';
     assert_script_run 'ls -l oci_testbundle';
-    if (!check_var('ARCH', 'x86_64')) {
+    if (!is_x86_64) {
         # our bundle is x86_64 but is essentially only busybox
         # so we'll simply replace the binary with one of the right arch
         zypper_call 'in busybox-static';

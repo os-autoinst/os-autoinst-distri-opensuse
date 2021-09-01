@@ -15,6 +15,7 @@ use warnings;
 use base "virt_autotest_base";
 use virt_autotest::utils;
 use testapi;
+use Utils::Architectures;
 use virt_utils;
 use utils;
 use Utils::Backends 'is_remote_backend';
@@ -29,7 +30,7 @@ sub install_package {
         set_var('QA_HEAD_REPO', $qa_server_repo);
         bmwqemu::save_vars();
     }
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("zypper --non-interactive rr server-repo");
         lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f '$qa_server_repo' server-repo");
     }
@@ -57,7 +58,7 @@ sub install_package {
     }
 
     if ($dependency_repo) {
-        if (check_var('ARCH', 's390x')) {
+        if (is_s390x) {
             lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f ${dependency_repo} dependency_repo");
             lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
             lpar_cmd("zypper --non-interactive in $dependency_rpms");
@@ -72,13 +73,13 @@ sub install_package {
     }
 
     ###Install KVM role patterns for aarch64 virtualization host
-    if (is_remote_backend && check_var('ARCH', 'aarch64')) {
+    if (is_remote_backend && is_aarch64) {
         zypper_call("--gpg-auto-import-keys ref",         timeout => 180);
         zypper_call("in -t pattern kvm_server kvm_tools", timeout => 300);
     }
 
     #install qa_lib_virtauto
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
         my $pkg_lib_data = "qa_lib_virtauto-data";
         my $cmd          = "rpm -q $pkg_lib_data";

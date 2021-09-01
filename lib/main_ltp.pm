@@ -22,7 +22,7 @@ use testapi qw(check_var get_required_var get_var);
 use utils;
 use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 use version_utils 'is_opensuse';
 use LTP::utils qw(loadtest_kernel shutdown_ltp);
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -113,7 +113,7 @@ sub load_kernel_tests {
         loadtest_kernel 'numa_irqbalance';
     }
 
-    if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
+    if (is_svirt && get_var('PUBLISH_HDD_1')) {
         loadtest_kernel '../shutdown/svirt_upload_assets';
     }
 }

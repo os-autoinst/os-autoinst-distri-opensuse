@@ -12,6 +12,7 @@
 
 use base "sles4sap";
 use testapi;
+use Utils::Backends;
 use utils;
 use version_utils 'is_sle';
 use Utils::Architectures;
@@ -52,7 +53,7 @@ sub setup {
     assert_script_run "sed -i.bak '/^@/,\$d' /etc/security/limits.conf";
     script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
     assert_script_run 'saptune daemon start';
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         # Ignore disk_elevator on VM's
         assert_script_run "sed -ri '/:scripts\\/disk_elevator/s/^/#/' \$(fgrep -rl :scripts/disk_elevator Pattern/)";
         # Skip nr_requests on VM's. Fix bsc#1177888
@@ -362,7 +363,7 @@ sub test_solutions {
 sub test_ppc64le {
     my ($self) = @_;
 
-    die "This test cannot be run on QEMU" if (check_var('BACKEND', 'qemu'));
+    die "This test cannot be run on QEMU" if (is_qemu);
     my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
 
     assert_script_run "mr_test verify Pattern/$SLE/testpattern_Cust#Power_1";
@@ -435,7 +436,7 @@ sub run {
         $self->test_note($test) if ($test ne "1805750");
         $self->test_override($test);
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
-        $self->test_x86_64     if (check_var('BACKEND', 'ipmi'));
+        $self->test_x86_64     if (is_ipmi);
         $self->test_ppc64le    if is_ppc64le();
         $self->test_bsc1152598 if is_sle('>12-SP3');
     } elsif ($test eq "delete_rename") {

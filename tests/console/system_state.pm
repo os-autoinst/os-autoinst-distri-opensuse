@@ -25,13 +25,13 @@
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 use strict;
 use warnings;
 
 sub run {
     my ($self) = shift;
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
     script_run "mkdir /tmp/system_state";
     script_run "ps axf > /tmp/system_state/psaxf.log";
     script_run "cat /proc/loadavg > /tmp/system_state/loadavg_consoletest_setup.txt";

@@ -19,6 +19,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
@@ -38,7 +39,7 @@ sub run {
 
     # right now, this code will only do something reasonable if we
     # run on a baremetal machine (and thus on IPMI backend)
-    return unless check_var('BACKEND', 'ipmi');
+    return unless is_ipmi;
 
     $self->select_serial_terminal;
 

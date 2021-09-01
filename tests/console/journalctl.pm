@@ -28,7 +28,7 @@ use testapi;
 use utils qw(zypper_call script_retry systemctl);
 use version_utils qw(is_opensuse is_tumbleweed is_sle is_public_cloud is_leap);
 use Utils::Backends qw(is_hyperv);
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures;
 use power_action_utils qw(power_action);
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',

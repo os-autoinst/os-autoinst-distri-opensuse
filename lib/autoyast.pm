@@ -23,6 +23,8 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
+use Utils::Architectures;
 use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
@@ -70,7 +72,7 @@ sub expand_patterns {
             push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic) if check_var('DESKTOP', 'gnome');
             push @sle12, qw(desktop-base desktop-gnome)                          if get_var('SCC_ADDONS') =~ m/we/;
             push @sle12, qw(yast2)                                               if is_sle('>=12-sp3');
-            push @sle12, qw(32bit)                                               if !check_var('ARCH', 'aarch64') && get_var('DESKTOP') =~ /gnome|textmode/;
+            push @sle12, qw(32bit)                                               if !is_aarch64 && get_var('DESKTOP') =~ /gnome|textmode/;
             return [@sle12];
         }
         # SLED12 has different patterns
@@ -87,14 +89,14 @@ sub expand_patterns {
             if (get_var('SCC_ADDONS') =~ m/base/) {
                 push @all, qw(base minimal_base enhanced_base documentation
                   apparmor x11 x11_enhanced yast2_basis sw_management fonts);
-                push @all, qw(32bit) unless check_var('ARCH', 's390x');
+                push @all, qw(32bit) unless is_s390x;
             }
             if (get_var('SCC_ADDONS') =~ m/serverapp/) {
                 push @all, qw(kvm_tools file_server mail_server gnome_basic
                   lamp_server gateway_server dhcp_dns_server directory_server
                   kvm_server fips sap_server ofed);
-                push @all, qw(xen_server xen_tools) unless check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64');
-                push @all, qw(oracle_server)        unless check_var('ARCH', 'aarch64');
+                push @all, qw(xen_server xen_tools) unless is_s390x || is_aarch64;
+                push @all, qw(oracle_server)        unless is_aarch64;
             }
             push @all, qw(devel_basis devel_kernel devel_yast) if
               get_var('SCC_ADDONS') =~ m/sdk/;
@@ -629,7 +631,7 @@ sub adjust_network_conf {
     if (check_var('BACKEND', 's390x')) {
         ($hostip) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
     }
-    elsif (check_var('BACKEND', 'svirt')) {
+    elsif (is_svirt) {
         $hostip = get_var('VIRSH_GUEST');
     }
     $profile =~ s/\{\{HostIP\}\}/$hostip/g if $hostip;

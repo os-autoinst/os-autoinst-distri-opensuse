@@ -14,11 +14,12 @@ use base "virt_autotest_base";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use virt_utils;
 
 sub get_script_run {
     my $pre_test_cmd = "";
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
     else {
@@ -69,7 +70,7 @@ sub run {
 
     # Add option to keep guest after successful installation
     # Only for x86_64 now
-    if (check_var('ARCH', 'x86_64')) {
+    if (is_x86_64) {
         assert_script_run("sed -i 's/vm-install.sh/vm-install\.sh -g -k /' /usr/share/qa/qa_test_virtualization/installos");
         assert_script_run("sed -i 's/virt-install.sh/virt-install\.sh -u /' /usr/share/qa/qa_test_virtualization/virt_installos");
         assert_script_run('cat /usr/share/qa/qa_test_virtualization/installos | grep vm-install');
@@ -85,7 +86,7 @@ sub run {
 
     my $upload_guest_assets_flag = 'no';
     # Only enable UPLOAD_GUEST_ASSETS for x86_64 now
-    if (check_var('UPLOAD_GUEST_ASSETS', '1') && check_var('ARCH', 'x86_64')) {
+    if (check_var('UPLOAD_GUEST_ASSETS', '1') && is_x86_64) {
         $upload_guest_assets_flag = 'yes';
     }
 

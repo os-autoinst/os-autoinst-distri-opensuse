@@ -15,6 +15,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils;
 use power_action_utils 'power_action';
@@ -221,7 +222,7 @@ sub run {
     if (get_var('SMT_URL') =~ /smt/) {
         assert_screen 'import-untrusted-gpg-key', 60;
         send_key 'alt-t';
-        if ((check_var('ARCH', 'x86_64')) && (!(is_leap_migration)) || (check_var('ARCH', 'aarch64'))) {
+        if ((is_x86_64) && (!(is_leap_migration)) || (is_aarch64)) {
             assert_screen 'import-untrusted-gpg-key-nvidia', 300;
             send_key 'alt-t';
         }

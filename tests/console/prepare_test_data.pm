@@ -17,12 +17,12 @@
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 use strict;
 use warnings;
 
 sub run {
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
 
     select_console 'user-console';
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => 300;

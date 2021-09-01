@@ -19,6 +19,8 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
+use Utils::Architectures;
 use utils;
 use version_utils 'is_sle';
 
@@ -152,9 +154,9 @@ sub validate_repos_sle {
     # verified in such a scenario.
     if (!(get_var('ONLINE_MIGRATION') || get_var('ZDUP'))) {
         # This is where we verify base product repos for SLES, SLED, and HA
-        my $uri = check_var('ARCH', 's390x') ? "ftp://" : "$cd:///";
+        my $uri = is_s390x ? "ftp://" : "$cd:///";
         if (check_var('FLAVOR', 'Server-DVD')) {
-            if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
+            if (is_ipmi || check_var("BACKEND", "generalhw")) {
                 $uri = "http[s]*://.*suse";
             }
             elsif (get_var('USBBOOT') && is_sle('12-SP3+')) {
@@ -296,7 +298,7 @@ sub validate_repos_sle {
     # s390x can't use dvd media, only works with network repo
     if (get_var('ZDUP')) {
         my $uri;
-        if (get_var('TEST') =~ m{zdup_offline} and !check_var('ARCH', 's390x')) {
+        if (get_var('TEST') =~ m{zdup_offline} and !is_s390x) {
             $uri = "$dvd:///";
         }
         else {

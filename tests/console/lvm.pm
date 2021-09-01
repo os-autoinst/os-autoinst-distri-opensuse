@@ -39,6 +39,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils;
 use utils 'zypper_call';
 use btrfs_test 'set_playground_disk';
@@ -47,7 +48,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         # bring dasd online
         # exit status 0 -> everything ok
         # exit status 8 -> unformatted but still usable (e.g. from previous testrun)

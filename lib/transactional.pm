@@ -24,7 +24,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
 use Utils::Backends 'is_pvm';
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures;
 
 our @EXPORT = qw(
   process_reboot

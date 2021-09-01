@@ -17,10 +17,11 @@ use File::Basename 'basename';
 use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT);
 
@@ -450,7 +451,7 @@ sub bootmenu_default_params {
         push @params, "Y2DEBUG=1" unless is_jeos || is_microos;
 
         # gfxpayload variable replaced vga option in grub2
-        if (!is_jeos && !is_microos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        if (!is_jeos && !is_microos && (is_i586 || is_x86_64)) {
             push @params, "vga=791";
             my $video = 'video=1024x768';
             $video .= '-16' if check_var('QEMUVGA', 'cirrus');
@@ -668,7 +669,7 @@ sub autoyast_boot_params {
 sub specific_bootmenu_params {
     my @params;
 
-    if (!check_var('ARCH', 's390x')) {
+    if (!is_s390x) {
         my @netsetup;
         my $autoyast = get_var("AUTOYAST", "");
         if ($autoyast || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
@@ -677,7 +678,7 @@ sub specific_bootmenu_params {
             # profile has DHCLIENT_SET_HOSTNAME="yes" in /etc/sysconfig/network/dhcp,
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic. Don't set on IPMI with net interface defined in SUT_NETDEVICE.
-            my $ifcfg = check_var('BACKEND', 'ipmi') ? '' : 'ifcfg=*=dhcp SetHostname=0';
+            my $ifcfg = is_ipmi ? '' : 'ifcfg=*=dhcp SetHostname=0';
             @netsetup = split ' ', get_var("NETWORK_INIT_PARAM", "$ifcfg");
             push @params, @netsetup;
             push @params, autoyast_boot_params;
@@ -751,7 +752,7 @@ sub specific_bootmenu_params {
 
     # Return parameters as string of space-separated values, because s390x test
     # modules are using strings but not arrays to combine bootloader parameters.
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         return " @params ";
     }
 
@@ -1072,7 +1073,7 @@ sub ensure_shim_import {
     my (%args) = @_;
     $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
     # aarch64 firmware 'tianocore' can take longer to load
-    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 90 : 30;
+    my $bootloader_timeout = is_aarch64 ? 90 : 30;
     assert_screen($args{tags}, $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";

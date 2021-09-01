@@ -14,6 +14,7 @@
 
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'power_action';
 use strict;
@@ -22,7 +23,7 @@ use warnings;
 sub run {
     my ($self) = @_;
     power_action('reboot', textmode => 1);
-    if (check_var('ARCH', 'aarch64')) {
+    if (is_aarch64) {
         $self->wait_boot(bootloader_time => 300);
     }
     else {

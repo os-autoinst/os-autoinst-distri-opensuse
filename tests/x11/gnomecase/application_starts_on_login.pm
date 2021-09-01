@@ -41,7 +41,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
 use x11utils qw(handle_relogin turn_off_gnome_screensaver);
 

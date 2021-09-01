@@ -14,9 +14,10 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use Utils::Backends;
 use utils;
 use transactional qw(trup_call check_reboot_changes);
-use Utils::Architectures qw(is_x86_64 is_ppc64le is_s390x is_aarch64);
+use Utils::Architectures;
 use version_utils qw(is_sle_micro is_transactional);
 
 # 'patterns-microos-kvm_host' is required for SUMA client use case

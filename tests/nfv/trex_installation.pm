@@ -13,6 +13,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use utils;
@@ -44,7 +45,7 @@ sub run {
     assert_script_run("sed -i 's/PORT_1/$PORT_2/' -i $trex_conf");
     assert_script_run("cat $trex_conf");
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         record_info("INFO", "Bring Mellanox interfaces up");
         assert_script_run("ip link set dev eth2 up");
         assert_script_run("ip link set dev eth3 up");

@@ -15,6 +15,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use lockapi;
 use hacluster;
 use version_utils qw(is_sles4sap);
@@ -27,7 +28,7 @@ sub run {
     # In ppc64le and aarch64, workers are slower
     my $timeout_scale = get_var('TIMEOUT_SCALE', 2);
     $timeout_scale = 2 if ($timeout_scale < 2);
-    set_var('TIMEOUT_SCALE', $timeout_scale) unless (check_var('ARCH', 'x86_64'));
+    set_var('TIMEOUT_SCALE', $timeout_scale) unless (is_x86_64);
 
     # Check cluster state *after* reboot
     barrier_wait("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE${node_index}");
