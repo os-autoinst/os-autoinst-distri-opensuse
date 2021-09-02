@@ -16,6 +16,7 @@ use base 'opensusebasetest';
 use testapi;
 use publiccloud::azure;
 use publiccloud::ec2;
+use publiccloud::eks;
 use publiccloud::gce;
 use strict;
 use warnings;
@@ -27,12 +28,21 @@ sub provider_factory {
     die("Provider already initialized") if ($self->{provider});
 
     if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        $provider = publiccloud::ec2->new(
-            key_id     => get_var('PUBLIC_CLOUD_KEY_ID'),
-            key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
-            region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
-            username   => get_var('PUBLIC_CLOUD_USER',   'ec2-user')
-        );
+        if (check_var('PUBLIC_CLOUD_SERVICE', 'EKS')) {
+            $provider = publiccloud::eks->new(
+                key_id     => get_var('PUBLIC_CLOUD_KEY_ID'),
+                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
+                region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
+                username   => get_var('PUBLIC_CLOUD_USER',   'ec2-user')
+            );
+        } else {
+            $provider = publiccloud::ec2->new(
+                key_id     => get_var('PUBLIC_CLOUD_KEY_ID'),
+                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
+                region     => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
+                username   => get_var('PUBLIC_CLOUD_USER',   'ec2-user')
+            );
+        }
 
     }
     elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {

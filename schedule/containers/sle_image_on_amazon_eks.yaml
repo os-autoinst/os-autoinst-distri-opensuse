@@ -1,0 +1,7 @@
+---
+name: sle_image_on_amazon_eks
+description: |
+  containers Amazon on Elastic Kubernetes Service test
+schedule:
+  - boot/boot_to_desktop
+  - containers/upload_container_images_to_ecr
