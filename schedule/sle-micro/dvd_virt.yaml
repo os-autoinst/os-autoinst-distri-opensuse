@@ -20,6 +20,8 @@ conditional_schedule:
     ARCH:
       's390x':
         - transactional/host_config
+      'aarch64':
+        - transactional/host_config
   selinux:
     ENABLE_SELINUX:
       '1':

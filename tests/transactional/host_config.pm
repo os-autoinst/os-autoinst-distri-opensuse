@@ -17,7 +17,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
-use transactional qw(process_reboot);
+use transactional;
 
 sub run {
     select_console 'root-console';
@@ -32,6 +32,11 @@ sub run {
         record_info('GRUB', script_output('cat /etc/default/grub'));
         assert_script_run('transactional-update grub.cfg');
         process_reboot(trigger => 1);
+    }
+
+    if (check_var('ARCH', 'aarch64') && check_var('QEMUCPU', 'host')) {
+        trup_call('pkg install patterns-microos-kvm_host');
+        check_reboot_changes;
     }
 
     # Placeholder for other configurations we might need (not related to grub)

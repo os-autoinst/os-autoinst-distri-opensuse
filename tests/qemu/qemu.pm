@@ -21,7 +21,7 @@ use version_utils qw(is_sle_micro is_transactional);
 
 # 'patterns-microos-kvm_host' is required for SUMA client use case
 sub is_qemu_preinstalled {
-    if (is_sle_micro && check_var('FLAVOR', 'MicroOS-Image')) {
+    if (is_sle_micro) {
         assert_script_run('rpm -q patterns-microos-kvm_host');
         return 1;
     }
