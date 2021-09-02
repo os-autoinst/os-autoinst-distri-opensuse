@@ -5,7 +5,6 @@ description: >
   partitions activation and that we can re-ecnrypt the disk.
 name: activate_encrypted_volume+import_users
 vars:
-  ENCRYPT_ACTIVATE_EXISTING: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -14,7 +13,7 @@ schedule:
   - installation/product_selection/select_product
   - installation/licensing/accept_license
   - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/system_probing/activate_encrypted_volume
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning/encrypt_lvm_reuse_existing

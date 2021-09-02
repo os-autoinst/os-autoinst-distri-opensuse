@@ -30,6 +30,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningControll
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
+use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Warnings::WarningsController;
 use YaST::Bootloader::BootloaderController;
@@ -140,6 +141,10 @@ sub get_license_agreement {
 
 sub get_warnings_controller {
     return Installation::Warnings::WarningsController->new();
+}
+
+sub get_encrypted_volume_activation {
+    return Installation::SystemProbing::EncryptedVolumeActivationController->new();
 }
 
 1;

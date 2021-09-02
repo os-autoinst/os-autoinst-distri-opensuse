@@ -20,9 +20,6 @@ schedule:
   - publiccloud/patch_and_reboot
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
-  - console/system_prepare
-  - console/prepare_test_data
-  - console/consoletest_setup
   - '{{podman}}'
   - containers/docker
   - containers/docker_runc

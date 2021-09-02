@@ -44,7 +44,7 @@ sub reboot_and_wait_up {
         switch_from_ssh_to_sol_console(reset_console_flag => 'off');
         #on some SUTs, fg. a HP machine in Beijing lab, screen of sol console is cleared at the second reboot.
         #and the 'return' key must be typed then 'login' prompt appears in sol console
-        send_key 'ret' unless check_screen('text-logged-in-root');
+        send_key 'ret' if check_screen('sol-console-wait-typing-ret');
 
         my ($package_name, $file_name, $line_num) = caller;
         diag("The package $package_name defined from file $file_name called me at line $line_num");
@@ -60,14 +60,16 @@ sub reboot_and_wait_up {
             ipmi_backend_utils::ipmitool 'chassis power reset';
         }
         else {
-            #login
-            #The timeout can't be too small since autoyast installation
-            assert_screen "text-login", 600;
-            enter_cmd "root";
-            assert_screen "password-prompt";
-            type_password;
-            send_key('ret');
-            assert_screen "text-logged-in-root";
+            #login is required when sol console is used for the first time
+            unless (check_screen('text-logged-in-root')) {
+                #The timeout can't be too small since autoyast installation
+                assert_screen "text-login", 600;
+                enter_cmd "root";
+                assert_screen "password-prompt";
+                type_password;
+                send_key('ret');
+                assert_screen "text-logged-in-root";
+            }
 
             #type reboot
             enter_cmd("reboot");

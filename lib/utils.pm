@@ -28,6 +28,7 @@ use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends 'has_ttys';
 use Mojo::UserAgent;
+use zypper qw(wait_quit_zypper);
 
 our @EXPORT = qw(
   check_console_font
@@ -99,6 +100,7 @@ our @EXPORT = qw(
   assert_secureboot_status
   susefirewall2_to_firewalld
   permit_root_ssh
+  permit_root_ssh_in_sol
 );
 
 =head1 SYNOPSIS
@@ -1411,7 +1413,7 @@ sub reconnect_mgmt_console {
             if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
                 select_console 'root-console';
                 if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
-                    script_run('pkill zypper');
+                    wait_quit_zypper;
                     zypper_call("in susefirewall2-to-firewalld");
                     susefirewall2_to_firewalld();
                 }
@@ -2030,6 +2032,22 @@ sub permit_root_ssh {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         assert_script_run("systemctl restart sshd");
     }
+}
+
+=head2 permit_root_ssh_in_sol
+    permit_root_ssh_in_sol();
+
+for ipmi backend, PermitRootLogin has to be set in sol console
+however, assert_script_run and script_run is not stable in sole console
+enter_cmd or type_string are acceptable
+
+=cut
+
+sub permit_root_ssh_in_sol {
+    my $sshd_config_file = shift;
+
+    $sshd_config_file //= "/etc/ssh/sshd_config";
+    enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)");
 }
 
 1;

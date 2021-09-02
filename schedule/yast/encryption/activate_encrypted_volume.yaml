@@ -4,7 +4,6 @@ description: >
   pre-partitioned disk image to validate encrypted partitions activation.
 name: activate_encrypted_volume
 vars:
-  ENCRYPT_ACTIVATE_EXISTING: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -13,7 +12,7 @@ schedule:
   - installation/product_selection/select_product
   - installation/licensing/accept_license
   - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/system_probing/activate_encrypted_volume
   - console/validate_encrypted_volume_activation
   - installation/addon_products_sle
   - installation/system_role

@@ -96,7 +96,7 @@ sub test_users_locale {
 
     ($ldd_help_string_expected eq $ldd_help_string_updated) or die "Unexpected locale settings, glibc test strings are not the same!\n";
     enter_cmd("exit");
-
+    reset_consoles if is_sle('<15');
     return $ldd_help_string_updated;
 }
 

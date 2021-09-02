@@ -152,8 +152,9 @@ sub test_opensuse_based_image {
     my $image   = $args{image};
     my $runtime = $args{runtime};
 
-    my $distri  = $args{distri}  //= get_required_var("DISTRI");
-    my $version = $args{version} //= get_required_var("VERSION");
+    my $distri  = $args{distri}  // get_required_var("DISTRI");
+    my $version = $args{version} // get_required_var("VERSION");
+    my $beta    = $args{beta}    // get_var('BETA', 0);
 
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
@@ -174,7 +175,7 @@ sub test_opensuse_based_image {
     if ($image_id =~ 'sles') {
         if ($host_id =~ 'sles') {
             my $pretty_version = $version =~ s/-SP/ SP/r;
-            my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+            my $betaversion    = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
             if ($runtime =~ /buildah/) {
                 validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
@@ -257,17 +258,15 @@ sub test_zypper_on_container {
     assert_script_run("$runtime run $image zypper lr -s", 120);
 
     if ($runtime =~ /buildah/) {
-        # zypper ref
-        assert_script_run("$runtime run $image -- zypper -v ref | grep \"All repositories have been refreshed\"", 120);
+        assert_script_run("$runtime run $image -- zypper -nv ref", 120);
 
         # Create new image and remove the working container
         assert_script_run("$runtime commit --rm $image refreshed", 120);
 
         # Verify the new image works
-        assert_script_run("$runtime run \$($runtime from refreshed) -- zypper -v ref | grep \"All repositories have been refreshed\" ", 120);
+        assert_script_run("$runtime run \$($runtime from refreshed) -- zypper -nv ref", 120);
     } else {
-        # zypper ref
-        assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("$runtime run --name refreshed $image sh -c 'zypper -nv ref'", 120);
 
         # Commit the image
         assert_script_run("$runtime commit refreshed refreshed-image", 120);
@@ -276,7 +275,7 @@ sub test_zypper_on_container {
         assert_script_run("$runtime rm refreshed", 120);
 
         # Verify the image works
-        assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -v ref | grep \"All repositories have been refreshed\"'", 120);
+        assert_script_run("$runtime run --rm refreshed-image sh -c 'zypper -nv ref'", 120);
     }
     record_info "The End", "zypper test completed";
 }
@@ -293,10 +292,6 @@ sub ensure_container_rpm_updates {
             my $updated_v = version->parse("v$+{update_version}");
             my $stable_v  = version->parse("v$+{stable_version}");
             record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
-            if ($stable_v eq 'v52.1' && $updated_v eq 'v49.1') {
-                record_soft_failure('poo#91422');
-                last;
-            }
             die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
         } elsif ($line =~ $regex2zerorpm) {
             record_info("No Update found", "no updates found between rpm versions");

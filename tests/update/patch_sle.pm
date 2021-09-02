@@ -91,7 +91,7 @@ sub patching_sle {
     remove_test_repositories;
 
     #migration with LTSS is not possible, remove it before upgrade
-    remove_ltss;
+    deregister_dropped_modules;
 
     if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
         # The system is registered.
