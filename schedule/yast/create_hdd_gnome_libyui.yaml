@@ -10,6 +10,8 @@ schedule:
   - console/scc_cleanup_reregister
   - console/install_packages_simple
   - console/firewalld_add_port
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
   - '{{upload_assets}}'
 conditional_schedule:
