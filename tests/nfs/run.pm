@@ -76,8 +76,13 @@ BOOT_HDD_IMAGE=1
 DESKTOP=textmode
 HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
 CTHON04=1
+NFSVERSION=3
 UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
 START_AFTER_TEST=create_hdd_minimal_base+sdk
+
+=head2 NFSVERSION
+
+Fill 3 or 4 in this parameter to set test NFSv3 or NFSv4.
 
 =head2 CTHON04_GIT_URL
 
