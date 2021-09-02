@@ -42,29 +42,32 @@ sub upload_cthon04_log {
     my $self = shift;
     assert_script_run('cd ~/cthon04');
     if (script_output("grep 'All tests completed' ./result* | wc -l") =~ '4') {
-        record_info('All tests completed');
+        record_info('Complete', "All tests completed");
     }
     else {
         $self->result("fail");
         record_info("Test fail: Not all test completed");
     }
     if (script_output("grep ' ok.' ./result_basic_test.txt | wc -l") =~ '9') {
-        record_info('Basic test pass');
+        record_info('Pass', "Basic test pass");
     }
     else {
         $self->result("fail");
-        record_info('Basic test failed');
+        record_info('Fail', "Basic test failed");
     }
     if (script_output("egrep ' ok|success' ./result_special_test.txt | wc -l") =~ '7') {
-        record_info('Special test pass');
+        record_info('Pass', "Special test pass");
     }
     else {
         $self->result("fail");
-        record_info('Special test failed');
+        record_info('Fail', "Special test failed");
     }
-    if (script_run("grep 'Congratulations, you passed the locking tests!' ./result_lock_test.txt")) {
+    if (script_run("grep 'Congratulations' ./result_lock_test.txt")) {
         $self->result("fail");
-        record_info('Lock test failed');
+        record_info('Fail', "Lock test failed");
+    }
+    else {
+        record_info('Pass', "Lock test pass");
     }
     upload_logs('result_*', failok => 1);
 }
