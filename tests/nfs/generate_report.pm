@@ -69,7 +69,10 @@ sub upload_cthon04_log {
     else {
         record_info('Pass', "Lock test pass");
     }
-    upload_logs('result_*', failok => 1);
+    upload_logs('result_basic_test.txt',   failok => 1);
+    upload_logs('result_general_test.txt', failok => 1);
+    upload_logs('result_special_test.txt', failok => 1);
+    upload_logs('result_lock_test.txt',    failok => 1);
 }
 
 sub run {
