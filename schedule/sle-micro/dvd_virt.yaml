@@ -1,0 +1,57 @@
+name:           sle_micro_dvd+qemu
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  maintenance:
+    FLAVOR:
+      'DVD-Updates':
+        - transactional/install_updates
+  boot:
+    ARCH:
+      's390x':
+        - boot/reconnect_mgmt_console
+        - installation/first_boot
+      'aarch64':
+        - microos/disk_boot
+      'x86_64':
+        - microos/disk_boot
+  host_config:
+    ARCH:
+      's390x':
+        - transactional/host_config
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - installation/enable_selinux
+  kvm:
+    ARCH:
+      # nested kvm is not yet implemented on ARM and kvm not supported on ppc64le
+      'x86_64':
+        - qemu/kvm
+      's390x':
+        - qemu/kvm
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/scc_registration
+  - installation/ntp_config_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - '{{selinux}}'
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - '{{boot}}'
+  - console/textinfo
+  - '{{host_config}}'
+  - '{{maintenance}}'
+  - qemu/info
+  - qemu/qemu
+  - '{{kvm}}'
+  - console/journal_check
+  - shutdown/shutdown
