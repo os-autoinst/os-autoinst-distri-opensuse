@@ -26,9 +26,13 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{RegistrationPage}      = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
-    $self->{UseUpdateReposPopup}   = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
-    $self->{SkipRegistrationPopup} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
+    $self->{RegistrationPage}    = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
+    $self->{UseUpdateReposPopup} = Installation::Warnings::ConfirmationWarning->new({
+            app        => YuiRestClient::get_app(),
+            match_text => "The registration server offers update repos.*"});
+    $self->{SkipRegistrationPopup} = Installation::Warnings::ConfirmationWarningRichText->new({
+            app        => YuiRestClient::get_app(),
+            match_text => ".*Please confirm to proceed without updates.*"});
     return $self;
 }
 
@@ -41,16 +45,14 @@ sub get_registration_page {
 sub get_enable_update_repositories_popup {
     my ($self) = @_;
     die "Update repositories popup is not displayed"               unless $self->{UseUpdateReposPopup}->is_shown();
-    die "Update repositories popup contains an unexpected message" unless (
-        $self->{UseUpdateReposPopup}->text() =~ /The registration server offers update repos.*/);
+    die "Update repositories popup contains an unexpected message" unless $self->{UseUpdateReposPopup}->has_valid_text();
     return $self->{UseUpdateReposPopup};
 }
 
 sub get_skip_registration_popup {
     my ($self) = @_;
     die "Warning for skipping registration is not displayed"               unless $self->{SkipRegistrationPopup}->is_shown();
-    die "Warning for skipping registration contains an unexpected message" unless (
-        $self->{SkipRegistrationPopup}->text() =~ /.*Please confirm to proceed without updates.*/);
+    die "Warning for skipping registration contains an unexpected message" unless $self->{SkipRegistrationPopup}->has_valid_text();
     return $self->{SkipRegistrationPopup};
 }
 
