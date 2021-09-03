@@ -1,0 +1,65 @@
+---
+name:           cryptlvm_minimal_x@s390x-staging
+description:    >
+  Combination of "cryptlvm" and "minimal_x" for 64bit and staging.
+  (crypt-)LVM installations can take longer,
+  especially on non-x86_64 architectures.
+vars:
+  ENCRYPT: 1
+  LVM: 1
+  MAX_JOB_TIME: 14400
+  SCC_ADDONS: sdk
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning/encrypt_lvm
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/change_desktop
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/boot_encrypt
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/check_network
+  - console/system_state
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - locale/keymap_or_locale
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/hostname
+  - console/installation_snapshots
+# Disabling module till issue#98478 is resolved
+#  - console/x_vt
+  - console/zypper_lr
+  - console/zypper_ref
+  - console/ncurses
+  - console/yast2_lan
+  - console/curl_https
+  - console/glibc_sanity
+  - console/zypper_in
+  - console/yast2_i
+  - console/yast2_bootloader
+  - console/vim
+  - console/sshd
+  - console/ssh_cleanup
+  - console/mtab
+  - console/orphaned_packages_check
+# Disabling module till issue#98556 is resolved
+#  - console/consoletest_finish
