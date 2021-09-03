@@ -20,6 +20,8 @@ use testapi;
 use Utils::Architectures;
 use utils;
 use Utils::Backends 'is_pvm';
+use power_action_utils 'power_action';
+use bootloader_setup 'stop_grub_timeout';
 
 sub run {
     my ($self) = @_;
@@ -36,10 +38,15 @@ sub run {
         set_var('BOOT_HDD_IMAGE', 0) unless (is_aarch64 && !check_var('ZDUP', '1'));
     }
     assert_script_run "sync", 300;
-    enter_cmd "reboot";
+    power_action('reboot', textmode => 1, keepconsole => 1);
 
     # After remove -f for reboot, we need wait more time for boot menu and avoid exception during reboot caused delay to boot up.
     assert_screen('inst-bootmenu', 300) unless (is_s390x || is_pvm);
+
+    # we need to stop_grub_timeout after grub shows up or it will boot into HDD sometimes.
+    # for x86_64 we need to make sure the start item is installation for needle matching.
+    stop_grub_timeout if is_x86_64;
+    save_screenshot;
 }
 
 1;
