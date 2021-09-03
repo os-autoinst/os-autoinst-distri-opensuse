@@ -18,7 +18,8 @@ schedule:
   - installation/validate_beta_popup
   - installation/product_selection/select_product
   - installation/licensing/accept_license
-  - installation/scc_registration
+  - installation/registration/register_via_scc
+  - installation/registration/modules_selection
   - installation/system_probing/activate_encrypted_volume
   - installation/addon_products_sle
   - installation/system_role
