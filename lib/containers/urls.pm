@@ -77,8 +77,7 @@ sub get_suse_container_urls {
     }
     elsif (is_sle(">=15-sp4", $version)) {
         my $lowerversion = lc $version;
-        # Location for GA builds
-        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/ga/test/images/suse/sle15:${dotversion}";
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
         push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
     }
     elsif (is_sle_micro) {
