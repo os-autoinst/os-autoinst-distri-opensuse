@@ -233,6 +233,14 @@ sub handle_login {
     assert_screen 'displaymanager-password-prompt';
     type_password($mypwd);
     send_key 'ret';
+    wait_still_screen;
+    # for S390x testing, since they are not using qemu built-in vnc, it is
+    # expected that polkit authentication window can open for first time login.
+    # see bsc#1177446 for more information.
+    if (check_screen(qw[authentication-required-user-settings authentication-required-modify-system], 5)) {
+        type_password($mypwd);
+        send_key 'ret';
+    }
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
         send_key('esc');

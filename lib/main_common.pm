@@ -576,6 +576,7 @@ sub load_jeos_tests {
     loadtest "microos/libzypp_config";
     if (is_sle) {
         loadtest "console/suseconnect_scc";
+        loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
     }
 
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
@@ -2197,7 +2198,6 @@ sub load_security_tests_crypt_core {
     loadtest "fips/openssl/openssl_pubkey_dsa";
     loadtest "fips/openssh/openssh_fips" if get_var("FIPS_ENABLED");
     loadtest "console/sshd";
-    loadtest "console/ssh_pubkey" unless is_jeos;
     loadtest "console/ssh_cleanup";
 }
 

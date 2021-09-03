@@ -131,18 +131,11 @@ sub tb_send_message {
     wait_still_screen(2);
 
     if ($hostname eq 'client') {
-        if (check_var('SLE_PRODUCT', 'sled')) {
-            assert_and_click "thunderbird_SSL_error_security_exception";
-            assert_and_click "thunderbird_confirm_security_exception";
-            assert_and_click 'thunderbird_maximized_send-message';
-        }
-        else {
-            assert_and_click "thunderbird_SSL_error_security_exception";
-            assert_and_click "thunderbird_confirm_security_exception";
-            assert_and_click 'thunderbird_maximized_send-message';
-            assert_and_click "thunderbird_get-messages";
-        }
-
+        assert_and_click "thunderbird_attachment_reminder" if check_screen('thunderbird_attachment_reminder', 2);
+        assert_and_click "thunderbird_SSL_error_security_exception";
+        assert_and_click "thunderbird_confirm_security_exception";
+        assert_and_click 'thunderbird_maximized_send-message';
+        assert_and_click "thunderbird_get-messages" unless check_var('SLE_PRODUCT', 'sled');
     }
     else {
         assert_screen 'thunderbird_sent-folder-appeared', 90;

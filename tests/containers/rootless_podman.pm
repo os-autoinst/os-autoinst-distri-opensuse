@@ -25,6 +25,7 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
+use containers::utils 'registry_url';
 use version_utils qw(get_os_release);
 use version_utils 'is_sle';
 
@@ -63,7 +64,8 @@ sub run {
 }
 
 sub softfail_and_skip_on_bsc1182874 {
-    if (script_run("podman run alpine", timeout => 120) != 0) {
+    my $alpine = registry_url('alpine');
+    if (script_run("podman run $alpine", timeout => 180) != 0) {
         record_soft_failure "bsc#1182874 - container fails to run in rootless mode";
         return 1;
     }

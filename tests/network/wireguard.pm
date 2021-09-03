@@ -75,7 +75,8 @@ sub run {
         assert_script_run 'modprobe wireguard';
     }
 
-    assert_script_run 'grep -i CONFIG_WIREGUARD /boot/config-$(uname -r)';
+    my $boot_config = '/boot/config-$(uname -r)';
+    assert_script_run("grep -i CONFIG_WIREGUARD $boot_config") unless (script_run("stat $boot_config") != 0);
     assert_script_run 'modinfo wireguard';
 
     zypper_call 'in wireguard-tools iperf';

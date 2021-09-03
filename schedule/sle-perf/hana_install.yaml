@@ -69,6 +69,8 @@ conditional_schedule:
         - installation/partitioning/no_enlarge_swap
       15-SP2:
         - installation/partitioning/no_enlarge_swap
+      15-SP3:
+        - installation/partitioning/no_enlarge_swap
   partitioning_method:
     ARCH:
       x86_64:

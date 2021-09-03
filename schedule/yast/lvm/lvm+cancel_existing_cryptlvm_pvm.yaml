@@ -4,7 +4,6 @@ description: >
   with unencrypted lvm.
 name: lvm+cancel_existing_cryptlvm
 vars:
-  ENCRYPT_CANCEL_EXISTING: 1
   LVM: 1
   YUI_REST_API: 1
 schedule:
@@ -14,7 +13,7 @@ schedule:
   - installation/product_selection/select_product
   - installation/licensing/accept_license
   - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/system_probing/cancel_encrypted_volume
   - console/validate_encrypted_partition_not_activated
   - installation/addon_products_sle
   - installation/system_role

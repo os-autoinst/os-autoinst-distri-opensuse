@@ -7,7 +7,7 @@ schedule:
     - security/selinux/selinux_setup
     - security/cc/cc_selinux_setup
     - security/cc/cc_audit_test_setup
-    - security/cc/netfilter
+    - security/cc/setup_net_test_env
 test_data:
     server:
         first_interface:

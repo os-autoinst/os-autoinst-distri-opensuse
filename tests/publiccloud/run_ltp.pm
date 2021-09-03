@@ -188,10 +188,10 @@ sub gen_ltp_env {
         product     => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
         revision    => get_required_var('BUILD'),
         arch        => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
-        kernel      => $instance->run_ssh_command('uname -r'),
+        kernel      => $instance->run_ssh_command(cmd => 'uname -r'),
         backend     => get_required_var('BACKEND'),
         flavor      => get_required_var('FLAVOR'),
-        ltp_version => $instance->run_ssh_command(q(rpm -q --qf '%{VERSION}\n' ltp)),
+        ltp_version => $instance->run_ssh_command(cmd => q(rpm -q --qf '%{VERSION}\n' ltp)),
     };
 
     record_info("LTP Environment", Dumper($environment));

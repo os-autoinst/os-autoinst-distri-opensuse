@@ -152,11 +152,11 @@ sub clean_container_host {
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     if ($runtime =~ /buildah/) {
-        assert_script_run("$runtime rm --all");
-        assert_script_run("$runtime rmi --all --force");
+        assert_script_run("$runtime rm --all",          timeout => 180);
+        assert_script_run("$runtime rmi --all --force", timeout => 300);
     } else {
         assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
-        assert_script_run("$runtime system prune -a -f",             180);
+        assert_script_run("$runtime system prune -a -f",             300);
     }
 }
 

@@ -23,44 +23,47 @@ sub install_pkg {
     my $sleperf_source = get_var('SLE_SOURCE');
     my $ver_path       = "/root";
     add_qa_head_repo;
-    if (get_var("SLEPERF")) {
-        assert_script_run("wget --quiet -P $ver_path $sleperf_source 2>&1");
-        assert_script_run("tar xf /root/sleperf.tar -C /root");
-        assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh scheduler-service");
-        assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh common-infra");
-    }
-    else {
-        zypper_call("install qa_testset_automation");
+    # Download SLEperf package, extract and install
+    assert_script_run("wget --quiet -O $ver_path/sleperf.tar $sleperf_source 2>&1");
+    assert_script_run("tar xf /root/sleperf.tar -C /root");
+    assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh scheduler-service");
+    assert_script_run("cd /root/sleperf/SLEPerf; ./installer.sh common-infra");
+
+    # Install qa_lib_ctcs2 package to fix dependency issue
+    zypper_call("install qa_lib_ctcs2");
+}
+
+sub extract_settings_qaset_config {
+    my $values = shift;
+    my @fields = split(/;/, $values);
+    if (scalar @fields > 0) {
+        foreach my $a_value (@fields) {
+            assert_script_run("echo ${a_value} >> /root/qaset/config");
+        }
     }
 }
 
 sub setup_environment {
-    my $runid             = get_required_var('QASET_RUNID');
+    my $qaset_role        = get_required_var('QASET_ROLE');
+    my $qaset_kernel_tag  = get_required_var('QASET_KERNEL_TAG');
     my $mitigation_switch = get_required_var('MITIGATION_SWITCH');
     my $ver_cfg           = get_required_var('VER_CFG');
-    my $ver_path          = "/root";
 
-    assert_script_run("wget -N -P $ver_path $ver_cfg 2>&1");
     assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
-        my $rel_ver = get_var('VERSION');
-        assert_script_run("if [ ! -f /root/.product_version_cfg ]; then cp /root/.product_version_cfg.$rel_ver /root/.product_version_cfg; fi");
-        assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $runid $mitigation_switch");
+        assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $qaset_kernel_tag $mitigation_switch");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
         if (my $qaset_config = get_var("QASET_CONFIG")) {
-            my @fields = split(/;/, $qaset_config);
-            if (scalar @fields > 0) {
-                foreach my $qaset_config (@fields) {
-                    assert_script_run("echo ${qaset_config} >> /root/qaset/config");
-                }
-            }
+            extract_settings_qaset_config($qaset_config);
         }
     } else {
         assert_script_run(
-            "/usr/share/qa/qaset/bin/deploy_performance.sh $runid $mitigation_switch"
+            "/usr/share/qa/qaset/bin/deploy_performance.sh $qaset_role $mitigation_switch"
         );
         assert_script_run("cat /root/qaset/qaset-setup.log");
     }
+    # Extract the openQA parameter: VER_CFG="PRODUCT_RELEASE=SLES-15-SP3;PRODUCT_BUILD=202109"
+    extract_settings_qaset_config($ver_cfg);
 }
 
 sub os_update {

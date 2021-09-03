@@ -322,43 +322,43 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     %guests = (
         sles11sp4x32 => {
             name => 'sles11sp4x32',
-            ip   => 'borg-11.qam.suse.de',
+            ip   => 'win2k19-sle11-SP4x32.qa.suse.cz',
         },
         sles11sp4x64 => {
             name => 'sles11sp4x64',
-            ip   => 'borg-10.qam.suse.de',
+            ip   => 'win2k19-sle11-SP4x64.qa.suse.cz',
         },
         sles12sp3 => {
             name => 'sles12sp3',
-            ip   => 'borg-14.qam.suse.de',
+            ip   => 'win2k19-sle12-SP3.qa.suse.cz',
         },
         sles12sp2 => {
             name => 'sles12sp2',
-            ip   => 'borg-13.qam.suse.de',
+            ip   => 'win2k19-sle12-SP2.qa.suse.cz',
         },
         sles12sp4 => {
             name => 'sles12sp4',
-            ip   => 'd112.qam.suse.de',
+            ip   => 'win2k19-sle12-SP4.qa.suse.cz',
         },
         sles12sp5 => {
             name => 'sles12sp5',
-            ip   => 'd387.qam.suse.de',
+            ip   => 'win2k19-sle12-SP5.qa.suse.cz',
         },
         sles15 => {
             name => 'sles15',
-            ip   => 'd67.qam.suse.de',
+            ip   => 'win2k19-sle15.qa.suse.cz',
         },
         sles15sp1 => {
             name => 'sles15sp1',
-            ip   => 'd402.qam.suse.de',
+            ip   => 'win2k19-sle15-SP1.qa.suse.cz',
         },
         sles15sp2 => {
             name => 'sles15sp2',
-            ip   => 'd196.qam.suse.de',
+            ip   => 'win2k19-sle15-SP2.qa.suse.cz',
         },
         sles15sp3 => {
             name => 'sles15sp3',
-            ip   => 'd461.qam.suse.de',
+            ip   => 'win2k19-sle15-SP3.qa.suse.cz',
         },
     );
 

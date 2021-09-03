@@ -92,8 +92,7 @@ sub log_versions {
     my $kernel_pkg     = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
     my $ver_linux_log  = '/tmp/ver_linux_before.txt';
-
-    upload_logs('/boot/config-$(uname -r)', failok => 1);
+    my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
 
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
@@ -101,11 +100,27 @@ sub log_versions {
     script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
     upload_logs($ver_linux_log, failok => 1);
 
+    if ($kernel_config) {
+        my $cmd = "echo '# $kernel_config'; echo; ";
+
+        upload_logs($kernel_config, failok => 1);
+
+        if ($kernel_config eq '/proc/config.gz') {
+            record_soft_failure 'boo#1189879 missing kernel config in kernel package, use /proc/config.gz';
+            $cmd .= "zcat $kernel_config";
+        } else {
+            $cmd .= "cat $kernel_config";
+        }
+
+        record_info('KERNEL CONFIG', script_output("$cmd"));
+    } else {
+        record_soft_failure 'boo#1189879 missing kernel config';
+    }
+
     record_info('KERNEL VERSION',     script_output('uname -a'));
     record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log",          proceed_on_failure => 1));
     record_info('KERNEL EXTRA PKG',   script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
-    record_info('KERNEL CONFIG',      script_output('cat /boot/config-$(uname -r)'));
-    record_info('ver_linux',          script_output("cat $ver_linux_log", proceed_on_failure => 1));
+    record_info('ver_linux',          script_output("cat $ver_linux_log",           proceed_on_failure => 1));
 
     script_run('env');
     script_run('aa-enabled; aa-status');

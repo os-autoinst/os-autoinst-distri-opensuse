@@ -61,6 +61,15 @@ sub get_hana_device_from_system {
     return $device;
 }
 
+sub debug_locked_device {
+    my ($self) = @_;
+    for ('dmsetup info', 'dmsetup ls', 'mount', 'df -h', 'pvscan', 'vgscan', 'lvscan', 'pvdisplay', 'vgdisplay', 'lvdisplay') {
+        my $filename = $_;
+        $filename =~ s/[^\w]/_/g;
+        $self->save_and_upload_log($_, "$filename.txt");
+    }
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
@@ -135,6 +144,7 @@ sub run {
             }
 
             # Remove traces of LVM structures from previous tests before configuring
+            foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
             foreach my $lv_cmd ('lv', 'vg', 'pv') {
                 my $looptime  = 20;
                 my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
@@ -146,13 +156,12 @@ sub run {
                 }
                 if ($looptime <= 0) {
                     record_info('ERROR', "Device $lv_device seems to be locked!", result => 'fail');
-                    # Just retry the $lv_cmd and a 'dmsetup ls' to have a "proper" error message
+                    # Retry the $lv_cmd one last time to have a "proper" error message, and run some debug commands
                     script_run "${lv_cmd}remove -f $lv_device";
-                    script_run 'dmsetup ls';
-                    die 'locked block device';    # We have to force the die, record_info don't do it
+                    $self->debug_locked_device;
+                    die 'poo#96833 - locked block device';    # Device is locked. We cannot remove or create a PV there. Fail the test
                 }
             }
-            foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
 
             # Now configure LVs and file systems for HANA
             assert_script_run "pvcreate -y $device";

@@ -32,7 +32,7 @@ our @EXPORT = qw(
   setup_sle
   setup_migration
   register_system_in_textmode
-  remove_ltss
+  deregister_dropped_modules
   disable_installation_repos
   record_disk_info
   check_rollback_system
@@ -104,19 +104,33 @@ sub register_system_in_textmode {
 
 # Remove LTSS product and manually remove its relevant package before migration
 # Also remove ltss from SCC_ADDONS setting for registration in upgrade target
-sub remove_ltss {
-    if (get_var('SCC_ADDONS', '') =~ /ltss/) {
-        my $scc_addons = get_var_array('SCC_ADDONS');
-        record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
-        if (check_var('SLE_PRODUCT', 'hpc')) {
-            remove_suseconnect_product('SLE_HPC-LTSS');
-        } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
-            remove_suseconnect_product('SLES-LTSS');
-        } else {
-            zypper_call 'rm -t product SLES-LTSS';
-            zypper_call 'rm sles-ltss-release-POOL';
+# Besides LTSS, some modules will be dropped in the migration target product,
+# need to remove these modules before migration, add the dropped modules to the
+# setting of DROPPED_MODULES.
+sub deregister_dropped_modules {
+    if ((get_var('DROPPED_MODULES')) || (get_var('SCC_ADDONS', '') =~ /ltss/)) {
+        my $droplist = get_var('DROPPED_MODULES', '');
+        $droplist .= ',ltss' if (get_var('SCC_ADDONS', '') =~ /ltss/);
+        my $droplist_array = get_var_array($droplist);
+        my @names          = grep { defined $_ && $_ } split(/,/, $droplist);
+        foreach my $name (@names) {
+            if ($name =~ /ltss/) {
+                record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
+                if (check_var('SLE_PRODUCT', 'hpc')) {
+                    remove_suseconnect_product('SLE_HPC-LTSS');
+                } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
+                    remove_suseconnect_product('SLES-LTSS');
+                } else {
+                    zypper_call 'rm -t product SLES-LTSS';
+                    zypper_call 'rm sles-ltss-release-POOL';
+                }
+            }
+            else {
+                record_info "remove $name", 'some modules are dropped in target product, now remove them and drop them from SCC_ADDONS before migration';
+                remove_suseconnect_product(get_addon_fullname($name));
+            }
+            set_var('SCC_ADDONS', join(',', grep { $_ ne $name } @$droplist_array));
         }
-        set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
     }
 }
 

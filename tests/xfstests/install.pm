@@ -24,13 +24,21 @@ use base 'opensusebasetest';
 use utils;
 use testapi;
 use repo_tools 'add_qa_head_repo';
+use version_utils qw(is_sle is_leap is_tumbleweed);
 
 my $STATUS_LOG  = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
 
-sub install_xfstests_from_ibs {
-    add_qa_head_repo(priority => 100);
+sub install_xfstests_from_repo {
+    if (is_sle()) {
+        add_qa_head_repo(priority => 100);
+    }
+    elsif (is_tumbleweed()) {
+        zypper_ar('http://download.opensuse.org/tumbleweed/repo/oss/',     name => 'repo-oss');
+        zypper_ar('http://download.opensuse.org/tumbleweed/repo/non-oss/', name => 'repo-non-oss');
+    }
     zypper_call('--gpg-auto-import-keys ref');
+    record_info('repo info', script_output('zypper lr -U'));
     zypper_call('in xfstests');
     zypper_call('in fio');
 }
@@ -55,9 +63,13 @@ sub run {
     # Disable PackageKit
     quit_packagekit;
 
-    install_xfstests_from_ibs;
-    script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
-
+    install_xfstests_from_repo;
+    if (is_sle()) {
+        script_run 'ln -s /var/lib/xfstests/ /opt/xfstests';
+    }
+    else {
+        script_run 'ln -s /usr/lib/xfstests/ /opt/xfstests';
+    }
     # Create log file
     log_create($STATUS_LOG);
     collect_version($VERSION_LOG);

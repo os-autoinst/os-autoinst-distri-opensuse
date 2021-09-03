@@ -6,7 +6,6 @@ description: >
   encrypted partition on it, similarly to powerVM.
 name: activate_encrypted_volume
 vars:
-  ENCRYPT_ACTIVATE_EXISTING: 1
   FORMAT_DASD: pre_install
   YUI_REST_API: 1
 schedule:
@@ -17,7 +16,7 @@ schedule:
   - installation/licensing/accept_license
   - installation/disk_activation
   - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/system_probing/activate_encrypted_volume
   - console/validate_encrypted_volume_activation
   - installation/addon_products_sle
   - installation/system_role

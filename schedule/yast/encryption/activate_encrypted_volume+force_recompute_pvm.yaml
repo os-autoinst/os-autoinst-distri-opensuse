@@ -8,7 +8,6 @@ description: >
 name: activate_encrypted_volume+force_recompute
 vars:
   ENCRYPT: 1
-  ENCRYPT_ACTIVATE_EXISTING: 1
   ENCRYPT_FORCE_RECOMPUTE: 1
   LVM: 1
   OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
@@ -20,7 +19,7 @@ schedule:
   - installation/product_selection/select_product
   - installation/licensing/accept_license
   - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/system_probing/activate_encrypted_volume
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning/encrypt_lvm_ignore_existing
