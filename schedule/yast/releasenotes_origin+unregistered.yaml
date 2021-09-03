@@ -14,7 +14,6 @@ schedule:
   - installation/product_selection/select_product
   - installation/licensing/accept_license
   - installation/registration/skip_registration
-  - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/releasenotes_origin
   - installation/system_role
