@@ -54,11 +54,8 @@ sub run {
             add_suseconnect_product(get_addon_fullname('base'),    undef, undef, undef,                             300, 1);
             add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef,                             300, 1);
             add_suseconnect_product(get_addon_fullname('we'),      undef, undef, "-r " . get_var('SCC_REGCODE_WE'), 300, 1);
-            add_suseconnect_product(get_addon_fullname('python2'), undef, undef, undef,                             300, 1);
         }
         my $myaddons = get_var('SCC_ADDONS');
-        # After media upgrade, system don't include ltss extension
-        $myaddons =~ s/ltss,?//g;
         if ($myaddons ne '') {
             register_addons_cmd($myaddons);
         }

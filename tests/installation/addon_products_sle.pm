@@ -68,9 +68,6 @@ sub handle_all_packages_medium {
         push @addons, $i if !grep(/^$i$/, @addons);
     }
 
-    # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
-    push @addons, 'python2' if get_var('MEDIA_UPGRADE') && is_sle('<=15', get_var('HDDVERSION')) && is_sle('>15') && !check_var('SLE_PRODUCT', 'rt');
-
     # Record the addons to be enabled for debugging
     record_info 'Extension and Module Selection', join(' ', @addons);
     # Enable the extentions or modules
