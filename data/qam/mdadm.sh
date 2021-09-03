@@ -275,6 +275,7 @@ done
 
 run losetup -d $DEV_2
 run rm disk2.img
+run sync
 run fallocate -l $IMAGE_SIZE disk2.img
 
 run losetup $DEV_2 disk2.img
@@ -407,6 +408,7 @@ done
 
 run losetup -d $DEV_1
 run rm disk1.img
+run sync
 run fallocate -l $IMAGE_SIZE disk1.img
 
 run losetup $DEV_1 disk1.img
