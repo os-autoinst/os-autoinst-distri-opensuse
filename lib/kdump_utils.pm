@@ -292,7 +292,7 @@ sub configure_service {
     }
 
     # restart to activate kdump
-    power_action('reboot', keepconsole => is_pvm);
+    power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => 300);
 
