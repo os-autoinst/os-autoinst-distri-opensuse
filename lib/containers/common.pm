@@ -21,13 +21,14 @@ use strict;
 use warnings;
 use testapi;
 use registration;
-use utils qw(zypper_call systemctl file_content_replace script_retry);
+use utils qw(zypper_call systemctl file_content_replace script_retry ensure_ca_certificates_suse_installed);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
   clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
-  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
+  scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module
+  install_ca_certs);
 
 sub activate_containers_module {
     my ($running_version, $sp, $host_distri) = get_os_release;
@@ -272,6 +273,13 @@ sub scc_apply_docker_image_credentials {
 
 sub scc_restore_docker_image_credentials {
     assert_script_run "cp /etc/zypp/credentials.d/SCCcredentials{.bak,}" if (is_sle() && get_var('SCC_DOCKER_IMAGE'));
+}
+
+sub install_ca_certs {
+    if (check_var('VERSION', '15-SP4')) {
+        record_soft_failure 'bsc#1190167 - buildah cant pull sle15sp4 container image due to certificate signed by unknown authority';
+        ensure_ca_certificates_suse_installed();
+    }
 }
 
 sub test_rpm_db_backend {

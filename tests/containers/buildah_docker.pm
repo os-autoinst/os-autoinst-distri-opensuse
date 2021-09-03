@@ -30,7 +30,7 @@ sub run {
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => 'docker');
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
-
+    install_ca_certs();
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
     my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     for my $version (split(/,/, $versions)) {
