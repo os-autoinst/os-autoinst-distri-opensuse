@@ -20,7 +20,8 @@ schedule:
   - installation/validate_beta_popup
   - installation/product_selection/select_product
   - installation/licensing/accept_license
-  - installation/scc_registration
+  - installation/registration/skip_registration
+  - installation/registration/modules_selection
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning/accept_proposed_layout
