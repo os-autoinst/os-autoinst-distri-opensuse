@@ -25,7 +25,7 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
     my @addons  = split(/,/, get_var('SCC_ADDONS', ''));
-    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD', 0));
+    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
 
     # Trigger to skip the download to speed up verification runs
     if ($skip_mu) {

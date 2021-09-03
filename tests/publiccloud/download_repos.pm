@@ -32,8 +32,7 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
     # Skip maintenance updates. This is useful for debug runs
-    # Note: QAM_PUBLICCLOUD_SKIP_DOWNLOAD is left for backwards compatability and will be removed in the future
-    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD', 0));
+    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
 
     # Trigger to skip the download to speed up verification runs
     if ($skip_mu) {
@@ -80,7 +79,7 @@ sub run {
         }
         # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
         my $count             = scalar @repos;
-        my $check_empty_repos = get_var('QAM_PUBLICCLOUD_IGNORE_EMPTY_REPO', 0) == 0;
+        my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
         die "No test repositories" if ($check_empty_repos && $count == 0);
 
         my $size = script_output("du -hs ~/repos");
