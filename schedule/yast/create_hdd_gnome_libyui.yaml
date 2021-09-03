@@ -16,8 +16,8 @@ schedule:
   - '{{upload_assets}}'
 conditional_schedule:
   bootloader:
-    ARCH:
-      s390x:
+    BACKEND:
+      svirt:
         - installation/bootloader_start
   upload_assets:
     ARCH:
