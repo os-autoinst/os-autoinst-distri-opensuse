@@ -55,11 +55,24 @@ sub run {
         zypper_call("in bzip2");
     }
 
-    assert_script_run("rpm -qa > /tmp/rpm.list.txt");
-    upload_logs('/tmp/rpm.list.txt', timeout => 180, failok => 1);
-
     assert_script_run("SUSEConnect --status-text", 300);
     zypper_call("lr -d");
+
+    collect_system_information($self);
+}
+
+sub collect_system_information {
+    my ($self) = @_;
+
+    # Collect various system information and pack them to instance_overview.tar
+    script_run("cd /var/tmp");
+    assert_script_run("mkdir -p instance_overview");
+    assert_script_run("rpm -qa | tee instance_overview/rpm.list.txt", timeout => 90);
+    assert_script_run("cat /proc/cpuinfo | tee instance_overview/cpuinfo.txt");
+    assert_script_run("cat /proc/meminfo | tee instance_overview/meminfo.txt");
+    assert_script_run("uname -a | tee instance_overview/uname.txt");
+    $self->tar_and_upload_log("instance_overview/", "instance_overview.tar.gz");
+    script_run("cd");
 }
 
 sub test_flags {
