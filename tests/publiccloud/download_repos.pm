@@ -32,8 +32,7 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
     # Skip maintenance updates. This is useful for debug runs
-    # Note: QAM_PUBLICCLOUD_SKIP_DOWNLOAD is left for backwards compatability and will be removed in the future
-    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD', 0));
+    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
 
     # Trigger to skip the download to speed up verification runs
     if ($skip_mu) {
