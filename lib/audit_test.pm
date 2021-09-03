@@ -35,9 +35,9 @@ our @EXPORT = qw(
   upload_audit_test_logs
 );
 
-our $testdir      = '/tmp/';
-our $code_repo    = get_var('CODE_BASE', 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar');
-my @lines         = split(/[\/\.]+/, $code_repo);
+our $testdir   = '/tmp/';
+our $code_repo = get_var('CODE_BASE', 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar');
+my @lines = split(/[\/\.]+/, $code_repo);
 our $testfile_tar = $lines[-2];
 our $mode         = get_var('MODE', 64);
 
