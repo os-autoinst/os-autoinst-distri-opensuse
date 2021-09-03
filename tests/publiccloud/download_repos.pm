@@ -79,7 +79,7 @@ sub run {
         }
         # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
         my $count             = scalar @repos;
-        my $check_empty_repos = get_var('QAM_PUBLICCLOUD_IGNORE_EMPTY_REPO', 0) == 0;
+        my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
         die "No test repositories" if ($check_empty_repos && $count == 0);
 
         my $size = script_output("du -hs ~/repos");
