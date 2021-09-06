@@ -41,4 +41,9 @@ sub register_module {
     $self->get_module_selection_page()->press_next();
 }
 
+sub skip_selection {
+    my ($self) = @_;
+    $self->get_module_selection_page()->press_next();
+}
+
 1;
