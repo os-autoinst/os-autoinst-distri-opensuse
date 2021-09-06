@@ -9,8 +9,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/registration/modules_selection
@@ -37,5 +37,4 @@ schedule:
   - console/validate_md_raid
   - console/validate_raid
 test_data:
-  product: SLES
   <<: !include test_data/yast/raid/raid1_prep_boot.yaml

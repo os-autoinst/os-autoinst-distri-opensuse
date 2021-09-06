@@ -6,7 +6,6 @@ description:    >
     2. "Minimal" role is selected;
     3. Boot to command-line mode;
     4. Installation is validated by default set of smoke tests.
-
 vars:
   VIDEOMODE: text
   SYSTEM_ROLE: minimal
@@ -15,8 +14,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/skip_registration
   - installation/addon_products_sle
@@ -43,5 +42,3 @@ schedule:
   - console/zypper_lifecycle
   - console/orphaned_packages_check
   - console/consoletest_finish
-test_data:
-  product: SLES

@@ -11,6 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::ProductSelection::ProductSelectionPage;
+use parent 'Installation::Navigation::NavigationBar';
 use strict;
 use warnings;
 
@@ -24,6 +25,7 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
+    $self->SUPER::init($args);
     $self->{rb_SLES}         = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Server 15/});
     $self->{rb_HPC}          = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise High Performance Computing 15/});
     $self->{rb_SLES_for_SAP} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Server for SAP Applications 15/});
@@ -39,39 +41,9 @@ sub is_shown {
     return $self->{rb_SLES}->exist();
 }
 
-sub select_SLES {
-    my ($self) = @_;
-    $self->{rb_SLES}->select();
-}
-
-sub select_HPC {
-    my ($self) = @_;
-    $self->{rb_HPC}->select();
-}
-
-sub select_SLES_for_SAP {
-    my ($self) = @_;
-    $self->{rb_SLES_for_SAP}->select();
-}
-
-sub select_SLED {
-    my ($self) = @_;
-    $self->{rb_SLED}->select();
-}
-
-sub select_SMGR_Server {
-    my ($self) = @_;
-    $self->{rb_SMGR_Server}->select();
-}
-
-sub select_SMGR_Proxy {
-    my ($self) = @_;
-    $self->{rb_SMGR_Proxy}->select();
-}
-
-sub select_SMGR_Retail {
-    my ($self) = @_;
-    $self->{rb_SMGR_Retail}->select();
+sub install_product {
+    my ($self, $product) = @_;
+    $self->{"rb_$product"}->select();
 }
 
 1;

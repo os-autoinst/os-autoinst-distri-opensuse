@@ -13,8 +13,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/disk_activation
   - installation/registration/register_via_scc
@@ -46,7 +46,6 @@ schedule:
   - console/validate_installed_patterns
   - console/consoletest_finish
 test_data:
-  product: SLES
   software:
     patterns:
       - base

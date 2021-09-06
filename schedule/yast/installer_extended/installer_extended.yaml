@@ -16,9 +16,9 @@ schedule:
   - '{{compare_checksums}}'
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
+  - installation/product_selection/access_beta_distribution
   - '{{switch_keyboard_layout}}'
-  - installation/product_selection/select_product
+  - installation/product_selection/install_SLES
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
   - installation/licensing/accept_license
@@ -49,7 +49,6 @@ conditional_schedule:
       qemu:
         - installation/language_keyboard/switch_keyboard_layout
 test_data:
-  product: SLES
   license:
     language: English (US)
     translations:

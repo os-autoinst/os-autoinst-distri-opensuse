@@ -13,19 +13,15 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test module to select a product to install
+# Summary: Validate access to Beta Distribution
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
 use strict;
 use warnings;
-use testapi;
-use scheduler 'get_test_suite_data';
 
 sub run {
-    $testapi::distri->get_product_selection()
-      ->select_product(get_test_suite_data()->{product});
-    $testapi::distri->get_navigation()->proceed_next_screen();
+    $testapi::distri->get_product_selection()->access_beta_distribution();
 }
 
 1;

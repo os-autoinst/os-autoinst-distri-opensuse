@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Skip registration on full medium
+# Summary: Skip registration during installation
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

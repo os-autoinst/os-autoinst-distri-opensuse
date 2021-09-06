@@ -12,8 +12,8 @@ schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/iscsi_configuration
   - installation/registration/register_via_scc
@@ -41,5 +41,3 @@ schedule:
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - installation/validation/ibft
-test_data:
-  product: SLES

@@ -11,8 +11,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/validate_self_update
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
@@ -33,5 +33,3 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-test_data:
-  product: SLES

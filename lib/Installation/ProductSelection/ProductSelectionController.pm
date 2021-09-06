@@ -15,6 +15,7 @@ use strict;
 use warnings;
 use YuiRestClient;
 use Installation::ProductSelection::ProductSelectionPage;
+use Installation::Warnings::ConfirmationWarningRichText;
 
 sub new {
     my ($class, $args) = @_;
@@ -24,7 +25,10 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{ProductSelectionPage} = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
+    $self->{ProductSelectionPage}        = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
+    $self->{AccessBetaDistributionPopup} = Installation::Warnings::ConfirmationWarningRichText->new({
+            app        => YuiRestClient::get_app(),
+            match_text => "You are accessing our Beta Distribution"});
     return $self;
 }
 
@@ -34,15 +38,22 @@ sub get_product_selection_page {
     return $self->{ProductSelectionPage};
 }
 
-sub select_product {
+sub get_access_beta_distribution_popup {
+    my ($self) = @_;
+    die "Popup for accessing Beta Distribution is not displayed"               unless $self->{AccessBetaDistributionPopup}->is_shown();
+    die "Popup for accessing Beta Distribution contains an unexpected message" unless $self->{AccessBetaDistributionPopup}->has_valid_text();
+    return $self->{AccessBetaDistributionPopup};
+}
+
+sub install_product {
     my ($self, $product) = @_;
-    $product =~ s/ /_/g;
-    if (my $selector = $self->get_product_selection_page()->can("select_$product")) {
-        $selector->($self->get_product_selection_page());
-    }
-    else {
-        die "No handler defined for product '$product'";
-    }
+    $self->get_product_selection_page()->install_product($product);
+    $self->get_product_selection_page()->press_next();
+}
+
+sub access_beta_distribution {
+    my ($self) = @_;
+    $self->get_access_beta_distribution_popup()->press_ok();
 }
 
 1;

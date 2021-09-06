@@ -9,8 +9,8 @@ schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/registration/modules_selection
@@ -39,5 +39,3 @@ schedule:
   - console/yast2_i
   - console/verify_no_separate_home
   - console/validate_subvolumes
-test_data:
-  product: SLES

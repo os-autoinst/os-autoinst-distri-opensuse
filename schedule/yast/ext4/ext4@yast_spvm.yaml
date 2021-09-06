@@ -11,8 +11,8 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/product_selection/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/registration/modules_selection
@@ -38,7 +38,6 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 test_data:
-  product: SLES
   guided_partitioning:
     filesystem_options:
       root_filesystem_type: ext4
