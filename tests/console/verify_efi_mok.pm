@@ -15,7 +15,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call is_efi_boot);
 use version_utils qw(is_leap is_opensuse is_sle is_jeos);
-use Utils::Architectures qw(is_x86_64 is_aarch64);
+use Utils::Architectures;
 use jeos qw(reboot_image set_grub_gfxmode);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common qw(is_updates_tests);

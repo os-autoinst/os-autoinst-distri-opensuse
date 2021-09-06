@@ -39,6 +39,7 @@ use warnings;
 use base 'basetest';
 use lockapi;
 use testapi;
+use Utils::Architectures;
 use utils;
 use mm_network;
 use mm_tests;
@@ -585,7 +586,7 @@ sub run {
     if (exists $server_roles{pxe}) {
         # PXE server cannot be configured on other ARCH than x86_64
         # because 'syslinux' package only exists on it
-        die "PXE server is only supported on x86_64 architecture" unless check_var('ARCH', 'x86_64');
+        die "PXE server is only supported on x86_64 architecture" unless is_x86_64;
         setup_dhcp_server((exists $server_roles{dns}), 1);
         setup_pxe_server();
         setup_tftp_server();

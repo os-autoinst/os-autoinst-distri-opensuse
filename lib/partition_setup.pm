@@ -14,6 +14,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use version_utils ':VERSION';
 use installation_user_settings 'await_password_check';
 use Utils::Architectures;
@@ -424,11 +425,11 @@ sub addboot {
     elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
         addpart(role => 'efi', size => $part_size // $default_boot_sizes{uefi});
     }
-    elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
+    elsif (is_storage_ng && is_x86_64) {
         # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
         addpart(role => 'raw', fsid => 'bios-boot', size => $part_size // $default_boot_sizes{bios_boot});
     }
-    elsif (check_var('ARCH', 's390x')) {
+    elsif (is_s390x) {
         # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => $part_size // $default_boot_sizes{zipl}, format => 'ext2', mount => '/boot/zipl');
     }
@@ -527,7 +528,7 @@ sub take_first_disk_storage_ng {
     assert_screen [qw(existing-partitions partition-scheme)];
     # If drive(s) is/are not formatted, we have select hard disks page
     if (match_has_tag 'existing-partitions') {
-        if (check_var('BACKEND', 'ipmi') && !check_var('VIDEOMODE', 'text')) {
+        if (is_ipmi && !check_var('VIDEOMODE', 'text')) {
             send_key_until_needlematch("remove-menu", "tab");
             while (check_screen('remove-menu', 3)) {
                 send_key 'spc';
@@ -543,7 +544,7 @@ sub take_first_disk_storage_ng {
         send_key $cmd{next};
         assert_screen 'partition-scheme';
     }
-    elsif (check_var('BACKEND', 'ipmi')) {
+    elsif (is_ipmi) {
         send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
         return;
     }

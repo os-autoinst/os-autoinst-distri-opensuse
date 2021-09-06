@@ -24,7 +24,7 @@ use testapi;
 use utils;
 use vagrant;
 use File::Basename;
-use Utils::Architectures 'is_x86_64';
+use Utils::Architectures;
 
 sub run_test_per_provider {
     my ($version, $provider) = @_;

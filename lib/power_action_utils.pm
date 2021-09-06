@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
 use Carp 'croak';
 
@@ -51,7 +52,7 @@ sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         if (check_var('BACKEND', 's390x')) {
             # kill serial ssh connection (if it exists)
             eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
@@ -367,7 +368,7 @@ sub assert_shutdown_and_restore_system {
         reset_consoles;
         my $svirt = console('svirt');
         # Set disk as a primary boot device
-        if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
+        if (is_s390x or get_var('NETBOOT')) {
             $svirt->change_domain_element(os        => initrd  => undef);
             $svirt->change_domain_element(os        => kernel  => undef);
             $svirt->change_domain_element(os        => cmdline => undef);
@@ -404,7 +405,7 @@ Example:
 =cut
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
+    $args->{timeout}      //= is_s390x ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
     $args->{soft_timeout} //= 0;
     $args->{bugref}       //= "No bugref specified";
     if ($args->{soft_timeout}) {

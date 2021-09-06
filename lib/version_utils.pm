@@ -22,8 +22,8 @@ use warnings;
 use testapi qw(check_var get_var set_var script_output);
 use version 'is_lax';
 use Carp 'croak';
-use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_svirt_except_s390x);
-use Utils::Architectures 'is_s390x';
+use Utils::Backends;
+use Utils::Architectures;
 
 use constant {
     VERSION => [
@@ -485,7 +485,7 @@ On microos, leap 15.1+, TW we have it instead of desktop selection screen
 =cut
 sub is_using_system_role {
     return is_sle('>=12-SP2') && is_sle('<15')
-      && check_var('ARCH', 'x86_64')
+      && is_x86_64
       && is_server()
       && (!is_sles4sap()         || is_sles4sap_standard())
       && (install_this_version() || install_to_other_at_least('12-SP2'))
@@ -567,7 +567,7 @@ sub has_license_to_accept {
 Returns true if the SUT uses qa net hardware
 =cut
 sub uses_qa_net_hardware {
-    return !check_var("IPXE", "1") && check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw");
+    return !check_var("IPXE", "1") && is_ipmi || check_var("BACKEND", "generalhw");
 }
 
 =head2 get_os_release

@@ -13,6 +13,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_desktop_installed is_upgrade is_sles4sap);
 use migration;
@@ -85,7 +86,7 @@ sub patching_sle {
     install_salt_packages() if (check_var_array('SCC_ADDONS', 'asmm'));
 
     # create btrfs subvolume for aarch64
-    create_btrfs_subvolume() if (check_var('ARCH', 'aarch64'));
+    create_btrfs_subvolume() if (is_aarch64);
 
     # Remove test repos after system being patched
     remove_test_repositories;

@@ -17,6 +17,7 @@ use base "consoletest";
 use bootloader_setup;
 use strict;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 
@@ -92,7 +93,7 @@ sub run {
 
     if ($taa_vul_ret and $mds_vul_ret) {
         record_info("Both TAA and MDS", "Testing will continue.");
-        if (check_var('BACKEND', 'qemu')) {
+        if (is_qemu) {
             update_list_for_qemu();
         }
         my $mds_taa_obj = Mitigation->new(\%mds_taa_list);

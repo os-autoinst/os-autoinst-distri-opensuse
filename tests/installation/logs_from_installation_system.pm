@@ -24,6 +24,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use lockapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
@@ -51,7 +52,7 @@ sub run {
             set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
             set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE', 'kvm'));
             adjust_for_ipmi_xen('/mnt')                 if (get_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
-            set_pxe_efiboot('/mnt')                     if check_var('ARCH', 'aarch64');
+            set_pxe_efiboot('/mnt')                     if is_aarch64;
         }
     }
     else {

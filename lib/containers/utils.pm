@@ -17,6 +17,7 @@ use Exporter;
 
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use strict;
 use warnings;
@@ -117,7 +118,7 @@ sub basic_container_tests {
     #   - https://store.docker.com/images/hello-world
     assert_script_run("$runtime image pull $hello_world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    if (!check_var('ARCH', 's390x')) {
+    if (!is_s390x) {
         assert_script_run("$runtime image pull $leap", timeout => 600);
     } else {
         record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
@@ -136,7 +137,7 @@ sub basic_container_tests {
     #   - all local images
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime image $tumbleweed not found") unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
-    die("$runtime image $leap not found") if (!check_var('ARCH', 's390x') && !$local_images_list =~ /opensuse\/leap\s*latest/);
+    die("$runtime image $leap not found") if (!is_s390x && !$local_images_list =~ /opensuse\/leap\s*latest/);
 
     # Containers can be spawned
     #   - using 'run'

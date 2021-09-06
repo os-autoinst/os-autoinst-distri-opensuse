@@ -13,6 +13,7 @@
 use base "host_upgrade_base";
 #use virt_utils qw(set_serialdev);
 use testapi;
+use Utils::Architectures;
 use strict;
 use warnings;
 use virt_utils;
@@ -32,7 +33,7 @@ sub post_execute_script_configuration {
     my $self = shift;
 
     #online upgrade actually
-    if (is_remote_backend && check_var('ARCH', 'aarch64') && is_installed_equal_upgrade_major_release) {
+    if (is_remote_backend && is_aarch64 && is_installed_equal_upgrade_major_release) {
         set_serial_console_on_vh('', '', 'kvm');
         set_pxe_efiboot('');
     }

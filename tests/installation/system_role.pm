@@ -17,6 +17,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_opensuse is_microos is_sle_micro);
 
 my %role_hotkey = (
@@ -73,10 +74,10 @@ sub assert_system_role {
 }
 
 sub run {
-    if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64')) {
+    if (is_sle('=12-SP5') && !is_x86_64) {
         record_info("Skip screen", "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available");
     }
-    elsif (check_var('ARCH', 'aarch64') && is_sle('>=12-SP3') && is_sle('<15')) {
+    elsif (is_aarch64 && is_sle('>=12-SP3') && is_sle('<15')) {
         record_info("Skip screen", "System Role screen is  not displayed on aarch64 between 12SP3 and 12SP5");
     }
     else {

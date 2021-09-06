@@ -29,7 +29,7 @@ use testapi;
 use strict;
 use warnings;
 use utils 'zypper_call';
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 
 sub run {
     my $self = shift;

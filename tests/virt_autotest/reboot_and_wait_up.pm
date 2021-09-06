@@ -26,7 +26,7 @@ sub reboot_and_wait_up {
     my $self           = shift;
     my $reboot_timeout = shift;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         record_info('INFO', 'Reboot LPAR');
         #Reboot s390x lpar
         power_action('reboot', observe => 1, keepconsole => 1);

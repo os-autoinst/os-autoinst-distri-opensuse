@@ -15,6 +15,7 @@ use parent Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils 'is_sle';
 use utils 'type_string_slow';
 
@@ -29,7 +30,7 @@ sub type_password_and_verification {
 sub await_password_check {
     # PW too easy (cracklib)
     # bsc#937012 is resolved in > SLE 12, skip if VERSION=12
-    return if (is_sle('=12') && check_var('ARCH', 's390x'));
+    return if (is_sle('=12') && is_s390x);
     assert_screen('inst-userpasswdtoosimple', (check_var('BACKEND', 'pvm_hmc')) ? 60 : 30);
     send_key 'ret';
 

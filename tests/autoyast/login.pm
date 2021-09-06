@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use base 'y2_installbase';
 use testapi;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 
 sub run {
     my $self = shift;
@@ -33,7 +33,7 @@ sub run {
 
     # TODO: is_remote_backend could be a better fit here, but not
     # too sure if it would make sense for svirt or s390 for example
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         #use console based on ssh to avoid unstable ipmi
         use_ssh_serial_console;
     }

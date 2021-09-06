@@ -23,7 +23,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap);
 use utils 'assert_and_click_until_screen_change';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 our @EXPORT = qw(
   desktop_runner_hotkey

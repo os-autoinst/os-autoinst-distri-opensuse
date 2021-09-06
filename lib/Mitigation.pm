@@ -59,7 +59,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 use bootloader_setup qw(grub_mkconfig change_grub_config add_grub_cmdline_settings remove_grub_cmdline_settings grep_grub_settings set_framebuffer_resolution set_extrabootparams_grub_conf);
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
@@ -84,7 +84,7 @@ C<$timeout> in seconds.
 =cut
 sub reboot_and_wait {
     my ($self, $timeout) = @_;
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
@@ -281,7 +281,7 @@ sub check_cpu_flags {
     assert_script_run('cat /proc/cpuinfo');
     foreach my $flag (@{$self->{cpuflags}}) {
         my $ret = script_run('cat /proc/cpuinfo | grep "^flags.*' . $flag . '.*"');
-        if (get_var('MACHINE', '') =~ /NO-IBRS$/ && check_var('BACKEND', 'qemu')) {
+        if (get_var('MACHINE', '') =~ /NO-IBRS$/ && is_qemu) {
             if ($ret ne 0) {
                 record_info("NOT PASSTHROUGH", "Host didn't pass flags into this VM.");
                 return;
@@ -569,7 +569,7 @@ sub do_test {
     if (!check_var('TEST', 'MITIGATIONS') && !check_var('TEST', 'KVM_GUEST_MITIGATIONS')) {
         #If it is qemu vm and didn't passthrough cpu flags
         #Meltdown doesn't matter CPU flags
-        if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && check_var('BACKEND', 'qemu') && !(get_var('TEST') =~ /MELTDOWN/)) {
+        if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && is_qemu && !(get_var('TEST') =~ /MELTDOWN/)) {
             record_info('NO-IBRS machine', "This is a QEMU VM and didn't passthrough CPU flags.");
             record_info('INFO',            "Check status of mitigations as like OFF.");
             $self->check_sysfs("off");

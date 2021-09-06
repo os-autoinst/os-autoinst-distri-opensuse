@@ -17,6 +17,7 @@ use base "Mitigation";
 use bootloader_setup;
 use ipmi_backend_utils;
 use testapi;
+use Utils::Backends;
 use utils;
 
 our $mitigations_list =
@@ -68,7 +69,7 @@ sub update_list_for_qemu {
 
 sub run {
     my ($self) = shift;
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         update_list_for_qemu();
     }
     my $obj = taa->new($mitigations_list);

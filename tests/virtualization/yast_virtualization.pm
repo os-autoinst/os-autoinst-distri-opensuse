@@ -15,6 +15,7 @@ use base 'y2_module_guitest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 
 sub run {
@@ -28,7 +29,7 @@ sub run {
     }
     y2_module_guitest::launch_yast2_module_x11('virtualization');
     # select everything
-    if (check_var('ARCH', 'x86_64')) {
+    if (is_x86_64) {
         send_key 'alt-x';    # XEN Server, only available on x86_64: bsc#1088175
         send_key 'alt-e';    # Xen tools
     }

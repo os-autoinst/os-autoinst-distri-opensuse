@@ -21,6 +21,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use utils;
@@ -102,7 +103,7 @@ sub run {
     record_info("INFO", "Wait for mutex NFV_TRAFFICGEN_READY");
     mutex_wait('NFV_TRAFFICGEN_READY', $child_id);
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         # Generate ssh keypair and ssh-copy-id to the Traffic generator machine
         record_info("INFO", "Grant SSH access to trafficgen machine $trafficgen_ip");
         assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');

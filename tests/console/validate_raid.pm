@@ -14,6 +14,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
+use Utils::Architectures;
 use version_utils 'is_sle';
 use Test::Assert ':all';
 
@@ -76,7 +77,7 @@ my (
 );
 # Prepare test data depending on specific architecture/product
 sub prepare_test_data {
-    if (check_var('ARCH', 'ppc64le') || check_var('ARCH', 'ppc64')) {
+    if (is_ppc64le || check_var('ARCH', 'ppc64')) {
         @partitioning = (
             $raid_partitions_3_arrays, $hard_disks, $linux_raid_member_3_arrays,
             $ext4_boot,
@@ -87,7 +88,7 @@ sub prepare_test_data {
         $num_raid_arrays = @raid_arrays;
         @raid            = (($raid_level, $raid0, $raid1), @raid_detail);
     }
-    elsif (check_var('ARCH', 'aarch64')) {
+    elsif (is_aarch64) {
         @partitioning = @partitioning = (
             $raid_partitions_2_arrays, $hard_disks, $linux_raid_member_2_arrays,
             $vfat_efi,
@@ -95,7 +96,7 @@ sub prepare_test_data {
         );
         @raid = (($raid_level, $raid0), @raid_detail);
     }
-    elsif (check_var('ARCH', 'x86_64') && is_sle('<15')) {
+    elsif (is_x86_64 && is_sle('<15')) {
         @partitioning = (
             $btrfs,      $ext4_boot, $swap,
             $hard_disks, $linux_raid_member_3_arrays,

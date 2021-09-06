@@ -34,7 +34,7 @@ sub update_package {
     }
 
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("$update_pkg_cmd");
         upload_asset "/tmp/update_virt_rpms.log", 1, 1;
     }

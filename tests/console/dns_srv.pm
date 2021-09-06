@@ -18,6 +18,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils qw(is_bridged_networking systemctl zypper_call);
 
 sub run {
@@ -37,9 +38,9 @@ sub run {
 
     # verify dns server responds to anything
     if (script_run 'host localhost. localhost') {
-        record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost'         if check_var('ARCH', 's390x');
+        record_soft_failure 'bsc#1064438: "bind" cannot resolve localhost'         if is_s390x;
         record_info 'Skip the entire test on bridged networks (e.g. Xen, Hyper-V)' if (is_bridged_networking);
-        return                                                                     if (is_bridged_networking || check_var('ARCH', 's390x'));
+        return                                                                     if (is_bridged_networking || is_s390x);
         die "Command 'host localhost localhost' failed, cannot resolv localhost";
     }
 }

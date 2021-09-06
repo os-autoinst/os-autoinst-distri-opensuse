@@ -19,7 +19,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;

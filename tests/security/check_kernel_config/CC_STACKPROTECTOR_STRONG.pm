@@ -23,11 +23,12 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 
 sub run {
     # check the kernel configuration file to make sure the parameter is there
-    if (!check_var('ARCH', 's390x')) {
+    if (!is_s390x) {
         validate_script_output "cat /boot/config-`uname -r`|grep CONFIG_STACKPROTECTOR", qr/CONFIG_STACKPROTECTOR_STRONG=y/;
     }
     else {

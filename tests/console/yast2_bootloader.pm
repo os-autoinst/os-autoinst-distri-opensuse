@@ -20,6 +20,7 @@ use strict;
 use base 'y2_module_consoletest';
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use Utils::Backends 'is_hyperv';
 
@@ -39,7 +40,7 @@ sub run {
     # OK => Close
     send_key "alt-o";
     # Our Hyper-V host & aarch64 is slow when initrd is being re-generated
-    my $timeout = (is_hyperv || check_var('ARCH', 'aarch64')) ? 600 : 200;
+    my $timeout = (is_hyperv || is_aarch64) ? 600 : 200;
     assert_screen([qw(yast2_bootloader-missing_package yast2_console-finished)], $timeout);
     if (match_has_tag('yast2_bootloader-missing_package')) {
         wait_screen_change { send_key 'alt-i'; };

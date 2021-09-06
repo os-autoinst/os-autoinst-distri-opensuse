@@ -17,7 +17,7 @@ use utils "zypper_call";
 use virt_utils;
 use strict;
 use warnings;
-use Utils::Architectures qw(is_x86_64 is_aarch64);
+use Utils::Architectures;
 use version_utils 'is_sle';
 
 sub get_script_run {

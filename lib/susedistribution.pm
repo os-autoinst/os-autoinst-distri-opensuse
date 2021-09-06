@@ -3,6 +3,7 @@ use base 'distribution';
 use serial_terminal ();
 use strict;
 use warnings;
+use Utils::Architectures;
 use utils qw(
   disable_serial_getty
   ensure_serialdev_permissions
@@ -16,7 +17,7 @@ use utils qw(
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop);
-use Utils::Backends qw(has_serial_over_ssh set_sshserial_dev use_ssh_serial_console is_remote_backend);
+use Utils::Backends;
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT);
 use Cwd;
 use autotest 'query_isotovideo';
@@ -390,12 +391,12 @@ sub init_consoles {
     my ($self) = @_;
 
     # avoid complex boolean logic by setting interim variables
-    if (check_var('BACKEND', 'svirt') && check_var('ARCH', 's390x')) {
+    if (is_svirt && is_s390x) {
         set_var('S390_ZKVM',         1);
         set_var('SVIRT_VNC_CONSOLE', 'x11');
     }
 
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         $self->add_console('root-virtio-terminal', 'virtio-terminal', {});
         for (my $num = 1; $num < get_var('VIRTIO_CONSOLE_NUM', 1); $num++) {
             $self->add_console('root-virtio-terminal' . $num, 'virtio-terminal', {socked_path => cwd() . '/virtio_console' . $num});
@@ -720,7 +721,7 @@ sub activate_console {
         }
         else {
             # on s390x we need to login here by providing a password
-            handle_password_prompt if check_var('ARCH', 's390x');
+            handle_password_prompt if is_s390x;
             assert_screen "inst-console";
         }
     }
@@ -776,7 +777,7 @@ sub activate_console {
             }
         }
         # For poo#81016, need enlarge wait time for aarch64.
-        my $waittime = check_var('ARCH', 'aarch64') ? 120 : 60;
+        my $waittime = is_aarch64 ? 120 : 60;
         assert_screen "text-logged-in-$user", $waittime;
         unless ($args{skip_set_standard_prompt}) {
             $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
@@ -832,7 +833,7 @@ sub activate_console {
     # Both consoles and shells should be prevented from blanking
     if ((($type eq 'console') or ($type =~ /shell/)) and (get_var('BACKEND', '') =~ /qemu|svirt/)) {
         # On s390x 'setterm' binary is not present as there's no linux console
-        unless (check_var('ARCH', 's390x') || get_var('PUBLIC_CLOUD')) {
+        unless (is_s390x || get_var('PUBLIC_CLOUD')) {
             # Disable console screensaver
             $self->script_run('setterm -blank 0') unless $args{skip_setterm};
         }

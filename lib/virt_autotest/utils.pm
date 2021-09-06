@@ -33,7 +33,7 @@ use DateTime;
 use NetAddr::IP;
 use Net::IP qw(:PROC);
 use File::Basename;
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages

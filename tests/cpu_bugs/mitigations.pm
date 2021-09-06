@@ -15,6 +15,7 @@ use warnings;
 use base "consoletest";
 use bootloader_setup;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 use Data::Dumper;
@@ -66,7 +67,7 @@ sub run {
         my $current_list;
 
         #UPDATE list for QEMU first
-        if (check_var('BACKEND', 'qemu')) {
+        if (is_qemu) {
             mds::smt_status_qemu();
             taa::update_list_for_qemu();
         }
@@ -129,7 +130,7 @@ sub run {
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Full generic retpoline,.*IBPB: conditional, IBRS_FW*";
                 }
             }
-            if (check_var('BACKEND', 'qemu')) {
+            if (is_qemu) {
                 #spectre_v2
                 if ($item eq 'spectre_v2') {
                     $mitigations_list{sysfs}->{auto}->{'spectre_v2'}         =~ s/STIBP: conditional/STIBP: disabled/g;
@@ -186,7 +187,7 @@ sub run {
     }
 
     #Handle itlb_multihit
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         if (get_var('MACHINE', '') =~ /passthrough/) {
             record_info("itlb_multihit Not affected", "itlb_multihit is not affected on qemu passthrough");
             $mitigations_list{sysfs}->{auto}->{'itlb_multihit'}         = "Not affected";

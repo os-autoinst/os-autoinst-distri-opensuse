@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse);
-use Utils::Architectures qw(is_aarch64 is_x86_64);
+use Utils::Architectures;
 use Utils::Backends 'is_hyperv';
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);

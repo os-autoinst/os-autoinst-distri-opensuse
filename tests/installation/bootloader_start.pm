@@ -18,6 +18,7 @@ use strict;
 use warnings FATAL => 'all';
 use base "installbasetest";
 use testapi;
+use Utils::Backends;
 use utils;
 use bootloader;
 use bootloader_uefi;
@@ -52,7 +53,7 @@ sub run {
             return;
         }
     }
-    if (check_var('BACKEND', 'svirt') && is_x86_64()) {
+    if (is_svirt && is_x86_64()) {
         set_bridged_networking();
         if (is_hyperv()) {
             record_info('bootloader_hyperv');
@@ -68,7 +69,7 @@ sub run {
     }
     # Load regular bootloader for all qemu backends and for x84_86 systems,
     # except Xen PV as id does not have VNC (bsc#961638).
-    if (check_var('BACKEND', 'qemu') || (check_var('BACKEND', 'svirt') && !(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')))) {
+    if (is_qemu || (is_svirt && !(check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')))) {
         if (get_var('UEFI')) {
             unless (get_var('BOOT_HDD_IMAGE')) {
                 record_info('bootloader_uefi');

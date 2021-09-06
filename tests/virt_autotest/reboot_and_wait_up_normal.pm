@@ -13,6 +13,7 @@
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use base "reboot_and_wait_up";
 use virt_utils 'is_installed_equal_upgrade_major_release';
 use Utils::Backends 'is_remote_backend';
@@ -23,7 +24,7 @@ sub run {
     my $timeout = 180;
 
     #online upgrade actually
-    return if (is_remote_backend && check_var('ARCH', 'aarch64') && (is_installed_equal_upgrade_major_release || get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_PRJ4_GUEST_UPGRADE")));
+    return if (is_remote_backend && is_aarch64 && (is_installed_equal_upgrade_major_release || get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_PRJ4_GUEST_UPGRADE")));
     $self->reboot_and_wait_up($timeout);
 }
 

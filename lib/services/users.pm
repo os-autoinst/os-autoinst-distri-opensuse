@@ -23,6 +23,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'reboot_x11';
 use version_utils;
@@ -144,7 +145,7 @@ sub full_users_check {
     }
     # reset consoles before select x11 console will make the connect operation
     # more stable on s390x
-    reset_consoles             if check_var('ARCH',    's390x');
+    reset_consoles             if is_s390x;
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     select_console 'x11', await_console => 0;
     wait_still_screen 5;
@@ -158,7 +159,7 @@ sub full_users_check {
         # verify changed password work well in the following scenario:
         # workaround the lock screen will cause vnc lost connection issue on
         # SLE15+ on s390x for bsc#1182958.
-        if ((check_var('ARCH', 's390x')) && is_sle('15+')) {
+        if ((is_s390x) && is_sle('15+')) {
             record_soft_failure("bsc#1182958, openQA test fails in install_service - gdm crashed after lock screen on s390x");
         }
         else {
@@ -175,7 +176,7 @@ sub full_users_check {
         # switch to new added user then switch back
         # it's not supported to switch user on s390x VM with vnc connection,
         # so we have to change this test to logout and login new user.
-        if (check_var('ARCH', 's390x')) {
+        if (is_s390x) {
             logout_and_login($newUser, $pwd4newUser);
         }
         else {

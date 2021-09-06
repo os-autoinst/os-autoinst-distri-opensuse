@@ -16,6 +16,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
@@ -116,7 +117,7 @@ sub run {
         # mountpoints and LVM. Otherwise leave those choices to hdblcm. If running
         # in a different backend, assume sdb exists. Always create mountpoints.
         foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
-        if ((check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) or !check_var('BACKEND', 'qemu')) {
+        if ((is_qemu and get_var('HDDSIZEGB_2')) or !is_qemu) {
             # We need 2.5 times $RAM + 50G for HANA installation.
             my $device = get_var('HANA_INST_DEV', '');
             if ($device) {
@@ -222,7 +223,7 @@ sub run {
     # Enable autostart of HANA HDB, otherwise DB will be down after the next reboot
     # NOTE: not on HanaSR, as DB is managed by the cluster stack; nor on bare metal,
     # as instance starts automatically faster and sles4sap::test_start() may fail
-    unless (get_var('HA_CLUSTER') or check_var('BACKEND', 'ipmi')) {
+    unless (get_var('HA_CLUSTER') or is_ipmi) {
         my $hostname = script_output 'hostname';
         file_content_replace("$mountpts{hanashared}->{mountpt}/${sid}/profile/${sid}_HDB${instid}_${hostname}", '^Autostart[[:blank:]]*=.*' => 'Autostart = 1');
     }

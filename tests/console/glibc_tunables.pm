@@ -16,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     select_console 'root-console';

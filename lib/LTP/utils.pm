@@ -22,6 +22,7 @@ use base Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use autotest;
 use LTP::WhiteList qw(download_whitelist is_test_disabled);
 use LTP::TestInfo 'testinfo';
@@ -313,7 +314,7 @@ sub parse_runtest_file {
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
         if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
-            next if (check_var('BACKEND', 'svirt') && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
+            next if (is_svirt && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
             my $test  = {name => $1 . $suffix, command => $2};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {

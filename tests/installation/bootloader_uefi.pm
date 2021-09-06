@@ -42,6 +42,7 @@ use warnings;
 use Time::HiRes 'sleep';
 
 use testapi;
+use Utils::Architectures;
 use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
@@ -54,7 +55,7 @@ sub run {
 
     # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
     # Case setting also need BOOT_MENU=1 to support it
-    if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && check_var('ARCH', 'x86_64')) {
+    if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && is_x86_64) {
         # Skip workaround on specific scenaio which call this module after migration
         if (!check_screen('bootloader-grub2', 0, no_wait => 1)) {
             record_soft_failure 'bsc#1180080';
@@ -78,12 +79,12 @@ sub run {
 
     # Skip to load bootloader in test of online migration on aarch64
     # Handle aarch64 image boot by wait_boot called in setup_online_migration
-    if (get_var('ONLINE_MIGRATION') && check_var('ARCH', 'aarch64')) {
+    if (get_var('ONLINE_MIGRATION') && is_aarch64) {
         return;
     }
 
     # aarch64 firmware 'tianocore' can take longer to load
-    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 90 : 15;
+    my $bootloader_timeout = is_aarch64 ? 90 : 15;
     if (get_var('UEFI_HTTP_BOOT') || get_var('UEFI_HTTPS_BOOT')) {
         tianocore_http_boot;
     }
@@ -107,7 +108,7 @@ sub run {
         send_key_until_needlematch 'inst-bootmenu-boot-harddisk', 'up';
         send_key 'ret';
         # use firmware boot manager of aarch64 and uefi to boot HDD
-        $self->handle_uefi_boot_disk_workaround if (check_var('ARCH', 'aarch64') || get_var('UEFI'));
+        $self->handle_uefi_boot_disk_workaround if (is_aarch64 || get_var('UEFI'));
         assert_screen("grub2");
         return;
     }

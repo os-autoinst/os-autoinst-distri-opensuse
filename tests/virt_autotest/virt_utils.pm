@@ -19,6 +19,7 @@ use warnings;
 use Sys::Hostname;
 use File::Basename;
 use testapi;
+use Utils::Architectures;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
@@ -92,10 +93,10 @@ sub get_version_for_daily_build_guest {
 sub repl_repo_in_sourcefile {
     # Replace the daily build repo as guest installation resource in source file (like source.cn; source.de ..)
     my $verorig = "source.http.sles-" . get_version_for_daily_build_guest . "-64";
-    my $veritem = check_var('ARCH', 'x86_64') ? $verorig : get_required_var('ARCH') . ".$verorig";
+    my $veritem = is_x86_64 ? $verorig : get_required_var('ARCH') . ".$verorig";
     if (get_var("REPO_0")) {
         my $location = '';
-        if (!check_var('ARCH', 's390x')) {
+        if (!is_s390x) {
             $location = script_output("perl /usr/share/qa/tools/location_detect_impl.pl", 60);
             $location =~ s/[\r\n]+$//;
         }
@@ -111,7 +112,7 @@ sub repl_repo_in_sourcefile {
         $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
-        if (check_var('ARCH', 's390x')) {
+        if (is_s390x) {
             lpar_cmd("$shell_cmd");
             lpar_cmd("grep \"$veritem\" $soucefile");
         }
@@ -149,7 +150,7 @@ sub repl_module_in_sourcefile {
     my $source_file = "/usr/share/qa/virtautolib/data/sources.*";
     my $command     = "sed -ri 's#^(${replaced_item}).*\$#\\1$daily_build_module#g' $source_file";
     print "Debug: the command to execute is:\n$command \n";
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("$command");
         lpar_cmd("grep Module $source_file -r");
         upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;

@@ -20,9 +20,9 @@ use containers::urls 'get_suse_container_urls';
 use autotest;
 use utils;
 use wicked::TestContext;
-use Utils::Architectures ':ARCH';
+use Utils::Architectures;
 use version_utils qw(:VERSION :BACKEND :SCENARIO);
-use Utils::Backends qw(is_remote_backend is_hyperv is_hyperv_in_gui is_svirt_except_s390x is_pvm);
+use Utils::Backends;
 use data_integrity_utils 'verify_checksum';
 use bmwqemu ();
 use lockapi 'barrier_create';
@@ -129,7 +129,7 @@ sub init_main {
     check_env();
     # We need to check image only for qemu backend, for svirt we validate image
     # after it is copied to the hypervisor host.
-    if (check_var('BACKEND', 'qemu') && data_integrity_is_applicable()) {
+    if (is_qemu && data_integrity_is_applicable()) {
         my $errors = verify_checksum();
         set_var('CHECKSUM_FAILED', $errors) if $errors;
     }
@@ -370,7 +370,7 @@ sub load_svirt_boot_tests {
 }
 
 sub load_svirt_vm_setup_tests {
-    return unless check_var('BACKEND', 'svirt');
+    return unless is_svirt;
     set_bridged_networking;
     if (check_var("VIRSH_VMM_FAMILY", "hyperv")) {
         # Loading bootloader_hyperv here when UPGRADE is on (i.e. offline migration is underway)
@@ -390,7 +390,7 @@ sub load_boot_tests {
     if (get_var("ISO_MAXSIZE") && (!is_remote_backend() || is_svirt_except_s390x())) {
         loadtest "installation/isosize";
     }
-    if ((get_var("UEFI") || is_jeos()) && !check_var("BACKEND", "svirt")) {
+    if ((get_var("UEFI") || is_jeos()) && !is_svirt) {
         loadtest "installation/data_integrity" if data_integrity_is_applicable;
         loadtest "installation/bootloader_uefi";
     }
@@ -424,7 +424,7 @@ sub load_reboot_tests {
         # test makes no sense on s390 because grub2 can't be captured
         if (!(is_s390x or (check_var('VIRSH_VMM_FAMILY', 'xen') and check_var('VIRSH_VMM_TYPE', 'linux')))) {
             # exclude this scenario for autoyast test with switched keyboard layaout. also exclude on ipmi as installation/first_boot will call wait_grub
-            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || check_var('BACKEND', 'ipmi');
+            loadtest "installation/grub_test" unless get_var('INSTALL_KEYBOARD_LAYOUT') || get_var('KEEP_GRUB_TIMEOUT') || is_ipmi;
             if ((snapper_is_applicable()) && get_var("BOOT_TO_SNAPSHOT")) {
                 loadtest "installation/boot_into_snapshot";
             }
@@ -432,7 +432,7 @@ sub load_reboot_tests {
         if (get_var('ENCRYPT')) {
             loadtest "installation/boot_encrypt";
             # reconnect after installation/boot_encrypt
-            if (check_var('ARCH', 's390x')) {
+            if (is_s390x) {
                 loadtest "boot/reconnect_mgmt_console";
             }
         }
@@ -599,7 +599,7 @@ sub snapper_is_applicable {
 }
 
 sub chromestep_is_applicable {
-    return is_opensuse && (check_var('ARCH', 'i586') || is_x86_64);
+    return is_opensuse && (is_i586 || is_x86_64);
 }
 
 sub chromiumstep_is_applicable {
@@ -646,10 +646,10 @@ sub libreoffice_is_applicable {
     # for opensuse libreoffice package has ExclusiveArch:  aarch64 %{ix86} x86_64
     # do not know for SLE (so assume built for all)
     return 1 if (!is_opensuse);
-    return (check_var('ARCH', 'x86_64')
-          || check_var('ARCH', 'i686')
-          || check_var('ARCH', 'i586')
-          || check_var('ARCH', 'aarch64'));
+    return (is_x86_64
+          || is_i686
+          || is_i586
+          || is_aarch64);
 }
 
 sub need_clear_repos {
@@ -695,7 +695,7 @@ sub remove_common_needles {
     remove_desktop_needles("textmode");
 
     unregister_needle_tags("ENV-VIDEOMODE-text") unless check_var("VIDEOMODE", "text");
-    unregister_needle_tags('ENV-ARCH-s390x')     unless check_var('ARCH',      's390x');
+    unregister_needle_tags('ENV-ARCH-s390x')     unless is_s390x;
     # Only for container tests
     unregister_needle_tags('ENV-UBUNTU-1') unless get_var('HDD_1', '') =~ /ubuntu/;
     if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
@@ -781,7 +781,7 @@ sub load_bootloader_s390x {
 sub boot_hdd_image {
     # On JeOS we don't need to load any test to boot, but to keep main.pm sane just return.
     is_jeos() ? return 1 : get_required_var('BOOT_HDD_IMAGE');
-    if (check_var('BACKEND', 'svirt')) {
+    if (is_svirt) {
         if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
             loadtest 'installation/bootloader_hyperv';
         }
@@ -826,7 +826,7 @@ sub load_inst_tests {
     if (get_var('WITHISCSI')) {
         loadtest "installation/disk_activation_iscsi";
     }
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         if (check_var('BACKEND', 's390x')) {
             loadtest "installation/disk_activation";
         }
@@ -948,7 +948,7 @@ sub load_inst_tests {
     # functionality needs to be covered by other backends
     # Skip release notes test on sle 15 if have addons
     if (get_var('CHECK_RELEASENOTES') &&
-        is_sle && !check_var('BACKEND', 'generalhw') && !check_var('BACKEND', 'ipmi') &&
+        is_sle && !check_var('BACKEND', 'generalhw') && !is_ipmi &&
         !(is_sle('15+') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }
@@ -1018,7 +1018,7 @@ sub load_inst_tests {
         # SELinux relabel reboots, so grub needs to timeout
         set_var('KEEP_GRUB_TIMEOUT', 1) if check_var('VIRSH_VMM_TYPE', 'linux') || get_var('SELINUX');
         loadtest "installation/disable_grub_timeout" unless get_var('KEEP_GRUB_TIMEOUT');
-        if (check_var('VIDEOMODE', 'text') && check_var('BACKEND', 'ipmi')) {
+        if (check_var('VIDEOMODE', 'text') && is_ipmi) {
             loadtest "installation/disable_grub_graphics";
         }
         loadtest "installation/enable_selinux" if get_var('SELINUX');
@@ -1048,7 +1048,7 @@ sub load_inst_tests {
 }
 
 sub load_console_server_tests {
-    if (check_var('BACKEND', 'qemu') && !is_jeos) {
+    if (is_qemu && !is_jeos) {
         # The NFS test expects the IP to be 10.0.2.15
         loadtest "console/yast2_nfs_server";
     }
@@ -1176,8 +1176,8 @@ sub load_consoletests {
         loadtest "console/salt";
     }
     if (!is_staging && (is_x86_64
-            || check_var('ARCH', 'i686')
-            || check_var('ARCH', 'i586')))
+            || is_i686
+            || is_i586))
     {
         loadtest "console/glibc_sanity";
     }
@@ -1266,7 +1266,7 @@ sub load_x11tests {
         loadtest "x11/gedit";
     }
     loadtest "x11/firefox";
-    if (is_opensuse && !get_var("OFW") && check_var('BACKEND', 'qemu') && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
+    if (is_opensuse && !get_var("OFW") && is_qemu && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
         loadtest "x11/firefox_audio";
     }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
@@ -1589,7 +1589,7 @@ sub load_extra_tests_opensuse {
     loadtest "console/znc";
     loadtest "console/weechat";
     loadtest "console/nano";
-    loadtest "console/steamcmd" if (check_var('ARCH', 'i586') || is_x86_64);
+    loadtest "console/steamcmd" if (is_i586 || is_x86_64);
     loadtest "console/libqca2";
 }
 
@@ -1616,7 +1616,7 @@ sub load_extra_tests_console {
     loadtest 'console/slp';
     loadtest 'console/pkcon';
     # Audio device is not supported on ppc64le, s390x, JeOS, Public Cloud and Xen PV
-    if (!get_var('PUBLIC_CLOUD') && !get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !check_var('ARCH', 's390x')) {
+    if (!get_var('PUBLIC_CLOUD') && !get_var("OFW") && !is_jeos && !check_var('VIRSH_VMM_FAMILY', 'xen') && !is_s390x) {
         loadtest "console/aplay";
         loadtest "console/soundtouch" if is_opensuse || (is_sle('12-sp4+') && is_sle('<15'));
         # wavpack is available only sle12sp4 onwards
@@ -1758,7 +1758,7 @@ sub load_extra_tests {
 }
 
 sub load_rollback_tests {
-    return if check_var('ARCH', 's390x');
+    return if is_s390x;
     # On Xen PV we don't have GRUB.
     # For continuous migration test from SLE11SP4, the filesystem is 'ext3' and btrfs snapshot is not supported.
     # For HPC migration test with 'management server' role, the filesystem is 'xfs', btrfs snapshot is not supported.
@@ -1883,7 +1883,7 @@ sub load_extra_tests_udev {
 sub load_nfv_master_tests {
     loadtest "nfv/prepare_env";
     loadtest "nfv/run_performance_tests";
-    loadtest "nfv/run_integration_tests" if (check_var('BACKEND', 'qemu'));
+    loadtest "nfv/run_integration_tests" if (is_qemu);
 }
 
 sub load_nfv_trafficgen_tests {
@@ -2027,7 +2027,7 @@ sub load_x11_webbrowser {
     loadtest "x11/firefox/firefox_emaillink";
     loadtest "x11/firefox/firefox_plugins";
     loadtest "x11/firefox/firefox_extcontent";
-    if (!get_var("OFW") && check_var('BACKEND', 'qemu')) {
+    if (!get_var("OFW") && is_qemu) {
         loadtest "x11/firefox_audio";
     }
 }
@@ -2547,10 +2547,10 @@ sub load_vt_perf_tests {
     }
 }
 sub load_mitigation_tests {
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         loadtest "virt_autotest/login_console";
     }
-    elsif (check_var('BACKEND', 'qemu')) {
+    elsif (is_qemu) {
         boot_hdd_image;
         loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
@@ -2676,7 +2676,7 @@ sub load_create_hdd_tests {
     # install SES packages and deepsea testsuites
     load_system_prepare_tests;
     load_shutdown_tests;
-    if (check_var('BACKEND', 'svirt')) {
+    if (is_svirt) {
         if (is_hyperv) {
             loadtest 'shutdown/hyperv_upload_assets';
         }
@@ -3137,7 +3137,7 @@ sub load_ha_cluster_tests {
     loadtest 'ha/fencing';
 
     # Node1 will be fenced, so we have to wait for it to boot. On svirt load only boot_to_desktop
-    check_var('BACKEND', 'svirt') ? loadtest 'boot/boot_to_desktop' : boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
+    is_svirt ? loadtest 'boot/boot_to_desktop' : boot_hdd_image if !get_var('HA_CLUSTER_JOIN');
 
     # Show HA cluster status *after* fencing test
     loadtest 'ha/check_after_reboot';

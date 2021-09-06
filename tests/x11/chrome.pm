@@ -16,6 +16,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 
 sub install_google_repo_key {
@@ -36,7 +37,7 @@ sub preserve_privacy_of_non_human_openqa_workers {
 }
 
 sub run {
-    my $arch       = check_var('ARCH', 'i586') ? 'i386' : 'x86_64';
+    my $arch       = is_i586 ? 'i386' : 'x86_64';
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
     select_console('x11');
     mouse_hide;

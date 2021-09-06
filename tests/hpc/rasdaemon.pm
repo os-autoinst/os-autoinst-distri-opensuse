@@ -27,6 +27,7 @@ use base 'hpcbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 
 sub inject_error {
@@ -42,7 +43,7 @@ sub run {
     my $self = shift;
 
     # load kernel module
-    assert_script_run('modprobe mce-inject') if (check_var('ARCH', 'x86_64') && check_var('VERSION', '15-SP2'));
+    assert_script_run('modprobe mce-inject') if (is_x86_64 && check_var('VERSION', '15-SP2'));
 
     zypper_call('in rasdaemon');
 
@@ -79,7 +80,7 @@ sub run {
         && $empty_error_output =~ /PCIe AER errors/ && $empty_error_output =~ /No MCE errors/);
 
     # x86_64 check: Validating output of 'ras-mc-ctl --errors' after MCE error is injected
-    if (check_var('ARCH', 'x86_64') && check_var('VERSION', '15-SP2')) {
+    if (is_x86_64 && check_var('VERSION', '15-SP2')) {
         inject_error();
         my $error_output = script_output('ras-mc-ctl --errors');
         record_info('INFO', $error_output);

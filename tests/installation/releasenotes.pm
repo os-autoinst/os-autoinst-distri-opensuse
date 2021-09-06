@@ -15,6 +15,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_microos);
 
 sub run {
@@ -74,7 +75,7 @@ sub run {
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
     # no HA-GEO release-notes for s390x on SLE12-SP1 GM media, see bsc#1033504
-    if (check_var('ARCH', 's390x') and check_var('BASE_VERSION', '12-SP1')) {
+    if (is_s390x and check_var('BASE_VERSION', '12-SP1')) {
         push @no_relnotes, qw(geo);
     }
     if (@addons) {

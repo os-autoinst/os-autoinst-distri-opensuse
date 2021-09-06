@@ -26,6 +26,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils 'zypper_call';
 use version_utils 'is_leap';
 
@@ -33,10 +34,10 @@ sub run() {
     select_console 'root-console';
     my @packages = qw(tcsh zsh);
     # ksh does not build for Leap 15.x on aarch64, so, skip it
-    push @packages, qw(ksh) unless (is_leap('15.0+') and check_var('ARCH', 'aarch64'));
+    push @packages, qw(ksh) unless (is_leap('15.0+') and is_aarch64);
     zypper_call("in @packages");
     select_console 'user-console';
-    assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and check_var('ARCH', 'aarch64'));
+    assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and is_aarch64);
     assert_script_run 'tcsh -c "printf \'hello\n\'" | grep hello';
     assert_script_run 'csh -c "printf \'hello\n\'" | grep hello';
     assert_script_run 'zsh -c "echo hello" | grep hello';

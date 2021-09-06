@@ -20,6 +20,7 @@ use strict;
 use warnings;
 
 use testapi;
+use Utils::Architectures;
 
 use version_utils qw(is_microos is_sle);
 use y2_logs_helper 'get_available_compression';
@@ -371,7 +372,7 @@ sub use_ifconfig {
 }
 
 sub get_ip_address {
-    return if (get_var('NET') || check_var('ARCH', 's390x'));
+    return if (get_var('NET') || is_s390x);
     return if (get_var('NOLOGS'));
 
     # avoid known issue in FIPS mode: bsc#985969

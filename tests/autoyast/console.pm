@@ -22,10 +22,11 @@ use strict;
 use warnings;
 use base 'y2_installbase';
 use testapi;
+use Utils::Backends;
 
 sub run {
     my ($self) = @_;
-    $self->wait_boot if check_var('BACKEND', 'ipmi');
+    $self->wait_boot if is_ipmi;
     select_console 'root-console';
 }
 

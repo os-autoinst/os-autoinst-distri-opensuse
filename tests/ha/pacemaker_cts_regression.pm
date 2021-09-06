@@ -15,6 +15,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils 'zypper_call';
 use hacluster;
 
@@ -26,7 +27,7 @@ sub run {
 
     # Some of the tests take longer to complete in aarch64.
     # This increases the timeout in that ARCH
-    $timeout *= 2 if check_var('ARCH', 'aarch64');
+    $timeout *= 2 if is_aarch64;
 
     zypper_call 'in pacemaker-cts';
 

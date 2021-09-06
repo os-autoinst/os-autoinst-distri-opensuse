@@ -16,6 +16,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use version_utils qw(is_storage_ng);
 use partition_setup qw(take_first_disk);
 
@@ -86,7 +87,7 @@ sub run {
 
     assert_screen [qw(existing-partitions partition-scheme)];
     if (match_has_tag 'existing-partitions') {
-        if (check_var('BACKEND', 'ipmi') && !check_var('VIDEOMODE', 'text')) {
+        if (is_ipmi && !check_var('VIDEOMODE', 'text')) {
             send_key_until_needlematch("remove-menu", "tab");
             while (check_screen('remove-menu', 3)) {
                 send_key 'spc';

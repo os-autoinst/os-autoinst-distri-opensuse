@@ -15,6 +15,7 @@ use strict;
 use warnings;
 
 use testapi;
+use Utils::Architectures;
 use utils 'workaround_type_encrypted_passphrase';
 use power_action_utils 'power_action';
 use version_utils 'is_sle12_hdd_in_upgrade';
@@ -43,7 +44,7 @@ sub run {
     # increases
     return if select_bootmenu_option(300) == 3;
     # set uefi bootmenu parameters properly for aarch64, such like gfxpayload and so on
-    if (check_var('ARCH', 'aarch64')) {
+    if (is_aarch64) {
         uefi_bootmenu_params;
     }
     bootmenu_default_params;
@@ -58,7 +59,7 @@ sub run {
     }
     else {
         # boot
-        my $key = get_var('OFW') || check_var('ARCH', 'aarch64') ? 'ctrl-x' : 'ret';
+        my $key = get_var('OFW') || is_aarch64 ? 'ctrl-x' : 'ret';
         send_key $key;
     }
 

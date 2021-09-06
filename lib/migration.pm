@@ -22,6 +22,7 @@ use strict;
 use warnings;
 
 use testapi;
+use Utils::Architectures;
 use utils;
 use zypper;
 use registration;
@@ -139,7 +140,7 @@ sub deregister_dropped_modules {
 # Other archs: use local DVDs as installation repos
 # https://documentation.suse.com/sles/15-SP2/html/SLES-all/cha-upgrade-online.html#sec-upgrade-online-zypper
 sub disable_installation_repos {
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de|10.160.0.100/ {print \$1}'`";
     }
     else {

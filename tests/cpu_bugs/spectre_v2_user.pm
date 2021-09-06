@@ -17,6 +17,7 @@ use base "consoletest";
 use bootloader_setup;
 use strict;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 
@@ -51,7 +52,7 @@ our %mitigations_list =
   );
 
 sub run {
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         $mitigations_list{cpuflags} = ['ibpb'];
         $mitigations_list{sysfs}->{on}           =~ s/STIBP: forced/STIBP: disabled/g;
         $mitigations_list{sysfs}->{prctl}        =~ s/STIBP: conditional/STIBP: disabled/g;

@@ -20,6 +20,7 @@ package service_check;
 
 use Exporter 'import';
 use testapi;
+use Utils::Architectures;
 use utils;
 use base 'opensusebasetest';
 use strict;
@@ -206,7 +207,7 @@ service package name.
 
 sub _is_applicable {
     my ($srv_pkg_name) = @_;
-    if ($srv_pkg_name eq 'kdump' && check_var('ARCH', 's390x')) {
+    if ($srv_pkg_name eq 'kdump' && is_s390x) {
         # workaround for bsc#116300 on s390x
         record_soft_failure 'bsc#1163000 - System does not come back after crash on s390x';
         return 0;
@@ -241,7 +242,7 @@ sub install_services {
     assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
     # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
     # we need to reset the console font. As it impacted all the console services, added this command to bashrc file
-    assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if check_var('ARCH', 'ppc64le');
+    assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if is_ppc64le;
     assert_script_run '. /etc/bash.bashrc.local';
     foreach my $s (sort keys %$service) {
         my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};

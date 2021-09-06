@@ -25,7 +25,7 @@ use version_utils "is_upgrade";
 use strict;
 use warnings;
 use x11utils 'turn_off_kde_screensaver';
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures;
 
 sub send_key_and_wait {
     my ($key, $wait_time) = @_;

@@ -21,6 +21,7 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils "is_sle";
 use registration qw(cleanup_registration register_product add_suseconnect_product);
@@ -56,7 +57,7 @@ sub run {
             register_product;
 
             # WE addon registration (according to the conditions)
-            if (get_var("SECTEST_REQUIRE_WE") && check_var("ARCH", "x86_64")) {
+            if (get_var("SECTEST_REQUIRE_WE") && is_x86_64) {
                 # Register Desktop module as a dependency
                 add_suseconnect_product('sle-module-desktop-applications');
 
@@ -89,11 +90,11 @@ sub run {
 
     repo_cleanup;
 
-    if (!check_var('ARCH', 's390x')) {
+    if (!is_s390x) {
         # Add all available ISO images can be found
         my $sr_out = script_output("cd /dev && ls -1 sr* && cd", proceed_on_failure => 1);
         if ($sr_out =~ /No such file/) {
-            die "DVD images not found!" if (!check_var('ARCH', 'x86_64'));
+            die "DVD images not found!" if (!is_x86_64);
         } else {
             foreach my $sr (split("\n", $sr_out)) {
                 zypper_call("ar dvd:///?devices=/dev/$sr $sr");

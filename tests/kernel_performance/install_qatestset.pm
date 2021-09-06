@@ -17,6 +17,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 
 sub install_pkg {
@@ -82,7 +83,7 @@ sub run {
     }
     install_pkg;
     setup_environment;
-    if (check_var('ARCH', 'ppc64le')) {
+    if (is_ppc64le) {
         power_action('reboot', keepconsole => 1, textmode => 1);
     } else {
         power_action('poweroff', keepconsole => 1, textmode => 1);

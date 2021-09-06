@@ -21,6 +21,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use strict;
 use warnings;
@@ -39,7 +40,7 @@ sub run {
     # On s390x sometimes the vnc will still be there and the next select_console
     # will create another vnc. This will make the OpenQA have 2 vnc sessions at
     # the same time. We'd cleanup the previous one and setup the new one.
-    assert_script_run 'pkill Xvnc ||:' if !check_var('DESKTOP', 'textmode') && check_var('ARCH', 's390x');
+    assert_script_run 'pkill Xvnc ||:' if !check_var('DESKTOP', 'textmode') && is_s390x;
     # logout root (and later user) so they don't block logout
     # in KDE
     enter_cmd "exit";

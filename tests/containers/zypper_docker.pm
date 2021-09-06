@@ -20,6 +20,7 @@
 
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils 'get_os_release';
 use strict;
@@ -40,7 +41,7 @@ sub run {
     my $testing_image = 'registry.opensuse.org/opensuse/leap';
 
     # Leap container image is missing in s390x
-    if ((check_var('ARCH', 's390x')) && ($testing_image =~ /leap/)) {
+    if ((is_s390x) && ($testing_image =~ /leap/)) {
         record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
         return 0;
     } else {

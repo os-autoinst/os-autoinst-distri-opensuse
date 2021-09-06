@@ -18,6 +18,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'power_action';
 
@@ -28,7 +29,7 @@ sub run {
     # Reboot the system when x11 launch fail to Workaround the Switch Console error
     # (s390x limitation) s390x does not support snapshot to rollback the lastgood snapshot
     # This workaround can avoid the blocked test fail from the last case
-    if (check_var('ARCH', 's390x') && check_var('FIPS_ENABLED', 1) && !get_var("FIPS_ENV_MODE")) {
+    if (is_s390x && check_var('FIPS_ENABLED', 1) && !get_var("FIPS_ENV_MODE")) {
         power_action('reboot', textmode => 1);
         $self->wait_boot(bootloader_time => 200);
     }

@@ -20,6 +20,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils;
 use version_utils 'is_sle';
 
@@ -46,7 +47,7 @@ sub run {
     assert_script_run("wget $ofed_url");
     assert_script_run("tar -xvf $ofed_file_tgz");
     assert_script_run("cd $ofed_dir");
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         record_info('INFO', 'OFED install');
         assert_script_run("./mlnxofedinstall --skip-distro-check --add-kernel-support --with-mft --with-mstflint --dpdk --upstream-libs", timeout => 2000);
         assert_script_run("modprobe -rv rpcrdma");

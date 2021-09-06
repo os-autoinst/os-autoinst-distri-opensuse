@@ -20,7 +20,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils "is_upgrade";
-use Utils::Architectures 'is_ppc64le';
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
