@@ -19,9 +19,9 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/registration/modules_selection
+  - installation/module_selection/select_module_desktop
   - installation/dud_addon
-  - installation/addon_products_sle
+  - installation/add_on_product_installation/accept_add_on_installation
   - installation/system_role
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration

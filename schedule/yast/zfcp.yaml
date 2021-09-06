@@ -5,7 +5,6 @@ description:    >
   No functional testing of multipath itself.
 vars:
   DESKTOP: gnome
-  MULTIPATH: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -14,10 +13,10 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/disk_activation
-  - installation/registration/register_via_scc
-  - installation/registration/modules_selection
   - installation/multipath
-  - installation/addon_products_sle
+  - installation/registration/register_via_scc
+  - installation/module_selection/select_module_desktop
+  - installation/add_on_product/skip_install_addons
   - installation/system_role
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration

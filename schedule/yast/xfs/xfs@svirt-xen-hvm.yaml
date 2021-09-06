@@ -15,8 +15,8 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/registration/modules_selection
-  - installation/addon_products_sle
+  - installation/module_selection/select_module_desktop
+  - installation/add_on_product/skip_install_addons
   - installation/system_role
   - installation/partitioning/select_guided_setup
   - installation/partitioning/guided_setup
