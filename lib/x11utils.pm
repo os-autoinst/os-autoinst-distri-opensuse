@@ -118,6 +118,10 @@ sub ensure_unlocked_desktop {
         if (match_has_tag('authentication-required-user-settings') || match_has_tag('authentication-required-modify-system')) {
             wait_still_screen;    # Check again as the pop-up may be just a glitch, see bsc#1168979
             if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)])) {
+                if (is_sle('>=15-SP4') || is_leap('>=15.4')) {
+                    # auth window needs focus before typing passoword for GNOME40+
+                    assert_and_click('auth-window-password-prompt');
+                }
                 type_password;
                 assert_and_click "authenticate";
             } else {
