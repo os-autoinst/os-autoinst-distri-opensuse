@@ -2032,31 +2032,6 @@ sub load_x11_webbrowser {
     }
 }
 
-sub load_x11_message {
-    if (check_var("DESKTOP", "gnome")) {
-        loadtest "x11/empathy/empathy_irc"       if is_sle("<15");
-        loadtest "x11/evolution/evolution_smoke" if is_sle || is_tumbleweed;
-        loadtest "x11/evolution/evolution_prepare_servers";
-        if (is_sle || is_tumbleweed) {
-            loadtest "x11/evolution/evolution_mail_imap";
-            loadtest "x11/evolution/evolution_mail_pop";
-            loadtest "x11/evolution/evolution_timezone_setup";
-            loadtest "x11/evolution/evolution_meeting_imap";
-            loadtest "x11/evolution/evolution_meeting_pop";
-        }
-        if (!is_pre_15 && (!is_server() || we_is_applicable())) {
-            loadtest "x11/thunderbird/thunderbird_install";
-            loadtest "x11/thunderbird/thunderbird_imap";
-            loadtest "x11/thunderbird/thunderbird_pop";
-        }
-        loadtest "x11/groupwise/groupwise" if is_sle || is_tumbleweed;
-    }
-    if (get_var("DESKTOP") =~ /kde|gnome/ && is_tumbleweed) {
-        loadtest "x11/pidgin/prep_pidgin";
-        loadtest "x11/pidgin/pidgin_IRC";
-        loadtest "x11/pidgin/clean_pidgin";
-    }
-}
 
 sub load_x11_remote {
     # load onetime vncsession testing
@@ -2126,11 +2101,6 @@ sub load_common_x11 {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
         load_x11_webbrowser();
-    }
-    elsif (check_var("REGRESSION", "message")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/window_system";
-        load_x11_message();
     }
     elsif (check_var('REGRESSION', 'remote')) {
         if (check_var("REMOTE_DESKTOP_TYPE", "win_client") || check_var('REMOTE_DESKTOP_TYPE', "win_server")) {
