@@ -63,7 +63,7 @@ sub upload_img {
 sub img_proof {
     my ($self, %args) = @_;
 
-    $args{credentials_file} = get_credentials_file_name();
+    $args{credentials_file} = $self->get_credentials_file_name();
     $args{instance_type} //= 'n1-standard-2';
     $args{user}          //= 'susetest';
     $args{provider}      //= 'gce';
