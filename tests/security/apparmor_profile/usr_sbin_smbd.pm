@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 SUSE LLC
+# Copyright (C) 2019-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ sub samba_server_setup {
     type_string("/home/$testdir");
     send_key "alt-o";
     assert_screen("samba-server-configuration-shares-newshare-createdir");
-    send_key "alt-y";
+    assert_and_click("samba-server-configuration-shares-newshare-createdir-Yes", timeout => 60);
     assert_screen("samba-server-configuration");
     send_key "alt-o";
 

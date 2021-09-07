@@ -17,7 +17,7 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#67021, tc#1741266
 
-use base apparmortest;
+use base 'apparmortest';
 use strict;
 use warnings;
 use testapi;
@@ -41,8 +41,8 @@ sub run {
 
     # Enable apparmor service and check
     enter_cmd("yast2 apparmor &");
-    assert_screen("AppArmor-Configuration-Settings", timeout => 60);
-    send_key "alt-l";
+    assert_screen("AppArmor-Configuration-Settings", timeout => 120);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Settings-Disable-Apparmor");
     send_key "alt-e";
     assert_screen("AppArmor-Settings-Enable-Apparmor");
