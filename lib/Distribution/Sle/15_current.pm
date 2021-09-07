@@ -26,6 +26,7 @@ use Installation::ProductSelection::ProductSelectionController;
 use Installation::Registration::RegistrationController;
 use Installation::ModuleSelection::ModuleSelectionController;
 use Installation::AddOnProduct::AddOnProductController;
+use Installation::AddOnProductInstallation::AddOnProductInstallationController;
 
 =head2 get_license_agreement
 
@@ -56,6 +57,10 @@ sub get_module_selection {
 
 sub get_add_on_product {
     return Installation::AddOnProduct::AddOnProductController->new();
+}
+
+sub get_add_on_product_installation {
+    return Installation::AddOnProductInstallation::AddOnProductInstallationController->new();
 }
 
 1;
