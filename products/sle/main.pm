@@ -1133,15 +1133,6 @@ else {
             loadtest 'network/config_services';
             loadtest 'support_server/wait_children';
         }
-        else {
-            loadtest 'x11/window_system';
-            loadtest 'x11/evolution/evolution_smoke';
-            loadtest 'x11/evolution/evolution_mail_imap';
-            loadtest 'x11/evolution/evolution_mail_pop';
-            loadtest 'x11/evolution/evolution_timezone_setup';
-            loadtest 'x11/evolution/evolution_meeting_imap';
-            loadtest 'x11/evolution/evolution_meeting_pop';
-        }
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set origin and target version
