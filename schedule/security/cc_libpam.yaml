@@ -1,8 +1,0 @@
-name: cc_libpam
-description:    >
-    This is for audit_test libpam
-schedule:
-    - boot/boot_to_desktop
-    - security/selinux/selinux_setup
-    - security/cc/cc_audit_test_setup
-    - security/cc/libpam

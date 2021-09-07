@@ -8,7 +8,7 @@
 # without any warranty.
 #
 # Summary: Run 'filter' test case of 'audit-test' test suite
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: rfan1 <richard.fan@suse.com>, Liu Xiaojing <xiaojing.liu@suse.com>
 # Tags: poo#95464
 
 use base 'consoletest';
