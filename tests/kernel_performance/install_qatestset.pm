@@ -46,13 +46,13 @@ sub extract_settings_qaset_config {
 
 sub setup_environment {
     my $qaset_role        = get_required_var('QASET_ROLE');
-    my $qaset_kernel_tag  = get_required_var('QASET_KERNEL_TAG');
     my $mitigation_switch = get_required_var('MITIGATION_SWITCH');
     my $ver_cfg           = get_required_var('VER_CFG');
 
     assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
-        assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh $qaset_kernel_tag $mitigation_switch");
+        my $qaset_kernel_tag = ' ' . get_var('QASET_KERNEL_TAG', '');
+        assert_script_run("/usr/share/qa/qaset/bin/deploy_hana_perf.sh HANA $mitigation_switch $qaset_kernel_tag");
         assert_script_run("ls /root/qaset/deploy_hana_perf_env.done");
         if (my $qaset_config = get_var("QASET_CONFIG")) {
             extract_settings_qaset_config($qaset_config);
@@ -73,7 +73,7 @@ sub os_update {
 
     assert_script_run("wget -N -P $zypper_repo_path $update_repo_url 2>&1");
     zypper_call("--gpg-auto-import-keys ref");
-    zypper_call("dup");
+    zypper_call("dup", timeout => 1800);
 }
 
 
