@@ -71,6 +71,22 @@ sub debug_locked_device {
     }
 }
 
+sub get_test_summary {
+    my ($self) = @_;
+    my $info = "HANA Installation finished successfully.\n\nOS Details:\n\n";
+    $info .= 'Product Code: ';
+    $info .= script_output 'basename $(realpath /etc/products.d/baseproduct)';
+    $info =~ s/.prod//;
+    $info .= "\n";
+    $info .= script_output 'egrep ^VERSION= /etc/os-release';
+    $info =~ s/VERSION=/Version: /;
+    $info .= "\nProduct Name: ";
+    $info .= script_output q(grep -w summary /etc/products.d/baseproduct | sed -r -e 's@<.?summary>@@g');
+    $info .= "\n\nHANA Details:\n\n";
+    $info .= script_output 'egrep "INFO.*SAP HANA Lifecycle Management" /var/tmp/hdblcm.log | cut -d" " -f3,11-';
+    return $info;
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
@@ -235,10 +251,15 @@ sub run {
 
     # Upload installations logs
     $self->upload_hana_install_log;
+    $self->save_and_upload_log('rpm -qa',                    'packages.list');
+    $self->save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';
     assert_script_run 'lvs -ao +devices';
+
+    # Test summary
+    record_info 'Test Summary', $self->get_test_summary;
 }
 
 sub test_flags {

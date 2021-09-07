@@ -66,6 +66,8 @@ sub run {
     $self->test_start;
 
     assert_script_run "HDB info";
+    my $ver_info = script_output 'HDB version';
+    record_info 'HANA Version', $ver_info;
 
     # Disconnect SAP account
     $self->reset_user_change;
