@@ -32,7 +32,7 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/force_scheduled_tasks
-  - console/check_resume
+  - console/hibernation_enabled
   - console/validate_product_installed_SLES
   - console/validate_no_cow_attribute
   - console/verify_separate_home

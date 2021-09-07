@@ -38,12 +38,22 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/force_scheduled_tasks
-  - console/check_resume
+  - '{{validate_hibernation}}'
   - console/validate_product_installed_SLES
   - console/validate_no_cow_attribute
   # On all the backends except s390x, /home is located on a separate partition
   - '{{validate_home_partition}}'
 conditional_schedule:
+  validate_hibernation:
+    ARCH:
+      aarch64:
+        - console/hibernation_disabled
+      ppc64le:
+        - console/hibernation_disabled
+      s390x:
+        - console/hibernation_disabled
+      x86_64:
+        - console/hibernation_enabled
   isosize:
     BACKEND:
       qemu:
