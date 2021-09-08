@@ -1,0 +1,43 @@
+---
+name: autoyast_btrfs_quota
+description: >
+  AutoYaST installation with BTRFS subvolume quotas. Verifies quota limit on the installed system
+  and if its size corresponds to the configured quota limit during installation.
+vars:
+  AUTOYAST_PREPARE_PROFILE: 1
+  DESKTOP: textmode
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/verify_btrfs_quota
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/verify_cloned_profile
+test_data:
+  disks:
+    - partitions:
+      - mounting_options:
+          mount_point: '/'
+        subvolumes:
+          - subvolume:
+              path: var
+              quota: 1.00GiB
+          - subvolume:
+              path: usr/local
+              quota: 1.00GiB
+          - subvolume:
+              path: tmp
+              quota: 1.00GiB
+          - subvolume:
+              path: root
+              quota: 1.00GiB
+          - subvolume:
+              path: srv
+              quota: 1.00GiB
+          - subvolume:
+              path: opt
+              quota: 1.00GiB
+  <<: !include test_data/yast/autoyast/profiles/btrfs_quota.yaml
