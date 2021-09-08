@@ -32,7 +32,10 @@ CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test mo
 CHECK_RELEASENOTES_ORIGIN | boolean | false | Loads `installation/releasenotes_origin` test module.
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
 CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium fails to visualize error in the test module and not just put this information in the autoinst log file.
+CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana"). This variable belongs to PUBLIC_CLOUD_.
 CONTAINER_RUNTIME | string | | Container runtime to be used, e.g.  `docker`, `podman`.
+COMMAND_FILE | string | | The LTP test command file (e.g. syscalls, cve)
+COMMAND_EXCLUDE | string | | This regex is used to exclude tests from LTP command file.
 CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` or `released_images` from `lib/containers/urls.pm`.
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
@@ -92,6 +95,8 @@ LIVECD | boolean | false | Indicates live image being used.
 LIVE_INSTALLATION | boolean | false | If set, boots the live media and starts the builtin NET installer.
 LIVE_UPGRADE | boolean | false | If set, boots the live media and starts the builtin NET installer in upgrade mode.
 LIVETEST | boolean | false | Indicates test of live system.
+LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known LTP issues. If an error occur which is listed, then the result is overwritten with softfailure.
+LTP_REPO | string | | The repo which will be added and is used to install LTP package.
 LTP_RUN_NG_BRANCH | string | | Define the branch of the LTP_RUN_NG_REPO.
 LTP_RUN_NG_REPO | string | | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
 LVM | boolean | false | Use lvm for partitioning.
@@ -118,6 +123,61 @@ PERF_KERNEL | boolean | false | Enables kernel performance testing.
 PERF_INSTALL | boolean | false | Enables kernel performance testing installation part.
 PERF_SETUP | boolean | false | Enables kernel performance testing deployment part.
 PERF_RUNCASE | boolean | false | Enables kernel performance testing run case part.
+_SECRET_PUBLIC_CLOUD_REST_URL | string | "https://publiccloud.qa.suse.de/vault" | Vault server URL
+_SECRET_PUBLIC_CLOUD_REST_USER | string | "" | Vault server user name
+_SECRET_PUBLIC_CLOUD_REST_PW | string | "" | Vault server user password
+_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE | boolean | true | Do not validate Vault server certificate
+PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
+PUBLIC_CLOUD_ACCOUNT | string | "" | For GCE will set account via `gcloud config set account ' . $self->account`.
+PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
+PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
+PUBLIC_CLOUD_AZURE_OFFER | string | "" | Specific to Azure. Allow to query for image based on offer and sku. Should be used together with PUBLIC_CLOUD_AZURE_SKU.
+PUBLIC_CLOUD_AZURE_SKU | string | "" | Specific to Azure.
+PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
+PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
+PUBLIC_CLOUD_CHECK_BOOT_TIME | boolean | false | If set, boottime test module is added to the job.
+PUBLIC_CLOUD_CLIENT_ID | string | "" | In GCE one of the variables used to authenticate  user.
+PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
+PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
+PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
+PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be used for helper VM for upload some image. When not specified some predefined value will be used. Overwrite the value for `ec2uploadimg --ec2-ami`.
+PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg script to use some existing security group instead of creating new one. If given, the parameter `--security-group-ids` is passed to `ec2uploadimg`.
+PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
+PUBLIC_CLOUD_FIO | boolean | false | If set, storage_perf test module is added to the job.
+PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO tests.
+PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.
+PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES | string | "" | The list of features given to upload VM
+PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
+PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
+PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
+PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
+PUBLIC_CLOUD_IMG_PROOF_TESTS | string | false | Tests run  by img-proof. (We use 'default')
+PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t2.large )
+PUBLIC_CLOUD_KEY | string | "" | Private key data for gce, similar to `PUBLIC_CLOUD_KEY_SECRET`. 
+PUBLIC_CLOUD_KEY_ID | string | "" | The CSP credentials key-id to used to access API.
+PUBLIC_CLOUD_KEY_SECRET | string | "" | The CSP credentials secret used to access API.
+PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to the job.
+PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE | boolean | false | Do not remove the instance when the test fails.
+PUBLIC_CLOUD_PERF_DB_URI | string | "" | Optional variable. If set, the bootup times get stored in the influx database. The database name is 'publiccloud'. (e.g. PUBLIC_CLOUD_PERF_DB_URI=http://openqa-perf.qa.suse.de:8086)
+PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
+PUBLIC_CLOUD_PROJECT_ID | string | "" | GCP only, used to specify the project id.
+PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
+PUBLIC_CLOUD_QAM | boolean | false | Previously used to recognize maintenance jobs - now deprecated - should be removed.
+PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
+PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1).
+PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
+PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied.
+PUBLIC_CLOUD_SERVICE_ACCOUNT | string | "" | GCE only, used to specify the service account.
+PUBLIC_CLOUD_TENANT_ID | string | "" | This is B<only for azure> and used to create the service account file.
+PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
+PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the TTL of created VM.
+PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
+PUBLIC_CLOUD_STORAGE | string | "openqa-storage" | Name of storage where we load the system image from.
+PUBLIC_CLOUD_SUBSCRIPTION_ID | string | "" | This is B<only for azure> and used to create the service account file.
+PUBLIC_CLOUD_VAULT_NAMESPACE | string | "qac" | The Vault server namespace.
+PUBLIC_CLOUD_VAULT_TIMEOUT | integer | 60 | The number of seconds we wait for the Vault server to respond.
+PUBLIC_CLOUD_VAULT_TRIES | integer | 3 | The number of attempts to connect to Vault server.
+PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
 PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package manager when package installation has finished. Possible actions are: close, restart, summary. If PKGMGR_ACTION_AT_EXIT is not set in openQA, test module will read the default value from /etc/sysconfig/yast2.
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
 QA_TESTSUITE | string | | Comma or semicolon separated a list of the automation cases' name, and these cases will be installed and triggered if you call "start_testrun" function from qa_run.pm
