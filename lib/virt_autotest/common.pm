@@ -23,6 +23,8 @@ use version_utils 'is_sle';
 #   * location of the installation tree
 #   * autoyast profile
 #   * extra parameters for virsh create / xl create
+# By default, our guests will be installed via `virt-install`. If "method => 'import'" is set, the virtual machine will
+# be imported instead of installed (see sles11sp4PVx64 for an example)
 
 our %guests = ();
 if (get_var("REGRESSION", '') =~ /xen/) {
@@ -74,21 +76,23 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles11sp4HVMx32 => {
             name         => 'sles11sp4HVMx32',
-            autoyast     => 'autoyast_xen/sles11sp4HVMx32_PRG.xml',
+            method       => 'import',
             extra_params => '--connect xen:/// --virt-type xen --hvm --arch i686 --os-variant sles11sp4',
+            disk         => '/var/lib/libvirt/images/sles11sp4HVMx32.qcow2',
+            source       => 'http://pandora.suse.cz/virtual-machines/sles11sp4HVMx32.qcow2',
             macaddress   => '52:54:00:78:73:a6',
             ip           => '192.168.122.108',
             distro       => 'SLE_11_SP4',
-            location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
         },
         sles11sp4PVx64 => {
             name         => 'sles11sp4PVx64',
-            autoyast     => 'autoyast_xen/sles11sp4PVx64_PRG.xml',
+            method       => 'import',
             extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles11sp4',
+            disk         => '/var/lib/libvirt/images/sles11sp4PVx64.qcow2',
+            source       => 'http://pandora.suse.cz/virtual-machines/sles11sp4PVx64.qcow2',
             macaddress   => '52:54:00:78:73:a7',
             ip           => '192.168.122.109',
             distro       => 'SLE_11_SP4',
-            location     => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
         },
         sles11sp4HVMx64 => {
             name         => 'sles11sp4HVMx64',
@@ -380,25 +384,31 @@ our %imports = ();    # imports are virtual machines that we don't install but j
 if (get_var("REGRESSION", '') =~ /xen/) {
     %imports = (
         win2k19 => {
-            name         => 'win2k19',
-            extra_params => '--connect xen:/// --hvm --os-type windows --os-variant win2k8',    # --os-variant win2k19 not supported in older versions
-            disk         => '/var/lib/libvirt/images/win2k19.raw',
-            source       => '/mnt/virt_images/xen/win2k19.raw',
-            macaddress   => '52:54:00:78:73:66',
-            ip           => '192.168.122.66',
-            version      => 'Microsoft Windows Server 2019',
+            name          => 'win2k19',
+            extra_params  => '--connect xen:/// --hvm --os-type windows --os-variant win2k8',    # --os-variant win2k19 not supported in older versions
+            disk          => '/var/lib/libvirt/images/win2k19.raw',
+            source        => '/mnt/virt_images/xen/win2k19.raw',
+            macaddress    => '52:54:00:78:73:66',
+            ip            => '192.168.122.66',
+            version       => 'Microsoft Windows Server 2019',
+            memory        => 4096,
+            vcpus         => 4,
+            network_model => "e1000",
         },
     );
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %imports = (
         win2k19 => {
-            name         => 'win2k19',
-            extra_params => '--os-type windows --os-variant win2k8',                            # --os-variant win2k19 not supported in older versions
-            disk         => '/var/lib/libvirt/images/win2k19.raw',
-            source       => '/mnt/virt_images/kvm/win2k19.raw',
-            macaddress   => '52:54:00:78:73:66',
-            ip           => '192.168.122.66',
-            version      => 'Microsoft Windows Server 2019',
+            name          => 'win2k19',
+            extra_params  => '--os-type windows --os-variant win2k8',    # --os-variant win2k19 not supported in older versions
+            disk          => '/var/lib/libvirt/images/win2k19.raw',
+            source        => '/mnt/virt_images/kvm/win2k19.raw',
+            macaddress    => '52:54:00:78:73:66',
+            ip            => '192.168.122.66',
+            version       => 'Microsoft Windows Server 2019',
+            memory        => 4096,
+            vcpus         => 4,
+            network_model => "e1000",
         },
     );
 } else {
