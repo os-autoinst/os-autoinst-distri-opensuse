@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <products config:type="list">
+      <product>openSUSE</product>
+    </products>
+    <patterns config:type="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>gnome</pattern>
+    </patterns>
+    <packages config:type="list">
+      <package>apache2</package>
+    </packages>
+  </software>
+</profile>

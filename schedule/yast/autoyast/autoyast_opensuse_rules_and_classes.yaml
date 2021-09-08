@@ -3,7 +3,7 @@ name: autoyast_rules_and_classes
 description: >
   For future testing of AutoYaST rules and classes
 vars:
-  AUTOYAST: autoyast_sle15/rule-based_example/
+  AUTOYAST: autoyast_opensuse/rule-based_example/
 schedule:
   - autoyast/prepare_rules_and_classes
   - installation/bootloader_start
@@ -17,13 +17,3 @@ schedule:
   - autoyast/autoyast_reboot
   - installation/grub_test
   - installation/first_boot
-  - console/validate_partition_table_via_blkid
-  - console/validate_blockdevices
-  - console/zypper_lr
-  - console/zypper_ref
-  - console/ncurses
-  - update/zypper_up
-  - console/zypper_in
-  - console/zypper_log
-  - console/orphaned_packages_check
-  - autoyast/verify_cloned_profile
