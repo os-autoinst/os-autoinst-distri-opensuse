@@ -3130,11 +3130,17 @@ sub load_ha_cluster_tests {
 }
 
 sub updates_is_applicable {
-    # we don't want live systems to run out of memory or virtual disk space.
+    # We don't want live systems to run out of memory or virtual disk space.
     # Applying updates on a live system would not be persistent anyway.
-    # Also, applying updates on BOOT_TO_SNAPSHOT is useless.
+    return 0 if is_livesystem;
+    # Applying updates on BOOT_TO_SNAPSHOT is useless.
     # Also, updates on INSTALLONLY do not match the meaning
-    return !get_var('INSTALLONLY') && !get_var('BOOT_TO_SNAPSHOT') && !get_var('DUALBOOT') && !get_var('UPGRADE') && !is_livesystem;
+    return 0 if get_var('INSTALLONLY') || get_var('BOOT_TO_SNAPSHOT') || get_var('DUALBOOT');
+    # After upgrading using only the DVD, packages not on the DVD can be
+    # updated in the installed system with online repos.
+    return 0 if get_var('UPGRADE') && !check_var('FLAVOR', 'DVD');
+
+    return 1;
 }
 
 sub guiupdates_is_applicable {
