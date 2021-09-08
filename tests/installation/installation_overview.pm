@@ -27,7 +27,7 @@ use Test::Assert ':all';
 sub ensure_ssh_unblocked {
     if (!get_var('UPGRADE') && is_remote_backend) {
 
-        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab';
+        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 25;
         if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';
