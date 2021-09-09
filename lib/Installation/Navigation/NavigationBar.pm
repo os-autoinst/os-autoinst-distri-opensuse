@@ -35,6 +35,9 @@ sub is_shown {
 
 sub press_next {
     my ($self) = @_;
+    YuiRestClient::Wait::wait_until(object => sub {
+            return $self->{btn_next}->is_enabled();
+    }, message => "Next button takes too long to be enabled");
     return $self->{btn_next}->click();
 }
 
