@@ -32,9 +32,16 @@ sub run {
         script_run "tracker-search newfile";
     }
     else {
-        my $trackercmd = (is_sle('<16') or is_leap('<16.0')) ? 'tracker' : 'tracker3';
+        my $trackercmd = (is_sle('<=15-sp3') or is_leap('<=15.3')) ? 'tracker' : 'tracker3';
         script_run "$trackercmd search emptyfile";
-        assert_screen('tracker-cmdsearch-emptyfile');
+        assert_screen([qw(tracker-cmdsearch-emptyfile tracker-cmdsearch-noemptyfile)]);
+        if (match_has_tag 'tracker-cmdsearch-noemptyfile') {
+            record_soft_failure 'bsc#1190296 tracker3 can not index empty files for the first time';
+            enter_cmd "clear";
+            wait_still_screen 10;
+            assert_script_run "$trackercmd search emptyfile";
+            assert_screen 'tracker-cmdsearch-emptyfile';
+        }
         script_run "$trackercmd search newfile";
     }
     assert_screen 'tracker-cmdsearch-newfile';
