@@ -35,7 +35,7 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/force_scheduled_tasks
-  - console/check_resume
+  - console/hibernation_disabled
   - console/validate_product_installed_SLES
   - console/verify_separate_home
   - console/validate_partition_table_via_blkid

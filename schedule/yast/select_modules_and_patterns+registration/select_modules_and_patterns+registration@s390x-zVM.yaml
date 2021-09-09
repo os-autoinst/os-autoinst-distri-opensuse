@@ -38,7 +38,6 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-  - console/check_resume
   - console/hostname
   - console/system_prepare
   - console/force_scheduled_tasks
