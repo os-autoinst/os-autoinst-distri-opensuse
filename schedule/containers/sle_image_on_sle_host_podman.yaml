@@ -7,8 +7,13 @@ conditional_schedule:
     ARCH:
       's390x':
         - installation/bootloader_start
+  bci:
+    HOST_VERSION:
+      '15-SP3':
+        - containers/bci_tests
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
   - containers/host_configuration
   - containers/podman_image
+  - '{{bci}}'
