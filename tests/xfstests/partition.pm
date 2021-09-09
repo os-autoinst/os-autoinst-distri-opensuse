@@ -23,6 +23,7 @@ use utils;
 use testapi;
 use filesystem_utils qw(str_to_mb parted_print partition_num_by_type mountpoint_to_partition
   partition_table create_partition remove_partition format_partition);
+use File::Basename;
 
 my $INST_DIR    = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -249,6 +250,7 @@ sub run {
         }
     }
     set_config;
+    upload_logs($CONFIG_FILE, timeout => 60, log_name => basename($CONFIG_FILE));
 }
 
 sub test_flags {

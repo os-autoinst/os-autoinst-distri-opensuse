@@ -25,6 +25,7 @@ use utils;
 use testapi;
 use repo_tools 'add_qa_head_repo';
 use version_utils qw(is_sle is_leap is_tumbleweed);
+use File::Basename;
 
 my $STATUS_LOG  = '/opt/status.log';
 my $VERSION_LOG = '/opt/version.log';
@@ -54,6 +55,7 @@ sub collect_version {
     my $file = shift;
     my $cmd  = "(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests; uname -r; rpm -qi kernel-default) | tee $file";
     script_run($cmd);
+    upload_logs($file, timeout => 60, log_name => basename($file));
 }
 
 sub run {
