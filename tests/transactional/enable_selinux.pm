@@ -30,6 +30,8 @@ sub run {
     # install and enable SELinux if not done by default
     if (script_run('test -d /sys/fs/selinux && test -e /etc/selinux/config') != 0) {
         assert_script_run('transactional-update setup-selinux');
+        upload_logs('/var/log/transactional-update.log');
+        shift->save_and_upload_log('rpm -qa', 'installed_pkgs.txt');
         process_reboot(trigger => 1);
     }
 
