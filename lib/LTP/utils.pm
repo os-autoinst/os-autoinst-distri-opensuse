@@ -110,6 +110,9 @@ sub log_versions {
             record_soft_failure 'boo#1189879 missing kernel config in kernel package, use /proc/config.gz';
             $cmd .= "zcat $kernel_config";
         } else {
+            if ($kernel_config !~ /^\/boot\/config-/) {
+                record_soft_failure 'boo#1189879 missing symlink to /boot, use config in /usr/lib/modules/';
+            }
             $cmd .= "cat $kernel_config";
         }
 
