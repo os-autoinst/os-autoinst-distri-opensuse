@@ -8,8 +8,8 @@ conditional_schedule:
       's390x':
         - installation/bootloader_start
   bci:
-    HOST_VERSION:
-      '15-SP3':
+    FLAVOR:
+      'Container-Image-Updates':
         - containers/bci_tests
 schedule:
   - '{{boot}}'

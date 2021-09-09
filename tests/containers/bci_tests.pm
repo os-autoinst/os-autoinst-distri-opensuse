@@ -69,6 +69,11 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
+    if (get_var('HOST_VERSION') !~ '15-SP3') {
+        record_info('poo#98183', 'Test not supported yet on this host.');
+        return;
+    }
+
     my $runtime        = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
@@ -102,9 +107,10 @@ sub run {
     assert_script_run('tox -e build', timeout => 600);
 
     # Run the tests for each environment
+    my $errors = 0;
     for my $env (split(/,/, $test_envs)) {
         record_info("Test: $env");
-        assert_script_run("tox -e $env", timeout => $bci_timeout);
+        script_run("tox -e $env", timeout => $bci_timeout);
     }
 
     $self->parse_logs();
