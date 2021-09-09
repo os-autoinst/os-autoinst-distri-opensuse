@@ -13,8 +13,8 @@
     </rule>
     <rule>
       <disksize>
-        <match>/dev/vda 10000-19000</match>
-        <match_type>range</match_type>
+        <match>/dev/vda 10000</match>
+        <match_type>greater</match_type>
       </disksize>
       <result>
         <profile>profile_b.xml</profile>
