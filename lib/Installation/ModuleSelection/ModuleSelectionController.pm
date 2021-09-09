@@ -46,4 +46,9 @@ sub skip_selection {
     $self->get_module_selection_page()->press_next();
 }
 
+sub view_development_versions {
+    my ($self) = @_;
+    $self->get_module_selection_page()->uncheck_hide_development_versions();
+}
+
 1;

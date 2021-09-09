@@ -27,8 +27,9 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{rt_items}        = $self->{app}->richtext({id => 'items'});
-    $self->{rt_item_desktop} = 'sle-module-desktop-applications';
+    $self->{ch_hide_dev_versions} = $self->{app}->checkbox({id => 'filter_devel'});
+    $self->{rt_items}             = $self->{app}->richtext({id => 'items'});
+    $self->{rt_item_desktop}      = 'sle-module-desktop-applications';
     return $self;
 }
 
@@ -54,6 +55,11 @@ sub select_module {
     my $module_name = $self->{"rt_item_$module"};
     my ($module_full_name) = grep { /$module_name/ } $self->get_modules()->@*;
     return $self->{rt_items}->activate_link($module_full_name);
+}
+
+sub uncheck_hide_development_versions {
+    my ($self) = @_;
+    return $self->{ch_hide_dev_versions}->uncheck();
 }
 
 1;
