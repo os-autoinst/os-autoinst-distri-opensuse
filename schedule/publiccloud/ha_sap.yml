@@ -1,0 +1,10 @@
+---
+name: ha_sap
+description: |
+  Run HA and SAP tests on public cloud instances using ha-sap-terraform-deployments tool:
+    - deploy a 2 nodes HANA cluster and test HANA takeover/takeback (HA fencing)
+    - deploy a 2 nodes DRDB cluster and test HA fencing
+    - destroy all the VMs at the end
+schedule:
+  - boot/boot_to_desktop
+  - publiccloud/sles4sap
