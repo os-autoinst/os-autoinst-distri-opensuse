@@ -24,13 +24,14 @@
 #             3) Wrong user/password is not able to access the grub
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81721, poo#95548, tc#1768659
+# Tags: poo#81721, poo#95548, poo#97175, tc#1768659
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use base 'consoletest';
+use version_utils 'is_sle';
 
 my $sup_user     = 'admin';
 my $sup_passwd   = 'pw_admin';
@@ -41,7 +42,9 @@ my $test_passwd  = 'pw_test';
 
 sub switch_boot_menu {
     my $switch = shift;
-    if (get_var('UEFI')) {
+
+    # Currently, SLES doesn't include this new grub feature
+    if (get_var('UEFI') && !is_sle) {
         assert_screen("grub_uefi_firmware_menu_entry", timeout => 90);
         send_key_until_needlematch("grub_auth_boot_menu_entry", "down", 5, 2) if $switch;
     }
