@@ -52,7 +52,7 @@ sub get_opensuse_registry_prefix {
     }
 }
 
-our %registries = (
+our %images_uri = (
     sle => {
         '12-SP3' => {
             released => sub { 'registry.suse.com/suse/sles12sp3' },
@@ -234,7 +234,7 @@ our %registries = (
 
 sub supports_image_arch {
     my ($distri, $version, $arch) = @_;
-    (grep { $_ eq $arch } @{$registries{$distri}{$version}{available_arch}}) ? 1 : 0;
+    (grep { $_ eq $arch } @{$images_uri{$distri}{$version}{available_arch}}) ? 1 : 0;
 }
 
 # Returns a tuple of image urls and their matching released "stable" counterpart.
@@ -250,8 +250,8 @@ sub get_suse_container_urls {
     my @released_images = ();
 
     if (supports_image_arch($args{distri}, $args{version}, $args{arch})) {
-        push @untested_images, $registries{$args{distri}}{$args{version}}{totest}->($args{arch});
-        push @released_images, $registries{$args{distri}}{$args{version}}{released}->($args{arch});
+        push @untested_images, $images_uri{$args{distri}}{$args{version}}{totest}->($args{arch});
+        push @released_images, $images_uri{$args{distri}}{$args{version}}{released}->($args{arch});
     } else {
         die("Unknown combination of distro/arch.");
     }
