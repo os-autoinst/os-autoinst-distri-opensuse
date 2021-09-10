@@ -17,7 +17,7 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#67933, tc#1741266
 
-use base apparmortest;
+use base 'apparmortest';
 use strict;
 use warnings;
 use testapi;
@@ -43,8 +43,8 @@ sub run {
     # Enter "yast2 apparmor"
     enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should no records
-    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
+    assert_and_click("AppArmor-Launch",          timeout => 60);
     assert_screen("AppArmor-Scan-Audit-logs-no-records");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-o" };
@@ -71,8 +71,8 @@ sub run {
     # Enter "yast2 apparmor" and verify apparmor can revise the profile based on former violation
     enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should have records
-    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
+    assert_and_click("AppArmor-Launch",          timeout => 60);
     assert_screen("AppArmor-Scan-Audit-logs-scan-records");
 
     # Audit the entry

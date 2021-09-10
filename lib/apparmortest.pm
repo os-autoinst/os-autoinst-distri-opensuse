@@ -654,9 +654,9 @@ sub yast2_apparmor_setup {
 # Yast2 Apparmor: check apparmor is enabled
 sub yast2_apparmor_is_enabled {
     enter_cmd("yast2 apparmor &");
-    assert_screen("AppArmor-Configuration-Settings", timeout => 180);
-    send_key "alt-l";
-    assert_screen("AppArmor-Settings-Enable-Apparmor");
+    assert_screen("AppArmor-Configuration-Settings", timeout => 300);
+    assert_and_click("AppArmor-Launch", timeout => 60);
+    assert_screen("AppArmor-Settings-Enable-Apparmor", timeout => 60);
 }
 
 # Yast2 Apparmor clean up

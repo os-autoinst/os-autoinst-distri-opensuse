@@ -19,7 +19,7 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#70537, tc#1741266
 
-use base apparmortest;
+use base 'apparmortest';
 use strict;
 use warnings;
 use testapi;
@@ -51,10 +51,10 @@ sub run {
     # "marked as a program that should not have its own profile",
     # it should be failed
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Launch",               timeout => 60);
     send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 30, 3);
     type_string("$test_file");
-    send_key "alt-o";
+    assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
     assert_screen("AppArmor-generate-a-profile-Error");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-o" };
@@ -66,10 +66,10 @@ sub run {
     # *NOT* "marked as a program that should not have its own profile",
     # it should be succeeded
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Launch",               timeout => 60);
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_bk");
-    send_key "alt-o";
+    assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
     assert_screen("AppArmor-Scan-system-log");
     # Scan systemlog
     send_key "alt-s";
@@ -84,10 +84,10 @@ sub run {
     # Enter "yast2 apparmor" again
     enter_cmd("yast2 apparmor &");
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Launch",               timeout => 60);
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_vsftpd");
-    send_key "alt-o";
+    assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
     assert_screen("AppArmor-Inactive-local-profile");
     # Check "View Profile"
     send_key "alt-v";
