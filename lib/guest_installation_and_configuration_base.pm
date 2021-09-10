@@ -1296,7 +1296,7 @@ sub monitor_guest_installation {
 
     $self->reveal_myself;
     save_screenshot;
-    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 text-login guest-console-text-login)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
+    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
         save_screenshot;
         record_info("Can not detect any interested screens on guest $self->{guest_name} installation process", "Going to detach current screen anyway");
         $self->detach_guest_installation_screen;
@@ -1310,7 +1310,7 @@ sub monitor_guest_installation {
         record_info("Installation failed due to errors for guest $self->{guest_name}", "Bad luck ! Mark it as FAILED");
         $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     }
-    elsif (match_has_tag('text-login') or match_has_tag('guest-console-text-login')) {
+    elsif (match_has_tag('linux-login') or match_has_tag('text-login') or match_has_tag('guest-console-text-login')) {
         save_screenshot;
         $self->detach_guest_installation_screen;
         my $_detect_installation_result = $self->check_guest_installation_result_via_ssh;
@@ -1699,7 +1699,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "", "/root");
+    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log");
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;
