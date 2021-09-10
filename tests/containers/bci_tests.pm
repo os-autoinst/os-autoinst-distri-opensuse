@@ -36,8 +36,8 @@ our $test_envs = get_var('BCI_TEST_ENVS', 'base,init,dotnet,python,node,go,multi
 sub parse_logs {
     my $self = @_;
 
-    upload_logs('junit_build_serial.xml');
-    upload_logs('junit_build_parallel.xml');
+    upload_logs('junit_build_serial.xml',   failok => 1);
+    upload_logs('junit_build_parallel.xml', failok => 1);
 
     # bci-tests produce separate XUnit results files for each environment.
     # We need tp merge all together into a single xml file that will
@@ -48,14 +48,16 @@ sub parse_logs {
 
     # Dump xml contents to a location where we can access later using data_url
     for my $env (split(/,/, $test_envs)) {
-        upload_logs('junit_' . $env . '_serial.xml');
-        my $log_file = upload_logs('junit_' . $env . '_parallel.xml');
-        my $dom      = XML::LibXML->load_xml(location => "ulogs/$log_file");
-        for my $node ($dom->findnodes('//testsuite')) {
-            # Replace default attribute name "pytest" by its env name
-            $node->{name} =~ s/pytest/$env/;
-            # Append test results to the resulting xml file
-            $root->appendChild($node);
+        upload_logs('junit_' . $env . '_serial.xml', failok => 1);
+        my $log_file = upload_logs('junit_' . $env . '_parallel.xml', failok => 1);
+        if ($log_file) {
+            my $dom = XML::LibXML->load_xml(location => "ulogs/$log_file");
+            for my $node ($dom->findnodes('//testsuite')) {
+                # Replace default attribute name "pytest" by its env name
+                $node->{name} =~ s/pytest/$env/;
+                # Append test results to the resulting xml file
+                $root->appendChild($node);
+            }
         }
     }
     $dom->toFile('result.xml', 1);
@@ -68,11 +70,6 @@ sub parse_logs {
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
-    if (get_var('HOST_VERSION') !~ '15-SP3') {
-        record_info('poo#98183', 'Test not supported yet on this host.');
-        return;
-    }
 
     my $runtime        = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
@@ -107,13 +104,19 @@ sub run {
     assert_script_run('tox -e build', timeout => 600);
 
     # Run the tests for each environment
-    my $errors = 0;
+    my $error_count = 0;
     for my $env (split(/,/, $test_envs)) {
         record_info("Test: $env");
-        script_run("tox -e $env", timeout => $bci_timeout);
+        my $ret = script_run("tox -e $env", timeout => $bci_timeout);
+        if ($ret != 0) {
+            $error_count += 1;
+            record_soft_failure("There was a problem running the test: $env");
+        }
     }
 
     $self->parse_logs();
+
+    die("$error_count tests failed.") if ($error_count != 0);
 }
 
 sub test_flags {
