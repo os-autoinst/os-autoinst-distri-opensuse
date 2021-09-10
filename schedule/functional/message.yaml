@@ -8,7 +8,7 @@ conditional_schedule:
     opensuse_tests:
         DISTRI:
             opensuse:
-                - x11/empathy/empathy_irc
+                - x11/pidgin/prep_pidgin
                 - x11/pidgin/pidgin_IRC
                 - x11/pidgin/clean_pidgin
     sle_tests:
