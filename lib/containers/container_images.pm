@@ -62,7 +62,7 @@ sub build_and_run_image {
         assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
         assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
     }
-    file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
+    file_content_replace("$dir/BuildTest/$dockerfile", baseimage_var => $base) if defined $base;
     assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
 
     # Build the image
