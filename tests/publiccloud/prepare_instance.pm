@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
+# Copyright © 2019-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -10,7 +10,7 @@
 # Package: openssh
 # Summary: This tests will deploy the public cloud instance and prepare the ssh
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::utils "select_host_console";

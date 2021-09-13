@@ -5,7 +5,7 @@ description: |
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
-  - publiccloud/ssh_interactive_init
+  - publiccloud/prepare_instance
   - publiccloud/register_system
   - publiccloud/transfer_repos
   - publiccloud/patch_and_reboot
