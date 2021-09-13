@@ -16,7 +16,7 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/registration/modules_selection
+  - installation/module_selection/select_module_desktop
   - installation/system_probing/activate_encrypted_volume
   - installation/addon_products_sle
   - installation/system_role

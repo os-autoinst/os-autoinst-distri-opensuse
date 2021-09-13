@@ -16,9 +16,9 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/registration/modules_selection
+  - installation/module_selection/skip_module_selection
   - installation/multipath
-  - installation/addon_products_sle
+  - installation/add_on_product/skip_install_addons
   - installation/system_role
   - installation/partitioning/lvm_no_separate_home
   - installation/partitioning/accept_proposed_layout

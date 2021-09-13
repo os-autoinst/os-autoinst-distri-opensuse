@@ -24,8 +24,8 @@ schedule:
     - installation/product_selection/install_SLES
     - installation/licensing/accept_license
     - installation/registration/register_via_scc
-    - installation/registration/modules_selection
-    - installation/addon_products_sle
+    - installation/module_selection/select_module_transactional
+    - installation/add_on_product/skip_install_addons
     - installation/system_role/validate_default_role
     - installation/system_role/select_role
     - installation/partitioning/accept_proposed_layout

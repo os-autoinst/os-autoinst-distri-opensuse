@@ -41,4 +41,20 @@ sub register_module {
     $self->get_module_selection_page()->press_next();
 }
 
+sub register_modules {
+    my ($self, $modules) = @_;
+    $self->get_module_selection_page()->select_modules($modules);
+    $self->get_module_selection_page()->press_next();
+}
+
+sub skip_selection {
+    my ($self) = @_;
+    $self->get_module_selection_page()->press_next();
+}
+
+sub view_development_versions {
+    my ($self) = @_;
+    $self->get_module_selection_page()->uncheck_hide_development_versions();
+}
+
 1;

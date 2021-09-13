@@ -13,10 +13,10 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/registration/modules_selection
+  - installation/module_selection/select_module_desktop
   - installation/system_probing/cancel_encrypted_volume
   - console/validate_encrypted_partition_not_activated
-  - installation/addon_products_sle
+  - installation/add_on_product/skip_install_addons
   - installation/system_role
   - installation/partitioning/lvm_ignore_existing
   - installation/partitioning/accept_proposed_layout
