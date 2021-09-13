@@ -396,4 +396,26 @@ sub commit {
     my ($self, $mycontainer, $new_image_name, %args) = @_;
     $self->_rt_assert_script_run("commit --rm $mycontainer $new_image_name", timeout => $args{timeout});
 }
+
+
+package containers::runtime::Factory;
+use Mojo::Base -base;
+use containers::runtime;
+use testapi;
+use Data::Dumper;
+has runtime_instance => undef;
+
+sub get_instance {
+    my ($self) = shift;
+    if (check_var('DOCKER', 1)) {
+        $self->runtime_instance(containers::runtime::docker->new());
+    }
+    elsif (check_var('PODMAN', 1)) {
+        $self->runtime_instance(containers::runtime::podman->new());
+    }
+    else {
+        die 'job doesnt provide Runtime Container tool';
+    }
+    return $self->runtime_instance;
+}
 1;

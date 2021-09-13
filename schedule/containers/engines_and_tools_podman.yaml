@@ -12,7 +12,9 @@ schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
   - containers/podman
-  - containers/buildah_podman
+  #- containers/buildah_podman
   - containers/rootless_podman
-  - containers/podman_3rd_party_images
-  - console/coredump_collect
+  #- containers/podman_3rd_party_images
+  #- console/coredump_collect
+vars:
+  TEST_CONTEXT: "OpenQA::Test::RunArgs"

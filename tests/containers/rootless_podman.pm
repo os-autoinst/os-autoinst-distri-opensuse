@@ -31,12 +31,12 @@ use version_utils 'is_sle';
 use containers::runtime;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $runargs) = @_;
     $self->select_serial_terminal;
     my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = containers::runtime::podman->new();
-
+    my $runtime = $runargs->{podman}; # containers::runtime::podman->new();
+    use Data::Dumper; record_info Dumper $runtime;
     install_podman_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => $runtime);
     my $user         = $testapi::username;

@@ -36,11 +36,14 @@ use containers::container_images;
 use containers::runtime;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $runargs) = @_;
     $self->select_serial_terminal;
 
     my $dir    = "/root/DockerTest";
-    my $podman = containers::runtime::podman->new();
+    my $factory = containers::runtime::Factory->new();
+    my $instance = $factory->get_instance(); #containers::runtime::podman->new();
+    $runargs->{podman} = $instance;
+    my $podman = $runargs->{podman};
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_podman_when_needed($host_distri);
