@@ -49,6 +49,7 @@ schedule:
   - microos/one_line_checks
   - microos/services_enabled
   - microos/cockpit_service
+  - transactional/trup_smoke
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr

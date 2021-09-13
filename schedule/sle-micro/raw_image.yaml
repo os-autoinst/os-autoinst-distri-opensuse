@@ -28,6 +28,7 @@ conditional_schedule:
     SLE_MICRO_K3S:
       '1':
         - containers/k3s_cli_check
+
 schedule:
   - '{{boot}}'
   - transactional/host_config
@@ -41,6 +42,7 @@ schedule:
   - microos/one_line_checks
   - microos/services_enabled
   - microos/cockpit_service
+  - transactional/trup_smoke
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr
