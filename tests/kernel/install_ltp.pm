@@ -349,7 +349,7 @@ sub run {
         install_from_repo();
     }
 
-    log_versions;
+    log_versions 1;
 
     zypper_call('in efivar') if is_sle('12+') || is_opensuse;
 

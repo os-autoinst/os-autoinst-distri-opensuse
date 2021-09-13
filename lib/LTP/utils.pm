@@ -90,9 +90,10 @@ sub get_ltp_version_file {
 }
 
 sub log_versions {
-    my $kernel_pkg     = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
-    my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
-    my $ver_linux_log  = '/tmp/ver_linux_before.txt';
+    my $report_missing_config = shift;
+    my $kernel_pkg            = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
+    my $kernel_pkg_log        = '/tmp/kernel-pkg.txt';
+    my $ver_linux_log         = '/tmp/ver_linux_before.txt';
     my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
 
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
@@ -107,17 +108,17 @@ sub log_versions {
         upload_logs($kernel_config, failok => 1);
 
         if ($kernel_config eq '/proc/config.gz') {
-            record_soft_failure 'boo#1189879 missing kernel config in kernel package, use /proc/config.gz';
+            record_soft_failure 'boo#1189879 missing kernel config in kernel package, use /proc/config.gz' if $report_missing_config;
             $cmd .= "zcat $kernel_config";
         } else {
-            if ($kernel_config !~ /^\/boot\/config-/) {
+            if ($report_missing_config && $kernel_config !~ /^\/boot\/config-/) {
                 record_soft_failure 'boo#1189879 missing symlink to /boot, use config in /usr/lib/modules/';
             }
             $cmd .= "cat $kernel_config";
         }
 
         record_info('KERNEL CONFIG', script_output("$cmd"));
-    } else {
+    } elsif ($report_missing_config) {
         record_soft_failure 'boo#1189879 missing kernel config';
     }
 
