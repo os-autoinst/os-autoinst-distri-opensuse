@@ -101,10 +101,10 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
     install_docker_when_needed($host_distri);
     allow_selected_insecure_registries(runtime => 'docker');
-    my $docker    = containers::runtime->new(runtime => 'docker');
-    my $btrfs_dev = '/var/lib/docker';
-    my ($untested_images, $released_images) = get_suse_container_urls();
-    _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
+    my $docker         = containers::runtime->new(runtime => 'docker');
+    my $btrfs_dev      = '/var/lib/docker';
+    my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
+    _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
     _test_btrfs_device_mgmt($docker, $btrfs_dev);
     _test_btrfs_balancing($btrfs_dev);
