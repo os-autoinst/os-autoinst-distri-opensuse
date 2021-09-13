@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
+# Copyright © 2009-2021 Bernhard M. Wiedemann
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -21,6 +21,10 @@ use version_utils qw(is_leap is_storage_ng is_sle is_tumbleweed);
 use partition_setup qw(%partition_roles is_storage_ng_newui);
 
 sub run {
+    if (check_var('SYSTEM_ROLE', 'Common_Criteria')) {
+        assert_screen 'Common-Criteria-Evaluated-Configuration-RN-Next';
+        send_key 'alt-n';
+    }
     assert_screen 'partitioning-edit-proposal-button', 40;
     if (check_var('PARTITION_EDIT', 'ext4_btrfs')) {
         send_key 'alt-g';
