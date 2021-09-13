@@ -59,7 +59,9 @@ sub run {
     # manually start the 'default' network if it is not active
     if (script_run("virsh net-info default |& grep '^Active.*no'") == 0) {
         record_soft_failure 'bsc#1123699';
-        record_info("start default network", "libvirtd did not start the network by default");
+        record_info("start default network", "libvirtd did not start the
+            network by default. See
+            https://bugzilla.opensuse.org/show_bug.cgi?id=1123699");
         assert_script_run("virsh net-start default");
     }
     send_key 'ret';
