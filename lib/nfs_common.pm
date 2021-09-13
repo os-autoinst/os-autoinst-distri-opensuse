@@ -154,7 +154,7 @@ sub client_common_tests {
     assert_script_run "rm /tmp/nfs/client/symlinkedfile";
 
     # Copy large file from NFS and test it's checksum
-    assert_script_run "time cp /tmp/nfs/client/random /var/tmp/", 120;
+    assert_script_run "time cp /tmp/nfs/client/random /var/tmp/", 300;
     assert_script_run "md5sum /var/tmp/random | cut -d' ' -f1 > /var/tmp/random.md5sum";
     assert_script_run "diff /tmp/nfs/client/random.md5sum /var/tmp/random.md5sum";
 }
