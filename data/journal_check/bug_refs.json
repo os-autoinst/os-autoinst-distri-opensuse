@@ -119,6 +119,13 @@
         },
         "type": "bug"
     },
+    "bsc#1190401": {
+        "description": "Lines of type 'g' don't take a GECOS field",
+        "products": {
+            "sle-micro": [ "5.1" ]
+        },
+        "type": "bug"
+    },
     "bsc#1182961": {
         "description": "could not read from '/sys/module/pcc_pufreq/initstate': No such device",
         "products": {
