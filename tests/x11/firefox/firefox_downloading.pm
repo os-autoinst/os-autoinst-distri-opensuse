@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
+# Copyright © 2012-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -88,9 +88,11 @@ sub dl_resume {
 }
 
 sub dl_menu {
-    wait_still_screen 3,                                   6;
-    send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
-    wait_still_screen 3,                                   6;
+    # sometimes menu does close due high load or some worker hickup, check & open menu again if not present
+    for (1 .. 2) {
+        wait_still_screen 3, 6;
+        send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
+    }
 }
 
 sub run {
