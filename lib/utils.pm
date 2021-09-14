@@ -23,7 +23,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use version_utils qw(is_microos is_sle_micro is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -1693,12 +1693,12 @@ sub create_btrfs_subvolume {
     assert_script_run("rm -fr /tmp/arm64-efi/");
 }
 
-=head2 create_raid_loop_device 
-    
+=head2 create_raid_loop_device
+
  create_raid_loop_device([raid_type => $raid_type], [device_num => $device_num], [file_size => $file_size]);
 
 Create a raid array over loop devices.
-Raid type is C<$raid_type>, using C<$device_num> number of loop device, 
+Raid type is C<$raid_type>, using C<$device_num> number of loop device,
 with the size of each device being C<$file_size> megabytes.
 
 Example to create a RAID C<5> array over C<3> loop devices, C<200> Mb each:
@@ -1828,8 +1828,12 @@ This functions checks if ca-certificates-suse is installed and if it is not it a
 =cut
 
 sub ensure_ca_certificates_suse_installed {
-    return unless is_sle;
-    if (script_run('rpm -qi ca-certificates-suse') == 1) {
+    return unless (is_sle || is_sle_micro);
+    if (is_sle_micro) {
+        assert_script_run 'curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt';
+        assert_script_run 'update-ca-certificates -v';
+    }
+    elsif (script_run('rpm -qi ca-certificates-suse') == 1) {
         my $host_version = get_var("HOST_VERSION") ? 'HOST_VERSION' : 'VERSION';
         my $distversion  = get_required_var($host_version) =~ s/-SP/_SP/r;         # 15 -> 15, 15-SP1 -> 15_SP1
         zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");

@@ -1,0 +1,32 @@
+name:           sle_micro_live_patching
+description:    >
+    Maintainer: qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+    Live patching tests using autoyast installation
+conditional_schedule:
+  maintenance:
+    FLAVOR:
+      'DVD-Updates':
+        - transactional/install_updates
+  host_config:
+    ARCH:
+      's390x':
+        - transactional/host_config
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - transactional/enable_selinux
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/logs
+  - console/textinfo
+  - '{{host_config}}'
+  - '{{maintenance}}'
+  - '{{selinux}}'
+  - microos/live_patching
+  - console/journal_check
+  - shutdown/shutdown
