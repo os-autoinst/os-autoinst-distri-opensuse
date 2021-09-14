@@ -28,7 +28,7 @@ sub run {
 
     if (get_var('VERSION') ne $upgrade_target_version) {
         # Switch to upgrade target version and reload needles
-        set_var('VERSION', $upgrade_target_version, reload_needles => 1);
+        set_var('VERSION', $upgrade_target_version);
     }
 
     # Reset vars for upgrade on zVM
