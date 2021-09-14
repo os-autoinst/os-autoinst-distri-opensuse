@@ -52,6 +52,7 @@ sub load_feature_tests {
     loadtest 'microos/image_checks' if is_image_flavor;
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
+    loadtest 'transactional/trup_smoke';
     load_transactional_role_tests;
     loadtest 'microos/cockpit_service' unless is_staging;
     loadtest 'console/journal_check';
