@@ -96,7 +96,6 @@ our @EXPORT = qw(
   load_system_update_tests
   loadtest
   load_testdir
-  load_toolchain_tests
   load_virtualization_tests
   load_x11tests
   load_hypervisor_tests
@@ -2799,14 +2798,6 @@ sub load_extra_tests_syscontainer {
     loadtest 'virtualization/syscontainer_image_test';
 }
 
-sub load_toolchain_tests {
-    loadtest "console/force_scheduled_tasks";
-    loadtest "toolchain/install";
-    loadtest "toolchain/gcc_fortran_compilation";
-    loadtest "toolchain/gcc_compilation";
-    loadtest "console/kdump_and_crash" if is_sle && kdump_is_applicable;
-}
-
 sub load_extra_tests_kernel {
     loadtest "kernel/module_build";
     loadtest "kernel/tuned";
@@ -2915,7 +2906,6 @@ sub load_common_opensuse_sle_tests {
     load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
     loadtest "terraform/create_image"   if get_var('TERRAFORM');
     load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
-    load_toolchain_tests                if get_var("TCM")         || check_var("ADDONS", "tcm");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
