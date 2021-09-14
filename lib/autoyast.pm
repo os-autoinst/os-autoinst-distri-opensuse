@@ -740,6 +740,11 @@ sub test_ayp_url {
         # replace default qemu gateway by loopback
         $ayp_url =~ s/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/localhost/;
 
+        # if the $ayp_url ends with a / we use the rules_and_classes approach
+        # that means we should test for rules/rules.xml because retrieving
+        # the directory will end up in a 404.
+        $ayp_url =~ s/\/$/\/rules\/rules.xml/;
+
         if (head($ayp_url)) {
             record_info("ayp url ok", "Autoyast profile url $ayp_url is reachable from the worker");
         } else {
