@@ -28,6 +28,7 @@ use utils;
 use strict;
 use Data::Dumper;
 use warnings;
+use registration;
 
 my @diffpkg;
 
@@ -89,10 +90,14 @@ sub full_pkgcompare_check {
     my $stage = $hash{stage};
 
     if ($stage eq 'before') {
+        # It need python2 module to compare packages
+        add_suseconnect_product("sle-module-python2", undef, undef, undef, 300, 1) if (get_var('DROPPED_MODULES', '') =~ /python2/);
         list_pkg("orignalq1w2.txt");
         install_pkg();
         list_pkg("installe3r4.txt");
         compare_pkg("/tmp/orignalq1w2.txt", "/tmp/installe3r4.txt");
+        # De-register python2 module again
+        remove_suseconnect_product('sle-module-python2') if (get_var('DROPPED_MODULES', '') =~ /python2/);
     }
     else {
         check_pkg;
