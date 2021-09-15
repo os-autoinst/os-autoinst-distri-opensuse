@@ -8,7 +8,8 @@
 # without any warranty.
 
 # Package: openssh
-# Summary: This tests will deploy the public cloud instance and prepare the ssh
+# Summary: This tests will deploy the public cloud instance, create user,
+#   prepare ssh config and permit password login
 #
 # Maintainer: <qa-c@suse.de>
 
@@ -17,27 +18,12 @@ use publiccloud::utils "select_host_console";
 use testapi;
 use utils;
 
-sub run {
-    my ($self, $args) = @_;
+sub prepare_ssh_tunnel {
+    my $instance = shift;
 
-    # If someone schedules a publiccloud run with a custom SCHEDULE this causes
-    # the test to break, because we need to pass $args, so dying earlier and with clear message about root cause
-    die('Note: Running publiccloud with a custom SCHEDULE is not supported') if (!defined $args);
-
-    select_host_console();    # select console on the host, not the PC instance
-
-    # Create public cloud instance
-    my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance(check_connectivity => 1);
-    $instance->wait_for_guestregister();
-    $args->{my_provider} = $provider;
-    $args->{my_instance} = $instance;
-
-    # configure ssh client, fetch the instance ssh public key, do not use default $instance->ssh_opts
+    # configure ssh client
     my $ssh_config_url = data_url('publiccloud/ssh_config');
     assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
-    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
-    $instance->ssh_opts("");
 
     # Create the ssh alias
     assert_script_run(sprintf(q(echo -e 'Host sut\n  Hostname %s' >> ~/.ssh/config), $instance->public_ip));
@@ -47,9 +33,7 @@ sub run {
     assert_script_run("install -o $testapi::username -g users -m 0600 ~/.ssh/* /home/$testapi::username/.ssh/");
 
     # Skip setting root password for img_proof, because it expects the root password to NOT be set
-    unless (get_var('PUBLIC_CLOUD_QAM') && get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
-        $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
-    }
+    $instance->run_ssh_command(qq(echo -e "$testapi::password\\n$testapi::password" | sudo passwd root));
 
     # Permit root passwordless login over SSH
     $instance->run_ssh_command('sudo sed -i "s/PermitRootLogin no/PermitRootLogin prohibit-password/g" /etc/ssh/sshd_config');
@@ -70,7 +54,30 @@ sub run {
     # Create log file for ssh tunnel
     my $ssh_sut = '/var/tmp/ssh_sut.log';
     assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+}
 
+sub run {
+    my ($self, $args) = @_;
+
+    # If someone schedules a publiccloud run with a custom SCHEDULE this causes
+    # the test to break, because we need to pass $args, so dying earlier and with clear message about root cause
+    die('Note: Running publiccloud with a custom SCHEDULE is not supported') if (!defined $args);
+
+    select_host_console();    # select console on the host, not the PC instance
+
+    # Create public cloud instance
+    my $provider = $self->provider_factory();
+    my $instance = $provider->create_instance(check_connectivity => 1);
+    $instance->wait_for_guestregister();
+    $args->{my_provider} = $provider;
+    $args->{my_instance} = $instance;
+
+    # fetch the instance ssh public key, do not use default $instance->ssh_opts
+    assert_script_run(sprintf('ssh-keyscan %s >> ~/.ssh/known_hosts', $instance->public_ip));
+    $instance->ssh_opts("");
+
+    # ssh-tunnel settings
+    prepare_ssh_tunnel($instance) if (get_var('TUNNELED'));
 }
 
 sub test_flags {
