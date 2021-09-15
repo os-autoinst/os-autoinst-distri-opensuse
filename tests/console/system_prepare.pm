@@ -25,6 +25,7 @@ use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
 use services::registered_addons 'full_registered_check';
+use List::MoreUtils 'uniq';
 use strict;
 use warnings;
 
@@ -44,7 +45,7 @@ sub run {
     }
 
     # Register the modules after media migration, so it can do regession
-    if (get_var('SCC_ADDONS') && get_var('MEDIA_UPGRADE') && (get_var('FLAVOR') =~ /Regression/)) {
+    if (get_var('MEDIA_UPGRADE') && get_var('DO_REGISTRY')) {
         add_suseconnect_product(uc get_var('SLE_PRODUCT'), undef, undef, "-r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 300, 1);
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
             add_suseconnect_product(get_addon_fullname('base'),      undef, undef, undef, 300, 1);
@@ -55,9 +56,17 @@ sub run {
             add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef,                             300, 1);
             add_suseconnect_product(get_addon_fullname('we'),      undef, undef, "-r " . get_var('SCC_REGCODE_WE'), 300, 1);
         }
-        my $myaddons = get_var('SCC_ADDONS');
+        my $myaddons = get_var('SCC_ADDONS', '');
+        $myaddons .= "dev,lgm,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+
+        # For hpc, system doesn't include legacy module
+        $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
+        $myaddons =~ s/sdk/dev/g;
         if ($myaddons ne '') {
-            register_addons_cmd($myaddons);
+            my @my_addons     = grep { defined $_ && $_ } split(/,/, $myaddons);
+            my @unique_addons = uniq @my_addons;
+            my $addons        = join(",", @unique_addons);
+            register_addons_cmd($addons);
         }
     }
 
