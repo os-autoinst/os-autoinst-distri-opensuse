@@ -111,9 +111,11 @@ sub run {
 
     # Create some directories, ipa will need them
     assert_script_run("img-proof list");
-    record_info('img-proof', script_output('img-proof --version'));
-    my $terraform_version = '0.14.1';
+    my $img_proof_ver = script_output('img-proof --version');
+    record_info('img-proof', $img_proof_ver);
+    set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
 
+    my $terraform_version = '0.14.1';
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
 #!/bin/sh
