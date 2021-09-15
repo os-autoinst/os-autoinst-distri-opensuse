@@ -60,7 +60,7 @@ sub parse_logs {
             }
         }
     }
-    $dom->toFile('result.xml', 1);
+    $dom->toFile(hashed_string('result.xml'), 1);
     # Download file from host pool to the instance
     assert_script_run('curl ' . autoinst_url('/files/result.xml') . ' -o /tmp/result.txt');
     parse_extra_log('XUnit', '/tmp/result.txt');
@@ -91,7 +91,7 @@ sub run {
     }
 
     record_info('Install', 'Install needed packages');
-    zypper_call('--quiet in git-core python39', timeout => 600);
+    zypper_call('--quiet in git-core python39 python39-devel gcc', timeout => 600);
     assert_script_run('pip3.9 --quiet install tox pytest', timeout => 600);
 
     record_info('Clone', 'Clone BCI tests repository');
