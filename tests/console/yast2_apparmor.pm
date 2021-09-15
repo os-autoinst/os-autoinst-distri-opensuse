@@ -73,7 +73,7 @@ sub run {
         send_key 'alt-l';
     }
 
-    assert_screen([qw(yast2_apparmor_disabled yast2_apparmor_enabled)]);
+    assert_screen([qw(yast2_apparmor_disabled yast2_apparmor_enabled)], 90);
     if (match_has_tag 'yast2_apparmor_disabled') {
         send_key 'alt-e';
         assert_screen 'yast2_apparmor_enabled';
