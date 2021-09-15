@@ -16,7 +16,7 @@ schedule:
   - installation/validate_no_self_update
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/module_selection/select_module_desktop
+  - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
   - installation/system_role
   - installation/partitioning/accept_proposed_layout

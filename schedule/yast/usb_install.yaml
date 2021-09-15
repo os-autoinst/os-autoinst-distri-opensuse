@@ -13,8 +13,7 @@ schedule:
   - installation/product_selection/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/registration/skip_registration
-  - installation/addon_products_sle
+  - "{{registration_addons}}"
   - installation/system_role
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
@@ -36,3 +35,13 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/enable_usb_repo
   - console/zypper_lr
+conditional_schedule:
+  registration_addons:
+    FLAVOR:
+      Online:
+        - installation/registration/register_via_scc
+        - installation/module_selection/skip_module_selection
+        - installation/add_on_product/skip_install_addons
+      Full:
+        - installation/registration/skip_registration
+        - installation/addon_products_sle
