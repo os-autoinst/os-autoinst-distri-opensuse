@@ -16,8 +16,9 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
 use Data::Dumper;
-use Mojo::JSON 'decode_json';
+use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
+use mmapi;
 
 use constant TERRAFORM_DIR     => '/root/terraform';
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -360,8 +361,7 @@ sub terraform_apply {
         # Some auxiliary variables, requires for fine control and public cloud provider specifics
         for my $key (keys %{$args{vars}}) {
             my $value = $args{vars}->{$key};
-            $value =~ s/'/'"'"'/;    # ensure values are escaped properly
-            $cmd .= sprintf(q(-var '%s=%s' ), $key, $value);
+            $cmd .= sprintf(q(-var '%s=%s' ), $key, escape_single_quote($value));
         }
         $cmd .= "-var 'image_id=" . $image . "' " if ($image);
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
@@ -370,7 +370,7 @@ sub terraform_apply {
         $cmd .= "-var 'name=" . $name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
         $cmd .= "-var 'enable_confidential_vm=true' "    if $args{confidential_compute};
-        $cmd .= sprintf(q(-var 'tags={"openqa_ttl":"%d"}' ), get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300));
+        $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
             $cmd .= "-var 'extra-disk-size=" . $args{use_extra_disk}->{size} . "' " if $args{use_extra_disk}->{size};
@@ -464,6 +464,29 @@ sub terraform_destroy {
         $self->on_terraform_destroy_timeout();
     }
     record_info('ERROR', 'Terraform exited with ' . $ret, result => 'fail') if ($ret != 0);
+}
+
+=head2 terraform_param_tags
+
+Build the tags parameter for terraform. It is a single depth json like 
+c<{"key": "value"}> where c<value> must be a string.
+=cut
+sub terraform_param_tags
+{
+    my ($self) = @_;
+    my $tags = {
+        openqa_ttl        => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
+        openqa_var_JOB_ID => get_current_job_id(),
+        openqa_var_NAME   => get_var(NAME => '')
+    };
+
+    return encode_json($tags);
+}
+
+sub escape_single_quote {
+    my $s = shift;
+    $s =~ s/'/'"'"'/g;
+    return $s;
 }
 
 =head2 __vault_login
