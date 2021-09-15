@@ -65,7 +65,6 @@ sub build_and_run_image {
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
     assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
 
-    # Build the image
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
     $builder->build($dir . "/BuildTest", "myapp", timeout => 600);
     my $imgs = $builder->get_images_by_repo_name();
@@ -79,17 +78,11 @@ sub build_and_run_image {
 
     # Test that we can execute programs in the container and test container's variables
     assert_script_run("$runtime->{runtime} run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-
-    # Run the container with port 80 exported as port 8888
     assert_script_run("$runtime->{runtime} run -dit -p 8888:80 myapp");
-
-    # Make sure our container is running
     script_retry("$runtime->{runtime} ps -a | grep myapp", delay => 5, retry => 3);
 
     # Test that the exported port is reachable
     script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
-
-    # Clean up
     assert_script_run("$runtime->{runtime} stop `$runtime->{runtime} ps -q`");
 }
 
@@ -171,6 +164,8 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion    = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
+            # TODO: implement
+            # $out = $runtime->read($image, cmd => "grep PRETTY_NAME /etc/os-release | cut -d= -f2");
             if ($runtime->runtime =~ /buildah/) {
                 validate_script_output("$runtime->{runtime} run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
                     sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
@@ -182,15 +177,9 @@ sub test_opensuse_based_image {
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
             my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-            if ($runtime->runtime =~ /buildah/) {
-                assert_script_run "$runtime->{runtime} run -t $image -- $plugin -v";
-                script_run "$runtime->{runtime} run -t $image -- $plugin lp", 420;
-                script_run "$runtime->{runtime} run -t $image -- $plugin lm", 420;
-            } else {
-                assert_script_run "$runtime->{runtime} container run --entrypoint '/bin/bash' --rm $image -c '$plugin -v'";
-                script_run "$runtime->{runtime} container run --entrypoint '/bin/bash' --rm $image -c '$plugin lp'", 420;
-                script_run "$runtime->{runtime} container run --entrypoint '/bin/bash' --rm $image -c '$plugin lm'", 420;
-            }
+            $runtime->up($image, cmd => "$plugin -v", keep_container => 1);
+            $runtime->up($image, cmd => "$plugin lp", keep_container => 1, timeout => 420);
+            $runtime->up($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
         }
@@ -248,14 +237,8 @@ sub test_zypper_on_container {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    # zypper lr
     $runtime->up($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
-
-    # if ($runtime->runtime =~ /buildah/) {
-    # 	$runtime->up($image, cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
-    # } else {
     $runtime->up($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
-    # }
     unless ($runtime->runtime eq 'buildah') {
         $runtime->commit('refreshed', "refreshed-image", timeout => 120);
         $runtime->remove_container('refreshed');
