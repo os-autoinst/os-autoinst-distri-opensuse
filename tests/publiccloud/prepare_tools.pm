@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -11,7 +11,7 @@
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -122,6 +122,16 @@ EOT
 
     create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
     record_info('Terraform', script_output('terraform -version'));
+
+    # Kubectl in a container
+    my $kubectl_version = '1.22';
+    my $kubectl_wrapper = <<EOT;
+#!/bin/sh
+podman run -v /root/:/root/ --rm bitnami/kubectl:$kubectl_version \$@
+EOT
+
+    create_script_file('kubectl', '/usr/bin/kubectl', $kubectl_wrapper);
+    record_info('kubectl', script_output('kubectl version --client=true'));
 
     select_console 'root-console';
 }
