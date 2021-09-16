@@ -3,9 +3,15 @@ description:    >
   Installation where we modify some pre-existing partitions. Must depend on some create_hdd test suite.
 vars:
   YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - '{{access_beta_distribution}}'
   - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode

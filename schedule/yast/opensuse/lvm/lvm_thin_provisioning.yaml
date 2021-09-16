@@ -11,6 +11,7 @@ schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
+  - '{{access_beta_distribution}}'
   - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
@@ -49,3 +50,7 @@ conditional_schedule:
     VERSION:
       Tumbleweed:
         - installation/opensuse_welcome
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
