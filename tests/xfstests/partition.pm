@@ -146,13 +146,14 @@ sub do_partition_for_xfstests {
     }
     # Sync
     script_run('sync');
+    return $para{size} . 'M';
 }
 
 # Create loop device by giving inputs
 # only available when enable XFSTESTS_LOOP_DEVICE in openQA
 # Inputs explain
 # $filesystem: filesystem type
-# $size: Size of each partition size for TEST_DEV and SCRATCH_DEV. Default: 5120
+# $size: Size of free space of the rootfs. The size of each TEST_DEV or SCRATCH_DEV is split 90% of $size equally.
 sub create_loop_device_by_rootsize {
     my $ref    = shift;
     my %para   = %{$ref};
@@ -208,11 +209,32 @@ sub create_loop_device_by_rootsize {
     }
     # Sync
     script_run('sync');
+    return $size . 'M';
 }
 
 sub set_config {
     my $self = shift;
     script_run("echo 'export KEEP_DMESG=yes' >> $CONFIG_FILE");
+}
+
+sub post_env_info {
+    my $size = shift;
+    # record version info
+    my $ver_log = get_var('VERSION_LOG', '/opt/version.log');
+    record_info('Version', script_output("cat $ver_log"));
+
+    # record partition size info
+    my $size_info = get_var('XFSTESTS_TEST_DEV') . "    $size\n";
+    if (my $scratch_dev = get_var("XFSTESTS_SCRATCH_DEV")) {
+        $size_info = $size_info . $scratch_dev . "    $size\n";
+    }
+    else {
+        my @scratch_dev_pool = split(/ /, get_var("XFSTESTS_SCRATCH_DEV_POOL"));
+        foreach (@scratch_dev_pool) {
+            $size_info = $size_info . $_ . "    $size\n";
+        }
+    }
+    record_info('Size', $size_info);
 }
 
 sub run {
@@ -230,14 +252,14 @@ sub run {
         assert_script_run("parted $device --script -- mklabel gpt");
         $para{fstype} = $filesystem;
         $para{dev}    = $device;
-        do_partition_for_xfstests(\%para);
+        post_env_info(do_partition_for_xfstests(\%para));
     }
     else {
         if ($loopdev) {
             $para{fstype} = $filesystem;
             $para{size}   = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
             $para{size}   = str_to_mb($para{size});
-            create_loop_device_by_rootsize(\%para);
+            post_env_info(create_loop_device_by_rootsize(\%para));
         }
         else {
             my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");
@@ -246,7 +268,7 @@ sub run {
             $para{amount}  = $size_num{num};
             $para{size}    = $size_num{size};
             $para{delhome} = 1;
-            do_partition_for_xfstests(\%para);
+            post_env_info(do_partition_for_xfstests(\%para));
         }
     }
     set_config;
