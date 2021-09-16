@@ -23,4 +23,10 @@ sub click {
     return $self->action(action => YuiRestClient::Action::YUI_PRESS);
 }
 
+sub is_enabled {
+    my ($self) = @_;
+    my $is_enabled = $self->property('enabled');
+    return !defined $is_enabled || $is_enabled;
+}
+
 1;
