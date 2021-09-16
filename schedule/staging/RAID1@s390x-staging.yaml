@@ -1,5 +1,5 @@
 ---
-name:           RAID1@64bit-staging
+name:           RAID1_s390x@s390x-staging
 description:    >
   Test for RAID1
   Installation of RAID1 using expert partitioner.
@@ -29,7 +29,7 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/hostname
   - console/system_prepare
@@ -37,7 +37,7 @@ schedule:
   - shutdown/grub_set_bootargs
   - console/validate_raid
 test_data:
-  <<: !include test_data/yast/raid/raid_gpt_disks_with_bios-boot.yaml
+  <<: !include test_data/yast/raid/raid_disks_boot_zipl.yaml
   mds:
     - raid_level: 1
       chunk_size: '64 KiB'

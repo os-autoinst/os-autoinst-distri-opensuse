@@ -1,5 +1,5 @@
 ---
-name:           cryptlvm_minimal_x@64bit-staging
+name:           cryptlvm_minimal_x@s390x-staging
 description:    >
   Combination of "cryptlvm" and "minimal_x" for 64bit and staging.
   (crypt-)LVM installations can take longer,
@@ -8,6 +8,7 @@ vars:
   ENCRYPT: 1
   LVM: 1
   MAX_JOB_TIME: 14400
+  SCC_ADDONS: sdk
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -31,8 +32,8 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
   - installation/boot_encrypt
+  - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/check_network
@@ -44,7 +45,8 @@ schedule:
   - console/textinfo
   - console/hostname
   - console/installation_snapshots
-  - console/x_vt
+# Disabling module till issue#98478 is resolved
+#  - console/x_vt
   - console/zypper_lr
   - console/zypper_ref
   - console/ncurses
@@ -59,4 +61,5 @@ schedule:
   - console/ssh_cleanup
   - console/mtab
   - console/orphaned_packages_check
-  - console/consoletest_finish
+# Disabling module till issue#98556 is resolved
+#  - console/consoletest_finish
