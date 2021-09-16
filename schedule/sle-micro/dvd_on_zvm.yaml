@@ -1,0 +1,40 @@
+name:           sle_micro_dvd_zvm
+description:    >
+    Maintainer: qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  maintenance:
+    FLAVOR:
+      'DVD-Updates':
+        - transactional/install_updates
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - installation/enable_selinux
+
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/accept_license
+  - installation/disk_activation
+  - installation/scc_registration
+  - installation/ntp_config_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - '{{selinux}}'
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/textinfo
+  - '{{maintenance}}'
+  - microos/networking
+  - microos/libzypp_config
+  - microos/one_line_checks
+  - microos/services_enabled
+  - console/journal_check
+  - shutdown/shutdown
