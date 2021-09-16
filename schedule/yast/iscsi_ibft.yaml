@@ -12,7 +12,7 @@ schedule:
   - installation/isosize
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/product_selection/access_beta_distribution
+  - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/iscsi_configuration
