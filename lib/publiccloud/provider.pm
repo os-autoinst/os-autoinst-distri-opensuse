@@ -43,8 +43,9 @@ sub init {
     my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
     assert_script_run('mkdir -p ' . TERRAFORM_DIR);
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $git_repo   = get_var('ha-sap-terraform-deployments');
         my $cloud_name = $self->conv_openqa_tf_name;
+        # Disable SSL verification only if explicitly asked!
+        assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
         assert_script_run('cd');    # We need to ensure to be in the home directory
