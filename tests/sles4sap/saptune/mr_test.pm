@@ -85,14 +85,14 @@ sub test_bsc1152598 {
     my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
 
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
-    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=none, foobar\n" > /etc/saptune/extra/scheduler-test.conf';
-    assert_script_run "saptune note apply scheduler-test";
+    assert_script_run '[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=noop, none, foobar\n" > /etc/saptune/extra/scheduler_test.conf';
+    assert_script_run "saptune note apply scheduler_test";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1";
-    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, none\n" > /etc/saptune/extra/scheduler-test.conf';
-    assert_script_run 'saptune note apply scheduler-test';
-    assert_script_run "fgrep -q '[none]' /sys/block/sda/queue/scheduler";
+    assert_script_run 'echo -e "[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n" > /etc/saptune/extra/scheduler_test.conf';
+    assert_script_run 'saptune note apply scheduler_test';
+    assert_script_run "egrep -q '\[(noop|none)\]' /sys/block/sda/queue/scheduler";
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2";
     assert_script_run "saptune revert all";
 }
@@ -119,7 +119,7 @@ sub test_delete {
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_2";
 
     # (applied, override)
-    assert_script_run "EDITOR=/bin/echo saptune note customise ${note}";
+    assert_script_run "> /etc/saptune/override/${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_3";
     assert_script_run "saptune note delete ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_3";
@@ -127,9 +127,9 @@ sub test_delete {
     # (not applied, override)
     assert_script_run "saptune note revert ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_4";
-    assert_script_run "echo n | saptune note delete ${note}";
+    assert_script_run "yes n | saptune note delete ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_4";
-    assert_script_run "echo y | saptune note delete ${note}";
+    assert_script_run "yes | saptune note delete ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_1";
 
     ### Deleting a created Note (without override/with override + not applied/applied)
@@ -138,14 +138,14 @@ sub test_delete {
 
     # (applied, no override)
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_1";
-    assert_script_run "EDITOR=/bin/echo saptune note create testnote";
+    assert_script_run "> /etc/saptune/extra/testnote.conf";
     assert_script_run "saptune note apply testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_2";
     assert_script_run "saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_2";
 
     # (applied, override)
-    assert_script_run "EDITOR=/bin/echo saptune note customise testnote";
+    assert_script_run "> /etc/saptune/override/testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_3";
     assert_script_run "saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_3";
@@ -153,17 +153,17 @@ sub test_delete {
     # (not applied, override)
     assert_script_run "saptune note revert testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_4";
-    assert_script_run "echo n | saptune note delete testnote";
+    assert_script_run "yes n | saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_4";
-    assert_script_run "echo y | saptune note delete testnote";
+    assert_script_run "yes | saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_1";
 
     # (not-applied, no override)
-    assert_script_run "EDITOR=/bin/echo saptune note create testnote";
+    assert_script_run "> /etc/saptune/extra/testnote.conf";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_5";
-    assert_script_run "echo n | saptune note delete testnote";
+    assert_script_run "yes n | saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_5";
-    assert_script_run "echo y | saptune note delete testnote";
+    assert_script_run "yes | saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_1";
 
     ### Deleting a non-existent Note
@@ -200,7 +200,7 @@ sub test_rename {
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#1_2";
 
     # (applied, override)
-    assert_script_run "EDITOR=/bin/echo saptune note customise ${note}";
+    assert_script_run "> /etc/saptune/override/${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#1_3";
     assert_script_run "! saptune note rename ${note} newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#1_3";
@@ -217,14 +217,14 @@ sub test_rename {
 
     # (applied, no override)
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_1";
-    assert_script_run "EDITOR=/bin/echo saptune note create testnote";
+    assert_script_run "> /etc/saptune/extra/testnote.conf";
     assert_script_run "saptune note apply testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_2";
     assert_script_run "saptune note rename testnote newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_2";
 
     # (applied, override)
-    assert_script_run "EDITOR=/bin/echo saptune note customise testnote";
+    assert_script_run "> /etc/saptune/override/testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_3";
     assert_script_run "saptune note rename testnote newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_3";
@@ -232,24 +232,24 @@ sub test_rename {
     # (not applied, override)
     assert_script_run "saptune note revert testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_4";
-    assert_script_run "echo n | saptune note rename testnote newnote";
+    assert_script_run "yes n | saptune note rename testnote newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_4";
-    assert_script_run "echo y | saptune note rename testnote newnote";
+    assert_script_run "yes | saptune note rename testnote newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_5";
 
     # (not-applied, no override)
     assert_script_run "rm /etc/saptune/override/newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_6";
-    assert_script_run "echo n | saptune note rename newnote testnote";
+    assert_script_run "yes n | saptune note rename newnote testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_6";
-    assert_script_run "echo y | saptune note rename newnote testnote";
+    assert_script_run "yes | saptune note rename newnote testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_7";
 
     ### Renaming a created Note to an existing note (not applied)
 
     assert_script_run "rm -f /etc/saptune/extra/* /etc/saptune/override/*";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#3_1";
-    assert_script_run "EDITOR=/bin/echo saptune note create testnote";
+    assert_script_run "> /etc/saptune/extra/testnote.conf;
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#3_2";
     assert_script_run "! saptune note rename testnote ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#3_2";
