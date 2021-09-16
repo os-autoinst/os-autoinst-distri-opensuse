@@ -27,7 +27,7 @@ use Tomcat::Utils;
 use Tomcat::ModjkTest;
 use utils;
 use version_utils 'is_sle';
-use x11utils 'ensure_unlocked_desktop';
+use x11utils qw(turn_off_screensaver);
 
 sub run() {
 
@@ -39,6 +39,7 @@ sub run() {
     $self->switch_to_desktop();
 
     # start firefox
+    $self->turn_off_screensaver();
     $self->start_firefox_with_profile();
 
     # check that the tomcat web service works
@@ -62,8 +63,6 @@ sub run() {
     record_info('WebSocket Testing');
     my $websocket_test = Tomcat::WebSocketsTest->new();
     $websocket_test->test_all_examples();
-
-    assert_screen('generic-desktop');
 
     # Install and configure apache2 and apache2-mod_jk connector
     Tomcat::ModjkTest->mod_jk_setup();
@@ -109,7 +108,6 @@ sub switch_to_desktop {
     # switch to desktop
     if (!check_var('DESKTOP', 'textmode')) {
         select_console('x11', await_console => 0);
-        ensure_unlocked_desktop;
     }
 }
 
