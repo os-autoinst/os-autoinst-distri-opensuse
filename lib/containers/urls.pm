@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
+# Copyright © 2018 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Database for URLs of container images to be tested
-# Maintainer: Fabian Vogt <fvogt@suse.com>, qa-c team <qa-c@suse.de>
+# Maintainer: Fabian Vogt <fvogt@suse.com>
 
 package containers::urls;
 
@@ -52,207 +52,64 @@ sub get_opensuse_registry_prefix {
     }
 }
 
-our %images_uri = (
-    sle => {
-        '12-SP3' => {
-            released => sub { 'registry.suse.com/suse/sles12sp3' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-12-sp3/docker/update/cr/totest/images/suse/sles12sp3';
-            },
-            available_arch => ['x86_64', 'ppc64le', 's390x']
-        },
-        '12-SP4' => {
-            released => sub { 'registry.suse.com/suse/sles12sp4' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-12-sp4/docker/update/cr/totest/images/suse/sles12sp4';
-            },
-            available_arch => ['x86_64', 'ppc64le', 's390x']
-        },
-        '12-SP5' => {
-            released => sub { 'registry.suse.com/suse/sles12sp5' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-12-sp5/docker/update/cr/totest/images/suse/sles12sp5';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15' => {
-            released => sub { 'registry.suse.com/suse/sle15:15.0' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-15/update/cr/totest/images/suse/sle15:15.0';
-            },
-            available_arch => ['x86_64', 'ppc64le', 's390x']
-        },
-        '15-SP1' => {
-            released => sub { 'registry.suse.com/suse/sle15:15.1' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-15-sp1/update/cr/totest/images/suse/sle15:15.1';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15-SP2' => {
-            released => sub { 'registry.suse.com/suse/sle15:15.2' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-15-sp2/update/cr/totest/images/suse/sle15:15.2';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15-SP3' => {
-            released => sub { 'registry.suse.com/suse/sle15:15.3' },
-            totest   => sub {
-                'registry.suse.de/suse/sle-15-sp3/update/cr/totest/images/suse/sle15:15.3';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15-SP4' => {
-            released => sub { },
-            totest   => sub {
-                'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4 ';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        }
-    },
-    opensuse => {
-        Tumbleweed => {
-            released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
-            totest   => sub {
-                'registry.opensuse.org/' . get_opensuse_registry_prefix . 'opensuse/tumbleweed';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
-        },
-        '15.0' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.0' },
-            totest   => sub {
-                'registry.opensuse.org/opensuse/leap/15.0/images/totest/images/opensuse/leap:15.0';
-            },
-            available_arch => ['x86_64']
-        },
-        '15.1' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.1' },
-            totest   => sub {
-                my $arch = shift;
-                if ($arch eq 'x86_64') {
-                    'registry.opensuse.org/opensuse/leap/15.1/images/totest/containers/opensuse/leap:15.1';
-                } elsif ($arch eq 'arm') {
-                    'registry.opensuse.org/opensuse/leap/15.1/arm/images/totest/containers/opensuse/leap:15.1';
-                }
-            },
-            available_arch => ['x86_64', 'arm']
-        },
-        '15.2' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.2' },
-            totest   => sub {
-                my $arch = shift;
-                if ($arch eq 'x86_64') {
-                    'registry.opensuse.org/opensuse/leap/15.2/images/totest/containers/opensuse/leap:15.2';
-                } elsif ($arch eq 'arm') {
-                    'registry.opensuse.org/opensuse/leap/15.2/arm/images/totest/containers/opensuse/leap:15.2';
-                }
-            },
-            available_arch => ['x86_64', 'arm']
-        },
-        '15.3' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.3' },
-            totest   => sub {
-                my $arch = shift;
-                if (grep { $_ eq $arch } qw/x86_64 aarch64 ppc64le s390x/) {
-                    'registry.opensuse.org/opensuse/leap/15.3/images/totest/containers/opensuse/leap:15.3';
-                } elsif ($arch eq 'arm') {
-                    'registry.opensuse.org/opensuse/leap/15.3/arm/images/totest/containers/opensuse/leap:15.3';
-                }
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
-        }
-    },
-    'sle-micro' => {
-        '15' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.0' },
-            totest         => sub { },
-            available_arch => ['x86_64', 'ppc64le', 's390x']
-        },
-        '15-SP1' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.1' },
-            totest         => sub { },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15-SP2' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.2' },
-            totest         => sub { },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15-SP3' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.3' },
-            totest         => sub { },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        }
-    },
-    microos => {
-        Tumbleweed => {
-            released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
-            totest   => sub {
-                'registry.opensuse.org/' . get_opensuse_registry_prefix . 'opensuse/tumbleweed';
-            },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
-        },
-        '15.1' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.1' },
-            totest   => sub {
-                my $arch = shift;
-                if ($arch eq 'x86_64') {
-                    'registry.opensuse.org/opensuse/leap/15.1/images/totest/containers/opensuse/leap:15.1';
-                } elsif (grep { $_ eq $arch } qw/aarch64 arm/) {
-                    'registry.opensuse.org/opensuse/leap/15.1/arm/images/totest/containers/opensuse/leap:15.1';
-                }
-            },
-            available_arch => ['x86_64', 'aarch64', 'arm']
-        },
-        '15.2' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.2' },
-            totest   => sub {
-                my $arch = shift;
-                if ($arch eq 'x86_64') {
-                    'registry.opensuse.org/opensuse/leap/15.2/images/totest/containers/opensuse/leap:15.2';
-                } elsif (grep { $_ eq $arch } qw/aarch64 arm/) {
-                    'registry.opensuse.org/opensuse/leap/15.2/arm/images/totest/containers/opensuse/leap:15.2';
-                }
-            },
-            available_arch => ['x86_64', 'aarch64', 'arm']
-        },
-        '15.3' => {
-            released => sub { 'registry.opensuse.org/opensuse/leap:15.3' },
-            totest   => sub {
-                my $arch = shift;
-                if ($arch eq 'x86_64') {
-                    'registry.opensuse.org/opensuse/leap/15.3/images/totest/containers/opensuse/leap:15.3';
-                } elsif (grep { $_ eq $arch } qw/aarch64 arm/) {
-                    'registry.opensuse.org/opensuse/leap/15.3/arm/images/totest/containers/opensuse/leap:15.3';
-                }
-            },
-            available_arch => ['x86_64', 'aarch64', 'arm']
-        }
-    }
-);
-
-sub supports_image_arch {
-    my ($distri, $version, $arch) = @_;
-    (grep { $_ eq $arch } @{$images_uri{$distri}{$version}{available_arch}}) ? 1 : 0;
-}
-
 # Returns a tuple of image urls and their matching released "stable" counterpart.
 # If empty, no images available.
 sub get_suse_container_urls {
-    my %args = (
-        version => get_required_var('VERSION'),
-        arch    => get_required_var('ARCH'),
-        distri  => get_required_var('DISTRI'),
-        @_
-    );
+    my $version    = shift // get_required_var('VERSION');
+    my $dotversion = $version =~ s/-SP/./r;                    # 15 -> 15, 15-SP1 -> 15.1
+    $dotversion = "${dotversion}.0" if $dotversion !~ /\./;    # 15 -> 15.0
+
     my @untested_images = ();
     my @released_images = ();
-
-    if (supports_image_arch($args{distri}, $args{version}, $args{arch})) {
-        push @untested_images, $images_uri{$args{distri}}{$args{version}}{totest}->($args{arch});
-        push @released_images, $images_uri{$args{distri}}{$args{version}}{released}->($args{arch});
-    } else {
+    if (is_sle(">=12-sp3", $version) && is_sle('<15', $version)) {
+        my $lowerversion  = lc $version;
+        my $nodashversion = $version =~ s/-sp/sp/ir;
+        # No aarch64 image
+        if (!is_aarch64) {
+            push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/docker/update/cr/totest/images/suse/sles${nodashversion}";
+            push @released_images, "registry.suse.com/suse/sles${nodashversion}";
+        }
+    }
+    elsif (is_sle(">=15", $version) && is_released) {
+        my $lowerversion = lc $version;
+        # Location for maintenance builds
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/update/cr/totest/images/suse/sle15:${dotversion}";
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
+    }
+    elsif (is_sle(">=15-sp4", $version)) {
+        my $lowerversion = lc $version;
+        # Location for GA builds
+        push @untested_images, "registry.suse.de/suse/sle-${lowerversion}/ga/test/images/suse/sle15:${dotversion}";
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
+    }
+    elsif (is_sle_micro) {
+        # Untested images are not validated in SLE Micro, so leave it empty
+        push @released_images, "registry.suse.com/suse/sle15:${dotversion}";
+    }
+    elsif (is_tumbleweed || is_microos("Tumbleweed")) {
+        push @untested_images, "registry.opensuse.org/" . get_opensuse_registry_prefix . "opensuse/tumbleweed";
+        push @released_images, "registry.opensuse.org/opensuse/tumbleweed";
+    }
+    elsif (is_leap(">=15.3")) {
+        # All archs in the same location
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
+    }
+    elsif ((is_leap(">15.0") || is_microos(">15.0")) && is_x86_64) {
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
+    }
+    elsif ((is_leap(">15.0") || is_microos(">15.0")) && (is_aarch64 || is_arm)) {
+        push @untested_images, "registry.opensuse.org/opensuse/leap/${version}/arm/images/totest/containers/opensuse/leap:${version}";
+        push @released_images, "registry.opensuse.org/opensuse/leap:${version}";
+    }
+    elsif (is_leap(">15.0") && is_ppc64le) {
+        # No image set up yet :-(
+    }
+    elsif (is_sle("<=12-sp2", $version)) {
+        # No images for old SLE
+    }
+    else {
         die("Unknown combination of distro/arch.");
     }
 
@@ -286,5 +143,3 @@ sub get_3rd_party_images {
 
     return (\@images);
 }
-
-1;
