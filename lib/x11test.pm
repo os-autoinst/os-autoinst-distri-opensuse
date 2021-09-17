@@ -19,7 +19,7 @@ use LWP::Simple;
 use Config::Tiny;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils 'select_user_gnome';
+use x11utils qw(select_user_gnome handle_gnome_activities);
 use POSIX 'strftime';
 use mm_network;
 
@@ -66,7 +66,7 @@ sub prepare_sle_classic {
     if (is_sle('15+')) {
         assert_and_click 'dm-gnome-shell';
         send_key 'ret';
-        assert_screen 'desktop-gnome-shell', 350;
+        handle_gnome_activities;
     }
     else {
         assert_and_click 'dm-sle-classic';
