@@ -1063,7 +1063,7 @@ sub load_console_server_tests {
     }
     if (!is_staging && (is_opensuse || get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/)) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
-        loadtest "console/pcre" if is_sle;
+        loadtest "console/php_pcre" if is_sle;
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
         loadtest "console/php7";
@@ -1582,7 +1582,7 @@ sub load_extra_tests_opensuse {
     return unless is_opensuse;
     loadtest "console/rabbitmq";
     loadtest "console/rails";
-    loadtest "console/pcre";
+    loadtest "console/php_pcre";
     loadtest "console/openqa_review";
     loadtest "console/zbar";
     loadtest "console/a2ps";    # a2ps is not a ring package and thus not available in staging

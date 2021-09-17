@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
+# Copyright © 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -17,7 +17,7 @@
 # - Run some php tests using pcre
 # - Run "grep -qP '^VERSI(O?)N' /etc/os-release"
 # - Cleanup test files
-# Maintainer: Stephan Kulow <coolo@suse.de>
+# Maintainer: QE-Core <qe-core@suse.de>
 
 use strict;
 use warnings;
