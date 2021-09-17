@@ -59,7 +59,7 @@ conditional_schedule:
         - console/dns_srv
         - console/postgresql_server
         - console/shibboleth
-        - console/pcre
+        - console/php_pcre
         - console/php7
         - console/php7_mysql
         - console/php7_postgresql
