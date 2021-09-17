@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
+# Copyright © 2018-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,6 @@
 # - Upload "conf.sh" as reference
 # - Setup loopback interfaces
 # - Run "runall.sh" testsuite
-# - De register repositores
 # - In case of failure, upload "systests.output" log
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
@@ -81,11 +80,6 @@ sub run {
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
     assert_script_run 'ip a';
-}
-
-sub post_run_hook {
-    # deregister products or repositories added with first script run
-    assert_script_run 'bash /tmp/script.sh';
 }
 
 sub post_fail_hook {
