@@ -1947,6 +1947,10 @@ sub install_patterns {
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
             next;
         }
+        # skip the installation of "fips" for SLED cases, poo#98745.
+        if (($pt =~ /fips/) && check_var('SLE_PRODUCT', 'sled')) {
+            next;
+        }
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
         next if (($pt =~ /common-criteria/) && check_var('PATTERNS', 'all'));
         zypper_call("in -t pattern $pt", timeout => 1800);
