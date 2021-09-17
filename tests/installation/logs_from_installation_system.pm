@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
+# Copyright © 2017-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -35,6 +35,16 @@ sub run {
     my ($self) = @_;
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     select_console 'install-shell';
+
+    # permit ssh root login as it is disabled in "Common Criteria" "System Role" system
+    if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle) {
+        record_soft_failure('workaround for poo#98715');
+        assert_script_run('mount /dev/vda2 /mnt');
+        assert_script_run("sed -i -e 's/PermitRootLogin/#PermitRootLogin/g' /mnt/etc/ssh/sshd_config");
+        assert_script_run('echo PermitRootLogin yes >> /mnt/etc/ssh/sshd_config');
+        assert_script_run('cat /mnt/etc/ssh/sshd_config');
+        assert_script_run('umount /mnt');
+    }
 
     # check for right boot-device on s390x (zVM, DASD ONLY)
     if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {

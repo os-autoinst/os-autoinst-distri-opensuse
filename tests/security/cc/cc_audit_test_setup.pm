@@ -41,6 +41,9 @@ sub run {
     # Install audit packages
     zypper_call('in audit audit-audispd-plugins');
 
+    # Install tool packages
+    zypper_call('in wget');
+
     # Workaround for restarting audit service
     assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');
     assert_script_run('systemctl daemon-reload');
