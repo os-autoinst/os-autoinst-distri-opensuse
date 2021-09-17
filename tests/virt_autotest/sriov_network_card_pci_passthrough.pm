@@ -83,6 +83,7 @@ sub run_test {
         record_info("Test $guest");
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($log_dir, $guest, "1-initial");
+	script_run("ls -l $log_dir"); #julie debug
 
         #detach 3 vf ethernet devices from host
         my @vfs               = ();
@@ -115,6 +116,7 @@ sub run_test {
         plugin_vf_device($guest, $vfs[0]);
         #upload test specific logs
         save_network_device_status_logs($log_dir, $guest, "2-after_hotplug_$vfs[0]->{host_id}");
+	script_run("ls -l $log_dir"); #julie debug
         #check the networking of the plugged interface
         #use br123 as ssh connection
         test_network_interface($guest, gate => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
@@ -124,12 +126,14 @@ sub run_test {
         assert_script_run("virsh nodedev-reattach $vfs[0]->{host_id}", 60);
         record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[0]->{host_id}");
         save_network_device_status_logs($log_dir, $guest, "3-after_hot_unplug_$vfs[0]->{host_id}");
+	script_run("ls -l $log_dir"); #julie debug
 
         #plug the remaining vfs to vm
         #test network after reboot as dhcp lease spends time
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             plugin_vf_device($guest, $vfs[$i]);
             save_network_device_status_logs($log_dir, $guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
+	    script_run("ls -l $log_dir"); #julie debug
         }
 
         #reboot the guest
@@ -137,6 +141,7 @@ sub run_test {
         script_run "ssh root\@$guest 'reboot'";    #don't use assert_script_run, or may fail on xen guests
         wait_guest_online($guest);
         save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 3 . '-after_guest_reboot');
+	script_run("ls -l $log_dir"); #julie debug
 
         #check host and guest to make sure they work well
         check_host();
@@ -153,6 +158,7 @@ sub run_test {
             assert_script_run("virsh nodedev-reattach $vfs[$i]->{host_id}", 60);
             record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[$i]->{host_id}");
             save_network_device_status_logs($log_dir, $guest, $passthru_vf_count + 4 + $i . "-after_hot_unplug_$vfs[$i]->{host_id}");
+	    script_run("ls -l $log_dir"); #julie debug
         }
         script_run "lspci | grep Ethernet";
         save_screenshot;
@@ -447,7 +453,9 @@ sub post_fail_hook {
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
     my $log_dir = "/tmp/sriov_pcipassthru";
+    script_run("ls -l $log_dir"); #julie debug
     save_network_device_status_logs($log_dir, $_, "post_fail_hook") foreach (keys %virt_autotest::common::guests);
+    script_run("ls -l $log_dir"); #julie debug
     upload_virt_logs($log_dir, "network_device_status");
     $self->SUPER::post_fail_hook;
     restore_original_guests();

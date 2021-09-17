@@ -343,7 +343,7 @@ sub prepare_common_environment {
         virt_autotest::utils::setup_common_ssh_config('/root/.ssh/config');
         script_run("sed -irn \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging;
-        virt_autotest::utils::setup_rsyslog_host($common_log_folder);
+        virt_autotest::utils::setup_rsyslog_host($common_log_folder) unless is_opensuse;
         my $_packages_to_check = 'wget curl screen dnsmasq xmlstarlet yast2-schema python3 nmap';
         zypper_call("install -y $_packages_to_check");
         my $_patterns_to_check = 'kvm_server kvm_tools';
