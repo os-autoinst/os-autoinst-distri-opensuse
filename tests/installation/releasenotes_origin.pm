@@ -25,7 +25,7 @@ sub run {
     enter_cmd "grep -o \"Got release notes.*\" /var/log/YaST2/y2log";
     assert_screen [qw(got-releasenotes-RPM got-releasenotes-URL)];
     unless (match_has_tag "got-releasenotes-$src") {
-        die "Release notes source does NOT match expectaions or not found in YaST logs, expected source: $src";
+        record_soft_failure("poo#97316: Release notes source does NOT match expectations or not found in YaST logs, expected source: $src");
     }
     enter_cmd "exit";
     # If we don't have system role screen, release notes origin is verified on partitioning screen
