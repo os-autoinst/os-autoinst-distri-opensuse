@@ -16,6 +16,7 @@ schedule:
   - '{{compare_checksums}}'
   - installation/bootloader_start
   - installation/setup_libyui
+  - installation/validate_beta_message
   - installation/access_beta_distribution
   - '{{switch_keyboard_layout}}'
   - installation/product_selection/install_SLES
@@ -79,3 +80,4 @@ test_data:
         text: 版軟體的
   system_role:
     default: 'Text Mode'
+  beta_text: 'You are accessing our Beta Distribution'

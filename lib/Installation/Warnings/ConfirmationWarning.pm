@@ -18,8 +18,7 @@ use warnings;
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        app        => $args->{app},
-        match_text => $args->{match_text}
+        app => $args->{app}
     }, $class;
     return $self->init();
 }
@@ -50,11 +49,6 @@ sub press_no {
 sub text {
     my ($self) = @_;
     return $self->{lbl_warning}->text();
-}
-
-sub has_valid_text {
-    my ($self) = @_;
-    return $self->text() =~ /$self->{match_text}/;
 }
 
 1;

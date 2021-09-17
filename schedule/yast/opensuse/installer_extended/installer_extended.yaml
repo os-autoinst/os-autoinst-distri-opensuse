@@ -8,8 +8,9 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - '{{access_beta_distribution}}'
   - '{{switch_keyboard_layout}}'
-  - installation/welcome
+  - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
@@ -29,3 +30,10 @@ conditional_schedule:
     BACKEND:
       qemu:
         - installation/language_keyboard/switch_keyboard_layout
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/validate_beta_message
+        - installation/access_beta_distribution
+test_data:
+  beta_text: 'openSUSE Beta Distribution'

@@ -26,9 +26,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{ProductSelectionPage}        = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
-    $self->{AccessBetaDistributionPopup} = Installation::Warnings::ConfirmationWarningRichText->new({
-            app        => YuiRestClient::get_app(),
-            match_text => "You are accessing our Beta Distribution"});
+    $self->{AccessBetaDistributionPopup} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -40,8 +38,7 @@ sub get_product_selection_page {
 
 sub get_access_beta_distribution_popup {
     my ($self) = @_;
-    die "Popup for accessing Beta Distribution is not displayed"               unless $self->{AccessBetaDistributionPopup}->is_shown();
-    die "Popup for accessing Beta Distribution contains an unexpected message" unless $self->{AccessBetaDistributionPopup}->has_valid_text();
+    die "Popup for accessing Beta Distribution is not displayed" unless $self->{AccessBetaDistributionPopup}->is_shown();
     return $self->{AccessBetaDistributionPopup};
 }
 
