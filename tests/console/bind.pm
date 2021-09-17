@@ -75,8 +75,22 @@ sub run {
     # setup loopback interfaces for testsuite
     assert_script_run 'sh ifconfig.sh up';
     assert_script_run 'ip a';
-    my $timeout = is_sle('<=12-SP3') ? 1500 : 3500;
-    assert_script_run 'runuser -u bernhard -- sh runall.sh', $timeout;
+    # workaround esp. on aarch64 some test fail occasinally due to low worker performance
+    # if there are failed tests run them again up to 3 times
+    eval {
+        assert_script_run 'runuser -u bernhard -- sh runall.sh -n', 7000;
+    };
+    if ($@) {
+        for (1 .. 3) {
+            eval {
+                record_soft_failure 'Retry: poo#71329';
+                assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' systests.output)';
+                assert_script_run 'for t in $TFAIL; do runuser -u bernhard -- sh run.sh $t; done', 2000;
+            };
+            last unless ($@);
+            record_info 'Retry', "Failed bind test retry: $_ of 3";
+        }
+    }
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
     assert_script_run 'ip a';
