@@ -38,6 +38,7 @@ our @EXPORT = qw(
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
   turn_off_gnome_suspend
+  turn_off_gnome_show_banner
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
   workaround_boo1170586
@@ -365,6 +366,11 @@ sub turn_off_screensaver {
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
     script_run 'exit', 0;
+}
+
+# turn off the gnome deskop's notification
+sub turn_off_gnome_show_banner {
+    script_run 'gsettings set org.gnome.desktop.notifications show-banners false';
 }
 
 =head2 untick_welcome_on_next_startup
