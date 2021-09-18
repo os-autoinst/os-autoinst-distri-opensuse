@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
+# Copyright © 2012-2017 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -22,12 +22,8 @@ use testapi;
 sub run {
     # the waiting might take long in case of online update repos being
     # initialized before that screen
-    if (get_var('NEW_DESKTOP_SELECTION')) {
-        assert_screen 'before-role-selection', 300;
-    }
-    else {
-        assert_screen 'before-package-selection', 300;
-    }
+    my $waiting_point = get_var('NEW_DESKTOP_SELECTION') ? 'role' : 'package';
+    assert_screen "before-$waiting_point-selection", 300;
     select_console 'install-shell';
     script_run "(cat /.timestamp ; echo /.packages.initrd: ; cat /.packages.initrd) > /dev/$serialdev";
     script_run "(echo /.packages.root: ; cat /.packages.root) > /dev/$serialdev";
