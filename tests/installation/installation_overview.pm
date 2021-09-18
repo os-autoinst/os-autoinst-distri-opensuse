@@ -39,7 +39,7 @@ sub ensure_ssh_unblocked {
                 send_key 'alt-o';
             }
             else {
-		send_key_until_needlematch 'ssh-blocked-selected', 'tab', 25;
+                send_key_until_needlematch 'ssh-blocked-selected', 'tab', 25;
                 send_key 'ret';
                 send_key_until_needlematch 'ssh-open', 'tab';
             }
