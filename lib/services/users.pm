@@ -105,6 +105,8 @@ sub switch_users {
     type_password "$pwd4newUser\n";
     # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
+    assert_screen "gnome-activities", 120;
+    send_key 'esc';
     assert_screen "generic-desktop", 120;
     switch_user;
     send_key "esc";
