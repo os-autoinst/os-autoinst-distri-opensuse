@@ -23,6 +23,7 @@ use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm);
+use main_containers;
 use Utils::Architectures;
 use DistributionProvider;
 
@@ -654,6 +655,9 @@ if (is_jeos) {
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
+}
+elsif (is_container_test) {
+    load_container_tests();
 }
 elsif (get_var("NFV")) {
     load_kernel_baremetal_tests();
