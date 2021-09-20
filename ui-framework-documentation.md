@@ -320,7 +320,7 @@ sub create_filesystem {
 * Using `get_var` to change the flow of a test or get a data for the
   test should be avoided as much as possible (e.g. to decide whether
   check or uncheck checkbox, use method parameters instead and pass the
-  data from [Test Module](#test-module).
+  data from [Test Module](#test-module)).
   
 * Local libs from os-autoins-distri-opensuse should not be used here either, but rather in the test module.
 
@@ -477,7 +477,7 @@ use warnings;
 use parent "installbasetest";
 
 sub run {
-    my $test_data = my $test_data = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my $user_settings_widget = $testapi::distri->get_user_settings_widget();
     $user_settings_widget->create_user({
                   username       => $test_data->{username}, 
