@@ -39,7 +39,7 @@ sub run_test {
     assert_script_run("virsh start $_", 300) foreach (keys %virt_autotest::common::guests);
 
     record_info "SSH", "Check hosts are listening on SSH";
-    script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %virt_autotest::common::guests);
+    wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 
     foreach my $guest (keys %virt_autotest::common::guests) {
     assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
