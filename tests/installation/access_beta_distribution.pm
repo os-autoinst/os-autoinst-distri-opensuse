@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Validate access to Beta Distribution
+# Summary: Confirm access to Beta Distribution
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use base 'y2_installbase';
@@ -21,7 +21,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_product_selection()->access_beta_distribution();
+    $testapi::distri->get_warnings_controller()->accept_warning();
 }
 
 1;

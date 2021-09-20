@@ -8,10 +8,16 @@ description:    >
 vars:
   INSTALLER_NO_SELF_UPDATE: 1
   YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/validate_no_self_update
+  - '{{access_beta_distribution}}'
   - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode

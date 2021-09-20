@@ -10,6 +10,7 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
+  - '{{access_beta_distribution}}'
   - installation/licensing/accept_license
   - installation/online_repos
   - installation/installation_mode
@@ -48,3 +49,7 @@ conditional_schedule:
     LEAP:
       1:
         - transactional/trup_install_tar
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
