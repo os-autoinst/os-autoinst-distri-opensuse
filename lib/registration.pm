@@ -196,8 +196,12 @@ sub add_suseconnect_product {
     if ($result != 0 && $retry) {
         if ($name =~ /PackageHub/) {
             record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
+
         }
-        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+
+        my $fail_message = ($name =~ /PackageHub/ && check_var('BETA', '1')) ? "PackageHub installation might fail in early development" : undef;
+        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout, $fail_message);
+
     } elsif ($result && !$retry) {
         die "SUSEConnect failed activating module $name with exit code (see log output): $result.";
     }
