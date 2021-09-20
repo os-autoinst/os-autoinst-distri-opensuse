@@ -535,7 +535,7 @@ sub start_clean_firefox {
     my $count = 10;
     while ($count--) {
         # workaround for bsc#1046005
-        wait_screen_change { assert_and_click 'firefox_titlebar' };
+        assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
         if (check_screen 'firefox_trackinfo', 3) {
             record_info 'Tracking protection', 'Track info did show up';
             assert_and_click 'firefox_trackinfo';
@@ -568,7 +568,7 @@ sub start_clean_firefox {
         assert_and_click 'firefox_readerview_window';
     }
     # workaround for bsc#1046005
-    wait_screen_change { assert_and_click 'firefox_titlebar' };
+    assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
 
     # Help
     send_key "alt-h";
@@ -655,7 +655,7 @@ sub firefox_check_popups {
             # accidentially moving the firefox window around, skip it.
             if (!check_var("DESKTOP", "kde")) {
                 # workaround for bsc#1046005
-                wait_screen_change { assert_and_click 'firefox_titlebar' };
+                assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
             }
         }
     }
@@ -666,7 +666,7 @@ sub firefox_open_url {
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
-        assert_and_click 'firefox_titlebar';
+        assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
         wait_still_screen 1, 2;
         send_key 'alt-d';
         send_key 'delete';
