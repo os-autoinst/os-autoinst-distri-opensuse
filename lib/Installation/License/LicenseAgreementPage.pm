@@ -11,7 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::License::LicenseAgreementPage;
-use parent 'Installation::Navigation::NavigationBar';
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -26,7 +26,6 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{btn_next}    = $self->{app}->button({id => 'next'});
     $self->{cb_language} = $self->{app}->combobox($args->{cb_language_filter});
     $self->{rt_eula}     = $self->{app}->richtext($args->{rt_eula_filter});
     return $self;

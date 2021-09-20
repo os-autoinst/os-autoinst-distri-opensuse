@@ -11,7 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::ProductSelection::ProductSelectionPage;
-use parent 'Installation::Navigation::NavigationBar';
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
