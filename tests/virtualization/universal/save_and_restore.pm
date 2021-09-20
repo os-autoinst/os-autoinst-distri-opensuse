@@ -35,8 +35,7 @@ sub run_test {
         }
     }
 
-    record_info "Start", "Start all VMs";
-    assert_script_run("virsh start $_", 300) foreach (keys %virt_autotest::common::guests);
+    start_guests();
 
     record_info "SSH", "Check hosts are listening on SSH";
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
