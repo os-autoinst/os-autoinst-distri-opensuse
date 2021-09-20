@@ -12,6 +12,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::SummaryPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -25,13 +26,8 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next} = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     return $self;
-}
-
-sub press_next_button {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

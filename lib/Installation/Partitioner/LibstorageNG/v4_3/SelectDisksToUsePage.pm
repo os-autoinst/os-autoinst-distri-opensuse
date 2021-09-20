@@ -13,6 +13,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings FATAL => 'all';
 
@@ -26,7 +27,7 @@ sub new {
 
 sub init {
     my ($self) = shift;
-    $self->{btn_next}                = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{lbl_select_disks_to_use} = $self->{app}->label({label => 'Select one or more (max 3) hard disks'});
     return $self;
 }
@@ -39,11 +40,6 @@ sub _get_disk_checkbox {
 sub is_shown {
     my ($self) = @_;
     return $self->{lbl_select_disks_to_use}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 sub select_hard_disks {

@@ -14,13 +14,14 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::AbstractSizePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{rb_custom_size} = $self->{app}->radiobutton({id => 'custom_size'});
-    $self->{btn_next}       = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -31,11 +32,6 @@ sub set_custom_size {
         $self->{tb_size}->set($size);
     }
     $self->press_next();
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 1;

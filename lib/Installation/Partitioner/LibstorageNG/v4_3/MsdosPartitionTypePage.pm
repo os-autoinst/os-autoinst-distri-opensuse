@@ -11,6 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::MsdosPartitionTypePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -24,7 +25,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next}    = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{rb_primary}  = $self->{app}->radiobutton({id => '"primary"'});
     $self->{rb_extended} = $self->{app}->radiobutton({id => '"extended"'});
     return $self;
@@ -43,11 +44,6 @@ sub select_type {
         extended => $self->{rb_extended}
     );
     return $types{$type}->select();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

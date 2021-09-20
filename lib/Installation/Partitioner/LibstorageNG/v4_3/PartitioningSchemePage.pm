@@ -12,6 +12,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -25,19 +26,14 @@ sub new {
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{cb_enable_lvm} = $self->{app}->combobox({id => 'lvm'});
-    $self->{btn_next}      = $self->{app}->button({id => 'next'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
     return $self->{cb_enable_lvm}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 1;

@@ -12,6 +12,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::SystemRole::SystemRolePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -25,8 +26,8 @@ sub new {
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{sel_role} = $self->{app}->itemselector({id => 'role_selector'});
-    $self->{btn_next} = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -43,11 +44,6 @@ sub is_shown {
 sub select_system_role {
     my ($self, $role) = @_;
     return $self->{sel_role}->select($role);
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

@@ -12,6 +12,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::FormatMountOptionsPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 use YuiRestClient::Wait;
@@ -26,6 +27,7 @@ sub new {
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{cb_filesystem}       = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::BlkDeviceFilesystem"'});
     $self->{cb_enable_snapshots} = $self->{app}->checkbox({id => '"Y2Partitioner::Widgets::Snapshots"'});
     $self->{rb_format_device}    = $self->{app}->radiobutton({id => 'format_device'});
@@ -34,7 +36,6 @@ sub init {
     $self->{cb_mount_point}      = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::MountPoint"'});
     $self->{rb_no_mount_device}  = $self->{app}->radiobutton({id => 'dont_mount_device'});
     $self->{cb_encrypt}          = $self->{app}->checkbox({id => '"Y2Partitioner::Widgets::EncryptBlkDevice"'});
-    $self->{btn_next}            = $self->{app}->button({id => 'next'});
     $self->{btn_fstab_options}   = $self->{app}->button({id => '"Y2Partitioner::Widgets::FstabOptionsButton"'});
     return $self;
 }
@@ -130,11 +131,6 @@ sub select_mount_point {
 sub enter_mount_point {
     my ($self, $mount_point) = @_;
     return $self->{cb_mount_point}->set($mount_point);
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 sub press_fstab_options {
