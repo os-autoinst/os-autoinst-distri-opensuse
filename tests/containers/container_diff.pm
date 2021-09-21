@@ -29,8 +29,8 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);
-    $runtime->configure_insecure_registries() if is_sle();
-    zypper_call("install container-diff")                  if (script_run("which container-diff") != 0);
+    $docker->configure_insecure_registries() if is_sle();
+    zypper_call("install container-diff")    if (script_run("which container-diff") != 0);
 
     my ($untested_images, $released_images) = get_suse_container_urls();
     # container-diff

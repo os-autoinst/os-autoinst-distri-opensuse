@@ -34,20 +34,26 @@ sub _rt_script_output {
     return script_output($self->runtime . " " . $cmd, @args);
 }
 
-=head2 create_container($image, $name, [%args])
+=head2 create_container($image, $name, [$cmd])
 
 Creates a container.
 C<image> the name of the image we create the container from.
 C<name> is the given name of the created container.
-C<args> can be anything you want to run in the container, similar to C<run>. for 
+C<cmd> can be anything you want to run in the container, similar to C<run>. for 
 instance: C<docker create -it tumbleweed bash>
 
 =cut
 sub create_container {
-    my ($self, $image, $name, $args) = @_;
-    die 'wrong number of arguments' if @_ < 3;
-    $self->_rt_assert_script_run("container create --name $name $image $args", 300);
-    record_info "$name container created", "";
+    my ($self) = shift;
+    my %args = (
+        image => '',
+        name  => '',
+        cmd   => '',
+        @_
+    );
+    die('Must provide an image') unless ($args{image});
+    die('Must provide an name')  unless ($args{name});
+    $self->_rt_assert_script_run("container create --name $args{name} $args{image} $args{cmd}", 300);
 }
 
 =head2 start_container($image_name)
@@ -110,13 +116,13 @@ when it exits or when the daemon exits
 sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
-    my $mode           = $args{daemon}         ? '-d'                    : '-i';
-    my $remote         = $args{cmd}            ? "-- sh -c '$args{cmd}'" : '';
-    my $name           = $args{name}           ? "--name $args{name}"    : '';
-    my $keep_container = $args{keep_container} ? ''                      : '--rm';
+    my $mode           = $args{daemon}         ? '-d'                 : '-i';
+    my $remote         = $args{cmd}            ? "$args{cmd}"         : '';
+    my $name           = $args{name}           ? "--name $args{name}" : '';
+    my $keep_container = $args{keep_container} ? ''                   : '--rm';
     my $params         = sprintf qq(%s %s %s), $keep_container, $mode, $name;
     my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
-    record_info "Remote run on $image_name", "options $keep_container $mode $name $image_name $remote";
+    record_info "cmd_info", "Container executes:\noptions $params $image_name $remote";
     return $ret;
 }
 
@@ -178,10 +184,9 @@ Returns an array ref with the names of the images.
 
 =cut
 sub get_images_by_repo_name {
-    my ($self) = @_;
-    my $repo_images;
-    $repo_images = $self->_rt_script_output("images --format '{{.Repository}}'", timeout => 60);
-    my @images = split /[\n\t ]/, $repo_images;
+    my ($self)      = @_;
+    my $repo_images = $self->_rt_script_output("images --format '{{.Repository}}'", timeout => 60);
+    my @images      = split /[\n\t ]/, $repo_images;
     return \@images;
 }
 
@@ -231,12 +236,12 @@ sub remove_container {
     $self->_rt_assert_script_run("rm -f $container_name");
 }
 
-=head2 check_image_in_host_registry
+=head2 check_image_in_host
 
 Returns true if host contains C<img> or false.
 
 =cut
-sub check_image_in_host_registry {
+sub check_image_in_host {
     my ($self, $img) = @_;
     my @lregistry = $self->enum_images();
     $img =~ @lregistry;
@@ -291,19 +296,6 @@ sub configure_insecure_registries {
     record_info "setup $self->runtime", "deamon.json ready";
 }
 
-sub run_container {
-    my ($self, $image_name, %args) = @_;
-    die 'image name or id is required' unless $image_name;
-    my $mode           = $args{daemon}         ? '-d'                 : '-i';
-    my $remote         = $args{cmd}            ? "$args{cmd}"         : '';
-    my $name           = $args{name}           ? "--name $args{name}" : '';
-    my $keep_container = $args{keep_container} ? ''                   : '--rm';
-    my $params         = sprintf qq(%s %s %s), $keep_container, $mode, $name;
-    my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
-    record_info "Remote run on $image_name", "options $keep_container $mode $name $image_name $remote";
-    return $ret;
-}
-
 package containers::runtime::podman;
 use Mojo::Base 'containers::runtime';
 use testapi;
@@ -355,7 +347,7 @@ sub run_container {
     my $remote = $args{cmd} ? "-- $args{cmd}" : '';
     $image_name = $args{name} ? "\$(buildah from $args{name})" : '$image_name';
     my $ret = $self->_rt_script_run(sprintf qq(run %s %s %s), $image_name, $remote, timeout => $args{timeout});
-    record_info "Remote run on $image_name", "options $image_name $remote";
+    record_info "cmd_info", "Container executes:\noptions $image_name $remote";
     return $ret;
 }
 
@@ -371,13 +363,13 @@ sub pull {
 sub create_container {
     my ($self) = shift;
     my %args = (
-	image => '',
-	name => '',
-	cmd => '',
-	@_
-	);
+        image => '',
+        name  => '',
+        cmd   => '',
+        @_
+    );
     die('Must provide an image') unless ($args{image});
-    die('Must provide an name') unless ($args{name});
+    die('Must provide an name')  unless ($args{name});
     my $container = $self->_rt_script_output("from $args{image} 2>/dev/null");
     record_info 'Container', qq[Testing:\nContainer "$container" based on image "$args{image}"];
 }

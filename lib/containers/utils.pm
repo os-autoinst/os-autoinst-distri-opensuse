@@ -101,7 +101,6 @@ sub registry_url {
 sub basic_container_tests {
     my %args    = @_;
     my $runtime = $args{runtime};
-    record_info "$runtime";
     die "You must define the runtime!" unless $runtime;
     my $alpine_image_version = '3.6';
     my $alpine               = registry_url('alpine', $alpine_image_version);

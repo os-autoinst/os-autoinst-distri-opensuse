@@ -276,9 +276,10 @@ sub exec_on_container {
 
 sub test_3rd_party_image {
     my ($runtime, $image) = @_;
-    record_info('IMAGE', "Testing $image with $runtime");
+    my $runtime_name = $runtime->runtime;
+    record_info('IMAGE', "Testing $image with $runtime_name");
     test_container_image(image => $image, runtime => $runtime);
-    script_run("echo 'OK: $runtime - $image:latest' >> /var/tmp/$runtime-3rd_party_images_log.txt");
+    script_run("echo 'OK: $runtime_name - $image:latest' >> /var/tmp/${runtime_name}-3rd_party_images_log.txt");
 }
 
 sub upload_3rd_party_images_logs {

@@ -197,8 +197,8 @@ sub test_container_image {
     my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
     $runtime->pull($image, timeout => 420);
-    $runtime->check_image_in_host_registry($image);
-    $runtime->create_container($image, 'testing', $smoketest);
+    $runtime->check_image_in_host($image);
+    $runtime->create_container(image => $image, name => 'testing', cmd => $smoketest);
     return if $runtime->runtime eq 'buildah';
     $runtime->start_container('testing');
     $runtime->halt_container('testing');
