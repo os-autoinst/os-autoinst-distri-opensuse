@@ -28,7 +28,7 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $runtime = containers::runtime::podman->new();
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    $runtime->configure_insecure_registries();
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
     my $versions   = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));

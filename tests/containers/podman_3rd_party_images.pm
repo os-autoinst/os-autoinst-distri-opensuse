@@ -34,7 +34,7 @@ sub run {
     script_run("echo 'Container base image tests:' > /var/tmp/$runtime-3rd_party_images_log.txt");
     # In SLE we need to add the Containers module
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    $runtime->configure_insecure_registries();
     my $images = get_3rd_party_images();
     for my $image (@{$images}) {
         test_3rd_party_image($runtime, $image);

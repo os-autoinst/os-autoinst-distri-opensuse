@@ -101,7 +101,7 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $docker = containers::runtime::docker->new();
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $docker);
+    $docker->configure_insecure_registries();
     my $btrfs_dev      = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
     _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);

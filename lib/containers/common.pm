@@ -25,7 +25,7 @@ use utils qw(zypper_call systemctl file_content_replace script_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
-our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
+our @EXPORT = qw(install_podman_when_needed install_docker_when_needed
   clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
   scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
 
@@ -123,14 +123,6 @@ sub install_buildah_when_needed {
         zypper_call "in @pkgs";
         record_info('buildah', script_output('buildah info'));
     }
-}
-
-sub allow_selected_insecure_registries {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-    my $registry = registry_url();
-    $runtime->setup_registry();
 }
 
 sub test_container_runtime {

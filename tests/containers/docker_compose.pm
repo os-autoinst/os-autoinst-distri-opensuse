@@ -60,7 +60,7 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    allow_selected_insecure_registries(runtime => $docker);
+    $docker->configure_insecure_registries();
     file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
     assert_script_run 'docker-compose pull', 600;
 

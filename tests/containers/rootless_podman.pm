@@ -38,7 +38,7 @@ sub run {
     my $runtime = containers::runtime::podman->new();
 
     install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    $runtime->configure_insecure_registries();
     my $user         = $testapi::username;
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {

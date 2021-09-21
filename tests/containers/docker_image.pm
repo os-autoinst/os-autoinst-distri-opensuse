@@ -36,7 +36,7 @@ sub run {
     my $runtime = containers::runtime::docker->new();
 
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    $runtime->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES

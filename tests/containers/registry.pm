@@ -83,7 +83,7 @@ sub run {
     # Run docker tests
     install_docker_when_needed($host_distri);
     my $docker = containers::runtime::docker->new();
-    allow_selected_insecure_registries(runtime => $docker);
+    $docker->configure_insecure_registries();
     my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
     registry_push_pull(image => $tumbleweed, runtime => $docker);
     $docker->cleanup_system_host();
@@ -92,7 +92,7 @@ sub run {
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
         my $podman = containers::runtime::podman->new();
         install_podman_when_needed($host_distri);
-        allow_selected_insecure_registries(runtime => $podman);
+        $podman->configure_insecure_registries();
         registry_push_pull(image => $tumbleweed, runtime => $podman);
         $podman->cleanup_system_host();
     }

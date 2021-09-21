@@ -243,7 +243,7 @@ sub check_image_in_host_registry {
     $img =~ @lregistry;
 }
 
-=head2 setup_registry
+=head2 configure_insecure_registries
 
 Updates the registry files for the running container runtime to allow access to
 insecure registries.
@@ -251,9 +251,8 @@ insecure registries.
 Implementation is subject to the the subclass otherwise call to this subroutine dies.
 
 =cut
-sub setup_registry {
+sub configure_insecure_registries {
     my ($self) = shift;
-    die "Unsupported runtime - " . $self->runtime;
 }
 
 =head2 cleanup_system_host
@@ -282,7 +281,7 @@ use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
 has runtime => 'docker';
 
-sub setup_registry {
+sub configure_insecure_registries {
     my ($self) = shift;
     my $registry = registry_url();
     # Allow our internal 'insecure' registry
@@ -313,7 +312,7 @@ use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
 has runtime => "podman";
 
-sub setup_registry {
+sub configure_insecure_registries {
     my ($self) = shift;
     my $registry = registry_url();
 

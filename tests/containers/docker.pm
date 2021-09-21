@@ -53,7 +53,7 @@ sub run {
     my $runtime = containers::runtime::docker->new();
     install_docker_when_needed($host_distri);
     test_seccomp();
-    allow_selected_insecure_registries(runtime => $runtime);
+    $runtime->configure_insecure_registries();
 
     if ($self->firewall() eq 'firewalld') {
         # on publiccloud we need to install firewalld first

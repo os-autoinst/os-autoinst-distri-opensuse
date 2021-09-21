@@ -31,7 +31,7 @@ sub run {
     install_podman_when_needed($host_distri);
     my $podman  = containers::runtime::podman->new();
     my $buildah = containers::runtime::buildah->new();
-    allow_selected_insecure_registries(runtime => $podman);
+    $podman->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
