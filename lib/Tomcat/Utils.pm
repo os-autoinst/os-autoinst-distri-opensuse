@@ -82,6 +82,7 @@ sub tomcat_manager_test() {
     send_key('tab');
     type_string('admin');
     assert_and_click('tomcat-OK-autentication');
+    wait_still_screen(2);
     assert_and_click('tomcat-click-save-login');
     assert_screen('tomcat-web-application-manager', TIMEOUT);
 }
