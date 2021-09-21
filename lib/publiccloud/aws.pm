@@ -15,7 +15,6 @@ package publiccloud::aws;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
-use publiccloud::utils "is_byos";
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
@@ -66,6 +65,10 @@ sub init {
         save_tmp_file(CREDENTIALS_FILE, $credentials_file);
         assert_script_run('curl -O ' . autoinst_url . "/files/" . CREDENTIALS_FILE);
     }
+
+    $self->{aws_account_id} = script_output("aws sts get-caller-identity | jq -r '.Account'");
+    die("Cannot get the UserID")                                        unless ($self->{aws_account_id});
+    die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->{aws_account_id} =~ /^\d{12}$/;
 }
 
 1;
