@@ -8,7 +8,6 @@ vars:
   ENCRYPT: 1
   LVM: 1
   MAX_JOB_TIME: 14400
-  SCC_ADDONS: sdk
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
