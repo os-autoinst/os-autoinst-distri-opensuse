@@ -96,7 +96,7 @@ sub add_test_repositories {
     if (is_sle('=12-SP2')) {
         my $arch = get_var('ARCH');
         my $url  = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
-        zypper_call("--no-gpg-checks ar -f $gpg '12-SP2-LTSS-ERICSSON-Updates'");
+        zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
     }
 
     # refresh repositories, inf 106 is accepted because repositories with test
