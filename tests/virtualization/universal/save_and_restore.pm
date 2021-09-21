@@ -41,8 +41,8 @@ sub run_test {
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-    assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
-    assert_script_run("virsh destroy $guest", 90);
+        assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
+        assert_script_run("virsh destroy $guest", 90);
     }
 
     record_info "Restore", "Restore guests";
@@ -53,12 +53,12 @@ sub run_test {
 
     record_info "SSH", "Check hosts are listening on SSH";
     script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %virt_autotest::common::guests);
-  
+
     record_info "Check", "Restored guests validation";
     foreach my $guest (keys %virt_autotest::common::guests) {
-       if (script_run("ssh root\@$guest 'test -f /var/empty_temp_file'") != 1) {
-       	die "The temp file should not exist in the restored state.";
-       }
+        if (script_run("ssh root\@$guest 'test -f /var/empty_temp_file'") != 1) {
+            die "The temp file should not exist in the restored state.";
+        }
     }
 }
 
