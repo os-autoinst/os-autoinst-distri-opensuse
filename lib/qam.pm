@@ -88,11 +88,17 @@ sub add_test_repositories {
     # please be sure that the PATCH_TEST_REPO is empty.
     @repos = split(',', $oldrepo) if ($oldrepo);
 
-
     for my $var (@repos) {
         zypper_call("--no-gpg-checks ar -f $gpg -n 'TEST_$counter' $var 'TEST_$counter'");
         $counter++;
     }
+
+    if (is_sle('=12-SP2')) {
+        my $arch = get_var('ARCH');
+        my $url  = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
+        zypper_call("--no-gpg-checks ar -f $gpg '12-SP2-LTSS-ERICSSON-Updates'");
+    }
+
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
     zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
