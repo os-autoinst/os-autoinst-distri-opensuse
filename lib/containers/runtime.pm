@@ -94,7 +94,7 @@ sub build {
     record_info "$container_tag created", "";
 }
 
-=head2 up($image_name, [mode, name, remote, keep_container, timeout])
+=head2 run_container($image_name, [mode, name, remote, keep_container, timeout])
 
 Run a container.
 C<image_name> is required and can be the image id, the name or name with tag.
@@ -107,7 +107,7 @@ if C<keep_container> is 1 the container is not removed after creation. Default t
 when it exits or when the daemon exits
 
 =cut
-sub up {
+sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
     my $mode           = $args{daemon}         ? '-d'                    : '-i';
@@ -181,7 +181,6 @@ sub get_images_by_repo_name {
     my ($self) = @_;
     my $repo_images;
     $repo_images = $self->_rt_script_output("images --format '{{.Repository}}'", timeout => 60);
-
     my @images = split /[\n\t ]/, $repo_images;
     return \@images;
 }
@@ -292,7 +291,7 @@ sub configure_insecure_registries {
     record_info "setup $self->runtime", "deamon.json ready";
 }
 
-sub up {
+sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
     my $mode           = $args{daemon}         ? '-d'                 : '-i';
@@ -350,7 +349,7 @@ sub get_images_by_repo_name {
     return \@images;
 }
 
-sub up {
+sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
     my $remote = $args{cmd} ? "-- $args{cmd}" : '';
@@ -370,10 +369,17 @@ sub pull {
 }
 
 sub create_container {
-    my ($self, $image, $name, $args) = @_;
-    die 'wrong number of arguments' if @_ < 3;
-    my $container = $self->_rt_script_output("from $image 2>/dev/null");
-    record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
+    my ($self) = shift;
+    my %args = (
+	image => '',
+	name => '',
+	cmd => '',
+	@_
+	);
+    die('Must provide an image') unless ($args{image});
+    die('Must provide an name') unless ($args{name});
+    my $container = $self->_rt_script_output("from $args{image} 2>/dev/null");
+    record_info 'Container', qq[Testing:\nContainer "$container" based on image "$args{image}"];
 }
 
 sub start_container {

@@ -77,7 +77,7 @@ sub _test_btrfs_device_mgmt {
     my $var_blocks = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
     # Create file in the container enough to fill the "/var" partition (where the container is located)
     my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
-    $rt->up('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
+    $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
     validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");

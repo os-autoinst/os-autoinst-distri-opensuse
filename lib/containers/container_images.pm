@@ -177,9 +177,9 @@ sub test_opensuse_based_image {
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
             my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-            $runtime->up($image, cmd => "$plugin -v", keep_container => 1);
-            $runtime->up($image, cmd => "$plugin lp", keep_container => 1, timeout => 420);
-            $runtime->up($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
+            $runtime->run_container($image, cmd => "$plugin -v", keep_container => 1);
+            $runtime->run_container($image, cmd => "$plugin lp", keep_container => 1, timeout => 420);
+            $runtime->run_container($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
         }
@@ -237,12 +237,12 @@ sub test_zypper_on_container {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    $runtime->up($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
-    $runtime->up($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
+    $runtime->run_container($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
+    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
     unless ($runtime->runtime eq 'buildah') {
         $runtime->commit('refreshed', "refreshed-image", timeout => 120);
         $runtime->remove_container('refreshed');
-        $runtime->up($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 120);
+        $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 120);
     }
     record_info "The End", "zypper test completed";
 }
@@ -271,7 +271,7 @@ sub ensure_container_rpm_updates {
 sub exec_on_container {
     my ($image, $runtime, $command, $timeout) = @_;
     $timeout //= 120;
-    $runtime->up($image, cmd => $command, daemon => 1, timeout => $timeout);
+    $runtime->run_container($image, cmd => $command, daemon => 1, timeout => $timeout);
 }
 
 sub test_3rd_party_image {
