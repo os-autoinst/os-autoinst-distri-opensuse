@@ -20,6 +20,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use x11utils 'handle_gnome_activities';
 
 # Smoke test: launch some applications
 sub application_test {
@@ -53,7 +54,7 @@ sub run {
     # Log out and log in again
     $self->switch_wm;
     send_key "ret";
-    assert_screen 'generic-desktop', 350;
+    handle_gnome_activities;
 
     # Log out and switch to icewm
     $self->switch_wm;
@@ -84,7 +85,7 @@ sub run {
     assert_and_click "displaymanager-settings";
     assert_and_click "dm-gnome";
     send_key "ret";
-    assert_screen "generic-desktop", 350;
+    handle_gnome_activities;
 
     # Log out and switch to SLE classic
     $self->prepare_sle_classic;

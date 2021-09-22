@@ -47,7 +47,7 @@ sub reboot_system {
     } else {
         $self->wait_boot();
     }
-    assert_screen "generic-desktop";
+    handle_gnome_activities;
 }
 
 sub auto_login_alter {
