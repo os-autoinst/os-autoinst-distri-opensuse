@@ -14,7 +14,8 @@ package Installation::Warnings::WarningsController;
 use strict;
 use warnings;
 use YuiRestClient;
-use Installation::Warnings::ConfirmationWarningRichText;
+use Installation::Warnings::ConfirmationWarning;
+use Test::Assert 'assert_matches';
 
 sub new {
     my ($class, $args) = @_;
@@ -24,23 +25,30 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{ConfirmationWarningRichText} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
+    $self->{ConfirmationWarning} = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
-sub get_confirmation_warning_rich_text {
+sub get_warning {
     my ($self) = @_;
-    return $self->{ConfirmationWarningRichText};
+    return $self->{ConfirmationWarning};
 }
 
 sub get_text {
     my ($self) = @_;
-    $self->get_confirmation_warning_rich_text->text();
+    $self->get_warning->text();
+}
+
+sub check_warning {
+    my ($self, $args_ref) = @_;
+    my $expected_text = $args_ref->{expected_text};
+    my $actual_text = $self->get_text();
+    assert_matches(qr/$expected_text/, $actual_text, "Text not matching the expected \"$expected_text\"");
 }
 
 sub accept_warning {
     my ($self) = @_;
-    $self->get_confirmation_warning_rich_text->press_ok();
+    $self->get_warning->press_yes();
 }
 
 1;

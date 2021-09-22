@@ -143,6 +143,10 @@ sub get_warnings_controller {
     return Installation::Warnings::WarningsController->new();
 }
 
+sub get_warnings_rich_text_controller {
+    return Installation::Warnings::WarningsRichTextController->new();
+}
+
 sub get_encrypted_volume_activation {
     return Installation::SystemProbing::EncryptedVolumeActivationController->new();
 }

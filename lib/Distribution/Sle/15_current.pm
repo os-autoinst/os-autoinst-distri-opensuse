@@ -63,4 +63,8 @@ sub get_add_on_product_installation {
     return Installation::AddOnProductInstallation::AddOnProductInstallationController->new();
 }
 
+sub get_disk_activation_controller() {
+    return Installation::DiskActivation::DiskActivationController->new();
+}
+
 1;

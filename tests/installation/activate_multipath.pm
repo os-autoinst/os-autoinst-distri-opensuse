@@ -13,15 +13,20 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Confirm access to Beta Distribution
+# Summary: Activates multipath when multipath activation message appears
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-use base 'y2_installbase';
+use parent 'y2_installbase';
 use strict;
 use warnings;
+use scheduler 'get_test_suite_data';
 
 sub run {
-    $testapi::distri->get_warnings_rich_text_controller()->accept_warning();
+    my $expected_mpio_activation_text = get_test_suite_data()->{mpio_activation_text};
+    my $warnings_controller = $testapi::distri->get_warnings_controller();
+
+    $warnings_controller->check_warning({expected_text => $expected_mpio_activation_text});
+    $warnings_controller->accept_warning();        
 }
 
 1;
