@@ -447,9 +447,7 @@ sub post_fail_hook {
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
     my $log_dir = "/tmp/sriov_pcipassthru";
-    script_run("ls -l $log_dir"); #julie debug
     save_network_device_status_logs($log_dir, $_, "post_fail_hook") foreach (keys %virt_autotest::common::guests);
-    script_run("ls -l $log_dir"); #julie debug
     upload_virt_logs($log_dir, "network_device_status");
     $self->SUPER::post_fail_hook;
     restore_original_guests();
