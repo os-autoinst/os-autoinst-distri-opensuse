@@ -196,7 +196,7 @@ sub run {
         zypper_call('--gpg-auto-import-keys refresh');
         my $tmp_file = '/tmp/zypper-search-provides-mariadb.txt';
         zypper_call('search --match-exact MariaDB-server');
-        assert_script_run("zypper --non-interactive search --provides --match-exact mariadb | tee $tmp_file");
+        assert_script_run("zypper --non-interactive search --provides --match-exact --case-sensitive mariadb | tee $tmp_file");
         record_soft_failure(q{https://jira.suse.com/browse/SLE-16271 - "--provides" behaves case-insensitive, MariaDB doesn't provide "mariadb"}) unless (script_run(qq{grep "| MariaDB-server " $tmp_file}) == 1);
     }
 }
