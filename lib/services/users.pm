@@ -127,6 +127,12 @@ sub restore_passwd {
     assert_screen "password-changed-terminal";
 }
 
+# remove test user
+sub remove_test_user {
+    assert_script_run("pkill -KILL -u $newUser");
+    assert_script_run("userdel -r $newUser");
+}
+
 # check users before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_users_check {
@@ -188,6 +194,8 @@ sub full_users_check {
         send_key "alt-f4";
         send_key "ret";
         select_console 'root-console';
+        # need remove the added test user after users test
+        remove_test_user;
     }
 }
 
@@ -197,8 +205,7 @@ sub users_cleanup {
     my $stage = $hash{stage};
     select_console "root-console";
     if ($stage eq 'before') {
-        script_run("pkill -KILL -u $newUser");
-        script_run("userdel -r $newUser");
+        remove_test_user;
     }
     reset_consoles;
 }
