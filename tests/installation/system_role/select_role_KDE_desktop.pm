@@ -14,7 +14,7 @@
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
 # Summary: Select System Role (Desktop with KDE Plasma)
-#          using REST API.
+#         using REST API.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
