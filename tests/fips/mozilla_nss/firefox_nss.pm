@@ -68,8 +68,8 @@ sub run {
     # - at least 8 characters
     # - at least one upper case
     # - at least one non-alphabet-non-number character (like: @-.=%)
-    my $fips_password = 'openqa@SUSE';
-
+    my $fips_password   = 'openqa@SUSE';
+    my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
@@ -77,7 +77,11 @@ sub run {
     firefox_preferences;
 
     # Search "Passwords" section
-    type_string "Use a master", timeout => 2;
+    if ($firefox_version >= 91) {
+        type_string "Use a primary", timeout => 2;
+    } else {
+        type_string "Use a master", timeout => 2;
+    }
     assert_and_click("firefox-master-password-checkbox");
     assert_screen("firefox-passwd-master_setting");
 
