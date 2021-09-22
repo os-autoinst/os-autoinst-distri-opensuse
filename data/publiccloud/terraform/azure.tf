@@ -199,7 +199,8 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   }
 
   boot_diagnostics {
-    storage_account_uri = "https://${var.storage-account}.blob.core.windows.net/"
+    /* Passing a null value will utilize a Managed Storage Account to store Boot Diagnostics */
+    storage_account_uri = null
   }
 }
 
