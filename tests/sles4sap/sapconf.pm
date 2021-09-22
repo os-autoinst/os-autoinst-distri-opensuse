@@ -97,6 +97,12 @@ sub run {
         systemctl "start sapconf";
     }
 
+    if (systemctl("-q is-active sapconf.service", ignore_failure => 1)) {
+        record_soft_failure("bsc#1190787 - sapconf is not started");
+        systemctl "enable sapconf";
+        systemctl "start sapconf";
+    }
+
     my $default_profile = $1;
     record_info("Current profile", "Current default profile: $default_profile");
 
