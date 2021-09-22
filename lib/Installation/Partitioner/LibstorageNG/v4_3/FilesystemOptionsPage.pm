@@ -13,6 +13,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -26,9 +27,9 @@ sub new {
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{lbl_settings_root_part} = $self->{app}->label({label => 'Settings for the Root Partition'});
     $self->{cb_root_fs_type}        = $self->{app}->combobox({id => '"vol_0_fs_type"'});
-    $self->{btn_next}               = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -49,11 +50,6 @@ sub select_root_filesystem {
 sub is_shown {
     my ($self) = @_;
     return $self->{lbl_settings_root_part}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 1;

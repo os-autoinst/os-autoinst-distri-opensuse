@@ -14,7 +14,7 @@ package Installation::Navigation::NavigationController;
 use strict;
 use warnings;
 use YuiRestClient;
-use Installation::Navigation::NavigationBar;
+use Installation::Navigation::NavigationBase;
 
 sub new {
     my ($class, $args) = @_;
@@ -24,18 +24,18 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{NavigationBar} = Installation::Navigation::NavigationBar->new({app => YuiRestClient::get_app()});
+    $self->{NavigationBase} = Installation::Navigation::NavigationBase->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
-sub get_navigation_bar {
+sub get_navigation_base {
     my ($self) = @_;
-    return $self->{NavigationBar};
+    return $self->{NavigationBase};
 }
 
 sub proceed_next_screen {
     my ($self) = @_;
-    $self->get_navigation_bar()->press_next();
+    $self->get_navigation_base()->press_next();
 }
 
 1;

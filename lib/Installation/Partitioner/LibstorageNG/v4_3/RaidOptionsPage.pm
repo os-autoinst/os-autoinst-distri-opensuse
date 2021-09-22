@@ -11,6 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 use testapi;
@@ -27,7 +28,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next}      = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{cb_chunk_size} = $self->{app}->combobox({id => '"Y2Partitioner::Dialogs::MdOptions::ChunkSize"'});
 
     return $self;
@@ -36,11 +37,6 @@ sub init {
 sub select_chunk_size {
     my ($self, $chunk_size) = @_;
     $self->{cb_chunk_size}->select($chunk_size);
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 1;

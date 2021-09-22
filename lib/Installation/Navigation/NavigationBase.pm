@@ -7,10 +7,10 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: Handles Navigation bar
+# Summary: Handles Navigation base
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Navigation::NavigationBar;
+package Installation::Navigation::NavigationBase;
 use strict;
 use warnings;
 

@@ -13,6 +13,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Firstboot::HostNamePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -26,7 +27,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}                = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{tb_static_hostname}      = $self->{app}->textbox({id => '"HOSTNAME"'});
     $self->{cb_dhcp_hostname_method} = $self->{app}->combobox({id => '"DHCP_HOSTNAME"'});
     return $self;
@@ -45,11 +46,6 @@ sub get_set_hostname_via_DHCP {
 sub is_shown {
     my ($self) = @_;
     return $self->{tb_static_hostname}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

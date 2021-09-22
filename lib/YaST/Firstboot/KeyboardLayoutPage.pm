@@ -13,6 +13,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Firstboot::KeyboardLayoutPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -26,7 +27,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}             = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{isel_keyboard_layout} = $self->{app}->itemselector({id => 'layout_list'});
     return $self;
 }
@@ -39,11 +40,6 @@ sub get_keyboard_layout {
 sub is_shown {
     my ($self) = @_;
     return $self->{isel_keyboard_layout}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

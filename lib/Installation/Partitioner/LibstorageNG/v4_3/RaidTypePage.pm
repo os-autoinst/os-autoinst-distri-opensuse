@@ -11,6 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 use testapi;
@@ -27,7 +28,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next}    = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{btn_add}     = $self->{app}->button({id => 'add'});
     $self->{btn_add_all} = $self->{app}->button({id => 'add_all'});
 
@@ -53,11 +54,6 @@ sub press_add_button {
 sub press_add_all_button {
     my ($self) = @_;
     return $self->{btn_add_all}->click();
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 sub set_raid_level {

@@ -12,7 +12,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::AddOnProduct::AddOnProductPage;
-use parent 'Installation::Navigation::NavigationBar';
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 

@@ -12,6 +12,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Registration::RegisteredSystemPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -25,7 +26,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}              = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{lbl_system_registered} = $self->{app}->label({label => 'The system is already registered.'});
     return $self;
 }
@@ -33,11 +34,6 @@ sub init {
 sub is_shown {
     my ($self) = @_;
     return $self->{lbl_system_registered}->exist();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

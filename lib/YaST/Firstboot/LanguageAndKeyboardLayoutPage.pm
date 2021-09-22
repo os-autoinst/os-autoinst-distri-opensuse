@@ -13,6 +13,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Firstboot::LanguageAndKeyboardLayoutPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -26,7 +27,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{btn_next}           = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     $self->{cb_keyboard_layout} = $self->{app}->combobox({id => 'keyboard'});
     $self->{cb_language}        = $self->{app}->combobox({id => 'language'});
     return $self;
@@ -45,11 +46,6 @@ sub get_language {
 sub get_keyboard_layout {
     my ($self) = @_;
     return $self->{cb_keyboard_layout}->value();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

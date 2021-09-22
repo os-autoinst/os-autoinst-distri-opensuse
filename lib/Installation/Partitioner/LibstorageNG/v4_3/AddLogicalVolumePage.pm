@@ -11,6 +11,7 @@
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::AddLogicalVolumePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 use testapi;
@@ -27,10 +28,10 @@ sub new {
 
 sub init {
     my $self = shift;
+    $self->SUPER::init();
     $self->{tb_lv_name}     = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvInfo::NameWidget"'});
     $self->{rb_thin_pool}   = $self->{app}->radiobutton({id => 'thin_pool'});
     $self->{rb_thin_volume} = $self->{app}->radiobutton({id => 'thin'});
-    $self->{btn_next}       = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -46,11 +47,6 @@ sub select_type {
         'thin-volume' => $self->{rb_thin_volume}
     );
     return $types{$type}->select();
-}
-
-sub press_next {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 1;

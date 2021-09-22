@@ -15,6 +15,7 @@ package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use strict;
 use warnings;
 use testapi;
+use parent 'Installation::Navigation::NavigationBase';
 use parent 'Installation::Partitioner::LibstorageNG::ExpertPartitionerPage';
 
 sub new {
@@ -28,7 +29,7 @@ sub new {
 
 sub init {
     my $self = shift;
-
+    $self->SUPER::init();
     $self->{btn_add_partition}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
     $self->{btn_edit_partition}     = $self->{app}->button({id    => '"Y2Partitioner::Widgets::BlkDeviceEditButton"'});
     $self->{btn_delete_partition}   = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionDeleteButton"'});
@@ -43,7 +44,6 @@ sub init {
     $self->{tbl_lvm_devices}        = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
     $self->{tree_system_view}       = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
     $self->{btn_add_logical_volume} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
-    $self->{btn_next}               = $self->{app}->button({id => 'next'});
 
     return $self;
 }
@@ -135,11 +135,6 @@ sub press_accept_button {
 sub press_cancel_button {
     my ($self) = @_;
     $self->{btn_cancel}->click();
-}
-
-sub press_next_button {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 sub select_disk {

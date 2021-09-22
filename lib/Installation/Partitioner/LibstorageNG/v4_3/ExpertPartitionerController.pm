@@ -401,7 +401,7 @@ sub add_volume_group {
         $self->get_add_volume_group_page()->select_available_device($device);
     }
     $self->get_add_volume_group_page()->press_add_button();
-    $self->get_add_volume_group_page()->press_next_button();
+    $self->get_add_volume_group_page()->press_next();
 }
 
 sub delete_volume_group {
@@ -629,8 +629,8 @@ sub decline_warning {
 
 sub show_summary_and_accept_changes {
     my ($self) = @_;
-    $self->get_expert_partitioner_page()->press_next_button();
-    $self->get_summary_page()->press_next_button();
+    $self->get_expert_partitioner_page()->press_next();
+    $self->get_summary_page()->press_next();
 }
 
 sub confirm_only_use_if_familiar {
