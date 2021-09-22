@@ -27,7 +27,7 @@ sub run {
 
     if (get_var('VERSION') ne $original_version) {
         # Switch to original system version and reload needles
-        set_var('VERSION', $original_version, reload_needles => 1);
+        set_var('VERSION', $original_version);
     }
 
     # Reset vars for autoyast installation of origin system
