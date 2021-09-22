@@ -91,8 +91,8 @@ sub run {
     }
 
     record_info('Install', 'Install needed packages');
-    zypper_call('--quiet in git-core python39 python39-devel gcc', timeout => 600);
-    assert_script_run('pip3.9 --quiet install tox pytest', timeout => 600);
+    zypper_call('--quiet in git-core python3 python3-devel gcc', timeout => 600);
+    assert_script_run('pip3.6 --quiet install tox pytest', timeout => 600);
 
     record_info('Clone', 'Clone BCI tests repository');
     assert_script_run("git clone -q --depth 1 $bci_tests_repo");
