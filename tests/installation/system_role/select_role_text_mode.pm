@@ -13,22 +13,17 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Select System Role (if provided) and navigate to next screen
+# Summary: Select System Role (Text Mode) and navigate to next screen
 #          using REST API.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
 use base 'y2_installbase';
-use scheduler 'get_test_suite_data';
-use testapi;
 
 sub run {
-    my $selection  = get_test_suite_data()->{system_role}{selection};
-    my $controller = $testapi::distri->get_system_role_controller();
-
-    $controller->select_system_role($selection) if $selection;
-    $controller->next();
+    my $system_role = $testapi::distri->get_system_role_controller();
+    $system_role->select_system_role('text_mode');
 }
 
 1;

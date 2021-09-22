@@ -16,8 +16,8 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/system_role/validate_selected_role_none_selected
+  - installation/system_role/select_role_gnome_desktop
   - installation/partitioning/new_partitioning_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
@@ -42,9 +42,6 @@ schedule:
   - console/lvm_thin_check
 test_data:
   <<: !include test_data/yast/lvm_thin_provisioning/lvm_thin_provisioning.yaml
-  system_role:
-    default: null
-    selection: 'Desktop with GNOME'
 conditional_schedule:
   opensuse_welcome:
     VERSION:

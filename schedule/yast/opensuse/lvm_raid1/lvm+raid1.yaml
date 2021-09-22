@@ -20,8 +20,8 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/system_role/validate_selected_role_none_selected
+  - installation/system_role/select_role_KDE_desktop
   - installation/partitioning/setup_raid1_lvm
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
@@ -36,7 +36,4 @@ schedule:
   - installation/first_boot
   - console/validate_lvm_raid1
 test_data:
-  system_role:
-    default: null
-    selection: 'Desktop with KDE Plasma'
   <<: !include test_data/yast/lvm_raid1/lvm+raid1.yaml
