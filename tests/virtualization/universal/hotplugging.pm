@@ -263,7 +263,13 @@ sub run_test {
 
     # 3. Hotplugging of vCPUs
     record_info("CPU", "Changing the number of CPUs available");
-    test_add_vcpu($_) foreach (keys %virt_autotest::common::guests);
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        if ($guest eq "sles12sp3PV") {
+            record_soft_failure("Skipping vcpu hotplugging on $guest due to bsc#1187341");
+        } else {
+            test_add_vcpu($guest);
+        }
+    }
 
     # 4. Live memory change of guests
     record_info "Memory", "Changing the amount of memory available";
