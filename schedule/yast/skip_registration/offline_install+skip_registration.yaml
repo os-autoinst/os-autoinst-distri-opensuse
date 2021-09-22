@@ -13,6 +13,7 @@ schedule:
   - installation/network_configuration
   - installation/scc_registration
   - installation/addon_products_sle
+  - installation/release_notes_from_rpm
   - installation/system_role
   - installation/partitioning
   - installation/partitioning_finish

@@ -3,7 +3,6 @@ name: releasenotes_origin+unregistered
 description: >
   Test fate#323273 - Check the origin (rpm or url) of the showed release notes.
 vars:
-  CHECK_RELEASENOTES_ORIGIN: '1'
   EXIT_AFTER_START_INSTALL: '1'
   SCC_REGISTER: 'none'
   YUI_REST_API: 1
@@ -15,7 +14,7 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/skip_registration
   - installation/addon_products_sle
-  - installation/releasenotes_origin
+  - installation/release_notes_from_url
   - installation/system_role
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
