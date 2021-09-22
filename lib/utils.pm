@@ -713,12 +713,12 @@ the second run will update the system.
 
 =cut
 sub ssh_fully_patch_system {
-    my $host = shift;
+    my $remote = shift;
     # first run, possible update of packager -- exit code 103
-    my $ret = script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", 1500);
+    my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
     # second run, full system update
-    $ret = script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", 6000);
+    $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 6000);
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
 }
 

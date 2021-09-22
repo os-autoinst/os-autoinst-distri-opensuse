@@ -2807,10 +2807,10 @@ sub load_qam_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
 
     loadtest "publiccloud/download_repos";
-    loadtest "publiccloud/ssh_interactive_init", run_args => $args;
-    loadtest "publiccloud/register_system",      run_args => $args;
-    loadtest "publiccloud/transfer_repos",       run_args => $args;
-    loadtest "publiccloud/patch_and_reboot",     run_args => $args;
+    loadtest "publiccloud/prepare_instance", run_args => $args;
+    loadtest "publiccloud/register_system",  run_args => $args;
+    loadtest "publiccloud/transfer_repos",   run_args => $args;
+    loadtest "publiccloud/patch_and_reboot", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {

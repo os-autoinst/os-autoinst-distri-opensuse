@@ -11,7 +11,7 @@ conditional_schedule:
         - containers/podman
 schedule:
   - boot/boot_to_desktop
-  - publiccloud/ssh_interactive_init
+  - publiccloud/prepare_instance
   - publiccloud/register_system
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
