@@ -207,11 +207,23 @@ sub terraform_apply {
     $args{vars}->{offer} = $offer if ($offer);
     $args{vars}->{sku} = $sku if ($sku);
 
-    $self->SUPER::terraform_apply(%args);
+    my @instances = $self->SUPER::terraform_apply(%args);
+    $self->upload_boot_diagnostics('resource_group' => $self->get_resource_group_from_terraform_show());
+    return @instances;
 }
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
+
+    my $resgroup = $self->get_resource_group_from_terraform_show();
+    return if (!defined($resgroup));
+
+    eval { $self->upload_boot_diagnostics('resource_group' => $resgroup) }
+      or record_info('Bootlog upl error', 'Failed to upload bootlog');
+    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+}
+
+sub get_resource_group_from_terraform_show {
     my $resgroup;
     my $out = script_output('terraform show -json');
     eval {
@@ -224,32 +236,20 @@ sub on_terraform_apply_timeout {
     };
     if ($@ || !defined($resgroup)) {
         record_info('ERROR', "Unable to get resource-group:\n$out", result => 'fail');
-        return;
     }
+    return $resgroup;
+}
 
-    my $tries = 3;
-    while ($tries gt 0) {
-        $tries = $tries - 1;
-        eval {
-            my $bootlog_name = '/tmp/azure-bootlog.txt';
-            my $cmd_enable = 'az vm boot-diagnostics enable --ids $(az vm list -g ' . $resgroup . ' --query \'[].id\' -o tsv) --storage ' . $self->storage_account;
-            $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
-            record_info('INFO', $cmd_enable . $/ . $out);
-            script_run('az vm boot-diagnostics get-boot-log --ids $(az vm list -g ' . $resgroup . ' --query \'[].id\' -o tsv) > ' . $bootlog_name);
-            upload_logs($bootlog_name, failok => 1);
-            $tries = 0;
-        };
-        if ($@) {
-            if (is_serial_terminal()) {
-                type_string(qq(\c\\));    # Send QUIT signal
-            }
-            else {
-                send_key('ctrl-\\');      # Send QUIT signal
-            }
-        }
-    }
+sub upload_boot_diagnostics {
+    my ($self, %args) = @_;
+    return if !defined($args{resource_group});
 
-    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+    my $bootlog_name = '/tmp/azure-bootlog.txt';
+    my $cmd_enable = 'az vm boot-diagnostics enable --ids $(az vm list -g ' . $args{resource_group} . ' --query \'[].id\' -o tsv)';
+    my $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
+    record_info('INFO', $cmd_enable . $/ . $out);
+    assert_script_run('az vm boot-diagnostics get-boot-log --ids $(az vm list -g ' . $args{resource_group} . ' --query \'[].id\' -o tsv) | jq -r "." > ' . $bootlog_name);
+    upload_logs($bootlog_name, failok => 1);
 }
 
 sub on_terraform_destroy_timeout {
