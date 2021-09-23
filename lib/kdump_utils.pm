@@ -65,7 +65,7 @@ sub prepare_for_kdump_sle {
         # append _debug to the incident repo
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
             next unless $i;
-            $i =~ s,/$,_debug/,;
+            $i =~ s/$/_debug/;
             $counter++;
             zypper_call("--no-gpg-checks ar -f $i 'DEBUG_$counter'");
         }
