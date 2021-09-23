@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SUSE LLC
+# Copyright (C) 2019-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -90,6 +90,7 @@ sub run {
         my $params  = " ";
         my $timeout = 180;
         add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
+        add_suseconnect_product("sle-module-legacy",        "$version", "$arch", "$params", "$timeout");
     }
     zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
 
