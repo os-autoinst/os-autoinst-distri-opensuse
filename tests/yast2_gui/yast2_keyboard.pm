@@ -65,11 +65,11 @@ sub run {
     # 4. simulate german keystrokes to switch back us keymap
     send_key "alt-f2";
     type_string "xdg/su /c |&sbin&zast2 kezboard|";
-    send_key("ret");
-    wait_still_screen 5;
+    send_key_until_needlematch('root-auth-dialog', 'ret', 3, 3);
+    wait_still_screen 2;
     type_password;
     send_key("ret");
-    wait_still_screen 3;
+    wait_still_screen 2;
     send_key "alt-k";
     wait_still_screen 2;
     send_key "e";
