@@ -8,7 +8,8 @@
 # without any warranty.
 
 # Package: libvirt-client nmap
-# Summary: Test if the guests can be saved and restored
+# Summary: Test if the guests can be saved and restored, by adding a
+# temp file and restoring to a state before the file existed.
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
@@ -36,6 +37,7 @@ sub run_test {
         }
     }
 
+    # Starting all guests to create a test file in them, the file must not exist after restoring.
     start_guests();
 
     record_info "SSH", "Check hosts are listening on SSH";
@@ -43,10 +45,11 @@ sub run_test {
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
-        assert_script_run("virsh destroy $guest", 90);
     }
 
     # Guest must be in power down state to be restored
+    shutdown_guests();
+
     record_info "Restore", "Restore guests";
     assert_script_run("virsh restore /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %virt_autotest::common::guests);
 
