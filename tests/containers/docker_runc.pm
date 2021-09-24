@@ -23,14 +23,14 @@ use version_utils qw(is_leap is_sle get_os_release);
 use containers::common;
 use strict;
 use warnings;
-use containers::runtime;
+use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $docker   = containers::runtime::docker->new();
+    my $docker   = containers::engine::docker->new();
     my @runtimes = ();
     push @runtimes, "runc" if (is_leap(">15.1") or !is_sle('=15'));
 

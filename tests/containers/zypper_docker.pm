@@ -26,12 +26,12 @@ use version_utils 'get_os_release';
 use strict;
 use warnings;
 use containers::common;
-use containers::runtime;
+use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = containers::runtime::docker->new();
+    my $docker = containers::engine::docker->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);

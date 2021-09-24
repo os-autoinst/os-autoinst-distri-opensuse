@@ -20,12 +20,12 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(is_sle get_os_release);
-use containers::runtime;
+use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = containers::runtime::docker->new();
+    my $docker = containers::engine::docker->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);

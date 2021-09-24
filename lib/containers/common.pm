@@ -26,7 +26,7 @@ use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos 
 use containers::utils qw(can_build_sle_base registry_url);
 
 our @EXPORT = qw(install_podman_when_needed install_docker_when_needed
-  clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
+  test_container_runtime test_container_image scc_apply_docker_image_credentials
   scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
 
 sub activate_containers_module {

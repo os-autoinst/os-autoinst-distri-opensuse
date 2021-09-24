@@ -30,12 +30,12 @@ use containers::common;
 use publiccloud::utils 'is_ondemand';
 use strict;
 use warnings;
-use containers::runtime;
+use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = containers::runtime::docker->new();
+    my $docker = containers::engine::docker->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);

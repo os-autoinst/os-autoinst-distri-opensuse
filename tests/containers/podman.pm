@@ -33,14 +33,14 @@ use containers::common;
 use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
-use containers::runtime;
+use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my $dir    = "/root/DockerTest";
-    my $podman = containers::runtime::podman->new();
+    my $podman = containers::engine::podman->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_podman_when_needed($host_distri);

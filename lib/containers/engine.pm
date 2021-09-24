@@ -10,7 +10,7 @@
 # Summary: Abstraction layer to operate docker and podman containers through same interfaces
 # Maintainer: qac team <qa-c@suse.de>
 
-package containers::runtime;
+package containers::engine;
 use Mojo::Base -base;
 use testapi;
 use Test::Assert 'assert_equals';
@@ -19,17 +19,17 @@ use utils qw(systemctl file_content_replace);
 
 has runtime => undef;
 
-sub _rt_assert_script_run {
+sub _engine_assert_script_run {
     my ($self, $cmd, @args) = @_;
     assert_script_run($self->runtime . " " . $cmd, @args);
 }
 
-sub _rt_script_run {
+sub _engine_script_run {
     my ($self, $cmd, @args) = @_;
     return script_run($self->runtime . " " . $cmd, @args);
 }
 
-sub _rt_script_output {
+sub _engine_script_output {
     my ($self, $cmd, @args) = @_;
     return script_output($self->runtime . " " . $cmd, @args);
 }
@@ -53,7 +53,7 @@ sub create_container {
     );
     die('Must provide an image') unless ($args{image});
     die('Must provide an name')  unless ($args{name});
-    $self->_rt_assert_script_run("container create --name $args{name} $args{image} $args{cmd}", 300);
+    $self->_engine_assert_script_run("container create --name $args{name} $args{image} $args{cmd}", 300);
 }
 
 =head2 start_container($image_name)
@@ -63,8 +63,7 @@ Starts container named C<image_name>.
 =cut
 sub start_container {
     my ($self, $image_name) = @_;
-    die 'wrong number of arguments' if @_ < 2;
-    $self->_rt_assert_script_run("container start $image_name");
+    $self->_engine_assert_script_run("container start $image_name");
     record_info "$image_name container started", "";
 }
 
@@ -77,8 +76,7 @@ https://docs.docker.com/engine/reference/commandline/wait/
 =cut
 sub halt_container {
     my ($self, $container_name) = @_;
-    die 'wrong number of arguments' if @_ < 2;
-    $self->_rt_assert_script_run("wait $container_name");
+    $self->_engine_assert_script_run("wait $container_name");
     record_info "$container_name container is blocked.", "";
 }
 
@@ -96,7 +94,7 @@ sub build {
     die 'wrong number of arguments' if @_ < 3;
 
     #TODO add build with URL https://docs.docker.com/engine/reference/commandline/build/
-    $self->_rt_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", $args{timeout} // 300);
+    $self->_engine_assert_script_run("build -f $dockerfile_path/Dockerfile -t $container_tag $dockerfile_path", $args{timeout} // 300);
     record_info "$container_tag created", "";
 }
 
@@ -121,7 +119,7 @@ sub run_container {
     my $name           = $args{name}           ? "--name $args{name}" : '';
     my $keep_container = $args{keep_container} ? ''                   : '--rm';
     my $params         = sprintf qq(%s %s %s), $keep_container, $mode, $name;
-    my $ret            = $self->_rt_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
+    my $ret            = $self->_engine_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
     record_info "cmd_info", "Container executes:\noptions $params $image_name $remote";
     return $ret;
 }
@@ -135,11 +133,11 @@ C<args> passes parameters to C<script_run>
 =cut
 sub pull {
     my ($self, $image_name, %args) = @_;
-    if (my $rc = $self->_rt_script_run("image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") == 0) {
+    if (my $rc = $self->_engine_script_run("image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") == 0) {
         return;
     }
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-    return $self->_rt_script_run("pull $image_name", timeout => $args{timeout} // 300);
+    return $self->_engine_script_run("pull $image_name", timeout => $args{timeout} // 300);
 }
 
 =head2 commit
@@ -149,7 +147,7 @@ Save a existing container as a new image in the local registry
 =cut
 sub commit {
     my ($self, $mycontainer, $new_image_name, %args) = @_;
-    $self->_rt_assert_script_run("commit $mycontainer $new_image_name", timeout => $args{timeout});
+    $self->_engine_assert_script_run("commit $mycontainer $new_image_name", timeout => $args{timeout});
 }
 
 =head2 enum_images
@@ -159,7 +157,7 @@ Return an array ref of the images
 =cut
 sub enum_images {
     my ($self) = shift;
-    my $images_s = $self->_rt_script_output("images -q");
+    my $images_s = $self->_engine_script_output("images -q");
     record_info "Images", $images_s;
     my @images = split /[\n\t]/, $images_s;
     return \@images;
@@ -172,7 +170,7 @@ Return an array ref of the containers
 =cut
 sub enum_containers {
     my ($self) = shift;
-    my $containers_s = $self->_rt_script_output("container ls -q");
+    my $containers_s = $self->_engine_script_output("container ls -q");
     record_info "Containers", $containers_s;
     my @containers = split /[\n\t]/, $containers_s;
     return \@containers;
@@ -185,7 +183,7 @@ Returns an array ref with the names of the images.
 =cut
 sub get_images_by_repo_name {
     my ($self)      = @_;
-    my $repo_images = $self->_rt_script_output("images --format '{{.Repository}}'", timeout => 60);
+    my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 60);
     my @images      = split /[\n\t ]/, $repo_images;
     return \@images;
 }
@@ -200,7 +198,7 @@ sub info {
     my ($self, %args) = shift;
     my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
     my $expected = $args{value}    ? qq( | grep $args{value})            : '';
-    $self->_rt_assert_script_run(sprintf("info %s %s", $property, $expected));
+    $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));
 }
 
 =head2 get_container_logs($container)
@@ -212,7 +210,7 @@ C<logs> returns a string.
 =cut
 sub get_container_logs {
     my ($self, $container) = @_;
-    my $logs = $self->_rt_script_output("container logs $container");
+    my $logs = $self->_engine_script_output("container logs $container");
     return $logs;
 }
 
@@ -223,7 +221,7 @@ Remove a image from the pool.
 =cut
 sub remove_image {
     my ($self, $image_name) = @_;
-    $self->_rt_assert_script_run("rmi -f $image_name");
+    $self->_engine_assert_script_run("rmi -f $image_name");
 }
 
 =head2 remove_container
@@ -233,7 +231,7 @@ Remove a container from the pool.
 =cut
 sub remove_container {
     my ($self, $container_name) = @_;
-    $self->_rt_assert_script_run("rm -f $container_name");
+    $self->_engine_assert_script_run("rm -f $container_name");
 }
 
 =head2 check_image_in_host
@@ -252,11 +250,11 @@ sub check_image_in_host {
 Updates the registry files for the running container runtime to allow access to
 insecure registries.
 
-Implementation is subject to the the subclass otherwise call to this subroutine dies.
+Implementation is subject to the subclass.
 
 =cut
 sub configure_insecure_registries {
-    my ($self) = shift;
+    return;
 }
 
 =head2 cleanup_system_host
@@ -268,8 +266,8 @@ Asserts that everything was cleaned up unless c<assert> is set to 0.
 sub cleanup_system_host {
     my ($self, $assert) = @_;
     $assert // 1;
-    $self->_rt_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
-    $self->_rt_assert_script_run("system prune -a -f",                           180);
+    $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
+    $self->_engine_assert_script_run("system prune -a -f",                           180);
 
     if ($assert) {
         assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
@@ -277,9 +275,9 @@ sub cleanup_system_host {
     }
 }
 
-# Container runtime subclasses here
-package containers::runtime::docker;
-use Mojo::Base 'containers::runtime';
+# Container engine subclasses here
+package containers::engine::docker;
+use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
@@ -296,8 +294,8 @@ sub configure_insecure_registries {
     record_info "setup $self->runtime", "deamon.json ready";
 }
 
-package containers::runtime::podman;
-use Mojo::Base 'containers::runtime';
+package containers::engine::podman;
+use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
@@ -313,8 +311,8 @@ sub configure_insecure_registries {
 }
 
 
-package containers::runtime::buildah;
-use Mojo::Base 'containers::runtime';
+package containers::engine::buildah;
+use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
@@ -323,8 +321,8 @@ has runtime => "buildah";
 sub cleanup_system_host {
     my ($self, $assert) = @_;
     $assert // 1;
-    $self->_rt_assert_script_run("rm --all");
-    $self->_rt_assert_script_run("rmi --all --force");
+    $self->_engine_assert_script_run("rm --all");
+    $self->_engine_assert_script_run("rmi --all --force");
 
     if ($assert) {
         assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
@@ -336,7 +334,7 @@ sub get_images_by_repo_name {
     my ($self) = @_;
     my $repo_images;
 
-    $repo_images = $self->_rt_script_output("images --format '{{.Name}}'");
+    $repo_images = $self->_engine_script_output("images --format '{{.Name}}'");
     my @images = split /[\n\t ]/, $repo_images;
     return \@images;
 }
@@ -346,18 +344,18 @@ sub run_container {
     die 'image name or id is required' unless $image_name;
     my $remote = $args{cmd} ? "-- $args{cmd}" : '';
     $image_name = $args{name} ? "\$(buildah from $args{name})" : '$image_name';
-    my $ret = $self->_rt_script_run(sprintf qq(run %s %s %s), $image_name, $remote, timeout => $args{timeout});
+    my $ret = $self->_engine_script_run(sprintf qq(run %s %s %s), $image_name, $remote, timeout => $args{timeout});
     record_info "cmd_info", "Container executes:\noptions $image_name $remote";
     return $ret;
 }
 
 sub pull {
     my ($self, $image_name, %args) = @_;
-    if (my $rc = $self->_rt_script_run("images | grep '$image_name'") == 0) {
+    if (my $rc = $self->_engine_script_run("images | grep '$image_name'") == 0) {
         return;
     }
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-    return $self->_rt_script_run("pull $image_name", timeout => $args{timeout} // 300);
+    return $self->_engine_script_run("pull $image_name", timeout => $args{timeout} // 300);
 }
 
 sub create_container {
@@ -370,27 +368,26 @@ sub create_container {
     );
     die('Must provide an image') unless ($args{image});
     die('Must provide an name')  unless ($args{name});
-    my $container = $self->_rt_script_output("from $args{image} 2>/dev/null");
+    my $container = $self->_engine_script_output("from $args{image} 2>/dev/null");
     record_info 'Container', qq[Testing:\nContainer "$container" based on image "$args{image}"];
 }
 
 sub start_container {
     my ($self, $image_name) = @_;
-    die 'wrong number of arguments' if @_ < 2;
-    $self->_rt_assert_script_run("run $image_name");
+    $self->_engine_assert_script_run("run $image_name");
     record_info "$image_name container started", "";
 }
 
 sub build {
     my ($self, $dockerfile_path, $container_tag, %args) = @_;
     die 'wrong number of arguments' if @_ < 3;
-    $self->_rt_assert_script_run("bud -t $container_tag $dockerfile_path", $args{timeout} // 300);
+    $self->_engine_assert_script_run("bud -t $container_tag $dockerfile_path", $args{timeout} // 300);
     record_info "$container_tag created", "";
 }
 
 sub commit {
     my ($self, $mycontainer, $new_image_name, %args) = @_;
-    $self->_rt_assert_script_run("commit --rm $mycontainer $new_image_name", timeout => $args{timeout});
+    $self->_engine_assert_script_run("commit --rm $mycontainer $new_image_name", timeout => $args{timeout});
 }
 
 1;

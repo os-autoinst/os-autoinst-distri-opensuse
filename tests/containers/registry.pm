@@ -27,42 +27,42 @@ use version_utils qw(is_sle is_tumbleweed is_leap get_os_release);
 use registration;
 use containers::common;
 use containers::utils;
-use containers::runtime;
+use containers::engine;
 
 sub registry_push_pull {
-    my %args    = @_;
-    my $image   = $args{image};
-    my $runtime = $args{runtime};
+    my %args   = @_;
+    my $image  = $args{image};
+    my $engine = $args{runtime};
 
-    die 'Argument $image not provided!'   unless $image;
-    die 'Argument $runtime not provided!' unless $runtime;
+    die 'Argument $image not provided!'  unless $image;
+    die 'Argument $engine not provided!' unless $engine;
 
     # Pull $image
-    assert_script_run $runtime->runtime . " pull $image",            600;
-    assert_script_run $runtime->runtime . " images | grep '$image'", 60;
+    assert_script_run $engine->runtime . " pull $image",            600;
+    assert_script_run $engine->runtime . " images | grep '$image'", 60;
 
     # Tag $image for the local registry
-    assert_script_run $runtime->runtime . " tag $image localhost:5000/$image",      90;
-    assert_script_run $runtime->runtime . " images | grep 'localhost:5000/$image'", 60;
+    assert_script_run $engine->runtime . " tag $image localhost:5000/$image",      90;
+    assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # Push $image to the local registry
-    assert_script_run $runtime->runtime . " push localhost:5000/$image", 90;
+    assert_script_run $engine->runtime . " push localhost:5000/$image", 90;
 
     # Remove $image as well as the local registry $image
     # The localhost:5000/$image must be removed first
-    assert_script_run $runtime->runtime . " image rm -f localhost:5000/$image", 90;
-    if (script_run($runtime->runtime . " images | grep '$image'") == 0) {
-        assert_script_run $runtime->runtime . " image rm -f $image", 90;
+    assert_script_run $engine->runtime . " image rm -f localhost:5000/$image", 90;
+    if (script_run($engine->runtime . " images | grep '$image'") == 0) {
+        assert_script_run $engine->runtime . " image rm -f $image", 90;
     } else {
         record_soft_failure("containers/podman#10685",
             "Known issue - containers/podman#10685: podman image rm --force also untags other images (3.2.0 regression)");
     }
-    assert_script_run "! " . $runtime->runtime . " images | grep '$image'",                60;
-    assert_script_run "! " . $runtime->runtime . " images | grep 'localhost:5000/$image'", 60;
+    assert_script_run "! " . $engine->runtime . " images | grep '$image'",                60;
+    assert_script_run "! " . $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # Pull $image from the local registry
-    assert_script_run $runtime->runtime . " pull localhost:5000/$image",            90;
-    assert_script_run $runtime->runtime . " images | grep 'localhost:5000/$image'", 60;
+    assert_script_run $engine->runtime . " pull localhost:5000/$image",            90;
+    assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 }
 
 sub run {
@@ -82,7 +82,7 @@ sub run {
 
     # Run docker tests
     install_docker_when_needed($host_distri);
-    my $docker = containers::runtime::docker->new();
+    my $docker = containers::engine::docker->new();
     $docker->configure_insecure_registries();
     my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
     registry_push_pull(image => $tumbleweed, runtime => $docker);
@@ -90,7 +90,7 @@ sub run {
 
     # Run podman tests
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        my $podman = containers::runtime::podman->new();
+        my $podman = containers::engine::podman->new();
         install_podman_when_needed($host_distri);
         $podman->configure_insecure_registries();
         registry_push_pull(image => $tumbleweed, runtime => $podman);

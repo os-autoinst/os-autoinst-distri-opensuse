@@ -22,15 +22,15 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release is_sle);
-use containers::runtime;
+use containers::engine;
 
 sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_buildah_when_needed($host_distri);
     install_podman_when_needed($host_distri);
-    my $podman  = containers::runtime::podman->new();
-    my $buildah = containers::runtime::buildah->new();
+    my $podman  = containers::engine::podman->new();
+    my $buildah = containers::engine::buildah->new();
     $podman->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
