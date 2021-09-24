@@ -10,7 +10,6 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use containers::urls 'get_suse_container_urls';
-use mmapi 'get_current_job_id';
 
 sub run {
     my ($self, $args) = @_;
@@ -19,11 +18,19 @@ sub run {
 
     my ($untested_images, $released_images) = get_suse_container_urls();
 
-    my $provider = $self->provider_factory();
+    my $provider = $self->provider_factory(service => 'ECR');
+    $self->{provider} = $provider;
+
     my $image = $untested_images->[0];
-    my $tag = join('-', get_var('PUBLIC_CLOUD_RESOURCE_NAME'), get_current_job_id());
+    my $tag = $provider->get_default_tag();
+    $self->{tag} = $tag;
     assert_script_run("docker pull $image", 360);
     $provider->push_container_image($image, $tag);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->{provider}->delete_image($self->tag);
 }
 
 1;

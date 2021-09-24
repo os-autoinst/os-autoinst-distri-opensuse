@@ -11,36 +11,41 @@
 package publiccloud::eks;
 use Mojo::Base 'publiccloud::aws';
 use testapi;
+use utils;
 
-=head2 push_container_image
-Upload a container image to the ECR. Required parameter is the
-name of the image, previously stored in the local registry. And
-the tag (name) in the public cloud containers repository
-Retrieves the full name of the uploaded image or die.
-=cut
-sub push_container_image {
-    my ($self, $image, $tag) = @_;
+has security_token => undef;
 
-    my $region //= $self->region();
-    my $repository //= get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REPO", 'suse-qec-testing');
-    my $aws_account_id = $self->{aws_account_id};
-    my $full_name_prefix = "$aws_account_id.dkr.ecr.$region.amazonaws.com";
-    my $full_name = "$full_name_prefix/$repository:$tag";
+sub vault_create_credentials {
+    my ($self) = @_;
 
-    $self->{repository} = $repository;
-    $self->{tag} = $tag;
+    record_info('INFO', 'Get credentials from VAULT server for EKS');
+    my $path = '/aws/sts/openqa-role-eks';
+    my $res = $self->vault_api('/v1/' . get_required_var('PUBLIC_CLOUD_VAULT_NAMESPACE') . $path, method => 'post');
+    my $data = $res->{data};
 
-    assert_script_run("aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $full_name_prefix");
-    assert_script_run("docker tag $image $full_name");
-    assert_script_run("docker push $full_name", 180);
-    return $full_name;
+    $self->key_id($data->{access_key});
+    $self->key_secret($data->{secret_key});
+    $self->security_token($data->{security_token});
+    die('Failed to retrieve key')
+      unless (defined($self->key_id) && defined($self->key_secret) && defined($self->security_token));
+
+    assert_script_run('export AWS_SESSION_TOKEN="' . $self->security_token . '"');
+    assert_script_run("export AWS_ACCESS_KEY_ID=" . $self->key_id);
+    assert_script_run("export AWS_SECRET_ACCESS_KEY=" . $self->key_secret);
+    assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
 }
 
-sub cleanup {
-    my $self = shift;
-    assert_script_run("aws ecr batch-delete-image --repository-name " . $self->{repository} . " --image-ids imageTag=" . $self->{tag});
-    $self->SUPER::cleanup();
-    return;
+sub _check_credentials {
+    my ($self) = @_;
+    return 1;
+}
+
+sub init {
+    my ($self, %args) = @_;
+    $self->SUPER::init();
+
+    my $cluster = get_required_var("PUBLIC_CLOUD_K8S_CLUSTER");
+    assert_script_run("aws eks update-kubeconfig --name $cluster", 120);
 }
 
 1;
