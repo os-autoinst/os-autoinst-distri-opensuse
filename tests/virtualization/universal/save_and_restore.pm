@@ -41,12 +41,12 @@ sub run_test {
     record_info "SSH", "Check hosts are listening on SSH";
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 
-    # Guest must be in power down state to be restored
     foreach my $guest (keys %virt_autotest::common::guests) {
         assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
         assert_script_run("virsh destroy $guest", 90);
     }
 
+    # Guest must be in power down state to be restored
     record_info "Restore", "Restore guests";
     assert_script_run("virsh restore /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %virt_autotest::common::guests);
 
@@ -54,7 +54,7 @@ sub run_test {
     assert_script_run "virsh list --all | grep $_ | grep running" foreach (keys %virt_autotest::common::guests);
 
     record_info "SSH", "Check hosts are listening on SSH";
-    ensure_online();
+    ensure_online($_) foreach (keys %virt_autotest::common::guests);
 
     record_info "Check", "Restored guests validation";
     foreach my $guest (keys %virt_autotest::common::guests) {
