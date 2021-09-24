@@ -36,13 +36,14 @@ sub run {
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     select_console 'install-shell';
 
-    # permit ssh root login as it is disabled in "Common Criteria" "System Role" system
-    if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle) {
-        record_soft_failure('workaround for poo#98715');
-        assert_script_run('mount /dev/vda2 /mnt');
-        assert_script_run("sed -i -e 's/PermitRootLogin/#PermitRootLogin/g' /mnt/etc/ssh/sshd_config");
-        assert_script_run('echo PermitRootLogin yes >> /mnt/etc/ssh/sshd_config');
-        assert_script_run('cat /mnt/etc/ssh/sshd_config');
+    # permit root ssh login for CC test:
+    # in "Common Criteria" "System Role" system, root ssh login is disabled
+    # by default, we need enable it
+    if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle && check_var('ARCH', 's390x')) {
+        my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
+        my $root_hd   = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        assert_script_run("mount $root_hd /mnt");
+        assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
         assert_script_run('umount /mnt');
     }
 
