@@ -11,8 +11,8 @@ schedule:
   - installation/welcome
   - installation/accept_license
   - installation/disk_activation
-  - installation/scc_registration
   - installation/multipath
+  - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
   - installation/partitioning
@@ -29,7 +29,6 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_zfcp
-  - console/validate_multipath
 test_data:
   software:
     packages:
