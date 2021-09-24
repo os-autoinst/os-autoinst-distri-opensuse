@@ -1,9 +1,8 @@
 ---
-name: sles4sap_gnome_saptune_v2
+name: sles4sap_gnome_saptune
 description: >
-  saptune V2 test
+  saptune tests for SLES4SAP on VM's
 
-  MR_TEST variable should be set in the YAML file
 vars:
   BOOTFROM: c
   BOOT_HDD_IMAGE: '1'
