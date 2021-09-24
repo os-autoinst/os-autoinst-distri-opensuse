@@ -634,7 +634,7 @@ This method is called called after each test on failure or success.
 =cut
 sub cleanup {
     my ($self) = @_;
-    $self->terraform_destroy() unless script_run('test -d ' . TERRAFORM_DIR . '/.terraform');
+    $self->terraform_destroy() unless script_run('test -d ' . TERRAFORM_DIR . '/.terraform') && check_var('PUBLIC_CLOUD_SERVICE', 'EKS');
     $self->vault_revoke();
     assert_script_run "cd";
 }
