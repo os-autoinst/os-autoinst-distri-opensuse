@@ -13,6 +13,7 @@
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -40,6 +41,7 @@ sub run_test {
     record_info "SSH", "Check hosts are listening on SSH";
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 
+    # Guest must be in power down state to be restored
     foreach my $guest (keys %virt_autotest::common::guests) {
         assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
         assert_script_run("virsh destroy $guest", 90);
@@ -52,7 +54,7 @@ sub run_test {
     assert_script_run "virsh list --all | grep $_ | grep running" foreach (keys %virt_autotest::common::guests);
 
     record_info "SSH", "Check hosts are listening on SSH";
-    script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %virt_autotest::common::guests);
+    ensure_online();
 
     record_info "Check", "Restored guests validation";
     foreach my $guest (keys %virt_autotest::common::guests) {
