@@ -298,14 +298,14 @@ sub upload_virt_logs {
     my $full_compressed_log_name = "/tmp/$compressed_log_name.tar.gz";
     #julie debug
     script_run("echo 'upload_virt_logs() in virt_utils.pm begins in debug mode:'");
-    script_run("cat /dev/null > $full_compressed_log_name");
     script_run("ls -l $log_dir");
     script_run("ls -l $full_compressed_log_name");
     #    script_run("tar -czf $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
-    script_run("tar -czfv $full_compressed_log_name $log_dir; rm $log_dir -r", 60);
+    script_run("tar -czf $full_compressed_log_name $log_dir", 60);
     save_screenshot;
     script_run("ls -l $full_compressed_log_name");
-    script_run("tar -tzfv $full_compressed_log_name");
+    save_screenshot;
+    script_run("tar -tzf $full_compressed_log_name");
     save_screenshot;
     upload_logs "$full_compressed_log_name";
     save_screenshot;
