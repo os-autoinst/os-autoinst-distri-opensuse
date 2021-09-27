@@ -75,7 +75,7 @@ sub snapper_nodbus_restore {
     if (script_run('systemctl is-active dbus')) {
         script_run('systemctl default', 0);
         my $tty = get_root_console_tty;
-        assert_screen "tty$tty-selected", 60;
+        assert_screen "tty$tty-selected", 120;
         reset_consoles;
         select_console 'root-console';
     }
