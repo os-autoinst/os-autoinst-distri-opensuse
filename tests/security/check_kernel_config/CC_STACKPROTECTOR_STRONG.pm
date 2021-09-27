@@ -25,13 +25,20 @@ use warnings;
 use testapi;
 use Utils::Architectures;
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     # check the kernel configuration file to make sure the parameter is there
     if (!is_s390x) {
-        validate_script_output "cat /boot/config-`uname -r`|grep CONFIG_STACKPROTECTOR", qr/CONFIG_STACKPROTECTOR_STRONG=y/;
+        if (is_sle) {
+            validate_script_output "cat /boot/config-`uname -r`| grep CONFIG_STACKPROTECTOR", qr/CONFIG_STACKPROTECTOR_STRONG=y/;
+        }
     }
     else {
+        if (is_sle) {
+            validate_script_output "cat /boot/config-`uname -r`| grep CONFIG_STACKPROTECTOR", qr/CONFIG_STACKPROTECTOR_STRONG=y/;
+        }
+
         my $results = script_run("grep CONFIG_STACKPROTECTOR_STRONG=y /boot/config-`uname -r`");
         if (!$results) {
             die("Error: the kernel parameter is wrongly configured on s390x platform");
@@ -39,5 +46,6 @@ sub run {
     }
 
 }
+
 
 1;
