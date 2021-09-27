@@ -32,7 +32,7 @@ sub run {
     });
     $partitioner->accept_changes();
 
-    assert_matches(qr/$test_data->{warnings}->{missing_boot}/, $partitioner->get_warning_rich_text(),
+    assert_matches(qr/$test_data->{warnings}->{missing_boot}/, $partitioner->get_ok_popup_text(),
         "Warning Dialog for missed boot partition did not appear, while it is expected.");
 }
 

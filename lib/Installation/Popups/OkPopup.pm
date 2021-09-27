@@ -1,17 +1,17 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-# Summary: The class introduces methods to handle a generic
-# confirmation warning.
+# Summary: The class introduces methods in Expert Partitioner to handle
+# a generic popup containing the message in YRichText Widget.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Warnings::ConfirmationWarning;
+package Installation::Popups::OkPopup;
 use strict;
 use warnings;
 
@@ -25,30 +25,24 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_yes}     = $self->{app}->button({id => 'yes'});
-    $self->{btn_no}      = $self->{app}->button({id => 'no'});
-    $self->{lbl_warning} = $self->{app}->label({type => 'YLabel'});
+    $self->{rt_warning} = $self->{app}->label({type => 'YRichText'});
+    $self->{btn_ok}     = $self->{app}->button({id => 'ok'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{btn_yes}->exist();
-}
-
-sub press_yes {
-    my ($self) = @_;
-    return $self->{btn_yes}->click();
-}
-
-sub press_no {
-    my ($self) = @_;
-    return $self->{btn_no}->click();
+    return $self->{btn_ok}->exist();
 }
 
 sub text {
     my ($self) = @_;
-    return $self->{lbl_warning}->text();
+    return $self->{rt_warning}->text();
+}
+
+sub press_ok {
+    my ($self) = @_;
+    $self->{btn_ok}->click();
 }
 
 1;

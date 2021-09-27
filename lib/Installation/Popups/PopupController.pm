@@ -10,11 +10,11 @@
 # Summary: The class introduces business actions for Warning Popups
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Warnings::WarningsController;
+package Installation::Popups::PopupController;
 use strict;
 use warnings;
 use YuiRestClient;
-use Installation::Warnings::ConfirmationWarningRichText;
+use Installation::Popups::OkPopup;
 
 sub new {
     my ($class, $args) = @_;
@@ -24,23 +24,23 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{ConfirmationWarningRichText} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
+    $self->{Popup} = Installation::Popups::OkPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
-sub get_confirmation_warning_rich_text {
+sub get_popup {
     my ($self) = @_;
-    return $self->{ConfirmationWarningRichText};
+    return $self->{Popup};
 }
 
 sub get_text {
     my ($self) = @_;
-    $self->get_confirmation_warning_rich_text->text();
+    $self->get_popup->text();
 }
 
-sub accept_warning {
+sub accept {
     my ($self) = @_;
-    $self->get_confirmation_warning_rich_text->press_ok();
+    $self->get_popup->press_ok();
 }
 
 1;

@@ -14,6 +14,6 @@
 package Installation::Partitioner::LibstorageNG::v4_3::SmallForSnapshotsWarning;
 use strict;
 use warnings;
-use parent 'Installation::Warnings::ConfirmationWarning';
+use parent 'Installation::Popups::YesNoPopup';
 
 1;

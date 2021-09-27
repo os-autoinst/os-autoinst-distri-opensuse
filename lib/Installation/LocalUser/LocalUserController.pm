@@ -15,7 +15,7 @@ package Installation::LocalUser::LocalUserController;
 use strict;
 use warnings;
 use Installation::LocalUser::LocalUserPage;
-use Installation::Warnings::ConfirmationWarning;
+use Installation::Popups::YesNoPopup;
 use YuiRestClient;
 
 sub new {
@@ -27,7 +27,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{LocalUserPage}       = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
-    $self->{WeakPasswordWarning} = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 

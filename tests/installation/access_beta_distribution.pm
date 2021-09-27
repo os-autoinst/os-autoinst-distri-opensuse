@@ -21,7 +21,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_warnings_controller()->accept_warning();
+    $testapi::distri->get_popup_controller()->accept();
 }
 
 1;

@@ -32,7 +32,7 @@ use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
-use Installation::Warnings::WarningsController;
+use Installation::Popups::PopupController;
 use YaST::Bootloader::BootloaderController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
@@ -139,8 +139,8 @@ sub get_license_agreement {
     return Installation::License::Opensuse::LicenseAgreementController->new();
 }
 
-sub get_warnings_controller {
-    return Installation::Warnings::WarningsController->new();
+sub get_popup_controller {
+    return Installation::Popups::PopupController->new();
 }
 
 sub get_encrypted_volume_activation {

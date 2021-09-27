@@ -15,7 +15,7 @@ package Installation::Registration::RegistrationController;
 use strict;
 use warnings;
 use Installation::Registration::RegistrationPage;
-use Installation::Warnings::ConfirmationWarning;
+use Installation::Popups::YesNoPopup;
 use YuiRestClient;
 
 sub new {
@@ -27,9 +27,9 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{RegistrationPage}    = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
-    $self->{UseUpdateReposPopup} = Installation::Warnings::ConfirmationWarning->new({
+    $self->{UseUpdateReposPopup} = Installation::Popups::YesNoPopup->new({
             app => YuiRestClient::get_app()});
-    $self->{SkipRegistrationPopup} = Installation::Warnings::ConfirmationWarningRichText->new({
+    $self->{SkipRegistrationPopup} = Installation::Popups::OkPopup->new({
             app => YuiRestClient::get_app()});
     return $self;
 }
