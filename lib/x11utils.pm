@@ -1,4 +1,4 @@
-# Copyright (C) 2019-2020 SUSE LLC
+# Copyright (C) 2019-2021 SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ our @EXPORT = qw(
   turn_off_screensaver
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
+  turn_off_gnome_screensaver_for_gdm
   turn_off_gnome_suspend
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
@@ -213,7 +214,9 @@ sub handle_login {
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
     # Previously this pressed esc, but that makes the text field in SDDM lose focus
-    send_key_until_needlematch('displaymanager', 'shift', 30, 3);
+    # we need send key 'esc' to quit screen saver when desktop is gnome
+    my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
+    send_key_until_needlematch('displaymanager', $mykey, 30, 3);
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
             record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
@@ -339,6 +342,18 @@ Disable screensaver in gnome. To be called from a command prompt, for example an
 =cut
 sub turn_off_gnome_screensaver {
     script_run 'gsettings set org.gnome.desktop.session idle-delay 0';
+}
+
+=head2 turn_off_gnome_screensaver_for_gdm
+
+turn_off_gnome_screensaver_for_gdm()
+
+Disable screensaver in gnome for gdm. The function should be run under root. To be called from
+a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver_for_gdm {
+    script_run 'sudo -u gdm dbus-launch gsettings set org.gnome.desktop.session idle-delay 0';
 }
 
 =head2 turn_off_gnome_suspend
