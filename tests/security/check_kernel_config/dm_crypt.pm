@@ -27,13 +27,16 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     # Make sure the code changes are there
-    assert_script_run("rpm -q kernel-default --changelog | grep 'dm crypt' | grep 'kcryptd workqueues'");
+    if (is_sle) {
+        assert_script_run("rpm -q kernel-default --changelog | grep 'dm crypt' | grep 'kcryptd workqueues'");
+    }
 
     # Simulate a ram device
     assert_script_run("modprobe brd rd_nr=1 rd_size=512000");

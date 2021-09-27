@@ -2451,7 +2451,7 @@ sub load_security_tests_system_check {
 sub load_security_tests_check_kernel_config {
     load_security_console_prepare;
 
-    loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG";
+    loadtest "security/check_kernel_config/CC_STACKPROTECTOR_STRONG" if (is_sle);
     loadtest "security/check_kernel_config/CONFIG_FORTIFY_SOURCE";
     loadtest "security/check_kernel_config/dm_crypt";
 }
