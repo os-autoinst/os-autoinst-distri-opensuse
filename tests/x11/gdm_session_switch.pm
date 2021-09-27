@@ -42,6 +42,7 @@ sub run {
     assert_and_click "displaymanager-systembutton";
     assert_and_click "displaymanager-system-powerbutton";
     assert_and_click "displaymanager-reboot";
+    assert_and_click "confirm-restart" if (is_sle('>=15-SP4'));
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth', 15;
