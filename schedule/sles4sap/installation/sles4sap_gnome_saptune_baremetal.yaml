@@ -1,7 +1,7 @@
 ---
-name: sles4sap_gnome_saptune_v2_baremetal
+name: sles4sap_gnome_saptune_baremetal
 description: >
-  saptune_V2 tests SLES4SAP.
+  saptune tests for SLES4SAP on baremetal
 vars:
   MR_TEST: '%ARCH%'
 schedule:

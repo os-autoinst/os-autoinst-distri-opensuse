@@ -52,7 +52,7 @@ sub run {
     # Skip test if saptune version is 1 in case of upgrade only!
     if (is_upgrade()) {
         return if (script_output("rpm -q saptune") =~ m/saptune-1\./);
-        # saptune_v2 can run in v1 compat mode
+        # NOTE: Remove when saptune v3 is released
         return if (script_output("saptune version") =~ m/current active saptune version is '1'/);
     }
 
