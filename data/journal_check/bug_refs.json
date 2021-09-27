@@ -127,7 +127,7 @@
         "type": "bug"
     },
     "bsc#1190662": {
-        "description": "Failed to write ATTR{/sys/bus/ccwgroup/drivers/qeth/group}",
+        "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
         "products": {
             "sle-micro": [ "5.1" ]
         },
