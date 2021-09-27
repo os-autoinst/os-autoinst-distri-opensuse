@@ -19,7 +19,7 @@ use testapi;
 
 
 sub run {
-    assert_screen 'startshell', 90;
+    assert_screen 'startshell', 180;
     my $arch = get_var('ARCH');
     assert_script_run("grep -Pzo \"instsys url:(.|\\n)*disk:/boot/$arch/root\" /var/log/linuxrc.log");
     my $mirror = get_netboot_mirror;
