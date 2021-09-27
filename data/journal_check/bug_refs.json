@@ -205,7 +205,7 @@
         "type": "ignore"
     },
     "boot-marker": {
-        "description": "-- Boot\\s+\\w+\\s+--",
+        "description": "-- Boot\\s+\\w+\\s+--|-- Reboot --",
         "products": {
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
