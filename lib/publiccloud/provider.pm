@@ -441,18 +441,21 @@ Destroys the current terraform deployment
 =cut
 sub terraform_destroy {
     my ($self) = @_;
+    my $cmd;
     return if get_required_var('TEST') =~ /^publiccloud_upload_img/;
     record_info('INFO', 'Removing terraform plan...');
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
+        $cmd = 'terraform destroy -no-color -auto-approve';
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);
+        # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
+        $cmd = sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->region);
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
-    # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
-    my $ret = script_retry(sprintf(q(terraform destroy -no-color -auto-approve -var 'region=%s'), $self->region), retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
+    my $ret = script_retry($cmd, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
