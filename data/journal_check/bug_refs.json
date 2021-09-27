@@ -126,6 +126,13 @@
         },
         "type": "bug"
     },
+    "bsc#1190662": {
+        "description": "Failed to write ATTR{/sys/bus/ccwgroup/drivers/qeth/group}",
+        "products": {
+            "sle-micro": [ "5.1" ]
+        },
+        "type": "bug"
+    },
     "bsc#1182961": {
         "description": "could not read from '/sys/module/pcc_pufreq/initstate': No such device",
         "products": {
