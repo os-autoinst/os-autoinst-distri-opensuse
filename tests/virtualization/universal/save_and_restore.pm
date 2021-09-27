@@ -8,11 +8,13 @@
 # without any warranty.
 
 # Package: libvirt-client nmap
-# Summary: Test if the guests can be saved and restored
+# Summary: Test if the guests can be saved and restored, by adding a
+# temp file and restoring to a state before the file existed.
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
 use base "virt_feature_test_base";
 use virt_autotest::common;
+use virt_autotest::utils;
 use strict;
 use warnings;
 use testapi;
@@ -35,6 +37,7 @@ sub run_test {
         }
     }
 
+    # Starting all guests to create a test file in them, the file must not exist after restoring.
     start_guests();
 
     record_info "SSH", "Check hosts are listening on SSH";
@@ -42,8 +45,10 @@ sub run_test {
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         assert_script_run("ssh root\@$guest 'touch /var/empty_temp_file'");
-        assert_script_run("virsh destroy $guest", 90);
     }
+
+    # Guest must be in power down state to be restored
+    shutdown_guests();
 
     record_info "Restore", "Restore guests";
     assert_script_run("virsh restore /var/lib/libvirt/images/saves/$_.vmsave", 300) foreach (keys %virt_autotest::common::guests);
@@ -52,7 +57,7 @@ sub run_test {
     assert_script_run "virsh list --all | grep $_ | grep running" foreach (keys %virt_autotest::common::guests);
 
     record_info "SSH", "Check hosts are listening on SSH";
-    script_retry "nmap $_ -PN -p ssh | grep open", delay => 3, retry => 60 foreach (keys %virt_autotest::common::guests);
+    ensure_online($_) foreach (keys %virt_autotest::common::guests);
 
     record_info "Check", "Restored guests validation";
     foreach my $guest (keys %virt_autotest::common::guests) {
