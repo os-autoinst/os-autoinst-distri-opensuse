@@ -186,6 +186,13 @@
         },
         "type": "bug"
     },
+    "boo#1188729": {
+        "description": "socfpga_setup_ocram_self_refresh: Unable to find mmio-sram in dtb",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.3"]
+        },
+        "type": "bug"
+    },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
         "products": {
