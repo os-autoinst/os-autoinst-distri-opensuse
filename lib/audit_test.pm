@@ -22,7 +22,8 @@ use Mojo::File 'path';
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(
-  $testdir
+  $tmp_dir
+  $test_dir
   $testfile_tar
   $baseline_file
   $code_repo
@@ -35,7 +36,8 @@ our @EXPORT = qw(
   upload_audit_test_logs
 );
 
-our $testdir   = '/tmp/';
+our $tmp_dir   = '/tmp/';
+our $test_dir  = '/usr/local/eal4_testing';
 our $code_repo = get_var('CODE_BASE', 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar');
 my @lines = split(/[\/\.]+/, $code_repo);
 our $testfile_tar = $lines[-2];
@@ -78,7 +80,7 @@ sub prepare_for_test {
     my (%args) = @_;
 
     # Run test case
-    assert_script_run("cd ${testdir}${testfile_tar}/audit-test/");
+    assert_script_run("cd ${test_dir}/audit-test/");
     assert_script_run('make')           if ($args{make});
     assert_script_run('make netconfig') if ($args{make_netconfig});
 
