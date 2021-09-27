@@ -256,19 +256,23 @@ sub remove_partition {
 
 =head2 format_partition
 
-Format partition to target filesystem
+  format_partition($partition, $filesystem [, options => $options] );
+
+Format partition to target filesystem. The optional value C<$options> is '-f' as default.
 
 =cut
 sub format_partition {
-    my ($part, $filesystem) = @_;
-    script_run("umount -f $part");
-    sleep 1;
+    my ($part, $filesystem, %args) = @_;
+    my $options;
     if ($filesystem =~ /ext4/) {
-        script_run("mkfs.$filesystem -F $part");
+        $options = $args{options} // "-F";
     }
     else {
-        script_run("mkfs.$filesystem -f $part");
+        $options = $args{options} // "-f";
     }
+    script_run("umount -f $part");
+    sleep 1;
+    assert_script_run("mkfs.$filesystem $options $part");
 }
 
 =head2 df_command
