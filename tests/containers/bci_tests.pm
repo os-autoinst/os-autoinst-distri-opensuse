@@ -91,7 +91,7 @@ sub run {
     }
 
     record_info('Install', 'Install needed packages');
-    zypper_call('--quiet in git-core python3 python3-devel gcc', timeout => 600);
+    zypper_call('--quiet in git-core python3 python3-devel gcc skopeo', timeout => 600);
     assert_script_run('pip3.6 --quiet install tox pytest', timeout => 600);
 
     record_info('Clone', 'Clone BCI tests repository');
@@ -101,7 +101,7 @@ sub run {
     assert_script_run('cd bci-tests');
     assert_script_run("export CONTAINER_RUNTIME=$runtime");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
-    assert_script_run('tox -e build', timeout => 600);
+    assert_script_run('tox -e build', timeout => 900);
 
     # Run the tests for each environment
     my $error_count = 0;
