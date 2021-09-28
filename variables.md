@@ -32,10 +32,11 @@ CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test mo
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
 CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium fails to visualize error in the test module and not just put this information in the autoinst log file.
 CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana"). This variable belongs to PUBLIC_CLOUD_.
-CONTAINER_RUNTIME | string | | Container runtime to be used, e.g.  `docker`, `podman`.
+CONTAINER_RUNTIME | string | | Container runtime to be used, e.g.  `docker`, `podman`, or both `podman,docker`.
+CONTAINERS_NO_SUSE_OS | boolean | false | Used by main_containers to see if the host is different than SLE or openSUSE.
+CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` or `released_images` from `lib/containers/urls.pm`.
 COMMAND_FILE | string | | The LTP test command file (e.g. syscalls, cve)
 COMMAND_EXCLUDE | string | | This regex is used to exclude tests from LTP command file.
-CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` or `released_images` from `lib/containers/urls.pm`.
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
 DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dependecy_issues will be scheduled or not before certain modules which need it.
@@ -152,7 +153,7 @@ PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloa
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
 PUBLIC_CLOUD_IMG_PROOF_TESTS | string | false | Tests run  by img-proof. (We use 'default')
 PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t2.large )
-PUBLIC_CLOUD_KEY | string | "" | Private key data for gce, similar to `PUBLIC_CLOUD_KEY_SECRET`. 
+PUBLIC_CLOUD_KEY | string | "" | Private key data for gce, similar to `PUBLIC_CLOUD_KEY_SECRET`.
 PUBLIC_CLOUD_KEY_ID | string | "" | The CSP credentials key-id to used to access API.
 PUBLIC_CLOUD_KEY_SECRET | string | "" | The CSP credentials secret used to access API.
 PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to the job.
