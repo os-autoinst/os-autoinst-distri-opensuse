@@ -22,6 +22,7 @@ use virt_autotest::common;
 sub run {
     my ($self) = @_;
 
+    # Note: This test module will be deprecated, and the following test code has been moved to tests/virt_autotest/esxi_open_vm_tools.pm
     script_retry "ssh root\@$_ zypper -n in open-vm-tools", delay => 30, retry => 6 foreach (keys %virt_autotest::common::guests);
 
     assert_script_run "ssh root\@$_ /usr/bin/vmware-checkvm | grep 'good'" foreach (keys %virt_autotest::common::guests);
