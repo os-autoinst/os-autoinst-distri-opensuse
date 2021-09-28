@@ -459,7 +459,7 @@ sub terraform_destroy {
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
-    my $ret = script_retry($cmd, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
+    my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
