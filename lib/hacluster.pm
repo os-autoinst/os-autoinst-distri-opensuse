@@ -361,7 +361,7 @@ true or false.
 
 sub check_rsc {
     my $rsc = shift;
-    my $ret = script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'";
+    my $ret = script_run "grep -q '\\<$rsc\\>' <($crm_mon_cmd 2>/dev/null)";
 
     _test_var_defined $ret;
     return ($ret == 0);
@@ -411,7 +411,7 @@ sub ensure_resource_running {
     my $starttime = time;
     my $ret       = undef;
 
-    while ($ret = script_run("crm resource status $rsc | grep -E -q '$regex'", $default_timeout)) {
+    while ($ret = script_run("grep -E -q '$regex' <(crm resource status $rsc)", $default_timeout)) {
         my $timerun = time - $starttime;
         if ($timerun < $default_timeout) {
             sleep 5;
