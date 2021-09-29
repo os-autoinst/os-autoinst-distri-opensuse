@@ -51,7 +51,7 @@ sub run {
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
         my $option = (is_leap_migration) ? " --allow-vendor-change " : " ";
-        script_run("(zypper migration $option; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
+        script_run("(zypper migration $option; echo ZYPPER-DONE) |& tee /dev/$serialdev", 0);
     }
     # migration process take long time
     my $timeout          = 7200;
