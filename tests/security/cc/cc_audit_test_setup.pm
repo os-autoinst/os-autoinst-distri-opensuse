@@ -21,7 +21,8 @@ use audit_test;
 
 sub run {
     my ($self)   = @_;
-    my $dir      = $audit_test::testdir;
+    my $tmp_dir  = $audit_test::tmp_dir;
+    my $test_dir = $audit_test::test_dir;
     my $file_tar = $audit_test::testfile_tar . '.tar';
 
     select_console 'root-console';
@@ -52,9 +53,11 @@ sub run {
     assert_script_run('sed -i \'s/-a task,never/#&/\' /etc/audit/rules.d/audit.rules');
     assert_script_run('systemctl restart auditd.service');
 
-    # Download "audit-test"
-    assert_script_run("wget --no-check-certificate $audit_test::code_repo -O ${dir}${file_tar}");
-    assert_script_run("tar -xvf ${dir}${file_tar} -C ${dir}");
+    # Download "audit-test", be aware of umask=0077 for cc role based system
+    assert_script_run("wget --no-check-certificate $audit_test::code_repo -O ${tmp_dir}${file_tar}");
+    assert_script_run("tar -xvf ${tmp_dir}${file_tar} -C ${tmp_dir}");
+    assert_script_run("mv ${tmp_dir}/$audit_test::testfile_tar ${test_dir}");
+    assert_script_run("chmod 755 ${test_dir}");
 }
 
 sub test_flags {

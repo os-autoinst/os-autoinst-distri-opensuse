@@ -49,7 +49,7 @@ sub run {
     # Export AUDIT_TEST_REMOTE_VM
     assert_script_run("export AUDIT_TEST_REMOTE_VM=$vm_name");
     # Export AUGROK
-    assert_script_run("export AUGROK=$audit_test::testdir$audit_test::testfile_tar/audit-test/utils/augrok");
+    assert_script_run("export AUGROK=$audit_test::test_dir/audit-test/utils/augrok");
 
     # Run test case
     run_testcase('audit-remote-libvirt', make => 0, timeout => 120);

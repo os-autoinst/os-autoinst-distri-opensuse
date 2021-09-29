@@ -58,7 +58,7 @@ sub run {
     }
 
     # start lblnet_tst_server
-    my $cmd        = "$audit_test::testdir$audit_test::testfile_tar/audit-test/utils/network-server/lblnet_tst_server";
+    my $cmd        = "$audit_test::test_dir/audit-test/utils/network-server/lblnet_tst_server";
     my $lblnet_pid = background_script_run($cmd);
 
     if ($role eq 'server') {
