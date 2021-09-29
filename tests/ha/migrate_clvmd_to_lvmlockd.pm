@@ -29,7 +29,7 @@ sub run {
 
     # Only perform clvm to lvmlockd migration if the cluster is up and has clvm resources
     assert_script_run $crm_mon_cmd;
-    my $clvm_rsc = script_run "$crm_mon_cmd | grep -wq clvm";
+    my $clvm_rsc = script_run "grep -wq clvm <($crm_mon_cmd)";
     return unless (defined $clvm_rsc and $clvm_rsc == 0);
 
     barrier_wait("CLVM_TO_LVMLOCKD_START_$cluster_name");
