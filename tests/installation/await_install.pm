@@ -109,7 +109,7 @@ sub _set_timeout {
 sub run {
     my $self = shift;
     # NET isos are slow to install
-    my $timeout = 2000;
+    my $timeout = is_s390x ? 2400 : 2000;
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
