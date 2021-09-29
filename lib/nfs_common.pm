@@ -288,7 +288,7 @@ sub check_y2_nfs_func {
         systemctl('is-active nfs-server');
         systemctl('restart rpcbind');
         systemctl('is-active rpcbind');
-        systemctl('restart rpcbind.socket');
+        systemctl('restart rpcbind.socket', timeout => 120);
         systemctl('is-active rpcbind.socket');
     }
 }
