@@ -41,6 +41,7 @@ sub run {
     my $zypper_migration_done         = qr/^Executing.*after online migration|^ZYPPER-DONE/m;
     my $zypper_migration_notification = qr/^View the notifications now\? \[y/m;
     my $zypper_migration_failed       = qr/^Migration failed/m;
+    my $zypper_migration_bsc1184347   = qr/rpmdb2solv: invalid option -- 'D'/m;
     my $zypper_migration_license      = qr/Do you agree with the terms of the license\? \[y/m;
     my $zypper_migration_urlerror     = qr/URI::InvalidURIError/m;
     my $zypper_migration_reterror     = qr/^No migration available|Can't get available migrations/m;
@@ -107,6 +108,14 @@ sub run {
         {
             send_key 'a';
             send_key 'ret';
+        }
+        elsif ($out =~ $zypper_migration_bsc1184347)
+        {
+            # migration is done, but zypper failed because of the bug
+            # LTSS can't be migrated, and there is fix for the bug
+            # othwerwise migration is done, test can continue, libsolv will be updated later
+            record_soft_failure('bsc#1184347');
+            last;
         }
         elsif ($out =~ $zypper_migration_fileconflict
             || $out =~ $zypper_migration_failed
