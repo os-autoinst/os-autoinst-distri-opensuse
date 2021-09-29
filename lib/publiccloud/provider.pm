@@ -49,6 +49,8 @@ sub init {
         assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
         assert_script_run('cd ' . TERRAFORM_DIR);
         assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
+        # By default use the default provided Salt formula packages
+        assert_script_run('rm -f requirements.yml') unless get_var('HA_SAP_USE_REQUIREMENTS');
         assert_script_run('cd');    # We need to ensure to be in the home directory
         assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
     }
@@ -408,8 +410,10 @@ sub terraform_apply {
     my $vms;
     my $ips;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        $vms = $output->{openqa_vms}->{value};
-        $ips = $output->{openqa_ips}->{value};
+        foreach my $vm_type ('cluster_nodes', 'drbd', 'netweaver') {
+            push @{$vms}, @{$output->{$vm_type . '_name'}->{value}};
+            push @{$ips}, @{$output->{$vm_type . '_public_ip'}->{value}};
+        }
     }
     else {
         $vms = $output->{vm_name}->{value};
@@ -455,7 +459,7 @@ sub terraform_destroy {
     }
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
-    my $ret = script_retry($cmd, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
+    my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
