@@ -20,8 +20,8 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/system_role/validate_selected_role_none_selected
+  - installation/system_role/select_role_transactional_server
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
@@ -43,7 +43,3 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
-test_data:
-  system_role:
-    default: null
-    selection: 'Transactional Server'

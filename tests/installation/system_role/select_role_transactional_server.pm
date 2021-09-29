@@ -13,23 +13,17 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test module to validate default System Role during installation
+# Summary: Select System Role (Transactional Server) and navigate to next screen
 #          using REST API.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
 use base 'y2_installbase';
-use scheduler 'get_test_suite_data';
-use testapi;
-use Test::Assert 'assert_equals';
 
 sub run {
-    my $default    = get_test_suite_data()->{system_role}{default};
-    my $controller = $testapi::distri->get_system_role_controller();
-
-    my $selected = $controller->get_selected_role();
-    assert_equals($default, $selected, 'Wrong System Role is pre-selected');
+    my $system_role = $testapi::distri->get_system_role_controller();
+    $system_role->select_system_role('transactional_server');
 }
 
 1;

@@ -46,11 +46,7 @@ sub get_selected_role {
 sub select_system_role {
     my ($self, $role) = @_;
     $self->get_system_role_page()->select_system_role($role);
-}
-
-sub next {
-    my ($self) = @_;
-    return $self->get_system_role_page()->press_next();
+    $self->get_system_role_page()->press_next();
 }
 
 1;

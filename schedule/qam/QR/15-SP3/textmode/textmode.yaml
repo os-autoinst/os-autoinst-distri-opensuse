@@ -12,8 +12,8 @@ schedule:
   - '{{disk_activation}}'
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/system_role/validate_selected_role_text_mode
+  - installation/system_role/select_role_text_mode
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
@@ -44,8 +44,6 @@ conditional_schedule:
       s390x:
         - installation/disk_activation
 test_data:
-  system_role:
-    default: 'Text Mode'
   software:
     patterns:
       - apparmor

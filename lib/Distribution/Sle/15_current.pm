@@ -27,6 +27,7 @@ use Installation::Registration::RegistrationController;
 use Installation::ModuleSelection::ModuleSelectionController;
 use Installation::AddOnProduct::AddOnProductController;
 use Installation::AddOnProductInstallation::AddOnProductInstallationController;
+use Installation::SystemRole::Sle::SystemRoleController;
 
 =head2 get_license_agreement
 
@@ -61,6 +62,10 @@ sub get_add_on_product {
 
 sub get_add_on_product_installation {
     return Installation::AddOnProductInstallation::AddOnProductInstallationController->new();
+}
+
+sub get_system_role_controller() {
+    return Installation::SystemRole::Sle::SystemRoleController->new();
 }
 
 1;

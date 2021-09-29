@@ -27,8 +27,8 @@ schedule:
   - installation/module_selection/view_development_versions
   - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/system_role/validate_selected_role_text_mode
+  - installation/system_role/select_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/releasenotes
   - installation/clock_and_timezone/accept_timezone_configuration
@@ -78,6 +78,4 @@ test_data:
         text: Acuerdo de licencia de usuario final
       - language: Traditional Chinese
         text: 版軟體的
-  system_role:
-    default: 'Text Mode'
   beta_text: 'You are accessing our Beta Distribution'
