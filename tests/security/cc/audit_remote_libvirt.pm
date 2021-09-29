@@ -25,25 +25,25 @@ sub run {
     select_console 'root-console';
 
     # Install the required packages for libvirt environment setup,
-    zypper_call("in qemu libvirt virt-install virt-manager");
+    zypper_call('in qemu libvirt virt-install virt-manager');
 
     # Start libvirtd daemon and start the default libvirt network
-    assert_script_run("systemctl start libvirtd");
-    assert_script_run("virsh net-start default");
-    assert_script_run("systemctl is-active libvirtd");
-    assert_script_run("virsh net-list | grep default | grep active");
+    assert_script_run('systemctl start libvirtd');
+    assert_script_run('virsh net-define /etc/libvirt/qemu/networks/default.xml');
+    assert_script_run('virsh net-start default');
+    assert_script_run('systemctl is-active libvirtd');
+    assert_script_run('virsh net-list | grep default | grep active');
 
     # Download the pre-installed guest images and sample xml files
-    my $vm_name = 'vm-swtpm-legacy';
-    my $hdd_1 = get_required_var('HDD_1');
-    my $legacy_image = 'swtpm_legacy@64bit.qcow2';
-    assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$hdd_1"), 900);
-    assert_script_run("mv $image_path/$hdd_1 $image_path/$legacy_image");
-    assert_script_run("wget --quiet " . data_url("swtpm/swtpm_legacy.xml") . " -P $image_path");
+    my $vm_name = 'nested-L2-vm';
+    my $vm_L2 = get_required_var('HDD_L2');
+    assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$vm_L2"), 900);
+    assert_script_run("mv $image_path/$vm_L2 $image_path/$vm_name.qcow2");
+    assert_script_run("wget --quiet " . data_url("cc/$vm_name.xml") . " -P $image_path");
 
     # Define the guest vm and start it
     assert_script_run("cd $image_path");
-    assert_script_run('virsh define swtpm_legacy.xml');
+    assert_script_run("virsh define $vm_name.xml");
     assert_script_run("virsh start $vm_name");
 
     # Export AUDIT_TEST_REMOTE_VM
