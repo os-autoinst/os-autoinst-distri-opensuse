@@ -265,7 +265,7 @@ Asserts that everything was cleaned up unless c<assert> is set to 0.
 =cut
 sub cleanup_system_host {
     my ($self, $assert) = @_;
-    $assert // 1;
+    $assert //= 1;
     $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
     $self->_engine_assert_script_run("system prune -a -f",                           180);
 
@@ -320,7 +320,7 @@ has runtime => "buildah";
 
 sub cleanup_system_host {
     my ($self, $assert) = @_;
-    $assert // 1;
+    $assert //= 1;
     $self->_engine_assert_script_run("rm --all");
     $self->_engine_assert_script_run("rmi --all --force");
 
