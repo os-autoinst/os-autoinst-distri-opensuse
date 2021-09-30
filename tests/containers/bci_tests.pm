@@ -71,7 +71,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $runtime        = get_required_var('CONTAINER_RUNTIME');
+    my $engine         = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
     my $bci_timeout    = get_var('BCI_TIMEOUT', 900);
@@ -79,15 +79,15 @@ sub run {
     ensure_ca_certificates_suse_installed;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    if ($runtime eq 'podman') {
+    if ($engine eq 'podman') {
         install_podman_when_needed($host_distri);
         install_buildah_when_needed($host_distri);
     }
-    elsif ($runtime eq 'docker') {
+    elsif ($engine eq 'docker') {
         install_docker_when_needed($host_distri);
     }
     else {
-        die("Runtime $runtime not given or not supported");
+        die("Runtime $engine not given or not supported");
     }
 
     record_info('Install', 'Install needed packages');
@@ -99,7 +99,7 @@ sub run {
 
     record_info('Build', 'Build bci-tests project');
     assert_script_run('cd bci-tests');
-    assert_script_run("export CONTAINER_RUNTIME=$runtime");
+    assert_script_run("export CONTAINER_RUNTIME=$engine");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
     assert_script_run('tox -e build', timeout => 900);
 

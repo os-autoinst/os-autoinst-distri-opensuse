@@ -9,7 +9,7 @@
 
 # Package: container-diff
 # Summary: Print and save diffs between two cotaniners using container-diff tool
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: qac team <qa-c@suse.de>
 
 use base 'consoletest';
 use testapi;
@@ -20,16 +20,17 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(is_sle get_os_release);
+use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
+    my $docker = containers::engine::docker->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker') if (is_sle());
-    zypper_call("install container-diff")                   if (script_run("which container-diff") != 0);
+    $docker->configure_insecure_registries() if is_sle();
+    zypper_call("install container-diff")    if (script_run("which container-diff") != 0);
 
     my ($untested_images, $released_images) = get_suse_container_urls();
     # container-diff
@@ -44,7 +45,7 @@ sub run {
     }
 
     # Clean container
-    clean_container_host(runtime => "docker");
+    $docker->cleanup_system_host();
 }
 
 1;

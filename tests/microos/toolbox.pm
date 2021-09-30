@@ -101,6 +101,14 @@ sub run {
     cleanup;
 }
 
+sub clean_container_host {
+    my %args    = @_;
+    my $runtime = $args{runtime};
+    die "You must define the runtime!" unless $runtime;
+    assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
+    assert_script_run("$runtime system prune -a -f",             300);
+}
+
 sub post_fail_hook {
     cleanup;
 }

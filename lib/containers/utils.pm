@@ -60,7 +60,7 @@ sub check_docker_firewall {
     # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
     validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
     assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine');
-    my $container_ip = container_ip($container_name, "docker");
+    my $container_ip = container_ip($container_name, 'docker');
     # Each running container should have added a new entry to the DOCKER zone.
     # ex. output: "1           0        0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.2           tcp dpt:1234"
     validate_script_output "iptables -L DOCKER -nvx --line-numbers", sub { /1.+ACCEPT.+!docker0 docker0.+$container_ip\s+tcp dpt:1234/ };
@@ -194,11 +194,11 @@ sub basic_container_tests {
     # Images can be deleted
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
-    die("error: $runtime image rmi -a $leap")                               if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
-    die("error: $runtime image rmi -a $tumbleweed")                         if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
-    die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
-    record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
-    record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
+    die("error: $runtime image rmi -a $leap")                                          if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
+    die("error: $runtime image rmi -a $tumbleweed")                                    if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
+    die("error: $runtime image rmi -a tw:saved")                                       if ($output_containers =~ m/Untagged:.*tw:saved/);
+    record_soft_failure("error: $runtime->{runtime} image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
+    record_soft_failure("error: $runtime->{runtime} image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
 }
 
 =head2 can_build_sle_base

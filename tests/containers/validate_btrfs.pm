@@ -19,7 +19,7 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
-use containers::runtime;
+use containers::engine;
 use containers::common;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release);
@@ -77,12 +77,12 @@ sub _test_btrfs_device_mgmt {
     my $var_blocks = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
     # Create file in the container enough to fill the "/var" partition (where the container is located)
     my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
-    $rt->up('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
+    $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
     validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
-    die("pull should fail on full partition") if ($rt->pull("$container") == 0);
+    die("pull should fail on full partition") if ($rt->pull($container) == 0);
     # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
@@ -99,9 +99,9 @@ sub run {
     $self->select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
     my ($running_version, $sp, $host_distri) = get_os_release;
+    my $docker = containers::engine::docker->new();
     install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
-    my $docker         = containers::runtime->new(runtime => 'docker');
+    $docker->configure_insecure_registries();
     my $btrfs_dev      = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
     _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
