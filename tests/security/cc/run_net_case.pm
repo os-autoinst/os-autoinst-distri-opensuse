@@ -23,12 +23,12 @@ sub run {
     die 'Need case_name to know which test to run' unless $run_args && $run_args->{case_name};
     my $case_name = $run_args->{case_name};
     my $result    = 'ok';
-    assert_script_run("cd $audit_test::testdir$audit_test::testfile_tar/audit-test/$case_name/");
+    assert_script_run("cd $audit_test::test_dir/audit-test/$case_name/");
     my $output = script_output('./run.bash --list');
     my @lines  = split(/\n/, $output);
 
     # Start lblnet_tst_server
-    my $lblnet_cmd = "$audit_test::testdir$audit_test::testfile_tar/audit-test/utils/network-server/lblnet_tst_server";
+    my $lblnet_cmd = "$audit_test::test_dir/audit-test/utils/network-server/lblnet_tst_server";
     my $pid        = script_output('ps -C lblnet_tst_server -o pid=');
 
     # This function is used to run netfilter and netfilebt cases.
