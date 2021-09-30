@@ -19,7 +19,7 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role
+  - installation/system_role/select_role_generic_desktop
   - installation/partitioning/raid_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/disable_autologin

@@ -16,7 +16,7 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/skip_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/select_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root

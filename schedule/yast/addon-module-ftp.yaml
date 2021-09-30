@@ -14,7 +14,6 @@ schedule:
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
   - installation/addon_products_sle
-  - installation/system_role/validate_selected_role_HA_node
   - installation/system_role/select_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration

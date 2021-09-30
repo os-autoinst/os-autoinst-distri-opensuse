@@ -19,7 +19,7 @@ schedule:
   - installation/module_selection/select_module_desktop
   - installation/system_probing/activate_encrypted_volume
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/encrypt_lvm_ignore_existing
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration

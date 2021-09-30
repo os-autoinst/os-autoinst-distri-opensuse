@@ -14,8 +14,7 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role/validate_selected_role_gnome_desktop
-  - installation/system_role/select_role_gnome_desktop
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
