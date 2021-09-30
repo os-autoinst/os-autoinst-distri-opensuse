@@ -28,7 +28,6 @@ sub init {
     my ($self) = @_;
     $self->SUPER::init();
     $self->{sel_role}                  = $self->{app}->itemselector({id => 'role_selector'});
-    $self->{btn_next}                  = $self->{app}->button({id => 'next'});
     $self->{role_KDE_desktop}          = 'Desktop with KDE Plasma';
     $self->{role_GNOME_desktop}        = 'Desktop with GNOME';
     $self->{role_XFCE_desktop}         = 'Desktop with Xfce';
