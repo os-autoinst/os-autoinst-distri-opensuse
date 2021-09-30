@@ -145,8 +145,16 @@ sub full_users_check {
     }
     # reset consoles before select x11 console will make the connect operation
     # more stable on s390x
-    reset_consoles             if is_s390x;
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    reset_consoles if is_s390x;
+    if (check_var('DESKTOP', 'gnome')) {
+        if (is_s390x) {
+            turn_off_gnome_screensaver;
+        }
+        else {
+            select_console 'root-console';
+            turn_off_gnome_screensaver_for_gdm;
+        }
+    }
     select_console 'x11', await_console => 0;
     wait_still_screen 5;
     ensure_unlocked_desktop;
@@ -165,7 +173,6 @@ sub full_users_check {
         else {
             lock_screen;
         }
-        turn_off_gnome_screensaver;
         logout_and_login;
         # for poo#88247, it is hard to deal with the authorization of bernhard in
         # following migration process, we have to restore current user's password.
