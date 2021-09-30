@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Select System Role 'Transactional Server' and navigate
-# to next screen in openSUSE and SLES.
+# Summary: Select System Role 'Server' and navigate to next screen
+# in openSUSE.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
@@ -23,7 +23,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    $testapi::distri->get_system_role_controller()->select_system_role('transactional_server');
+    $testapi::distri->get_system_role_controller()->select_system_role('server');
 }
 
 1;

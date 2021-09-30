@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Select System Role (Text Mode) and navigate to next screen
-#          using REST API.
+# Summary: Select System Role 'Text Mode' and navigate to next screen
+# in SLES.
+#
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
@@ -22,8 +23,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    my $system_role = $testapi::distri->get_system_role_controller();
-    $system_role->select_system_role('text_mode');
+    $testapi::distri->get_system_role_controller()->select_system_role('text_mode');
 }
 
 1;

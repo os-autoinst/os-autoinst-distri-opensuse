@@ -13,17 +13,23 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Select System Role 'Transactional Server' and navigate
-# to next screen in openSUSE and SLES.
+# Summary: Test module which accept pre-selected System Role
+# 'SLES with Gnome' and navigate to next screen in SLES.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
 use base 'y2_installbase';
+use Test::Assert 'assert_equals';
 
 sub run {
-    $testapi::distri->get_system_role_controller()->select_system_role('transactional_server');
+    my $system_role = $testapi::distri->get_system_role_controller();
+    assert_equals(
+        $system_role->get_available_role('SLES_with_GNOME'),
+        $system_role->get_selected_role(),
+        'Wrong System Role is pre-selected');
+    $system_role->accept_system_role();
 }
 
 1;
