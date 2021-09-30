@@ -37,11 +37,15 @@ sub is_res_host {
 }
 
 sub load_image_tests_podman {
-    loadtest 'containers/podman_image';
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{podman} = 1;
+    loadtest 'containers/container_images', name => 'podman_images', run_args => $engine_args;
 }
 
 sub load_image_tests_docker {
-    loadtest 'containers/docker_image';
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{docker} = 1;
+    loadtest 'containers/container_images', name => 'docker_images', run_args => $engine_args;
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
@@ -50,20 +54,24 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{podman} = 1;
     unless (is_sle('<15-SP1')) {
         # podman package is only available as of 15-SP1
         loadtest 'containers/podman';
-        loadtest 'containers/podman_image';
-        loadtest 'containers/podman_3rd_party_images';
+        loadtest 'containers/container_images', name => 'podman_images', run_args => $engine_args;
+        loadtest 'containers/container_3rd_party_images', name => 'podman_3rd_party_images', run_args => $engine_args;
         loadtest 'containers/buildah';
         loadtest 'containers/rootless_podman';
     }
 }
 
 sub load_host_tests_docker {
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{docker} = 1;
     loadtest 'containers/docker';
-    loadtest 'containers/docker_image';
-    loadtest 'containers/docker_3rd_party_images';
+    loadtest 'containers/container_images', name => 'docker_images', run_args => $engine_args;
+    loadtest 'containers/container_3rd_party_images', name => 'docker_3rd_party_images', run_args => $engine_args;
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is not available in factory
@@ -78,7 +86,6 @@ sub load_host_tests_docker {
     }
     loadtest 'containers/validate_btrfs' if is_x86_64;
 }
-
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');

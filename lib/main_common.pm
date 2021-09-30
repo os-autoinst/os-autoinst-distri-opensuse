@@ -1704,17 +1704,21 @@ sub load_extra_tests_docker {
     my ($image_names, $stable_names) = get_suse_container_urls();
     return unless @$image_names;
 
+    my $engine_docker = OpenQA::Test::RunArgs->new();
+    my $engine_podman = OpenQA::Test::RunArgs->new();
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
+        $engine_podman->{podman} = 1;
         loadtest 'containers/podman';
-        loadtest "containers/podman_image" unless is_public_cloud;
-        loadtest "containers/podman_3rd_party_images";
+        loadtest "containers/container_images", name => 'podman_images', run_args => $engine_podman unless is_public_cloud;
+        loadtest "containers/container_3rd_party_images", name => 'podman_3rd_party_images', run_args => $engine_podman;
     }
 
+    $engine_docker->{docker} = 1;
     loadtest "containers/docker";
     loadtest "containers/docker_runc";
-    loadtest "containers/docker_3rd_party_images";
+    loadtest "containers/container_3rd_party_images", name => 'docker_3rd_party_images', run_args => $engine_docker;
     if ((!is_public_cloud() && is_sle(">=12-sp3")) || is_opensuse()) {
-        loadtest "containers/docker_image";
+        loadtest "containers/container_images", name => 'docker_images', run_args => $engine_docker;
         loadtest "containers/container_diff";
     }
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));

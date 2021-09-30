@@ -65,7 +65,8 @@ sub load_feature_tests {
     elsif (check_var 'SYSTEM_ROLE', 'container-host') {
         loadtest 'microos/toolbox';
         loadtest 'containers/podman';
-        loadtest 'containers/podman_image';
+        my $engine_args = OpenQA::Test::RunArgs->new();
+        loadtest 'containers/container_images', name => 'podman_images', run_args => $engine_args;
     }
 }
 

@@ -21,15 +21,18 @@ use registration;
 use containers::engine;
 
 sub run {
-    my ($self) = @_;
+    my ($self, $runargs) = @_;
     $self->select_serial_terminal;
+    my $factory = containers::engine::Factory->new();
+    my $engine = $factory->get_instance($runargs);
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $engine = containers::engine::docker->new();
+
+    install_docker_when_needed($host_distri) if $engine->runtime eq 'docker';
+    install_podman_when_needed($host_distri) if $engine->runtime eq 'podman';
 
     script_run("echo 'Container base image tests:' > /var/tmp/docker-3rd_party_images_log.txt");
     # In SLE we need to add the Containers module
-    install_docker_when_needed($host_distri);
     $engine->configure_insecure_registries();
     my $images = get_3rd_party_images();
     for my $image (@{$images}) {
@@ -39,11 +42,17 @@ sub run {
 }
 
 sub post_fail_hook {
-    upload_3rd_party_images_logs('docker');
+    my ($self) = @_;
+    my $factory = containers::engine::Factory->new();
+    my $engine = $factory->get_instance($self->{run_args});
+    upload_3rd_party_images_logs($engine->runtime);
 }
 
 sub post_run_hook {
-    upload_3rd_party_images_logs('docker');
+    my ($self) = @_;
+    my $factory = containers::engine::Factory->new();
+    my $engine = $factory->get_instance($self->{run_args});
+    upload_3rd_party_images_logs($engine->{runtime});
 }
 
 1;
