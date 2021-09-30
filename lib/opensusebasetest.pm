@@ -652,7 +652,11 @@ sub wait_grub {
     }
     # if there was a request to enroll or remove a certificate used for SecureBoot process
     if (get_var('_EXPECT_EFI_MOK_MANAGER')) {
-        wait_serial('Shim UEFI key management', 60) or die 'MokManager has not been started!';
+        if (is_hyperv) {
+            assert_screen 'shim-key-management';
+        } else {
+            wait_serial('Shim UEFI key management', 60) or die 'MokManager has not been started!';
+        }
         send_key 'ret';
         assert_screen 'shim-perform-mok-management';
         send_key 'down';
