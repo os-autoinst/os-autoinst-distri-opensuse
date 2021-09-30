@@ -18,6 +18,7 @@ use File::Find;
 use File::Basename;
 use DistributionProvider;
 use scheduler 'load_yaml_schedule';
+use main_containers;
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -261,12 +262,16 @@ sub load_default_tests {
 }
 
 # load the tests in the right order
-if (is_jeos) {
+if (is_jeos && !is_container_test) {
     load_jeos_tests();
 }
 
+
 if (is_kernel_test()) {
     load_kernel_tests();
+}
+elsif (is_container_test) {
+    load_container_tests();
 }
 elsif (get_var('NFV')) {
     load_nfv_tests();
