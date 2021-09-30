@@ -22,10 +22,16 @@ use utils;
 use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
 use bootloader_setup 'stop_grub_timeout';
+use version_utils;
+use x11utils 'turn_off_gnome_show_banner';
 
 sub run {
     my ($self) = @_;
-
+    # We need to close gnome notification banner before migration.
+    if (check_var('DESKTOP', 'gnome') && (is_aarch64 || is_ppc64le)) {
+        select_console 'user-console';
+        turn_off_gnome_show_banner;
+    }
     select_console 'root-console';
 
     # Mark the hdd has been patched

@@ -18,7 +18,8 @@ use testapi;
 use Utils::Architectures;
 use utils;
 use migration;
-use version_utils 'is_sle';
+use version_utils;
+use x11utils 'turn_off_gnome_show_banner';
 
 sub check_or_install_packages {
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
@@ -61,6 +62,11 @@ sub run {
     remove_kgraft_patch if is_sle('<15');
     # create btrfs subvolume for aarch64 before migration
     create_btrfs_subvolume() if (is_aarch64);
+    # We need to close gnome notification banner before migration.
+    if (check_var('DESKTOP', 'gnome') && (is_aarch64 || is_ppc64le)) {
+        select_console 'user-console';
+        turn_off_gnome_show_banner;
+    }
 }
 
 sub test_flags {
