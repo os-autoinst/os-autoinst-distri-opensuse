@@ -27,6 +27,14 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{SystemRolePage} = Installation::SystemRole::SystemRolePage->new({app => YuiRestClient::get_app()});
+    $self->{roles}          = {
+        desktop_with_KDE_plasma => 'Desktop with KDE Plasma',
+        desktop_with_GNOME      => 'Desktop with GNOME',
+        desktop_with_Xfce       => 'Desktop with Xfce',
+        generic_desktop         => 'Generic Desktop',
+        server                  => 'Server',
+        transactional_server    => 'Transactional Server'
+    };
     return $self;
 }
 
@@ -45,7 +53,17 @@ sub get_selected_role {
 
 sub select_system_role {
     my ($self, $role) = @_;
-    $self->get_system_role_page()->select_system_role($role);
+    $self->get_system_role_page()->select_system_role($self->get_available_role($role));
+    $self->get_system_role_page()->press_next();
+}
+
+sub get_available_role {
+    my ($self, $role) = @_;
+    return $self->{roles}{$role};
+}
+
+sub accept_system_role {
+    my ($self) = @_;
     $self->get_system_role_page()->press_next();
 }
 
