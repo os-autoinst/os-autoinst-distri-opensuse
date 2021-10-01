@@ -25,6 +25,8 @@ use version_utils qw(get_os_release check_os_release is_sle);
 use containers::engine;
 
 sub run {
+    my ($self) = @_;
+    $self->select_serial_terminal;
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_buildah_when_needed($host_distri);
