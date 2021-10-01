@@ -14,7 +14,7 @@
 package Installation::Partitioner::LibstorageNG::v4_3::DeletingCurrentDevicesWarning;
 use strict;
 use warnings;
-use parent 'Installation::Warnings::ConfirmationWarning';
+use parent 'Installation::Popups::YesNoPopup';
 
 sub init {
     my $self = shift;

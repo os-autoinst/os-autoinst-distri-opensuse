@@ -39,8 +39,8 @@ use Installation::Partitioner::LibstorageNG::v4_3::LogicalVolumeSizePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage;
-use Installation::Warnings::ConfirmationWarning;
-use Installation::Warnings::ConfirmationWarningRichText;
+use Installation::Popups::YesNoPopup;
+use Installation::Popups::OkPopup;
 
 use YuiRestClient;
 
@@ -75,12 +75,11 @@ sub init {
     $self->{RaidOptionsPage}                   = Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{FstabOptionsPage}                  = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
 
-    $self->{ConfirmationWarning}         = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
-    $self->{ConfirmationWarningRichText} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
-    $self->{OnlyUseIfFamiliarWarning}    = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
-    $self->{DeletePartitionWarning}      = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
-    $self->{DeleteVolumeGroupWarning}    = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
-    $self->{ConfirmationWarningRichText} = Installation::Warnings::ConfirmationWarningRichText->new({app => YuiRestClient::get_app()});
+    $self->{YesNoPopup}               = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
+    $self->{OkPopup}                  = Installation::Popups::OkPopup->new({app => YuiRestClient::get_app()});
+    $self->{OnlyUseIfFamiliarWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
+    $self->{DeletePartitionWarning}   = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
+    $self->{DeleteVolumeGroupWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -132,14 +131,14 @@ sub get_delete_volume_group_warning {
     return $self->{DeleteVolumeGroupWarning};
 }
 
-sub get_confirmation_warning {
+sub get_yes_no_popup {
     my ($self) = @_;
-    return $self->{ConfirmationWarning};
+    return $self->{YesNoPopup};
 }
 
-sub get_confirmation_warning_rich_text {
+sub get_ok_popup {
     my ($self) = @_;
-    return $self->{ConfirmationWarningRichText};
+    return $self->{OkPopup};
 }
 
 sub get_create_new_partition_table_page {
@@ -607,24 +606,24 @@ sub get_error_dialog_text {
     $self->get_error_dialog()->text();
 }
 
-sub get_warning_label_text {
+sub get_yes_no_popup_text {
     my ($self) = @_;
-    $self->get_confirmation_warning()->text();
+    $self->get_yes_no_popup()->text();
 }
 
-sub get_warning_rich_text {
+sub get_ok_popup_text {
     my ($self) = @_;
-    $self->get_confirmation_warning_rich_text()->text();
+    $self->get_ok_popup()->text();
 }
 
 sub confirm_warning {
     my ($self) = @_;
-    $self->get_confirmation_warning()->press_yes();
+    $self->get_yes_no_popup()->press_yes();
 }
 
 sub decline_warning {
     my ($self) = @_;
-    $self->get_confirmation_warning()->press_no();
+    $self->get_yes_no_popup()->press_no();
 }
 
 sub show_summary_and_accept_changes {

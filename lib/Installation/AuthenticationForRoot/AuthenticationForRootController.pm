@@ -16,7 +16,7 @@ package Installation::AuthenticationForRoot::AuthenticationForRootController;
 use strict;
 use warnings;
 use Installation::AuthenticationForRoot::AuthenticationForRootPage;
-use Installation::Warnings::ConfirmationWarning;
+use Installation::Popups::YesNoPopup;
 use YuiRestClient;
 
 sub new {
@@ -28,7 +28,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{AuthenticationForRootPage} = Installation::AuthenticationForRoot::AuthenticationForRootPage->new({app => YuiRestClient::get_app()});
-    $self->{WeakPasswordWarning}       = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning}       = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
