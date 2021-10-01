@@ -1274,8 +1274,8 @@ sub load_x11tests {
     }
     if (xfcestep_is_applicable()) {
         # Midori got dropped from TW
-        loadtest "x11/midori" unless (is_staging || is_livesystem || !is_leap("<16.0"));
-        loadtest "x11/ristretto";
+        loadtest "x11/midori"    unless (is_staging || is_livesystem || !is_leap("<16.0"));
+        loadtest "x11/ristretto" unless rescuecdstep_is_applicable;
     }
     if (gnomestep_is_applicable()) {
         # TODO test on openSUSE https://progress.opensuse.org/issues/31972
