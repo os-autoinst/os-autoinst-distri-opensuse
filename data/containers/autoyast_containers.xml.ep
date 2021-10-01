@@ -5,21 +5,11 @@
     <do_registration config:type="boolean">true</do_registration>
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
-    <install_updates config:type="boolean">true</install_updates>
     <reg_server>{{SCC_URL}}</reg_server>
     <addons config:type="list">
+      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3/) {
       <addon>
         <name>sle-module-basesystem</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-development-tools</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-containers</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
@@ -28,8 +18,23 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % }
+      <addon>
+        <name>sle-module-containers</name>
+        % if ($get_var->('VERSION') =~ /12-SP5|12-SP4|12-SP3/) {
+        <version>12</version>
+        % } else {
+        <version>{{VERSION}}</version>
+        % }
+        <arch>{{ARCH}}</arch>
+      </addon>
     </addons>
   </suse_register>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
   <bootloader>
     % unless ($check_var->('ARCH', 's390x')) {
     <device_map config:type="list">
@@ -52,7 +57,7 @@
       % } else {
       <append>splash=verbose</append>
       % }
-      <timeout config:type="integer">1</timeout>
+      <timeout config:type="integer">-1</timeout>
     </global>
     % if ($check_var->('ARCH', 'ppc64le') or $check_var->('ARCH', 's390x')) {
     <loader_type>grub2</loader_type>
@@ -72,6 +77,26 @@
     <keep_install_network config:type="boolean">true</keep_install_network>
     % }
   </networking>
+  % if ($check_var->('VERSION', '15-SP4')) {
+  <firewall>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <start_firewall config:type="boolean">true</start_firewall>
+    <zones config:type="list">
+      <zone>
+        <name>public</name>
+        <interfaces config:type="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <services config:type="list">
+          <service>ssh</service>
+        </services>
+        <ports config:type="list">
+          <port>22/tcp</port>
+        </ports>
+      </zone>
+    </zones>
+  </firewall>
+  % }
   <software>
     <products config:type="list">
       <product>SLES</product>
@@ -80,17 +105,30 @@
     <packages config:type="list">
       <package>iputils</package>
       <package>acl</package>
-      <package>runc</package>
+      % if ($check_var->('INSTALL_DOCKER', '1')) {
       <package>docker</package>
-      <package>zypper-docker</package>
+      % }
+      % if ($check_var->('INSTALL_PODMAN', '1')) {
       <package>podman</package>
       <package>podman-cni-config</package>
+      % }
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
+      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3/ and $get_var->('ARCH') !~ /aarch64/) {
       <pattern>enhanced_base</pattern>
+      % }
     </patterns>
   </software>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
   <users config:type="list">
     <user>
       <fullname>Bernhard M. Wiedemann</fullname>
