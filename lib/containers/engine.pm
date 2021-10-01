@@ -316,6 +316,7 @@ use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
+use Test::Assert 'assert_equals';
 has runtime => "buildah";
 
 sub cleanup_system_host {
@@ -388,6 +389,14 @@ sub build {
 sub commit {
     my ($self, $mycontainer, $new_image_name, %args) = @_;
     $self->_engine_assert_script_run("commit --rm $mycontainer $new_image_name", timeout => $args{timeout});
+}
+
+sub enum_containers {
+    my ($self) = shift;
+    my $containers_s = $self->_engine_script_output("ls -q");
+    record_info "Containers", $containers_s;
+    my @containers = split /[\n\t]/, $containers_s;
+    return \@containers;
 }
 
 1;
