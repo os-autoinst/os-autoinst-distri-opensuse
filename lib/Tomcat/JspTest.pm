@@ -262,13 +262,14 @@ sub form() {
     send_key('down');
     for (1 .. 2) { send_key('ret'); }
 
-    if (check_screen('tomcat-click-save-login', 10)) {
+    if (check_screen('tomcat-click-save-login', 60)) {
         assert_and_click('tomcat-click-save-login', TIMEOUT);
     }
 
     send_key('tab');
     type_string('tomcat');
     send_key('ret');
+    wait_still_screen;
     assert_screen('tomcat-form-example-result', TIMEOUT);
 }
 
