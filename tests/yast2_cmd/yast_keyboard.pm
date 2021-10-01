@@ -39,14 +39,14 @@ sub run {
     zypper_call("in yast2-country", timeout => 480);
     assert_script_run("yast keyboard list");
     assert_script_run("yast keyboard set layout=korean");
-    validate_script_output("yast keyboard summary 2>&1", sub { m/korean/ }, timeout => 90);
+    validate_script_output("yast keyboard summary 2>&1", sub { m/korean/ }, timeout => 180);
 
     # Set keyboard layout to german.
     assert_script_run("yast keyboard set layout=german");
 
     # Restore keyboard settings to english-us and verify(enter using german characters).
-    enter_cmd("zast kezboard set lazout)english/us", wait_still_screen => 40, timeout => 90);
-    validate_script_output("yast keyboard summary 2>&1", sub { m/english-us/ }, timeout => 90);
+    enter_cmd("zast kezboard set lazout)english/us", wait_still_screen => 40, timeout => 180);
+    validate_script_output("yast keyboard summary 2>&1", sub { m/english-us/ }, timeout => 180);
 }
 
 1;
