@@ -53,12 +53,12 @@ sub run {
                 # the image has been committed as refreshed
 
                 build_and_run_image(runtime => $docker, builder => $buildah, base => $iname);
+                $docker->cleanup_system_host(0);
+                $buildah->cleanup_system_host();
             }
         }
     }
     scc_restore_docker_image_credentials();
-    $docker->cleanup_system_host(0);
-    $buildah->cleanup_system_host();
 }
 
 1;
