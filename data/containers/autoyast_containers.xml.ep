@@ -3,11 +3,14 @@
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
   <suse_register>
     <do_registration config:type="boolean">true</do_registration>
+    % unless ($check_var->('VERSION', '15-SP4')) {
+    <install_updates config:type="boolean">true</install_updates>
+    % }
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
     <reg_server>{{SCC_URL}}</reg_server>
     <addons config:type="list">
-      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3/) {
+      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3|15-SP4/) {
       <addon>
         <name>sle-module-basesystem</name>
         <version>{{VERSION}}</version>
@@ -21,7 +24,7 @@
       % }
       <addon>
         <name>sle-module-containers</name>
-        % if ($get_var->('VERSION') =~ /12-SP5|12-SP4|12-SP3/) {
+        % if ($get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5/) {
         <version>12</version>
         % } else {
         <version>{{VERSION}}</version>
@@ -105,17 +108,20 @@
     <packages config:type="list">
       <package>iputils</package>
       <package>acl</package>
-      % if ($check_var->('INSTALL_DOCKER', '1')) {
+      % if ($check_var->('INSTALL_RUNTIMES', '1')) {
       <package>docker</package>
+      % unless ($check_var->('ARCH', 'aarch64') and $get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5|15$/) {
+      <package>zypper-docker</package>
+      <package>container-diff</package>
       % }
-      % if ($check_var->('INSTALL_PODMAN', '1')) {
+      % unless ($get_var->('VERSION') =~ /12-SP3|12-SP4|12-SP5|15$/) {
       <package>podman</package>
       <package>podman-cni-config</package>
-      % }
+      % }}
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
-      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3/ and $get_var->('ARCH') !~ /aarch64/) {
+      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3|15-SP4/ and $get_var->('ARCH') !~ /aarch64/) {
       <pattern>enhanced_base</pattern>
       % }
     </patterns>
