@@ -201,17 +201,16 @@ sub info {
     $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));
 }
 
-=head2 get_container_logs($container)
+=head2 get_container_logs($container, $filename)
 
 Request container's logs.
 C<container> the running container.
-C<logs> returns a string.
+C<filename> file the logs are written to.
 
 =cut
 sub get_container_logs {
-    my ($self, $container) = @_;
-    my $logs = $self->_engine_script_output("container logs $container");
-    return $logs;
+    my ($self, $container, $filename) = @_;
+    $self->_engine_assert_script_run("container logs $container | tee $filename");
 }
 
 =head2 remove_image($image_name)

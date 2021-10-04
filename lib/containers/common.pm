@@ -202,8 +202,7 @@ sub test_container_image {
     return if $runtime->runtime eq 'buildah';
     $runtime->start_container('testing');
     $runtime->halt_container('testing');
-    my $logs = $runtime->get_container_logs('testing');
-    assert_script_run "echo '$logs' | tee '$logfile'";
+    $runtime->get_container_logs('testing', $logfile);
     $runtime->remove_container('testing');
     if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
         upload_logs("$logfile");
