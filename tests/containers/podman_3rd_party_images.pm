@@ -31,7 +31,7 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $engine = containers::engine::podman->new();
 
-    script_run("echo 'Container base image tests:' > /var/tmp/$engine-3rd_party_images_log.txt");
+    script_run("echo 'Container base image tests:' > /var/tmp/podman-3rd_party_images_log.txt");
     # In SLE we need to add the Containers module
     install_podman_when_needed($host_distri);
     $engine->configure_insecure_registries();

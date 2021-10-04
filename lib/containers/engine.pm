@@ -183,7 +183,7 @@ Returns an array ref with the names of the images.
 =cut
 sub get_images_by_repo_name {
     my ($self)      = @_;
-    my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 60);
+    my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 120);
     my @images      = split /[\n\t ]/, $repo_images;
     return \@images;
 }
