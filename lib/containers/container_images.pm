@@ -22,6 +22,7 @@ use strict;
 use warnings;
 use version_utils;
 use version;
+use Utils::Architectures;
 use containers::utils;
 use containers::common 'test_container_image';
 
@@ -66,7 +67,7 @@ sub build_and_run_image {
     assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
 
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-    $builder->build($dir . "/BuildTest", "myapp", timeout => 600);
+    $builder->build($dir . "/BuildTest", "myapp", (timeout => is_x86_64 ? 600 : 1200));
     my $imgs = $builder->get_images_by_repo_name();
     die "myapp image not found in the local registry" unless (grep { $_ =~ /myapp/ } @{$imgs});
     assert_script_run("rm -rf $dir");
