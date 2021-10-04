@@ -25,9 +25,15 @@ use utils qw(zypper_call systemctl file_content_replace script_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
-our @EXPORT = qw(install_podman_when_needed install_docker_when_needed
+our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials
   scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
+
+
+sub is_unreleased_sle {
+    # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
+    return (get_var('SCC_URL', '') =~ /proxy/);
+}
 
 sub activate_containers_module {
     my ($running_version, $sp, $host_distri) = get_os_release;
