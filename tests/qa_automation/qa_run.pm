@@ -143,7 +143,7 @@ sub run {
     $self->prepare_repos();
 
     $self->start_testrun();
-    my $testrun_finished = $self->wait_testrun(timeout => 180 * 60);
+    my $testrun_finished = $self->wait_testrun(timeout => 45 * 60);
 
     # Upload test logs
     my $tarball = "/tmp/qaset.tar.bz2";
