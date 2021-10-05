@@ -107,6 +107,8 @@ sub prepare_repos {
 sub start_testrun {
     my $self = shift;
     $self->qaset_config();
+    # workaround dashboard query https://sd.suse.com/servicedesk/customer/portal/1/SD-62274
+    assert_script_run('rm /usr/share/qa/qaset/libs/msg_queue.sh');
     assert_script_run("/usr/share/qa/qaset/qaset reset");
     assert_script_run("/usr/share/qa/qaset/run/kernel-all-run.openqa");
 }
