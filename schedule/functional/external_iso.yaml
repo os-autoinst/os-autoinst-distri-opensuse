@@ -1,0 +1,60 @@
+---
+name: external_iso
+description: >
+    Maintainer: zluo@suse.com
+    Test installation using an ISO file on a second hard disk.
+conditional_schedule:
+    version_switch_origin:
+        DISTRI:
+            opensuse:
+                - migration/version_switch_origin_system
+    version_switch_upgrade:
+        DISTRI:
+            opensuse:
+                - migration/version_switch_upgrade_target
+    license_scc_addon:
+        DISTRI:
+            sle:
+                - installation/accept_license
+                - installation/scc_registration
+                - installation/addon_products_sle
+    repos_mode_logpackages:
+        DISTRI:
+            opensuse:
+                - installation/online_repos
+                - installation/installation_mode
+                - installation/logpackages
+    user_settings_root:
+        DISTRI:
+            sle:
+                - installation/user_settings_root
+    opensuse_welcome:
+        DISTRI:
+            opensuse:
+                - installation/opensuse_welcome
+schedule:
+    - '{{version_switch_origin}}'
+    - boot/boot_to_desktop
+    - console/copy_iso_to_external_drive
+    - x11/reboot_and_install
+    - '{{version_switch_upgrade}}'
+    - installation/welcome
+    - '{{license_scc_addon}}'
+    - '{{repos_mode_logpackages}}'
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_firstdisk
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - '{{user_settings_root}}'
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - installation/grub_test
+    - installation/first_boot
+    - '{{opensuse_welcome}}'
