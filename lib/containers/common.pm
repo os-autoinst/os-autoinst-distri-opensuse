@@ -51,8 +51,8 @@ sub install_podman_when_needed {
             my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
             assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
             assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
-            assert_script_run "apt-get update",            timeout => 160;
-            assert_script_run "apt-get -y install podman", timeout => 220;
+            assert_script_run "apt-get update",            timeout => 300;
+            assert_script_run "apt-get -y install podman", timeout => 300;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sles';
