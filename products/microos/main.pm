@@ -37,7 +37,10 @@ sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'microos/disk_boot';
     loadtest 'installation/system_workarounds' if is_aarch64;
-    loadtest 'transactional/enable_selinux'    if (get_var("ENABLE_SELINUX"));
+    replace_opensuse_repos_tests               if is_repo_replacement_required;
+    # ^ runs only outside of stagings, clear repos otherwise
+    loadtest 'update/zypper_clear_repos'    if is_staging;
+    loadtest 'transactional/enable_selinux' if (get_var("ENABLE_SELINUX"));
     loadtest 'microos/networking';
 }
 

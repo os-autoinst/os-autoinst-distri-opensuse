@@ -51,6 +51,7 @@ our @EXPORT = qw(
   is_livesystem
   is_memtest
   is_memtest
+  is_repo_replacement_required
   is_server
   is_sles4sap
   is_sles4sap_standard
