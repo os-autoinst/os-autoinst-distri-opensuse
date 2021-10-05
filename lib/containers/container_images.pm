@@ -239,7 +239,7 @@ sub test_zypper_on_container {
     die 'Argument $runtime not provided!' unless $runtime;
 
     $runtime->run_container($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
-    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 120);
+    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 300);
     unless ($runtime->runtime eq 'buildah') {
         $runtime->commit('refreshed', "refreshed-image", timeout => 120);
         $runtime->remove_container('refreshed');
