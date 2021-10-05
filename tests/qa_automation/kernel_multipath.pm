@@ -142,6 +142,8 @@ sub start_testrun {
     }
 
     $self->qaset_config();
+    # workaround dashboard query https://sd.suse.com/servicedesk/customer/portal/1/SD-62274
+    assert_script_run('rm /usr/share/qa/qaset/libs/msg_queue.sh');
     assert_script_run("/usr/share/qa/qaset/qaset reset");
 
     if (get_var('ISCSI_MULTIPATH_FLAKY')) {
