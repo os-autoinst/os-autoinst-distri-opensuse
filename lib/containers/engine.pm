@@ -27,10 +27,12 @@ sub _engine_assert_script_run {
 
 sub _engine_script_run {
     my ($self, $cmd, %args) = @_;
+    my $timeout = $args{timeout};
     $cmd = $self->runtime . " " . $cmd;
     my $ret = script_run($cmd, %args);
-    if (!defined($ret) && (!defined($args{timeout}) || $args{timeout} > 0)) {
-        croak('Timeout on _engine_script_run(' . join(', ', $cmd, map { $_ . '=>' . $args{$_} } keys %args) . ')');
+    # Don't swallow timeouts
+    if (!defined($ret) && (defined($timeout) && $timeout > 0)) {
+        croak("Timeout on _engine_script_run(" . join(', ', $cmd, map { $_ . '=>' . $args{$_} } keys %args) . ')');
     }
     return $ret;
 }
@@ -124,8 +126,9 @@ sub run_container {
     my $remote         = $args{cmd}            ? "$args{cmd}"         : '';
     my $name           = $args{name}           ? "--name $args{name}" : '';
     my $keep_container = $args{keep_container} ? ''                   : '--rm';
-    my $params         = sprintf qq(%s %s %s), $keep_container, $mode, $name;
-    my $ret            = $self->_engine_script_run(sprintf qq(run %s %s %s), $params, $image_name, $remote, timeout => $args{timeout});
+    my $params         = sprintf qq(%s %s %s),     $keep_container, $mode,       $name;
+    my $cmd            = sprintf qq(run %s %s %s), $params,         $image_name, $remote;
+    my $ret            = $self->_engine_script_run($cmd, timeout => $args{timeout});
     record_info "cmd_info", "Container executes:\noptions $params $image_name $remote";
     return $ret;
 }
