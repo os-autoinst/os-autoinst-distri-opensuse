@@ -58,9 +58,8 @@ our @guest_installations_done = ();
 #Guest profile xml file will be guest profile name + '.xml' extension and fetched using HTTP::Request and
 #parsed using XML::Simple.
 sub instantiate_guests_and_profiles {
-    my $self                       = shift;
-    my $_guests_to_be_instantiated = shift;
-    my %_store_of_guests           = %$_guests_to_be_instantiated;
+    my ($self, $_guests_to_be_instantiated) = @_;
+    my %_store_of_guests = %$_guests_to_be_instantiated;
 
     $self->reveal_myself;
     foreach my $_element (keys(%_store_of_guests)) {
@@ -84,7 +83,7 @@ sub instantiate_guests_and_profiles {
 #Detach guest installation screen anyway after first time attach and needle detection to obtain guest installation screen information.
 #This subroutine also accepts hash/dictionary argument to be passed to guest_installation_run to further customize guest instance.
 sub install_guest_instances {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_num_of_guests = scalar(keys %guest_instances);
@@ -121,7 +120,7 @@ sub install_guest_instances {
 #If [guest_installation_result] has final result,push it into @guest_installations_done,collect_guest_installation_logs_via_ssh if not PASSED and calculate how many guests are left.
 #If no [guest_installation_result], detach current guest and move to next one,or keep curren guest screen if it is the last one left so there is no need to re-attach.
 sub monitor_concurrent_guest_installations {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_installation_timeout             = 0;
@@ -154,7 +153,7 @@ sub monitor_concurrent_guest_installations {
 
 #Mark guest installation as UNKNOWN if there is no [guest_installation_result].Fail test run if there is unsuccessful result.
 sub validate_guest_installations_results {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_overall_test_result = '';
@@ -173,7 +172,7 @@ sub validate_guest_installations_results {
 
 #Do cleanup actions by calling detach_guest_installation_screen, terminate_guest_installation_session,get_guest_ipaddr and print_guest_params.
 sub clean_up_guest_installations {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     foreach (keys %guest_instances) {
@@ -213,7 +212,7 @@ sub junit_log_provision {
 
 #Check whether current console is root-ssh console and re-connect if needle 'text-logged-in-root' can not be detected.
 sub check_root_ssh_console {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     save_screenshot;
@@ -229,8 +228,7 @@ sub check_root_ssh_console {
 #holds all guest names to be created and $_guest_profiles_list is a reference to array that holds all guest profiles to be used for guest configurations
 #and installations.
 sub concurrent_guest_installations_run {
-    my $self             = shift;
-    my $_store_of_guests = shift;
+    my ($self, $_store_of_guests) = @_;
 
     $self->reveal_myself;
     croak("Guest names and profile must be given to create, configure and install guests.") if ((scalar(keys(%$_store_of_guests)) eq 0) or (scalar(values(%$_store_of_guests)) eq 0));
@@ -247,7 +245,7 @@ sub concurrent_guest_installations_run {
 
 #Call virt_autotest_base::upload_guest_assets to upload guest assets if it is successfully installed.
 sub save_guest_installations_assets {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     return $self if (!get_var('UPLOAD_GUEST_ASSETS'));
@@ -261,7 +259,7 @@ sub save_guest_installations_assets {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->check_root_ssh_console;

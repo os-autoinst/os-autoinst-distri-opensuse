@@ -25,7 +25,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{btn_ok}    = $self->{app}->button({id => 'ok'});
     $self->{tb_driver} = $self->{app}->textbox({id => 'driver'});
     $self->{tb_sysdir} = $self->{app}->textbox({id => 'sysdir'});

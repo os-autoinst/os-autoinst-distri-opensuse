@@ -27,7 +27,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{btn_add}     = $self->{app}->button({id => 'add'});
     $self->{btn_add_all} = $self->{app}->button({id => 'add_all'});

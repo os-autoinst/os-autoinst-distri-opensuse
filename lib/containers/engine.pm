@@ -44,7 +44,7 @@ instance: C<docker create -it tumbleweed bash>
 
 =cut
 sub create_container {
-    my ($self) = shift;
+    my ($self) = @_;
     my %args = (
         image => '',
         name  => '',
@@ -156,7 +156,7 @@ Return an array ref of the images
 
 =cut
 sub enum_images {
-    my ($self) = shift;
+    my ($self) = @_;
     my $images_s = $self->_engine_script_output("images -q");
     record_info "Images", $images_s;
     my @images = split /[\n\t]/, $images_s;
@@ -169,7 +169,7 @@ Return an array ref of the containers
 
 =cut
 sub enum_containers {
-    my ($self) = shift;
+    my ($self) = @_;
     my $containers_s = $self->_engine_script_output("container ls -q");
     record_info "Containers", $containers_s;
     my @containers = split /[\n\t]/, $containers_s;
@@ -283,7 +283,7 @@ use utils qw(systemctl file_content_replace);
 has runtime => 'docker';
 
 sub configure_insecure_registries {
-    my ($self) = shift;
+    my ($self) = @_;
     my $registry = registry_url();
     # Allow our internal 'insecure' registry
     assert_script_run(
@@ -301,7 +301,7 @@ use utils qw(systemctl file_content_replace);
 has runtime => "podman";
 
 sub configure_insecure_registries {
-    my ($self) = shift;
+    my ($self) = @_;
     my $registry = registry_url();
 
     assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
@@ -359,7 +359,7 @@ sub pull {
 }
 
 sub create_container {
-    my ($self) = shift;
+    my ($self) = @_;
     my %args = (
         image => '',
         name  => '',
@@ -391,7 +391,7 @@ sub commit {
 }
 
 sub enum_containers {
-    my ($self) = shift;
+    my ($self) = @_;
     my $containers_s = $self->_engine_script_output("ls -q");
     record_info "Containers", $containers_s;
     my @containers = split /[\n\t]/, $containers_s;

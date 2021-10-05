@@ -47,8 +47,8 @@ C<<$instance->username()>>.
 Use argument C<rc_only> to only check for the return code of the command.
 =cut
 sub run_ssh_command {
-    my $self = shift;
-    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my ($self, @args) = @_;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @args);
     die('Argument <cmd> missing') unless ($args{cmd});
     $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
     $args{username} //= $self->username();
@@ -106,8 +106,8 @@ Use argument C<username> to specify a different username then
 C<<$instance->username()>>.
 =cut
 sub retry_ssh_command {
-    my $self = shift;
-    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my ($self, @args) = @_;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @args);
     $args{rc_only} = 1;
     $args{timeout} //= 90;    # Timeout before we cancel the command
     my $tries = delete $args{retry} // 3;
@@ -281,7 +281,7 @@ Stop the instance using the CSP api calls.
 =cut
 sub stop
 {
-    my $self = shift;
+    my ($self) = @_;
     $self->provider->stop_instance($self, @_);
 }
 
@@ -307,7 +307,7 @@ Get the status of the instance using the CSP api calls.
 =cut
 sub get_state
 {
-    my $self = shift;
+    my ($self) = @_;
     return $self->provider->get_state_from_instance($self, @_);
 }
 

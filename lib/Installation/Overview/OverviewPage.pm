@@ -24,7 +24,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{btn_install}  = $self->{app}->button({id => 'next'});
     $self->{txt_overview} = $self->{app}->richtext({id => 'proposal'});
 

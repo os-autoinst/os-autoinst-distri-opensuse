@@ -25,7 +25,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     return $self;
 }

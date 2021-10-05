@@ -74,7 +74,7 @@ EOF
 
 # Access the tomcat web application manager
 sub tomcat_manager_test() {
-    my ($self) = shift;
+    my ($self) = @_;
 
     $self->firefox_open_url('localhost:8080/manager');
     send_key_until_needlematch('tomcat-manager-authentication', 'ret');

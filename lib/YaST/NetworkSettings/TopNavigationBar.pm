@@ -24,7 +24,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{menu_bar} = $self->{app}->menucollection({id => '_cwm_tab'});
     return $self;
 }

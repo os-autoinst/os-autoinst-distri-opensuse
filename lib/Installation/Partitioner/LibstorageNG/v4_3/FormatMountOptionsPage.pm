@@ -26,7 +26,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{cb_filesystem}       = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::BlkDeviceFilesystem"'});
     $self->{cb_enable_snapshots} = $self->{app}->checkbox({id => '"Y2Partitioner::Widgets::Snapshots"'});

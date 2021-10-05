@@ -493,7 +493,7 @@ sub terraform_param_tags
 }
 
 sub escape_single_quote {
-    my $s = shift;
+    my $s = @_;
     $s =~ s/'/'"'"'/g;
     return $s;
 }
@@ -530,7 +530,7 @@ sub __vault_login
 Wrapper arround C<<$self->vault_login()>> to have retry capability.
 =cut
 sub vault_login {
-    my $self  = shift;
+    my ($self) = @_;
     my $tries = 3;
     my $ret;
     while ($tries-- > 0) {

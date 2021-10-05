@@ -197,7 +197,7 @@ our $common_environment_prepared = 'false';
 
 #Any subroutine calls this subroutine announces its identity and it is being executed
 sub reveal_myself {
-    my $self = shift;
+    my ($self) = @_;
 
     my $_my_identity = (caller(1))[3];
     diag("Test execution inside $_my_identity.");
@@ -206,7 +206,7 @@ sub reveal_myself {
 
 #Create guest instance by assigning values to its parameters but do no install it
 sub create {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->initialize_guest_params;
@@ -217,7 +217,7 @@ sub create {
 
 #Initialize all guest parameters to avoid uninitialized parameters
 sub initialize_guest_params {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->{$_} //= '' foreach (keys %guest_params);
@@ -235,7 +235,7 @@ sub initialize_guest_params {
 #Secondly,config_guest_params can also be called direcly, for example,$self->config_guest_params(%testhash).
 #Call revise_guest_version_and_build to correct guest version and build parameters to avoid mismatch if necessary.
 sub config_guest_params {
-    my $self          = shift;
+    my ($self) = @_;
     my %_guest_params = @_;
 
     $self->reveal_myself;
@@ -267,7 +267,7 @@ sub config_guest_params {
 #if non-developing [guest_version].This subroutine help make things better and life easier but the end user should always pay attention and use
 #meaningful and correct guest parameter and profile.
 sub revise_guest_version_and_build {
-    my $self          = shift;
+    my ($self) = @_;
     my %_guest_params = @_;
 
     $self->reveal_myself;
@@ -305,7 +305,7 @@ sub revise_guest_version_and_build {
 
 #Print out guest instance parameters
 sub print_guest_params {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     diag("The guest instance $self->{guest_name} created is as below:");
@@ -330,7 +330,7 @@ sub print_guest_params {
 
 #Install necessary packages, patterns, setup ssh config, create [common_log_folder].These are common environment affairs which will be used for all guest instances.
 sub prepare_common_environment {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     if ($common_environment_prepared eq 'false') {
@@ -360,7 +360,7 @@ sub prepare_common_environment {
 
 #Remove all existing guests and storage files in /var/lib/libvirt/images/
 sub clean_up_all_guests {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my @_guests_to_clean_up = split(/\n/, script_output("virsh list --all --name | grep -v Domain-0", proceed_on_failure => 1));
@@ -381,7 +381,7 @@ sub clean_up_all_guests {
 
 #Create individual guest log folder using its name and remove existing entry in /etc/hosts
 sub prepare_guest_environment {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->{guest_log_folder} = $common_log_folder . '/' . $self->{guest_name};
@@ -393,7 +393,7 @@ sub prepare_guest_environment {
 
 #Configure [guest_domain_name] and [guest_name_options].User can still change [guest_name] and [guest_domain_name] by passing non-empty arguments using hash.
 sub config_guest_name {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -408,7 +408,7 @@ sub config_guest_name {
 #Configure [guest_metadata_options].User can still change [guest_metadata] by passing non-empty arguments using hash.
 #If installation already passes,modify_guest_params will be called to modify [guest_metadata] using already modified [guest_metadata_options].
 sub config_guest_metadata {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_metadata_options = $self->{guest_metadata_options};
@@ -423,7 +423,7 @@ sub config_guest_metadata {
 #Configure [guest_vcpus_options].User can still change [guest_vcpus] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_vcpus] using already modified [guest_vcpus_options].
 sub config_guest_vcpus {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_vcpus_options    = $self->{guest_vcpus_options};
@@ -440,7 +440,7 @@ sub config_guest_vcpus {
 #Configure [guest_memory_options].User can still change [guest_memory] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_memory] using already modified [guest_memory_options].
 sub config_guest_memory {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_memory_options = $self->{guest_memory_options};
@@ -453,7 +453,7 @@ sub config_guest_memory {
 
 #Configure [guest_virt_options].User can still change [host_hypervisor_uri],[host_virt_type] and [guest_virt_options] by passing non-empty arguments using hash.
 sub config_guest_virtualization {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -472,7 +472,7 @@ sub config_guest_virtualization {
 
 #Configure [guest_platform_options].User can still change [guest_arch] and [guest_machine_type] by passing non-empty arguments using hash.
 sub config_guest_platform {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -486,7 +486,7 @@ sub config_guest_platform {
 #Configure [guest_os_variant_options].User can still change [guest_os_variant] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_os_variant] using already modified [guest_os_variant_options].
 sub config_guest_os_variant {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_os_variant_options = $self->{guest_os_variant_options};
@@ -501,7 +501,7 @@ sub config_guest_os_variant {
 #Configure [guest_graphics_and_video_options].User can still change [guest_video] and [guest_graphics] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_video] and [guest_graphics] using already modified [guest_graphics_and_video_options].
 sub config_guest_graphics_and_video {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_graphics_and_video_options = $self->{guest_graphics_and_video_options};
@@ -516,7 +516,7 @@ sub config_guest_graphics_and_video {
 #If installations already passes,modify_guest_params will be called to modify [guest_console] and [guest_serial] using already modified [guest_console_options] and
 #[guest_serial_options].
 sub config_guest_consoles {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_console_options = $self->{guest_console_options};
@@ -536,7 +536,7 @@ sub config_guest_consoles {
 #Configure [guest_features_options].User can still change [guest_features] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_features] using already modified [guest_features_options].
 sub config_guest_features {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_features_options = $self->{guest_features_options};
@@ -551,7 +551,7 @@ sub config_guest_features {
 #Configure [guest_events_options].User can still change [guest_events] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_events] using already modified [guest_events_options].
 sub config_guest_events {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_events_options = $self->{guest_events_options};
@@ -566,7 +566,7 @@ sub config_guest_events {
 #Configure [guest_boot_options].User can still change [guest_boot_settings] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_boot_settings] using already modified [guest_boot_options].
 sub config_guest_boot_settings {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_boot_options = $self->{guest_boot_options};
@@ -581,7 +581,7 @@ sub config_guest_boot_settings {
 #Configure [guest_power_management_options].User can still change [guest_power_management] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_power_management] using already modified [guest_power_management_options].
 sub config_guest_power_management {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_power_management_options = $self->{guest_power_management_options};
@@ -596,7 +596,7 @@ sub config_guest_power_management {
 #Configure [guest_xpath_options].User can still change [guest_xpath] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_xpath] using already modified [guest_xpath_options].
 sub config_guest_xpath {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_xpath_options = $self->{guest_xpath_options};
@@ -612,7 +612,7 @@ sub config_guest_xpath {
 #Configure [guest_qemu_command_options].User can still change [guest_qemu_command] by passing non-empty arguments using hash.
 #If installations already passes,modify_guest_params will be called to modify [guest_qemu_command] using already modified [guest_qemu_command_options].
 sub config_guest_qemu_command {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_qemu_command_options = $self->{guest_qemu_command_options};
@@ -628,7 +628,7 @@ sub config_guest_qemu_command {
 #and [guest_storage_others] by passing non-empty arguments using hash.If installations already passes,modify_guest_params will be called to modify [guest_storage_type],
 #[guest_storage_size],[guest_storage_format],[guest_storage_path] and [guest_storage_others] using already modified [guest_storage_options].
 sub config_guest_storage {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_current_storage_options = $self->{guest_storage_options};
@@ -658,7 +658,7 @@ sub config_guest_storage {
 #guest mac address if it has not been set.Calls config_guest_network_bridge to create [guest_network_device] in subnet [guest_netaddr].Turn off firewall/apparmor,loosen iptables
 #rules and enable forwarding by calling config_guest_network_bridge_policy.
 sub config_guest_network_selection {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -707,7 +707,7 @@ sub config_guest_network_selection {
 
 #Generate nearly random mac address
 sub config_guest_macaddr {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_guest_macaddr_lower_half = join ":", map { unpack "H*", chr(rand(256)) } 1 .. 3;
@@ -779,12 +779,9 @@ EOF
 #Create [guest_network_device] by writing device information into ifcfg file in /etc/sysconfig/network.Mark guest installation as FAILED if [guest_network_device] can not be
 #successfully started up.If [guest_network_device] or [guest_netaddr] already exists and active on host judging by "ip route show",both of them will not be created anyway.
 sub config_guest_network_bridge_device {
-    my $self = shift;
+    my ($self, $_bridge_network, $_bridge_network_in_route, $_bridge_device) = @_;
 
     $self->reveal_myself;
-    my $_bridge_network          = shift;
-    my $_bridge_network_in_route = shift;
-    my $_bridge_device           = shift;
     $_bridge_device //= $self->{guest_network_device};
     if ((script_output("ip route show | grep -o $_bridge_device", proceed_on_failure => 1) eq '') and (script_output("ip route show | grep -o $_bridge_network_in_route", proceed_on_failure => 1) eq '')) {
         my $_detect_active_route   = '';
@@ -946,7 +943,7 @@ EOF
 #[guest_version_minor],[guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct
 #installation media.
 sub config_guest_installation_method {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -966,7 +963,7 @@ sub config_guest_installation_method {
 #can help correct installation media major and minor version if necessary, it is just auxiliary functionality and end user should always pay attendtion and use the meaningful
 #and correct guest parameters and profile.
 sub config_guest_installation_media {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->{guest_installation_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
@@ -1030,7 +1027,7 @@ sub config_guest_installation_media {
 
 #Configure [guest_installation_extra_args_options].User can still change [guest_installation_extra_args],[guest_ipaddr] and [guest_ipaddr_static] by passing non-empty arguments using hash.
 sub config_guest_installation_extra_args {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -1061,7 +1058,7 @@ sub config_guest_installation_extra_args {
 #Currently the following common variables are supported:[Module-Basesystem,Module-Desktop-Applications,Module-Development-Tools,Module-Legacy,Module-Server-Applications,Module-Web-Scripting,
 #Product-SLES,Authorized-Keys,Secure-Boot,Boot-Loader-Type,Disk-Label,Domain-Name,Host-Name,Device-MacAddr,Logging-HostName and Logging-HostPort]
 sub config_guest_installation_automation {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -1143,7 +1140,7 @@ sub config_guest_installation_automation {
 #Validate autoyast file using xmllint and yast2-schema.This is only for reference purpose if guest and host oses have different release major version.
 #Output kickstart file content directly because its content can not be validated on SLES or opensuse host by using ksvalidator.
 sub validate_guest_installation_automation_file {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     if ($self->{guest_installation_automation} eq 'autoyast') {
@@ -1164,7 +1161,7 @@ sub validate_guest_installation_automation_file {
 #Calls prepare_guest_installation to do guest configuration.Call start_guest_installation to start guest installation.
 #This subroutine also accepts hash/dictionary argument to be passed to prepare_guest_installation to further customize guest object if necessary.
 sub guest_installation_run {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->prepare_guest_installation(@_);
@@ -1175,7 +1172,7 @@ sub guest_installation_run {
 #Configure and prepare guest before installation starts.
 #This subroutine also accepts hash/dictionary argument to be passed to config_guest_params to further customize guest object if necessary.
 sub prepare_guest_installation {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
@@ -1204,7 +1201,7 @@ sub prepare_guest_installation {
 
 #If [virt_install_command_line_dryrun] succeeds,start real guest installation using screen and virt_install_command_line.
 sub start_guest_installation {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     if ($self->{guest_installation_result} ne '') {
@@ -1243,7 +1240,7 @@ sub start_guest_installation {
 
 #Get guest installation screen process information and store it in [guest_installation_session] which is in the form of 3401.pts-1.vh017.
 sub get_guest_installation_session {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     if ($self->{guest_installation_session} ne '') {
@@ -1260,7 +1257,7 @@ sub get_guest_installation_session {
 
 #Kill all guest installation screen processes stored in [guest_installation_session] after test finishes.
 sub terminate_guest_installation_session {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     if ($self->{guest_installation_session} ne '') {
@@ -1275,7 +1272,7 @@ sub terminate_guest_installation_session {
 
 #Get dynamic allocated guest ip address using nmap scan and store it in [guest_ipaddr].
 sub get_guest_ipaddr {
-    my $self             = shift;
+    my ($self) = @_;
     my @subnets_in_route = @_;
 
     $self->reveal_myself;
@@ -1310,7 +1307,7 @@ sub get_guest_ipaddr {
 #If needle 'guest_installation_in_progress' is detected,this means installation is still in progress.Will check its result in the next round.
 #If none of above needles is detected,makr it as PASSED if ssh connection to it is good,otherwise mark it as FAILED by calling check_guest_installation_result_via_ssh.
 sub monitor_guest_installation {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     save_screenshot;
@@ -1362,7 +1359,7 @@ sub monitor_guest_installation {
 #Get guest ip address and check whether it is already up and running by using ip address and name sequentially.
 #Use very common linux command 'hostname' to do the actual checking because it is almost available on any linux flavor and release.
 sub check_guest_installation_result_via_ssh {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $_guest_transient_hostname = '';
@@ -1392,7 +1389,7 @@ sub check_guest_installation_result_via_ssh {
 #If [guest_installation_session] is not available and has [guest_autoconsole],call get_guest_installation_session, then attach based on whether installation session is available.
 #If [guest_installation_session] is already available,call do_attach_guest_installation_screen directly.
 sub attach_guest_installation_screen {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     save_screenshot;
@@ -1427,7 +1424,7 @@ sub attach_guest_installation_screen {
 #If fails to attach guest installation screen, [guest_installation_session] may terminate at reboot/shutoff or be in mysterious state or just broken somehow,
 #call do_attach_guest_installation_screen_without_sesssion to re-attach.
 sub do_attach_guest_installation_screen {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->do_attach_guest_installation_screen_with_session;
@@ -1449,7 +1446,7 @@ sub do_attach_guest_installation_screen {
 
 #Retry attach [guest_installation_session] and detect needle 'text-logged-in-root'.
 sub do_attach_guest_installation_screen_with_session {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     assert_screen('text-logged-in-root');
@@ -1477,7 +1474,7 @@ sub do_attach_guest_installation_screen_with_session {
 #If [guest_installation_session] is already terminated at reboot/shutoff or somehow, power it on and retry attaching using [guest_installation_session_command] and detect
 #needle 'text-logged-in-root'.Mark it as FAILED if needle 'text-logged-in-root' can still be detected and poweron can not bring it back.
 sub do_attach_guest_installation_screen_without_session {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     script_run("screen -X -S $self->{guest_installation_session} kill");
@@ -1530,7 +1527,7 @@ sub do_attach_guest_installation_screen_without_session {
 
 #Detach guest installation screen by calling do_detach_guest_installation_screen.Try to get guest installation screen information if [guest_installation_session] is not available.
 sub detach_guest_installation_screen {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     save_screenshot;
@@ -1549,7 +1546,7 @@ sub detach_guest_installation_screen {
 #If needle 'text-logged-in-root' is detected,this means successful detach.
 #If needle 'text-logged-in-root' can not be detected,recover ssh console by select_console('root-ssh').
 sub do_detach_guest_installation_screen {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     send_key('ctrl-a-d');
@@ -1595,7 +1592,7 @@ sub do_detach_guest_installation_screen {
 #Return true if guest has [guest_autoconsole] and [guest_noautoconsole] that are not equal to 'none', 'true' or empty which indicates guest definitely has autoconsole.
 #Empty value may indicate there is autoconsole or the opposite which depends on detailed configuration of guest.
 sub has_autoconsole_for_sure {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     return (($self->{guest_autoconsole} ne 'none') and ($self->{guest_autoconsole} ne '') and ($self->{guest_noautoconsole} ne 'true') and ($self->{guest_noautoconsole} ne ''));
@@ -1604,7 +1601,7 @@ sub has_autoconsole_for_sure {
 #Return true if guest has [guest_autoconsole] or [guest_noautoconsole] that are equal to 'none' or 'true' which indicates guest definitely has no autoconsole.
 #Empty value may indicate there is autoconsole or the opposite which depends on detailed configuration of guest.
 sub has_noautoconsole_for_sure {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     return (($self->{guest_autoconsole} eq 'none') or ($self->{guest_noautoconsole} eq 'true'));
@@ -1625,7 +1622,7 @@ sub record_guest_installation_result {
 
 #Collect guest y2logs via ssh and save guest config xml file.
 sub collect_guest_installation_logs_via_ssh {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->get_guest_ipaddr;
@@ -1644,7 +1641,7 @@ sub collect_guest_installation_logs_via_ssh {
 
 #Upload logs collect by collect_guest_installation_logs_via_ssh.
 sub upload_guest_installation_logs {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     assert_script_run("tar czvf /tmp/guest_installation_and_configuration_logs.tar.gz $common_log_folder");
@@ -1654,7 +1651,7 @@ sub upload_guest_installation_logs {
 
 #Unmount all mounted nfs shares to avoid unnecessary logs to be collected by supportconfig or sosreport which may take extremely long time.
 sub detach_all_nfs_mounts {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     script_run("umount -a -f -l -t nfs,nfs4") if (script_run("umount -a -t nfs,nfs4") ne 0);
@@ -1715,7 +1712,7 @@ sub remove_guest_device {
 
 #AUTOLOAD to be called if called subroutine does not exist.
 sub AUTOLOAD {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     my $type  = ref($self) || croak "$self is not an object";
@@ -1735,7 +1732,7 @@ sub AUTOLOAD {
 #Collect logs and gues extra log '/root' by using virt_utils::collect_host_and_guest_logs.
 #'Root' directory on guest contains very valuable content that is generated automatically after guest installation finishes.
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->reveal_myself;
     $self->upload_guest_installation_logs;

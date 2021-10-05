@@ -535,7 +535,7 @@ sub save_remote_upload_y2logs {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
 
     if (check_var("REMOTE_CONTROLLER", "ssh") || check_var("REMOTE_CONTROLLER", "vnc")) {
         mutex_create("installation_done");

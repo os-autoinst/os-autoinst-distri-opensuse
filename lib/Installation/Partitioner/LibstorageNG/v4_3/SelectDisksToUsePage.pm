@@ -26,7 +26,7 @@ sub new {
 }
 
 sub init {
-    my ($self) = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{lbl_select_disks_to_use} = $self->{app}->label({label => 'Select one or more (max 3) hard disks'});
     return $self;

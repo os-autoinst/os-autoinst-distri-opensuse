@@ -25,7 +25,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{btn_ok} = $self->{app}->button({id => 'next'});
     return $self;
 }

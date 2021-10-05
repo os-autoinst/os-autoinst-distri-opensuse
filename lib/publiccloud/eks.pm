@@ -41,7 +41,7 @@ sub push_container_image {
 }
 
 sub cleanup {
-    my $self = shift;
+    my ($self) = @_;
     assert_script_run("aws ecr batch-delete-image --repository-name " . $self->{repository} . " --image-ids imageTag=" . $self->{tag});
     $self->SUPER::cleanup();
     return;

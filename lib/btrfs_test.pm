@@ -85,7 +85,7 @@ sub snapper_nodbus_restore {
 }
 
 sub post_fail_hook {
-    my ($self) = shift;
+    my ($self) = @_;
     select_console('log-console');
     $self->SUPER::post_fail_hook;
 

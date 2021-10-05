@@ -27,7 +27,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->{btn_ok}           = $self->{app}->button({id => 'ok'});
     $self->{lst_target_disks} = $self->{app}->selectionbox({

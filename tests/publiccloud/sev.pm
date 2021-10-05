@@ -19,7 +19,7 @@ use utils;
 #use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
-    my $self = shift;
+    my ($self) = @_;
     $self->select_serial_terminal;
 
     # Skip this test run, unless defined to run

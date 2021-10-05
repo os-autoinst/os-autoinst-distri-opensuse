@@ -80,8 +80,8 @@ Helper to create a snapper snapshot. C<$name> is the name of snapshot.
 
 =cut
 sub y2snapper_create_snapshot {
-    my $self = shift;
-    my $name = shift || "Awesome Snapshot";
+    my ($self, $name) = @_;
+    $name = "Awesome Snapshot" if (!$name);
     # Open the 'C'reate dialog and wait until it is there
     send_key "alt-c";
     assert_screen 'yast2_snapper-createsnapshotdialog', 100;

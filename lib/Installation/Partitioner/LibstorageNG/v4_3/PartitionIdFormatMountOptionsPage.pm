@@ -25,7 +25,7 @@ sub new {
 }
 
 sub init {
-    my ($self) = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{partition_id} = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::PartitionIdComboBox"'});
     return $self;

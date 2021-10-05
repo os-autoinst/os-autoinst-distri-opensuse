@@ -27,7 +27,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{tb_lv_name}     = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvInfo::NameWidget"'});
     $self->{rb_thin_pool}   = $self->{app}->radiobutton({id => 'thin_pool'});

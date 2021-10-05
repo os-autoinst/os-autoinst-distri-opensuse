@@ -26,7 +26,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{lbl_settings_root_part} = $self->{app}->label({label => 'Settings for the Root Partition'});
     $self->{cb_root_fs_type}        = $self->{app}->combobox({id => '"vol_0_fs_type"'});

@@ -170,7 +170,7 @@ Upload the logs of all known containers.
 
 =cut
 sub post_fail_hook {
-    my ($self) = shift;
+    my ($self) = @_;
     select_console('log-console');
 
     my $machines = script_output("machinectl --no-legend --no-pager | cut -d ' ' -f 1");

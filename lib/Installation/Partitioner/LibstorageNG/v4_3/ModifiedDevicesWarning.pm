@@ -18,7 +18,7 @@ use warnings;
 use parent 'Installation::Popups::YesNoPopup';
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{lbl_warning} = $self->{app}->label({label => "You have modified some devices. These changes will be lost\nif you exit the Partitioner.\nReally exit?"});
     return $self;

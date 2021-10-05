@@ -155,12 +155,12 @@ sub sysfs_name {
     return $self->{sysfs_name};
 }
 sub CPUID {
-    my $self = shift;
+    my ($self) = @_;
     return $self->{CPUID};
 }
 
 sub MSR {
-    my $self = shift;
+    my ($self) = @_;
     return $self->{IA32_ARCH_CAPABILITIES};
 }
 
@@ -184,17 +184,17 @@ sub read_cpuid_base {
 }
 
 sub read_cpuid_edx {
-    my $self = shift;
+    my ($self) = @_;
     return $self->read_cpuid_base(CPUID_EDX);
 }
 
 sub read_cpuid_ebx {
-    my $self = shift;
+    my ($self) = @_;
     return $self->read_cpuid_base(CPUID_EBX);
 }
 
 sub read_msr {
-    my $self = shift;
+    my ($self) = @_;
     script_output('modprobe msr');
     my $edx = script_output(
         "perl -e \'open(M,\"<\",\"/dev/cpu/0/msr\") and seek(M,0x10a,0) and read(M,\$_,8) and print\' | od -t u8 -A n"
@@ -203,7 +203,7 @@ sub read_msr {
 }
 
 sub vulnerabilities {
-    my $self = shift;
+    my ($self) = @_;
     if ($self->read_cpuid_edx() & $self->CPUID()) {
         if ($self->read_msr() & $self->MSR()) {
             record_info("$self->{'name'} Not Affected", "This machine needn't be tested.");
@@ -225,7 +225,7 @@ sub sysfs {
 }
 
 sub dmesg {
-    my $self = shift;
+    my ($self) = @_;
     for my $p (keys %{$self->{dmesg}}) {
         print "dmesg " . $self->Name . "\n";
         print $self->{dmesg}->{$p} . "\n";
@@ -233,12 +233,12 @@ sub dmesg {
 }
 
 sub cmdline {
-    my $self = shift;
+    my ($self) = @_;
     return $self->{cmdline};
 }
 
 sub lscpu {
-    my $self = shift;
+    my ($self) = @_;
     for my $p (keys %{$self->{lscpu}}) {
         print $p. "\n";
     }
@@ -249,7 +249,7 @@ sub lscpu {
 #This function will finish testing in default status.
 #As out of box testing. and clean up all mitigations parameters.
 sub check_default_status {
-    my $self = shift;
+    my ($self) = @_;
     assert_script_run('cat /proc/cmdline');
     if (ref($self->{parameter}) ne 'ARRAY') {
         $self->{parameter} = [$self->{parameter}];
@@ -322,7 +322,7 @@ sub check_dmesg {
 }
 
 sub check_cmdline {
-    my $self = shift;
+    my ($self) = @_;
     assert_script_run(
         'cat /proc/cmdline'
     );
@@ -345,7 +345,7 @@ sub check_one_parameter_value {
 #check all cmdline items.
 sub check_each_parameter_value {
     #testing each parameter.
-    my $self = shift;
+    my ($self) = @_;
     foreach my $cmd (@{$self->cmdline()}) {
         record_info("$self->{name}=$cmd", "Mitigation $self->{name}=$cmd testing start.");
         $self->add_parameter($cmd);
@@ -563,7 +563,7 @@ sub guest_cycle {
 #This function will check if current machine has a hardware fix.
 #If the current machine is not affected, test over.
 sub do_test {
-    my $self = shift;
+    my ($self) = @_;
     select_console 'root-console';
 
     if (!check_var('TEST', 'MITIGATIONS') && !check_var('TEST', 'KVM_GUEST_MITIGATIONS')) {

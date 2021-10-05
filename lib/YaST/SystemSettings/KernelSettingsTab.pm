@@ -25,7 +25,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{cb_sysrq} = $self->{app}->checkbox({id => '"sysrq"'});
     return $self;
 }

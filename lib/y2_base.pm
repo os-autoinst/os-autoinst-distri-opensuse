@@ -158,20 +158,20 @@ sub upload_widgets_json {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
     upload_widgets_json();
     $self->SUPER::post_fail_hook;
 }
 
 sub pre_run_hook {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->SUPER::pre_run_hook;
     YuiRestClient::Logger->info($autotest::current_test->{name} . " test module started") if YuiRestClient::is_libyui_rest_api;
 }
 
 sub post_run_hook {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->SUPER::post_run_hook;
     save_screenshot;

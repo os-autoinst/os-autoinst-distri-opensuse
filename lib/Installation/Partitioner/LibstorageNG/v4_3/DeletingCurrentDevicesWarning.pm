@@ -17,7 +17,7 @@ use warnings;
 use parent 'Installation::Popups::YesNoPopup';
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{lbl_warning} = $self->{app}->label({label => 'Confirm Deleting of Current Devices'});
     return $self;

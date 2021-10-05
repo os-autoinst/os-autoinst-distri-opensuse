@@ -50,8 +50,8 @@ sub create_keypair {
 }
 
 sub delete_keypair {
-    my $self = shift;
-    my $name = shift || $self->ssh_key;
+    my ($self, $name) = @_;
+    $name = $self->ssh_key if (!$name);
 
     return unless $name;
 

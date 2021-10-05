@@ -24,7 +24,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{btn_ok}      = $self->{app}->button({id => 'ok'});
     $self->{rt_error}    = $self->{app}->richtext({type => 'YRichText'});
     $self->{lbl_heading} = $self->{app}->label({label => 'Error'});

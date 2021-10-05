@@ -791,7 +791,7 @@ Run post_fail_hook and upload audit logs
 
 =cut
 sub post_fail_hook {
-    my ($self) = shift;
+    my ($self) = @_;
 
     # Exit x11 and turn to console in case
     send_key("alt-f4");

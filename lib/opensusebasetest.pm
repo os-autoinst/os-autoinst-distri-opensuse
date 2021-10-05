@@ -155,7 +155,7 @@ The files will be uploaded as a single tarball called C<problem_detection_logs.t
 
 =cut
 sub problem_detection {
-    my $self = shift;
+    my ($self) = @_;
 
     enter_cmd "pushd \$(mktemp -d)";
     $self->detect_bsc_1063638;
@@ -457,7 +457,7 @@ This method will call several other log gathering methods from this class.
 
 =cut
 sub export_logs {
-    my ($self) = shift;
+    my ($self) = @_;
     select_log_console;
     save_screenshot;
     show_oom_info;
@@ -492,7 +492,7 @@ This includes C<locale>, C<localectl> and C</etc/vconsole.conf>.
 
 =cut
 sub export_logs_locale {
-    my ($self) = shift;
+    my ($self) = @_;
     $self->save_and_upload_log('locale',                 '/tmp/locale.log');
     $self->save_and_upload_log('localectl status',       '/tmp/localectl.log');
     $self->save_and_upload_log('cat /etc/vconsole.conf', '/tmp/vconsole.conf');

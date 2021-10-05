@@ -98,7 +98,7 @@ This function creates a new partitioning setup from scratch.
 
 =cut
 sub create_new_partition_table {
-    my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
+    my ($table_type) = @_ // (is_storage_ng) ? 'GPT' : 'MSDOS';
     my %table_type_hotkey = (
         MSDOS => 'alt-m',
         GPT   => 'alt-g',
@@ -161,7 +161,7 @@ Set mount point and volume label. C<$mount> is mount point.
 
 =cut
 sub mount_device {
-    my ($mount) = shift;
+    my ($mount) = @_;
     send_key 'alt-o';
     wait_still_screen 1;
     send_key 'alt-m';
@@ -410,7 +410,7 @@ C<$part_size> is the size of partition.
 
 =cut
 sub addboot {
-    my $part_size          = shift;
+    my $part_size          = @_;
     my %default_boot_sizes = (
         ofw        => 8,
         uefi       => 256,
@@ -494,7 +494,7 @@ Enable encryption in guided setup during installation.
 
 =cut
 sub enable_encryption_guided_setup {
-    my $self = shift;
+    my ($self) = @_;
     send_key $cmd{encryptdisk};
     # Bug is only in old storage stack
     if (get_var('ENCRYPT_ACTIVATE_EXISTING') && !is_storage_ng) {

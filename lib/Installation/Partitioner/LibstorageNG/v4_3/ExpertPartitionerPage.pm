@@ -28,7 +28,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{btn_add_partition}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
     $self->{btn_edit_partition}     = $self->{app}->button({id    => '"Y2Partitioner::Widgets::BlkDeviceEditButton"'});

@@ -17,7 +17,7 @@ use testapi;
 use utils;
 
 sub run {
-    my $self = shift;
+    my ($self) = @_;
     $self->select_serial_terminal;
 
     # Check if systemd completed sucessfully

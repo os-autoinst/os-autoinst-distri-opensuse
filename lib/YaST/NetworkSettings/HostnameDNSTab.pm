@@ -24,7 +24,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->{cb_set_hostname_via_dhcp} = $self->{app}->combobox({id => '"DHCP_HOSTNAME"'});
     return $self;
 }

@@ -19,7 +19,7 @@ use strict;
 use warnings;
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{rb_custom_size} = $self->{app}->radiobutton({id => 'custom_size'});
     return $self;

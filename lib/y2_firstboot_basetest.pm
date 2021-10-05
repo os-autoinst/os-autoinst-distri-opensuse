@@ -28,7 +28,7 @@ sub post_run_hook {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::post_fail_hook;
     upload_logs('/etc/YaST2/firstboot.xml', log_name => "firstboot.xml.conf");
 }

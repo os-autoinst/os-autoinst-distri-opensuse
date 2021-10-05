@@ -50,7 +50,7 @@ sub run_test {
 }
 
 sub prepare_run_test {
-    my $self = shift;
+    my ($self) = @_;
 
     script_run("rm -f /root/{commands_history,commands_failure}");
     assert_script_run("history -c");
@@ -106,7 +106,7 @@ sub junit_log_provision {
 }
 
 sub junit_log_params_provision {
-    my $self = shift;
+    my ($self) = @_;
 
     my $start_time = $self->{"start_run"};
     my $stop_time  = $self->{"stop_run"};
@@ -158,7 +158,7 @@ sub analyzeResult {
 }
 
 sub post_fail_hook {
-    my ($self) = shift;
+    my ($self) = @_;
 
     $self->{"stop_run"} = time();
     assert_script_run("history -w /root/commands_history");

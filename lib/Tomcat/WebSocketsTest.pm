@@ -23,7 +23,7 @@ use constant TIMEOUT => 60;
 
 # test all WebSocket examples
 sub test_all_examples() {
-    my ($self) = shift;
+    my ($self) = @_;
 
     # array with example test function and number of tabs required to select the example
     my @websocket_examples = ([\&echo, 1], [\&chat, 1], [\&snake, 1], [\&drawboard, 1]);

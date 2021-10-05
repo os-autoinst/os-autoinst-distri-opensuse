@@ -108,7 +108,7 @@ sub wait_for_exit {
 }
 
 sub post_fail_hook {
-    my $self = shift;
+    my ($self) = @_;
     $self->upload_widgets_json();
     my $defer_blocked_task_info = testapi::is_serial_terminal();
     show_tasks_in_blocked_state unless ($defer_blocked_task_info);

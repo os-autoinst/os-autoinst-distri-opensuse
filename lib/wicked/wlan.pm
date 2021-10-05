@@ -53,7 +53,7 @@ has use_dhcp     => 1;
 has use_radius   => 0;
 
 sub sut_hw_addr {
-    my $self = shift;
+    my ($self) = @_;
     $self->{sut_hw_addr} //= $self->get_hw_address($self->sut_ifc);
     return $self->{sut_hw_addr};
 }
@@ -135,7 +135,7 @@ sub stop_dhcp_server {
 }
 
 sub before_test {
-    my $self = shift // wicked::wlan->new();
+    my $self = @_ // wicked::wlan->new();
     $self->prepare_packages();
     $self->prepare_phys();
     $self->prepare_freeradius_server();
@@ -143,7 +143,7 @@ sub before_test {
 }
 
 sub prepare_packages {
-    my $self = shift;
+    my ($self) = @_;
     if (is_sle()) {
         set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
         add_qa_head_repo();
@@ -155,7 +155,7 @@ sub prepare_packages {
 }
 
 sub prepare_phys {
-    my $self = shift;
+    my ($self) = @_;
     assert_script_run('modprobe mac80211_hwsim radios=2');
     assert_script_run('ip netns add ' . $self->netns_name);
     assert_script_run('ip netns list');
@@ -175,7 +175,7 @@ sub prepare_phys {
 }
 
 sub prepare_freeradius_server {
-    my $self = shift;
+    my ($self) = @_;
     # The default installation of freeradius-server gives us a config where
     # we can authenticate with PEAP+MSCHAPv2, TLS and TTLS/PAP
     assert_script_run(sprintf(q(echo '%s ClearText-Password := "%s"' >> /etc/raddb/users),
@@ -328,7 +328,7 @@ sub assert_connection {
 }
 
 sub setup_ref {
-    my $self = shift;
+    my ($self) = @_;
 
     $self->netns_exec('ip addr add dev ' . $self->ref_ifc() . ' ' . $self->ref_ip(netmask => 1));
     $self->restart_dhcp_server()                if ($self->use_dhcp());
@@ -336,7 +336,7 @@ sub setup_ref {
 }
 
 sub __as_array {
-    my $ref = shift;
+    my $ref = @_;
 
     if (ref($ref) eq 'ARRAY') {
         return @$ref;
@@ -348,7 +348,7 @@ sub __as_array {
 }
 
 sub __as_config_array {
-    my $param = shift;
+    my $param = @_;
     my @ret;
     foreach my $in (__as_array($param)) {
         my $cfg = {config => '', wicked_version => '>=0.0.0'};
@@ -376,7 +376,7 @@ sub skip_by_wicked_version
 }
 
 sub run {
-    my $self = shift;
+    my ($self) = @_;
     $self->select_serial_terminal;
     return if ($self->skip_by_wicked_version());
 

@@ -25,7 +25,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{cb_enable_lvm} = $self->{app}->combobox({id => 'lvm'});
     return $self;

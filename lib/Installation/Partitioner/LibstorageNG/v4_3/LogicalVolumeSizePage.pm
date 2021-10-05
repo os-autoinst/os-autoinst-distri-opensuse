@@ -24,7 +24,7 @@ sub new {
 }
 
 sub init {
-    my ($self) = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{tb_size} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::LvmLvSize::CustomSizeInput"'});
     return $self;

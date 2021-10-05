@@ -27,7 +27,7 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->{rb_msdos_part_table} = $self->{app}->radiobutton({id => '"msdos"'});
     $self->{rb_gpt_part_table}   = $self->{app}->radiobutton({id => '"gpt"'});

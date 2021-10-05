@@ -39,7 +39,7 @@ sub get_ltp_rpm
 
 sub instance_log_args
 {
-    my $self = shift;
+    my ($self) = @_;
     return sprintf('"%s" "%s" "%s" "%s"',
         get_required_var('PUBLIC_CLOUD_PROVIDER'),
         $self->{my_instance}->instance_id,

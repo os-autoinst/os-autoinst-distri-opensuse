@@ -24,7 +24,7 @@ use registration;
 # install and configure apache2, apache2-mod_jk and verify the interaction between apache2 and tomcat
 # via the package apache2-mod_jk
 sub mod_jk_setup() {
-    my $self = shift;
+    my ($self) = @_;
     $self->select_serial_terminal();
 
     record_info('install and configure apache2 and apache2-mod_jk connector Setup');
@@ -36,7 +36,7 @@ sub mod_jk_setup() {
 
 # Connection from apache2 to tomcat: Functionality test
 sub func_conn_apache2_tomcat() {
-    my $self = shift;
+    my ($self) = @_;
     $self->select_serial_terminal();
     systemctl('stop apache2');
     systemctl('stop tomcat');
