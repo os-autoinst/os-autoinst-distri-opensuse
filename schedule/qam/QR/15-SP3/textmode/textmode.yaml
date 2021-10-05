@@ -13,7 +13,6 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role/accept_selected_role_text_mode
-  - installation/system_role/select_role_text_mode
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
