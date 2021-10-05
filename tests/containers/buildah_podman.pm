@@ -48,7 +48,8 @@ sub run {
                 # Use container which it is created in test_container_image
                 # Buildah default name is conducted by <image-name>-working-container
                 my ($prefix_img_name) = $iname =~ /([^\/:]+)(:.+)?$/;
-                test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => $buildah, version => $version);
+                my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
+                test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => $buildah, version => $version, beta => $beta);
                 # Due to the steps from the test_opensuse_based_image previously,
                 # the image has been committed as refreshed
                 build_and_run_image(runtime => $podman, builder => $buildah, base => $iname);
