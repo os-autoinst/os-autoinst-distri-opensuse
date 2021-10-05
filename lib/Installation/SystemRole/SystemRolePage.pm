@@ -27,13 +27,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{sel_role}                  = $self->{app}->itemselector({id => 'role_selector'});
-    $self->{role_KDE_desktop}          = 'Desktop with KDE Plasma';
-    $self->{role_GNOME_desktop}        = 'Desktop with GNOME';
-    $self->{role_XFCE_desktop}         = 'Desktop with Xfce';
-    $self->{role_generic_desktop}      = 'generic_desktop';
-    $self->{role_text_mode}            = 'Server';
-    $self->{role_transactional_server} = 'Transactional Server';
+    $self->{sel_role} = $self->{app}->itemselector({id => 'role_selector'});
     return $self;
 }
 
@@ -49,7 +43,7 @@ sub is_shown {
 
 sub select_system_role {
     my ($self, $role) = @_;
-    return $self->{sel_role}->select($self->{'role_' . $role});
+    return $self->{sel_role}->select($role);
 }
 
 1;

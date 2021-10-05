@@ -23,7 +23,7 @@ schedule:
   - installation/disk_activation
   - installation/registration/skip_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root

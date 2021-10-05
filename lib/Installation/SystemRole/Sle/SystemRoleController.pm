@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: The class introduces business actions for System Role Page
-#          in the installer.
+#          in the installer for SLES.
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
@@ -16,19 +16,17 @@ package Installation::SystemRole::Sle::SystemRoleController;
 use parent 'Installation::SystemRole::SystemRoleController';
 use strict;
 use warnings;
-use Installation::SystemRole::Sle::SystemRolePage;
-use YuiRestClient;
-
-sub new {
-    my ($class, $args) = @_;
-    my $self = bless {}, $class;
-    return $self->init($args);
-}
 
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{SystemRolePage} = Installation::SystemRole::Sle::SystemRolePage->new({app => YuiRestClient::get_app()});
+    $self->{roles} = {
+        SLES_with_GNOME      => 'SLES with GNOME',
+        text_mode            => 'Text Mode',
+        minimal              => 'Minimal',
+        transactional_server => 'Transactional Server',
+        HA_node              => 'HA node'
+    };
     return $self;
 }
 

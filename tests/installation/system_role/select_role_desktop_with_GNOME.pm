@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Select System Role (Desktop with GNOME or SLES with Gnome)
-#          using REST API.
+# Summary: Select System Role 'Desktop with GNOME' and navigate to next
+# screen in openSUSE.
+#
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
@@ -22,8 +23,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    my $system_role = $testapi::distri->get_system_role_controller();
-    $system_role->select_system_role('GNOME_desktop');
+    $testapi::distri->get_system_role_controller()->select_system_role('desktop_with_GNOME');
 }
 
 1;

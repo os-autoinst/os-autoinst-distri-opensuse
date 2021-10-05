@@ -17,7 +17,7 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role
+  - installation/system_role/select_role_desktop_with_KDE_plasma
   - installation/partitioning/select_guided_setup
   - installation/partitioning/guided_setup
   - installation/partitioning/accept_proposed_layout

@@ -13,20 +13,20 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test module to validate what system role is selected.
-#          using REST API.
+# Summary: Test module to validate that no system role is pre-selected in
+# openSUSE.
+#
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
 use base 'y2_installbase';
-use Test::Assert 'assert_equals';
+use Test::Assert 'assert_null';
 
 sub run {
-    my $system_role = $testapi::distri->get_system_role_controller();
-    my $selected    = $system_role->get_selected_role();
-    my $expected    = $system_role->get_system_role_page->{role_transactional_server};
-    assert_equals($expected, $selected, 'Wrong System Role is pre-selected');
+    assert_null(
+        $testapi::distri->get_system_role_controller()->get_selected_role(),
+        'A System Role is pre-selected, none expected');
 }
 
 1;

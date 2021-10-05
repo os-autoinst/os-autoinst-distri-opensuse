@@ -24,7 +24,7 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role
+  - installation/system_role/select_role_generic_desktop
   - installation/partitioning/encrypt_no_lvm
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration

@@ -19,7 +19,7 @@ schedule:
   - installation/system_probing/cancel_encrypted_volume
   - console/validate_encrypted_partition_not_activated
   - installation/add_on_product/skip_install_addons
-  - installation/system_role
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/encrypt_lvm_ignore_existing
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration

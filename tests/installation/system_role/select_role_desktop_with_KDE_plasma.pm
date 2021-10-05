@@ -13,20 +13,17 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, see <http://www.gnu.org/licenses/>.
 
-# Summary: Test module to validate what system role is selected.
-#          using REST API.
+# Summary: Select System Role 'Desktop with KDE Plasma' and navigate to
+# next screen in openSUSE.
+#
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 use strict;
 use warnings;
 use base 'y2_installbase';
-use Test::Assert 'assert_equals';
 
 sub run {
-    my $system_role = $testapi::distri->get_system_role_controller();
-    my $selected    = $system_role->get_selected_role();
-    my $expected    = $system_role->get_system_role_page->{role_GNOME_desktop};
-    assert_equals($expected, $selected, 'Wrong System Role is pre-selected');
+    $testapi::distri->get_system_role_controller()->select_system_role('desktop_with_KDE_plasma');
 }
 
 1;

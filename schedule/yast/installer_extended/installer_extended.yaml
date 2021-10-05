@@ -27,8 +27,7 @@ schedule:
   - installation/module_selection/view_development_versions
   - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
-  - installation/system_role/validate_selected_role_text_mode
-  - installation/system_role/select_role_text_mode
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/releasenotes
   - installation/clock_and_timezone/accept_timezone_configuration
