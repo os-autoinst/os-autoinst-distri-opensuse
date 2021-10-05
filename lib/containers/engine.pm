@@ -246,8 +246,7 @@ Returns true if host contains C<img> or false.
 =cut
 sub check_image_in_host {
     my ($self, $img) = @_;
-    my @lregistry = $self->enum_images();
-    $img =~ @lregistry;
+    grep { $img eq $_ } @{$self->enum_images()};
 }
 
 =head2 configure_insecure_registries
