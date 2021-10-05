@@ -1,4 +1,4 @@
-# Copyright (C) 2018 IBM Corp.
+# Copyright 2018 IBM Corp.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright

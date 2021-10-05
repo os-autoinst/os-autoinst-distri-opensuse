@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright © 2019-2020 SUSE LLC
+# Copyright 2019-2020 SUSE LLC
 #
 # pod_package_deps: bzip2, libbz2-devel, diffutils, coreutils, gcc
 # pod_timeout: 30

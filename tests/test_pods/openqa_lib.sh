@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright © 2019-2020 SUSE LLC
+# Copyright 2019-2020 SUSE LLC
 #
 # Support library for OpenQA console tests.
 #

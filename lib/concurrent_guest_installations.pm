@@ -1,6 +1,6 @@
 # CONCURRENT VIRTUAL MACHINE INSTALLATIONS MODULE
 #
-# Copyright © 2021 SUSE LLC
+# Copyright 2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright

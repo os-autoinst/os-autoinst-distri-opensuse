@@ -5,7 +5,7 @@ Library for spvm and pvm_hmc backend to boot and install SLES
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
