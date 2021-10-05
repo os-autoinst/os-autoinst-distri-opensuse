@@ -52,8 +52,9 @@ sub run {
                 test_opensuse_based_image(image => "${prefix_img_name}-working-container", runtime => $buildah, version => $version, beta => $beta);
                 # Due to the steps from the test_opensuse_based_image previously,
                 # the image has been committed as refreshed
-
-                build_and_run_image(runtime => $docker, builder => $buildah, base => $iname);
+                # If we are in not-released SLE host, we can't use zypper commands inside containers
+                # that are not the same version as the host, so we skip this test.
+                build_and_run_image(runtime => $docker, builder => $buildah, base => $iname) unless is_unreleased_sle;
                 $docker->cleanup_system_host(0);
                 $buildah->cleanup_system_host();
             }

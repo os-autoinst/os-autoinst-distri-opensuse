@@ -49,11 +49,13 @@ sub run {
             record_info "IMAGE", "Testing image: $iname";
             test_container_image(image => $iname, runtime => $engine);
             test_rpm_db_backend(image => $iname, runtime => $engine);
-            build_and_run_image(base => $iname, runtime => $engine, dockerfile => $dockerfile);
+            # If we are in not-released SLE host, we can't use zypper commands inside containers
+            # that are not the same version as the host, so we skip this test.
+            build_and_run_image(base => $iname, runtime => $engine, dockerfile => $dockerfile) unless is_unreleased_sle;
             if (check_os_release('suse', 'PRETTY_NAME')) {
                 my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
                 test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
-                build_with_zypper_docker(image => $iname, runtime => $engine, version => $version) unless is_tumbleweed;
+                build_with_zypper_docker(image => $iname, runtime => $engine, version => $version) unless (is_tumbleweed || is_unreleased_sle);
             }
             else {
                 exec_on_container($iname, $engine, 'cat /etc/os-release');
