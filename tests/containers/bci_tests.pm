@@ -91,8 +91,19 @@ sub run {
     }
 
     record_info('Install', 'Install needed packages');
-    zypper_call('--quiet in git-core python3 python3-devel gcc skopeo', timeout => 600);
-    assert_script_run('pip3.6 --quiet install tox pytest', timeout => 600);
+    my @packages = ('git-core', 'python3', 'python3-devel', 'gcc', 'psutils');
+    if (check_var('HOST_VERSION', '12-SP5')) {
+        # pip is not installed in 12-SP5 by default in our hdds
+        push @packages, 'python36-pip';
+    } else {
+        # skope is not available in <=12-SP5
+        push @packages, 'skopeo';
+    }
+    foreach my $pkg (@packages) {
+        zypper_call("--quiet in $pkg", timeout => 300);
+    }
+    assert_script_run('pip3.6 --quiet install --upgrade pip',                     timeout => 600);
+    assert_script_run("pip3.6 --quiet install tox pytest --ignore-installed six", timeout => 600);
 
     record_info('Clone', 'Clone BCI tests repository');
     assert_script_run("git clone -q --depth 1 $bci_tests_repo");
@@ -101,6 +112,7 @@ sub run {
     assert_script_run('cd bci-tests');
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
+    sleep;
     assert_script_run('tox -e build', timeout => 900);
 
     # Run the tests for each environment
