@@ -19,7 +19,7 @@ schedule:
   - installation/online_repos
   - installation/installation_mode
   - installation/logpackages
-  - installation/system_role/select_role_generic_desktop
+  - installation/system_role/select_role_desktop_with_KDE_plasma
   - installation/partitioning/raid_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
