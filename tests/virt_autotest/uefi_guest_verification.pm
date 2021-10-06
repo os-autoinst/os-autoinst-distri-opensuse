@@ -1,11 +1,7 @@
 # VIRTUAL MACHINE UEFI FEATURES VERIFICATION MODULE
 #
 # Copyright 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This module tests virtual machine with UEFI/Secureboot by
 # using efibootmgr -v and mokutil --sb-state.And also performs power

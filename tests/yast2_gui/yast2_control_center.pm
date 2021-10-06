@@ -2,11 +2,7 @@
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
 # Copyright 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-control-center-qt yast2-kdump yast2-boot-server yast2-sound
 # Summary: YaST2 UI test yast2-control-center provides sanity checks for YaST modules

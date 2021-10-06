@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Add rmt configuration test and basic configuration via
 #    rmt-wizard, import RMT data and repos from one folder which

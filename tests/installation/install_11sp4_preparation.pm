@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Remove gnome and add kde pattern for migration from SLES11SP4+kde
 # - For test scenario of migration from SLES11SP4+kde to SLES15SP3, gnome

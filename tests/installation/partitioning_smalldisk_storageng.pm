@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test to take the smallest disk in storage_ng scenarios
 #    Otherwise the partitioning proposal will use a free disk, which makes

@@ -2,11 +2,7 @@
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
 # Copyright 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-firewall yast2-http-server apache2 apache2-prefork firewalld
 # Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall

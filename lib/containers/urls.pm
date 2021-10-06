@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Database for URLs of container images to be tested
 # Maintainer: Fabian Vogt <fvogt@suse.com>, qa-c team <qa-c@suse.de>

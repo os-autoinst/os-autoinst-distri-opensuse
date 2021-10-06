@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: python3-pip python3-virtualenv python3-ec2imgutils aws-cli
 # python3-img-proof azure-cli

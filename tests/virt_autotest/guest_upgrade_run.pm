@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This test verifies whether on host installed with specific product, the guests can successfully upgrade to the target upgrade product.
 #          It is provides as part of the test for fate https://fate.suse.com/320424.

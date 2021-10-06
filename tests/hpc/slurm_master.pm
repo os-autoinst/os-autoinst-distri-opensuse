@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Slurm master node
 #    This test is setting up slurm master node and runs tests depending

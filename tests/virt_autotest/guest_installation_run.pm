@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: guest_installation_run: This test is used to verify if different products can be installed successfully as guest on specify host.
 # Maintainer: alice <xlai@suse.com>

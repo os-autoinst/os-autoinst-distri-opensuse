@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Install SES and deepsea-qa from repo as stable or git as latest unstable code
 # Maintainer: Jozef Pupava <jpupava@suse.com>

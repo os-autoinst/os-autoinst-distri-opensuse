@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
 # Copyright 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Checks NetWeaver installation as performed by sles4sap/netweaver_install
 # Requires: sles4sap/netweaver_install, ENV variables INSTANCE_SID, INSTANCE_TYPE and INSTANCE_ID

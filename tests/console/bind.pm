@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: libopenssl-devel libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6
 # bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython
