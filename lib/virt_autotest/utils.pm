@@ -178,7 +178,7 @@ sub create_guest {
     my $on_reboot    = $guest->{on_reboot}    // "restart";      # configurable on_reboot policy
     my $extra_params = $guest->{extra_params} // "";             # extra-parameters
     my $memory       = $guest->{memory}       // "2048";
-    my $maxmemory    = $guest->{maxmemory}    // $memory + 16;   # use by default just a bit more, so that we don't waste memory but still use the functionality
+    my $maxmemory    = $guest->{maxmemory}    // $memory + 256;  # use by default just a bit more, so that we don't waste memory but still use the functionality
     my $vcpus        = $guest->{vcpus}        // "2";
     my $maxvcpus     = $guest->{maxvcpus}     // $vcpus + 1;     # same as for memory, test functionality but don't waste resources
     my $extra_args   = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
@@ -208,29 +208,37 @@ sub create_guest {
 
         # wait for initrd to ensure the installation is starting
         script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
+    } else {
+        die "unsupported create_guest method '$method'";
     }
 }
 
 sub import_guest {
     my ($guest, $method) = @_;
 
-    my $name         = $guest->{name};
-    my $disk         = $guest->{disk};
-    my $macaddress   = $guest->{macaddress};
-    my $extra_params = $guest->{extra_params} // "";
-    my $memory       = $guest->{memory}       // "4096";
-    my $maxmemory    = $guest->{maxmemory}    // $memory;
-    my $vcpus        = $guest->{vcpus}        // "4";
-    my $maxvcpus     = $guest->{maxvcpus}     // $vcpus;
+    my $name          = $guest->{name};
+    my $disk          = $guest->{disk};
+    my $macaddress    = $guest->{macaddress};
+    my $extra_params  = $guest->{extra_params} // "";
+    my $memory        = $guest->{memory}       // "2048";
+    my $maxmemory     = $guest->{maxmemory}    // $memory + 256; # use by default just a bit more, so that we don't waste memory but still use the functionality
+    my $vcpus         = $guest->{vcpus}        // "2";
+    my $maxvcpus      = $guest->{maxvcpus}     // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
+    my $network_model = $guest->{network_model} // "";
 
-    if ($method eq 'virt-install') {
+    if ($method eq 'virt-install' || $method eq '') {
         record_info "$name", "Going to import $name guest";
-        send_key 'ret';    # Make some visual separator
+        send_key 'ret';                                          # Make some visual separator
+
+        my $network = "network=default,mac=$macaddress,";
+        $network .= ",model=$network_model" unless ($network_model eq "");
 
         # Run unattended installation for selected guest
         my $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --cpu host";
-        $virtinstall .= " --graphics vnc --disk $disk --network network=default,mac=$macaddress,model=e1000 --noautoconsole  --autostart --import";
+        $virtinstall .= " --graphics vnc --disk $disk --network $network --noautoconsole  --autostart --import";
         assert_script_run $virtinstall;
+    } else {
+        die "unsupported import_guest method '$method'";
     }
 }
 

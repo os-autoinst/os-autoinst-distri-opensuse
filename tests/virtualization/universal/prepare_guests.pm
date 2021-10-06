@@ -53,8 +53,21 @@ sub run {
     # Disable bash monitoring, so the output of completed background jobs doesn't confuse openQA
     script_run("set +m");
 
-    # Install every defined guest
-    create_guest $_, 'virt-install' foreach (values %virt_autotest::common::guests);
+    # Install or import defined guests
+    foreach my $guest (values %virt_autotest::common::guests) {
+        my $method = $guest->{method} // 'virt-install'; # by default install guest using virt-install. SLES11 gets installed via importing a pre-installed guest however
+        if ($method eq "virt-install") {
+            create_guest($guest, $method);
+        } elsif ($method eq "import") {
+            # Download the diskimage. Note: this could be merged with download_image.pm at some point
+            my $source = $guest->{source};
+            my $disk   = $guest->{disk};
+            script_retry("wget -qO '$disk' '$source'", retry => 3, delay => 60, timeout => 300);
+            import_guest($guest);
+        } else {
+            die "Unsupported method '$method' for guest $guest";
+        }
+    }
 
     ## Our test setup requires guests to restart when the machine is rebooted.
     ## Ensure every guest has <on_reboot>restart</on_reboot>
