@@ -215,7 +215,7 @@ sub add_ltp_repo {
         if ((is_leap('=15.2') && is_x86_64) || (is_leap('15.3+') && !is_s390x)) {
             $repo = sprintf("Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
-            $repo = "Tumbleweed";
+            $repo = "Factory";
             $repo = "Factory_PowerPC"  if is_ppc64le();
             $repo = "Factory_zSystems" if is_s390x();
         } else {
