@@ -24,7 +24,7 @@ use version_utils;
 use version;
 use Utils::Architectures;
 use containers::utils;
-use containers::common 'test_container_image';
+use containers::common qw(test_container_image is_unreleased_sle);
 
 our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
@@ -201,6 +201,14 @@ sub test_opensuse_based_image {
     # Zypper is supported only on openSUSE or on SLE based image on SLE host
     if (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
         test_zypper_on_container($runtime, $image);
+        # If we are in not-released SLE host, we can't use zypper commands inside containers
+        # that are not the same version as the host, so we skip this test.
+        unless (is_unreleased_sle) {
+            build_and_run_image(base => $image, runtime => $runtime);
+            if (is_sle && $runtime->runtime eq 'docker') {
+                build_with_zypper_docker(image => $image, runtime => $runtime, version => $version);
+            }
+        }
     }
 }
 
