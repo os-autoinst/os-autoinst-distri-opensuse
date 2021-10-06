@@ -39,9 +39,8 @@ sub run {
     $engine->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
-    # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGES
-    my $versions   = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
-    my $dockerfile = $host_distri !~ m/^sle/i ? 'Dockerfile.python3' : 'Dockerfile';
+    # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGE_VERSIONS
+    my $versions = get_var('CONTAINER_IMAGE_VERSIONS', get_required_var('VERSION'));
     for my $version (split(/,/, $versions)) {
         my ($untested_images, $released_images) = get_suse_container_urls(version => $version);
         my $images_to_test = check_var('CONTAINERS_UNTESTED_IMAGES', '1') ? $untested_images : $released_images;
@@ -49,17 +48,8 @@ sub run {
             record_info "IMAGE", "Testing image: $iname";
             test_container_image(image => $iname, runtime => $engine);
             test_rpm_db_backend(image => $iname, runtime => $engine);
-            # If we are in not-released SLE host, we can't use zypper commands inside containers
-            # that are not the same version as the host, so we skip this test.
-            build_and_run_image(base => $iname, runtime => $engine, dockerfile => $dockerfile) unless is_unreleased_sle;
-            if (check_os_release('suse', 'PRETTY_NAME')) {
-                my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
-                test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
-                build_with_zypper_docker(image => $iname, runtime => $engine, version => $version) unless (is_tumbleweed || is_unreleased_sle);
-            }
-            else {
-                exec_on_container($iname, $engine, 'cat /etc/os-release');
-            }
+            my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
+            test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
         }
     }
     scc_restore_docker_image_credentials();
