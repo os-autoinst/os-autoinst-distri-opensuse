@@ -14,12 +14,9 @@
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base 'wickedbase';
-use strict;
-use warnings;
+use Mojo::Base 'wickedbase';
 use testapi;
 
-our $macvtap_log = '/tmp/macvtap_results_xml.txt';
 
 sub run {
     my ($self, $ctx) = @_;
@@ -29,15 +26,7 @@ sub run {
     $self->prepare_check_macvtap($config, $ctx->iface(), $self->get_ip(type => 'macvtap', netmask => 1));
     $self->wicked_command('ifreload', $ctx->iface());
     $self->wicked_command('ifup',     'macvtap1');
-    $self->validate_macvtap($macvtap_log);
-    upload_logs($macvtap_log);
-}
-
-sub post_fail_hook {
-    my ($self) = shift;
-    select_console('log-console');
-    upload_logs($macvtap_log);
-    $self->SUPER::post_fail_hook;
+    $self->validate_macvtap();
 }
 
 sub test_flags {

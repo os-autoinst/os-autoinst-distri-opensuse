@@ -43,12 +43,15 @@ This function saves the command and the stdout and stderr to a file to be upload
 =cut
 sub wicked_command {
     my ($self, $action, $iface) = @_;
+    my $serial_log = '/tmp/wicked_serial.log';
+    $self->add_post_log_file($serial_log);
+
     my $cmd = '/usr/sbin/wicked --log-target syslog --debug all ' . $action . ' ' . $iface;
-    assert_script_run('echo -e "\n# $(date -Isecond)\n# "' . $cmd . ' >> /tmp/wicked_serial.log');
+    assert_script_run('echo -e "\n# $(date -Isecond)\n# "' . $cmd . ' >> ' . $serial_log);
     record_info('wicked cmd', $cmd);
-    assert_script_run($cmd . ' 2>&1 | tee -a /tmp/wicked_serial.log');
-    assert_script_run(q(echo -e "\n# ip addr" >> /tmp/wicked_serial.log));
-    assert_script_run('ip addr 2>&1 | tee -a /tmp/wicked_serial.log');
+    assert_script_run($cmd . ' 2>&1 | tee -a ' . $serial_log);
+    assert_script_run(q(echo -e "\n# ip addr" >> ) . $serial_log);
+    assert_script_run('ip addr 2>&1 | tee -a ' . $serial_log);
 }
 
 =head2 get_wicked_version
@@ -426,6 +429,14 @@ sub upload_log_file {
     $self->select_serial_terminal;
 }
 
+sub add_post_log_file {
+    my ($self, $filename) = @_;
+    $self->{post_log_files} //= [];
+    my $arr = $self->{post_log_files};
+
+    push(@$arr, $filename) unless grep { $_ eq $filename } @$arr;
+}
+
 =head2 upload_wicked_logs
 
   upload_wicked_logs($prefix => [pre|post])
@@ -452,7 +463,11 @@ sub upload_wicked_logs {
     script_run("ip addr show > $logs_dir/ip_addr.log 2>&1");
     script_run("ip route show table all > $logs_dir/ip_route.log 2>&1");
     script_run("cat /etc/resolv.conf > $logs_dir/resolv.conf 2>&1");
-    script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
+    if ($prefix eq 'post') {
+        for my $lfile (@{$self->{post_log_files} // []}) {
+            script_run("cp $lfile $logs_dir/");
+        }
+    }
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
     $self->upload_log_file("$dir_name.tar.gz");
 }
@@ -498,8 +513,10 @@ sub prepare_check_macvtap {
 }
 
 sub validate_macvtap {
-    my ($self, $macvtap_log) = @_;
-    my $ref_ip     = $self->get_ip(type => 'host', netmask => 0, is_wicked_ref => 1);
+    my ($self) = @_;
+    my $macvtap_log = '/tmp/' . $self->{name} . '_check_macvtap_output.txt';
+    $self->add_post_log_file($macvtap_log);
+    my $ref_ip     = $self->get_ip(type => 'host',    netmask => 0, is_wicked_ref => 1);
     my $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);
     script_run("./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 & export CHECK_MACVTAP_PID=\$!");
     sleep(30);    # OVS on a worker is slow sometimes to change and we haven't found better way how to handle it
