@@ -73,7 +73,7 @@ sub run {
         }
     }
     elsif (is_aarch64) {
-        is_qemu_preinstalled or install_qemu('qemu-arm');
+        is_qemu_preinstalled or install_qemu('qemu-arm qemu-uefi-aarch64 qemu-ipxe');
         # create pflash volumes for UEFI as described on https://wiki.ubuntu.com/ARM64/QEMU
         assert_script_run 'dd if=/dev/zero of=flash0.img bs=1M count=64';
         assert_script_run 'dd if=/usr/share/qemu/qemu-uefi-aarch64.bin of=flash0.img conv=notrunc';
