@@ -121,7 +121,7 @@
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
-      % if ($get_var->('VERSION') =~ /15|15-SP1|15-SP2|15-SP3|15-SP4/ and $get_var->('ARCH') !~ /aarch64/) {
+      % if ($get_var->('VERSION') =~ /^15/) {
       <pattern>enhanced_base</pattern>
       % }
     </patterns>
