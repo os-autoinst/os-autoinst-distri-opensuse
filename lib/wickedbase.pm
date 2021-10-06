@@ -21,6 +21,7 @@ use serial_terminal;
 use Carp;
 use Mojo::File 'path';
 use Regexp::Common 'net';
+use File::Basename;
 use version_utils 'check_version';
 
 use strict;
@@ -405,6 +406,26 @@ sub get_test_result {
     }
 }
 
+=head2 upload_log_file
+
+The wicked way of uploading a file using the serial console. This method does
+not throw and error. On failing we only put a C<<record_info(result => fail)>>
+
+    $self->upload_log_file($src [, $dst]);
+=cut
+sub upload_log_file {
+    my ($self, $src, $dst) = @_;
+    $dst //= basename($src);
+    $dst = $self->{name} . '_' . $dst if (index($dst, $self->{name}) == -1);
+
+    eval {
+        select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
+        upload_file($src, $dst);
+    };
+    record_info('Failed to upload file', $@, result => 'fail') if ($@);
+    $self->select_serial_terminal;
+}
+
 =head2 upload_wicked_logs
 
   upload_wicked_logs($prefix => [pre|post])
@@ -433,12 +454,7 @@ sub upload_wicked_logs {
     script_run("cat /etc/resolv.conf > $logs_dir/resolv.conf 2>&1");
     script_run("cp /tmp/wicked_serial.log $logs_dir/") if $prefix eq 'post';
     script_run("tar -C /tmp/ -cvzf $dir_name.tar.gz $dir_name");
-    eval {
-        select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
-        upload_file("$dir_name.tar.gz", "$dir_name.tar.gz");
-    };
-    record_info('Failed to upload logs', $@, result => 'fail') if ($@);
-    $self->select_serial_terminal;
+    $self->upload_log_file("$dir_name.tar.gz");
 }
 
 =head2 do_barrier
@@ -715,12 +731,7 @@ sub post_run {
     $self->do_barrier('post_run');
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
         script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
-        eval {
-            select_console('root-virtio-terminal1') if (get_var('VIRTIO_CONSOLE_NUM', 1) > 1);
-            upload_file('/tmp/tcpdump' . $self->{name} . '.pcap', 'tcpdump' . $self->{name} . '.pcap');
-        };
-        record_info('Failed to upload tcp', $@, result => 'fail') if ($@);
-        $self->select_serial_terminal();
+        $self->upload_log_file('/tmp/' . $self->{name} . '_tcpdump.pcap');
     }
     $self->upload_wicked_logs('post');
 }
@@ -738,7 +749,7 @@ sub pre_run_hook {
         add_serial_console($serial_terminal);
     }
     if ($self->{name} ne 'before_test' && get_var('WICKED_TCPDUMP')) {
-        script_run('tcpdump -s0 -U -w /tmp/tcpdump' . $self->{name} . '.pcap >& /dev/null & export CHECK_TCPDUMP_PID=$!');
+        script_run('tcpdump -s0 -U -w /tmp/' . $self->{name} . '_tcpdump.pcap >& /dev/null & export CHECK_TCPDUMP_PID=$!');
         set_var('WICKED_TCPDUMP_PID', script_output('echo $CHECK_TCPDUMP_PID'));
     }
     $self->upload_wicked_logs('pre');
