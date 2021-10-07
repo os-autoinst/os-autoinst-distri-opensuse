@@ -104,7 +104,7 @@ sub install_docker_when_needed {
     systemctl('enable docker');
     systemctl('is-enabled docker');
     # docker start, but taking bsc#1187479 into account. Please remove softfailure handling, once bsc#1187479 is solved.
-    if (systemctl('start docker', ignore_failure => 1) != 0) {
+    if (systemctl('start docker', timeout => 180, ignore_failure => 1) != 0) {
         # Check for docker start timeout, bsc#1187479
         if (script_run('journalctl -e | grep "timeout waiting for containerd to start"') == 0) {
             # Retry one more time
