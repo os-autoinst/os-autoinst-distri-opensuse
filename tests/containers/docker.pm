@@ -66,6 +66,9 @@ sub run {
     # Build an image from Dockerfile and test it
     build_and_run_image(runtime => $engine, base => 'registry.opensuse.org/opensuse/leap:latest');
 
+    # Build a third-party image and test it
+    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3');
+
     # Clean container
     $engine->cleanup_system_host();
 }
