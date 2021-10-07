@@ -1,6 +1,6 @@
 # Gnote tests
 #
-# Copyright © 2016 SUSE LLC
+# Copyright 2016 SUSE LLC
 
 #
 # Copying and distribution of this file, with or without modification,
