@@ -30,6 +30,7 @@
       <li><a href="#setup_bridge">setup_bridge</a></li>
       <li><a href="#setup_openvpn_client">setup_openvpn_client</a></li>
       <li><a href="#get_test_result">get_test_result</a></li>
+      <li><a href="#upload_log_file">upload_log_file</a></li>
       <li><a href="#upload_wicked_logs">upload_wicked_logs</a></li>
       <li><a href="#do_barrier">do_barrier</a></li>
       <li><a href="#setup_vlan">setup_vlan</a></li>
@@ -140,6 +141,12 @@
 <pre><code>  get_test_result($type, $ip_version =&gt; v4)</code></pre>
 
 <p>It returns FAILED or PASSED if the ping to the remote IP of a certain interface type given by <code>type</code> is reachable or not. The parameter <code>ip_version</code> chould be one of the values &#39;v4&#39; or &#39;v6&#39;.</p>
+
+<h2 id="upload_log_file">upload_log_file</h2>
+
+<p>The wicked way of uploading a file using the serial console. This method does not throw and error. On failing we only put a <code>&lt;record_info(result =</code> fail)&gt;&gt;</p>
+
+<pre><code>    $self-&gt;upload_log_file($src [, $dst]);</code></pre>
 
 <h2 id="upload_wicked_logs">upload_wicked_logs</h2>
 
