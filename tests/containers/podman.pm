@@ -46,14 +46,10 @@ sub run {
     install_podman_when_needed($host_distri);
     $podman->configure_insecure_registries();
 
-    # Run basic tests for podman
+    # Run basic runtime tests
     basic_container_tests(runtime => $podman->runtime);
-
-    # Build an image from Dockerfile and test it
-    build_and_run_image(runtime => $podman, base => 'registry.opensuse.org/opensuse/leap:latest');
-
-    # Build a third-party image and test it
-    build_and_run_image(runtime => $podman, dockerfile => 'Dockerfile.python3');
+    # Build an image from Dockerfile and run it
+    build_and_run_image(runtime => $podman, dockerfile => 'Dockerfile.python3', base => registry_url('python', '3'));
 
     # Clean container
     $podman->cleanup_system_host();
