@@ -83,7 +83,7 @@ sub run {
     type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
     type_password $sles4sap::instance_password;
-    if (check_version('<15-SP4', get_var('VERSION'), qr/\d{2}(?:-sp\d)?/)) {
+    if (is_sle('<15-SP4')) {
         wait_screen_change { send_key $cmd{ok} };
     } else {
         wait_screen_change { send_key $cmd{next} };
