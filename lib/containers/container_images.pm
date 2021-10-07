@@ -74,17 +74,17 @@ sub build_and_run_image {
 
     if ($runtime->runtime eq 'docker' && $builder->runtime eq 'buildah') {
         assert_script_run "buildah push myapp docker-daemon:myapp:latest";
-        script_run "$runtime->{runtime} images";
+        script_run "$runtime images";
     }
 
     # Test that we can execute programs in the container and test container's variables
-    assert_script_run("$runtime->{runtime} run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-    assert_script_run("$runtime->{runtime} run -dit -p 8888:80 myapp");
-    script_retry("$runtime->{runtime} ps -a | grep myapp", delay => 5, retry => 3);
+    assert_script_run("$runtime run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
+    assert_script_run("$runtime run -dit -p 8888:80 myapp");
+    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);
 
     # Test that the exported port is reachable
     script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
-    assert_script_run("$runtime->{runtime} stop `$runtime->{runtime} ps -q`");
+    assert_script_run("$runtime stop `$runtime ps -q`");
 }
 
 # Build a sle container image using zypper_docker
@@ -101,7 +101,7 @@ sub build_with_zypper_docker {
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($host_version,  $host_sp,  $host_id)  = get_os_release();
-    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime->{runtime} run $image");
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
 
     # The zypper-docker works only on openSUSE or on SLE based image on SLE host
     unless (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
@@ -112,11 +112,11 @@ sub build_with_zypper_docker {
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
         my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
-        validate_script_output("$runtime->{runtime} run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'",
+        validate_script_output("$runtime run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'",
             sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
     } else {
         $version =~ s/^Jump://i;
-        validate_script_output qq{$runtime->{runtime} container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
@@ -126,8 +126,8 @@ sub build_with_zypper_docker {
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
     assert_script_run("zypper-docker list-updates $derived_image | grep 'No updates found'", 240);
 
-    my $local_images_list = script_output("$runtime->{runtime} image ls");
-    die("$runtime->{runtime} $derived_image not found") unless ($local_images_list =~ $derived_image);
+    my $local_images_list = script_output("$runtime image ls");
+    die("$runtime $derived_image not found") unless ($local_images_list =~ $derived_image);
 
     record_info("Testing derived", "Derived image: $derived_image");
     test_opensuse_based_image(image => $derived_image, runtime => $runtime, version => $version);
@@ -151,9 +151,9 @@ sub test_opensuse_based_image {
     my ($image_version, $image_sp, $image_id);
 
     if ($runtime->runtime =~ /buildah/) {
-        ($image_version, $image_sp, $image_id) = get_os_release("$runtime->{runtime} run $image");
+        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
     } else {
-        ($image_version, $image_sp, $image_id) = get_os_release("$runtime->{runtime} run --entrypoint '' $image");
+        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
     }
     record_info "Host",  "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
     record_info "Image", "Image has '$image_version', '$image_sp', '$image_id' in /etc/os-release";
@@ -168,11 +168,11 @@ sub test_opensuse_based_image {
             # TODO: implement
             # $out = $runtime->read($image, cmd => "grep PRETTY_NAME /etc/os-release | cut -d= -f2");
             if ($runtime->runtime =~ /buildah/) {
-                validate_script_output("$runtime->{runtime} run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
                     sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
             } else {
                 # zypper-docker changes the layout of the image
-                validate_script_output("$runtime->{runtime} run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+                validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
                     sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
             }
 
@@ -187,14 +187,14 @@ sub test_opensuse_based_image {
     } else {
         $version =~ s/^Jump://i;
         if ($runtime->runtime =~ /buildah/) {
-            if (script_output("$runtime->{runtime} run $image grep PRETTY_NAME /etc/os-release") =~ /WARN.+from \"\/etc\/containers\/mounts.conf\" doesn\'t exist, skipping/) {
+            if (script_output("$runtime run $image grep PRETTY_NAME /etc/os-release") =~ /WARN.+from \"\/etc\/containers\/mounts.conf\" doesn\'t exist, skipping/) {
                 record_soft_failure "bcs#1183482 - libcontainers-common contains SLE files on TW";
             }
-            validate_script_output("$runtime->{runtime} run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
+            validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
                 sub { /"openSUSE (Leap )?${version}.*"/ });
         }
         else {
-            validate_script_output qq{$runtime->{runtime} container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
+            validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
         }
     }
 
@@ -209,23 +209,23 @@ sub verify_userid_on_container {
     my $huser_id = script_output "echo \$UID";
     record_info "host uid",          "$huser_id";
     record_info "root default user", "rootless mode process runs with the default container user(root)";
-    my $cid = script_output "$runtime->{runtime} run -d --rm --name test1 $image sleep infinity";
-    validate_script_output "$runtime->{runtime} top $cid user huser", sub { /root\s+1000/ };
-    validate_script_output "$runtime->{runtime} top $cid capeff",     sub { /setuid/i };
+    my $cid = script_output "$runtime run -d --rm --name test1 $image sleep infinity";
+    validate_script_output "$runtime top $cid user huser", sub { /root\s+1000/ };
+    validate_script_output "$runtime top $cid capeff",     sub { /setuid/i };
 
     record_info "non-root user", "process runs under the range of subuids assigned for regular user";
-    $cid = script_output "$runtime->{runtime} run -d --rm --name test2 --user 1000 $image sleep infinity";
+    $cid = script_output "$runtime run -d --rm --name test2 --user 1000 $image sleep infinity";
     my $id = $start_id + $huser_id - 1;
-    validate_script_output "$runtime->{runtime} top $cid user huser", sub { /1000\s+${id}/ };
-    validate_script_output "$runtime->{runtime} top $cid capeff",     sub { /none/ };
+    validate_script_output "$runtime top $cid user huser", sub { /1000\s+${id}/ };
+    validate_script_output "$runtime top $cid capeff",     sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
-    $cid = script_output "$runtime->{runtime} run -d --rm --userns keep-id $image sleep infinity";
+    $cid = script_output "$runtime run -d --rm --userns keep-id $image sleep infinity";
     # Remove once the softfail removed. it is just checks the user's mapped uid
-    validate_script_output "$runtime->{runtime} exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
+    validate_script_output "$runtime exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
     if (is_sle) {
-        validate_script_output "$runtime->{runtime} top $cid user huser", sub { /bernhard\s+bernhard/ };
-        validate_script_output "$runtime->{runtime} top $cid capeff",     sub { /setuid/i };
+        validate_script_output "$runtime top $cid user huser", sub { /bernhard\s+bernhard/ };
+        validate_script_output "$runtime top $cid capeff",     sub { /setuid/i };
     }
     else {
         record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";

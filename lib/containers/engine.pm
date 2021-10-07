@@ -17,6 +17,11 @@ use Carp 'croak';
 use Test::Assert 'assert_equals';
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
+use overload
+  '""'     => sub { return shift->runtime },
+  bool     => sub { return 1 },
+  fallback => sub { return 1 };
+
 
 has runtime => undef;
 
