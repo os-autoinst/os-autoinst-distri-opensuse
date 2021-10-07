@@ -59,7 +59,7 @@ sub build_and_run_image {
     assert_script_run "mkdir -p $dir/BuildTest";
     assert_script_run "curl -f -v " . data_url("containers/$dockerfile") . " > $dir/BuildTest/Dockerfile";
     if ($dockerfile eq 'Dockerfile.python3') {
-        $base = registry_url('python', 3);
+        $base = registry_url('python', '3.9');
         assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
         assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
     }
