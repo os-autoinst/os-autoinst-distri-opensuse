@@ -176,25 +176,15 @@ our %images_uri = (
         }
     },
     'sle-micro' => {
-        '15' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.0' },
-            totest         => sub { },
-            available_arch => ['x86_64', 'ppc64le', 's390x']
-        },
-        '15-SP1' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.1' },
-            totest         => sub { },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-        },
-        '15-SP2' => {
+        '5.0' => {
             released       => sub { 'registry.suse.com/suse/sle15:15.2' },
             totest         => sub { },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+            available_arch => ['x86_64', 'aarch64']
         },
-        '15-SP3' => {
+        '5.1' => {
             released       => sub { 'registry.suse.com/suse/sle15:15.3' },
             totest         => sub { },
-            available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
+            available_arch => ['x86_64', 'aarch64', 's390x']
         }
     },
     microos => {
