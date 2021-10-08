@@ -905,6 +905,7 @@ sub handle_grub {
     my $bootloader_time  = $args{bootloader_time};
     my $in_grub          = $args{in_grub};
     my $linux_boot_entry = $args{linux_boot_entry} // (is_sle('15+') ? 15 : 14);
+    $linux_boot_entry = $linux_boot_entry - 1 if is_aarch64;    # poo#100500
 
     # On Xen PV and svirt we don't see a Grub menu
     # If KEEP_GRUB_TIMEOUT is defined it means that GRUB menu will appear only for one second
