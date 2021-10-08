@@ -1641,14 +1641,15 @@ sub script_run_interactive {
         push(@words, $k->{prompt});
     }
 
-    push(@words, $endmark);
+    # Hack: '$' doesn't match '\r\n' line endings, so use '\s' instead
+    push(@words, qr/${endmark}\d+\s/m);
 
     {
         do {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
-            last if ($output =~ /($endmark)0$/m);    # return value is 0
-            die  if ($output =~ /$endmark/m);        # other return values
+            last if ($output =~ /${endmark}0\s/m);    # return value is 0
+            die  if ($output =~ /${endmark}/m);       # other return values
 
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});
