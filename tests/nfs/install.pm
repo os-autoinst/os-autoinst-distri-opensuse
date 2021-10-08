@@ -41,6 +41,7 @@ sub install_dependencies_cthon04 {
       nfs-client
       nfs-kernel-server
       libtirpc-devel
+      time
     );
     zypper_call('in ' . join(' ', @deps));
 }
