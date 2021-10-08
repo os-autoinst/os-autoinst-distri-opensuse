@@ -63,6 +63,7 @@ sub first_azure_release {
 sub prepare_azure {
     my $self = shift;
 
+    fully_patch_system;
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     check_kernel_package('kernel-azure');
@@ -73,6 +74,7 @@ sub prepare_azure {
 sub prepare_kernel_base {
     my $self = shift;
 
+    fully_patch_system;
     remove_kernel_packages();
     zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     check_kernel_package('kernel-default-base');
