@@ -1452,7 +1452,7 @@ sub load_extra_tests_y2uitest_cmd {
     loadtest 'yast2_cmd/yast_rdp' if is_sle('15+');
     loadtest 'yast2_cmd/yast_users';
     loadtest 'yast2_cmd/yast_sysconfig';
-    loadtest 'yast2_cmd/yast_keyboard' unless is_sle("12-SP2");    #see progress ticket #99375
+    loadtest 'yast2_cmd/yast_keyboard' unless is_sle('=12-SP2');    #see progress ticket #99375
     loadtest 'yast2_cmd/yast_nfs_server';
     loadtest 'yast2_cmd/yast_nfs_client';
     loadtest 'yast2_cmd/yast_dns_server';
