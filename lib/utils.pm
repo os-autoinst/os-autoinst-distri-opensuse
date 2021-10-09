@@ -1679,7 +1679,7 @@ ref:bsc#1122591
 =cut
 sub create_btrfs_subvolume {
     my $fstype;
-    $fstype = script_output("df -PT /boot/grub2/arm64-efi/ | grep -v \"Filesystem\" | awk '{print \$2}'");
+    $fstype = script_output("df -PT /boot/grub2/arm64-efi/ | grep -v \"Filesystem\" | awk '{print \$2}'", 120);
     return if ('btrfs' ne chomp($fstype));
     my @sub_list = split(/\n/, script_output("btrfs subvolume list /boot/grub2/arm64-efi/", 120));
     foreach my $line (@sub_list) {
