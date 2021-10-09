@@ -308,7 +308,12 @@ sub select_user_gnome {
         assert_and_click "displaymanager-$myuser";
     }
     elsif (match_has_tag('displaymanager-user-selected')) {
-        send_key 'ret';
+        if ($myuser =~ 'bernhard') {
+            send_key 'ret';
+        }
+        else {
+            assert_and_click "displaymanager-$myuser";
+        }
     }
     elsif (match_has_tag('dm-nousers')) {
         type_string $myuser;
