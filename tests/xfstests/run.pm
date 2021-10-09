@@ -499,10 +499,7 @@ sub run {
     my $local_file = "/tmp/opt_logs.tar.gz";
     script_run("tar zcvf $local_file --absolute-names /opt/log/");
     script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
-    my $tar_content = script_output("cat $local_file");
-    save_tmp_file('opt_logs.tar.gz', $tar_content);
-    send_key 'ctrl-c';
-    script_run('clear');
+    upload_logs $local_file;
 }
 
 sub post_fail_hook {
