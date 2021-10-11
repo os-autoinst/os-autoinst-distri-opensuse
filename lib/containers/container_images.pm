@@ -34,9 +34,12 @@ our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
 
  build_and_run_image($runtime, [$buildah], $dockerfile, $base);
 
-Create a container using a C<dockerfile> and run smoke test against that.
+Create a container using a C<dockerfile> and check if the container can be accessed
+via http queries. The container must be accessible on http://localhost:8888 and
+return the string "The test shall pass".
  C<base> can be used to setup base repo in the dockerfile in case that the file
-does not have a defined one.
+does not have a defined one. If not defined, the Dockerfile must contain a valid
+FROM statement.
 
 The main container runtimes do not need C<buildah> variable in general, unless
 you want to build the image with buildah but run it with $<runtime>
@@ -49,22 +52,24 @@ sub build_and_run_image {
     my $dockerfile = $args{dockerfile} // 'Dockerfile';
     my $base       = $args{base};
 
-    die "You must define the runtime!"    unless $runtime;
-    die "You must define the Dockerfile!" unless $dockerfile;
+    die "undefined runtime"    unless $runtime;
+    die "undefined dockerfile" unless $dockerfile;
 
-    my $dir = "~/containerapp";
+    my $dir = "/var/tmp/containerapp";
 
     # Setup the environment
-    record_info('Downloading', "Dockerfile: containers/$dockerfile\nHTML: containers/index.html");
-    assert_script_run "mkdir -p $dir/BuildTest";
-    assert_script_run "curl -f -v " . data_url("containers/$dockerfile") . " > $dir/BuildTest/Dockerfile";
+    record_info('Run image', "Base:       $base\nDockerfile: $dockerfile\nRuntime:    $runtime->{runtime}");
+    assert_script_run("mkdir -p $dir/BuildTest");
+    assert_script_run("curl -f -v " . data_url("containers/$dockerfile") . " -o $dir/BuildTest/Dockerfile");
     if ($dockerfile eq 'Dockerfile.python3') {
-        $base = registry_url('python', '3.9');
-        assert_script_run "curl -f -v " . data_url('containers/requirements.txt') . " > $dir/BuildTest/requirements.txt";
-        assert_script_run "curl -f -v " . data_url('containers/app.py') . " > $dir/BuildTest/app.py";
+        # 'Dockerfile.python3' has additional requirements that need to be downloaded
+        assert_script_run("curl -fv " . data_url('containers/www.py') . " -o $dir/BuildTest/www.py");
+        assert_script_run("chmod 755 $dir/BuildTest/www.py");
+    } else {
+        assert_script_run("curl -fv " . data_url('containers/index.html') . " -o $dir/BuildTest/index.html");
     }
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
-    assert_script_run "curl -f -v " . data_url('containers/index.html') . " > $dir/BuildTest/index.html";
+
 
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
     $builder->build($dir . "/BuildTest", "myapp", (timeout => is_x86_64 ? 600 : 1200));
@@ -78,13 +83,17 @@ sub build_and_run_image {
     }
 
     # Test that we can execute programs in the container and test container's variables
-    assert_script_run("$runtime run --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-    assert_script_run("$runtime run -dit -p 8888:80 myapp");
-    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);
+    assert_script_run("$runtime run --rm --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
+    assert_script_run("$runtime run -d --name myapp -p 8888:80 myapp");
+    script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);    # ensure container is running
+    assert_script_run("$runtime logs myapp");                               # show logs for easier problem investigation
 
     # Test that the exported port is reachable
     script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);
-    assert_script_run("$runtime stop `$runtime ps -q`");
+
+    # Cleanup
+    assert_script_run("$runtime stop myapp");
+    assert_script_run("$runtime rm myapp");
 }
 
 # Build a sle container image using zypper_docker

@@ -60,14 +60,11 @@ sub run {
         install_and_start_firewalld() if (is_publiccloud || is_jeos);
         check_docker_firewall();
     }
-    # Run basic docker tests
+
+    # Run basic runtime tests
     basic_container_tests(runtime => $engine->runtime);
-
-    # Build an image from Dockerfile and test it
-    build_and_run_image(runtime => $engine, base => 'registry.opensuse.org/opensuse/leap:latest');
-
-    # Build a third-party image and test it
-    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3');
+    # Build an image from Dockerfile and run it
+    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => registry_url('python', '3'));
 
     # Clean container
     $engine->cleanup_system_host();
