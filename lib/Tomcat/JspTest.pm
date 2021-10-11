@@ -15,8 +15,8 @@ use utils;
 use Tomcat::Utils;
 use version_utils 'is_sle';
 
-# allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+# allow a 90 second timeout for asserting needles
+use constant TIMEOUT => 90;
 
 # test all JSP examples
 sub test_all_examples() {
@@ -32,10 +32,13 @@ sub test_all_examples() {
     # access the tomcat jsp examples page
     if ($mod_jk) {
         $self->firefox_open_url('localhost/examples/jsp');
+        wait_still_screen;
     } else {
         $self->firefox_open_url('localhost:8080/examples/jsp');
+        wait_still_screen;
     }
-    send_key_until_needlematch('tomcat-jsp-examples', 'ret');
+    send_key_until_needlematch('tomcat-jsp-examples', 'ret', 10, 5);
+    wait_still_screen;
 
     # Navigate with keyboard to each example and test it
     for my $i (0 .. $#jsp_examples) {
@@ -44,7 +47,8 @@ sub test_all_examples() {
     # test xhtml svg example
     if (!$mod_jk) {
         $self->firefox_open_url('localhost:8080/examples/jsp/jsp2/jspx/textRotate.jspx?name=testing');
-        send_key_until_needlematch('tomcat-xhtml-svg', 'ret');
+        send_key_until_needlematch('tomcat-xhtml-svg', 'ret', 10, 5);
+        wait_still_screen;
     }
 }
 

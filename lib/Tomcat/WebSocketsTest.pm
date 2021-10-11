@@ -14,8 +14,8 @@ use testapi;
 use utils;
 use Tomcat::Utils;
 
-# allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+# allow a 90 second timeout for asserting needles
+use constant TIMEOUT => 90;
 
 # test all WebSocket examples
 sub test_all_examples() {
@@ -26,7 +26,8 @@ sub test_all_examples() {
 
     # access the tomcat websocket examples page
     $self->firefox_open_url('localhost:8080/examples/websocket');
-    send_key_until_needlematch('tomcat-websocket-examples', 'ret');
+    send_key_until_needlematch('tomcat-websocket-examples', 'ret', 10, 5);
+    wait_still_screen;
 
     # Navigate with keyboard to each example and test it
     for my $i (0 .. $#websocket_examples) {
@@ -55,9 +56,18 @@ sub chat() {
 
 # test snake example
 sub snake() {
-    assert_screen('tomcat-snake-example-loaded', TIMEOUT);
-    send_key('right');
-    send_key('down');
+    assert_screen([qw(tomcat-snake-example-loaded websocket-snake-not-opened)], 120);
+    if (match_has_tag 'tomcat-snake-example-loaded') {
+        send_key('right');
+        send_key('down');
+    }
+    elsif (match_has_tag 'websocket-snake-not-opened') {
+        record_info 'poo#96611 - sporadic performance issue';
+        # give second chance after timeout
+        assert_screen('tomcat-snake-example-loaded', TIMEOUT);
+        send_key('right');
+        send_key('down');
+    }
     assert_screen('tomcat-snake-example', TIMEOUT);
 }
 

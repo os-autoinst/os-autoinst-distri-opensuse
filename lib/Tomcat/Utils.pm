@@ -16,8 +16,8 @@ use utils;
 use version_utils 'is_sle';
 use registration;
 
-# allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 60;
+# allow a 90 second timeout for asserting needles
+use constant TIMEOUT => 90;
 
 # Use keyboard to browse the examples faster
 sub browse_with_keyboard {
@@ -30,6 +30,7 @@ sub browse_with_keyboard {
 
     $test_func->();
     send_key('ctrl-w');
+    wait_still_screen;
 }
 
 # Install tomcat and set initial configuration
@@ -73,7 +74,7 @@ sub tomcat_manager_test() {
     my ($self) = shift;
 
     $self->firefox_open_url('localhost:8080/manager');
-    send_key_until_needlematch('tomcat-manager-authentication', 'ret');
+    send_key_until_needlematch('tomcat-manager-authentication', 'ret', 10, 5);
     type_string('admin');
     send_key('tab');
     type_string('admin');

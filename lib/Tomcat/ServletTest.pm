@@ -16,7 +16,7 @@ use Tomcat::Utils;
 use version_utils 'is_sle';
 
 # allow a TIMEOUT second timeout for asserting needles
-use constant TIMEOUT => 60;
+use constant TIMEOUT => 90;
 
 # test all Servlet examples
 sub test_all_examples() {
@@ -35,7 +35,8 @@ sub test_all_examples() {
     } else {
         $self->firefox_open_url('localhost:8080/examples/servlets');
     }
-    send_key_until_needlematch('tomcat-servlet-examples-page', 'ret');
+    send_key_until_needlematch('tomcat-servlet-examples-page', 'ret', 10, 5);
+    wait_still_screen;
 
     # Navigate with keyboard to each example and test it
     for my $i (0 .. $#servlet_examples) {
