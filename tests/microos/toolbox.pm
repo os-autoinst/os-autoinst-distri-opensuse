@@ -47,7 +47,7 @@ sub run {
     assert_script_run 'toolbox -h';
 
     record_info 'Test',                    "Run toolbox without flags";
-    assert_script_run 'toolbox -r id',     timeout => 180;
+    assert_script_run 'toolbox -r id',     timeout => 300;
     validate_script_output 'podman ps -a', sub { m/toolbox-root/ };
     assert_script_run 'podman rm toolbox-root';
 
