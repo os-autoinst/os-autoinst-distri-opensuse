@@ -38,7 +38,7 @@ sub run {
 
     # Create Kernel Master Key
     assert_script_run "keyctl add user kmk-user '`dd if=/dev/urandom bs=1 count=32 2>/dev/null`' \@u";
-    assert_script_run "mkdir $key_dir";
+    script_run "[ -d $key_dir ] || mkdir $key_dir";
     assert_script_run "keyctl pipe `/bin/keyctl search \@u user kmk-user` > $userkey_blob";
 
     # Generate EVM key which will be used for HMACs
