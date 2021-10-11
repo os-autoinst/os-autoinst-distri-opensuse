@@ -194,11 +194,11 @@ sub basic_container_tests {
     # Images can be deleted
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
-    die("error: $runtime image rmi -a $leap")                                          if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
-    die("error: $runtime image rmi -a $tumbleweed")                                    if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
-    die("error: $runtime image rmi -a tw:saved")                                       if ($output_containers =~ m/Untagged:.*tw:saved/);
-    record_soft_failure("error: $runtime->{runtime} image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
-    record_soft_failure("error: $runtime->{runtime} image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
+    die("error: $runtime image rmi -a $leap")                               if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
+    die("error: $runtime image rmi -a $tumbleweed")                         if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
+    die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
+    record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
+    record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
 }
 
 =head2 can_build_sle_base

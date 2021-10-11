@@ -239,10 +239,10 @@ sub test_rpm_db_backend {
     die 'Argument $image not provided!'   unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    my ($running_version, $sp, $host_distri) = get_os_release("$runtime->{runtime} run $image");
+    my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");
     # TW and SLE 15-SP3+ uses rpm-ndb in the image
     if ($host_distri eq 'opensuse-tumbleweed' || ($host_distri eq 'sles' && check_version('>=15-SP3', "$running_version-SP$sp", qr/\d{2}(?:-sp\d)?/))) {
-        validate_script_output "$runtime->{runtime} run $image rpm --eval %_db_backend", sub { m/ndb/ };
+        validate_script_output "$runtime run $image rpm --eval %_db_backend", sub { m/ndb/ };
     }
 }
 
