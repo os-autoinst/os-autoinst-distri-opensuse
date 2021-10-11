@@ -110,7 +110,7 @@ sub do_partition_for_xfstests {
     # Create TEST_DEV
     $test_dev = create_partition($para{dev}, $part_type, $para{size});
     parted_print(dev => $para{dev});
-    format_partition($test_dev, $para{fstype});
+    format_with_options($test_dev, $para{fstype});
     # Create SCRATCH_DEV or SCRATCH_DEV_POOL
     my @scratch_dev;
     my $num = $para{amount};
@@ -180,7 +180,7 @@ sub create_loop_device_by_rootsize {
         $num += 1;
     }
     script_run("losetup -a");
-    format_partition("$INST_DIR/test_dev", $para{fstype});
+    format_with_options("$INST_DIR/test_dev", $para{fstype});
     # Create mount points
     script_run('mkdir /mnt/test /mnt/scratch');
     # Setup configure file xfstests/local.config
@@ -235,6 +235,18 @@ sub post_env_info {
         }
     }
     record_info('Size', $size_info);
+}
+
+sub format_with_options {
+    my ($part, $filesystem) = @_;
+    # In case to test xfs reflink feature, test name contain "reflink"
+    if ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1' >> $CONFIG_FILE");
+    }
+    else {
+        format_partition($part, $filesystem);
+    }
 }
 
 sub run {
