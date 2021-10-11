@@ -24,6 +24,12 @@ sub run {
     if (is_sle_micro) {
         assert_script_run 'curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt';
         assert_script_run 'update-ca-certificates -v';
+
+        # Clean the journal to avoid capturing bugs that are fixed after installing updates
+        assert_script_run('journalctl --no-pager -o short-precise | tail -n +2 > /tmp/journal_before');
+        upload_logs('/tmp/journal_before');
+        assert_script_run('journalctl --sync --flush --rotate --vacuum-time=1second');
+        assert_script_run('rm /tmp/journal_before');
     }
     add_test_repositories;
     record_info 'Updates', script_output('zypper lu');
