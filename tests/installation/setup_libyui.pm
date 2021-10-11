@@ -46,7 +46,7 @@ sub run {
         $cmd .= YuiRestClient::get_yui_params_string($port) . " yast.ssh";
         enter_cmd($cmd);
     }
-    $app->check_connection(timeout => 500, interval => 10);
+    $app->check_connection(timeout => 540, interval => 10);
 }
 
 1;
