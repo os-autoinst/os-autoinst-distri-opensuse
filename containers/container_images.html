@@ -23,7 +23,7 @@
 
 <pre><code> build_and_run_image($runtime, [$buildah], $dockerfile, $base);</code></pre>
 
-<p>Create a container using a <code>dockerfile</code> and run smoke test against that. <code>base</code> can be used to setup base repo in the dockerfile in case that the file does not have a defined one.</p>
+<p>Create a container using a <code>dockerfile</code> and check if the container can be accessed via http queries. The container must be accessible on http://localhost:8888 and return the string &quot;The test shall pass&quot;. <code>base</code> can be used to setup base repo in the dockerfile in case that the file does not have a defined one. If not defined, the Dockerfile must contain a valid FROM statement.</p>
 
 <p>The main container runtimes do not need <code>buildah</code> variable in general, unless you want to build the image with buildah but run it with $&lt;runtime&gt;</p>
 
