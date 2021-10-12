@@ -73,9 +73,10 @@ sub build_and_run_image {
 
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
     $builder->build($dir . "/BuildTest", "myapp", (timeout => is_x86_64 ? 600 : 1200));
-    my $imgs = $builder->get_images_by_repo_name();
-    die "myapp image not found in the local registry" unless (grep { $_ =~ /myapp/ } @{$imgs});
     assert_script_run("rm -rf $dir");
+    script_run("$runtime images");
+    assert_script_run("$runtime images --all | grep myapp");
+
 
     if ($runtime->runtime eq 'docker' && $builder->runtime eq 'buildah') {
         assert_script_run "buildah push myapp docker-daemon:myapp:latest";
