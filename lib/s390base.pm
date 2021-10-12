@@ -83,10 +83,10 @@ Fetch the testcase and common libraries from openQA server.
 
 =cut
 sub pre_run_hook {
-    my ($self)        = @_;
-    my $path          = data_url("s390x");
-    my $tc            = get_required_var('IBM_TESTSET') . get_required_var('IBM_TESTS');
-    my $script_path   = "$path/$tc/$tc.tgz";
+    my ($self) = @_;
+    my $path = data_url("s390x");
+    my $tc = get_required_var('IBM_TESTSET') . get_required_var('IBM_TESTS');
+    my $script_path = "$path/$tc/$tc.tgz";
     my $commonsh_path = "$path/lib/common.tgz";
     select_console 'root-console';
 

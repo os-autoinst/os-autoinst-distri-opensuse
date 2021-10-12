@@ -40,7 +40,7 @@ sub esxi_vm_get_vmid {
 }
 
 sub esxi_vm_power_getstate {
-    my $vmid    = shift;
+    my $vmid = shift;
     my $vim_cmd = "vim-cmd vmsvc/power.getstate";
     my (undef, $power_state) = console('svirt')->run_cmd("$vim_cmd $vmid", domain => 'sshVMwareServer', wantarray => 1);
     return $power_state;
@@ -53,14 +53,14 @@ sub esxi_vm_power_ops {
 }
 
 sub esxi_vm_network_binding {
-    my $vmid    = shift;
+    my $vmid = shift;
     my $vim_cmd = "vim-cmd vmsvc/get.environment $vmid | grep vswitch | sed -n 1p | cut -d'\"' -f2";
     my (undef, $vswitch) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
     return $vswitch;
 }
 
 sub esxi_vm_public_ip {
-    my $vmid    = shift;
+    my $vmid = shift;
     my $vim_cmd = "vim-cmd vmsvc/get.guest $vmid | grep ipAddress | sed -n 1p | cut -d'\"' -f2";
     my (undef, $vm_ip) = console('svirt')->run_cmd($vim_cmd, domain => 'sshVMwareServer', wantarray => 1);
     return $vm_ip;
@@ -73,17 +73,17 @@ sub get_host_timestamp {
 }
 
 sub disable_vm_time_synchronization {
-    my $vm_name  = shift;
+    my $vm_name = shift;
     my $vmx_file = "/vmfs/volumes/datastore1/openQA/$vm_name.vmx";
 
     # Set all time synchronization properties to FALSE
     console('svirt')->run_cmd("sed -ie 's/tools.syncTime.*/tools.syncTime=\"FALSE\"/' $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.continue=\"FALSE\" >> $vmx_file",            domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.restore=\"FALSE\" >> $vmx_file",             domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.resume.disk=\"FALSE\" >> $vmx_file",         domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.shrink=\"FALSE\" >> $vmx_file",              domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.tools.startup=\"FALSE\" >> $vmx_file",       domain => 'sshVMwareServer', wantarray => 1);
-    console('svirt')->run_cmd("echo time.synchronize.resume.host=\"FALSE\" >> $vmx_file",         domain => 'sshVMwareServer', wantarray => 1);
+    console('svirt')->run_cmd("echo time.synchronize.continue=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
+    console('svirt')->run_cmd("echo time.synchronize.restore=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
+    console('svirt')->run_cmd("echo time.synchronize.resume.disk=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
+    console('svirt')->run_cmd("echo time.synchronize.shrink=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
+    console('svirt')->run_cmd("echo time.synchronize.tools.startup=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
+    console('svirt')->run_cmd("echo time.synchronize.resume.host=\"FALSE\" >> $vmx_file", domain => 'sshVMwareServer', wantarray => 1);
 }
 
 1;

@@ -28,7 +28,7 @@ sub run {
     assert_script_run 'vhostmd';
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-        record_info "$guest",                                                     "Obtaining dom0 metrics on xl-$guest";
+        record_info "$guest", "Obtaining dom0 metrics on xl-$guest";
         assert_script_run "xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro", 180;
         assert_script_run "ssh root\@$guest 'vm-dump-metrics' | grep 'SUSE LLC'";
         assert_script_run "xl block-detach xl-$guest xvdc";

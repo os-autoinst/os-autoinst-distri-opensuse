@@ -22,8 +22,8 @@ use version_utils 'is_sle';
 use virt_autotest::utils qw(is_xen_host is_kvm_host);
 
 sub update_package {
-    my $self           = shift;
-    my $test_type      = get_var('TEST_TYPE', 'Milestone');
+    my $self = shift;
+    my $test_type = get_var('TEST_TYPE', 'Milestone');
     my $update_pkg_cmd = "source /usr/share/qa/virtautolib/lib/virtlib;update_virt_rpms";
     my $ret;
     if ($test_type eq 'Milestone') {

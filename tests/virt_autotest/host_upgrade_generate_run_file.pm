@@ -24,11 +24,11 @@ sub get_script_run {
     handle_sp_in_settings_with_sp0("GUEST_LIST");
     handle_sp_in_settings_with_sp0("BASE_PRODUCT");
 
-    my $mode         = get_var("TEST_MODE",       "");
-    my $hypervisor   = get_var("HOST_HYPERVISOR", "");
-    my $base         = get_var("BASE_PRODUCT",    "");    #EXAMPLE, sles-11-sp3
-    my $upgrade      = get_var("UPGRADE_PRODUCT", "");    #EXAMPLE, sles-12-sp2
-    my $upgrade_repo = get_var("UPGRADE_REPO",    "");
+    my $mode = get_var("TEST_MODE", "");
+    my $hypervisor = get_var("HOST_HYPERVISOR", "");
+    my $base = get_var("BASE_PRODUCT", "");    #EXAMPLE, sles-11-sp3
+    my $upgrade = get_var("UPGRADE_PRODUCT", "");    #EXAMPLE, sles-12-sp2
+    my $upgrade_repo = get_var("UPGRADE_REPO", "");
     #Prefer to use offline media for upgrade to avoid registration via autoyast
     $upgrade_repo =~ s/-Online-/-Full-/ if ($upgrade_repo =~ /15-sp[2-9]/i);
     my $guest_list = get_var("GUEST_LIST", "");

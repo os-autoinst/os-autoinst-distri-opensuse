@@ -101,7 +101,7 @@ sub create_new_partition_table {
     my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
     my %table_type_hotkey = (
         MSDOS => 'alt-m',
-        GPT   => 'alt-g',
+        GPT => 'alt-g',
     );
 
     assert_screen 'partitioning-edit-proposal-button';
@@ -410,12 +410,12 @@ C<$part_size> is the size of partition.
 
 =cut
 sub addboot {
-    my $part_size          = shift;
+    my $part_size = shift;
     my %default_boot_sizes = (
-        ofw        => 8,
-        uefi       => 256,
-        bios_boot  => 2,
-        zipl       => 500,
+        ofw => 8,
+        uefi => 256,
+        bios_boot => 2,
+        zipl => 500,
         unenc_boot => 500
     );
 
@@ -451,12 +451,12 @@ force-selected at the end if needed (in some cases [sv]da is at the end of the l
 =cut
 sub select_first_hard_disk {
     # Try to handle most of the device type
-    my @tags    = 'existing-partitions';
+    my @tags = 'existing-partitions';
     my @devices = ('sdb' .. 'sdz', 'vdb' .. 'vdz', 'pmem0' .. 'pmem9', 'nvme0n1');
     foreach my $device (@devices) {
         push @tags, "hard-disk-dev-$device-selected";
     }
-    my $matched_needle = check_screen \@tags;           # save detected needle
+    my $matched_needle = check_screen \@tags;    # save detected needle
     return 1 if match_has_tag 'existing-partitions';    # no selection of hard-disk is required
 
     # SUT may have any number disks, only keep the first, unselect all other disks

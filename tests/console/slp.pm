@@ -81,10 +81,10 @@ sub post_fail_hook {
     assert_script_run 'slptool findsrvs ntp';
     upload_logs '/var/log/slpd.log';
     upload_logs '/var/log/zypper.log';
-    $self->save_and_upload_log('journalctl --no-pager -o short-precise', '/tmp/journal.log',            {screenshot => 1});
-    $self->save_and_upload_log('rpm -ql openslp-server',                 '/tmp/openslp-server.content', {screenshot => 1});
-    $self->save_and_upload_log('rpm -ql openslp',                        '/tmp/openslp.content',        {screenshot => 1});
-    $self->save_and_upload_log('lsmod',                                  '/tmp/loaded_modules.txt',     {screenshot => 1});
+    $self->save_and_upload_log('journalctl --no-pager -o short-precise', '/tmp/journal.log', {screenshot => 1});
+    $self->save_and_upload_log('rpm -ql openslp-server', '/tmp/openslp-server.content', {screenshot => 1});
+    $self->save_and_upload_log('rpm -ql openslp', '/tmp/openslp.content', {screenshot => 1});
+    $self->save_and_upload_log('lsmod', '/tmp/loaded_modules.txt', {screenshot => 1});
 }
 
 1;

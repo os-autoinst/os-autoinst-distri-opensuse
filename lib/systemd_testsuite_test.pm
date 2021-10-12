@@ -127,7 +127,7 @@ sub testsuiteprepare {
 sub post_fail_hook {
     my ($self) = @_;
     #upload logs from given testname
-    $self->tar_and_upload_log('/usr/lib/systemd/tests/logs',       '/tmp/systemd_testsuite-logs.tar.bz2');
+    $self->tar_and_upload_log('/usr/lib/systemd/tests/logs', '/tmp/systemd_testsuite-logs.tar.bz2');
     $self->tar_and_upload_log('/var/log/journal /run/log/journal', 'binary-journal-log.tar.bz2');
     $self->save_and_upload_log('journalctl --no-pager -axb -o short-precise', 'journal.txt');
     upload_logs('/shutdown-log.txt', failok => 1);

@@ -20,8 +20,8 @@ use version_utils 'is_leap';
 sub run {
     my ($self) = @_;
 
-    my $default_password          = 'linux';
-    my $distripassword            = $testapi::password;
+    my $default_password = 'linux';
+    my $distripassword = $testapi::password;
     my $reboot_for_jeos_firstboot = 1;
 
     my $is_generalhw_via_ssh = check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'));
@@ -38,7 +38,7 @@ sub run {
     else {
         # Login with default credentials (root:linux)
         assert_screen('linux-login', 300);
-        enter_cmd("root",              wait_still_screen => 5);
+        enter_cmd("root", wait_still_screen => 5);
         enter_cmd("$default_password", wait_still_screen => 5);
     }
 

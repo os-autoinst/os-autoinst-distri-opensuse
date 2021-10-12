@@ -33,7 +33,7 @@ sub run {
     my $retries = 7;
     for (1 .. $retries) {
         type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
-        last                                                             if check_screen('test-oomath-1', 2);
+        last if check_screen('test-oomath-1', 2);
         die "Could not match on correct formula within multiple retries" if $_ == $retries;
         record_info 'workaround', 'retrying unstable formula typing, see https://progress.opensuse.org/issues/53795 for details';
         send_key 'ctrl-a';

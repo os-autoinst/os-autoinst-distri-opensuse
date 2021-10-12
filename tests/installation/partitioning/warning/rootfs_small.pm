@@ -22,13 +22,13 @@ my $partitioner;
 
 sub run {
     my $test_data = get_test_suite_data();
-    my $disk      = $test_data->{disks}[0];
+    my $disk = $test_data->{disks}[0];
     $partitioner = $testapi::distri->get_expert_partitioner();
 
     $partitioner->run_expert_partitioner();
     foreach my $partition (@{$disk->{partitions}->{rootfs_small}}) {
         $partitioner->add_partition_on_gpt_disk({
-                disk      => $disk->{name},
+                disk => $disk->{name},
                 partition => $partition
         });
     }

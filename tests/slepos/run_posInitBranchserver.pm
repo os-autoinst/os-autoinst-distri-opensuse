@@ -37,14 +37,14 @@ sub run {
 
     enter_cmd "posInitBranchserver 2>&1 | tee /dev/$serialdev";
     wait_serial "Please, select initialization mode:" and enter_cmd "1" unless get_var('SLEPOS') =~ /^combo/;
-    wait_serial "company name.*:"                     and enter_cmd get_var('ORGANIZATION') . "";
-    wait_serial "2 letter abbreviation.*:"            and enter_cmd get_var('COUNTRY') . "";
-    wait_serial "name of organizational unit.*:"      and enter_cmd get_var('ORGANIZATIONAL_UNIT') . "";
-    wait_serial "branch name.*:"                      and enter_cmd get_var('LOCATION') . "";
+    wait_serial "company name.*:" and enter_cmd get_var('ORGANIZATION') . "";
+    wait_serial "2 letter abbreviation.*:" and enter_cmd get_var('COUNTRY') . "";
+    wait_serial "name of organizational unit.*:" and enter_cmd get_var('ORGANIZATIONAL_UNIT') . "";
+    wait_serial "branch name.*:" and enter_cmd get_var('LOCATION') . "";
 
 
     wait_serial "name or IP of the AdminServer.*:" and enter_cmd get_var('ADMINSERVER_ADDR') . "";
-    wait_serial "Branch Server access password:"   and enter_cmd get_var('USER_PASSWORD') . "";
+    wait_serial "Branch Server access password:" and enter_cmd get_var('USER_PASSWORD') . "";
 
     wait_serial "Is Admin Server LDAP fingerprint correct" and enter_cmd "Y" if get_var('SSL') eq 'yes';
 

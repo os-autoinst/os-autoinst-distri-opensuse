@@ -39,8 +39,8 @@ sub get_clock_and_time_zone_page {
 sub collect_current_clock_and_time_zone_info {
     my ($self) = @_;
     return {
-        region              => $self->get_clock_and_time_zone_page()->get_region(),
-        time_zone           => $self->get_clock_and_time_zone_page()->get_time_zone(),
+        region => $self->get_clock_and_time_zone_page()->get_region(),
+        time_zone => $self->get_clock_and_time_zone_page()->get_time_zone(),
         hw_clock_set_to_UTC => $self->get_clock_and_time_zone_page()->is_hw_clock_set_to_UTC()};
 }
 

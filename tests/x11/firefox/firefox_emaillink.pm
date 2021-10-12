@@ -44,11 +44,11 @@ sub run {
             record_soft_failure 'bsc#1131297';
         }
         else {
-            send_key 'y';         # yes
+            send_key 'y';    # yes
             sleep 1;
             enter_cmd "test\@suse.com";
             sleep 1;
-            send_key 'home';      # beginning of subject
+            send_key 'home';    # beginning of subject
             sleep 1;
             send_key 'ctrl-k';    # delete existing subject
             sleep 1;

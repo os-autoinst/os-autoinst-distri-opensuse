@@ -18,13 +18,13 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)      = @_;
-    my $type        = get_required_var('INSTANCE_TYPE');
+    my ($self) = @_;
+    my $type = get_required_var('INSTANCE_TYPE');
     my $instance_id = get_required_var('INSTANCE_ID');
-    my $sid         = get_required_var('INSTANCE_SID');
-    my $arch        = get_required_var('ARCH');
-    my $lun         = get_lun;
-    my $sap_dir     = "/usr/sap/$sid";
+    my $sid = get_required_var('INSTANCE_SID');
+    my $arch = get_required_var('ARCH');
+    my $lun = get_lun;
+    my $sap_dir = "/usr/sap/$sid";
     my ($proto, $path) = $self->fix_path(get_required_var('NW'));
 
     # LUN information is needed after for the HA configuration

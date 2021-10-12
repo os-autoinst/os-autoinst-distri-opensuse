@@ -20,9 +20,9 @@ use testapi;
 use parent 'Installation::WizardPage';
 
 use constant {
-    SUGGESTED_PARTITIONING_PAGE                  => 'inst-suggested-partitioning-step',
-    LVM_ENCRYPTED_PARTITION_IN_LIST              => 'partitioning-encrypt-activated',
-    LVM_PARTITION_IN_LIST                        => 'partition-lvm-new-summary',
+    SUGGESTED_PARTITIONING_PAGE => 'inst-suggested-partitioning-step',
+    LVM_ENCRYPTED_PARTITION_IN_LIST => 'partitioning-encrypt-activated',
+    LVM_PARTITION_IN_LIST => 'partition-lvm-new-summary',
     IGNORED_EXISTING_ENCRYPTED_PARTITION_IN_LIST => 'partitioning-encrypt-ignored-existing'
 };
 

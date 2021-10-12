@@ -26,9 +26,9 @@ use utils "zypper_call";
 use version_utils "is_sle";
 
 sub send_key_and_wait {
-    my $key        = shift;
+    my $key = shift;
     my $still_time = shift;
-    my $timeout    = shift // 5;
+    my $timeout = shift // 5;
     send_key $key;
     wait_still_screen $still_time, $timeout;
 }

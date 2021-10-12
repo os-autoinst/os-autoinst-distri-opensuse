@@ -26,7 +26,7 @@ use version_utils qw(get_os_release);
 
 # Get the total and used GiB of a given btrfs device
 sub _btrfs_fi {
-    my $dev    = shift;
+    my $dev = shift;
     my $output = script_output("btrfs fi df $dev");
     die "Unexpected btrfs fi output" unless ($output =~ "^Data.+total=(?<total>[0-9]+\.[0-9]*)GiB, used=(?<used>[0-9]+\.[0-9]*)GiB");
     return ($+{total}, $+{used});
@@ -58,7 +58,7 @@ sub _test_btrfs_balancing {
 sub _test_btrfs_thin_partitioning {
     my ($rt, $dev_path) = @_;
     my $dockerfile_path = '~/sle_base_image/docker_build';
-    my $btrfs_head      = '/tmp/subvolumes_saved';
+    my $btrfs_head = '/tmp/subvolumes_saved';
     $rt->build($dockerfile_path, 'thin_image');
     # validate that new subvolume has been created. This should be improved.
     assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) == \$(cat $btrfs_head)};
@@ -68,12 +68,12 @@ sub _test_btrfs_thin_partitioning {
 # Fill up the btrfs subvolume, check if it is full and then increase the available size by adding another disk
 sub _test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
-    my $container  = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
+    my $container = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
     record_info "test btrfs";
     script_run("df -h");
     # Determine the remaining size of /var
-    my $var_free   = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
+    my $var_free = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
     my $var_blocks = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
     # Create file in the container enough to fill the "/var" partition (where the container is located)
     my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
@@ -102,7 +102,7 @@ sub run {
     my $docker = containers::engine::docker->new();
     install_docker_when_needed($host_distri);
     $docker->configure_insecure_registries();
-    my $btrfs_dev      = '/var/lib/docker';
+    my $btrfs_dev = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
     _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);

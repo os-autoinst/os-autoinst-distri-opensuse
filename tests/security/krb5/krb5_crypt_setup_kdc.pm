@@ -51,7 +51,7 @@ sub run {
     script_run("kinit $adm |& tee /dev/$serialdev", 0);
     wait_serial(qr/Password.*\Q$adm\E/) || die "Matching output failed";
     enter_cmd "$pass_a";
-    script_output "echo \$?",       sub { m/^0$/ };
+    script_output "echo \$?", sub { m/^0$/ };
     validate_script_output "klist", sub {
         m/
             Ticket\scache.*\/root\/kcache.*
@@ -71,7 +71,7 @@ sub run {
 
     # Waiting for the finish of krb5 and other testing server
     my $children = get_children();
-    mutex_wait('TEST_DONE_SERVER',     (keys %$children)[0]);
+    mutex_wait('TEST_DONE_SERVER', (keys %$children)[0]);
     mutex_wait('TEST_DONE_SSH_SERVER', (keys %$children)[0]);
     mutex_wait('TEST_DONE_NFS_SERVER', (keys %$children)[0]);
 }

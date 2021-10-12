@@ -48,13 +48,13 @@ sub run {
     if (get_var('MEDIA_UPGRADE') && get_var('DO_REGISTRY')) {
         add_suseconnect_product(uc get_var('SLE_PRODUCT'), undef, undef, "-r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 300, 1);
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
-            add_suseconnect_product(get_addon_fullname('base'),      undef, undef, undef, 300, 1);
+            add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);
             add_suseconnect_product(get_addon_fullname('serverapp'), undef, undef, undef, 300, 1);
         }
         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled')) {
-            add_suseconnect_product(get_addon_fullname('base'),    undef, undef, undef,                             300, 1);
-            add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef,                             300, 1);
-            add_suseconnect_product(get_addon_fullname('we'),      undef, undef, "-r " . get_var('SCC_REGCODE_WE'), 300, 1);
+            add_suseconnect_product(get_addon_fullname('base'), undef, undef, undef, 300, 1);
+            add_suseconnect_product(get_addon_fullname('desktop'), undef, undef, undef, 300, 1);
+            add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_var('SCC_REGCODE_WE'), 300, 1);
         }
         my $myaddons = get_var('SCC_ADDONS', '');
         $myaddons .= "dev,lgm,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
@@ -63,9 +63,9 @@ sub run {
         $myaddons =~ s/lgm,?//g if (get_var("SCC_ADDONS", "") =~ /hpcm/);
         $myaddons =~ s/sdk/dev/g;
         if ($myaddons ne '') {
-            my @my_addons     = grep { defined $_ && $_ } split(/,/, $myaddons);
+            my @my_addons = grep { defined $_ && $_ } split(/,/, $myaddons);
             my @unique_addons = uniq @my_addons;
-            my $addons        = join(",", @unique_addons);
+            my $addons = join(",", @unique_addons);
             register_addons_cmd($addons);
         }
     }
@@ -80,7 +80,7 @@ sub run {
     # Save output info to logfile
     if (is_sle && get_required_var('FLAVOR') =~ /Migration/) {
         my $out;
-        my $timeout  = bmwqemu::scale_timeout(30);
+        my $timeout = bmwqemu::scale_timeout(30);
         my $waittime = bmwqemu::scale_timeout(5);
         while (1) {
             $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);

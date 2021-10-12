@@ -31,10 +31,10 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{TopNavigationBar}    = YaST::NetworkSettings::TopNavigationBar->new({app => YuiRestClient::get_app()});
-    $self->{OverviewTab}         = YaST::NetworkSettings::v4_3::OverviewTab->new({app => YuiRestClient::get_app()});
-    $self->{HostnameDNSTab}      = YaST::NetworkSettings::HostnameDNSTab->new({app => YuiRestClient::get_app()});
-    $self->{ActionButtons}       = YaST::NetworkSettings::ActionButtons->new({app => YuiRestClient::get_app()});
+    $self->{TopNavigationBar} = YaST::NetworkSettings::TopNavigationBar->new({app => YuiRestClient::get_app()});
+    $self->{OverviewTab} = YaST::NetworkSettings::v4_3::OverviewTab->new({app => YuiRestClient::get_app()});
+    $self->{HostnameDNSTab} = YaST::NetworkSettings::HostnameDNSTab->new({app => YuiRestClient::get_app()});
+    $self->{ActionButtons} = YaST::NetworkSettings::ActionButtons->new({app => YuiRestClient::get_app()});
     $self->{NotificationWarning} = YaST::Warning::Notification->new({app => YuiRestClient::get_app()});
     return $self;
 }

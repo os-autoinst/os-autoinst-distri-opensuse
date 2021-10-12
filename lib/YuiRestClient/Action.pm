@@ -15,11 +15,11 @@ use strict;
 use warnings;
 
 use constant {
-    YUI_PRESS      => 'press',
-    YUI_TOGGLE     => 'toggle',
-    YUI_CHECK      => 'check',
-    YUI_UNCHECK    => 'uncheck',
-    YUI_SELECT     => 'select',
+    YUI_PRESS => 'press',
+    YUI_TOGGLE => 'toggle',
+    YUI_CHECK => 'check',
+    YUI_UNCHECK => 'uncheck',
+    YUI_SELECT => 'select',
     YUI_ENTER_TEXT => 'enter_text'
 };
 

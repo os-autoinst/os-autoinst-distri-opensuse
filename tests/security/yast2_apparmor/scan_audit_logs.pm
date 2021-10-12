@@ -24,12 +24,12 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)          = shift;
-    my $test_file       = "/usr/sbin/nscd";
-    my $test_profile    = "/etc/apparmor.d/usr.sbin.nscd";
+    my ($self) = shift;
+    my $test_file = "/usr/sbin/nscd";
+    my $test_profile = "/etc/apparmor.d/usr.sbin.nscd";
     my $test_profile_bk = "/tmp/usr.sbin.nscd";
-    my $entry           = '#include <abstractions\/base>';
-    my $audit_log       = $apparmortest::audit_log;
+    my $entry = '#include <abstractions\/base>';
+    my $audit_log = $apparmortest::audit_log;
 
     # Set the testing profile to "enforce" mode
     assert_script_run("aa-enforce $test_file");
@@ -44,7 +44,7 @@ sub run {
     enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should no records
     assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
-    assert_and_click("AppArmor-Launch",          timeout => 60);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Scan-Audit-logs-no-records");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-o" };
@@ -72,7 +72,7 @@ sub run {
     enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should have records
     assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
-    assert_and_click("AppArmor-Launch",          timeout => 60);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Scan-Audit-logs-scan-records");
 
     # Audit the entry

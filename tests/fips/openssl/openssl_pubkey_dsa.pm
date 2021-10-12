@@ -33,10 +33,10 @@ use warnings;
 sub run {
     select_console 'root-console';
 
-    my $file_raw      = "hello.txt";
-    my $dgst_alg      = "sha256";
-    my $file_dgt      = $file_raw . ".$dgst_alg";
-    my $file_sig      = $file_dgt . ".sig";
+    my $file_raw = "hello.txt";
+    my $dgst_alg = "sha256";
+    my $file_dgt = $file_raw . ".$dgst_alg";
+    my $file_sig = $file_dgt . ".sig";
     my @dsa_key_sizes = (2048, 3072);
 
     # Add the openssl version check

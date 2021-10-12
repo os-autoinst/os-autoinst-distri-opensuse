@@ -79,7 +79,7 @@ sub ensure_unlocked_desktop {
 
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
-        push(@tags, 'blackscreen')      if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
+        push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
         assert_screen \@tags, no_wait => 1;
         # Starting with GNOME 40, upon login, the activities screen is open (assuming the
@@ -93,7 +93,7 @@ sub ensure_unlocked_desktop {
             # bsc#1159950 - gnome-session-failed is detected
             # Note: usually happens on *big* hardware with lot of cpus/memory
             record_soft_failure 'bsc#1159950 - [Build 108.1] openQA test fails in first_boot - gnome-session-failed is detected';
-            select_console 'root-console';               # Workaround command should be executed on a root console
+            select_console 'root-console';    # Workaround command should be executed on a root console
             script_run 'kill $(ps -ef | awk \'/[g]nome-session-failed/ { print $2 }\')';
             select_console 'x11', await_console => 0;    # Go back to X11
         }
@@ -208,8 +208,8 @@ Example:
 =cut
 sub handle_login {
     my ($myuser, $user_selected, $mypwd) = @_;
-    $myuser        //= $username;
-    $mypwd         //= $testapi::password;
+    $myuser //= $username;
+    $mypwd //= $testapi::password;
     $user_selected //= 0;
 
     save_screenshot();
@@ -268,8 +268,8 @@ sub handle_logout {
     mouse_hide();
     # logout
     if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
-        my $command      = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-        my $target_match = check_var('DESKTOP', 'gnome') ? undef                : 'logoutdialog';
+        my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
+        my $target_match = check_var('DESKTOP', 'gnome') ? undef : 'logoutdialog';
         x11_start_program($command, target_match => $target_match);    # opens logout dialog
     }
     else {
@@ -401,12 +401,12 @@ sub untick_welcome_on_next_startup {
         assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
         # Moving the cursor already causes screen changes - do not fail the check
         # immediately but allow some time to reach the final state
-        last                                          if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
+        last if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
         die "Unable to untick 'Show on next startup'" if $retry == 5;
     }
     for my $retry (1 .. 5) {
         send_key 'alt-f4';
-        last                                          if check_screen("generic-desktop", timeout => 5);
+        last if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
 }
@@ -435,7 +435,7 @@ Also handle workarounds when needed.
 sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203 opensuse-welcome-gnome40-activities)], $args{timeout});
-    send_key 'esc'                              if match_has_tag('opensuse-welcome-gnome40-activities');
+    send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
     workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
@@ -460,7 +460,7 @@ sub start_root_shell_in_xterm {
 handle_gnome_activities
 =cut
 sub handle_gnome_activities {
-    my @tags    = 'generic-desktop';
+    my @tags = 'generic-desktop';
     my $timeout = 600;
 
     push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');

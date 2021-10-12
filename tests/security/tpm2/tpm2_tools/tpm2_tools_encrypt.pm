@@ -29,7 +29,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Write/Read data to/from a Non-Volatile (NV) index
-    my $test_dir  = "tpm2_tools_encrypt";
+    my $test_dir = "tpm2_tools_encrypt";
     my $test_file = "nv.test_w";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";
@@ -45,9 +45,9 @@ sub run {
 
     # Create an ECC primary object
     my $context_out = "context.out";
-    my $key_priv    = "key.priv";
-    my $key_pub     = "key.pub";
-    my $key_ctx     = "key.ctx";
+    my $key_priv = "key.priv";
+    my $key_pub = "key.pub";
+    my $key_ctx = "key.ctx";
     assert_script_run "tpm2_createprimary -C o -g sha256 -G ecc -c $context_out -T tabrmd";
 
     # tpm2_create(1) - Create a child objec

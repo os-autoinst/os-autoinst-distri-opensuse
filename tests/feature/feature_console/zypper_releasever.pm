@@ -24,9 +24,9 @@ sub remove_repo {
 sub run {
     select_console 'root-console';
 
-    my $dist            = uc(get_var "DISTRI");
-    my $test_repo       = 'TEST';
-    my $zypper_ar_ok    = qr/^Repository .* successfully added/m;
+    my $dist = uc(get_var "DISTRI");
+    my $test_repo = 'TEST';
+    my $zypper_ar_ok = qr/^Repository .* successfully added/m;
     my $zypper_pk_block = qr/^Tell PackageKit to quit\?/m;
 
     # Add a test repo with $releasever var being used in its name

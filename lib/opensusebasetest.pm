@@ -34,7 +34,7 @@ sub grub_select;
 sub new {
     my ($class, $args) = @_;
     my $self = $class->SUPER::new($args);
-    $self->{in_wait_boot}    = 0;
+    $self->{in_wait_boot} = 0;
     $self->{in_boot_desktop} = 0;
     return $self;
 }
@@ -248,114 +248,114 @@ sub investigate_yast2_failure {
     }
     # Hash with critical errors in YaST2 and bug reference if any
     my %y2log_errors = (
-        "No textdomain configured"                   => undef,    # Detecting missing translations
-                                                                  # Detecting specific errors proposed by the YaST dev team
-        "nothing provides"                           => undef,    # Detecting missing required packages
-        "but this requirement cannot be provided"    => undef,    # Detecting package conflicts
-        "Could not load icon|Couldn't load pixmap"   => undef,    # Detecting missing icons
-        "Internal error. Please report a bug report" => undef,    # Detecting internal errors
-        "error.*@.*is not allowed"                   => undef,    # Detecting incompatible type classes, see bsc#1158589
+        "No textdomain configured" => undef,    # Detecting missing translations
+                                                # Detecting specific errors proposed by the YaST dev team
+        "nothing provides" => undef,            # Detecting missing required packages
+        "but this requirement cannot be provided" => undef,    # Detecting package conflicts
+        "Could not load icon|Couldn't load pixmap" => undef,   # Detecting missing icons
+        "Internal error. Please report a bug report" => undef, # Detecting internal errors
+        "error.*@.*is not allowed" => undef,                   # Detecting incompatible type classes, see bsc#1158589
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
         "<3>.*QueryWidget failed.*RichText.*VScrollValue" => 'bsc#1167248',
-        "<3>.*Solverrun finished with an ERROR"           => 'bsc#1170322',
-        "<3>.*3 packages failed.*badlist"                 => 'bsc#1170322',
-        "<3>.*Unknown option.*MultiSelectionBox widget"   => 'bsc#1170431',
-        "<3>.*XML.*Argument.*to Read.*is nil"             => 'bsc#1170432',
-        "<3>.*no[t]? mount"                               => 'bsc#1092088',    # Detect not mounted partition
-        "<3>.*lib/cheetah.rb"                             => 'bsc#1153749',
+        "<3>.*Solverrun finished with an ERROR" => 'bsc#1170322',
+        "<3>.*3 packages failed.*badlist" => 'bsc#1170322',
+        "<3>.*Unknown option.*MultiSelectionBox widget" => 'bsc#1170431',
+        "<3>.*XML.*Argument.*to Read.*is nil" => 'bsc#1170432',
+        "<3>.*no[t]? mount" => 'bsc#1092088',                  # Detect not mounted partition
+        "<3>.*lib/cheetah.rb" => 'bsc#1153749',
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
         # Adding reference to trello, detect those in single scenario
         # (build97.1) regressions
         # found https://openqa.suse.de/tests/3646274#step/logs_from_installation_system/412
-        "<3>.*SCR::Dir\\(\\) failed"                            => 'bsc#1158186',
-        "<3>.*Unknown desktop file: installation"               => 'bsc#1158186',
-        "<3>.*Bad options for module: virtio_net"               => 'bsc#1158186',
-        "<3>.*Wrong value for path ."                           => 'bsc#1158186',
-        "<3>.*setOptions:Empty map"                             => 'bsc#1158186',
-        "<3>.*Unmounting media failed"                          => 'bsc#1158186',
-        "<3>.*No base product has been found"                   => 'bsc#1158186',
-        "<3>.*Error output: dracut:"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Reading install.inf"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*shellcommand"                                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*libstorage.*device not found"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*lib/cheetah.rb.*Error output"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Slides.rb.*Directory.*does not exist"             => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*agent-ini.*(Can not open|Unable to stat)"         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Interpreter.*File not found"                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Interpreter.*Couldn't find an agent"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Interpreter.*Read.*failed"                        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*ag_uid.*argument is not a path"                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*ag_uid.*wrong command"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Interpreter.*'Syslog' failed"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*libycp.*No matching component found"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Perl.*Perl call of Log"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Y2Ruby.*SSHAuthorizedKeys.write_keys failed"      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Directory.* does not exist"                       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Cannot find the installed base product"           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Can not open"                                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*File not found"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Created symlink"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Unable to stat"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*cannot access"                                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*hostname: Temporary failure in name resolution"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*hostname: Name or service not known"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Couldn't find an agent to handle"                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Read.*failed:"                                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*SCR::Read"                                        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Failed to get unit file state for"                => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Running in chroot, ignoring request"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*The first argument is not a path"                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*wrong command (SetRoot), only Read is accepted"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Loading module.*failed"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*No matching component found"                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*for a Perl call of Log"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*SSHAuthorizedKeys.write_keys failed"              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*warning: Discarding improperly nested partition"  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*device not found, name"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Wrong source ID"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Argument.*nil.*to Write.*is nil"                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*UI::ChangeWidget failed"                          => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Error on key label of widget"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*inhibit udisks failed"                            => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Command not found"                                => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*converting.*to enum failed"                       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*No release notes URL for"                         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*btrfs subvolume not found"                        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Widget id.*is not unique"                         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*has no item with ID"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Label has no shortcut or more than 1 shortcuts"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*diff failed"                                      => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Failed to stat"                                   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*OPEN_FAILED opening"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*rpmdbInit error"                                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Bad directive: options"                           => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*Failed to initialize database"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "(<3>|<5>).*Rpm Exception"                              => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Cleanup on error"                                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*SCR::Dir\\(\\) failed" => 'bsc#1158186',
+        "<3>.*Unknown desktop file: installation" => 'bsc#1158186',
+        "<3>.*Bad options for module: virtio_net" => 'bsc#1158186',
+        "<3>.*Wrong value for path ." => 'bsc#1158186',
+        "<3>.*setOptions:Empty map" => 'bsc#1158186',
+        "<3>.*Unmounting media failed" => 'bsc#1158186',
+        "<3>.*No base product has been found" => 'bsc#1158186',
+        "<3>.*Error output: dracut:" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Reading install.inf" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*shellcommand" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*libstorage.*device not found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*lib/cheetah.rb.*Error output" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Slides.rb.*Directory.*does not exist" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*agent-ini.*(Can not open|Unable to stat)" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*File not found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*Couldn't find an agent" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*Read.*failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*ag_uid.*argument is not a path" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*ag_uid.*wrong command" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Interpreter.*'Syslog' failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*libycp.*No matching component found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Perl.*Perl call of Log" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Y2Ruby.*SSHAuthorizedKeys.write_keys failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Directory.* does not exist" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Cannot find the installed base product" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Can not open" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*File not found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Created symlink" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Unable to stat" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*cannot access" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*hostname: Temporary failure in name resolution" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*hostname: Name or service not known" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Couldn't find an agent to handle" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Read.*failed:" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*SCR::Read" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Failed to get unit file state for" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Running in chroot, ignoring request" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*The first argument is not a path" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*wrong command (SetRoot), only Read is accepted" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Loading module.*failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*No matching component found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*for a Perl call of Log" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*SSHAuthorizedKeys.write_keys failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*warning: Discarding improperly nested partition" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*device not found, name" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Wrong source ID" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Argument.*nil.*to Write.*is nil" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*UI::ChangeWidget failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Error on key label of widget" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*inhibit udisks failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Command not found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*converting.*to enum failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*No release notes URL for" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*btrfs subvolume not found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Widget id.*is not unique" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*has no item with ID" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Label has no shortcut or more than 1 shortcuts" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*diff failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Failed to stat" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*OPEN_FAILED opening" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*rpmdbInit error" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Bad directive: options" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Failed to initialize database" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "(<3>|<5>).*Rpm Exception" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Cleanup on error" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         "<3>.*Can't import namespace 'YaPI::SubscriptionTools'" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Can't find YCP client component wrapper_storage"  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*ChangeVolumeProperties device"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*can't find 'keyboard_raw_sles.ycp'"               => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*error accessing /usr/sbin/xfs_repair"             => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*home_path in control.xml does not start with /"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*CopyFilesToTemp\\(\\) needs to be called first"   => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*X11 configuration not written"                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Forcing /libQtGui.so.5 open failed"               => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*can't find 'consolefonts_sles.ycp'"               => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Could not import key.*Subprocess failed"          => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*baseproduct symlink is dangling or missing"       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*falling back to @\\{DEFAULT_HOME_PATH\\}"         => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Can't find YCP client component wrapper_storage" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*ChangeVolumeProperties device" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*can't find 'keyboard_raw_sles.ycp'" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*error accessing /usr/sbin/xfs_repair" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*home_path in control.xml does not start with /" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*CopyFilesToTemp\\(\\) needs to be called first" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*X11 configuration not written" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Forcing /libQtGui.so.5 open failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*can't find 'consolefonts_sles.ycp'" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Could not import key.*Subprocess failed" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*baseproduct symlink is dangling or missing" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*falling back to @\\{DEFAULT_HOME_PATH\\}" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
         # libzypp errors
         "<3>.*The requested URL returned error" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<3>.*Not adding cache"                 => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*Repository not found"             => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*File.*not found on medium"        => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*Login failed."                    => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*Path.*on medium"                  => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*Aborting requested by user"       => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
-        "<5>.*Exception.cc"                     => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<3>.*Not adding cache" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Repository not found" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*File.*not found on medium" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Login failed." => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Path.*on medium" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Aborting requested by user" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
+        "<5>.*Exception.cc" => 'https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup',
     );
 
     my $delimiter = '=========================================';
@@ -368,7 +368,7 @@ sub investigate_yast2_failure {
     }
     # Test if zgrep is available
     my $is_zgrep_available = (script_run('type zgrep') == 0);
-    my $cmd_prefix         = ($is_zgrep_available ? 'zgrep' : 'grep');
+    my $cmd_prefix = ($is_zgrep_available ? 'zgrep' : 'grep');
     # If zgrep is available, using wildcard to search in rolled archives,
     # And only in y2log in case of grep
     my $cmd_postfix = $logs_path . "/" . ($is_zgrep_available ? 'y2log*' : 'y2log') . ' || true';
@@ -427,10 +427,10 @@ This includes C</proc/loadavg>, C<ps axf>, complete journal since last boot, C<d
 =cut
 sub export_logs_basic {
     my ($self) = @_;
-    $self->save_and_upload_log('cat /proc/loadavg',              '/tmp/loadavg.txt', {screenshot => 1});
-    $self->save_and_upload_log('ps axf',                         '/tmp/psaxf.log',   {screenshot => 1});
+    $self->save_and_upload_log('cat /proc/loadavg', '/tmp/loadavg.txt', {screenshot => 1});
+    $self->save_and_upload_log('ps axf', '/tmp/psaxf.log', {screenshot => 1});
     $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
-    $self->save_and_upload_log('dmesg',                          '/tmp/dmesg.log',   {screenshot => 1});
+    $self->save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 1});
     $self->tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.bz2');
 
     for my $service (get_started_systemd_services()) {
@@ -467,7 +467,7 @@ sub export_logs {
     $self->export_logs_basic;
 
     # Just after the setup: let's see the network configuration
-    $self->save_and_upload_log("ip addr show",         "/tmp/ip-addr-show.log");
+    $self->save_and_upload_log("ip addr show", "/tmp/ip-addr-show.log");
     $self->save_and_upload_log("cat /etc/resolv.conf", "/tmp/resolv-conf.log");
 
     save_screenshot;
@@ -475,8 +475,8 @@ sub export_logs {
     $self->export_logs_desktop;
 
     $self->save_and_upload_log('systemctl list-unit-files', '/tmp/systemctl_unit-files.log');
-    $self->save_and_upload_log('systemctl status',          '/tmp/systemctl_status.log');
-    $self->save_and_upload_log('systemctl',                 '/tmp/systemctl.log', {screenshot => 1});
+    $self->save_and_upload_log('systemctl status', '/tmp/systemctl_status.log');
+    $self->save_and_upload_log('systemctl', '/tmp/systemctl.log', {screenshot => 1});
 
     if ($utils::IN_ZYPPER_CALL) {
         $self->upload_solvertestcase_logs();
@@ -493,8 +493,8 @@ This includes C<locale>, C<localectl> and C</etc/vconsole.conf>.
 =cut
 sub export_logs_locale {
     my ($self) = shift;
-    $self->save_and_upload_log('locale',                 '/tmp/locale.log');
-    $self->save_and_upload_log('localectl status',       '/tmp/localectl.log');
+    $self->save_and_upload_log('locale', '/tmp/locale.log');
+    $self->save_and_upload_log('localectl status', '/tmp/localectl.log');
     $self->save_and_upload_log('cat /etc/vconsole.conf', '/tmp/vconsole.conf');
 }
 
@@ -610,7 +610,7 @@ sub handle_uefi_boot_disk_workaround {
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # efi file, first check shim.efi exist or not
-    my $counter        = 10;
+    my $counter = 10;
     my $shim_efi_found = 1;
     while (!check_screen('tianocore-select_shim_efi', 2)) {
         wait_screen_change {
@@ -640,12 +640,12 @@ SUT is already expected to be within the grub menu.
 sub wait_grub {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // 100;
-    my $in_grub         = $args{in_grub}         // 0;
+    my $in_grub = $args{in_grub} // 0;
     my @tags;
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI');
     push @tags, 'grub2';
-    push @tags, 'boot-live-' . get_var('DESKTOP')     if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
-    push @tags, 'bootloader'                          if get_var('OFW');
+    push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
+    push @tags, 'bootloader' if get_var('OFW');
     push @tags, 'encrypted-disk-password-prompt-grub' if get_var('ENCRYPT');
     if (get_var('ONLINE_MIGRATION')) {
         push @tags, 'migration-source-system-grub2';
@@ -767,9 +767,9 @@ sub wait_grub_to_boot_on_local_disk {
 }
 
 sub reconnect_s390 {
-    my (%args)     = @_;
+    my (%args) = @_;
     my $ready_time = $args{ready_time};
-    my $textmode   = $args{textmode};
+    my $textmode = $args{textmode};
     return undef unless is_s390x;
     my $login_ready = get_login_message();
     if (check_var('BACKEND', 's390x')) {
@@ -780,7 +780,7 @@ sub reconnect_s390 {
         }
         $console->expect_3270(
             output_delim => $login_ready,
-            timeout      => $ready_time + 100
+            timeout => $ready_time + 100
         );
 
         # give the system time to have routes up
@@ -790,7 +790,7 @@ sub reconnect_s390 {
     }
     else {
         my $worker_hostname = get_required_var('WORKER_HOSTNAME');
-        my $virsh_guest     = get_required_var('VIRSH_GUEST');
+        my $virsh_guest = get_required_var('VIRSH_GUEST');
         workaround_type_encrypted_passphrase if get_var('S390_ZKVM');
 
         select_console('svirt');
@@ -803,11 +803,11 @@ sub reconnect_s390 {
         type_line_svirt "root", expect => 'Password';
         type_line_svirt "$testapi::password";
         type_line_svirt "systemctl is-active network", expect => 'active';
-        type_line_svirt 'systemctl is-active sshd',    expect => 'active';
+        type_line_svirt 'systemctl is-active sshd', expect => 'active';
 
         # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
         my $retries = 12;
-        my $port    = 22;
+        my $port = 22;
         for my $i (0 .. $retries) {
             die "The SSH Port in the SUT could not be reached within 1 minute, considering a product issue" if $i == $retries;
             if (IO::Socket::INET->new(PeerAddr => "$virsh_guest", PeerPort => $port)) {
@@ -902,8 +902,8 @@ sub grub_select {
 
 sub handle_grub {
     my ($self, %args) = @_;
-    my $bootloader_time  = $args{bootloader_time};
-    my $in_grub          = $args{in_grub};
+    my $bootloader_time = $args{bootloader_time};
+    my $in_grub = $args{in_grub};
     my $linux_boot_entry = $args{linux_boot_entry} // (is_sle('15+') ? 15 : 14);
     $linux_boot_entry = $linux_boot_entry - 1 if is_aarch64;    # poo#100500
 
@@ -933,7 +933,7 @@ sub wait_boot_textmode {
     # and use ssh connection to operate on the SUT, so do early return
     return if is_s390x;
 
-    my $ready_time       = $args{ready_time};
+    my $ready_time = $args{ready_time};
     my $textmode_needles = [qw(linux-login emergency-shell emergency-mode)];
     # 2nd stage of autoyast can be considered as linux-login
     push @{$textmode_needles}, 'autoyast-init-second-stage' if get_var('AUTOYAST');
@@ -999,9 +999,9 @@ behave as if the env var NOAUTOLOGIN was set.
 =cut
 sub wait_boot_past_bootloader {
     my ($self, %args) = @_;
-    my $textmode     = $args{textmode};
-    my $ready_time   = $args{ready_time} // 500;
-    my $nologin      = $args{nologin};
+    my $textmode = $args{textmode};
+    my $ready_time = $args{ready_time} // 500;
+    my $nologin = $args{nologin};
     my $forcenologin = $args{forcenologin};
 
     # On IPMI, when selecting x11 console, we are connecting to the VNC server on the SUT.
@@ -1025,7 +1025,7 @@ sub wait_boot_past_bootloader {
     }
 
     $self->handle_displaymanager_login(ready_time => $ready_time, nologin => $nologin) if (get_var("NOAUTOLOGIN") || get_var("XDMUSED") || $nologin || $forcenologin);
-    return                                                                             if $args{nologin};
+    return if $args{nologin};
 
     my @tags = qw(generic-desktop emergency-shell emergency-mode);
     push(@tags, 'opensuse-welcome') if opensuse_welcome_applicable;
@@ -1046,7 +1046,7 @@ sub wait_boot_past_bootloader {
     # using multiple check intervals here then we can get the wrong desktop
     # screenshot at least in case desktop screenshot changed, otherwise we get
     # the screenlock screenshot.
-    my $timeout        = $ready_time;
+    my $timeout = $ready_time;
     my $check_interval = 30;
     while ($timeout > $check_interval) {
         my $ret = check_screen \@tags, $check_interval;
@@ -1067,7 +1067,7 @@ sub wait_boot_past_bootloader {
     handle_emergency_if_needed;
 
     handle_broken_autologin_boo1102563() if match_has_tag('displaymanager');
-    handle_additional_polkit_windows     if match_has_tag('authentication-required-user-settings');
+    handle_additional_polkit_windows if match_has_tag('authentication-required-user-settings');
     if (match_has_tag('guest-disable-display')) {
         record_soft_failure 'bsc#1169723 - [Build 174.1] openQA test fails in first_boot - Guest disabled display shown when boot up after migration';
         send_key 'ret';
@@ -1096,9 +1096,9 @@ the env var NOAUTOLOGIN was set.
 sub wait_boot {
     my ($self, %args) = @_;
     my $bootloader_time = $args{bootloader_time} // ((is_pvm || is_ipmi) ? 300 : 100);
-    my $textmode        = $args{textmode};
-    my $ready_time      = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_ipmi) ? 500 : 300);
-    my $in_grub         = $args{in_grub}    // 0;
+    my $textmode = $args{textmode};
+    my $ready_time = $args{ready_time} // ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || is_ipmi) ? 500 : 300);
+    my $in_grub = $args{in_grub} // 0;
 
     die "wait_boot: got undefined class" unless $self;
     # used to register a post fail hook being active while we are waiting for
@@ -1163,8 +1163,8 @@ If C<$cmd> is set, the text will be prefixed by an C<echo> command.
 =cut
 sub enter_test_text {
     my ($self, $name, %args) = @_;
-    $name       //= 'your program';
-    $args{cmd}  //= 0;
+    $name //= 'your program';
+    $args{cmd} //= 0;
     $args{slow} //= 0;
     for (1 .. 13) { send_key 'ret' }
     my $text = "If you can see this text $name is working.\n";
@@ -1187,7 +1187,7 @@ under test, the version and if the SUT is an upgrade.
 
 =cut
 sub firewall {
-    my $old_product_versions      = is_sle('<15') || is_leap('<15.0');
+    my $old_product_versions = is_sle('<15') || is_leap('<15.0');
     my $upgrade_from_susefirewall = is_upgrade && get_var('HDD_1') =~ /\b(1[123]|42)[\.-]/;
     return (($old_product_versions || $upgrade_from_susefirewall) && !is_tumbleweed && !(check_var('SUSEFIREWALL2_SERVICE_CHECK', 1))) ? 'SuSEfirewall2' : 'firewalld';
 }
@@ -1295,7 +1295,7 @@ sub upload_coredumps {
         script_run("coredumpctl info --no-pager | tee coredump-info.log");
         upload_logs("coredump-info.log", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';
-        my @files   = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
+        my @files = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
         foreach my $file (@files) {
             upload_logs($basedir . $file, failok => $args{proceed_on_failure});
         }
@@ -1335,7 +1335,7 @@ sub post_fail_hook {
     if (get_var('FULL_LVM_ENCRYPT') && get_var('LVM_THIN_LV')) {
         select_console 'root-console';
         my $lvmdump_regex = qr{/root/lvmdump-.*?-\d+\.tgz};
-        my $out           = script_output('lvmdump', proceed_on_failure => 1);
+        my $out = script_output('lvmdump', proceed_on_failure => 1);
         if ($out =~ /(?<lvmdump_gzip>$lvmdump_regex)/) {
             upload_logs("$+{lvmdump_gzip}", failok => 1);
         }

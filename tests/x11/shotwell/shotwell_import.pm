@@ -19,7 +19,7 @@ use testapi;
 # Case 1503962 - Shotwell: Import image files
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
     $self->start_shotwell();

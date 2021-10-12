@@ -28,14 +28,14 @@ sub system_status {
     $log //= "/tmp/system-status.txt";
 
     my %cmds = (
-        kernel                     => "uname -a",
-        cpuinfo                    => "cat /proc/cpuinfo",
-        memory                     => "free -m",
-        repos                      => "zypper repos -u",
-        lspci                      => "lspci",
-        lsmod                      => "lsmod",
-        vmstat                     => "vmstat -w",
-        w                          => "w",
+        kernel => "uname -a",
+        cpuinfo => "cat /proc/cpuinfo",
+        memory => "free -m",
+        repos => "zypper repos -u",
+        lspci => "lspci",
+        lsmod => "lsmod",
+        vmstat => "vmstat -w",
+        w => "w",
         '/proc/sys/kernel/tainted' => "cat /proc/sys/kernel/tainted",
     );
 
@@ -63,9 +63,9 @@ sub dmesg_log {
 }
 
 sub upload_system_logs {
-    upload_logs(system_status(),  timeout => 100, failok => 1);
+    upload_logs(system_status(), timeout => 100, failok => 1);
     upload_logs(journalctl_log(), timeout => 100, failok => 1);
-    upload_logs(dmesg_log(),      timeout => 100, failok => 1);
+    upload_logs(dmesg_log(), timeout => 100, failok => 1);
 }
 
 sub upload_supportconfig_log {

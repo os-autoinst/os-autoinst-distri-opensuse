@@ -32,10 +32,10 @@ sub run {
         # create mutex lock and barriers
         mutex_create('master_ready');
         my $all_ses_nodes = get_var('NODE_COUNT') + 1;
-        barrier_create('network_configured',  $all_ses_nodes);
+        barrier_create('network_configured', $all_ses_nodes);
         barrier_create('master_chrony_ready', $all_ses_nodes);
-        barrier_create('deployment_done',     $all_ses_nodes);
-        barrier_create('all_tests_done',      $all_ses_nodes);
+        barrier_create('deployment_done', $all_ses_nodes);
+        barrier_create('all_tests_done', $all_ses_nodes);
     }
     else {
         mutex_lock('master_ready');
@@ -99,7 +99,7 @@ EOF
     if (get_var('SES_TEST_ISSUES')) {
         # repositories must contain SLE, SES and QAM update repo
         my $incident_number = get_var('SES_TEST_ISSUES');
-        my $version         = get_var('VERSION');
+        my $version = get_var('VERSION');
         validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
     }
 }

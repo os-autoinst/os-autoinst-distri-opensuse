@@ -17,7 +17,7 @@ use wsl qw(is_sut_reg);
 
 my %expected = (
     provider => get_var('WSL2') ? 'microsoft' : '(wsl|kvm)',
-    mount    => '/mnt/c'
+    mount => '/mnt/c'
 );
 
 sub run {
@@ -26,9 +26,9 @@ sub run {
     assert_and_click 'powershell-as-admin-window';
     enter_cmd 'exit';
     $self->open_powershell_as_admin();
-    $self->run_in_powershell(cmd => 'wsl --list --verbose',                                                     timeout => 60);
-    $self->run_in_powershell(cmd => "wsl mount | Select-String -Pattern $expected{mount}",                      timeout => 60);
-    $self->run_in_powershell(cmd => qq{wsl ls $expected{mount}},                                                timeout => 60);
+    $self->run_in_powershell(cmd => 'wsl --list --verbose', timeout => 60);
+    $self->run_in_powershell(cmd => "wsl mount | Select-String -Pattern $expected{mount}", timeout => 60);
+    $self->run_in_powershell(cmd => qq{wsl ls $expected{mount}}, timeout => 60);
     $self->run_in_powershell(cmd => qq/wsl systemd-detect-virt | Select-String -Pattern "$expected{provider}"/, timeout => 60);
     $self->run_in_powershell(cmd => 'wsl /bin/bash -c "dmesg | head -n 20"');
     $self->run_in_powershell(cmd => 'wsl env');
@@ -38,7 +38,7 @@ sub run {
         $self->run_in_powershell(cmd => 'wsl -u root zypper -q -n in python3', timeout => 120);
         $self->run_in_powershell(cmd => q{wsl python3 -c "print('Hello from Python living in WSL')"});
     }
-    $self->run_in_powershell(cmd => 'wsl --shutdown',       timeout => 60);
+    $self->run_in_powershell(cmd => 'wsl --shutdown', timeout => 60);
     $self->run_in_powershell(cmd => 'wsl --list --verbose', timeout => 60);
 }
 

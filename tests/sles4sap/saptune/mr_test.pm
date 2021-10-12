@@ -100,7 +100,7 @@ sub test_bsc1152598 {
 sub test_delete {
     my ($self) = @_;
 
-    my $dir  = "Pattern/testpattern_saptune-delete+rename";
+    my $dir = "Pattern/testpattern_saptune-delete+rename";
     my $note = "2161991";
 
     ### Deleting a shipped Note (without override/with override + not applied/applied)
@@ -181,7 +181,7 @@ sub test_delete {
 sub test_rename {
     my ($self) = @_;
 
-    my $dir  = "Pattern/testpattern_saptune-delete+rename";
+    my $dir = "Pattern/testpattern_saptune-delete+rename";
     my $note = "2161991";
 
     ### Renaming a shipped Note (without override/with override + not applied/applied)
@@ -265,8 +265,8 @@ sub test_rename {
 sub test_note {
     my ($self, $note) = @_;
 
-    my $SLE   = is_sle(">=15")       ? "SLE15" : "SLE12";
-    my $extra = ($note eq "1771258") ? "-1"    : "";
+    my $SLE = is_sle(">=15") ? "SLE15" : "SLE12";
+    my $extra = ($note eq "1771258") ? "-1" : "";
 
     assert_script_run "mr_test verify Pattern/${SLE}/testpattern_baseline_Cust";
     assert_script_run "mr_test dump Pattern/${SLE}/testpattern_note_${note}${extra}_b > baseline_testpattern_note_${note}${extra}_b";
@@ -384,10 +384,10 @@ sub test_x86_64 {
     my $note;
 
     if (is_sle(">=15")) {
-        $SLE  = "SLE15";
+        $SLE = "SLE15";
         $note = "2684254";
     } else {
-        $SLE  = "SLE12";
+        $SLE = "SLE12";
         $note = "2205917";
     }
 
@@ -436,8 +436,8 @@ sub run {
         $self->test_note($test) if ($test ne "1805750");
         $self->test_override($test);
     } elsif ($test =~ m/^(x86_64|ppc64le)$/) {
-        $self->test_x86_64     if (is_ipmi);
-        $self->test_ppc64le    if is_ppc64le();
+        $self->test_x86_64 if (is_ipmi);
+        $self->test_ppc64le if is_ppc64le();
         $self->test_bsc1152598 if is_sle('>12-SP3');
     } elsif ($test eq "delete_rename") {
         $self->test_delete;

@@ -25,14 +25,14 @@ sub run {
 
     for my $addon (split(/,/, get_required_var('ADDONURL'))) {
         my $uc_addon = uc($addon);
-        my $uri      = get_required_var("ADDONURL_$uc_addon");
-        my $alias    = get_required_var("REPO_SLE_PRODUCT_$uc_addon");
-        my $name     = get_required_var("DISTRI") . "-$addon";
+        my $uri = get_required_var("ADDONURL_$uc_addon");
+        my $alias = get_required_var("REPO_SLE_PRODUCT_$uc_addon");
+        my $name = get_required_var("DISTRI") . "-$addon";
         validate_repo_properties({
-                Alias       => $alias,
-                Name        => $name,
-                URI         => $uri,
-                Enabled     => 'Yes',
+                Alias => $alias,
+                Name => $name,
+                URI => $uri,
+                Enabled => 'Yes',
                 Autorefresh => 'On'
         });
     }

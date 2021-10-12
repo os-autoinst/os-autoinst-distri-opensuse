@@ -20,7 +20,7 @@ use parent 'Installation::WizardPage';
 
 use constant {
     PARTITIONING_SCHEME_PAGE => 'inst-partitioning-scheme',
-    ENABLED_LVM_CHECKBOX     => 'inst-partitioning-lvm-enabled'
+    ENABLED_LVM_CHECKBOX => 'inst-partitioning-lvm-enabled'
 };
 
 sub select_logical_volume_management_checkbox {

@@ -32,8 +32,8 @@ our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
 my $test_suite_data;
 my $root_project_dir = dirname(__FILE__) . '/../';
-my $include          = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
-my $ypp              = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+my $ypp = YAML::PP->new(schema => ['Core', $include, 'Merge']);
 $include->yp($ypp);
 $Data::Dumper::Terse = 1;
 
@@ -140,8 +140,8 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule              = $ypp->load_file($root_project_dir . $yamlfile);
-        my %schedule_vars         = parse_vars($schedule);
+        my $schedule = $ypp->load_file($root_project_dir . $yamlfile);
+        my %schedule_vars = parse_vars($schedule);
         my $test_context_instance = undef;
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
         my @schedule_modules = parse_schedule($schedule);

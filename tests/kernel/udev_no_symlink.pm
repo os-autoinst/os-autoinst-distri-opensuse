@@ -30,9 +30,9 @@ sub run {
 
     # Prepare HDD
     zypper_call('-q in parted');
-    my $udev_label     = "/run/udev/links/*by-partlabel*{primary,logical}/*";
-    my $udev_no_label  = "/run/udev/links/*by-partlabel*/*";
-    my $num_primary    = 101;
+    my $udev_label = "/run/udev/links/*by-partlabel*{primary,logical}/*";
+    my $udev_no_label = "/run/udev/links/*by-partlabel*/*";
+    my $num_primary = 101;
     my $num_openqapart = 10;
     my $cnt;
     assert_script_run('parted -s /dev/vdb mklabel gpt');

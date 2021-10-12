@@ -29,9 +29,9 @@ use main_common 'is_updates_tests';
 use transactional 'check_reboot_changes';
 
 my $transactional = get_var('TRANSACTIONAL_SERVER');
-my $arch          = get_var('ARCH');
+my $arch = get_var('ARCH');
 # Transform the format of the version, e.g. from 15-SP3 to 15.3
-my $version    = get_var('VERSION');
+my $version = get_var('VERSION');
 my $version_id = (split('-', $version))[0] . '.' . (split('P', (split('-', $version))[1]))[1];
 
 sub run {

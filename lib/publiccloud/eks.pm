@@ -25,14 +25,14 @@ Retrieves the full name of the uploaded image or die.
 sub push_container_image {
     my ($self, $image, $tag) = @_;
 
-    my $region     //= $self->region();
+    my $region //= $self->region();
     my $repository //= get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REPO", 'suse-qec-testing');
-    my $aws_account_id   = $self->{aws_account_id};
+    my $aws_account_id = $self->{aws_account_id};
     my $full_name_prefix = "$aws_account_id.dkr.ecr.$region.amazonaws.com";
-    my $full_name        = "$full_name_prefix/$repository:$tag";
+    my $full_name = "$full_name_prefix/$repository:$tag";
 
     $self->{repository} = $repository;
-    $self->{tag}        = $tag;
+    $self->{tag} = $tag;
 
     assert_script_run("aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $full_name_prefix");
     assert_script_run("docker tag $image $full_name");

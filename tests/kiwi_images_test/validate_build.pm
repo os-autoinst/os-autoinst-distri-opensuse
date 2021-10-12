@@ -27,7 +27,7 @@ use utils;
 my $logfile = 'build.log';
 
 sub run {
-    my $sle_version  = get_var('VERSION');
+    my $sle_version = get_var('VERSION');
     my $install_type = get_var('KIWI_OLD');
 
     # login in to system

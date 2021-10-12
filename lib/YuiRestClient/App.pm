@@ -36,11 +36,11 @@ sub new {
     my ($class, $args) = @_;
 
     return bless {
-        port              => $args->{port},
-        host              => $args->{host},
-        api_version       => $args->{api_version},
-        timeout           => $args->{timeout},
-        interval          => $args->{interval},
+        port => $args->{port},
+        host => $args->{host},
+        api_version => $args->{api_version},
+        timeout => $args->{timeout},
+        interval => $args->{interval},
         widget_controller =>
           YuiRestClient::Http::WidgetController->new($args)
     }, $class;
@@ -81,7 +81,7 @@ sub button {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Button->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -89,7 +89,7 @@ sub checkbox {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::CheckBox->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -97,7 +97,7 @@ sub combobox {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::ComboBox->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -105,7 +105,7 @@ sub itemselector {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::ItemSelector->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -113,7 +113,7 @@ sub label {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Label->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -121,7 +121,7 @@ sub menucollection {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::MenuCollection->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -129,7 +129,7 @@ sub radiobutton {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::RadioButton->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -137,7 +137,7 @@ sub richtext {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::RichText->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -145,7 +145,7 @@ sub selectionbox {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::SelectionBox->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -153,7 +153,7 @@ sub table {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Table->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -161,7 +161,7 @@ sub textbox {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Textbox->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -169,7 +169,7 @@ sub tree {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Tree->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 
@@ -177,7 +177,7 @@ sub tab {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::Tab->new({
             widget_controller => $self->{widget_controller},
-            filter            => YuiRestClient::Filter->new($filter)
+            filter => YuiRestClient::Filter->new($filter)
     });
 }
 

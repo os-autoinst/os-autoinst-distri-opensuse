@@ -18,9 +18,9 @@ use warnings;
 use strict;
 
 sub run {
-    my $self    = shift;
-    my $LUN     = get_var('PARM_LUN');
-    my $WWPN    = get_var('PARM_WWPN');
+    my $self = shift;
+    my $LUN = get_var('PARM_LUN');
+    my $WWPN = get_var('PARM_WWPN');
     my $ADAPTER = get_var('PARM_ADAPTER');
     $self->copy_testsuite('TOOL_s390_ziomon');
     assert_script_run('chmod +x ziomon_basic.pl');

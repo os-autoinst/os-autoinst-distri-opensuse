@@ -38,13 +38,13 @@ sub get_trafficgen_ip {
 }
 
 sub run {
-    my ($self)         = @_;
-    my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";
+    my ($self) = @_;
+    my $vsperf_repo = "https://gerrit.opnfv.org/gerrit/vswitchperf";
     my $vsperf_version = get_required_var('VSPERF_VERSION');
-    my $vnf_image      = get_required_var('VNF_IMAGE');
-    my $trafficgen_ip  = get_trafficgen_ip();
-    my $children       = get_children();
-    my $child_id       = (keys %$children)[0];
+    my $vnf_image = get_required_var('VNF_IMAGE');
+    my $trafficgen_ip = get_trafficgen_ip();
+    my $children = get_children();
+    my $child_id = (keys %$children)[0];
 
     $self->select_serial_terminal;
     record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
@@ -57,7 +57,7 @@ sub run {
 
     record_info("INFO", "Start openvswitch service");
     systemctl 'enable openvswitch', timeout => 60 * 2;
-    systemctl 'start openvswitch',  timeout => 60 * 2;
+    systemctl 'start openvswitch', timeout => 60 * 2;
 
     record_info("INFO", "VSPerf Installation");
     assert_script_run("cd vswitchperf/systems");

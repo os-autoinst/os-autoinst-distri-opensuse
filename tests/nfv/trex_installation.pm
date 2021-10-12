@@ -21,14 +21,14 @@ use lockapi;
 use mmapi;
 
 sub run {
-    my ($self)       = @_;
+    my ($self) = @_;
     my $trex_version = get_required_var('TG_VERSION');
-    my $tarball      = "$trex_version.tar.gz";
-    my $url          = "http://trex-tgn.cisco.com/trex/release/$tarball";
-    my $trex_dest    = "/tmp/trex-core";
-    my $trex_conf    = "/etc/trex_cfg.yaml";
-    my $PORT_1       = get_required_var('PORT_1');
-    my $PORT_2       = get_required_var('PORT_2');
+    my $tarball = "$trex_version.tar.gz";
+    my $url = "http://trex-tgn.cisco.com/trex/release/$tarball";
+    my $trex_dest = "/tmp/trex-core";
+    my $trex_conf = "/etc/trex_cfg.yaml";
+    my $PORT_1 = get_required_var('PORT_1');
+    my $PORT_2 = get_required_var('PORT_2');
 
     $self->select_serial_terminal;
 

@@ -33,9 +33,9 @@ sub run {
     save_screenshot;
 
     # The SAP Admin was set in sles4sap/wizard_hana_install
-    my $sid         = get_required_var('INSTANCE_SID');
+    my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
-    my $sapadm      = $self->set_sap_info($sid, $instance_id);
+    my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Test PIDs max, as SAP as some prerequisites on this and change for SAP user
     $self->test_pids_max;
@@ -49,8 +49,8 @@ sub run {
     # Run NVDIMM tests if in that scenario
     if (get_var('NVDIMM')) {
         $output = script_output "$hdbsql \"SELECT * FROM M_INIFILE_CONTENTS where file_name = 'global.ini' and section = 'persistence' and key = 'basepath_persistent_memory_volumes'\"";
-        my $pmempath = get_var('HANA_PMEM_BASEPATH',      "/hana/pmem/$sid");
-        my $nvddevs  = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
+        my $pmempath = get_var('HANA_PMEM_BASEPATH', "/hana/pmem/$sid");
+        my $nvddevs = get_var('NVDIMM_NAMESPACES_TOTAL', 2);
         foreach my $i (0 .. ($nvddevs - 1)) {
             die "hdbsql: HANA not configured with NVDIMM\n\n$output" unless ($output =~ /pmem$i/);
             assert_script_run "grep -q -w pmem$i /hana/shared/$sid/global/hdb/custom/config/global.ini";

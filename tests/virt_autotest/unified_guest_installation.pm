@@ -45,7 +45,7 @@ sub run {
     my $self = shift;
 
     $self->reveal_myself;
-    my @guest_names    = split(/,/, get_required_var('UNIFIED_GUEST_LIST'));
+    my @guest_names = split(/,/, get_required_var('UNIFIED_GUEST_LIST'));
     my @guest_profiles = split(/,/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     my %store_of_guests;

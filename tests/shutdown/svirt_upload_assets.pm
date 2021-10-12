@@ -19,11 +19,11 @@ use version_utils 'is_vmware';
 sub extract_assets {
     my ($args) = @_;
 
-    my $name   = $args->{name};
+    my $name = $args->{name};
     my $format = $args->{format};
 
     enter_cmd("clear");
-    my $image_storage  = '/var/lib/libvirt/images';
+    my $image_storage = '/var/lib/libvirt/images';
     my $svirt_img_name = $image_storage . '/' . $args->{svirt_name} . '.img';
     enter_cmd("test -e $svirt_img_name && echo 'OK'");
     assert_screen('svirt-asset-upload-hdd-image-exists');

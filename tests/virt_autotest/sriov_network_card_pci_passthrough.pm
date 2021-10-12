@@ -85,7 +85,7 @@ sub run_test {
         save_network_device_status_logs($log_dir, $guest, "1-initial");
 
         #detach 3 vf ethernet devices from host
-        my @vfs               = ();
+        my @vfs = ();
         my $passthru_vf_count = 3;    #the number of vfs to be passed through to guests
         for (my $i = 0; $i < $passthru_vf_count; $i++) {
 
@@ -219,7 +219,7 @@ sub enable_vf {
     }
 
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
-    my @vfs        = split("\n", $vf_devices);
+    my @vfs = split("\n", $vf_devices);
 
 }
 
@@ -333,7 +333,7 @@ sub plugin_vf_device {
     #get the mac address and bdf by parsing the domain xml
     #tips: there may be multiple interfaces and multiple hostdev devices in the guest
     my $nics_count = script_output "virsh dumpxml $vm --inactive | grep -c \"<interface.*type='hostdev'\"";
-    my $devs_xml   = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
+    my $devs_xml = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
     $vf->{host_id} =~ /pci_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)/;
     my ($dom, $bus, $slot, $func) = ($1, $2, $3, $4);    #these are different with those in host_devices.xml
     for (my $i = 0; $i < $nics_count; $i++) {
@@ -419,7 +419,7 @@ sub save_network_device_status_logs {
 
     #list pci devices in guest
     print_cmd_output_to_file("lspci", $log_file, $vm);
-    print_cmd_output_to_file("ip a",  $log_file, $vm);
+    print_cmd_output_to_file("ip a", $log_file, $vm);
     print_cmd_output_to_file("lsmod", $log_file, $vm) if is_xen_host;
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";

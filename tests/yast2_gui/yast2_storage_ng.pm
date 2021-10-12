@@ -213,7 +213,7 @@ sub run {
     wait_screen_change { send_key "alt-a" };
     # alt-v doesn't work reliably, so we have to use assert_and_click
     assert_and_click "yast2_storage_ng-add-volume-group" if is_sle("<=15");
-    send_key 'v'                                         if is_sle("15-sp3+");
+    send_key 'v' if is_sle("15-sp3+");
     type_string_very_slow "vgtest";
     wait_still_screen 3;
     assert_and_click "yast2_storage_ng-vg-select-device";

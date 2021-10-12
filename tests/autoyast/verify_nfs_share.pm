@@ -19,7 +19,7 @@ use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub check_nfs_server {
-    my $data     = shift;
+    my $data = shift;
     my $expected = "$data->{remote_dir} *";
     record_info('showmount', 'Check export list for server');
     my $actual = script_output("showmount -e --no-headers $data->{server}");

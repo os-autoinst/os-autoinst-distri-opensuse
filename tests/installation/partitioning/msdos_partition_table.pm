@@ -18,7 +18,7 @@ use testapi;
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data   = get_test_suite_data;
+    my $test_data = get_test_suite_data;
     my $partitioner = $testapi::distri->get_expert_partitioner;
     $partitioner->run_expert_partitioner;
     foreach my $disk (@{$test_data->{disks}}) {
@@ -26,7 +26,7 @@ sub run {
                 table_type => $disk->{table_type}, accept_deleting_current_devices_warning => 0});
         foreach my $partition (@{$disk->{partitions}}) {
             $partitioner->add_partition_msdos({
-                    disk      => $disk->{name},
+                    disk => $disk->{name},
                     partition => $partition
             });
         }

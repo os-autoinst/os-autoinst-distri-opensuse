@@ -22,7 +22,7 @@ use virt_utils;
 sub get_script_run {
     my ($self) = @_;
 
-    my $src_ip   = $self->get_var_from_parent('SRC_IP');
+    my $src_ip = $self->get_var_from_parent('SRC_IP');
     my $src_user = $self->get_var_from_parent('SRC_USER');
     my $src_pass = $self->get_var_from_parent('SRC_PASS');
     handle_sp_in_settings_with_sp0("GUEST_LIST");
@@ -42,7 +42,7 @@ sub run {
 
     my $timeout = get_var("MAX_JOB_TIME", "10800") - 30;
     our $virt_v2v_log_dir = "/tmp/virt-v2v/";
-    our $virt_v2v_log     = "$virt_v2v_log_dir/virt-v2v.log";
+    our $virt_v2v_log = "$virt_v2v_log_dir/virt-v2v.log";
     my $log_dirs = "$virt_v2v_log_dir /var/log/libvirt /var/log/messages";
 
     assert_script_run("mkdir -p $virt_v2v_log_dir");

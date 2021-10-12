@@ -20,8 +20,8 @@ use registration 'add_suseconnect_product';
 use audit_test;
 
 sub run {
-    my ($self)   = @_;
-    my $tmp_dir  = $audit_test::tmp_dir;
+    my ($self) = @_;
+    my $tmp_dir = $audit_test::tmp_dir;
     my $test_dir = $audit_test::test_dir;
     my $file_tar = $audit_test::testfile_tar . '.tar';
 

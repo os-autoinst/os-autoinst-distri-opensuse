@@ -24,7 +24,7 @@ sub run {
     my $self = shift;
 
     #Configure Ip adress to Multimachine setup
-    $self->run_in_powershell(cmd => 'ipconfig',         tags => 'win-ad-powershell');
+    $self->run_in_powershell(cmd => 'ipconfig', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'Get-NetIPAddress', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'New-NetIPAddress -InterfaceAlias Ethernet -IPAddress 10.0.2.101 -PrefixLength 24 -DefaultGateway 10.0.2.101', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'Set-DnsClientServerAddress -InterfaceAlias Ethernet -ServerAddresses ("10.0.2.101","127.0.0.1")', tags => 'win-ad-powershell');
@@ -56,16 +56,16 @@ sub run {
     $self->open_powershell_as_admin;
 
     #Check if AD is running, and create one user test with Unix attributes:
-    $self->run_in_powershell(cmd => 'ipconfig',                        tags => 'win-ad-powershell');
+    $self->run_in_powershell(cmd => 'ipconfig', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'Start-Service adws,kdc,Netlogon', tags => 'win-ad-powershell');
-    $self->run_in_powershell(cmd => 'Get-Service adws,kdc,Netlogon',   tags => 'win-ad-powershell');
-    $self->run_in_powershell(cmd => 'Get-ADDomain geeko.com',          tags => 'win-ad-powershell');
-    $self->run_in_powershell(cmd => 'Get-ADForest geeko.com',          tags => 'win-ad-powershell');
+    $self->run_in_powershell(cmd => 'Get-Service adws,kdc,Netlogon', tags => 'win-ad-powershell');
+    $self->run_in_powershell(cmd => 'Get-ADDomain geeko.com', tags => 'win-ad-powershell');
+    $self->run_in_powershell(cmd => 'Get-ADForest geeko.com', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'New-ADUser -Name "geekouser" -GivenName GeekoUser -Surname Test -SamAccountName geekouser -UserPrincipalName geekouser@geeko.com', tags => 'win-ad-powershell');
 
     $self->run_in_powershell(cmd => 'Get-ADUser geekouser', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'Set-ADAccountPassword "CN=geekouser,CN=users,DC=geeko,DC=com" -Reset -NewPassword (ConvertTo-SecureString -AsPlainText "Test@123" -Force)', tags => 'win-ad-powershell');
-    $self->run_in_powershell(cmd => 'Enable-ADAccount -Identity geekouser',         tags => 'win-ad-powershell');
+    $self->run_in_powershell(cmd => 'Enable-ADAccount -Identity geekouser', tags => 'win-ad-powershell');
     $self->run_in_powershell(cmd => 'Add-AdGroupMember "Domain Admins" geekouser ', tags => 'win-ad-powershell');
 
     #Open Users and Groups
@@ -77,7 +77,7 @@ sub run {
     send_key 'v';
     release_key 'alt';
     #Select usertest on Users
-    assert_and_click("mmc-geeko-users",    button => 'left', dclick => 1);
+    assert_and_click("mmc-geeko-users", button => 'left', dclick => 1);
     assert_and_click("mmc-geekouser-open", button => 'left', dclick => 1);
     #select Atribute Editor tab, and got to Unix attribts:
     assert_and_click("mmc-geeko-select-attribute");

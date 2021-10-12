@@ -21,10 +21,10 @@ use Installation::License::LicenseAgreementExplicitPage;
 sub init {
     my ($self, $args) = @_;
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementExplicitPage->new({
-            app                      => YuiRestClient::get_app(),
+            app => YuiRestClient::get_app(),
             ch_accept_license_filter => {id => '"eula_/usr/share/licenses/product/base/"'},
-            cb_language_filter       => {id => '"license_language_/usr/share/licenses/product/base/"'},
-            rt_eula_filter           => {id => '"welcome_text_/usr/share/licenses/product/base/"'}});
+            cb_language_filter => {id => '"license_language_/usr/share/licenses/product/base/"'},
+            rt_eula_filter => {id => '"welcome_text_/usr/share/licenses/product/base/"'}});
     return $self;
 }
 

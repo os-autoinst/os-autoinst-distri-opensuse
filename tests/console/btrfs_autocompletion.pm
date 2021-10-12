@@ -46,9 +46,9 @@ sub run {
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
 
-    compare_commands("btrfs device stats ",                  "btrfs d\tst\t");
-    compare_commands("btrfs subvolume get-default ",         "btrfs su\tg\t");
-    compare_commands("btrfs filesystem usage ",              "btrfs fi\tu\t");
+    compare_commands("btrfs device stats ", "btrfs d\tst\t");
+    compare_commands("btrfs subvolume get-default ", "btrfs su\tg\t");
+    compare_commands("btrfs filesystem usage ", "btrfs fi\tu\t");
     compare_commands("btrfs inspect-internal min-dev-size ", "btrfs i\tm\t");
 
     # Check loading of complete function

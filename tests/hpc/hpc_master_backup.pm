@@ -24,7 +24,7 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
 

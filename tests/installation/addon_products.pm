@@ -18,7 +18,7 @@ use testapi;
 
 sub run {
     if (check_screen('network-setup', 10)) {    # won't appear for NET installs
-        send_key $cmd{next};                        # use network
+        send_key $cmd{next};                    # use network
         assert_screen 'dhcp-network';
         wait_screen_change { send_key 'alt-d' };    # DHCP
         send_key 'alt-o';                           # OK
@@ -30,8 +30,8 @@ sub run {
 
         # FIXME: do the same as sle here
         foreach my $url (split(/\+/, get_var("ADDONURL"))) {
-            send_key "alt-a";                            # Add another
-            send_key $cmd{xnext};                        # Specify URL (default)
+            send_key "alt-a";    # Add another
+            send_key $cmd{xnext};    # Specify URL (default)
             wait_still_screen(1);
             type_string $url;
             wait_screen_change { send_key $cmd{next} };
@@ -52,7 +52,7 @@ sub run {
             send_key $cmd{xnext};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
-            send_key_until_needlematch "addon-dvd-$i",   'down';
+            send_key_until_needlematch "addon-dvd-$i", 'down';
             send_key 'alt-o';
             if (get_var("BETA")) {
                 assert_screen "addon-betawarning-$i";

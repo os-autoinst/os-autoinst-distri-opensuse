@@ -57,7 +57,7 @@ sub check_guest_ip {
     # ensure guest is still alive
     if (script_output("virsh domstate $guest") eq "running") {
         script_run "sed -i '/ $guest /d' /etc/hosts";
-        my $mac_guest  = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
+        my $mac_guest = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
         my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
         script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
@@ -70,7 +70,7 @@ sub check_guest_ip {
 sub check_guest_module {
     my ($guest, %args) = @_;
     my $module = $args{module};
-    my $net    = $args{net} // "br123";
+    my $net = $args{net} // "br123";
     if (($guest =~ m/sles-?11/i) && ($module eq "acpiphp")) {
         save_guest_ip("$guest", name => $net);
         my $status = script_run("ssh root\@$guest \"lsmod | grep $module\"");
@@ -89,7 +89,7 @@ sub save_guest_ip {
     if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30, die => 0) != 0) {
         script_run "sed -i '/ $guest /d' /etc/hosts";
         assert_script_run "virsh domiflist $guest";
-        my $mac_guest  = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
+        my $mac_guest = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
         my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
         script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
         my $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
@@ -101,12 +101,12 @@ sub save_guest_ip {
 
 sub test_network_interface {
     my ($guest, %args) = @_;
-    my $net      = $args{net};
-    my $mac      = $args{mac};
-    my $gate     = $args{gate};
+    my $net = $args{net};
+    my $mac = $args{mac};
+    my $gate = $args{gate};
     my $isolated = $args{isolated} // 0;
-    my $routed   = $args{routed}   // 0;
-    my $target   = $args{target}   // script_output("dig +short openqa.suse.de");
+    my $routed = $args{routed} // 0;
+    my $target = $args{target} // script_output("dig +short openqa.suse.de");
 
     check_guest_ip("$guest") if (is_sle('>15') && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
@@ -165,9 +165,9 @@ sub test_network_interface {
 
 sub download_network_cfg {
     #Download required libvird virtual network configuration file
-    my $vnet_cfg_name       = shift;
-    my $wait_script         = "180";
-    my $vnet_cfg_url        = data_url("virt_autotest/$vnet_cfg_name");
+    my $vnet_cfg_name = shift;
+    my $wait_script = "180";
+    my $vnet_cfg_url = data_url("virt_autotest/$vnet_cfg_name");
     my $download_cfg_script = "curl -s -o ~/$vnet_cfg_name $vnet_cfg_url";
     script_output($download_cfg_script, $wait_script, type_command => 0, proceed_on_failure => 0);
 }
@@ -180,9 +180,9 @@ sub prepare_network {
     if (script_run("[[ -f $config_path ]]") != 0) {
         assert_script_run("ip link add name $virt_host_bridge type bridge");
         assert_script_run("ip link set dev $virt_host_bridge up");
-        my $wait_script          = "180";
-        my $bash_script_name     = "vm_host_bridge_init.sh";
-        my $bash_script_url      = data_url("virt_autotest/$bash_script_name");
+        my $wait_script = "180";
+        my $bash_script_name = "vm_host_bridge_init.sh";
+        my $bash_script_url = data_url("virt_autotest/$bash_script_name");
         my $download_bash_script = "curl -s -o ~/$bash_script_name $bash_script_url";
         script_output($download_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_bash_script = "chmod +x ~/$bash_script_name && ~/$bash_script_name $virt_host_bridge";
@@ -203,9 +203,9 @@ sub restore_network {
         #Restore all defined guest system before restore Network setting on vm host
         restore_guests();
         assert_script_run("rm -rf /etc/sysconfig/network/ifcfg-$virt_host_bridge*", 60);
-        my $wait_script          = "180";
-        my $bash_script_name     = "vm_host_bridge_final.sh";
-        my $bash_script_url      = data_url("virt_autotest/$bash_script_name");
+        my $wait_script = "180";
+        my $bash_script_name = "vm_host_bridge_final.sh";
+        my $bash_script_url = data_url("virt_autotest/$bash_script_name");
         my $download_bash_script = "curl -s -o ~/$bash_script_name $bash_script_url";
         script_output($download_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_bash_script = "chmod +x ~/$bash_script_name && ~/$bash_script_name $virt_host_bridge";
@@ -229,7 +229,7 @@ sub hosts_backup {
     #During virtual network testing, there will be modified file /etc/hosts depend on
     #testing required, to keep connection both on vm host and guests system via ssh
     #So, would be better to backup file /etc/hosts before virtual network testing
-    my $hosts_file   = "/etc/hosts";
+    my $hosts_file = "/etc/hosts";
     my $hosts_backup = "/etc/hosts.orig";
     assert_script_run("cp $hosts_file $hosts_backup", 60) if (script_run("[[ -f $hosts_file ]]") == 0);
 }
@@ -238,7 +238,7 @@ sub hosts_restore {
     #After finished all virtual network testing, need to restore file /etc/hosts from backup
     #for the following virt_auto testing
     my $hosts_restore = "/etc/hosts.orig";
-    my $hosts_file    = "/etc/hosts";
+    my $hosts_file = "/etc/hosts";
     assert_script_run("cp $hosts_restore $hosts_file", 60) if (script_run("[[ -f $hosts_restore ]]") == 0);
 }
 
@@ -254,8 +254,8 @@ sub restart_network {
 
 sub restore_guests {
     return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
-    my $get_vm_hostnames   = "virsh list --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    my $get_vm_hostnames = "virsh list --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
+    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
     {
@@ -267,8 +267,8 @@ sub restore_guests {
 
 sub destroy_vir_network {
     #Get the created virtual network name
-    my $get_vnet_name   = "virsh net-list --all| grep vnet | head -1 | awk \'{print \$1}\'";
-    my $vnet_name       = script_output($get_vnet_name, 30, type_command => 0, proceed_on_failure => 0);
+    my $get_vnet_name = "virsh net-list --all| grep vnet | head -1 | awk \'{print \$1}\'";
+    my $vnet_name = script_output($get_vnet_name, 30, type_command => 0, proceed_on_failure => 0);
     my @vnet_name_array = split(/\n+/, $vnet_name);
     foreach (@vnet_name_array) { script_run("virsh net-destroy $_"); }
 }
@@ -300,10 +300,10 @@ sub upload_debug_log {
 }
 
 sub check_guest_status {
-    my $wait_script        = "30";
-    my $vm_types           = "sles";
-    my $get_vm_hostnames   = "virsh list  --all | grep $vm_types | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
+    my $wait_script = "30";
+    my $vm_types = "sles";
+    my $get_vm_hostnames = "virsh list  --all | grep $vm_types | awk \'{print \$2}\'";
+    my $vm_hostnames = script_output($get_vm_hostnames, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array) {
         if (script_run("virsh list --all | grep $_ | grep shut") != 0) { script_run "virsh destroy $_", 90;
@@ -331,9 +331,9 @@ sub get_active_pool_and_available_space {
     # get some debug info about storage pool
     script_run 'virsh pool-list --details';
     # ensure the available disk space size for active pool
-    my $active_pool    = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
+    my $active_pool = script_output("virsh pool-list --persistent | grep active | awk '{print \$1}'");
     my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
-    my $pool_unit      = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
+    my $pool_unit = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
     # default available pool unit as GiB
     $available_size = ($pool_unit eq "TiB") ? int($available_size * 1024) : int($available_size);
     return ($active_pool, $available_size);

@@ -22,10 +22,10 @@ use utils;
 use mailtest;
 
 sub run {
-    my $self         = shift;
+    my $self = shift;
     my $postfix_conf = "/etc/postfix/main.cf";
     my $postfix_cert = "/etc/postfix/ssl/postfix.crt";
-    my $postfix_key  = "/etc/postfix/ssl/postfix.key";
+    my $postfix_key = "/etc/postfix/ssl/postfix.key";
 
     select_console "root-console";
     prepare_mail_server;

@@ -37,7 +37,7 @@ sub get_last_snap_number {
     die "Unable to receive snapshot list column header line - got this output: $snap_head" unless (@lines);
     $snap_head = $lines[0];
 
-    my $snap_col_found    = 0;
+    my $snap_col_found = 0;
     my $snap_id_col_index = 1;
     for my $field (split(/\|/, $snap_head)) {
         $field =~ s/^\s+|\s+$//g;    # trim spaces

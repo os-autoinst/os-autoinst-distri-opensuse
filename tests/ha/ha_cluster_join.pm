@@ -22,7 +22,7 @@ use utils qw(zypper_call);
 sub wait_for_password_prompt {
     my %args = @_;
     $args{timeout} //= $default_timeout;
-    $args{failok}  //= 0;
+    $args{failok} //= 0;
     die((caller(0))[3] . ' expects a needle tag or ref in the "needle => $tag" arg') unless $args{needle};
     if (is_serial_terminal()) {
         die "Timed out while waiting for password prompt" unless (wait_serial(qr/Password:\s*$/i));

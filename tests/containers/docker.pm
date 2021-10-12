@@ -47,7 +47,7 @@ sub run {
     $self->select_serial_terminal;
 
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
-    my $dir        = "/root/DockerTest";
+    my $dir = "/root/DockerTest";
 
     my ($running_version, $sp, $host_distri) = get_os_release;
     my $engine = containers::engine::docker->new();

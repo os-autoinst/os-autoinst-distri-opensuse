@@ -193,7 +193,7 @@ sub setup_env {
         # Save the original target version, needed for testing upgrade from a beta version to a non-beta
         # SLE12-SP5 to SLE15-SP1 for example
         set_var('ORIGINAL_TARGET_VERSION', get_var('VERSION'));
-        set_var('VERSION',                 get_var('UPGRADE_TARGET_VERSION'));
+        set_var('VERSION', get_var('UPGRADE_TARGET_VERSION'));
     }
 }
 
@@ -307,8 +307,8 @@ sub is_updates_test_repo {
 }
 
 sub is_repo_replacement_required {
-    return is_opensuse()                  # Is valid scenario onlu for openSUSE
-      && !is_staging()                    # Do not have mirrored repos on staging
+    return is_opensuse()    # Is valid scenario onlu for openSUSE
+      && !is_staging()      # Do not have mirrored repos on staging
       && !get_var('KEEP_ONLINE_REPOS')    # Set variable no to replace variables
       && get_var('SUSEMIRROR')            # Skip if required variable is not set (leap live tests)
       && !get_var('ZYPPER_ADD_REPOS')     # Skip if manual repos are specified
@@ -332,15 +332,15 @@ sub is_desktop_module_selected {
       get_var('ADDONS', '') =~ /all-packages|desktop|we/
       || get_var('ADDONURL', '') =~ /desktop|we/
       || (!is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we|productivity|ha/)
-      || (is_sle('15+')  && get_var('SCC_ADDONS', '') =~ /desktop|we/)
+      || (is_sle('15+') && get_var('SCC_ADDONS', '') =~ /desktop|we/)
       || is_sles4sap;
 }
 
 sub default_desktop {
     return 'textmode' if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
-    return            if get_var('VERSION', '') lt '12';
-    return 'gnome'    if get_var('VERSION', '') lt '15';
-    return 'gnome'    if get_var('VERSION', '') =~ /^Jump/;
+    return if get_var('VERSION', '') lt '12';
+    return 'gnome' if get_var('VERSION', '') lt '15';
+    return 'gnome' if get_var('VERSION', '') =~ /^Jump/;
     # with SLE 15 LeanOS only the default is textmode
     return 'gnome' if get_var('BASE_VERSION', '') =~ /^12/;
     return 'gnome' if is_desktop_module_selected;
@@ -473,7 +473,7 @@ sub load_zdup_tests {
     # Restrict version switch to sle until opensuse adopts it
     loadtest "migration/version_switch_upgrade_target" if is_sle and get_var("UPGRADE_TARGET_VERSION");
     loadtest 'boot/boot_to_desktop';
-    loadtest "installation/opensuse_welcome"  if opensuse_welcome_applicable();
+    loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable();
     loadtest 'console/check_upgraded_service' if !is_desktop;
 }
 
@@ -580,8 +580,8 @@ sub load_jeos_tests {
     }
 
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    replace_opensuse_repos_tests              if is_repo_replacement_required;
-    loadtest 'console/verify_efi_mok'         if get_var 'CHECK_MOK_IMPORT';
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+    loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
 }
 
 sub installzdupstep_is_applicable {
@@ -695,7 +695,7 @@ sub remove_common_needles {
     remove_desktop_needles("textmode");
 
     unregister_needle_tags("ENV-VIDEOMODE-text") unless check_var("VIDEOMODE", "text");
-    unregister_needle_tags('ENV-ARCH-s390x')     unless is_s390x;
+    unregister_needle_tags('ENV-ARCH-s390x') unless is_s390x;
     # Only for container tests
     unregister_needle_tags('ENV-UBUNTU-1') unless get_var('HDD_1', '') =~ /ubuntu/;
     if (get_var("INSTLANG") && get_var("INSTLANG") ne "en_US") {
@@ -734,9 +734,9 @@ sub map_incidents_to_repo {
 our %valueranges = (
 
     #   LVM=>[0,1],
-    NOIMAGES  => [0, 1],
+    NOIMAGES => [0, 1],
     USEIMAGES => [0, 1],
-    DOCRUN    => [0, 1],
+    DOCRUN => [0, 1],
 
     #   BTRFS=>[0,1],
     DESKTOP => [qw(kde gnome xfce lxde minimalx textmode serverro)],
@@ -1216,7 +1216,7 @@ sub load_consoletests {
         loadtest "console/mariadb_srv";
         # disable these tests of server packages for SLED (poo#36436)
         load_console_server_tests() unless is_desktop;
-        load_extra_tests_docker()   unless (!is_opensuse || is_desktop || !is_released);
+        load_extra_tests_docker() unless (!is_opensuse || is_desktop || !is_released);
     }
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
@@ -1324,12 +1324,12 @@ sub load_x11tests {
     if (snapper_is_applicable() and !is_sles4sap()) {
         loadtest "x11/yast2_snapper";
     }
-    loadtest "x11/thunar"   if xfcestep_is_applicable();
+    loadtest "x11/thunar" if xfcestep_is_applicable();
     loadtest "x11/glxgears" if packagekit_available && !get_var('LIVECD');
     if (gnomestep_is_applicable()) {
         loadtest "x11/nautilus" unless get_var("LIVECD");
-        loadtest "x11/gnome_music"    if is_opensuse;
-        loadtest "x11/evolution"      if (!is_server() || we_is_applicable());
+        loadtest "x11/gnome_music" if is_opensuse;
+        loadtest "x11/evolution" if (!is_server() || we_is_applicable());
         load_testdir('x11/gnomeapps') if is_gnome_next;
     }
     loadtest "x11/desktop_mainmenu";
@@ -1437,8 +1437,8 @@ sub load_extra_tests_y2uitest_gui {
     # On openSUSE, the scheduling happens in schedule/yast2_gui.yaml
     if (get_var("QAM_YAST2UI")) {
         loadtest "yast2_gui/yast2_bootloader" if is_sle("12-SP2+");
-        loadtest "yast2_gui/yast2_security"   if is_sle("12-SP2+");
-        loadtest "yast2_gui/yast2_keyboard"   if is_sle("12-SP2+");
+        loadtest "yast2_gui/yast2_security" if is_sle("12-SP2+");
+        loadtest "yast2_gui/yast2_keyboard" if is_sle("12-SP2+");
         loadtest "yast2_gui/yast2_instserver" unless (is_sle('<12-SP3') || is_leap('<15.0'));
         loadtest "yast2_gui/yast2_storage_ng" if is_sle("15+") || is_leap("15.0+") || is_tumbleweed;
     }
@@ -1608,7 +1608,7 @@ sub load_extra_tests_console {
     loadtest "console/cleanup_qam_testrepos" if has_test_issues;
     # JeOS kernel is missing 'openvswitch' kernel module
     loadtest "console/openvswitch" unless is_jeos;
-    loadtest "console/pam"         unless is_leap;
+    loadtest "console/pam" unless is_leap;
     loadtest "console/shar";
     # dependency of git test
     loadtest "console/sshd";
@@ -1673,7 +1673,7 @@ sub load_extra_tests_console {
     loadtest 'console/supportutils' if (is_sle && !is_jeos);
     loadtest 'console/mdadm' unless (is_jeos || get_var('PUBLIC_CLOUD'));
     loadtest 'console/journalctl';
-    loadtest 'console/quota'   unless (is_jeos);
+    loadtest 'console/quota' unless (is_jeos);
     loadtest 'console/vhostmd' unless get_var('PUBLIC_CLOUD');
     loadtest 'console/rpcbind' unless is_jeos;
     # sysauth test scenarios run in the console
@@ -1684,17 +1684,17 @@ sub load_extra_tests_console {
     loadtest "console/lshw" if ((is_sle('15+') && (is_ppc64le || is_x86_64)) || is_opensuse);
     loadtest 'console/kmod';
     loadtest 'console/suse_module_tools';
-    loadtest 'console/zziplib'   if (is_sle('12-SP4+') && !is_jeos);
+    loadtest 'console/zziplib' if (is_sle('12-SP4+') && !is_jeos);
     loadtest 'console/firewalld' if is_sle('15+') || is_leap('15.0+') || is_tumbleweed;
     loadtest 'console/aaa_base' unless is_jeos;
-    loadtest 'console/libgpiod'  if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
+    loadtest 'console/libgpiod' if (is_leap('15.1+') || is_tumbleweed) && !(is_jeos && is_x86_64);
     loadtest 'console/osinfo_db' if (is_sle('12-SP3+') && !is_jeos);
     loadtest 'console/libgcrypt' if ((is_sle(">=12-SP4") && (check_var_array('ADDONS', 'sdk') || check_var_array('SCC_ADDONS', 'sdk'))) || is_opensuse);
     loadtest "console/gd";
-    loadtest 'console/gcc'               unless is_sle('<=12-SP3');
-    loadtest 'console/valgrind'          unless is_sle('<=12-SP3');
-    loadtest 'console/sssd_samba'        unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
-    loadtest 'console/wpa_supplicant'    unless (!is_x86_64    || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
+    loadtest 'console/gcc' unless is_sle('<=12-SP3');
+    loadtest 'console/valgrind' unless is_sle('<=12-SP3');
+    loadtest 'console/sssd_samba' unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
+    loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
     loadtest 'console/python_scientific' unless (is_sle("<15"));
     loadtest "console/parsec" if is_tumbleweed;
 }
@@ -1722,7 +1722,7 @@ sub load_extra_tests_docker {
     }
     loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
     loadtest 'containers/registry';
-    loadtest "containers/zypper_docker"   unless is_tumbleweed;
+    loadtest "containers/zypper_docker" unless is_tumbleweed;
     loadtest "containers/rootless_podman" unless is_sle('<15-SP2');
 }
 
@@ -1801,15 +1801,15 @@ sub load_extra_tests_filesystem {
     }
     loadtest 'console/snapper_used_space' if (is_sle('15-SP1+') || (is_opensuse && !is_leap('<15.1')));
     loadtest "console/udisks2" unless (is_sle('<=15-SP2') || get_var('VIRSH_VMM_FAMILY') =~ /xen/);
-    loadtest "console/zfs"  if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
+    loadtest "console/zfs" if (is_leap(">=15.1") && is_x86_64 && !is_jeos);
     loadtest "network/cifs" if (is_sle('>=15-sp3') || is_opensuse);
 }
 
 sub get_wicked_tests {
-    my (%args)    = @_;
-    my $basedir   = $bmwqemu::vars{CASEDIR} . '/tests/';
-    my $suite     = get_required_var('WICKED');
-    my $exclude   = get_var('WICKED_EXCLUDE', '$a');
+    my (%args) = @_;
+    my $basedir = $bmwqemu::vars{CASEDIR} . '/tests/';
+    my $suite = get_required_var('WICKED');
+    my $exclude = get_var('WICKED_EXCLUDE', '$a');
     my $suite_dir = $basedir . 'wicked/' . $suite . '/';
     my $tests_dir = $suite_dir . 'sut/';
     my @tests;
@@ -1834,7 +1834,7 @@ sub get_wicked_tests {
 }
 
 sub wicked_init_locks {
-    my $args         = OpenQA::Test::RunArgs->new();
+    my $args = OpenQA::Test::RunArgs->new();
     my @wicked_tests = get_wicked_tests(only_names => 1);
     $args->{wicked_tests} = \@wicked_tests;
     loadtest('wicked/locks_init', run_args => $args);
@@ -1842,7 +1842,7 @@ sub wicked_init_locks {
 
 sub load_extra_tests_wicked {
     wicked_init_locks();
-    my $ctx   = wicked::TestContext->new();
+    my $ctx = wicked::TestContext->new();
     my @tests = get_wicked_tests();
     for my $test (@tests) {
         $test =~ s/\/sut\//\/ref\// if (get_var('IS_WICKED_REF'));
@@ -1912,7 +1912,7 @@ sub load_x11_installation {
     loadtest "x11/x11_setup";
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     loadtest "console/system_prepare";
-    loadtest "console/hostname"              unless is_bridged_networking;
+    loadtest "console/hostname" unless is_bridged_networking;
     loadtest "console/force_scheduled_tasks" unless is_jeos;
     loadtest "shutdown/grub_set_bootargs";
     load_shutdown_tests;
@@ -2039,7 +2039,7 @@ sub load_x11_remote {
     if (check_var('REMOTE_DESKTOP_TYPE', 'one_time_vnc')) {
         loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_tigervnc';
         loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_remmina' if is_sle('>=15');
-        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_java'    if is_sle('<12-sp4');
+        loadtest 'x11/remote_desktop/onetime_vncsession_xvnc_java' if is_sle('<12-sp4');
         loadtest 'x11/remote_desktop/onetime_vncsession_multilogin_failed';
     }
     # load persistemt vncsession, x11 forwarding, xdmcp with gdm testing
@@ -2143,7 +2143,7 @@ sub load_applicationstests {
 sub load_security_console_prepare {
     loadtest "console/consoletest_setup";
     loadtest "security/test_repo_setup" if (get_var("SECURITY_TEST") =~ /^crypt_/ && !is_opensuse);
-    loadtest "fips/fips_setup"          if (get_var("FIPS_ENABLED"));
+    loadtest "fips/fips_setup" if (get_var("FIPS_ENABLED"));
     loadtest "console/openssl_alpn";
 }
 
@@ -2629,15 +2629,15 @@ sub load_security_tests {
 
 sub load_system_prepare_tests {
     loadtest 'console/system_prepare' unless is_opensuse;
-    loadtest 'ses/install_ses'                if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
+    loadtest 'ses/install_ses' if check_var_array('ADDONS', 'ses') || check_var_array('SCC_ADDONS', 'ses');
     loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests and !get_var("USER_SPACE_TESTSUITES"));
-    loadtest 'console/integration_services'   if is_hyperv || is_vmware;
+    loadtest 'console/integration_services' if is_hyperv || is_vmware;
     loadtest 'console/hostname' unless is_bridged_networking;
     loadtest 'console/install_rt_kernel' if check_var('SLE_PRODUCT', 'SLERT');
     loadtest 'console/force_scheduled_tasks' unless is_jeos;
     loadtest 'console/check_selinux_fails' if get_var('SELINUX');
     # Remove repos pointing to download.opensuse.org and add snaphot repo from o3
-    replace_opensuse_repos_tests          if is_repo_replacement_required;
+    replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/scc_deregistration' if get_var('SCC_DEREGISTER');
     loadtest 'shutdown/grub_set_bootargs';
 }
@@ -2679,7 +2679,7 @@ sub load_hypervisor_tests {
 
     # Install hypervisor via autoyast or manually
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_boot_tests                     if check_var('VIRT_PART', 'install');
+    load_boot_tests if check_var('VIRT_PART', 'install');
 
     if (get_var("AUTOYAST")) {
         loadtest "autoyast/installation";
@@ -2692,7 +2692,7 @@ sub load_hypervisor_tests {
     loadtest "virt_autotest/login_console";
 
     if (check_var('VIRT_PART', 'install')) {
-        loadtest 'virtualization/universal/prepare_guests';         # Prepare libvirt and install guests
+        loadtest 'virtualization/universal/prepare_guests';    # Prepare libvirt and install guests
         loadtest 'virtualization/universal/ssh_hypervisor_init';    # Configure SSH for hypervisor
         loadtest 'virtualization/universal/waitfor_guests';         # Wait for guests to be installed
 
@@ -2760,7 +2760,7 @@ sub load_hypervisor_tests {
     }
 
     if (check_var('VIRT_PART', 'final')) {
-        loadtest 'virtualization/universal/ssh_final';            # Check that every guest is reachable over SSH
+        loadtest 'virtualization/universal/ssh_final';    # Check that every guest is reachable over SSH
         loadtest 'virtualization/universal/virtmanager_final';    # Check that every guest shows the login screen
         loadtest "virtualization/universal/smoketest";            # Virtualization smoke test for hypervisor
         loadtest "virtualization/universal/stresstest";           # Perform stress tests on the guests
@@ -2810,8 +2810,8 @@ sub load_qam_publiccloud_tests {
 
     loadtest "publiccloud/download_repos";
     loadtest "publiccloud/prepare_instance", run_args => $args;
-    loadtest "publiccloud/register_system",  run_args => $args;
-    loadtest "publiccloud/transfer_repos",   run_args => $args;
+    loadtest "publiccloud/register_system", run_args => $args;
+    loadtest "publiccloud/transfer_repos", run_args => $args;
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest("publiccloud/img_proof", run_args => $args);
@@ -2904,13 +2904,13 @@ sub load_transactional_role_tests {
 }
 
 sub load_common_opensuse_sle_tests {
-    load_autoyast_clone_tests           if get_var("CLONE_SYSTEM");
-    load_publiccloud_tests              if get_var('PUBLIC_CLOUD');
-    loadtest "terraform/create_image"   if get_var('TERRAFORM');
-    load_create_hdd_tests               if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
+    load_autoyast_clone_tests if get_var("CLONE_SYSTEM");
+    load_publiccloud_tests if get_var('PUBLIC_CLOUD');
+    loadtest "terraform/create_image" if get_var('TERRAFORM');
+    load_create_hdd_tests if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
-    load_installation_validation_tests  if get_var('INSTALLATION_VALIDATION');
-    load_transactional_role_tests       if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
+    load_installation_validation_tests if get_var('INSTALLATION_VALIDATION');
+    load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
 }
 
 sub load_ssh_key_import_tests {
@@ -2970,7 +2970,7 @@ sub load_ha_cluster_tests {
     if (get_var('HDDVERSION')) {
         loadtest 'ha/setup_hosts_and_luns' unless get_var('USE_SUPPORT_SERVER');
         loadtest 'ha/upgrade_from_sle11sp4_workarounds' if check_var('HDDVERSION', '11-SP4');
-        loadtest 'ha/migrate_clvmd_to_lvmlockd'         if (is_sle('15-SP2+') and get_var('HDDVERSION') =~ /1[12]-SP/);
+        loadtest 'ha/migrate_clvmd_to_lvmlockd' if (is_sle('15-SP2+') and get_var('HDDVERSION') =~ /1[12]-SP/);
         loadtest 'ha/check_after_reboot';
         loadtest 'ha/check_hawk';
         return 1;
@@ -3069,7 +3069,7 @@ sub load_ha_cluster_tests {
                 loadtest 'ha/check_after_reboot';
             }
             # Test Haproxy
-            loadtest 'ha/haproxy'    if (get_var('HA_CLUSTER_HAPROXY'));
+            loadtest 'ha/haproxy' if (get_var('HA_CLUSTER_HAPROXY'));
             loadtest 'ha/check_logs' if !get_var('INSTALLONLY');
             return 1;
         }
@@ -3192,7 +3192,7 @@ sub load_public_cloud_patterns_validation_tests {
     # setup $serialdev permission and so on
     loadtest "console/consoletest_setup";
     loadtest 'console/validate_pcm_azure' if check_var('VALIDATE_PCM_PATTERN', 'azure');
-    loadtest 'console/validate_pcm_aws'   if check_var('VALIDATE_PCM_PATTERN', 'aws');
+    loadtest 'console/validate_pcm_aws' if check_var('VALIDATE_PCM_PATTERN', 'aws');
     loadtest "console/consoletest_finish";
 }
 
@@ -3231,8 +3231,8 @@ sub load_lvm_tests {
 }
 
 sub load_kernel_baremetal_tests {
-    set_var('ADDONURL', 'sdk')          if (is_sle('>=12') && is_sle('<15')) && !is_released;
-    loadtest "kernel/ibtests_barriers"  if get_var("IBTESTS");
+    set_var('ADDONURL', 'sdk') if (is_sle('>=12') && is_sle('<15')) && !is_released;
+    loadtest "kernel/ibtests_barriers" if get_var("IBTESTS");
     loadtest "autoyast/prepare_profile" if get_var("AUTOYAST_PREPARE_PROFILE");
     if (get_var('IPXE')) {
         loadtest "installation/ipxe_install";

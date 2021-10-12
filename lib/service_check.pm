@@ -49,8 +49,8 @@ our @EXPORT = qw(
   check_services
 );
 
-our $support_ver_def  = '12+';
-our $support_ver_12   = '=12';
+our $support_ver_def = '12+';
+our $support_ver_12 = '=12';
 our $support_ver_ge15 = '15+';
 our $support_ver_ge12 = '12+';
 our $support_ver_ge11 = '11+';
@@ -58,135 +58,135 @@ our $support_ver_lt15 = '<15';
 
 our %srv_check_results = (
     before_migration => 'PASS',
-    after_migration  => 'PASS',
+    after_migration => 'PASS',
 );
 
 our $default_services = {
     users => {
-        srv_pkg_name         => 'users',
-        srv_proc_name        => 'users',
-        support_ver          => $support_ver_ge12,
-        service_check_func   => \&services::users::full_users_check,
+        srv_pkg_name => 'users',
+        srv_proc_name => 'users',
+        support_ver => $support_ver_ge12,
+        service_check_func => \&services::users::full_users_check,
         service_cleanup_func => \&services::users::users_cleanup
     },
     hpcpackage_remain => {
-        srv_pkg_name       => 'hpcpackage_remain',
-        srv_proc_name      => 'hpcpackage_remain',
-        support_ver        => $support_ver_ge15,
+        srv_pkg_name => 'hpcpackage_remain',
+        srv_proc_name => 'hpcpackage_remain',
+        support_ver => $support_ver_ge15,
         service_check_func => \&services::hpcpackage_remain::full_pkgcompare_check
     },
     registered_addons => {
-        srv_pkg_name       => 'registered_addons',
-        srv_proc_name      => 'registered_addons',
-        support_ver        => $support_ver_def,
+        srv_pkg_name => 'registered_addons',
+        srv_proc_name => 'registered_addons',
+        support_ver => $support_ver_def,
         service_check_func => \&services::registered_addons::full_registered_check
     },
     susefirewall => {
-        srv_pkg_name       => 'SuSEfirewall2',
-        srv_proc_name      => 'SuSEfirewall2',
-        support_ver        => $support_ver_lt15,
+        srv_pkg_name => 'SuSEfirewall2',
+        srv_proc_name => 'SuSEfirewall2',
+        support_ver => $support_ver_lt15,
         service_check_func => \&services::firewall::full_firewall_check
     },
     firewall => {
-        srv_pkg_name  => 'firewalld',
+        srv_pkg_name => 'firewalld',
         srv_proc_name => 'firewalld.service',
-        support_ver   => $support_ver_ge15
+        support_ver => $support_ver_ge15
     },
     ntp => {
-        srv_pkg_name       => 'ntp',
-        srv_proc_name      => 'ntpd',
-        support_ver        => $support_ver_lt15,
+        srv_pkg_name => 'ntp',
+        srv_proc_name => 'ntpd',
+        support_ver => $support_ver_lt15,
         service_check_func => \&services::ntpd::full_ntpd_check
     },
     chrony => {
-        srv_pkg_name  => 'chrony',
+        srv_pkg_name => 'chrony',
         srv_proc_name => 'chronyd',
-        support_ver   => $support_ver_ge15
+        support_ver => $support_ver_ge15
     },
     postfix => {
-        srv_pkg_name       => 'postfix',
-        srv_proc_name      => 'postfix',
-        support_ver        => $support_ver_def,
+        srv_pkg_name => 'postfix',
+        srv_proc_name => 'postfix',
+        support_ver => $support_ver_def,
         service_check_func => \&services::postfix::full_postfix_check
     },
     # Quick hack for poo 50576, we need this workround before full solution
     apache => {
-        srv_pkg_name       => 'apache2',
-        srv_proc_name      => 'apache2',
-        support_ver        => $support_ver_ge11,
+        srv_pkg_name => 'apache2',
+        srv_proc_name => 'apache2',
+        support_ver => $support_ver_ge11,
         service_check_func => \&services::apache::full_apache_check
     },
     dhcpd => {
-        srv_pkg_name       => 'dhcp-server',
-        srv_proc_name      => 'dhcpd',
-        support_ver        => $support_ver_ge11,
+        srv_pkg_name => 'dhcp-server',
+        srv_proc_name => 'dhcpd',
+        support_ver => $support_ver_ge11,
         service_check_func => \&services::dhcpd::full_dhcpd_check
     },
     bind => {
-        srv_pkg_name  => 'bind',
+        srv_pkg_name => 'bind',
         srv_proc_name => 'named',
-        support_ver   => $support_ver_ge11
+        support_ver => $support_ver_ge11
     },
     snmp => {
-        srv_pkg_name  => 'net-snmp',
+        srv_pkg_name => 'net-snmp',
         srv_proc_name => 'snmpd',
-        support_ver   => $support_ver_def
+        support_ver => $support_ver_def
     },
     nfs => {
-        srv_pkg_name       => 'yast2-nfs-server',
-        srv_proc_name      => 'nfs',
-        support_ver        => $support_ver_def,
+        srv_pkg_name => 'yast2-nfs-server',
+        srv_proc_name => 'nfs',
+        support_ver => $support_ver_def,
         service_check_func => \&check_y2_nfs_func
     },
     rpcbind => {
-        srv_pkg_name       => 'rpcbind',
-        srv_proc_name      => 'rpcbind',
-        support_ver        => $support_ver_ge11,
+        srv_pkg_name => 'rpcbind',
+        srv_proc_name => 'rpcbind',
+        support_ver => $support_ver_ge11,
         service_check_func => \&services::rpcbind::full_rpcbind_check
     },
     autofs => {
-        srv_pkg_name       => 'autofs',
-        srv_proc_name      => 'autofs',
-        support_ver        => $support_ver_ge11,
+        srv_pkg_name => 'autofs',
+        srv_proc_name => 'autofs',
+        support_ver => $support_ver_ge11,
         service_check_func => \&full_autofs_check
     },
     cups => {
-        srv_pkg_name       => 'cups',
-        srv_proc_name      => 'cups',
-        support_ver        => $support_ver_ge11,
+        srv_pkg_name => 'cups',
+        srv_proc_name => 'cups',
+        support_ver => $support_ver_ge11,
         service_check_func => \&services::cups::full_cups_check
     },
     radvd => {
-        srv_pkg_name  => 'radvd',
+        srv_pkg_name => 'radvd',
         srv_proc_name => 'radvd',
-        support_ver   => $support_ver_ge11
+        support_ver => $support_ver_ge11
     },
     cron => {
-        srv_pkg_name  => 'cron',
+        srv_pkg_name => 'cron',
         srv_proc_name => 'cron',
-        support_ver   => $support_ver_ge11
+        support_ver => $support_ver_ge11
     },
     apparmor => {
-        srv_pkg_name       => 'apparmor',
-        srv_proc_name      => 'apparmor',
-        support_ver        => $support_ver_ge12,
+        srv_pkg_name => 'apparmor',
+        srv_proc_name => 'apparmor',
+        support_ver => $support_ver_ge12,
         service_check_func => \&services::apparmor::full_apparmor_check
     },
     vsftp => {
-        srv_pkg_name  => 'vsftpd',
+        srv_pkg_name => 'vsftpd',
         srv_proc_name => 'vsftpd',
-        support_ver   => $support_ver_def
+        support_ver => $support_ver_def
     },
     kdump => {
-        srv_pkg_name       => 'kdump',
-        srv_proc_name      => 'kdump',
-        support_ver        => $support_ver_def,
+        srv_pkg_name => 'kdump',
+        srv_proc_name => 'kdump',
+        support_ver => $support_ver_def,
         service_check_func => \&full_kdump_check
     },
     libvirtd => {
-        srv_pkg_name       => 'libvirtd',
-        srv_proc_name      => 'libvirtd',
-        support_ver        => $support_ver_def,
+        srv_pkg_name => 'libvirtd',
+        srv_proc_name => 'libvirtd',
+        support_ver => $support_ver_def,
         service_check_func => \&services::libvirtd::full_libvirtd_check
     },
 };
@@ -245,10 +245,10 @@ sub install_services {
     assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if is_ppc64le;
     assert_script_run '. /etc/bash.bashrc.local';
     foreach my $s (sort keys %$service) {
-        my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
+        my $srv_pkg_name = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
-        my $support_ver   = $service->{$s}->{support_ver};
-        my $service_type  = 'SystemV';
+        my $support_ver = $service->{$s}->{support_ver};
+        my $service_type = 'SystemV';
         next unless _is_applicable($srv_pkg_name);
         record_info($srv_pkg_name, "service check before migration");
         # We assume this service $service->{$s} passed at install_service
@@ -295,10 +295,10 @@ check service status after migration
 sub check_services {
     my ($service) = @_;
     foreach my $s (sort keys %$service) {
-        my $srv_pkg_name  = $service->{$s}->{srv_pkg_name};
+        my $srv_pkg_name = $service->{$s}->{srv_pkg_name};
         my $srv_proc_name = $service->{$s}->{srv_proc_name};
-        my $support_ver   = $service->{$s}->{support_ver};
-        my $service_type  = 'Systemd';
+        my $support_ver = $service->{$s}->{support_ver};
+        my $service_type = 'Systemd';
         next unless (($service->{$s}->{before_migration} eq 'PASS') && _is_applicable($srv_pkg_name));
         record_info($srv_pkg_name, "service check after migration");
         eval {

@@ -20,7 +20,7 @@ use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::AddressTab';
 
 use constant {
-    ADDRESS_TAB     => 'yast2_lan_address_tab_selected',
+    ADDRESS_TAB => 'yast2_lan_address_tab_selected',
     VLAN_ID_WARNING => 'yast2_lan_vlan_id_warning'
 };
 

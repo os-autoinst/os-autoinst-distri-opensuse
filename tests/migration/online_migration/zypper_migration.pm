@@ -32,19 +32,19 @@ sub run {
     select_console 'root-console';
 
     # precompile regexes
-    my $zypper_continue               = qr/^Continue\? \[y/m;
-    my $zypper_migration_target       = qr/\[num\/q\]/m;
-    my $zypper_disable_repos          = qr/^Disable obsolete repository/m;
-    my $zypper_migration_conflict     = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
-    my $zypper_migration_error        = qr/^Abort, retry, ignore\? \[a/m;
+    my $zypper_continue = qr/^Continue\? \[y/m;
+    my $zypper_migration_target = qr/\[num\/q\]/m;
+    my $zypper_disable_repos = qr/^Disable obsolete repository/m;
+    my $zypper_migration_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
+    my $zypper_migration_error = qr/^Abort, retry, ignore\? \[a/m;
     my $zypper_migration_fileconflict = qr/^File conflicts .*^Continue\? \[y/ms;
-    my $zypper_migration_done         = qr/^Executing.*after online migration|^ZYPPER-DONE/m;
+    my $zypper_migration_done = qr/^Executing.*after online migration|^ZYPPER-DONE/m;
     my $zypper_migration_notification = qr/^View the notifications now\? \[y/m;
-    my $zypper_migration_failed       = qr/^Migration failed/m;
-    my $zypper_migration_bsc1184347   = qr/rpmdb2solv: invalid option -- 'D'/m;
-    my $zypper_migration_license      = qr/Do you agree with the terms of the license\? \[y/m;
-    my $zypper_migration_urlerror     = qr/URI::InvalidURIError/m;
-    my $zypper_migration_reterror     = qr/^No migration available|Can't get available migrations/m;
+    my $zypper_migration_failed = qr/^Migration failed/m;
+    my $zypper_migration_bsc1184347 = qr/rpmdb2solv: invalid option -- 'D'/m;
+    my $zypper_migration_license = qr/Do you agree with the terms of the license\? \[y/m;
+    my $zypper_migration_urlerror = qr/URI::InvalidURIError/m;
+    my $zypper_migration_reterror = qr/^No migration available|Can't get available migrations/m;
 
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
@@ -55,14 +55,14 @@ sub run {
         script_run("(zypper migration $option; echo ZYPPER-DONE) |& tee /dev/$serialdev", 0);
     }
     # migration process take long time
-    my $timeout          = 7200;
+    my $timeout = 7200;
     my $migration_checks = [
-        $zypper_migration_target, $zypper_disable_repos,      $zypper_continue,               $zypper_migration_done,
-        $zypper_migration_error,  $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
-        $zypper_migration_failed, $zypper_migration_license,  $zypper_migration_reterror,     $zypper_migration_signing_key
+        $zypper_migration_target, $zypper_disable_repos, $zypper_continue, $zypper_migration_done,
+        $zypper_migration_error, $zypper_migration_conflict, $zypper_migration_fileconflict, $zypper_migration_notification,
+        $zypper_migration_failed, $zypper_migration_license, $zypper_migration_reterror, $zypper_migration_signing_key
     ];
     my $zypper_migration_error_cnt = 0;
-    my $out                        = wait_serial($migration_checks, $timeout);
+    my $out = wait_serial($migration_checks, $timeout);
     while ($out) {
         diag "out=$out";
         if ($out =~ $zypper_migration_target) {

@@ -45,14 +45,14 @@ our @EXPORT = qw(
   pre_run_hook
 );
 
-our $oval_result         = "scan-oval-results.xml";
-our $oval_result_single  = "scan-oval-results-single.xml";
-our $xccdf_result        = "scan-xccdf-results.xml";
+our $oval_result = "scan-oval-results.xml";
+our $oval_result_single = "scan-oval-results-single.xml";
+our $xccdf_result = "scan-xccdf-results.xml";
 our $xccdf_result_single = "scan-xccdf-results-single.xml";
 
-our $source_ds        = 'source-ds.xml';
+our $source_ds = 'source-ds.xml';
 our $source_ds_result = 'source-ds-results.xml';
-our $arf_result       = "arf-results.xml";
+our $arf_result = "arf-results.xml";
 
 sub oscap_get_test_file {
     my ($source) = @_;

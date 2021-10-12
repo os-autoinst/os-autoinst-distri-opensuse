@@ -35,8 +35,8 @@ sub from_rpm {
 sub run {
     my $self = shift;
     my $repo = get_var('CHANGE_KERNEL_REPO');
-    my $rpm  = get_var('ASSET_CHANGE_KERNEL_RPM');
-    my $pkg  = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
+    my $rpm = get_var('ASSET_CHANGE_KERNEL_RPM');
+    my $pkg = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
 
     $self->wait_boot;
     $self->select_serial_terminal;

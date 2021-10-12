@@ -30,7 +30,7 @@ use power_action_utils 'power_action';
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
-    $name      //= 'grub_comment';
+    $name //= 'grub_comment';
     $user_data //= 'bootloader="Bootloader_Comment"';
     # Open the 'C'reate dialog and wait until it is there
     send_key "alt-c";

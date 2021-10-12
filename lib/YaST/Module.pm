@@ -33,16 +33,16 @@ C<$ui> - User interface the module is expected to be opened with (Possible value
 =cut
 
 sub open {
-    my %args   = @_;
+    my %args = @_;
     my $module = $args{module};
-    my $ui     = lc($args{ui});
-    die 'No module name specified.'    unless defined $module;
+    my $ui = lc($args{ui});
+    die 'No module name specified.' unless defined $module;
     die 'No user interface specified.' unless defined $ui;
     if ($ui eq 'ncurses') {
         yast2_console_exec(
             yast2_module => $module,
-            yast2_opts   => '--ncurses',
-            extra_vars   => get_var('YUI_PARAMS')
+            yast2_opts => '--ncurses',
+            extra_vars => get_var('YUI_PARAMS')
         );
     }
     elsif ($ui eq 'qt') {

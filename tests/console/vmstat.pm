@@ -46,8 +46,8 @@ sub run {
     assert_script_run("vmstat 2 10 > /tmp/output_light.log");
     assert_script_run("cat /tmp/output_light.log");
     my ($mem_lite_load_ref, $cpu_lite_load_ref) = read_memory_cpu("/tmp/output_light.log");
-    my @mem_lite_load     = @$mem_lite_load_ref;
-    my @cpu_lite_load     = @$cpu_lite_load_ref;
+    my @mem_lite_load = @$mem_lite_load_ref;
+    my @cpu_lite_load = @$cpu_lite_load_ref;
     my $min_mem_lightload = min(@mem_lite_load);
     my $min_cpu_lightload = min(@cpu_lite_load);
 
@@ -69,8 +69,8 @@ sub run {
     assert_script_run("killall stress-ng");
 
     my ($mem_hvy_ref, $cpu_hvy_ref) = read_memory_cpu("/tmp/output_load.log");
-    my @mem_hvy           = @$mem_hvy_ref;
-    my @cpu_hvy           = @$cpu_hvy_ref;
+    my @mem_hvy = @$mem_hvy_ref;
+    my @cpu_hvy = @$cpu_hvy_ref;
     my $avg_mem_heavyload = average(@mem_hvy);
     my $avg_cpu_heavyload = average(@cpu_hvy);
 

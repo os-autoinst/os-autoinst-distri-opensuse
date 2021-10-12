@@ -18,7 +18,7 @@ my ($tolerance, $inverted) = @ARGV;
 my ($value) = ($line =~ m/\s*\w+:\s*(\d+.\d*).*/);
 
 $tolerance //= 0;
-$inverted  //= 0;
+$inverted //= 0;
 
 sub print_status {
     $value = shift;

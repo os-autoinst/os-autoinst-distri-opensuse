@@ -23,8 +23,8 @@ sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
     my $timeout = bmwqemu::scale_timeout(3600);
-    my $sid     = get_required_var('INSTANCE_SID');
-    my $instid  = get_required_var('INSTANCE_ID');
+    my $sid = get_required_var('INSTANCE_SID');
+    my $instid = get_required_var('INSTANCE_ID');
 
     $self->select_serial_terminal;
 
@@ -51,7 +51,7 @@ sub run {
         assert_screen 'sap-installation-wizard';
     } else {
         select_console 'x11';
-        mouse_hide;                    # Hide the mouse so no needle will fail because of the mouse pointer appearing
+        mouse_hide;    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
         enter_cmd "killall xterm";
@@ -68,7 +68,7 @@ sub run {
     type_string_slow "$path", wait_still_screen => 1;
     save_screenshot;
     send_key $cmd{next};
-    assert_screen 'sap-wizard-copying-media',     120;
+    assert_screen 'sap-wizard-copying-media', 120;
     assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
     send_key $cmd{next};
     if (package_version_cmp($wizard_package_version, '4.3.0') <= 0) {
@@ -89,7 +89,7 @@ sub run {
 
     while (1) {
         assert_screen [qw(sap-wizard-disk-selection-warning sap-wizard-disk-selection sap-wizard-partition-issues sap-wizard-continue-installation sap-product-installation)], no_wait => 1;
-        last                if match_has_tag 'sap-product-installation';
+        last if match_has_tag 'sap-product-installation';
         send_key $cmd{next} if match_has_tag 'sap-wizard-disk-selection-warning';    # A warning can be shown
         if (match_has_tag 'sap-wizard-disk-selection') {
             assert_and_click 'sap-wizard-disk-selection';                            # Install in sda

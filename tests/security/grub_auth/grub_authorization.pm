@@ -33,12 +33,12 @@ use testapi;
 use base 'consoletest';
 use version_utils 'is_sle';
 
-my $sup_user     = 'admin';
-my $sup_passwd   = 'pw_admin';
-my $maint_user   = 'maintainer';
+my $sup_user = 'admin';
+my $sup_passwd = 'pw_admin';
+my $maint_user = 'maintainer';
 my $maint_passwd = 'pw_maintainer';
-my $test_user    = 'tester';
-my $test_passwd  = 'pw_test';
+my $test_user = 'tester';
+my $test_passwd = 'pw_test';
 
 sub switch_boot_menu {
     my $switch = shift;

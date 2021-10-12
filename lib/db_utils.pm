@@ -27,7 +27,7 @@ our @EXPORT = qw(
 
 sub build_influx_kv {
     my $hash = shift;
-    my $req  = '';
+    my $req = '';
     for my $k (keys(%{$hash})) {
         my $v = $hash->{$k};
         $v =~ s/,/\\,/g;
@@ -40,7 +40,7 @@ sub build_influx_kv {
 
 sub build_influx_query {
     my $data = shift;
-    my $req  = $data->{table} . ',';
+    my $req = $data->{table} . ',';
     $req .= build_influx_kv($data->{tags});
     $req .= ' ';
     $req .= build_influx_kv($data->{values});

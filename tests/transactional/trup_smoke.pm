@@ -32,10 +32,10 @@ sub run {
     select_console 'root-console';
 
     action('bootloader', 'Reinstall bootloader');
-    action('grub.cfg',   'Regenerate grub.cfg');
-    action('initrd',     'Regenerate initrd');
-    action('kdump',      'Regenerate kdump');
-    action('cleanup',    'Run cleanup', 0);
+    action('grub.cfg', 'Regenerate grub.cfg');
+    action('initrd', 'Regenerate initrd');
+    action('kdump', 'Regenerate kdump');
+    action('cleanup', 'Run cleanup', 0);
 }
 
 1;

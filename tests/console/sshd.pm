@@ -51,7 +51,7 @@ sub run {
     assert_script_run 'cp /etc/ssh/sshd_config{,_before}';
 
     # new user to test sshd
-    my $ssh_testman        = "sshboy";
+    my $ssh_testman = "sshboy";
     my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in1';
 
     # Allow password authentication for $ssh_testman
@@ -70,7 +70,7 @@ sub run {
     }
 
     # Restart sshd and check it's status
-    my $ret          = systemctl('restart sshd', ignore_failure => 1);
+    my $ret = systemctl('restart sshd', ignore_failure => 1);
     my $fips_enabled = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) eq '1';
 
     # If restarting sshd service is not successful and fips is enabled, we have encountered bsc#1189534
@@ -176,7 +176,7 @@ sub run {
 }
 
 sub test_cryptographic_policies() {
-    my %args        = @_;
+    my %args = @_;
     my $remote_user = $args{remote_user};
 
     # TODO: This does not work for Tumbleweed because of nmap

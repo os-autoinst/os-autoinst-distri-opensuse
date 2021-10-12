@@ -39,15 +39,15 @@ sub run {
     my ($self) = @_;
     my $log_file = $apparmortest::audit_log;
     my $output;
-    my $aa_tmp_prof     = "/tmp/apparmor.d";
+    my $aa_tmp_prof = "/tmp/apparmor.d";
     my $interactive_str = [
         {
             prompt => qr/\(A\)llow/m,
-            key    => 'a',
+            key => 'a',
         },
         {
             prompt => qr/\(S\)ave Changes/m,
-            key    => 's',
+            key => 's',
         },
     ];
 
@@ -91,7 +91,7 @@ sub run {
         $self->test_profile_content_is_special("aa-logprof -f", "Reading log entries.*");
 
         # Verify "aa-logprof" can work with "log message contains a filename with unbalanced parenthesis"
-        my $testfile     = "/usr/bin/ls";
+        my $testfile = "/usr/bin/ls";
         my $test_special = '/usr/bin/l\(s';
         $self->create_log_content_is_special("$testfile", "$test_special");
         script_run_interactive("aa-logprof -f $log_file", $interactive_str, 30);

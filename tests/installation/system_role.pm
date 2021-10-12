@@ -21,11 +21,11 @@ use Utils::Architectures;
 use version_utils qw(is_sle is_opensuse is_microos is_sle_micro);
 
 my %role_hotkey = (
-    gnome    => 's',
+    gnome => 's',
     textmode => 't',
-    minimal  => 'm',
-    kvm      => 'k',
-    xen      => 'x',
+    minimal => 'm',
+    kvm => 'k',
+    xen => 'x',
 );
 
 sub change_system_role {
@@ -34,8 +34,8 @@ sub change_system_role {
     if (is_sle('15+') || is_opensuse || is_microos || is_sle_micro) {
         if (check_var('VIDEOMODE', 'text')) {
             # Expect that no actions are done before and default system role is preselected
-            send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role
-            send_key_until_needlematch "system-role-$system_role-selected", 'spc';     # enable role
+            send_key_until_needlematch "system-role-$system_role-focused", 'down';    # select role
+            send_key_until_needlematch "system-role-$system_role-selected", 'spc';    # enable role
         }
         else {
             if (!check_screen("system-role-$system_role-selected")) {

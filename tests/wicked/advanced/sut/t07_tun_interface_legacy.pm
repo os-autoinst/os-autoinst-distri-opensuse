@@ -23,7 +23,7 @@ sub run {
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
     record_info('Info', 'Create a tun interface from legacy ifcfg files');
     $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
-    $self->get_from_data('wicked/ifcfg/tun1_sut',            $config);
+    $self->get_from_data('wicked/ifcfg/tun1_sut', $config);
     $self->setup_openvpn_client('tun1');
     $self->setup_tuntap($config, 'tun1', $ctx->iface());
     my $res = $self->get_test_result('tun1');

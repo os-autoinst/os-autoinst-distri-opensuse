@@ -21,8 +21,8 @@ use version_utils qw(is_sle is_leap);
 sub run {
     my $self = shift;
 
-    my $package_main   = data_url('toolchain/fcvs21_f95.tar.bz2');
-    my $package_fix    = data_url('toolchain/FM923.DAT');
+    my $package_main = data_url('toolchain/fcvs21_f95.tar.bz2');
+    my $package_fix = data_url('toolchain/FM923.DAT');
     my $package_patch1 = data_url('toolchain/adapt-FM406-to-fortran-95.patch');
     my $package_patch2 = data_url('toolchain/FM509-remove-TEST-016.patch');
 

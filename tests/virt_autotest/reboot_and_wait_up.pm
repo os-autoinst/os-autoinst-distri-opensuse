@@ -23,7 +23,7 @@ use Utils::Architectures;
 use virt_autotest::utils;
 
 sub reboot_and_wait_up {
-    my $self           = shift;
+    my $self = shift;
     my $reboot_timeout = shift;
 
     if (is_s390x) {
@@ -49,11 +49,11 @@ sub reboot_and_wait_up {
         my ($package_name, $file_name, $line_num) = caller;
         diag("The package $package_name defined from file $file_name called me at line $line_num");
         my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION'));
-        my ($host_installed_rel)   = $host_installed_version =~ /^(\d+)/im;
-        my ($host_installed_sp)    = $host_installed_version =~ /sp(\d+)$/im;
-        my $host_upgrade_version   = get_var('UPGRADE_PRODUCT', '');
-        my ($host_upgrade_rel)     = $host_upgrade_version =~ /sles-(\d+)-sp/i;
-        my ($host_upgrade_sp)      = $host_upgrade_version =~ /sp(\d+)$/im;
+        my ($host_installed_rel) = $host_installed_version =~ /^(\d+)/im;
+        my ($host_installed_sp) = $host_installed_version =~ /sp(\d+)$/im;
+        my $host_upgrade_version = get_var('UPGRADE_PRODUCT', '');
+        my ($host_upgrade_rel) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
+        my ($host_upgrade_sp) = $host_upgrade_version =~ /sp(\d+)$/im;
         if ($package_name eq 'reboot_and_wait_up_upgrade' and is_kvm_host and is_x86_64 and ($host_installed_rel eq '15' and $host_installed_sp eq '2') and ($host_upgrade_rel eq '15' and $host_upgrade_sp eq '3')) {
             record_soft_failure("Workaround is preserved to avoid needle assertion on sol console and prevent potential unnecessary failures due to bsc#1185374.");
             diag("Workaround is preserved to avoid needle assertion on sol console and prevent potential unnecessary failures due to bsc#1185374..Reboot host by using ipmitool directly.");

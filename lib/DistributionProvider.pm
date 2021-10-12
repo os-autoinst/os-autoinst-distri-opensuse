@@ -35,10 +35,10 @@ If there is no matched version, then returns Tumbleweed as the default one.
 
 =cut
 sub provide {
-    return Distribution::Sle::15_current->new()    if is_sle('>=15-sp3');
-    return Distribution::Sle::15sp2->new()         if is_sle('>15');
-    return Distribution::Sle::15sp0->new()         if is_sle('=15');
-    return Distribution::Sle::12->new()            if is_sle('12+');
+    return Distribution::Sle::15_current->new() if is_sle('>=15-sp3');
+    return Distribution::Sle::15sp2->new() if is_sle('>15');
+    return Distribution::Sle::15sp0->new() if is_sle('=15');
+    return Distribution::Sle::12->new() if is_sle('12+');
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
     return Distribution::Opensuse::Tumbleweed->new();

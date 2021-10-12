@@ -30,7 +30,7 @@ sub sudo_with_pw {
     my ($command, %args) = @_;
     my ($grep, $env);
     $grep = '|grep ' . $args{grep} if defined $args{grep};
-    $env  = "set $args{env};"      if defined $args{env};
+    $env = "set $args{env};" if defined $args{env};
     my $password = $args{password} //= $testapi::password;
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {

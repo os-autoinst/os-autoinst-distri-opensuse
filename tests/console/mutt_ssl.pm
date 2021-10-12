@@ -20,7 +20,7 @@ use version_utils 'is_tumbleweed';
 use mailtest;
 
 sub run {
-    my $self   = shift;
+    my $self = shift;
     my $muttrc = "~/.muttrc";
 
     select_console "root-console";

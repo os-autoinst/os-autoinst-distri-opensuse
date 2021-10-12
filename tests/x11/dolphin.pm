@@ -41,8 +41,8 @@ sub run {
     my $create_new = assert_screen 'dolphin_create_new';
 
     my $lastarea = $create_new->{area}->[-1];
-    my $x        = int($lastarea->{x} + $lastarea->{w} / 2);
-    my $y        = int($lastarea->{y} + $lastarea->{h} / 2);
+    my $x = int($lastarea->{x} + $lastarea->{w} / 2);
+    my $y = int($lastarea->{y} + $lastarea->{h} / 2);
 
     # Workaround: In 42.3 clicking without moving doesn't open the submenu
     mouse_set($x - 5, $y);

@@ -115,8 +115,8 @@ sub run {
     }
     die "No suitable package found. Script output:\nOutput: '$output'" unless $package;
 
-    my $testdate        = '2620-02-03';
-    my $testdate_after  = '2620-02-04';
+    my $testdate = '2620-02-03';
+    my $testdate_after = '2620-02-04';
     my $testdate_before = '2620-02-02';
     # backup and create our lifecycle data with known content
     select_console 'root-console';
@@ -189,7 +189,7 @@ sub run {
     lifecycle_output_check($output);
 
     $output = script_output 'zypper lifecycle --days 9999', 300;
-    die "Product 'end of support' line not found\nOutput: '$output'"         unless $output =~ /Product end of support before/;
+    die "Product 'end of support' line not found\nOutput: '$output'" unless $output =~ /Product end of support before/;
     die "Current product should not be supported anymore\nOutput: '$output'" unless $output =~ /$product_name\s+$product_eol/;
 }
 

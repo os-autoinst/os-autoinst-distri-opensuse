@@ -22,22 +22,22 @@ use utils;
 
 our $mitigations_list =
   {
-    name                   => "meltdown",
-    CPUID                  => hex '20000000',
-    IA32_ARCH_CAPABILITIES => 1,                #bit0 -- RDCL_NO
-    parameter              => 'pti',
-    cpuflags               => ['pti'],
-    sysfs_name             => "meltdown",
-    sysfs                  => {
-        on      => "Mitigation: PTI",
-        off     => "Vulnerable",
-        auto    => "Mitigation: PTI",
+    name => "meltdown",
+    CPUID => hex '20000000',
+    IA32_ARCH_CAPABILITIES => 1,    #bit0 -- RDCL_NO
+    parameter => 'pti',
+    cpuflags => ['pti'],
+    sysfs_name => "meltdown",
+    sysfs => {
+        on => "Mitigation: PTI",
+        off => "Vulnerable",
+        auto => "Mitigation: PTI",
         default => "Mitigation: PTI",
     },
     dmesg => {
-        on      => "Kernel/User page tables isolation: enabled",
-        off     => "",
-        auto    => "Kernel/User page tables isolation: enabled",
+        on => "Kernel/User page tables isolation: enabled",
+        off => "",
+        auto => "Kernel/User page tables isolation: enabled",
         default => "Kernel/User page tables isolation: enabled",
     },
     cmdline => [
@@ -46,8 +46,8 @@ our $mitigations_list =
         "auto",
     ],
     lscpu => {
-        on   => "pti",
-        off  => "",
+        on => "pti",
+        off => "",
         auto => "pti",
     },
   };

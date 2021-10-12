@@ -80,13 +80,13 @@ sub target_service_tab {
     unless (is_sle('<15') || is_leap('<15.1')) {
         if (is_sle('=15')) {
             change_service_configuration(
-                after_writing => {start         => 'alt-a'},
-                after_reboot  => {start_on_boot => 'alt-d'}
+                after_writing => {start => 'alt-a'},
+                after_reboot => {start_on_boot => 'alt-d'}
             );
         } else {
             change_service_configuration(
-                after_writing => {start         => 'alt-w'},
-                after_reboot  => {start_on_boot => 'alt-a'}
+                after_writing => {start => 'alt-w'},
+                after_reboot => {start_on_boot => 'alt-a'}
             );
         }
     }
@@ -112,20 +112,20 @@ sub config_2way_authentication {
     # initiator & target credential fields are swapped in sle12 and sle15
     my %key_shortcuts;
     if (is_sle('>=15')) {
-        $key_shortcuts{enable_auth_init}   = 'alt-h';
-        $key_shortcuts{auth_init_user}     = 'alt-m';
-        $key_shortcuts{auth_init_pass}     = 'alt-t';
+        $key_shortcuts{enable_auth_init} = 'alt-h';
+        $key_shortcuts{auth_init_user} = 'alt-m';
+        $key_shortcuts{auth_init_pass} = 'alt-t';
         $key_shortcuts{enable_auth_target} = 'alt-e';
-        $key_shortcuts{auth_target_user}   = 'alt-u';
-        $key_shortcuts{auth_target_pass}   = 'alt-p';
+        $key_shortcuts{auth_target_user} = 'alt-u';
+        $key_shortcuts{auth_target_pass} = 'alt-p';
 
     } else {
-        $key_shortcuts{enable_auth_init}   = 'alt-t';
-        $key_shortcuts{auth_init_user}     = 'alt-s';
-        $key_shortcuts{auth_init_pass}     = 'alt-a';
+        $key_shortcuts{enable_auth_init} = 'alt-t';
+        $key_shortcuts{auth_init_user} = 'alt-s';
+        $key_shortcuts{auth_init_pass} = 'alt-a';
         $key_shortcuts{enable_auth_target} = 'alt-h';
-        $key_shortcuts{auth_target_user}   = 'alt-u';
-        $key_shortcuts{auth_target_pass}   = 'alt-p';
+        $key_shortcuts{auth_target_user} = 'alt-u';
+        $key_shortcuts{auth_target_pass} = 'alt-p';
     }
     $key_shortcuts{enable_auth_target} = 'alt-n' if (is_sle('=15'));
     send_key $key_shortcuts{enable_auth_init};
@@ -155,12 +155,12 @@ sub config_2way_authentication {
 }
 
 sub target_backstore_tab {
-    send_key 'alt-t';     # go to target tab
+    send_key 'alt-t';    # go to target tab
     assert_screen 'iscsi-target-targets-tab';
-    send_key 'alt-a';     # add target
-                          # we need to wait while YaST generates Identifier value
+    send_key 'alt-a';    # add target
+                         # we need to wait while YaST generates Identifier value
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 44);
-    send_key 'alt-t';     # select target field
+    send_key 'alt-t';    # select target field
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 44);
     send_key 'ctrl-a';    # select all text inside target field
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 45);
@@ -184,12 +184,12 @@ sub target_backstore_tab {
     assert_and_click('iscsi-target-LUN-path-selected', timeout => 20);
     type_string_slow_extended $test_data->{target_conf}->{backstore};
     assert_screen 'iscsi-target-LUN';
-    send_key 'alt-o';               # OK
+    send_key 'alt-o';    # OK
     assert_screen 'iscsi-target-overview';
-    send_key 'alt-n';               # next
+    send_key 'alt-n';    # next
     config_2way_authentication;
     assert_screen 'iscsi-target-overview-target-tab';
-    send_key 'alt-f';               # finish
+    send_key 'alt-f';    # finish
     mutex_create('iscsi_ready');    # setup is done client can connect
 }
 
@@ -198,7 +198,7 @@ sub display_targets {
     my $cmd = 'targetcli sessions list | tee -a ' . "/dev/$serialdev";
     assert_script_run 'targetcli ls';
     # targetcli does not support sessions option in sle12
-    return                                 if (is_sle '<15');
+    return if (is_sle '<15');
     $cmd .= '| grep -i ' . $args{expected} if defined($args{expected}) . ' | tee -a ' . "/dev/$serialdev";
     assert_script_run $cmd;
 }
@@ -248,7 +248,7 @@ sub test_flags {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    my $target_label    = $test_data->{target_conf}->{name} . '\\:' . $test_data->{target_conf}->{id};
+    my $target_label = $test_data->{target_conf}->{name} . '\\:' . $test_data->{target_conf}->{id};
     my $initiator_label = $test_data->{initiator_conf}->{name} . '\\:' . $test_data->{initiator_conf}->{id};
     display_targets;
     unless (script_run('ls -la /sys/kernel/config/iscsi')) {

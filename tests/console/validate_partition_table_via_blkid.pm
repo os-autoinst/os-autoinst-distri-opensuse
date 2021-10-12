@@ -22,7 +22,7 @@ use filesystem_utils 'get_partition_table_via_blkid';
 sub run {
     select_console('root-console');
     my $errors = '';
-    my $disks  = get_test_suite_data()->{disks};
+    my $disks = get_test_suite_data()->{disks};
 
     my $actual;
     foreach my $disk (@{$disks}) {

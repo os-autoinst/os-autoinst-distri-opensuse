@@ -101,7 +101,7 @@ sub load_jk_module() {
         die "failed to appended jk to the APACHE_MODULES line";
     }
     systemctl('start apache2');
-    validate_script_output("apachectl -M | grep jk_module",                        sub { ".*jk_module.*" });
+    validate_script_output("apachectl -M | grep jk_module", sub { ".*jk_module.*" });
     validate_script_output("grep mod_jk /etc/apache2/sysconfig.d/loadmodule.conf", sub { "LoadModule jk_module.*" });
 }
 

@@ -17,7 +17,7 @@ use testapi;
 use version_utils 'is_leap';
 
 sub run {
-    my $gnuhealth    = get_var('GNUHEALTH_CLIENT', 'gnuhealth-client');
+    my $gnuhealth = get_var('GNUHEALTH_CLIENT', 'gnuhealth-client');
     my $gnuhealth_34 = is_leap('<15.2');
     wait_screen_change { send_key 'tab' };
     send_key 'ret';

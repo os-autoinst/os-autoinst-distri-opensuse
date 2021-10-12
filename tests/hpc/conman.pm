@@ -61,7 +61,7 @@ sub run {
     assert_screen('socket-response');
 
     # test from conman side
-    enter_cmd("&E");       # enable echoing
+    enter_cmd("&E");    # enable echoing
     enter_cmd("Hello from conman...");
     send_key('ctrl-l');    # send \n
     type_string '&.';

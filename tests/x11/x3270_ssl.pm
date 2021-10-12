@@ -36,8 +36,8 @@ sub run {
 
     select_console 'root-console';
 
-    my $cert_file     = '/tmp/server.cert';
-    my $key_file      = '/tmp/server.key';
+    my $cert_file = '/tmp/server.cert';
+    my $key_file = '/tmp/server.key';
     my $tracelog_file = '/tmp/x3270-trace.log';
 
     # Install x3270

@@ -132,7 +132,7 @@ sub login_to_console {
         }
         #setup vars
         set_var("reboot_for_upgrade_step", undef);
-        set_var("after_upgrade",           "yes");
+        set_var("after_upgrade", "yes");
     }
     save_screenshot;
     send_key 'ret';

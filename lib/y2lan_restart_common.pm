@@ -69,7 +69,7 @@ sub initialize_y2lan
     }
     # Enable DEBUG for NetworkManager or wicked, in order to get detailed messages and easier detection of restart.
     my $debug_conf = is_network_manager_default() ?
-      'DEBUG="no"/DEBUG="yes"' :           # DEBUG configuration for NetworkManager
+      'DEBUG="no"/DEBUG="yes"' :    # DEBUG configuration for NetworkManager
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
@@ -292,19 +292,19 @@ Check update of /etc/hosts. In order to target bugs bsc#1115644 and bsc#1052042,
 =cut
 sub check_etc_hosts_update {
 
-    my $ip   = '192.168.122.10';
+    my $ip = '192.168.122.10';
     my $mask = '255.255.255.0';
     script_run "cat /etc/hosts";
 
     record_info 'Test', 'Set static ip, FQDN and validate /etc/hosts entry';
     my $hostname = "test-1";
-    my $fqdn     = $hostname . '.susetest.com';
+    my $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
     validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
 
     record_info 'Test', 'Change FQDN and validate /etc/hosts entry';
     $hostname = "test-2";
-    $fqdn     = $hostname . '.susetest.com';
+    $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
     validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
 
@@ -313,7 +313,7 @@ sub check_etc_hosts_update {
 
     record_info 'Test', 'Set to static from dchp, set FQDN and validate /etc/hosts entry';
     $hostname = "test-3";
-    $fqdn     = $hostname . '.susetest.com';
+    $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
     validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
 

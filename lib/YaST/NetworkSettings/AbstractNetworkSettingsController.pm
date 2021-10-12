@@ -27,9 +27,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{OverviewTab}    = YaST::NetworkSettings::OverviewTab->new();
-    $self->{AddressTab}     = YaST::NetworkSettings::NetworkCardSetup::AddressTab->new();
-    $self->{GeneralTab}     = YaST::NetworkSettings::NetworkCardSetup::GeneralTab->new();
+    $self->{OverviewTab} = YaST::NetworkSettings::OverviewTab->new();
+    $self->{AddressTab} = YaST::NetworkSettings::NetworkCardSetup::AddressTab->new();
+    $self->{GeneralTab} = YaST::NetworkSettings::NetworkCardSetup::GeneralTab->new();
     $self->{VLANAddressTab} = YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab->new();
     return $self;
 }

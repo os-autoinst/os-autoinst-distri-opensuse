@@ -18,7 +18,7 @@ use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use strict;
 use warnings;
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT = qw(ssh_interactive_tunnel ssh_interactive_leave);
 
 sub ssh_interactive_tunnel {
@@ -32,8 +32,8 @@ sub ssh_interactive_tunnel {
         # Create /dev/sshserial fifo on remote and tail|tee it to /dev/$serialdev on local
         #   timeout => switches to script_run instead of script_output to be used so the test will not wait for the command to end
         #   tunnel the worker port (for downloading from data/ and uploading assets / logs
-        cmd      => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' 2>&1 | tee /dev/$serialdev; clear",
-        timeout  => 0,
+        cmd => "'rm -rf /dev/sshserial; mkfifo -m a=rwx /dev/sshserial; tail -fn +1 /dev/sshserial' 2>&1 | tee /dev/$serialdev; clear",
+        timeout => 0,
         no_quote => 1,
         ssh_opts => "-yt -R $upload_port:$upload_host:$upload_port",
         username => 'root'
@@ -41,7 +41,7 @@ sub ssh_interactive_tunnel {
     sleep 3;
     save_screenshot;
 
-    set_var('SERIALDEV_',               $serialdev);
+    set_var('SERIALDEV_', $serialdev);
     set_var('_SSH_TUNNELS_INITIALIZED', 1);
 
     set_var('AUTOINST_URL_HOSTNAME', 'localhost');

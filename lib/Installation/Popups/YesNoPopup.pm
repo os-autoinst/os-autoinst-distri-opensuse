@@ -25,8 +25,8 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_yes}     = $self->{app}->button({id => 'yes'});
-    $self->{btn_no}      = $self->{app}->button({id => 'no'});
+    $self->{btn_yes} = $self->{app}->button({id => 'yes'});
+    $self->{btn_no} = $self->{app}->button({id => 'no'});
     $self->{lbl_warning} = $self->{app}->label({type => 'YLabel'});
     return $self;
 }

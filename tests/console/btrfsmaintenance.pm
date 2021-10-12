@@ -54,7 +54,7 @@ sub run {
     }
     # Run balance and scrub
     assert_script_run('/usr/share/btrfsmaintenance/btrfs-balance.sh', timeout => 300);
-    assert_script_run('/usr/share/btrfsmaintenance/btrfs-scrub.sh ',  timeout => 300);
+    assert_script_run('/usr/share/btrfsmaintenance/btrfs-scrub.sh ', timeout => 300);
     assert_script_run('systemctl restart btrfsmaintenance-refresh.service');
     # Check state of btrfsmaintenance-refresh units. Have to use (|| :) due to pipefail
     assert_script_run('(systemctl is-enabled btrfsmaintenance-refresh.path || :) | grep enabled') unless is_sle("<15");
@@ -68,7 +68,7 @@ sub run {
     }
     # Check if btrfs-scrub and btrfs-balance are (somehow) enabled (results only in a info write)
     if (!is_sle('<15')) {
-        die("btrfs-scrub service not active")   if btrfs_service_unavailable("scrub");
+        die("btrfs-scrub service not active") if btrfs_service_unavailable("scrub");
         die("btrfs-balance service not active") if btrfs_service_unavailable("balance");
     }
     # Check for crontab remnants of btrfsmaintenance after uninstall (see https://bugzilla.suse.com/show_bug.cgi?id=1159891)

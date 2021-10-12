@@ -39,7 +39,7 @@ sub get_script_run {
     #Prefer to use offline media for upgrade to avoid guest registration
     $product_upgrade_repo =~ s/-Online-/-Full-/ if ($product_upgrade_repo =~ /15-sp[2-9]/i);
     my $max_test_time = get_var("MAX_TEST_TIME", "36000");
-    my $vm_xml_dir    = "/tmp/download_vm_xml";
+    my $vm_xml_dir = "/tmp/download_vm_xml";
 
     handle_sp_in_settings_with_sp0("PRODUCT_UPGRADE");
     my $product_upgrade = get_required_var("PRODUCT_UPGRADE");
@@ -66,7 +66,7 @@ sub analyzeResult {
     if ($text !~ /Overall guest upgrade result is:(.*)Test done/s) {
         my $subtest = get_var('GUEST_LIST');
         $result->{$subtest}->{status} = 'FAILED';
-        $result->{$subtest}->{error}  = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
+        $result->{$subtest}->{error} = 'Please check the guest_upgrade_test log in the guest_upgrade_run-guest-upgrade-logs.tar.gz';
         return $result;
     }
     my $rough_result = $1;
@@ -75,7 +75,7 @@ sub analyzeResult {
         if ($_ =~ /(?<testcase_name>\S+)\s+\-{3}\s+(PASS|FAIL|SKIP|TIMEOUT)(\s+\-{3}\s+(.*))?/ig) {
             my ($testcase_name, $status, $error) = ($+{testcase_name}, $2, $4);
             $result->{$testcase_name}->{status} = $status =~ /pass/i ? 'PASSED' : 'FAILED';
-            $result->{$testcase_name}->{error}  = $error             ? $error   : 'none';
+            $result->{$testcase_name}->{error} = $error ? $error : 'none';
         }
     }
 
@@ -83,11 +83,11 @@ sub analyzeResult {
     unless ($text =~ /Congratulations! No guest failed in (\w+)/) {
         $text =~ /The guests failed in guest \w+ phase before core test are:(.*)\n(\w+) failed guest list done./s;
         my $installation_failed_guests = $1;
-        my $failing_phase              = $2;
+        my $failing_phase = $2;
         foreach my $guest (split('\n', $installation_failed_guests)) {
             next unless $guest !~ /^\s*$/;
             $result->{$guest}->{status} = 'FAILED';
-            $result->{$guest}->{error}  = "Guest $failing_phase failed.";
+            $result->{$guest}->{error} = "Guest $failing_phase failed.";
         }
     }
     return $result;
@@ -109,8 +109,8 @@ sub post_execute_script_assertion {
 }
 
 sub run {
-    my $self            = shift;
-    my $timeout         = get_var('MAX_TEST_TIME', '36000') + 10;
+    my $self = shift;
+    my $timeout = get_var('MAX_TEST_TIME', '36000') + 10;
     my $upload_log_name = 'guest-upgrade-logs';
     script_run("echo \"Debug info: max_test_time is $timeout\"");
     # Modify source configuration file sources.* of virtauto-data pkg on host

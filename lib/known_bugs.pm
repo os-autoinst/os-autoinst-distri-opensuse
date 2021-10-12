@@ -70,12 +70,12 @@ sub create_list_of_serial_failures {
 
     if (is_kernel_test()) {
         my $type = is_ltp_test() ? 'soft' : 'hard';
-        push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta 'Oops:'};
-        push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => qr/kernel BUG at/i};
+        push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta 'Oops:'};
+        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => qr/kernel BUG at/i};
         push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU'};
-        push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted',      pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
-        push @$serial_failures, {type => $type, message => 'Kernel BUG found',               pattern => quotemeta 'BUG: failure at'};
-        push @$serial_failures, {type => $type, message => 'Kernel Ooops found',             pattern => quotemeta '-[ cut here ]-'};
+        push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted', pattern => quotemeta 'stack-protector: Kernel stack is corrupted'};
+        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => quotemeta 'BUG: failure at'};
+        push @$serial_failures, {type => $type, message => 'Kernel Ooops found', pattern => quotemeta '-[ cut here ]-'};
     }
 
     push @$serial_failures, {type => 'soft', message => 'Low memory problem detected bsc#1166955', pattern => quotemeta 'kswapd0 Kdump'};
@@ -138,13 +138,13 @@ sub upload_journal {
     while (my $line = <$journal>) {
         chomp $line;
         for my $regexp_table (@{$failures}) {
-            my $regexp  = $regexp_table->{pattern};
+            my $regexp = $regexp_table->{pattern};
             my $message = $regexp_table->{message};
-            my $type    = $regexp_table->{type};
+            my $type = $regexp_table->{type};
 
             # Input parameters validation
             die "Wrong type defined for journal failure. Only 'soft' or 'hard' allowed. Got: $type" if $type !~ /^soft|hard|fatal$/;
-            die "Message not defined for journal failure for the pattern: '$regexp', type: $type"   if !defined $message;
+            die "Message not defined for journal failure for the pattern: '$regexp', type: $type" if !defined $message;
 
             # If you want to match a simple string please be sure that you create it with quotemeta
             if (!exists $regexp_matched{$regexp} and $line =~ /$regexp/) {

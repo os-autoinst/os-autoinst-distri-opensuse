@@ -30,12 +30,12 @@ use Utils::Systemd qw(systemctl disable_and_stop_service);
 sub run {
     select_console("root-console");
 
-    my $remote_ip   = '10.0.2.101';
+    my $remote_ip = '10.0.2.101';
     my $remote_name = '389ds';
     my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
-    my $tls_dir     = '/etc/openldap/certs';
-    my $ldap_user   = $testapi::username;
-    my $uid         = '1003';
+    my $tls_dir = '/etc/openldap/certs';
+    my $ldap_user = $testapi::username;
+    my $uid = '1003';
 
     # Install 389-ds and sssd on client
     zypper_call("in 389-ds sssd sssd-ldap openssl");

@@ -33,9 +33,9 @@ sub run {
     my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
 
     my @func_list = (
-        {func => "BPRM_CHECK", file => "/usr/bin/ping",   cmd => "ping -c 1 localhost"},
+        {func => "BPRM_CHECK", file => "/usr/bin/ping", cmd => "ping -c 1 localhost"},
         {func => "FILE_CHECK", file => "/dev/shm/sample", cmd => "echo 'sample' > /dev/shm/sample"},
-        {func => "MMAP_CHECK", file => "/usr/bin/ping",   cmd => "ping -c 1 localhost"},
+        {func => "MMAP_CHECK", file => "/usr/bin/ping", cmd => "ping -c 1 localhost"},
     );
 
     for my $f (@func_list) {

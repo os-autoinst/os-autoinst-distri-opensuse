@@ -21,9 +21,9 @@ use utils;
 use strict;
 use warnings;
 
-my $service      = 'firewalld';
+my $service = 'firewalld';
 my $service_type = 'Systemd';
-my $pkg          = 'SuSEfirewall2';
+my $pkg = 'SuSEfirewall2';
 
 sub install_service {
     zypper_call('in ' . $pkg);
@@ -60,7 +60,7 @@ sub full_firewall_check {
         start_service();
     } else {
         $service = 'firewalld';
-        $pkg     = 'susefirewall2-to-firewalld';
+        $pkg = 'susefirewall2-to-firewalld';
         install_service();
         susefirewall2_to_firewalld();
     }

@@ -27,8 +27,8 @@ use base "thunderbird_common";
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend);
 
 sub run {
-    my $self     = shift;
-    my $account  = "internal_account";
+    my $self = shift;
+    my $account = "internal_account";
     my $hostname = get_var('HOSTNAME');
 
     mutex_wait('service_setup_done') if get_var('QAM_MAIL_THUNDERBIRD');

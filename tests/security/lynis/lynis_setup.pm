@@ -28,7 +28,7 @@ use lynis::lynistest;
 
 sub run {
     my $lynis_baseline_file = $lynis::lynistest::lynis_baseline_file;
-    my $dir                 = $lynis::lynistest::testdir;
+    my $dir = $lynis::lynistest::testdir;
 
     select_console "root-console";
 

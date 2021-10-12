@@ -28,7 +28,7 @@ sub run() {
     }
     else {
         my $version = get_var('VERSION');
-        my $distri  = get_var('DISTRI');
+        my $distri = get_var('DISTRI');
         die "hwloc testsuite tests not supported for $distri version $version";
     }
     #according to PM, the HPC devel repo will be valid for SLE12SP2 and later service packs
@@ -41,7 +41,7 @@ sub run() {
     assert_script_run('cd /var/opt/hwloc-tests; ./run-tests.sh 2>&1 | tee /tmp/testsuite.log');
 
     my $error = script_run("sed -n '/ERROR/s/# [[:graph:]]* *//p' /tmp/testsuite.log");
-    my $fail  = script_run("sed -n '/FAIL/s/# [[:graph:]]* *//p' /tmp/testsuite.log");
+    my $fail = script_run("sed -n '/FAIL/s/# [[:graph:]]* *//p' /tmp/testsuite.log");
     if ($error != 0 || $fail != 0) {
         assert_script_run('cp /tmp/testsuite.log /var/opt/hwloc-tests/logs; tar cjf hwloc-testsuite-logs.tar.bz2 logs');
         upload_logs('hwloc-testsuite-logs.tar.bz2');

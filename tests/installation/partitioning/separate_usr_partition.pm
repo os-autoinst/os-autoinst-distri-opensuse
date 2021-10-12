@@ -20,7 +20,7 @@ use scheduler 'get_test_suite_data';
 
 sub run {
     my $test_data = get_test_suite_data();
-    my $disk      = $test_data->{disks}[0]->{name};
+    my $disk = $test_data->{disks}[0]->{name};
     my ($root_part, $usr_part) = @{$test_data->{disks}[0]->{partitions}};
 
     my $partitioner = $testapi::distri->get_expert_partitioner();

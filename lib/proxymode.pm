@@ -20,15 +20,15 @@ our $SLAVE_SERIALDEV = 'proxyserial';
 
 sub switch_power {
     my ($ipmi_machine, $ipmi_user, $ipmi_pass, $ipmi_status) = @_;
-    $ipmi_pass   //= 'ADMIN';
-    $ipmi_user   //= 'ADMIN';
+    $ipmi_pass //= 'ADMIN';
+    $ipmi_user //= 'ADMIN';
     $ipmi_status //= 'off';
     die "Variable ipmi_machine is invalid in function restart_host!" unless $ipmi_machine;
     my $ipmitool = "ipmitool -H " . $ipmi_machine . " -U " . $ipmi_user . " -P " . $ipmi_pass . " -I lanplus ";
     script_run($ipmitool . 'chassis power ' . $ipmi_status, 20);
     while (1) {
         my $stdout = script_output($ipmitool . 'chassis power status', 20);
-        last                                         if $stdout =~ m/is $ipmi_status/;
+        last if $stdout =~ m/is $ipmi_status/;
         die "Failure on running IPMITOOL:" . $stdout if $stdout =~ m/Error/;
         script_run($ipmitool . 'chassis power ' . $ipmi_status, 20);
         sleep(2);
@@ -151,7 +151,7 @@ sub generate_grub {
     my $ipmi_console = get_consoledev();
     #only support grub2
     my $grub_default_file = "/etc/default/grub";
-    my $grub_cfg_file     = "/boot/grub2/grub.cfg";
+    my $grub_cfg_file = "/boot/grub2/grub.cfg";
 
     my $cmd
       = "if [ -d /boot/grub2 ]; then cp $grub_default_file ${grub_default_file}.org; sed -ri '/GRUB_CMDLINE_(LINUX|LINUX_DEFAULT|XEN_DEFAULT)=/ {s/(console|com\\d+|loglevel|log_lvl|guest_loglvl)=[^ \"]*//g; /LINUX=/s/\"\$/ loglevel=5 console=$ipmi_console,115200 console=tty\"/;/XEN_DEFAULT=/ s/\"\$/ log_lvl=all guest_loglvl=all console=com2,115200\"/;}' $grub_default_file ; fi";

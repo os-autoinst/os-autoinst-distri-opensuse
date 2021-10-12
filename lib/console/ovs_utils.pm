@@ -33,7 +33,7 @@ sub add_bridge {
 sub ping_check {
     my $server_ip = shift;
     my $client_ip = shift;
-    my $vpn       = shift;
+    my $vpn = shift;
     assert_script_run("cd");
     assert_script_run "(ping -c 20 $vpn &>/dev/null &)";
     if ($vpn eq "192.0.0.2") {

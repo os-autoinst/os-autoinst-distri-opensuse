@@ -25,12 +25,12 @@ use ipmi_backend_utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $protocol = get_var('MLX_PROTOCOL', 2);
 
     # allow to configure SR-IOV and enable virtual functions
-    my $sriov_en = get_var('MLX_SRIOV',   0);
-    my $num_vfs  = get_var('MLX_NUM_VFS', 0);
+    my $sriov_en = get_var('MLX_SRIOV', 0);
+    my $num_vfs = get_var('MLX_NUM_VFS', 0);
 
     if ($sriov_en == 0 && $num_vfs > 0) {
         diag "MLX_SRIOV=0: set MLX_NUM_VFS to 0 as well";

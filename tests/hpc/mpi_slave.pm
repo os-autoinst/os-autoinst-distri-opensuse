@@ -20,7 +20,7 @@ use utils;
 
 sub run {
     my $self = shift;
-    my $mpi  = $self->get_mpi();
+    my $mpi = $self->get_mpi();
 
     zypper_call("in $mpi");
 

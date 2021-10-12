@@ -32,7 +32,7 @@ sub run {
         assert_script_run "virsh reboot $guest";
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, die => 0)) {
             record_soft_failure "Reboot on $guest failed";
-            script_run "virsh destroy $guest",      90;
+            script_run "virsh destroy $guest", 90;
             assert_script_run "virsh start $guest", 60;
         }
     }

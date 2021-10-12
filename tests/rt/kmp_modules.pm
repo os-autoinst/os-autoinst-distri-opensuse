@@ -27,10 +27,10 @@ use Utils::Systemd qw(systemctl);
 
 sub run_lttng_demo_trace {
     my $trace = {
-        label     => 'TEST_TRACE',
-        output    => '/tmp/sched_trace_example',
+        label => 'TEST_TRACE',
+        output => '/tmp/sched_trace_example',
         component => 'sched_switch',
-        channel   => 'test-channel'
+        channel => 'test-channel'
     };
 
     # Trace demo
@@ -109,9 +109,9 @@ sub post_fail_hook {
 
     select_console 'log-console';
 
-    $self->save_and_upload_log("dmesg",                                  "dmesg.log",        {screenshot => 1});
-    $self->save_and_upload_log("journalctl --no-pager -o short-precise", "journalctl.log",   {screenshot => 1});
-    $self->save_and_upload_log('rpm -qa *-kmp-rt',                       "list_of_kmp_rpms", {screenshot => 1});
+    $self->save_and_upload_log("dmesg", "dmesg.log", {screenshot => 1});
+    $self->save_and_upload_log("journalctl --no-pager -o short-precise", "journalctl.log", {screenshot => 1});
+    $self->save_and_upload_log('rpm -qa *-kmp-rt', "list_of_kmp_rpms", {screenshot => 1});
     if ((script_run 'test -e /var/log/modprobe.out') == 0) {
         upload_logs '/var/log/modprobe.out';
     }

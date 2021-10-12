@@ -28,11 +28,11 @@ use warnings;
 sub run {
     select_console 'root-console';
 
-    my $file_raw      = "hello.txt";
-    my $file_enc      = $file_raw . ".enc";
-    my $file_dec      = $file_raw . ".tmp";
-    my $dgst_alg      = "sha256";
-    my $file_sig      = $file_raw . ".$dgst_alg" . ".sig";
+    my $file_raw = "hello.txt";
+    my $file_enc = $file_raw . ".enc";
+    my $file_dec = $file_raw . ".tmp";
+    my $dgst_alg = "sha256";
+    my $file_sig = $file_raw . ".$dgst_alg" . ".sig";
     my @rsa_key_sizes = (2048, 3072, 4096);
 
     # Prepare temp directory and file for testing

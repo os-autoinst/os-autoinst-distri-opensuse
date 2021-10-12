@@ -22,8 +22,8 @@ use hacluster;
 
 sub run {
     my $cluster_name = get_cluster_name;
-    my $lvm_conf     = '/etc/lvm/lvm.conf';
-    my $lock_mgr     = 'clvm';
+    my $lvm_conf = '/etc/lvm/lvm.conf';
+    my $lock_mgr = 'clvm';
 
     # lvmlockd is only available in SLE15+
     if (get_var("USE_LVMLOCKD")) {
@@ -55,8 +55,8 @@ sub run {
     else {
         # Set use_lvmetad=0, clvmd doesn't support lvmetad. Set locking_type=3 for clvmd
         set_lvm_config($lvm_conf, use_lvmetad => 0, locking_type => 3);
-        systemctl 'stop lvm2-lvmetad.socket';       # Stop lvmetad
-        systemctl 'disable lvm2-lvmetad.socket';    # Disable lvmetad
+        systemctl 'stop lvm2-lvmetad.socket';    # Stop lvmetad
+        systemctl 'disable lvm2-lvmetad.socket'; # Disable lvmetad
     }
 
     # Add clvmd/lvmlockd into the cluster configuration

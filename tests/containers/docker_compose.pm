@@ -39,7 +39,7 @@ sub run {
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);
-    add_suseconnect_product(get_addon_fullname('phub'))    if is_sle();
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
     record_info 'Test #1', 'Test: Installation';
@@ -86,7 +86,7 @@ sub run {
     assert_script_run 'cd';
 
     # De-registration is disabled for on-demand instances
-    remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle()          && !is_ondemand());
+    remove_suseconnect_product(get_addon_fullname('phub')) if (is_sle() && !is_ondemand());
     remove_suseconnect_product(get_addon_fullname('python2')) if (is_sle('=15-sp1') && !is_ondemand());
     $docker->cleanup_system_host();
 }

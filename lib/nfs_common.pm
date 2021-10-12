@@ -9,7 +9,7 @@ use mm_network;
 use version_utils;
 
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT = qw(server_configure_network try_nfsv2 prepare_exports yast_handle_firewall add_shares
   mount_export client_common_tests check_nfs_ready yast2_server_initial yast2_client_exit check_y2_nfs_func install_service config_service start_service check_service $rw $ro);
 

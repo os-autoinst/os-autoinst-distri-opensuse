@@ -38,14 +38,14 @@ sub get_boot_code_options_page {
 sub get_current_settings {
     my ($self) = @_;
     my %current_settings;
-    $current_settings{bootloader_type}              = $self->get_boot_code_options_page->get_bootloader_type();
-    $current_settings{write_to_partition}           = $self->get_boot_code_options_page->get_write_to_partition();
-    $current_settings{write_to_mbr}                 = $self->get_boot_code_options_page->get_write_to_mbr();
+    $current_settings{bootloader_type} = $self->get_boot_code_options_page->get_bootloader_type();
+    $current_settings{write_to_partition} = $self->get_boot_code_options_page->get_write_to_partition();
+    $current_settings{write_to_mbr} = $self->get_boot_code_options_page->get_write_to_mbr();
     $current_settings{select_custom_boot_partition} = $self->get_boot_code_options_page->get_write_to_custom();
-    $current_settings{set_active_flag}              = $self->get_boot_code_options_page->get_set_active_flag();
-    $current_settings{write_generic_to_mbr}         = $self->get_boot_code_options_page->get_write_generic_to_mbr();
-    $current_settings{trusted_boot_support}         = $self->get_boot_code_options_page->get_trusted_boot_support();
-    $current_settings{protective_mbr_flag}          = $self->get_boot_code_options_page->get_protective_mbr_flag();
+    $current_settings{set_active_flag} = $self->get_boot_code_options_page->get_set_active_flag();
+    $current_settings{write_generic_to_mbr} = $self->get_boot_code_options_page->get_write_generic_to_mbr();
+    $current_settings{trusted_boot_support} = $self->get_boot_code_options_page->get_trusted_boot_support();
+    $current_settings{protective_mbr_flag} = $self->get_boot_code_options_page->get_protective_mbr_flag();
     return %current_settings;
 }
 

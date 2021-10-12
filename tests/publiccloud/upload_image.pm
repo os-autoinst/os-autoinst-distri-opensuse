@@ -36,7 +36,7 @@ sub run {
 
     # Download the given image. Check for 404 errors and make them better visible
     my $cmd = "wget --no-check-certificate $img_url -O $img_name";
-    my $rc  = script_run("$cmd 2>download.txt", timeout => 60 * 10);
+    my $rc = script_run("$cmd 2>download.txt", timeout => 60 * 10);
     if ($rc != 0) {
         upload_logs("download.txt");
         script_run("cat download.txt");

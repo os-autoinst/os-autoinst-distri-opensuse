@@ -20,7 +20,7 @@ use Utils::Backends 'is_remote_backend';
 use ipmi_backend_utils;
 
 sub run {
-    my $self    = shift;
+    my $self = shift;
     my $timeout = 180;
 
     #online upgrade actually

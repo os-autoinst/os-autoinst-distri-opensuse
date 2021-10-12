@@ -33,7 +33,7 @@ sub run {
 
     foreach my $partition (@{$disk->{partitions}}) {
         $partitioner->add_partition_on_gpt_disk({
-                disk      => $disk->{name},
+                disk => $disk->{name},
                 partition => $partition
         });
     }

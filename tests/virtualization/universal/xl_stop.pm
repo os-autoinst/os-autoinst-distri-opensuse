@@ -26,7 +26,7 @@ use utils;
 
 sub run {
     foreach my $guest (keys %virt_autotest::common::guests) {
-        record_info "$guest",                         "Stopping xl-$guest guests";
+        record_info "$guest", "Stopping xl-$guest guests";
         assert_script_run "xl shutdown -w xl-$guest", 180;
     }
 

@@ -27,8 +27,8 @@ use utils qw(zypper_call);
 
 sub run {
     my $username = $testapi::username;
-    my $email    = "you\@example.com";
-    my $self     = shift;
+    my $email = "you\@example.com";
+    my $self = shift;
     $self->select_serial_terminal;
 
     # Create a test repo

@@ -19,7 +19,7 @@ use testapi;
 use parent 'Installation::WizardPage';
 
 use constant {
-    SELECT_HARD_DISKS_PAGE     => 'select-hard-disks-one-selected',
+    SELECT_HARD_DISKS_PAGE => 'select-hard-disks-one-selected',
     SELECT_HANDLING_PARTITIONS => 'inst-select-disk-to-use-as-root'
 };
 

@@ -28,15 +28,15 @@ sub run {
     select_console 'root-console';
 
     # User will not be able to su to root since it is not belong to group "wheel"
-    my $user   = 'bernhard';
+    my $user = 'bernhard';
     my $passwd = 'nots3cr3t';
-    my $group  = 'wheel';
+    my $group = 'wheel';
     validate_script_output "id $user | grep $group || echo 'check pass'", sub { m/check pass/ };
 
     # Modify the PAM configuration files
-    my $su_file      = '/etc/pam.d/su';
-    my $su_file_bak  = '/tmp/su';
-    my $sul_file     = '/etc/pam.d/su-l';
+    my $su_file = '/etc/pam.d/su';
+    my $su_file_bak = '/tmp/su';
+    my $sul_file = '/etc/pam.d/su-l';
     my $sul_file_bak = '/tmp/su-l';
     assert_script_run "cp $su_file $su_file_bak";
     assert_script_run "cp $sul_file $sul_file_bak";

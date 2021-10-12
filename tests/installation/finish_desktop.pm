@@ -26,7 +26,7 @@ sub run {
 
     my @tags = qw(generic-desktop);
     push(@tags, qw(opensuse-welcome)) if opensuse_welcome_applicable;
-    push(@tags, 'gnome-activities')   if check_var('DESKTOP', 'gnome');
+    push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
 
     assert_screen \@tags, $timeout;
     # Starting with GNOME 40, upon login, the activities screen is open (assuming the

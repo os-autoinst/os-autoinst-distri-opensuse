@@ -33,7 +33,7 @@ sub run {
 
     $self->wicked_command('ifup', 'team0');
     die('Missing interface team0') unless ifc_exists('team0');
-    validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /master team0/ });
+    validate_script_output('ip a s dev ' . $ctx->iface(), sub { /master team0/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /master team0/ });
 
     $self->ping_with_timeout(type => 'host', interface => 'team0', count_success => 5, timeout => 4);

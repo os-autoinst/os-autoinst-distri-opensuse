@@ -18,12 +18,12 @@ use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data   = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
-    my $disk       = $test_data->{disks}[0]->{name};
+    my $disk = $test_data->{disks}[0]->{name};
     my @partitions = @{$test_data->{disks}[0]->{partitions}};
-    my $root_part  = $partitions[0];
+    my $root_part = $partitions[0];
 
     record_info("Resize root");
     $partitioner->resize_partition({disk => $disk, partition => $root_part});

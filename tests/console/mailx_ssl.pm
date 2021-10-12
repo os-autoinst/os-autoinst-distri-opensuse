@@ -28,7 +28,7 @@ sub run {
     zypper_call "in mailx";
 
     # Send testing mail
-    my $subject   = "Testing mailx";
+    my $subject = "Testing mailx";
     my $user_mail = "$username\@$mail_server_name";
     mailx_setup(ssl => "yes", host => "$mail_server_name");
     mailx_send_mail(subject => "$subject", to => "$user_mail");

@@ -26,10 +26,10 @@ sub set_raid_level {
     my ($self, $raid_level) = @_;
     assert_screen(RAID_TYPE_PAGE);
     my %entry = (
-        0  => 0,
-        1  => 1,
-        5  => 5,
-        6  => 6,
+        0 => 0,
+        1 => 1,
+        5 => 5,
+        6 => 6,
         10 => 'g'
     );
     wait_screen_change { send_key "alt-$entry{$raid_level}"; };

@@ -34,7 +34,7 @@ Tools for querying bug info from Bugzilla.
 =cut
 
 sub parse_buginfo {
-    my $xml    = shift;
+    my $xml = shift;
     my $parser = XML::Simple->new;
     my $ret;
 
@@ -67,7 +67,7 @@ this possibility.
 =cut
 sub bugzilla_buginfo {
     my $bugid = shift;
-    my $url   = get_var('BUGZILLA_URL');
+    my $url = get_var('BUGZILLA_URL');
     my $ret;
 
     return undef unless $url;

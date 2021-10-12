@@ -27,7 +27,7 @@ use testapi;
 my $cpuset_log = '/var/log/cpuset';
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $cmd_base = 'cset --log ' . $cpuset_log . ' shield ';
 
     $self->select_serial_terminal;

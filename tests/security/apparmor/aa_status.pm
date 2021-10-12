@@ -40,7 +40,7 @@ sub run {
     services::apparmor::check_aa_status();
 
     # Verify "aa-status" can "handle profile with name contains '('"
-    my $testfile    = "/usr/bin/ls";
+    my $testfile = "/usr/bin/ls";
     my $str_special = '\(test\)';
 
     if (!is_sle("<15-sp3") && !is_leap("<15.3")) {

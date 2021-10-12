@@ -56,7 +56,7 @@ sub run {
     # internal smt should close network to simulate a restricted network
     if (check_var("SMT", "internal")) {
         my $net_conf = parse_network_configuration();
-        my $mac      = $net_conf->{fixed}->{mac};
+        my $mac = $net_conf->{fixed}->{mac};
         script_run "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`";
         assert_script_run("ip link set \$NIC down");
     }

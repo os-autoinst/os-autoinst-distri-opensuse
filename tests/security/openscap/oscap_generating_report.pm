@@ -25,10 +25,10 @@ use utils;
 use openscaptest;
 
 sub run {
-    my $xccdf_guide       = "xccdf_guide.html";
-    my $xccdf_report      = "xccdf_report.html";
-    my $xccdf_fix         = "xccdf_fix.sh";
-    my $oval_report       = "oval_report.html";
+    my $xccdf_guide = "xccdf_guide.html";
+    my $xccdf_report = "xccdf_report.html";
+    my $xccdf_fix = "xccdf_fix.sh";
+    my $oval_report = "oval_report.html";
     my $xccdf_oval_report = "xccdf_oval_report.html";
 
     my $xccdf_guide_match = 'm/

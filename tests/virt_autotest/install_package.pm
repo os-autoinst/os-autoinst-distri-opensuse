@@ -42,8 +42,8 @@ sub install_package {
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
     #workaround for dependency on bridge-utils for qa_lib_virtauto on sles15sp0
     my $repo_0_to_install = get_var("REPO_0_TO_INSTALL", '');
-    my $dependency_repo   = '';
-    my $dependency_rpms   = '';
+    my $dependency_repo = '';
+    my $dependency_rpms = '';
     if ($repo_0_to_install =~ /SLES-11-SP4/m) {
         $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-11:/Update/standard/';
         $dependency_rpms = 'xmlstarlet';
@@ -74,7 +74,7 @@ sub install_package {
 
     ###Install KVM role patterns for aarch64 virtualization host
     if (is_remote_backend && is_aarch64) {
-        zypper_call("--gpg-auto-import-keys ref",         timeout => 180);
+        zypper_call("--gpg-auto-import-keys ref", timeout => 180);
         zypper_call("in -t pattern kvm_server kvm_tools", timeout => 300);
     }
 
@@ -82,8 +82,8 @@ sub install_package {
     if (is_s390x) {
         lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
         my $pkg_lib_data = "qa_lib_virtauto-data";
-        my $cmd          = "rpm -q $pkg_lib_data";
-        my $ret          = console('svirt')->run_cmd($cmd);
+        my $cmd = "rpm -q $pkg_lib_data";
+        my $ret = console('svirt')->run_cmd($cmd);
         if ($ret == 0) {
             lpar_cmd("zypper --non-interactive rm $pkg_lib_data");
         }
@@ -91,7 +91,7 @@ sub install_package {
     }
     else {
         zypper_call("--gpg-auto-import-keys ref", 180);
-        zypper_call("in qa_lib_virtauto",         1800);
+        zypper_call("in qa_lib_virtauto", 1800);
     }
 
     if (get_var("PROXY_MODE")) {

@@ -36,13 +36,13 @@ our $test_envs = get_var('BCI_TEST_ENVS', 'base,init,dotnet,python,node,go,multi
 sub parse_logs {
     my $self = @_;
 
-    upload_logs('junit_build_serial.xml',   failok => 1);
+    upload_logs('junit_build_serial.xml', failok => 1);
     upload_logs('junit_build_parallel.xml', failok => 1);
 
     # bci-tests produce separate XUnit results files for each environment.
     # We need tp merge all together into a single xml file that will
     # be used by OpenQA to represent the results in "External results"
-    my $dom  = XML::LibXML::Document->new('1.0', 'utf-8');
+    my $dom = XML::LibXML::Document->new('1.0', 'utf-8');
     my $root = $dom->createElement('testsuites');
     $dom->setDocumentElement($root);
 
@@ -71,10 +71,10 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $engine         = get_required_var('CONTAINER_RUNTIME');
+    my $engine = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
-    my $bci_timeout    = get_var('BCI_TIMEOUT', 900);
+    my $bci_timeout = get_var('BCI_TIMEOUT', 900);
 
     ensure_ca_certificates_suse_installed;
 

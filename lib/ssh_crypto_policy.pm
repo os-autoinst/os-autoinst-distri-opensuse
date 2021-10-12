@@ -20,9 +20,9 @@ use warnings;
 sub new() {
     my ($class, %args) = @_;
     my $self = $class->SUPER::new();
-    $self->{name}            = $args{name};
-    $self->{query}           = $args{query};
-    $self->{cmd_option}      = $args{cmd_option};
+    $self->{name} = $args{name};
+    $self->{query} = $args{query};
+    $self->{cmd_option} = $args{cmd_option};
     $self->{algorithm_array} = ();
 
     # In the case of HostKeyAlgorithms, get only the ones provided by the server side
@@ -45,7 +45,7 @@ sub create_host_key_algorithm_array() {
     }
 
     # Get all the algorithms supported by the server side
-    my $output       = script_output("nmap --script ssh2-enum-algos -sV -p 22 localhost");
+    my $output = script_output("nmap --script ssh2-enum-algos -sV -p 22 localhost");
     my @output_lines = split('\|', $output);
 
     my $parse_algorithms = 0;
@@ -83,8 +83,8 @@ sub test_algorithms() {
     my $remote_user = $args{remote_user};
 
     my %failing_algorithms = (
-        "gss-gex-sha1-"     => 1,
-        "gss-group1-sha1-"  => 1,
+        "gss-gex-sha1-" => 1,
+        "gss-group1-sha1-" => 1,
         "gss-group14-sha1-" => 1);
 
     for my $algorithm (@{$self->{algorithm_array}}) {

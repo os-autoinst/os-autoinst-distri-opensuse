@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use base "proxymode";
 sub run {
-    my $self         = shift;
+    my $self = shift;
     my $test_machine = get_var("TEST_MACHINE");
     $self->redirect_serial($test_machine);
 }

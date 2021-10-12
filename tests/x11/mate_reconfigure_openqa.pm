@@ -23,7 +23,7 @@ sub run {
     set_var('DESKTOP', 'mate');
 
     # mate uses lightdm as window manager, which has the user preselected
-    set_var('DISPLAYMANAGER',    'lightdm');
+    set_var('DISPLAYMANAGER', 'lightdm');
     set_var('DM_NEEDS_USERNAME', 0);
 
     $self->result('ok');

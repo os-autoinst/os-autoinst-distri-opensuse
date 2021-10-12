@@ -44,7 +44,7 @@ sub run {
         assert_script_run "virsh net-define --file ~/default_network.xml";
     }
     assert_script_run "virsh net-start default || true", 90;
-    assert_script_run "virsh net-autostart default",     90;
+    assert_script_run "virsh net-autostart default", 90;
 
     # Show all guests
     assert_script_run 'virsh list --all';
@@ -61,7 +61,7 @@ sub run {
         } elsif ($method eq "import") {
             # Download the diskimage. Note: this could be merged with download_image.pm at some point
             my $source = $guest->{source};
-            my $disk   = $guest->{disk};
+            my $disk = $guest->{disk};
             script_retry("wget -qO '$disk' '$source'", retry => 3, delay => 60, timeout => 300);
             import_guest($guest);
         } else {

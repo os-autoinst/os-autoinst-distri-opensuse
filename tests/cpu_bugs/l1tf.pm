@@ -27,19 +27,19 @@ our %mitigations_list =
   (
     name => "l1tf",
     #Refer to https://software.intel.com/security-software-guidance/insights/processors-affected-l1-terminal-fault
-    CPUID                  => hex 'ffffffff',    #Ignore CPUID checking
-    IA32_ARCH_CAPABILITIES => 1,                 #Use MSR bit#0 RDCL_NO check
-    parameter              => 'l1tf',
-    cpuflags               => ['flush_l1d'],
-    sysfs_name             => "l1tf",
-    sysfs                  => {
-        full         => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
-        full_force   => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
-        flush        => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
-        flush_nosmt  => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT disabled",
+    CPUID => hex 'ffffffff',    #Ignore CPUID checking
+    IA32_ARCH_CAPABILITIES => 1,    #Use MSR bit#0 RDCL_NO check
+    parameter => 'l1tf',
+    cpuflags => ['flush_l1d'],
+    sysfs_name => "l1tf",
+    sysfs => {
+        full => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
+        full_force => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
+        flush => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
+        flush_nosmt => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT disabled",
         flush_nowarn => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
-        off          => "Mitigation: PTE Inversion; VMX: vulnerable",
-        default      => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
+        off => "Mitigation: PTE Inversion; VMX: vulnerable",
+        default => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
     },
     cmdline => [
         "full",

@@ -40,9 +40,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{FilesystemOptionsPage}  = Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{FilesystemOptionsPage} = Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{PartitioningSchemePage} = Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage->new({app => YuiRestClient::get_app()});
-    $self->{SelectDisksToUsePage}   = Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage->new({app => YuiRestClient::get_app()});
+    $self->{SelectDisksToUsePage} = Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 

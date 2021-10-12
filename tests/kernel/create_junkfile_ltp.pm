@@ -17,8 +17,8 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    my $pdir   = '$TMPDIR/aiodio.$$';
-    my $dir    = '$TMPDIR/aiodio';
+    my $pdir = '$TMPDIR/aiodio.$$';
+    my $dir = '$TMPDIR/aiodio';
 
     assert_script_run("mkdir -p $pdir/junkdir $dir/junkdir");
     assert_script_run("dd if=/dev/urandom of=$pdir/junkfile oflag=sync bs=1M count=26");
@@ -36,7 +36,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1,
     };
 }

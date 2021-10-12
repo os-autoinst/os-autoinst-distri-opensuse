@@ -49,19 +49,19 @@ use iscsi;
 use version_utils 'is_opensuse';
 use virt_autotest::utils qw(is_vmware_virtualization is_hyperv_virtualization);
 
-my $pxe_server_set       = 0;
-my $http_server_set      = 0;
-my $ftp_server_set       = 0;
-my $tftp_server_set      = 0;
-my $dns_server_set       = 0;
-my $dhcp_server_set      = 0;
-my $ntp_server_set       = 0;
-my $xvnc_server_set      = 0;
-my $ssh_server_set       = 0;
-my $xdmcp_server_set     = 0;
-my $iscsi_server_set     = 0;
+my $pxe_server_set = 0;
+my $http_server_set = 0;
+my $ftp_server_set = 0;
+my $tftp_server_set = 0;
+my $dns_server_set = 0;
+my $dhcp_server_set = 0;
+my $ntp_server_set = 0;
+my $xvnc_server_set = 0;
+my $ssh_server_set = 0;
+my $xdmcp_server_set = 0;
+my $iscsi_server_set = 0;
 my $iscsi_tgt_server_set = 0;
-my $nfs_server_set       = 0;
+my $nfs_server_set = 0;
 
 my $setup_script;
 my $disable_firewall = 0;
@@ -365,10 +365,10 @@ sub setup_iscsi_server {
     # Create the iSCSI LUN
     script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
     my $start = 0;
-    my $size  = 0;
+    my $size = 0;
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
         $start = $size + 1;
-        $size  = $num_lun * $lun_size * 1024;
+        $size = $num_lun * $lun_size * 1024;
         script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}MiB";
     }
 
@@ -526,7 +526,7 @@ sub setup_stunnel_server {
 }
 
 sub setup_mariadb_server {
-    my $ip     = '10.0.2.%';
+    my $ip = '10.0.2.%';
     my $passwd = 'suse';
 
     zypper_call('in mariadb');
@@ -546,13 +546,13 @@ sub setup_mariadb_server {
 }
 
 sub setup_nfs_server {
-    my $nfs_mount       = "/nfs/shared";
+    my $nfs_mount = "/nfs/shared";
     my $nfs_permissions = "rw,sync,no_root_squash";
 
     # Added as the client test code might want to change the default
     # values
     if (get_var("CONFIGURE_NFS_SERVER")) {
-        $nfs_mount       = get_required_var("NFS_MOUNT");
+        $nfs_mount = get_required_var("NFS_MOUNT");
         $nfs_permissions = get_required_var("NFS_PERMISSIONS");
     }
 

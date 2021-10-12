@@ -45,11 +45,11 @@ sub add_softfail {
 }
 
 sub run {
-    my ($self)           = @_;
+    my ($self) = @_;
     my $robot_fw_version = '3.2.2';
-    my $test_repo        = "/robot/tests/sles-" . get_var('VERSION');
-    my $robot_tar        = "robot.tar.gz";
-    my $python_bin       = is_sle('15+') ? 'python3' : 'python';
+    my $test_repo = "/robot/tests/sles-" . get_var('VERSION');
+    my $robot_tar = "robot.tar.gz";
+    my $python_bin = is_sle('15+') ? 'python3' : 'python';
 
     # Download and prepare the test environment
     assert_script_run "cd /; curl -f -v qa-css-hq.qa.suse.de/$robot_tar -o $robot_tar";

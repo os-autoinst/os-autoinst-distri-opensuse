@@ -21,7 +21,7 @@ use warnings;
 
 sub run_developers_tests {
     my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/sapconf_v5/archive.tar.gz';
-    my $log        = '/tmp/sapconf_test.log';
+    my $log = '/tmp/sapconf_test.log';
 
     # Download and unpack the test scripts supplied by the developers
     # Continue if it can not be downloaded
@@ -73,10 +73,10 @@ sub run_developers_tests {
 sub verify_sapconf_service {
     my ($svc, $desc) = @_;
 
-    my $output      = script_output "systemctl status $svc";
+    my $output = script_output "systemctl status $svc";
     my $statusregex = $svc . ' - ' . $desc . '.+' . 'Loaded: loaded \(/usr/lib/systemd/system/' . $svc . ';.+';
-    my $active      = $statusregex . 'Active: active \((listening|running)\).+';
-    my $success     = $statusregex . 'Active: active \(exited\).+' . 'status=0\/SUCCESS';
+    my $active = $statusregex . 'Active: active \((listening|running)\).+';
+    my $success = $statusregex . 'Active: active \(exited\).+' . 'status=0\/SUCCESS';
     die "Command 'systemctl status $svc' output is not recognized" unless ($output =~ m|$active|s or $output =~ m|$success|s);
 }
 
@@ -107,7 +107,7 @@ sub run {
     record_info("Current profile", "Current default profile: $default_profile");
 
     verify_sapconf_service('sapconf.service', 'sapconf') unless ($default_profile eq 'saptune');
-    verify_sapconf_service('uuidd.socket',    'UUID daemon activation socket');
+    verify_sapconf_service('uuidd.socket', 'UUID daemon activation socket');
     verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
       if is_sle('15+');
 

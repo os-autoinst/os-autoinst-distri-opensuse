@@ -53,14 +53,14 @@ our $f_position_c = 0;
 
 my $var_str = get_var("VERSION", "15-SP3") . "-" . get_var("ARCH", "x86_64") . "-" . get_var("DESKTOP", "textmode");
 our $lynis_baseline_file_default = "baseline-lynis-audit-system-nocolors-" . "$var_str";
-our $lynis_baseline_file         = get_var("LYNIS_BASELINE_FILE", $lynis_baseline_file_default);
+our $lynis_baseline_file = get_var("LYNIS_BASELINE_FILE", $lynis_baseline_file_default);
 
 our $lynis_audit_system_current_file = "lynis_audit_system_current_file";
-our $lynis_audit_system_error_file   = "lynis_audit_system_error_file";
+our $lynis_audit_system_error_file = "lynis_audit_system_error_file";
 
 # Lynix test status mappping with openQA
-our @lynis_ok       = split(/,/, get_var("LYNIS_OK",      "OK,DONE,YES"));
-our @lynis_fail     = split(/,/, get_var("LYNIS_ERROR",   "ERROR,WEAK,UNSAFE"));
+our @lynis_ok = split(/,/, get_var("LYNIS_OK", "OK,DONE,YES"));
+our @lynis_fail = split(/,/, get_var("LYNIS_ERROR", "ERROR,WEAK,UNSAFE"));
 our @lynis_softfail = split(/,/, get_var("LYNIS_WARNING", "WARNING,EXPOSED,NONE,SUGGESTION"));
 
 sub loadtest_lynis {
@@ -74,7 +74,7 @@ sub loadtest_lynis {
 sub parse_lynis_section_list {
     my ($file) = @_;
     # Section token
-    my $s_tok        = '\[\+\] ';
+    my $s_tok = '\[\+\] ';
     my @section_list = ();
 
     my $rf;
@@ -125,7 +125,7 @@ sub load_lynis_section_tests {
 
     # The main script which dynamically generates test modules according to different sections
     my $script = "lynis_run";
-    my $tinfo  = testinfo({}, test => "$script");
+    my $tinfo = testinfo({}, test => "$script");
 
     for my $section (@section_list) {
         $tinfo = testinfo({}, test => $section);
@@ -143,8 +143,8 @@ sub parse_lynis_section_content {
     my $rf;
     my $str;
     my $str_orig;
-    my $s_tok           = '\[\+\] ';
-    my $found           = 0;
+    my $s_tok = '\[\+\] ';
+    my $found = 0;
     my @section_content = ();
 
     $section = substr($section, 4);
@@ -162,7 +162,7 @@ sub parse_lynis_section_content {
 
     while (my $line = <$rf>) {
         $str_orig = $line;
-        $str      = $str_orig;
+        $str = $str_orig;
 
         if ($str =~ /$s_tok/) {
             # Found a section
@@ -225,10 +225,10 @@ sub parse_lynis_section_content {
 sub compare_lynis_section_content {
     my ($found, $array1, $array2) = @_;
     my @section_baseline = @$array1;
-    my @section_current  = @$array2;
+    my @section_current = @$array2;
 
     my $s_new;
-    my $ret    = 0;
+    my $ret = 0;
     my $result = "ok";
 
     # If an old section then compare baseline and current
@@ -239,7 +239,7 @@ sub compare_lynis_section_content {
         # Do not use "if (@section_baseline ~~ @section_current) {" to avoid
         # CI check Error "Smartmatch is experimental"
         my $str_section_baseline = join('', @section_baseline);
-        my $str_section_current  = join('', @section_current);
+        my $str_section_current = join('', @section_current);
 
         if ($str_section_baseline eq $str_section_current) {
             record_info("Same", "Section contents of \"Current\" and \"Baseline\" are the same, exit and pass");
@@ -256,7 +256,7 @@ sub compare_lynis_section_content {
             for my $exception (@exceptions) {
                 if ($str_section_baseline =~ m/$exception/ || $str_section_current =~ m/$exception/) {
                     $str_section_baseline =~ s/$exception//g;
-                    $str_section_current  =~ s/$exception//g;
+                    $str_section_current =~ s/$exception//g;
                     record_info("Warning", "Section contents need to be double checked manually: \"$exception\"");
                 }
             }
@@ -283,7 +283,7 @@ sub compare_lynis_section_content {
     record_info("CHECK", "Section contents NOT the same then check \"Current\" only");
     for my $s_lynis (@lynis_ok) {
         $s_new = "\\[.*$s_lynis.*\\]";
-        $ret   = grep(/$s_new/, @section_current);
+        $ret = grep(/$s_new/, @section_current);
         if ($ret) {
             $result = "ok";
             record_info("[$s_lynis] ");
@@ -293,7 +293,7 @@ sub compare_lynis_section_content {
 
     for my $s_lynis (@lynis_softfail) {
         $s_new = "\\[.*$s_lynis.*\\]";
-        $ret   = grep(/$s_new/, @section_current);
+        $ret = grep(/$s_new/, @section_current);
         if ($ret) {
             # Filter out some exceptions allowed:
             # "Boot_and_services": "[4C- Checking for password protection[23C [ WARNING ]"
@@ -325,7 +325,7 @@ sub compare_lynis_section_content {
 
     for my $s_lynis (@lynis_fail) {
         $s_new = "\\[.*$s_lynis.*\\]";
-        $ret   = grep(/$s_new/, @section_current);
+        $ret = grep(/$s_new/, @section_current);
         if ($ret) {
             $result = "fail";
             # Invoke record_soft_failure() for better/notable openQA show

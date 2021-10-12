@@ -28,8 +28,8 @@ sub init {
     my ($self) = @_;
     $self->SUPER::init();
     $self->{rb_skip_registration} = $self->{app}->radiobutton({id => 'skip_registration'});
-    $self->{tb_email}             = $self->{app}->textbox({id => 'email'});
-    $self->{tb_reg_code}          = $self->{app}->textbox({id => 'reg_code'});
+    $self->{tb_email} = $self->{app}->textbox({id => 'email'});
+    $self->{tb_reg_code} = $self->{app}->textbox({id => 'reg_code'});
     return $self;
 }
 

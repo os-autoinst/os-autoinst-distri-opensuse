@@ -21,8 +21,8 @@ sub run {
     $self->copy_testsuite('TOOL_s390_qetharp');
     $self->execute_script('10S_cleanup_s390_qetharp.sh');
     $self->execute_script('20S_prepare_s390_qetharp.sh', '1000');
-    $self->execute_script('30S_qetharp_test.sh',         '1000');
-    $self->execute_script('40S_Ping_Test.sh',            '1000');
+    $self->execute_script('30S_qetharp_test.sh', '1000');
+    $self->execute_script('40S_Ping_Test.sh', '1000');
     $self->cleanup_testsuite('TOOL_s390_qetharp');
 
 }

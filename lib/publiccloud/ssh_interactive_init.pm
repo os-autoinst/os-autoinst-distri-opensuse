@@ -32,8 +32,8 @@ sub post_fail_hook {
 
 sub test_flags {
     return {
-        fatal                    => 1,
-        milestone                => 0,
+        fatal => 1,
+        milestone => 0,
         publiccloud_multi_module => 1
     };
 }

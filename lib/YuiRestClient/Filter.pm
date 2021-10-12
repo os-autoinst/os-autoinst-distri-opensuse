@@ -49,7 +49,7 @@ sub is_resolved {
 
 sub resolve {
     my ($self, $json) = @_;
-    my ($k,    $v)    = ($self->{regex}->{k}, $self->{regex}->{v});
+    my ($k, $v) = ($self->{regex}->{k}, $self->{regex}->{v});
     my @widgets = grep {
         defined $_->{$k} && YuiRestClient::Sanitizer::sanitize($_->{$k}) =~ $v
     } @{$json};

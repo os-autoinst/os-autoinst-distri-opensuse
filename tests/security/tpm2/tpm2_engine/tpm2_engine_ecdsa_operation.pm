@@ -32,10 +32,10 @@ sub run {
     # ECDSA operations
     # There is an known issue bsc#1159508
     # Please use the command below to carry out the tests
-    my $test_dir  = "tpm2_engine_ecdsa_sign";
+    my $test_dir = "tpm2_engine_ecdsa_sign";
     my $test_file = "data";
-    my $my_key    = "mykey";
-    my $my_sig    = "mysig";
+    my $my_key = "mykey";
+    my $my_sig = "mysig";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";
     assert_script_run "echo tpm2test > $test_file";

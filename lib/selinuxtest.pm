@@ -30,10 +30,10 @@ our @EXPORT = qw(
 );
 
 our $file_contexts_local = '/etc/selinux/minimum/contexts/files/file_contexts.local';
-our $file_output         = '/tmp/cmd_output';
-our $policypkg_repo      = get_var('SELINUX_POLICY_PKGS');
-our $policyfile_tar      = 'testing-master';
-our $dir                 = '/tmp/';
+our $file_output = '/tmp/cmd_output';
+our $policypkg_repo = get_var('SELINUX_POLICY_PKGS');
+our $policyfile_tar = 'testing-master';
+our $dir = '/tmp/';
 
 # download SELinux policy pkgs
 sub download_policy_pkgs {

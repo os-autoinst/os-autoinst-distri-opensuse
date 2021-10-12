@@ -16,10 +16,10 @@ subtest 'ns' => sub {
 
 subtest 'has_properties' => sub {
     ok !autoyast::has_properties('scalar'), 'Test if node is scalar';
-    ok !autoyast::has_properties(undef),    'Test if node is undef';
-    ok autoyast::has_properties({_t => 'boolean'}),      'Test if type property _t is detected';
-    ok autoyast::has_properties({__text => 'value'}),    'Test if text value property _text is detected';
-    ok autoyast::has_properties({__count => 2}),         'Test if number of children node value property __count is detected';
+    ok !autoyast::has_properties(undef), 'Test if node is undef';
+    ok autoyast::has_properties({_t => 'boolean'}), 'Test if type property _t is detected';
+    ok autoyast::has_properties({__text => 'value'}), 'Test if text value property _text is detected';
+    ok autoyast::has_properties({__count => 2}), 'Test if number of children node value property __count is detected';
     ok autoyast::has_properties({_descendant => 'any'}), 'Test if look for descendant node value property _descendant is detected';
     ok autoyast::has_properties({_t => 'boolean', __text => 'true', __count => 2}), 'Test if multiple properties are defined';
 };
@@ -31,7 +31,7 @@ subtest 'close_predicate' => sub {
 
 subtest 'get_descendant' => sub {
     is autoyast::get_descendant({_descendant => 'any'}), './/', 'Test when _descendant property is defined';
-    is autoyast::get_descendant({_descendant => undef}), '',    'Test when _descendant property is not defined';
+    is autoyast::get_descendant({_descendant => undef}), '', 'Test when _descendant property is not defined';
     is autoyast::get_descendant('scalar'), '', 'Test when _descendant property is scalar';
 };
 
@@ -50,7 +50,7 @@ subtest 'is_processable' => sub {
 
 subtest 'create_xpath_predicate' => sub {
     is autoyast::create_xpath_predicate('test'), "[text()='test']", 'Test simple text';
-    is autoyast::create_xpath_predicate(''),     '[not(text())]',   'Test empty text search';
+    is autoyast::create_xpath_predicate(''), '[not(text())]', 'Test empty text search';
     is autoyast::create_xpath_predicate({_t => 'boolean', __text => 'false'}), '[text()=\'false\' and @t=\'boolean\']', 'Test node with _t and __text properties';
     is autoyast::create_xpath_predicate({__count => 2, child => [1, 2]}), '[count(ns:child)=2]', 'Test node with count defined for the child node';
 };
@@ -74,7 +74,7 @@ subtest 'validate_autoyast_profile' => sub {
     open my $fh, '<', $input_xml or die "error opening $input_xml: $!";
     my $xml = do { local $/; <$fh> };
     # Load expectations being set in yaml
-    my $ypp  = YAML::PP->new(schema => ['Core', 'Merge']);
+    my $ypp = YAML::PP->new(schema => ['Core', 'Merge']);
     my $yaml = $ypp->load_file(dirname(__FILE__) . '/data/autoyast_profile.yaml');
     # Mock methods which use testapi
     my $autoyast_mock = Test::MockModule->new('autoyast');

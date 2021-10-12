@@ -29,7 +29,7 @@ sub run {
 
     select_console 'root-console';
     zypper_call("rm $not_installed_pkg") if (script_run("which $not_installed_pkg") == 0);
-    zypper_call('in command-not-found')  if (check_var('DESKTOP', 'textmode'));    # command-not-found is part of the enhanced_base pattern, missing in textmode
+    zypper_call('in command-not-found') if (check_var('DESKTOP', 'textmode'));    # command-not-found is part of the enhanced_base pattern, missing in textmode
 
     # select user-console; for one we want to be sure cnf works for a user, 2nd assert_script_run does not work in root-console
     select_console 'user-console';

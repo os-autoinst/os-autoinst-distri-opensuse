@@ -33,10 +33,10 @@ sub run {
 
     # Reset vars for upgrade on zVM
     if (get_var('UPGRADE_ON_ZVM')) {
-        set_var('UPGRADE',             1);
-        set_var('AUTOYAST',            0);
-        set_var('DESKTOP',             'textmode');
-        set_var('SCC_REGISTER',        'installation');
+        set_var('UPGRADE', 1);
+        set_var('AUTOYAST', 0);
+        set_var('DESKTOP', 'textmode');
+        set_var('SCC_REGISTER', 'installation');
         set_var('REPO_UPGRADE_BASE_0', 0);
         # Set this to load extra needle during scc registration in sle15
         set_var('HDDVERSION', get_var('BASE_VERSION'));
@@ -46,7 +46,7 @@ sub run {
     # Reset DESKTOP after upgrade as desktop change
     if (is_sle('=11-SP4', get_var('HDDVERSION')) && check_var('DM_NEEDS_USERNAME', '1')) {
         set_var('DM_NEEDS_USERNAME', '0');
-        set_var('DESKTOP',           'gnome') if (check_var('DESKTOP', 'kde') && (get_var('ADDONURL', '') !~ /phub/));
+        set_var('DESKTOP', 'gnome') if (check_var('DESKTOP', 'kde') && (get_var('ADDONURL', '') !~ /phub/));
     }
 
     record_info('Version', 'VERSION=' . get_var('VERSION'));

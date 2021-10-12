@@ -26,7 +26,7 @@ sub new {
 sub init {
     my $self = shift;
     $self->{rt_warning} = $self->{app}->label({type => 'YRichText'});
-    $self->{btn_ok}     = $self->{app}->button({id => 'ok'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     return $self;
 }
 

@@ -26,12 +26,12 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)              = shift;
-    my $test_file           = "/usr/bin/cat";
-    my $test_profile        = "/etc/apparmor.d/usr.bin.cat";
-    my $test_file_bk        = "/usr/bin/cat_bk";
-    my $test_profile_bk     = "/etc/apparmor.d/usr.bin.cat_bk";
-    my $test_file_vsftpd    = "/usr/sbin/vsftpd";
+    my ($self) = shift;
+    my $test_file = "/usr/bin/cat";
+    my $test_profile = "/etc/apparmor.d/usr.bin.cat";
+    my $test_file_bk = "/usr/bin/cat_bk";
+    my $test_profile_bk = "/etc/apparmor.d/usr.bin.cat_bk";
+    my $test_file_vsftpd = "/usr/sbin/vsftpd";
     my $test_profile_vsftpd = "/etc/apparmor.d/usr.sbin.vsftpd";
 
     # Setup testing files
@@ -51,7 +51,7 @@ sub run {
     # "marked as a program that should not have its own profile",
     # it should be failed
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
-    assert_and_click("AppArmor-Launch",               timeout => 60);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 30, 3);
     type_string("$test_file");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
@@ -66,7 +66,7 @@ sub run {
     # *NOT* "marked as a program that should not have its own profile",
     # it should be succeeded
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
-    assert_and_click("AppArmor-Launch",               timeout => 60);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_bk");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
@@ -84,7 +84,7 @@ sub run {
     # Enter "yast2 apparmor" again
     enter_cmd("yast2 apparmor &");
     assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
-    assert_and_click("AppArmor-Launch",               timeout => 60);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_vsftpd");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);

@@ -35,7 +35,7 @@ sub run {
 
     # label system
     assert_script_run("semanage boolean --modify --on selinuxuser_execmod");
-    script_run("restorecon -R /",  600);
+    script_run("restorecon -R /", 600);
     script_run("restorecon -R /*", 600);
 
     # enable enforcing mode from SELinux

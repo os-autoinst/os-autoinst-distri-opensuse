@@ -51,15 +51,15 @@ sub run {
     mutex_wait 'barrier_setup_done';
 
     select_console "root-console";
-    my $nfs_server              = "10.0.2.101";
-    my $remote_mount            = "/tmp/nfs/server";
-    my $remote_mount_nfsidmap   = "/home/tux";
-    my $autofs_conf_file        = '/etc/auto.master';
-    my $autofs_map_file         = '/etc/auto.master.d/autofs_regression_test.autofs';
-    my $test_conf_file          = '/etc/auto.share';
-    my $test_mount_dir          = '/mnt/test';
+    my $nfs_server = "10.0.2.101";
+    my $remote_mount = "/tmp/nfs/server";
+    my $remote_mount_nfsidmap = "/home/tux";
+    my $autofs_conf_file = '/etc/auto.master';
+    my $autofs_map_file = '/etc/auto.master.d/autofs_regression_test.autofs';
+    my $test_conf_file = '/etc/auto.share';
+    my $test_mount_dir = '/mnt/test';
     my $test_mount_dir_nfsidmap = '/mnt/test_nfsidmap';
-    my $test_conf_file_content  = "test -ro,no_subtree_check $nfs_server:$remote_mount";
+    my $test_conf_file_content = "test -ro,no_subtree_check $nfs_server:$remote_mount";
 
     # autofs
     check_autofs_service();
@@ -86,14 +86,14 @@ sub run {
     assert_script_run("ls $test_mount_dir/test");
     # Without existing user the nfsidmap should map the owner to 'nobody'
     validate_script_output("ls -l $test_mount_dir_nfsidmap/tux.txt", sub { m/nobody.*users.*tux.txt/ });
-    validate_script_output("cat $test_mount_dir_nfsidmap/tux.txt",   sub { m/Hi tux/ });
+    validate_script_output("cat $test_mount_dir_nfsidmap/tux.txt", sub { m/Hi tux/ });
     assert_script_run("umount $test_mount_dir_nfsidmap");
     assert_script_run("useradd -m tux");
     assert_script_run("nfsidmap -c || true");
     assert_script_run("mount -t nfs4 $nfs_server:$remote_mount_nfsidmap $test_mount_dir_nfsidmap");
     # Now 'tux' should be shown instead
     validate_script_output("ls -l $test_mount_dir_nfsidmap/tux.txt", sub { m/tux.*users.*tux.txt/ });
-    validate_script_output("cat $test_mount_dir_nfsidmap/tux.txt",   sub { m/Hi tux/ });
+    validate_script_output("cat $test_mount_dir_nfsidmap/tux.txt", sub { m/Hi tux/ });
     assert_script_run("umount $test_mount_dir_nfsidmap");
 
     barrier_wait 'AUTOFS_FINISHED';

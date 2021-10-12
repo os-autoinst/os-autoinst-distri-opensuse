@@ -23,7 +23,7 @@ sub select {
     my %params = (action => YuiRestClient::Action::YUI_SELECT);
 
     if (exists $args{value}) {
-        $params{value}  = $args{value};
+        $params{value} = $args{value};
         $params{column} = $self->get_index($args{column}) if $args{column};
     }
     elsif (exists $args{row}) {

@@ -22,12 +22,12 @@ sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('NW'));
     my $instance_type = get_required_var('INSTANCE_TYPE');
-    my $instance_id   = get_required_var('INSTANCE_ID');
-    my $sid           = get_required_var('INSTANCE_SID');
-    my $hostname      = get_var('INSTANCE_ALIAS', '$(hostname)');
-    my $params_file   = "/sapinst/$instance_type.params";
-    my $timeout       = 900 * get_var('TIMEOUT_SCALE', 1);          # Time out for NetWeaver's sources related commands
-    my $product_id    = undef;
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $sid = get_required_var('INSTANCE_SID');
+    my $hostname = get_var('INSTANCE_ALIAS', '$(hostname)');
+    my $params_file = "/sapinst/$instance_type.params";
+    my $timeout = 900 * get_var('TIMEOUT_SCALE', 1);    # Time out for NetWeaver's sources related commands
+    my $product_id = undef;
 
     # Set Product ID depending on the type of Instance
     if ($instance_type eq 'ASCS') {

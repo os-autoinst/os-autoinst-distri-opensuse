@@ -22,16 +22,16 @@ use utils qw(systemctl zypper_call exec_and_insert_password);
 use hacluster;
 
 sub run {
-    my $cts_bin      = '/usr/share/pacemaker/tests/cts/CTSlab.py';
-    my $log          = '/tmp/cts_cluster_exerciser.log';
+    my $cts_bin = '/usr/share/pacemaker/tests/cts/CTSlab.py';
+    my $log = '/tmp/cts_cluster_exerciser.log';
     my $cluster_name = get_cluster_name;
     my $results_file = '/tmp/cts_cluster_exerciser.results';
-    my $node_01      = choose_node(1);
-    my $node_02      = choose_node(2);
+    my $node_01 = choose_node(1);
+    my $node_02 = choose_node(2);
     my $stonith_type = 'external/sbd';
     my $stonith_args = 'pcmk_delay_max=30,pcmk_off_action=reboot,action=reboot';
-    my $test_ip      = '10.0.2.20';
-    my $timeout      = 60 * 90;
+    my $test_ip = '10.0.2.20';
+    my $timeout = 60 * 90;
 
     # Wait until Pacemaker cts test is initialized
     barrier_wait("PACEMAKER_CTS_INIT_$cluster_name");
@@ -61,16 +61,16 @@ sub run {
 
         my %results;
 
-        $results{tests}   = [];
-        $results{info}    = {};
+        $results{tests} = [];
+        $results{info} = {};
         $results{summary} = {};
 
-        $results{info}->{timestamp}    = time;
-        $results{info}->{distro}       = "";
+        $results{info}->{timestamp} = time;
+        $results{info}->{distro} = "";
         $results{info}->{results_file} = "";
         $results{summary}->{num_tests} = 0;
-        $results{summary}->{passed}    = 0;
-        $results{summary}->{duration}  = $cts_end_time - $cts_start_time;
+        $results{summary}->{passed} = 0;
+        $results{summary}->{duration} = $cts_end_time - $cts_start_time;
 
         foreach my $line (split("\n", $output)) {
             my %aux = ();
@@ -81,7 +81,7 @@ sub run {
             my $failure = $1;
             $line =~ /'auditfail': ([0-9]+)/;
             my $auditfail = $1;
-            $aux{outcome}    = ($failure == 0 and $auditfail == 0) ? 'passed' : 'failed';
+            $aux{outcome} = ($failure == 0 and $auditfail == 0) ? 'passed' : 'failed';
             $aux{test_index} = 0;
             push @{$results{tests}}, \%aux;
             $results{summary}->{passed}++ if ($aux{outcome} eq 'passed');

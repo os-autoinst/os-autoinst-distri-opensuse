@@ -73,16 +73,16 @@ sub get_product_shortcuts {
             : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
-            rt  => is_x86_64() ? 't' : undef
+            rt => is_x86_64() ? 't' : undef
         );
     }
     # Else return old shortcuts
     return (
-        sles     => 's',
-        sled     => 'u',
+        sles => 's',
+        sled => 'u',
         sles4sap => is_ppc64le() ? 'u' : 'x',
-        hpc      => is_x86_64()  ? 'x' : 'u',
-        rt       => is_x86_64()  ? 'u' : undef
+        hpc => is_x86_64() ? 'x' : 'u',
+        rt => is_x86_64() ? 'u' : undef
     );
 }
 
@@ -90,7 +90,7 @@ sub run {
     my ($self) = @_;
     my $iterations;
 
-    my @welcome_tags     = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
+    my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
     my $expect_beta_warn = get_var('BETA');
     if ($expect_beta_warn) {
         push @welcome_tags, 'inst-betawarning';
@@ -187,9 +187,9 @@ sub run {
         # before switching to console during installation
         wait_screen_change { send_key 'alt-y' };
         wait_screen_change { send_key 'ctrl-alt-shift-x' };
-        my $method     = uc get_required_var('INSTALL_SOURCE');
+        my $method = uc get_required_var('INSTALL_SOURCE');
         my $mirror_src = get_required_var("MIRROR_$method");
-        my $rc         = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
+        my $rc = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
         die "Install source mismatch in boot parameters!\n" unless ($rc == 0);
         $rc = script_run "grep --color=always -e \"^RepoURL: $mirror_src\" -e \"^ZyppRepoURL: $mirror_src\" /etc/install.inf";
         die "Install source mismatch in linuxrc settings!\n" unless ($rc == 0);

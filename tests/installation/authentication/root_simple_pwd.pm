@@ -19,7 +19,7 @@ use Test::Assert ':all';
 
 sub run {
     my $auth_for_root = $testapi::distri->get_authentication_for_root();
-    my $warning_text  = 'The password is too simple:\nit is based on a dictionary word.';
+    my $warning_text = 'The password is too simple:\nit is based on a dictionary word.';
 
     $auth_for_root->set_password($testapi::password);
     $testapi::distri->get_navigation()->proceed_next_screen();

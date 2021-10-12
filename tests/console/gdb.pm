@@ -42,7 +42,7 @@ sub enter_gdb_cmd {
 }
 
 sub run {
-    my $self      = shift;
+    my $self = shift;
     my $test_deps = 'gcc glibc-devel gdb';
 
     $self->select_serial_terminal;

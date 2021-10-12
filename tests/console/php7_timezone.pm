@@ -20,11 +20,11 @@ use testapi;
 use apachetest;
 
 my $date_time = "a";
-my $php_time  = "b";
+my $php_time = "b";
 
 sub compare_time {
     $date_time = script_output 'date +"%H:%M"';
-    $php_time  = script_output "php -r 'date_default_timezone_set(\"Europe/Berlin\");echo date(\"H:i\"), \"\n\";'";
+    $php_time = script_output "php -r 'date_default_timezone_set(\"Europe/Berlin\");echo date(\"H:i\"), \"\n\";'";
     return ($date_time eq $php_time);
 }
 

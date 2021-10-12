@@ -22,10 +22,10 @@ use testapi;
 use utils qw(type_string_slow_extended clear_console);
 
 sub run {
-    my $module       = "host";
+    my $module = "host";
     my $hosts_params = {
-        ip    => '195.135.221.134',
-        fqdn  => 'download.opensuse.org',
+        ip => '195.135.221.134',
+        fqdn => 'download.opensuse.org',
         alias => 'download-srv'
     };
 

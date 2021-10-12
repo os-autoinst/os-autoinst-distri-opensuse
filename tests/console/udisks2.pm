@@ -33,7 +33,7 @@ sub run {
     }
 
     # Compares block devices from lsblk and udisksctl outputs.
-    my $lsblk_output           = script_output("lsblk");
+    my $lsblk_output = script_output("lsblk");
     my $udiskctl_status_output = script_output("udisksctl status");
     my $current_test_device;
     my @tested_devices;

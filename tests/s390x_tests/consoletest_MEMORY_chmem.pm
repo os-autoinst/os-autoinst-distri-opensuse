@@ -20,7 +20,7 @@ use strict;
 sub run {
     my $self = shift;
     $self->copy_testsuite('MEMORY_chmem');
-    $self->execute_script('chmem.test.sh',         '1', 1200);
+    $self->execute_script('chmem.test.sh', '1', 1200);
     $self->execute_script('checksum.chmemtest.sh', '1', 300);
 }
 

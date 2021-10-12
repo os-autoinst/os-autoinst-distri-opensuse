@@ -32,12 +32,12 @@ use version_utils;
 our @EXPORT = qw(check_virt_kernel);
 
 sub check_virt_kernel {
-    my %args         = @_;
-    my $target       = $args{target}   // 'localhost';
-    my $suffix       = $args{suffix}   // '';
-    my $log_file     = $args{log_file} // '/tmp/virt_kernel.txt';
-    my $go_to_target = $target eq 'localhost'                ? ''              : "ssh root\@$target";
-    my $bootlog      = (script_run("which journalctl") == 0) ? "journalctl -b" : "dmesg";
+    my %args = @_;
+    my $target = $args{target} // 'localhost';
+    my $suffix = $args{suffix} // '';
+    my $log_file = $args{log_file} // '/tmp/virt_kernel.txt';
+    my $go_to_target = $target eq 'localhost' ? '' : "ssh root\@$target";
+    my $bootlog = (script_run("which journalctl") == 0) ? "journalctl -b" : "dmesg";
 
     record_info "KERNEL $target$suffix", "We are now checking kernel on $target$suffix.";
     assert_script_run qq(echo -e "\\n# $target$suffix:" >> $log_file);

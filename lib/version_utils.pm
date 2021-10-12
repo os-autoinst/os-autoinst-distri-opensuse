@@ -100,8 +100,8 @@ Contains all the functions related to version checking
 our @EXPORT = (@{(+VERSION)}, @{(+SCENARIO)}, @{+BACKEND});
 
 our %EXPORT_TAGS = (
-    VERSION  => (VERSION),
-    BACKEND  => (BACKEND),
+    VERSION => (VERSION),
+    BACKEND => (BACKEND),
     SCENARIO => (SCENARIO)
 );
 
@@ -178,7 +178,7 @@ Regex format: checks query version format (Example: /\d{2}\.\d/)#
 =cut
 sub check_version {
     my $query = lc shift;
-    my $pv    = lc shift;
+    my $pv = lc shift;
     my $regex = shift // qr/[^<>=+]+/;
 
     # Matches operator($op), version($qv), plus($plus) - regex101.com to debug ;)
@@ -208,9 +208,9 @@ Version: Tumbleweed | 15.2 (Leap)
 Flavor: DVD | MS-HyperV | XEN | KVM-and-Xen | ..
 =cut
 sub is_microos {
-    my $filter  = shift;
-    my $distri  = get_var('DISTRI');
-    my $flavor  = get_var('FLAVOR');
+    my $filter = shift;
+    my $distri = get_var('DISTRI');
+    my $flavor = get_var('FLAVOR');
     my $version = get_var('VERSION');
     return 0 unless $distri && $distri =~ /microos/;
     return 1 unless $filter;
@@ -262,7 +262,7 @@ Check if distribution is Leap with optional filter for:
 Version: <=42.2 =15.0 >15.0 >=42.3 15.0+
 =cut
 sub is_leap {
-    my $query   = shift;
+    my $query = shift;
     my $version = get_var('VERSION', '');
 
     # Leap and its stagings
@@ -271,7 +271,7 @@ sub is_leap {
     return 1 unless $query;
 
     # Hacks for staging and HG2G :)
-    $query   =~ s/^([<>=]*)42/${1}14/;
+    $query =~ s/^([<>=]*)42/${1}14/;
     $version =~ s/^42/14/;
     $version =~ s/:(Core|S)[:\w]*//i;
     $version =~ s/^Jump://i;
@@ -295,7 +295,7 @@ Check if distribution is SLE with optional filter for:
 Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
 =cut
 sub is_sle {
-    my $query   = shift;
+    my $query = shift;
     my $version = shift // get_var('VERSION');
 
     return 0 unless check_var('DISTRI', 'sle');
@@ -487,13 +487,13 @@ sub is_using_system_role {
     return is_sle('>=12-SP2') && is_sle('<15')
       && is_x86_64
       && is_server()
-      && (!is_sles4sap()         || is_sles4sap_standard())
+      && (!is_sles4sap() || is_sles4sap_standard())
       && (install_this_version() || install_to_other_at_least('12-SP2'))
       || (is_sles4sap() && main_common::is_updates_test_repo())
       || is_sle('=15')
-      || (is_sle('>15')     && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
+      || (is_sle('>15') && (check_var('SCC_REGISTER', 'installation') || get_var('ADDONS') || get_var('ADDONURL')))
       || (is_sle('15-SP2+') && check_var('FLAVOR', 'Full'))
-      || (is_opensuse       && !is_leap('<15.1'))                                                                         # Also on leap 15.1, TW, MicroOS
+      || (is_opensuse && !is_leap('<15.1'))    # Also on leap 15.1, TW, MicroOS
 }
 
 =head2 is_using_system_role_first_flow
@@ -582,7 +582,7 @@ For use only on locahost, no argument needs to be specified
 =cut
 sub get_os_release {
     my ($go_to_target, $os_release_file) = @_;
-    $go_to_target    //= '';
+    $go_to_target //= '';
     $os_release_file //= '/etc/os-release';
     my %os_release = script_output("$go_to_target cat $os_release_file") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
     %os_release = map { uc($_) => $os_release{$_} } keys %os_release;
@@ -619,8 +619,8 @@ Returns 1 (true) if the ID_LIKE variable contains C<distri_name>.
 sub check_os_release {
     my ($distri_name, $line, $go_to_target, $os_release_file) = @_;
     die '$distri_name is not given' unless $distri_name;
-    die '$line is not given'        unless $line;
-    $go_to_target    //= '';
+    die '$line is not given' unless $line;
+    $go_to_target //= '';
     $os_release_file //= '/etc/os-release';
     my $os_like_name = script_output("$go_to_target grep -e \"^$line\\b\" ${os_release_file} | cut -d'\"' -f2");
     return ($os_like_name =~ /$distri_name/i);
@@ -678,13 +678,13 @@ or greater than the second one, respectively.
 sub package_version_cmp {
     my ($ver1, $ver2) = @_;
 
-    my @chunks1   = split(/-/, $ver1);
-    my @chunks2   = split(/-/, $ver2);
+    my @chunks1 = split(/-/, $ver1);
+    my @chunks2 = split(/-/, $ver2);
     my $chunk_cnt = $#chunks1 > $#chunks2 ? scalar @chunks1 : scalar @chunks2;
 
     for (my $cid = 0; $cid < $chunk_cnt; $cid++) {
-        my @tokens1   = split(/\./, $chunks1[$cid] // '0');
-        my @tokens2   = split(/\./, $chunks2[$cid] // '0');
+        my @tokens1 = split(/\./, $chunks1[$cid] // '0');
+        my @tokens2 = split(/\./, $chunks2[$cid] // '0');
         my $token_cnt = scalar @tokens1;
         $token_cnt = scalar @tokens2 if $#tokens2 > $#tokens1;
 
@@ -696,7 +696,7 @@ sub package_version_cmp {
                 next if $tok1 == $tok2;
                 return $tok1 - $tok2;
             } else {
-                next     if $tok1 eq $tok2;
+                next if $tok1 eq $tok2;
                 return 1 if $tok1 gt $tok2;
                 return -1;
             }

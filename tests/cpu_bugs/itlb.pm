@@ -30,7 +30,7 @@ sub run {
     my $self = shift;
 
     check_param('/sys/module/kvm/parameters/nx_huge_pages', "Y");
-    my $damn  = script_run('modprobe -r kvm_intel');
+    my $damn = script_run('modprobe -r kvm_intel');
     my $damn1 = script_run('modprobe -r kvm');
     if ($damn or $damn1) {
         record_info('fail', "Uninstall kvm and kvm_intel failed.");

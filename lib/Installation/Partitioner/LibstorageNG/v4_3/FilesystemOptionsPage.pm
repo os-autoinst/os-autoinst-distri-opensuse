@@ -29,18 +29,18 @@ sub init {
     my $self = shift;
     $self->SUPER::init();
     $self->{lbl_settings_root_part} = $self->{app}->label({label => 'Settings for the Root Partition'});
-    $self->{cb_root_fs_type}        = $self->{app}->combobox({id => '"vol_0_fs_type"'});
+    $self->{cb_root_fs_type} = $self->{app}->combobox({id => '"vol_0_fs_type"'});
     return $self;
 }
 
 sub select_root_filesystem {
     my ($self, $fs) = @_;
     my %filesystems = (
-        ext2  => 'Ext2',
-        ext3  => 'Ext3',
-        ext4  => 'Ext4',
+        ext2 => 'Ext2',
+        ext3 => 'Ext3',
+        ext4 => 'Ext4',
         btrfs => 'Btrfs',
-        xfs   => 'XFS');
+        xfs => 'XFS');
     my $root_fs = $filesystems{$fs};
     return $self->{cb_root_fs_type}->select($root_fs) if $root_fs;
     die "Wrong test data provided when selecting root file system: $fs \n" .

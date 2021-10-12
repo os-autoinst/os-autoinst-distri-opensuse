@@ -20,7 +20,7 @@ use warnings;
 
 sub tuned_is {
     my $pattern = shift;
-    my $output  = script_output "saptune daemon status 2>&1 || true";
+    my $output = script_output "saptune daemon status 2>&1 || true";
     $output =~ /Daemon \(tuned\.service\) is $pattern./;
 }
 

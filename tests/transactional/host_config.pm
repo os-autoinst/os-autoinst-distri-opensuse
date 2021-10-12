@@ -24,8 +24,8 @@ sub run {
 
     # GRUB Configuration
     my $disable_grub_timeout = get_var('DISABLE_GRUB_TIMEOUT');
-    my $extrabootparams      = get_var('EXTRABOOTPARAMS');
-    assert_script_run("sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=-1/' /etc/default/grub")                         if $disable_grub_timeout;
+    my $extrabootparams = get_var('EXTRABOOTPARAMS');
+    assert_script_run("sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=-1/' /etc/default/grub") if $disable_grub_timeout;
     assert_script_run("sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*/& $extrabootparams/' /etc/default/grub") if $extrabootparams;
 
     if ($disable_grub_timeout or $extrabootparams) {

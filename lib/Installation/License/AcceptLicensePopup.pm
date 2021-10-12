@@ -26,7 +26,7 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{btn_ok}   = $self->{app}->button($args->{btn_ok_filter});
+    $self->{btn_ok} = $self->{app}->button($args->{btn_ok_filter});
     $self->{lbl_text} = $self->{app}->checkbox({label => 'You must accept the license to install this product'});
     return $self;
 }

@@ -33,11 +33,11 @@ sub run {
     # 1)
     script_run('touch NOWRITE;test ! -f NOWRITE', 0);
     # 1b) just debugging infos
-    script_run("snapper list",        0);
+    script_run("snapper list", 0);
     script_run("cat /etc/os-release", 0);
     # rollback
     script_run("snapper rollback -d rollback-before-migration");
-    my $ret     = script_run("snapper --help | grep disable-used-space");
+    my $ret = script_run("snapper --help | grep disable-used-space");
     my $disable = '';
     $disable = '--disable-used-space' unless $ret;
     assert_script_run("snapper list $disable | tail -n 2 | grep rollback", 240);

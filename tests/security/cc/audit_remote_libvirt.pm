@@ -34,8 +34,8 @@ sub run {
     assert_script_run("virsh net-list | grep default | grep active");
 
     # Download the pre-installed guest images and sample xml files
-    my $vm_name      = 'vm-swtpm-legacy';
-    my $hdd_1        = get_required_var('HDD_1');
+    my $vm_name = 'vm-swtpm-legacy';
+    my $hdd_1 = get_required_var('HDD_1');
     my $legacy_image = 'swtpm_legacy@64bit.qcow2';
     assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$hdd_1"), 900);
     assert_script_run("mv $image_path/$hdd_1 $image_path/$legacy_image");

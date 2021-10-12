@@ -18,7 +18,7 @@ sub run {
 
     assert_screen 'windows-start-with-region', 360;
     assert_and_click 'windows-yes';
-    assert_screen 'windows-keyboard-layout-page',                    180;
+    assert_screen 'windows-keyboard-layout-page', 180;
     send_key_until_needlematch 'windows-keyboard-layout-english-us', 'down';
     assert_and_click 'windows-yes';
     assert_screen 'windows-second-keyboard';
@@ -57,7 +57,7 @@ sub run {
         assert_and_click 'windows-next';
     }
 
-    my $count        = 0;
+    my $count = 0;
     my @privacy_menu = split(',', get_required_var('WIN_INSTALL_PRIVACY_NEEDLES'));
     foreach my $tag (@privacy_menu) {
         send_key('pgdn') if (++$count == 4);

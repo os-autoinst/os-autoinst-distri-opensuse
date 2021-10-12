@@ -20,7 +20,7 @@ sub run {
     assert_screen "inst-overview-secureboot";
 
     $cmd{bootloader} = "alt-b" if check_var('VIDEOMODE', "text");
-    send_key $cmd{change};        # Change
+    send_key $cmd{change};    # Change
     send_key $cmd{bootloader};    # Bootloader
 
     # Is secure boot enabled?

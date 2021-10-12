@@ -39,7 +39,7 @@ sub validate_mounting_option {
     record_info("Check $args->{partition}",
         "Check if $args->{partition} partition is mounted by $args->{mount_by} option");
     my %mount_by = (
-        UUID          => "UUID",
+        UUID => "UUID",
         "Device Name" => "/dev/$args->{partition}",
         "Device Path" => "/dev/disk/by-path/");
     assert_script_run("grep \"$mount_by{$args->{mount_by}}\" /etc/fstab | grep \" $args->{mount_point} \"");
@@ -53,8 +53,8 @@ sub run {
         foreach my $partition (@{$disk->{partitions}}) {
             if ($partition->{fstab_options}) {
                 validate_mounting_option({
-                        partition   => $partition->{name},
-                        mount_by    => $partition->{fstab_options}{mount_by},
+                        partition => $partition->{name},
+                        mount_by => $partition->{fstab_options}{mount_by},
                         mount_point => $partition->{mounting_options}{mount_point}});
             }
         }

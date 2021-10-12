@@ -24,7 +24,7 @@ sub run {
 
     script_run("zypper lr -d | tee /dev/$serialdev");
 
-    my $pattern   = get_var("DE_PATTERN");
+    my $pattern = get_var("DE_PATTERN");
     my $zypp_type = "pattern";
     if (check_var("DE_IS_PKG", 1)) {
         $zypp_type = "package";

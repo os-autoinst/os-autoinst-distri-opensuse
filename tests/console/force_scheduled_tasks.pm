@@ -50,7 +50,7 @@ sub run {
 
     # Make sure there's no load before we trigger one via cron.
     my $is_settled = settle_load;
-    my $before     = time;
+    my $before = time;
     # run cron jobs or systemd timers which can affect system performance and mask systemd timers later
     # if cron directories exist, try to run present cron jobs
     if (script_run('ls -a /etc/cron.{hourly,daily,weekly,monthly}') == 0) {

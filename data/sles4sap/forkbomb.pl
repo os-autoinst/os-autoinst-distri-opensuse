@@ -14,7 +14,7 @@ use strict;
 use warnings;
 
 sub fork_bomb {
-    my $max  = shift;
+    my $max = shift;
     my $pids = 0;
 
     $SIG{TERM} = "DEFAULT";

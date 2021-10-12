@@ -21,10 +21,10 @@ use testapi;
 use utils;
 
 sub run {
-    my $self   = shift;
+    my $self = shift;
     my $numcpu = get_required_var('QEMUCPUS');
     my @interrupts;
-    my @irqs;         # number of interrupts by cpu
+    my @irqs;    # number of interrupts by cpu
     my $numqueues;    # number of NVMe queues, each queue has it's own MSI
     my $fail = 0;
 

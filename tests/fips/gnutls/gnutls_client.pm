@@ -30,9 +30,9 @@ sub run {
     # Switch to the original folder contains the key/password files
     my $test_dir = "gnutls";
     assert_script_run "cd $test_dir";
-    my $user   = "psk_identity";
+    my $user = "psk_identity";
     my $passwd = "psk-passwd.txt";
-    my $psk    = script_output "cat $passwd | awk -F : '{print \$2}'";
+    my $psk = script_output "cat $passwd | awk -F : '{print \$2}'";
 
     # Connect to the server and make sure the handshake
     validate_script_output "echo |gnutls-cli -p 5556 localhost --pskusername $user --pskkey $psk --priority NORMAL:-KX-ALL:+ECDHE-PSK:+DHE-PSK:+PSK",

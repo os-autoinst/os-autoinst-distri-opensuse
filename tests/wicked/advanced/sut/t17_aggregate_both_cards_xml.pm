@@ -23,12 +23,12 @@ use utils 'file_content_replace';
 sub run {
     my ($self, $ctx) = @_;
     my $sut_iface = 'bond0';
-    my $config    = '/etc/wicked/ifconfig/bonding.xml';
+    my $config = '/etc/wicked/ifconfig/bonding.xml';
     record_info('Info', 'Aggregate both cards from wicked XML files');
     $self->get_from_data('wicked/xml/bonding.xml', $config);
     file_content_replace($config, iface0 => $ctx->iface(), iface1 => $ctx->iface2(), ip_address => $self->get_ip(type => 'bond'));
     $self->wicked_command('ifup', $sut_iface);
-    validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /SLAVE/ });
+    validate_script_output('ip a s dev ' . $ctx->iface(), sub { /SLAVE/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /SLAVE/ });
     $self->ping_with_timeout(type => 'host', interface => $sut_iface, count_success => 30, timeout => 4);
 }

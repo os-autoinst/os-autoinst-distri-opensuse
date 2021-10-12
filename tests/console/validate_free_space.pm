@@ -23,16 +23,16 @@ use filesystem_utils 'free_space';
 sub run {
     select_console('root-console');
     my $errors = '';
-    my $disks  = get_test_suite_data()->{disks};
+    my $disks = get_test_suite_data()->{disks};
 
     my ($expected, $unit, $actual);
     foreach my $disk (@{$disks}) {
         if ($expected = $disk->{allowed_unpartitioned}) {
             $expected =~ /(?<size>\d+\.\d+)(?<unit>.*)/;
             $expected = $+{size};
-            $unit     = $+{unit};
-            $actual   = {free_space(
-                    dev  => "/dev/$disk->{name}",
+            $unit = $+{unit};
+            $actual = {free_space(
+                    dev => "/dev/$disk->{name}",
                     unit => $unit)}->{size};
             if ($expected ne $actual) {
                 $errors .= "Wrong free space in /dev/$disk->{name}. " .

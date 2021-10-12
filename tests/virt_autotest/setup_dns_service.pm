@@ -18,12 +18,12 @@ use testapi;
 sub run {
     my $self = shift;
 
-    my $wait_script          = "180";
+    my $wait_script = "180";
     my $dns_bash_script_name = "setup_dns_service.sh";
-    my $dns_bash_script_url  = data_url("virt_autotest/$dns_bash_script_name");
-    my $dns_forward_domain   = "testvirt.net";
-    my $dns_reverse_domain   = "123.168.192";
-    my $dns_server_ipaddr    = "192.168.123.1";
+    my $dns_bash_script_url = data_url("virt_autotest/$dns_bash_script_name");
+    my $dns_forward_domain = "testvirt.net";
+    my $dns_reverse_domain = "123.168.192";
+    my $dns_server_ipaddr = "192.168.123.1";
     my $download_bash_script = "curl -s -o ~/$dns_bash_script_name $dns_bash_script_url";
     script_output($download_bash_script, $wait_script, type_command => 0, proceed_on_failure => 0);
     my $execute_bash_script = "chmod +x ~/$dns_bash_script_name && ~/$dns_bash_script_name -f $dns_forward_domain -r $dns_reverse_domain -s $dns_server_ipaddr";
@@ -51,7 +51,7 @@ sub post_fail_hook {
     script_run("rm /var/lib/named/testvirt.net.zone; rm /var/lib/named/123.168.192.zone");
 
     my $get_os_installed_release = "lsb_release -r | grep -oE \"[[:digit:]]{2}\"";
-    my $os_installed_release     = script_output($get_os_installed_release, 30, type_command => 0, proceed_on_failure => 0);
+    my $os_installed_release = script_output($get_os_installed_release, 30, type_command => 0, proceed_on_failure => 0);
     if ($os_installed_release gt '11') {
         script_run("systemctl stop named.service");
         script_run("systemctl disable named.service");
@@ -60,9 +60,9 @@ sub post_fail_hook {
         script_run("service named stop");
     }
 
-    my $vm_types           = "sles|win";
-    my $get_vm_hostnames   = "virsh list  --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    my $vm_types = "sles|win";
+    my $get_vm_hostnames = "virsh list  --all | grep -E \"${vm_types}\" | awk \'{print \$2}\'";
+    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
     {

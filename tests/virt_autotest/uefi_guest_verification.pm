@@ -31,7 +31,7 @@ use version_utils "is_sle";
 sub run_test {
     my $self = shift;
 
-    $self->check_guest_bootloader($_)  foreach (keys %virt_autotest::common::guests);
+    $self->check_guest_bootloader($_) foreach (keys %virt_autotest::common::guests);
     $self->check_guest_bootcurrent($_) foreach (keys %virt_autotest::common::guests);
     if (is_kvm_host) {
         record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
@@ -119,7 +119,7 @@ sub check_guest_pmsuspend_enabled {
 sub do_guest_pmsuspend {
     my ($self, $suspend_domain, $suspend_target, $suspend_duration) = @_;
     carp("Guest domain name must be given before performing dompmsuspend.") if (!(defined $suspend_domain) or ($suspend_domain eq ''));
-    $suspend_target   //= 'mem';
+    $suspend_target //= 'mem';
     $suspend_duration //= 0;
 
     record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports suspend to disk and hybrid modes");

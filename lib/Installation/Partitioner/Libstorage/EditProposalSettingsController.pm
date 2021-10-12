@@ -25,8 +25,8 @@ sub new {
     my ($class, $args) = @_;
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::Libstorage::SuggestedPartitioningPage->new(),
-        ProposalSettingsDialog    => Installation::Partitioner::Libstorage::ProposalSettingsDialog->new(),
-        PasswordDialog            => Installation::Partitioner::Libstorage::PasswordDialog->new()
+        ProposalSettingsDialog => Installation::Partitioner::Libstorage::ProposalSettingsDialog->new(),
+        PasswordDialog => Installation::Partitioner::Libstorage::PasswordDialog->new()
     }, $class;
 }
 
@@ -63,8 +63,8 @@ sub edit_proposal_for_existing_partition {
 # the required test combinations.
 sub _set_partitioning {
     my ($self, %args) = @_;
-    my $is_lvm            = $args{is_lvm};
-    my $is_encrypted      = $args{is_encrypted};
+    my $is_lvm = $args{is_lvm};
+    my $is_encrypted = $args{is_encrypted};
     my $has_separate_home = $args{has_separate_home};
     if ($is_lvm) {
         if ($is_encrypted) {

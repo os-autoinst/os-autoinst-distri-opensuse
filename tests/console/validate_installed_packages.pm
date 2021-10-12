@@ -22,7 +22,7 @@ use scheduler 'get_test_suite_data';
 
 sub run {
     my $test_data = get_test_suite_data();
-    my %packages  = %{$test_data->{software}->{packages}};
+    my %packages = %{$test_data->{software}->{packages}};
     # Variable to accumulate errors
     my $errors = '';
     # Validate packages

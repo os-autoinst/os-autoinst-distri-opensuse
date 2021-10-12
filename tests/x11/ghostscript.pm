@@ -40,10 +40,10 @@ sub run {
 
     # special case for gv which is not installed on all flavors
     my $gv_missing = zypper_call("in gv", exitcode => [0, 104]);
-    my $gs_script  = "ghostscript_ps2pdf.sh";
-    my $gs_log     = "ghostscript.log";
-    my $gs_failed  = "/tmp/ghostscript_failed";
-    my $reference  = "alphabet.pdf";
+    my $gs_script = "ghostscript_ps2pdf.sh";
+    my $gs_log = "ghostscript.log";
+    my $gs_failed = "/tmp/ghostscript_failed";
+    my $reference = "alphabet.pdf";
 
     # download ghostscript converter script and test if download succeeded
     # change to user directory to create files which can be accessed later

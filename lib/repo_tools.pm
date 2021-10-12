@@ -344,7 +344,7 @@ sub rmt_import_data {
     # Check import data resource exsited
     assert_script_run("ls $datapath");
     # Import RMT data from test path to new RMT server
-    assert_script_run("rmt-cli import data $datapath",  600);
+    assert_script_run("rmt-cli import data $datapath", 600);
     assert_script_run("rmt-cli import repos $datapath", 600);
     assert_script_run("rm -rf $datapath");
 }
@@ -361,9 +361,9 @@ sub rmt_export_data {
     assert_script_run("mkdir -p $datapath");
     assert_script_run("chown _rmt:nginx $datapath");
     # Export RMT data to one folder
-    assert_script_run("rmt-cli export data $datapath",     600);
+    assert_script_run("rmt-cli export data $datapath", 600);
     assert_script_run("rmt-cli export settings $datapath", 600);
-    assert_script_run("rmt-cli export repos $datapath",    600);
+    assert_script_run("rmt-cli export repos $datapath", 600);
     assert_script_run("ls $datapath");
 }
 
@@ -446,8 +446,8 @@ Generate SLE or openSUSE versions. C<$separator> is separator used for version n
 =cut
 sub generate_version {
     my ($separator) = @_;
-    my $dist        = get_required_var('DISTRI');
-    my $version     = get_required_var('VERSION');
+    my $dist = get_required_var('DISTRI');
+    my $version = get_required_var('VERSION');
     $separator //= '_';
     if (is_sle) {
         $dist = 'SLE';
@@ -478,8 +478,8 @@ C<$args> should have following keys defined:
 
 =cut
 sub validate_repo_properties {
-    my ($args)           = @_;
-    my $search_criteria  = $args->{Filter} // $args->{URI};
+    my ($args) = @_;
+    my $search_criteria = $args->{Filter} // $args->{URI};
     my $actual_repo_data = parse_repo_data($search_criteria);
 
     if ($args->{Alias}) {
@@ -525,8 +525,8 @@ Returns Hash reference with all the parsed properties and their values, for exam
 =cut
 sub parse_repo_data {
     my ($repo_identifier) = @_;
-    my @lines             = split(/\n/, script_output("zypper lr $repo_identifier"));
-    my %repo_data         = map { split(/\s*:\s*/, $_, 2) } @lines;
+    my @lines = split(/\n/, script_output("zypper lr $repo_identifier"));
+    my %repo_data = map { split(/\s*:\s*/, $_, 2) } @lines;
     return \%repo_data;
 }
 

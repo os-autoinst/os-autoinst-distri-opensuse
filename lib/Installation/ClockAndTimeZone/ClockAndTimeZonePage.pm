@@ -24,7 +24,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{cb_region}    = $self->{app}->combobox({id => 'region'});
+    $self->{cb_region} = $self->{app}->combobox({id => 'region'});
     $self->{cb_time_zone} = $self->{app}->combobox({id => 'timezone'});
     $self->{chb_hw_clock} = $self->{app}->checkbox({id => 'hwclock'});
     return $self;

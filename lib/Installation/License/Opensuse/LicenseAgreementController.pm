@@ -22,7 +22,7 @@ use YuiRestClient;
 sub init {
     my ($self, $args) = @_;
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementPage->new({
-            app            => YuiRestClient::get_app(),
+            app => YuiRestClient::get_app(),
             rt_eula_filter => {id => '"CWM::RichText"'}});
     return $self;
 }

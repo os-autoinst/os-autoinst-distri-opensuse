@@ -21,16 +21,16 @@ use testapi;
 use parent 'Element::Checkbox';
 
 use constant {
-    CHECKED_ENLARGE_TO_RAM_SIZE_FOR_SUSPEND_CHECKBOX   => 'enabledenlargeswap',
+    CHECKED_ENLARGE_TO_RAM_SIZE_FOR_SUSPEND_CHECKBOX => 'enabledenlargeswap',
     UNCHECKED_ENLARGE_TO_RAM_SIZE_FOR_SUSPEND_CHECKBOX => 'disabledenlargeswap'
 };
 
 sub set_state {
     my ($self, $state) = @_;
     $self->SUPER::set_state(
-        state            => $state,
-        shortcut         => 'alt-a',
-        checked_needle   => CHECKED_ENLARGE_TO_RAM_SIZE_FOR_SUSPEND_CHECKBOX,
+        state => $state,
+        shortcut => 'alt-a',
+        checked_needle => CHECKED_ENLARGE_TO_RAM_SIZE_FOR_SUSPEND_CHECKBOX,
         unchecked_needle => UNCHECKED_ENLARGE_TO_RAM_SIZE_FOR_SUSPEND_CHECKBOX
     );
 }

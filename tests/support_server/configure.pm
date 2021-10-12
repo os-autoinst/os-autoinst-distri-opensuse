@@ -66,7 +66,7 @@ sub run {
     # We use create_hdd
     if (!check_var('SUPPORT_SERVER_GENERATOR', 1)) {
         _install_packages;
-        $self->use_wicked_network_manager      if is_network_manager_default;
+        $self->use_wicked_network_manager if is_network_manager_default;
         _turnoff_gnome_screensaver_and_suspend if check_var('DESKTOP', 'gnome');
     }
 }

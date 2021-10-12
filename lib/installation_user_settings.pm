@@ -38,7 +38,7 @@ sub await_password_check {
 
 sub enter_userinfo {
     my (%args) = @_;
-    $args{username}     //= $realname;
+    $args{username} //= $realname;
     $args{max_interval} //= undef;
     send_key 'alt-f';    # Select full name text field
     wait_screen_change { type_string($args{username}, max_interval => $args{max_interval}); };

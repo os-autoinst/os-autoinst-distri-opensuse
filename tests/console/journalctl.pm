@@ -32,9 +32,9 @@ use Utils::Architectures;
 use power_action_utils qw(power_action);
 use constant {
     PERSISTENT_LOG_DIR => '/var/log/journal',
-    DROPIN_DIR         => '/etc/systemd/journald.conf.d',
-    SYSLOG             => '/var/log/messages',
-    SEALING_DELAY      => 10
+    DROPIN_DIR => '/etc/systemd/journald.conf.d',
+    SYSLOG => '/var/log/messages',
+    SEALING_DELAY => 10
 };
 
 # by default persistent journal is set for opensuse, except of leap 15.3+
@@ -112,7 +112,7 @@ sub assert_test_log_entries {
 }
 
 sub rotatelogs_and_verify {
-    my @existing_rotations    = split('\n', script_output('find /var/log/journal/ -regex ".*system\@.*" -o -regex ".*user-.*"'));
+    my @existing_rotations = split('\n', script_output('find /var/log/journal/ -regex ".*system\@.*" -o -regex ".*user-.*"'));
     my $systemd_journal_birth = script_output 'stat -c %W /var/log/journal/$(cat /etc/machine-id)/system.journal';
     my @errors;
     assert_script_run('journalctl --rotate');
@@ -134,8 +134,8 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my %log_entries = (
-        info  => q{'(Testing, journalctl.pm) We need to call batman'},
-        err   => q{'(Testing, journalctl.pm) We NEED to call the batman NOW'},
+        info => q{'(Testing, journalctl.pm) We need to call batman'},
+        err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW'},
         emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!'}
     );
     my @boots;
@@ -188,13 +188,13 @@ sub run {
         record_info("publiccloud", "Public cloud omits rebooting (temporary workaround)");
     }
     # Basic journalctl tests: Export journalctl with various arguments and ensure they are not empty
-    die "journalctl output is empty!" if is_journal_empty('',   "journalctl.txt");
-    die "journalctl dmesg empty"      if is_journal_empty("-k", "journalctl-dmesg.txt");
+    die "journalctl output is empty!" if is_journal_empty('', "journalctl.txt");
+    die "journalctl dmesg empty" if is_journal_empty("-k", "journalctl-dmesg.txt");
 
     # Check boot times from journal
     unless (is_journal_empty('-U "`cat /var/tmp/reboottime`"', "journalctl-before.txt")) {
         # Check for bsc1173856, i.e. the first date in the journal is newer than the last date
-        my $awk    = '{print($1 " " $2 " " $3);}';
+        my $awk = '{print($1 " " $2 " " $3);}';
         my $f_time = script_output("journalctl -q | head -n 1 | awk '$awk'", proceed_on_failure => 1);
         my $l_time = script_output("journalctl -q | tail -n 1 | awk '$awk'", proceed_on_failure => 1);
         record_info 'head time', "$f_time -> " . str2time($f_time);
@@ -256,8 +256,8 @@ sub run {
 
     # Set new log entries for FSS checks
     %log_entries = (
-        info  => q{'(Testing, journalctl.pm) We need to call batman-after sealing'},
-        err   => q{'(Testing, journalctl.pm) We NEED to call the batman NOW-after sealing'},
+        info => q{'(Testing, journalctl.pm) We need to call batman-after sealing'},
+        err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW-after sealing'},
         emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!-after sealing'}
     );
     rotatelogs_and_verify;

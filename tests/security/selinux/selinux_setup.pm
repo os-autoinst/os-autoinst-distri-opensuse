@@ -40,9 +40,9 @@ sub run {
 
     # install as many as SELinux related packages
     my @pkgs = (
-        "selinux-tools", "libselinux-devel",  "libselinux1",  "python3-selinux", "libsepol1",   "libsepol-devel",
-        "libsemanage1",  "libsemanage-devel", "checkpolicy",  "mcstrans",        "restorecond", "setools-console",
-        "setools-devel", "setools-java",      "setools-libs", "setools-tcl"
+        "selinux-tools", "libselinux-devel", "libselinux1", "python3-selinux", "libsepol1", "libsepol-devel",
+        "libsemanage1", "libsemanage-devel", "checkpolicy", "mcstrans", "restorecond", "setools-console",
+        "setools-devel", "setools-java", "setools-libs", "setools-tcl"
     );
     foreach my $pkg (@pkgs) {
         my $results = script_run("zypper --non-interactive se $pkg");

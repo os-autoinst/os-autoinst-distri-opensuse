@@ -74,8 +74,8 @@ sub check_aa_enforce {
     diag 'check aa_enforce.';
 
     my $executable_name = "/usr/sbin/nscd";
-    my $profile_name    = "usr.sbin.nscd";
-    my $named_profile   = "";
+    my $profile_name = "usr.sbin.nscd";
+    my $named_profile = "";
     systemctl('restart apparmor');
 
     # Recalculate profile name in case

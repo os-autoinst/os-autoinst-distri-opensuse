@@ -26,7 +26,7 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{rb_primary}  = $self->{app}->radiobutton({id => '"primary"'});
+    $self->{rb_primary} = $self->{app}->radiobutton({id => '"primary"'});
     $self->{rb_extended} = $self->{app}->radiobutton({id => '"extended"'});
     return $self;
 }
@@ -40,7 +40,7 @@ sub set_type {
 sub select_type {
     my ($self, $type) = @_;
     my %types = (
-        primary  => $self->{rb_primary},
+        primary => $self->{rb_primary},
         extended => $self->{rb_extended}
     );
     return $types{$type}->select();

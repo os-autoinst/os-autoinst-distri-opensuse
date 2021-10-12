@@ -37,7 +37,7 @@ VLAN=host0.42
 ";
 
     # Setup node1
-    $self->write_container_file("node1", "/etc/systemd/network/host0.42.netdev",   $netdev_file);
+    $self->write_container_file("node1", "/etc/systemd/network/host0.42.netdev", $netdev_file);
     $self->write_container_file("node1", "/etc/systemd/network/50-static.network", $network_base_file);
     $self->write_container_file(
         "node1", "/etc/systemd/network/host0.42.network", "
@@ -55,7 +55,7 @@ Address=44.0.0.1/24
 
 
     # Setup node2
-    $self->write_container_file("node2", "/etc/systemd/network/host0.42.netdev",   $netdev_file);
+    $self->write_container_file("node2", "/etc/systemd/network/host0.42.netdev", $netdev_file);
     $self->write_container_file("node2", "/etc/systemd/network/50-static.network", $network_base_file);
     $self->write_container_file(
         "node2", "/etc/systemd/network/host0.42.network", "

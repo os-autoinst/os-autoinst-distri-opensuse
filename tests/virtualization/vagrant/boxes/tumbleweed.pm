@@ -53,7 +53,7 @@ sub run() {
 
     # version = Tumbleweed, Leap 15 etc
     my $version = get_required_var('VERSION');
-    my $arch    = get_required_var('ARCH');
+    my $arch = get_required_var('ARCH');
     my $arch_ext;
     $arch_ext = "_$arch" if !is_x86_64();
     my $build = get_required_var('BUILD');

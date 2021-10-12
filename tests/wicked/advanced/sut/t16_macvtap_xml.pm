@@ -25,7 +25,7 @@ sub run {
     $self->get_from_data('wicked/xml/macvtap.xml', $config);
     $self->prepare_check_macvtap($config, $ctx->iface(), $self->get_ip(type => 'macvtap', netmask => 1));
     $self->wicked_command('ifreload', $ctx->iface());
-    $self->wicked_command('ifup',     'macvtap1');
+    $self->wicked_command('ifup', 'macvtap1');
     $self->validate_macvtap();
 }
 

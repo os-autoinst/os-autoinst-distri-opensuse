@@ -24,17 +24,17 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{cmb_bootloader}        = $self->{app}->combobox({id => '"Bootloader::LoaderTypeWidget"'});
+    $self->{cmb_bootloader} = $self->{app}->combobox({id => '"Bootloader::LoaderTypeWidget"'});
     $self->{cb_write_to_partition} = $self->{app}->checkbox({id => 'boot'});
-    $self->{cb_bootdev}            = $self->{app}->checkbox({id => 'mbr'});
-    $self->{cb_custom_boot}        = $self->{app}->checkbox({id => 'custom'});
-    $self->{cmb_mbr_flag}          = $self->{app}->combobox({id => '"Bootloader::PMBRWidget"'});
-    $self->{cb_trusted_boot}       = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
-    $self->{cb_generic_to_mbr}     = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
-    $self->{cb_set_active_flag}    = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
-    $self->{tb_boot_options}       = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
-    $self->{btn_ok}                = $self->{app}->button({id => 'next'});
-    $self->{btn_cancel}            = $self->{app}->button({id => 'abort'});
+    $self->{cb_bootdev} = $self->{app}->checkbox({id => 'mbr'});
+    $self->{cb_custom_boot} = $self->{app}->checkbox({id => 'custom'});
+    $self->{cmb_mbr_flag} = $self->{app}->combobox({id => '"Bootloader::PMBRWidget"'});
+    $self->{cb_trusted_boot} = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
+    $self->{cb_generic_to_mbr} = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
+    $self->{cb_set_active_flag} = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
+    $self->{tb_boot_options} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
+    $self->{btn_ok} = $self->{app}->button({id => 'next'});
+    $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
     return $self;
 }
 

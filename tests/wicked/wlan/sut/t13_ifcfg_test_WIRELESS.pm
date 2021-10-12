@@ -17,7 +17,7 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has wicked_version => '>=0.6.66';
-has stderr_file    => '/tmp/wicked_stderr';
+has stderr_file => '/tmp/wicked_stderr';
 
 has ifcfg_wlan_enabled => sub { [
         q(

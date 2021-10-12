@@ -34,16 +34,16 @@ sub init {
 sub select_partition_id {
     my ($self, $partition_id) = @_;
     my %partition_ids = (
-        linux                => 'Linux',
-        'linux-swap'         => 'Linux Swap',
-        'linux-lvm'          => 'Linux LVM',
-        'linux-raid'         => 'Linux RAID',
-        efi                  => 'EFI System Partition',
-        'bios-boot'          => 'BIOS Boot Partition',
-        'prep-boot'          => 'PReP Boot Partition',
-        'windows-data'       => 'Windows Data Partition',
+        linux => 'Linux',
+        'linux-swap' => 'Linux Swap',
+        'linux-lvm' => 'Linux LVM',
+        'linux-raid' => 'Linux RAID',
+        efi => 'EFI System Partition',
+        'bios-boot' => 'BIOS Boot Partition',
+        'prep-boot' => 'PReP Boot Partition',
+        'windows-data' => 'Windows Data Partition',
         'microsoft-reserved' => 'Microsoft Reserved Partition',
-        'intel-rst'          => 'Intel RST'
+        'intel-rst' => 'Intel RST'
     );
     return $self->{partition_id}->select($partition_ids{$partition_id}) if $partition_ids{$partition_id};
     die "Wrong test data provided when selecting partition id.\n" .

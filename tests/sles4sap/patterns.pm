@@ -21,9 +21,9 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)      = @_;
+    my ($self) = @_;
     my @sappatterns = qw(sap-nw sap-b1 sap-hana);
-    my $output      = '';
+    my $output = '';
 
     $self->select_serial_terminal;
 

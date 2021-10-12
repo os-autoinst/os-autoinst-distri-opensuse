@@ -25,7 +25,7 @@ sub check_package
 {
     my ($not_installed, $pkgname, $check_path) = @_;
     my $error = 'Package is ' . ($not_installed ? ' ' : ' not ') . ' installed';
-    my $ret   = script_run("rpm -q $pkgname");
+    my $ret = script_run("rpm -q $pkgname");
     die($error) if ($not_installed) ? !$ret : $ret;
     $ret = script_run("ls -l $check_path");
     die($error) if ($not_installed) ? !$ret : $ret;
@@ -57,8 +57,8 @@ sub run {
     my ($self) = @_;
 
     select_console('root-console');
-    my $file       = '/etc/openQA_snapper_test';
-    my $pkgname    = 'zsh';
+    my $file = '/etc/openQA_snapper_test';
+    my $pkgname = 'zsh';
     my $check_path = '/usr/share/zsh/functions';
     my $openqainit = script_output("snapper create -p -d openqainit");
 

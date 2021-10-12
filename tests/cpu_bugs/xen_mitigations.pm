@@ -70,28 +70,28 @@ my $xpti_false = {false => {
 };
 my $xpti_dom0_true = {"dom0=true" => {
         default => {
-            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']},
+            expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']},
             unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']}
         }
     }
 };
 my $xpti_dom0_false = {"dom0=false" => {
         default => {
-            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']},
+            expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 disabled, DomU .*$']},
             unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 enabled, DomU .*$']}
         }
     }
 };
 my $xpti_domu_true = {"domu=true" => {
         default => {
-            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']},
+            expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']},
             unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']}
         }
     }
 };
 my $xpti_domu_false = {"domu=false" => {
         default => {
-            expected   => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']},
+            expected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU disabled']},
             unexpected => {'xl dmesg' => ['XPTI (64-bit PV only): Dom0 .*, DomU enabled']}
         }
     }
@@ -110,35 +110,35 @@ my $spec_ctrl_no = {no => {
 };
 my $spec_ctrl_no_xen = {"no-xen" => {
         default => {
-            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS- SSBD-.*, Other:$']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_pv_on = {"pv=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for PV VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_pv_0 = {"pv=0" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for PV VMs: EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for PV VMs: EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_hvm_on = {"hvm=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_hvm_0 = {"hvm=0" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for HVM VMs: EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -152,7 +152,7 @@ my $spec_ctrl_msr_sc_on = {"msr-sc=on" => {
 };
 my $spec_ctrl_msr_sc_off = {"msr-sc=off" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: RSB EAGER_FPU MD_CLEAR', 'Support for PV VMs: RSB EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -166,7 +166,7 @@ my $spec_ctrl_rsb_on = {"rsb=on" => {
 };
 my $spec_ctrl_rsb_off = {"rsb=off" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR', 'Support for PV VMs: MSR_SPEC_CTRL EAGER_FPU MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
@@ -174,119 +174,119 @@ my $spec_ctrl_rsb_off = {"rsb=off" => {
 my $spec_ctrl_md_clear_off = {"md-clear=off" => {
         default => {
             #even md-clear=off
-            expected   => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_md_clear_on = {"md-clear=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for HVM VMs: .*MD_CLEAR', 'Support for PV VMs: .*MD_CLEAR']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_bti_thunk_retp_for_intel = {"bti-thunk=retpoline" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk RETPOLINE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_bti_thunk_retp_for_amd = {"bti-thunk=lfence" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk LFENCE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk LFENCE, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_bti_thunk_jmp = {"bti-thunk=jmp" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk JMP, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibrs_off = {"ibrs=off" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS- SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibrs_on = {"ibrs=on" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS+ SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ibpb_off = {"ibpb=off" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:.*IBPB']}
         }
     }
 };
 my $spec_ctrl_ibpb_on = {"ibpb=on" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: IBPB']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: IBPB']},
             unexpected => {'xl dmesg' => ['']}
         }
     }
 };
 my $spec_ctrl_ssbd_off = {"ssbd=off" => {
         default => {
-            expected   => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
+            expected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']},
             unexpected => {'xl dmesg' => ['^(XEN) *Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD\+.*(TSX|).*, Other:']}
         }
     }
 };
 my $spec_ctrl_ssbd_on = {"ssbd=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+.*, Other:']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD+.*, Other:']},
             unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other:']}
         }
     }
 };
 my $spec_ctrl_eager_fpu_off = {"eager-fpu=off" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB MD_CLEAR']},
             unexpected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']}
         }
     }
 };
 my $spec_ctrl_eager_fpu_on = {"eager-fpu=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
+            expected => {'xl dmesg' => ['Support for .* VMs: MSR_SPEC_CTRL RSB EAGER_FPU MD_CLEAR']},
             unexpected => {},
         }
     }
 };
 my $spec_ctrl_l1d_flsh_off = {"l1d-flush=off" => {
         default => {
-            expected   => {},
+            expected => {},
             unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
         }
     }
 };
 my $spec_ctrl_l1d_flsh_on = {"l1d-flush=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*L1D_FLUSH']},
             unexpected => {},
         }
     }
 };
 my $spec_ctrl_branch_harden_on = {"branch-harden=on" => {
         default => {
-            expected   => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
+            expected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
             unexpected => {},
         }
     }
 };
 my $spec_ctrl_branch_harden_off = {"branch-harden=off" => {
         default => {
-            expected   => {},
+            expected => {},
             unexpected => {'xl dmesg' => ['Xen settings: BTI-Thunk .*, SPEC_CTRL: IBRS. SSBD-.*, Other: .*BRANCH_HARDEN']},
         }
     }
@@ -294,7 +294,7 @@ my $spec_ctrl_branch_harden_off = {"branch-harden=off" => {
 # Test cases for TAA
 my $tsx_off_for_haswell = {off => {
         default => {
-            expected   => {'xl info' => ['tsx=off']},
+            expected => {'xl info' => ['tsx=off']},
             unexpected => {},
         }
     }
@@ -302,7 +302,7 @@ my $tsx_off_for_haswell = {off => {
 
 my $tsx_on_for_haswell = {on => {
         default => {
-            expected   => {'xl info' => ['tsx=on']},
+            expected => {'xl info' => ['tsx=on']},
             unexpected => {},
         }
     }
@@ -310,7 +310,7 @@ my $tsx_on_for_haswell = {on => {
 
 my $tsx_off_for_non_haswell = {off => {
         default => {
-            expected   => {'xl info' => ['tsx=off']},
+            expected => {'xl info' => ['tsx=off']},
             unexpected => {},
         }
     }
@@ -318,7 +318,7 @@ my $tsx_off_for_non_haswell = {off => {
 
 my $tsx_on_for_non_haswell = {on => {
         default => {
-            expected   => {'xl info' => ['tsx=on']},
+            expected => {'xl info' => ['tsx=on']},
             unexpected => {},
         }
     }
@@ -342,28 +342,28 @@ my $pv_l1tf_false = {false => {
 };
 my $pv_l1tf_dom0_true = {"dom0=true" => {
         default => {
-            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled']},
+            expected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled']},
             unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled']}
         }
     }
 };
 my $pv_l1tf_dom0_false = {"dom0=false" => {
         default => {
-            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled']},
+            expected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled']},
             unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 enabled']}
         }
     }
 };
 my $pv_l1tf_domu_true = {"domu=true" => {
         default => {
-            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled']},
+            expected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU enabled']},
             unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0.*, DomU disabled']}
         }
     }
 };
 my $pv_l1tf_domu_false = {"domu=false" => {
         default => {
-            expected   => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU disabled']},
+            expected => {'xl dmesg' => ['PV L1TF shadowing: Dom0 disabled, DomU disabled']},
             unexpected => {'xl dmesg' => ['PV L1TF shadowing: Dom0.*, DomU enabled']}
         }
     }
@@ -373,11 +373,11 @@ my $pv_l1tf_domu_false = {"domu=false" => {
 my $xpti_hash = {%$xpti_true, %$xpti_false, %$xpti_dom0_true, %$xpti_dom0_false, %$xpti_domu_true, %$xpti_domu_false};
 
 my $spec_ctrl_hash = {%$spec_ctrl_no, %$spec_ctrl_no_xen, %$spec_ctrl_pv_on, %$spec_ctrl_pv_0,
-    %$spec_ctrl_hvm_on,            %$spec_ctrl_hvm_0,       %$spec_ctrl_msr_sc_on,     %$spec_ctrl_msr_sc_off,
-    %$spec_ctrl_rsb_on,            %$spec_ctrl_rsb_off,     %$spec_ctrl_md_clear_off,  %$spec_ctrl_md_clear_on,
-    %$spec_ctrl_ibrs_off,          %$spec_ctrl_ibrs_on,     %$spec_ctrl_ibpb_off,      %$spec_ctrl_ibpb_on,
-    %$spec_ctrl_ssbd_off,          %$spec_ctrl_ssbd_on,     %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
-    %$spec_ctrl_l1d_flsh_off,      %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
+    %$spec_ctrl_hvm_on, %$spec_ctrl_hvm_0, %$spec_ctrl_msr_sc_on, %$spec_ctrl_msr_sc_off,
+    %$spec_ctrl_rsb_on, %$spec_ctrl_rsb_off, %$spec_ctrl_md_clear_off, %$spec_ctrl_md_clear_on,
+    %$spec_ctrl_ibrs_off, %$spec_ctrl_ibrs_on, %$spec_ctrl_ibpb_off, %$spec_ctrl_ibpb_on,
+    %$spec_ctrl_ssbd_off, %$spec_ctrl_ssbd_on, %$spec_ctrl_eager_fpu_off, %$spec_ctrl_eager_fpu_on,
+    %$spec_ctrl_l1d_flsh_off, %$spec_ctrl_l1d_flsh_on, %$spec_ctrl_branch_harden_on,
     %$spec_ctrl_branch_harden_off, %$spec_ctrl_bti_thunk_jmp};
 
 # TODO
@@ -398,10 +398,10 @@ my $pv_l1tf_hash = {%$pv_l1tf_false, %$pv_l1tf_true, %$pv_l1tf_dom0_false,
     %$pv_l1tf_dom0_true, %$pv_l1tf_domu_true, %$pv_l1tf_domu_false};
 
 my $mitigations_list = {};
-${$mitigations_list}{xpti}        = $xpti_hash;
+${$mitigations_list}{xpti} = $xpti_hash;
 ${$mitigations_list}{'spec-ctrl'} = $spec_ctrl_hash;
-${$mitigations_list}{tsx}         = $tsx_hash;
-${$mitigations_list}{'pv-l1tf'}   = $pv_l1tf_hash;
+${$mitigations_list}{tsx} = $tsx_hash;
+${$mitigations_list}{'pv-l1tf'} = $pv_l1tf_hash;
 
 sub check_expected_string {
     my ($cmd, $lines) = @_;
@@ -444,7 +444,7 @@ sub check_unexpected_string {
 
 sub do_check {
     my $secnario = shift;
-    my $foo      = $secnario->{default};
+    my $foo = $secnario->{default};
     if ($foo->{expected}) {
         while (my ($cmd, $lines) = each %{$foo->{expected}}) {
             return 1 if check_expected_string($cmd, $lines) ne 0;
@@ -462,14 +462,14 @@ sub do_test {
     my ($self, $hash) = @_;
 
     # Initialize variable for generating junit file
-    my $testsuites_name        = 'xen_hyper_mitigation';
-    my $testsuite_name         = '';
-    my $testcase_name          = '';
+    my $testsuites_name = 'xen_hyper_mitigation';
+    my $testsuite_name = '';
+    my $testcase_name = '';
     my $total_failure_tc_count = 0;
     my $failure_tc_count_in_ts = 0;
-    my $total_tc_count         = 0;
-    my $total_tc_count_in_ts   = 0;
-    my $junit_file             = "/tmp/xen_hypervisor_mitigation_test_junit.xml";
+    my $total_tc_count = 0;
+    my $total_tc_count_in_ts = 0;
+    my $junit_file = "/tmp/xen_hypervisor_mitigation_test_junit.xml";
 
     # user specify test suites to run, take "," as delimiter
     my $test_suites = get_var("TEST_SUITES", "");
@@ -478,7 +478,7 @@ sub do_test {
     Mitigation::init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
     while (my ($arg, $dict) = each %$hash) {
         $failure_tc_count_in_ts = 0;
-        $total_tc_count_in_ts   = 0;
+        $total_tc_count_in_ts = 0;
 
         # run user specifed test suite
         if ($test_suites and !grep { $_ eq $arg } split(/,+/, $test_suites)) {
@@ -489,11 +489,11 @@ sub do_test {
 
         # Start loop and execute all test cases
         while (my ($key, $value) = each %$dict) {
-            my $parameter          = $arg . '=' . $key;
+            my $parameter = $arg . '=' . $key;
             my $speculative_output = '';
 
             # Calculate test case count
-            $total_tc_count       += 1;
+            $total_tc_count += 1;
             $total_tc_count_in_ts += 1;
 
             # Set xen parameter to grub
@@ -516,10 +516,10 @@ sub do_test {
             }
             # update testsuite into
             Mitigation::update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
-            Mitigation::update_ts_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count_in_ts);
+            Mitigation::update_ts_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count_in_ts);
             # update testsuites info
             Mitigation::update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
-            Mitigation::update_tss_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count);
+            Mitigation::update_tss_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count);
             # upload junit file for each case to avoid missing all result once test causes host hang.
             parse_junit_log("$junit_file");
 

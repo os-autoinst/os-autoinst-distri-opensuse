@@ -44,7 +44,7 @@ sub run {
     assert_script_run 'ldd `which passwd` | grep pam';
 
     # Add user "suse",and use this user for later tests
-    my $user   = 'suse';
+    my $user = 'suse';
     my $passwd = 'susetesting';
     assert_script_run "useradd -d /home/$user -m $user";
     assert_script_run "echo $user:$passwd | chpasswd";

@@ -26,7 +26,7 @@ use Utils::Systemd 'disable_and_stop_service';
 our @EXPORT = qw(setup_rancher_container kubectl_basic_test prepare_mm_network);
 
 sub setup_rancher_container {
-    my %args    = @_;
+    my %args = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
 

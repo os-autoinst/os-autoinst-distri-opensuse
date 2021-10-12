@@ -19,7 +19,7 @@ use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data   = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner('current');
     foreach my $disk (@{$test_data->{disks}}) {
@@ -27,7 +27,7 @@ sub run {
             if ($partition->{encrypt_device}) {
                 record_info("Encrypt $partition->{name}", "Encrypting $partition->{name} from disk $disk->{name}");
                 $partitioner->edit_partition_gpt({
-                        disk      => $disk->{name},
+                        disk => $disk->{name},
                         partition => $partition
                 });
             }

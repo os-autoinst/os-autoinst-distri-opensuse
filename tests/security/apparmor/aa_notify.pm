@@ -39,7 +39,7 @@ use utils;
 sub run {
     my ($self) = @_;
 
-    my $tmp_prof  = "/tmp/apparmor.d";
+    my $tmp_prof = "/tmp/apparmor.d";
     my $audit_log = "/var/log/audit/audit.log";
 
     systemctl('restart auditd');

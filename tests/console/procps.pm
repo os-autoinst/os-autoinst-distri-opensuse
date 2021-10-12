@@ -35,10 +35,10 @@ sub run {
 
     assert_script_run("rpm -q procps");
 
-    validate_script_output("free",    sub { m/total\s+used\s+free.*\nMem:\s+\d+\s+\d+\s+\d+.*(\n.*)+/ });
+    validate_script_output("free", sub { m/total\s+used\s+free.*\nMem:\s+\d+\s+\d+\s+\d+.*(\n.*)+/ });
     validate_script_output("pgrep 1", sub { m/\d+/ });
-    validate_script_output("pmap 1",  sub { m/1:\s+(.*systemd|init)/ });
-    validate_script_output("pwdx 1",  sub { m/1:\s+\// });
+    validate_script_output("pmap 1", sub { m/1:\s+(.*systemd|init)/ });
+    validate_script_output("pwdx 1", sub { m/1:\s+\// });
     validate_script_output("vmstat",
         qr/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+).*(\s+|\d+)+/s);
     validate_script_output("w",

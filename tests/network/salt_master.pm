@@ -39,7 +39,7 @@ use utils qw(script_retry zypper_call);
 
 sub run {
     barrier_create('SALT_MINIONS_READY', 2);
-    barrier_create('SALT_FINISHED',      2);
+    barrier_create('SALT_FINISHED', 2);
     mutex_create 'barrier_setup_done';
     my $self = shift;
     $self->select_serial_terminal;
@@ -56,7 +56,7 @@ sub run {
     # List and accept both minions when they are ready
     script_retry('salt-key -L -l unaccepted | grep "master"', delay => 15, retry => 15);
     script_retry('salt-key -L -l unaccepted | grep "minion"', delay => 15, retry => 15);
-    assert_script_run('salt-run state.event tagmatch="salt/auth" count=1',                                                                timeout => 300);
+    assert_script_run('salt-run state.event tagmatch="salt/auth" count=1', timeout => 300);
     assert_script_run("(sleep 5 && salt-key -A -y ) & salt-run state.event tagmatch='salt/minion/*/start' count=2 && salt '*' test.ping", timeout => 360);
 
     # Inform minion that keys were accepted

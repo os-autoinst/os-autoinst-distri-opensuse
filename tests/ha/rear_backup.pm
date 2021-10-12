@@ -18,11 +18,11 @@ use testapi;
 use utils qw(file_content_replace quit_packagekit zypper_call);
 
 sub run {
-    my ($self)     = @_;
-    my $hostname   = get_var('HOSTNAME', 'susetest');
-    my $arch       = get_required_var('ARCH');
+    my ($self) = @_;
+    my $hostname = get_var('HOSTNAME', 'susetest');
+    my $arch = get_required_var('ARCH');
     my $backup_url = get_required_var('BACKUP_URL');
-    my $timeout    = bmwqemu::scale_timeout(600);
+    my $timeout = bmwqemu::scale_timeout(600);
 
     # Disable packagekit and install ReaR
     get_var('USE_YAST_REAR') ? select_console 'root-console' : $self->select_serial_terminal;

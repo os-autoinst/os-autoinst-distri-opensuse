@@ -137,7 +137,7 @@ sub run {
         assert_screen 'addon-products';
         send_key 'tab';
         for my $addon (split(/,/, get_var('MIGRATION_REMOVE_ADDONS'))) {
-            send_key_until_needlematch 'addon-list-is-selected',         'tab';     # select add-on list
+            send_key_until_needlematch 'addon-list-is-selected', 'tab';    # select add-on list
             send_key_until_needlematch 'addon-list-first-adon-selected', 'home';    # go on first addon in list
             send_key_until_needlematch 'addon-' . $addon . '-selected-to-remove', 'down';
             send_key 'alt-t';
@@ -251,7 +251,7 @@ sub run {
 
     # start migration
     my $timeout = 7200;
-    my @tags    = qw(
+    my @tags = qw(
       yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error
       yast2-migration-finish      yast2-migration-notifications
     );

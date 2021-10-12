@@ -27,17 +27,17 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)    = shift;
-    my $test_dir  = "/testdir";
+    my ($self) = shift;
+    my $test_dir = "/testdir";
     my $test_file = "testfile";
     my $test_user = "root";
 
-    my $systemlow            = "s0";
+    my $systemlow = "s0";
     my $systemlow_systemhigh = "s0-s0:c0.c1023";
-    my $systemhigh           = "s0:c0.c1023";
-    my $test_category        = "c0.c1023";
+    my $systemhigh = "s0:c0.c1023";
+    my $test_category = "c0.c1023";
 
-    my $default_category_root       = $systemhigh;
+    my $default_category_root = $systemhigh;
     my $default_category_commonfile = $systemlow;
 
     select_console "root-console";

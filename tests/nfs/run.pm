@@ -21,7 +21,7 @@ use utils;
 use power_action_utils 'power_action';
 
 sub pynfs_server_test_all {
-    my $self   = shift;
+    my $self = shift;
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ./$folder");

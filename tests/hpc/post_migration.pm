@@ -22,7 +22,7 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
 
     record_info('Post migration tests');

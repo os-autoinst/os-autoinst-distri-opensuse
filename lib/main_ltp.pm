@@ -78,7 +78,7 @@ sub load_kernel_tests {
         loadtest_kernel 'qa_test_klp';
         unless (get_var('KOTD_REPO') ||
             get_var('INSTALL_KOTD') ||
-            get_var('AZURE')        ||
+            get_var('AZURE') ||
             is_opensuse) {
             loadtest_kernel 'install_klp_product';
         }

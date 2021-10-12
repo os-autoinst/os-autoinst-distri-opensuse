@@ -18,8 +18,8 @@ use warnings;
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data                     = get_test_suite_data()->{license_agreement};
-    my $license_agreement_custom      = $testapi::distri->get_firstboot_license_agreement_custom();
+    my $test_data = get_test_suite_data()->{license_agreement};
+    my $license_agreement_custom = $testapi::distri->get_firstboot_license_agreement_custom();
     my $license_agreement_custom_info = $license_agreement_custom->collect_current_license_agreement_info();
     if ($test_data->{language} ne $license_agreement_custom_info->{language}) {
         die "Wrong EULA language. Expected: '$test_data->{language}' got: '$license_agreement_custom_info->{language}'";

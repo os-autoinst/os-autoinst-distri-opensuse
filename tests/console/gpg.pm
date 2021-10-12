@@ -35,10 +35,10 @@ use version_utils 'is_sle';
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
 
-    my $name     = "SUSE Tester";
+    my $name = "SUSE Tester";
     my $username = $name . " " . $key_size;
-    my $passwd   = "This_is_a_test_case";
-    my $email    = "user\@suse.de";
+    my $passwd = "This_is_a_test_case";
+    my $email = "user\@suse.de";
     my $egg_file = 'egg';
 
     # GPG Key Generation
@@ -73,7 +73,7 @@ EOF
         script_run("gpg2 -vv --gen-key &> /dev/$serialdev", 0);
         assert_screen 'gpg-set-keytype';    # Your Selection?
         enter_cmd "1";
-        assert_screen 'gpg-set-keysize';       # What keysize do you want?
+        assert_screen 'gpg-set-keysize';    # What keysize do you want?
         enter_cmd "$key_size";
         assert_screen 'gpg-set-expiration';    # Key is valid for? (0)
         send_key 'ret';
@@ -113,7 +113,7 @@ EOF
 
     # Basic Functions
 
-    my $tfile     = 'foo.txt';
+    my $tfile = 'foo.txt';
     my $tfile_gpg = $tfile . '.gpg';
     my $tfile_asc = $tfile . '.asc';
 

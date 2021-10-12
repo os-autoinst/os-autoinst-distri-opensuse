@@ -21,7 +21,7 @@ use version_utils 'is_sle';
 sub run {
     if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
-        barrier_create('salt_master_ready',      $num_nodes + 1);
+        barrier_create('salt_master_ready', $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
         zypper_call 'in openattic' if is_sle('<15');
         assert_script_run 'echo "deepsea_minions: \'*\'" > /srv/pillar/ceph/deepsea_minions.sls';
@@ -53,7 +53,7 @@ EOF
         script_run("echo -e '$tuned_off' >> /srv/pillar/ceph/stack/global.yml") if is_sle('15+');
         assert_script_run 'wget ' . data_url("ses/$policy");
         assert_script_run "set -o pipefail; salt-run state.orch ceph.stage.0 |& tee /dev/$serialdev", 700;
-        assert_script_run "salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev",                  700;
+        assert_script_run "salt-run state.orch ceph.stage.1 |& tee /dev/$serialdev", 700;
         assert_script_run "mv $policy /srv/pillar/ceph/proposals/policy.cfg";
         # Remove openATTIC role for SES6 - it is replaced by the ceph dashboard
         if (is_sle('15+')) {
@@ -95,10 +95,10 @@ sub post_fail_hook {
     select_console('log-console');
     assert_script_run "tar czf /tmp/logs-salt.tar.bz2 /var/log/salt";
     assert_script_run "tar czf /tmp/srv-pillar-ceph.tar.bz2 /srv/pillar/ceph";
-    upload_logs '/tmp/logs-salt.tar.bz2',       failok => 1;
+    upload_logs '/tmp/logs-salt.tar.bz2', failok => 1;
     upload_logs '/tmp/srv-pillar-ceph.tar.bz2', failok => 1;
-    upload_logs '/var/log/salt/deepsea.log',    failok => 1;
-    upload_logs '/var/log/zypper.log',          failok => 1;
+    upload_logs '/var/log/salt/deepsea.log', failok => 1;
+    upload_logs '/var/log/zypper.log', failok => 1;
 }
 
 sub test_flags {

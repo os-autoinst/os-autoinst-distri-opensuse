@@ -23,13 +23,13 @@ our $dir_log = '/var/lib/crmsh/preflight_check/';
 
 sub upload_preflight_check_logs {
     my @report_files = split(/\n/, script_output("ls $dir_log 2>/dev/null", proceed_on_failure => 1));
-    upload_logs("$dir_log/$_",                        failok => 1) foreach (@report_files);
+    upload_logs("$dir_log/$_", failok => 1) foreach (@report_files);
     upload_logs('/var/log/crmsh/preflight_check.log', failok => 1);
 }
 
 sub run {
-    my ($self)          = @_;
-    my $cluster_name    = get_cluster_name;
+    my ($self) = @_;
+    my $cluster_name = get_cluster_name;
     my $node_was_fenced = 0;
 
     # Ensure that the cluster state is correct before executing the checks
@@ -44,7 +44,7 @@ sub run {
 
     # Check the overall cluster status first
     my $preflight_start_time = time;
-    my $cmd_status           = "crm analyze preflight_check";
+    my $cmd_status = "crm analyze preflight_check";
     record_info("cluster status", "Executing ${cmd_status}");
     my $cmd_fails = script_run "${cmd_status}";
     record_info('ERROR', "Failure while executing '$cmd_status'", result => 'fail') unless (defined $cmd_fails and $cmd_fails == 0);
@@ -82,10 +82,10 @@ sub run {
 
     # Parse the logs to get a better overview in openQA
     my $results_file = '/tmp/preflight_cluster.json';
-    my %results      = (
-        tests   => [],
-        info    => {timestamp => time, distro => "", results_file => ""},
-        summary => {num_tests => 0,    passed => 0,  duration     => $preflight_end_time - $preflight_start_time}
+    my %results = (
+        tests => [],
+        info => {timestamp => time, distro => "", results_file => ""},
+        summary => {num_tests => 0, passed => 0, duration => $preflight_end_time - $preflight_start_time}
     );
 
     my $output = script_output("for FILE in $dir_log/*.report; do awk -F':' '/Testcase:|ERROR:/ { print }' ORS=' ' \$FILE 2>/dev/null && echo; done");
@@ -93,8 +93,8 @@ sub run {
         my @tab = split(/\s+/, $line);
         my %aux = ();
         $results{summary}->{num_tests}++;
-        $aux{name}       = lc(join('_', $tab[1], $tab[2], $tab[3]));
-        $aux{outcome}    = ($line =~ /ERROR:/) ? 'failed' : 'passed';
+        $aux{name} = lc(join('_', $tab[1], $tab[2], $tab[3]));
+        $aux{outcome} = ($line =~ /ERROR:/) ? 'failed' : 'passed';
         $aux{test_index} = 0;
         push @{$results{tests}}, \%aux;
         $results{summary}->{passed}++ if ($aux{outcome} eq 'passed');

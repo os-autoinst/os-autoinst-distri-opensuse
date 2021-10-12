@@ -30,7 +30,7 @@ sub run {
     systemctl "stop $firewall";
 
     my $counter = 1;
-    my @repos   = split(/,/, get_var('AVOCADO_REPO'));
+    my @repos = split(/,/, get_var('AVOCADO_REPO'));
     for my $var (@repos) {
         zypper_call("--no-gpg-checks ar -f $var 'AVOCADO_$counter'");
         $counter++;

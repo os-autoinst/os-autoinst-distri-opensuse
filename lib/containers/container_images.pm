@@ -46,13 +46,13 @@ you want to build the image with buildah but run it with $<runtime>
 
 =cut
 sub build_and_run_image {
-    my %args       = @_;
-    my $runtime    = $args{runtime};
-    my $builder    = $args{builder} ? $args{builder} : $runtime;
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $builder = $args{builder} ? $args{builder} : $runtime;
     my $dockerfile = $args{dockerfile} // 'Dockerfile';
-    my $base       = $args{base};
+    my $base = $args{base};
 
-    die "undefined runtime"    unless $runtime;
+    die "undefined runtime" unless $runtime;
     die "undefined dockerfile" unless $dockerfile;
 
     my $dir = "/var/tmp/containerapp";
@@ -98,18 +98,18 @@ sub build_and_run_image {
 
 # Build a sle container image using zypper_docker
 sub build_with_zypper_docker {
-    my %args          = @_;
-    my $image         = $args{image};
-    my $runtime       = $args{runtime};
+    my %args = @_;
+    my $image = $args{image};
+    my $runtime = $args{runtime};
     my $derived_image = "zypper_docker_derived";
 
-    my $distri  = $args{distri}  //= get_required_var("DISTRI");
+    my $distri = $args{distri} //= get_required_var("DISTRI");
     my $version = $args{version} //= get_required_var("VERSION");
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    my ($host_version,  $host_sp,  $host_id)  = get_os_release();
+    my ($host_version, $host_sp, $host_id) = get_os_release();
     my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
 
     # The zypper-docker works only on openSUSE or on SLE based image on SLE host
@@ -120,7 +120,7 @@ sub build_with_zypper_docker {
 
     if ($distri eq 'sle') {
         my $pretty_version = $version =~ s/-SP/ SP/r;
-        my $betaversion    = get_var('BETA') ? '\s\([^)]+\)' : '';
+        my $betaversion = get_var('BETA') ? '\s\([^)]+\)' : '';
         validate_script_output("$runtime run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'",
             sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
     } else {
@@ -129,7 +129,7 @@ sub build_with_zypper_docker {
     }
 
     zypper_call("in zypper-docker") if (script_run("which zypper-docker") != 0);
-    assert_script_run("zypper-docker list-updates $image",      240);
+    assert_script_run("zypper-docker list-updates $image", 240);
     assert_script_run("zypper-docker up $image $derived_image", timeout => 160);
 
     # If zypper-docker list-updates lists no updates then derived image was successfully updated
@@ -145,15 +145,15 @@ sub build_with_zypper_docker {
 }
 
 sub test_opensuse_based_image {
-    my %args    = @_;
-    my $image   = $args{image};
+    my %args = @_;
+    my $image = $args{image};
     my $runtime = $args{runtime};
 
-    my $distri  = $args{distri}  // get_required_var("DISTRI");
+    my $distri = $args{distri} // get_required_var("DISTRI");
     my $version = $args{version} // get_required_var("VERSION");
-    my $beta    = $args{beta}    // get_var('BETA', 0);
+    my $beta = $args{beta} // get_var('BETA', 0);
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($host_version, $host_sp, $host_id) = get_os_release();
@@ -164,7 +164,7 @@ sub test_opensuse_based_image {
     } else {
         ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
     }
-    record_info "Host",  "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
+    record_info "Host", "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
     record_info "Image", "Image has '$image_version', '$image_sp', '$image_id' in /etc/os-release";
 
     $version = 'Tumbleweed' if ($version =~ /^Staging:/);
@@ -172,7 +172,7 @@ sub test_opensuse_based_image {
     if ($image_id =~ 'sles') {
         if ($host_id =~ 'sles') {
             my $pretty_version = $version =~ s/-SP/ SP/r;
-            my $betaversion    = $beta ? '\s\([^)]+\)' : '';
+            my $betaversion = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
             # TODO: implement
             # $out = $runtime->read($image, cmd => "grep PRETTY_NAME /etc/os-release | cut -d= -f2");
@@ -230,17 +230,17 @@ sub test_opensuse_based_image {
 sub verify_userid_on_container {
     my ($runtime, $image, $start_id) = @_;
     my $huser_id = script_output "echo \$UID";
-    record_info "host uid",          "$huser_id";
+    record_info "host uid", "$huser_id";
     record_info "root default user", "rootless mode process runs with the default container user(root)";
     my $cid = script_output "$runtime run -d --rm --name test1 $image sleep infinity";
     validate_script_output "$runtime top $cid user huser", sub { /root\s+1000/ };
-    validate_script_output "$runtime top $cid capeff",     sub { /setuid/i };
+    validate_script_output "$runtime top $cid capeff", sub { /setuid/i };
 
     record_info "non-root user", "process runs under the range of subuids assigned for regular user";
     $cid = script_output "$runtime run -d --rm --name test2 --user 1000 $image sleep infinity";
     my $id = $start_id + $huser_id - 1;
     validate_script_output "$runtime top $cid user huser", sub { /1000\s+${id}/ };
-    validate_script_output "$runtime top $cid capeff",     sub { /none/ };
+    validate_script_output "$runtime top $cid capeff", sub { /none/ };
 
     record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
     $cid = script_output "$runtime run -d --rm --userns keep-id $image sleep infinity";
@@ -248,7 +248,7 @@ sub verify_userid_on_container {
     validate_script_output "$runtime exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
     if (is_sle) {
         validate_script_output "$runtime top $cid user huser", sub { /bernhard\s+bernhard/ };
-        validate_script_output "$runtime top $cid capeff",     sub { /setuid/i };
+        validate_script_output "$runtime top $cid capeff", sub { /setuid/i };
     }
     else {
         record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
@@ -258,7 +258,7 @@ sub verify_userid_on_container {
 sub test_zypper_on_container {
     my ($runtime, $image) = @_;
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     $runtime->run_container($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
@@ -272,16 +272,16 @@ sub test_zypper_on_container {
 }
 
 sub ensure_container_rpm_updates {
-    my $diff_file     = shift;
-    my $regex2match   = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
+    my $diff_file = shift;
+    my $regex2match = qr/^-(?<package>[^\s]+)\s+(\d+\.?\d+?)+-(?P<update_version>\d+\.?\d+?\.\d+\b).*\s+(\d+\.?\d+?)+-(?P<stable_version>\d+\.?\d+?\.\d+\b)/;
     my $regex2zerorpm = qr/^Version differences: None$/;
-    my $context       = script_output "cat $diff_file";
+    my $context = script_output "cat $diff_file";
     open(my $data, '<', \$context) or die "problem with $diff_file argument", $!;
     while (my $line = <$data>) {
         if ($line =~ $regex2match) {
             # Use of Dotted-Decimal-Versions. Do not remove 'v' prefix
             my $updated_v = version->parse("v$+{update_version}");
-            my $stable_v  = version->parse("v$+{stable_version}");
+            my $stable_v = version->parse("v$+{stable_version}");
             record_info("checking... $+{package}", "$+{package} $stable_v to $updated_v");
             die "$+{package} $stable_v is not updated to $updated_v" unless ($updated_v > $stable_v);
         } elsif ($line =~ $regex2zerorpm) {

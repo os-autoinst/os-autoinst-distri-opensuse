@@ -52,7 +52,7 @@ sub run {
     my $result = compare_run_log('trustedprograms');
 
     # Upload log files in tests, e.g. pam01.log
-    my $output    = script_output('ls tests | grep .log');
+    my $output = script_output('ls tests | grep .log');
     my @log_files = split(/\n/, $output);
     upload_logs("tests/$_") for @log_files;
 

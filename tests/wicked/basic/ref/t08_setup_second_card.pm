@@ -23,7 +23,7 @@ use lockapi;
 sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Set up a second card');
-    assert_script_run(sprintf("ip a a %s/24 dev %s", $self->get_ip(type => 'dhcp_2nic'),   $ctx->iface()));
+    assert_script_run(sprintf("ip a a %s/24 dev %s", $self->get_ip(type => 'dhcp_2nic'), $ctx->iface()));
     assert_script_run(sprintf("ip a a %s/24 dev %s", $self->get_ip(type => 'second_card'), $ctx->iface()));
     systemctl 'stop dhcpd.service';
     $self->get_from_data('wicked/dhcp/dhcpd_2nics.conf', '/etc/dhcpd.conf');

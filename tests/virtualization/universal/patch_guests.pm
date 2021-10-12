@@ -71,7 +71,7 @@ sub run {
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 12, die => 0) != 0) {
             record_soft_failure "Reboot on $guest failed";
             unless (is_vmware_virtualization || is_hyperv_virtualization) {
-                script_run "virsh destroy $guest",      90;
+                script_run "virsh destroy $guest", 90;
                 assert_script_run "virsh start $guest", 60;
             }
         }

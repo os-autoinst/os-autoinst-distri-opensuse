@@ -35,7 +35,7 @@ sub get_loggedid {
 
 sub compare_id {
     my $btrfs_id = get_btrfsid;
-    my $hc_id    = get_loggedid;
+    my $hc_id = get_loggedid;
     die "The current snapshot id does not match the one from the health-checker log" unless $hc_id == $btrfs_id;
 }
 
@@ -59,7 +59,7 @@ sub run {
 
     # check that the changes applied and we have a new snapshot
     my $current_id = get_btrfsid;
-    my $logged_id  = get_loggedid;
+    my $logged_id = get_loggedid;
     die "The current snapshot is not ahead of the logged one" unless $current_id > $logged_id;
 
     # Automated rollback shows grub menu twice (timeout disabled)

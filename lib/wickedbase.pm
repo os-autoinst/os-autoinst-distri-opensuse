@@ -93,7 +93,7 @@ With no arguments, it will check that wicked.service and wickedd.service are up.
 =cut
 sub assert_wicked_state {
     my ($self, %args) = @_;
-    systemctl('is-active wicked.service',  expect_false => $args{wicked_client_down});
+    systemctl('is-active wicked.service', expect_false => $args{wicked_client_down});
     systemctl('is-active wickedd.service', expect_false => $args{wicked_daemon_down});
     assert_script_run(sprintf("grep -q \"%s\" /sys/class/net/%s/operstate", $args{interfaces_down} ? 'down' : 'up', $args{iface}));
     $self->ping_with_timeout(ip => $args{ping_ip}) if $args{ping_ip};
@@ -153,37 +153,37 @@ sub get_ip {
     die '$args{type} is required' unless $args{type};
 
     $args{is_wicked_ref} //= check_var('IS_WICKED_REF', '1');
-    $args{netmask}       //= 0;
+    $args{netmask} //= 0;
 
     my $ips_hash =
       {
         #                       SUT                       REF
-        host           => ['10.0.2.11/15',              '10.0.2.10/15'],
-        host6          => ['fd00:deca:fbad:50::11/64',  'fd00:deca:fbad:50::10/64'],
-        gre1           => ['192.168.1.2',               '192.168.1.1'],
-        sit1           => ['2001:0db8:1234::000f',      '2001:0db8:1234::000e'],
-        tunl1          => ['3.3.3.11',                  '3.3.3.10'],
-        tun1           => ['192.168.2.11',              '192.168.2.10'],
-        tap1           => ['192.168.2.11',              '192.168.2.10'],
-        br0            => ['10.0.2.11',                 '10.0.2.10'],
-        vlan           => ['192.0.2.11/24',             '192.0.2.10/24'],
-        vlan_changed   => ['192.0.2.111/24',            '192.0.2.110/24'],
-        macvtap        => ['10.0.2.18/15',              '10.0.2.17/15'],
-        bond           => ['10.0.2.18',                 '10.0.2.17'],
-        dhcp_2nic      => ['10.20.30.',                 '10.20.30.12'],                 # dhcp_2nic in SUT, we don't know the last octect
-        second_card    => ['10.0.3.11',                 '10.0.3.12'],
-        gateway        => ['10.0.2.2',                  '10.0.2.2'],
-        wlan           => ['10.6.6.2/24',               '10.6.6.1/24'],
-        wlan_dhcp      => ['10.6.6.10/24',              '10.6.6.1/24'],
-        wlan_bss1      => ['10.6.7.2/24',               '10.6.7.1/24'],
-        wlan_dhcp_bss1 => ['10.6.7.10/24',              '10.6.7.1/24'],
-        wlan_bss2      => ['10.6.8.2/24',               '10.6.8.1/24'],
-        wlan_dhcp_bss2 => ['10.6.8.10/24',              '10.6.8.1/24'],
-        wlan_bss3      => ['10.6.9.2/24',               '10.6.9.1/24'],
-        wlan_dhcp_bss3 => ['10.6.9.10/24',              '10.6.9.1/24'],
-        ipv6           => ['fd00:dead:beef:',           'fd00:dead:beef:'],
-        dhcp6          => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
-        dns_advice     => ['fd00:dead:beef:6021::42',   'fd00:dead:beef:6021::42'],
+        host => ['10.0.2.11/15', '10.0.2.10/15'],
+        host6 => ['fd00:deca:fbad:50::11/64', 'fd00:deca:fbad:50::10/64'],
+        gre1 => ['192.168.1.2', '192.168.1.1'],
+        sit1 => ['2001:0db8:1234::000f', '2001:0db8:1234::000e'],
+        tunl1 => ['3.3.3.11', '3.3.3.10'],
+        tun1 => ['192.168.2.11', '192.168.2.10'],
+        tap1 => ['192.168.2.11', '192.168.2.10'],
+        br0 => ['10.0.2.11', '10.0.2.10'],
+        vlan => ['192.0.2.11/24', '192.0.2.10/24'],
+        vlan_changed => ['192.0.2.111/24', '192.0.2.110/24'],
+        macvtap => ['10.0.2.18/15', '10.0.2.17/15'],
+        bond => ['10.0.2.18', '10.0.2.17'],
+        dhcp_2nic => ['10.20.30.', '10.20.30.12'],    # dhcp_2nic in SUT, we don't know the last octect
+        second_card => ['10.0.3.11', '10.0.3.12'],
+        gateway => ['10.0.2.2', '10.0.2.2'],
+        wlan => ['10.6.6.2/24', '10.6.6.1/24'],
+        wlan_dhcp => ['10.6.6.10/24', '10.6.6.1/24'],
+        wlan_bss1 => ['10.6.7.2/24', '10.6.7.1/24'],
+        wlan_dhcp_bss1 => ['10.6.7.10/24', '10.6.7.1/24'],
+        wlan_bss2 => ['10.6.8.2/24', '10.6.8.1/24'],
+        wlan_dhcp_bss2 => ['10.6.8.10/24', '10.6.8.1/24'],
+        wlan_bss3 => ['10.6.9.2/24', '10.6.9.1/24'],
+        wlan_dhcp_bss3 => ['10.6.9.10/24', '10.6.9.1/24'],
+        ipv6 => ['fd00:dead:beef:', 'fd00:dead:beef:'],
+        dhcp6 => ['fd00:dead:beef:6021:d::11', 'fd00:dead:beef:6021:d::10'],
+        dns_advice => ['fd00:dead:beef:6021::42', 'fd00:dead:beef:6021::42'],
       };
     my $ip = $ips_hash->{$args{type}}->[$args{is_wicked_ref}];
     die "$args{type} not exists" unless $ip;
@@ -256,13 +256,13 @@ If ping fails, command die unless you specify C<proceed_on_failure>.
 =cut
 sub ping_with_timeout {
     my ($self, %args) = @_;
-    $args{ip_version}         //= 'v4';
-    $args{timeout}            //= '60';
+    $args{ip_version} //= 'v4';
+    $args{timeout} //= '60';
     $args{proceed_on_failure} //= 0;
-    $args{count_success}      //= 1;
+    $args{count_success} //= 1;
     $args{ip} = $self->get_remote_ip(%args) if $args{type};
     $args{threshold} //= 50;
-    my $timeout      = $args{timeout};
+    my $timeout = $args{timeout};
     my $ping_command = ($args{ip_version} eq "v6") ? "ping6" : "ping";
     $ping_command .= " -c 1 $args{ip}";
     $ping_command .= " -I $args{interface}" if $args{interface};
@@ -305,9 +305,9 @@ The interface will be brought up using a wicked command.
 =cut
 sub setup_tuntap {
     my ($self, $config, $type, $iface) = @_;
-    my $local_ip  = $self->get_ip(type => $type);
+    my $local_ip = $self->get_ip(type => $type);
     my $remote_ip = $self->get_remote_ip(type => $type);
-    my $host_ip   = $self->get_ip(type => 'host');
+    my $host_ip = $self->get_ip(type => 'host');
     file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, host_ip => $host_ip, iface => $iface);
     $self->wicked_command('ifup', 'all');
 }
@@ -323,7 +323,7 @@ The interface will be brought up using a wicked command.
 =cut
 sub setup_tunnel {
     my ($self, $config, $type, $iface) = @_;
-    my $local_ip  = $self->get_ip(type => 'host');
+    my $local_ip = $self->get_ip(type => 'host');
     my $remote_ip = $self->get_remote_ip(type => 'host');
     my $tunnel_ip = $self->get_ip(type => $type);
     file_content_replace($config, local_ip => $local_ip, remote_ip => $remote_ip, tunnel_ip => $tunnel_ip, iface => $iface);
@@ -341,7 +341,7 @@ Supported tunnels in this function are GRE, SIT, IPIP, TUN.
 =cut
 sub create_tunnel_with_commands {
     my ($self, $type, $mode, $sub_mask) = @_;
-    my $local_ip  = $self->get_ip(type => 'host');
+    my $local_ip = $self->get_ip(type => 'host');
     my $remote_ip = $self->get_remote_ip(type => 'host');
     my $tunnel_ip = $self->get_ip(type => $type);
     assert_script_run("ip tunnel add $type mode $mode remote $remote_ip local $local_ip");
@@ -363,7 +363,7 @@ C<command> determines the wicked command to bring up/down the interface
 sub setup_bridge {
     my ($self, $config, $dummy, $command) = @_;
     my $local_ip = $self->get_ip(type => 'host');
-    my $iface    = iface();
+    my $iface = iface();
     file_content_replace($config, ip_address => $local_ip, iface => $iface);
     $self->wicked_command($command, 'all');
     if ($dummy ne '') {
@@ -382,7 +382,7 @@ Setups the openvpn client using the interface given by C<device>
 sub setup_openvpn_client {
     my ($self, $device) = @_;
     my $openvpn_client = '/etc/openvpn/client.conf';
-    my $remote_ip      = $self->get_remote_ip(type => 'host');
+    my $remote_ip = $self->get_remote_ip(type => 'host');
     $self->get_from_data('wicked/openvpn/client.conf', $openvpn_client);
     file_content_replace($openvpn_client, remote_ip => $remote_ip, device => $device);
 }
@@ -398,8 +398,8 @@ The parameter C<ip_version> chould be one of the values 'v4' or 'v6'.
 sub get_test_result {
     my ($self, $type, $ip_version) = @_;
     my $timeout = "60";
-    my $ip      = $self->get_remote_ip(type => $type);
-    my $ret     = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
+    my $ip = $self->get_remote_ip(type => $type);
+    my $ret = $self->ping_with_timeout(ip => "$ip", timeout => "$timeout", ip_version => $ip_version);
     if (!$ret) {
         record_info("PING FAILED", "Can't ping IP $ip", result => 'fail');
         return "FAILED";
@@ -495,7 +495,7 @@ function
 =cut
 sub setup_vlan {
     my ($self, $ip_type) = @_;
-    my $iface    = iface();
+    my $iface = iface();
     my $local_ip = $self->get_ip(type => $ip_type, netmask => 1);
     assert_script_run("ip link add link $iface name $iface.42 type vlan id 42");
     assert_script_run('ip link');
@@ -516,7 +516,7 @@ sub validate_macvtap {
     my ($self) = @_;
     my $macvtap_log = '/tmp/' . $self->{name} . '_check_macvtap_output.txt';
     $self->add_post_log_file($macvtap_log);
-    my $ref_ip     = $self->get_ip(type => 'host',    netmask => 0, is_wicked_ref => 1);
+    my $ref_ip = $self->get_ip(type => 'host', netmask => 0, is_wicked_ref => 1);
     my $ip_address = $self->get_ip(type => 'macvtap', netmask => 0);
     script_run("./check_macvtap $ref_ip $ip_address > $macvtap_log 2>&1 & export CHECK_MACVTAP_PID=\$!");
     sleep(30);    # OVS on a worker is slow sometimes to change and we haven't found better way how to handle it
@@ -532,15 +532,15 @@ sub setup_bond {
     my ($self, $mode, $iface0, $iface1) = @_;
 
     my $cfg_bond0 = '/etc/sysconfig/network/ifcfg-bond0';
-    my $cfg_ifc0  = '/etc/sysconfig/network/ifcfg-' . $iface0;
-    my $cfg_ifc1  = '/etc/sysconfig/network/ifcfg-' . $iface1;
-    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc0);
-    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug',     $cfg_ifc1);
+    my $cfg_ifc0 = '/etc/sysconfig/network/ifcfg-' . $iface0;
+    my $cfg_ifc1 = '/etc/sysconfig/network/ifcfg-' . $iface1;
+    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug', $cfg_ifc0);
+    $self->get_from_data('wicked/ifcfg/ifcfg-eth0-hotplug', $cfg_ifc1);
     $self->get_from_data('wicked/bonding/ifcfg-bond0-' . $mode, $cfg_bond0);
 
-    my $ipaddr4   = $self->get_ip(type => 'host',        netmask       => 1);
-    my $ipaddr6   = $self->get_ip(type => 'host6',       netmask       => 1);
-    my $ping_ip_1 = $self->get_ip(type => 'host',        is_wicked_ref => 1);
+    my $ipaddr4 = $self->get_ip(type => 'host', netmask => 1);
+    my $ipaddr6 = $self->get_ip(type => 'host6', netmask => 1);
+    my $ping_ip_1 = $self->get_ip(type => 'host', is_wicked_ref => 1);
     my $ping_ip_2 = $self->get_ip(type => 'second_card', is_wicked_ref => 1);
 
     file_content_replace($cfg_bond0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip_1 => $ping_ip_1, ping_ip_2 => $ping_ip_2, '--sed-modifier' => 'g');
@@ -552,19 +552,19 @@ sub setup_team {
     my ($self, $mode, $iface0, $iface1) = @_;
 
     my $cfg_team0 = '/etc/sysconfig/network/ifcfg-team0';
-    my $cfg_ifc0  = '/etc/sysconfig/network/ifcfg-' . $iface0;
-    my $cfg_ifc1  = '/etc/sysconfig/network/ifcfg-' . $iface1;
+    my $cfg_ifc0 = '/etc/sysconfig/network/ifcfg-' . $iface0;
+    my $cfg_ifc1 = '/etc/sysconfig/network/ifcfg-' . $iface1;
 
     my $data_ifcfg = 'wicked/ifcfg/ifcfg-eth0-hotplug';
     $data_ifcfg .= '-static' if ($mode eq 'ab-nsna_ping');
 
-    $self->get_from_data($data_ifcfg,                           $cfg_ifc0);
-    $self->get_from_data($data_ifcfg,                           $cfg_ifc1);
+    $self->get_from_data($data_ifcfg, $cfg_ifc0);
+    $self->get_from_data($data_ifcfg, $cfg_ifc1);
     $self->get_from_data('wicked/teaming/ifcfg-team0-' . $mode, $cfg_team0);
 
-    my $ipaddr4  = $self->get_ip(type => 'host',  netmask       => 1);
-    my $ipaddr6  = $self->get_ip(type => 'host6', netmask       => 1);
-    my $ping_ip4 = $self->get_ip(type => 'host',  is_wicked_ref => 1);
+    my $ipaddr4 = $self->get_ip(type => 'host', netmask => 1);
+    my $ipaddr6 = $self->get_ip(type => 'host6', netmask => 1);
+    my $ping_ip4 = $self->get_ip(type => 'host', is_wicked_ref => 1);
     my $ping_ip6 = $self->get_ip(type => 'host6', is_wicked_ref => 1);
     file_content_replace($cfg_team0, ipaddr4 => $ipaddr4, ipaddr6 => $ipaddr6, iface0 => $iface0, iface1 => $iface1, ping_ip4 => $ping_ip4, ping_ip6 => $ping_ip6);
 
@@ -648,20 +648,20 @@ sub ifbind {
 
 sub check_ipv6 {
     my ($self, $ctx) = @_;
-    my $gateway             = $self->get_ip(type => 'gateway');
+    my $gateway = $self->get_ip(type => 'gateway');
     my $ipv6_network_prefix = $self->get_ip(type => 'ipv6');
-    my $ipv6_dns            = $self->get_ip(type => 'dns_advice');
+    my $ipv6_dns = $self->get_ip(type => 'dns_advice');
     $self->get_from_data('wicked/ifcfg/ipv6', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface());
     assert_script_run('rdisc6 ' . $ctx->iface());
     $self->wicked_command('ifdown', $ctx->iface());
-    $self->wicked_command('ifup',   $ctx->iface());
+    $self->wicked_command('ifup', $ctx->iface());
     my $errors = 0;
-    my $tries  = 12;
-    my $no_ip  = 1;
+    my $tries = 12;
+    my $no_ip = 1;
     my $output = '';
     while ($tries > 0 && $no_ip) {
-        $no_ip  = 0;
+        $no_ip = 0;
         $output = script_output('ip a s dev ' . $ctx->iface());
         unless ($output =~ /inet $RE{net}{IPv4}/) {
             record_info('Waiting for IPv4');
@@ -703,7 +703,7 @@ sub check_ipv6 {
     my $dns_failure = 1;
     while ($tries > 0 && $dns_failure) {
         $dns_failure = 0;
-        $output      = script_output('cat /etc/resolv.conf');
+        $output = script_output('cat /etc/resolv.conf');
 
         unless ($output =~ /^nameserver $gateway/m) {
             record_info('IPv4 DNS', 'IPv4 DNS is missing in resolv.conf');
@@ -733,11 +733,11 @@ sub record_console_test_result {
     my ($self, $title, $content, %args) = @_;
     $args{result} //= 'failed';
     $title =~ s/:/_/g;
-    my $details  = $self->record_testresult($args{result});
+    my $details = $self->record_testresult($args{result});
     my $filename = $self->next_resultname('txt', $title);
     $details->{_source} = 'parser';
-    $details->{text}    = $filename;
-    $details->{title}   = $title;
+    $details->{text} = $filename;
+    $details->{title} = $title;
     $self->write_resultfile($filename, $content);
 }
 

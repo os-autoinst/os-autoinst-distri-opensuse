@@ -18,9 +18,9 @@ use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
 
 use constant {
-    NETWORK_CARD_SETUP                   => 'yast2_lan_network_card_setup',
-    BOND_SLAVES_TAB                      => 'yast2_lan_bond_slave_tab_selected',
-    ALREADY_CONFIGURED_DEVICE_POPUP      => 'yast2_lan_select_already_configured_device',
+    NETWORK_CARD_SETUP => 'yast2_lan_network_card_setup',
+    BOND_SLAVES_TAB => 'yast2_lan_bond_slave_tab_selected',
+    ALREADY_CONFIGURED_DEVICE_POPUP => 'yast2_lan_select_already_configured_device',
     BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED => 'yast2_lan_checkbox_unchecked'
 };
 

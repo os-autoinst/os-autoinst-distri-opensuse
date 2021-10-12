@@ -19,7 +19,7 @@ use lockapi;
 
 sub run {
     my $cluster_name = get_cluster_name;
-    my @word         = (get_required_var('UPDATE_TYPE') eq "update") ? ("Update", "updating", "UPDATED") : ("Upgrade", "upgrading", "UPGRADED");
+    my @word = (get_required_var('UPDATE_TYPE') eq "update") ? ("Update", "updating", "UPDATED") : ("Upgrade", "upgrading", "UPGRADED");
     record_info("$word[0] node 1", "$word[0] has started for node 1") if is_node(1);
 
     if (is_node(2)) {

@@ -41,7 +41,7 @@ sub run {
     # by default, we need enable it
     if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle && check_var('ARCH', 's390x')) {
         my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
-        my $root_hd   = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        my $root_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
         assert_script_run("mount $root_hd /mnt");
         assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
         assert_script_run('umount /mnt');
@@ -62,8 +62,8 @@ sub run {
         if (is_sle) {
             set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
             set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE', 'kvm'));
-            adjust_for_ipmi_xen('/mnt')                 if (get_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
-            set_pxe_efiboot('/mnt')                     if is_aarch64;
+            adjust_for_ipmi_xen('/mnt') if (get_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
+            set_pxe_efiboot('/mnt') if is_aarch64;
         }
     }
     else {

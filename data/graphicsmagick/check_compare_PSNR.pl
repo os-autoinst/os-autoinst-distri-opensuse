@@ -16,7 +16,7 @@ my $line = <STDIN>;
 my ($tolerance) = @ARGV;
 
 my $value = 0;
-my $inf   = 100000;
+my $inf = 100000;
 
 if ($line =~ m/\s*\w+:\s*inf\s*/) {
     $value = $inf;

@@ -58,18 +58,18 @@ our @guest_installations_done = ();
 #Guest profile xml file will be guest profile name + '.xml' extension and fetched using HTTP::Request and
 #parsed using XML::Simple.
 sub instantiate_guests_and_profiles {
-    my $self                       = shift;
+    my $self = shift;
     my $_guests_to_be_instantiated = shift;
-    my %_store_of_guests           = %$_guests_to_be_instantiated;
+    my %_store_of_guests = %$_guests_to_be_instantiated;
 
     $self->reveal_myself;
     foreach my $_element (keys(%_store_of_guests)) {
         $guest_instances{$_element} = bless({%$self}, ref($self));
         diag "Guest $_element is blessed";
-        my $_ua            = LWP::UserAgent->new;
-        my $_geturl        = data_url("virt_autotest/guest_params_xml_files/$_store_of_guests{$_element}.xml");
-        my $_req           = HTTP::Request->new(GET => "$_geturl");
-        my $_res           = $_ua->request($_req);
+        my $_ua = LWP::UserAgent->new;
+        my $_geturl = data_url("virt_autotest/guest_params_xml_files/$_store_of_guests{$_element}.xml");
+        my $_req = HTTP::Request->new(GET => "$_geturl");
+        my $_res = $_ua->request($_req);
         my $_guest_profile = (XML::Simple->new)->XMLin($_res->content, SuppressEmpty => '');
         $_guest_profile->{guest_name} = $_element;
         $guest_instances_profiles{$_element} = $_guest_profile;
@@ -124,8 +124,8 @@ sub monitor_concurrent_guest_installations {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_installation_timeout             = 0;
-    my $_guest_installations_left         = scalar(keys %guest_instances) - scalar(@guest_installations_done);
+    my $_installation_timeout = 0;
+    my $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
     my $_guest_installations_not_the_last = 1;
     while ($_installation_timeout < 3600) {
         foreach (keys %guest_instances) {
@@ -133,7 +133,7 @@ sub monitor_concurrent_guest_installations {
                 $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
                 $guest_instances{$_}->monitor_guest_installation;
                 if ($guest_instances{$_}->{guest_installation_result} eq '') {
-                    $_guest_installations_not_the_last = 0                 if ($_guest_installations_left eq 1);
+                    $_guest_installations_not_the_last = 0 if ($_guest_installations_left eq 1);
                     $guest_instances{$_}->detach_guest_installation_screen if ($_guest_installations_not_the_last ne 0);
                 }
             }
@@ -142,7 +142,7 @@ sub monitor_concurrent_guest_installations {
                 push(@guest_installations_done, $_);
                 $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
                 $guest_instances{$_}->collect_guest_installation_logs_via_ssh if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
-                last                                                          if ($_guest_installations_left eq 0);
+                last if ($_guest_installations_left eq 0);
             }
         }
         last if ($_guest_installations_left eq 0);
@@ -195,14 +195,14 @@ sub junit_log_provision {
     $self->reveal_myself;
     my $_guest_installations_results;
     foreach (keys %guest_instances) {
-        $_guest_installations_results->{$_}{status}    = $guest_instances{$_}->{guest_installation_result};
+        $_guest_installations_results->{$_}{status} = $guest_instances{$_}->{guest_installation_result};
         $_guest_installations_results->{$_}{start_run} = $guest_instances{$_}->{start_run};
-        $_guest_installations_results->{$_}{stop_run}  = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
+        $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
     $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
-    $self->{"product_name"}      = ref($self);
-    $self->{"package_name"}      = ref($self);
+    $self->{"product_name"} = ref($self);
+    $self->{"package_name"} = ref($self);
     my $_guest_installation_xml_results = virt_autotest_base::generateXML($self, $_guest_installations_results);
     script_run("echo \'$_guest_installation_xml_results\' > /tmp/output.xml");
     save_screenshot;
@@ -229,7 +229,7 @@ sub check_root_ssh_console {
 #holds all guest names to be created and $_guest_profiles_list is a reference to array that holds all guest profiles to be used for guest configurations
 #and installations.
 sub concurrent_guest_installations_run {
-    my $self             = shift;
+    my $self = shift;
     my $_store_of_guests = shift;
 
     $self->reveal_myself;

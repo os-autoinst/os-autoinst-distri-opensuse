@@ -21,9 +21,9 @@ use scheduler qw(get_test_suite_data);
 use utils qw(arrays_subset);
 
 sub compare_disks {
-    my %args     = @_;
+    my %args = @_;
     my $expected = $args{expected};
-    my $got      = $args{got};
+    my $got = $args{got};
 
     my @dif = arrays_subset($expected, $got);
     if (scalar @dif > 0) {
@@ -36,8 +36,8 @@ sub run {
     select_console 'root-console';
 
     my @errors;
-    my $test_data    = get_test_suite_data();
-    my @used_disks   = @{$test_data->{guided_partitioning}->{disks}};
+    my $test_data = get_test_suite_data();
+    my @used_disks = @{$test_data->{guided_partitioning}->{disks}};
     my @unused_disks = @{$test_data->{unused_disks}};
 
     # list info about block devices

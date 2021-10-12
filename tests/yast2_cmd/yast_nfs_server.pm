@@ -92,7 +92,7 @@ sub run {
     # 7. Stop the nfs-server service and verify the service status
     assert_script_run("yast nfs-server stop", fail_message => "yast nfs-server failed when stop nfs-server service");
 
-    my $nfs_stop_status    = systemctl("is-active nfs-server",  ignore_failure => 1);
+    my $nfs_stop_status = systemctl("is-active nfs-server", ignore_failure => 1);
     my $nfs_enabled_status = systemctl("is-enabled nfs-server", ignore_failure => 1);
     if ($nfs_stop_status != 3 or $nfs_enabled_status != 1) {
         die "yast nfs-server failed to stop nfs-server service";

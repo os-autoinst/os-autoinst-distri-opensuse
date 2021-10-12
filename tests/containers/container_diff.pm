@@ -30,12 +30,12 @@ sub run {
 
     install_docker_when_needed($host_distri);
     $docker->configure_insecure_registries() if is_sle();
-    zypper_call("install container-diff")    if (script_run("which container-diff") != 0);
+    zypper_call("install container-diff") if (script_run("which container-diff") != 0);
 
     my ($untested_images, $released_images) = get_suse_container_urls();
     # container-diff
     for my $i (@{$untested_images}) {
-        my $image_file             = $untested_images->[$i] =~ s/\/|:/-/gr;
+        my $image_file = $untested_images->[$i] =~ s/\/|:/-/gr;
         my $container_diff_results = "/tmp/container-diff-$image_file.txt";
         assert_script_run("docker pull $untested_images->[$i]", 360);
         assert_script_run("docker pull $released_images->[$i]", 360);

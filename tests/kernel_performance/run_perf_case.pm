@@ -22,10 +22,10 @@ use File::Basename;
 use Utils::Backends 'use_ssh_serial_console';
 
 sub run_one_by_one {
-    my $case   = get_var("CASE_NAME");
+    my $case = get_var("CASE_NAME");
     my $repeat = get_var("CASE_REPEAT");
     my $timeout //= 180;
-    my $i         = 1;
+    my $i = 1;
     my $fail_path = get_var("FAIL_PATH");
     my $fail_list = get_var("FAIL_LIST");
 

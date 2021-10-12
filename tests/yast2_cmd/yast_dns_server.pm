@@ -70,7 +70,7 @@ sub run {
     my $self = shift;
     select_console 'root-console';
     zypper_call("in yast2-dns-server bind", exitcode => [0, 102, 103, 106]);
-    zypper_call("in bind-libs",             exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
+    zypper_call("in bind-libs", exitcode => [0, 102, 103, 106]) if is_sle('=12-SP2');
     #enables netconfig to always force a replace of modified file to avoid ncurse prompt.
     assert_script_run(qq(sed -i 's/NETCONFIG_FORCE_REPLACE="no"/NETCONFIG_FORCE_REPLACE="yes"/' /etc/sysconfig/network/config));
 
@@ -88,14 +88,14 @@ sub run {
     record_soft_failure("bsc#1151138") if (systemctl("is-active named.service", ignore_failure => 1));
 
     # create zone and reverse zone
-    $self->cmd_handle("zones", "add", name => "example.org",              zonetype => "master");
+    $self->cmd_handle("zones", "add", name => "example.org", zonetype => "master");
     $self->cmd_handle("zones", "add", name => "100.168.192.in-addr.arpa", zonetype => "master");
 
     # Create host and test lookup
     $self->cmd_handle("host", "add", zone => "example.org", hostname => "host02.example.org.", ip => "192.168.100.4");
     systemctl("start named.service") if systemctl("is-active named.service", ignore_failure => 1);
     validate_script_output('dig @localhost host02.example.org +short', sub { /\Q192.168.100.4\E/ });
-    validate_script_output('dig @localhost -x 192.168.100.4 +short',   sub { /\Qhost02.example.org\E/ });
+    validate_script_output('dig @localhost -x 192.168.100.4 +short', sub { /\Qhost02.example.org\E/ });
     $self->cmd_handle("host", "remove", zone => "example.org", hostname => "host02.example.org.", ip => "192.168.100.4");
 
     #logging
@@ -106,15 +106,15 @@ sub run {
 
     # dns record
     #i.e. dnsrecord add zone=example.org query=example.org. type=MX value='10 mail01'
-    $self->cmd_handle("dnsrecord", "add",    zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");    #delegated domain
+    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");    #delegated domain
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");
-    $self->cmd_handle("dnsrecord", "add",    zone => "example.org", query => "host1",                  type => "A",  value => "192.168.100.3");    #host adress
-    $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "host1",                  type => "A",  value => "192.168.100.3");
+    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");            #host adress
+    $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");
 
-    $self->cmd_handle("dnsrecord", "add",    zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR",   value => "host1");                    ##PTR
-    $self->cmd_handle("dnsrecord", "remove", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR",   value => "host1");
-    $self->cmd_handle("dnsrecord", "add",    zone => "example.org",              query => "ns6", type => "CNAME", value => "server6.anywhere.net.");    ##CNAME
-    $self->cmd_handle("dnsrecord", "remove", zone => "example.org",              query => "ns6", type => "CNAME", value => "server6.anywhere.net.");
+    $self->cmd_handle("dnsrecord", "add", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR", value => "host1");       ##PTR
+    $self->cmd_handle("dnsrecord", "remove", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR", value => "host1");
+    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "ns6", type => "CNAME", value => "server6.anywhere.net.");    ##CNAME
+    $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "ns6", type => "CNAME", value => "server6.anywhere.net.");
 
     # mailserver, nameserver
     $self->bug1151130_softfail("mailserver", "add", "example.org", priority => "97", mx => "mx001");
@@ -124,12 +124,12 @@ sub run {
     systemctl("stop named.service") unless systemctl("is-active named.service", ignore_failure => 1);
     assert_script_run("yast2 dns-server startup atboot");
     my $out = script_output("yast2 dns-server startup show 2>&1");
-    record_soft_failure("bsc#1151130") unless $out =~ /enabled in the boot process/;                        #sle15+ bug
-    record_soft_failure("bsc#1151130") unless systemctl("is-active named.service", ignore_failure => 1);    #sle12sp4- bug
+    record_soft_failure("bsc#1151130") unless $out =~ /enabled in the boot process/;                                                    #sle15+ bug
+    record_soft_failure("bsc#1151130") unless systemctl("is-active named.service", ignore_failure => 1);                                #sle12sp4- bug
     assert_script_run("yast2 dns-server startup manual");
 
     #remove zone, stop service
-    $self->cmd_handle("zones", "remove", name => "example.org",              zonetype => "master");
+    $self->cmd_handle("zones", "remove", name => "example.org", zonetype => "master");
     $self->cmd_handle("zones", "remove", name => "100.168.192.in-addr.arpa", zonetype => "master");
     disable_and_stop_service('named.service');
     assert_script_run(qq(sed -i 's/NETCONFIG_FORCE_REPLACE="yes"/NETCONFIG_FORCE_REPLACE="no"/' /etc/sysconfig/network/config));

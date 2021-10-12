@@ -27,10 +27,10 @@ sub run {
     zypper_call 'in openssl';
 
     my $enc_passwd = "pass1234";
-    my $hash_alg   = "sha256";
-    my $file_raw   = "hello.txt";
-    my $file_enc   = "hello.txt.enc";
-    my $file_dec   = "hello.txt.tmp";
+    my $hash_alg = "sha256";
+    my $file_raw = "hello.txt";
+    my $file_enc = "hello.txt.enc";
+    my $file_dec = "hello.txt.tmp";
 
     # Prepare temp directory and file for testing
     assert_script_run "mkdir fips-test && cd fips-test && echo Hello > $file_raw";

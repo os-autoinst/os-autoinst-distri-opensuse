@@ -22,7 +22,7 @@ sub run {
     select_console 'root-console';
 
     my $not_registered = qr/"status":"Not Registered"/;
-    my $registered     = qr/"status":"Registered"/;
+    my $registered = qr/"status":"Registered"/;
 
     if (check_var 'DISTRI', 'sle') {
         script_run "SUSEConnect --status | tee /dev/$serialdev", 0;

@@ -20,32 +20,32 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my $cluster_name    = get_cluster_name;
-    my $lvm_conf        = '/etc/lvm/lvm.conf';
-    my $lv_name         = 'lv_openqa';
-    my $vg_exclusive    = 'false';
+    my $cluster_name = get_cluster_name;
+    my $lvm_conf = '/etc/lvm/lvm.conf';
+    my $lv_name = 'lv_openqa';
+    my $vg_exclusive = 'false';
     my $activation_mode = 'activation_mode=shared';
-    my $vg_type         = '--clustered y';
-    my $resource        = 'lun';
-    my $vg_luns         = undef;
+    my $vg_type = '--clustered y';
+    my $resource = 'lun';
+    my $vg_luns = undef;
 
     # This test can be called multiple time
     if (read_tag eq 'cluster_md') {
         $resource = 'cluster_md';
-        $vg_luns  = '/dev/md*' if is_node(1);
+        $vg_luns = '/dev/md*' if is_node(1);
 
         # Use a named RAID in SLE15
         $vg_luns = "/dev/md/$resource" if (is_sle('15+') && is_node(1));
     }
     elsif (read_tag eq 'drbd_passive') {
-        $resource     = 'drbd_passive';
-        $vg_luns      = "/dev/$resource" if is_node(1);
+        $resource = 'drbd_passive';
+        $vg_luns = "/dev/$resource" if is_node(1);
         $vg_exclusive = 'true';
-        $vg_type      = '--clustered n';
+        $vg_type = '--clustered n';
     }
     elsif (read_tag eq 'drbd_active') {
         $resource = 'drbd_active';
-        $vg_luns  = "/dev/$resource" if is_node(1);
+        $vg_luns = "/dev/$resource" if is_node(1);
     }
     else {
         $vg_luns = '"' . get_lun . '" "' . get_lun . '"' if is_node(1);

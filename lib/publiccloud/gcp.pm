@@ -22,12 +22,12 @@ use utils;
 
 use constant CREDENTIALS_FILE => '/root/google_credentials.json';
 
-has account             => undef;
-has project_id          => undef;
-has private_key_id      => undef;
-has private_key         => undef;
+has account => undef;
+has project_id => undef;
+has private_key_id => undef;
+has private_key => undef;
 has service_acount_name => undef;
-has client_id           => undef;
+has client_id => undef;
 
 sub init {
     my ($self) = @_;

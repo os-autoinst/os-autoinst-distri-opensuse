@@ -27,10 +27,10 @@ use YuiRestClient;
 sub run {
     select_console 'root-console';
 
-    my $app  = YuiRestClient::get_app(timeout => 60, interval => 1);
+    my $app = YuiRestClient::get_app(timeout => 60, interval => 1);
     my $port = $app->get_port();
     record_info('SERVER', "Used host for libyui: " . $app->get_host());
-    record_info('PORT',   "Used port for libyui: " . $port);
+    record_info('PORT', "Used port for libyui: " . $port);
     set_var('YUI_PARAMS', YuiRestClient::get_yui_params_string($port));
 }
 

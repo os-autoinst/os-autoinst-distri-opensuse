@@ -27,7 +27,7 @@ our $slave;
 sub upload_ibtest_logs {
     my $self = shift;
 
-    $self->save_and_upload_log('dmesg',                   '/tmp/dmesg.log',         {screenshot => 0});
+    $self->save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
     $self->save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
 
     $self->save_and_upload_systemd_unit_log('opensm.service');
@@ -51,34 +51,34 @@ sub ibtest_slave {
 }
 
 sub ibtest_master {
-    my $self               = shift;
-    my $master             = get_required_var('IBTEST_IP1');
-    my $slave              = get_required_var('IBTEST_IP2');
-    my $hpc_testing        = get_var('IBTEST_GITTREE',   'https://github.com/SUSE/hpc-testing.git');
+    my $self = shift;
+    my $master = get_required_var('IBTEST_IP1');
+    my $slave = get_required_var('IBTEST_IP2');
+    my $hpc_testing = get_var('IBTEST_GITTREE', 'https://github.com/SUSE/hpc-testing.git');
     my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
-    my $timeout            = get_var('IBTEST_TIMEOUT',   '3600');
+    my $timeout = get_var('IBTEST_TIMEOUT', '3600');
 
     # construct some parameters to allow to customize test runs when needed
-    my $start_phase  = get_var('IBTEST_START_PHASE');
-    my $end_phase    = get_var('IBTEST_END_PHASE');
-    my $phase        = get_var('IBTEST_ONLY_PHASE');
+    my $start_phase = get_var('IBTEST_START_PHASE');
+    my $end_phase = get_var('IBTEST_END_PHASE');
+    my $phase = get_var('IBTEST_ONLY_PHASE');
     my $mpi_flavours = get_var('IBTEST_MPI_FLAVOURS');
-    my $ipoib_modes  = get_var('IBTEST_IPOIB_MODES');
+    my $ipoib_modes = get_var('IBTEST_IPOIB_MODES');
 
     my $args = '';
 
-    $args = '-v '               if get_var('IBTEST_VERBOSE');
-    $args = $args . '--in-vm '  if get_var('IBTEST_IN_VM');
+    $args = '-v ' if get_var('IBTEST_VERBOSE');
+    $args = $args . '--in-vm ' if get_var('IBTEST_IN_VM');
     $args = $args . '--no-mad ' if get_var('IBTEST_NO_MAD');
 
     if ($phase != '') {
         $args = $args . "--phase $phase";
     } else {
         $args = $args - "--start-phase $start_phase " if $start_phase;
-        $args = $args - "--end-phase $end_phase "     if $end_phase;
+        $args = $args - "--end-phase $end_phase " if $end_phase;
     }
 
-    $args = $args . "--mpi $mpi_flavours "  if $mpi_flavours;
+    $args = $args . "--mpi $mpi_flavours " if $mpi_flavours;
     $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
 
     # do all test preparations and setup
@@ -110,7 +110,7 @@ sub run {
     my $role = get_required_var('IBTEST_ROLE');
 
     $master = get_required_var('IBTEST_IP1');
-    $slave  = get_required_var('IBTEST_IP2');
+    $slave = get_required_var('IBTEST_IP2');
 
     $self->select_serial_terminal;
 
@@ -140,9 +140,9 @@ sub run {
 }
 
 sub post_fail_hook {
-    my $self  = shift;
+    my $self = shift;
     my $slave = get_required_var('IBTEST_IP2');
-    my $role  = get_required_var('IBTEST_ROLE');
+    my $role = get_required_var('IBTEST_ROLE');
 
     if ($role eq 'IBTEST_MASTER') {
         script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');

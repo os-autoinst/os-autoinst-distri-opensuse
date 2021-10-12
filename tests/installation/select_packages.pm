@@ -31,8 +31,8 @@ use testapi;
 use version_utils;
 
 sub run {
-    my ($self)           = @_;
-    my $packages         = get_required_var('PACKAGES');
+    my ($self) = @_;
+    my $packages = get_required_var('PACKAGES');
     my $blocker_packages = get_var('INSTALLATION_BLOCKED');
     my $operation;
 

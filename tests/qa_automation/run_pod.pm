@@ -25,7 +25,7 @@ sub run {
     die "No pod name provided" unless $podname;
 
     my $casedir = get_required_var('CASEDIR');
-    my $script  = path("$casedir/tests/test_pods/$podname")->slurp;
+    my $script = path("$casedir/tests/test_pods/$podname")->slurp;
     my $timeout = 60;
     $timeout = $1 if ($script =~ m/^#\s*pod_timeout:\s*(\d+)\s*$/m);
 
@@ -35,7 +35,7 @@ sub run {
     my $logfile = upload_logs('/tmp/openqa_logs/testlog.json');
     script_run('rm -r /tmp/openqa_logs');
 
-    my $json     = path("ulogs/$logfile")->slurp;
+    my $json = path("ulogs/$logfile")->slurp;
     my $testlist = Mojo::JSON::decode_json($json);
 
     for my $test (@$testlist) {

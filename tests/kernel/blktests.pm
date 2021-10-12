@@ -35,10 +35,10 @@ sub run {
 
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
-    my $tests   = get_required_var('BLK_TESTS');
-    my $quick   = get_required_var('BLK_QUICK');
+    my $tests = get_required_var('BLK_TESTS');
+    my $quick = get_required_var('BLK_QUICK');
     my $exclude = get_required_var('BLK_EXCLUDE');
-    my $config  = get_required_var('BLK_CONFIG');
+    my $config = get_required_var('BLK_CONFIG');
     my $devices = get_required_var('BLK_DEVICE_ONLY');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));

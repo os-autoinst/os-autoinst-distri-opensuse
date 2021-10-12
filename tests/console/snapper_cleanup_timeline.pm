@@ -31,7 +31,7 @@ sub pre_run_hook {
 }
 
 sub convert2numeric {
-    my $str2convert     = shift;
+    my $str2convert = shift;
     my $convert_numeric = qr/[^0-9.]+/;
     $str2convert =~ s/$convert_numeric//;
     return $str2convert;
@@ -43,7 +43,7 @@ sub run {
     my $qgroup_space = script_output("btrfs qgroup show --sync --si / | grep \"1/0\" | awk \'{print \$3}\'");
     $qgroup_space = convert2numeric($qgroup_space);
     my $space_limit = $test_data->{snapper_config}->{SPACE_LIMIT};
-    my $disk_size   = convert2numeric(get_partition_size("/"));
+    my $disk_size = convert2numeric(get_partition_size("/"));
     die "Snapshots take more than " . $space_limit * 100 . "% of root disk space"
       if ($qgroup_space >= $space_limit * $disk_size);
 

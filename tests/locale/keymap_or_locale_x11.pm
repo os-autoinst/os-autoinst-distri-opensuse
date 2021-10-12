@@ -23,7 +23,7 @@ sub run {
     select_console('x11');
     # uncomment in case of different keyboard than us is used during installation ( feature not ready yet )
     # my $expected   = get_var('INSTALL_KEYBOARD_LAYOUT','us');
-    my $expected   = 'us';
+    my $expected = 'us';
     my $keystrokes = $self->get_keystroke_list($expected);
 
     $self->verify_default_keymap_x11($keystrokes, "${expected}_keymap_logged_x11", 'xterm');

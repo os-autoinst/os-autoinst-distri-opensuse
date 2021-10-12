@@ -43,8 +43,8 @@ sub ensure_graphical_target {
 sub run {
     my $self = shift;
 
-    my $user               = 'user1';
-    my $users_to_create    = 100;
+    my $user = 'user1';
+    my $users_to_create = 100;
     my $encrypted_password = crypt($password, "abcsalt");
 
     # disable autologin

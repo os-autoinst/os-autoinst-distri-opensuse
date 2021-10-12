@@ -31,7 +31,7 @@ sub run {
 
     install_buildah_when_needed($host_distri);
     install_docker_when_needed($host_distri);
-    my $docker  = containers::engine::docker->new();
+    my $docker = containers::engine::docker->new();
     my $buildah = containers::engine::buildah->new();
     $docker->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));

@@ -56,7 +56,7 @@ sub run {
     }
 
     my $tap_results = "results.tap";
-    my $ret         = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
+    my $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
     parse_extra_log(TAP => $tap_results);
 
     # restore the system after running pam.pm

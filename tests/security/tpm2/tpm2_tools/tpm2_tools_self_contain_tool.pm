@@ -40,7 +40,7 @@ sub run {
     };
 
     # Retrieves random bytes from the TPM
-    my $test_dir  = "tpm2_tools";
+    my $test_dir = "tpm2_tools";
     my $test_file = "random.out";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";

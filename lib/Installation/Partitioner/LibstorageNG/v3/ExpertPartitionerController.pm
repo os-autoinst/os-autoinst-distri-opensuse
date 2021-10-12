@@ -36,9 +36,9 @@ sub new {
         SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
         ExpertPartitionerPage => Installation::Partitioner::LibstorageNG::ExpertPartitionerPage->new({add_partition_shortcut => 'alt-d', add_raid_shortcut => 'alt-r'}),
         NewPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({custom_size_shortcut => 'alt-o'}),
-        RolePage             => Installation::Partitioner::RolePage->new({raw_volume_shortcut => 'alt-r'}),
+        RolePage => Installation::Partitioner::RolePage->new({raw_volume_shortcut => 'alt-r'}),
         FormattingOptionsPage => Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({do_not_format_shortcut => 'alt-t', format_shortcut => 'alt-r', filesystem_shortcut => 'alt-f', do_not_mount_shortcut => 'alt-d'}),
-        RaidTypePage    => Installation::Partitioner::RaidTypePage->new(),
+        RaidTypePage => Installation::Partitioner::RaidTypePage->new(),
         RaidOptionsPage => Installation::Partitioner::RaidOptionsPage->new({chunk_size_shortcut => 'alt-u'})
     }, $class;
 }

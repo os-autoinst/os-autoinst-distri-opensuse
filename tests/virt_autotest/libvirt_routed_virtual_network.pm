@@ -52,8 +52,8 @@ sub run_test {
     my ($mac1, $mac2, $model1, $model2, $affecter, $exclusive);
     my $target1 = '192.168.130.1';
     my $target2 = '192.168.129.1';
-    my $gate1   = '192.168.129.1';
-    my $gate2   = '192.168.130.1';
+    my $gate1 = '192.168.129.1';
+    my $gate2 = '192.168.130.1';
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "ROUTED NETWORK for $guest";
         #NOTE
@@ -71,16 +71,16 @@ sub run_test {
         ensure_online "$guest.clone", skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
-            $affecter  = "--persistent";
+            $affecter = "--persistent";
             $exclusive = "bridge --live --persistent";
         } else {
-            $affecter  = "";
+            $affecter = "";
             $exclusive = "network --current";
         }
 
         #figure out that used with virtio as the network device model during
         #attach-interface via virsh worked for all sles guest
-        $mac1   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $mac1 = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model1 = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system
@@ -89,7 +89,7 @@ sub run_test {
         #Wait for attached interface and associated information to be populated and become stable
         die "Interface model:$model1 mac:$mac1 can not be attached to guest $guest successfully" if (script_retry("virsh domiflist $guest | grep vnet_routed | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"", delay => 30, retry => 10) ne 0);
 
-        $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $mac2 = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model2 = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system

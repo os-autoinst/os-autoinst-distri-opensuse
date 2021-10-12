@@ -27,7 +27,7 @@ sub run {
     validate_encrypted_volume_activation({
             mapped_device => $test_data->{mapped_device},
             device_status => $test_data->{device_status}->{message},
-            properties    => $test_data->{device_status}->{properties}
+            properties => $test_data->{device_status}->{properties}
     });
 }
 

@@ -26,14 +26,14 @@ use utils;
 use lynis::lynistest;
 
 sub run {
-    my $dir           = $lynis::lynistest::testdir;
+    my $dir = $lynis::lynistest::testdir;
     my $baseline_file = $lynis::lynistest::lynis_baseline_file;
-    my $current_file  = $lynis::lynistest::lynis_audit_system_current_file;
-    my $f_position_b  = $lynis::lynistest::f_position_b;
-    my $f_position_c  = $lynis::lynistest::f_position_c;
+    my $current_file = $lynis::lynistest::lynis_audit_system_current_file;
+    my $f_position_b = $lynis::lynistest::f_position_b;
+    my $f_position_c = $lynis::lynistest::f_position_c;
 
     # Section name list
-    my @section_list_current  = ();
+    my @section_list_current = ();
     my @section_list_baseline = ();
 
     select_console "root-console";

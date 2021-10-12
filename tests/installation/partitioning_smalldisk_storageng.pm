@@ -65,8 +65,8 @@ sub run {
         send_key 'tab';
     }
     # Deselect the disks. Scrolling through the list of devices is different in textmode
-    my $scrolldown = check_var('VIDEOMODE', 'text') ? 'tab'       : 'down';
-    my $scrollup   = check_var('VIDEOMODE', 'text') ? 'shift-tab' : 'up';
+    my $scrolldown = check_var('VIDEOMODE', 'text') ? 'tab' : 'down';
+    my $scrollup = check_var('VIDEOMODE', 'text') ? 'shift-tab' : 'up';
     for (0 .. $extra_disks_to_deselect) { send_key 'spc'; send_key $scrolldown; }
     wait_still_screen 3;
 

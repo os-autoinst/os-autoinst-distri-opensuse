@@ -21,11 +21,11 @@ use version_utils qw(is_sle);
 use hacluster;
 
 sub run {
-    my $cluster_name  = get_cluster_name;
-    my $hostname      = get_hostname;
+    my $cluster_name = get_cluster_name;
+    my $hostname = get_hostname;
     my $quorum_policy = 'stop';
-    my $node_01_host  = choose_node(1);
-    my $node_02_host  = choose_node(2);
+    my $node_01_host = choose_node(1);
+    my $node_02_host = choose_node(2);
 
     # Start yast2 cluster module
     script_run("yast2 cluster; echo yast2-cluster-status-\$? > /dev/$serialdev", 0);

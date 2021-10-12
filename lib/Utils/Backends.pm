@@ -63,7 +63,7 @@ our @EXPORT = (@{(+CONSOLES)}, @{+BACKEND});
 
 our %EXPORT_TAGS = (
     CONSOLES => (CONSOLES),
-    BACKEND  => (BACKEND)
+    BACKEND => (BACKEND)
 );
 
 sub set_sshserial_dev {

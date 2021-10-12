@@ -48,24 +48,24 @@ our @EXPORT = qw(
   krb5_init
 );
 
-our $dom_kdc    = 'kdc.example.com';
-our $ip_kdc     = '10.0.2.31';
+our $dom_kdc = 'kdc.example.com';
+our $ip_kdc = '10.0.2.31';
 our $dom_server = 'server.example.com';
-our $ip_server  = '10.0.2.32';
+our $ip_server = '10.0.2.32';
 our $dom_client = 'client.example.com';
-our $ip_client  = '10.0.2.33';
+our $ip_client = '10.0.2.33';
 
-our $dom     = 'EXAMPLE.COM';
-our $pass_db = 'DB_phrase';      # Database password
-our $adm     = 'joe/admin';
-our $pass_a  = 'Admin_pass';     # Admin user password
-our $tst     = 'tester';
-our $pass_t  = 'Tester_pass';    # Test user password
+our $dom = 'EXAMPLE.COM';
+our $pass_db = 'DB_phrase';    # Database password
+our $adm = 'joe/admin';
+our $pass_a = 'Admin_pass';    # Admin user password
+our $tst = 'tester';
+our $pass_t = 'Tester_pass';    # Test user password
 
 # NFSv4 authentication with krb5 testing
 our $nfs_expdir = '/tmp/nfsdir';
 our $nfs_mntdir = '/tmp/mntdir';
-our $nfs_fname  = 'foo';
+our $nfs_fname = 'foo';
 
 # Common codes for krb5 server and client setup
 sub krb5_init {

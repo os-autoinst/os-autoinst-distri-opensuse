@@ -27,14 +27,14 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{ch_hide_dev_versions}  = $self->{app}->checkbox({id => 'filter_devel'});
-    $self->{rt_items}              = $self->{app}->richtext({id => 'items'});
-    $self->{rt_item_containers}    = 'sle-module-containers';
-    $self->{rt_item_desktop}       = 'sle-module-desktop-applications';
-    $self->{rt_item_development}   = 'sle-module-development-tools';
-    $self->{rt_item_legacy}        = 'sle-module-legacy';
+    $self->{ch_hide_dev_versions} = $self->{app}->checkbox({id => 'filter_devel'});
+    $self->{rt_items} = $self->{app}->richtext({id => 'items'});
+    $self->{rt_item_containers} = 'sle-module-containers';
+    $self->{rt_item_desktop} = 'sle-module-desktop-applications';
+    $self->{rt_item_development} = 'sle-module-development-tools';
+    $self->{rt_item_legacy} = 'sle-module-legacy';
     $self->{rt_item_transactional} = 'sle-module-transactional-server';
-    $self->{rt_item_web}           = 'sle-module-web-scripting';
+    $self->{rt_item_web} = 'sle-module-web-scripting';
     return $self;
 }
 

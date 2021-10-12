@@ -28,7 +28,7 @@ sub run {
     my $disk = get_var('PLAYGROUNDDISK');
     #partition HDD2
     assert_script_run "echo Disk: $disk";
-    assert_script_run "parted $disk mklabel gpt",                       240;
+    assert_script_run "parted $disk mklabel gpt", 240;
     assert_script_run "parted -a opt $disk mkpart primary ext4 0% 50%", 240;
     my $partition = $disk . "1";
     assert_script_run "mkfs.ext4 $partition", 240;

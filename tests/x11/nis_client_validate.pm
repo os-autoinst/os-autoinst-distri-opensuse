@@ -28,7 +28,7 @@ sub run {
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
 
-    assert_script_run "ls /etc/yp.conf",              fail_message => "File /etc/yp.conf doesn't exist";
+    assert_script_run "ls /etc/yp.conf", fail_message => "File /etc/yp.conf doesn't exist";
     assert_script_run "grep \"ypserv\" /etc/yp.conf", fail_message => "\"ypserv\" was not found in /etc/yp.conf";
     assert_script_run "grep \"$test_data->{nis_domain}\" /etc/defaultdomain",
       fail_message => "\"$test_data->{nis_domain}\" was not found in /etc/defaultdomain";

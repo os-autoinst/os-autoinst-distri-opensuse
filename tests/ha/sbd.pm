@@ -22,7 +22,7 @@ use hacluster;
 
 sub run {
     my $cluster_name = get_cluster_name;
-    my $sbd_cfg      = '/etc/sysconfig/sbd';
+    my $sbd_cfg = '/etc/sysconfig/sbd';
 
     if (is_node(1)) {
         # Create sbd device

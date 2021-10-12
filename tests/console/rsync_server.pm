@@ -25,7 +25,7 @@ use version_utils;
 
 
 sub run {
-    barrier_create('rsync_setup',    2);
+    barrier_create('rsync_setup', 2);
     barrier_create('rsync_finished', 2);
     mutex_create 'barrier_setup_done';
     select_console 'root-console';

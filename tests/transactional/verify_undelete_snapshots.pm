@@ -46,10 +46,10 @@ sub run {
     my $current_snap_after_update;
     foreach (@snapshots_after_update) {
         $current_snap_after_update = $+{current_snap} if ($_ =~ /(?<current_snap>^\s*\d+)\-/);
-        $next_snap_after_update    = $+{next_snap}    if ($_ =~ /(?<next_snap>^\s*\d+)\+/);
+        $next_snap_after_update = $+{next_snap} if ($_ =~ /(?<next_snap>^\s*\d+)\+/);
     }
     die('Current snapshot was not marked with -') unless $current_snap_after_update;
-    die('New snapshot not marked with +')         unless $next_snap_after_update;
+    die('New snapshot not marked with +') unless $next_snap_after_update;
     assert_equals($current_snapshot_before, $current_snap_after_update, "Current snapshot number should not 
 	    change after update. \n before= $current_snapshot_before , after= $current_snap_after_update");
 

@@ -69,9 +69,9 @@ sub run {
     ### Verify copy on write flags for subvolumes.
     # Use -d option to list directories as files and l option to print long
     # attribite name. Only tmp has flag set,usr.local has no setting, by default flag is set
-    validate_script_output "lsattr -dl /tmp",       sub { m/\/tmp.*No_COW/i; };
+    validate_script_output "lsattr -dl /tmp", sub { m/\/tmp.*No_COW/i; };
     validate_script_output "lsattr -dl /usr/local", sub { m/\/usr\/local.*---/i; };
-    validate_script_output "lsattr -dl /opt",       sub { m/\/opt.*---/i; };
+    validate_script_output "lsattr -dl /opt", sub { m/\/opt.*---/i; };
 
 }
 
