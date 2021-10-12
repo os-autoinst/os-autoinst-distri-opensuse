@@ -279,7 +279,7 @@ sub cleanup_system_host {
     my ($self, $assert) = @_;
     $assert //= 1;
     $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
-    $self->_engine_assert_script_run("system prune -a -f", 180);
+    $self->_engine_assert_script_run("system prune -a -f", 300);
 
     if ($assert) {
         assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
