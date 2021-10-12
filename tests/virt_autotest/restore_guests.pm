@@ -18,7 +18,7 @@ use base "virt_autotest_base";
 use virt_utils qw(get_guest_list remove_vm restore_downloaded_guests);
 
 sub run {
-    my $guest_list         = get_guest_list();
+    my $guest_list = get_guest_list();
     my $downloaded_xml_dir = "/tmp/download_vm_xml";
 
     #clean up env

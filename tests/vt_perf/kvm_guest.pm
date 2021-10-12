@@ -22,14 +22,14 @@ use power_action_utils 'power_action';
 use testapi;
 use utils;
 
-my $syspath         = '/sys/devices/system/cpu/vulnerabilities/';
-my $git_repo_url    = get_required_var("MITIGATION_GIT_REPO");
-my $git_user        = get_required_var("MITIGATION_GIT_REPO_USER");
-my $git_pass        = get_required_var("MITIGATION_GIT_REPO_PASS");
+my $syspath = '/sys/devices/system/cpu/vulnerabilities/';
+my $git_repo_url = get_required_var("MITIGATION_GIT_REPO");
+my $git_user = get_required_var("MITIGATION_GIT_REPO_USER");
+my $git_pass = get_required_var("MITIGATION_GIT_REPO_PASS");
 my $git_branch_name = get_required_var("MITIGATION_GIT_BRANCH_NAME");
-my $deploy_script   = get_required_var("DEPLOY_SCRIPT");
-my $run_id          = get_required_var("RUN_ID");
-my $password        = get_required_var("GUEST_PASSWORD");
+my $deploy_script = get_required_var("DEPLOY_SCRIPT");
+my $run_id = get_required_var("RUN_ID");
+my $password = get_required_var("GUEST_PASSWORD");
 
 
 sub run {

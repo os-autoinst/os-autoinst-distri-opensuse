@@ -27,8 +27,8 @@ sub select_device_type {
     # $device method parameter.
     my $shortcut = {
         bridge => 'alt-b',
-        bond   => 'alt-o',
-        vlan   => 'alt-v'
+        bond => 'alt-o',
+        vlan => 'alt-v'
     };
     assert_screen(DEVICE_TYPE_DIALOG);
     send_key $shortcut->{$device};

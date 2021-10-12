@@ -22,8 +22,8 @@ sub get_size {
 
 sub check_size {
     my $file = shift;
-    my $w    = shift;
-    my $h    = shift;
+    my $w = shift;
+    my $h = shift;
 
     my ($iw, $ih) = get_size($file);
     return $w == $iw && $h == $ih;

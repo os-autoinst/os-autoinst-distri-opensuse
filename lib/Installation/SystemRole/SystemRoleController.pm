@@ -27,13 +27,13 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{SystemRolePage} = Installation::SystemRole::SystemRolePage->new({app => YuiRestClient::get_app()});
-    $self->{roles}          = {
+    $self->{roles} = {
         desktop_with_KDE_plasma => 'Desktop with KDE Plasma',
-        desktop_with_GNOME      => 'Desktop with GNOME',
-        desktop_with_Xfce       => 'Desktop with Xfce',
-        generic_desktop         => 'Generic Desktop',
-        server                  => 'Server',
-        transactional_server    => 'Transactional Server'
+        desktop_with_GNOME => 'Desktop with GNOME',
+        desktop_with_Xfce => 'Desktop with Xfce',
+        generic_desktop => 'Generic Desktop',
+        server => 'Server',
+        transactional_server => 'Transactional Server'
     };
     return $self;
 }

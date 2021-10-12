@@ -18,9 +18,9 @@ use testapi;
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
-has ssh_key      => undef;
+has ssh_key => undef;
 has ssh_key_file => undef;
-has credentials  => undef;
+has credentials => undef;
 
 sub vault_create_credentials {
     my ($self) = @_;
@@ -67,7 +67,7 @@ sub init {
     }
 
     $self->{aws_account_id} = script_output("aws sts get-caller-identity | jq -r '.Account'");
-    die("Cannot get the UserID")                                        unless ($self->{aws_account_id});
+    die("Cannot get the UserID") unless ($self->{aws_account_id});
     die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->{aws_account_id} =~ /^\d{12}$/;
 }
 

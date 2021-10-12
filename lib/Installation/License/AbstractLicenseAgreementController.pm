@@ -31,9 +31,9 @@ sub get_license_agreement_page {
 sub collect_current_license_agreement_info {
     my ($self) = @_;
     return {
-        language            => $self->get_license_agreement_page()->get_selected_language(),
+        language => $self->get_license_agreement_page()->get_selected_language(),
         available_languages => [$self->get_license_agreement_page()->get_available_languages()],
-        text                => $self->get_license_agreement_page()->get_eula_content()};
+        text => $self->get_license_agreement_page()->get_eula_content()};
 }
 
 sub accept_license ();

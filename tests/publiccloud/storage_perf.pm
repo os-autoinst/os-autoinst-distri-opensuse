@@ -23,48 +23,48 @@ use constant IODEPTH => 4;
 
 
 sub run {
-    my ($self)    = @_;
-    my $reg_code  = get_var('SCC_REGCODE');
-    my $runtime   = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
+    my ($self) = @_;
+    my $reg_code = get_var('SCC_REGCODE');
+    my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
     my $disk_size = get_var('PUBLIC_CLOUD_FIO_SSD_SIZE');
     my $disk_type = get_var('PUBLIC_CLOUD_FIO_SSD_TYPE');
-    my $url       = get_var('PUBLIC_CLOUD_PERF_DB_URI');
+    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
 
     my @scenario = (
         {
-            name      => 'reference',
-            rw        => 'randread',
+            name => 'reference',
+            rw => 'randread',
             rwmixread => '100',
-            bs        => '4k'
+            bs => '4k'
         },
         {
-            name      => 'reallife',
-            rw        => 'randrw',
+            name => 'reallife',
+            rw => 'randrw',
             rwmixread => '65',
-            bs        => '4k'
+            bs => '4k'
         },
         {
-            name      => 'writeintensive',
-            rw        => 'randwrite',
+            name => 'writeintensive',
+            rw => 'randwrite',
             rwmixread => '10',
-            bs        => '4k'
+            bs => '4k'
 
         },
         {
-            name      => 'maxthroughput',
-            rw        => 'read',
+            name => 'maxthroughput',
+            rw => 'read',
             rwmixread => '100',
-            bs        => '64k'
+            bs => '64k'
         }
     );
 
     my $tags = {
-        instance_type     => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        os_flavor         => get_required_var('FLAVOR'),
-        os_version        => get_required_var('VERSION'),
-        os_build          => get_required_var('BUILD'),
-        os_pc_build       => get_required_var('PUBLIC_CLOUD_BUILD'),
-        os_pc_kiwi_build  => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
+        instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        os_flavor => get_required_var('FLAVOR'),
+        os_version => get_required_var('VERSION'),
+        os_build => get_required_var('BUILD'),
+        os_pc_build => get_required_var('PUBLIC_CLOUD_BUILD'),
+        os_pc_kiwi_build => get_required_var('PUBLIC_CLOUD_BUILD_KIWI'),
         os_kernel_release => undef,
         os_kernel_version => undef,
     };
@@ -78,7 +78,7 @@ sub run {
     $tags->{os_kernel_release} = $instance->run_ssh_command(cmd => 'uname -r');
     $tags->{os_kernel_version} = $instance->run_ssh_command(cmd => 'uname -v');
 
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code,                timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
+    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . $reg_code, timeout => 600) if (get_required_var('FLAVOR') =~ m/BYOS/);
     $instance->run_ssh_command(cmd => 'sudo zypper --gpg-auto-import-keys -q in -y fio', timeout => 600);
 
     my $block_device = '/dev/' . $instance->run_ssh_command(cmd => 'lsblk -n -l --output NAME,MOUNTPOINT | sort | tail -n1');
@@ -109,18 +109,18 @@ sub run {
 
         # Parse results
         my $json = Mojo::JSON::decode_json($output);
-        $values->{read_throughput}  = $json->{jobs}[0]->{read}->{bw};
-        $values->{read_iops}        = $json->{jobs}[0]->{read}->{iops};
-        $values->{read_latency}     = $json->{jobs}[0]->{read}->{lat_ns}->{mean} / 1000;
+        $values->{read_throughput} = $json->{jobs}[0]->{read}->{bw};
+        $values->{read_iops} = $json->{jobs}[0]->{read}->{iops};
+        $values->{read_latency} = $json->{jobs}[0]->{read}->{lat_ns}->{mean} / 1000;
         $values->{write_throughput} = $json->{jobs}[0]->{write}->{bw};
-        $values->{write_iops}       = $json->{jobs}[0]->{write}->{iops};
-        $values->{write_latency}    = $json->{jobs}[0]->{write}->{lat_ns}->{mean} / 1000;
+        $values->{write_iops} = $json->{jobs}[0]->{write}->{iops};
+        $values->{write_latency} = $json->{jobs}[0]->{write}->{lat_ns}->{mean} / 1000;
 
         # Store values in influx-db
         if ($url) {
             my $data = {
-                table  => 'storage',
-                tags   => $tags,
+                table => 'storage',
+                tags => $tags,
                 values => $values
             };
             $data = influxdb_push_data($url, 'publiccloud', $data);

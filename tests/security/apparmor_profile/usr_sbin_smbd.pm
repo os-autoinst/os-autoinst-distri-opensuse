@@ -95,11 +95,11 @@ sub samba_server_setup {
 # Start "nautilus" to access the shares by "Windows Shares"
 sub samba_client_access {
     my $self = shift;
-    my $ip   = shift;
+    my $ip = shift;
 
     my $testuser = $apparmortest::testuser;
-    my $testdir  = $apparmortest::testdir;
-    my $pw       = $apparmortest::pw;
+    my $testdir = $apparmortest::testdir;
+    my $pw = $apparmortest::pw;
 
     # Start "nautilus" to access the shares by "Windows Shares"
     select_console 'x11';
@@ -153,15 +153,15 @@ sub samba_client_access {
 }
 
 sub run {
-    my ($self)        = shift;
-    my $audit_log     = $apparmortest::audit_log;
-    my $prof_dir      = $apparmortest::prof_dir;
-    my $profile_name  = "usr.sbin.smbd";
+    my ($self) = shift;
+    my $audit_log = $apparmortest::audit_log;
+    my $prof_dir = $apparmortest::prof_dir;
+    my $profile_name = "usr.sbin.smbd";
     my $named_profile = "";
-    my $testuser      = $apparmortest::testuser;
-    my $testdir       = $apparmortest::testdir;
-    my $pw            = $apparmortest::pw;
-    my $ip            = "";
+    my $testuser = $apparmortest::testuser;
+    my $testdir = $apparmortest::testdir;
+    my $pw = $apparmortest::pw;
+    my $ip = "";
 
     # Set up samba server
     $self->samba_server_setup();

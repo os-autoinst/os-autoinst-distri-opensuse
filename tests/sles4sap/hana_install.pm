@@ -90,7 +90,7 @@ sub get_test_summary {
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
-    my $sid    = get_required_var('INSTANCE_SID');
+    my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
 
     $self->select_serial_terminal;
@@ -115,12 +115,12 @@ sub run {
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
     my $full_size = ceil($RAM / 1024);                        # Use the ceil value of RAM in GB
     my $half_size = ceil($full_size / 2);
-    my $volgroup  = 'vg_hana';
-    my %mountpts  = (
-        hanadata   => {mountpt => '/hana/data',         size => "${full_size}g"},
-        hanalog    => {mountpt => '/hana/log',          size => "${half_size}g"},
-        hanashared => {mountpt => '/hana/shared',       size => "${full_size}g"},
-        usr_sap    => {mountpt => "/usr/sap/$sid/home", size => '50g'}
+    my $volgroup = 'vg_hana';
+    my %mountpts = (
+        hanadata => {mountpt => '/hana/data', size => "${full_size}g"},
+        hanalog => {mountpt => '/hana/log', size => "${half_size}g"},
+        hanashared => {mountpt => '/hana/shared', size => "${full_size}g"},
+        usr_sap => {mountpt => "/usr/sap/$sid/home", size => '50g'}
     );
 
     # Partition disks for Hana
@@ -138,7 +138,7 @@ sub run {
             my $device = get_var('HANA_INST_DEV', '');
             if ($device) {
                 die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)(\d+)|);
-                my $disk    = $1;
+                my $disk = $1;
                 my $partnum = $2;
                 if (script_run "test -b $device") {
                     # Need to create the partition if it does not exist
@@ -163,7 +163,7 @@ sub run {
             # Remove traces of LVM structures from previous tests before configuring
             foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
             foreach my $lv_cmd ('lv', 'vg', 'pv') {
-                my $looptime  = 20;
+                my $looptime = 20;
                 my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
                 until (script_run "${lv_cmd}remove -f $lv_device 2>&1 | grep -q \"Can't open .* exclusively\.\"") {
                     sleep bmwqemu::scale_timeout(2);
@@ -251,7 +251,7 @@ sub run {
 
     # Upload installations logs
     $self->upload_hana_install_log;
-    $self->save_and_upload_log('rpm -qa',                    'packages.list');
+    $self->save_and_upload_log('rpm -qa', 'packages.list');
     $self->save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
 
     # Quick check of block/filesystem devices after installation

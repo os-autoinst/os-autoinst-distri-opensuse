@@ -21,8 +21,8 @@ use testapi;
 sub run {
     my ($self) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-br0';
-    my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
-    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    my $dummy = '/etc/sysconfig/network/ifcfg-dummy0';
+    $self->get_from_data('wicked/ifcfg/br0', $config);
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     $self->setup_bridge($config, $dummy, 'ifreload');

@@ -38,94 +38,94 @@ sub run {
         # BARRIER_HA_ needs to also wait the support-server
         if (is_not_supportserver_scenario) {
             mutex_create 'iscsi';    # Mutex is already created in supportserver, no need to create it before
-            barrier_create("BARRIER_HA_$cluster_name",                       $num_nodes);
+            barrier_create("BARRIER_HA_$cluster_name", $num_nodes);
             barrier_create("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name", $num_nodes);
-            barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name",     $num_nodes);
-            barrier_create("BARRIER_HA_LUNS_FILES_READY_$cluster_name",      $num_nodes);
-            barrier_create("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name",    $num_nodes);
+            barrier_create("BARRIER_HA_HOSTS_FILES_READY_$cluster_name", $num_nodes);
+            barrier_create("BARRIER_HA_LUNS_FILES_READY_$cluster_name", $num_nodes);
+            barrier_create("BARRIER_HA_NONSS_FILES_SYNCED_$cluster_name", $num_nodes);
         }
         else {
             barrier_create("BARRIER_HA_$cluster_name", $num_nodes + 1);
         }
 
         # Create barriers for HA clusters
-        barrier_create("CLUSTER_INITIALIZED_$cluster_name",     $num_nodes);
-        barrier_create("NODE_JOINED_$cluster_name",             $num_nodes);
-        barrier_create("DLM_INIT_$cluster_name",                $num_nodes);
-        barrier_create("DLM_GROUPS_CREATED_$cluster_name",      $num_nodes);
-        barrier_create("DLM_CHECKED_$cluster_name",             $num_nodes);
-        barrier_create("DRBD_INIT_$cluster_name",               $num_nodes);
-        barrier_create("DRBD_CREATE_CONF_$cluster_name",        $num_nodes);
-        barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name",    $num_nodes);
-        barrier_create("DRBD_CREATE_DEVICE_$cluster_name",      $num_nodes);
-        barrier_create("DRBD_CHECK_ONE_DONE_$cluster_name",     $num_nodes);
-        barrier_create("DRBD_CHECK_TWO_DONE_$cluster_name",     $num_nodes);
-        barrier_create("DRBD_DOWN_DONE_$cluster_name",          $num_nodes);
-        barrier_create("DRBD_MIGRATION_DONE_$cluster_name",     $num_nodes);
-        barrier_create("DRBD_REVERT_DONE_$cluster_name",        $num_nodes);
-        barrier_create("DRBD_RESOURCE_CREATED_$cluster_name",   $num_nodes);
+        barrier_create("CLUSTER_INITIALIZED_$cluster_name", $num_nodes);
+        barrier_create("NODE_JOINED_$cluster_name", $num_nodes);
+        barrier_create("DLM_INIT_$cluster_name", $num_nodes);
+        barrier_create("DLM_GROUPS_CREATED_$cluster_name", $num_nodes);
+        barrier_create("DLM_CHECKED_$cluster_name", $num_nodes);
+        barrier_create("DRBD_INIT_$cluster_name", $num_nodes);
+        barrier_create("DRBD_CREATE_CONF_$cluster_name", $num_nodes);
+        barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_CREATE_DEVICE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_CHECK_ONE_DONE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_CHECK_TWO_DONE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_DOWN_DONE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_MIGRATION_DONE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_REVERT_DONE_$cluster_name", $num_nodes);
+        barrier_create("DRBD_RESOURCE_CREATED_$cluster_name", $num_nodes);
         barrier_create("DRBD_RESOURCE_RESTARTED_$cluster_name", $num_nodes);
-        barrier_create("DRBD_SETUP_DONE_$cluster_name",         $num_nodes);
-        barrier_create("LOCK_INIT_$cluster_name",               $num_nodes);
-        barrier_create("LOCK_RESOURCE_CREATED_$cluster_name",   $num_nodes);
-        barrier_create("LOGS_CHECKED_$cluster_name",            $num_nodes);
+        barrier_create("DRBD_SETUP_DONE_$cluster_name", $num_nodes);
+        barrier_create("LOCK_INIT_$cluster_name", $num_nodes);
+        barrier_create("LOCK_RESOURCE_CREATED_$cluster_name", $num_nodes);
+        barrier_create("LOGS_CHECKED_$cluster_name", $num_nodes);
         # We have to create barriers for each nodes if we want to be able to fence *all* nodes
         foreach (1 .. $num_nodes) {
-            barrier_create("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE$_",   $num_nodes);
-            barrier_create("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE$_",     $num_nodes);
+            barrier_create("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE$_", $num_nodes);
+            barrier_create("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE$_", $num_nodes);
             barrier_create("CHECK_BEFORE_FENCING_BEGIN_${cluster_name}_NODE$_", $num_nodes);
-            barrier_create("CHECK_BEFORE_FENCING_END_${cluster_name}_NODE$_",   $num_nodes);
+            barrier_create("CHECK_BEFORE_FENCING_END_${cluster_name}_NODE$_", $num_nodes);
         }
-        barrier_create("CLUSTER_MD_INIT_$cluster_name",             $num_nodes);
-        barrier_create("CLUSTER_MD_CREATED_$cluster_name",          $num_nodes);
+        barrier_create("CLUSTER_MD_INIT_$cluster_name", $num_nodes);
+        barrier_create("CLUSTER_MD_CREATED_$cluster_name", $num_nodes);
         barrier_create("CLUSTER_MD_RESOURCE_CREATED_$cluster_name", $num_nodes);
-        barrier_create("CLUSTER_MD_CHECKED_$cluster_name",          $num_nodes);
-        barrier_create("HAWK_INIT_$cluster_name",                   $num_nodes);
-        barrier_create("HAWK_CHECKED_$cluster_name",                $num_nodes);
-        barrier_create("SLE11_UPGRADE_INIT_$cluster_name",          $num_nodes);
-        barrier_create("SLE11_UPGRADE_START_$cluster_name",         $num_nodes);
-        barrier_create("SLE11_UPGRADE_DONE_$cluster_name",          $num_nodes);
-        barrier_create("HAPROXY_INIT_$cluster_name",                $num_nodes);
-        barrier_create("HAPROXY_DONE_$cluster_name",                $num_nodes);
-        barrier_create("REMOVE_NODE_BY_IP_INIT_$cluster_name",      $num_nodes);
-        barrier_create("REMOVE_NODE_BY_IP_DONE_$cluster_name",      $num_nodes);
-        barrier_create("REMOVE_NODE_BY_HOST_INIT_$cluster_name",    $num_nodes);
-        barrier_create("REMOVE_NODE_BY_HOST_DONE_$cluster_name",    $num_nodes);
-        barrier_create("JOIN_NODE_BY_HOST_DONE_$cluster_name",      $num_nodes);
-        barrier_create("JOIN_NODE_BY_IP_DONE_$cluster_name",        $num_nodes);
-        barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name",      $num_nodes);
-        barrier_create("RSC_REMOVE_INIT_$cluster_name",             $num_nodes);
-        barrier_create("RSC_REMOVE_DONE_$cluster_name",             $num_nodes);
-        barrier_create("CSYNC2_CONFIGURED_$cluster_name",           $num_nodes);
-        barrier_create("CSYNC2_SYNC_$cluster_name",                 $num_nodes);
-        barrier_create("SBD_DONE_$cluster_name",                    $num_nodes);
-        barrier_create("SSH_KEY_CONFIGURED_$cluster_name",          $num_nodes);
-        barrier_create("CLVM_TO_LVMLOCKD_START_$cluster_name",      $num_nodes);
-        barrier_create("CLVM_TO_LVMLOCKD_DONE_$cluster_name",       $num_nodes);
+        barrier_create("CLUSTER_MD_CHECKED_$cluster_name", $num_nodes);
+        barrier_create("HAWK_INIT_$cluster_name", $num_nodes);
+        barrier_create("HAWK_CHECKED_$cluster_name", $num_nodes);
+        barrier_create("SLE11_UPGRADE_INIT_$cluster_name", $num_nodes);
+        barrier_create("SLE11_UPGRADE_START_$cluster_name", $num_nodes);
+        barrier_create("SLE11_UPGRADE_DONE_$cluster_name", $num_nodes);
+        barrier_create("HAPROXY_INIT_$cluster_name", $num_nodes);
+        barrier_create("HAPROXY_DONE_$cluster_name", $num_nodes);
+        barrier_create("REMOVE_NODE_BY_IP_INIT_$cluster_name", $num_nodes);
+        barrier_create("REMOVE_NODE_BY_IP_DONE_$cluster_name", $num_nodes);
+        barrier_create("REMOVE_NODE_BY_HOST_INIT_$cluster_name", $num_nodes);
+        barrier_create("REMOVE_NODE_BY_HOST_DONE_$cluster_name", $num_nodes);
+        barrier_create("JOIN_NODE_BY_HOST_DONE_$cluster_name", $num_nodes);
+        barrier_create("JOIN_NODE_BY_IP_DONE_$cluster_name", $num_nodes);
+        barrier_create("REMOVE_NODE_FINAL_JOIN_$cluster_name", $num_nodes);
+        barrier_create("RSC_REMOVE_INIT_$cluster_name", $num_nodes);
+        barrier_create("RSC_REMOVE_DONE_$cluster_name", $num_nodes);
+        barrier_create("CSYNC2_CONFIGURED_$cluster_name", $num_nodes);
+        barrier_create("CSYNC2_SYNC_$cluster_name", $num_nodes);
+        barrier_create("SBD_DONE_$cluster_name", $num_nodes);
+        barrier_create("SSH_KEY_CONFIGURED_$cluster_name", $num_nodes);
+        barrier_create("CLVM_TO_LVMLOCKD_START_$cluster_name", $num_nodes);
+        barrier_create("CLVM_TO_LVMLOCKD_DONE_$cluster_name", $num_nodes);
 
         # PACEMAKER_TEST_ barriers also have to wait in the client
-        barrier_create("PACEMAKER_CTS_INIT_$cluster_name",    $num_nodes + 1);
+        barrier_create("PACEMAKER_CTS_INIT_$cluster_name", $num_nodes + 1);
         barrier_create("PACEMAKER_CTS_CHECKED_$cluster_name", $num_nodes + 1);
 
         # HAWK_GUI_ barriers also have to wait in the client
-        barrier_create("HAWK_GUI_INIT_$cluster_name",            $num_nodes + 1);
-        barrier_create("HAWK_GUI_CHECKED_$cluster_name",         $num_nodes + 1);
-        barrier_create("HAWK_GUI_CPU_TEST_START_$cluster_name",  $num_nodes + 1);
+        barrier_create("HAWK_GUI_INIT_$cluster_name", $num_nodes + 1);
+        barrier_create("HAWK_GUI_CHECKED_$cluster_name", $num_nodes + 1);
+        barrier_create("HAWK_GUI_CPU_TEST_START_$cluster_name", $num_nodes + 1);
         barrier_create("HAWK_GUI_CPU_TEST_FINISH_$cluster_name", $num_nodes + 1);
-        barrier_create("HAWK_FENCE_$cluster_name",               $num_nodes + 1);
+        barrier_create("HAWK_FENCE_$cluster_name", $num_nodes + 1);
 
         # CTDB barriers
         barrier_create("CTDB_INIT_$cluster_name", $num_nodes + 1);
         barrier_create("CTDB_DONE_$cluster_name", $num_nodes + 1);
 
         # QNETD barriers
-        barrier_create("QNETD_SERVER_READY_$cluster_name",     $num_nodes + 1);
-        barrier_create("QNETD_SERVER_DONE_$cluster_name",      $num_nodes + 1);
-        barrier_create("QNETD_TESTS_DONE_$cluster_name",       $num_nodes + 1);
+        barrier_create("QNETD_SERVER_READY_$cluster_name", $num_nodes + 1);
+        barrier_create("QNETD_SERVER_DONE_$cluster_name", $num_nodes + 1);
+        barrier_create("QNETD_TESTS_DONE_$cluster_name", $num_nodes + 1);
         barrier_create("SPLIT_BRAIN_TEST_READY_$cluster_name", $num_nodes + 1);
-        barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name",  $num_nodes + 1);
+        barrier_create("SPLIT_BRAIN_TEST_DONE_$cluster_name", $num_nodes + 1);
         barrier_create("QNETD_STONITH_DISABLED_$cluster_name", $num_nodes + 1);
-        barrier_create("DISKLESS_SBD_QDEVICE_$cluster_name",   $num_nodes);
+        barrier_create("DISKLESS_SBD_QDEVICE_$cluster_name", $num_nodes);
 
         # PRIORITY_FENCING_DELAY barriers
         barrier_create("PRIORITY_FENCING_CONF_$cluster_name", $num_nodes);
@@ -147,38 +147,38 @@ sub run {
 
         # Create barriers for multiple tests
         foreach my $fs_tag ('LUN', 'CLUSTER_MD', 'DRBD_PASSIVE', 'DRBD_ACTIVE') {
-            barrier_create("VG_INIT_${fs_tag}_$cluster_name",             $num_nodes);
-            barrier_create("PV_VG_LV_CREATED_${fs_tag}_$cluster_name",    $num_nodes);
+            barrier_create("VG_INIT_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("PV_VG_LV_CREATED_${fs_tag}_$cluster_name", $num_nodes);
             barrier_create("VG_RESOURCE_CREATED_${fs_tag}_$cluster_name", $num_nodes);
-            barrier_create("VG_RW_CHECKED_${fs_tag}_$cluster_name",       $num_nodes);
-            barrier_create("VG_MD5SUM_${fs_tag}_$cluster_name",           $num_nodes);
-            barrier_create("FS_INIT_${fs_tag}_$cluster_name",             $num_nodes);
-            barrier_create("FS_MKFS_DONE_${fs_tag}_$cluster_name",        $num_nodes);
-            barrier_create("FS_GROUP_ADDED_${fs_tag}_$cluster_name",      $num_nodes);
+            barrier_create("VG_RW_CHECKED_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("VG_MD5SUM_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("FS_INIT_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("FS_MKFS_DONE_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("FS_GROUP_ADDED_${fs_tag}_$cluster_name", $num_nodes);
             barrier_create("FS_RESOURCE_STOPPED_${fs_tag}_$cluster_name", $num_nodes);
-            barrier_create("FS_DATA_COPIED_${fs_tag}_$cluster_name",      $num_nodes);
-            barrier_create("FS_CHECKED_${fs_tag}_$cluster_name",          $num_nodes);
+            barrier_create("FS_DATA_COPIED_${fs_tag}_$cluster_name", $num_nodes);
+            barrier_create("FS_CHECKED_${fs_tag}_$cluster_name", $num_nodes);
         }
 
         # Create barriers for SAP cluster
         # Note: we always create these barriers even if they are not used, mainly
         # because it's not easy to know at this stage that we are testing a SAP cluster...
-        barrier_create("ASCS_INSTALLED_$cluster_name",       $num_nodes);
-        barrier_create("ERS_INSTALLED_$cluster_name",        $num_nodes);
-        barrier_create("NW_CLUSTER_HOSTS_$cluster_name",     $num_nodes);
-        barrier_create("NW_CLUSTER_INSTALL_$cluster_name",   $num_nodes);
-        barrier_create("NW_INIT_CONF_$cluster_name",         $num_nodes);
-        barrier_create("NW_CREATED_CONF_$cluster_name",      $num_nodes);
-        barrier_create("NW_LOADED_CONF_$cluster_name",       $num_nodes);
-        barrier_create("NW_RA_RESTART_$cluster_name",        $num_nodes);
+        barrier_create("ASCS_INSTALLED_$cluster_name", $num_nodes);
+        barrier_create("ERS_INSTALLED_$cluster_name", $num_nodes);
+        barrier_create("NW_CLUSTER_HOSTS_$cluster_name", $num_nodes);
+        barrier_create("NW_CLUSTER_INSTALL_$cluster_name", $num_nodes);
+        barrier_create("NW_INIT_CONF_$cluster_name", $num_nodes);
+        barrier_create("NW_CREATED_CONF_$cluster_name", $num_nodes);
+        barrier_create("NW_LOADED_CONF_$cluster_name", $num_nodes);
+        barrier_create("NW_RA_RESTART_$cluster_name", $num_nodes);
         barrier_create("HANA_CLUSTER_INSTALL_$cluster_name", $num_nodes);
-        barrier_create("HANA_INIT_CONF_$cluster_name",       $num_nodes);
-        barrier_create("HANA_CREATED_CONF_$cluster_name",    $num_nodes);
-        barrier_create("HANA_LOADED_CONF_$cluster_name",     $num_nodes);
+        barrier_create("HANA_INIT_CONF_$cluster_name", $num_nodes);
+        barrier_create("HANA_CREATED_CONF_$cluster_name", $num_nodes);
+        barrier_create("HANA_LOADED_CONF_$cluster_name", $num_nodes);
         barrier_create("MONITORING_CONF_DONE_$cluster_name", $num_nodes);
         # We have to create barriers for each nodes if we want to be able to fence *all* nodes
         foreach (1 .. $num_nodes) {
-            barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_",      $num_nodes);
+            barrier_create("HANA_RA_RESTART_${cluster_name}_NODE$_", $num_nodes);
             barrier_create("HANA_REPLICATE_STATE_${cluster_name}_NODE$_", $num_nodes);
         }
     }
@@ -191,10 +191,10 @@ sub run {
     return if is_not_supportserver_scenario;
 
     # For getting informations from iSCSI server
-    my $target_iqn     = script_output 'lio_node --listtargetnames 2>/dev/null';
+    my $target_iqn = script_output 'lio_node --listtargetnames 2>/dev/null';
     my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
-    my $dev_by_path    = '/dev/disk/by-path';
-    my $index          = get_var('ISCSI_LUN_INDEX', 0);
+    my $dev_by_path = '/dev/disk/by-path';
+    my $index = get_var('ISCSI_LUN_INDEX', 0);
 
     foreach (split(/,/, $cluster_infos)) {
         # The CLUSTER_INFOS variable for support_server also contains the number of LUN

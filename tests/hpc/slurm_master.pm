@@ -40,9 +40,9 @@ sub generate_results {
     my ($name, $description, $result) = @_;
 
     my %results = (
-        test        => $name,
+        test => $name,
         description => $description,
-        result      => validate_result($result)
+        result => validate_result($result)
     );
     return %results;
 }
@@ -150,14 +150,14 @@ sub t00_version_check {
     my $description = 'Simple SINFO version print for ease of checking';
 
     my $result = script_output('sinfo --version');
-    my $name   = "Sinfo: slurm version check: $result";
+    my $name = "Sinfo: slurm version check: $result";
 
     my %results = generate_results($name, $description, $result);
     return %results;
 }
 
 sub t01_basic {
-    my $name        = 'Srun check: -w';
+    my $name = 'Srun check: -w';
     my $description = 'Basic SRUN test with -w option';
 
     my $result = script_run("srun -w slave-node00 date");
@@ -167,7 +167,7 @@ sub t01_basic {
 }
 
 sub t02_basic {
-    my $name        = 'Sinfo check';
+    my $name = 'Sinfo check';
     my $description = 'Simple SINFO test';
 
     my $result = script_run('sinfo');
@@ -179,9 +179,9 @@ sub t02_basic {
 }
 
 sub t03_basic {
-    my $name        = 'Sbatch test';
+    my $name = 'Sbatch test';
     my $description = 'Basic SBATCH test';
-    my $sbatch      = 'slurm_sbatch.sh';
+    my $sbatch = 'slurm_sbatch.sh';
 
     script_run("wget --quiet " . data_url("hpc/$sbatch") . " -O $sbatch");
     assert_script_run("chmod +x $sbatch");
@@ -198,9 +198,9 @@ sub t03_basic {
 }
 
 sub t04_basic {
-    my $name        = 'Slurm-torque test';
+    my $name = 'Slurm-torque test';
     my $description = 'Basic slurm-torque test. https://fate.suse.com/323998';
-    my $pbs         = 'slurm_pbs.sh';
+    my $pbs = 'slurm_pbs.sh';
 
     script_run("wget --quiet " . data_url("hpc/$pbs") . " -O $pbs");
     assert_script_run("chmod +x $pbs");
@@ -218,9 +218,9 @@ sub t04_basic {
 }
 
 sub t05_basic {
-    my $name        = 'PMIx Support in SLURM';
+    my $name = 'PMIx Support in SLURM';
     my $description = 'Basic check if pmix is present. https://jira.suse.com/browse/SLE-10802';
-    my $result      = 0;
+    my $result = 0;
 
     my $pmi_versions = script_output("srun --mpi=list");
     $result = 1 unless ($pmi_versions =~ m/pmix/);
@@ -231,8 +231,8 @@ sub t05_basic {
 }
 
 sub t06_basic {
-    my $name          = 'Srun check: -N -n';
-    my $description   = 'Basic SRUN test with -N and -n option';
+    my $name = 'Srun check: -N -n';
+    my $description = 'Basic SRUN test with -N and -n option';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
 
     my $result = script_run("srun -N $cluster_nodes -n $cluster_nodes date");
@@ -242,8 +242,8 @@ sub t06_basic {
 }
 
 sub t07_basic {
-    my $name          = 'Srun check: -w';
-    my $description   = 'Basic SRUN test with -w option on multiple nodes';
+    my $name = 'Srun check: -w';
+    my $description = 'Basic SRUN test with -w option on multiple nodes';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
 
     ##TODO: remove hardcoded slaves
@@ -254,14 +254,14 @@ sub t07_basic {
 }
 
 sub t08_basic {
-    my $name        = 'pdsh-slurm';
+    my $name = 'pdsh-slurm';
     my $description = 'Basic check of pdsh-slurm over ssh';
-    my $result      = 0;
+    my $result = 0;
 
     zypper_call('in pdsh pdsh-slurm');
 
     my $sinfo_nodeaddr = script_output('sinfo -a --Format=nodeaddr -h');
-    my $pdsh_nodes     = script_output('pdsh -R ssh -P normal /usr/bin/hostname');
+    my $pdsh_nodes = script_output('pdsh -R ssh -P normal /usr/bin/hostname');
     my @sinfo_nodeaddr = (split ' ', $sinfo_nodeaddr);
 
     foreach my $i (@sinfo_nodeaddr) {
@@ -289,10 +289,10 @@ sub run_accounting_tests {
 }
 
 sub t01_accounting {
-    my $name        = 'Slurm accounting';
+    my $name = 'Slurm accounting';
     my $description = 'Basic check for slurm accounting cmd';
-    my $result      = 0;
-    my %users       = (
+    my $result = 0;
+    my %users = (
         'user_1' => 'Sebastian',
         'user_2' => 'Egbert',
         'user_3' => 'Christina',
@@ -381,10 +381,10 @@ sub run_ha_tests {
 }
 
 sub t01_ha {
-    my $name          = 'scontrol: slurm ctl fail-over';
-    my $description   = 'HPC cluster with 2 slurm ctls where one is taking over gracefully';
+    my $name = 'scontrol: slurm ctl fail-over';
+    my $description = 'HPC cluster with 2 slurm ctls where one is taking over gracefully';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
-    my $result        = 1;
+    my $result = 1;
     my @all_results;
 
     for (my $i = 0; $i <= 100; $i++) {
@@ -407,10 +407,10 @@ sub t01_ha {
 }
 
 sub t02_ha {
-    my $name          = 'kill: Slurm ctl fail-over';
-    my $description   = 'HPC cluster with 2 slurm ctls where one is killed';
+    my $name = 'kill: Slurm ctl fail-over';
+    my $description = 'HPC cluster with 2 slurm ctls where one is killed';
     my $cluster_nodes = get_required_var('CLUSTER_NODES');
-    my $result        = 1;
+    my $result = 1;
     my @all_results;
 
     systemctl('start slurmctld');
@@ -469,10 +469,10 @@ sub extended_hpc_tests {
 }
 
 sub run {
-    my $self       = shift;
-    my $nodes      = get_required_var('CLUSTER_NODES');
+    my $self = shift;
+    my $nodes = get_required_var('CLUSTER_NODES');
     my $slurm_conf = get_required_var('SLURM_CONF');
-    my $version    = get_required_var('VERSION');
+    my $version = get_required_var('VERSION');
 
     barrier_wait('CLUSTER_PROVISIONED');
     $self->prepare_user_and_group();
@@ -527,7 +527,7 @@ sub run {
     if (get_required_var('EXT_HPC_TESTS')) {
         #hpc-testing gets IPs as args
         my $master_ip = $self->get_master_ip();
-        my $slave_ip  = $self->get_slave_ip();
+        my $slave_ip = $self->get_slave_ip();
         record_info('DEBUG2', "$slave_ip");
         extended_hpc_tests($master_ip, $slave_ip);
     } else {

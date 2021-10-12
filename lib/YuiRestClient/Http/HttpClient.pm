@@ -46,7 +46,7 @@ sub compose_uri {
     $url->scheme('http');
     $url->host($args{host});
     $url->port($args{port});
-    $url->path($args{path})    if $args{path};
+    $url->path($args{path}) if $args{path};
     $url->query($args{params}) if $args{params};
     return $url;
 }

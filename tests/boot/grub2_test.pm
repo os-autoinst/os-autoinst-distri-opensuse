@@ -97,7 +97,7 @@ sub run {
         select_console 'root-console';
     }
 
-    record_info 'grub2 password',                                                    'set password to boot';
+    record_info 'grub2 password', 'set password to boot';
     script_run "yast bootloader; echo yast-bootloader-status-\$? > /dev/$serialdev", 0;
     assert_screen 'test-yast2_bootloader-1';
     # on sle12sp1 will the schortcut change from 't' to 'l' after you press alt-t

@@ -18,7 +18,7 @@ use version_utils 'is_opensuse';
 use Mojo::JSON qw(decode_json);
 
 sub parse_bug_refs {
-    my $bug_file       = sprintf("%s/data/journal_check/bug_refs.json", get_var('CASEDIR'));
+    my $bug_file = sprintf("%s/data/journal_check/bug_refs.json", get_var('CASEDIR'));
     my $tested_product = get_required_var('DISTRI');
     my $tested_version = get_required_var('VERSION');
     my %bp;
@@ -51,7 +51,7 @@ sub parse_bug_refs {
 }
 
 sub run {
-    my $self        = shift;
+    my $self = shift;
     my $bug_pattern = parse_bug_refs();
 
     $self->select_serial_terminal;

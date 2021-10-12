@@ -30,26 +30,26 @@ use maintenance_smelt qw(get_packagebins_in_modules get_incident_packages);
 use testapi;
 
 sub has_conflict {
-    my $binary   = shift;
+    my $binary = shift;
     my %conflict = (
-        'reiserfs-kmp-default'    => 'kernel-default-base',
-        'kernel-default'          => 'kernel-default-base',
-        'kernel-default-extra'    => 'kernel-default-base',
-        'kernel-azure'            => 'kernel-azure-base',
-        'kernel-rt'               => 'kernel-rt-base',
-        'kernel-xen'              => 'kernel-xen-base',
-        'xen-tools'               => 'xen-tools-domU',
-        'p11-kit-nss-trust'       => 'mozilla-nss-certs',
-        'rmt-server-config'       => 'rmt-server-pubcloud',
-        'cluster-md-kmp-default'  => 'kernel-default-base',
-        'dlm-kmp-default'         => 'kernel-default-base',
-        'gfs2-kmp-default'        => 'kernel-default-base',
-        'ocfs2-kmp-default'       => 'kernel-default-base',
-        dpdk                      => 'dpdk-thunderx',
-        'dpdk-devel'              => 'dpdk-thunderx-devel',
-        'dpdk-kmp-default'        => 'dpdk-thunderx-kmp-default',
+        'reiserfs-kmp-default' => 'kernel-default-base',
+        'kernel-default' => 'kernel-default-base',
+        'kernel-default-extra' => 'kernel-default-base',
+        'kernel-azure' => 'kernel-azure-base',
+        'kernel-rt' => 'kernel-rt-base',
+        'kernel-xen' => 'kernel-xen-base',
+        'xen-tools' => 'xen-tools-domU',
+        'p11-kit-nss-trust' => 'mozilla-nss-certs',
+        'rmt-server-config' => 'rmt-server-pubcloud',
+        'cluster-md-kmp-default' => 'kernel-default-base',
+        'dlm-kmp-default' => 'kernel-default-base',
+        'gfs2-kmp-default' => 'kernel-default-base',
+        'ocfs2-kmp-default' => 'kernel-default-base',
+        dpdk => 'dpdk-thunderx',
+        'dpdk-devel' => 'dpdk-thunderx-devel',
+        'dpdk-kmp-default' => 'dpdk-thunderx-kmp-default',
         'pulseaudio-module-gconf' => 'pulseaudio-module-gsettings',
-        'systemtap-sdt-devel'     => 'systemtap-headers',
+        'systemtap-sdt-devel' => 'systemtap-headers',
     );
     return $conflict{$binary};
 }
@@ -83,9 +83,9 @@ sub get_results {
 }
 
 sub run {
-    my ($self)      = @_;
+    my ($self) = @_;
     my $incident_id = get_required_var('INCIDENT_ID');
-    my $repos       = get_required_var('INCIDENT_REPO');
+    my $repos = get_required_var('INCIDENT_REPO');
 
     $self->select_serial_terminal;
 
@@ -106,13 +106,13 @@ sub run {
         %bins = (%bins, get_packagebins_in_modules({package_name => $_, modules => \@modules}));
     }
 
-    my @l2          = grep { ($bins{$_}->{supportstatus} eq 'l2') } keys %bins;
-    my @l3          = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
+    my @l2 = grep { ($bins{$_}->{supportstatus} eq 'l2') } keys %bins;
+    my @l3 = grep { ($bins{$_}->{supportstatus} eq 'l3') } keys %bins;
     my @unsupported = grep { ($bins{$_}->{supportstatus} eq 'unsupported') } keys %bins;
 
     # Sort binaries into:
-    my %installable;     #Binaries already released that can already be installed.
-    my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
+    my %installable;    #Binaries already released that can already be installed.
+    my @new_binaries;   #Binaries introduced by the update that will be installed after the repos are added.
 
     foreach my $b (@l2, @l3) {
         if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {
@@ -216,7 +216,7 @@ sub run {
     $unsupported_results .= get_results({bins => \%bins, package_list => \@unsupported});
     record_info('UNSUPPORTED', $unsupported_results) if scalar(@unsupported);
 
-    record_soft_failure 'poo#67357 Some L3 binaries were not updated.'   if scalar(grep { !$bins{$_}->{update_status} } @l3);
+    record_soft_failure 'poo#67357 Some L3 binaries were not updated.' if scalar(grep { !$bins{$_}->{update_status} } @l3);
     record_soft_failure 'poo#67357 Some L2 binaries were not installed.' if scalar(grep { !$bins{$_}->{update_status} } @l2);
 
     prepare_system_shutdown;

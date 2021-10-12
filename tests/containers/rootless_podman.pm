@@ -39,7 +39,7 @@ sub run {
 
     install_podman_when_needed($host_distri);
     $engine->configure_insecure_registries();
-    my $user         = $testapi::username;
+    my $user = $testapi::username;
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {
         record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';

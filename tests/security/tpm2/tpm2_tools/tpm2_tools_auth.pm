@@ -32,9 +32,9 @@ sub run {
     my $test_dir = "tpm2_tools_auth";
     my $prim_ctx = "prim.ctx";
     my $key_priv = "key.priv";
-    my $key_pub  = "key.pub";
+    my $key_pub = "key.pub";
     my $key_name = "key.name";
-    my $ket_ctx  = "key.ctx";
+    my $ket_ctx = "key.ctx";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";
     assert_script_run "tpm2_createprimary -Q -C o -c $prim_ctx -T tabrmd";
@@ -59,7 +59,7 @@ sub run {
 
     # Tpm2_changeauth - Configures authorization values for the various hierarchies, NV indices
     # Set owner, endorsement and lockout authorizations to $new_pass
-    my $new_pass   = "newpass";
+    my $new_pass = "newpass";
     my $newer_pass = "newerpass";
     assert_script_run "tpm2_changeauth -c owner $new_pass -T tabrmd";
     assert_script_run "tpm2_changeauth -c endorsement $new_pass -T tabrmd";

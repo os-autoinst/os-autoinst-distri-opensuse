@@ -32,7 +32,7 @@ sub run {
     my $cmd_modify_nfs_config = q(sed -i 's/^NFSV4LEASETIME=.*$/NFSV4LEASETIME="10"/' /etc/sysconfig/nfs);
     $self->execute_script_run($cmd_modify_nfs_config, 500);
 
-    my $nfs_server        = get_var('MY_IP');
+    my $nfs_server = get_var('MY_IP');
     my $cmd_write_exports = qq(echo "$nfs_local_dir *(rw,sync,no_root_squash,no_subtree_check)" >/etc/exports);
     $self->execute_script_run($cmd_write_exports, 500);
 

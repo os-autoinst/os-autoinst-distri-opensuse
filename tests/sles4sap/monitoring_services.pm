@@ -21,13 +21,13 @@ use hacluster qw(add_file_in_csync get_cluster_name get_hostname is_node wait_un
 
 sub configure_ha_exporter {
     my $exporter_name = 'ha_cluster_exporter';
-    my $metrics_file  = "/tmp/${exporter_name}.metrics";
+    my $metrics_file = "/tmp/${exporter_name}.metrics";
 
     # Install needed packages
     zypper_call "in prometheus-$exporter_name";
 
     # Upload the config file (can be in different location)
-    upload_logs("/etc/$exporter_name",     failok => 1);
+    upload_logs("/etc/$exporter_name", failok => 1);
     upload_logs("/usr/etc/$exporter_name", failok => 1);
 
     # Get the IP port and start exporter
@@ -42,12 +42,12 @@ sub configure_ha_exporter {
 }
 
 sub configure_hanadb_exporter {
-    my (%args)                 = @_;
-    my $exporter_name          = 'hanadb_exporter';
-    my $config_dir             = "/usr/etc/$exporter_name";
+    my (%args) = @_;
+    my $exporter_name = 'hanadb_exporter';
+    my $config_dir = "/usr/etc/$exporter_name";
     my $hanadb_exporter_config = "$config_dir/$args{rsc_id}.json";
-    my $check_exporter         = 'false';
-    my $metrics_file           = "/tmp/$exporter_name.metrics";
+    my $check_exporter = 'false';
+    my $metrics_file = "/tmp/$exporter_name.metrics";
     my $hanadb_exporter_port;
 
     # Install needed packages (hdcli contains dbapi)
@@ -57,9 +57,9 @@ sub configure_hanadb_exporter {
     # Modify the configuration file
     assert_script_run "cp $config_dir/config.json.example $hanadb_exporter_config";
     file_content_replace("$hanadb_exporter_config",
-        q(PASSWORD)              => $sles4sap::instance_password,
+        q(PASSWORD) => $sles4sap::instance_password,
         q(\./logging_config.ini) => "$config_dir/logging_config.ini",
-        q(hanadb_exporter\.log)  => "/var/log/${exporter_name}_$args{rsc_id}.log"
+        q(hanadb_exporter\.log) => "/var/log/${exporter_name}_$args{rsc_id}.log"
     );
 
     # Upload the config file
@@ -71,10 +71,10 @@ sub configure_hanadb_exporter {
 
     # Add monitoring resource in the HA stack
     if (get_var('HA_CLUSTER') and is_node(1)) {
-        my $hanadb_msl     = "msl_SAPHana_$args{rsc_id}";
+        my $hanadb_msl = "msl_SAPHana_$args{rsc_id}";
         my $hanadb_exp_rsc = "rsc_exporter_$args{rsc_id}";
         $hanadb_exporter_port = 9668;
-        $check_exporter       = 'true';
+        $check_exporter = 'true';
 
         # We need to add the configuration in csync2.conf
         add_file_in_csync(value => "$hanadb_exporter_config");
@@ -107,11 +107,11 @@ sub configure_hanadb_exporter {
 }
 
 sub configure_sap_host_exporter {
-    my (%args)          = @_;
-    my $exporter_name   = 'sap_host_exporter';
-    my $default_config  = "/etc/$exporter_name/default.yaml";
+    my (%args) = @_;
+    my $exporter_name = 'sap_host_exporter';
+    my $default_config = "/etc/$exporter_name/default.yaml";
     my $exporter_config = "/etc/$exporter_name/$args{rsc_id}.yaml";
-    my $metrics_file    = "/tmp/${exporter_name}.metrics";
+    my $metrics_file = "/tmp/${exporter_name}.metrics";
 
     # Install needed packages
     zypper_call "in prometheus-$exporter_name";
@@ -169,7 +169,7 @@ sub configure_sap_host_exporter {
 
 sub configure_node_exporter {
     my $monitoring_port = 9100;
-    my $metrics_file    = '/tmp/node_exporter.metrics';
+    my $metrics_file = '/tmp/node_exporter.metrics';
 
     # Install and start node_exporter
     zypper_call 'in golang-github-prometheus-node_exporter';
@@ -184,22 +184,22 @@ sub configure_node_exporter {
 }
 
 sub run {
-    my ($self)        = @_;
-    my $hostname      = get_hostname;
-    my $cluster_name  = get_cluster_name;
-    my $instance_sid  = get_required_var('INSTANCE_SID');
+    my ($self) = @_;
+    my $hostname = get_hostname;
+    my $cluster_name = get_cluster_name;
+    my $instance_sid = get_required_var('INSTANCE_SID');
     my $instance_type = get_required_var('INSTANCE_TYPE');
-    my $instance_id   = get_required_var('INSTANCE_ID');
-    my $rsc_id        = "${instance_sid}_${instance_type}${instance_id}";
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $rsc_id = "${instance_sid}_${instance_type}${instance_id}";
 
     # Make sure that we have an opened terminal
     $self->select_serial_terminal;
 
     # Configure Exporters
-    configure_ha_exporter                                                       if get_var('HA_CLUSTER');
+    configure_ha_exporter if get_var('HA_CLUSTER');
     configure_hanadb_exporter(rsc_id => $rsc_id, instance_sid => $instance_sid) if get_var('HANA');
     configure_sap_host_exporter(rsc_id => $rsc_id, instance_id => $instance_id) if get_var('NW');
-    barrier_wait "MONITORING_CONF_DONE_$cluster_name"                           if get_var('HA_CLUSTER');    # Synchronize the nodes if needed
+    barrier_wait "MONITORING_CONF_DONE_$cluster_name" if get_var('HA_CLUSTER');    # Synchronize the nodes if needed
     configure_node_exporter;
 
 }

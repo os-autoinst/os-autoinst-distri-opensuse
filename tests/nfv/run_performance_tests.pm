@@ -24,7 +24,7 @@ our $test_url;
 sub run_test {
     my ($test, $vswitch) = @_;
     my $testname = "$test\_$vswitch";
-    my $cmd      = "./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch $vswitch $test";
+    my $cmd = "./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch $vswitch $test";
     record_info("INFO", "Running test case $testname");
     record_info("INFO", "Command to run: $cmd");
     if (is_ipmi) {
@@ -49,8 +49,8 @@ sub run {
     $self->select_serial_terminal;
 
     # Arrayss for test specs
-    my @tests   = ('phy2phy_tput', 'pvp_tput',   'pvvp_tput');
-    my @vswitch = ('OvsVanilla',   'OvsVanilla', 'OvsVanilla');
+    my @tests = ('phy2phy_tput', 'pvp_tput', 'pvvp_tput');
+    my @vswitch = ('OvsVanilla', 'OvsVanilla', 'OvsVanilla');
 
     # Get OVS version
     $ovs_version = script_output(q(ovs-vswitchd --version|head -1|awk '{print $NF}'));

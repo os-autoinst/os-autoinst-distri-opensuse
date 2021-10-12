@@ -45,32 +45,32 @@ sub vsftd_setup_checker {
 
 sub vsftpd_firewall_checker {
     die "service configuration file is missing in firewalld" if script_run("[[ -e /usr/lib/firewalld/services/vsftpd.xml ]]");
-    die "vsftpd is not enabled in firewalld"                 if script_run("firewall-cmd --list-services | grep vsftpd");
-    die "Ports for passive ftp are not configured"           if script_run("firewall-cmd --permanent --service vsftpd --get-ports");
+    die "vsftpd is not enabled in firewalld" if script_run("firewall-cmd --list-services | grep vsftpd");
+    die "Ports for passive ftp are not configured" if script_run("firewall-cmd --permanent --service vsftpd --get-ports");
 }
 
 sub run {
     my $self = shift;
     $self->{cert_directive} = (is_sle('>12-SP2') || is_opensuse) ? 'rsa_cert_file' : 'dsa_cert_file';
     my $vsftpd_directives = {
-        pasv_min_port           => '30000',
-        pasv_max_port           => '30100',
+        pasv_min_port => '30000',
+        pasv_max_port => '30100',
         anon_mkdir_write_enable => 'NO',
-        anon_root               => '/srv/ftp/anonymous',
-        ftpd_banner             => "This is QA FTP server, welcome!",
-        anon_umask              => '0022',
-        anon_upload_enable      => 'YES',
-        anon_max_rate           => 51200,
-        local_max_rate          => 102400,
-        chroot_local_user       => 'NO',
-        idle_session_timeout    => 600,
-        local_root              => '/srv/ftp/authenticated',
-        local_umask             => '0022',
-        log_ftp_protocol        => 'YES',
-        max_clients             => '20',
-        max_per_ip              => '7',
-        pasv_enable             => 'YES',
-        ssl_tlsv1               => 'YES'
+        anon_root => '/srv/ftp/anonymous',
+        ftpd_banner => "This is QA FTP server, welcome!",
+        anon_umask => '0022',
+        anon_upload_enable => 'YES',
+        anon_max_rate => 51200,
+        local_max_rate => 102400,
+        chroot_local_user => 'NO',
+        idle_session_timeout => 600,
+        local_root => '/srv/ftp/authenticated',
+        local_umask => '0022',
+        log_ftp_protocol => 'YES',
+        max_clients => '20',
+        max_per_ip => '7',
+        pasv_enable => 'YES',
+        ssl_tlsv1 => 'YES'
     };
     $vsftpd_directives->{$self->{cert_directive}} = '/etc/vsftpd.pem';
     select_console 'root-console';
@@ -118,7 +118,7 @@ sub run {
         send_key 'up';                 #selects 'Start on boot'
         send_key 'ret';                #confirm
     } else {
-        send_key 'alt-w';                     # make sure ftp start-up when booting
+        send_key 'alt-w';              # make sure ftp start-up when booting
         send_key 'alt-d' if is_sle('=15');    # only sle 15 has this specific combination
     }
 
@@ -129,8 +129,8 @@ sub run {
     wait_screen_change { send_key 'down' };
     wait_screen_change { send_key 'ret' };      # enter page General
     assert_screen 'yast2_tftp_general_selected';
-    assert_screen 'ftp_welcome_mesage';                                            # check welcome message for add strings
-    send_key 'alt-w';                                                              # select welcome message to edit
+    assert_screen 'ftp_welcome_mesage';         # check welcome message for add strings
+    send_key 'alt-w';                           # select welcome message to edit
     send_key_until_needlematch 'yast2_tftp_empty_welcome_message', 'backspace';    # delete existing welcome strings
     type_string($vsftpd_directives->{ftpd_banner});                                # type new welcome text
     assert_screen 'ftp_welcome_message_added';                                     # check new welcome text

@@ -29,7 +29,7 @@ sub run {
         validate_repo_properties({
                 URI => 'ftp://' . get_required_var('OPENQA_HOSTNAME') . '/' .
                   get_required_var($repo),
-                Enabled     => $test_data->{dud_repos}->{$repo}->{Enabled},
+                Enabled => $test_data->{dud_repos}->{$repo}->{Enabled},
                 Autorefresh => $test_data->{dud_repos}->{$repo}->{Autorefresh}
         });
     }

@@ -99,7 +99,7 @@ sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->tar_and_upload_log('/var/log/dirsrv', '/tmp/ds389.tar.bz2');
-    $self->tar_and_upload_log('/var/log/sssd',   '/tmp/sssd.tar.bz2');
+    $self->tar_and_upload_log('/var/log/sssd', '/tmp/sssd.tar.bz2');
     $self->SUPER::post_fail_hook;
 }
 

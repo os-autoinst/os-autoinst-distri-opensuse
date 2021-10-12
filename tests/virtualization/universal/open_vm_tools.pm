@@ -27,7 +27,7 @@ sub run {
 
     assert_script_run "ssh root\@$_ /usr/bin/vmware-checkvm | grep 'good'" foreach (keys %virt_autotest::common::guests);
 
-    assert_script_run "ssh root\@$_ systemctl restart vmtoolsd.service"                               foreach (keys %virt_autotest::common::guests);
+    assert_script_run "ssh root\@$_ systemctl restart vmtoolsd.service" foreach (keys %virt_autotest::common::guests);
     assert_script_run "ssh root\@$_ systemctl status vmtoolsd.service | grep 'Started open-vm-tools'" foreach (keys %virt_autotest::common::guests);
 
     assert_script_run "ssh root\@$_ /usr/bin/vmtoolsd -v | grep 'VMware Tools daemon, version'" foreach (keys %virt_autotest::common::guests);

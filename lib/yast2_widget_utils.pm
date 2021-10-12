@@ -47,13 +47,13 @@ Modify service configuration: "after writing" and/or "after reboot" steps
 
 =cut
 sub change_service_configuration {
-    my (%args)            = @_;
+    my (%args) = @_;
     my $after_writing_ref = $args{after_writing};
-    my $after_reboot_ref  = $args{after_reboot};
+    my $after_reboot_ref = $args{after_reboot};
 
     assert_screen 'yast2_ncurses_service_start_widget';
     change_service_configuration_step('after_writing_conf', $after_writing_ref) if $after_writing_ref;
-    change_service_configuration_step('after_reboot',       $after_reboot_ref)  if $after_reboot_ref;
+    change_service_configuration_step('after_reboot', $after_reboot_ref) if $after_reboot_ref;
 }
 
 =head2 change_service_configuration_step
@@ -69,10 +69,10 @@ C<$action> is a part of C<needle_selection> which is used for needle match.
 =cut
 sub change_service_configuration_step {
     my ($step_name, $step_conf_ref) = @_;
-    my ($action)         = keys %$step_conf_ref;
-    my ($shortcut)       = values %$step_conf_ref;
+    my ($action) = keys %$step_conf_ref;
+    my ($shortcut) = values %$step_conf_ref;
     my $needle_selection = 'yast2_ncurses_service_' . $action . '_' . $step_name;
-    my $needle_check     = 'yast2_ncurses_service_check_' . $action . '_' . $step_name;
+    my $needle_check = 'yast2_ncurses_service_check_' . $action . '_' . $step_name;
 
     send_key $shortcut;
     send_key 'end';

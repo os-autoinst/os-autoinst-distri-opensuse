@@ -25,7 +25,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{summary}          = $self->{app}->richtext({id => 'summary'});
+    $self->{summary} = $self->{app}->richtext({id => 'summary'});
     $self->{btn_guided_setup} = $self->{app}->button({id => 'guided'});
     return $self;
 }

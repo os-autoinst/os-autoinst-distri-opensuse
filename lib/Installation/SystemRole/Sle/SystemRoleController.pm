@@ -21,11 +21,11 @@ sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
     $self->{roles} = {
-        SLES_with_GNOME      => 'SLES with GNOME',
-        text_mode            => 'Text Mode',
-        minimal              => 'Minimal',
+        SLES_with_GNOME => 'SLES with GNOME',
+        text_mode => 'Text Mode',
+        minimal => 'Minimal',
         transactional_server => 'Transactional Server',
-        HA_node              => 'HA node'
+        HA_node => 'HA node'
     };
     return $self;
 }

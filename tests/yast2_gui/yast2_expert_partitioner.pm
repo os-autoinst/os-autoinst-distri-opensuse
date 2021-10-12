@@ -46,7 +46,7 @@ my $test_data;
 
 sub pre_run_hook {
     $partitioner = $testapi::distri->get_expert_partitioner();
-    $test_data   = get_test_suite_data();
+    $test_data = get_test_suite_data();
 }
 
 sub add_custom_partition {
@@ -54,7 +54,7 @@ sub add_custom_partition {
     YaST::Module::run_actions {
         $partitioner->confirm_only_use_if_familiar();
         $partitioner->add_partition_on_gpt_disk({
-                disk      => $disk->{name},
+                disk => $disk->{name},
                 partition => $disk->{partitions}[0]
         });
         $partitioner->show_summary_and_accept_changes();
@@ -62,10 +62,10 @@ sub add_custom_partition {
 }
 
 sub verify_custom_partition {
-    my $index     = shift // 0;
+    my $index = shift // 0;
     my $partition = $test_data->{disks}[0]->{partitions}[$index];
-    my $name      = "/dev/$partition->{name}";
-    my $size      = $partition->{size} =~ s/iB//r;
+    my $name = "/dev/$partition->{name}";
+    my $size = $partition->{size} =~ s/iB//r;
 
     x11_start_program('xterm');
     become_root;
@@ -80,7 +80,7 @@ sub resize_custom_partition {
     YaST::Module::run_actions {
         $partitioner->confirm_only_use_if_familiar();
         $partitioner->resize_partition({
-                disk      => $test_data->{disks}[0]->{name},
+                disk => $test_data->{disks}[0]->{name},
                 partition => $test_data->{disks}[0]->{partitions}[1]
         });
         $partitioner->show_summary_and_accept_changes();
@@ -95,7 +95,7 @@ sub delete_resized_partition {
     YaST::Module::run_actions {
         $partitioner->confirm_only_use_if_familiar();
         $partitioner->delete_partition({
-                disk      => $test_data->{disks}[0]->{name},
+                disk => $test_data->{disks}[0]->{name},
                 partition => $test_data->{disks}[0]->{partitions}[1]
         });
         $partitioner->show_summary_and_accept_changes();

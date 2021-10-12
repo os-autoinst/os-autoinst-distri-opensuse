@@ -22,7 +22,7 @@ use repo_tools 'add_qa_head_repo';
 
 sub install_pkg {
     my $sleperf_source = get_var('SLE_SOURCE');
-    my $ver_path       = "/root";
+    my $ver_path = "/root";
     add_qa_head_repo;
     # Download SLEperf package, extract and install
     assert_script_run("wget --quiet -O $ver_path/sleperf.tar $sleperf_source 2>&1");
@@ -45,9 +45,9 @@ sub extract_settings_qaset_config {
 }
 
 sub setup_environment {
-    my $qaset_role        = get_required_var('QASET_ROLE');
+    my $qaset_role = get_required_var('QASET_ROLE');
     my $mitigation_switch = get_required_var('MITIGATION_SWITCH');
-    my $ver_cfg           = get_required_var('VER_CFG');
+    my $ver_cfg = get_required_var('VER_CFG');
 
     assert_script_run("systemctl disable qaperf.service");
     if (get_var("HANA_PERF")) {
@@ -68,7 +68,7 @@ sub setup_environment {
 }
 
 sub os_update {
-    my $update_repo_url  = shift;
+    my $update_repo_url = shift;
     my $zypper_repo_path = "/etc/zypp/repos.d";
 
     assert_script_run("wget -N -P $zypper_repo_path $update_repo_url 2>&1");

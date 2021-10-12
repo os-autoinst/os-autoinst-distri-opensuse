@@ -39,7 +39,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $dir    = "/root/DockerTest";
+    my $dir = "/root/DockerTest";
     my $podman = containers::engine::podman->new();
     my ($running_version, $sp, $host_distri) = get_os_release;
 

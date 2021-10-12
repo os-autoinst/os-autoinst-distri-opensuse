@@ -75,15 +75,15 @@ sub run {
         [
             {
                 prompt => qr/\(A\)llow.*\(D\)eny/m,
-                key    => 'a',
+                key => 'a',
             },
             {
                 prompt => qr/\(S\)ave Changes/m,
-                key    => 's',
+                key => 's',
             },
             {
                 prompt => qr/\(S\)can system.*\(F\)inish/m,
-                key    => 'f',
+                key => 'f',
             },
         ],
         30

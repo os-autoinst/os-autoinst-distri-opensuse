@@ -30,11 +30,11 @@ sub run {
         record_info('workaround', "/var/lib/machines/ wasn't created by systemd-container RPM\nCreating it now.");
         assert_script_run("mkdir -p /var/lib/machines/");
     }
-    my $pkg_repo    = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
+    my $pkg_repo = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
     my $release_pkg = (is_sle) ? 'sles-release' : 'openSUSE-release';
-    my $packages    = "systemd shadow zypper $release_pkg";
-    my $machine     = "test1";
-    my $path        = "/var/lib/machines/$machine";
+    my $packages = "systemd shadow zypper $release_pkg";
+    my $machine = "test1";
+    my $path = "/var/lib/machines/$machine";
     if (is_sle) {
         $pkg_repo =~ s/Online/Full/;    # only the full image contains the required pkgs
         my $rel_repo = $pkg_repo . '/Product-SLES/';
@@ -58,9 +58,9 @@ sub run {
     systemctl 'start systemd-nspawn@' . $machine;
     systemctl 'status systemd-nspawn@' . $machine;
     # Wait for container to boot
-    script_retry "systemd-run -tM $machine /bin/bash -c date",                            retry => 30, delay => 5;
+    script_retry "systemd-run -tM $machine /bin/bash -c date", retry => 30, delay => 5;
     script_retry "journalctl -n10 -M $machine | grep 'Reached target Multi-User System'", retry => 30, delay => 5;
-    validate_script_output "systemd-run -tM $machine /bin/bash -c 'systemctl status'",    qr/systemd-logind/;
+    validate_script_output "systemd-run -tM $machine /bin/bash -c 'systemctl status'", qr/systemd-logind/;
     systemctl 'stop systemd-nspawn@' . $machine;
     script_retry 'systemctl status systemd-nspawn@' . $machine, retry => 30, delay => 5, expect => 3;
 
@@ -68,9 +68,9 @@ sub run {
     validate_script_output "machinectl list-images", qr/$machine/;
     assert_script_run "machinectl start test1";
     # Wait for container to boot
-    script_retry "systemd-run -tM $machine /bin/bash -c date",                            retry => 30, delay => 5;
+    script_retry "systemd-run -tM $machine /bin/bash -c date", retry => 30, delay => 5;
     script_retry "journalctl -n10 -M $machine | grep 'Reached target Multi-User System'", retry => 30, delay => 5;
-    validate_script_output "machinectl list",                                             qr/$machine/;
+    validate_script_output "machinectl list", qr/$machine/;
     assert_script_run "machinectl shell $machine /bin/echo foobar | grep foobar";
     assert_script_run 'machinectl shell messagebus@' . $machine . ' /usr/bin/whoami | grep messagebus';
     assert_script_run "machinectl shell $machine /usr/bin/systemctl status systemd-journald | grep -B100 -A100 'active (running)'";

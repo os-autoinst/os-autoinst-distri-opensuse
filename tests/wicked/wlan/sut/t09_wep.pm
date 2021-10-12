@@ -24,15 +24,15 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has wicked_version => '>=0.6.66';
-has ssid           => 'WEP-Secured';
-has key0_104_str   => "0123456789123";
-has key0_104_hex   => "30313233343536373839313233";
-has key0_104_hex2  => "3031-3233-3435-3637-3839-3132-33";
-has key1_104_hex   => "01020304050607080900010203";
-has key2_40_hex    => "0102030405";
-has key3_40_str    => "01234";
-has key3_40_hex    => "3031323334";
-has key3_40_hex2   => "3031-3233-34";
+has ssid => 'WEP-Secured';
+has key0_104_str => "0123456789123";
+has key0_104_hex => "30313233343536373839313233";
+has key0_104_hex2 => "3031-3233-3435-3637-3839-3132-33";
+has key1_104_hex => "01020304050607080900010203";
+has key2_40_hex => "0102030405";
+has key3_40_str => "01234";
+has key3_40_hex => "3031323334";
+has key3_40_hex2 => "3031-3233-34";
 
 has hostapd_conf => sub { [
         q(

@@ -41,94 +41,94 @@ Default slurm.conf always set to the latest supported version
 
 =cut
 %slurm_config = (
-    ClusterName                        => 'linux',
-    SlurmctldHost                      => 'masterctl',
-    "\#SlurmctldHost"                  => '',
-    SlurmUser                          => 'slurm',
-    "\#SlurmdUser"                     => '',
-    SlurmctldPort                      => '6817',
-    SlurmdPort                         => '6818',
-    AuthType                           => 'auth/munge',
-    "\#JobCredentialPrivateKey"        => '',
+    ClusterName => 'linux',
+    SlurmctldHost => 'masterctl',
+    "\#SlurmctldHost" => '',
+    SlurmUser => 'slurm',
+    "\#SlurmdUser" => '',
+    SlurmctldPort => '6817',
+    SlurmdPort => '6818',
+    AuthType => 'auth/munge',
+    "\#JobCredentialPrivateKey" => '',
     "\#JobCredentialPublicCertificate" => '',
-    StateSaveLocation                  => '/var/lib/slurm',
-    SlurmdSpoolDir                     => '/var/spool/slurm',
-    SwitchType                         => 'switch/none',
-    MpiDefault                         => 'none',
-    SlurmctldPidFile                   => '/var/run/slurm/slurmctld.pid',
-    SlurmdPidFile                      => '/var/run/slurm/slurmd.pid',
-    ProctrackType                      => 'proctrack/pgid',
-    "\#PluginDir"                      => '',
-    "\#FirstJobId"                     => '',
-    "\#MaxJobCount"                    => '',
-    "\#PlugStackConfig"                => '',
-    "\#PropagatePrioProcess"           => '',
-    "\#PropagateResourceLimits"        => '',
-    "\#PropagateResourceLimitsExcept"  => '',
-    "\#Prolog"                         => '',
-    "\#Epilog"                         => '',
-    "\#SrunProlog"                     => '',
-    "\#SrunEpilog"                     => '',
-    "\#TaskProlog"                     => '',
-    "\#TaskEpilog"                     => '',
-    "\#TaskPlugin"                     => '',
-    "\#TrackWCKey"                     => '',
-    "\#TreeWidth"                      => '',
-    "\#TmpFS"                          => '',
-    "\#UsePAM"                         => '',
-    SlurmctldTimeout                   => '300',
-    SlurmdTimeout                      => '300',
-    InactiveLimit                      => '0',
-    MinJobAge                          => '300',
-    KillWait                           => '30',
-    Waittime                           => '0',
-    SchedulerType                      => 'sched/backfill',
-    "\#SchedulerAuth"                  => '',
-    "\#SelectType"                     => '',
-    FastSchedule                       => '1',
-    "\#PriorityType"                   => '',
-    "\#PriorityDecayHalfLife"          => '',
-    "\#PriorityUsageResetPeriod"       => '',
-    "\#PriorityWeightFairshare"        => '',
-    "\#PriorityWeightAge"              => '',
-    "\#PriorityWeightPartition"        => '',
-    "\#PriorityWeightJobSize"          => '',
-    "\#PriorityMaxAge"                 => '',
-    SlurmctldDebug                     => 'debug5',
-    SlurmctldLogFile                   => '/var/log/slurmctld.log',
-    SlurmdDebug                        => '3',
-    SlurmdLogFile                      => '/var/log/slurmd.log',
-    JobCompType                        => 'jobcomp/none',
-    "\#JobCompLoc"                     => '',
-    "\#JobAcctGatherType"              => '',
-    "\#JobAcctGatherFrequency"         => '',
-    "\#AccountingStorageType"          => '',
-    "\#AccountingStorageHost"          => '',
-    "\#AccountingStorageLoc"           => '',
-    "\#AccountingStoragePass"          => '',
-    "\#AccountingStorageUser"          => '',
-    PropagateResourceLimitsExcept      => 'MEMLOCK',
-    NODES                              => undef,
-    PARTITION                          => undef
+    StateSaveLocation => '/var/lib/slurm',
+    SlurmdSpoolDir => '/var/spool/slurm',
+    SwitchType => 'switch/none',
+    MpiDefault => 'none',
+    SlurmctldPidFile => '/var/run/slurm/slurmctld.pid',
+    SlurmdPidFile => '/var/run/slurm/slurmd.pid',
+    ProctrackType => 'proctrack/pgid',
+    "\#PluginDir" => '',
+    "\#FirstJobId" => '',
+    "\#MaxJobCount" => '',
+    "\#PlugStackConfig" => '',
+    "\#PropagatePrioProcess" => '',
+    "\#PropagateResourceLimits" => '',
+    "\#PropagateResourceLimitsExcept" => '',
+    "\#Prolog" => '',
+    "\#Epilog" => '',
+    "\#SrunProlog" => '',
+    "\#SrunEpilog" => '',
+    "\#TaskProlog" => '',
+    "\#TaskEpilog" => '',
+    "\#TaskPlugin" => '',
+    "\#TrackWCKey" => '',
+    "\#TreeWidth" => '',
+    "\#TmpFS" => '',
+    "\#UsePAM" => '',
+    SlurmctldTimeout => '300',
+    SlurmdTimeout => '300',
+    InactiveLimit => '0',
+    MinJobAge => '300',
+    KillWait => '30',
+    Waittime => '0',
+    SchedulerType => 'sched/backfill',
+    "\#SchedulerAuth" => '',
+    "\#SelectType" => '',
+    FastSchedule => '1',
+    "\#PriorityType" => '',
+    "\#PriorityDecayHalfLife" => '',
+    "\#PriorityUsageResetPeriod" => '',
+    "\#PriorityWeightFairshare" => '',
+    "\#PriorityWeightAge" => '',
+    "\#PriorityWeightPartition" => '',
+    "\#PriorityWeightJobSize" => '',
+    "\#PriorityMaxAge" => '',
+    SlurmctldDebug => 'debug5',
+    SlurmctldLogFile => '/var/log/slurmctld.log',
+    SlurmdDebug => '3',
+    SlurmdLogFile => '/var/log/slurmd.log',
+    JobCompType => 'jobcomp/none',
+    "\#JobCompLoc" => '',
+    "\#JobAcctGatherType" => '',
+    "\#JobAcctGatherFrequency" => '',
+    "\#AccountingStorageType" => '',
+    "\#AccountingStorageHost" => '',
+    "\#AccountingStorageLoc" => '',
+    "\#AccountingStoragePass" => '',
+    "\#AccountingStorageUser" => '',
+    PropagateResourceLimitsExcept => 'MEMLOCK',
+    NODES => undef,
+    PARTITION => undef
 );
 
 %slurm_config_NODES = (
-    NodeName       => '',
-    Sockets        => '1',
+    NodeName => '',
+    Sockets => '1',
     CoresPerSocket => '1',
     ThreadsPerCore => '1',
-    State          => 'unknown'
+    State => 'unknown'
 );
 
 %slurm_config_PARTITION = (
     PartitionName => 'normal',
-    Nodes         => '',
-    Default       => 'YES',
-    MaxTime       => '24:00:00',
-    State         => 'UP',
+    Nodes => '',
+    Default => 'YES',
+    MaxTime => '24:00:00',
+    State => 'UP',
 );
 
-$slurm_config{NODES}     = \%slurm_config_NODES;
+$slurm_config{NODES} = \%slurm_config_NODES;
 $slurm_config{PARTITION} = \%slurm_config_PARTITION;
 
 my %slurmdb_config;
@@ -150,34 +150,34 @@ sub prepare_slurm_conf {
     my ($self) = @_;
     my $slurm_conf = get_required_var('SLURM_CONF');
 
-    my @cluster_ctl_nodes     = $self->master_node_names();
+    my @cluster_ctl_nodes = $self->master_node_names();
     my @cluster_compute_nodes = $self->slave_node_names();
-    my $cluster_ctl_nodes     = join(',', @cluster_ctl_nodes);
+    my $cluster_ctl_nodes = join(',', @cluster_ctl_nodes);
     my $cluster_compute_nodes = join(',', @cluster_compute_nodes);
 
-    $slurm_config{NODES}{NodeName}  = "$cluster_ctl_nodes,$cluster_compute_nodes";
+    $slurm_config{NODES}{NodeName} = "$cluster_ctl_nodes,$cluster_compute_nodes";
     $slurm_config{PARTITION}{Nodes} = "$cluster_ctl_nodes,$cluster_compute_nodes";
-    $slurm_config{SlurmctldHost}    = "$cluster_ctl_nodes[0]";
-    $slurm_config{SlurmctldDebug}   = 'debug5';
+    $slurm_config{SlurmctldHost} = "$cluster_ctl_nodes[0]";
+    $slurm_config{SlurmctldDebug} = 'debug5';
 
     if (($slurm_conf eq 'accounting') or ($slurm_conf eq 'nfs_db')) {
-        $slurm_config{JobAcctGatherType}      = 'jobacct_gather/linux';
+        $slurm_config{JobAcctGatherType} = 'jobacct_gather/linux';
         $slurm_config{JobAcctGatherFrequency} = '12';
-        $slurm_config{AccountingStorageType}  = 'accounting_storage/slurmdbd';
-        $slurm_config{AccountingStorageHost}  = "$cluster_compute_nodes[-1]";
-        $slurm_config{AccountingStoragePort}  = '20088';
+        $slurm_config{AccountingStorageType} = 'accounting_storage/slurmdbd';
+        $slurm_config{AccountingStorageHost} = "$cluster_compute_nodes[-1]";
+        $slurm_config{AccountingStoragePort} = '20088';
     }
     if (($slurm_conf eq 'ha') or ($slurm_conf eq 'nfs_db')) {
         $slurm_config{SlurmctldHost_tmp} = "$cluster_ctl_nodes[1]";
         $slurm_config{StateSaveLocation} = '/shared/slurm/';
-        $slurm_config{SlurmctldTimeout}  = '15';
-        $slurm_config{SlurmdTimeout}     = '60';
+        $slurm_config{SlurmctldTimeout} = '15';
+        $slurm_config{SlurmdTimeout} = '60';
     }
 
     script_run("echo '#slurm.conf generated by the tests' > /etc/slurm/slurm.conf");
-    my $backup    = 0;
-    my @pairs     = ();
-    my $NODES     = '';
+    my $backup = 0;
+    my @pairs = ();
+    my $NODES = '';
     my $PARTITION = '';
     while (my ($key, $value) = each %slurm_config) {
         push(@pairs, $key . '=' . $value) unless ($key eq 'NODES') or ($key eq 'PARTITION')
@@ -187,7 +187,7 @@ sub prepare_slurm_conf {
             if (is_sle('<15-sp1')) {
                 if ($backup == 0) {
                     $tmp_key = 'ControlMachine';
-                    $backup  = 1;
+                    $backup = 1;
                 }
                 else {
                     $tmp_key = 'BackupController';

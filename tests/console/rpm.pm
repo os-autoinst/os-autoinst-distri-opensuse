@@ -35,7 +35,7 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
     my $dir_prefix = '/tmp/';
-    my @test_pkgs  = map { $dir_prefix . $_ } qw(openqa_rpm_test-1.0-0.noarch.rpm aaa_base.rpm);
+    my @test_pkgs = map { $dir_prefix . $_ } qw(openqa_rpm_test-1.0-0.noarch.rpm aaa_base.rpm);
 
     # Download dummy test packages
     # wget is not present in opensuse-15.1

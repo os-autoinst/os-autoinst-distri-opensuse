@@ -26,13 +26,13 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{rb_SLES}         = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Server 15/});
-    $self->{rb_HPC}          = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise High Performance Computing 15/});
+    $self->{rb_SLES} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Server 15/});
+    $self->{rb_HPC} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise High Performance Computing 15/});
     $self->{rb_SLES_for_SAP} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Server for SAP Applications 15/});
-    $self->{rb_SLED}         = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Desktop 15/});
-    $self->{rb_SMGR_Server}  = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Manager Server/});
-    $self->{rb_SMGR_Proxy}   = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Manager Proxy/});
-    $self->{rb_SMGR_Retail}  = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Manager Retail Branch Server/});
+    $self->{rb_SLED} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Linux Enterprise Desktop 15/});
+    $self->{rb_SMGR_Server} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Manager Server/});
+    $self->{rb_SMGR_Proxy} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Manager Proxy/});
+    $self->{rb_SMGR_Retail} = $self->{app}->radiobutton({type => 'YRadioButton', label => qr/SUSE Manager Retail Branch Server/});
     return $self;
 }
 

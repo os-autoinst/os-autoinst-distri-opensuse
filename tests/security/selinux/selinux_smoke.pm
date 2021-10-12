@@ -37,7 +37,7 @@ sub run {
 
     # refresh & update
     zypper_call("ref", timeout => 1200);
-    zypper_call("up",  timeout => 1200);
+    zypper_call("up", timeout => 1200);
 
     # install & remove pkgs, e.g., apache2
     zypper_call("in apache2");
@@ -50,8 +50,8 @@ sub run {
         if ($version == '15') {
             $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
         }
-        my $arch    = get_required_var('ARCH');
-        my $params  = " ";
+        my $arch = get_required_var('ARCH');
+        my $params = " ";
         my $timeout = 180;
         add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
     }

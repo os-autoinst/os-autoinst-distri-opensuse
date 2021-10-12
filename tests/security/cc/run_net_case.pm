@@ -22,14 +22,14 @@ sub run {
     my ($self, $run_args) = @_;
     die 'Need case_name to know which test to run' unless $run_args && $run_args->{case_name};
     my $case_name = $run_args->{case_name};
-    my $result    = 'ok';
+    my $result = 'ok';
     assert_script_run("cd $audit_test::test_dir/audit-test/$case_name/");
     my $output = script_output('./run.bash --list');
-    my @lines  = split(/\n/, $output);
+    my @lines = split(/\n/, $output);
 
     # Start lblnet_tst_server
     my $lblnet_cmd = "$audit_test::test_dir/audit-test/utils/network-server/lblnet_tst_server";
-    my $pid        = script_output('ps -C lblnet_tst_server -o pid=');
+    my $pid = script_output('ps -C lblnet_tst_server -o pid=');
 
     # This function is used to run netfilter and netfilebt cases.
     # When one case finishes, the port maybe hasn't been released, so we need to restart
@@ -43,7 +43,7 @@ sub run {
         } else {
             next;
         }
-        my $cmd    = "./run.bash $num";
+        my $cmd = "./run.bash $num";
         my $result = script_output($cmd, timeout => 600);
 
         # If the port is busy, the test case will end with error, we need to restart lblnet_tst_server

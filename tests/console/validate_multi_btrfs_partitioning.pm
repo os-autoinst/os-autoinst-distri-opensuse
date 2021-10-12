@@ -24,13 +24,13 @@ use Test::Assert ':all';
 
 sub run {
 
-    my $test_data     = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my @multi_devices = @{$test_data->{multi_devices}};
 
     select_console 'root-console';
 
     foreach (@multi_devices) {
-        my $mount_point              = $_->{mount_point};
+        my $mount_point = $_->{mount_point};
         my $btrfs_multidevice_output = script_output("btrfs filesystem show $mount_point");
 
         record_info("Label", "Verify label for \"$mount_point\" mount point");

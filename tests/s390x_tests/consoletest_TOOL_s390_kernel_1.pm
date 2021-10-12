@@ -20,7 +20,7 @@ use strict;
 sub run {
     my $self = shift;
     $self->copy_testsuite('TOOL_s390_kernel_1');
-    $self->execute_script('cpuplugd.sh',    '', 1200);
+    $self->execute_script('cpuplugd.sh', '', 1200);
     $self->execute_script('mon_fsstatd.sh', '', 6000);
 
 }

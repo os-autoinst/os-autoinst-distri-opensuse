@@ -44,8 +44,8 @@ sub initiator_service_tab {
             );
         } else {
             change_service_configuration(
-                after_writing => {start           => 'alt-f'},
-                after_reboot  => {start_on_demand => 'alt-a'}
+                after_writing => {start => 'alt-f'},
+                after_reboot => {start_on_demand => 'alt-a'}
             );
         }
     }
@@ -157,7 +157,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_log("iscsiadm --mode session -P 3",                     "/tmp/iscsi_init_session_data.log");
+    $self->save_and_upload_log("iscsiadm --mode session -P 3", "/tmp/iscsi_init_session_data.log");
     $self->save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /etc/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
 }
 

@@ -19,18 +19,18 @@ use power_action_utils 'power_action';
 
 # btrfs-progs variables
 my @blacklist = split(/,/, get_var('TESTS_BLACKLIST'));
-my @category  = split(/,/, get_required_var('CATEGORY'));
+my @category = split(/,/, get_required_var('CATEGORY'));
 
 use constant STATUS_LOG => '/opt/status.log';
-use constant LOG_DIR    => '/opt/logs/';
+use constant LOG_DIR => '/opt/logs/';
 
 # Return a test list of a specific btrfs-progs category
 # blacklist (e.g. cli/001,cli/003-005,fuzz/003)
 sub get_test_list {
     my $category = shift;
-    my $cmd      = "find $category-tests -maxdepth 1 -type d -regex .*/[0-9]+.+";
-    my $output   = script_output($cmd, 30);
-    my @tests    = split(/\n/, $output);
+    my $cmd = "find $category-tests -maxdepth 1 -type d -regex .*/[0-9]+.+";
+    my $output = script_output($cmd, 30);
+    my @tests = split(/\n/, $output);
     foreach my $test (@tests) {
         $test = basename($test);
         $test = substr("$test", 0, 3);
@@ -64,7 +64,7 @@ sub get_test_list {
 # num - test to run(e.g. 001)
 sub test_run {
     my ($category, $num) = @_;
-    my $status  = 'PASSED';
+    my $status = 'PASSED';
     my $logfile = "$category-tests-results.txt";
 
     script_run("./clean-tests.sh");
@@ -74,7 +74,7 @@ sub test_run {
         $status = 'FAILED';
     }
     elsif ($ret =~ /NOTRUN|[Ff]ailed\s+prerequisiti?es/) {
-        $status  = 'SKIPPED';
+        $status = 'SKIPPED';
         $logfile = 'output.log';
     }
     script_run("cp $logfile " . LOG_DIR . "$category/$num.txt");
@@ -107,9 +107,9 @@ sub run {
 
         for my $test (@tests) {
             # Run test and wait for it to finish
-            my $begin  = time();
+            my $begin = time();
             my $status = test_run($category, $test);
-            my $delta  = time() - $begin;
+            my $delta = time() - $begin;
 
             # Add test status to STATUS_LOG file
             log_add(STATUS_LOG, "$category-$test", $status, $delta);

@@ -49,12 +49,12 @@ Raise a failure if I<$ignore_failure> evaluates to true. Default: false
 sub disable_and_stop_service {
     my ($service_name, %args) = @_;
     die "disable_and_stop_service(): no service name given" if ($service_name =~ /^ *$/);
-    $args{mask_service}   //= 0;
+    $args{mask_service} //= 0;
     $args{ignore_failure} //= 0;
 
-    systemctl("mask $service_name",    ignore_failure => $args{ignore_failure}) if ($args{mask_service});
+    systemctl("mask $service_name", ignore_failure => $args{ignore_failure}) if ($args{mask_service});
     systemctl("disable $service_name", ignore_failure => $args{ignore_failure}) unless ($args{mask_service});
-    systemctl("stop $service_name",    ignore_failure => $args{ignore_failure});
+    systemctl("stop $service_name", ignore_failure => $args{ignore_failure});
 }
 
 =head2 systemctl
@@ -67,7 +67,7 @@ Please note that return code of this function is handle by 'script_run' or
 sub systemctl {
     my ($command, %args) = @_;
     croak "systemctl(): no command specified" if ($command =~ /^ *$/);
-    my $expect_false  = $args{expect_false} ? '! ' : '';
+    my $expect_false = $args{expect_false} ? '! ' : '';
     my @script_params = ("${expect_false}systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
     if ($command =~ /^(re)?start ([^ ]+)/) {
         my $unit_name = $2;

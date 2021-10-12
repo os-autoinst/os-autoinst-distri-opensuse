@@ -18,16 +18,16 @@ use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
 
 use constant {
-    NETWORK_CARD_SETUP                => 'yast2_lan_network_card_setup',
-    BRIDGED_DEVICES_TAB               => 'yast2_lan_bridged_devices_tab_selected',
-    ALREADY_CONFIGURED_DEVICE_POPUP   => 'yast2_lan_select_already_configured_device',
+    NETWORK_CARD_SETUP => 'yast2_lan_network_card_setup',
+    BRIDGED_DEVICES_TAB => 'yast2_lan_bridged_devices_tab_selected',
+    ALREADY_CONFIGURED_DEVICE_POPUP => 'yast2_lan_select_already_configured_device',
     BRIDGED_DEVICE_CHECKBOX_UNCHECKED => 'yast2_lan_checkbox_unchecked'
 };
 
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        tab_shortcut             => $args->{tab_shortcut},
+        tab_shortcut => $args->{tab_shortcut},
         bridged_devices_shortcut => $args->{bridged_devices_shortcut}
     }, $class;
 }

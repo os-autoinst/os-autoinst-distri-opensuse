@@ -26,7 +26,7 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{RegistrationPage}    = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
+    $self->{RegistrationPage} = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
     $self->{UseUpdateReposPopup} = Installation::Popups::YesNoPopup->new({
             app => YuiRestClient::get_app()});
     $self->{SkipRegistrationPopup} = Installation::Popups::OkPopup->new({

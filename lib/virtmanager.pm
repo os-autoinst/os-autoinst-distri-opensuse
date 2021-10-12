@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use version_utils 'is_sle';
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
   create_new_volume create_netinterface delete_netinterface create_guest powercycle
   detect_login_screen select_guest close_guest establish_connection);
@@ -31,8 +31,8 @@ sub connection_details {
     send_key 'tab' for (1 .. 4);
     # need to send X 'right' key to go to the correct tab
     my %count = (
-        virtualnet   => 1,
-        storage      => 2,
+        virtualnet => 1,
+        storage => 2,
         netinterface => 3,
     );
     send_key 'right' for (1 .. $count{$tab});
@@ -535,10 +535,10 @@ sub create_guest {
     send_key 'alt-w';
 
     my $newvolume = {
-        name        => 'guest',
-        format      => 'qcow2',
+        name => 'guest',
+        format => 'qcow2',
         maxcapacity => '2.2',
-        allocation  => '2.0',
+        allocation => '2.0',
     };
     create_new_volume($newvolume);
     save_screenshot;
@@ -649,7 +649,7 @@ sub select_guest {
     my $guest = shift;
     send_key 'home';    # Go to top of the list
     assert_and_click "virt-manager_connected";
-    wait_still_screen 3;                               # Guests may be still loading
+    wait_still_screen 3;    # Guests may be still loading
     if (!check_screen "virt-manager_list-$guest") {    # If the guest is hidden down in the list
         if (is_sle('12-SP2+') || check_var("REGRESSION", "qemu-hypervisor")) {
             send_key 'end';                            # Go down so we will see every guest unselected on the way up

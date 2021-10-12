@@ -30,11 +30,11 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $key_dir        = '/etc/keys';
-    my $userkey_blob   = "$key_dir/kmk-user.blob";
-    my $evmkey_blob    = "$key_dir/evm.blob";
+    my $key_dir = '/etc/keys';
+    my $userkey_blob = "$key_dir/kmk-user.blob";
+    my $evmkey_blob = "$key_dir/evm.blob";
     my $masterkey_conf = '/etc/sysconfig/masterkey';
-    my $evm_conf       = '/etc/sysconfig/evm';
+    my $evm_conf = '/etc/sysconfig/evm';
 
     # Create Kernel Master Key
     assert_script_run "keyctl add user kmk-user '`dd if=/dev/urandom bs=1 count=32 2>/dev/null`' \@u";

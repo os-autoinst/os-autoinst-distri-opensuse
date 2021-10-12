@@ -22,9 +22,9 @@ sub get_instance {
     return $instance if defined $instance;
     $instance = bless {
         logger => Mojo::Log->new(
-            level  => $args->{level},
+            level => $args->{level},
             format => $args->{format},
-            path   => $args->{path})
+            path => $args->{path})
     }, $class;
 }
 

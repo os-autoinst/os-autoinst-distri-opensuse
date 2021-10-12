@@ -37,7 +37,7 @@ sub get_host_name_page {
 sub collect_current_host_name_info {
     my ($self) = @_;
     return {
-        static_hostname       => $self->get_host_name_page()->get_static_hostname(),
+        static_hostname => $self->get_host_name_page()->get_static_hostname(),
         set_hostname_via_DHCP => $self->get_host_name_page()->get_set_hostname_via_DHCP()};
 }
 

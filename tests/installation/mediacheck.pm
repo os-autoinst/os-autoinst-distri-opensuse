@@ -18,7 +18,7 @@ use testapi;
 use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $iterations = 0;
     ensure_shim_import;
     select_bootmenu_more('inst-onmediacheck', 1);

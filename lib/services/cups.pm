@@ -59,7 +59,7 @@ sub check_function {
         common_service_action 'cups', $service_type, 'restart';
     }
     # Add printers
-    record_info "lpadmin",                                          "Try to add printers and enable them";
+    record_info "lpadmin", "Try to add printers and enable them";
     validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ };
     assert_script_run 'lpadmin -p printer_tmp -v file:/tmp/test_cups -m raw -E';
     assert_script_run 'lpadmin -p printer_null -v file:/dev/null -m raw -E';
@@ -75,7 +75,7 @@ sub check_function {
     foreach my $printer (qw(printer_tmp printer_null)) {
         assert_script_run "cupsdisable $printer";
         assert_script_run "lp -d $printer -o cpi=12 -o lpi=8 sample.ps";
-        validate_script_output 'lpstat -o',          sub { m/$printer-\d+/ };
+        validate_script_output 'lpstat -o', sub { m/$printer-\d+/ };
         validate_script_output 'ls /var/spool/cups', sub { m/d\d+/ };
         assert_script_run "cancel -a $printer";
     }

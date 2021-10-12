@@ -29,10 +29,10 @@ use testapi;
 use utils;
 
 sub run {
-    my $self         = shift;
+    my $self = shift;
     my $mail_subject = $self->get_dated_random_string(4);
     # Select correct account to use with multimachine.
-    my $account  = "internal_account";
+    my $account = "internal_account";
     my $hostname = get_var('HOSTNAME');
     if ($hostname eq 'client') {
         #Setup account account C, and use it to send a meeting

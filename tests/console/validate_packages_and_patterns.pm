@@ -28,18 +28,18 @@ my %software = ();
 # Define test data
 
 $software{'salt-minion'} = {
-    repo      => get_var('SCC_REGCODE_LTSS') ? 'LTSS' : 'Basesystem',
-    installed => is_jeos()                   ? 1      : 0,              # On JeOS Salt is present in the default image
+    repo => get_var('SCC_REGCODE_LTSS') ? 'LTSS' : 'Basesystem',
+    installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
     condition => sub { is_sle('15+') },
 };
-$software{'update-test-feature'} = {                                    # See poo#36451
-    repo      => is_sle('15+') ? 'Basesystem' : 'SLES',
+$software{'update-test-feature'} = {    # See poo#36451
+    repo => is_sle('15+') ? 'Basesystem' : 'SLES',
     installed => 0,
     available => sub { get_var('BETA') },
 };
 # Define more packages with the same set of expectations
 $software{'update-test-interactive'} = $software{'update-test-feature'};
-$software{'update-test-security'}    = $software{'update-test-feature'};
+$software{'update-test-security'} = $software{'update-test-feature'};
 if (is_sle('15+')) {
     $software{'update-test-trivial'} = $software{'update-test-feature'};
 } else {
@@ -47,8 +47,8 @@ if (is_sle('15+')) {
 }
 
 sub verify_pattern {
-    my ($name)       = shift;
-    my $errors       = '';
+    my ($name) = shift;
+    my $errors = '';
     my $pattern_info = script_output("zypper info -t pattern $name");
 
     for my $package (@{$software{$name}->{packages}}) {
@@ -73,9 +73,9 @@ sub run {
         my $available = !!(!defined($software{$name}->{available}) || $software{$name}->{available}->());
         $errors .= verify_software(name => $name,
             installed => $software{$name}->{installed},
-            pattern   => $software{$name}->{pattern},
+            pattern => $software{$name}->{pattern},
             available => $available,
-            repo      => $software{$name}->{repo});
+            repo => $software{$name}->{repo});
         # Validate pattern
         $errors .= verify_pattern($name) if $software{$name}->{pattern};
     }

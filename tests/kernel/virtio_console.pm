@@ -25,8 +25,8 @@ FIN.
 
 sub run {
     my $self = shift;
-    my $m    = get_var('VIRTIO_CONSOLE_TEST_M') || 10;
-    my $n    = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
+    my $m = get_var('VIRTIO_CONSOLE_TEST_M') || 10;
+    my $n = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
     $self->wait_boot;
 
     $self->select_serial_terminal;

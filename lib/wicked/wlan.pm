@@ -24,18 +24,18 @@ use Encode qw/encode_utf8/;
 use File::Basename;
 use testapi;
 
-has wicked_version      => undef;
-has eap_user            => 'tester';
-has eap_password        => 'test1234';
-has ca_cert             => '/etc/raddb/certs/ca.pem';
-has client_cert         => '/etc/raddb/certs/client.crt';
-has client_key          => '/etc/raddb/certs/client.key';
-has client_key_no_pass  => '/etc/raddb/certs/client_no_pass.key';
+has wicked_version => undef;
+has eap_user => 'tester';
+has eap_password => 'test1234';
+has ca_cert => '/etc/raddb/certs/ca.pem';
+has client_cert => '/etc/raddb/certs/client.crt';
+has client_key => '/etc/raddb/certs/client.key';
+has client_key_no_pass => '/etc/raddb/certs/client_no_pass.key';
 has client_key_password => 'whatever';
 
 has netns_name => 'wifi_ref';
-has ref_ifc    => 'wlan0';
-has ref_phy    => 'phy0';
+has ref_ifc => 'wlan0';
+has ref_phy => 'phy0';
 sub ref_ip {
     return shift->get_ip(is_wicked_ref => 1, @_);
 }
@@ -48,9 +48,9 @@ sub sut_ip {
 
 # Test config, needed because of code duplication checks
 has hostapd_conf => "";
-has ifcfg_wlan   => "";
-has use_dhcp     => 1;
-has use_radius   => 0;
+has ifcfg_wlan => "";
+has use_dhcp => 1;
+has use_radius => 0;
 
 sub sut_hw_addr {
     my $self = shift;
@@ -77,8 +77,8 @@ sub get_ip {
     my ($self, %args) = @_;
     my $bss_nr = extract_bss_nr($args{bss});
 
-    my $suffix = $bss_nr > 0     ? "_bss$bss_nr"      : "";
-    my $type   = $self->use_dhcp ? "wlan_dhcp$suffix" : "wlan$suffix";
+    my $suffix = $bss_nr > 0 ? "_bss$bss_nr" : "";
+    my $type = $self->use_dhcp ? "wlan_dhcp$suffix" : "wlan$suffix";
     return $self->SUPER::get_ip(type => $type, is_wicked_ref => $args{is_wicked_ref}, netmask => $args{netmask});
 }
 
@@ -120,7 +120,7 @@ sub restart_dhcp_server {
     my ($self, %args) = @_;
 
     $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
-    $args{sut_ip}  //= $self->sut_ip(bss => $args{bss});
+    $args{sut_ip} //= $self->sut_ip(bss => $args{bss});
 
     $self->stop_dhcp_server(%args);
     $self->netns_exec(sprintf('dnsmasq --no-resolv --pid-file=%s --interface=%s --except-interface=lo --bind-interfaces --dhcp-range=%s,static --dhcp-host=%s,%s',
@@ -229,7 +229,7 @@ with return value
 sub write_cfg {
     my ($self, $filename, $content, %args) = @_;
     my ($filename_orig, $content_orig);
-    $args{env}           //= {};
+    $args{env} //= {};
     $args{encode_base64} //= 0;
     my $rand = random_string;
     # replace variables
@@ -240,10 +240,10 @@ sub write_cfg {
     $content =~ s/^[ \t]+$//mg;
 
     if ($args{encode_base64}) {
-        $content       = encode_utf8($content);
-        $content_orig  = $content;
+        $content = encode_utf8($content);
+        $content_orig = $content;
         $filename_orig = $filename;
-        $content       = b64_encode($content);
+        $content = b64_encode($content);
         $filename .= '.base64';
     }
 
@@ -264,10 +264,10 @@ END_OF_CONTENT_$rand
 
 sub assert_sta_connected {
     my ($self, %args) = @_;
-    $args{sta}     //= $self->sut_hw_addr;
+    $args{sta} //= $self->sut_hw_addr;
     $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
     $args{timeout} //= 0;
-    $args{sleep}   //= 1;
+    $args{sleep} //= 1;
     my $endtime = time() + $args{timeout};
 
     while (1) {
@@ -312,7 +312,7 @@ sub hostapd_kill {
 sub assert_connection {
     my ($self, %args) = @_;
     $args{timeout} //= 0;
-    $args{sleep}   //= 1;
+    $args{sleep} //= 1;
     my $endtime = time() + $args{timeout};
 
     while (1) {
@@ -331,7 +331,7 @@ sub setup_ref {
     my $self = shift;
 
     $self->netns_exec('ip addr add dev ' . $self->ref_ifc() . ' ' . $self->ref_ip(netmask => 1));
-    $self->restart_dhcp_server()                if ($self->use_dhcp());
+    $self->restart_dhcp_server() if ($self->use_dhcp());
     $self->netns_exec('radiusd -d /etc/raddb/') if ($self->use_radius());
 }
 
@@ -402,8 +402,8 @@ sub run {
                 $self->assert_connection();
 
                 $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
-                $self->wicked_command('show-config',        $self->sut_ifc);
-                $self->wicked_command('show-xml',           $self->sut_ifc);
+                $self->wicked_command('show-config', $self->sut_ifc);
+                $self->wicked_command('show-xml', $self->sut_ifc);
 
             } else {
                 record_info("Skip cfg", $ifcfg_wlan->{config});

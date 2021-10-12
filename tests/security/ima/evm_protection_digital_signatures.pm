@@ -30,7 +30,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $fstype     = 'ext4';
+    my $fstype = 'ext4';
     my $sample_app = '/usr/bin/yes';
     my $sample_cmd = 'yes --version';
 

@@ -26,9 +26,9 @@ use Mojo::Util 'trim';
 
 my %package = (
     postgresql13 => '13.0.0',
-    python39     => '3.9.0',
-    python3      => '3.6.0',
-    mariadb      => '10.0.0'
+    python39 => '3.9.0',
+    python3 => '3.6.0',
+    mariadb => '10.0.0'
 );
 
 my %locpak = (
@@ -48,7 +48,7 @@ sub cmp_packages {
     my ($pcks, $pckv) = @_;
     record_info($pcks, "$pcks version check after migration");
     my $output = script_output("zypper se -xs $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", 100, proceed_on_failure => 1);
-    my $out    = '';
+    my $out = '';
     for my $line (split(/\r?\n/, $output)) {
         if (trim($line) =~ m/^\d+\.\d+(\.\d+)?/) {
             $out = $line;

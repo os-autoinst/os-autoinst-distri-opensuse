@@ -19,12 +19,12 @@ use testapi;
 sub get_test_name_prefix {
     my $test_name_prefix = "";
 
-    my $mode       = get_var("TEST_MODE",       "");
+    my $mode = get_var("TEST_MODE", "");
     my $hypervisor = get_var("HOST_HYPERVISOR", "");
-    my $base       = get_var("BASE_PRODUCT",    "");    #EXAMPLE, sles-11-sp3
-    my $upgrade    = get_var("UPGRADE_PRODUCT", "");    #EXAMPLE, sles-12-sp2
+    my $base = get_var("BASE_PRODUCT", "");    #EXAMPLE, sles-11-sp3
+    my $upgrade = get_var("UPGRADE_PRODUCT", "");    #EXAMPLE, sles-12-sp2
 
-    $base    =~ s/-//g;
+    $base =~ s/-//g;
     $upgrade =~ s/-//g;
 
     $test_name_prefix = "/usr/share/qa/tools/test-VH-Upgrade-$mode-$hypervisor-$base-$upgrade";

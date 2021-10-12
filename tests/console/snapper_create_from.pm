@@ -40,7 +40,7 @@ sub run {
 
         # make up next 'snapper create'
         my $snapper_args = "--print-number -d '$snapshot->{description}'";
-        $snapper_args .= " --read-write"             if ($snapshot->{read_write});
+        $snapper_args .= " --read-write" if ($snapshot->{read_write});
         $snapper_args .= " --from $last_printed_num" if ($snapshot->{from});
 
         # execute snapper create when testing for failure and exit earlier

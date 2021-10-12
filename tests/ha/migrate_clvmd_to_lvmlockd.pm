@@ -20,9 +20,9 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my ($self)       = @_;
+    my ($self) = @_;
     my $cluster_name = get_cluster_name;
-    my $lvm_conf     = '/etc/lvm/lvm.conf';
+    my $lvm_conf = '/etc/lvm/lvm.conf';
 
     # We may execute this test after a reboot, so we need to log in
     select_console 'root-console';

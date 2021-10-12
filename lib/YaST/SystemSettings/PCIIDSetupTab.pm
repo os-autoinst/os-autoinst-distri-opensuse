@@ -28,7 +28,7 @@ sub new {
 sub init {
     my $self = shift;
     $self->{menu_btn_add} = $self->{app}->menucollection({label => 'Add...'});
-    $self->{btn_delete}   = $self->{app}->button({id => 'delete'});
+    $self->{btn_delete} = $self->{app}->button({id => 'delete'});
     return $self;
 }
 

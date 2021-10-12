@@ -42,7 +42,7 @@ sub run {
 
     # Set and check patch variables
     my $incident_id = get_var('INCIDENT_ID');
-    my $patch       = get_var('INCIDENT_PATCH');
+    my $patch = get_var('INCIDENT_PATCH');
     check_patch_variables($patch, $incident_id);
 
     my $repo = get_required_var('INCIDENT_REPO');

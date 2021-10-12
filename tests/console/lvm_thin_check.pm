@@ -19,11 +19,11 @@ use testapi;
 use utils;
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $lv_stats = {
         write_access => qr/\s{2}LV Write Access \s+ read\/write/,
-        status       => qr/\s{2}LV Status \s+ available/,
-        readahead    => qr/\s{2}Read ahead sectors \s+ auto/,
+        status => qr/\s{2}LV Status \s+ available/,
+        readahead => qr/\s{2}Read ahead sectors \s+ auto/,
         # 254 as major no. points to dev-mapper, see /proc/devices
         block_device => qr/\s{2}Block device \s+ 254:\d/
     };

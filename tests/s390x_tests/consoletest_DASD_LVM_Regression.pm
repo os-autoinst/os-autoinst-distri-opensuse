@@ -22,13 +22,13 @@ sub run {
     assert_script_run("sed -i '/^\\s*filter/ s/filter/#filter/' /etc/lvm/lvm.conf");
     assert_script_run("rm -rf /root/log && mkdir /root/log && rm -rf /mnt/*");
 
-    my $BASE_PAV  = get_var("BASE_PAV");
+    my $BASE_PAV = get_var("BASE_PAV");
     my $ALIAS_PAV = get_var("ALIAS_PAV");
 
-    $self->execute_script("01_LVM_Basic_test.sh",      "$BASE_PAV $ALIAS_PAV", 600);
-    $self->execute_script("02_LVM_Resize_test.sh",     "",                     600);
-    $self->execute_script("03_LVM_Types_stress.sh",    "",                     600);
-    $self->execute_script("04_LVM_snapshot_backup.sh", "",                     600);
+    $self->execute_script("01_LVM_Basic_test.sh", "$BASE_PAV $ALIAS_PAV", 600);
+    $self->execute_script("02_LVM_Resize_test.sh", "", 600);
+    $self->execute_script("03_LVM_Types_stress.sh", "", 600);
+    $self->execute_script("04_LVM_snapshot_backup.sh", "", 600);
 
     assert_script_run("rm -rf /root/log && mkdir /root/log && rm -rf /mnt/*");
 }

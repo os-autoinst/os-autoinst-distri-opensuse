@@ -33,12 +33,12 @@ sub run {
     my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
 
     my @algo_list = (
-        {algo => "md5",    len => 32},
-        {algo => "sha1",   len => 40},
+        {algo => "md5", len => 32},
+        {algo => "sha1", len => 40},
         {algo => "sha256", len => 64},
         {algo => "sha512", len => 128},
         {algo => "rmd160", len => 40},
-        {algo => "wp512",  len => 128},
+        {algo => "wp512", len => 128},
         {algo => "tgr192", len => 48},
     );
 

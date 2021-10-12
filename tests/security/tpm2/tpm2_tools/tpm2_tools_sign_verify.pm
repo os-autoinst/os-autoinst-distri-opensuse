@@ -32,10 +32,10 @@ sub run {
     my $test_dir = "tpm2_tools_sign_verify";
     my $prim_ctx = "primary.ctx";
     my $rsa_priv = "rsa.priv";
-    my $rsa_pub  = "rsa.pub";
-    my $msg_dat  = "message.dat";
-    my $rsa_ctx  = "rsa.ctx";
-    my $sig_rsa  = "sig.rsa";
+    my $rsa_pub = "rsa.pub";
+    my $msg_dat = "message.dat";
+    my $rsa_ctx = "rsa.ctx";
+    my $sig_rsa = "sig.rsa";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";
     assert_script_run "tpm2_createprimary -C e -c $prim_ctx -T tabrmd";

@@ -25,8 +25,8 @@ has storage_name => undef;
 sub file2name {
     my ($self, $file) = @_;
     my $name = $file;
-    $name = lc $file;            # lower case
-    $name =~ s/\.tar\.gz$//;     # removes tar.gz
+    $name = lc $file;    # lower case
+    $name =~ s/\.tar\.gz$//;    # removes tar.gz
     $name =~ s/\./-/g;
     $name =~ s/[^-a-z0-9]//g;    # only allowed characteres from Google Cloud
     return $name;
@@ -35,7 +35,7 @@ sub file2name {
 sub find_img {
     my ($self, $name) = @_;
     my $img_name = $self->file2name($name);
-    my $out      = script_output("gcloud --format json compute images list --filter='name~$img_name'", 10, proceed_on_failure => 1);
+    my $out = script_output("gcloud --format json compute images list --filter='name~$img_name'", 10, proceed_on_failure => 1);
     return unless ($out);
     my $json = decode_json($out);
     return if (@{$json} == 0);
@@ -44,8 +44,8 @@ sub find_img {
 
 sub upload_img {
     my ($self, $file) = @_;
-    my $img_name          = $self->file2name($file);
-    my $uri               = $self->storage_name . '/' . $file;
+    my $img_name = $self->file2name($file);
+    my $uri = $self->storage_name . '/' . $file;
     my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE');
 
     assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);
@@ -65,8 +65,8 @@ sub img_proof {
 
     $args{credentials_file} = $self->get_credentials_file_name();
     $args{instance_type} //= 'n1-standard-2';
-    $args{user}          //= 'susetest';
-    $args{provider}      //= 'gce';
+    $args{user} //= 'susetest';
+    $args{provider} //= 'gce';
 
     return $self->run_img_proof(%args);
 }
@@ -82,7 +82,7 @@ sub terraform_apply {
 # In GCE we need to account for project name, if given
 sub get_image_id {
     my ($self, $img_url) = @_;
-    my $image   = $self->SUPER::get_image_id($img_url);
+    my $image = $self->SUPER::get_image_id($img_url);
     my $project = get_var('PUBLIC_CLOUD_IMAGE_PROJECT');
     $image = "$project/$image" if ($project);
     return $image;
@@ -91,7 +91,7 @@ sub get_image_id {
 sub describe_instance
 {
     my ($self, $instance) = @_;
-    my $name     = $instance->instance_id();
+    my $name = $instance->instance_id();
     my $attempts = 10;
 
     my $out = [];
@@ -127,7 +127,7 @@ sub get_ip_from_instance
 sub stop_instance
 {
     my ($self, $instance) = @_;
-    my $name     = $instance->instance_id();
+    my $name = $instance->instance_id();
     my $attempts = 60;
 
     die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);
@@ -142,7 +142,7 @@ sub stop_instance
 sub start_instance
 {
     my ($self, $instance, %args) = @_;
-    my $name     = $instance->instance_id();
+    my $name = $instance->instance_id();
     my $attempts = 60;
 
     die("Try to start a running instance") if ($self->get_state_from_instance($instance) ne 'TERMINATED');

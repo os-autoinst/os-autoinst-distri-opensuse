@@ -26,7 +26,7 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{tb_pass}         = $self->{app}->textbox({id => 'pw1'});
+    $self->{tb_pass} = $self->{app}->textbox({id => 'pw1'});
     $self->{tb_pass_reenter} = $self->{app}->textbox({id => 'pw2'});
     return $self;
 }

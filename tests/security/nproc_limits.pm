@@ -30,7 +30,7 @@ sub run {
 
     # Check the limits.conf config file
     my $limits_d = script_output('find /etc/security/limits.d/ -name *.conf -exec echo -n "{} " \;');
-    my $out      = script_output("awk '!/^\$/ && !/^\\s*#/ {print \$3}' /etc/security/limits.conf $limits_d");
+    my $out = script_output("awk '!/^\$/ && !/^\\s*#/ {print \$3}' /etc/security/limits.conf $limits_d");
     die("Failed: nproc limits have been set") if $out =~ m/nproc/;
 
     # Set systemd config file and check with ulimit command
@@ -41,8 +41,8 @@ sub run {
     $self->wait_boot;
     $self->select_serial_terminal;
 
-    validate_script_output "ulimit -u",    sub { m/unlimited/ };    # soft limit
-    validate_script_output "ulimit -u -H", sub { m/unlimited/ };    # hard limit
+    validate_script_output "ulimit -u", sub { m/unlimited/ };    # soft limit
+    validate_script_output "ulimit -u -H", sub { m/unlimited/ }; # hard limit
 }
 
 sub test_flags {

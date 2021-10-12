@@ -22,7 +22,7 @@ sub run {
     my $test_data = get_test_suite_data();
     foreach my $disk (@{$test_data->{disks}}) {
         foreach my $partition (@{$disk->{partitions}}) {
-            my $mount_point             = $partition->{mounting_options}->{mount_point};
+            my $mount_point = $partition->{mounting_options}->{mount_point};
             my $output_btrfs_subvolumes = assert_script_run("btrfs subvolume list $mount_point");
             # Get 'qgroupid' and 'max_rfer' columns from the output. Other columns are not needed for this test.
             my $output_btrfs_qgroups = assert_script_run("btrfs qgroup show -r $mount_point | awk '{print \$1,\$4}'");

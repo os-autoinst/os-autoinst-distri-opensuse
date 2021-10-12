@@ -21,27 +21,27 @@ use version_utils qw(is_sle is_leap is_tumbleweed is_opensuse);
 use yast2_widget_utils 'change_service_configuration';
 
 my %ldap_directives = (
-    fqdn                => 'openqa.ldaptest.org',
-    dir_instance        => 'openqatest',
-    dir_suffix          => 'dc=ldaptest,dc=org',
-    dn_container        => 'dc=ldaptest,dc=org',
-    dir_manager_dn      => 'cn=Directory Manager',
-    dir_manager_passwd  => 'openqatest',
-    ca_cert_pem         => '/root/samba_ca_cert.pem',
+    fqdn => 'openqa.ldaptest.org',
+    dir_instance => 'openqatest',
+    dir_suffix => 'dc=ldaptest,dc=org',
+    dn_container => 'dc=ldaptest,dc=org',
+    dir_manager_dn => 'cn=Directory Manager',
+    dir_manager_passwd => 'openqatest',
+    ca_cert_pem => '/root/samba_ca_cert.pem',
     srv_cert_key_pkcs12 => '/root/samba_server_cert.p12'
 );
 
 my %samba_directives = (
-    workgroup              => 'QA-Workgroup',
-    comment                => 'html docs for share',
-    path                   => '/home/html_public',
-    usershare_max_shares   => '90',
+    workgroup => 'QA-Workgroup',
+    comment => 'html docs for share',
+    path => '/home/html_public',
+    usershare_max_shares => '90',
     usershare_allow_guests => 'Yes',
-    netbios_name           => 'QA-Samba',
-    logon_drive            => 'C:',
-    wins_support           => 'Yes',
-    inherit_acls           => 'Yes',
-    read_only              => 'Yes'
+    netbios_name => 'QA-Samba',
+    logon_drive => 'C:',
+    wins_support => 'Yes',
+    inherit_acls => 'Yes',
+    read_only => 'Yes'
 );
 
 sub smb_conf_checker {
@@ -92,7 +92,7 @@ sub setup_yast2_ldap_server {
     assert_screen 'yast2_samba-389ds-setup';
     send_key $cmd{ok};
 
-    record_info 'Setup LDAP',                                 'Workaround for cert name issue';
+    record_info 'Setup LDAP', 'Workaround for cert name issue';
     assert_screen 'yast2_samba-389ds-setup-error-workaround', 90;
     send_key 'ret';
     wait_screen_change { send_key "alt-c" };
@@ -185,8 +185,8 @@ sub setup_samba_startup {
     }
     else {
         change_service_configuration(
-            after_writing => {start         => 'alt-e'},
-            after_reboot  => {start_on_boot => 'alt-a'}
+            after_writing => {start => 'alt-e'},
+            after_reboot => {start_on_boot => 'alt-a'}
         );
     }
     send_key $actions{firewall}->{shortcut};
@@ -196,15 +196,15 @@ sub setup_samba_startup {
 sub setup_samba_share {
     record_info 'Samba Configuration', 'Shares';
     my %actions = (
-        shares             => {shortcut => 'alt-s'},
-        name               => {shortcut => 'alt-n', value => 'html_public'},
-        description        => {shortcut => 'alt-a', value => $samba_directives{comment}},
-        path               => {shortcut => 'alt-s', value => $samba_directives{path}},
-        readonly           => {shortcut => 'alt-r'},
-        yes                => {shortcut => 'alt-y'},
-        allow_users        => {shortcut => 'alt-w'},
+        shares => {shortcut => 'alt-s'},
+        name => {shortcut => 'alt-n', value => 'html_public'},
+        description => {shortcut => 'alt-a', value => $samba_directives{comment}},
+        path => {shortcut => 'alt-s', value => $samba_directives{path}},
+        readonly => {shortcut => 'alt-r'},
+        yes => {shortcut => 'alt-y'},
+        allow_users => {shortcut => 'alt-w'},
         allow_guest_access => {shortcut => 'alt-g'},
-        maximum            => {shortcut => 'alt-m', value => $samba_directives{usershare_max_shares} . "\n"},
+        maximum => {shortcut => 'alt-m', value => $samba_directives{usershare_max_shares} . "\n"},
     );
 
     send_key $actions{shares}->{shortcut};
@@ -239,12 +239,12 @@ sub setup_samba_share {
 sub setup_samba_identity {
     record_info 'Samba Configuration', 'Identity';
     my %actions = (
-        identity          => {shortcut => 'alt-d'},
+        identity => {shortcut => 'alt-d'},
         domain_controller => {shortcut => 'alt-a'},
-        win_server        => {shortcut => 'alt-i'},
-        netbios           => {shortcut => 'alt-e', value => $samba_directives{netbios_name}},
-        advanced          => {shortcut => 'alt-v'},
-        logon_drive       => {value    => $samba_directives{logon_drive}}
+        win_server => {shortcut => 'alt-i'},
+        netbios => {shortcut => 'alt-e', value => $samba_directives{netbios_name}},
+        advanced => {shortcut => 'alt-v'},
+        logon_drive => {value => $samba_directives{logon_drive}}
     );
 
     send_key $actions{identity}->{shortcut};
@@ -279,8 +279,8 @@ sub setup_samba_trusted_domains {
     record_info 'Samba Configuration', 'Trusted domains';
     my %actions = (
         trusted_domains => {shortcut => 'alt-t', value => "990\n"},
-        name            => {value    => 'suse.de'},
-        password        => {shortcut => 'alt-p', value => 'testing'}
+        name => {value => 'suse.de'},
+        password => {shortcut => 'alt-p', value => 'testing'}
     );
     send_key $actions{trusted_domains}->{shortcut};
     assert_screen 'yast2_samba-server_trusted-domains';
@@ -299,15 +299,15 @@ sub setup_samba_trusted_domains {
 sub setup_samba_ldap {
     record_info 'Samba Configuration', 'LDAP Settings';
     my $administratio_dn = is_sle('<15') ? $ldap_directives{dir_manager_dn} . ",$ldap_directives{dir_suffix}" : $ldap_directives{dir_manager_dn};
-    my %actions          = (
-        ldap                 => {shortcut => 'alt-l'},
+    my %actions = (
+        ldap => {shortcut => 'alt-l'},
         use_password_backend => {shortcut => 'alt-b'},
-        yes                  => {shortcut => 'alt-y'},
-        server_url           => {shortcut => 'alt-e', value => 'ldap://localhost:389'},
-        administration_dn    => {shortcut => 'alt-a', value => $administratio_dn},
-        password             => {shortcut => 'alt-p', value => $ldap_directives{dir_manager_passwd}},
-        password_retry       => {shortcut => 'alt-g', value => $ldap_directives{dir_manager_passwd}},
-        search_base_dn       => {shortcut => 'alt-n', value => $ldap_directives{dn_container}}
+        yes => {shortcut => 'alt-y'},
+        server_url => {shortcut => 'alt-e', value => 'ldap://localhost:389'},
+        administration_dn => {shortcut => 'alt-a', value => $administratio_dn},
+        password => {shortcut => 'alt-p', value => $ldap_directives{dir_manager_passwd}},
+        password_retry => {shortcut => 'alt-g', value => $ldap_directives{dir_manager_passwd}},
+        search_base_dn => {shortcut => 'alt-n', value => $ldap_directives{dn_container}}
     );
 
     send_key $actions{ldap}->{shortcut};
@@ -335,11 +335,11 @@ sub setup_samba_ldap {
 sub setup_samba_ldap_expert {
     record_info 'Samba Configuration', 'Expert LDAP Settings';
     my %actions = (
-        advanced       => {shortcut => 'alt-v'},
-        replication    => {shortcut => 'alt-p', value => "990\n"},
-        timeout        => {shortcut => 'alt-t', value => "7\n"},
+        advanced => {shortcut => 'alt-v'},
+        replication => {shortcut => 'alt-p', value => "990\n"},
+        timeout => {shortcut => 'alt-t', value => "7\n"},
         use_ssl_or_tls => {shortcut => 'alt-u'},
-        test           => {shortcut => 'alt-t'}
+        test => {shortcut => 'alt-t'}
     );
 
     # check advanced settings before run test connection to ldap server

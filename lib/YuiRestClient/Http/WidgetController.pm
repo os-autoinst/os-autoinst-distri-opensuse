@@ -22,10 +22,10 @@ sub new {
 
     return bless {
         api_version => $args->{api_version},
-        host        => $args->{host},
-        port        => $args->{port},
-        timeout     => $args->{timeout},
-        interval    => $args->{interval}
+        host => $args->{host},
+        port => $args->{port},
+        timeout => $args->{timeout},
+        interval => $args->{interval}
     }, $class;
 }
 
@@ -53,9 +53,9 @@ sub find {
     my ($self, $args) = @_;
 
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(
-        host   => $self->{host},
-        port   => $self->{port},
-        path   => $self->{api_version} . '/widgets',
+        host => $self->{host},
+        port => $self->{port},
+        path => $self->{api_version} . '/widgets',
         params => $args
     );
 
@@ -64,7 +64,7 @@ sub find {
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
             return $response->json if $response; },
-        timeout  => $self->{timeout},
+        timeout => $self->{timeout},
         interval => $self->{interval}
     );
 }
@@ -73,9 +73,9 @@ sub send_action {
     my ($self, $args) = @_;
 
     my $uri = YuiRestClient::Http::HttpClient::compose_uri(
-        host   => $self->{host},
-        port   => $self->{port},
-        path   => $self->{api_version} . '/widgets',
+        host => $self->{host},
+        port => $self->{port},
+        path => $self->{api_version} . '/widgets',
         params => $args
     );
 
@@ -84,7 +84,7 @@ sub send_action {
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_post($uri);
             return $response if $response; },
-        timeout  => $self->{timeout},
+        timeout => $self->{timeout},
         interval => $self->{interval}
     );
 }

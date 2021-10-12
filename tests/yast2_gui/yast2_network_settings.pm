@@ -26,12 +26,12 @@ sub run {
 
     # keyboard shorcuts
     $cmd{global_options_tab} = 'alt-g';
-    $cmd{dhcp_client_id}     = 'alt-i';
-    $cmd{overview_tab}       = 'alt-v';
-    $cmd{add_device}         = 'alt-a';
-    $cmd{dynamic_address}    = 'alt-y';
-    $cmd{hostname_dns_tab}   = 'alt-s';
-    $cmd{routing_tab}        = 'alt-u';
+    $cmd{dhcp_client_id} = 'alt-i';
+    $cmd{overview_tab} = 'alt-v';
+    $cmd{add_device} = 'alt-a';
+    $cmd{dynamic_address} = 'alt-y';
+    $cmd{hostname_dns_tab} = 'alt-s';
+    $cmd{routing_tab} = 'alt-u';
 
     select_console 'x11';
     y2_module_guitest::launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 120);

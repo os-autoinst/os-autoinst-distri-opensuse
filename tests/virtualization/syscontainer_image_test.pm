@@ -26,7 +26,7 @@ sub run() {
     # Check the repositories on the host first
     zypper_call("lr");
 
-    my $url    = get_required_var('SYSCONTAINER_IMAGE_URL');
+    my $url = get_required_var('SYSCONTAINER_IMAGE_URL');
     my $rootfs = '/tmp/rootfs';
 
     # Create XML file

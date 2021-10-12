@@ -20,7 +20,7 @@ use File::Basename;
 
 sub run {
     select_console 'root-console';
-    my $file_location    = get_test_suite_data()->{file_location};
+    my $file_location = get_test_suite_data()->{file_location};
     my $file_to_download = autoinst_url("/assets/other/" . basename(get_required_var("ASSET_1")));
     assert_script_run("wget " . $file_to_download . " -O  " . $file_location);
 }

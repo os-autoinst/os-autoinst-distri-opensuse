@@ -71,8 +71,8 @@ sub run {
             fsid => 'PReP'
         },
         uefi => {
-            role  => 'efi',
-            size  => 100,
+            role => 'efi',
+            size => 100,
             mount => '/boot/efi'
         },
         bios => {
@@ -81,10 +81,10 @@ sub run {
             fsid => 'bios-boot'
         },
         zipl => {
-            role   => 'OS',
-            size   => 50,
+            role => 'OS',
+            size => 50,
             format => 'ext2',
-            mount  => '/boot/zipl'
+            mount => '/boot/zipl'
         });
 
     create_new_partition_table;

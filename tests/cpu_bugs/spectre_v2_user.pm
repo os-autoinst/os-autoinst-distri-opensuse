@@ -25,20 +25,20 @@ use Mitigation;
 
 our %mitigations_list =
   (
-    name                   => "spectre_v2_user",
-    CPUID                  => hex 'C000000',
-    IA32_ARCH_CAPABILITIES => 2,                   #bit1 -- EIBRS
-    parameter              => 'spectre_v2_user',
-    cpuflags               => ['ibpb', 'stibp'],
-    sysfs_name             => "spectre_v2",
-    sysfs                  => {
-        on           => "IBPB: always-on,.* STIBP: forced,.*",
-        off          => "IBPB: disabled,.*STIBP: disabled",
-        prctl        => "IBPB: conditional.*STIBP: conditional.*",
-        prctl_ibpb   => "IBPB: always-on.*STIBP: conditional.*",
-        seccomp      => "STIBP: conditional.*",
+    name => "spectre_v2_user",
+    CPUID => hex 'C000000',
+    IA32_ARCH_CAPABILITIES => 2,    #bit1 -- EIBRS
+    parameter => 'spectre_v2_user',
+    cpuflags => ['ibpb', 'stibp'],
+    sysfs_name => "spectre_v2",
+    sysfs => {
+        on => "IBPB: always-on,.* STIBP: forced,.*",
+        off => "IBPB: disabled,.*STIBP: disabled",
+        prctl => "IBPB: conditional.*STIBP: conditional.*",
+        prctl_ibpb => "IBPB: always-on.*STIBP: conditional.*",
+        seccomp => "STIBP: conditional.*",
         seccomp_ibpb => "IBPB: always-on.*STIBP: conditional.*",
-        auto         => "IBPB: conditional,.* STIBP: conditional,.*",
+        auto => "IBPB: conditional,.* STIBP: conditional,.*",
     },
     cmdline => [
         "on",
@@ -54,12 +54,12 @@ our %mitigations_list =
 sub run {
     if (is_qemu) {
         $mitigations_list{cpuflags} = ['ibpb'];
-        $mitigations_list{sysfs}->{on}           =~ s/STIBP: forced/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{prctl}        =~ s/STIBP: conditional/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{prctl_ibpb}   =~ s/STIBP: conditional/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{seccomp}      =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{on} =~ s/STIBP: forced/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{prctl} =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{prctl_ibpb} =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{seccomp} =~ s/STIBP: conditional/STIBP: disabled/g;
         $mitigations_list{sysfs}->{seccomp_ibpb} =~ s/STIBP: conditional/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{auto}         =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{auto} =~ s/STIBP: conditional/STIBP: disabled/g;
     }
     my $obj = Mitigation->new(\%mitigations_list);
     if (($obj->read_cpuid_edx() & $obj->CPUID()) eq 0) {

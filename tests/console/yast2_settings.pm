@@ -21,10 +21,10 @@ use testapi;
 use utils;
 use y2lan_restart_common;
 
-my $yastconf              = '/etc/sysctl.d/70-yast.conf';
-my $customconf_in_etc     = '/etc/sysctl.d/90-custom.conf';
+my $yastconf = '/etc/sysctl.d/70-yast.conf';
+my $customconf_in_etc = '/etc/sysctl.d/90-custom.conf';
 my $customconf_in_usr_lib = '/usr/lib/sysctl.d/90-custom.conf';
-my $ipv4_forward          = 'net.ipv4.ip_forward';
+my $ipv4_forward = 'net.ipv4.ip_forward';
 
 sub verify_write_config {
     change_ipforward(state => 'enabled', should_conflict => 0);

@@ -19,7 +19,7 @@ use testapi;
 
 sub run {
     $testapi::distri->get_registration()->register_via_scc({
-            email    => get_var('SCC_EMAIL'),
+            email => get_var('SCC_EMAIL'),
             reg_code => get_var('SCC_REGCODE')});
     $testapi::distri->get_registration()->enable_update_repositories();
 }

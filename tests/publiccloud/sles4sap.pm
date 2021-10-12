@@ -51,7 +51,7 @@ setting. Croaks on timeout.
 =cut
 sub wait_until_resources_started {
     my ($self, %args) = @_;
-    my @cmds    = ('crm cluster wait_for_startup');
+    my @cmds = ('crm cluster wait_for_startup');
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
 
     # At least one node needs to be online
@@ -96,7 +96,7 @@ sub run_cmd {
     my ($self, %args) = @_;
     die('Argument <cmd> missing') unless ($args{cmd});
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
-    my $title   = $args{title} // $args{cmd};
+    my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
     my $cmd = $args{cmd};
 
@@ -166,13 +166,13 @@ sub fence_node {
 }
 
 sub run {
-    my ($self)        = @_;
-    my $timeout       = 120;
+    my ($self) = @_;
+    my $timeout = 120;
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
 
     $self->select_serial_terminal;
 
-    my $provider  = $self->provider_factory();
+    my $provider = $self->provider_factory();
     my @instances = $provider->create_instances(check_connectivity => 1);
 
     # Upload all TF/SALT logs first!
@@ -213,7 +213,7 @@ sub run {
                     my $remoteHost = $hostname;
                     $remoteHost =~ s/01/02/;
                     my $hana_cmd = "hdbnsutil -sr_register --name=HDB --remoteHost=$remoteHost --remoteInstance=00 --replicationMode=sync --operationMode=logreplay";
-                    $self->run_cmd(cmd => "-i -u prdadm $hana_cmd",                        title => 'HANA register');
+                    $self->run_cmd(cmd => "-i -u prdadm $hana_cmd", title => 'HANA register');
                     $self->run_cmd(cmd => '-i crm resource cleanup msl_SAPHana_PRD_HDB00', title => 'Resources cleanup');
 
                     # Check cluster resources

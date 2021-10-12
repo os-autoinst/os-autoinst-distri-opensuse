@@ -23,7 +23,7 @@ sub run {
     $self->select_serial_terminal;
 
     record_info('kubectl', script_output('kubectl'));
-    record_info('k3s',     script_output('k3s'));
+    record_info('k3s', script_output('k3s'));
     record_info('version', script_output('k3s -v'));
     assert_script_run('k3s server --help');
     assert_script_run('k3s server --help');

@@ -29,24 +29,24 @@ print "mds_taa.pm -> load\n";
 
 my %mds_taa_list =
   (
-    name       => "mds_taa",
-    parameter  => ["mds", "tsx_async_abort"],
+    name => "mds_taa",
+    parameter => ["mds", "tsx_async_abort"],
     sysfs_name => ["mds", "tsx_async_abort"],
-    sysfs      => {
+    sysfs => {
         off => {
-            mds             => "Vulnerable; SMT vulnerable",
+            mds => "Vulnerable; SMT vulnerable",
             tsx_async_abort => "Vulnerable",
         },
         full => {
-            mds             => "Mitigation: Clear CPU buffers; SMT vulnerable",
+            mds => "Mitigation: Clear CPU buffers; SMT vulnerable",
             tsx_async_abort => "Mitigation: Clear CPU buffers; SMT vulnerable",
         },
         default => {
-            mds             => "Mitigation: Clear CPU buffers; SMT vulnerable",
+            mds => "Mitigation: Clear CPU buffers; SMT vulnerable",
             tsx_async_abort => "Mitigation: Clear CPU buffers; SMT vulnerable",
         },
         "full,nosmt" => {
-            mds             => "Mitigation: Clear CPU buffers; SMT disabled",
+            mds => "Mitigation: Clear CPU buffers; SMT disabled",
             tsx_async_abort => "Mitigation: Clear CPU buffers; SMT disabled",
         },
     },
@@ -60,23 +60,23 @@ my %mds_taa_list =
 sub update_list_for_qemu {
     my $self = shift;
 
-    $mds_taa_list{sysfs}->{full}->{mds}         =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{full}->{mds} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mds_taa_list{sysfs}->{"full,nosmt"}->{mds} =~ s/SMT disabled/SMT Host state unknown/ig;
-    $mds_taa_list{sysfs}->{default}->{mds}      =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{default}->{mds} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mds_taa_list{sysfs}->{off}->{mds} = "Vulnerable; SMT Host state unknown";
 
-    $mds_taa_list{sysfs}->{full}->{tsx_async_abort}         =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{full}->{tsx_async_abort} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mds_taa_list{sysfs}->{"full,nosmt"}->{tsx_async_abort} =~ s/SMT disabled/SMT Host state unknown/ig;
-    $mds_taa_list{sysfs}->{default}->{tsx_async_abort}      =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{default}->{tsx_async_abort} =~ s/SMT vulnerable/SMT Host state unknown/ig;
 
     if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
-        $mds_taa_list{sysfs}->{default}->{mds}                  = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
-        $mds_taa_list{sysfs}->{default}->{tsx_async_abort}      = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
-        $mds_taa_list{sysfs}->{off}->{mds}                      = $mds_taa_list{sysfs}->{default}->{mds};
-        $mds_taa_list{sysfs}->{off}->{tsx_async_abort}          = $mds_taa_list{sysfs}->{default}->{mds};
-        $mds_taa_list{sysfs}->{full}->{mds}                     = $mds_taa_list{sysfs}->{default}->{mds};
-        $mds_taa_list{sysfs}->{full}->{tsx_async_abort}         = $mds_taa_list{sysfs}->{default}->{tsx_async_abort};
-        $mds_taa_list{sysfs}->{'full,nosmt'}->{mds}             = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{default}->{mds} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+        $mds_taa_list{sysfs}->{default}->{tsx_async_abort} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+        $mds_taa_list{sysfs}->{off}->{mds} = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{off}->{tsx_async_abort} = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{full}->{mds} = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{full}->{tsx_async_abort} = $mds_taa_list{sysfs}->{default}->{tsx_async_abort};
+        $mds_taa_list{sysfs}->{'full,nosmt'}->{mds} = $mds_taa_list{sysfs}->{default}->{mds};
         $mds_taa_list{sysfs}->{'full,nosmt'}->{tsx_async_abort} = $mds_taa_list{sysfs}->{default}->{tsx_async_abort};
     }
 }
@@ -84,8 +84,8 @@ sub update_list_for_qemu {
 sub run {
     my $self = shift;
 
-    my $taa_obj     = taa->new($taa::mitigations_list);
-    my $mds_obj     = Mitigation->new(\%mds::mitigations_list);
+    my $taa_obj = taa->new($taa::mitigations_list);
+    my $mds_obj = Mitigation->new(\%mds::mitigations_list);
     my $taa_vul_ret = $taa_obj->vulnerabilities();
     my $mds_vul_ret = $mds_obj->vulnerabilities();
     print "taa_vul_ret = $taa_vul_ret\n";

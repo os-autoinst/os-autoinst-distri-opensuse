@@ -22,17 +22,17 @@ use lockapi;
 use utils;
 use mmapi;
 
-my $syspath      = '/sys/devices/system/cpu/vulnerabilities/';
-my $name         = get_var('VM_NAME');
-my $install_url  = get_var('INSTALL_REPO');
+my $syspath = '/sys/devices/system/cpu/vulnerabilities/';
+my $name = get_var('VM_NAME');
+my $install_url = get_var('INSTALL_REPO');
 my $logfile_path = get_var('VM_INST_LOG');
-my $cpu          = get_var('CPU_FEATURE');
-my $vm_pool      = get_var('VM_POOL');
-my $vm_shares    = get_var('VM_SHARES');
-my $source_host  = get_var("SOURCE_HOSTNAME");
-my $dest_host    = get_var("DEST_HOSTNAME");
-my $subname      = "";
-my $cpu_1        = "";
+my $cpu = get_var('CPU_FEATURE');
+my $vm_pool = get_var('VM_POOL');
+my $vm_shares = get_var('VM_SHARES');
+my $source_host = get_var("SOURCE_HOSTNAME");
+my $dest_host = get_var("DEST_HOSTNAME");
+my $subname = "";
+my $cpu_1 = "";
 
 
 sub check_working_status {

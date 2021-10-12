@@ -25,8 +25,8 @@ sub run {
     my $config = '/etc/sysconfig/network/ifcfg-' . $ctx->iface() . '.42';
     $self->get_from_data('wicked/ifcfg/eth0.42', $config);
     file_content_replace($config, interface => $ctx->iface(), ip_address => $self->get_ip(type => 'vlan_changed', netmask => 1));
-    $self->wicked_command('ifup',     'all');
-    $self->wicked_command('ifdown',   $ctx->iface() . '.42');
+    $self->wicked_command('ifup', 'all');
+    $self->wicked_command('ifdown', $ctx->iface() . '.42');
     $self->wicked_command('ifreload', 'all');
     die('VLAN interface does not exists') unless ifc_exists($ctx->iface() . '.42');
     $self->ping_with_timeout(type => 'vlan_changed', timeout => '50');

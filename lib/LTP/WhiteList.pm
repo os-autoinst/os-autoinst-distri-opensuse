@@ -141,7 +141,7 @@ sub find_whitelist_testsuite {
     return undef unless defined($path) and -e $path;
 
     my $content = path($path)->slurp;
-    my $issues  = Mojo::JSON::decode_json($content);
+    my $issues = Mojo::JSON::decode_json($content);
     return undef unless $issues;
     return $issues->{$suite};
 }
@@ -166,7 +166,7 @@ sub whitelist_entry_match
     my @attributes = qw(product ltp_version revision arch kernel backend retval flavor);
 
     foreach my $attr (@attributes) {
-        next         unless defined $entry->{$attr};
+        next unless defined $entry->{$attr};
         return undef unless defined $env->{$attr};
         return undef if ($env->{$attr} !~ m/$entry->{$attr}/);
     }

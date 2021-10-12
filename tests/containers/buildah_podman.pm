@@ -31,7 +31,7 @@ sub run {
 
     install_buildah_when_needed($host_distri);
     install_podman_when_needed($host_distri);
-    my $podman  = containers::engine::podman->new();
+    my $podman = containers::engine::podman->new();
     my $buildah = containers::engine::buildah->new();
     $podman->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));

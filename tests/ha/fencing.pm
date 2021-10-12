@@ -19,9 +19,9 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my $cluster_name  = get_cluster_name;
+    my $cluster_name = get_cluster_name;
     my $node_to_fence = get_var('NODE_TO_FENCE', undef);
-    my $node_index    = !defined $node_to_fence ? 1 : 2;
+    my $node_index = !defined $node_to_fence ? 1 : 2;
 
     # Check cluster state *before* fencing
     barrier_wait("CHECK_BEFORE_FENCING_BEGIN_${cluster_name}_NODE${node_index}");

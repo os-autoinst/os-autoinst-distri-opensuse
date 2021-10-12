@@ -48,22 +48,22 @@ sub activate_containers_module {
 
 sub install_podman_when_needed {
     my $host_os = shift;
-    my @pkgs    = qw(podman);
+    my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
         } elsif ($host_os eq 'ubuntu') {
-            my $version_id  = script_output('(. /etc/os-release && echo $VERSION_ID)');
+            my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
             my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
             assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
             assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
-            assert_script_run "apt-get update",            timeout => 300;
+            assert_script_run "apt-get update", timeout => 300;
             assert_script_run "apt-get -y install podman", timeout => 300;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sles';
             push(@pkgs, 'podman-cni-config') if is_jeos();
-            push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
+            push(@pkgs, 'apparmor-parser') if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
         }
     }
@@ -122,7 +122,7 @@ sub install_docker_when_needed {
 
 sub install_buildah_when_needed {
     my $host_os = shift;
-    my @pkgs    = qw(buildah);
+    my @pkgs = qw(buildah);
     if (script_run("which buildah") != 0) {
         # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
         activate_containers_module if $host_os =~ 'sles';
@@ -188,12 +188,12 @@ sub test_container_runtime {
 
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
-    my %args    = @_;
-    my $image   = $args{image};
+    my %args = @_;
+    my $image = $args{image};
     my $runtime = $args{runtime};
     my $logfile = "/var/tmp/container_logs";
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     # Images from docker.io registry are listed without the 'docker.io/library/'
@@ -232,11 +232,11 @@ sub scc_restore_docker_image_credentials {
 }
 
 sub test_rpm_db_backend {
-    my %args    = @_;
-    my $image   = $args{image};
+    my %args = @_;
+    my $image = $args{image};
     my $runtime = $args{runtime};
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");

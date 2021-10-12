@@ -42,7 +42,7 @@ sub check_function {
     enter_cmd "echo Lorem ipsum dolor sit amet > /srv/www/htdocs/index.html";
     assert_script_run(
         "curl -f http://localhost/ | grep 'Lorem ipsum dolor sit amet'",
-        timeout      => 90,
+        timeout => 90,
         fail_message => 'Could not access local apache2 instance'
     );
 }
@@ -51,9 +51,9 @@ sub check_function {
 # stage is 'before' or 'after' system migration.
 sub full_apache_check {
     my (%hash) = @_;
-    my $stage  = $hash{stage};
-    my $type   = $hash{service_type};
-    my $pkg    = $hash{srv_pkg_name};
+    my $stage = $hash{stage};
+    my $type = $hash{service_type};
+    my $pkg = $hash{srv_pkg_name};
     if ($stage eq 'before') {
         install_service();
         common_service_action($pkg, $type, 'enable');

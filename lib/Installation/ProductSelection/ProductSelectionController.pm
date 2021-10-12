@@ -25,7 +25,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{ProductSelectionPage}        = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
+    $self->{ProductSelectionPage} = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
     $self->{AccessBetaDistributionPopup} = Installation::Popups::OkPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }

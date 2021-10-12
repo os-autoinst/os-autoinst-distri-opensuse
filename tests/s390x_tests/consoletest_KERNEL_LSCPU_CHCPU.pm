@@ -20,12 +20,12 @@ use strict;
 sub run {
     my $self = shift;
     $self->copy_testsuite('KERNEL_LSCPU_CHCPU');
-    $self->execute_script('test_lscpu.sh',               '',      600);
-    $self->execute_script('test_chcpu.sh',               '',      600);
-    $self->execute_script('test_lscpu_chcpu_invalid.sh', '',      300);
-    $self->execute_script('lscpu_chcpu_kernel_parm.sh',  'start', 300);
-    $self->execute_script('lscpu_chcpu_kernel_parm.sh',  'test1', 300);
-    $self->execute_script('lscpu_chcpu_kernel_parm.sh',  'test2', 300);
+    $self->execute_script('test_lscpu.sh', '', 600);
+    $self->execute_script('test_chcpu.sh', '', 600);
+    $self->execute_script('test_lscpu_chcpu_invalid.sh', '', 300);
+    $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'start', 300);
+    $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'test1', 300);
+    $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'test2', 300);
 
     power_action('reboot', observe => 1, keepconsole => 1);
     $self->wait_boot(bootloader_time => 300);
@@ -34,7 +34,7 @@ sub run {
     assert_script_run "cd KERNEL_LSCPU_CHCPU";
     $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'check', 300);
     $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'test3', 300);
-    $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'end',   300);
+    $self->execute_script('lscpu_chcpu_kernel_parm.sh', 'end', 300);
 }
 
 sub test_flags {

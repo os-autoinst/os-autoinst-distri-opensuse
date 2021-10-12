@@ -44,7 +44,7 @@ sub setup_local_server() {
 }
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
     my $smb_remote = get_var("CIFS_TEST_REMOTE") // "currywurst.qam.suse.de";
     $self->select_serial_terminal;

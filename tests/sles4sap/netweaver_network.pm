@@ -18,11 +18,11 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)        = @_;
-    my $cluster_name  = get_cluster_name;
+    my ($self) = @_;
+    my $cluster_name = get_cluster_name;
     my $instance_type = get_required_var('INSTANCE_TYPE');
     my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
-    my $sid   = get_required_var('INSTANCE_SID');
+    my $sid = get_required_var('INSTANCE_SID');
     my $alias = lc("sap$sid" . substr($instance_type, 0, 2));
 
     # Export needed variables

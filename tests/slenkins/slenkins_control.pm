@@ -71,7 +71,7 @@ sub run {
 
     my $i = 0;
     for my $p (@$parents) {
-        my $node     = $settings{$p}->{SLENKINS_NODE};
+        my $node = $settings{$p}->{SLENKINS_NODE};
         my $networks = $settings{$p}->{NETWORKS} // 'fixed';
         my @external_ip;
         my @internal_ip;
@@ -110,7 +110,7 @@ sub run {
         my $disk_name = 'vd';
         $disk_name = 'sd' if ($settings{$p}->{HDDMODEL} || '') eq "virtio-scsi-pci";
         my $disk_size = $settings{$p}->{HDDSIZEGB} || 10;
-        my $num_disks = $settings{$p}->{NUMDISKS}  || 1;
+        my $num_disks = $settings{$p}->{NUMDISKS} || 1;
 
         # In SLEnkins DISK_NAME_NODE_DISK0 is used for first additional disk, e.g. /dev/vdb and so on
         # Drive /dev/vda is always in use as bootdrive and has no dedicated variable

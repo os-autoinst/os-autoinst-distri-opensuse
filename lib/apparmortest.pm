@@ -46,24 +46,24 @@ our @EXPORT = qw(
   test_profile_content_is_special
 );
 
-our $prof_dir      = "/etc/apparmor.d";
-our $audit_log     = "/var/log/audit/audit.log";
-our $mail_err_log  = "/var/log/mail.err";
+our $prof_dir = "/etc/apparmor.d";
+our $audit_log = "/var/log/audit/audit.log";
+our $mail_err_log = "/var/log/mail.err";
 our $mail_warn_log = "/var/log/mail.warn";
 our $mail_info_log = "/var/log/mail.info";
 
 our $mail_recipient = "recipient";
-our $mail_sender    = "sender";
-our $pw             = "te5tpw";
-our $mail_subject   = "Subject: Postfix test";
-our $mail_content   = "hello world";
-our $testdomain     = "testdomain.com";
+our $mail_sender = "sender";
+our $pw = "te5tpw";
+our $mail_subject = "Subject: Postfix test";
+our $mail_content = "hello world";
+our $testdomain = "testdomain.com";
 
 our $adminer_file = "adminer.php5";
-our $adminer_dir  = "/srv/www/htdocs/adminer/";
+our $adminer_dir = "/srv/www/htdocs/adminer/";
 
 our $testuser = "testuser";
-our $testdir  = "testdir";
+our $testdir = "testdir";
 
 # $prof_dir_tmp: The target temporary directory
 # $type:
@@ -163,7 +163,7 @@ sub aa_status_stdout_check {
 
     my $start_line = script_output("aa-status | grep -n 'profiles are in' | grep $profile_mode | cut -d ':' -f1");
     my $total_line = script_output("aa-status | grep 'profiles are in' | grep $profile_mode | cut -d ' ' -f1");
-    my $lines      = $start_line + $total_line;
+    my $lines = $start_line + $total_line;
 
     assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
 }
@@ -205,8 +205,8 @@ Set up mail server with Postfix and Dovecot:
 
 =cut
 sub setup_mail_server_postfix_dovecot {
-    my ($self)   = @_;
-    my $ip       = "";
+    my ($self) = @_;
+    my $ip = "";
     my $hostname = "mail";
     my $mail_dir = "/home";
 
@@ -226,9 +226,9 @@ sub setup_mail_server_postfix_dovecot {
     assert_script_run("rcnetwork restart");
 
     # Double check the setting
-    validate_script_output("hostname --short",      sub { m/$hostname/ });
-    validate_script_output("hostname --domain",     sub { m/$testdomain/ });
-    validate_script_output("hostname --fqdn",       sub { m/$hostname.$testdomain/ });
+    validate_script_output("hostname --short", sub { m/$hostname/ });
+    validate_script_output("hostname --domain", sub { m/$testdomain/ });
+    validate_script_output("hostname --fqdn", sub { m/$hostname.$testdomain/ });
     validate_script_output("hostname --ip-address", sub { m/$ip/ });
 
     # 2. Setting mail sender/recipient as needed
@@ -340,7 +340,7 @@ sub send_mail_smtp {
             },
             {
                 prompt => qr/250 2.0.0 Ok: queued as.*/m,
-                key    => "ctrl-]",
+                key => "ctrl-]",
             },
             {
                 prompt => qr/telnet>/m,
@@ -375,7 +375,7 @@ sub retrieve_mail_pop3 {
             },
             {
                 prompt => qr/.*$mail_subject.*/m,
-                key    => "ctrl-]",
+                key => "ctrl-]",
             },
             {
                 prompt => qr/telnet>/m,
@@ -432,7 +432,7 @@ sub retrieve_mail_imap {
             },
             {
                 prompt => qr/.*$mail_subject.*/m,
-                key    => "ctrl-]",
+                key => "ctrl-]",
             },
             {
                 prompt => qr/telnet>/m,
@@ -688,8 +688,8 @@ sub create_a_test_profile_name_is_special {
 # to verify all the commands should be succeeded
 sub test_profile_content_is_special {
     my ($self, $cmd, $msg) = @_;
-    my $test          = "test_profile";
-    my $test_profile  = "/etc/apparmor.d/usr.sbin." . "$test";
+    my $test = "test_profile";
+    my $test_profile = "/etc/apparmor.d/usr.sbin." . "$test";
     my $local_profile = "/etc/apparmor.d/local/usr.sbin.cupsd";
 
     # Create an empty local profile under "/etc/apparmor.d/local/"
@@ -705,7 +705,7 @@ sub test_profile_content_is_special {
     my $current_ver = script_output("rpm -q --qf '%{version}' apparmor-utils");
 
     my $cmd1 = $cmd eq "aa-logprof" ? $cmd : "$cmd $test_profile";
-    my $ret  = script_run($cmd1, sub { m/$msg/ });
+    my $ret = script_run($cmd1, sub { m/$msg/ });
     if ($ret == 0) {
         if ("$cmd" eq "aa-disable") {
             # The profile will not be listed out if disabled

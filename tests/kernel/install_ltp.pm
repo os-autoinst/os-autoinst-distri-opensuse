@@ -174,11 +174,11 @@ sub install_build_dependencies {
 }
 
 sub install_from_git {
-    my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
-    my $rel         = get_var('LTP_RELEASE');
-    my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
-    my $prefix      = get_ltproot();
-    my $configure   = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
+    my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
+    my $rel = get_var('LTP_RELEASE');
+    my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
+    my $prefix = get_ltproot();
+    my $configure = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
 
     $rel = "-b $rel" if ($rel);
@@ -216,8 +216,8 @@ sub add_ltp_repo {
             $repo = sprintf("Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
             $repo = "Factory";
-            $repo = "Factory_ARM"      if is_aarch64();
-            $repo = "Factory_PowerPC"  if is_ppc64le();
+            $repo = "Factory_ARM" if is_aarch64();
+            $repo = "Factory_PowerPC" if is_ppc64le();
             $repo = "Factory_zSystems" if is_s390x();
         } else {
             die sprintf("Unexpected combination of version (%s) and architecture (%s) used", get_var('VERSION'), get_var('ARCH'));
@@ -306,9 +306,9 @@ sub setup_network {
 }
 
 sub run {
-    my $self       = shift;
-    my $inst_ltp   = get_var 'INSTALL_LTP';
-    my $cmd_file   = get_var('LTP_COMMAND_FILE');
+    my $self = shift;
+    my $inst_ltp = get_var 'INSTALL_LTP';
+    my $cmd_file = get_var('LTP_COMMAND_FILE');
     my $grub_param = 'ignore_loglevel';
 
     if ($inst_ltp !~ /(repo|git)/i) {
@@ -354,7 +354,7 @@ sub run {
 
     zypper_call('in efivar') if is_sle('12+') || is_opensuse;
 
-    $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
+    $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
     if (!is_sle('<12') && defined $grub_param) {
         add_grub_cmdline_settings($grub_param, update_grub => 1);

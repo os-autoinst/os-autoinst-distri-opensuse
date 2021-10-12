@@ -19,7 +19,7 @@ use testapi;
 use upload_system_log;
 
 sub upload_pynfs_log {
-    my $self   = shift;
+    my $self = shift;
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ~/pynfs/$folder");
@@ -69,10 +69,10 @@ sub upload_cthon04_log {
     else {
         record_info('Pass', "Lock test pass");
     }
-    upload_logs('result_basic_test.txt',   failok => 1);
+    upload_logs('result_basic_test.txt', failok => 1);
     upload_logs('result_general_test.txt', failok => 1);
     upload_logs('result_special_test.txt', failok => 1);
-    upload_logs('result_lock_test.txt',    failok => 1);
+    upload_logs('result_lock_test.txt', failok => 1);
 }
 
 sub run {

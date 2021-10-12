@@ -102,7 +102,7 @@ sub selenium_driver {
     die "Selenium support works only with openvswitch and tap devices" unless check_var('NICTYPE', 'tap');
 
     my @mac_parts = split(':', get_var('NICMAC'));
-    my $sut       = "10.1." . hex($mac_parts[4]) . '.' . hex($mac_parts[5]);
+    my $sut = "10.1." . hex($mac_parts[4]) . '.' . hex($mac_parts[5]);
 
     select_console('x11');
 
@@ -135,8 +135,8 @@ sub wait_for_page_to_load {
 sub wait_for {
     my ($type, $target, @args) = @_;
     my %args = (
-        -tries              => 5,
-        -wait               => 1,
+        -tries => 5,
+        -wait => 1,
         -reload_after_tries => 5,
         @args
     );

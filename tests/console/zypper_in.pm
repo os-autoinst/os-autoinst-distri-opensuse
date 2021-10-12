@@ -29,7 +29,7 @@ sub run {
     script_run("zypper lr -d | tee /dev/$serialdev");
     my $pkgname = get_var('PACKAGETOINSTALL');
     if (!$pkgname) {
-        $pkgname = 'x3270'   if check_var('DISTRI', 'sle');
+        $pkgname = 'x3270' if check_var('DISTRI', 'sle');
         $pkgname = 'xdelta3' if check_var('DISTRI', 'opensuse');
     }
     zypper_call "in screen $pkgname";

@@ -30,7 +30,7 @@ sub run {
     }
     else {
         $vendor = 'intel';
-        $match  = 'microcode updated';
+        $match = 'microcode updated';
     }
     # different true exit status value bash 0 perl 1
     unless (script_run "zypper if ucode-$vendor|grep 'not installed'") {

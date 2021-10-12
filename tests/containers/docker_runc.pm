@@ -30,7 +30,7 @@ sub run {
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $docker   = containers::engine::docker->new();
+    my $docker = containers::engine::docker->new();
     my @runtimes = ();
     push @runtimes, "runc" if (is_leap(">15.1") or !is_sle('=15'));
 
@@ -44,7 +44,7 @@ sub run {
 
     # export alpine via Docker into the rootfs directory (see bsc#1152508)
     my $registry = get_var('REGISTRY', 'docker.io');
-    my $alpine   = "$registry/library/alpine:3.6";
+    my $alpine = "$registry/library/alpine:3.6";
     assert_script_run('docker export $(docker create ' . $alpine . ') | tar -C rootfs -xvf -');
 
     foreach my $runc (@runtimes) {

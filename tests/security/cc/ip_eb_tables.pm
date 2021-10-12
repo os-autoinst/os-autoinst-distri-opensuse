@@ -19,12 +19,12 @@ use utils;
 use audit_test qw(run_testcase compare_run_log);
 
 sub run {
-    my ($self)          = shift;
-    my $f_ifcfg_br0     = '/etc/sysconfig/network/ifcfg-br0';
-    my $f_ifcfg_eth0    = '/etc/sysconfig/network/ifcfg-eth0';
+    my ($self) = shift;
+    my $f_ifcfg_br0 = '/etc/sysconfig/network/ifcfg-br0';
+    my $f_ifcfg_eth0 = '/etc/sysconfig/network/ifcfg-eth0';
     my $bakf_ifcfg_eth0 = '/etc/sysconfig/network/ifcfg-eth0.bak';
-    my $br0_config      = "BOOTPROTO='dhcp'\nSTARTMODE='auto'\nBRIDGE='yes'\nBRIDGE_PORTS='eth0'\nBRIDGE_STP='off'\nBRIDGE_FORWARDDELAY='15'\n";
-    my $eth0_config     = "IPADDR='0.0.0.0'\nBOOTPROTO='none'\nSTARTMODE='auto'\n";
+    my $br0_config = "BOOTPROTO='dhcp'\nSTARTMODE='auto'\nBRIDGE='yes'\nBRIDGE_PORTS='eth0'\nBRIDGE_STP='off'\nBRIDGE_FORWARDDELAY='15'\n";
+    my $eth0_config = "IPADDR='0.0.0.0'\nBOOTPROTO='none'\nSTARTMODE='auto'\n";
 
     select_console 'root-console';
 

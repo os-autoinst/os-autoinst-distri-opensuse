@@ -29,7 +29,7 @@ sub run {
     if (is_opensuse) {
         zypper_call 'in systemd-network';
         systemctl 'is-enabled systemd-networkd', expect_false => 1;
-        systemctl 'is-active systemd-networkd',  expect_false => 1;
+        systemctl 'is-active systemd-networkd', expect_false => 1;
         assert_script_run 'networkctl status';
     }
 
@@ -37,29 +37,29 @@ sub run {
 
     record_info $network_daemon, "$network_daemon was detected as the configured network daemon for this system.";
 
-    my $expected   = 'NetworkManager';
+    my $expected = 'NetworkManager';
     my $unexpected = 'wicked';
-    my $reason     = 'DESKTOP!=textmode';
+    my $reason = 'DESKTOP!=textmode';
 
     if (is_sle) {
         if (is_server) {
-            $expected   = 'wicked';
+            $expected = 'wicked';
             $unexpected = 'NetworkManager';
-            $reason     = 'SLES';
+            $reason = 'SLES';
         }
         elsif (is_jeos) {
-            $expected   = 'wicked';
+            $expected = 'wicked';
             $unexpected = 'NetworkManager';
-            $reason     = 'JeOS';
+            $reason = 'JeOS';
         }
         else {
             $reason = 'SLED';
         }
     }
     elsif (check_var('DESKTOP', 'textmode')) {
-        $expected   = 'wicked';
+        $expected = 'wicked';
         $unexpected = 'NetworkManager';
-        $reason     = 'DESKTOP=textmode';
+        $reason = 'DESKTOP=textmode';
     }
 
     if ($expected ne $network_daemon) {
@@ -74,7 +74,7 @@ sub run {
     assert_script_run(($network_daemon eq "wicked") ? 'wicked show all' : 'nmcli');
 
     systemctl("is-enabled $unexpected", expect_false => 1);
-    systemctl("is-active $unexpected",  expect_false => 1);
+    systemctl("is-active $unexpected", expect_false => 1);
 }
 
 1;

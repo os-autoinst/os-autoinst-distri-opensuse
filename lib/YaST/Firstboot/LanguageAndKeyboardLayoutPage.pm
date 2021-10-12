@@ -29,7 +29,7 @@ sub init {
     my ($self) = @_;
     $self->SUPER::init();
     $self->{cb_keyboard_layout} = $self->{app}->combobox({id => 'keyboard'});
-    $self->{cb_language}        = $self->{app}->combobox({id => 'language'});
+    $self->{cb_language} = $self->{app}->combobox({id => 'language'});
     return $self;
 }
 

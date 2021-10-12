@@ -28,7 +28,7 @@ sub run {
 
     # Save output info to logfile
     my $out;
-    my $timeout  = bmwqemu::scale_timeout(30);
+    my $timeout = bmwqemu::scale_timeout(30);
     my $waittime = bmwqemu::scale_timeout(5);
     while (1) {
         $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);

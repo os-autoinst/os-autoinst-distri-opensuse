@@ -30,7 +30,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Add user tss, tss is the default user to start tpm2.0 service
-    my $user   = "tss";
+    my $user = "tss";
     my $passwd = "susetesting";
     assert_script_run "useradd -d /home/$user -m $user";
     assert_script_run "echo $user:$passwd | chpasswd";

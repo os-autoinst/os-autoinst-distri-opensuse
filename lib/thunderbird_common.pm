@@ -36,15 +36,15 @@ sub tb_setup_account {
     my $hostname = get_var('HOSTNAME');
     my ($self, $proto, $account) = @_;
 
-    my $config          = $self->getconfig_emailaccount;
-    my $mail_box        = $config->{$account}->{mailbox};
+    my $config = $self->getconfig_emailaccount;
+    my $mail_box = $config->{$account}->{mailbox};
     my $mail_sendServer = $config->{$account}->{sendServer};
     my $mail_recvServer = $config->{$account}->{recvServer};
-    my $mail_user       = $config->{$account}->{user};
-    my $mail_passwd     = $config->{$account}->{passwd};
-    my $mail_sendport   = $config->{$account}->{sendport};
-    my $port_key        = $proto eq 'pop' ? 'recvport' : 'imapport';
-    my $mail_recvport   = $config->{$account}->{$port_key};
+    my $mail_user = $config->{$account}->{user};
+    my $mail_passwd = $config->{$account}->{passwd};
+    my $mail_sendport = $config->{$account}->{sendport};
+    my $port_key = $proto eq 'pop' ? 'recvport' : 'imapport';
+    my $mail_recvport = $config->{$account}->{$port_key};
 
     send_key "alt-n";
     wait_still_screen(2, 4);
@@ -113,9 +113,9 @@ Returns email subject.
 sub tb_send_message {
     my $hostname = get_var('HOSTNAME');
     my ($self, $proto, $account) = @_;
-    my $config       = $self->getconfig_emailaccount;
-    my $mailbox      = $config->{$account}->{mailbox};
-    my $mail_passwd  = $config->{$account}->{passwd};
+    my $config = $self->getconfig_emailaccount;
+    my $mailbox = $config->{$account}->{mailbox};
+    my $mail_passwd = $config->{$account}->{passwd};
     my $mail_subject = $self->get_dated_random_string(4);
 
     send_key "ctrl-m";

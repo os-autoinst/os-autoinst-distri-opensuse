@@ -25,7 +25,7 @@ sub run {
 
     select_console 'root-console';
 
-    my $config            = get_test_suite_data();
+    my $config = get_test_suite_data();
     my $expected_num_devs = scalar @{$config->{disks}};
     _check_lvm_partitioning($config);
     _check_raid1_partitioning($config, $expected_num_devs);

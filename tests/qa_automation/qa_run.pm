@@ -28,15 +28,15 @@ sub test_run_list {
 
 sub system_status {
     my $self = shift;
-    my $log  = shift || "/tmp/system-status.log";
+    my $log = shift || "/tmp/system-status.log";
     my @klst = ("kernel", "cpuinfo", "memory", "iptables", "repos", "dmesg", "journalctl");
     my %cmds = (
-        kernel     => "uname -a",
-        cpuinfo    => "cat /proc/cpuinfo",
-        memory     => "free -m",
-        iptables   => "iptables -L -n --line-numbers",
-        repos      => "zypper repos -u",
-        dmesg      => "dmesg",
+        kernel => "uname -a",
+        cpuinfo => "cat /proc/cpuinfo",
+        memory => "free -m",
+        iptables => "iptables -L -n --line-numbers",
+        repos => "zypper repos -u",
+        dmesg => "dmesg",
         journalctl => "journalctl -xn 100 -o short-precise"
     );
     foreach my $key (@klst) {
@@ -84,9 +84,9 @@ sub qaset_config {
 # Add qa head repo for kernel testing. If QA_SERVER_REPO is set,
 # remove all existing zypper repos first
 sub prepare_repos {
-    my $self           = shift;
+    my $self = shift;
     my $qa_server_repo = get_var('QA_SERVER_REPO', '');
-    my $qa_sdk_repo    = get_var('QA_SDK_REPO',    '');
+    my $qa_sdk_repo = get_var('QA_SDK_REPO', '');
     quit_packagekit;
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
@@ -115,15 +115,15 @@ sub start_testrun {
 
 # Check whether DONE file exists every $sleep secs in the background
 sub wait_testrun {
-    my $self    = shift;
-    my %args    = @_;
+    my $self = shift;
+    my %args = @_;
     my $timeout = $args{timeout} || 180 * 60;
-    my $sleep   = $args{sleep}   || 30;
-    my $fdone   = '/var/log/qaset/control/DONE';
+    my $sleep = $args{sleep} || 30;
+    my $fdone = '/var/log/qaset/control/DONE';
     my $pattern = "TESTRUN_FINISHED";
-    my $code    = int(rand(999999));
-    my $redir   = (is_serial_terminal) ? "" : " >> /dev/$serialdev";
-    my $cmd     = "code=$code; while [[ ! -f $fdone ]]; do sleep $sleep; done; echo \"$pattern-\$code\" $redir";
+    my $code = int(rand(999999));
+    my $redir = (is_serial_terminal) ? "" : " >> /dev/$serialdev";
+    my $cmd = "code=$code; while [[ ! -f $fdone ]]; do sleep $sleep; done; echo \"$pattern-\$code\" $redir";
     enter_cmd("bash -c '$cmd' &");
     # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or

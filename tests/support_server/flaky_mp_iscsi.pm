@@ -32,7 +32,7 @@ use mmapi;
 use iscsi;
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $count = 1;
     # See: data/supportserver/iscsi/multipath_flaky_luns.sh
     my $meddler_pidfile = "/tmp/multipath_flaky_luns.pid";
@@ -45,11 +45,11 @@ sub run {
     $jobid_client = (keys %$jobid_client)[0];
 
     my $testcase_in_progress = 0;
-    my $done_all             = 0;
-    my $client_says_proceed  = 0;
+    my $done_all = 0;
+    my $client_says_proceed = 0;
     # poll frequency in seconds :-/
     my $poll_client_says_proceed = 5;
-    my $delay_meddling           = 10;
+    my $delay_meddling = 10;
 
     while (1) {
         # check whether multipathed iSCSI target it is really tidied up, then
@@ -69,8 +69,8 @@ sub run {
             until ($client_says_proceed) {
                 sleep $poll_client_says_proceed;
                 $testcase_in_progress = mutex_try_lock("flakyserver_testcase_started$count", $jobid_client);
-                $done_all             = mutex_try_lock('flakyserver_testcases_done_all',     $jobid_client);
-                $client_says_proceed  = $testcase_in_progress || $done_all;
+                $done_all = mutex_try_lock('flakyserver_testcases_done_all', $jobid_client);
+                $client_says_proceed = $testcase_in_progress || $done_all;
 
                 # DEBUG: provide an idea of timing
                 record_info("Proceed?", "\$count =  $count: Received "

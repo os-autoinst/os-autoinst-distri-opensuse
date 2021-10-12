@@ -49,10 +49,10 @@ sub run {
 
     #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default).
     my $pkgs = "systemd systemd-sysvinit 389-ds openssl";
-    my $tag  = get_var("BASE_IMAGE_TAG");
+    my $tag = get_var("BASE_IMAGE_TAG");
     unless ($tag) {
         if (is_opensuse) { $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
-        } else           { $tag = "registry.suse.com/suse/sle15:15.3"; }
+        } else { $tag = "registry.suse.com/suse/sle15:15.3"; }
     }
     systemctl("enable --now $docker") if ($docker eq "docker");
     # build image, create container, setup 389-ds database and import testing data
@@ -84,7 +84,7 @@ sub run {
     assert_script_run('sshpass -p open5use ssh alice@localhost \'echo -e "open5use\nn0vell88\nn0vell88" | passwd\'');
     validate_script_output('sshpass -p n0vell88 ssh alice@localhost echo "login as new password!"', sub { m/new password/ });
     validate_script_output('ldapwhoami -x -H ldap://ldapserver -D uid=alice,ou=users,dc=sssdtest,dc=com -w n0vell88', sub { m/alice/ }); #verify password changed in remote 389-ds.
-                                                                                                                                         #Sudo run a command as another user
+        #Sudo run a command as another user
     assert_script_run("sed -i '/Defaults targetpw/s/^/#/' /etc/sudoers");
     validate_script_output('sshpass -p open5use ssh mary@localhost "echo open5use|sudo -S -l"', sub { m#/usr/bin/cat# });
     assert_script_run(qq(su -c 'echo "file read only by owner alice" > hello && chmod 600 hello' -l alice));

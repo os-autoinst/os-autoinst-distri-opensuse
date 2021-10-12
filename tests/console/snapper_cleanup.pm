@@ -43,14 +43,14 @@ sub snapper_cleanup {
 
     script_run($btrfs_fs_usage);
     # we want to fill up disk enough so that snapper cleanup triggers
-    my $fill_space  = "dd if=/dev/urandom of=data bs=1M count=$scratchfile_mb";
+    my $fill_space = "dd if=/dev/urandom of=data bs=1M count=$scratchfile_mb";
     my $snap_create = "snapper create --cleanup number --command '$fill_space'";
     assert_script_run "btrfs filesystem show --mbytes /";
 
     for (1 .. $scratch_size_gb) { assert_script_run("$snap_create", 500); }
     assert_script_run('sync');
     script_run "echo There are `$snaps_numb` snapshots BEFORE cleanup";
-    assert_script_run("snapper cleanup number",  300);    # cleanup created snapshots
+    assert_script_run("snapper cleanup number", 300);    # cleanup created snapshots
     assert_script_run("btrfs quota rescan -w /", 90);
     script_run "echo There are `$snaps_numb` snapshots AFTER cleanup";
     assert_script_run("btrfs qgroup show -pcre /");
@@ -81,13 +81,13 @@ sub run {
         assert_script_run "snapper set-config NUMBER_LIMIT_IMPORTANT=4-10 SPACE_LIMIT=0.5";
     }
 
-    my ($n_scratch_prepost, $scratchfile_mb,     $safety_margin_mb,       $initially_free);
-    my ($nmax_snapshots,    $number_limit_upper, $number_limit_upper_max, $n);
-    my ($number_limit_pre,  $number_min_age_pre);
+    my ($n_scratch_prepost, $scratchfile_mb, $safety_margin_mb, $initially_free);
+    my ($nmax_snapshots, $number_limit_upper, $number_limit_upper_max, $n);
+    my ($number_limit_pre, $number_min_age_pre);
 
     # test parameters; hardcoded values found appropriate in past tests
     $n_scratch_prepost = 3;
-    $scratchfile_mb    = 1024;
+    $scratchfile_mb = 1024;
     # Keep the test from filling the last 300 MB of the filesystem, poo#36838
     # Takes into account that scratch file "data" is not yet present at the beginning
     $safety_margin_mb = 300 + $scratchfile_mb;
@@ -98,7 +98,7 @@ sub run {
     # get initial cfg and save initial NUMBER_LIMIT and NUMBER_MIN_AGE settings for later restore
     assert_script_run("snapper get-config");
     foreach (split /\n/, script_output("snapper get-config")) {
-        $number_limit_pre   = $1 if (m/^NUMBER_LIMIT\s+\|\s+([-\d]+)\s*$/);
+        $number_limit_pre = $1 if (m/^NUMBER_LIMIT\s+\|\s+([-\d]+)\s*$/);
         $number_min_age_pre = $1 if (m/^NUMBER_MIN_AGE\s+\|\s+(\d+)\s*$/);
     }
     assert_script_run("snapper list");    # get initial list of snap's

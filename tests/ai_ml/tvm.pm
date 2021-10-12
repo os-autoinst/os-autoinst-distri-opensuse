@@ -42,7 +42,7 @@ sub run {
 
     if ($tvm_tvmc_tune) {
         record_info('tvmc - tuned');
-        assert_script_run('tvmc tune --target "llvm" --output autotuner_records.json resnet50-v2-7.onnx',                  timeout => 600);
+        assert_script_run('tvmc tune --target "llvm" --output autotuner_records.json resnet50-v2-7.onnx', timeout => 600);
         assert_script_run('tvmc compile --tuning-records --target "llvm" --output compiled_module.tar resnet50-v2-7.onnx', timeout => 600);
         assert_script_run('python3 tvmc_command_line_driver.py');
         assert_script_run('tvmc run --inputs imagenet_cat.npz --output predictions.npz compiled_module.tar');

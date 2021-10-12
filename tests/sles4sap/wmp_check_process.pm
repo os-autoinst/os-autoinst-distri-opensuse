@@ -19,11 +19,11 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)        = @_;
-    my $testname      = 'wmp_check_process';
-    my $logdir        = '/root/wmp_logs';
+    my ($self) = @_;
+    my $testname = 'wmp_check_process';
+    my $logdir = '/root/wmp_logs';
     my $wmp_test_repo = get_required_var('WMP_TEST_REPO');
-    my @testphases    = qw(initial takeover takeback);
+    my @testphases = qw(initial takeover takeback);
 
     # Only run this test if WMP was configured. Do this by checking sap.slice cgroup
     my $ret = script_run $sles4sap::systemd_cgls_cmd;

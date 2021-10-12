@@ -19,9 +19,9 @@ use serial_terminal;
 
 sub create_test_data
 {
-    my $size        = shift // 1024 * 1024;
+    my $size = shift // 1024 * 1024;
     my $line_length = shift // 79;
-    my @a           = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+    my @a = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
 
     my $data = "";
     for (my $i = 1; $i < $size; $i++) {
@@ -36,8 +36,8 @@ sub create_test_data
 }
 
 sub run {
-    my $self   = shift;
-    my $size   = get_var('VIRTIO_CONSOLE_TEST_FILESIZE') // 200 * 1024;
+    my $self = shift;
+    my $size = get_var('VIRTIO_CONSOLE_TEST_FILESIZE') // 200 * 1024;
     my $repeat = 1000;
 
     $self->select_serial_terminal;

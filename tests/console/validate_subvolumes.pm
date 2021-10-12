@@ -39,7 +39,7 @@ sub run {
 
     foreach my $subvolume (@{$test_data->{validate_subvolumes}}) {
         validate_subvolume({
-                subvolume   => $subvolume->{subvolume},
+                subvolume => $subvolume->{subvolume},
                 mount_point => $subvolume->{mount_point}
         });
     }

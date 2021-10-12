@@ -107,7 +107,7 @@ sub repl_repo_in_sourcefile {
             $location = 'de';
         }
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . "$location";
-        my $newrepo   = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
+        my $newrepo = "http://openqa.suse.de/assets/repo/" . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
         $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
         my $shell_cmd
@@ -148,7 +148,7 @@ sub repl_module_in_sourcefile {
         $daily_build_module .= "SLE-${version}-Module-\\2-POOL-" . get_required_var('ARCH') . "-Build" . get_required_var('BUILD') . "-Media1/";
     }
     my $source_file = "/usr/share/qa/virtautolib/data/sources.*";
-    my $command     = "sed -ri 's#^(${replaced_item}).*\$#\\1$daily_build_module#g' $source_file";
+    my $command = "sed -ri 's#^(${replaced_item}).*\$#\\1$daily_build_module#g' $source_file";
     print "Debug: the command to execute is:\n$command \n";
     if (is_s390x) {
         lpar_cmd("$command");
@@ -188,7 +188,7 @@ sub repl_guest_autoyast_addon_with_daily_build_module {
     my $version = get_version_for_daily_build_guest;
     $version =~ s/-/\//;
     my $autoyast_root_dir = "/usr/share/qa/virtautolib/data/autoinstallation/sles/" . $version . "/";
-    my $file_list         = script_output("find $autoyast_root_dir -type f");
+    my $file_list = script_output("find $autoyast_root_dir -type f");
     repl_addon_with_daily_build_module_in_files("$file_list");
 }
 
@@ -227,21 +227,21 @@ sub update_guest_configurations_with_daily_build {
 }
 
 sub clean_up_red_disks {
-    my $wait_script           = "600";
-    my $get_disks_not_used    = "ls /dev/sd* | grep -v -e \"/dev/sd[a].*\" | grep -o -e \"/dev/sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
-    my $disks_not_used        = script_output($get_disks_not_used, $wait_script, type_command => 1, proceed_on_failure => 1);
-    my $get_disks_nu_num      = "$get_disks_not_used | wc -l";
-    my $disks_nu_num          = script_output($get_disks_nu_num, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $wait_script = "600";
+    my $get_disks_not_used = "ls /dev/sd* | grep -v -e \"/dev/sd[a].*\" | grep -o -e \"/dev/sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
+    my $disks_not_used = script_output($get_disks_not_used, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $get_disks_nu_num = "$get_disks_not_used | wc -l";
+    my $disks_nu_num = script_output($get_disks_nu_num, $wait_script, type_command => 1, proceed_on_failure => 1);
     my $get_disks_fs_overview = "lsblk -f";
     my $get_fs_type_supported = "$get_disks_fs_overview | grep sda | awk \'{print \$2}\' | grep -v swap | tail -1";
-    my $fs_type_supported     = script_output($get_fs_type_supported, $wait_script, type_command => 1, proceed_on_failure => 1);
-    my $make_fs_cmd           = "mkfs.$fs_type_supported";
-    my @disks_nu_array        = split(/\n+/, $disks_not_used);
-    my $disks_nu_length       = scalar @disks_nu_array;
+    my $fs_type_supported = script_output($get_fs_type_supported, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $make_fs_cmd = "mkfs.$fs_type_supported";
+    my @disks_nu_array = split(/\n+/, $disks_not_used);
+    my $disks_nu_length = scalar @disks_nu_array;
     my $get_swaps_not_need = "$get_disks_fs_overview | grep -v -e \"sd[a].*\" | grep -i \"\\\[SWAP\\\]\" | grep -o -e \"sd[b-z]\\\{1,\\\}[[:digit:]]\\\{0,\\\}\"";
-    my $swaps_not_used     = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
+    my $swaps_not_used = script_output($get_swaps_not_need, $wait_script, type_command => 1, proceed_on_failure => 1);
 
-    my $wipe_fs_cmd      = "";
+    my $wipe_fs_cmd = "";
     my $installed_os_ver = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));
     ($installed_os_ver) = $installed_os_ver =~ /^(\d+)/;
     if ($installed_os_ver eq '11') {
@@ -382,7 +382,7 @@ sub get_guest_list {
     #parse the guest list from the pattern
     return $guest_pattern if ($guest_pattern =~ /win/i);
     my $qa_guest_config_file = "/usr/share/qa/virtautolib/data/vm_guest_config_in_vh_update";
-    my $hypervisor_type      = get_var('SYSTEM_ROLE', '');
+    my $hypervisor_type = get_var('SYSTEM_ROLE', '');
     my $guest_list = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vms_from_config_file $qa_guest_config_file $guest_pattern $hypervisor_type";
     record_soft_failure("Not found guest pattern $guest_pattern in $qa_guest_config_file") if ($guest_list eq '');
     return $guest_list;
@@ -390,9 +390,9 @@ sub get_guest_list {
 
 # remove a vm listed via 'virsh list'
 sub remove_vm {
-    my $vm               = shift;
+    my $vm = shift;
     my $is_persistent_vm = script_output "virsh dominfo $vm | sed -n '/Persistent:/p' | awk '{print \$2}'";
-    my $vm_state         = script_output "virsh domstate $vm";
+    my $vm_state = script_output "virsh domstate $vm";
     if ($vm_state ne "shut off") {
         assert_script_run("virsh destroy $vm", 30);
     }
@@ -450,9 +450,9 @@ sub download_guest_assets {
     # test aborts if failing in copying all the guests
     my $guest_count = 0;
     foreach my $guest (@available_guests) {
-        my $guest_asset           = generate_guest_asset_name("$guest");
+        my $guest_asset = generate_guest_asset_name("$guest");
         my $remote_guest_xml_file = $guest_asset . '.xml';
-        my $remote_guest_disk     = $guest_asset . '.disk';
+        my $remote_guest_disk = $guest_asset . '.disk';
 
         # download vm xml file
         my $rc = script_run("cp $mount_point/$remote_guest_xml_file $vm_xml_dir/$guest.xml", 60);
@@ -468,9 +468,9 @@ sub download_guest_assets {
         # put the downloded xml and disk files in the backup dir directory
         # in case of being flushed up by the NFS workaround from dst job
         if (get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE')) {
-            my $backupRootDir   = "/tmp/prj3_guest_migration/vm_backup";
+            my $backupRootDir = "/tmp/prj3_guest_migration/vm_backup";
             my $backupCfgXmlDir = "$backupRootDir/vm-config-xmls";
-            my $backupDiskDir   = "$backupRootDir/vm-disk-files";
+            my $backupDiskDir = "$backupRootDir/vm-disk-files";
             script_run "mkdir -p $backupCfgXmlDir; mkdir -p $backupDiskDir";
             script_run "cp $vm_xml_dir/$guest.xml $backupCfgXmlDir";
             script_run "ls -l $backupCfgXmlDir";
@@ -516,7 +516,7 @@ sub generateXML_from_data {
 
     my %my_hash = %$tc_data;
     my %xmldata = %$data;
-    my $writer  = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
+    my $writer = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => 'self');
     #Initialize undefined counters to zero
     my @tc_status_counters = ('pass', 'fail', 'skip', 'softfail', 'timeout', 'unknown');
     foreach (@tc_status_counters) {
@@ -526,28 +526,28 @@ sub generateXML_from_data {
     my $timestamp = localtime(time);
     $writer->startTag(
         'testsuites',
-        id           => "0",
-        error        => "n/a",
-        failures     => $xmldata{"fail_nums"},
+        id => "0",
+        error => "n/a",
+        failures => $xmldata{"fail_nums"},
         softfailures => $xmldata{"softfail_nums"},
-        name         => $xmldata{"product_name"},
-        skipped      => $xmldata{"skip_nums"},
-        tests        => "$count",
-        time         => $xmldata{"test_time"}
+        name => $xmldata{"product_name"},
+        skipped => $xmldata{"skip_nums"},
+        tests => "$count",
+        time => $xmldata{"test_time"}
     );
     $writer->startTag(
         'testsuite',
-        id           => "0",
-        error        => "n/a",
-        failures     => $xmldata{"fail_nums"},
+        id => "0",
+        error => "n/a",
+        failures => $xmldata{"fail_nums"},
         softfailures => $xmldata{"softfail_nums"},
-        hostname     => hostname(),
-        name         => $xmldata{"product_tested_on"},
-        package      => $xmldata{"package_name"},
-        skipped      => $xmldata{"skip_nums"},
-        tests        => $count,
-        time         => $xmldata{"test_time"},
-        timestamp    => $timestamp
+        hostname => hostname(),
+        name => $xmldata{"product_tested_on"},
+        package => $xmldata{"package_name"},
+        skipped => $xmldata{"skip_nums"},
+        tests => $count,
+        time => $xmldata{"test_time"},
+        timestamp => $timestamp
     );
 
     #Generate testcase xml by calling subroutine generate_testcase_xml
@@ -558,7 +558,7 @@ sub generateXML_from_data {
         my %item_status_hash = (passed => "success", failed => "failure", skipped => "skipped", softfailed => "softfail", timeout => "timeout_exceeded", unknown => "unknown");
         #The legacy test scenarios like guest_installation_run takes this 'if' branch path
         if (defined $my_hash{$item}->{status}) {
-            my $item_status     = $my_hash{$item}->{status};
+            my $item_status = $my_hash{$item}->{status};
             my $item_status_key = first { /^$item_status/i } (keys %item_status_hash);
             if ($item_status_hash{$item_status_key} =~ /SKIPPED/im && $item =~ m/iso/) {
                 $case_status = 'skipped';
@@ -568,17 +568,17 @@ sub generateXML_from_data {
                 $case_status = 'failure' if $case_status eq 'skipped';
             }
             $my_hash{$item}->{status} = $case_status;
-            $my_hash{$item}->{guest}  = $item;
+            $my_hash{$item}->{guest} = $item;
             generate_testcase_xml($writer, $item, $my_hash{$item});
         }
         #The newly developed feature test takes this 'else' branch path
         else {
             foreach my $subitem (keys %{$my_hash{$item}}) {
-                my $subitem_status     = $my_hash{$item}->{$subitem}->{status};
+                my $subitem_status = $my_hash{$item}->{$subitem}->{status};
                 my $subitem_status_key = first { /^$subitem_status/i } (keys %item_status_hash);
-                my $case_status        = $item_status_hash{$subitem_status_key};
+                my $case_status = $item_status_hash{$subitem_status_key};
                 $my_hash{$item}->{$subitem}->{status} = $case_status;
-                $my_hash{$item}->{$subitem}->{guest}  = $item;
+                $my_hash{$item}->{$subitem}->{guest} = $item;
                 generate_testcase_xml($writer, $subitem, $my_hash{$item}->{$subitem});
             }
         }
@@ -595,17 +595,17 @@ sub generateXML_from_data {
 sub generate_testcase_xml {
     my ($xml_writer, $testcase, $testinfo) = @_;
 
-    my $testcase_time   = eval { $testinfo->{test_time} ? $testinfo->{test_time} : 'n/a' };
-    my $testerror       = eval { $testinfo->{error}     ? $testinfo->{error}     : 'n/a' };
-    my $testoutput      = eval { $testinfo->{output}    ? $testinfo->{output}    : 'n/a' };
+    my $testcase_time = eval { $testinfo->{test_time} ? $testinfo->{test_time} : 'n/a' };
+    my $testerror = eval { $testinfo->{error} ? $testinfo->{error} : 'n/a' };
+    my $testoutput = eval { $testinfo->{output} ? $testinfo->{output} : 'n/a' };
     my $testcase_status = $testinfo->{status};
-    my $testguest       = $testinfo->{guest};
+    my $testguest = $testinfo->{guest};
     $xml_writer->startTag(
         'testcase',
         classname => $testcase,
-        name      => $testcase,
-        status    => $testcase_status,
-        time      => $testcase_time);
+        name => $testcase,
+        status => $testcase_status,
+        time => $testcase_time);
     $xml_writer->startTag('system-err');
     $xml_writer->characters($testerror);
     $xml_writer->endTag('system-err');
@@ -618,7 +618,7 @@ sub generate_testcase_xml {
 
 #RAW do not support Snapshot, so skip Snapshot test if guest disk type as RAW
 sub check_guest_disk_type {
-    my $guest           = shift;
+    my $guest = shift;
     my $guest_disk_type = script_output("virsh dumpxml $guest | grep \"<driver \" | grep -o \"type='.*'\" | cut -d \"'\" -f2 | tail -n1");
     if ($guest_disk_type =~ /raw/) {
         record_info "INFO", "SKIP Snapshot test if guest disk type as $guest_disk_type";
@@ -636,8 +636,8 @@ sub check_guest_disk_type {
 sub recreate_guests {
     my $based_guest_dir = shift;
     return if get_var('INCIDENT_ID');    # QAM does not recreate guests every time
-    my $get_vm_hostnames   = "virsh list  --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
-    my $vm_hostnames       = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
+    my $get_vm_hostnames = "virsh list  --all | grep -e sles -e opensuse | awk \'{print \$2}\'";
+    my $vm_hostnames = script_output($get_vm_hostnames, 30, type_command => 0, proceed_on_failure => 0);
     my @vm_hostnames_array = split(/\n+/, $vm_hostnames);
     foreach (@vm_hostnames_array)
     {
@@ -659,24 +659,24 @@ sub recreate_guests {
 #All these arguments can be left empty which means all guests, 120s and local host
 sub perform_guest_restart {
     my ($guest_to_restart, $wait_script, $host_addr) = @_;
-    my $connect_uri         = "";
+    my $connect_uri = "";
     my @guest_restart_array = ();
-    $connect_uri         = "-c qemu+ssh://root\@$host_addr/system" if ((defined $host_addr)        && ($host_addr ne ''));
-    @guest_restart_array = @$guest_to_restart                      if ((defined $guest_to_restart) && ($guest_to_restart ne ''));
-    $wait_script         = "120"                                   if ((!defined $wait_script) || ($wait_script eq ''));
-    my $guest_types         = "sles|win";
-    my $get_guest_domains   = "virsh $connect_uri list --all | grep -E \"${guest_types}\" | awk \'{print \$2}\'";
-    my $guest_domains       = script_output($get_guest_domains, $wait_script, type_command => 0, proceed_on_failure => 0);
+    $connect_uri = "-c qemu+ssh://root\@$host_addr/system" if ((defined $host_addr) && ($host_addr ne ''));
+    @guest_restart_array = @$guest_to_restart if ((defined $guest_to_restart) && ($guest_to_restart ne ''));
+    $wait_script = "120" if ((!defined $wait_script) || ($wait_script eq ''));
+    my $guest_types = "sles|win";
+    my $get_guest_domains = "virsh $connect_uri list --all | grep -E \"${guest_types}\" | awk \'{print \$2}\'";
+    my $guest_domains = script_output($get_guest_domains, $wait_script, type_command => 0, proceed_on_failure => 0);
     my @guest_domains_array = split(/\n+/, $guest_domains);
     if (scalar(@guest_restart_array) == 0) {
         script_run "virsh $connect_uri destroy $_", $wait_script foreach (@guest_domains_array);
-        script_run "virsh $connect_uri start $_",   $wait_script foreach (@guest_domains_array);
+        script_run "virsh $connect_uri start $_", $wait_script foreach (@guest_domains_array);
     }
     else {
         foreach my $guest (@guest_restart_array) {
             if (grep { $_ eq $guest } @guest_domains_array) {
                 script_run "virsh $connect_uri destroy $guest", $wait_script;
-                script_run "virsh $connect_uri start $guest",   $wait_script;
+                script_run "virsh $connect_uri start $guest", $wait_script;
             }
             else {
                 record_info("Guest missing", "Guest $guest does not exist");
@@ -690,8 +690,8 @@ sub perform_guest_restart {
 #Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
 sub collect_host_and_guest_logs {
     my ($guest_wanted, $host_extra_logs, $guest_extra_logs) = @_;
-    $guest_wanted     //= '';
-    $host_extra_logs  //= '';
+    $guest_wanted //= '';
+    $host_extra_logs //= '';
     $guest_extra_logs //= '';
 
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
@@ -779,7 +779,7 @@ sub is_developing_sles {
     my $developing_sles_version = get_required_var('VERSION');
     $developing_sles_version = get_required_var('TARGET_DEVELOPING_VERSION') if get_var('REPO_0_TO_INSTALL');
     my ($developing_sles_rel) = $developing_sles_version =~ /^(\d+).*/img;
-    my ($developing_sles_sp)  = $developing_sles_version =~ /^.*sp(\d+)$/img;
+    my ($developing_sles_sp) = $developing_sles_version =~ /^.*sp(\d+)$/img;
     if ($running_sles_rel eq $developing_sles_rel && $running_sles_sp eq $developing_sles_sp) {
         return 1;
     }

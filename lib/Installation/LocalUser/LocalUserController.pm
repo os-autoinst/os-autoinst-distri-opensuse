@@ -26,7 +26,7 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{LocalUserPage}       = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
+    $self->{LocalUserPage} = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
     $self->{WeakPasswordWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
@@ -45,8 +45,8 @@ sub get_weak_password_warning {
 sub create_user {
     my ($self, %args) = @_;
     my $full_name = $args{full_name};
-    my $username  = $args{username};
-    my $password  = $args{password};
+    my $username = $args{username};
+    my $password = $args{password};
     $self->get_local_user_page()->enter_full_name($full_name);
     $self->get_local_user_page()->enter_username($username) if defined $username;
     $self->get_local_user_page()->enter_password($password);

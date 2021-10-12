@@ -21,7 +21,7 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self            = shift;
+    my $self = shift;
     my $server_hostname = get_required_var("PDSH_MASTER_HOSTNAME");
 
     my $packages_to_install = 'munge pdsh';

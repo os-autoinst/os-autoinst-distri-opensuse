@@ -38,7 +38,7 @@ sub run {
     assert_script_run 'chmod 777 /srv/tftpboot/tmp.txt';
 
     validate_script_output 'tftp -v 127.0.0.1 -c get tmp.txt 2>&1', sub { m/Received/ };
-    validate_script_output 'cat tmp.txt 2>&1',                      sub { m/hello world/ };
+    validate_script_output 'cat tmp.txt 2>&1', sub { m/hello world/ };
 
     validate_script_output 'tftp -v 127.0.0.1 -c put tmp.txt 2>&1', sub { m/Sent/ };
 

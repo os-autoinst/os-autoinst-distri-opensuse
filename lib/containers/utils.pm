@@ -99,14 +99,14 @@ sub registry_url {
 }
 
 sub basic_container_tests {
-    my %args    = @_;
+    my %args = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     my $alpine_image_version = '3.6';
-    my $alpine               = registry_url('alpine', $alpine_image_version);
-    my $hello_world          = registry_url('hello-world');
-    my $leap                 = "registry.opensuse.org/opensuse/leap";
-    my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
+    my $alpine = registry_url('alpine', $alpine_image_version);
+    my $hello_world = registry_url('hello-world');
+    my $leap = "registry.opensuse.org/opensuse/leap";
+    my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
 
     # Test search feature
     validate_script_output("$runtime search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
@@ -194,10 +194,10 @@ sub basic_container_tests {
     # Images can be deleted
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
-    die("error: $runtime image rmi -a $leap")                               if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
-    die("error: $runtime image rmi -a $tumbleweed")                         if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
-    die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
-    record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
+    die("error: $runtime image rmi -a $leap") if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
+    die("error: $runtime image rmi -a $tumbleweed") if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
+    die("error: $runtime image rmi -a tw:saved") if ($output_containers =~ m/Untagged:.*tw:saved/);
+    record_soft_failure("error: $runtime image rmi -a $alpine") if ($output_containers =~ m/Untagged:.*alpine/);
     record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
 }
 

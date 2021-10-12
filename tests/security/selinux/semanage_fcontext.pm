@@ -26,15 +26,15 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)                = shift;
-    my $file_contexts_local   = $selinuxtest::file_contexts_local;
-    my $test_boolean          = "fips_mode";
-    my $test_dir              = "/testdir";
-    my $test_file             = "testfile";
-    my $fcontext_type_default = "default_t";                         # or, "user_tmp_t";
-    my $fcontext_type1        = "etc_t";
-    my $fcontext_type2        = "bin_t";
-    my $fcontext_type3        = "var_t";
+    my ($self) = shift;
+    my $file_contexts_local = $selinuxtest::file_contexts_local;
+    my $test_boolean = "fips_mode";
+    my $test_dir = "/testdir";
+    my $test_file = "testfile";
+    my $fcontext_type_default = "default_t";    # or, "user_tmp_t";
+    my $fcontext_type1 = "etc_t";
+    my $fcontext_type2 = "bin_t";
+    my $fcontext_type3 = "var_t";
 
     select_console "root-console";
 
@@ -58,7 +58,7 @@ sub run {
         });
 
     # check SELinux contexts of test dir and file
-    $self->check_fcontext("$test_dir",                "$fcontext_type_default");
+    $self->check_fcontext("$test_dir", "$fcontext_type_default");
     $self->check_fcontext("${test_dir}/${test_file}", "$fcontext_type_default");
 
     # restorecon
@@ -66,7 +66,7 @@ sub run {
     assert_script_run("restorecon ${test_dir}/${test_file}");
 
     # check SELinux contexts of test dir and file
-    $self->check_fcontext("$test_dir",                "$fcontext_type1");
+    $self->check_fcontext("$test_dir", "$fcontext_type1");
     $self->check_fcontext("${test_dir}/${test_file}", "$fcontext_type2");
 
     # test option "-m": modify local customizations

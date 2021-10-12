@@ -19,12 +19,12 @@ use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(script_output_retry);
 
-has tenantid        => undef;
-has subscription    => undef;
-has resource_group  => 'openqa-upload';
+has tenantid => undef;
+has subscription => undef;
+has resource_group => 'openqa-upload';
 has storage_account => 'openqa';
-has container       => 'sle-images';
-has lease_id        => undef;
+has container => 'sle-images';
+has lease_id => undef;
 
 =head2 decode_azure_json
 
@@ -83,7 +83,7 @@ sub vault_create_credentials {
 
 sub resource_exist {
     my ($self) = @_;
-    my $group  = $self->resource_group;
+    my $group = $self->resource_group;
     my $output = script_output_retry("az group show --name '$group' --output json", retry => 3, timeout => 30, delay => 10);
     return ($output ne '[]');
 }
@@ -119,7 +119,7 @@ sub get_storage_account_keys {
     my $output = script_output("az storage account keys list --resource-group "
           . $self->resource_group . " --account-name " . $self->storage_account);
     my $json = decode_azure_json($output);
-    my $key  = undef;
+    my $key = undef;
     if (@{$json} > 0) {
         $key = $json->[0]->{value};
     }
@@ -175,7 +175,7 @@ sub img_proof {
     my ($self, %args) = @_;
 
     my $credentials_file = 'azure_credentials.txt';
-    my $credentials      = "{" . $/
+    my $credentials = "{" . $/
       . '"clientId": "' . $self->key_id . '", ' . $/
       . '"clientSecret": "' . $self->key_secret . '", ' . $/
       . '"subscriptionId": "' . $self->subscription . '", ' . $/
@@ -193,8 +193,8 @@ sub img_proof {
 
     $args{credentials_file} = $credentials_file;
     $args{instance_type} //= 'Standard_A2';
-    $args{user}          //= 'azureuser';
-    $args{provider}      //= 'azure';
+    $args{user} //= 'azureuser';
+    $args{provider} //= 'azure';
 
     if (my $parsed_id = $self->parse_instance_id($args{instance})) {
         $args{running_instance_id} = $parsed_id->{vm_name};
@@ -207,9 +207,9 @@ sub terraform_apply {
     my ($self, %args) = @_;
     $args{vars} //= {};
     my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER");
-    my $sku   = get_var("PUBLIC_CLOUD_AZURE_SKU");
+    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU");
     $args{vars}->{offer} = $offer if ($offer);
-    $args{vars}->{sku}   = $sku   if ($sku);
+    $args{vars}->{sku} = $sku if ($sku);
 
     $self->SUPER::terraform_apply(%args);
 }
@@ -270,7 +270,7 @@ sub on_terraform_destroy_timeout {
 sub get_state_from_instance
 {
     my ($self, $instance) = @_;
-    my $id  = $instance->instance_id();
+    my $id = $instance->instance_id();
     my $out = decode_azure_json(script_output("az vm get-instance-view --ids '$id' --query instanceView.statuses[1] --output json", quiet => 1));
     die("Expect PowerState but got " . $out->{code}) unless ($out->{code} =~ m'PowerState/(.+)$');
     return $1;
@@ -291,7 +291,7 @@ sub stop_instance
     # We assume that the instance_id on azure is actually the name
     # which is equal to the resource group
     # TODO maybe we need to change the azure.tf file to retrieve the id instead of the name
-    my $id       = $instance->instance_id();
+    my $id = $instance->instance_id();
     my $attempts = 60;
 
     die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);

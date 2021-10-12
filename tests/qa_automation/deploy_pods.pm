@@ -21,7 +21,7 @@ use Mojo::File 'path';
 sub run {
     my ($self, $tinfo) = @_;
     my $podlist = $tinfo->test;
-    my $path    = get_required_var('CASEDIR') . '/tests';
+    my $path = get_required_var('CASEDIR') . '/tests';
 
     die "Pod list not provided" unless $podlist;
 
@@ -62,7 +62,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1
     };
 }

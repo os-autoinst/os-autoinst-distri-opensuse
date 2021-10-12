@@ -28,7 +28,7 @@ sub handle_all_packages_medium {
     # For SLE installation / upgrade with the all-packages media, user has
     # to select the required extensions / modules manually
     my $sle_prod = get_required_var('SLE_PRODUCT');
-    my @addons   = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
+    my @addons = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
 
     # According to installation guide, select a sle product is mandatory
     # (from sle15-SP2 this is not true)
@@ -48,7 +48,7 @@ sub handle_all_packages_medium {
     # Refer to https://fate.suse.com/325293
     if (get_var('MEDIA_UPGRADE') && is_sle('<15', get_var('HDDVERSION')) && !check_var('SLE_PRODUCT', 'sled')) {
         my @demand_addon = qw(desktop serverapp script);
-        push @demand_addon, 'sdk'    if !check_var('SLE_PRODUCT', 'sles4sap');
+        push @demand_addon, 'sdk' if !check_var('SLE_PRODUCT', 'sles4sap');
         push @demand_addon, 'legacy' if !check_var('SLE_PRODUCT', 'rt');
         for my $i (@demand_addon) {
             push @addons, $i if !grep(/^$i$/, @addons);
@@ -90,7 +90,7 @@ sub handle_all_packages_medium {
     # Check the addon license agreement
     # To avoid repetition to much, set a counter to match:
     # addon licenses, sles(d) license (as workaround), and addon-products
-    my $counter           = 2 + (scalar @addons_license_tags);
+    my $counter = 2 + (scalar @addons_license_tags);
     my $addon_license_num = 0;
     while ($counter--) {
         assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 240);
@@ -125,7 +125,7 @@ sub handle_addon {
     if (match_has_tag('import-untrusted-gpg-key')) {
         handle_untrusted_gpg_key;
     }
-    send_key 'tab';                          # select addon-products-$addon
+    send_key 'tab';    # select addon-products-$addon
     wait_still_screen 10;
     if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
         send_key_until_needlematch "addon-list-selected", 'tab';
@@ -162,9 +162,9 @@ sub run {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
-                timeout      => check_var('BACKEND', 'pvm_hmc') ? 600 : 120,
+                timeout => check_var('BACKEND', 'pvm_hmc') ? 600 : 120,
                 soft_timeout => 60,
-                bugref       => 'bsc#1166504');
+                bugref => 'bsc#1166504');
         }
     }
     if (get_var("ADDONS")) {
@@ -181,7 +181,7 @@ sub run {
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};
                 assert_screen 'dvd-selector';
-                send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
+                send_key_until_needlematch 'addon-dvd-list', 'tab', 5;    # jump into addon list
                 send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
                 send_key 'alt-o';                                                   # continue
             }
@@ -213,7 +213,7 @@ sub run {
             send_key 'alt-u';            # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';                                      # select URL field
+            send_key 'alt-u';            # select URL field
             type_string get_required_var("ADDONURL_$uc_addon");    # repo URL
             send_key $cmd{next};
             wait_still_screen;                                     # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
@@ -233,8 +233,8 @@ sub run {
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
             }
-            send_key "tab";                          # select addon-products-$addon
-            wait_still_screen 10;                    # wait until repo is added and list is initialized
+            send_key "tab";    # select addon-products-$addon
+            wait_still_screen 10;    # wait until repo is added and list is initialized
             if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }

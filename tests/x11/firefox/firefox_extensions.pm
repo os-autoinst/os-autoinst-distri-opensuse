@@ -56,7 +56,7 @@ sub run {
     }
     wait_still_screen 3;
     assert_and_click 'firefox-extensions-confirm-add', 60;
-    assert_and_click 'firefox-extensions-added',       60;
+    assert_and_click 'firefox-extensions-added', 60;
     assert_and_click 'firefox-extensions-flagfox-tab', 60;
     # close the flagfox relase notes tab and flagfox search tab
     send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;

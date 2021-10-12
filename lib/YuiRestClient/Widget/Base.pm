@@ -19,7 +19,7 @@ sub new {
 
     return bless {
         widget_controller => $args->{widget_controller},
-        filter            => $args->{filter}
+        filter => $args->{filter}
     }, $class;
 }
 

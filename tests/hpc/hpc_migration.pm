@@ -31,7 +31,7 @@ use power_action_utils 'power_action';
 use version_utils 'is_sle';
 
 sub run {
-    my $self    = shift;
+    my $self = shift;
     my $version = get_required_var("VERSION");
     my @migration_targets;
     my $migration_target;
@@ -75,7 +75,7 @@ sub run {
 
     #compare current_version vs get_required_var("VERSION")
     $current_version =~ s/..-SP//;
-    $version         =~ s/..-SP//;
+    $version =~ s/..-SP//;
 
     #for sle12/15 SP0 returned value for $current_version is major code version (12/15)
     if ($current_version > 12) {
@@ -85,7 +85,7 @@ sub run {
     my $diff = $version - $current_version;
 
     record_info('INFO: migrate-to version', "$version");
-    record_info('DEBUG: diff',              "$diff");
+    record_info('DEBUG: diff', "$diff");
 
     if (get_var('HPC_PRODUCT_MIGRATION')) {
         if ($diff != $num_of_migration_targets) {

@@ -27,10 +27,10 @@ use testapi;
 use YuiRestClient;
 
 sub run {
-    my $app  = YuiRestClient::get_app(installation => 1, timeout => 60, interval => 1);
+    my $app = YuiRestClient::get_app(installation => 1, timeout => 60, interval => 1);
     my $port = $app->get_port();
     record_info('SERVER', "Used host for libyui: " . $app->get_host());
-    record_info('PORT',   "Used port for libyui: " . $port);
+    record_info('PORT', "Used port for libyui: " . $port);
 
     if (is_ssh_installation) {
         my $cmd = '';

@@ -51,7 +51,7 @@ sub run {
 
         if ($sc_out =~ /Status.*ACTIVE/) {
             set_var('SCC_REGCODE', ($sc_out =~ /Regcode: (.*)/)) if (!get_var("SCC_REGCODE"));
-            die "SCC_REGCODE not specified"                      if (!get_var('SCC_REGCODE'));
+            die "SCC_REGCODE not specified" if (!get_var('SCC_REGCODE'));
             repo_cleanup;
             # Base system registration
             register_product;

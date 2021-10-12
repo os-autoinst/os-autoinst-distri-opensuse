@@ -3,24 +3,24 @@
 use strict;
 use Getopt::Long;
 
-my $realm        = "";
-my $hostname     = "";
-my $domain       = "";
-my $adminpw      = "";
-my $vadminpw     = "";
-my $help         = "";
-my $noinstall    = 0;
-my $noy2kc_c     = 0;
-my $nosshd_c     = 0;
-my $nossh_c      = 0;
-my $nokadmin     = 0;
-my $nomasterkdc  = 0;
+my $realm = "";
+my $hostname = "";
+my $domain = "";
+my $adminpw = "";
+my $vadminpw = "";
+my $help = "";
+my $noinstall = 0;
+my $noy2kc_c = 0;
+my $nosshd_c = 0;
+my $nossh_c = 0;
+my $nokadmin = 0;
+my $nomasterkdc = 0;
 my $notesteruser = 0;
-my $ldapdb       = 0;
+my $ldapdb = 0;
 
-my $ldapadminpw  = "";
+my $ldapadminpw = "";
 my $vldapadminpw = "";
-my $basedn       = "";
+my $basedn = "";
 my $rootdnprefix = "cn=Administrator,";
 
 
@@ -37,9 +37,9 @@ my $yast_inst_pack = "krb5 krb5-server krb5-client krb5-doc pam_krb5";
 ##########################################################################
 #                     command                                1.input   2.input ...
 my $kadmin_cmds = [
-    ['addprinc susetest\@$realm',       "system", "system"],
+    ['addprinc susetest\@$realm', "system", "system"],
     ['addprinc susetest/admin\@$realm', "system", "system"],
-    ['addprinc tester\@$realm',         "system", "system"],
+    ['addprinc tester\@$realm', "system", "system"],
     ['addprinc -randkey host/hostname.domain.de'],
     ['getprincs'],
     ['listpols'],
@@ -54,9 +54,9 @@ my $kadmin_cmds = [
     ['cpw tester', "1234wert", "1234wert"],
     ['modprinc -policy myPolicy tester'],
     ['getprinc tester'],
-    ['cpw tester',       "w", "w"],
+    ['cpw tester', "w", "w"],
     ['delprinc mcalmer', 'yes'],
-    ['delpol myPolicy',  'yes'],
+    ['delpol myPolicy', 'yes'],
     ['listpols'],
     ['modprinc -clearpolicy tester'],
     ['getprinc tester'],
@@ -65,15 +65,15 @@ my $kadmin_cmds = [
 ];
 
 my $result = GetOptions("realm|r=s" => \$realm,
-    "ldapdb"       => \$ldapdb,
-    "nomasterkdc"  => \$nomasterkdc,
+    "ldapdb" => \$ldapdb,
+    "nomasterkdc" => \$nomasterkdc,
     "noinstall|ni" => \$noinstall,
-    "noy2kc"       => \$noy2kc_c,
-    "nosshd"       => \$nosshd_c,
-    "nossh"        => \$nossh_c,
-    "nokadmin"     => \$nokadmin,
+    "noy2kc" => \$noy2kc_c,
+    "nosshd" => \$nosshd_c,
+    "nossh" => \$nossh_c,
+    "nokadmin" => \$nokadmin,
     "notesteruser" => \$notesteruser,
-    "help|h"       => \$help
+    "help|h" => \$help
 );
 
 
@@ -529,12 +529,12 @@ sub setup_kdc
     }
     else
     {
-        my $cmd  = "/usr/lib/mit/sbin/kdb5_ldap_util";
+        my $cmd = "/usr/lib/mit/sbin/kdb5_ldap_util";
         my @args = ();
 
-        push @args, "-D",     "$rootdnprefix$basedn", "-H",                "ldapi:///";
-        push @args, "create", "-subtrees",            "ou=people,$basedn", "-sscope", "SUB";
-        push @args, "-k",     "des3-cbc-sha1",        "-sf",               "/var/lib/kerberos/krb5kdc/.k5.$realm", "-r", "$realm";
+        push @args, "-D", "$rootdnprefix$basedn", "-H", "ldapi:///";
+        push @args, "create", "-subtrees", "ou=people,$basedn", "-sscope", "SUB";
+        push @args, "-k", "des3-cbc-sha1", "-sf", "/var/lib/kerberos/krb5kdc/.k5.$realm", "-r", "$realm";
 
         open(KDB5CREATE, "|$cmd " . join(" ", @args))
           or die "Can not execute kdb5_ldap_util: $!";
@@ -638,7 +638,7 @@ sub kadmin
 {
     foreach my $cmd_set (@$kadmin_cmds)
     {
-        my $cmd  = $cmd_set->[0];
+        my $cmd = $cmd_set->[0];
         my $kcmd = "";
         eval "\$kcmd = \"$cmd\"";
         print "################ execute:$kcmd ###################\n";
@@ -687,7 +687,7 @@ sub config_sshd
 
     my @new_sshd = ();
 
-    my $found_auth  = 0;
+    my $found_auth = 0;
     my $found_clean = 0;
 
     foreach my $line (@sshd)

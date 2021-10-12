@@ -49,7 +49,7 @@ sub run_test {
     #After deployed guest systems, ensure active pool have at least 40GiB(XEN)
     #or 20GiB(KVM) available disk space on vm host for virtual network test
     my ($ACTIVE_POOL_NAME, $AVAILABLE_POOL_SIZE) = virt_autotest::virtual_network_utils::get_active_pool_and_available_space();
-    record_info('Detect Active POOL NAME:',    $ACTIVE_POOL_NAME);
+    record_info('Detect Active POOL NAME:', $ACTIVE_POOL_NAME);
     record_info('Detect Available POOL SIZE:', $AVAILABLE_POOL_SIZE . 'GiB');
     my $expected_pool_size = get_var('VIRT_EXPECTED_POOLSIZE', (is_xen_host) ? '40' : '20');
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",

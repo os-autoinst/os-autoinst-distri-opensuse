@@ -27,7 +27,7 @@ use utils;
 use x11utils;
 
 sub test_gb18030_file {
-    my $filename     = shift;
+    my $filename = shift;
     my $needlenumber = shift;
 
     x11_start_program('gedit ' . $filename . '.txt', target_match => 'gedit-gb18030-' . $filename . '-opened');
@@ -76,7 +76,7 @@ sub run {
     enter_cmd("exit");
 
     test_gb18030_file('double', 45);
-    test_gb18030_file('four',   9);
+    test_gb18030_file('four', 9);
 }
 
 1;

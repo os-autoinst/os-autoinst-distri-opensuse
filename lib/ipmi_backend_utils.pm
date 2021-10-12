@@ -85,22 +85,22 @@ sub get_dom0_serialdev {
 sub setup_console_in_grub {
     my ($ipmi_console, $root_dir, $virt_type) = @_;
     $ipmi_console //= $serialdev;
-    $root_dir     //= '/';
+    $root_dir //= '/';
     #Ther is no default value for $virt_type, which has to be passed into function explicitly.
 
     #set grub config file
     my $grub_default_file = "${root_dir}/etc/default/grub";
-    my $grub_cfg_file     = "";
-    my $com_settings      = "";
-    my $bootmethod        = "";
-    my $search_pattern    = "";
-    my $cmd               = "";
+    my $grub_cfg_file = "";
+    my $com_settings = "";
+    my $bootmethod = "";
+    my $search_pattern = "";
+    my $cmd = "";
     if ($grub_ver eq "grub2") {
         #grub2
         $grub_cfg_file = "${root_dir}/boot/grub2/grub.cfg";
         if (${virt_type} eq "xen") {
-            $com_settings   = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
-            $bootmethod     = "module";
+            $com_settings = get_var('IPMI_CONSOLE') ? "com2=" . get_var('IPMI_CONSOLE') : "";
+            $bootmethod = "module";
             $search_pattern = "vmlinuz";
 
             # autoballoning is disabled since sles15sp1 beta2. we use default dom0_ram which is '10% of total ram + 1G'
@@ -122,7 +122,7 @@ sub setup_console_in_grub {
             save_screenshot;
         }
         elsif (${virt_type} eq "kvm") {
-            $bootmethod     = "linux";
+            $bootmethod = "linux";
             $search_pattern = "boot";
         }
         else {
@@ -182,7 +182,7 @@ sub mount_installation_disk {
 
     #default from yast installation
     $installation_disk //= "/dev/sda2";
-    $mount_point       //= "/mnt";
+    $mount_point //= "/mnt";
 
     #mount
     assert_script_run("mkdir -p $mount_point");
@@ -207,7 +207,7 @@ sub get_installation_partition {
 
     # Confirmed with dev that the reliable way to get partition for / is via installation log, rather than fdisk
     # For details, please refer to bug 1101806.
-    my $cmd        = '';
+    my $cmd = '';
     my $y2log_file = '/var/log/YaST2/y2log';
     if (is_sle('12+')) {
         $cmd = qq{grep -o '/dev/[^ ]\\+ /mnt ' $y2log_file | head -n1 | cut -f1 -d' '};
@@ -277,36 +277,36 @@ sub set_pxe_efiboot {
         mount_installation_disk("$installation_disk", "$root_prefix");
     }
 
-    my $wait_script    = "30";
+    my $wait_script = "30";
     my $get_active_eif = "ip link show | grep \"state UP\" | grep -v \"lo\" | cut -d: -f2 | cut -d\' \' -f2 | head -1";
-    my $active_eif     = script_output($get_active_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $active_eif = script_output($get_active_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
     my $get_active_eif_maddr = "ip link show | grep $active_eif -A1 | awk \'/link\\\/ether/ \{print \$2\}\' | awk \'\{print \$1,\$2,\$3,\$4,\$5,\$6\}\' FS=\":\" OFS=\"\"";
-    my $active_eif_maddr        = script_output($get_active_eif_maddr, $wait_script, type_command => 1, proceed_on_failure => 0);
-    my $get_pxeboot_entry_eif   = "$root_prefix/usr/sbin/efibootmgr -v | grep -i $active_eif_maddr";
-    my $pxeboot_entry_eif       = script_output($get_pxeboot_entry_eif,           $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $active_eif_maddr = script_output($get_active_eif_maddr, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_pxeboot_entry_eif = "$root_prefix/usr/sbin/efibootmgr -v | grep -i $active_eif_maddr";
+    my $pxeboot_entry_eif = script_output($get_pxeboot_entry_eif, $wait_script, type_command => 1, proceed_on_failure => 0);
     my $pxeboot_entry_eif_count = script_output("$get_pxeboot_entry_eif | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
-    my $get_pxeboot_entry_ip4   = "";
-    my $pxeboot_entry_ip4       = "";
+    my $get_pxeboot_entry_ip4 = "";
+    my $pxeboot_entry_ip4 = "";
     my $pxeboot_entry_ip4_count = "";
     if ($pxeboot_entry_eif_count gt 1) {
-        $get_pxeboot_entry_ip4   = "$get_pxeboot_entry_eif | grep -i -E \"IP4|IPv4\"";
-        $pxeboot_entry_ip4       = script_output($get_pxeboot_entry_ip4,           $wait_script, type_command => 1, proceed_on_failure => 0);
+        $get_pxeboot_entry_ip4 = "$get_pxeboot_entry_eif | grep -i -E \"IP4|IPv4\"";
+        $pxeboot_entry_ip4 = script_output($get_pxeboot_entry_ip4, $wait_script, type_command => 1, proceed_on_failure => 0);
         $pxeboot_entry_ip4_count = script_output("$get_pxeboot_entry_ip4 | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
     }
-    my $get_pxeboot_entry_pxe   = "";
-    my $pxeboot_entry_pxe       = "";
+    my $get_pxeboot_entry_pxe = "";
+    my $pxeboot_entry_pxe = "";
     my $pxeboot_entry_pxe_count = "";
     if ($pxeboot_entry_ip4_count gt 1) {
-        $get_pxeboot_entry_pxe   = "$get_pxeboot_entry_ip4 | grep -i \"PXE\"";
-        $pxeboot_entry_pxe       = script_output($get_pxeboot_entry_pxe,           $wait_script, type_command => 1, proceed_on_failure => 0);
+        $get_pxeboot_entry_pxe = "$get_pxeboot_entry_ip4 | grep -i \"PXE\"";
+        $pxeboot_entry_pxe = script_output($get_pxeboot_entry_pxe, $wait_script, type_command => 1, proceed_on_failure => 0);
         $pxeboot_entry_pxe_count = script_output("$get_pxeboot_entry_pxe | wc -l", $wait_script, type_command => 1, proceed_on_failure => 0);
         if ($pxeboot_entry_pxe_count gt 1) {
             die "The number of PXE boot entries can not be narrowed down to 1";
         }
     }
     my $get_pxeboot_entry_num_grep = "grep -o -i -e \"Boot[0-9]\\\{1,\\\}\" | grep -o -e \"[0-9]\\\{1,\\\}\"";
-    my $get_pxeboot_entry_num      = '';
-    my $pxeboot_entry_num          = '';
+    my $get_pxeboot_entry_num = '';
+    my $pxeboot_entry_num = '';
     if ($pxeboot_entry_eif_count eq '1') {
         $get_pxeboot_entry_num = "echo \"$pxeboot_entry_eif\" | $get_pxeboot_entry_num_grep";
     }
@@ -317,13 +317,13 @@ sub set_pxe_efiboot {
         $get_pxeboot_entry_num = "echo \"$pxeboot_entry_pxe\" | $get_pxeboot_entry_num_grep";
     }
     $pxeboot_entry_num = script_output($get_pxeboot_entry_num, $wait_script, type_command => 1, proceed_on_failure => 0);
-    my $get_current_boot_num   = "$root_prefix/usr/sbin/efibootmgr | grep -i BootCurrent | awk \'{print \$2}\'";
-    my $current_boot_num       = script_output($get_current_boot_num, $wait_script, type_command => 1, proceed_on_failure => 0);
+    my $get_current_boot_num = "$root_prefix/usr/sbin/efibootmgr | grep -i BootCurrent | awk \'{print \$2}\'";
+    my $current_boot_num = script_output($get_current_boot_num, $wait_script, type_command => 1, proceed_on_failure => 0);
     my $get_current_boot_order = "$root_prefix/usr/sbin/efibootmgr | grep -i BootOrder | awk \'{print \$2}\'";
-    my $current_boot_order     = (script_output($get_current_boot_order, $wait_script, type_command => 1, proceed_on_failure => 0));
-    my @current_order_list     = split(',', $current_boot_order);
-    my @new_order_list         = grep { $_ ne $current_boot_num && $_ ne $pxeboot_entry_num } @current_order_list;
-    my $new_boot_order         = '';
+    my $current_boot_order = (script_output($get_current_boot_order, $wait_script, type_command => 1, proceed_on_failure => 0));
+    my @current_order_list = split(',', $current_boot_order);
+    my @new_order_list = grep { $_ ne $current_boot_num && $_ ne $pxeboot_entry_num } @current_order_list;
+    my $new_boot_order = '';
     if ($pxeboot_entry_num ne $current_boot_num) {
         $new_boot_order = join(',', $pxeboot_entry_num, $current_boot_num, @new_order_list);
     }
@@ -368,7 +368,7 @@ sub set_serial_console_on_vh {
     #set up xen serial console
     my $ipmi_console = get_dom0_serialdev("$root_dir");
     if (${virt_type} eq "xen" || ${virt_type} eq "kvm") { setup_console_in_grub($ipmi_console, $root_dir, $virt_type); }
-    else                                                { die "Host Hypervisor is not xen or kvm"; }
+    else { die "Host Hypervisor is not xen or kvm"; }
 
     #cleanup mount
     if ($mount_point ne "") {

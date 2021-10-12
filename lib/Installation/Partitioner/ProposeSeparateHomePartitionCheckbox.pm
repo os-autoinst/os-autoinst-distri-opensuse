@@ -21,16 +21,16 @@ use testapi;
 use parent 'Element::Checkbox';
 
 use constant {
-    CHECKED_PROPOSE_SEPARATE_HOME_PARTITION_CHECKBOX   => 'enabledhome',
+    CHECKED_PROPOSE_SEPARATE_HOME_PARTITION_CHECKBOX => 'enabledhome',
     UNCHECKED_PROPOSE_SEPARATE_HOME_PARTITION_CHECKBOX => 'disabledhome'
 };
 
 sub set_state {
     my ($self, $state) = @_;
     $self->SUPER::set_state(
-        state            => $state,
-        shortcut         => 'alt-r',
-        checked_needle   => CHECKED_PROPOSE_SEPARATE_HOME_PARTITION_CHECKBOX,
+        state => $state,
+        shortcut => 'alt-r',
+        checked_needle => CHECKED_PROPOSE_SEPARATE_HOME_PARTITION_CHECKBOX,
         unchecked_needle => UNCHECKED_PROPOSE_SEPARATE_HOME_PARTITION_CHECKBOX
     );
 }

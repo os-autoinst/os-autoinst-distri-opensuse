@@ -21,7 +21,7 @@ use utils;
 use qam;
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $kernel_log = shift // '/tmp/virt_kernel.txt';
 
     script_run "rpm -qa > /tmp/rpm-qa.txt";

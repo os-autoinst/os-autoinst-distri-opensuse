@@ -63,7 +63,7 @@ sub qaset_waitdone {
     my ($timeout) = @_;
     assert_script_run(
         "until [ -f /var/log/qaset/control/DONE ]; do sleep 5; done",
-        timeout      => $timeout,
+        timeout => $timeout,
         fail_message => "qaset failed to announce overall completion within $timeout s");
 }
 
@@ -85,14 +85,14 @@ sub qaset_waitstop {
     # (FIXME: how many?) seconds. It is thus unsafe to start polling for
     # SYSTEM_DIRTY immediately after such a restart. Hence $prewait.
     #
-    my %args     = @_;
+    my %args = @_;
     my $testname = $args{testname};
-    my $timeout  = $args{timeout};
-    my $prewait  = $args{prewait} // 15;    # 15 is guessed to be enough :-/
+    my $timeout = $args{timeout};
+    my $prewait = $args{prewait} // 15;    # 15 is guessed to be enough :-/
     sleep $prewait if $prewait > 0;
     assert_script_run(
         "until [ -f /var/log/qaset/control/SYSTEM_DIRTY ]; do sleep 5; done",
-        timeout      => $timeout,
+        timeout => $timeout,
         fail_message => "$testname: qaset run failed to complete in $timeout s");
 }
 
@@ -117,7 +117,7 @@ sub start_testrun {
     systemctl 'start multipathd';
 
     # Set default variables for iscsi iqn and target
-    my $iqn    = get_var("ISCSI_IQN",    "iqn.2016-02.de.openqa");
+    my $iqn = get_var("ISCSI_IQN", "iqn.2016-02.de.openqa");
     my $target = get_var("ISCSI_TARGET", "10.0.2.1");
 
     # Connect to iscsi server and obtain wwid for multipath configuration

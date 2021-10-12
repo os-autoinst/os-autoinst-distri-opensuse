@@ -22,20 +22,20 @@ use utils;
 
 our $mitigations_list =
   {
-    name                   => "taa",
-    parameter              => 'tsx_async_abort',
-    CPUID                  => hex '800',           #CPUID.07h.EBX.RTM [bit 11]
-    IA32_ARCH_CAPABILITIES => 256,                 #bit8 TAA_NO
-    sysfs_name             => "tsx_async_abort",
-    sysfs                  => {
-        off          => "Vulnerable",
-        full         => "Mitigation: Clear CPU buffers; SMT vulnerable",
+    name => "taa",
+    parameter => 'tsx_async_abort',
+    CPUID => hex '800',    #CPUID.07h.EBX.RTM [bit 11]
+    IA32_ARCH_CAPABILITIES => 256,    #bit8 TAA_NO
+    sysfs_name => "tsx_async_abort",
+    sysfs => {
+        off => "Vulnerable",
+        full => "Mitigation: Clear CPU buffers; SMT vulnerable",
         "full,nosmt" => "Mitigation: Clear CPU buffers; SMT disabled",
-        default      => "Mitigation: Clear CPU buffers; SMT vulnerable",
+        default => "Mitigation: Clear CPU buffers; SMT vulnerable",
     },
     dmesg => {
-        full         => "TAA: Mitigation: Clear CPU buffers",
-        off          => "Vulnerable",
+        full => "TAA: Mitigation: Clear CPU buffers",
+        off => "Vulnerable",
         "full,nosmt" => "TAA: Mitigation: Clear CPU buffers",
     },
     cmdline => [
@@ -57,9 +57,9 @@ sub new {
 
 sub update_list_for_qemu {
     my ($self) = shift;
-    $mitigations_list->{sysfs}->{full}         =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mitigations_list->{sysfs}->{full} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mitigations_list->{sysfs}->{"full,nosmt"} =~ s/SMT disabled/SMT Host state unknown/ig;
-    $mitigations_list->{sysfs}->{default}      =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mitigations_list->{sysfs}->{default} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mitigations_list->{sysfs}->{off} = 'Vulnerable';
     if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
         $mitigations_list->{sysfs}->{off} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
@@ -81,7 +81,7 @@ sub vulnerabilities {
     my $self = shift;
     print "TAA->vulnerabilities\n";
     my $capabilities_taa_no = $self->read_msr() & $self->MSR();
-    my $cpuid_rtm           = $self->read_cpuid_ebx() & $self->CPUID();
+    my $cpuid_rtm = $self->read_cpuid_ebx() & $self->CPUID();
     print "capabilities_taa_no = $capabilities_taa_no\n";
     print "cpuid_rtm = $cpuid_rtm\n";
     if ($capabilities_taa_no == 1 || $cpuid_rtm == 0) {

@@ -25,7 +25,7 @@ sub run {
     #initialized to be offline upgrade
     my $timeout = 180;
     set_var("reboot_for_upgrade_step", "yes");
-    set_var("offline_upgrade",         "yes");
+    set_var("offline_upgrade", "yes");
 
     #get the version that the host is installed to
     my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));    #format 15 or 15-SP1

@@ -248,7 +248,7 @@ sub test_pgsql {
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
     enter_cmd "su - postgres", wait_still_screen => 1;
-    enter_cmd "PS1='# '",      wait_still_screen => 1;
+    enter_cmd "PS1='# '", wait_still_screen => 1;
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';

@@ -25,10 +25,10 @@ use YuiRestClient;
 use testapi;
 
 sub run {
-    my $app  = YuiRestClient::get_app();
+    my $app = YuiRestClient::get_app();
     my $port = $app->get_port();
     record_info('SERVER', "Used host for libyui: " . $app->get_host());
-    record_info('PORT',   "Used port for libyui: " . $port);
+    record_info('PORT', "Used port for libyui: " . $port);
     foreach my $export ("YUI_HTTP_PORT=$port", "YUI_HTTP_REMOTE=1", "YUI_REUSE_PORT=1", "Y2DEBUG=1") {
         assert_script_run "echo export $export >> /usr/lib/YaST2/startup/Firstboot-Stage/S01-rest-api";
     }

@@ -36,7 +36,7 @@ sub create_keypair {
 
     for my $i (0 .. 9) {
         my $key_name = $prefix . "_" . $i;
-        my $cmd      = "aws ec2 create-key-pair --key-name '" . $key_name
+        my $cmd = "aws ec2 create-key-pair --key-name '" . $key_name
           . "' --query 'KeyMaterial' --output text > " . $out_file;
         my $ret = script_run($cmd);
         if (defined($ret) && $ret == 0) {
@@ -99,17 +99,17 @@ sub upload_img {
         };
 
         my $ami_id_key = $self->region;
-        $ami_id_key .= '-byos'  if is_byos();
+        $ami_id_key .= '-byos' if is_byos();
         $ami_id_key .= '-arm64' if check_var('PUBLIC_CLOUD_ARCH', 'arm64');
         $helper_ami_id = $ami_id_hash->{$ami_id_key} if exists($ami_id_hash->{$ami_id_key});
     }
 
     die('Unable to detect AMI for helper VM') unless (defined($helper_ami_id));
 
-    my ($img_name)    = $file =~ /([^\/]+)$/;
-    my $img_arch      = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
-    my $sec_group     = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
-    my $vpc_subnet    = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
+    my ($img_name) = $file =~ /([^\/]+)$/;
+    my $img_arch = get_var('PUBLIC_CLOUD_ARCH', 'x86_64');
+    my $sec_group = get_var('PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP');
+    my $vpc_subnet = get_var('PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET');
     my $instance_type = get_var('PUBLIC_CLOUD_EC2_UPLOAD_INSTANCE_TYPE', 't2.micro');
 
     # ec2uploadimg will fail without this file, but we can have it empty
@@ -134,8 +134,8 @@ sub upload_img {
           . "--ec2-ami '" . $helper_ami_id . "' "
           . "--type '" . $instance_type . "' "
           . "--user '" . $self->username . "' "
-          . ($sec_group  ? "--security-group-ids '" . $sec_group . "' " : '')
-          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' "     : '')
+          . ($sec_group ? "--security-group-ids '" . $sec_group . "' " : '')
+          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' " : '')
           . "'$file'",
         timeout => 60 * 60
     );
@@ -150,13 +150,13 @@ sub upload_img {
 sub img_proof {
     my ($self, %args) = @_;
 
-    $args{instance_type}        //= 't2.large';
-    $args{user}                 //= 'ec2-user';
-    $args{provider}             //= 'ec2';
+    $args{instance_type} //= 't2.large';
+    $args{user} //= 'ec2-user';
+    $args{provider} //= 'ec2';
     $args{ssh_private_key_file} //= $self->ssh_key_file;
-    $args{key_id}               //= $self->key_id;
-    $args{key_secret}           //= $self->key_secret;
-    $args{key_name}             //= $self->ssh_key;
+    $args{key_id} //= $self->key_id;
+    $args{key_secret} //= $self->key_secret;
+    $args{key_name} //= $self->ssh_key;
 
     return $self->run_img_proof(%args);
 }
@@ -172,7 +172,7 @@ sub describe_instance
 {
     my ($self, $instance) = @_;
     my $json_output = decode_json(script_output('aws ec2 describe-instances --filter Name=instance-id,Values=' . $instance->instance_id(), quiet => 1));
-    my $i_desc      = $json_output->{Reservations}->[0]->{Instances}->[0];
+    my $i_desc = $json_output->{Reservations}->[0]->{Instances}->[0];
     return $i_desc;
 }
 
@@ -192,7 +192,7 @@ sub stop_instance
 {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    my $attempts    = 60;
+    my $attempts = 60;
 
     die("Outdated instance object") if ($instance->public_ip ne $self->get_ip_from_instance($instance));
 
@@ -207,7 +207,7 @@ sub stop_instance
 sub start_instance
 {
     my ($self, $instance, %args) = @_;
-    my $attempts    = 60;
+    my $attempts = 60;
     my $instance_id = $instance->instance_id();
 
     my $i_desc = $self->describe_instance($instance);

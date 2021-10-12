@@ -20,7 +20,7 @@ use utils;
 use version_utils qw(is_sle);
 
 sub run_python_script {
-    my $script  = shift;
+    my $script = shift;
     my $logfile = "output.txt";
     record_info($script, "Running python script: $script");
     assert_script_run("curl " . data_url("python/$script") . " -o '$script'");

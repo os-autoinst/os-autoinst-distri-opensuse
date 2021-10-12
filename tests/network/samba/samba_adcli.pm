@@ -21,7 +21,7 @@ use version_utils 'is_sle';
 use Utils::Architectures;
 
 my $AD_hostname = 'win2019dcadprovider.phobos.qa.suse.de';
-my $AD_ip       = '10.162.30.119';
+my $AD_ip = '10.162.30.119';
 
 sub samba_sssd_install {
     zypper_call('in expect samba adcli samba-winbind krb5-client sssd-ad');

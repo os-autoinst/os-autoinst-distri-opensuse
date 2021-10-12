@@ -24,12 +24,12 @@ sub run {
     # Check if can get version
     record_soft_failure('bsc#1105223') if (script_run('azurectl -v') != 0);
     # Define test data
-    my $rsa_key      = '~/.ssh/id_rsa';
-    my $azure_key    = 'azure.pem';
+    my $rsa_key = '~/.ssh/id_rsa';
+    my $azure_key = 'azure.pem';
     my $account_name = 'test_azure';
-    my $url          = 'http://url.endpoint';
-    my $subscr_id    = '00000000-0000-0000-0000-000000000000';
-    my $config_path  = "~/.config/azurectl/$account_name.config";
+    my $url = 'http://url.endpoint';
+    my $subscr_id = '00000000-0000-0000-0000-000000000000';
+    my $config_path = "~/.config/azurectl/$account_name.config";
     # Generate pem key to stub missing azure key
     script_run "ssh-keygen -t rsa -b 2048 -f $rsa_key -N ''";
     script_run "openssl rsa -in $rsa_key -outform pem > $azure_key";
@@ -47,10 +47,10 @@ sub run {
     my $config = script_output "cat $config_path";
     # Validate entries
     my $errors = '';
-    $errors .= "Account $account_name is not set as default_account\n"      unless $config =~ /default_account\s*=\s*account:$account_name/;
-    $errors .= "Account section for $account_name is not added\n"           unless $config =~ /\[account:$account_name\]/;
-    $errors .= "Pem file $azure_key is not set as management_pem_file\n"    unless $config =~ /management_pem_file\s*=\s*$azure_key/;
-    $errors .= "Mgmt url $url is not set as management_url\n"               unless $config =~ /management_url\s*=\s*$url/;
+    $errors .= "Account $account_name is not set as default_account\n" unless $config =~ /default_account\s*=\s*account:$account_name/;
+    $errors .= "Account section for $account_name is not added\n" unless $config =~ /\[account:$account_name\]/;
+    $errors .= "Pem file $azure_key is not set as management_pem_file\n" unless $config =~ /management_pem_file\s*=\s*$azure_key/;
+    $errors .= "Mgmt url $url is not set as management_url\n" unless $config =~ /management_url\s*=\s*$url/;
     $errors .= "Subscription id $subscr_id is not set as subscription_id\n" unless $config =~ /subscription_id\s*=\s*$subscr_id/;
 
     die $errors if $errors;

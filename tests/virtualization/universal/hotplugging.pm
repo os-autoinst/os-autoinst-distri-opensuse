@@ -42,14 +42,14 @@ sub try_attach {
 
 # Add a virtual network interface for the given guest and return the determined MAC address
 sub add_virtual_network_interface {
-    my $self  = shift;
+    my $self = shift;
     my $guest = shift;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     my $mac = "$MAC_PREFIX:" . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
     unless ($guest =~ m/hvm/i && is_sle('<=12-SP2') && is_xen_host) {
         my $persistent_config_option = '';
-        my $interface_model_option   = '';
+        my $interface_model_option = '';
         if (get_var('VIRT_AUTOTEST') && is_xen_host) {
             record_soft_failure 'bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning.';
             $self->{test_results}->{$guest}->{"bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning"}->{status} = 'SOFTFAILED';
@@ -79,7 +79,7 @@ sub add_virtual_network_interface {
 }
 
 sub get_disk_image_name {
-    my $guest       = shift;
+    my $guest = shift;
     my $disk_format = shift // get_var("QEMU_DISK_FORMAT");
     $disk_format //= "raw";    # Fallback in case nor function argument not QEMU_DISK_FORMAT setting is set
     my $disk_image = "/var/lib/libvirt/images/add/$guest.$disk_format";
@@ -88,9 +88,9 @@ sub get_disk_image_name {
 
 # Add a virtual disk to the given guest
 sub test_add_virtual_disk {
-    my $guest       = shift;
+    my $guest = shift;
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
-    my $disk_image  = get_disk_image_name($guest, $disk_format);
+    my $disk_image = get_disk_image_name($guest, $disk_format);
 
     assert_script_run("rm -f $disk_image");
     assert_script_run "qemu-img create -f $disk_format $disk_image 10G";
@@ -170,7 +170,7 @@ sub test_add_vcpu {
 
 # Returns the guest memory in MB
 sub get_guest_memory {
-    my $guest        = shift;
+    my $guest = shift;
     my $kernelmemory = 200000;    # We account to kernel memory to measures which omit it by adding this amount to the measured value
 
     my $memory = 0;
@@ -186,8 +186,8 @@ sub get_guest_memory {
 
 # Set memory of the given guest to the given size in MB
 sub set_guest_memory {
-    my $guest      = shift;
-    my $memory     = shift;
+    my $guest = shift;
+    my $memory = shift;
     my $min_memory = shift // 0.9 * $memory;    # acceptance range for memory check
     my $max_memory = shift // 1.1 * $memory;    # acceptance range for memory check
 
@@ -217,10 +217,10 @@ sub test_vmem_change {
 }
 
 sub increase_max_memory {
-    my $guest          = shift;
-    my $increase       = shift // 2048;
+    my $guest = shift;
+    my $increase = shift // 2048;
     my $guest_instance = $virt_autotest::common::guests{$guest};
-    my $maxmemory      = $guest_instance->{maxmemory} // "4096";
+    my $maxmemory = $guest_instance->{maxmemory} // "4096";
     $maxmemory += $increase;
     assert_script_run("virsh setmaxmem $guest $maxmemory" . "M --config");
 }
@@ -250,7 +250,7 @@ sub run_test {
     $mac{$_} = add_virtual_network_interface($self, $_) foreach (keys %virt_autotest::common::guests);
 
     # 2. Hotplug HDD
-    my $lsblk       = 0;
+    my $lsblk = 0;
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
     record_info "Disk", "Adding another raw disk";
     assert_script_run "mkdir -p /var/lib/libvirt/images/add/";

@@ -21,7 +21,7 @@ use utils;
 
 sub ensure_reboot_policy {
     my $guest = shift;
-    my $xml   = "$guest.xml";
+    my $xml = "$guest.xml";
     assert_script_run("virsh dumpxml $guest > $xml");
     assert_script_run("sed 's!.*<on_reboot>.*</on_reboot>!<on_reboot>restart</on_reboot>!' -i $xml");
     assert_script_run("virt-xml-validate $xml");
@@ -32,7 +32,7 @@ sub ensure_reboot_policy {
 
 sub add_pci_bridge {
     my $guest = shift;
-    my $xml   = "$guest.xml";
+    my $xml = "$guest.xml";
 
     assert_script_run("virsh dumpxml $guest > $xml");
 
@@ -44,7 +44,7 @@ sub add_pci_bridge {
         # Skip if a pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pci-bridge'") == 0);
 
-        my $regex     = '<controller type=.pci. .*model=.pci-root..*>';
+        my $regex = '<controller type=.pci. .*model=.pci-root..*>';
         my $addbefore = '<controller type="pci" model="pci-bridge"/>';
         # the add_before.sh script inserts a given line before the line matching the given regex
         assert_script_run("virsh dumpxml $guest | /root/add_before.sh '$regex' '$addbefore' > $xml");
@@ -64,7 +64,7 @@ sub add_pci_bridge {
         # Skip if a pcie-to-pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pcie-to-pci-bridge'") == 0);
 
-        my $regex     = '<controller type=.pci. .*model=.pcie-root..*>';
+        my $regex = '<controller type=.pci. .*model=.pcie-root..*>';
         my $addbefore = '<controller type="pci" model="pcie-root-port"/><controller type="pci" model="pcie-to-pci-bridge"/>';
         # the add_before.sh script inserts a given line before the line matching the given regex
         assert_script_run("virsh dumpxml $guest | /root/add_before.sh '$regex' '$addbefore' > $xml");

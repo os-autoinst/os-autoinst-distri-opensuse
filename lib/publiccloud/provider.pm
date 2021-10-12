@@ -20,17 +20,17 @@ use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
 
-use constant TERRAFORM_DIR     => '/root/terraform';
+use constant TERRAFORM_DIR => '/root/terraform';
 use constant TERRAFORM_TIMEOUT => 30 * 60;
 
-has key_id            => undef;
-has key_secret        => undef;
-has region            => undef;
-has username          => undef;
-has prefix            => 'openqa';
+has key_id => undef;
+has key_secret => undef;
+has region => undef;
+has username => undef;
+has prefix => 'openqa';
 has terraform_applied => 0;
-has vault_token       => undef;
-has vault_lease_id    => undef;
+has vault_token => undef;
+has vault_lease_id => undef;
 
 =head1 METHODS
 
@@ -148,9 +148,9 @@ sub parse_img_proof_output {
         }
         elsif ($line =~ m/tests=(\d+)\|pass=(\d+)\|skip=(\d+)\|fail=(\d+)\|error=(\d+)/) {
             $ret->{tests} = $1;
-            $ret->{pass}  = $2;
-            $ret->{skip}  = $3;
-            $ret->{fail}  = $4;
+            $ret->{pass} = $2;
+            $ret->{skip} = $3;
+            $ret->{fail} = $4;
             $ret->{error} = $5;
         }
     }
@@ -184,10 +184,10 @@ sub run_img_proof {
     my ($self, %args) = @_;
     die('Must provide an instance object') if (!$args{instance});
 
-    $args{tests}       //= '';
-    $args{timeout}     //= 60 * 120;
+    $args{tests} //= '';
+    $args{timeout} //= 60 * 120;
     $args{results_dir} //= 'img_proof_results';
-    $args{distro}      //= 'sles';
+    $args{distro} //= 'sles';
     $args{tests} =~ s/,/ /g;
 
     my $version = script_output('img-proof --version', 300);
@@ -201,10 +201,10 @@ sub run_img_proof {
     $cmd .= '--no-cleanup ';
     $cmd .= '--collect-vm-info ';
     $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
-    $cmd .= "--access-key-id '" . $args{key_id} . "' "                  if ($args{key_id});
-    $cmd .= "--secret-access-key '" . $args{key_secret} . "' "          if ($args{key_secret});
-    $cmd .= "--ssh-key-name '" . $args{key_name} . "' "                 if ($args{key_name});
-    $cmd .= '-u ' . $args{user} . ' '                                   if ($args{user});
+    $cmd .= "--access-key-id '" . $args{key_id} . "' " if ($args{key_id});
+    $cmd .= "--secret-access-key '" . $args{key_secret} . "' " if ($args{key_secret});
+    $cmd .= "--ssh-key-name '" . $args{key_name} . "' " if ($args{key_name});
+    $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
     $cmd .= '--ssh-private-key-file "' . $args{instance}->ssh_key . '" ';
     $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
 
@@ -318,38 +318,38 @@ sub terraform_apply {
     my ($self, %args) = @_;
     my @instances;
     my $create_extra_disk = 'false';
-    my $extra_disk_size   = 0;
+    my $extra_disk_size = 0;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
 
     $args{count} //= '1';
-    my $instance_type        = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
-    my $image                = $self->get_image_id();
+    my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
+    my $image = $self->get_image_id();
     my $ssh_private_key_file = '/root/.ssh/id_rsa';
-    my $name                 = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
-    my $cloud_name           = $self->conv_openqa_tf_name;
+    my $name = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
+    my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
     record_info('INFO', "Creating instance $instance_type from $image ...");
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . "/$cloud_name");
-        my $sap_media            = get_required_var('HANA');
-        my $sap_regcode          = get_required_var('SCC_REGCODE_SLES4SAP');
+        my $sap_media = get_required_var('HANA');
+        my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
         my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
-        my $storage_account_key  = get_var('STORAGE_ACCOUNT_KEY');
-        my $sle_version          = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
+        my $storage_account_key = get_var('STORAGE_ACCOUNT_KEY');
+        my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
         file_content_replace('terraform.tfvars',
-            q(%MACHINE_TYPE%)         => $instance_type,
-            q(%REGION%)               => $self->region,
-            q(%HANA_BUCKET%)          => $sap_media,
-            q(%SLE_IMAGE%)            => $image,
+            q(%MACHINE_TYPE%) => $instance_type,
+            q(%REGION%) => $self->region,
+            q(%HANA_BUCKET%) => $sap_media,
+            q(%SLE_IMAGE%) => $image,
             q(%SCC_REGCODE_SLES4SAP%) => $sap_regcode,
             q(%STORAGE_ACCOUNT_NAME%) => $storage_account_name,
-            q(%STORAGE_ACCOUNT_KEY%)  => $storage_account_key,
-            q(%HA_SAP_REPO%)          => $ha_sap_repo,
-            q(%SLE_VERSION%)          => $sle_version
+            q(%STORAGE_ACCOUNT_KEY%) => $storage_account_key,
+            q(%HA_SAP_REPO%) => $ha_sap_repo,
+            q(%SLE_VERSION%) => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
         assert_script_run('terraform workspace new qashapopenqa -no-color', $terraform_timeout);
@@ -372,7 +372,7 @@ sub terraform_apply {
         $cmd .= "-var 'region=" . $self->region . "' ";
         $cmd .= "-var 'name=" . $name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
-        $cmd .= "-var 'enable_confidential_vm=true' "    if $args{confidential_compute};
+        $cmd .= "-var 'enable_confidential_vm=true' " if $args{confidential_compute};
         $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
         if ($args{use_extra_disk}) {
             $cmd .= "-var 'create-extra-disk=true' ";
@@ -422,14 +422,14 @@ sub terraform_apply {
 
     foreach my $i (0 .. $#{$vms}) {
         my $instance = publiccloud::instance->new(
-            public_ip   => @{$ips}[$i],
+            public_ip => @{$ips}[$i],
             instance_id => @{$vms}[$i],
-            username    => $self->username,
-            ssh_key     => $ssh_private_key_file,
-            image_id    => $image,
-            region      => $self->region,
-            type        => $instance_type,
-            provider    => $self
+            username => $self->username,
+            ssh_key => $ssh_private_key_file,
+            image_id => $image,
+            region => $self->region,
+            type => $instance_type,
+            provider => $self
         );
         push @instances, $instance;
     }
@@ -484,9 +484,9 @@ sub terraform_param_tags
 {
     my ($self) = @_;
     my $tags = {
-        openqa_ttl        => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
+        openqa_ttl => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
         openqa_var_JOB_ID => get_current_job_id(),
-        openqa_var_NAME   => get_var(NAME => '')
+        openqa_var_NAME => get_var(NAME => '')
     };
 
     return encode_json($tags);
@@ -506,11 +506,11 @@ instance and used for further C<publiccloud::provider::vault_api()> calls.
 =cut
 sub __vault_login
 {
-    my ($self)   = @_;
-    my $url      = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
-    my $user     = get_required_var('_SECRET_PUBLIC_CLOUD_REST_USER');
+    my ($self) = @_;
+    my $url = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $user = get_required_var('_SECRET_PUBLIC_CLOUD_REST_USER');
     my $password = get_required_var('_SECRET_PUBLIC_CLOUD_REST_PW');
-    my $ua       = Mojo::UserAgent->new;
+    my $ua = Mojo::UserAgent->new;
 
     $ua->insecure(get_var('_SECRET_PUBLIC_CLOUD_REST_SSL_INSECURE', 0));
     $url = $url . '/v1/auth/userpass/login/' . $user;
@@ -530,7 +530,7 @@ sub __vault_login
 Wrapper arround C<<$self->vault_login()>> to have retry capability.
 =cut
 sub vault_login {
-    my $self  = shift;
+    my $self = shift;
     my $tries = 3;
     my $ret;
     while ($tries-- > 0) {
@@ -552,9 +552,9 @@ Depending on the method (get|post) you can pass additional data as json.
 sub __vault_api {
     my ($self, $path, %args) = @_;
     my $method = $args{method} // 'get';
-    my $data   = $args{data}   // {};
-    my $ua     = Mojo::UserAgent->new;
-    my $url    = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
+    my $data = $args{data} // {};
+    my $ua = Mojo::UserAgent->new;
+    my $url = get_required_var('_SECRET_PUBLIC_CLOUD_REST_URL');
     my $res;
 
     $self->vault_login() unless ($self->vault_token);
@@ -569,7 +569,7 @@ sub __vault_api {
     } elsif ($method eq 'post') {
         $res = $ua->post($url =>
               {'X-Vault-Token' => $self->vault_token()} =>
-              json                                      => $data)->result;
+              json => $data)->result;
     } else {
         die("Unknown method $method");
     }

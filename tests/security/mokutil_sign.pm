@@ -41,11 +41,11 @@ sub run {
     zypper_call('in pesign mozilla-nss-tools');
 
     my $work_dir = "/root/certs";
-    my $key_pw   = "suse";                         # Private key password
-    my $cdb_pw   = "openSUSE";                     # Certificate database password
-    my $mok_pw   = "novell";                       # Mokutil password
+    my $key_pw = "suse";    # Private key password
+    my $cdb_pw = "openSUSE";    # Certificate database password
+    my $mok_pw = "novell";      # Mokutil password
     my $cert_cfg = "$work_dir/self_signed.conf";
-    my $pri_key  = "$work_dir/key.asc";
+    my $pri_key = "$work_dir/key.asc";
     my $cert_pem = "$work_dir/cert.asc";
     my $cert_p12 = "$work_dir/cert.p12";
     my $cert_der = "$work_dir/ima_cert.der";

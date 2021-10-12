@@ -56,56 +56,56 @@ our %images_uri = (
     sle => {
         '12-SP3' => {
             released => sub { 'registry.suse.com/suse/sles12sp3' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-12-sp3/docker/update/cr/totest/images/suse/sles12sp3';
             },
             available_arch => ['x86_64', 'ppc64le', 's390x']
         },
         '12-SP4' => {
             released => sub { 'registry.suse.com/suse/sles12sp4' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-12-sp4/docker/update/cr/totest/images/suse/sles12sp4';
             },
             available_arch => ['x86_64', 'ppc64le', 's390x']
         },
         '12-SP5' => {
             released => sub { 'registry.suse.com/suse/sles12sp5' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-12-sp5/docker/update/cr/totest/images/suse/sles12sp5';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15' => {
             released => sub { 'registry.suse.com/suse/sle15:15.0' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-15/update/cr/totest/images/suse/sle15:15.0';
             },
             available_arch => ['x86_64', 'ppc64le', 's390x']
         },
         '15-SP1' => {
             released => sub { 'registry.suse.com/suse/sle15:15.1' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-15-sp1/update/cr/totest/images/suse/sle15:15.1';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP2' => {
             released => sub { 'registry.suse.com/suse/sle15:15.2' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-15-sp2/update/cr/totest/images/suse/sle15:15.2';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP3' => {
             released => sub { 'registry.suse.com/suse/sle15:15.3' },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-15-sp3/update/cr/totest/images/suse/sle15:15.3';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP4' => {
             released => sub { },
-            totest   => sub {
+            totest => sub {
                 'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4 ';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
@@ -114,21 +114,21 @@ our %images_uri = (
     opensuse => {
         Tumbleweed => {
             released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
-            totest   => sub {
+            totest => sub {
                 'registry.opensuse.org/' . get_opensuse_registry_prefix . 'opensuse/tumbleweed';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
         },
         '15.0' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.0' },
-            totest   => sub {
+            totest => sub {
                 'registry.opensuse.org/opensuse/leap/15.0/images/totest/images/opensuse/leap:15.0';
             },
             available_arch => ['x86_64']
         },
         '15.1' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.1' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if ($arch eq 'x86_64') {
                     'registry.opensuse.org/opensuse/leap/15.1/images/totest/containers/opensuse/leap:15.1';
@@ -140,7 +140,7 @@ our %images_uri = (
         },
         '15.2' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.2' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if ($arch eq 'x86_64') {
                     'registry.opensuse.org/opensuse/leap/15.2/images/totest/containers/opensuse/leap:15.2';
@@ -152,7 +152,7 @@ our %images_uri = (
         },
         '15.3' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.3' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if (grep { $_ eq $arch } qw/x86_64 aarch64 ppc64le s390x/) {
                     'registry.opensuse.org/opensuse/leap/15.3/images/totest/containers/opensuse/leap:15.3';
@@ -164,7 +164,7 @@ our %images_uri = (
         },
         '15.4' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.4' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if (grep { $_ eq $arch } qw/x86_64 aarch64 ppc64le s390x/) {
                     'registry.opensuse.org/opensuse/leap/15.4/images/totest/containers/opensuse/leap:15.4';
@@ -177,37 +177,37 @@ our %images_uri = (
     },
     'sle-micro' => {
         '15' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.0' },
-            totest         => sub { },
+            released => sub { 'registry.suse.com/suse/sle15:15.0' },
+            totest => sub { },
             available_arch => ['x86_64', 'ppc64le', 's390x']
         },
         '15-SP1' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.1' },
-            totest         => sub { },
+            released => sub { 'registry.suse.com/suse/sle15:15.1' },
+            totest => sub { },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP2' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.2' },
-            totest         => sub { },
+            released => sub { 'registry.suse.com/suse/sle15:15.2' },
+            totest => sub { },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP3' => {
-            released       => sub { 'registry.suse.com/suse/sle15:15.3' },
-            totest         => sub { },
+            released => sub { 'registry.suse.com/suse/sle15:15.3' },
+            totest => sub { },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         }
     },
     microos => {
         Tumbleweed => {
             released => sub { 'registry.opensuse.org/opensuse/tumbleweed' },
-            totest   => sub {
+            totest => sub {
                 'registry.opensuse.org/' . get_opensuse_registry_prefix . 'opensuse/tumbleweed';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x', 'arm']
         },
         '15.1' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.1' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if ($arch eq 'x86_64') {
                     'registry.opensuse.org/opensuse/leap/15.1/images/totest/containers/opensuse/leap:15.1';
@@ -219,7 +219,7 @@ our %images_uri = (
         },
         '15.2' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.2' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if ($arch eq 'x86_64') {
                     'registry.opensuse.org/opensuse/leap/15.2/images/totest/containers/opensuse/leap:15.2';
@@ -231,7 +231,7 @@ our %images_uri = (
         },
         '15.3' => {
             released => sub { 'registry.opensuse.org/opensuse/leap:15.3' },
-            totest   => sub {
+            totest => sub {
                 my $arch = shift;
                 if ($arch eq 'x86_64') {
                     'registry.opensuse.org/opensuse/leap/15.3/images/totest/containers/opensuse/leap:15.3';
@@ -254,8 +254,8 @@ sub supports_image_arch {
 sub get_suse_container_urls {
     my %args = (
         version => get_required_var('VERSION'),
-        arch    => get_required_var('ARCH'),
-        distri  => get_required_var('DISTRI'),
+        arch => get_required_var('ARCH'),
+        distri => get_required_var('DISTRI'),
         @_
     );
     my @untested_images = ();

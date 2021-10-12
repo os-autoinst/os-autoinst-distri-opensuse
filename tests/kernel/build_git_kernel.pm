@@ -22,8 +22,8 @@ use utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self       = shift;
-    my $git_tree   = get_required_var('KERNEL_GIT_TREE');
+    my $self = shift;
+    my $git_tree = get_required_var('KERNEL_GIT_TREE');
     my $git_branch = get_var('KERNEL_GIT_BRANCH', 'master');
 
     $self->select_serial_terminal;

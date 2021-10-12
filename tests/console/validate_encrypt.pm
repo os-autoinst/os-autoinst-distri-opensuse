@@ -47,8 +47,8 @@ sub run {
     foreach my $dev (sort keys %{$devices}) {
         verify_restoring_luks_backups(
             encrypted_device_path => $devices->{$dev}->{encrypted_device},
-            backup_file_info      => $test_data->{backup_file_info},
-            backup_path           => $test_data->{backup_path}
+            backup_file_info => $test_data->{backup_file_info},
+            backup_path => $test_data->{backup_path}
         );
     }
 }

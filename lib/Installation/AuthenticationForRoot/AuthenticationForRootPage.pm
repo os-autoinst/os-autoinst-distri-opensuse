@@ -25,8 +25,8 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{lbl_import_public_ssh_key} = $self->{app}->label({label => 'Import Public SSH Key'});
-    $self->{tb_confirm_password}       = $self->{app}->textbox({id => 'pw2'});
-    $self->{tb_password}               = $self->{app}->textbox({id => 'pw1'});
+    $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
+    $self->{tb_password} = $self->{app}->textbox({id => 'pw1'});
     return $self;
 }
 

@@ -28,7 +28,7 @@ sub check_errors_in_ifcfg {
 }
 
 sub run {
-    my $test_data  = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my $ifcfg_file = '/etc/sysconfig/network/ifcfg-' . $test_data->{net_device};
     record_info('IFCFG', 'Verify that putting wrong settings in ifcfg files do not provoke a crash');
     start_root_shell_in_xterm();

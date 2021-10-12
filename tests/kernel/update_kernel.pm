@@ -32,8 +32,8 @@ sub check_kernel_package {
     script_run('ls -1 /boot/vmlinu[xz]*');
     # Only check versioned kernels in livepatch tests. Some old kernel
     # packages install /boot/vmlinux symlink but don't set package ownership.
-    my $glob  = get_var('KGRAFT', 0) ? '-*' : '*';
-    my $cmd   = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
+    my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
+    my $cmd = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
     my $packs = script_output($cmd);
 
     for my $packname (split /\s+/, $packs) {
@@ -174,7 +174,7 @@ sub override_shim {
             ['4.12.14-197.83.1', '15+git47-3.13.1']
         ],
         '15-SP2' => [
-            ['5.3.18-22.2',    '15+git47-3.3.1'],
+            ['5.3.18-22.2', '15+git47-3.3.1'],
             ['5.3.18-24.49.2', '15+git47-3.13.1']
         ]
     };
@@ -204,31 +204,31 @@ sub install_lock_kernel {
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
-            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
-            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
-            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
-            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+            '4.4.114-94.11.3' => '4.4.114-94.11.2',
+            '4.4.126-94.22.1' => '4.4.126-94.22.2',
+            '4.4.178-94.91.2' => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
-            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
+            '5.3.18-24.67.3' => '5.3.18-24.67.2',
+            '5.3.18-24.75.3' => '5.3.18-24.75.2',
         },
         'kernel-macros' => {
-            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
-            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
-            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
-            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+            '4.4.114-94.11.3' => '4.4.114-94.11.2',
+            '4.4.126-94.22.1' => '4.4.126-94.22.2',
+            '4.4.178-94.91.2' => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
-            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
+            '5.3.18-24.67.3' => '5.3.18-24.67.2',
+            '5.3.18-24.75.3' => '5.3.18-24.75.2',
         },
         'kernel-devel' => {
-            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
-            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
-            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
-            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+            '4.4.114-94.11.3' => '4.4.114-94.11.2',
+            '4.4.126-94.22.1' => '4.4.126-94.22.2',
+            '4.4.178-94.91.2' => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
-            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
+            '5.3.18-24.67.3' => '5.3.18-24.67.2',
+            '5.3.18-24.75.3' => '5.3.18-24.75.2',
         }};
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
@@ -296,7 +296,7 @@ sub prepare_kgraft {
 
     fully_patch_system;
 
-    my $kversion       = zypper_search(q(-s -x kernel-default));
+    my $kversion = zypper_search(q(-s -x kernel-default));
     my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
     install_lock_kernel($wanted_version);
 
@@ -411,12 +411,12 @@ sub run {
         zypper_call("ar -G -f http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON");
     }
 
-    my $repo           = get_var('KOTD_REPO');
-    my $incident_id    = undef;
+    my $repo = get_var('KOTD_REPO');
+    my $incident_id = undef;
     my $kernel_package = 'kernel-default';
 
     unless ($repo) {
-        $repo        = get_required_var('INCIDENT_REPO');
+        $repo = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
     }
 

@@ -129,7 +129,7 @@ sub is_desktop_module_available {
 
 # SLE specific variables
 set_var('NOAUTOLOGIN', 1) unless check_var('NOAUTOLOGIN', '0');
-set_var('HASLICENSE',  1) unless check_var('HASLICENSE',  '0');    # Only if we specifically set HASLICENSE to 0 in test, for upgrade case for example
+set_var('HASLICENSE', 1) unless check_var('HASLICENSE', '0');    # Only if we specifically set HASLICENSE to 0 in test, for upgrade case for example
 set_var('SLE_PRODUCT', get_var('SLE_PRODUCT', 'sles'));
 # Always register against SCC if SLE 15
 if (is_sle('15+')) {
@@ -207,9 +207,9 @@ if (get_var('DEV_IMAGE')) {
         set_var('SCC_ADDONS', $addons);
     }
     else {
-        my $arch      = get_required_var("ARCH");
-        my $build     = get_required_var("BUILD");
-        my $version   = get_required_var("VERSION");
+        my $arch = get_required_var("ARCH");
+        my $build = get_required_var("BUILD");
+        my $version = get_required_var("VERSION");
         my $build_sdk = get_var("BUILD_SDK");
         # Set SDK URL unless already set, then don't override
         set_var('ADDONURL_SDK', "$utils::OPENQA_FTP_URL/SLE-$version-SDK-POOL-$arch-Build$build_sdk-Media1/") unless get_var('ADDONURL_SDK');
@@ -227,31 +227,31 @@ if (check_var('SCC_REGISTER', 'installation') && get_var('ALL_ADDONS') && !get_v
         '11-SP4' => 'ha,geo,sdk'
     );
     my %common_extensions = ('12-SP3' => 'sdk');
-    my %common_modules    = ('12-SP3' => 'pcm,tcm,wsm');
+    my %common_modules = ('12-SP3' => 'pcm,tcm,wsm');
     #Below $external* store external extensions/modules list on each ARCH.
     my %external_addons_12SP3 = (
         'x86_64' => 'ha,geo,we,live,asmm,contm,lgm,hpcm',
-        ppc64le  => 'ha,live,asmm,contm,lgm',
-        s390x    => 'ha,geo,asmm,contm,lgm',
-        aarch64  => 'hpcm'
+        ppc64le => 'ha,live,asmm,contm,lgm',
+        s390x => 'ha,geo,asmm,contm,lgm',
+        aarch64 => 'hpcm'
     );
     my %external_modules_12SP3 = (
         'x86_64' => 'asmm,contm,lgm,hpcm',
-        ppc64le  => 'asmm,contm,lgm',
-        s390x    => 'asmm,contm,lgm',
-        aarch64  => 'hpcm'
+        ppc64le => 'asmm,contm,lgm',
+        s390x => 'asmm,contm,lgm',
+        aarch64 => 'hpcm'
     );
     my %external_extensions_12SP3 = (
         'x86_64' => 'ha,geo,we,live',
-        ppc64le  => 'ha,live',
-        s390x    => 'ha,geo',
-        aarch64  => ''
+        ppc64le => 'ha,live',
+        s390x => 'ha,geo',
+        aarch64 => ''
     );
     # ALL_ADDONS = 'addons' : all addons, 'extensions' : all extensions, 'modules' : all modules.
     if (is_sle('12-SP3+')) {
-        set_var('SCC_ADDONS', join(',', $common_addons{$version},     $external_addons_12SP3{get_var('ARCH')}))     if (check_var('ALL_ADDONS', 'addons'));
+        set_var('SCC_ADDONS', join(',', $common_addons{$version}, $external_addons_12SP3{get_var('ARCH')})) if (check_var('ALL_ADDONS', 'addons'));
         set_var('SCC_ADDONS', join(',', $common_extensions{$version}, $external_extensions_12SP3{get_var('ARCH')})) if (check_var('ALL_ADDONS', 'extensions'));
-        set_var('SCC_ADDONS', join(',', $common_modules{$version},    $external_modules_12SP3{get_var('ARCH')}))    if (check_var('ALL_ADDONS', 'modules'));
+        set_var('SCC_ADDONS', join(',', $common_modules{$version}, $external_modules_12SP3{get_var('ARCH')})) if (check_var('ALL_ADDONS', 'modules'));
     }
     elsif (is_sle('11-SP4+')) {
         set_var('SCC_ADDONS', $common_addons{$version});
@@ -270,8 +270,8 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
         @modules = qw(base sdk desktop legacy script serverapp);
     }
     if (@modules) {
-        my $arch    = get_required_var("ARCH");
-        my $build   = get_required_var("BUILD");
+        my $arch = get_required_var("ARCH");
+        my $build = get_required_var("BUILD");
         my $version = get_required_var("VERSION");
         my $addonurl;
 
@@ -300,7 +300,7 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
               "$prefix-Module-$full_name-POOL-$arch-Build$build-Media1"
               : "$prefix-Product-$full_name-POOL-$arch-Build$build-Media1";
             my $module_repo_name = get_var($repo_variable_name, $default_repo_name);
-            my $url              = "$utils::OPENQA_FTP_URL/$module_repo_name";
+            my $url = "$utils::OPENQA_FTP_URL/$module_repo_name";
             # Verify if url exists before adding
             if (head($url)) {
                 set_var('ADDONURL_' . uc $short_name, "$utils::OPENQA_FTP_URL/$module_repo_name");
@@ -320,8 +320,8 @@ if (is_sle('15+') && !check_var('SCC_REGISTER', 'installation')) {
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
-    $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
+    $incidents{OS} = get_var('OS_TEST_ISSUES', '');
+    $u_url{OS} = get_var('OS_TEST_TEMPLATE', '');
 
     my @inclist;
 
@@ -345,20 +345,20 @@ if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     # move ADDONS to SCC_ADDONS for maintenance
     set_var('ADDONS', '');
     # move ADDONURL to SCC_ADDONS and remove ADDONURL_SDK
-    set_var('ADDONURL',     '');
+    set_var('ADDONURL', '');
     set_var('ADDONURL_SDK', '');
 
     for my $i (@addons) {
         if ($i) {
             $incidents{uc($i)} = get_var(uc($i) . '_TEST_ISSUES');
-            $u_url{uc($i)}     = get_var(uc($i) . '_TEST_TEMPLATE');
+            $u_url{uc($i)} = get_var(uc($i) . '_TEST_TEMPLATE');
         }
     }
 
     my $repos = map_incidents_to_repo(\%incidents, \%u_url);
 
     set_var('MAINT_TEST_REPO', $repos);
-    set_var('SCC_REGISTER',    'installation');
+    set_var('SCC_REGISTER', 'installation');
 
     # slenkins test needs FOREIGN_REPOS
     if (get_var('TEST', '') =~ /^slenkins/) {
@@ -375,16 +375,16 @@ if (get_var('ENABLE_ALL_SCC_MODULES') && !get_var('SCC_ADDONS')) {
         # Container module is missing for aarch64. Not a bug. fate#323788
         $addons .= ',contm' unless (check_var('ARCH', 'aarch64'));
         set_var('SCC_ADDONS', $addons);
-        set_var('PATTERNS',   'default,asmm') if !get_var('PATTERNS');
+        set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
     }
     else {
         if (check_var('ARCH', 'aarch64')) {
             set_var('SCC_ADDONS', 'tcm');
-            set_var('PATTERNS',   'default') if !get_var('PATTERNS');
+            set_var('PATTERNS', 'default') if !get_var('PATTERNS');
         }
         else {
             set_var('SCC_ADDONS', 'phub,asmm,contm,lgm,tcm,wsm');
-            set_var('PATTERNS',   'default,asmm') if !get_var('PATTERNS');
+            set_var('PATTERNS', 'default,asmm') if !get_var('PATTERNS');
         }
     }
 }
@@ -402,7 +402,7 @@ if (get_var('SUPPORT_SERVER_ROLES', '') =~ /aytest/ && !get_var('AYTESTS_REPO_BR
 # Workaround to be able to use create_hdd_hpc_textmode simultaneously in SLE15 and SLE12 SP*
 # and exlude maintenance tests
 if (check_var('SLE_PRODUCT', 'hpc') && check_var('INSTALLONLY', '1') && is_sle('<15') && !is_updates_tests) {
-    set_var('SCC_ADDONS',   'hpcm,wsm');
+    set_var('SCC_ADDONS', 'hpcm,wsm');
     set_var('SCC_REGISTER', 'installation');
 }
 # We have different dud files for SLE 12 and SLE 15
@@ -454,7 +454,7 @@ sub load_online_migration_tests {
     # stop packagekit service and more
     loadtest "migration/online_migration/online_migration_setup";
     # switch VERSION to ensure migrate to expected target for online migration
-    set_var('ORIGIN_SYSTEM_VERSION',  get_var('HDDVERSION'));
+    set_var('ORIGIN_SYSTEM_VERSION', get_var('HDDVERSION'));
     set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
 
     loadtest "migration/online_migration/register_system";
@@ -568,7 +568,7 @@ sub load_default_tests {
 
 sub load_default_autoyast_tests {
     loadtest "autoyast/prepare_profile" if get_var "AUTOYAST_PREPARE_PROFILE";
-    load_patching_tests                 if get_var('PATCH');
+    load_patching_tests if get_var('PATCH');
     load_boot_tests;
     load_autoyast_tests;
     load_reboot_tests;
@@ -624,8 +624,8 @@ sub load_virt_feature_tests {
         loadtest "virt_autotest/libvirt_isolated_virtual_network";
     }
     loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH");
-    loadtest "virtualization/universal/hotplugging"             if get_var("ENABLE_HOTPLUGGING");
-    loadtest "virtualization/universal/storage"                 if get_var("ENABLE_STORAGE");
+    loadtest "virtualization/universal/hotplugging" if get_var("ENABLE_HOTPLUGGING");
+    loadtest "virtualization/universal/storage" if get_var("ENABLE_STORAGE");
     if (get_var("ENABLE_SNAPSHOT")) {
         loadtest "virt_autotest/virsh_internal_snapshot";
         loadtest "virt_autotest/virsh_external_snapshot";
@@ -665,8 +665,8 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_hypervisor_tests         if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
-    load_suseconnect_tests        if check_var("REGRESSION", "suseconnect");
+    load_hypervisor_tests if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
+    load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
     load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }
 elsif (get_var("FEATURE")) {
@@ -699,11 +699,11 @@ elsif (get_var("SUPPORT_SERVER")) {
         loadtest "remote/remote_controller";
         load_inst_tests();
     }
-    loadtest "ha/barrier_init"                  if get_var("HA_CLUSTER");
-    loadtest "hpc/barrier_init"                 if get_var("HPC");
+    loadtest "ha/barrier_init" if get_var("HA_CLUSTER");
+    loadtest "hpc/barrier_init" if get_var("HPC");
     loadtest "support_server/meddle_multipaths" if (get_var("SUPPORT_SERVER_TEST_INSTDISK_MULTIPATH"));
-    loadtest "support_server/custom_pxeboot"    if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
-    loadtest "support_server/flaky_mp_iscsi"    if (get_var("ISCSI_MULTIPATH_FLAKY"));
+    loadtest "support_server/custom_pxeboot" if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
+    loadtest "support_server/flaky_mp_iscsi" if (get_var("ISCSI_MULTIPATH_FLAKY"));
     unless (load_slenkins_tests()) {
         loadtest "support_server/wait_children";
     }
@@ -841,7 +841,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         loadtest "virt_autotest/update_package";
         loadtest "virt_autotest/reset_partition";
         loadtest "virt_autotest/reboot_and_wait_up_normal" if get_var('REPO_0_TO_INSTALL');
-        loadtest "virt_autotest/download_guest_assets"     if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
+        loadtest "virt_autotest/download_guest_assets" if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
         load_virt_guest_install_tests;
@@ -938,7 +938,7 @@ elsif (get_var("QAM_MINIMAL")) {
         # save DESKTOP variable here and restore it in install_patterns.pm
         # we do this after scheduling all tests for the original DESKTOP
         set_var('FULL_DESKTOP', get_var('DESKTOP'));
-        set_var('DESKTOP',      'textmode');
+        set_var('DESKTOP', 'textmode');
     }
 }
 elsif (get_var("INSTALLTEST")) {
@@ -1096,7 +1096,7 @@ else {
     elsif (get_var('QAM_SMT')) {
         set_var('INSTALLONLY', 1);
         if (check_var('HOSTNAME', 'server')) {
-            barrier_create('smt_setup',      2);
+            barrier_create('smt_setup', 2);
             barrier_create('smt_registered', 2);
             boot_hdd_image;
             loadtest 'network/setup_multimachine';
@@ -1140,7 +1140,7 @@ else {
     }
     elsif (get_var('UPGRADE_ON_ZVM')) {
         # Set origin and target version
-        set_var('ORIGIN_SYSTEM_VERSION',  get_var('BASE_VERSION'));
+        set_var('ORIGIN_SYSTEM_VERSION', get_var('BASE_VERSION'));
         set_var('UPGRADE_TARGET_VERSION', get_var('VERSION')) if (!get_var('UPGRADE_TARGET_VERSION'));
         loadtest "migration/version_switch_origin_system";
         # Use autoyast to perform origin system installation

@@ -45,7 +45,7 @@ sub run {
 
     # Verify that it works
     validate_script_output('curl -kH "Host: registry.opensuse.org" https://localhost/v2', sub { m/{}/ });
-    validate_script_output('curl https://registry.opensuse.org/v2',                       sub { m/{}/ });
+    validate_script_output('curl https://registry.opensuse.org/v2', sub { m/{}/ });
 
     # Backdate /etc/hosts to not trigger mkdumprd on reboot (boo#1190532)
     assert_script_run('touch -r hosts.bak /etc/hosts && rm hosts.bak');

@@ -16,9 +16,9 @@ use warnings;
 
 sub wait_until {
     my (%args) = @_;
-    $args{timeout}  //= 10;
+    $args{timeout} //= 10;
     $args{interval} //= 1;
-    $args{message}  //= '';
+    $args{message} //= '';
 
     die "No object passed to the method" unless $args{object};
 

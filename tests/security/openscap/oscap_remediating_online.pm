@@ -54,7 +54,7 @@ sub run {
     validate_result($remediate_result, $remediate_result_match);
 
     # Verify the remediate action result
-    validate_script_output "cat /etc/securetty",         sub { m/^$/ };
+    validate_script_output "cat /etc/securetty", sub { m/^$/ };
     validate_script_output "cat /proc/sys/kernel/sysrq", sub { m/^0$/ };
 
     # Restore

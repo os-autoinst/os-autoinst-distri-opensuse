@@ -21,9 +21,9 @@ use Installation::License::LicenseAgreementPage;
 sub init {
     my ($self, $args) = @_;
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementPage->new({
-            app                => YuiRestClient::get_app(),
+            app => YuiRestClient::get_app(),
             cb_language_filter => {id => '"license_language_/usr/share/licenses/product/base/"'},
-            rt_eula_filter     => {id => '"welcome_text_/usr/share/licenses/product/base/"'}});
+            rt_eula_filter => {id => '"welcome_text_/usr/share/licenses/product/base/"'}});
     return $self;
 }
 

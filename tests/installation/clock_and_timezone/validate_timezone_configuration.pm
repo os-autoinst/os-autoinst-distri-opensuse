@@ -22,8 +22,8 @@ sub run {
 
     my $clock_and_time_zone = $testapi::distri->get_clock_and_time_zone();
     compare_settings({
-            expected      => $test_data,
-            current       => $clock_and_time_zone->collect_current_clock_and_time_zone_info(),
+            expected => $test_data,
+            current => $clock_and_time_zone->collect_current_clock_and_time_zone_info(),
             suppress_info => 1});
 }
 

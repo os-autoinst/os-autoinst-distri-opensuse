@@ -17,7 +17,7 @@ use testapi;
 use containers::common;
 use version_utils 'is_sle_micro';
 
-our $user     = $testapi::username;
+our $user = $testapi::username;
 our $password = $testapi::password;
 
 sub cleanup {
@@ -46,14 +46,14 @@ sub run {
     # Display help
     assert_script_run 'toolbox -h';
 
-    record_info 'Test',                    "Run toolbox without flags";
-    assert_script_run 'toolbox -r id',     timeout => 300;
+    record_info 'Test', "Run toolbox without flags";
+    assert_script_run 'toolbox -r id', timeout => 300;
     validate_script_output 'podman ps -a', sub { m/toolbox-root/ };
     assert_script_run 'podman rm toolbox-root';
 
-    record_info 'Test',                         "Run toolbox with a given tag";
+    record_info 'Test', "Run toolbox with a given tag";
     assert_script_run 'toolbox -t test_tag id', timeout => 180;
-    validate_script_output 'podman ps -a',      sub { m/toolbox-root-test_tag/ };
+    validate_script_output 'podman ps -a', sub { m/toolbox-root-test_tag/ };
     assert_script_run 'podman rm toolbox-root-test_tag';
 
     record_info 'Test', "Run toolbox with a given name";
@@ -68,8 +68,8 @@ sub run {
     validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 180;
     die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
 
-    record_info 'Test',                               "Rootfull toolbox as $user";
-    validate_script_output 'toolbox -r id',           sub { m/uid=0\(root\)/ };
+    record_info 'Test', "Rootfull toolbox as $user";
+    validate_script_output 'toolbox -r id', sub { m/uid=0\(root\)/ };
     assert_script_run 'toolbox -r touch /etc/passwd', fail_message => 'Root should have access to /etc/passwd!';
     assert_script_run 'podman ps -a';
     clean_container_host(runtime => 'podman');
@@ -102,11 +102,11 @@ sub run {
 }
 
 sub clean_container_host {
-    my %args    = @_;
+    my %args = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
-    assert_script_run("$runtime system prune -a -f",             300);
+    assert_script_run("$runtime system prune -a -f", 300);
 }
 
 sub post_fail_hook {

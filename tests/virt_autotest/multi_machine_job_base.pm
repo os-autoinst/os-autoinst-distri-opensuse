@@ -41,11 +41,11 @@ sub get_var_from_child {
 }
 
 sub set_ip_and_hostname_to_var {
-    my $self     = shift;
-    my $ip_out   = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 30);
-    my $name_out = $self->execute_script_run('hostname',                                         10);
+    my $self = shift;
+    my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 30);
+    my $name_out = $self->execute_script_run('hostname', 10);
 
-    set_var('MY_IP',   $ip_out);
+    set_var('MY_IP', $ip_out);
     set_var('MY_NAME', $name_out);
     bmwqemu::save_vars();
 }
@@ -57,18 +57,18 @@ sub set_hosts {
 
     if ($role =~ /parent/) {
 
-        $target_ip   = $self->get_var_from_child('MY_IP');
+        $target_ip = $self->get_var_from_child('MY_IP');
         $target_name = $self->get_var_from_child('MY_NAME');
 
     }
     else {
 
-        $target_ip   = $self->get_var_from_parent('MY_IP');
+        $target_ip = $self->get_var_from_parent('MY_IP');
         $target_name = $self->get_var_from_parent('MY_NAME');
     }
 
     $self->execute_script_run("sed -i '/$target_ip/d' /etc/hosts ;echo $target_ip $target_name >>/etc/hosts", 15);
-    my $self_ip   = get_var('MY_IP');
+    my $self_ip = get_var('MY_IP');
     my $self_name = get_var('MY_NAME');
     $self->execute_script_run("sed -i '/$self_ip/d' /etc/hosts ;echo $self_ip $self_name >>/etc/hosts", 15);
 

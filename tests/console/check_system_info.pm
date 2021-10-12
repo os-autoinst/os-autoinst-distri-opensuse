@@ -40,12 +40,12 @@ sub check_milestone_version {
 sub check_addons {
     my ($myaddons) = @_;
     $myaddons //= get_var('SCC_ADDONS');
-    my @addons        = grep { $_ =~ /\w/ } split(/,/, $myaddons);
+    my @addons = grep { $_ =~ /\w/ } split(/,/, $myaddons);
     my @unique_addons = uniq @addons;
     foreach my $addon (@unique_addons) {
         my $name = get_addon_fullname($addon);
         record_info("$addon module fullname: ", $name);
-        $name = "sle-product-we"      if (($name =~ /sle-we/) && !get_var("MEDIA_UPGRADE") && is_sle('15+'));
+        $name = "sle-product-we" if (($name =~ /sle-we/) && !get_var("MEDIA_UPGRADE") && is_sle('15+'));
         $name = "SLE-Module-DevTools" if (($name =~ /development/) && !get_var("MEDIA_UPGRADE"));
         my $out = script_output("zypper lr | grep -i $name", 200, proceed_on_failure => 1);
         die "zypper lr command output does not include $name" if ($out eq '');
@@ -55,16 +55,16 @@ sub check_addons {
 sub check_product {
     my ($status) = @_;
     $status //= "before";
-    my $myver   = get_var('VERSION');
+    my $myver = get_var('VERSION');
     my %proname = (
-        HPC       => 'SLE-Product-HPC-' . $myver,
-        SLES      => 'SLES' . $myver,
-        SLED      => 'SLED' . $myver,
-        SLE_HPC   => 'SLE-Product-HPC-' . $myver,
-        leap      => "openSUSE-Leap",
+        HPC => 'SLE-Product-HPC-' . $myver,
+        SLES => 'SLES' . $myver,
+        SLED => 'SLED' . $myver,
+        SLE_HPC => 'SLE-Product-HPC-' . $myver,
+        leap => "openSUSE-Leap",
         Media_HPC => $myver . '-HPC',
     );
-    my $mypro   = uc get_var('SLE_PRODUCT', '');
+    my $mypro = uc get_var('SLE_PRODUCT', '');
     my $product = '';
     if ($status eq 'before') {
         if ((get_var("HDDVERSION") =~ /leap/)) {
@@ -89,7 +89,7 @@ sub check_buildid {
     # Checked to get expected buildID with proxy scc upgrade
     if ((get_var('SCC_URL', "") =~ /proxy/) && !get_var("MEDIA_UPGRADE") && get_var("BUILD_SLE") && !get_var("ONLINE_MIGRATION")) {
         my $build_id = get_var("BUILD_SLE");
-        my $build    = script_output("zypper lr --url | grep -i $build_id", 200, proceed_on_failure => 1);
+        my $build = script_output("zypper lr --url | grep -i $build_id", 200, proceed_on_failure => 1);
         die "System does not upgrade to expected build ID: $build_id" if ($build eq '');
     }
 }
@@ -114,9 +114,9 @@ sub run {
     if (check_var('VERSION', get_required_var('UPGRADE_TARGET_VERSION'))) {
         check_milestone_version;
         my $myaddons = get_var('SCC_ADDONS', "");
-        $myaddons .= ",base,serverapp"                          if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
-        $myaddons .= ",base,desktop,we"                         if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
-        $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm"      if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
+        $myaddons .= ",base,serverapp" if (is_sle('15+') && check_var('SLE_PRODUCT', 'sles'));
+        $myaddons .= ",base,desktop,we" if (is_sle('15+') && check_var('SLE_PRODUCT', 'sled'));
+        $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm" if (is_sle('<15', get_var('ORIGIN_SYSTEM_VERSION')) && is_sle('15+'));
         $myaddons .= ",base,serverapp,desktop,dev,lgm,wsm,phub" if (is_leap_migration);
 
         # For hpc, system doesn't include legacy module

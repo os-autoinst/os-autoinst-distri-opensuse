@@ -26,11 +26,11 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
-    $self->{tb_full_name}        = $self->{app}->textbox({id => 'full_name'});
-    $self->{tb_username}         = $self->{app}->textbox({id => 'username'});
-    $self->{tb_password}         = $self->{app}->textbox({id => 'pw1'});
-    $self->{ch_autologin}        = $self->{app}->checkbox({id => 'autologin'});
-    $self->{ch_use_for_admin}    = $self->{app}->checkbox({id => 'root_pw'});
+    $self->{tb_full_name} = $self->{app}->textbox({id => 'full_name'});
+    $self->{tb_username} = $self->{app}->textbox({id => 'username'});
+    $self->{tb_password} = $self->{app}->textbox({id => 'pw1'});
+    $self->{ch_autologin} = $self->{app}->checkbox({id => 'autologin'});
+    $self->{ch_use_for_admin} = $self->{app}->checkbox({id => 'root_pw'});
     return $self;
 }
 
@@ -61,7 +61,7 @@ sub is_shown {
 
 sub set_autologin {
     my ($self, $is_checked) = @_;
-    $self->{ch_autologin}->check()   if $is_checked;
+    $self->{ch_autologin}->check() if $is_checked;
     $self->{ch_autologin}->uncheck() if !$is_checked;
 }
 

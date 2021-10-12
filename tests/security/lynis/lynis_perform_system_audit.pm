@@ -26,10 +26,10 @@ use utils;
 use lynis::lynistest;
 
 sub run {
-    my $dir                             = $lynis::lynistest::testdir;
-    my $lynis_baseline_file             = "$dir" . $lynis::lynistest::lynis_baseline_file;
+    my $dir = $lynis::lynistest::testdir;
+    my $lynis_baseline_file = "$dir" . $lynis::lynistest::lynis_baseline_file;
     my $lynis_audit_system_current_file = "$dir" . $lynis::lynistest::lynis_audit_system_current_file;
-    my $lynis_audit_system_error_file   = "$dir" . $lynis::lynistest::lynis_audit_system_error_file;
+    my $lynis_audit_system_error_file = "$dir" . $lynis::lynistest::lynis_audit_system_error_file;
 
     select_console "root-console";
 

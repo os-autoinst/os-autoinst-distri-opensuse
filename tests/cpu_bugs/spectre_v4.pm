@@ -24,17 +24,17 @@ use Mitigation;
 
 our %mitigations_list =
   (
-    name                   => "spectre_v4",
-    CPUID                  => hex '80000000',
-    IA32_ARCH_CAPABILITIES => 16,                            #bit4 --SSB_NO
-    parameter              => 'spec_store_bypass_disable',
-    cpuflags               => ['ssbd'],
-    sysfs_name             => "spec_store_bypass",
-    sysfs                  => {
-        on      => "Mitigation: Speculative Store Bypass disabled",
-        off     => "Vulnerable",
-        auto    => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
-        prctl   => "Mitigation: Speculative Store Bypass disabled via prctl",
+    name => "spectre_v4",
+    CPUID => hex '80000000',
+    IA32_ARCH_CAPABILITIES => 16,    #bit4 --SSB_NO
+    parameter => 'spec_store_bypass_disable',
+    cpuflags => ['ssbd'],
+    sysfs_name => "spec_store_bypass",
+    sysfs => {
+        on => "Mitigation: Speculative Store Bypass disabled",
+        off => "Vulnerable",
+        auto => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
+        prctl => "Mitigation: Speculative Store Bypass disabled via prctl",
         seccomp => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
         default => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
     },

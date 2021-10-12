@@ -71,7 +71,7 @@ our $sid;
 our $instance;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
-our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u SAP.slice';
+our $systemd_cgls_cmd = 'systemd-cgls --no-pager -u SAP.slice';
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -114,7 +114,7 @@ sub fix_path {
 
     $aux[0] .= ':' if ($proto eq 'nfs');
     $aux[0] = '//' . $aux[0] if ($proto eq 'cifs');
-    $path   = join '/', @aux;
+    $path = join '/', @aux;
     return ($proto, $path);
 }
 
@@ -146,7 +146,7 @@ accordingly. Returns the value of B<$sapadmin>.
 
 sub set_sap_info {
     my ($self, $sid_env, $instance_env) = @_;
-    $sid      = uc($sid_env);
+    $sid = uc($sid_env);
     $instance = $instance_env;
     $sapadmin = lc($sid_env) . 'adm';
     return ($sapadmin);
@@ -348,7 +348,7 @@ sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
 
     # First copy media
-    my $mnt_path   = '/mnt';
+    my $mnt_path = '/mnt';
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
@@ -595,7 +595,7 @@ sub check_instance_state {
 
             my $failing_services = 0;
             for my $line (split(/\n/, $output)) {
-                next                if ($line =~ /GetProcessList|OK|^name/);
+                next if ($line =~ /GetProcessList|OK|^name/);
                 $failing_services++ if ($line !~ /GREEN/);
             }
             last unless $failing_services;
@@ -633,7 +633,7 @@ sub check_replication_state {
     my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     # Wait by default for 5 minutes
     my $time_to_wait = 300;
-    my $cmd          = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
+    my $cmd = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
 
     # Replication check can only be done on PRIMARY node
     my $output = script_output($cmd, proceed_on_failure => 1);
@@ -720,9 +720,9 @@ is used and the method croaks on failure.
 sub do_hana_sr_register {
     my ($self, %args) = @_;
     my $current_node = get_hostname;
-    my $instance_id  = get_required_var('INSTANCE_ID');
-    my $sid          = get_required_var('INSTANCE_SID');
-    my $sapadm       = $self->set_sap_info($sid, $instance_id);
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $sid = get_required_var('INSTANCE_SID');
+    my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
@@ -753,8 +753,8 @@ sub do_hana_takeover {
     return if check_var('AUTOMATED_REGISTER', 'true');
     my ($self, %args) = @_;
     my $instance_id = get_required_var('INSTANCE_ID');
-    my $sid         = get_required_var('INSTANCE_SID');
-    my $sapadm      = $self->set_sap_info($sid, $instance_id);
+    my $sid = get_required_var('INSTANCE_SID');
+    my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
@@ -828,7 +828,7 @@ sub upload_nw_install_log {
     my ($self) = @_;
 
     $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
-    $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
+    $self->save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
     upload_logs('/tmp/check-nw-media', failok => 1);
     upload_logs '/sapinst/unattended/sapinst.log';
     upload_logs '/sapinst/unattended/sapinst_dev.log';

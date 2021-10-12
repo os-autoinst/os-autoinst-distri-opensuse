@@ -33,7 +33,7 @@ sub run {
     set_hostname(get_var('HOSTNAME', 'susetest'));
 
     if (get_var('HPC_REPO')) {
-        my $repo     = get_var('HPC_REPO');
+        my $repo = get_var('HPC_REPO');
         my $reponame = get_required_var('HPC_REPONAME');
         zypper_call("ar -f $repo $reponame");
         assert_script_run "zypper lr | grep $reponame";

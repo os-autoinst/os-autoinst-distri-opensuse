@@ -17,9 +17,9 @@ use warnings;
 use testapi;
 use version_utils 'is_sle';
 
-my $incidentnr    = get_var('INCIDENT_ID');
-my $suite         = get_var('TEUTHOLOGY_SUITE');
-my $ses_version   = is_sle('=15') ? 'ses6' : 'ses5';
+my $incidentnr = get_var('INCIDENT_ID');
+my $suite = get_var('TEUTHOLOGY_SUITE');
+my $ses_version = is_sle('=15') ? 'ses6' : 'ses5';
 my $instance_name = "QAM-$incidentnr-openqa-$ses_version";
 
 sub upload_teuthology_logs {
@@ -48,7 +48,7 @@ sub run {
     assert_script_run 'openstack server list';
     openstack_cleanup;
     # parse maintenance repos into variable for teuthology repos
-    my @repos      = split(/,/, get_var('MAINT_TEST_REPO'));
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO'));
     my $repo_count = 1;
     my $maint_test_repos;
     while (defined(my $maintrepo = shift @repos)) {

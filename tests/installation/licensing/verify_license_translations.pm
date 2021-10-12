@@ -41,12 +41,12 @@ use List::Util 'first';
 use Test::Assert 'assert_true';
 
 sub run {
-    my ($self)            = @_;
-    my $test_data         = get_test_suite_data();
+    my ($self) = @_;
+    my $test_data = get_test_suite_data();
     my $license_agreement = $testapi::distri->get_license_agreement();
 
     my $license_agreement_info = $license_agreement->collect_current_license_agreement_info();
-    my $default_language       = $license_agreement_info->{language};
+    my $default_language = $license_agreement_info->{language};
 
     # Accumulate errors
     my $errors = '';

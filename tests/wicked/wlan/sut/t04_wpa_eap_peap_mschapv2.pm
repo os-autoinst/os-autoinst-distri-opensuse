@@ -25,7 +25,7 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has use_radius => 1;
-has ssid       => 'EAP protected WLAN';
+has ssid => 'EAP protected WLAN';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -89,7 +89,7 @@ has ifcfg_wlan => sub { [
     ),
         {
             wicked_version => '>=0.6.66',
-            config         => q(
+            config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 

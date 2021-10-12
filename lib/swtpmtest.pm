@@ -32,22 +32,22 @@ our @EXPORT = qw(
   swtpm_verify
 );
 
-my $image_path  = '/var/lib/libvirt/images';
+my $image_path = '/var/lib/libvirt/images';
 my $guestvm_cfg = {
     swtpm_1 => {
-        xml_file   => {uefi => 'swtpm_uefi_1_2.xml', legacy => 'swtpm_legacy_1_2.xml'},
-        version    => '1.2',
+        xml_file => {uefi => 'swtpm_uefi_1_2.xml', legacy => 'swtpm_legacy_1_2.xml'},
+        version => '1.2',
         expect_cmd => 'tpm_version',
     },
     swtpm_2 => {
-        xml_file   => {uefi => 'swtpm_uefi_2_0.xml', legacy => 'swtpm_legacy_2_0.xml'},
-        version    => '2.0',
+        xml_file => {uefi => 'swtpm_uefi_2_0.xml', legacy => 'swtpm_legacy_2_0.xml'},
+        version => '2.0',
         expect_cmd => 'tpm2_pcrread sha1:0',
     },
 };
 
 my $sample_cfg = {
-    uefi   => {vm_name => 'vm-swtpm-uefi',   sample_file => 'swtpm_uefi.xml'},
+    uefi => {vm_name => 'vm-swtpm-uefi', sample_file => 'swtpm_uefi.xml'},
     legacy => {vm_name => 'vm-swtpm-legacy', sample_file => 'swtpm_legacy.xml'},
 };
 
@@ -55,16 +55,16 @@ my $sample_cfg = {
 # sample xml file and vm image file are pre-configured
 sub start_swtpm_vm {
     my ($swtpm_ver, $swtpm_vm_type) = @_;
-    die "invalid swtpm type parameter $swtpm_ver"  unless ($guestvm_cfg->{$swtpm_ver});
+    die "invalid swtpm type parameter $swtpm_ver" unless ($guestvm_cfg->{$swtpm_ver});
     die "invalid vm type parameter $swtpm_vm_type" unless ($sample_cfg->{$swtpm_vm_type});
 
     # Copy the sample configuration file and modify it based on the test requirement
     my $guest_swtpm_ver = $guestvm_cfg->{$swtpm_ver};
-    my $guest_mode      = $sample_cfg->{$swtpm_vm_type};
-    my $vm_name         = $guest_mode->{vm_name};
-    my $sample_xml      = $guest_mode->{sample_file};
-    my $guest_xml       = $guest_swtpm_ver->{xml_file};
-    my $swtpm_type      = $guest_swtpm_ver->{version};
+    my $guest_mode = $sample_cfg->{$swtpm_vm_type};
+    my $vm_name = $guest_mode->{vm_name};
+    my $sample_xml = $guest_mode->{sample_file};
+    my $guest_xml = $guest_swtpm_ver->{xml_file};
+    my $swtpm_type = $guest_swtpm_ver->{version};
     assert_script_run("cd $image_path");
     assert_script_run("cp $sample_xml $guest_xml->{$swtpm_vm_type}");
     assert_script_run(
@@ -82,8 +82,8 @@ sub stop_swtpm_vm {
     die "invalid vm type parameter $para" unless ($sample_cfg->{$para});
 
     # For UEFI vm guest, we should add --nvram option
-    my $guest_mode   = $sample_cfg->{$para};
-    my $vm_name      = $guest_mode->{vm_name};
+    my $guest_mode = $sample_cfg->{$para};
+    my $vm_name = $guest_mode->{vm_name};
     my $undef_vm_cmd = "virsh undefine $vm_name";
     $undef_vm_cmd .= ' --nvram' if $para eq 'uefi';
     assert_script_run("virsh destroy $vm_name");
@@ -101,13 +101,13 @@ sub swtpm_verify {
     assert_script_run("bash $image_path/ssh_port_chk_script");
 
     # Login to the vm and run the commands to check tpm device
-    my $user            = 'root';
-    my $passwd          = $testapi::password;
-    my $ip_addr         = script_output("ip n | awk '/192\\.168/ {print \$1}'");
+    my $user = 'root';
+    my $passwd = $testapi::password;
+    my $ip_addr = script_output("ip n | awk '/192\\.168/ {print \$1}'");
     my $guest_swtpm_ver = $guestvm_cfg->{$para};
-    my $result_file     = "/tmp/$para";
-    my $ssh_script      = "$image_path/ssh_script";
-    my $expect_cmd      = $guest_swtpm_ver->{expect_cmd};
+    my $result_file = "/tmp/$para";
+    my $ssh_script = "$image_path/ssh_script";
+    my $expect_cmd = $guest_swtpm_ver->{expect_cmd};
     assert_script_run("TPM_CHK_CMD=\"$expect_cmd\" $ssh_script $ip_addr $user $passwd > $result_file");
     assert_script_run("grep tpm0 $result_file");
     if ($para eq "swtpm_1") {

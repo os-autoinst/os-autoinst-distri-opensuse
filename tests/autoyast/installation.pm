@@ -51,9 +51,9 @@ use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 use validate_encrypt_utils "validate_encrypted_volume_activation";
 
 my $confirmed_licenses = 0;
-my $stage              = 'stage1';
-my $maxtime            = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
-my $check_time         = 50;                                    #Period to check screen during stage 1 and 2
+my $stage = 'stage1';
+my $maxtime = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
+my $check_time = 50;                                 #Period to check screen during stage 1 and 2
 
 # Full install with updates can take extremely long time
 $maxtime = 5500 * get_var('TIMEOUT_SCALE', 1) if is_released;
@@ -132,7 +132,7 @@ sub run {
     if (get_var('EXTRABOOTPARAMS') =~ m/startshell=1/) {
         push @needles, 'linuxrc-start-shell-after-installation';
     }
-    push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
+    push @needles, 'autoyast-confirm' if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
@@ -149,7 +149,7 @@ sub run {
     # resolve conflicts and this is a workaround during the update
     push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
     # match openSUSE Welcome dialog on matching distros
-    push(@needles, 'opensuse-welcome')        if opensuse_welcome_applicable;
+    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     push(@needles, 'salt-formula-motd-setup') if get_var("SALT_FORMULAS_PATH");
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
@@ -170,12 +170,12 @@ sub run {
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
-    my $confirmed      = 0;
-    my $pxe_boot_done  = 0;
+    my $confirmed = 0;
+    my $pxe_boot_done = 0;
 
-    my $i          = 1;
+    my $i = 1;
     my $num_errors = 0;
-    my $timer      = 0;    # Prevent endless loop
+    my $timer = 0;    # Prevent endless loop
 
     check_screen \@needles, $check_time;
     until (match_has_tag('reboot-after-installation')
@@ -197,7 +197,7 @@ sub run {
             next;
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
-            @needles       = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
+            @needles = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
             $pxe_boot_done = 1;
             send_key 'ret';    # boot from harddisk
             next;              # first stage is over, now we should see grub with autoyast-boot
@@ -237,7 +237,7 @@ sub run {
                 validate_encrypted_volume_activation({
                         mapped_device => $test_data->{mapped_device},
                         device_status => $test_data->{device_status}->{message},
-                        properties    => $test_data->{device_status}->{properties}
+                        properties => $test_data->{device_status}->{properties}
                 });
             }
 
@@ -248,7 +248,7 @@ sub run {
 
             wait_screen_change { send_key 'tab' };
             wait_screen_change { send_key 'ret' };
-            @needles   = grep { $_ ne 'autoyast-confirm' } @needles;
+            @needles = grep { $_ ne 'autoyast-confirm' } @needles;
             $confirmed = 1;
         }
         elsif (match_has_tag('autoyast-license')) {
@@ -291,7 +291,7 @@ sub run {
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
-            @needles        = grep { $_ ne 'autoyast-postpartscript' } @needles;
+            @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
         elsif (match_has_tag('autoyast-error')) {
@@ -345,8 +345,8 @@ sub run {
 
     # Second stage starts here
     $maxtime = 1000 * get_var('TIMEOUT_SCALE', 1);    # Max waiting time for stage 2
-    $timer   = 0;
-    $stage   = 'stage2';
+    $timer = 0;
+    $stage = 'stage2';
 
     check_screen \@needles, $check_time;
     @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard encrypted-disk-password-prompt);

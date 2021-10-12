@@ -34,7 +34,7 @@ sub run {
     }
 
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
-    my $dir      = basename($git_repo);
+    my $dir = basename($git_repo);
     $dir =~ s/\.git$//;
 
     (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');

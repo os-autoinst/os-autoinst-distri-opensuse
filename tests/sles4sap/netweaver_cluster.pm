@@ -20,17 +20,17 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)       = @_;
-    my $instance_id  = get_required_var('INSTANCE_ID');
-    my $type         = get_required_var('INSTANCE_TYPE');
-    my $sid          = get_required_var('INSTANCE_SID');
-    my $alias        = get_required_var('INSTANCE_ALIAS');
-    my $lun          = get_required_var('INSTANCE_LUN');
+    my ($self) = @_;
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $type = get_required_var('INSTANCE_TYPE');
+    my $sid = get_required_var('INSTANCE_SID');
+    my $alias = get_required_var('INSTANCE_ALIAS');
+    my $lun = get_required_var('INSTANCE_LUN');
     my $cluster_name = get_cluster_name;
     my ($ip, $netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
 
     # Set SAP variables
-    my $pscmd  = $self->set_ps_cmd("$type");
+    my $pscmd = $self->set_ps_cmd("$type");
     my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Synchronize the nodes
@@ -76,7 +76,7 @@ sub run {
     push @sedoptions, "-e 's|%${type}_IP%|$ip|g'";
 
     # We need to execute the sed command node by node
-    my $cmd             = undef;
+    my $cmd = undef;
     my $nw_cluster_conf = '/sapmnt/nw_cluster.conf';
     if (is_node(1)) {
         # Initiate the template

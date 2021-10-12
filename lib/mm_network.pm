@@ -44,7 +44,7 @@ sub get_host_resolv_conf {
 sub configure_static_ip {
     my ($ip, $mtu) = @_;
     my $net_conf = parse_network_configuration();
-    my $mac      = $net_conf->{fixed}->{mac};
+    my $mac = $net_conf->{fixed}->{mac};
     $mtu //= 1458;
     script_run "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`";
     assert_script_run "echo \$NIC";
@@ -90,7 +90,7 @@ sub configure_static_dns {
 sub parse_network_configuration {
     my @networks = ('fixed');
     @networks = split /\s*,\s*/, get_var("NETWORKS") if get_var("NETWORKS");
-    my @mac      = split /\s*,\s*/, get_var("NICMAC");
+    my @mac = split /\s*,\s*/, get_var("NICMAC");
     my $net_conf = {};
 
     for (my $i = 0; $networks[$i]; $i++) {
@@ -117,8 +117,8 @@ sub parse_network_configuration {
     }
 
     $net_conf->{fixed} //= {};
-    $net_conf->{fixed}->{subnet}  = '10.0.2.0/24';
-    $net_conf->{fixed}->{dhcp}    = 'yes';
+    $net_conf->{fixed}->{subnet} = '10.0.2.0/24';
+    $net_conf->{fixed}->{dhcp} = 'yes';
     $net_conf->{fixed}->{gateway} = '10.0.2.2';
 
     for my $net (values %$net_conf) {
@@ -126,7 +126,7 @@ sub parse_network_configuration {
             my ($ip, $mask) = split /\//, $net->{subnet};
             $net->{subnet_ip} = $ip;
             if ($mask =~ /^\d+$/) {
-                my $n  = 0xffffffff << (32 - $mask);
+                my $n = 0xffffffff << (32 - $mask);
                 my $n4 = $n % 256;
                 $n /= 256;
                 my $n3 = $n % 256;

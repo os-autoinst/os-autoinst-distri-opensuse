@@ -18,18 +18,18 @@ use utils;
 use virt_autotest::esxi_utils;
 use Time::Local;
 
-our $VM_POWER_ON  = 'Powered on';
+our $VM_POWER_ON = 'Powered on';
 our $VM_POWER_OFF = 'Powered off';
 
 sub run {
     my $vm_name = console('svirt')->name;
-    my $vm_id   = esxi_vm_get_vmid($vm_name);
-    my $vm_ip   = esxi_vm_public_ip($vm_id);
+    my $vm_id = esxi_vm_get_vmid($vm_name);
+    my $vm_ip = esxi_vm_public_ip($vm_id);
     chomp($vm_ip);
 
     record_info('Guest Name', $vm_name);
-    record_info('Guest ID',   $vm_id);
-    record_info('Guest IP',   $vm_ip);
+    record_info('Guest ID', $vm_id);
+    record_info('Guest IP', $vm_ip);
 
     die "The variable \$vm_id or \$vm_ip cannot be empty." if ($vm_id eq "" || $vm_ip eq "");
 
@@ -90,11 +90,11 @@ sub check_vm_power_state {
 }
 
 sub wait_for_vm_network {
-    my $vm_ip       = shift;         # vm ip address
-    my $if_pingable = shift;         # 1 or 0; check if the vm network is pingable or not
-    my $times       = shift // 9;    # the number of ping execution
-    my $count       = shift // 3;    # ping waits for the count
-    my $interval    = shift // 5;    # wait secs between each ping
+    my $vm_ip = shift;    # vm ip address
+    my $if_pingable = shift;    # 1 or 0; check if the vm network is pingable or not
+    my $times = shift // 9;     # the number of ping execution
+    my $count = shift // 3;     # ping waits for the count
+    my $interval = shift // 5;  # wait secs between each ping
     my $cmd;
 
     # This ping command is used for waiting VM bootup or shutdown
@@ -132,7 +132,7 @@ sub get_epoch_time {
     $epoch =~ s/,$//;
     ($sec, $min, $hour, $mday, $mon, $year) = split /,/, $epoch;
     $year -= 1900;
-    $mon  -= 1;
+    $mon -= 1;
     $epoch = timelocal($sec, $min, $hour, $mday, $mon, $year);
 
     return $epoch;
@@ -151,13 +151,13 @@ sub init_guest_time {
 sub get_diff_seconds {
     my $h_datetime = get_host_timestamp();
     my $g_datetime = script_output("date -u +'\%F \%T'");
-    my $h_timesec  = get_epoch_time($h_datetime);
-    my $g_timesec  = get_epoch_time($g_datetime);
-    my $diff_secs  = abs(int($g_timesec - $h_timesec));
+    my $h_timesec = get_epoch_time($h_datetime);
+    my $g_timesec = get_epoch_time($g_datetime);
+    my $diff_secs = abs(int($g_timesec - $h_timesec));
 
-    record_info('Host time',                       $h_datetime);
+    record_info('Host time', $h_datetime);
     record_info('Guest time after sync with host', $g_datetime);
-    record_info('Diff secs',                       $diff_secs);
+    record_info('Diff secs', $diff_secs);
 
     return $diff_secs;
 }
@@ -170,27 +170,27 @@ sub do_power_management_tests {
     select_console('svirt');
 
     record_info('Guest Power Shutdown');
-    $powerops     = 'power.shutdown';
+    $powerops = 'power.shutdown';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
 
     record_info('Guest Power On');
-    $powerops     = 'power.on';
+    $powerops = 'power.on';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
     record_info('Guest Power Restart');
-    $powerops     = 'power.restart';
+    $powerops = 'power.restart';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
     record_info('Guest Power Reset');
-    $powerops     = 'power.reset';
+    $powerops = 'power.reset';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
     record_info('Guest Power Off');
-    $powerops     = 'power.off';
+    $powerops = 'power.off';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
 }
@@ -201,7 +201,7 @@ sub do_networking_tests {
 
     record_info('Networking Tests');
     # Boot up the VM if it's powered off
-    $powerops     = 'power.on';
+    $powerops = 'power.on';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
@@ -221,7 +221,7 @@ sub do_clock_sync_tests {
 
     record_info('Clock Sync Tests');
     # Boot up the VM if it's powered off
-    $powerops     = 'power.on';
+    $powerops = 'power.on';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 
@@ -248,13 +248,13 @@ sub do_clock_sync_tests {
     # Disable clock sync tests
     select_console('svirt');
 
-    $powerops     = 'power.shutdown';
+    $powerops = 'power.shutdown';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
 
     disable_vm_time_synchronization($vm_name);
 
-    $powerops     = 'power.on';
+    $powerops = 'power.on';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
 

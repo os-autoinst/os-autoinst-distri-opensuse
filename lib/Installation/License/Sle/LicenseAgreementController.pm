@@ -23,13 +23,13 @@ use YuiRestClient;
 sub init {
     my ($self, $args) = @_;
     $self->{AcceptLicensePopup} = Installation::License::AcceptLicensePopup->new({
-            app           => YuiRestClient::get_app(),
+            app => YuiRestClient::get_app(),
             btn_ok_filter => {id => 'ok'}});
     $self->{LicenseAgreementPage} = Installation::License::LicenseAgreementExplicitPage->new({
-            app                      => YuiRestClient::get_app(),
+            app => YuiRestClient::get_app(),
             ch_accept_license_filter => {id => '"Y2Packager::Widgets::ProductLicenseConfirmation"'},
-            cb_language_filter       => {id => '"simple_language_selection"'},
-            rt_eula_filter           => {id => '"CWM::RichText"'}});
+            cb_language_filter => {id => '"simple_language_selection"'},
+            rt_eula_filter => {id => '"CWM::RichText"'}});
     return $self;
 }
 

@@ -23,11 +23,11 @@ sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Create a macvtap interface from legacy ifcfg files');
     my $config = '/etc/sysconfig/network/ifcfg-macvtap1';
-    $self->get_from_data('wicked/ifcfg/macvtap1',    $config);
+    $self->get_from_data('wicked/ifcfg/macvtap1', $config);
     $self->get_from_data('wicked/ifcfg/macvtap_eth', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->prepare_check_macvtap($config, $ctx->iface(), $self->get_ip(type => 'macvtap', netmask => 1));
     $self->wicked_command('ifreload', $ctx->iface());
-    $self->wicked_command('ifup',     'macvtap1');
+    $self->wicked_command('ifup', 'macvtap1');
     $self->validate_macvtap();
 }
 

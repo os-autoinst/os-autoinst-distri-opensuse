@@ -34,7 +34,7 @@ sub run {
     my ($self) = @_;
 
     my $output_result = "/tmp/output";
-    my $output_json   = "/tmp/manifest.json";
+    my $output_json = "/tmp/manifest.json";
 
     my $easyprof_cmd = "aa-easyprof \\
 --template=user-application \\

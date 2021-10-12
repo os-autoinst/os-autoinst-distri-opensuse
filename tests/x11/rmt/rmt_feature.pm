@@ -92,7 +92,7 @@ sub run {
     # import smt data
     my $datapath = "/rmtdata/";
     my $datafile = get_var("SMT_DATA_FILE");
-    my $dataurl  = get_var("SMT_DATA_URL");
+    my $dataurl = get_var("SMT_DATA_URL");
     assert_script_run("mkdir -p $datapath");
     assert_script_run("cd $datapath");
     assert_script_run("wget -q " . $dataurl . $datafile);

@@ -34,7 +34,7 @@ sub firefox_crashreporter {
     select_console 'root-console';
 
     my $firefox_crash_dir = '/home/bernhard/.mozilla/firefox/Crash\ Reports';
-    my $crash_report      = '/home/bernhard/.mozilla/firefox/Crash\ Reports/crashreporter.ini';
+    my $crash_report = '/home/bernhard/.mozilla/firefox/Crash\ Reports/crashreporter.ini';
 
     assert_script_run("ls $firefox_crash_dir");
 
@@ -68,7 +68,7 @@ sub run {
     # - at least 8 characters
     # - at least one upper case
     # - at least one non-alphabet-non-number character (like: @-.=%)
-    my $fips_password   = 'openqa@SUSE';
+    my $fips_password = 'openqa@SUSE';
     my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);

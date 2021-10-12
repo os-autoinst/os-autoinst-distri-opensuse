@@ -28,7 +28,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{AuthenticationForRootPage} = Installation::AuthenticationForRoot::AuthenticationForRootPage->new({app => YuiRestClient::get_app()});
-    $self->{WeakPasswordWarning}       = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 

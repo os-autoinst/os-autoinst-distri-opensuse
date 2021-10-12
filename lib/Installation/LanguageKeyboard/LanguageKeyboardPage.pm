@@ -26,7 +26,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{cb_keyboard_layout} = $self->{app}->combobox({id => '"Y2Country::Widgets::KeyboardSelectionCombo"'});
-    $self->{tb_keyboard_test}   = $self->{app}->textbox({id => 'keyboard_test'});
+    $self->{tb_keyboard_test} = $self->{app}->textbox({id => 'keyboard_test'});
     return $self;
 }
 

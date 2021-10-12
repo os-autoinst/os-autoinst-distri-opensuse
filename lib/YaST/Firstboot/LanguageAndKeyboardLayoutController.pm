@@ -39,7 +39,7 @@ sub get_language_and_keyboard_layout_page {
 sub collect_current_language_and_keyboard_layout_info {
     my ($self) = @_;
     return {
-        language        => $self->get_language_and_keyboard_layout_page()->get_language(),
+        language => $self->get_language_and_keyboard_layout_page()->get_language(),
         keyboard_layout => $self->get_language_and_keyboard_layout_page()->get_keyboard_layout()};
 }
 

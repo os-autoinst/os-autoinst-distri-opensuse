@@ -76,9 +76,9 @@ sub check_pkg {
     my @pkglist = split('\n', script_output("rpm -qa", proceed_on_failure => 1, timeout => 180));
     diag "Before migration: " . Dumper(\@diffpkg);
     diag "After migration:" . Dumper(\@pkglist);
-    my @after  = del_num(@pkglist);
+    my @after = del_num(@pkglist);
     my @before = del_num(@diffpkg);
-    my %hash_a = map  { $_ => 1 } @after;
+    my %hash_a = map { $_ => 1 } @after;
     my @b_only = grep { !$hash_a{$_} } @before;
     if (@b_only) {
         die "After migration, some packages are miss: " . Dumper(\@b_only);

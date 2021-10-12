@@ -130,22 +130,22 @@ sub init_cmd {
     );
 
     if (check_var('INSTLANG', "de_DE")) {
-        $testapi::cmd{next}            = "alt-w";
+        $testapi::cmd{next} = "alt-w";
         $testapi::cmd{createpartsetup} = "alt-e";
-        $testapi::cmd{custompart}      = "alt-b";
-        $testapi::cmd{addpart}         = "alt-h";
-        $testapi::cmd{finish}          = "alt-b";
-        $testapi::cmd{accept}          = "alt-r";
-        $testapi::cmd{donotformat}     = "alt-n";
-        $testapi::cmd{add}             = "alt-h";
+        $testapi::cmd{custompart} = "alt-b";
+        $testapi::cmd{addpart} = "alt-h";
+        $testapi::cmd{finish} = "alt-b";
+        $testapi::cmd{accept} = "alt-r";
+        $testapi::cmd{donotformat} = "alt-n";
+        $testapi::cmd{add} = "alt-h";
 
         #	$testapi::cmd{raid6}="alt-d"; 11.2 only
-        $testapi::cmd{raid10}      = "alt-r";
-        $testapi::cmd{mountpoint}  = "alt-e";
-        $testapi::cmd{rebootnow}   = "alt-j";
+        $testapi::cmd{raid10} = "alt-r";
+        $testapi::cmd{mountpoint} = "alt-e";
+        $testapi::cmd{rebootnow} = "alt-j";
         $testapi::cmd{otherrootpw} = "alt-e";
-        $testapi::cmd{change}      = "alt-n";
-        $testapi::cmd{software}    = "w";
+        $testapi::cmd{change} = "alt-n";
+        $testapi::cmd{software} = "w";
     }
     if (check_var('INSTLANG', "es_ES")) {
         $testapi::cmd{next} = "alt-i";
@@ -156,7 +156,7 @@ sub init_cmd {
 
     if (!is_sle('<15') && !is_leap('<15.0')) {
         # SLE15/Leap15 use Chrony instead of ntp
-        $testapi::cmd{sync_interval}       = "alt-i";
+        $testapi::cmd{sync_interval} = "alt-i";
         $testapi::cmd{sync_without_daemon} = "alt-s";
     }
     ## keyboard cmd vars end
@@ -256,8 +256,8 @@ sub x11_start_program {
     my ($self, $program, %args) = @_;
     my $timeout = $args{timeout};
     # enable valid option as default
-    $args{valid}         //= 1;
-    $args{target_match}  //= $program;
+    $args{valid} //= 1;
+    $args{target_match} //= $program;
     $args{match_no_wait} //= 0;
     $args{match_timeout} //= 90 if check_var('DESKTOP', 'kde');
 
@@ -275,7 +275,7 @@ sub x11_start_program {
     # As above especially krunner seems to take some time before disappearing
     # after 'ret' press we should wait in this case nevertheless
     wait_still_screen(3, similarity_level => 45) unless ($args{no_wait} || ($args{valid} && $args{target_match} && !check_var('DESKTOP', 'kde')));
-    return                                       unless $args{valid};
+    return unless $args{valid};
     set_var('IN_X11_START_PROGRAM', $program);
     my @target = ref $args{target_match} eq 'ARRAY' ? @{$args{target_match}} : $args{target_match};
     for (1 .. 3) {
@@ -354,7 +354,7 @@ sub set_standard_prompt {
     my ($self, $user, %args) = @_;
     return if $args{skip_set_standard_prompt} || !get_var('SET_CUSTOM_PROMPT');
     $user ||= $testapi::username;
-    my $os_type     = $args{os_type} // 'linux';
+    my $os_type = $args{os_type} // 'linux';
     my $prompt_sign = $user eq 'root' ? '#' : '$';
     if ($os_type eq 'windows') {
         $prompt_sign = $user eq 'root' ? '# ' : '$$ ';
@@ -392,7 +392,7 @@ sub init_consoles {
 
     # avoid complex boolean logic by setting interim variables
     if (is_svirt && is_s390x) {
-        set_var('S390_ZKVM',         1);
+        set_var('S390_ZKVM', 1);
         set_var('SVIRT_VNC_CONSOLE', 'x11');
     }
 
@@ -412,7 +412,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root'
+                user => 'root'
             });
 
         $self->add_console(
@@ -421,28 +421,28 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => $testapi::username
+                user => $testapi::username
             });
     }
 
     # svirt backend, except s390x ARCH
     if (is_svirt_except_s390x) {
         my $hostname = get_var('VIRSH_GUEST');
-        my $port     = get_var('VIRSH_INSTANCE', 1) + 5900;
+        my $port = get_var('VIRSH_INSTANCE', 1) + 5900;
 
         $self->add_console(
             'sut',
             'vnc-base',
             {
                 hostname => $hostname,
-                port     => $port,
+                port => $port,
                 password => $testapi::password
             });
         set_var('SVIRT_VNC_CONSOLE', 'sut');
     } else {
         # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
         $self->add_console('root-sut-serial', 'ssh-virtsh-serial', {
-                pty_dev     => SERIAL_TERMINAL_DEFAULT_DEVICE,
+                pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
                 target_port => SERIAL_TERMINAL_DEFAULT_PORT});
     }
 
@@ -450,15 +450,15 @@ sub init_consoles {
             || (get_var('BACKEND', '') =~ /generalhw/ && get_var('GENERAL_HW_VNC_IP'))
             || is_svirt_except_s390x))
     {
-        $self->add_console('install-shell',  'tty-console', {tty => 2});
-        $self->add_console('installation',   'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
+        $self->add_console('install-shell', 'tty-console', {tty => 2});
+        $self->add_console('installation', 'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
-        $self->add_console('root-console',   'tty-console', {tty => get_root_console_tty});
-        $self->add_console('user-console',   'tty-console', {tty => 4});
-        $self->add_console('log-console',    'tty-console', {tty => 5});
+        $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});
+        $self->add_console('user-console', 'tty-console', {tty => 4});
+        $self->add_console('log-console', 'tty-console', {tty => 5});
         $self->add_console('displaymanager', 'tty-console', {tty => 7});
-        $self->add_console('x11',            'tty-console', {tty => get_x11_console_tty});
+        $self->add_console('x11', 'tty-console', {tty => get_x11_console_tty});
         $self->add_console('tunnel-console', 'tty-console', {tty => 3}) if get_var('TUNNELED');
     }
 
@@ -478,9 +478,9 @@ sub init_consoles {
             {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
-                user     => 'root',
-                serial   => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
-                gui      => 1
+                user => 'root',
+                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                gui => 1
             });
     }
 
@@ -494,8 +494,8 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root',
-                serial   => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
+                user => 'root',
+                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; tail -fn +1 /dev/sshserial'
             }) if (has_serial_over_ssh);
 
         $self->add_console(
@@ -504,7 +504,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root',
+                user => 'root',
             });
         $self->add_console(
             'log-console',
@@ -512,7 +512,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root',
+                user => 'root',
             });
         $self->add_console(
             'user-console',
@@ -520,21 +520,21 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => $testapi::username
+                user => $testapi::username
             });
     }
 
     if (get_var('BACKEND', '') =~ /ipmi|s390x|spvm|pvm_hmc/ || get_var('S390_ZKVM')) {
         my $hostname;
 
-        $hostname = get_var('VIRSH_GUEST')     if get_var('S390_ZKVM');
+        $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
         $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
         if (check_var('BACKEND', 's390x')) {
 
             # expand the S390 params
             my $s390_params = get_var("S390_NETWORK_PARAMS");
-            my $s390_host   = get_required_var('S390_HOST');
+            my $s390_host = get_required_var('S390_HOST');
             $s390_params =~ s,\@S390_HOST\@,$s390_host,g;
             set_var("S390_NETWORK_PARAMS", $s390_params);
 
@@ -548,7 +548,7 @@ sub init_consoles {
                 {
                     hostname => $hostname,
                     password => $testapi::password,
-                    user     => 'root'
+                    user => 'root'
                 });
         }
         elsif (check_var("VIDEOMODE", "ssh-x")) {
@@ -558,8 +558,8 @@ sub init_consoles {
                 {
                     hostname => $hostname,
                     password => $testapi::password,
-                    user     => 'root',
-                    gui      => 1
+                    user => 'root',
+                    gui => 1
                 });
         }
         else {
@@ -568,7 +568,7 @@ sub init_consoles {
                 'vnc-base',
                 {
                     hostname => $hostname,
-                    port     => 5901,
+                    port => 5901,
                     password => $testapi::password
                 });
         }
@@ -577,7 +577,7 @@ sub init_consoles {
             'vnc-base',
             {
                 hostname => $hostname,
-                port     => 5901,
+                port => 5901,
                 password => $testapi::password
             });
         $self->add_console(
@@ -594,7 +594,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root'
+                user => 'root'
             });
         $self->add_console(
             'root-console',
@@ -602,7 +602,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root'
+                user => 'root'
             });
         $self->add_console(
             'user-console',
@@ -610,7 +610,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => $testapi::username
+                user => $testapi::username
             });
         $self->add_console(
             'log-console',
@@ -618,7 +618,7 @@ sub init_consoles {
             {
                 hostname => $hostname,
                 password => $testapi::password,
-                user     => 'root'
+                user => 'root'
             });
     }
 
@@ -660,7 +660,7 @@ sub hyperv_console_switch {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;
     }
-    die 'hyperv_console_switch: Console was not provided'         unless $console;
+    die 'hyperv_console_switch: Console was not provided' unless $console;
     diag 'hyperv_console_switch: Console number was not provided' unless $nr;
     # If we are in VT, 'Alt-Fx' switch already worked
     return if check_screen('any-console', 10);
@@ -686,8 +686,8 @@ sub console_nr {
     my ($name) = ($1) || return;
     my $nr = 4;
     $nr = get_root_console_tty if ($name eq 'root');
-    $nr = 5                    if ($name eq 'log');
-    $nr = 3                    if ($name eq 'tunnel');
+    $nr = 5 if ($name eq 'log');
+    $nr = 3 if ($name eq 'tunnel');
     return $nr;
 }
 
@@ -755,7 +755,7 @@ sub activate_console {
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
-            push(@tags, 'wsl-linux-prompt')    if (get_var('FLAVOR') eq 'WSL');
+            push(@tags, 'wsl-linux-prompt') if (get_var('FLAVOR') eq 'WSL');
             # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
             # or premature typing of credentials on sle15+
             my $stilltime = is_sle('15+') ? 6 : 1;
@@ -875,9 +875,9 @@ sub console_selected {
         $autotest::selected_console = $console;
     }
     $args{await_console} //= 1;
-    $args{tags}          //= $console;
-    $args{ignore}        //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
-    $args{timeout}       //= 30;
+    $args{tags} //= $console;
+    $args{ignore} //= qr{sut|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
+    $args{timeout} //= 30;
 
     if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);

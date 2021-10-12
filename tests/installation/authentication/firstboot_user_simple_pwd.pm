@@ -18,7 +18,7 @@ use warnings;
 use Test::Assert ':all';
 
 sub run {
-    my $local_user   = $testapi::distri->get_local_user();
+    my $local_user = $testapi::distri->get_local_user();
     my $warning_text = 'The password is too simple:\nit is based on a dictionary word.';
 
     $local_user->create_user(full_name => 'firstbootuser', password => $testapi::password);

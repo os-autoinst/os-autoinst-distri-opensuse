@@ -26,11 +26,11 @@ sub run {
     foreach my $repo (@{$test_data->{repos}}) {
         my $filter = $repo->{filter} ? $repo->{$repo->{filter}} : undef;
         validate_repo_properties({
-                Filter      => $filter,
-                Alias       => $repo->{alias},
-                Name        => $repo->{name},
-                URI         => $repo->{uri},
-                Enabled     => $repo->{enabled},
+                Filter => $filter,
+                Alias => $repo->{alias},
+                Name => $repo->{name},
+                URI => $repo->{uri},
+                Enabled => $repo->{enabled},
                 Autorefresh => $repo->{autorefresh}
         });
     }

@@ -16,7 +16,7 @@ subtest 'whitelist_entry_match' => sub {
         product => '^sle:15-SP[23]$'
     };
     my $env = {
-        foo     => 'something',
+        foo => 'something',
         product => 'sle:15-SP3'
     };
 
@@ -36,7 +36,7 @@ subtest 'whitelist_entry_match' => sub {
 
     for my $attr (qw(product ltp_version revision arch kernel backend retval flavor)) {
         $entry = {$attr => '^incredible_value$'};
-        $env   = {$attr => "incredible_value"};
+        $env = {$attr => "incredible_value"};
         is_deeply(LTP::WhiteList::whitelist_entry_match($entry, $env), $entry, "Check match attribute $attr");
     }
 
@@ -55,23 +55,23 @@ subtest override_known_failures => sub {
             test_01 => [
                 {
                     product => '^sle:15',
-                    retval  => '^2$',
+                    retval => '^2$',
                     message => 'overwrite result 2'
                 },
                 {
                     product => '^sle:12',
                     message => 'overwrite for product sle:12',
-                    skip    => 1
+                    skip => 1
                 },
                 {
                     product => '^sle:11',
                     message => 'overwrite ZERO result',
-                    retval  => '^0$'
+                    retval => '^0$'
                 },
                 {
                     product => '^sle:11',
                     message => 'overwrite TWO result',
-                    retval  => '^2$'
+                    retval => '^2$'
                 }
             ],
         }

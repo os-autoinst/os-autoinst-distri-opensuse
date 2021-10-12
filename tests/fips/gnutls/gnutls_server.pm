@@ -34,9 +34,9 @@ sub run {
     assert_script_run "mkdir $test_dir && cd $test_dir";
 
     # Add support for X.509.  First we generate a CA
-    my $pri_ca_key   = "x509-ca-key.pem";
-    my $pri_ca_out   = "x509-ca.pem";
-    my $ca_tmpl      = "ca.tmpl";
+    my $pri_ca_key = "x509-ca-key.pem";
+    my $pri_ca_out = "x509-ca.pem";
+    my $ca_tmpl = "ca.tmpl";
     my $ca_tmpl_cont = <<'EOF';
 cn = GnuTLS test CA
 ca
@@ -47,9 +47,9 @@ EOF
     assert_script_run "certtool --generate-self-signed --load-privkey $pri_ca_key --template $ca_tmpl --outfile $pri_ca_out";
 
     # Generate a server certificate
-    my $ser_pri_key   = "x509-server-key.pem";
-    my $ser_ca_out    = "x509-server.pem";
-    my $ser_tmpl      = "server.tmpl";
+    my $ser_pri_key = "x509-server-key.pem";
+    my $ser_ca_out = "x509-server.pem";
+    my $ser_tmpl = "server.tmpl";
     my $ser_tmpl_cont = <<'EOF';
 organization = GnuTLS test server
 cn = test.gnutls.org
@@ -64,9 +64,9 @@ EOF
 "certtool --generate-certificate --load-privkey $ser_pri_key --load-ca-certificate $pri_ca_out --load-ca-privkey $pri_ca_key --template $ser_tmpl --outfile $ser_ca_out";
 
     #  Generate a client certificate
-    my $cli_pri_key   = "x509-client-key.pem";
-    my $cli_out       = "x509-client.pem";
-    my $cli_tmpl      = "client.tmpl";
+    my $cli_pri_key = "x509-client-key.pem";
+    my $cli_out = "x509-client.pem";
+    my $cli_tmpl = "client.tmpl";
     my $cli_tmpl_cont = <<'EOF';
 cn = GnuTLS test client
 tls_www_client
@@ -79,7 +79,7 @@ EOF
 "certtool --generate-certificate --load-privkey $cli_pri_key --load-ca-certificate $pri_ca_out --load-ca-privkey $pri_ca_key --template $cli_tmpl --outfile $cli_out";
 
     # Create password file with psktool
-    my $user   = "psk_identity";
+    my $user = "psk_identity";
     my $passwd = "psk-passwd.txt";
     assert_script_run "psktool -u $user -p $passwd";
 

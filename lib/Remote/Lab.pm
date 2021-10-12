@@ -40,10 +40,10 @@ sub setup_vpn {
 }
 
 sub connect_vpn {
-    my ($self)       = @_;
+    my ($self) = @_;
     my $vpn_username = get_required_var('VPN_USERNAME');
     my $vpn_endpoint = get_var('VPN_ENDPOINT', 'asa003b.centers.ihost.com');
-    my $vpn_group    = get_var('VPN_GROUP',    'ACC');
+    my $vpn_group = get_var('VPN_GROUP', 'ACC');
     # nohup should already go to background but during test development I
     # observed that it still blocked the terminal – regardless of e.g. using a
     # virtio serial terminal or VNC based – so let's force it to the
@@ -76,8 +76,8 @@ sub setup_ssh_tunnels {
     # For the port we can reuse the same port that is used by "upload_logs"
     # but on the remote host. The port is computed as QEMUPORT + 1
     my $upload_port = get_required_var('QEMUPORT') + 1;
-    my $jumpbox     = get_var('JUMPBOX_HOSTNAME', '129.40.13.66');
-    my $sut         = get_var('SUT_HOSTNAME',     '10.3.1.111');
+    my $jumpbox = get_var('JUMPBOX_HOSTNAME', '129.40.13.66');
+    my $sut = get_var('SUT_HOSTNAME', '10.3.1.111');
     my $upload_host = testapi::host_ip();
     type_string "cat - > .ssh/config <<EOF
 Host jumpbox
@@ -103,7 +103,7 @@ EOF
     # "upload_logs" uses "host_ip" which returns a host that is not available
     # remotely but we can use an SSH tunnel for this as well so any connection
     # from the remote SUT for uploading should reach localhost.
-    set_var('AUTOINST_URL_HOSTNAME',    'localhost');
+    set_var('AUTOINST_URL_HOSTNAME', 'localhost');
     set_var('_SSH_TUNNELS_INITIALIZED', 1);
     # selecting the root console will now ensure we are connected to the
     # remote SUT

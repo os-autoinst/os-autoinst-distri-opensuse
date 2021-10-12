@@ -34,8 +34,8 @@ use nfs_common;
 
 sub run {
     my ($self) = @_;
-    my $rw     = '/srv/nfs';
-    my $ro     = '/srv/nfs/ro';
+    my $rw = '/srv/nfs';
+    my $ro = '/srv/nfs/ro';
     select_console 'root-console';
 
     server_configure_network($self);

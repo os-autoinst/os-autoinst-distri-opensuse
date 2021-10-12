@@ -23,9 +23,9 @@ use version_utils 'is_sle';
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables);
-use constant ZYPPER_PACKAGE_COL    => 1;
+use constant ZYPPER_PACKAGE_COL => 1;
 use constant OLD_ZYPPER_STATUS_COL => 4;
-use constant ZYPPER_STATUS_COL     => 5;
+use constant ZYPPER_STATUS_COL => 5;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -65,7 +65,7 @@ sub check_automounter {
 }
 
 sub is_patch_needed {
-    my $patch   = shift;
+    my $patch = shift;
     my $install = shift // 0;
 
     return '' if !($patch);
@@ -81,8 +81,8 @@ sub add_test_repositories {
     my $counter = 0;
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
-    my @repos   = split(/,/, get_var('MAINT_TEST_REPO', ''));
-    my $gpg     = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    my $gpg = get_var('BUILD') =~ m/^MR:/ ? "-G" : "";
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.
@@ -95,7 +95,7 @@ sub add_test_repositories {
 
     if (is_sle('=12-SP2')) {
         my $arch = get_var('ARCH');
-        my $url  = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/";
         zypper_call("--no-gpg-checks ar -f $gpg $url '12-SP2-LTSS-ERICSSON-Updates'");
     }
 
@@ -106,11 +106,11 @@ sub add_test_repositories {
 
 # Function that will add all test repos to SSH guest
 sub ssh_add_test_repositories {
-    my $host    = shift;
+    my $host = shift;
     my $counter = 0;
 
     my $oldrepo = get_var('PATCH_TEST_REPO');
-    my @repos   = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
     # Be carefull. If you have defined both variables, the PATCH_TEST_REPO variable will always
     # have precedence over MAINT_TEST_REPO. So if MAINT_TEST_REPO is required to be installed
     # please be sure that the PATCH_TEST_REPO is empty.

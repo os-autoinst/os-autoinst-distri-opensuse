@@ -254,9 +254,9 @@ for textmode or with GUI commands otherwise unless explicitly overridden by sett
 =cut
 sub power_action {
     my ($action, %args) = @_;
-    $args{observe}      //= 0;
-    $args{keepconsole}  //= 0;
-    $args{textmode}     //= check_var('DESKTOP', 'textmode');
+    $args{observe} //= 0;
+    $args{keepconsole} //= 0;
+    $args{textmode} //= check_var('DESKTOP', 'textmode');
     $args{first_reboot} //= 0;
     die "'action' was not provided" unless $action;
     prepare_system_shutdown;
@@ -359,7 +359,7 @@ Default $action is reboot, $shutdown_timeout is timeout for shutdown, default va
 # is already booting.
 sub assert_shutdown_and_restore_system {
     my ($action, $shutdown_timeout) = @_;
-    $action           //= 'reboot';
+    $action //= 'reboot';
     $shutdown_timeout //= 60;
     my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
     console($vnc_console)->disable_vnc_stalls;
@@ -369,9 +369,9 @@ sub assert_shutdown_and_restore_system {
         my $svirt = console('svirt');
         # Set disk as a primary boot device
         if (is_s390x or get_var('NETBOOT')) {
-            $svirt->change_domain_element(os        => initrd  => undef);
-            $svirt->change_domain_element(os        => kernel  => undef);
-            $svirt->change_domain_element(os        => cmdline => undef);
+            $svirt->change_domain_element(os => initrd => undef);
+            $svirt->change_domain_element(os => kernel => undef);
+            $svirt->change_domain_element(os => cmdline => undef);
             $svirt->change_domain_element(on_reboot => undef);
             $svirt->define_and_start;
         }
@@ -405,9 +405,9 @@ Example:
 =cut
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout}      //= is_s390x ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
+    $args->{timeout} //= is_s390x ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
     $args->{soft_timeout} //= 0;
-    $args->{bugref}       //= "No bugref specified";
+    $args->{bugref} //= "No bugref specified";
     if ($args->{soft_timeout}) {
         diag("assert_shutdown_with_soft_timeout(): soft_timeout=" . $args->{soft_timeout});
         die "soft timeout has to be smaller than timeout" unless ($args->{soft_timeout} < $args->{timeout});

@@ -63,14 +63,14 @@ sub cluster_init {
 
 sub run {
     # Validate cluster creation with ha-cluster-init tool
-    my $cluster_name  = get_cluster_name;
+    my $cluster_name = get_cluster_name;
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $sbd_device    = get_lun;
-    my $sbd_cfg       = '/etc/sysconfig/sbd';
-    my $unicast_opt   = get_var("HA_UNICAST") ? '-u' : '';
+    my $sbd_device = get_lun;
+    my $sbd_cfg = '/etc/sysconfig/sbd';
+    my $unicast_opt = get_var("HA_UNICAST") ? '-u' : '';
     my $quorum_policy = 'stop';
-    my $fencing_opt   = "-s \"$sbd_device\"";
+    my $fencing_opt = "-s \"$sbd_device\"";
     my $qdevice_opt;
 
     # Qdevice configuration

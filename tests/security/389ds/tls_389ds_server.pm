@@ -31,11 +31,11 @@ use opensslca;
 sub run {
     select_console("root-console");
 
-    my $local_ip    = '10.0.2.101';
-    my $remote_ip   = '10.0.2.102';
-    my $local_name  = '389ds';
+    my $local_ip = '10.0.2.101';
+    my $remote_ip = '10.0.2.102';
+    my $local_name = '389ds';
     my $remote_name = 'sssdclient';
-    my $ca_dir      = '/etc/openldap/ssl';
+    my $ca_dir = '/etc/openldap/ssl';
     my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
 
     # Install 389-ds and create an server instance
@@ -63,11 +63,11 @@ sub run {
     assert_script_run("sed -i -e 's/master/$local_name.example.com/' -e 's/minion/$remote_name.example.com/' /etc/hosts");
 
     # Create ldap user and group
-    my $ldap_user    = $testapi::username;
-    my $ldap_passwd  = $testapi::password;
-    my $ldap_group   = 'server_admins';
-    my $uid          = '1003';
-    my $gid          = '1003';
+    my $ldap_user = $testapi::username;
+    my $ldap_passwd = $testapi::password;
+    my $ldap_group = 'server_admins';
+    my $uid = '1003';
+    my $gid = '1003';
     my $display_name = 'Domain User';
     assert_script_run(
 "dsidm localhost user create --uid $ldap_user --cn $ldap_user --displayName '$display_name' --uidNumber $uid --gidNumber $gid --homeDirectory /home/$ldap_user"

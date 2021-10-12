@@ -27,7 +27,7 @@ sub run {
     is_svirt ? select_console('root-console') : $self->select_serial_terminal;
     # Get url of kotd/kmp repositories
     my $kotd_repo = get_required_var('KOTD_REPO');
-    my $kmp_repo  = get_var('KMP_REPO');
+    my $kmp_repo = get_var('KMP_REPO');
     # Make sure that system is fully updated
     fully_patch_system;
     # Insert isofs module to be able to access repositories on CD after
@@ -37,7 +37,7 @@ sub run {
     remove_kernel_packages;
     # Enable kotd/kmp repositories
     zypper_ar($kotd_repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
-    zypper_ar($kmp_repo,  name => 'KMP',  priority => 90, no_gpg_check => 1) if $kmp_repo;
+    zypper_ar($kmp_repo, name => 'KMP', priority => 90, no_gpg_check => 1) if $kmp_repo;
     # Install latest kernel
     zypper_call("in -l kernel-default");
     # Check for multiple kernel installation

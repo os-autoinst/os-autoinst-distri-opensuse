@@ -73,8 +73,8 @@ By default B<unit> is expressed in MB.
 =cut
 sub parted_print {
     my (%args) = @_;
-    my $dev    = $args{dev};
-    my $unit   = $args{unit};
+    my $dev = $args{dev};
+    my $unit = $args{unit};
     $unit //= 'MB';
 
     my $cmd = "parted -s $dev unit $unit print free";
@@ -124,8 +124,8 @@ Return a hash containing start, end and size
 =cut
 sub free_space {
     my (%args) = @_;
-    my $dev    = $args{dev};
-    my $unit   = $args{unit};
+    my $dev = $args{dev};
+    my $unit = $args{unit};
     my %space;
     my $output = parted_print(dev => $args{dev}, unit => $args{unit});
 
@@ -133,12 +133,12 @@ sub free_space {
     foreach my $line (split(/\n/, $output)) {
         if ($line =~ /\s*([\d.]+)$unit\s+([\d.]+)$unit\s+([\d.]+)$unit\s*Free Space/) {
             $start = $1;
-            $end   = $2;
-            $size  = $3;
+            $end = $2;
+            $size = $3;
             if (!exists($space{size}) || $size > $space{size}) {
                 $space{start} = $start;
-                $space{end}   = $end;
-                $space{size}  = $size;
+                $space{end} = $end;
+                $space{size} = $size;
             }
         }
     }
@@ -152,7 +152,7 @@ Get partition by mountpoint, e.g. give /home get /dev/sda3
 =cut
 sub mountpoint_to_partition {
     my $mountpoint = shift;
-    my $output     = script_output('mount');
+    my $output = script_output('mount');
     my $match;
     if ($output =~ /(\S+) on $mountpoint type/i) {
         $match = $1;
@@ -169,7 +169,7 @@ Get partition table information by giving device
 
 =cut
 sub partition_table {
-    my $dev    = shift;
+    my $dev = shift;
     my $output = parted_print(dev => $dev);
     my $match;
     if ($output =~ /Partition Table:\s*(\w+)/i) {
@@ -200,23 +200,23 @@ part_type (extended|logical|primary)
 sub create_partition {
     my ($dev, $part_type, $size) = @_;
     my ($part_start, $part_end);
-    my $part_table       = partition_table($dev);
+    my $part_table = partition_table($dev);
     my %msdos_part_types = ('extended', 1, 'logical', 1);
     if ($part_table != 'msdos' && exists($msdos_part_types{$part_type})) {
         die 'extended/logical partitions can only be created with msdos partition table!';
     }
-    my %space      = free_space(dev => $dev, unit => 'MB');
+    my %space = free_space(dev => $dev, unit => 'MB');
     my $space_size = int($space{size});
     if ($space_size == 0) {
         die 'No space left in device!';
     }
     if ($size =~ /max/ || $part_type =~ /extended/) {
         $part_start = $space{start};
-        $part_end   = $space{end};
+        $part_end = $space{end};
     }
     else {
         $part_start = $space{start};
-        $part_end   = int($space{start}) + $size;
+        $part_end = int($space{start}) + $size;
     }
     my $cmd = "parted -s -a min $dev mkpart $part_type $part_start" . "MB $part_end" . "MB";
     assert_script_run($cmd);
@@ -326,7 +326,7 @@ selected for the output.
 sub lsblk_command {
     my (%args) = @_;
     my $output = $args{output} ? " --output $args{output}" : "";
-    my $device = $args{device} ? " $args{device}"          : "";
+    my $device = $args{device} ? " $args{device}" : "";
     decode_json(script_output("lsblk -J$output$device"));
 }
 
@@ -350,31 +350,31 @@ Returns the following hash ref structure:
 =cut
 
 sub create_lsblk_validation_test_data {
-    my $dev          = shift;
-    my $columns      = {};
+    my $dev = shift;
+    my $columns = {};
     my %to_lsblk_col = (
-        name        => 'name',
-        size        => 'size',
-        filesystem  => 'fstype',
+        name => 'name',
+        size => 'size',
+        filesystem => 'fstype',
         mount_point => 'mountpoint');
 
     my ($col_name, $col_name_test_data, $value);
     for my $k (keys %{$dev}) {
         if ($k eq 'formatting_options') {
-            $col_name           = $to_lsblk_col{filesystem};
+            $col_name = $to_lsblk_col{filesystem};
             $col_name_test_data = 'filesystem';
-            $value              = $dev->{formatting_options}{filesystem};
+            $value = $dev->{formatting_options}{filesystem};
         }
         elsif ($k eq 'mounting_options') {
-            $col_name           = $to_lsblk_col{mount_point};
+            $col_name = $to_lsblk_col{mount_point};
             $col_name_test_data = 'mount_point';
-            $value              = $dev->{mounting_options}{mount_point};
-            $value              = "[SWAP]" if $value eq 'SWAP';
+            $value = $dev->{mounting_options}{mount_point};
+            $value = "[SWAP]" if $value eq 'SWAP';
         }
         else {
-            $col_name           = $to_lsblk_col{$k};
+            $col_name = $to_lsblk_col{$k};
             $col_name_test_data = $k;
-            $value              = $dev->{$k};
+            $value = $dev->{$k};
         }
 
         if ($col_name) {
@@ -382,7 +382,7 @@ sub create_lsblk_validation_test_data {
                 %{$columns}, (
                     $col_name => {
                         test_data_name => $col_name_test_data,
-                        value          => $value})};
+                        value => $value})};
         }
     }
     return $columns;
@@ -418,8 +418,8 @@ Returns string with all found errors.
 =cut
 sub validate_lsblk {
     my (%args) = @_;
-    my $dev    = $args{device};
-    my $type   = $args{type};
+    my $dev = $args{device};
+    my $type = $args{type};
 
     my $validation_test_data = create_lsblk_validation_test_data($dev);
 

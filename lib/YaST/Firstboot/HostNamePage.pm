@@ -28,7 +28,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{tb_static_hostname}      = $self->{app}->textbox({id => '"HOSTNAME"'});
+    $self->{tb_static_hostname} = $self->{app}->textbox({id => '"HOSTNAME"'});
     $self->{cb_dhcp_hostname_method} = $self->{app}->combobox({id => '"DHCP_HOSTNAME"'});
     return $self;
 }

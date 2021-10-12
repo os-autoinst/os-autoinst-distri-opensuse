@@ -58,7 +58,7 @@ sub run {
     }
     elsif (check_var("REMOTE_CONTROLLER", "ssh")) {
         set_var 'TARGET_IP', $lease_ip;
-        set_var 'PASSWD',    $password;
+        set_var 'PASSWD', $password;
         select_console 'user-console';
         clear_console;
         enter_cmd "ssh root\@$lease_ip";

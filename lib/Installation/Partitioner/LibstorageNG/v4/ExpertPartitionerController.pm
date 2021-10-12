@@ -37,23 +37,23 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{ExpertPartitionerPage} = Installation::Partitioner::LibstorageNG::ExpertPartitionerPage->new({
-            add_partition_shortcut     => 'alt-r',
-            resize_partition_shortcut  => 'alt-r',
-            edit_partition_shortcut    => 'alt-e',
-            add_raid_shortcut          => 'alt-d',
-            partition_table_shortcut   => 'alt-r',
-            avail_tgt_disks_shortcut   => 'alt-a',
-            ok_clone_shortcut          => 'alt-o',
-            select_msdos_shortcut      => 'alt-m',
-            select_gpt_shortcut        => 'alt-g',
+            add_partition_shortcut => 'alt-r',
+            resize_partition_shortcut => 'alt-r',
+            edit_partition_shortcut => 'alt-e',
+            add_raid_shortcut => 'alt-d',
+            partition_table_shortcut => 'alt-r',
+            avail_tgt_disks_shortcut => 'alt-a',
+            ok_clone_shortcut => 'alt-o',
+            select_msdos_shortcut => 'alt-m',
+            select_gpt_shortcut => 'alt-g',
             modify_hard_disks_shortcut => 'alt-m',
-            press_yes_shortcut         => 'alt-y',
-            partitions_tab_shortcut    => 'alt-p',
-            select_primary_shortcut    => 'alt-p',
-            select_extended_shortcut   => 'alt-e'
+            press_yes_shortcut => 'alt-y',
+            partitions_tab_shortcut => 'alt-p',
+            select_primary_shortcut => 'alt-p',
+            select_extended_shortcut => 'alt-e'
     });
     $self->{SuggestedPartitioningPage} = Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new();
-    $self->{NewPartitionSizePage}      = Installation::Partitioner::NewPartitionSizePage->new({
+    $self->{NewPartitionSizePage} = Installation::Partitioner::NewPartitionSizePage->new({
             custom_size_shortcut => 'alt-o'
     });
     $self->{EditPartitionSizePage} = Installation::Partitioner::NewPartitionSizePage->new({
@@ -63,25 +63,25 @@ sub init {
             raw_volume_shortcut => 'alt-r'
     });
     $self->{FormattingOptionsPage} = Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
-            do_not_format_shortcut  => 'alt-t',
-            format_shortcut         => 'alt-r',
-            filesystem_shortcut     => 'alt-f',
-            do_not_mount_shortcut   => 'alt-u',
+            do_not_format_shortcut => 'alt-t',
+            format_shortcut => 'alt-r',
+            filesystem_shortcut => 'alt-f',
+            do_not_mount_shortcut => 'alt-u',
             encrypt_device_shortcut => 'alt-e'
     });
     $self->{EditFormattingOptionsPage} = Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({
-            do_not_format_shortcut  => 'alt-t',
-            format_shortcut         => 'alt-a',
-            filesystem_shortcut     => 'alt-f',
-            do_not_mount_shortcut   => 'alt-o',
+            do_not_format_shortcut => 'alt-t',
+            format_shortcut => 'alt-a',
+            filesystem_shortcut => 'alt-f',
+            do_not_mount_shortcut => 'alt-o',
             encrypt_device_shortcut => 'alt-e'
     });
-    $self->{RaidTypePage}    = Installation::Partitioner::RaidTypePage->new();
+    $self->{RaidTypePage} = Installation::Partitioner::RaidTypePage->new();
     $self->{RaidOptionsPage} = Installation::Partitioner::RaidOptionsPage->new({
             chunk_size_shortcut => 'alt-u'
     });
     $self->{EncryptionPasswordPage} = Installation::Partitioner::LibstorageNG::EncryptionPasswordPage->new({
-            enter_password_shortcut  => 'alt-e',
+            enter_password_shortcut => 'alt-e',
             verify_password_shortcut => 'alt-v'
     });
 
@@ -112,7 +112,7 @@ sub add_raid_partition {
 
 sub add_raid {
     my ($self, $args) = @_;
-    my $raid_level            = $args->{raid_level};
+    my $raid_level = $args->{raid_level};
     my $device_selection_step = $args->{device_selection_step};
     $self->get_expert_partitioner_page()->select_item_in_system_view_table('raid');
     $self->get_expert_partitioner_page()->press_add_raid_button();

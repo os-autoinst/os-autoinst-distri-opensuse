@@ -46,26 +46,26 @@ sub run {
         # Define changed shortcuts
         $cmd{addraid} = 'alt-r';
         # for newer storage-ng toolbar has changed
-        $cmd{addraid}          = 'alt-d' if is_storage_ng_newui;
-        $cmd{customsize}       = 'alt-o';
-        $cmd{donotformat}      = 'alt-t';
-        $cmd{exp_part_finish}  = 'alt-n';
-        $cmd{filesystem}       = 'alt-r';
-        $cmd{guidedsetup}      = 'alt-g';
-        $cmd{rescandevices}    = 'alt-r';
-        $cmd{resize}           = 'alt-r';
-        $cmd{raw_volume}       = 'alt-r';
+        $cmd{addraid} = 'alt-d' if is_storage_ng_newui;
+        $cmd{customsize} = 'alt-o';
+        $cmd{donotformat} = 'alt-t';
+        $cmd{exp_part_finish} = 'alt-n';
+        $cmd{filesystem} = 'alt-r';
+        $cmd{guidedsetup} = 'alt-g';
+        $cmd{rescandevices} = 'alt-r';
+        $cmd{resize} = 'alt-r';
+        $cmd{raw_volume} = 'alt-r';
         $cmd{enable_snapshots} = 'alt-a';
-        $cmd{addpart}          = 'alt-r' if is_storage_ng_newui;
-        $cmd{addvg}            = 'alt-d';
-        $cmd{addlv}            = 'alt-g';
+        $cmd{addpart} = 'alt-r' if is_storage_ng_newui;
+        $cmd{addvg} = 'alt-d';
+        $cmd{addlv} = 'alt-g';
         # Set shortcut for role selection when creating partition
         $partition_roles{raw} = $cmd{raw_volume};
 
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-e';
-            $cmd{enablelvm}         = 'alt-e';
-            $cmd{encryptdisk}       = 'alt-a';
+            $cmd{enablelvm} = 'alt-e';
+            $cmd{encryptdisk} = 'alt-a';
         }
     }
 

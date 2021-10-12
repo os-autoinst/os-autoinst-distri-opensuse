@@ -21,7 +21,7 @@ use utils qw(systemctl file_content_replace);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
 
 sub replace_text_in_ha_files {
-    my %changes      = @_;
+    my %changes = @_;
     my @files_to_fix = qw(/etc/corosync/corosync.conf /etc/drbd.d/drbd_passive.res);
 
     foreach my $file (@files_to_fix) {
@@ -31,12 +31,12 @@ sub replace_text_in_ha_files {
 }
 
 sub run {
-    my $nfs_share    = get_required_var('NFS_SUPPORT_SHARE');
-    my $mountpt      = '/support_fs';
+    my $nfs_share = get_required_var('NFS_SUPPORT_SHARE');
+    my $mountpt = '/support_fs';
     my $cluster_name = get_cluster_name;
-    my $build        = join('_', get_required_var('BUILD') =~ m/(\w+)/g);
-    my $dir_id       = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $build);
-    my $testname     = get_required_var('TEST');
+    my $build = join('_', get_required_var('BUILD') =~ m/(\w+)/g);
+    my $dir_id = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $build);
+    my $testname = get_required_var('TEST');
     my $time_to_wait;
 
     # If dealing with upgrades, specify that in the directory name as to avoid overwriting info
@@ -59,7 +59,7 @@ sub run {
     }
 
     my $hostname = get_hostname;
-    my $ipaddr   = get_my_ip;
+    my $ipaddr = get_my_ip;
     assert_script_run "echo \"$ipaddr  $hostname\" > $mountpt/$dir_id/$hostname.hosts";
 
     barrier_wait("BARRIER_HA_HOSTS_FILES_READY_$cluster_name");
@@ -74,8 +74,8 @@ sub run {
 
         # Get IP adresses configured in /etc/corosync.conf
         my %addr_changes = ();
-        my $old_addr     = script_output q(grep ring0 /etc/corosync/corosync.conf | awk '{print "ip:"$2}' | uniq | tr '\n' ',');
-        my $count        = 0;
+        my $old_addr = script_output q(grep ring0 /etc/corosync/corosync.conf | awk '{print "ip:"$2}' | uniq | tr '\n' ',');
+        my $count = 0;
 
         foreach my $addr (split(/,/, $old_addr)) {
             ++$count;
@@ -116,11 +116,11 @@ sub run {
 
     # prepare LUN files. only node 1 does this
     if (is_node(1)) {
-        my $cluster       = get_required_var('CLUSTER_INFOS');
-        my $iscsi_srv     = get_required_var('ISCSI_SERVER');
-        my $num_luns      = (split(/:/, $cluster))[2];
+        my $cluster = get_required_var('CLUSTER_INFOS');
+        my $iscsi_srv = get_required_var('ISCSI_SERVER');
+        my $num_luns = (split(/:/, $cluster))[2];
         my $lun_list_file = "$mountpt/$dir_id/$cluster_name-lun.list";
-        my $index         = get_var('ISCSI_LUN_INDEX', 0);
+        my $index = get_var('ISCSI_LUN_INDEX', 0);
 
         assert_script_run "rm -f $lun_list_file ; touch $lun_list_file";
 

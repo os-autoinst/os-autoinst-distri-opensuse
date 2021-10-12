@@ -27,15 +27,15 @@ sub run {
     $self->select_serial_terminal;
 
     # Define the user and password, which are already configured in previous milestone
-    my $user   = 'suse';
+    my $user = 'suse';
     my $passwd = 'susetesting';
 
     # Modify the login/sshd files to set the PAM authentication
     my $deny_user_file = '/etc/deniedusers';
-    my $pam_sshd       = '/etc/pam.d/sshd';
-    my $pam_login      = '/etc/pam.d/login';
-    my $pam_sshd_bak   = '/tmp/sshd_bak';
-    my $pam_login_bak  = '/tmp/login_bak';
+    my $pam_sshd = '/etc/pam.d/sshd';
+    my $pam_login = '/etc/pam.d/login';
+    my $pam_sshd_bak = '/tmp/sshd_bak';
+    my $pam_login_bak = '/tmp/login_bak';
     assert_script_run "echo $user > $deny_user_file";
     assert_script_run "cp $pam_sshd $pam_sshd_bak";
     assert_script_run "cp $pam_login $pam_login_bak";

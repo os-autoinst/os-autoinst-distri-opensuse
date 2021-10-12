@@ -33,7 +33,7 @@ use constant {
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        enter_password_shortcut  => $args->{enter_password_shortcut},
+        enter_password_shortcut => $args->{enter_password_shortcut},
         verify_password_shortcut => $args->{verify_password_shortcut}
     }, $class;
 }

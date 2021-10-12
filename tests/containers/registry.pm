@@ -30,19 +30,19 @@ use containers::utils;
 use containers::engine;
 
 sub registry_push_pull {
-    my %args   = @_;
-    my $image  = $args{image};
+    my %args = @_;
+    my $image = $args{image};
     my $engine = $args{runtime};
 
-    die 'Argument $image not provided!'  unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $engine not provided!' unless $engine;
 
     # Pull $image
-    assert_script_run $engine->runtime . " pull $image",            600;
+    assert_script_run $engine->runtime . " pull $image", 600;
     assert_script_run $engine->runtime . " images | grep '$image'", 60;
 
     # Tag $image for the local registry
-    assert_script_run $engine->runtime . " tag $image localhost:5000/$image",      90;
+    assert_script_run $engine->runtime . " tag $image localhost:5000/$image", 90;
     assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # Push $image to the local registry
@@ -57,11 +57,11 @@ sub registry_push_pull {
         record_soft_failure("containers/podman#10685",
             "Known issue - containers/podman#10685: podman image rm --force also untags other images (3.2.0 regression)");
     }
-    assert_script_run "! " . $engine->runtime . " images | grep '$image'",                60;
+    assert_script_run "! " . $engine->runtime . " images | grep '$image'", 60;
     assert_script_run "! " . $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 
     # Pull $image from the local registry
-    assert_script_run $engine->runtime . " pull localhost:5000/$image",            90;
+    assert_script_run $engine->runtime . " pull localhost:5000/$image", 90;
     assert_script_run $engine->runtime . " images | grep 'localhost:5000/$image'", 60;
 }
 

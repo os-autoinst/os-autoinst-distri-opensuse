@@ -24,7 +24,7 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has ssid => 'Virtual WiFi PSK Secured';
-has psk  => 'TopSecretWifiPassphrase!';
+has psk => 'TopSecretWifiPassphrase!';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -63,7 +63,7 @@ has ifcfg_wlan => sub { [
     ),
         {
             wicked_version => '>=0.6.66',
-            config         => q(
+            config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 
@@ -73,7 +73,7 @@ has ifcfg_wlan => sub { [
         },
         {
             wicked_version => '>=0.6.66',
-            config         => q(
+            config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 
@@ -84,7 +84,7 @@ has ifcfg_wlan => sub { [
         },
         {
             wicked_version => '>=0.6.66',
-            config         => q(
+            config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 
@@ -95,7 +95,7 @@ has ifcfg_wlan => sub { [
         },
         {
             wicked_version => '>=0.6.66',
-            config         => q(
+            config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 

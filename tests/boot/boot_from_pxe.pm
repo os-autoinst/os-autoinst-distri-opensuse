@@ -26,7 +26,7 @@ use version_utils 'is_upgrade';
 
 sub run {
     my ($image_path, $image_name, $cmdline);
-    my $arch      = get_var('ARCH');
+    my $arch = get_var('ARCH');
     my $interface = get_var('SUT_NETDEVICE', 'eth0');
     # In autoyast tests we need to wait until pxe is available
     if (get_var('AUTOYAST') && get_var('DELAYED_START') && !is_ipmi) {
@@ -74,7 +74,7 @@ sub run {
 
         my $openqa_url = get_required_var('OPENQA_URL');
         $openqa_url = 'http://' . $openqa_url unless $openqa_url =~ /http:\/\//;
-        my $repo     = $openqa_url . "/assets/repo/${image_name}";
+        my $repo = $openqa_url . "/assets/repo/${image_name}";
         my $key_used = '';
         if (is_remote_backend && is_aarch64 && is_supported_suse_domain) {
             $key_used = 'c';
@@ -88,7 +88,7 @@ sub run {
         if (match_has_tag("qa-net-boot")) {
             #Nuremberg
             my $path_prefix = "/mnt/openqa/repo";
-            my $path        = "${path_prefix}/${image_name}/boot/${arch}/loader";
+            my $path = "${path_prefix}/${image_name}/boot/${arch}/loader";
             $image_path = "$path/linux initrd=$path/initrd install=$repo";
         }
         elsif (match_has_tag("orthos-grub-boot") or match_has_tag("qa-net-grub-boot")) {
@@ -111,8 +111,8 @@ sub run {
             send_key 'tab';
         }
         else {
-            my $device  = (is_ipmi && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
-            my $release = get_var('BETA')                                ? 'LATEST'             : 'GM';
+            my $device = (is_ipmi && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
+            my $release = get_var('BETA') ? 'LATEST' : 'GM';
             $image_name = get_var('ISO') =~ s/(.*\/)?(.*)-DVD-${arch}-.*\.iso/$2-$release/r;
             $image_name = get_var('PXE_PRODUCT_NAME') if get_var('PXE_PRODUCT_NAME');
             $image_path = "/mounts/dist/install/SLP/${image_name}/${arch}/DVD1/boot/${arch}/loader/linux ";
@@ -126,7 +126,7 @@ sub run {
         send_key "tab";
     }
     if (is_ipmi) {
-        $image_path .= " ipv6.disable=1 "         if get_var('LINUX_BOOT_IPV6_DISABLE');
+        $image_path .= " ipv6.disable=1 " if get_var('LINUX_BOOT_IPV6_DISABLE');
         $image_path .= " ifcfg=$interface=dhcp4 " if (!get_var('NETWORK_INIT_PARAM') && !get_var('SUT_NETDEVICE_SKIPPED'));
         $image_path .= ' plymouth.enable=0 ';
     }
@@ -172,7 +172,7 @@ sub run {
 
     if (is_ipmi && !get_var('AUTOYAST')) {
         my $ssh_vnc_wait_time = 420;
-        my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
+        my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
         #Detect orthos-grub-boot-linux and qa-net-grub-boot-linux for aarch64 in orthos and openQA networks respectively
         my @tags = ($ssh_vnc_tag, 'orthos-grub-boot-linux', 'qa-net-grub-boot-linux');
 
@@ -184,7 +184,7 @@ sub run {
             sleep 2;
             if (match_has_tag("orthos-grub-boot-linux") or match_has_tag("qa-net-grub-boot-linux")) {
                 my $image_name = eval { check_var("INSTALL_TO_OTHERS", 1) ? get_var("REPO_0_TO_INSTALL") : get_var("REPO_0") };
-                my $args       = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
+                my $args = "initrd auto/openqa/repo/${image_name}/boot/${arch}/initrd";
                 $args = "initrd /mnt/openqa/repo/${image_name}/boot/${arch}/initrd" if (!is_orthos_machine);
                 type_string_slow $args;
                 send_key 'ret';

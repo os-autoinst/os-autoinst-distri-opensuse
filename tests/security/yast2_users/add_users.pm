@@ -30,7 +30,7 @@ use version_utils 'is_tumbleweed';
 
 sub run {
     my $testuser = "testuser";
-    my $pw       = "T3stpassw0rd!";
+    my $pw = "T3stpassw0rd!";
     my $f_shadow = "/etc/shadow";
 
     # Create a test user

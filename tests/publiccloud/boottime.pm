@@ -20,31 +20,31 @@ use publiccloud::utils qw(select_host_console);
 
 our $default_analyze_thresholds = {
     # First boot after provisioning
-    kernel     => 15,
-    userspace  => 60,
-    initrd     => 20,
-    overall    => 120,
+    kernel => 15,
+    userspace => 60,
+    initrd => 20,
+    overall => 120,
     ssh_access => 60,
 
     # Values after soft reboot
-    kernel_soft     => 15,
-    userspace_soft  => 60,
-    initrd_soft     => 10,
-    overall_soft    => 120,
+    kernel_soft => 15,
+    userspace_soft => 60,
+    initrd_soft => 10,
+    overall_soft => 120,
     ssh_access_soft => 70,
 
     # Values after hard reboot
-    kernel_hard     => 15,
-    userspace_hard  => 60,
-    initrd_hard     => 10,
-    overall_hard    => 120,
+    kernel_hard => 15,
+    userspace_hard => 60,
+    initrd_hard => 10,
+    overall_hard => 120,
     ssh_access_hard => 60,
 };
 
 our $default_azure_analyze_thresholds = {
     %{$default_analyze_thresholds},
     userspace => 160,
-    overall   => 180,
+    overall => 180,
 };
 
 our $default_azure_BYOS_analyze_thresholds = {
@@ -60,7 +60,7 @@ our $default_ec2_analyze_thresholds = {
 our $default_gce_BYOS_analyze_thresholds = {
     %{$default_analyze_thresholds},
     userspace => 40,
-    overall   => 60,
+    overall => 60,
 };
 
 our $default_gce_analyze_thresholds = {
@@ -70,8 +70,8 @@ our $default_gce_analyze_thresholds = {
 
 our $default_blame_thresholds = {
     first => {'wicked.service' => 20},
-    soft  => {'wicked.service' => 20},
-    hard  => {'wicked.service' => 20},
+    soft => {'wicked.service' => 20},
+    hard => {'wicked.service' => 20},
 };
 
 
@@ -79,140 +79,140 @@ our $thresholds_by_flavor = {
     # Azure
     'Azure-BYOS' => {
         analyze => $default_azure_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'Azure-CHOST-BYOS' => {
         analyze => $default_azure_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'Azure-Basic' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'Azure-Standard' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'AZURE-Basic-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'AZURE-Basic-gen2-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'Azure-Standard-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'AZURE-Standard-gen2-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'AZURE-Standard-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'AZURE-BYOS-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'AZURE-BYOS-gen2-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'Azure-Image-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'Azure-Image-Updates' => {
         analyze => $default_azure_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
 
     # EC2
     'EC2-CHOST-BYOS' => {
         analyze => $default_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
 
     'EC2-CHOST-BYOS' => {
         analyze => $default_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-HVM' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-HVM-ARM' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-HVM-BYOS' => {
         analyze => $default_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-BYOS-Image-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-BYOS-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-ARM-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-BYOS-ARM-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-Image-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-BYOS-ARM-Image-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'EC2-ARM-Image-Updates' => {
         analyze => $default_ec2_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
 
     # GCE
     GCE => {
         analyze => $default_gce_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'GCE-Updates' => {
         analyze => $default_gce_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'GCE-BYOS' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'GCE-BYOS-Updates' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'GCE-CHOST-BYOS' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'GCE-Image-Updates' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
     'GCE-BYOS-Image-Updates' => {
         analyze => $default_gce_BYOS_analyze_thresholds,
-        blame   => $default_blame_thresholds,
+        blame => $default_blame_thresholds,
     },
 };
 
@@ -230,7 +230,7 @@ sub systemd_time_to_sec
 
 sub extract_analyze {
     my $string = shift;
-    my $res    = {};
+    my $res = {};
     ($string) = split(/\r?\n/, $string, 2);
     $string =~ s/Startup finished in\s*//;
     $string =~ s/=(.+)$/+$1 (overall)/;
@@ -245,7 +245,7 @@ sub extract_analyze {
 
 sub extract_blame {
     my $string = shift;
-    my $ret    = {};
+    my $ret = {};
     for my $line (split(/\r?\n/, $string)) {
         $line = trim($line);
         my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
@@ -258,7 +258,7 @@ sub do_systemd_analyze {
     my ($instance, %args) = @_;
     $args{timeout} = 120;
     my $start_time = time();
-    my $output     = "";
+    my $output = "";
     my @ret;
 
     # Wait for guest register, before calling syastemd-analyze
@@ -285,15 +285,15 @@ sub measure_timings {
     my $ret = {
         kernel_release => undef,
         kernel_version => undef,
-        analyze        => {},
-        blame          => {
+        analyze => {},
+        blame => {
             first => {}, soft => {}, hard => {}
         },
     };
 
     if (get_var('PUBLIC_CLOUD_QAM')) {
-        $instance         = $args->{my_instance};
-        $provider         = $args->{my_provider};
+        $instance = $args->{my_instance};
+        $provider = $args->{my_provider};
         $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
         $provider = $self->provider_factory();
@@ -342,21 +342,21 @@ sub store_in_db {
     return unless ($url);
 
     my $tags = {
-        instance_type     => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        os_flavor         => get_required_var('FLAVOR'),
-        os_version        => get_required_var('VERSION'),
-        os_build          => get_required_var('BUILD'),
+        instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+        os_flavor => get_required_var('FLAVOR'),
+        os_version => get_required_var('VERSION'),
+        os_build => get_required_var('BUILD'),
         os_kernel_release => $results->{kernel_release},
         os_kernel_version => $results->{kernel_version},
     };
 
-    $tags->{os_pc_build}      = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD');
+    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD');
     $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_required_var('PUBLIC_CLOUD_BUILD_KIWI');
 
     # Store values in influx-db
     my $data = {
-        table  => 'bootup',
-        tags   => $tags,
+        table => 'bootup',
+        tags => $tags,
         values => $results->{analyze}
     };
     influxdb_push_data($url, 'publiccloud', $data);
@@ -364,8 +364,8 @@ sub store_in_db {
     for my $type (qw(first soft hard)) {
         $tags->{boottype} = $type;
         $data = {
-            table  => 'bootup_blame',
-            tags   => $tags,
+            table => 'bootup_blame',
+            tags => $tags,
             values => $results->{blame}->{$type}
         };
         influxdb_push_data($url, 'publiccloud', $data);

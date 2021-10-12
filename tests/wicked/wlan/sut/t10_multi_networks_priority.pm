@@ -20,12 +20,12 @@ use testapi;
 use utils qw(script_retry script_output_retry);
 
 has wicked_version => '>=0.6.66';
-has ssid           => 'First SSID';
-has ssid_1         => 'Second SSID';
-has ssid_2         => 'Third SSID';
-has ssid_3         => 'Fourth SSID';
+has ssid => 'First SSID';
+has ssid_1 => 'Second SSID';
+has ssid_2 => 'Third SSID';
+has ssid_3 => 'Fourth SSID';
 
-has psk   => 'aun5AhCo';
+has psk => 'aun5AhCo';
 has psk_1 => 'Eyoh4Woo';
 has psk_2 => 'Too9ziew';
 has psk_3 => 'thu6Aech';
@@ -147,7 +147,7 @@ has ifcfg_wlan => q(
 
 
 sub run {
-    my $self         = shift;
+    my $self = shift;
     my $WAIT_SECONDS = get_var("WICKED_WAIT_SECONDS", 70);
     $self->select_serial_terminal;
     return if ($self->skip_by_wicked_version());
@@ -176,7 +176,7 @@ sub run {
     $self->assert_connection(timeout => $WAIT_SECONDS, bss => 1);
     $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
 
-    my $cmd      = "wicked show-xml " . $self->sut_ifc . " | wicked xpath --reference 'object/wireless/current-connection' '%{bssid}'";
+    my $cmd = "wicked show-xml " . $self->sut_ifc . " | wicked xpath --reference 'object/wireless/current-connection' '%{bssid}'";
     my $last_bss = script_output($cmd);
 
 

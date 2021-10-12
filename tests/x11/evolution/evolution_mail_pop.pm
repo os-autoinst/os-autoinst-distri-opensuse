@@ -26,7 +26,7 @@ use utils;
 sub run {
     my $self = shift;
     # Select correct account to use with multimachine.
-    my $account  = "internal_account";
+    my $account = "internal_account";
     my $hostname = get_var('HOSTNAME');
     if ($hostname eq 'client') {
         $account = "internal_account_C";

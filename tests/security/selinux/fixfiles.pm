@@ -34,9 +34,9 @@ sub run {
     assert_script_run("fixfiles check > $file_output 2>&1", timeout => 300);
 
     # pick up a test file to test
-    my $file_info     = script_output("grep -i 'Would relabel' $file_output | tail -1");
-    my $file_name     = script_output("echo $file_info | cut -d ' ' -f3");
-    my $fcontext_pre  = script_output("echo $file_info | cut -d ' ' -f5");
+    my $file_info = script_output("grep -i 'Would relabel' $file_output | tail -1");
+    my $file_name = script_output("echo $file_info | cut -d ' ' -f3");
+    my $fcontext_pre = script_output("echo $file_info | cut -d ' ' -f5");
     my $fcontext_post = script_output("echo $file_info | cut -d ' ' -f7");
 
     # test `fixfiles restore`: run fixfiles restore on the test file and check the results

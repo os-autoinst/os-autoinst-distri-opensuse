@@ -22,11 +22,11 @@ use utils;
 use mailtest;
 
 sub run {
-    my $self        = shift;
+    my $self = shift;
     my $fetchmailrc = "~/.fetchmailrc";
     my $test_cacert = "~/ca-cert.pem";
-    my $mailbox     = "/var/mail/$username";
-    my $subject     = "Testing fetchmail";
+    my $mailbox = "/var/mail/$username";
+    my $subject = "Testing fetchmail";
 
     select_console "root-console";
     prepare_mail_client;

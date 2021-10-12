@@ -34,7 +34,7 @@ sub get_script_run {
     # testsuite setting pre-handling for no service pack products
     handle_sp_in_settings_with_fcs("GUEST_PATTERN");
     my $guest_pattern = get_var('GUEST_PATTERN', 'sles-12-sp2-64-[p|f]v-def-net');
-    my $parallel_num  = get_var("PARALLEL_NUM",  "2");
+    my $parallel_num = get_var("PARALLEL_NUM", "2");
 
     $pre_test_cmd = $pre_test_cmd . " -f " . $guest_pattern . " -n " . $parallel_num . " -r ";
 
@@ -48,7 +48,7 @@ sub analyzeResult {
     my $rough_result = $1;
     foreach (split("\n", $rough_result)) {
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED|TIMEOUT)\s+\((\S+)\)/g) {
-            $result->{$1}{status}    = $2;
+            $result->{$1}{status} = $2;
             $result->{$1}{test_time} = $3;
         }
     }
@@ -56,7 +56,7 @@ sub analyzeResult {
 }
 
 sub post_execute_script_assertion {
-    my $self   = shift;
+    my $self = shift;
     my $output = $self->{script_output};
 
     $output =~ s/"|'|`//g;
@@ -80,9 +80,9 @@ sub run {
     }
 
     $self->{"product_tested_on"} = "SLES-12-SP2";
-    $self->{"product_name"}      = "GuestIn_stallation";
-    $self->{"package_name"}      = "Guest Installation Test";
-    $self->{success_guest_list}  = [];
+    $self->{"product_name"} = "GuestIn_stallation";
+    $self->{"package_name"} = "Guest Installation Test";
+    $self->{success_guest_list} = [];
 
     my $upload_guest_assets_flag = 'no';
     # Only enable UPLOAD_GUEST_ASSETS for x86_64 now

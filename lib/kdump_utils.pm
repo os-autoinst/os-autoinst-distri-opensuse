@@ -65,7 +65,7 @@ sub prepare_for_kdump_sle {
         # append _debug to the incident repo
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
             next unless $i;
-            $i =~ s/\/$//;       # Delete / at the end of url
+            $i =~ s/\/$//;    # Delete / at the end of url
             $i =~ s/$/_debug/;
             $counter++;
             zypper_call("--no-gpg-checks ar -f $i 'DEBUG_$counter'");
@@ -74,7 +74,7 @@ sub prepare_for_kdump_sle {
 
     if (is_sle('=12-SP2')) {
         my $arch = get_var('ARCH');
-        my $url  = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update_debug/";
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update_debug/";
         zypper_call("--no-gpg-checks ar -f -G $url '12-SP2-LTSS-ERICSSON-Debuginfo-Updates'");
     }
 
@@ -150,7 +150,7 @@ sub activate_kdump {
     # get kdump memory size bsc#1161421
     my $memory_total = script_output('kdumptool  calibrate | awk \'/Total:/ {print $2}\'');
     my $memory_kdump = $memory_total >= 2048 ? 1024 : 320;
-    my $module_name  = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
+    my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'kdump', yast2_opts => '--ncurses');
     my @initial_tags = qw(yast2-kdump-disabled yast2-kdump-enabled);
     push(@initial_tags,
         (is_sle('>=15-sp3')) ? 'yast2-kdump-not-supported' : 'yast2-kdump-cannot-read-mem') if (is_xen_pv);
@@ -212,7 +212,7 @@ sub activate_kdump_cli {
     assert_script_run("yast kdump startup enable alloc_mem=${crash_memory}", 180);
     # Enable firmware assisted dump if needed
     assert_script_run('yast2 kdump fadump enable', 180) if check_var('FADUMP');
-    assert_script_run('yast kdump show',           180);
+    assert_script_run('yast kdump show', 180);
     systemctl('enable kdump');
 }
 
@@ -280,7 +280,7 @@ sub do_kdump {
 #
 sub configure_service {
     my %args = @_;
-    $args{test_type}      //= '';
+    $args{test_type} //= '';
     $args{yast_interface} //= '';
 
     my $self = y2_module_consoletest->new();
@@ -356,7 +356,7 @@ sub check_function {
     if ($args{test_type} eq 'function') {
         # Check, that vmcore exists, otherwise fail
         assert_script_run('ls -lah /var/crash/*/vmcore');
-        my $vmlinux   = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
+        my $vmlinux = (is_sle("<16") || is_leap("<16.0")) ? '/boot/vmlinux-$(uname -r)*' : '/usr/lib/modules/$(uname -r)/vmlinux*';
         my $crash_cmd = "echo exit | crash `ls -1t /var/crash/*/vmcore | head -n1` $vmlinux";
         validate_script_output "$crash_cmd", sub { m/PANIC:\s([^\s]+)/ }, 600;
     }
@@ -369,7 +369,7 @@ sub check_function {
     if (is_pvm && get_var('ENCRYPT') && get_var('FADUMP')) {
         # Disable fadump
         assert_script_run('yast2 kdump fadump disable', 180);
-        assert_script_run('yast2 kdump show',           180);
+        assert_script_run('yast2 kdump show', 180);
         # Set print_delay to slow down kernel
         assert_script_run('echo 1000 > /proc/sys/kernel/printk_delay');
         # Restart system and check console

@@ -28,13 +28,13 @@ use ctcs2_to_junit;
 use upload_system_log;
 
 my $STATUS_LOG = '/opt/status.log';
-my $LOG_DIR    = '/opt/log';
-my $KDUMP_DIR  = '/opt/kdump';
+my $LOG_DIR = '/opt/log';
+my $KDUMP_DIR = '/opt/kdump';
 my $JUNIT_FILE = '/opt/output.xml';
 
 sub log_end {
     my $file = shift;
-    my $cmd  = "echo '\nTest run complete' >> $file";
+    my $cmd = "echo '\nTest run complete' >> $file";
     send_key 'ret';
     assert_script_run($cmd);
 }
@@ -79,8 +79,8 @@ sub run {
 
     # Junit xml report
     my $script_output = script_output("cat $STATUS_LOG", 600);
-    my $tc_result     = analyzeResult($script_output);
-    my $xml           = generateXML($tc_result);
+    my $tc_result = analyzeResult($script_output);
+    my $xml = generateXML($tc_result);
     assert_script_run("echo \'$xml\' > $JUNIT_FILE", 7200);
     parse_junit_log($JUNIT_FILE);
 }

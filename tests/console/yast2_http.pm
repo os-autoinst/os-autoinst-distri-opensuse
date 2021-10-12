@@ -46,13 +46,13 @@ sub run {
     # check http server wizard (1/5) -- Network Device Selection
     assert_screen 'http_server_wizard', 60;
     wait_still_screen(3);
-    send_key 'alt-n';                               # go to http server wizard (1/5) -- Network Device Selection
-    assert_screen 'http_server_modules';            # check modules and enable php, perl, python before go to next step
+    send_key 'alt-n';    # go to http server wizard (1/5) -- Network Device Selection
+    assert_screen 'http_server_modules';    # check modules and enable php, perl, python before go to next step
     wait_still_screen 1;
     send_key 'alt-p';
-    assert_screen 'http_modules_enabled_php';       # check php module enabled
+    assert_screen 'http_modules_enabled_php';    # check php module enabled
     send_key 'alt-e';
-    assert_screen 'http_modules_enabled_perl';      # check perl module enabled
+    assert_screen 'http_modules_enabled_perl';    # check perl module enabled
     send_key 'alt-y';
     assert_screen 'http_modules_enabled_python';    # check python module enabled
     wait_still_screen 1;
@@ -116,16 +116,16 @@ sub run {
     if (is_sle('<=15') || is_leap('<=15.0')) {
         send_key 'alt-t';
     } else {
-        send_key 'alt-a';    #after rebooting the host, what should be apache status?
+        send_key 'alt-a';                           #after rebooting the host, what should be apache status?
         send_key 'up';
-        send_key 'ret';      #we select to start apache when the host boots
+        send_key 'ret';                             #we select to start apache when the host boots
     }
 
-    assert_screen 'http_start_apache2';    #confirm apache now starts on boot
-    send_key 'alt-f';                      # now finish the tests :)
+    assert_screen 'http_start_apache2';             #confirm apache now starts on boot
+    send_key 'alt-f';                               # now finish the tests :)
 
     check_screen 'http_install_apache2_mods', 60;
-    send_key 'alt-i';                      # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
+    send_key 'alt-i';                               # confirm to install apache2_mod_perl, apache2_mod_php, apache2_mod_python
 
     # if popup, confirm to enable apache2 configuratuion
     if (check_screen('http_enable_apache2', 10)) {

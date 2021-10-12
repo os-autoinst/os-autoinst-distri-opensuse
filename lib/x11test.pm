@@ -237,7 +237,7 @@ END_LOCAL_CONFIG
 
 sub check_new_mail_evolution {
     my ($self, $mail_search, $i, $protocol) = @_;
-    my $config      = $self->getconfig_emailaccount;
+    my $config = $self->getconfig_emailaccount;
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
     send_key 'f12';
@@ -283,8 +283,8 @@ sub get_dated_random_string {
 sub send_meeting_request {
 
     my ($self, $sender, $receiver, $mail_subject) = @_;
-    my $config      = $self->getconfig_emailaccount;
-    my $mail_box    = $config->{$receiver}->{mailbox};
+    my $config = $self->getconfig_emailaccount;
+    my $mail_box = $config->{$receiver}->{mailbox};
     my $mail_passwd = $config->{$sender}->{passwd};
 
     #create new meeting
@@ -421,15 +421,15 @@ sub evolution_add_self_signed_ca {
 sub setup_mail_account {
     my ($self, $proto, $account) = @_;
 
-    my $config          = $self->getconfig_emailaccount;
-    my $mail_box        = $config->{$account}->{mailbox};
+    my $config = $self->getconfig_emailaccount;
+    my $mail_box = $config->{$account}->{mailbox};
     my $mail_sendServer = $config->{$account}->{sendServer};
     my $mail_recvServer = $config->{$account}->{recvServer};
-    my $mail_user       = $config->{$account}->{user};
-    my $mail_passwd     = $config->{$account}->{passwd};
-    my $mail_sendport   = $config->{$account}->{sendport};
-    my $port_key        = $proto eq 'pop' ? 'recvport' : 'imapport';
-    my $mail_recvport   = $config->{$account}->{$port_key};
+    my $mail_user = $config->{$account}->{user};
+    my $mail_passwd = $config->{$account}->{passwd};
+    my $mail_sendport = $config->{$account}->{sendport};
+    my $port_key = $proto eq 'pop' ? 'recvport' : 'imapport';
+    my $mail_recvport = $config->{$account}->{$port_key};
 
     $self->start_evolution($mail_box);
     # Open Server Type screen.
@@ -591,9 +591,9 @@ sub start_firefox_with_profile {
     enter_cmd "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla";
     # Start Firefox
     enter_cmd "firefox $url >firefox.log 2>&1 &";
-    wait_still_screen 2,                4;
+    wait_still_screen 2, 4;
     assert_screen 'firefox-url-loaded', 300;
-    wait_still_screen 2,                4;
+    wait_still_screen 2, 4;
 }
 
 sub start_firefox {
@@ -713,10 +713,10 @@ sub exit_firefox {
 }
 
 sub start_gnome_settings {
-    my $is_sle_12_sp1          = (check_var('DISTRI', 'sle') && check_var('VERSION', '12-SP1'));
+    my $is_sle_12_sp1 = (check_var('DISTRI', 'sle') && check_var('VERSION', '12-SP1'));
     my $workaround_repetitions = 5;
-    my $i                      = $workaround_repetitions;
-    my $settings_menu_loaded   = 0;
+    my $i = $workaround_repetitions;
+    my $settings_menu_loaded = 0;
 
     # the loop is a workaround for SP1: bug in launcher. Sometimes it doesn't react to click
     # The bug will be NOT fixed for SP1.
@@ -835,9 +835,9 @@ sub setup_evolution_for_ews {
 sub evolution_send_message {
     my ($self, $account) = @_;
 
-    my $config       = $self->getconfig_emailaccount;
-    my $mailbox      = $config->{$account}->{mailbox};
-    my $mail_passwd  = $config->{$account}->{passwd};
+    my $config = $self->getconfig_emailaccount;
+    my $mailbox = $config->{$account}->{mailbox};
+    my $mail_passwd = $config->{$account}->{passwd};
     my $mail_subject = $self->get_dated_random_string(4);
 
     send_key "shift-ctrl-m";

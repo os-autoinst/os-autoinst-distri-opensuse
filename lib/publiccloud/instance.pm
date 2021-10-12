@@ -20,14 +20,14 @@ use File::Basename;
 
 use constant SSH_TIMEOUT => 90;
 
-has instance_id => undef;               # unique CSP instance id
-has public_ip   => undef;               # public IP of instance
-has username    => undef;               # username for ssh connection
-has ssh_key     => undef;               # path to ssh-key for connection
-has image_id    => undef;               # image from where the VM is booted
-has type        => undef;
-has provider    => undef, weak => 1;    # back reference to the provider
-has ssh_opts    => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR';
+has instance_id => undef;    # unique CSP instance id
+has public_ip => undef;      # public IP of instance
+has username => undef;       # username for ssh connection
+has ssh_key => undef;        # path to ssh-key for connection
+has image_id => undef;       # image from where the VM is booted
+has type => undef;
+has provider => undef, weak => 1;    # back reference to the provider
+has ssh_opts => '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR';
 
 =head2 run_ssh_command
 
@@ -52,8 +52,8 @@ sub run_ssh_command {
     die('Argument <cmd> missing') unless ($args{cmd});
     $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
     $args{username} //= $self->username();
-    $args{timeout}  //= SSH_TIMEOUT;
-    $args{quiet}    //= 1;
+    $args{timeout} //= SSH_TIMEOUT;
+    $args{quiet} //= 1;
     $args{no_quote} //= 0;
     my $rc_only = $args{rc_only} // 0;
     my $timeout = $args{timeout};
@@ -112,7 +112,7 @@ sub retry_ssh_command {
     $args{timeout} //= 90;    # Timeout before we cancel the command
     my $tries = delete $args{retry} // 3;
     my $delay = delete $args{delay} // 10;
-    my $cmd   = delete $args{cmd};
+    my $cmd = delete $args{cmd};
 
     for (my $try = 0; $try < $tries; $try++) {
         my $rc = $self->run_ssh_command(cmd => $cmd, %args);
@@ -137,7 +137,7 @@ sub scp {
 
     my $url = sprintf('%s@%s:', $self->username, $self->public_ip);
     $from =~ s/^remote:/$url/;
-    $to   =~ s/^remote:/$url/;
+    $to =~ s/^remote:/$url/;
 
     my $ssh_cmd = sprintf('scp %s -i "%s" "%s" "%s"',
         $self->ssh_opts, $self->ssh_key, $from, $to);
@@ -156,8 +156,8 @@ sub upload_log {
     my ($self, $remote_file, %args) = @_;
 
     my $tmpdir = script_output('mktemp -d');
-    my $dest   = $tmpdir . '/' . basename($remote_file);
-    my $ret    = $self->scp('remote:' . $remote_file, $dest);
+    my $dest = $tmpdir . '/' . basename($remote_file);
+    my $ret = $self->scp('remote:' . $remote_file, $dest);
     upload_logs($dest, %args) if (defined($ret) && $ret == 0);
     assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
@@ -176,7 +176,7 @@ sub wait_for_guestregister
     my ($self, %args) = @_;
     $args{timeout} //= 300;
     my $start_time = time();
-    my $last_info  = 0;
+    my $last_info = 0;
 
     while (time() - $start_time < $args{timeout}) {
         my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
@@ -206,9 +206,9 @@ Check if the SSH port of the instance is reachable and open.
 sub wait_for_ssh
 {
     my ($self, %args) = @_;
-    $args{timeout}            //= 600;
+    $args{timeout} //= 600;
     $args{proceed_on_failure} //= 0;
-    $args{username}           //= $self->username();
+    $args{username} //= $self->username();
     my $start_time = time();
     my $check_port = 1;
 
@@ -253,7 +253,7 @@ reachable anymore. The second one is the estimated bootup time.
 sub softreboot
 {
     my ($self, %args) = @_;
-    $args{timeout}  //= 600;
+    $args{timeout} //= 600;
     $args{username} //= $self->username();
 
     my $duration;

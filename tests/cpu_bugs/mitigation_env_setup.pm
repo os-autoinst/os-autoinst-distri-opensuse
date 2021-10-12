@@ -17,7 +17,7 @@ use testapi;
 use utils;
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $newlabel = get_required_var('SPECIFIC_DISK') . '-' . get_required_var('DISTRI') . '-' . get_required_var('VERSION') . '-';
 
     # for mitigation test, add build tag or build number to disk label

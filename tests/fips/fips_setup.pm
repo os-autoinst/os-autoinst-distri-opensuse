@@ -49,7 +49,7 @@ sub run {
 
     # FIPS_INSTALLATION is only applicable for system installaton
     die "FIPS_INSTALLATION is require to run this script for installation" if get_var("!BOOT_HDD_IMAGE");
-    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!"          if get_var("!FIPS_ENABLED");
+    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!" if get_var("!FIPS_ENABLED");
 
     # If FIPS_ENV_MODE, then set ENV for some FIPS modules. It is a
     # workaround when fips=1 kernel cmdline is not working.

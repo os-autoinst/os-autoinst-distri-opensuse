@@ -28,7 +28,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $sample_dir   = '/tmp/ima_tests';
+    my $sample_dir = '/tmp/ima_tests';
     my $sample_file1 = "$sample_dir/foo";
     my $sample_file2 = "$sample_dir/foodir/foo2";
 
@@ -55,7 +55,7 @@ sub run {
 
     # Test -f (--sigfile) option
     assert_script_run "evmctl -a sha256 ima_sign -p$mok_pass -k $mok_priv -f $sample_file1";
-    assert_script_run("test -e $sample_file1.sig",                    fail_message => 'Signature file (.sig) has not been created');
+    assert_script_run("test -e $sample_file1.sig", fail_message => 'Signature file (.sig) has not been created');
     assert_script_run("evmctl ima_verify -k $cert_der $sample_file1", fail_message => 'Signature verification failed');
 }
 

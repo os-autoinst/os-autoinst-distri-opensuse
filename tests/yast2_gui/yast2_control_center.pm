@@ -71,9 +71,9 @@ sub start_online_update {
     # which are removed unless explicitly selected to be kept
     if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
         select_console 'root-console';
-        my $version     = lc get_required_var('VERSION');
+        my $version = lc get_required_var('VERSION');
         my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
-        my $repo_arch   = get_required_var('ARCH');
+        my $repo_arch = get_required_var('ARCH');
         $repo_arch = 'ppc' if ($repo_arch =~ /ppc64|ppc64le/);
         if ($repo_arch =~ /i586|i686|x86_64/) {
             zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");

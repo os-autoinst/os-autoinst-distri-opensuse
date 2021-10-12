@@ -23,9 +23,9 @@ use registration;
 use version_utils 'is_sle';
 
 sub run {
-    my $self          = shift;
-    my $mpi           = $self->get_mpi();
-    my $mpi_c         = 'simple_mpi.c';
+    my $self = shift;
+    my $mpi = $self->get_mpi();
+    my $mpi_c = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
 

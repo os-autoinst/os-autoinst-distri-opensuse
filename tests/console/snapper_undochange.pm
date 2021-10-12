@@ -29,7 +29,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    my $snapfile     = '/etc/snapfile';
+    my $snapfile = '/etc/snapfile';
     my @snapper_runs = 'snapper';
     push @snapper_runs, 'snapper --no-dbus' if get_var('SNAPPER_NODBUS');
 

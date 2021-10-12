@@ -33,22 +33,22 @@ sub run {
         assert_and_click 'plasma_logout_btn';    # Click on the logout button
     }
     elsif (match_has_tag('desktop_mainmenu-kickoff')) {
-        assert_and_click 'plasma_kickoff_leave';     # Switch to the leave section
-        assert_and_click 'plasma_kickoff_logout';    # Click on the logout button
+        assert_and_click 'plasma_kickoff_leave';    # Switch to the leave section
+        assert_and_click 'plasma_kickoff_logout';   # Click on the logout button
     }
 
-    assert_and_click 'plasma_overlay_confirm';       # Confirm logout
+    assert_and_click 'plasma_overlay_confirm';      # Confirm logout
 
     # Now we're in sddm
-    assert_and_click 'sddm_desktopsession';            # Open session selection box
-    assert_and_click 'sddm_session_plasma_wayland';    # Select Plasma 5 (Wayland) session
+    assert_and_click 'sddm_desktopsession';         # Open session selection box
+    assert_and_click 'sddm_session_plasma_wayland'; # Select Plasma 5 (Wayland) session
 
     handle_login;
 
     # We're now in a wayland session, which is in a different VT
     x11_start_program('xterm');
     my $tty = script_output('echo $XDG_VTNR');
-    send_key("alt-f4");                                # close xterm
+    send_key("alt-f4");                             # close xterm
 
     console('x11')->set_tty(int($tty));
 }

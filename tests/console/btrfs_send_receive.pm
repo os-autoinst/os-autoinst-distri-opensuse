@@ -25,7 +25,7 @@ use warnings;
 use testapi;
 use utils;
 
-my $src  = "/root/sr";
+my $src = "/root/sr";
 my $dest = "/mnt/sr";
 
 sub generate_data {

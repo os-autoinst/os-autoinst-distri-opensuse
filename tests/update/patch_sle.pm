@@ -27,7 +27,7 @@ sub patching_sle {
     my ($self) = @_;
 
     # Save VIDEOMODE and SCC_REGISTER vars
-    my $orig_videomode    = get_var('VIDEOMODE',    '');
+    my $orig_videomode = get_var('VIDEOMODE', '');
     my $orig_scc_register = get_var('SCC_REGISTER', '');
 
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
@@ -38,7 +38,7 @@ sub patching_sle {
     # Skip registration here since we use autoyast profile to register origin system on zVM
     if (!get_var('UPGRADE_ON_ZVM')) {
         # Set vars to make yast_scc_registration work in text mode
-        set_var("VIDEOMODE",    'text');
+        set_var("VIDEOMODE", 'text');
         set_var("SCC_REGISTER", 'console');
         # remember we perform registration on pre-created HDD images
         if (is_sle('12-SP2+')) {
@@ -109,7 +109,7 @@ sub patching_sle {
     # For example, in case of SLE 12 offline migration tests with smt pattern
     # or modules, we need set SCC_REGISTER=installation at test suite settings
     # to trigger scc registration during offline migration
-    set_var("VIDEOMODE",    $orig_videomode);
+    set_var("VIDEOMODE", $orig_videomode);
     set_var("SCC_REGISTER", $orig_scc_register);
 
     # Record the installed rpm list
@@ -182,7 +182,7 @@ sub sle_register {
             # Needed to workaround a bug with NCC and LTSS module in some cases, see bsc#1158950
             elsif (get_var('SLE11_USE_SCC')) {
                 my $reg_code = get_required_var('NCC_REGCODE');
-                my $reg_mail = get_var('NCC_MAIL');               # email address is not mandatory for SCC
+                my $reg_mail = get_var('NCC_MAIL');    # email address is not mandatory for SCC
                 if (get_var('NCC_REGCODE_SDK')) {
                     my $reg_code_sdk = get_required_var('NCC_REGCODE_SDK');
                     zypper_call("ar http://schnell.suse.de/SLE11/SLE-11-SP4-SDK-GM/s390x/DVD1/ sdk");

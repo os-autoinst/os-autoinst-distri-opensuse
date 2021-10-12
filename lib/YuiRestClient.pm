@@ -15,8 +15,8 @@ use warnings;
 
 use constant {
     API_VERSION => 'v1',
-    TIMEOUT     => 30,
-    INTERVAL    => 1
+    TIMEOUT => 30,
+    INTERVAL => 1
 };
 
 use testapi;
@@ -45,7 +45,7 @@ sub get_host {
 }
 
 sub init_logger {
-    my $path_to_log   = 'ulogs/yui-log.txt';
+    my $path_to_log = 'ulogs/yui-log.txt';
     my $yui_log_level = get_var('YUI_LOG_LEVEL', 'debug');
     mkdir('ulogs') if (!-d 'ulogs');
     YuiRestClient::Logger->get_instance({format => \&bmwqemu::log_format_callback, path => $path_to_log, level => $yui_log_level});
@@ -79,19 +79,19 @@ sub set_timeout {
 }
 
 sub init_app {
-    my (%args)       = @_;
-    my $timeout      = $args{timeout}  || TIMEOUT;
-    my $interval     = $args{interval} || INTERVAL;
+    my (%args) = @_;
+    my $timeout = $args{timeout} || TIMEOUT;
+    my $interval = $args{interval} || INTERVAL;
     my $installation = $args{installation};
     $port = init_port();
     $host = init_host($installation);
 
     $app = YuiRestClient::App->new({
-            port        => $port,
-            host        => $host,
+            port => $port,
+            host => $host,
             api_version => API_VERSION,
-            timeout     => $timeout,
-            interval    => $interval});
+            timeout => $timeout,
+            interval => $interval});
 }
 
 sub init_port {
@@ -104,9 +104,9 @@ sub init_port {
 }
 
 sub init_host {
-    my ($installation)             = @_;
-    my $yuiport                    = get_port();
-    my $ip_regexp                  = qr/(?<ip>(\d+\.){3}\d+)/i;
+    my ($installation) = @_;
+    my $yuiport = get_port();
+    my $ip_regexp = qr/(?<ip>(\d+\.){3}\d+)/i;
     my $get_ip_from_console_output = sub {
         YuiRestClient::Wait::wait_until(object => sub {
                 my $ip = script_output('ip -o -4 addr list | sed -n 2p | awk \'{print $4}\' | cut -d/ -f1', proceed_on_failure => 1);
@@ -125,9 +125,9 @@ sub init_host {
         select_console('installation') if $installation;
     } elsif (is_hyperv) {
         my $boot_timeout = 500;
-        my $svirt        = select_console('svirt');
-        my $name         = $svirt->name;
-        my $cmd          = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
+        my $svirt = select_console('svirt');
+        my $name = $svirt->name;
+        my $cmd = "powershell -Command \"Get-VM -Name $name | Select -ExpandProperty Networkadapters | Select IPAddresses\"";
         $host = YuiRestClient::Wait::wait_until(object => sub {
                 my $ip = $svirt->get_cmd_output($cmd);
                 return $+{ip} if ($ip =~ $ip_regexp);

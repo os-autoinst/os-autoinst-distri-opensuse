@@ -30,9 +30,9 @@ use version_utils;
 use x11utils;
 use main_common 'opensuse_welcome_applicable';
 
-our @EXPORT      = qw($newpwd $newUser $pwd4newUser);
-our $newpwd      = "suseTEST-987";
-our $newUser     = "test";
+our @EXPORT = qw($newpwd $newUser $pwd4newUser);
+our $newpwd = "suseTEST-987";
+our $newUser = "test";
 our $pwd4newUser = "helloWORLD-0";
 
 sub lock_screen {
@@ -46,7 +46,7 @@ sub lock_screen {
 sub logout_and_login {
     my ($login_user, $login_pw) = @_;
     my $test_user = $login_user // $username;
-    my $test_pw   = $login_pw   // $newpwd;
+    my $test_pw = $login_pw // $newpwd;
     handle_logout;
     handle_login($test_user, 0, $test_pw);
 }

@@ -33,7 +33,7 @@ use utils;
 use version_utils 'is_sle';
 
 our $virt_host_bridge = 'br0';
-our $based_guest_dir  = 'tmp';
+our $based_guest_dir = 'tmp';
 sub run_test {
     my ($self) = @_;
 
@@ -60,14 +60,14 @@ sub run_test {
         ensure_online $guest, skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
-            $affecter  = "--persistent";
+            $affecter = "--persistent";
             $exclusive = "--live --persistent";
         } else {
-            $affecter  = "";
+            $affecter = "";
             $exclusive = "--current";
         }
 
-        $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $mac = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system

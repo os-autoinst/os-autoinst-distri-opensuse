@@ -30,7 +30,7 @@ sub run {
     }
 
     # ensure that ntpd is neither installed nor enabled nor active
-    systemctl 'is-active ntpd',  expect_false => 1;
+    systemctl 'is-active ntpd', expect_false => 1;
     systemctl 'is-enabled ntpd', expect_false => 1;
     if (script_run('rpm -q ntp') == 0) {
         # ntp should not be installed by default as we are using chrony
@@ -38,7 +38,7 @@ sub run {
     }
 
     # ensure that systemd-timesyncd is neither enabled nor active
-    systemctl 'is-active systemd-timesyncd',  expect_false => 1;
+    systemctl 'is-active systemd-timesyncd', expect_false => 1;
     systemctl 'is-enabled systemd-timesyncd', expect_false => 1;
 
     # ensure that chronyd is running

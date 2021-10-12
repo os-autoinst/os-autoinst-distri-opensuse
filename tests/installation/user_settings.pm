@@ -39,7 +39,7 @@ sub run {
     if (get_var('ASSERT_BSC1122804')) {
         # retry if not typed correctly
         my $max_tries = 4;
-        my $retry     = 0;
+        my $retry = 0;
         do {
             enter_userinfo(max_interval => utils::VERY_SLOW_TYPING_SPEED);
             assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);

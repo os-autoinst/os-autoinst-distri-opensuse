@@ -19,9 +19,9 @@ use utils;
 use registration 'add_suseconnect_product';
 
 sub run {
-    my $self            = shift;
+    my $self = shift;
     my $suseconnect_str = ' -e testing@suse.com -r ';
-    my $version         = get_required_var('VERSION');
+    my $version = get_required_var('VERSION');
     ## replace SP-X with 12.X as this form is expected by SUSEConnect
     $version =~ s/-SP/./;
     $self->select_serial_terminal;
@@ -29,8 +29,8 @@ sub run {
     script_run('ls -la /etc/products.d/');
     my $out = script_output('SUSEConnect -s', 30, proceed_on_failure => 1);
     assert_script_run('SUSEConnect --cleanup', 200) if $out =~ /Error: Invalid system credentials/s;
-    add_suseconnect_product('SLES',                     $version, get_required_var('ARCH'), $suseconnect_str . get_required_var('SCC_REGCODE'));
-    add_suseconnect_product('sle-module-hpc',           '12');
+    add_suseconnect_product('SLES', $version, get_required_var('ARCH'), $suseconnect_str . get_required_var('SCC_REGCODE'));
+    add_suseconnect_product('sle-module-hpc', '12');
     add_suseconnect_product('sle-module-web-scripting', '12');
     zypper_call('in switch_sles_sle-hpc');
     assert_script_run('switch_to_sle-hpc' . $suseconnect_str . get_required_var('SCC_REGCODE_HPC_PRODUCT'), 600);

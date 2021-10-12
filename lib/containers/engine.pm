@@ -18,8 +18,8 @@ use Test::Assert 'assert_equals';
 use containers::utils qw(registry_url);
 use utils qw(systemctl file_content_replace);
 use overload
-  '""'     => sub { return shift->runtime },
-  bool     => sub { return 1 },
+  '""' => sub { return shift->runtime },
+  bool => sub { return 1 },
   fallback => sub { return 1 };
 
 
@@ -60,12 +60,12 @@ sub create_container {
     my ($self) = shift;
     my %args = (
         image => '',
-        name  => '',
-        cmd   => '',
+        name => '',
+        cmd => '',
         @_
     );
     die('Must provide an image') unless ($args{image});
-    die('Must provide an name')  unless ($args{name});
+    die('Must provide an name') unless ($args{name});
     $self->_engine_assert_script_run("container create --name $args{name} $args{image} $args{cmd}", 300);
 }
 
@@ -127,13 +127,13 @@ when it exits or when the daemon exits
 sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
-    my $mode           = $args{daemon}         ? '-d'                 : '-i';
-    my $remote         = $args{cmd}            ? "$args{cmd}"         : '';
-    my $name           = $args{name}           ? "--name $args{name}" : '';
-    my $keep_container = $args{keep_container} ? ''                   : '--rm';
-    my $params         = sprintf qq(%s %s %s),     $keep_container, $mode,       $name;
-    my $cmd            = sprintf qq(run %s %s %s), $params,         $image_name, $remote;
-    my $ret            = $self->_engine_script_run($cmd, timeout => $args{timeout});
+    my $mode = $args{daemon} ? '-d' : '-i';
+    my $remote = $args{cmd} ? "$args{cmd}" : '';
+    my $name = $args{name} ? "--name $args{name}" : '';
+    my $keep_container = $args{keep_container} ? '' : '--rm';
+    my $params = sprintf qq(%s %s %s), $keep_container, $mode, $name;
+    my $cmd = sprintf qq(run %s %s %s), $params, $image_name, $remote;
+    my $ret = $self->_engine_script_run($cmd, timeout => $args{timeout});
     record_info "cmd_info", "Container executes:\noptions $params $image_name $remote";
     return $ret;
 }
@@ -196,9 +196,9 @@ Returns an array ref with the names of the images.
 
 =cut
 sub get_images_by_repo_name {
-    my ($self)      = @_;
+    my ($self) = @_;
     my $repo_images = $self->_engine_script_output("images --format '{{.Repository}}'", timeout => 120);
-    my @images      = split /[\n\t ]/, $repo_images;
+    my @images = split /[\n\t ]/, $repo_images;
     return \@images;
 }
 
@@ -211,7 +211,7 @@ Otherwise it prints the output of info.
 sub info {
     my ($self, %args) = shift;
     my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
-    my $expected = $args{value}    ? qq( | grep $args{value})            : '';
+    my $expected = $args{value} ? qq( | grep $args{value}) : '';
     $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));
 }
 
@@ -279,11 +279,11 @@ sub cleanup_system_host {
     my ($self, $assert) = @_;
     $assert //= 1;
     $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
-    $self->_engine_assert_script_run("system prune -a -f",                           180);
+    $self->_engine_assert_script_run("system prune -a -f", 180);
 
     if ($assert) {
         assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-        assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
+        assert_equals(0, scalar @{$self->enum_images()}, "images have not been removed");
     }
 }
 
@@ -339,7 +339,7 @@ sub cleanup_system_host {
 
     if ($assert) {
         assert_equals(0, scalar @{$self->enum_containers()}, "containers have not been removed");
-        assert_equals(0, scalar @{$self->enum_images()},     "images have not been removed");
+        assert_equals(0, scalar @{$self->enum_images()}, "images have not been removed");
     }
 }
 
@@ -375,12 +375,12 @@ sub create_container {
     my ($self) = shift;
     my %args = (
         image => '',
-        name  => '',
-        cmd   => '',
+        name => '',
+        cmd => '',
         @_
     );
     die('Must provide an image') unless ($args{image});
-    die('Must provide an name')  unless ($args{name});
+    die('Must provide an name') unless ($args{name});
     my $container = $self->_engine_script_output("from $args{image} 2>/dev/null");
     record_info 'Container', qq[Testing:\nContainer "$container" based on image "$args{image}"];
 }

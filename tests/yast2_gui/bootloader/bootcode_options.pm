@@ -62,7 +62,7 @@ sub verify_boot_code {    # Check if boot code is installed, defaults to GRUB on
 
 sub run {
     $bootloader = $testapi::distri->get_bootloader();
-    $test_data  = get_test_suite_data();
+    $test_data = get_test_suite_data();
     start_root_shell_in_xterm();
 
     # Check that UI is initialized with expected default parameters

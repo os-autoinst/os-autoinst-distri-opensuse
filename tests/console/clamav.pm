@@ -28,8 +28,8 @@ use utils;
 use version_utils qw(is_jeos is_opensuse is_sle);
 
 sub scan_and_parse {
-    my $re       = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
-    my $cmd      = shift;
+    my $re = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
+    my $cmd = shift;
     my $log_file = "$cmd.log";
 
     script_run "$cmd -i --log=$log_file eicar_test_files", 300;

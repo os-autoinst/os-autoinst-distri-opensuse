@@ -18,7 +18,7 @@ use testapi;
 use utils;
 
 my $password = $testapi::password;
-my $email    = "you\@example.com";
+my $email = "you\@example.com";
 
 sub restart_yast2_camgm {
     assert_and_click("xterm-selected");

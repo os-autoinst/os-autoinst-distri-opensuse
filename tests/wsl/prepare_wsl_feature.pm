@@ -27,27 +27,27 @@ my $powershell_cmds = {
     enable_developer_mode =>
 q{New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1},
     enable_wsl_feature => {
-        wsl         => q{Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart},
+        wsl => q{Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart},
         vm_platform => q{Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -NoRestart}
     }
 };
 
 
 sub run {
-    my ($self)            = @_;
+    my ($self) = @_;
     my $wsl_appx_filename = (split /\//, get_required_var('ASSET_1'))[-1];
-    my $ms_kernel_link    = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
-    my $certs             = {
+    my $ms_kernel_link = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi';
+    my $certs = {
         opensuse => '/wsl/openSUSE-UEFI-CA-Certificate.crt',
-        sle      => '/wsl/SLES-UEFI-CA-Certificate.crt'
+        sle => '/wsl/SLES-UEFI-CA-Certificate.crt'
     };
-    my $ms_cert_store  = 'cert:\\LocalMachine\\Root';
+    my $ms_cert_store = 'cert:\\LocalMachine\\Root';
     my $cert_file_path = 'C:\Users\Public\image-ca.cert';
 
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
     $self->run_in_powershell(
-        cmd     => "Start-BitsTransfer -Source \\\\10.0.2.4\\qemu\\$wsl_appx_filename -Destination C:\\\\$wsl_appx_filename",
+        cmd => "Start-BitsTransfer -Source \\\\10.0.2.4\\qemu\\$wsl_appx_filename -Destination C:\\\\$wsl_appx_filename",
         timeout => 60
     );
     $self->run_in_powershell(cmd => $powershell_cmds->{enable_developer_mode});
@@ -94,17 +94,17 @@ sub run {
     # enable WSL & VM platform (WSL2) features
     # reboot the SUT
     $self->run_in_powershell(
-        cmd     => $powershell_cmds->{enable_wsl_feature}->{wsl},
+        cmd => $powershell_cmds->{enable_wsl_feature}->{wsl},
         timeout => 120
     );
 
     if (get_var('WSL2')) {
         $self->run_in_powershell(
-            cmd     => $powershell_cmds->{enable_wsl_feature}->{vm_platform},
+            cmd => $powershell_cmds->{enable_wsl_feature}->{vm_platform},
             timeout => 120
         );
         $self->run_in_powershell(
-            cmd     => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
+            cmd => "Invoke-WebRequest -Uri $ms_kernel_link -O C:\\kernel.msi  -UseBasicParsing",
             timeout => 300
         );
     }
@@ -116,7 +116,7 @@ sub run {
     if (get_var('WSL2')) {
         $self->open_powershell_as_admin;
         $self->run_in_powershell(
-            cmd  => q{ii C:\\kernel.msi},
+            cmd => q{ii C:\\kernel.msi},
             code => sub {
                 assert_screen 'wsl2-install-kernel-start';
                 send_key 'ret';
@@ -128,7 +128,7 @@ sub run {
             cmd => q{wsl --set-default-version 2}
         );
         $self->run_in_powershell(
-            cmd  => q{$port.close()},
+            cmd => q{$port.close()},
             code => sub { }
         );
     } else {
@@ -136,7 +136,7 @@ sub run {
     }
 
     $self->run_in_powershell(
-        cmd  => qq{ii C:\\$wsl_appx_filename},
+        cmd => qq{ii C:\\$wsl_appx_filename},
         code => sub {
             assert_and_click 'install-linux-in-wsl', timeout => 120;
         }

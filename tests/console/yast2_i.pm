@@ -37,8 +37,8 @@ sub set_action {
 }
 
 sub run {
-    my $self        = shift;
-    my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDED", "yast2-nfs-client");
+    my $self = shift;
+    my $pkgname = get_var("PACKAGETOINSTALL_RECOMMENDED", "yast2-nfs-client");
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
     my $output;
     my $y2_exit_action;
@@ -164,7 +164,7 @@ sub run {
 
     wait_serial("$module_name-0", 120) || die "'yast2 sw_single' didn't finish";
 
-    $self->clear_and_verify_console;         # clear screen to see that second update does not do any more
+    $self->clear_and_verify_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
     script_run("echo mark yast test", 0);    # avoid zpper needle
     assert_script_run("! rpm -q $pkgname");

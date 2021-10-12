@@ -26,9 +26,9 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2lan_restart_common;
 
 sub run {
-    my $self               = shift;
-    my $static_ip          = "192.168.1.119";
-    my $static_hostname    = 'testhost';
+    my $self = shift;
+    my $static_ip = "192.168.1.119";
+    my $static_hostname = 'testhost';
     my $is_set_in_etc_host = sub { return script_run('grep ' . shift . ' /etc/hosts') == 0 };
 
     select_console 'root-console';
@@ -93,7 +93,7 @@ sub run {
     if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();
 
-        send_key 'alt-s';                                           # move to hostname/DNS tab
+        send_key 'alt-s';    # move to hostname/DNS tab
         send_key_until_needlematch 'loopback-assigned', 'alt-a';    # assign hostname to loopback IP
         close_yast2_lan();
 
@@ -143,7 +143,7 @@ sub run {
 
     open_yast2_lan();
 
-    for (1 .. 2) { send_key "tab" }                              # move to device list
+    for (1 .. 2) { send_key "tab" }    # move to device list
     send_key_until_needlematch 'vlan-selected', 'down', 5, 5;    # move to vlan
     send_key "alt-t";                                            # remove vlan
     assert_screen 'vlan-deleted';

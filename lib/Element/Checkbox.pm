@@ -19,9 +19,9 @@ use testapi;
 sub new {
     my ($class, %args) = @_;
     my $self = bless {
-        checked_needle   => $args{checked_needle},
+        checked_needle => $args{checked_needle},
         unchecked_needle => $args{unchecked_needle},
-        shortcut         => $args{shortcut}
+        shortcut => $args{shortcut}
     }, $class;
 }
 
@@ -104,8 +104,8 @@ Example:
 
 sub set_state {
     my ($self, %args) = @_;
-    my $state          = $args{state};
-    my $shortcut       = $args{shortcut};
+    my $state = $args{state};
+    my $shortcut = $args{shortcut};
     my $checked_needle = $args{checked_needle},
       my $unchecked_needle = $args{unchecked_needle};
 

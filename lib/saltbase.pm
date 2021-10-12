@@ -94,7 +94,7 @@ sub logs_from_salt {
 
     if (check_var('HOSTNAME', 'master')) {
         upload_logs '/var/log/salt/master', log_name => 'salt-master.txt';
-        upload_logs '/var/log/salt/event',  log_name => 'salt-event.txt';
+        upload_logs '/var/log/salt/event', log_name => 'salt-event.txt';
     }
 
     upload_logs '/var/log/salt/minion', log_name => 'salt-minion.txt';

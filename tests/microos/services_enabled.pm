@@ -19,11 +19,11 @@ use testapi;
 
 my %services_for = (
     default => [qw(sshd issue-generator issue-add-ssh-keys transactional-update.timer)],
-    cloud   => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
+    cloud => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
     cluster => [qw(chronyd)],
-    admin   => [qw(docker kubelet etcd)],
-    worker  => [qw(salt-minion systemd-timesyncd)],
-    plain   => undef
+    admin => [qw(docker kubelet etcd)],
+    worker => [qw(salt-minion systemd-timesyncd)],
+    plain => undef
 );
 
 sub check_services {
@@ -58,7 +58,7 @@ sub run {
 
         %services = map_services @{$services_for{default}};
         if ($role) {
-            %services = (%services, map_services @{$services_for{$role}})   if $services_for{$role};
+            %services = (%services, map_services @{$services_for{$role}}) if $services_for{$role};
             %services = (%services, map_services @{$services_for{cluster}}) if $role =~ /admin|worker/;
         }
 

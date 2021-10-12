@@ -35,7 +35,7 @@ use utils;
 sub run {
     my ($self) = @_;
 
-    my $aa_tmp_prof   = "/tmp/apparmor.d";
+    my $aa_tmp_prof = "/tmp/apparmor.d";
     my $test_binfiles = "/usr/bin/pam*";
 
     $self->aa_tmp_prof_prepare($aa_tmp_prof, 0);
@@ -64,7 +64,7 @@ sub run {
         [
             {
                 prompt => qr/Inactive local profile/m,
-                key    => 'c',
+                key => 'c',
             },
         ],
         60

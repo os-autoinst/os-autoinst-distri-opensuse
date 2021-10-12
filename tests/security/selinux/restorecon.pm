@@ -25,9 +25,9 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)         = shift;
-    my $test_dir       = "/testdir";
-    my $test_file      = "testfile";
+    my ($self) = shift;
+    my $test_dir = "/testdir";
+    my $test_file = "testfile";
     my $fcontext_type1 = "etc_t";
     my $fcontext_type2 = "bin_t";
 
@@ -37,9 +37,9 @@ sub run {
     $self->create_test_file("$test_dir", "$test_file");
 
     # label system: testing "-R / -P / -V"
-    script_run("restorecon -Rp /",  600);
+    script_run("restorecon -Rp /", 600);
     script_run("restorecon -Rp /*", 600);
-    script_run("restorecon -Rv /",  600);
+    script_run("restorecon -Rv /", 600);
     script_run("restorecon -Rv /*", 600);
 
     # clean up in case: remove all local customizations
@@ -52,7 +52,7 @@ sub run {
     # run "# restorecon -R" to label test dir/file
     assert_script_run("restorecon -R $test_dir");
     assert_script_run("restorecon -R $test_dir/*");
-    validate_script_output("ls -Zd $test_dir",               sub { m/$fcontext_type1/ });
+    validate_script_output("ls -Zd $test_dir", sub { m/$fcontext_type1/ });
     validate_script_output("ls -Z ${test_dir}/${test_file}", sub { m/$fcontext_type2/ });
 
     # clean up: remove all local customizations

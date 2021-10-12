@@ -45,8 +45,8 @@ sub run {
     # For poo#70453, to filter network link from mixed info of the output of wicked cmd
     # we need substr output string from serial. Ex: 'lo0 eth0 END' -> 'eth0'
     ($iflist) =~ s/(.*lo\s)(.*)(\sEND.*)/$2/s;
-    $iflist   =~ s/^\s*//g;
-    $iflist   =~ s/\s*$//g;
+    $iflist =~ s/^\s*//g;
+    $iflist =~ s/\s*$//g;
 
     my $up = 1;
     for my $if (split(/\s+/, $iflist)) {

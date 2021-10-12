@@ -22,7 +22,7 @@ use hacluster;
 sub run {
     my $cluster_name = get_cluster_name;
     my $node_to_join = get_node_to_join;
-    my $hostname     = get_hostname;
+    my $hostname = get_hostname;
 
     # Wait until cluster is initialized
     diag 'Wait until cluster is initialized...';

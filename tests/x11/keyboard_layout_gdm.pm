@@ -27,7 +27,7 @@ sub reboot {
 }
 
 sub run {
-    my $self             = shift;
+    my $self = shift;
     my $kbdlayout_script = "changekbd.sh";
 
     # login

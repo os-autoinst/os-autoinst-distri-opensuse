@@ -26,8 +26,8 @@ use utils;
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
-    my $self        = shift;
-    my $mail_box    = 'nooops_test3@aim.com';
+    my $self = shift;
+    my $mail_box = 'nooops_test3@aim.com';
     my $mail_passwd = 'hkiworexcmmeqmzt';
 
     mouse_hide(1);

@@ -22,10 +22,10 @@ use File::Basename;
 
 sub full_run {
     my $time_out //= 6;
-    my $list_path   = "/root/qaset";
+    my $list_path = "/root/qaset";
     my $remote_list = get_var("FULL_LIST");
-    my $hostname    = script_output "hostname";
-    my $runlist     = get_var("RUN_LIST");
+    my $hostname = script_output "hostname";
+    my $runlist = get_var("RUN_LIST");
     #setup run list
     assert_script_run("wget -N -P $list_path $remote_list 2>&1");
     assert_script_run("cp $list_path/$runlist $list_path/list");

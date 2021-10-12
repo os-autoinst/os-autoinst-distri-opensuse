@@ -23,7 +23,7 @@ use YaST::Module;
 sub run {
     select_console 'root-console';
     my $network_interface = script_output('ls /sys/class/net | grep ^e');
-    my $test_data         = get_test_suite_data();
+    my $test_data = get_test_suite_data();
 
     YaST::Module::run_actions {
         my $network_settings = $testapi::distri->get_network_settings();

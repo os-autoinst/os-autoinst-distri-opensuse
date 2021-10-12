@@ -36,11 +36,11 @@ use utils;
 sub run {
     my ($self) = shift;
 
-    my $audit_log     = $apparmortest::audit_log;
-    my $mail_err_log  = $apparmortest::mail_err_log;
+    my $audit_log = $apparmortest::audit_log;
+    my $mail_err_log = $apparmortest::mail_err_log;
     my $mail_warn_log = $apparmortest::mail_warn_log;
     my $mail_info_log = $apparmortest::mail_info_log;
-    my $profile_name  = "";
+    my $profile_name = "";
     my $named_profile = "";
 
     # Start apparmor
@@ -54,7 +54,7 @@ sub run {
     validate_script_output("aa-enforce /etc/apparmor.d/$profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
 
     # Recalculate profile name in case
-    $profile_name  = "usr.lib.dovecot.imap";
+    $profile_name = "usr.lib.dovecot.imap";
     $named_profile = $self->get_named_profile($profile_name);
     # Check if $profile_name is in "enforce" mode
     $self->aa_status_stdout_check($named_profile, "enforce");

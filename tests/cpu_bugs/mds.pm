@@ -25,17 +25,17 @@ use Mitigation;
 
 our %mitigations_list =
   (
-    name                   => "mds",
-    CPUID                  => hex '20000000',
-    IA32_ARCH_CAPABILITIES => 32,               #bit5 --MDS_NO
-    parameter              => 'mds',
-    cpuflags               => ['md_clear'],
-    sysfs_name             => "mds",
-    sysfs                  => {
-        full       => "Mitigation: Clear CPU buffers; SMT vulnerable",
+    name => "mds",
+    CPUID => hex '20000000',
+    IA32_ARCH_CAPABILITIES => 32,    #bit5 --MDS_NO
+    parameter => 'mds',
+    cpuflags => ['md_clear'],
+    sysfs_name => "mds",
+    sysfs => {
+        full => "Mitigation: Clear CPU buffers; SMT vulnerable",
         full_nosmt => "Mitigation: Clear CPU buffers; SMT disabled",
-        off        => "Vulnerable; SMT vulnerable",
-        default    => "Mitigation: Clear CPU buffers; SMT vulnerable",
+        off => "Vulnerable; SMT vulnerable",
+        default => "Mitigation: Clear CPU buffers; SMT vulnerable",
     },
     cmdline => [
         "full",
@@ -45,15 +45,15 @@ our %mitigations_list =
   );
 sub smt_status_qemu {
     my $self = shift;
-    $mitigations_list{sysfs}->{full}       =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mitigations_list{sysfs}->{full} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mitigations_list{sysfs}->{full_nosmt} =~ s/SMT disabled/SMT Host state unknown/ig;
-    $mitigations_list{sysfs}->{default}    =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mitigations_list{sysfs}->{default} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mitigations_list{sysfs}->{off} = 'Vulnerable; SMT Host state unknown';
     if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
-        $mitigations_list{sysfs}->{default}    = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
-        $mitigations_list{sysfs}->{full}       = $mitigations_list{sysfs}->{default};
+        $mitigations_list{sysfs}->{default} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+        $mitigations_list{sysfs}->{full} = $mitigations_list{sysfs}->{default};
         $mitigations_list{sysfs}->{full_nosmt} = $mitigations_list{sysfs}->{default};
-        $mitigations_list{sysfs}->{off}        = $mitigations_list{sysfs}->{default};
+        $mitigations_list{sysfs}->{off} = $mitigations_list{sysfs}->{default};
     }
 
 }

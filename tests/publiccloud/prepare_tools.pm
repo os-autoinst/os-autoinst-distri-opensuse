@@ -32,7 +32,7 @@ sub create_script_file {
 sub install_in_venv {
     my ($binary, %args) = @_;
     die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
-    die("Missing binary name")                                         unless ($binary);
+    die("Missing binary name") unless ($binary);
     my $install_timeout = 15 * 60;
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 

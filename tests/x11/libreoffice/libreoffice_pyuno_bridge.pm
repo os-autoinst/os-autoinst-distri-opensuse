@@ -17,14 +17,14 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self     = shift;
-    my $mail_ssl = '1';     #Set it as 1, if you want enable SSL
+    my $self = shift;
+    my $mail_ssl = '1';    #Set it as 1, if you want enable SSL
 
-    my $config        = $self->getconfig_emailaccount;
-    my $mailbox       = $config->{internal_account_A}->{mailbox};
-    my $mail_server   = $config->{internal_account_A}->{sendServer};
-    my $mail_user     = $config->{internal_account_A}->{user};
-    my $mail_passwd   = $config->{internal_account_A}->{passwd};
+    my $config = $self->getconfig_emailaccount;
+    my $mailbox = $config->{internal_account_A}->{mailbox};
+    my $mail_server = $config->{internal_account_A}->{sendServer};
+    my $mail_user = $config->{internal_account_A}->{user};
+    my $mail_passwd = $config->{internal_account_A}->{passwd};
     my $mail_sendport = $config->{internal_account_A}->{sendport};
 
     x11_start_program('libreoffice --writer', target_match => 'test-ooffice-1');

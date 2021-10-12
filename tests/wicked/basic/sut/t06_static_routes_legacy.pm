@@ -22,7 +22,7 @@ use testapi;
 sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Set up static routes from legacy ifcfg files');
-    $self->get_from_data('wicked/static_address/ifcfg-eth0',   '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->get_from_data('wicked/static_address/ifroute-eth0', '/etc/sysconfig/network/ifroute-' . $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface());
     $self->assert_wicked_state(ping_ip => $self->get_remote_ip(type => 'host'), iface => $ctx->iface());

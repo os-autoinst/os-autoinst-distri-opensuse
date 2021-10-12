@@ -33,7 +33,7 @@ sub run {
     # Save multipath wwids file as we may need it to blacklist iSCSI devices later
     my $mpconf = '/etc/multipath.conf';
     my $mpwwid = '/etc/multipath/wwids';
-    my $mptmp  = '/tmp/multipath-wwids';
+    my $mptmp = '/tmp/multipath-wwids';
     script_run "cp $mpwwid $mptmp.orig";
 
     # Installation of iSCSI client package(s) if needed
@@ -53,7 +53,7 @@ sub run {
     wait_still_screen 3;
 
     # Go to Discovered Targets screen can take time
-    assert_screen 'iscsi-client-discovered-targets',     120;
+    assert_screen 'iscsi-client-discovered-targets', 120;
     send_key_until_needlematch 'iscsi-client-discovery', 'alt-d';
     assert_screen 'iscsi-client-discovery';
     send_key 'alt-i';    # Ip address
@@ -67,7 +67,7 @@ sub run {
     assert_screen 'iscsi-client-target-list';
     send_key 'alt-e';    # connEct
     assert_screen 'iscsi-client-target-startup';
-    send_key_until_needlematch 'iscsi-client-target-startup-manual-selected',    'alt-s';
+    send_key_until_needlematch 'iscsi-client-target-startup-manual-selected', 'alt-s';
     send_key_until_needlematch 'iscsi-client-target-startup-automatic-selected', 'down';
     assert_screen 'iscsi-client-target-startup-automatic-selected';
     send_key 'ret';

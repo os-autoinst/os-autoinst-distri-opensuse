@@ -25,18 +25,18 @@ sub run {
     return 1 if is_not_maintenance_update('samba');
 
     my $cluster_name = get_cluster_name;
-    my $vip_ip       = '10.0.2.20';
-    my $ctdb_folder  = '/srv/fs_cluster_md/ctdb';
+    my $vip_ip = '10.0.2.20';
+    my $ctdb_folder = '/srv/fs_cluster_md/ctdb';
     my $ctdb_timeout = bmwqemu::scale_timeout(60);
 
     # CTDB configuration must be done only in cluster nodes
     if (check_var('CTDB_TEST_ROLE', 'server')) {
-        my $ctdb_cfg    = '/etc/samba/smb.conf';
+        my $ctdb_cfg = '/etc/samba/smb.conf';
         my $ctdb_socket = '/var/run/ctdb/ctdbd.socket';
-        my $ctdb_rsc    = 'ctdb';
-        my $nmb_rsc     = 'nmb';
-        my $smb_rsc     = 'smb';
-        my $ip_rsc      = 'vip';
+        my $ctdb_rsc = 'ctdb';
+        my $nmb_rsc = 'nmb';
+        my $smb_rsc = 'smb';
+        my $ip_rsc = 'vip';
         my @node_list;
 
         foreach my $node (1 .. get_node_number) {

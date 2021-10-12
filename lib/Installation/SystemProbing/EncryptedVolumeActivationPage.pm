@@ -25,9 +25,9 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{lbl_vol_activation} = $self->{app}->label({label => 'Encrypted Volume Activation'});
-    $self->{tb_password}        = $self->{app}->textbox({id => 'password'});
-    $self->{btn_ok}             = $self->{app}->button({id => 'accept'});
-    $self->{btn_cancel}         = $self->{app}->button({id => 'cancel'});
+    $self->{tb_password} = $self->{app}->textbox({id => 'password'});
+    $self->{btn_ok} = $self->{app}->button({id => 'accept'});
+    $self->{btn_cancel} = $self->{app}->button({id => 'cancel'});
     return $self;
 }
 

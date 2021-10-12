@@ -20,10 +20,10 @@ use utils 'zypper_call';
 use hacluster;
 
 sub run {
-    my $cts_path     = '/usr/share/pacemaker/tests';
+    my $cts_path = '/usr/share/pacemaker/tests';
     my @tests_to_run = qw(cts-cli cts-exec cts-scheduler cts-fencing);
-    my $log          = '/tmp/cts_regression.log';
-    my $timeout      = 600;
+    my $log = '/tmp/cts_regression.log';
+    my $timeout = 600;
 
     # Some of the tests take longer to complete in aarch64.
     # This increases the timeout in that ARCH

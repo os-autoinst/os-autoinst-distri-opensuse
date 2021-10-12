@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     my $base_url = 'https://download.opensuse.org/repositories/systemsmanagement:/yomi/images/iso/';
-    my $iso      = 'openSUSE-Tumbleweed-Yomi.x86_64-*.iso';
+    my $iso = 'openSUSE-Tumbleweed-Yomi.x86_64-*.iso';
     assert_script_run "wget -r -l1 -np -nd '$base_url' -A '$iso'", timeout => 360;
 }
 

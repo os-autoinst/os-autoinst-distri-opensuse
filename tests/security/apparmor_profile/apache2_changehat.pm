@@ -62,16 +62,16 @@ use registration qw(add_suseconnect_product register_product);
 sub run {
     my ($self) = shift;
 
-    my $audit_log    = $apparmortest::audit_log;
-    my $prof_dir     = $apparmortest::prof_dir;
+    my $audit_log = $apparmortest::audit_log;
+    my $prof_dir = $apparmortest::prof_dir;
     my $adminer_file = $apparmortest::adminer_file;
-    my $adminer_dir  = $apparmortest::adminer_dir;
-    my $pw           = $apparmortest::pw;
+    my $adminer_dir = $apparmortest::adminer_dir;
+    my $pw = $apparmortest::pw;
 
-    my $apache2_err_log    = "/var/log/apache2/error_log";
+    my $apache2_err_log = "/var/log/apache2/error_log";
     my $apparmor_conf_file = "/etc/apache2/conf.d/apparmor.conf";
-    my $profile_name       = "usr.sbin.httpd-prefork";
-    my $named_profile      = "";
+    my $profile_name = "usr.sbin.httpd-prefork";
+    my $named_profile = "";
 
     # Disable apparmor in case
     systemctl("stop apparmor");
@@ -86,11 +86,11 @@ sub run {
         if ($version == '15') {
             $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
         }
-        my $arch    = get_required_var('ARCH');
-        my $params  = " ";
+        my $arch = get_required_var('ARCH');
+        my $params = " ";
         my $timeout = 180;
         add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
-        add_suseconnect_product("sle-module-legacy",        "$version", "$arch", "$params", "$timeout");
+        add_suseconnect_product("sle-module-legacy", "$version", "$arch", "$params", "$timeout");
     }
     zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
 

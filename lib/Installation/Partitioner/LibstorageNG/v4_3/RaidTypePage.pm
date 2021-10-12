@@ -29,17 +29,17 @@ sub new {
 sub init {
     my $self = shift;
     $self->SUPER::init();
-    $self->{btn_add}     = $self->{app}->button({id => 'add'});
+    $self->{btn_add} = $self->{app}->button({id => 'add'});
     $self->{btn_add_all} = $self->{app}->button({id => 'add_all'});
 
-    $self->{rb_raid0}  = $self->{app}->radiobutton({id => 'raid0'});
-    $self->{rb_raid1}  = $self->{app}->radiobutton({id => 'raid1'});
-    $self->{rb_raid5}  = $self->{app}->radiobutton({id => 'raid5'});
-    $self->{rb_raid6}  = $self->{app}->radiobutton({id => 'raid6'});
+    $self->{rb_raid0} = $self->{app}->radiobutton({id => 'raid0'});
+    $self->{rb_raid1} = $self->{app}->radiobutton({id => 'raid1'});
+    $self->{rb_raid5} = $self->{app}->radiobutton({id => 'raid5'});
+    $self->{rb_raid6} = $self->{app}->radiobutton({id => 'raid6'});
     $self->{rb_raid10} = $self->{app}->radiobutton({id => 'raid10'});
 
     $self->{tbl_available_devices} = $self->{app}->table({id => '"unselected"'});
-    $self->{tbl_selected_devices}  = $self->{app}->table({id => '"selected"'});
+    $self->{tbl_selected_devices} = $self->{app}->table({id => '"selected"'});
 
     $self->{txtbox_raid_name} = $self->{app}->textbox({id => '"Y2Partitioner::Dialogs::Md::NameEntry"'});
 
@@ -104,7 +104,7 @@ sub bidi_strip {
 sub is_device_added {
     my ($self, $device) = @_;
     my @added_devices = $self->get_added_devices();
-    my $device_clmn   = $self->{tbl_selected_devices}->get_index('Device');
+    my $device_clmn = $self->{tbl_selected_devices}->get_index('Device');
     return (grep { $self->bidi_strip($_->[$device_clmn]) eq "/dev/$device" } @added_devices);
 }
 

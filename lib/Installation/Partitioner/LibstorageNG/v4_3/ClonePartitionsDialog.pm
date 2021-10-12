@@ -29,7 +29,7 @@ sub new {
 sub init {
     my $self = shift;
 
-    $self->{btn_ok}           = $self->{app}->button({id => 'ok'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     $self->{lst_target_disks} = $self->{app}->selectionbox({
             id => '"Y2Partitioner::Dialogs::PartitionTableClone::DevicesSelector"'
     });

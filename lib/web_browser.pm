@@ -59,9 +59,9 @@ sub setup_web_browser_env {
         if ($ret ne 0) {
             register_product();
             my $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
-            my $arch    = get_required_var('ARCH');
+            my $arch = get_required_var('ARCH');
             script_run("SUSEConnect -d -p PackageHub/$version/$arch", 300);
-            script_run("SUSEConnect -p PackageHub/$version/$arch",    300);
+            script_run("SUSEConnect -p PackageHub/$version/$arch", 300);
         }
     }
     zypper_call("--no-refresh --no-gpg-checks search -it pattern fips") if get_var('FIPS_ENABLED');
@@ -81,8 +81,8 @@ sub run_web_browser_text_based {
 
     my %https_url = (
         google => "https://www.google.com/ncr",
-        suse   => "https://www.suse.com/",
-        OBS    => "https://build.opensuse.org/",
+        suse => "https://www.suse.com/",
+        OBS => "https://build.opensuse.org/",
     );
 
     for my $p (keys %https_url) {

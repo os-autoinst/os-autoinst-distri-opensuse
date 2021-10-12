@@ -32,9 +32,9 @@ sub run {
     # RSA operations
     # RSA decrypt
     my $test_enc_dir = "tpm2_engine_rsa_decrypt";
-    my $test_file    = "mydata";
-    my $rsa_key      = "mykey";
-    my $enc_file     = "mycipher";
+    my $test_file = "mydata";
+    my $rsa_key = "mykey";
+    my $enc_file = "mycipher";
     assert_script_run "mkdir $test_enc_dir";
     assert_script_run "cd $test_enc_dir";
     assert_script_run "echo tpm2test > $test_file";
@@ -47,7 +47,7 @@ sub run {
 
     # RSA sign
     my $test_sign_dir = "tpm2_engine_rsa_sign";
-    my $sig_file      = "mysig";
+    my $sig_file = "mysig";
     assert_script_run "mkdir $test_sign_dir";
     assert_script_run "cd $test_sign_dir";
     assert_script_run "echo tpm2test > $test_file";

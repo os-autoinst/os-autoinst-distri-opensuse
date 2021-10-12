@@ -60,17 +60,17 @@ sub run {
     record_info('Test 6', 'Bring an interface down with wicked');
     $self->wicked_command('ifdown', $ctx->iface());
     die('IP should not be reachable') if ($self->ping_with_timeout(ip => '10.0.2.2', timeout => '2', proceed_on_failure => 1));
-    die                               if ($self->get_current_ip($ctx->iface()));
+    die if ($self->get_current_ip($ctx->iface()));
     record_info('Test 7', 'Bring an interface up with wicked');
     $self->wicked_command('ifup', $ctx->iface());
     $self->ping_with_timeout(type => 'host', interface => $ctx->iface());
     validate_script_output('ip address show dev ' . $ctx->iface(), sub { m/inet/g; });
-    validate_script_output('wicked show dev ' . $ctx->iface(),     sub { m/\[dhcp\]/g; });
+    validate_script_output('wicked show dev ' . $ctx->iface(), sub { m/\[dhcp\]/g; });
     record_info('Test 8', 'Stop several cards at once');
     $self->get_from_data("wicked/static_address/ifcfg-eth0_second_card", '/etc/sysconfig/network/ifcfg-' . $ctx->iface2());
-    $self->wicked_command('ifup',   $ctx->iface2());
+    $self->wicked_command('ifup', $ctx->iface2());
     $self->wicked_command('ifdown', 'all');
-    validate_script_output('wicked show dev ' . $ctx->iface(),  sub { m/state down/g; });
+    validate_script_output('wicked show dev ' . $ctx->iface(), sub { m/state down/g; });
     validate_script_output('wicked show dev ' . $ctx->iface2(), sub { m/state down/g; });
 }
 

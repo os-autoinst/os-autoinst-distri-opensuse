@@ -44,7 +44,7 @@ sub run {
 
     my $output = script_output('uname -r');
     if ($output =~ /^([0-9]+([-.][0-9a-z]+)*)-([a-z][a-z0-9]*)/i) {
-        $kver    = $1;
+        $kver = $1;
         $kflavor = $3;
     }
     else {

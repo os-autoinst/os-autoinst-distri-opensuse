@@ -16,13 +16,13 @@ our @EXPORT = qw(setup_autofs_server check_autofs_service
   install_service enable_service start_service
   check_service configure_service full_autofs_check);
 
-my $autofs_conf_file       = '/etc/auto.master';
-my $autofs_map_file        = '/etc/auto.master.d/autofs_regression_test.autofs';
-my $test_conf_file         = '/etc/auto.iso';
-my $test_mount_dir         = '/mnt/test_autofs_local';
-my $file_to_mount          = '/tmp/test-iso.iso';
+my $autofs_conf_file = '/etc/auto.master';
+my $autofs_map_file = '/etc/auto.master.d/autofs_regression_test.autofs';
+my $test_conf_file = '/etc/auto.iso';
+my $test_mount_dir = '/mnt/test_autofs_local';
+my $file_to_mount = '/tmp/test-iso.iso';
 my $test_conf_file_content = "iso -fstype=auto,ro :$file_to_mount";
-my $service_type           = 'Systemd';
+my $service_type = 'Systemd';
 
 =head2 setup_autofs_server
 
@@ -130,10 +130,10 @@ sub configure_service {
 
     check_autofs_service() if ($stage eq 'function');
     setup_autofs_server(autofs_conf_file => $autofs_conf_file,
-        autofs_map_file        => $autofs_map_file,
-        test_conf_file         => $test_conf_file,
+        autofs_map_file => $autofs_map_file,
+        test_conf_file => $test_conf_file,
         test_conf_file_content => $test_conf_file_content,
-        test_mount_dir         => $test_mount_dir);
+        test_mount_dir => $test_mount_dir);
 
     common_service_action 'autofs', $service_type, 'restart';
 }

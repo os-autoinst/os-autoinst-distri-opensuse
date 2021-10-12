@@ -6,7 +6,7 @@ use 5.010;
 use Test::More;
 use FindBin '$Bin';
 
-my $dbfile        = "$Bin/movies.db";
+my $dbfile = "$Bin/movies.db";
 my $sqlite_select = "sqlite3 --list --header $dbfile";
 
 -e $dbfile and unlink $dbfile;

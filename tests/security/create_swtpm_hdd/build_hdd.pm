@@ -45,7 +45,7 @@ sub run {
 
     # Define a new udev rule file to keep the NIC name persistent across OS rebooting
     my $udev_rule_file = '/etc/udev/rules.d/70-persistent-net.rules';
-    my $nic_name       = script_output("ls /etc/sysconfig/network | grep ifcfg- | grep -v lo | awk -F '-' '{print \$2}'");
+    my $nic_name = script_output("ls /etc/sysconfig/network | grep ifcfg- | grep -v lo | awk -F '-' '{print \$2}'");
     assert_script_run("wget --quiet " . data_url("swtpm/70-persistent-net.rules") . " -O $udev_rule_file");
     assert_script_run("sed -i 's/NAME=\"\"/ NAME=\"$nic_name\"/' $udev_rule_file");
 

@@ -28,9 +28,9 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    my $ofed_url      = get_required_var('OFED_URL');
+    my $ofed_url = get_required_var('OFED_URL');
     my $ofed_file_tgz = (split(/\//, $ofed_url))[-1];
-    my $ofed_dir      = ((split(/\.tgz/, $ofed_file_tgz))[0]);
+    my $ofed_dir = ((split(/\.tgz/, $ofed_file_tgz))[0]);
 
     if (is_sle('>=15')) {
         zypper_call('--quiet in openvswitch python-devel python2-libxml2-python libopenssl1_1 insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm', timeout => 500);
