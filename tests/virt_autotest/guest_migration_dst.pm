@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -18,7 +18,8 @@ use testapi;
 use lockapi;
 use mmapi;
 use upload_system_log 'upload_supportconfig_log';
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host is_kvm_host);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -47,6 +48,9 @@ sub run {
     script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', 30);
     script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/', 30);
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
+
+    # bsc#1191511 change unprivileged_userfaultfd behaviour on 15-SP4 KVM for guest_migration
+    script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
 
     #mark ready state
     mutex_create('DST_READY_TO_START');

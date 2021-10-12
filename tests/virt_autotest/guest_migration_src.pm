@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -20,7 +20,8 @@ use mmapi;
 use virt_utils;
 use Data::Dumper;
 use Utils::Architectures;
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host is_kvm_host);
+use version_utils 'is_sle';
 
 sub get_script_run {
     my ($self) = @_;
@@ -124,6 +125,9 @@ sub run {
     set_var('SRC_USER', "root");
     set_var('SRC_PASS', $password);
     bmwqemu::save_vars();
+
+    # bsc#1191511 change unprivileged_userfaultfd behaviour on 15-SP4 KVM for guest_migration
+    script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
 
     #wait for destination to be ready
     $self->set_mutex_lock('DST_READY_TO_START');
