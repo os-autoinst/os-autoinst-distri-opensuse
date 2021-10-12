@@ -36,7 +36,17 @@ sub run {
     my $pam_login = '/etc/pam.d/login';
     my $pam_sshd_bak = '/tmp/sshd_bak';
     my $pam_login_bak = '/tmp/login_bak';
+    my $pam_sshd_tw = '/usr/etc/pam.d/sshd';
+    my $pam_login_tw = '/usr/etc/pam.d/login';
+    my $ret_sshd = script_run("[[ -e $pam_sshd ]]");
+    my $ret_login = script_run("[[ -e $pam_login ]]");
     assert_script_run "echo $user > $deny_user_file";
+    if ($ret_sshd != 0) {
+        script_run "cp $pam_sshd_tw $pam_sshd";
+    }
+    if ($ret_login != 0) {
+        script_run "cp $pam_login_tw $pam_login";
+    }
     assert_script_run "cp $pam_sshd $pam_sshd_bak";
     assert_script_run "cp $pam_login $pam_login_bak";
     assert_script_run "sed -i '\$a auth      required   pam_listfile.so   onerr=succeed  item=user  sense=deny  file=$deny_user_file' $pam_sshd";

@@ -38,6 +38,16 @@ sub run {
     my $su_file_bak = '/tmp/su';
     my $sul_file = '/etc/pam.d/su-l';
     my $sul_file_bak = '/tmp/su-l';
+    my $ret_su = script_run("[[ -e $su_file ]]");
+    my $ret_sul = script_run("[[ -e $sul_file ]]");
+    my $su_file_tw = '/usr/etc/pam.d/su';
+    my $sul_file_tw = '/usr/etc/pam.d/su-l';
+    if ($ret_su != 0) {
+        script_run "cp $su_file_tw $su_file";
+    }
+    if ($ret_sul != 0) {
+        script_run "cp $sul_file_tw $sul_file";
+    }
     assert_script_run "cp $su_file $su_file_bak";
     assert_script_run "cp $sul_file $sul_file_bak";
     assert_script_run "sed -i '\$a auth     required       pam_wheel.so use_uid' $su_file";
