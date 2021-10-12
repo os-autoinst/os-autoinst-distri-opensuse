@@ -24,6 +24,9 @@ use Installation::Overview::OverviewController;
 use Installation::Registration::RegisteredSystemController;
 use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemeController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
@@ -49,6 +52,18 @@ sub get_partitioner {
 
 sub get_guided_partitioner {
     return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController->new();
+}
+
+sub get_select_hard_disks {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksController->new();
+}
+
+sub get_partitioning_scheme {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemeController->new();
+}
+
+sub get_filesystem_options {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsController->new();
 }
 
 sub get_expert_partitioner {
