@@ -82,7 +82,7 @@ sub _test_btrfs_device_mgmt {
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
-    die("pull should fail on full partition") if ($rt->pull($container) == 0);
+    die("pull should fail on full partition") if ($rt->pull($container, die => 0) == 0);
     # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
