@@ -179,6 +179,10 @@
         <service>sshd</service>
         <service>systemd-remount-fs</service>
       </enable>
+      <disable config:type="list">
+        <service>firewalld</service>
+        <service>apparmor</service>
+      </disable>
     </services>
   </services-manager>
   <software t="map">
@@ -229,7 +233,7 @@
   </timezone>
   <user_defaults t="map">
     <expire/>
-    <group>500</group>
+    <group>100</group>
     <groups/>
     <home>/home</home>
     <inactive>-1</inactive>
@@ -262,4 +266,28 @@
       <username>root</username>
     </user>
   </users>
+  <scripts>
+    <!-- permit root login, password login and pubkeys login -->
+    <!-- /etc/ssh/sshd_config/sshd_config is the default sshd config file in sles  -->
+    <init-scripts config:type="list">
+      <script>
+        <source><![CDATA[
+sshd_config_file="/etc/ssh/sshd_config"
+if [ ! -f $sshd_config_file ]; then
+    mkdir -p `dirname $sshd_config_file`
+    echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes" > $sshd_config_file
+else
+    keys="PermitRootLogin PubkeyAuthentication PasswordAuthentication"
+    for key in $keys; do
+        sed -i "/^[# ]*$key */{h;s/^[# ]*$key *.*\$/$key yes/};\${x;/^\$/{s//$key yes/;H};x}" $sshd_config_file
+    done
+fi
+[ -d /root/.ssh ] || mkdir -p /root/.ssh; chmod 700 /root/.ssh
+touch /root/.ssh/authorized_keys; chmod 600 /root/.ssh/authorized_keys
+echo "##Authorized-Keys##" >> /root/.ssh/authorized_keys
+]]>
+        </source>
+      </script>
+    </init-scripts>
+  </scripts>
 </profile>
