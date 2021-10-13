@@ -25,7 +25,7 @@ sub run {
     my ($self) = shift;
 
     # Verify Installation Settings overview is displayed as starting point
-    assert_screen "installation-settings-overview-loaded";
+    assert_screen "installation-settings-overview-loaded", 90;
 
     if (check_var('VIDEOMODE', 'text')) {
         # Select section booting on Installation Settings overview on text mode
