@@ -64,6 +64,7 @@ sub run {
     assert_script_run("snapper -v undochange \$snapbf..\$snapaf");
     assert_script_run("snapper delete \$snapaf \$snapbf");
     zypper_call('rr qa-head-repo');
+    zypper_call('rm bats pam-test');
 
     die "pam.sh failed, see results.tap for details" if ($ret);
 }
