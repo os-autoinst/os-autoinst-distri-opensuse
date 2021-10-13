@@ -21,6 +21,7 @@ use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow enter_cmd_slow);
 use version_utils 'is_upgrade';
+use Utils::Backends;
 use YuiRestClient;
 
 our @EXPORT = qw(
@@ -140,9 +141,9 @@ sub prepare_pvm_installation {
 }
 
 sub boot_pvm {
-    if (check_var('BACKEND', 'spvm')) {
+    if (is_spvm) {
         boot_spvm();
-    } elsif (check_var('BACKEND', 'pvm_hmc')) {
+    } elsif (is_pvm_hmc) {
         boot_hmc_pvm();
     }
 }

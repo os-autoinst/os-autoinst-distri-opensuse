@@ -12,7 +12,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse);
 use Utils::Architectures;
-use Utils::Backends 'is_hyperv';
+use Utils::Backends;
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
 
@@ -116,7 +116,7 @@ sub run {
     # when there are more jobs running concurrently. We need to wait for
     # various disk optimizations and snapshot enablement to land.
     # Meltdown/Spectre mitigations makes this even worse.
-    if (check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'))) {
+    if (is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP'))) {
         # Wait jeos-firstboot is done and clear screen, as we are already logged-in via ssh
         wait_still_screen;
         $self->clear_and_verify_console;

@@ -12,6 +12,7 @@ use base "opensusebasetest";
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_leap';
+use Utils::Backends;
 
 sub run {
     my ($self) = @_;
@@ -20,7 +21,7 @@ sub run {
     my $distripassword = $testapi::password;
     my $reboot_for_jeos_firstboot = 1;
 
-    my $is_generalhw_via_ssh = check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'));
+    my $is_generalhw_via_ssh = is_generalhw && !defined(get_var('GENERAL_HW_VNC_IP'));
 
     if ($is_generalhw_via_ssh) {
         # Run jeos-firstboot manually and do not reboot as we use SSH

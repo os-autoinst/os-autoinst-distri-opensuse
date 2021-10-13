@@ -624,7 +624,7 @@ sub expand_version {
 sub adjust_network_conf {
     my ($profile) = @_;
     my $hostip;
-    if (check_var('BACKEND', 's390x')) {
+    if (is_backend_s390x) {
         ($hostip) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
     }
     elsif (is_svirt) {

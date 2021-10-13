@@ -61,6 +61,10 @@ and additionally the following rules:
 * Use `my ($self) = @_;` for parameter parsing in methods when accessing the
   `$self` object. Do not parse any parameter if you do not need any.
 * [DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)
+* Use defined architecture and backend functions defined in
+  'lib/Utils/Architecture.pm' and 'lib/Utils/Backends.pm' for checking specific 
+  ARCH and BACKEND types instead of calling the function calls check_var(). 
+  If they don't exist, add them.
 * Avoid `sleep()`: Do not use `sleep()` or simulate a sleep-like
   functionality. This introduces the risk of either unnecessarily wasting time
   or just shifting race conditions and making them even harder to investigate.

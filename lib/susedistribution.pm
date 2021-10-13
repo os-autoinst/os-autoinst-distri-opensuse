@@ -530,7 +530,7 @@ sub init_consoles {
         $hostname = get_var('VIRSH_GUEST') if get_var('S390_ZKVM');
         $hostname = get_required_var('SUT_IP') if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
-        if (check_var('BACKEND', 's390x')) {
+        if (is_backend_s390x) {
 
             # expand the S390 params
             my $s390_params = get_var("S390_NETWORK_PARAMS");
