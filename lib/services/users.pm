@@ -156,7 +156,7 @@ sub full_users_check {
         }
     }
     select_console 'x11', await_console => 0;
-    wait_still_screen 5;
+    wait_still_screen 15;
     ensure_unlocked_desktop;
     assert_screen "generic-desktop";
     if ($stage eq 'before') {
