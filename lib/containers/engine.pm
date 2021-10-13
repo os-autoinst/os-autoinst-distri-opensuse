@@ -12,7 +12,7 @@ use testapi;
 use Carp 'croak';
 use Test::Assert 'assert_equals';
 use containers::utils qw(registry_url);
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl file_content_replace script_retry);
 use overload
   '""' => sub { return shift->runtime },
   bool => sub { return 1 },
@@ -41,6 +41,13 @@ sub _engine_script_run {
 sub _engine_script_output {
     my ($self, $cmd, @args) = @_;
     return script_output($self->runtime . " " . $cmd, @args);
+}
+
+sub _engine_script_retry {
+    my ($self, $cmd, %args) = @_;
+    $cmd = $self->runtime . " " . $cmd;
+    # script_retry by default dies on timeouts, so the timeout check is not required here
+    return script_retry($cmd, %args);
 }
 
 =head2 create_container($image, $name, [$cmd])
@@ -146,8 +153,9 @@ sub pull {
     if (my $rc = $self->_engine_script_run("image inspect --format='{{.RepoTags}}' $image_name | grep '$image_name'") == 0) {
         return;
     }
+    my $die = $args{die} // 1;
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-    return $self->_engine_script_run("pull $image_name", timeout => $args{timeout} // 300);
+    return $self->_engine_script_retry("pull $image_name", timeout => $args{timeout} // 300, retry => 3, delay => 30, die => $die);
 }
 
 =head2 commit
