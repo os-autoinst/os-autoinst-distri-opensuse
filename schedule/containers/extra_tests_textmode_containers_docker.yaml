@@ -17,7 +17,7 @@ schedule:
   - boot/boot_to_desktop
   - containers/docker
   - '{{docker_image}}'
-  - containers/buildah_docker
+  - containers/buildah
   - containers/docker_runc
   - containers/docker_compose
   - containers/zypper_docker
