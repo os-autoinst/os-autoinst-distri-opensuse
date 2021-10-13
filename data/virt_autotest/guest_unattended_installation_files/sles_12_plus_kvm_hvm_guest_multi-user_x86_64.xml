@@ -29,6 +29,16 @@
       <start_multipath config:type="boolean">false</start_multipath>
     </storage>
   </general>
+  <suse_register>
+    <do_registration config:type="boolean">##Do-Registration##</do_registration>
+    <email>##Registration-UserName##</email>
+    <reg_code>##Registration-Code##</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <slp_discovery config:type="boolean">false</slp_discovery>
+    <!--  optionally register some add-ons   -->
+    <addons config:type="list">
+    </addons>
+  </suse_register>
   <bootloader>
     <global>
       <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>      

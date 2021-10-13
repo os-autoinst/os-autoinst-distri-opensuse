@@ -85,5 +85,10 @@
     <guest_noautoconsole>false</guest_noautoconsole>
     <guest_noreboot></guest_noreboot>
     <guest_default_target>graphical</guest_default_target>
+    <guest_do_registration>true</guest_do_registration>
+    <guest_registration_server></guest_registration_server>
+    <guest_registration_username>www@suse.com</guest_registration_username>
+    <guest_registration_password></guest_registration_password>
+    <guest_registration_extensions></guest_registration_extensions>
 </guest>
 

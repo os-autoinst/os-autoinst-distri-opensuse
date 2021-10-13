@@ -15,6 +15,21 @@
 # vm_profile_2,vm_profile_3".Then vm_name_1 will be created and installed
 # using vm_profile_1 and so on by calling instantiate_guests_and_profiles
 # and install_guest_instances.
+# UNIFIED_GUEST_REG_CODES and UNIFIED_GUEST_REG_EXTS_CODES are two other
+# test suite level settings which are given guest os registration codes
+# and codes for additional modules/extensions/products to be used by guests.
+# For example, for above UNIFIED_GUEST_LIST setting, UNIFIED_GUEST_REG_CODES
+# = "vm1_code,vm2_code,vm3_code" and UNIFIED_GUEST_REG_EXTS_CODES = "
+# vm1ext1code#vm1ext2code,vm2ext1code#vm2ext2code#vm2ext3code,vm3ext1code".
+# Registration codes for different guests should be separated by comma and
+# for different modules/extensions/products but the same guest should be
+# separated by hash. If not all guests to be installed need code settings,
+# those that do not need should be left empty but with explicit separator,
+# for example, UNIFIED_GUEST_REG_EXTS_CODES = ",#vm2ext2code#vm2ext3code,",
+# UNIFIED_GUEST_REG_CODES = "vm1_code,vm2_code,". The codes for each guest
+# will be assigned to guest parameters [guest_registration_code] and
+# [guest_registration_extensions_codes], so please refer to base module
+# lib/concurrent_guest_installations for detailed information about them.
 # Installation progress monitoring,result validation, junit log provision,
 # environment cleanup and failure handling are also included and supported
 # by calling other subroutines:
@@ -45,7 +60,14 @@ sub run {
     my @guest_profiles = split(/,/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     my %store_of_guests;
-    @store_of_guests{@guest_names} = @guest_profiles;
+    my @guest_registration_codes = my @guest_registration_extensions_codes = ('') x scalar @guest_names;
+    @guest_registration_codes = split(/,/, get_var('UNIFIED_GUEST_REG_CODES', '')) if (get_var('UNIFIED_GUEST_REG_CODES', '') ne '');
+    @guest_registration_extensions_codes = split(/,/, get_var('UNIFIED_GUEST_REG_EXTS_CODES', '')) if (get_var('UNIFIED_GUEST_REG_EXTS_CODES', '') ne '');
+    while (my ($index, $element) = each @guest_names) {
+        $store_of_guests{$element}{PROFILE} = $guest_profiles[$index];
+        $store_of_guests{$element}{REG_CODE} = $guest_registration_codes[$index];
+        $store_of_guests{$element}{REG_EXTS_CODES} = $guest_registration_extensions_codes[$index];
+    }
     $self->concurrent_guest_installations_run(\%store_of_guests);
     return $self;
 }
