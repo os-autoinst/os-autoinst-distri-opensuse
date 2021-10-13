@@ -127,7 +127,7 @@ sub run {
     bmwqemu::save_vars();
 
     # bsc#1191511 change unprivileged_userfaultfd behaviour on 15-SP4 KVM for guest_migration
-    script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
+    #script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
 
     #wait for destination to be ready
     $self->set_mutex_lock('DST_READY_TO_START');

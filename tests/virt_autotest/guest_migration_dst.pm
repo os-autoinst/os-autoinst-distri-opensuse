@@ -24,6 +24,8 @@ use version_utils 'is_sle';
 sub run {
     my ($self) = @_;
 
+    script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
+
     my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
     set_var('DST_IP', $ip_out);
     set_var('DST_USER', "root");
@@ -50,7 +52,7 @@ sub run {
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
     # bsc#1191511 change unprivileged_userfaultfd behaviour on 15-SP4 KVM for guest_migration
-    script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
+    #script_run("echo 1 > /proc/sys/vm/unprivileged_userfaultfd") if (is_sle('=15-sp4') && is_kvm_host);
 
     #mark ready state
     mutex_create('DST_READY_TO_START');
