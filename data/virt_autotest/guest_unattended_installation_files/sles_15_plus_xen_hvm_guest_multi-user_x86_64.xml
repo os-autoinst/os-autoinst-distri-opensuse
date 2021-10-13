@@ -61,6 +61,14 @@
       <start_multipath t="boolean">false</start_multipath>
     </storage>
   </general>
+  <suse_register>
+    <do_registration config:type="boolean">##Do-Registration##</do_registration>
+    <email>##Registration-UserName##</email>
+    <reg_code>##Registration-Code##</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+    </addons>
+  </suse_register>
   <bootloader t="map">
     <global t="map">
       <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>
@@ -133,9 +141,6 @@
     <import t="boolean">true</import>
     <copy_config t="boolean">false</copy_config>
   </ssh_import>
-  <suse_register t="map">
-    <do_registration t="boolean">false</do_registration>
-  </suse_register>
   <report>
     <errors>
       <log t="boolean">true</log>
