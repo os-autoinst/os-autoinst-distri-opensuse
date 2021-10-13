@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Waits for the guest to boot, sets some variables for LTP then
 #          dynamically loads the test modules based on the runtest file

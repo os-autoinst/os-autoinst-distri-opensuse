@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Those are steps for leap to sle zypper dup. Includes: switch to a tty, full patch
 # leap system, install SUSEConnect, Register at SCC to get SLE repo, List and disable all

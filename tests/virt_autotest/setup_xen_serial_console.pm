@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Setup xen serial console so that ipmitool can work normally from 3rd generation openqa ipmi backend.
 # Maintainer: Alice <xlai@suse.com>

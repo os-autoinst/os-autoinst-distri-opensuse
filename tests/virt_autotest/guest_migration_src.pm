@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This test verifies guest migration between two different hosts, either xen to xen, or kvm to kvm.
 #          This is the part to run on the source host.

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check the sles4sap "from scratch" settings (without saptune/sapconf) using the robot framework.
 #          This test is configured to be used with a 2 GB RAM system.

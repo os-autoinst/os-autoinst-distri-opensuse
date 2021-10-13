@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: libqt5-qttools yast2-installation gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel
 # Summary: libqt5-qtbase: testing of the qtbase libraries

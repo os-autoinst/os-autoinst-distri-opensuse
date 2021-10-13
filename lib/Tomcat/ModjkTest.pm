@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Provide the functionality for apache2 apache2-mod_jk installation
 # and configuration to tests regarding interaction between tomcat and apache2

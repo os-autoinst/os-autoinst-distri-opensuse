@@ -1,11 +1,7 @@
 # SLE12 online migration tests
 #
 # Copyright 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: SUSEConnect zypper yast2-registration
 # Summary: sle12 online migration testsuite

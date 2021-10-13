@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: host_upgrade_step3_run : Get the second stage script name for host upgrade test.
 #          This test verifies virtualization host upgrade test result.

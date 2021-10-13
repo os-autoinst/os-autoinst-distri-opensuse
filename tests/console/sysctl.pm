@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: procps
 # Summary: test sysctl because it can go wrong https://bugzilla.opensuse.org/show_bug.cgi?id=1077746

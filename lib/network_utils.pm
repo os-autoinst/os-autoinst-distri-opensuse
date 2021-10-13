@@ -6,11 +6,7 @@ Functional methods to operate on network
 # SUSE's openQA tests
 #
 # Copyright 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Functional methods to operate on network
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>

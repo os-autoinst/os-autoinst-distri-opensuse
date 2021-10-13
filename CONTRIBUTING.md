@@ -44,6 +44,12 @@ The project follows the rules of the parent project
 [os-autoinst](https://github.com/os-autoinst/os-autoinst#how-to-contribute).
 and additionally the following rules:
 
+* Use a "SPDX-License-Identifier" to declare the used license. Do not copy
+  verbatim license texts into new files
+* Prefer to not update the copyright years in file headers as this is not
+  required. In new files the year can be skipped completely, e.g. just
+  "Copyright SUSE LLC". See https://progress.opensuse.org/issues/98616 for
+  details.
 * Take [example boot.pm](https://github.com/os-autoinst/os-autoinst-distri-example/blob/master/tests/boot.pm)
   as a template for new files
 * The test code should use simple perl statements, not overly hacky

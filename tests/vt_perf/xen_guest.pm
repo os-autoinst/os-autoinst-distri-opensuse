@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # This is testsuite run on XEN dom0. Makes sure testsuite could run properly.
 # The following example is Dell machine(They usually use com2 as serial device);

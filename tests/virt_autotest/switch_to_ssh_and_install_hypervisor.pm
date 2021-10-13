@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: For openSUSE virtualization test only. login in console, install kvm/xen patterns if needed.
 #  - Even if you'd like to run tests without host installation(IPMI_DO_NOT_RESTART_HOST=1), this module is still necessary as login console in this module is required.

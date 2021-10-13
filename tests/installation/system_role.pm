@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check default system role selection screen (only for SLE) and select system role. Added in SLE 12 SP2
 # - Check default system role
