@@ -2409,7 +2409,7 @@ sub load_security_tests_cc_audit_test {
     loadtest 'security/cc/misc';
 }
 
-sub load_security_tests_cc_audit_remote {
+sub load_security_tests_cc_audit_remote_libvirt {
     # Setup environment for cc testing: 'audit-test' test suite setup
     # Such as: download code branch; install needed packages
     loadtest 'security/cc/cc_audit_test_setup';
@@ -2610,7 +2610,7 @@ sub load_security_tests {
       grub_auth
       lynis
       cc_audit_test
-      cc_audit_remote
+      cc_audit_remote_libvirt
     );
 
     # Check SECURITY_TEST and call the load functions iteratively.
