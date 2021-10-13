@@ -11,7 +11,7 @@ use testapi;
 use registration;
 use utils qw(zypper_call systemctl file_content_replace script_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
-use containers::utils qw(can_build_sle_base registry_url);
+use containers::utils qw(can_build_sle_base registry_url validate_build);
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed
   test_container_runtime test_container_image scc_apply_docker_image_credentials
@@ -192,6 +192,9 @@ sub test_container_image {
 
     $runtime->pull($image, timeout => 420);
     $runtime->check_image_in_host($image);
+    if (check_var('CONTAINERS_UNTESTED_IMAGES', '1')) {
+        validate_build($image, $runtime);
+    }
     $runtime->create_container(image => $image, name => 'testing', cmd => $smoketest);
     return if $runtime->runtime eq 'buildah';
     $runtime->start_container('testing');
