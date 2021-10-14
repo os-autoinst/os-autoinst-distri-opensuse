@@ -149,8 +149,12 @@ sub run {
     # To enable persistent logging in opensuse, we use systemd-logger.rpm that creates */var/log/journal/* directory
     get_current_boot_id \@boots;
     if (has_default_persistent_journal) {
-        assert_script_run 'rpm -q systemd-logger';
-        assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
+        if (is_tumbleweed) {
+            script_output(sprintf("test -d %s && ls --almost-all %s", PERSISTENT_LOG_DIR, PERSISTENT_LOG_DIR));
+        } else {
+            assert_script_run 'rpm -q systemd-logger';
+            assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
+        }
     } else {
         script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") or die "Persistent journal should not be enabled by default on SLE!\n";
         assert_script_run "mkdir ${\ PERSISTENT_LOG_DIR }";
