@@ -13,7 +13,7 @@ schedule:
   - containers/docker
   - containers/docker_image
   - containers/container_diff
-  - containers/buildah_docker
+  - containers/buildah
   - containers/docker_runc
   - containers/docker_compose
   - containers/docker_3rd_party_images

@@ -30,7 +30,7 @@ schedule:
     - console/zypper_ref
     - containers/podman
     - containers/podman_image
-    - containers/buildah_podman
+    - containers/buildah
     - containers/docker
     - containers/docker_runc
     - containers/docker_image
@@ -40,4 +40,3 @@ schedule:
     - containers/zypper_docker
     - containers/container_diff
     - containers/rootless_podman
-    - containers/buildah_docker

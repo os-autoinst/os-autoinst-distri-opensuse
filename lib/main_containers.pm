@@ -55,7 +55,7 @@ sub load_tests_podman_common {
         loadtest 'containers/podman';
         loadtest 'containers/podman_image';
         loadtest 'containers/podman_3rd_party_images';
-        loadtest 'containers/buildah_podman';
+        loadtest 'containers/buildah';
         loadtest 'containers/rootless_podman';
     }
 }
@@ -64,7 +64,6 @@ sub load_tests_docker_common {
     loadtest 'containers/docker';
     loadtest 'containers/docker_image';
     loadtest 'containers/docker_3rd_party_images';
-    loadtest 'containers/buildah_docker' if is_sle('>=15-SP1');
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         loadtest 'containers/zypper_docker';
