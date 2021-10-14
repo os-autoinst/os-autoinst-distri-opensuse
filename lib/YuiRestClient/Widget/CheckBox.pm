@@ -14,8 +14,8 @@ use parent 'YuiRestClient::Widget::Base';
 use YuiRestClient::Action;
 
 sub check {
-    my ($self, $item) = @_;
-    $self->action(action => YuiRestClient::Action::YUI_CHECK, value => $item);
+    my ($self) = @_;
+    $self->action(action => YuiRestClient::Action::YUI_CHECK);
 }
 
 sub is_checked {
@@ -24,13 +24,13 @@ sub is_checked {
 }
 
 sub toggle {
-    my ($self, $item) = @_;
-    $self->action(action => YuiRestClient::Action::YUI_TOGGLE, value => $item);
+    my ($self) = @_;
+    $self->action(action => YuiRestClient::Action::YUI_TOGGLE);
 }
 
 sub uncheck {
-    my ($self, $item) = @_;
-    $self->action(action => YuiRestClient::Action::YUI_UNCHECK, value => $item);
+    my ($self) = @_;
+    $self->action(action => YuiRestClient::Action::YUI_UNCHECK);
 }
 
 1;

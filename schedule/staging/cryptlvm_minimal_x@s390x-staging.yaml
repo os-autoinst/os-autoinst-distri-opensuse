@@ -18,7 +18,9 @@ schedule:
   - installation/scc_registration
   - installation/addon_products_sle
   - installation/system_role
-  - installation/partitioning/encrypt_lvm
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
