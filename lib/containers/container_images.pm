@@ -24,7 +24,7 @@ use containers::common qw(test_container_image is_unreleased_sle);
 
 our @EXPORT = qw(build_with_zypper_docker build_with_sle2docker
   test_opensuse_based_image exec_on_container ensure_container_rpm_updates build_and_run_image
-  test_zypper_on_container verify_userid_on_container test_3rd_party_image upload_3rd_party_images_logs);
+  test_zypper_on_container test_3rd_party_image upload_3rd_party_images_logs);
 
 =head2 build_and_run_image
 
@@ -221,34 +221,6 @@ sub test_opensuse_based_image {
                 build_with_zypper_docker(image => $image, runtime => $runtime, version => $version);
             }
         }
-    }
-}
-
-sub verify_userid_on_container {
-    my ($runtime, $image, $start_id) = @_;
-    my $huser_id = script_output "echo \$UID";
-    record_info "host uid", "$huser_id";
-    record_info "root default user", "rootless mode process runs with the default container user(root)";
-    my $cid = script_output "$runtime run -d --rm --name test1 $image sleep infinity";
-    validate_script_output "$runtime top $cid user huser", sub { /root\s+1000/ };
-    validate_script_output "$runtime top $cid capeff", sub { /setuid/i };
-
-    record_info "non-root user", "process runs under the range of subuids assigned for regular user";
-    $cid = script_output "$runtime run -d --rm --name test2 --user 1000 $image sleep infinity";
-    my $id = $start_id + $huser_id - 1;
-    validate_script_output "$runtime top $cid user huser", sub { /1000\s+${id}/ };
-    validate_script_output "$runtime top $cid capeff", sub { /none/ };
-
-    record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
-    $cid = script_output "$runtime run -d --rm --userns keep-id $image sleep infinity";
-    # Remove once the softfail removed. it is just checks the user's mapped uid
-    validate_script_output "$runtime exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
-    if (is_sle) {
-        validate_script_output "$runtime top $cid user huser", sub { /bernhard\s+bernhard/ };
-        validate_script_output "$runtime top $cid capeff", sub { /setuid/i };
-    }
-    else {
-        record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
     }
 }
 
