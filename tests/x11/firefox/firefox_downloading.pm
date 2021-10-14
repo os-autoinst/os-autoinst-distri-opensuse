@@ -37,12 +37,9 @@ my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/
 my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.2/iso/openSUSE-Leap-15.2-DVD-x86_64.iso";
 
 sub dl_location_switch {
-    my ($tg) = @_;
-    send_key "alt-e";
-    wait_still_screen 2, 4;
-    send_key "n";
-    assert_screen('firefox-preferences');
+    my ($self, $tg) = @_;
 
+    $self->firefox_preferences;
     if ($tg ne "ask") {
         send_key "alt-shift-v";    #"Save files to Downloads"
     }
@@ -96,7 +93,7 @@ sub run {
 
     $self->start_firefox_with_profile;
 
-    dl_location_switch("ask");
+    dl_location_switch($self, "ask");
     dl_save($self, $dl_link_01);
     send_key 'ctrl-shift-y';
     assert_screen('firefox-downloading-library', 90);
@@ -135,7 +132,7 @@ sub run {
     wait_still_screen 3, 6;
 
     # Multiple files downloading
-    dl_location_switch("save");
+    dl_location_switch($self, "save");
 
     dl_save($self, $dl_link_01);
     dl_save($self, $dl_link_02);

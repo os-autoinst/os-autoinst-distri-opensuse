@@ -42,10 +42,7 @@ sub run {
     }
 
     assert_screen('firefox-ssl-loadpage', 60);
-
-    send_key "alt-e";
-    wait_still_screen 3;
-    send_key "n";
+    $self->firefox_preferences;
     assert_and_click('firefox-preferences-search');
     enter_cmd "cert";
     assert_and_click('firefox-ssl-preference-view-certificate');
