@@ -23,6 +23,8 @@ use utils;
 use version_utils;
 use power_action_utils 'power_action';
 
+my $disksize = "100M";    # Size of the test disks
+
 sub get_repository() {
     if (is_tumbleweed) {
         return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
@@ -68,22 +70,24 @@ sub install_zfs {
 }
 
 sub prepare_disks {
-    assert_script_run('fallocate -l 1GB /var/tmp/tank_a.img');
-    assert_script_run('fallocate -l 1GB /var/tmp/tank_b.img');
-    assert_script_run('fallocate -l 1GB /var/tmp/tank_c.img');
-    assert_script_run('fallocate -l 1GB /var/tmp/tank_a2.img');
-    assert_script_run('fallocate -l 1GB /var/tmp/dozer.img');
+    assert_script_run("fallocate -l $disksize /var/tmp/tank_a.img");
+    assert_script_run("fallocate -l $disksize /var/tmp/tank_b.img");
+    assert_script_run("fallocate -l $disksize /var/tmp/tank_c.img");
+    assert_script_run("fallocate -l $disksize /var/tmp/tank_a2.img");
+    assert_script_run("fallocate -l $disksize /var/tmp/dozer.img");
 }
 
 sub clear_disk {
     my $disk = shift;
-    assert_script_run("dd if=/dev/zero of=$disk bs=1G count=1");
+    assert_script_run("dd if=/dev/zero of=$disk bs=$disksize count=1");
 }
 
 sub corrupt_disk {
     my $disk = shift;
-    # Note dd from /dev/urandom and random is limited to ~30MB per read
-    assert_script_run("dd if=/dev/urandom of=$disk bs=10M count=100");
+    # dd from /dev/urandom and random is limited to ~30MB per read
+    # seek 100k into the disk so that at least the disk label remains intact
+    assert_script_run("dd if=/dev/urandom of=$disk seek=256k bs=10M count=9 oflag=sync");
+    assert_script_run("sync");
 }
 
 sub cleanup {
@@ -138,7 +142,10 @@ sub run {
     assert_script_run("zpool status tank | grep scan | grep 'scrub repaired'");
     assert_script_run('md5sum -c /var/tmp/Big_Buck_Bunny_8_seconds_bird_clip.ogv.md5sum');
     script_run('zpool status tank');
-    assert_script_run('zpool status tank | grep "corrupted data"');
+    assert_script_run('zpool status tank | grep "state:[[:space:]]*ONLINE"');
+    assert_script_run('zpool status tank | grep tank_a.img | grep ONLINE');
+    assert_script_run('zpool status tank | grep tank_b.img | grep ONLINE');
+    assert_script_run('zpool status tank | grep tank_c.img | grep ONLINE');
     # Replace disk
     assert_script_run('zpool offline tank /var/tmp/tank_a.img');
     clear_disk('/var/tmp/tank_a.img');
