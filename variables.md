@@ -21,10 +21,11 @@ AUTOYAST_VERIFY_TIMEOUT  | boolean | false | Enable validation of pop-up windows
 AY_EXPAND_VARS | string | | Commas separated list of variable names to be expanded in the provided autoyast profile. For example: REPO_SLE_MODULE_BASESYSTEM,DESKTOP,... Provided variables will replace `{{VAR}}` in the profile with the value of given variable. See also `AUTOYAST_PREPARE_PROFILE`.
 BASE_VERSION | string | | |
 BETA | boolean | false | Enables checks and processing of beta warnings. Defines current stage of the product under test.
-BCI_DEVEL_REPO | string | | This parameter is given to the bci-tests to inject a different SLE_BCI repository url to the container image instead of the default one. Used by `bci_tests.pm`.
-BCI_TEST_ENVS | string | | The list of environments to be tested, e.g. `base,init,dotnet,python,node,go,multistage`. Used by `bci_tests.pm`.
-BCI_TESTS_REPO | string | | Location of the bci-tests repository to be cloned. Used by `bci_tests.pm`.
-BCI_TIMEOUT | string | | Timeout given to the command to test each environment. Used by `bci_tests.pm`.
+BCI_DEVEL_REPO | string | | This parameter is given to the bci-tests to inject a different SLE_BCI repository url to the container image instead of the default one. Used by `bci_test.pm`.
+BCI_TEST_ENVS | string | | The list of environments to be tested, e.g. `base,init,dotnet,python,node,go,multistage`. Used by `bci_test.pm`.
+BCI_TESTS_REPO | string | | Location of the bci-tests repository to be cloned. Used by `bci_prepare.pm`.
+BCI_TESTS_BRANCH | string | | Branch to be cloned from bci-tests. Used by `bci_prepare.pm`.
+BCI_TIMEOUT | string | | Timeout given to the command to test each environment. Used by `bci_test.pm`.
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
 CASEDIR | string | | Path to the directory which contains tests.
