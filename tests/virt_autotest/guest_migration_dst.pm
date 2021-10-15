@@ -14,7 +14,8 @@ use testapi;
 use lockapi;
 use mmapi;
 use upload_system_log 'upload_supportconfig_log';
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host is_kvm_host);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
@@ -24,6 +25,10 @@ sub run {
     set_var('DST_USER', "root");
     set_var('DST_PASS', $password);
     bmwqemu::save_vars();
+
+    #workaround from 15-SP4 kernel(v5.14) new behavior
+    #Refer to bsc#1191511 for more details
+    $self->reset_unprivileged_userfaultfd if (is_sle('>=15-SP4') && is_kvm_host);
 
     #workaround for weird mount failure
     $self->workaround_for_reverse_lock("SRC_IP", 3600);
@@ -72,6 +77,15 @@ sub run {
 
     #wait for child finish
     wait_for_children;
+}
+
+#Since 15-SP4 kernel(v5.14), default value of unprivileged_userfaultfd sysctl is 0.
+#if unprivileged user want to use userfaultfd syscalls, we just only need to manually
+#reset unprivileged_userfaultfd value is 1 as the workaround on postcopy migration dst
+sub reset_unprivileged_userfaultfd {
+    script_run("sysctl -w vm.unprivileged_userfaultfd=1", 15);
+    script_run("sysctl -a | grep vm.unprivileged_userfaultfd", 15);
+    save_screenshot;
 }
 
 1;
