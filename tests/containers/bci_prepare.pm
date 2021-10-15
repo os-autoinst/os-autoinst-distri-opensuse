@@ -31,6 +31,7 @@ sub run {
 
     my $engine = get_required_var('CONTAINER_RUNTIME');
     my $bci_tests_repo = get_required_var('BCI_TESTS_REPO');
+    my $bci_tests_branch = get_var('BCI_TESTS_BRANCH');
 
     ensure_ca_certificates_suse_installed;
 
@@ -63,7 +64,8 @@ sub run {
     assert_script_run("pip3.6 --quiet install tox --ignore-installed six", timeout => 600);
 
     record_info('Clone', "Clone BCI tests repository: $bci_tests_repo");
-    assert_script_run("git clone -q --depth 1 $bci_tests_repo");
+    my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
+    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo");
 }
 
 sub test_flags {
