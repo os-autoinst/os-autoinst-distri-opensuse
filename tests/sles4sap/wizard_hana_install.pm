@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use utils qw(file_content_replace type_string_slow);
 use x11utils qw(turn_off_gnome_screensaver);
-use version_utils qw(package_version_cmp);
+use version_utils qw(package_version_cmp is_sle);
 
 sub run {
     my ($self) = @_;
@@ -79,7 +79,11 @@ sub run {
     type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
     type_password $sles4sap::instance_password;
-    wait_screen_change { send_key $cmd{ok} };
+    if (is_sle('<15-SP4')) {
+        wait_screen_change { send_key $cmd{ok} };
+    } else {
+        wait_screen_change { send_key $cmd{next} };
+    }
     assert_screen 'sap-wizard-profile-ready', 300;
     send_key $cmd{next};
 
