@@ -38,10 +38,12 @@ schedule:
   - migration/online_migration/post_migration
   - '{{cluster_boot_mgmt}}'
   - '{{console_reboot}}'
-  - ha/check_cluster_integrity
-  - ha/check_hawk
-  - ha/wait_others_upgraded_or_updated
-  - ha/check_logs
+  # Disabled sporadically failing test modules
+  # See https://progress.opensuse.org/issues/95788
+  # - ha/check_cluster_integrity
+  # - ha/check_hawk
+  # - ha/wait_others_upgraded_or_updated
+  # - ha/check_logs
 conditional_schedule:
   cluster_boot_mgmt:
     QAM_INCI:
