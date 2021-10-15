@@ -1,0 +1,10 @@
+---
+name: sap-library-tests
+description: >
+  Run external test suite to verify systemd is compliant with the SAP
+  start framework.
+vars: {}
+schedule:
+  - boot/boot_to_desktop
+  - console/systemd_sapstart_check
+  - shutdown/shutdown
