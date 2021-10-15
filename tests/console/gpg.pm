@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2020 SUSE LLC
+# Copyright 2017-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: gpg2 haveged
@@ -17,7 +17,7 @@
 # - Cleanup
 #
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
-# Tags: poo#65375
+# Tags: poo#65375, poo#97685
 
 use base "consoletest";
 use strict;
@@ -96,9 +96,15 @@ EOF
     enter_cmd "$passwd";
 
     # According to FIPS PUB 186-4 Digital Signature Standard (DSS), only the
-    # 2048 and 4096 key length should be supported. See bsc#1125740 comment#15
-    # for details
-    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024' || $key_size == '4096')) {
+    # 2048 and 3072 key length should be supported by default.
+    #
+    # In SPEC, The Digital Signature Standard, section B 3.3 states:
+    # If nlen is neither 2048 nor 3072, then return (FAILURE, 0, 0).
+    # Only 2048 and 3072 are the allowed modulus (n) lengths when generating
+    # the random probable primes p and q for RSA.
+    #
+    # Please see bsc#1165902#c40 that RSA 4096 can be accepted even in FIPS mode
+    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024')) {
         wait_serial("failed: Invalid value", 90) || die "It should failed with invalid value!";
         return;
     }
