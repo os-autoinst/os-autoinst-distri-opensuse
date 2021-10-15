@@ -13,25 +13,39 @@ use testapi;
 use publiccloud::azure;
 use publiccloud::ec2;
 use publiccloud::eks;
+use publiccloud::ecr;
 use publiccloud::gce;
 use strict;
 use warnings;
 
 sub provider_factory {
-    my ($self) = @_;
+    my ($self, %args) = @_;
     my $provider;
 
     die("Provider already initialized") if ($self->{provider});
 
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
-        if (check_var('PUBLIC_CLOUD_SERVICE', 'EKS')) {
+    $args{provider} //= get_required_var('PUBLIC_CLOUD_PROVIDER');
+
+    if ($args{provider} eq 'EC2') {
+        $args{service} //= 'EC2';
+
+        if ($args{service} eq 'ECR') {
+            $provider = publiccloud::ecr->new(
+                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
+                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
+                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
+                username => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
+            );
+        }
+        elsif ($args{service} eq 'EKS') {
             $provider = publiccloud::eks->new(
                 key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
                 key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
                 region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
                 username => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
             );
-        } else {
+        }
+        elsif ($args{service} eq 'EC2') {
             $provider = publiccloud::ec2->new(
                 key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
                 key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
@@ -39,9 +53,12 @@ sub provider_factory {
                 username => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
             );
         }
+        else {
+            die('Unknown service given');
+        }
 
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    elsif ($args{provider} eq 'AZURE') {
         $provider = publiccloud::azure->new(
             key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
             key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
@@ -51,7 +68,7 @@ sub provider_factory {
             username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
         );
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE')) {
+    elsif ($args{provider} eq 'GCE') {
         $provider = publiccloud::gce->new(
             account => get_var('PUBLIC_CLOUD_ACCOUNT'),
             service_acount_name => get_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),

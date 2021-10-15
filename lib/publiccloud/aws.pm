@@ -11,12 +11,14 @@ package publiccloud::aws;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
+use mmapi 'get_current_job_id';
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
 has ssh_key => undef;
 has ssh_key_file => undef;
 has credentials => undef;
+has container_registry => undef;
 
 sub vault_create_credentials {
     my ($self) = @_;
@@ -65,6 +67,35 @@ sub init {
     $self->{aws_account_id} = script_output("aws sts get-caller-identity | jq -r '.Account'");
     die("Cannot get the UserID") unless ($self->{aws_account_id});
     die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->{aws_account_id} =~ /^\d{12}$/;
+
+    $self->container_registry(get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing'));
 }
 
+=head2 get_container_registry_prefix
+Get the full registry prefix URL for any containers image registry of ECR based on the account and region 
+=cut
+sub get_container_registry_prefix {
+    my ($self) = @_;
+    my $region = $self->region;
+    my $aws_account_id = $self->{aws_account_id};
+    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $aws_account_id, $region);
+    return $full_name_prefix;
+}
+
+=head2 get_container_image_full_name
+Get the full name for a container image in ECR registry
+=cut
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = $self->get_container_registry_prefix();
+    return "$full_name_prefix/" . $self->container_registry . ":$tag";
+}
+
+=head2 get_default_tag
+Returns a default tag for container images based of the current job id
+=cut
+sub get_default_tag {
+    my ($self) = @_;
+    return join('-', get_var('PUBLIC_CLOUD_RESOURCE_NAME'), get_current_job_id());
+}
 1;

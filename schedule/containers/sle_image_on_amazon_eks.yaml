@@ -5,3 +5,4 @@ description: |
 schedule:
   - boot/boot_to_desktop
   - containers/upload_container_images_to_ecr
+  - containers/run_container_in_eks
