@@ -1304,7 +1304,8 @@ sub load_x11tests {
     }
     if (kdestep_is_applicable()) {
         if (!get_var('LIVECD')) {
-            loadtest "x11/plasma_browser_integration";
+            # Extension got (temporarily) pulled by Mozilla
+            # loadtest "x11/plasma_browser_integration";
             loadtest "x11/khelpcenter";
         }
         if (get_var("PLASMA5")) {
