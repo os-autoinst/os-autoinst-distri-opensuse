@@ -64,6 +64,7 @@ sub run {
     send_key "tab";
     type_string "calamari";
     send_key "ret";
+    wait_still_screen(2);
     assert_and_click('firefox-passwd-confirm_remember');
     assert_screen('firefox-passwd-confirm_master_pw');
     enter_cmd $masterpw. "";
