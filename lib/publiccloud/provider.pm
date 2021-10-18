@@ -527,16 +527,17 @@ Wrapper arround C<<$self->vault_login()>> to have retry capability.
 =cut
 sub vault_login {
     my $self = shift;
-    my $tries = 3;
+    my $max_tries = get_var('PUBLIC_CLOUD_VAULT_TRIES', 3);
+    my $try_cnt = 0;
     my $ret;
-    while ($tries-- > 0) {
+    while ($try_cnt++ < $max_tries) {
         eval {
             $ret = $self->__vault_login();
         };
         return $ret unless $@;
         sleep 10;
     }
-    die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
+    die("vault_login() failed after $max_tries attempts -- " . $@);
 }
 
 =head2 __vault_api
@@ -587,16 +588,17 @@ Wrapper around C<<$self->vault_api()>> to get retry capability.
 sub vault_api {
     my ($self, $path, %args) = @_;
     my $ret;
-    my $tries = get_var('PUBLIC_CLOUD_VAULT_TRIES', 3);
+    my $max_tries = get_var('PUBLIC_CLOUD_VAULT_TRIES', 3);
+    my $try_cnt = 0;
 
-    while ($tries-- > 0) {
+    while ($try_cnt++ < $max_tries) {
         eval {
             $ret = $self->__vault_api($path, %args);
         };
         return $ret unless ($@);
         sleep get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', 60);
     }
-    die("Maximum number of Vault request retries exceeded. Check Vault Server is up and running");
+    die("vault_api() call failed after $max_tries attempts -- " . $@);
 }
 
 =head2 vault_get_secrets
