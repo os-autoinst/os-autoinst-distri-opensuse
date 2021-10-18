@@ -29,12 +29,15 @@ use containers::engine;
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+
+    my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
+
     my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $engine = containers::engine::podman->new();
+    my $podman = containers::engine::podman->new();
 
     install_podman_when_needed($host_distri);
-    $engine->configure_insecure_registries();
+    $podman->configure_insecure_registries();
     my $user = $testapi::username;
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {
@@ -56,13 +59,11 @@ sub run {
 
     return if softfail_and_skip_on_bsc1182874();
 
-    for my $iname (@{$released_images}) {
-        test_container_image(image => $iname, runtime => $engine);
-        build_and_run_image(base => $iname, runtime => $engine);
-        test_zypper_on_container($engine, $iname);
-        verify_userid_on_container($engine, $iname, $subuid_start);
-    }
-    $engine->cleanup_system_host();
+    test_container_image(image => $image, runtime => $podman);
+    build_and_run_image(base => $image, runtime => $podman);
+    test_zypper_on_container($podman, $image);
+    verify_userid_on_container($image, $subuid_start);
+    $podman->cleanup_system_host();
 }
 
 sub softfail_and_skip_on_bsc1182874 {
@@ -79,6 +80,41 @@ sub get_user_subuid {
     my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid",
         proceed_on_failure => 1);
     return $start_range;
+}
+
+sub verify_userid_on_container {
+    my ($image, $start_id) = @_;
+    my $huser_id = script_output "echo \$UID";
+    record_info "host uid", "$huser_id";
+    record_info "root default user", "rootless mode process runs with the default container user(root)";
+    my $cid = script_output "podman run -d --rm --name test1 $image sleep infinity";
+    validate_script_output "podman top $cid user huser", sub { /root\s+1000/ };
+    validate_script_output "podman top $cid capeff", sub { /setuid/i };
+
+    record_info "non-root user", "process runs under the range of subuids assigned for regular user";
+    $cid = script_output "podman run -d --rm --name test2 --user 1000 $image sleep infinity";
+    my $id = $start_id + $huser_id - 1;
+    validate_script_output "podman top $cid user huser", sub { /1000\s+${id}/ };
+    validate_script_output "podman top $cid capeff", sub { /none/ };
+
+    record_info "root with keep-id", "the default user(root) starts process with the same uid as host user";
+    $cid = script_output "podman run -d --rm --userns keep-id $image sleep infinity";
+    # Remove once the softfail removed. it is just checks the user's mapped uid
+    validate_script_output "podman exec -it $cid cat /proc/self/uid_map", sub { /1000/ };
+    my $output = script_output("podman top $cid user huser 2>&1", proceed_on_failure => 1);
+    # Check for bsc#1182428
+    if ($output =~ "error executing .*nsenter.*executable file not found") {
+        record_soft_failure "bsc#1182428 - Issue with nsenter from podman-top";
+    } else {
+        validate_script_output "podman top $cid user huser", sub { /bernhard\s+bernhard/ };
+        validate_script_output "podman top $cid capeff", sub { /setuid/i };
+    }
+
+    ## Check if uid change within the container works as desired
+    # Note: If this part with 'zypper install' becomes cumbersome we could switch to an image, which already includes sudo and useradd
+    my $cmd = '(id | grep uid=0) && zypper -n -q in sudo shadow && useradd geeko -u 1000 && (sudo -u geeko id | grep geeko)';
+    script_retry("podman run -ti --rm '$image' bash -c '$cmd'", timeout => 300, retry => 3, delay => 60);
+
 }
 
 sub post_run_hook {
