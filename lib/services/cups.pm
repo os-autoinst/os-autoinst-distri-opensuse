@@ -56,7 +56,7 @@ sub check_function {
     }
     # Add printers
     record_info "lpadmin", "Try to add printers and enable them";
-    validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ };
+    validate_script_output('lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ }, timeout => 120);
     assert_script_run 'lpadmin -p printer_tmp -v file:/tmp/test_cups -m raw -E';
     assert_script_run 'lpadmin -p printer_null -v file:/dev/null -m raw -E';
     assert_script_run 'cupsenable printer_tmp printer_null';
@@ -106,7 +106,7 @@ sub check_function {
     # Remove printers
     record_info "lpadmin -x", "Removing printers";
     assert_script_run "lpadmin -x $_" foreach (qw(printer_tmp printer_null));
-    validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ };
+    validate_script_output('lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ }, timeout => 120);
 }
 
 # check apache service before and after migration
