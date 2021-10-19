@@ -38,7 +38,7 @@ sub init {
     my ($self, $args) = @_;
     $self->{FilesystemOptionsPage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsPage->new({app => YuiRestClient::get_app()});
     $self->{PartitioningSchemePage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemePage->new({app => YuiRestClient::get_app()});
-    $self->{SelectDisksToUsePage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksPage->new({app => YuiRestClient::get_app()});
+    $self->{SelectHardDisksPage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -61,8 +61,8 @@ sub get_select_disks_to_use_page {
 }
 
 sub setup_disks_to_use {
-    my ($self, @disks) = @_;
-    $self->get_select_disks_to_use_page()->select_hard_disks(@disks);
+    my ($self, $disks) = @_;
+    $self->get_select_disks_to_use_page()->select_hard_disks($disks);
     $self->get_select_disks_to_use_page()->press_next();
 }
 

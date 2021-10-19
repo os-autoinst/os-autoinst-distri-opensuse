@@ -39,7 +39,7 @@ sub is_shown {
 
 sub select_hard_disks {
     my ($self, $disks) = @_;
-    foreach my $disk (@{$disks}) {
+    foreach my $disk ($disks) {
         $self->_get_disk_checkbox($disk)->check();
     }
 }
