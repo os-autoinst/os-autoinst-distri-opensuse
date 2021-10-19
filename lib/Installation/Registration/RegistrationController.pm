@@ -25,7 +25,7 @@ sub init {
     $self->{RegistrationPage} = Installation::Registration::RegistrationPage->new({app => YuiRestClient::get_app()});
     $self->{UseUpdateReposPopup} = Installation::Popups::YesNoPopup->new({
             app => YuiRestClient::get_app()});
-    $self->{SkipRegistrationPopup} = Installation::Popups::OkPopup->new({
+    $self->{SkipRegistrationPopup} = Installation::Popups::OKPopup->new({
             app => YuiRestClient::get_app()});
     return $self;
 }

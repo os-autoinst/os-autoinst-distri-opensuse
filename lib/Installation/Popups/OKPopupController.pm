@@ -6,11 +6,11 @@
 # Summary: The class introduces business actions for Warning Popups
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Popups::PopupController;
+package Installation::Popups::OKPopupController;
 use strict;
 use warnings;
 use YuiRestClient;
-use Installation::Popups::OkPopup;
+use Installation::Popups::OKPopup;
 
 sub new {
     my ($class, $args) = @_;
@@ -20,23 +20,24 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{Popup} = Installation::Popups::OkPopup->new({app => YuiRestClient::get_app()});
+    $self->{OKPopup} = Installation::Popups::OKPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
-sub get_popup {
+sub get_ok_popup {
     my ($self) = @_;
-    return $self->{Popup};
+    die 'OK Popup is not displayed' unless $self->{OKPopup}->is_shown();
+    return $self->{OKPopup};
 }
 
 sub get_text {
     my ($self) = @_;
-    $self->get_popup->text();
+    $self->get_ok_popup()->text();
 }
 
 sub accept {
     my ($self) = @_;
-    $self->get_popup->press_ok();
+    $self->get_ok_popup()->press_ok();
 }
 
 1;

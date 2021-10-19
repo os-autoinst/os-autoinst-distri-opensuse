@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces methods in Expert Partitioner to handle
-# a generic popup containing the message in YRichText Widget.
+# an OK popup containing the message in YRichText Widget.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Popups::OkPopup;
+package Installation::Popups::OKPopup;
 use strict;
 use warnings;
 
