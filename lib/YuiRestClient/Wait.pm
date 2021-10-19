@@ -18,9 +18,9 @@ sub wait_until {
 
     die "No object passed to the method" unless $args{object};
 
-    my $counter = $args{timeout} / $args{interval};
+    my $counter = abs(int($args{timeout} / $args{interval}));
     my $result;
-    while ($counter--) {
+    while (--$counter >= 0) {
         eval { $result = $args{object}->() };
         return $result if $result;
         sleep($args{interval});
