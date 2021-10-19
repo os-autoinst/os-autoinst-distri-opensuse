@@ -84,6 +84,9 @@ sub patching_sle {
     # create btrfs subvolume for aarch64
     create_btrfs_subvolume() if (is_aarch64);
 
+    # cleanup useless snapshots to save diskspace if we set REMOVE_SNAPSHOTS
+    cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
+
     # Remove test repos after system being patched
     remove_test_repositories;
 

@@ -89,6 +89,7 @@ our @EXPORT = qw(
   susefirewall2_to_firewalld
   permit_root_ssh
   permit_root_ssh_in_sol
+  cleanup_disk_space
 );
 
 =head1 SYNOPSIS
@@ -2042,6 +2043,35 @@ sub permit_root_ssh_in_sol {
 
     $sshd_config_file //= "/etc/ssh/sshd_config";
     enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)");
+}
+
+=head2 cleanup_disk_space
+    cleanup_disk_space();
+
+In fully_patch_system and minimal_patch_system, we'll create so many
+snapshots. which will cost large part of the disk space. We need to
+delete these snapshots before the migration only if the available space
+is less than DISK_LOW_WATERMARK.
+
+=cut
+
+sub cleanup_disk_space {
+    # we just do the disk clean up only if the available disk space is
+    # less than DISK_LOW_WATERMARK
+    return unless get_var("DISK_LOW_WATERMARK");
+    my $avail = script_output('findmnt -n -D -r -o avail / | awk \'{print $1+0}\'', timeout => 120);
+    diag "available space = $avail GB";
+    return if ($avail > get_var("DISK_LOW_WATERMARK"));
+
+    record_soft_failure "bsc#1192331", "Low diskspace on Filesystem root";
+
+    my @snap_lists = split /\n/, script_output("snapper list --disable-used-space | grep important= | grep -v single | awk \'{print \$1}\'");
+    foreach my $snapid (@snap_lists) {
+        assert_script_run("snapper delete -s $snapid", timeout => 120) if ($snapid > 3);
+    }
+
+    # set the snapshot number to 5-10
+    assert_script_run('snapper -croot set-config NUMBER_LIMIT=5-10');
 }
 
 1;
