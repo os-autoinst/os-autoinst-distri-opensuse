@@ -67,8 +67,8 @@ sub run {
     # Prepare data file for migration
     assert_script_run "sed -i 's/^root_password.*/root_password = $password/' ./instance.inf";
     assert_script_run "mkdir slapd.d";
-    assert_script_run("dscreate from-file ./instance.inf", timeout => 180);
-    assert_script_run "dsctl localhost status";
+    assert_script_run("dscreate -v from-file ./instance.inf", timeout => 180);
+    assert_script_run "dsctl -v localhost status";
     assert_script_run "slaptest -f slapd.conf -F ./slapd.d";
 
     # Check migration tools
@@ -93,6 +93,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
+    script_run "dsctl -v -l";
     $self->tar_and_upload_log('/var/log/dirsrv', '/tmp/ds389.tar.bz2');
     $self->tar_and_upload_log('/var/log/sssd', '/tmp/sssd.tar.bz2');
     $self->SUPER::post_fail_hook;
