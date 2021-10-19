@@ -46,14 +46,14 @@ sub run {
     }
     else {
         send_key_until_needlematch 'firefox-extensions-flagfox', 'f5', 5, 5;
-        assert_and_click 'firefox-extensions-flagfox', 60;
+        assert_and_click 'firefox-extensions-flagfox', timeout => 60;
         wait_still_screen 3;
         assert_and_click_until_screen_change('firefox-extensions-add-to-firefox', 5, 5);
     }
     wait_still_screen 3;
-    assert_and_click 'firefox-extensions-confirm-add', 60;
-    assert_and_click 'firefox-extensions-added', 60;
-    assert_and_click 'firefox-extensions-flagfox-tab', 60;
+    assert_and_click 'firefox-extensions-confirm-add', timeout => 60;
+    assert_and_click 'firefox-extensions-added', timeout => 60;
+    assert_and_click 'firefox-extensions-flagfox-tab', timeout => 60;
     # close the flagfox relase notes tab and flagfox search tab
     send_key_until_needlematch 'firefox-addons-plugins', 'ctrl-w', 3, 3;
     # refresh the page to see addon buttons
