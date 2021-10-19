@@ -96,6 +96,6 @@ Returns a default tag for container images based of the current job id
 =cut
 sub get_default_tag {
     my ($self) = @_;
-    return join('-', get_var('PUBLIC_CLOUD_RESOURCE_NAME'), get_current_job_id());
+    return join('-', get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm'), get_current_job_id());
 }
 1;
