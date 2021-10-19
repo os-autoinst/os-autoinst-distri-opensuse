@@ -30,10 +30,17 @@ sub parse_logs {
     my $root = $dom->createElement('testsuites');
     $dom->setDocumentElement($root);
 
+    record_info('Files', script_output('ls -lh'));
     # Dump xml contents to a location where we can access later using data_url
     for my $env (split(/,/, $test_envs)) {
-        my $log_file = upload_logs('junit_' . $env . '.xml', failok => 1);
-        if ($log_file) {
+        my $log_file;
+        eval {
+            $log_file = upload_logs('junit_' . $env . '.xml');
+        };
+        if ($@) {
+            record_info('Skip', "Skipping results for $env. $@");
+        } else {
+            record_info('Parse', $log_file);
             my $dom = XML::LibXML->load_xml(location => "ulogs/$log_file");
             for my $node ($dom->findnodes('//testsuite')) {
                 # Replace default attribute name "pytest" by its env name
@@ -69,9 +76,9 @@ sub run {
     my $error_count = 0;
     for my $env (split(/,/, $test_envs)) {
         record_info($env);
-        my $ret = script_run("tox -e $env $cmd_options", timeout => $bci_timeout);
-        if (!defined($ret)) {
-            # script_run returns undef if the command times out
+        my $ret = script_run("timeout $bci_timeout tox -e $env $cmd_options", timeout => ($bci_timeout + 3));
+        if ($ret == 124) {
+            # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
             record_soft_failure("The command <tox -e $env $cmd_options> timed out.");
             $error_count += 1;
         } elsif ($ret != 0) {
