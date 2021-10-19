@@ -20,13 +20,9 @@ sub reboot_wait {
 
     $self->reboot;
 
-    # Wait for tuned to tune everything
+    # Wait for saptune to tune everything
     my $timeout = 60;
-    if (is_sle('>=15')) {
-        assert_script_run "bash -c 'until tuned-adm verify >/dev/null ; do sleep 1 ; done'", $timeout;
-    } else {
-        sleep bmwqemu::scale_timeout($timeout);
-    }
+    sleep bmwqemu::scale_timeout($timeout);
 }
 
 sub setup {
@@ -48,7 +44,7 @@ sub setup {
     # Remove any configuration set by sapconf
     assert_script_run "sed -i.bak '/^@/,\$d' /etc/security/limits.conf";
     script_run "mv /etc/systemd/logind.conf.d/sap.conf{,.bak}" unless check_var('DESKTOP', 'textmode');
-    assert_script_run 'saptune daemon start';
+    assert_script_run 'saptune service enablestart';
     if (is_qemu) {
         # Ignore disk_elevator on VM's
         assert_script_run "sed -ri '/:scripts\\/disk_elevator/s/^/#/' \$(fgrep -rl :scripts/disk_elevator Pattern/)";
@@ -59,10 +55,13 @@ sub setup {
 }
 
 sub get_notes {
+    # Note: We ignore these as we're not testing on cloud:
+    # 1656250 - SAP on AWS: Support prerequisites - only Linux Operating System IO  recommendations
+    # 2993054 - Recommended settings for SAP systems on Linux running in Azure virtual machines
     if (is_sle('>=15')) {
-        return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 2578899 2684254 941735 SAP_BOBJ);
+        return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 2578899 2684254 3024346 900929 941735 SAP_BOBJ);
     } else {
-        return qw(1410736 1557506 1680803 1771258 1805750 1980196 1984787 2161991 2205917 2382421 2534844 941735 SAP_BOBJ);
+        return qw(1410736 1680803 1771258 1805750 1980196 1984787 2161991 2205917 2382421 2534844 3024346 900929 941735 SAP_BOBJ);
     }
 }
 
@@ -111,13 +110,13 @@ sub test_delete {
     # (applied, no override)
     assert_script_run "saptune note apply ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_2";
-    assert_script_run "saptune note delete ${note}";
+    assert_script_run "! saptune note delete ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_2";
 
     # (applied, override)
     assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_3";
-    assert_script_run "saptune note delete ${note}";
+    assert_script_run "! saptune note delete ${note}";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#1_3";
 
     # (not applied, override)
@@ -137,13 +136,13 @@ sub test_delete {
     assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/extra/testnote.conf";
     assert_script_run "saptune note apply testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_2";
-    assert_script_run "saptune note delete testnote";
+    assert_script_run "! saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_2";
 
     # (applied, override)
     assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_3";
-    assert_script_run "saptune note delete testnote";
+    assert_script_run "! saptune note delete testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-delete#2_3";
 
     # (not applied, override)
@@ -215,14 +214,13 @@ sub test_rename {
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_1";
     assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/extra/testnote.conf";
     assert_script_run "saptune note apply testnote";
-    assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_2";
-    assert_script_run "saptune note rename testnote newnote";
+    assert_script_run "! saptune note rename testnote newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_2";
 
     # (applied, override)
     assert_script_run "echo -e '[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"' > /etc/saptune/override/testnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_3";
-    assert_script_run "saptune note rename testnote newnote";
+    assert_script_run "! saptune note rename testnote newnote";
     assert_script_run "mr_test verify ${dir}/testpattern_saptune-rename#2_3";
 
     # (not applied, override)
