@@ -182,11 +182,13 @@ sub test_opensuse_based_image {
                     sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
             }
 
-            # SUSEConnect zypper service is supported only on SLE based image on SLE host
-            my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-            $runtime->run_container($image, cmd => "$plugin -v", keep_container => 1);
-            $runtime->run_container($image, cmd => "$plugin lp", keep_container => 1, timeout => 420);
-            $runtime->run_container($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
+            unless (is_unreleased_sle) {
+                # SUSEConnect zypper service is supported only on SLE based image on SLE host
+                my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
+                $runtime->run_container($image, cmd => "$plugin -v", keep_container => 1);
+                $runtime->run_container($image, cmd => "$plugin lp", keep_container => 1, timeout => 420);
+                $runtime->run_container($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
+            }
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
         }
@@ -205,21 +207,13 @@ sub test_opensuse_based_image {
     }
 
     # Zypper is supported only on openSUSE or on SLE based image on SLE host
-    if (($host_id =~ 'sles' && $image_id =~ 'sles') || $image_id =~ 'opensuse') {
-        # run_container for buildah is broken when passing a name
-        if ($runtime->runtime eq 'buildah') {
-            record_info "Skipping", "test code for buildah is broken";
-            return;
-        }
-
-        test_zypper_on_container($runtime, $image);
+    if (($host_id =~ 'sles' && $image_id =~ 'sles' && !is_unreleased_sle) || $image_id =~ 'opensuse') {
         # If we are in not-released SLE host, we can't use zypper commands inside containers
         # that are not the same version as the host, so we skip this test.
-        unless (is_unreleased_sle) {
-            build_and_run_image(base => $image, runtime => $runtime);
-            if (is_sle && $runtime->runtime eq 'docker') {
-                build_with_zypper_docker(image => $image, runtime => $runtime, version => $version);
-            }
+        test_zypper_on_container($runtime, $image);
+        build_and_run_image(base => $image, runtime => $runtime);
+        if (is_sle && $runtime->runtime eq 'docker') {
+            build_with_zypper_docker(image => $image, runtime => $runtime, version => $version);
         }
     }
 }
