@@ -99,9 +99,20 @@ sub cleanup {
 
 sub scrub {
     my $pool = shift;
-    assert_script_run("zpool scrub $pool");
+    assert_script_run("zpool scrub $pool", timeout => 180);
     # Wait for scrub to finish
-    script_retry("zpool status $pool | grep scan | grep -v 'in progress'", delay => 1, retry => 30);
+    script_retry("zpool status $pool | grep scan | grep -v 'in progress'", delay => 10, retry => 12);
+}
+
+sub import_pool {
+    my $pool = shift;
+    return if (script_run("zpool list | grep '$pool'") == 0);
+    # assemble device list
+    my $devices = "";
+    $devices .= " -d '$_'" foreach (@_);
+    assert_script_run("zpool import $devices '$pool'");
+    # ensure the poll is present after importing
+    script_retry("zpool list | grep '$pool'", delay => 5, retry => 12);
 }
 
 sub reboot {
@@ -232,10 +243,8 @@ sub run {
     assert_script_run("systemctl status zfs.target | grep 'active'");
     assert_script_run("systemctl status zfs-share | grep 'active'");
     # Since zpool by default only searches for disks but not files, we need to point it to the disk files manually
-    assert_script_run("zpool import -d /var/tmp/tank_a.img -d /var/tmp/tank_b.img -d /var/tmp/tank_c.img tank");
-    assert_script_run('zpool list | grep "tank"');
-    assert_script_run("zpool import -d /var/tmp/dozer.img dozer");
-    assert_script_run('zpool list | grep "dozer"');
+    import_pool("tank", "/var/tmp/tank_a.img", "/var/tmp/tank_b.img", "/var/tmp/tank_c.img");
+    import_pool("dozer", "/var/tmp/dozer.img");
     assert_script_run('stat /tank/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
     assert_script_run('cd /tank; md5sum -c /var/tmp/Big_Buck_Bunny_8_seconds_bird_clip.ogv.md5sum');
     assert_script_run('! stat /tank/test_unzip.zip');
