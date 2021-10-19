@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 package bootloader_setup;
@@ -915,6 +915,7 @@ sub tianocore_disable_secureboot {
     send_key_until_needlematch 'tianocore-devicemanager', 'esc';
     send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
     send_key 'ret';
+    send_key 'ret' if check_screen('tianocore-secureboot-not-enabled', 20);
     $basetest->wait_grub;
 }
 
