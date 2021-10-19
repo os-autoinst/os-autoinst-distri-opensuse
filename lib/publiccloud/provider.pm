@@ -441,8 +441,10 @@ Destroys the current terraform deployment
 =cut
 sub terraform_destroy {
     my ($self) = @_;
+    # Do not destroy if terraform has not been applied or the environment doesn't exist
+    return unless ($self->terraform_applied);
+
     my $cmd;
-    return if get_required_var('TEST') =~ /^publiccloud_upload_img/;
     record_info('INFO', 'Removing terraform plan...');
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         assert_script_run('cd ' . TERRAFORM_DIR . '/' . $self->conv_openqa_tf_name);
@@ -473,7 +475,7 @@ sub terraform_destroy {
 
 =head2 terraform_param_tags
 
-Build the tags parameter for terraform. It is a single depth json like 
+Build the tags parameter for terraform. It is a single depth json like
 c<{"key": "value"}> where c<value> must be a string.
 =cut
 sub terraform_param_tags
@@ -639,7 +641,7 @@ This method is called called after each test on failure or success.
 =cut
 sub cleanup {
     my ($self) = @_;
-    $self->terraform_destroy() unless script_run('test -d ' . TERRAFORM_DIR . '/.terraform') && check_var('PUBLIC_CLOUD_SERVICE', 'EKS');
+    $self->terraform_destroy();
     $self->vault_revoke();
     assert_script_run "cd";
 }
