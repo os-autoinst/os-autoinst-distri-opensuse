@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use YuiRestClient;
 use Installation::ProductSelection::ProductSelectionPage;
-use Installation::Popups::OkPopup;
+use Installation::Popups::OKPopup;
 
 sub new {
     my ($class, $args) = @_;
@@ -22,7 +22,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{ProductSelectionPage} = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
-    $self->{AccessBetaDistributionPopup} = Installation::Popups::OkPopup->new({app => YuiRestClient::get_app()});
+    $self->{AccessBetaDistributionPopup} = Installation::Popups::OKPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 

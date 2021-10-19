@@ -36,7 +36,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::RaidTypePage;
 use Installation::Partitioner::LibstorageNG::v4_3::RaidOptionsPage;
 use Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage;
 use Installation::Popups::YesNoPopup;
-use Installation::Popups::OkPopup;
+use Installation::Popups::OKPopup;
 
 use YuiRestClient;
 
@@ -72,7 +72,7 @@ sub init {
     $self->{FstabOptionsPage} = Installation::Partitioner::LibstorageNG::v4_3::FstabOptionsPage->new({app => YuiRestClient::get_app()});
 
     $self->{YesNoPopup} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
-    $self->{OkPopup} = Installation::Popups::OkPopup->new({app => YuiRestClient::get_app()});
+    $self->{OKPopup} = Installation::Popups::OKPopup->new({app => YuiRestClient::get_app()});
     $self->{OnlyUseIfFamiliarWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     $self->{DeletePartitionWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     $self->{DeleteVolumeGroupWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
@@ -134,7 +134,7 @@ sub get_yes_no_popup {
 
 sub get_ok_popup {
     my ($self) = @_;
-    return $self->{OkPopup};
+    return $self->{OKPopup};
 }
 
 sub get_create_new_partition_table_page {
