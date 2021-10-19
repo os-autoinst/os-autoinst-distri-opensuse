@@ -245,7 +245,7 @@ sub prepare_profile {
     my $has_saptune = $self->is_saptune_installed();
 
     if ($has_saptune) {
-        assert_script_run "tuned-adm profile saptune";
+        assert_script_run "saptune daemon start";
         assert_script_run "saptune solution apply $profile";
     }
     elsif (is_sle('15+')) {
@@ -317,9 +317,7 @@ sub prepare_profile {
             $self->select_serial_terminal;
             $output = script_output "saptune daemon status";
         }
-        record_info("tuned status", $output);
-        $output = script_output "tuned-adm active";
-        record_info("tuned profile", $output);
+        record_info("saptune status", $output);
     }
 }
 
