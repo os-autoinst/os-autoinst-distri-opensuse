@@ -26,6 +26,7 @@ sub init {
 
 sub get_ok_popup {
     my ($self) = @_;
+    die 'OK Popup is not displayed' unless $self->{OKPopup}->is_shown();
     return $self->{OKPopup};
 }
 
