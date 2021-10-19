@@ -45,10 +45,7 @@ sub run {
     # Open a new tab to avoid the keyboard focus is misled by the homepage
     send_key 'ctrl-t';
     wait_still_screen 3;
-    send_key "alt-e";
-    wait_still_screen 3;
-    send_key "n";
-    assert_screen('firefox-preferences');
+    $self->firefox_preferences;
     assert_and_click 'firefox-changesaving-showblankpage';
     wait_still_screen 2, 4;    #There might be a notification
     send_key "alt-tab";        #Switch to xterm

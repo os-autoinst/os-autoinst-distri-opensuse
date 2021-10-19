@@ -682,6 +682,11 @@ sub firefox_open_url {
     }
 }
 
+sub firefox_preferences {
+    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 3, 15;
+    send_key_until_needlematch 'firefox-preferences', 'n', 3, 15;
+}
+
 sub exit_firefox_common {
     # Exit
     send_key 'ctrl-q';
