@@ -33,4 +33,8 @@ sub post_fail_hook {
     $self->{provider}->delete_image($self->tag);
 }
 
+sub test_flags {
+    return {fatal => 1, milestone => 1};
+}
+
 1;
