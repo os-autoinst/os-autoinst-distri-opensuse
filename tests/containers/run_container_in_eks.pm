@@ -20,6 +20,8 @@ sub run {
     $self->select_serial_terminal;
     $self->install_kubectl();
 
+    my $cmd = '"cat", "/etc/os-release"';
+
     my $provider = $self->provider_factory(service => 'EKS');
     $self->{provider} = $provider;
 
@@ -41,19 +43,23 @@ spec:
       containers:
       - name: main
         image: $image
-        command: [ "cat", "/etc/os-release" ]
+        command: [ $cmd ]
       restartPolicy: Never
   backoffLimit: 4
 EOT
 
+    record_info('Manifest', "Applying manifest:\n$manifest");
     $self->apply_manifest($manifest);
     $self->wait_for_job_complete($job_name);
     my $pod = $self->find_pods("job-name=$job_name");
-    $self->validate_log($pod, "SLES");
+    record_info('Pod', "Container (POD) successfully created in EKS.\n$pod");
+    $self->validate_log($pod, "SUSE Linux Enterprise Server");
+    record_info('cmd', "Command `$cmd` successfully executed in the image.");
 }
 
 sub cleanup {
     my ($self) = @_;
+    record_info('Cleanup', 'Deleting kubectl job and image.');
     assert_script_run("kubectl delete job " . $self->{job_name});
     assert_script_run("aws ecr batch-delete-image --repository-name "
           . $self->{provider}->container_registry

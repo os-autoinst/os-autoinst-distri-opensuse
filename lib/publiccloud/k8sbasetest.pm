@@ -18,15 +18,14 @@ sub install_kubectl {
 }
 
 =head2 apply_manifest
-Apply a kubernetes manifest 
+Apply a kubernetes manifest
 =cut
 sub apply_manifest {
     my ($self, $manifest) = @_;
 
     my $path = sprintf('/tmp/%s.yml', random_string(32));
 
-    record_info('INFO', "Temporal manifest yaml $path \ncontent\n $manifest");
-    assert_script_run("echo -e '$manifest' >$path");
+    script_output("echo -e '$manifest' > $path");
     upload_logs($path, failok => 1);
 
     assert_script_run("kubectl apply -f $path");

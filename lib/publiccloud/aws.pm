@@ -72,7 +72,7 @@ sub init {
 }
 
 =head2 get_container_registry_prefix
-Get the full registry prefix URL for any containers image registry of ECR based on the account and region 
+Get the full registry prefix URL for any containers image registry of ECR based on the account and region
 =cut
 sub get_container_registry_prefix {
     my ($self) = @_;
