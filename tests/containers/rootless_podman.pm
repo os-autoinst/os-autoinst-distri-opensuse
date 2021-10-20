@@ -25,10 +25,16 @@ use containers::utils 'registry_url';
 use version_utils qw(get_os_release);
 use version_utils 'is_sle';
 use containers::engine;
+use Utils::Architectures 'is_s390x';
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+
+    if (is_s390x) {
+        record_soft_failure("poo#101154 - Test images broken for s390x");
+        return;
+    }
 
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 
