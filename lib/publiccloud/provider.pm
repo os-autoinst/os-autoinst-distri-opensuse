@@ -24,9 +24,11 @@ has key_secret => undef;
 has region => undef;
 has username => undef;
 has prefix => 'openqa';
+has terraform_env_prepared => 0;
 has terraform_applied => 0;
 has vault_token => undef;
 has vault_lease_id => undef;
+has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 
 =head1 METHODS
 
@@ -37,22 +39,6 @@ Needs provider specific credentials, e.g. key_id, key_secret, region.
 =cut
 sub init {
     my ($self) = @_;
-    my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
-    assert_script_run('mkdir -p ' . TERRAFORM_DIR);
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $cloud_name = $self->conv_openqa_tf_name;
-        # Disable SSL verification only if explicitly asked!
-        assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
-        assert_script_run('cd ' . TERRAFORM_DIR);
-        assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
-        # By default use the default provided Salt formula packages
-        assert_script_run('rm -f requirements.yml') unless get_var('HA_SAP_USE_REQUIREMENTS');
-        assert_script_run('cd');    # We need to ensure to be in the home directory
-        assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
-    }
-    else {
-        assert_script_run('curl ' . data_url("publiccloud/terraform/$file.tf") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
-    }
     $self->create_ssh_key();
 }
 
@@ -305,6 +291,34 @@ and the *.tf is placed.
 sub on_terraform_destroy_timeout {
 }
 
+=head2 terraform_prepare_env
+
+This method is used to initialize the terraform environment.
+it is executed only once, guareded by `terraform_env_prepared` member.
+=cut
+sub terraform_prepare_env {
+    my ($self) = @_;
+    return if $self->terraform_env_prepared;
+
+    my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
+    assert_script_run('mkdir -p ' . TERRAFORM_DIR);
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        my $cloud_name = $self->conv_openqa_tf_name;
+        # Disable SSL verification only if explicitly asked!
+        assert_script_run('git config --global http.sslVerify false') if get_var('HA_SAP_GIT_NO_VERIFY');
+        assert_script_run('cd ' . TERRAFORM_DIR);
+        assert_script_run('git clone --depth 1 --branch ' . get_var('HA_SAP_GIT_TAG', 'master') . ' ' . get_required_var('HA_SAP_GIT_REPO') . ' .');
+        # By default use the default provided Salt formula packages
+        assert_script_run('rm -f requirements.yml') unless get_var('HA_SAP_USE_REQUIREMENTS');
+        assert_script_run('cd');    # We need to ensure to be in the home directory
+        assert_script_run('curl ' . data_url("publiccloud/terraform/sap/$file.tfvars") . ' -o ' . TERRAFORM_DIR . "/$cloud_name/terraform.tfvars");
+    }
+    else {
+        assert_script_run('curl ' . data_url("publiccloud/terraform/$file.tf") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
+    }
+    $self->terraform_env_prepared(1);
+}
+
 =head2 terraform_apply
 
 Calls terraform tool and applies the corresponding configuration .tf file
@@ -321,10 +335,11 @@ sub terraform_apply {
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $image = $self->get_image_id();
     my $ssh_private_key_file = '/root/.ssh/id_rsa';
-    my $name = get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm');
     my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
+
+    $self->terraform_prepare_env();
 
     record_info('INFO', "Creating instance $instance_type from $image ...");
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
@@ -366,7 +381,7 @@ sub terraform_apply {
         $cmd .= "-var 'instance_count=" . $args{count} . "' ";
         $cmd .= "-var 'type=" . $instance_type . "' ";
         $cmd .= "-var 'region=" . $self->region . "' ";
-        $cmd .= "-var 'name=" . $name . "' ";
+        $cmd .= "-var 'name=" . $self->resource_name . "' ";
         $cmd .= "-var 'project=" . $args{project} . "' " if $args{project};
         $cmd .= "-var 'enable_confidential_vm=true' " if $args{confidential_compute};
         $cmd .= sprintf(q(-var 'tags=%s' ), escape_single_quote($self->terraform_param_tags));
