@@ -12,7 +12,8 @@
 # as External Results.
 # - Determine the repository where the external systemd lib sapstart
 #   test script is located or use the one provided in the
-#   QA_TEST_REPO setting.
+#   QA_TEST_REPO setting. If the setting points to a tarball, use the
+#   tarball directly instead.
 # - Add the repository and install the SAP-systemdlib-tests package.
 # - Prepare and run the external test script.
 # - Collect the results and format them in JSON so they can be added
@@ -29,6 +30,7 @@ use strict;
 use warnings;
 
 my $log = '/tmp/systemd_run.log';
+my $testdir = '/usr/lib/systemd/test/SAP';
 
 sub install_test_package {
     my ($self) = @_;
@@ -55,8 +57,19 @@ sub install_test_package {
         die '$qatest_repo is not set' unless ($qatest_repo);
     }
 
-    zypper_ar $qatest_repo, name => $repo_name;
-    zypper_call "in $pkg_name";
+    if ($qatest_repo =~ m/(\.tar|\.tgz)/) {
+        my $zopt = ($qatest_repo =~ m/gz$/) ? 'z' : '';
+        enter_cmd "mkdir -p $testdir";
+        enter_cmd "cd $testdir";
+        assert_script_run "curl -k $qatest_repo | tar -${zopt}xvf -";
+        assert_script_run "cp systemd/*.sh .";
+        enter_cmd "cd -";
+    }
+    else {
+        # Assume test repo is a zypper repository
+        zypper_ar $qatest_repo, name => $repo_name;
+        zypper_call "in $pkg_name";
+    }
 }
 
 sub parse_results_from_output {
@@ -80,7 +93,7 @@ sub parse_results_from_output {
             next;
         }
         $outcome = 'failed' if ($line =~ /(ERROR:|FAILED:|failed$)/);
-        if ($testunit && ($line =~ /^=+$/)) {
+        if ($testunit && ($line =~ /(^=+$|^#+$)/)) {
             # Test block end has been reached. Record results
             $results{summary}{num_tests}++;
             $results{summary}{passed}++ if ($outcome eq 'passed');
@@ -107,14 +120,16 @@ sub run {
 
     select_console 'root-console';
     $self->install_test_package;
-    enter_cmd 'cd /usr/lib/systemd/test/SAP';
+    enter_cmd "cd $testdir";
     # systemd_prepare.sh can fail with a 0 retval, so we run it with sh -e
     # to attempt to catch any errors and abort if necessary
     assert_script_run 'sh -e ./systemd_prepare.sh';
+    # Wait at least 180s for test to finish
+    my $wait = 180;
     # Run the test and save the logs and results
     # systemd_run.sh will fail with a non-zero retval is any of the sub-tests
     # fail. We ignore it to parse the individual results from the log
-    my $out = script_output "su - abcadm -c '/usr/lib/systemd/test/SAP/systemd_run.sh' 2>&1 | tee $log", proceed_on_failure => 1;
+    my $out = script_output "su - abcadm -c '$testdir/systemd_run.sh' 2>&1 | tee $log", $wait, proceed_on_failure => 1;
     $self->parse_results_from_output($out);
     $self->upload_systemdlib_tests_logs;
 }
