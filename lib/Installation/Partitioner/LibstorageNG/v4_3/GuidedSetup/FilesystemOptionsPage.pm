@@ -18,7 +18,13 @@ sub init {
     $self->SUPER::init();
     $self->{lbl_settings_root_part} = $self->{app}->label({label => 'Settings for the Root Partition'});
     $self->{cmb_root_fs_type} = $self->{app}->combobox({id => '"vol_0_fs_type"'});
+    $self->{chb_separate_home} = $self->{app}->checkbox({id => '"vol_1_proposed"'});
     return $self;
+}
+
+sub unselect_propose_separate_home {
+    my ($self) = @_;
+    $self->{chb_separate_home}->uncheck();
 }
 
 sub select_root_filesystem {

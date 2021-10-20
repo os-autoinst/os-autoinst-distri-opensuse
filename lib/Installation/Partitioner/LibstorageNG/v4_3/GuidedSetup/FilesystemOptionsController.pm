@@ -41,6 +41,11 @@ sub get_filesystem_options_page {
     return $self->{FilesystemOptionsPage};
 }
 
+sub do_not_propose_separate_home {
+    my ($self) = @_;
+    $self->get_filesystem_options_page()->unselect_propose_separate_home();
+}
+
 sub select_root_filesystem_type {
     my ($self, $fs_type) = @_;
     $self->get_filesystem_options_page()->select_root_filesystem($fs_type);
