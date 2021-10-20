@@ -145,7 +145,9 @@ sub test_add_vcpu {
             record_soft_failure 'bsc#1170026 vCPU hotplugging damages ' . $guest if (script_retry("ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60, die => 0) != 0);
             #$self->{test_results}->{$guest}->{"bsc#1170026 vCPU hotplugging damages this guest $guest"}->{status} = 'SOFTFAILED' if ($vcpu_nproc != 0);
         } else {
-            script_retry("ssh root\@$guest nproc | grep 3", delay => 60, retry => 3, timeout => 60);
+            # bsc#1191737 Get the wrong vcpu number for 15-SP4 guest via nproc tool
+            my $nproc = (is_kvm_host && $guest =~ m/sles-15-sp4-64/i) ? 'nproc --all' : 'nproc';
+            script_retry("ssh root\@$guest $nproc | grep 3", delay => 60, retry => 3, timeout => 60);
         }
         # Reset CPU count to two
         die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
