@@ -39,7 +39,7 @@ schedule:
   - ha/iscsi_client
   - ha/watchdog
   - '{{cluster_setup}}'
-  - '{{ha_cluster_preflight_check}}'
+  - '{{ha_cluster_crash_test}}'
   - ha/check_logs
 conditional_schedule:
   cluster_setup:
@@ -48,7 +48,7 @@ conditional_schedule:
         - ha/ha_cluster_init
       no:
         - ha/ha_cluster_join
-  ha_cluster_preflight_check:
+  ha_cluster_crash_test:
     PREFLIGHT_CHECK:
       1:
-        - ha/ha_cluster_preflight_check
+        - ha/ha_cluster_crash_test
