@@ -27,6 +27,7 @@
       <li><a href="#create_instances">create_instances</a></li>
       <li><a href="#on_terraform_apply_timeout">on_terraform_apply_timeout</a></li>
       <li><a href="#on_terraform_destroy_timeout">on_terraform_destroy_timeout</a></li>
+      <li><a href="#terraform_prepare_env">terraform_prepare_env</a></li>
       <li><a href="#terraform_apply">terraform_apply</a></li>
       <li><a href="#terraform_destroy">terraform_destroy</a></li>
       <li><a href="#terraform_param_tags">terraform_param_tags</a></li>
@@ -107,6 +108,10 @@
 <h2 id="on_terraform_destroy_timeout">on_terraform_destroy_timeout</h2>
 
 <p>This method can be overwritten by child classes to do some special cleanup task if &#39;destroy&#39; fails. Terraform was already terminated using the QUIT signal and openqa has a valid shell. The working directory is always the terraform directory, where the statefile and the *.tf is placed.</p>
+
+<h2 id="terraform_prepare_env">terraform_prepare_env</h2>
+
+<p>This method is used to initialize the terraform environment. it is executed only once, guareded by `terraform_env_prepared` member.</p>
 
 <h2 id="terraform_apply">terraform_apply</h2>
 
