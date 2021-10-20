@@ -29,7 +29,7 @@ C<$proto> can be C<pop> or C<imap>.
 C<$account> can be C<internal_account_A> or C<internal_account_B> or C<internal_account_C> or C<internal_account_D>.
 =cut
 sub tb_setup_account {
-    my $hostname = get_var('HOSTNAME');
+    my $hostname = get_var('HOSTNAME') // '';
     my ($self, $proto, $account) = @_;
 
     my $config = $self->getconfig_emailaccount;
@@ -107,7 +107,7 @@ C<$account> can be C<internal_account_A> or C<internal_account_B> or C<internal_
 Returns email subject.
 =cut
 sub tb_send_message {
-    my $hostname = get_var('HOSTNAME');
+    my $hostname = get_var('HOSTNAME') // '';
     my ($self, $proto, $account) = @_;
     my $config = $self->getconfig_emailaccount;
     my $mailbox = $config->{$account}->{mailbox};
