@@ -34,7 +34,8 @@ use testapi;
 
 # have various useful general info included in videos
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     assert_script_run('curl -O ' . data_url('textinfo'));
     assert_script_run('chmod +x textinfo');
     assert_script_run("./textinfo 2>&1 | tee /tmp/info.txt", 150);
