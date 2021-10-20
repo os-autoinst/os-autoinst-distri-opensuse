@@ -171,16 +171,8 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            # TODO: implement
-            # $out = $runtime->read($image, cmd => "grep PRETTY_NAME /etc/os-release | cut -d= -f2");
-            if ($runtime->runtime =~ /buildah/) {
-                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
-                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
-            } else {
-                # zypper-docker changes the layout of the image
-                validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
-                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
-            }
+            my $out = $runtime->read_tty(image => $image, cmd => "grep PRETTY_NAME /etc/os-release", pipe => "cut -d= -f2");
+            $out =~ /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ or die "version wasnt validated";
 
             # SUSEConnect zypper service is supported only on SLE based image on SLE host
             my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';

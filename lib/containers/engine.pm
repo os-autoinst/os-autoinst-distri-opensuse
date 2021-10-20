@@ -212,7 +212,7 @@ Otherwise it prints the output of info.
 
 =cut
 sub info {
-    my ($self, %args) = shift;
+    my ($self, %args) = @_;
     my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
     my $expected = $args{value} ? qq( | grep $args{value}) : '';
     $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));
@@ -228,6 +228,19 @@ C<filename> file the logs are written to.
 sub get_container_logs {
     my ($self, $container, $filename) = @_;
     $self->_engine_assert_script_run("container logs $container | tee $filename");
+}
+
+=head2 read_tty
+
+Assert a C<property> against given expected C<value> if C<value> is given.
+Otherwise it prints the output of info.
+
+=cut
+sub read_tty {
+    my ($self) = shift;
+    my %args = (image => '', params => '', pipe => '', cmd => '', @_);
+    my $pipe_cmd = $args{pipe} ? '|' . $args{pipe} : $args{pipe};
+    return $self->_engine_script_output(sprintf("run --entrypoint /bin/bash %s %s -c '%s' %s", $args{params}, $args{image}, $args{cmd}, $pipe_cmd));
 }
 
 =head2 remove_image($image_name)
@@ -323,6 +336,31 @@ sub configure_insecure_registries {
     assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
     assert_script_run "chmod 644 /etc/containers/registries.conf";
     file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
+}
+
+package containers::engine::Factory;
+use Mojo::Base -base;
+use testapi;
+has runtime_instance => undef;
+
+sub get_instance {
+    my ($self, $runargs) = @_;
+    if (!keys %{$runargs}) {
+        # Hack for the jobs that use yaml scheduler
+        # We have move to main_*.pm in most of the cases but there is one or two which uses yaml.
+        # This will not work if the module used in the same job twice for both docker and podman
+        check_var('CONTAINER_RUNTIME', 'docker') ? $runargs->{docker} = 1 : $runargs->{podman} = 1;
+    }
+    if (defined $runargs->{docker}) {
+        $self->runtime_instance(containers::engine::docker->new());
+    }
+    elsif (defined $runargs->{podman}) {
+        $self->runtime_instance(containers::engine::podman->new());
+    }
+    else {
+        die 'job doesnt provide Runtime Container tool';
+    }
+    return $self->runtime_instance;
 }
 
 1;
