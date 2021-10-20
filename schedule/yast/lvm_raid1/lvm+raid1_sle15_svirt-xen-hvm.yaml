@@ -30,6 +30,8 @@ schedule:
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
   - console/validate_lvm_raid1
 test_data:
   <<: !include test_data/yast/lvm_raid1/lvm+raid1_svirt-xen.yaml
