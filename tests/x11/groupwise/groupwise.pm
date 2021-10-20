@@ -22,7 +22,8 @@ use testapi;
 use utils;
 
 sub run() {
-    select_console('root-console');
+    my ($self) = @_;
+    $self->select_serial_terminal;
     quit_packagekit;
 
     # add repository and install groupwise
