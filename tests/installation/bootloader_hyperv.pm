@@ -35,27 +35,31 @@ sub hyperv_cmd_with_retry {
     my @msgs = $args->{msgs} // (
         'Failed to create the virtual hard disk',
         'The operation cannot be performed while the object is in use',
-        'The process cannot access the file because it is being used by another process');
+        'The process cannot access the file because it is being used by another process',
+        'Access is denied.'
+    );
     for my $retry (1 .. $attempts) {
-        my $stderr = console('svirt')->get_cmd_output($cmd, {wantarray => 1})->[1];
-        return if $stderr =~ m/^\s*$/;    # no output on STDERR, so we are done
+        my ($ret, $stdout, $stderr) = console('svirt')->run_cmd($cmd, wantarray => 1);
+        # return when powershell returns 0 (SUCCESS)
+        return if $ret == 0;
 
         diag "Attempt $retry/$attempts: Command failed";
         my $msg_found = 0;
         foreach my $msg (@msgs) {
             diag "Looking for message: '$msg'";
             # Narrow the error message for an easy match
-            my $s = $stderr;
             # Remove Windows-style new lines (<CR><LF>)
-            $s =~ s{\r\n}{}g;
+            $stdout =~ s/\r\n//g;
+            $stderr =~ s/\r\n//g;
             # Error message is not the expected error message in this cycle,
             # try the next one
-            next unless $s =~ /$msg/;
-            $msg_found = 1;
-            # Error message is the expected one, sleep
-            diag "Sleeping for $sleep seconds...";
-            sleep $sleep;
-            last;
+            if ($stdout =~ /$msg/ || $stderr =~ /$msg/) {
+                $msg_found = 1;
+                # Error message is the expected one, sleep
+                diag "Sleeping for $sleep seconds...";
+                sleep $sleep;
+                last;
+            }
         }
         # Error we don't know if we should attempt to recover from
         die 'Command failed with unhandled error' unless $msg_found;
@@ -105,7 +109,7 @@ sub run {
                 # If the image exists, do nothing
                 last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
                 # Copy HDD from NFS share to local cache on Hyper-V
-                next if hyperv_cmd("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\", {ignore_return_code => 1});
+                hyperv_cmd_with_retry("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
                 # Decompress the XZ compressed image
                 last if $hdd !~ m/vhdx\.xz/;
                 hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
@@ -139,13 +143,16 @@ sub run {
 
     my $ps = 'powershell -Command';
 
-    my ($winserver, $winver, $vmguid);
+    my ($ret, $winver, undef) = console('svirt')->run_cmd(qq/$ps (Get-WmiObject Win32_OperatingSystem).Version/, wantarray => 1);
+    die 'Could not find Windows OS version!' if $ret != 0;
 
-    $winver = $svirt->get_cmd_output("$ps (Get-WmiObject Win32_OperatingSystem).Version");
-    if (grep { /6.3.*/ } $winver) {
+    $winver =~ s/\r\n//g;
+    my $winserver;
+
+    if ($winver =~ /6.3.*/) {
         $winserver = '2012r2';
     }
-    elsif (grep { /10.0.*/ } $winver) {
+    elsif ($winver =~ /10.0.*/) {
         $winserver = '2016_or_2019';
     }
     else {
@@ -160,6 +167,7 @@ sub run {
     my $vm_generation = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
     my @disk_paths = ();
+    my $vmguid;
     if ($winserver eq '2012r2' || $winserver eq '2016_or_2019') {
         for my $n (1 .. get_var('NUMDISKS')) {
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");
@@ -189,7 +197,8 @@ sub run {
             hyperv_cmd("$ps Add-VMHardDiskDrive -VMName $name -Path $disk_path");
         }
         hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
-        $vmguid = $svirt->get_cmd_output("$ps (Get-VM -VMName $name).id.guid");
+        ($ret, $vmguid, undef) = console('svirt')->run_cmd(qq/$ps (Get-VM -VMName $name).id.guid/, wantarray => 1);
+        die "Have not find any GUID for $name" if $ret != 0;
     }
     else {
         die "Hyper-V $winserver is currently not supported";
