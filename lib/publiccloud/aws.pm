@@ -56,9 +56,8 @@ sub init {
     die('Credentials are invalid') unless ($self->_check_credentials());
 
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        my $credentials_file = "[default]" . $/
-          . 'aws_access_key_id=' . $self->key_id . $/
-          . 'aws_secret_access_key=' . $self->key_secret;
+        my $credentials_file
+          = "[default]" . $/ . 'aws_access_key_id=' . $self->key_id . $/ . 'aws_secret_access_key=' . $self->key_secret;
 
         save_tmp_file(CREDENTIALS_FILE, $credentials_file);
         assert_script_run('curl -O ' . autoinst_url . "/files/" . CREDENTIALS_FILE);
@@ -91,11 +90,4 @@ sub get_container_image_full_name {
     return "$full_name_prefix/" . $self->container_registry . ":$tag";
 }
 
-=head2 get_default_tag
-Returns a default tag for container images based of the current job id
-=cut
-sub get_default_tag {
-    my ($self) = @_;
-    return join('-', $self->resource_name, get_current_job_id());
-}
 1;

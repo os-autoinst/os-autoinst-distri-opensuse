@@ -25,15 +25,19 @@ has private_key => undef;
 has service_acount_name => undef;
 has client_id => undef;
 has vault_gcp_role_index => undef;
+has gcr_zone => undef;
 
 sub vault_gcp_roles {
     return split(/\s*,\s*/,
         get_var('PUBLIC_CLOUD_VAULT_ROLES', 'openqa-role,openqa-role1,openqa-role2,openqa-role3'));
 }
 
+
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
+
+    $self->gcr_zone(get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io'));
 
     $self->create_credentials_file();
     assert_script_run('source ~/.bashrc');
@@ -99,6 +103,24 @@ sub create_credentials_file {
 
 sub get_credentials_file_name {
     return CREDENTIALS_FILE;
+}
+
+
+=head2 get_container_registry_prefix
+Get the full registry prefix URL for any containers image registry of ECR based on the account and region
+=cut
+sub get_container_registry_prefix {
+    my ($self) = @_;
+    return sprintf($self->gcr_zone . '/suse-sle-qa', $self->project_id);
+}
+
+=head2 get_container_image_full_name
+Get the full name for a container image in ECR registry
+=cut
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = $self->get_container_registry_prefix();
+    return "$full_name_prefix/$tag:latest";
 }
 
 1;
