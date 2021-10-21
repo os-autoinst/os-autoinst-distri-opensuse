@@ -1,0 +1,94 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient::Widget::Base - base class for all UI objects</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YuiRestClient/Widget/Base.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient::Widget::Base - base class for all UI objects</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy; 2021 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  return $self-&gt;action(action =&gt; YuiRestClient::Action::YUI_PRESS);
+  return $self-&gt;{rt_eula}-&gt;exist();
+  my $is_enabled = $self-&gt;property(&#39;enabled&#39;);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>This class provides base methods for all UI widget classes</p>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<p>Class attributes:</p>
+
+<ul>
+
+<li><p><b>{widget_controller}</b> - reference to WidgetController class</p>
+
+</li>
+<li><p><b>{filter}</b> - filter expression for identifying widgets</p>
+
+</li>
+</ul>
+
+<p>Class methods:</p>
+
+<p><b>new($args)</b> - constructor for UI objects</p>
+
+<p>Arguments are <i>widget_controller</i> and <i>filter</i>.</p>
+
+<p><b>action(%args)</b> - perform action on UI widget</p>
+
+<p>Arguments are a hash like <code>{action =&gt; YuiRestClient::Action::YUI_PRESS}</code>.</p>
+
+<p><b>exist()</b> - check if UI widget exists</p>
+
+<p>Tries to find widget, returns 0 if widget exists.</p>
+
+<p><b>propery($property)</b> - return JSON property value</p>
+
+<p>If property does not exist the method will return <code>undef</code>.</p>
+
+<p><b>find_widgets()</b> - retrieves JSON hash for the widget</p>
+
+<p>The widget is specified by the <code>filter</code> parameter on creation of the object.</p>
+
+
+</body>
+
+</html>
+
+

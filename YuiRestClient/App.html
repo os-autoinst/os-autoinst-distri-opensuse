@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient::App - Class to create a UI widget object</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YuiRestClient/App.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient::App - Class to create a UI widget object</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy; 2021 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>   $app = YuiRestClient::App-&gt;new({
+            port        =&gt; $port,
+            host        =&gt; $host,
+            api_version =&gt; API_VERSION,
+            timeout     =&gt; $timeout,
+            interval    =&gt; $interval});
+   $app-&gt;get_widget_controller()-&gt;set_host($yuihost);
+   $app-&gt;get_widget_controller()-&gt;set_host($yuiport); 
+   YuiRestClient::get_app()-&gt;check_connection(); 
+   $self-&gt;{btn_guided_setup} = $self-&gt;{app}-&gt;button({id =&gt; &#39;guided&#39;});       
+   $self-&gt;{ch_autologin} = $self-&gt;{app}-&gt;checkbox({id =&gt; &#39;autologin&#39;});
+   $self-&gt;{cb_filesystem}       = $self-&gt;{app}-&gt;combobox({id =&gt; &#39;&quot;Y2Partitioner::Widgets::BlkDeviceFilesystem&quot;&#39;});
+   $self-&gt;{isel_keyboard_layout} = $self-&gt;{app}-&gt;itemselector({id =&gt; &#39;layout_list&#39;});
+   $self-&gt;{lbl_settings_root_part} = $self-&gt;{app}-&gt;label({label =&gt; &#39;Settings for the Root Partition&#39;});
+   $self-&gt;{menu_btn_add} = $self-&gt;{app}-&gt;menucollection({label =&gt; &#39;Add...&#39;});
+   $self-&gt;{rb_operating_system} = $self-&gt;{app}-&gt;radiobutton({id =&gt; &#39;system&#39;});
+   $self-&gt;{txt_overview} = $self-&gt;{app}-&gt;richtext({id =&gt; &#39;proposal&#39;});
+   $self-&gt;{lst_target_disks} = $self-&gt;{app}-&gt;selectionbox({
+            id =&gt; &#39;&quot;Y2Partitioner::Dialogs::PartitionTableClone::DevicesSelector&quot;&#39;
+    });
+   $self-&gt;{tbl_available_devices} = $self-&gt;{app}-&gt;table({id =&gt; &#39;&quot;unselected&quot;&#39;});
+   $self-&gt;{tb_password} = $self-&gt;{app}-&gt;textbox({id =&gt; &#39;pw1&#39;});
+   $self-&gt;{tree_system_view}       = $self-&gt;{app}-&gt;tree({id =&gt; &#39;&quot;Y2Partitioner::Widgets::OverviewTree&quot;&#39;});
+   $self-&gt;{tab_cwm} = $self-&gt;{app}-&gt;tab({id =&gt; &#39;_cwm_tab&#39;});</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>This class is a generic representation of the UI widget tree. The class is using the WidgetController class to communicate with the REST-Server and is providing methods to create &#39;handles&#39; for the various UI elements (buttons, checkboxes, text etc.).</p>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<p>Class attributes:</p>
+
+<dl>
+
+<dt id="api_version---The-version-of-the-YUI-Rest-API"><b>{api_version}</b> - The version of the YUI Rest API</dt>
+<dd>
+
+</dd>
+<dt id="host---The-hostname-or-IP-of-the-REST-server"><b>{host}</b> - The hostname or IP of the REST server</dt>
+<dd>
+
+</dd>
+<dt id="port---The-port-of-the-REST-server"><b>{port}</b> - The port of the REST server</dt>
+<dd>
+
+</dd>
+<dt id="timeout---The-timeout-for-communication-with-the-server"><b>{timeout}</b> - The timeout for communication with the server</dt>
+<dd>
+
+</dd>
+<dt id="interval---Interval-time-to-try-to-reach-the-server"><b>{interval}</b> - Interval time to try to reach the server</dt>
+<dd>
+
+</dd>
+<dt id="widget_controller---The-instance-of-the-widget-controller-to-communicate-with-the-server"><b>{widget_controller}</b> - The instance of the widget controller to communicate with the server</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Class methods:</p>
+
+<p>A: Methods for communicating with the REST server</p>
+
+<p><b>new(%args)</b> - create new app</p>
+
+<p>The argument %args is a hash of named parameters <code>{port}</code>, <code>{host}</code>, <code>{api_version}</code>, <code>{timeout}</code> and <code>{interval}</code>. With this the constructor creates a WidgetController.</p>
+
+<p><b>get_widget_controller()</b> - Get reference to the widget controller assigned to the instance of app.</p>
+
+<p><b>get_port()</b> - get port used for the communication with the REST server</p>
+
+<p><b>get_host()</b> - get name or IP address for communication with REST server</p>
+
+<p><b>check_connection()</b> - checks if connection to REST server is working</p>
+
+<p>B: Methods for creating references to UI objects</p>
+
+<p>All these methods have in common that the method name describes what kind of UI object is referenced. Every method has an argument $filter which describes the identification of the UI element.</p>
+
+<p><b>button($filter)</b> - creates reference to a button</p>
+
+<p><b>checkbox($filter)</b> - creates a reference to a checkbox</p>
+
+<p><b>combobox($filter)</b> - creates a reference to a combobox</p>
+
+<p><b>itemselector($filter)</b> - creates a reference to an itemselector</p>
+
+<p><b>label($filter)</b> - creates a reference to a label</p>
+
+<p><b>menucollection($filter)</b> - creates a reference to a menucollection</p>
+
+<p><b>radiobutton($filter)</b> - creates a reference to a radiobutton</p>
+
+<p><b>richttext($filter)</b> - creates a reference to a richtext</p>
+
+<p><b>selectionbox($filter)</b> - creates a reference to a selectionbox</p>
+
+<p><b>table($filter)</b> - creates a reference to a table</p>
+
+<p><b>textbox($filter)</b> - creates a reference to a textbox</p>
+
+<p><b>tree($filter)</b> - creates a reference to a tree</p>
+
+<p><b>tab($filter)</b> - creates a reference to a tab</p>
+
+
+</body>
+
+</html>
+
+

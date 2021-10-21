@@ -1,0 +1,86 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient::Widget::Tab - Class representing a tab in the UI. It can be YDumbTab.</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YuiRestClient/Widget/Tab.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient::Widget::Tab - Class representing a tab in the UI. It can be YDumbTab.</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy;2021 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>$self-&gt;{tab_cwm}-&gt;select(&quot;&amp;Kernel Settings&quot;);</p>
+
+<p>return $self-&gt;{tb_boot_options}-&gt;selected_tab();</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>A class to handle a tab.</p>
+
+<pre><code>    {
+      &quot;class&quot;: &quot;YDumbTab&quot;,
+      &quot;debug_label&quot;: &quot;YDumbTab [tab1] [tab2] [tab3]&quot;,
+      &quot;hstretch&quot;: true,
+      &quot;icon_base_path&quot;: &quot;&quot;,
+      &quot;id&quot;: &quot;test_id&quot;,
+      &quot;items&quot;: [
+         {
+           &quot;label&quot;: &quot;tab1&quot;
+         },
+         {
+           &quot;label&quot;: &quot;tab2&quot;,
+           &quot;selected&quot;: true
+         },
+         {
+           &quot;label&quot;: &quot;tab3&quot;
+         }
+       ],
+       &quot;items_count&quot;: 3,
+       &quot;vstretch&quot;: true
+    }</code></pre>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<p><b>select($item)</b> - sends an action to click the tab in the UI</p>
+
+<p><b>selected_tab()</b> - returns the label of the selected tab</p>
+
+
+</body>
+
+</html>
+
+

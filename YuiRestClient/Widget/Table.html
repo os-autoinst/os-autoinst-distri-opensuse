@@ -1,0 +1,129 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient::Widget::Table - Handle table objects in the UI</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YuiRestClient/Widget/Table.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient::Widget::Table - Handle table objects in the UI</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy; 2020 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  $self-&gt;{tbl_available_devices}-&gt;select(value =&gt; $device);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>Class representing a table in the UI. It can be YTable.</p>
+
+<pre><code>        {
+          &quot;class&quot;: &quot;YTable&quot;,
+          &quot;columns&quot;: 4,
+          &quot;header&quot;: [
+            &quot;header1&quot;,
+            &quot;header2&quot;,
+            &quot;header3&quot;,
+            &quot;header4&quot;
+          ],
+          &quot;id&quot;: &quot;test_id&quot;,
+          &quot;items&quot;: [
+              {
+                  &quot;labels&quot;: [
+                     &quot;test.item.1&quot;,
+                     &quot;&quot;,
+                     &quot;&quot;,
+                     &quot;&quot;
+                  ],
+                  &quot;selected&quot;: true
+              },
+              {
+                  &quot;labels&quot;: [
+                      &quot;test.item.2&quot;,
+                      &quot;&quot;,
+                      &quot;&quot;,
+                      &quot;&quot;
+                  ]
+              }
+          ],
+          &quot;items_count&quot;: 2
+        }</code></pre>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<p><b>select(%args)</b> - select a row in a table</p>
+
+<p>Sends action to select a row in a table. Row can be selected either by cell value in the column (first column will be used by default), or by row number directly. If both are provided, value will be used. NOTE: row number corresponds to the position of the item in the list of column values which might differ to the display order.</p>
+
+<p>The %args has has the following keys:</p>
+
+<ul>
+
+<li><p><b>{value}</b> - [String] value to select in the table</p>
+
+</li>
+<li><p><b>{column}</b> - [String] column name where value is present</p>
+
+</li>
+<li><p><b>{row}</b> - [Numeric] row number to select in the table</p>
+
+</li>
+</ul>
+
+<p>Example: Select row with value &quot;test.item.2&quot; for column &quot;header1&quot; in table</p>
+
+<pre><code>  $self-&gt;{table}-&gt;select(value =&gt; &#39;test.item.2&#39;, column =&gt; &#39;header1&#39;);</code></pre>
+
+<p>Example: Select row number 3</p>
+
+<pre><code>  $self-&gt;{table}-&gt;select(row =&gt; 3);</code></pre>
+
+<p><b>header()</b> - returns array with the column names</p>
+
+<p><b>items()</b> - returns all table items</p>
+
+<p>For the example table above this function would return</p>
+
+<pre><code>  ([&quot;test.item.1&quot;, &quot;&quot;, &quot;&quot;],[&quot;Test.item.2&quot;, &quot;&quot;, &quot;&quot;])</code></pre>
+
+<p><b>get_index($column)</b> - return the index of the column</p>
+
+<p>The parameter $column specifies the header string that we&#39;re looking for.</p>
+
+
+</body>
+
+</html>
+
+

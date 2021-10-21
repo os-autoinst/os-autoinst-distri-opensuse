@@ -1,0 +1,115 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient::Http::WidgetController - Class to communicate with the REST server</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YuiRestClient/Http/WidgetController.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient::Http::WidgetController - Class to communicate with the REST server</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy; 2020 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  return $self-&gt;{widget_controller}-&gt;find($self-&gt;{filter}-&gt;get_filter());
+  $self-&gt;{widget_controller}-&gt;send_action($params);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>A class that provides a controller to retrieve widgets from the REST server or send actions to the server.</p>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<p>Class attributes:</p>
+
+<dl>
+
+<dt id="api_version---The-version-of-the-YUI-Rest-API"><b>{api_version}</b> - The version of the YUI Rest API</dt>
+<dd>
+
+</dd>
+<dt id="host---The-hostname-or-IP-of-the-REST-server"><b>{host}</b> - The hostname or IP of the REST server</dt>
+<dd>
+
+</dd>
+<dt id="port---The-port-of-the-REST-server"><b>{port}</b> - The port of the REST server</dt>
+<dd>
+
+</dd>
+<dt id="timeout---The-timeout-for-communication-with-the-server"><b>{timeout}</b> - The timeout for communication with the server</dt>
+<dd>
+
+</dd>
+<dt id="interval---Interval-time-to-try-to-reach-the-server"><b>{interval}</b> - Interval time to try to reach the server</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Class methods:</p>
+
+<p><b>new($args)</b> - create a new WidgetController instance</p>
+
+<p>Arguments in $args use the same names as the class attributes described above.</p>
+
+<p><b>set_timeout($timeout)</b> - change timeout setting</p>
+
+<p>Allows adjustments of timeout settings after the instance is created.</p>
+
+<p><b>set_interval($interval</b> - change interval time</p>
+
+<p>Allows adjustments to the interval time after the instance is created.</p>
+
+<p><b>set_host()</b> - change host name or IP address</p>
+
+<p>Allows adjustments to the host parameter after the instance is created.</p>
+
+<p><b>set_port()</b> - changes the port</p>
+
+<p>Allows adjustments to the port number after the instance is created.</p>
+
+<p><b>find($args)</b> - retrieve JSON data for UI widget</p>
+
+<p>The widget is defined by $args. Args is a hash that identifies a widget. The JSON data is retrieved using http_get() from Http::HttpClient.</p>
+
+<p><b>send_action($args)</b> - sends action to an UI widget</p>
+
+<p>The widget is defined by $args. Args is a hash that identifies the widget. The action is submitted to the server by using http_post() from Http::HttpClient.</p>
+
+
+</body>
+
+</html>
+
+

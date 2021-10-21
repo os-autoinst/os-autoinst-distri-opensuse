@@ -1,0 +1,185 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient - Perl module to interact with YaST applications via libyui-rest-api</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a>
+        <ul>
+          <li><a href="#Main-interface-methods">Main interface methods</a></li>
+          <li><a href="#Low-level-interface-methods">Low level interface methods</a></li>
+          <li><a href="#Helper-methods">Helper methods</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#ENVIRONMENT">ENVIRONMENT</a></li>
+</ul><h1>lib/YuiRestClient.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient - Perl module to interact with YaST applications via libyui-rest-api</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy; 2021 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  my $app  = YuiRestClient::get_app(installation =&gt; 1, timeout =&gt; 60, interval =&gt; 1);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>See documentation of the <a href="https://github.com/libyui/libyui/tree/master/libyui-rest-api/doc">libyui-rest-api project</a>. for more details about server side implementation.</p>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<h3 id="Main-interface-methods">Main interface methods</h3>
+
+<p><b>get_app(%args)</b> - main routine to create app object. Parameters are:</p>
+
+<dl>
+
+<dt id="timeout---Timeout-for-server-communication-defaults-to-30"><b>{timeout}</b> - Timeout for server communication, defaults to 30.</dt>
+<dd>
+
+</dd>
+<dt id="interval---Retry-interval-for-communication-defaults-to-1"><b>{interval}</b> - Retry interval for communication, defaults to 1.</dt>
+<dd>
+
+</dd>
+<dt id="installation---boolean-that-triggers-code-to-determine-IP-addresses-on-various-backends"><b>{installation}</b> - boolean that triggers code to determine IP addresses on various backends.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p><code>get_host()</code> will call <code>init_port()</code> and <code>init_host()</code> from the low level interface functions (see below) and then create an app object that will be used during the session.</p>
+
+<p><b>get_host(%args)</b> - returns name or IP of the REST server.</p>
+
+<p>The %args is a boolean $installation (see parameters of <code>get_app()</code> above.)</p>
+
+<p><b>get_port()</b> - returns port number for the rest server.</p>
+
+<p><b>init_logger</b> - Initializes logger instance.</p>
+
+<p>The log path is &#39;ulogs/yui-log.txt&#39;</p>
+
+<p><b>set_host($host)</b> - change REST server host to new address or IP.</p>
+
+<p><b>set_port($port)</b> - change REST server port number.</p>
+
+<p><b>set_interval($interval)</b> - change retry interval.</p>
+
+<p><b>set_timeout($timeout)</b> - change timeout value.</p>
+
+<h3 id="Low-level-interface-methods">Low level interface methods</h3>
+
+<p><b>init_port()</b> - Determine port for the REST server,</p>
+
+<p>The port number starts at <code>YUI_START_PORT</code>, if <code>VNC</code> is present then ths VNC port number will be added, otherwise the function take a random numer between 0..1000. This function will also set the environment variable. <code>YUI_PORT</code>.</p>
+
+<p><b>init_host()</b> - Initialize REST server and determine its host address.</p>
+
+<p>This method checks what backend is used for the system under test and adjusts the host address for the REST server accordingly. The following backends are checked:</p>
+
+<dl>
+
+<dt id="QEMU:-Use-localhost"><b>QEMU</b>: Use &#39;localhost&#39;.</dt>
+<dd>
+
+</dd>
+<dt id="PowerVM-or-IPMI:-Use-what-is-defined-in-SUT_IP"><b>PowerVM</b> or <b>IPMI</b>: Use what is defined in <code>SUT_IP</code>.</dt>
+<dd>
+
+</dd>
+<dt id="S390-Virtual-Machine:-Use-what-is-defined-in-VIRSH_GUEST"><b>S390 Virtual Machine</b>: Use what is defined in <code>VIRSH_GUEST</code>.</dt>
+<dd>
+
+</dd>
+<dt id="s390x:-Extract-IP-address-from-output-of-ip-addr-command"><b>s390x</b>: Extract IP address from output of &quot;ip addr&quot; command.</dt>
+<dd>
+
+</dd>
+<dt id="HyperV-Hypervisor:-Extract-IP-address-from-PowerShell-command"><b>HyperV Hypervisor</b>: Extract IP address from PowerShell command.</dt>
+<dd>
+
+</dd>
+<dt id="Xen:-Extract-IP-address-from-output-of-ip-addr-command"><b>Xen</b>: Extract IP address from output of &quot;ip addr&quot; command.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="Helper-methods">Helper methods</h3>
+
+<p><b>is_libyui_rest_api()</b> - Returns environment variable <code>YUI_REST_API</code>.</p>
+
+<p><b>set_libyui_backend_vars()</b> - Sets <code>NICTYPE_USER_OPTIONS</code> and <code>EXTRABOOTPARAMS</code>.</p>
+
+<p><b>get_yui_params_string($yuiport)</b> - creates String for <code>EXTRABOOTPARAMS</code>. This will return &quot;YUI_HTTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1&quot; so that this string can be appended to the boot parameters.</p>
+
+<h1 id="ENVIRONMENT">ENVIRONMENT</h1>
+
+<p><b>BACKEND</b> - Defines which Backend is used. <code>host_init()</code> tests for &#39;s390x&#39;.</p>
+
+<p><b>EXTRABOOTPARAMS</b> - Additional boot parameters for the bootloader. YuiRestClient will add &quot; extend=libyui-rest-api YUI_HHTP_PORT=$yuiport YUI_HTTP_REMOTE=1 YUI_REUSE_PORT=1&quot; to this variable.</p>
+
+<p><b>NICTYPE_USER_OPTIONS</b> - options for the virtual SUT network configuration. On QEMU backends this variable will get &quot;hostfwd=tcp::$yuiport-:$yuiport&quot; appended.</p>
+
+<p><b>S390_ZKVM</b> - Defines that the SUT is on a S390 Virtual Machine.</p>
+
+<p><b>SUT_IP</b> - IP address of the system under test on PowerVM or IPMI backends.</p>
+
+<p><b>VIRSH_GUEST</b> - defines the host address for S390 Virtual Machines.</p>
+
+<p><b>VIRSH_VMM_FAMILY</b> - defines the Hypervisor for virtual shells. <code>host_init()</code> tests for &#39;xen&#39;.</p>
+
+<p><b>VNC</b> - Port number for VNC connection.</p>
+
+<p><b>YUI_HTTP_PORT</b> - Port number that the REST server should use for listening.</p>
+
+<p><b>YUI_HTTP_REMOTE</b> - Boolean, if true, then remote connections to the REST server are allowed.</p>
+
+<p><b>YUI_LOG_LEVEL</b> - Log lever lor <code>init_logger()</code>, defaults to &#39;debug&#39;.</p>
+
+<p><b>YUI_PORT</b> - Port for REST server, caclulated by <code>init_port()</code>.</p>
+
+<p><b>YUI_REST_API</b> - Boolean that defines if the REST API is present.</p>
+
+<p><b>YUI_REUSE_PORT</b> - Boolean, if 1 then the socket can be reused by other processes.</p>
+
+<p><b>YUI_SERVER</b> The host address for the REST server.</p>
+
+<p><b>YUI_START_PORT</b> - Base value for calculating REST server port number, defaults to 39000.</p>
+
+
+</body>
+
+</html>
+
+

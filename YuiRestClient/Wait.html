@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>YuiRestClient::Wait - Wait for something</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#COPYRIGHT">COPYRIGHT</a></li>
+  <li><a href="#AUTHORS">AUTHORS</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Class-and-object-methods">Class and object methods</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/YuiRestClient/Wait.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>YuiRestClient::Wait - Wait for something</p>
+
+<h1 id="COPYRIGHT">COPYRIGHT</h1>
+
+<p>Copyright &copy; 2020 SUSE LLC</p>
+
+<p>SPDX-License-Identifier: FSFAP</p>
+
+<h1 id="AUTHORS">AUTHORS</h1>
+
+<p>QE YaST &lt;qa-sle-yast@suse.de&gt;</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>wait_until ( object =&gt; sub {...}, timeout =&gt; 10, interval =&gt; 1, message =&gt; &#39;&#39;);</p>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<h2 id="Overview">Overview</h2>
+
+<p>This class implements a method to wait for external triggers. The trigger is defined as a parameter called object which should define a sub that e.g. runs external commands. The method waits for a defined amount of time if the object function returned a value, if not it will die with a timeout message.</p>
+
+<h2 id="Class-and-object-methods">Class and object methods</h2>
+
+<p><b>wait_until(%args)</b> - Wait until trigger or timeout</p>
+
+<p>The %args hash has the following named elements:</p>
+
+<ul>
+
+<li><p><b>{object}</b> - defines the external function that should return a value within the specified time. If no object is provided the method will die with an error message.</p>
+
+</li>
+<li><p><b>{timeout}</b> - defines the time to wait in seconds for the trigger to occur. The default is 10.</p>
+
+</li>
+<li><p><b>{intervall}</b> - defines how many seconds to wait before evaluating the object function again. The default is 1.</p>
+
+</li>
+<li><p><b>{message}</b> - the error message that is used when the method timed out.</p>
+
+</li>
+</ul>
+
+<p>With all defaults this means, that the object function is evaluated every second for a maximum time of 10 seconds. If the object function does not succeed then the method dies and displays the error message. If the object function returned an error code in $@ then this error will be appended to the message.</p>
+
+
+</body>
+
+</html>
+
+
