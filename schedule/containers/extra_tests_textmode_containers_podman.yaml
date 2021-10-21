@@ -10,7 +10,7 @@ conditional_schedule:
   podman_image:
     DISTRI:
       'opensuse':
-        - containers/podman_image
+        - containers/container_images
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
@@ -18,3 +18,5 @@ schedule:
   - '{{podman_image}}'
   - containers/buildah
   - containers/rootless_podman
+vars:
+  TEST_CONTEXT: "OpenQA::Test::RunArgs"

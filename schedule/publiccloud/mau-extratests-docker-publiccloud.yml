@@ -7,10 +7,20 @@ conditional_schedule:
     VERSION:
       15-SP1:
         - containers/podman
-        - containers/podman_3rd_party_images
+        - containers/container_3rd_party_images
       15-SP2:
         - containers/podman
-        - containers/podman_3rd_party_images
+        - containers/container_3rd_party_images
+  containers:
+    CONTAINER_RUNTIME:
+      docker:
+        - containers/docker
+        - containers/docker_runc
+        - containers/container_3rd_party_images
+        - containers/registry
+        - containers/zypper_docker
+      podman:
+        - '{{podman}}'
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
@@ -20,10 +30,7 @@ schedule:
   - publiccloud/patch_and_reboot
   - publiccloud/ssh_interactive_start
   - publiccloud/instance_overview
-  - '{{podman}}'
-  - containers/docker
-  - containers/docker_runc
-  - containers/docker_3rd_party_images
-  - containers/registry
-  - containers/zypper_docker
+  - '{{containers}}'
   - publiccloud/ssh_interactive_end
+vars:
+  TEST_CONTEXT: "OpenQA::Test::RunArgs"

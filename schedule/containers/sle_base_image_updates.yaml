@@ -11,16 +11,23 @@ conditional_schedule:
     VERSION:
       15-SP1:
         - containers/podman
-        - containers/podman_image
+        - containers/container_images
       15-SP2:
         - containers/podman
-        - containers/podman_image
+        - containers/container_images
+  containers:
+    CONTAINER_RUNTIME:
+      docker:
+        - containers/docker
+        - containers/container_images
+        - containers/container_diff
+      podman:
+        - '{{podman}}'
 schedule:
   - '{{boot}}'
   - boot/boot_to_desktop
   - console/cleanup_qam_testrepos
-  - '{{podman}}'
-  - containers/docker
-  - containers/docker_image
-  - containers/container_diff
+  - '{{containers}}'
   - console/coredump_collect
+vars:
+  TEST_CONTEXT: "OpenQA::Test::RunArgs"
