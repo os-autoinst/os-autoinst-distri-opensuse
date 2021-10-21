@@ -103,28 +103,10 @@ sub yast2_migration_handle_license_agreement {
 sub run {
     my $self = shift;
 
-    # According to bsc#1106017, use yast2 migration in gnome environment is not possible on s390x
-    # due to vnc session over xinetd service could be stopped during migration that cause gnome exit
-    # so use yast2 migration under root console
-    if (!is_desktop_installed() || yast2_migration_gnome_remote) {
-        select_console 'root-console';
-    }
-    else {
-        select_console 'x11', await_console => 0;
-        ensure_unlocked_desktop;
-        mouse_hide(1);
-        assert_screen 'generic-desktop';
-
-        turn_off_screensaver();
-        x11_start_program('xterm');
-        become_root;
-        if (check_var('HDDVERSION', '12') && get_var('MIGRATION_REMOVE_ADDONS')) {
-            # use latest yast2-registration version because is not officially available
-            assert_script_run 'wget --quiet ' . data_url('yast2-registration-3.1.129.18-1.noarch.rpm');
-            zypper_call '--no-gpg-checks in yast2-registration-3.1.129.18-1.noarch.rpm';
-            record_info 'workaround', 'until the package is available for SLE 12 GA';
-        }
-    }
+    # According to the document: https://documentation.suse.com/sles/15-SP3/html/SLES-all/cha-upgrade-online.html
+    # If you are logged in to a GNOME session running on the machine you are going to update, switch
+    # to a text console. Choose root console at here.
+    select_console 'root-console';
 
     # remove add-on and leave it registered to setup inconsistency for migration
     # https://trello.com/c/CyjL1Was/837-0-yast-migration-warn-user-in-case-of-inconsistencies
