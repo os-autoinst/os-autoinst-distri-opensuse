@@ -116,6 +116,13 @@ sub post_run_hook {
     systemctl('stop freshclam');
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/freshclam.conf');
+
+}
+
 sub test_flags {
     return {fatal => 0};
 }
