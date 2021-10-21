@@ -9,7 +9,6 @@ schedule:
     - console/zypper_in
     - console/firewall_enabled
     - console/sshd_running
-    - console/ncurses
     - x11/xterm
     - console/suseconnect_scc
 test_data:

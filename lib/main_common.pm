@@ -1157,7 +1157,7 @@ sub load_consoletests {
         loadtest "jeos/glibc_locale";
         loadtest "jeos/kiwi_templates" unless (is_leap('<15.2'));
     }
-    loadtest "console/ncurses";
+    loadtest "console/ncurses" if is_leap;
     loadtest "console/yast2_lan" unless is_bridged_networking;
     # no local certificate store
     if (!is_krypton_argon) {
