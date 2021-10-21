@@ -1,9 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright 2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::RadioButton;
 
@@ -25,3 +20,53 @@ sub is_selected {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::RadioButton - Handle radio buttons
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+$self->{rb_skip_registration}->select();
+
+$self->{$rb_name}->is_selected();
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+Class representing a RadioButton in the UI. It can be YRadioButton.
+
+    {
+      "class": "YRadioButton",
+      "debug_label": "Manually",
+      "id": "manual",
+      "label": "&Manually",
+      "notify": true,
+      "value": false
+    }
+
+=head2 Class and object methods
+
+B<select()> - selects the radio button 
+
+This will set the "value" property to true and deselect all other radio buttons
+of the current group.
+
+B<is_selected()> - returns the "value" property of the radio button
+
+=cut

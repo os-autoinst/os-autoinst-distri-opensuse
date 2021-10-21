@@ -1,9 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright 2021 SUSE LLC
-# SPDX-License-Identifier: FSFAP
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::Base;
 
@@ -67,3 +62,69 @@ sub resolve_filter {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::Base - base class for all UI objects
+
+=head1 COPYRIGHT
+
+Copyright © 2021 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+ 
+  return $self->action(action => YuiRestClient::Action::YUI_PRESS);
+  return $self->{rt_eula}->exist();
+  my $is_enabled = $self->property('enabled');
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+This class provides base methods for all UI widget classes
+
+=head2 Class and object methods
+
+Class attributes:
+
+=over 4
+
+=item * B<{widget_controller}> - reference to WidgetController class
+
+=item * B<{filter}> - filter expression for identifying widgets
+
+=back
+
+Class methods:
+
+B<new($args)> - constructor for UI objects
+
+Arguments are I<widget_controller> and I<filter>. 
+
+B<action(%args)> - perform action on UI widget
+
+Arguments are a hash like C<{action =E<gt> YuiRestClient::Action::YUI_PRESS}>. 
+
+B<exist()> - check if UI widget exists
+
+Tries to find widget, returns 0 if widget exists.
+
+B<propery($property)> - return JSON property value
+
+If property does not exist the method will return C<undef>. 
+
+B<find_widgets()> - retrieves JSON hash for the widget
+
+The widget is specified by the C<filter> parameter on creation of the object.
+
+=cut

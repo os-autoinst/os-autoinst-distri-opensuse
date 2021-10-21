@@ -1,9 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright 2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Http::WidgetController;
 use strict;
@@ -86,3 +81,85 @@ sub send_action {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Http::WidgetController - Class to communicate with the REST server
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+  return $self->{widget_controller}->find($self->{filter}->get_filter());
+  $self->{widget_controller}->send_action($params);
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+A class that provides a controller to retrieve widgets from the REST server
+or send actions to the server.
+
+=head2 Class and object methods
+
+Class attributes:
+
+=over 4
+
+=item B<{api_version}> - The version of the YUI Rest API
+
+=item B<{host}> - The hostname or IP of the REST server
+
+=item B<{port}> - The port of the REST server
+
+=item B<{timeout}> - The timeout for communication with the server
+
+=item B<{interval}> - Interval time to try to reach the server
+
+=back
+
+Class methods:
+
+B<new($args)> - create a new WidgetController instance
+
+Arguments in $args use the same names as the class attributes described above.
+
+B<set_timeout($timeout)> - change timeout setting
+
+Allows adjustments of timeout settings after the instance is created.
+
+B<set_interval($interval> - change interval time
+
+Allows adjustments to the interval time after the instance is created.
+
+B<set_host()> - change host name or IP address
+
+Allows adjustments to the host parameter after the instance is created.
+
+B<set_port()> - changes the port
+
+Allows adjustments to the port number after the instance is created.
+
+B<find($args)> - retrieve JSON data for UI widget
+
+The widget is defined by $args. Args is a hash that identifies a widget.
+The JSON data is retrieved using http_get() from Http::HttpClient.
+
+B<send_action($args)> - sends action to an UI widget
+
+The widget is defined by $args. Args is a hash that identifies the widget.
+The action is submitted to the server by using http_post() from Http::HttpClient.
+
+=cut
