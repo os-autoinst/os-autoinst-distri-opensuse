@@ -21,7 +21,7 @@ sub run {
     if (check_screen 'autoyast2-install-accept', 10) {
         send_key 'alt-i';    # confirm package installation
     }
-    wait_serial("$module_name-0", 400) || die "'yast2 clone_system' exited with non-zero code";
+    wait_serial("$module_name-0", 700) || die "'yast2 clone_system' exited with non-zero code";
     upload_logs '/root/autoinst.xml';
 
     # original autoyast on kernel cmdline
