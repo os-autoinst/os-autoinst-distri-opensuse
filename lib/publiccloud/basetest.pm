@@ -100,7 +100,7 @@ sub _cleanup {
     die("Cleanup called twice!") if ($self->{cleanup_called});
     $self->{cleanup_called} = 1;
 
-    eval { $self->cleanup(); } or bmwqemu::fctwarn($@);
+    eval { $self->cleanup(); } or bmwqemu::fctwarn("self::cleanup() failed -- $@");
 
     my $flags = $self->test_flags();
     # currently we have two cases when cleanup of image will be skipped:
@@ -110,7 +110,7 @@ sub _cleanup {
     # 2. Job should have PUBLIC_CLOUD_NO_CLEANUP defined and job should have result = 'fail'
     return if ($self->{result} eq 'fail' && get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE'));
     if ($self->{provider}) {
-        eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn($@);
+        eval { $self->{provider}->cleanup(); } or bmwqemu::fctwarn("provider::cleanup() failed -- $@");
     }
 }
 
