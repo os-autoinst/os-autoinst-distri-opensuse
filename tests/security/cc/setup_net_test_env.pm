@@ -5,7 +5,7 @@
 #
 # Summary: Run 'netfilter' test case of 'audit-test' test suite
 # Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
-# Tags: poo#96540
+# Tags: poo#96540 poo#99441, poo#110157
 
 use base 'consoletest';
 use strict;
@@ -22,6 +22,10 @@ sub run {
     my ($self) = shift;
 
     select_console 'root-console';
+
+    # Stop firewalld for multi-machine tests
+    systemctl('stop firewalld');
+    systemctl('disable firewalld');
 
     zypper_call('in bridge-utils');
 
@@ -60,7 +64,8 @@ sub run {
     if ($role eq 'server') {
         mutex_create('NETFILTER_SERVER_READY');
         wait_for_children;
-    } else {
+    }
+    else {
         mutex_wait('NETFILTER_SERVER_READY');
 
         # Export the variables
@@ -75,7 +80,9 @@ sub run {
         $server_first->{ipv4} =~ s/\/.*//g;
         $server_second->{ipv4} =~ s/\/.*//g;
 
-        assert_script_run("export PASSWD=$testapi::password LOCAL_DEV=$client_first->{netcard}\@eth0 LOCAL_SEC_DEV=$client_second->{netcard}\@eth0 LOCAL_SEC_MAC=$client_second->{mac_addr} LOCAL_IPV4=$client_first->{ipv4} LOCAL_IPV6=$client_first->{ipv6} LOCAL_SEC_IPV4=$client_second->{ipv4} LOCAL_SEC_IPV6=$client_second->{ipv6} LBLNET_SVR_IPV4=$server_first->{ipv4} LBLNET_SVR_IPV6=$server_first->{ipv6} SECNET_SVR_IPV4=$server_second->{ipv4} SECNET_SVR_IPV6=$server_second->{ipv6} SECNET_SVR_MAC=$server_second->{mac_addr} BRIDGE_FILTER=toebr");
+        assert_script_run(
+"export PASSWD=$testapi::password LOCAL_DEV=$client_first->{netcard}\@eth0 LOCAL_SEC_DEV=$client_second->{netcard}\@eth0 LOCAL_SEC_MAC=$client_second->{mac_addr} LOCAL_IPV4=$client_first->{ipv4} LOCAL_IPV6=$client_first->{ipv6} LOCAL_SEC_IPV4=$client_second->{ipv4} LOCAL_SEC_IPV6=$client_second->{ipv6} LBLNET_SVR_IPV4=$server_first->{ipv4} LBLNET_SVR_IPV6=$server_first->{ipv6} SECNET_SVR_IPV4=$server_second->{ipv4} SECNET_SVR_IPV6=$server_second->{ipv6} SECNET_SVR_MAC=$server_second->{mac_addr} BRIDGE_FILTER=toebr"
+        );
 
         my $run_netfilter_args = OpenQA::Test::RunArgs->new();
         $run_netfilter_args->{case_name} = 'netfilter';
