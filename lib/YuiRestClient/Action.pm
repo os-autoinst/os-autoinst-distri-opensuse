@@ -1,9 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright 2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Action;
 
@@ -20,3 +15,45 @@ use constant {
 };
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Action - Define actions for widgets 
+
+=head1 COPYRIGHT
+
+Copyright ©2020  SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+This class defines constants to use for actions:
+
+=over 4
+
+=item * YUI_PRESS      - action to press a button
+
+=item * YUI_TOGGLE     - action to toggle a checkbox
+
+=item * YUI_CHECK      - action to check a checkbox
+
+=item * YUI_UNCHECK    - action to uncheck a checkbox
+
+=item * YUI_SELECT     - action to select an item
+
+=item * YUI_ENTER_TEXT - action to enter text
+
+=back
+
+=cut

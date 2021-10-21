@@ -1,9 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright 2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::SelectionBox;
 
@@ -37,3 +32,71 @@ sub items {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::SelectionBox - Class representing a selection box in the UI. It can be YSelectionBox
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+Handles a selection box.
+
+      {
+        "class" : "YSelectionBox",
+        "debug_label" : "selection box title",
+        "hstretch" : true,
+        "icon_base_path" : "",
+        "id" : "test_id",
+        "items" :
+        [
+          {
+            "label" : "selection 1",
+            "selected" : true
+          },
+          {
+            "label" : "selection 2"
+          },
+          {
+            "label" : "selection 3"
+          }
+        ],
+        "items_count" : 3,
+        "label" : "&selection box title",
+        "vstretch" : true
+      }
+
+=head2 Class and object methods
+
+B<select($item)> - Select item in a SelectionBox object.
+
+The item is identified by its label.
+
+B<check($item)> - Select item in a SelectionBox object.
+
+The item is identified by its label.
+
+B<uncheck($item)> - Unselect item in a SelectionBox object.
+
+The item is identified by its label.
+
+B<items()> - returns a map of available items in the SelectionBox object.
+
+=cut
