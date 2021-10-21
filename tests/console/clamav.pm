@@ -54,8 +54,6 @@ sub run {
     my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
     assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
     assert_script_run('freshclam');
-    assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
-    assert_script_run('freshclam');
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
@@ -116,6 +114,13 @@ sub post_run_hook {
     assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && is_aarch64);
     systemctl('stop clamd', timeout => 500);
     systemctl('stop freshclam');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/freshclam.conf');
+
 }
 
 sub test_flags {
