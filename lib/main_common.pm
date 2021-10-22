@@ -1950,20 +1950,20 @@ sub load_x11_documentation {
 
 sub load_x11_gnome {
     return unless check_var('DESKTOP', 'gnome');
-    if (is_sle('12-SP2+')) {
-        loadtest "x11/gdm_session_switch";
-    }
+    loadtest "x11/gnomecase/login_test";
+    loadtest "x11/gnomecase/change_password";
     loadtest "x11/gnomecase/nautilus_cut_file";
     loadtest "x11/gnomecase/nautilus_permission";
     loadtest "x11/gnomecase/nautilus_open_ftp";
     loadtest "x11/gnomecase/application_starts_on_login";
-    loadtest "x11/gnomecase/login_test";
     if (is_sle '12-SP1+') {
         loadtest "x11/gnomecase/gnome_classic_switch";
     }
     loadtest "x11/gnomecase/gnome_default_applications";
     loadtest "x11/gnomecase/gnome_window_switcher";
-    loadtest "x11/gnomecase/change_password";
+    if (is_sle('12-SP2+')) {
+        loadtest "x11/gdm_session_switch";
+    }
 }
 
 sub load_x11_other {
