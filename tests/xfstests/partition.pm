@@ -135,7 +135,7 @@ sub do_partition_for_xfstests {
     }
     # Create SCRATCH_LOGDEV with disk partition
     if (get_var('XFSTESTS_LOGDEV')) {
-        my $logdev = create_partition($para{dev}, $part_type, 100);
+        my $logdev = create_partition($para{dev}, $part_type, 1024);
         format_partition($logdev, $para{fstype});
         script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
         script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
@@ -197,9 +197,9 @@ sub create_loop_device_by_rootsize {
         my $logdev = "/dev/loop100";
         my $logdev_name = "logdev";
 
-        assert_script_run("fallocate -l 100M $INST_DIR/$logdev_name", 300);
+        assert_script_run("fallocate -l 1G $INST_DIR/$logdev_name", 300);
         assert_script_run("losetup -P $logdev $INST_DIR/$logdev_name", 300);
-        format_partition("$INST_DIR/logdev_name", $para{fstype});
+        format_partition("$INST_DIR/$logdev_name", $para{fstype});
         script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
         script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
     }
@@ -235,10 +235,30 @@ sub post_env_info {
 
 sub format_with_options {
     my ($part, $filesystem) = @_;
-    # In case to test xfs reflink feature, test name contain "reflink"
-    if ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink') != -1) {
-        format_partition($part, $filesystem, options => '-f -m reflink=1');
-        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1' >> $CONFIG_FILE");
+    # In case to test different mkfs.xfs options
+    if ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink_1024') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=1, -i sparse=1, -b size=1024');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=1, -i sparse=1, -b size=1024' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink_normapbt') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=0, -i sparse=1');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=0, -i sparse=1' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=1, -i sparse=1');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=1, -i sparse=1' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'nocrc_512') != -1) {
+        format_partition($part, $filesystem, options => '-f -m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512');
+        script_run("export 'XFS_MKFS_OPTIONS=-m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'nocrc') != -1) {
+        format_partition($part, $filesystem, options => '-f -m crc=0,reflink=0,rmapbt=0, -i sparse=0');
+        script_run("export 'XFS_MKFS_OPTIONS=-m crc=0,reflink=0,rmapbt=0, -i sparse=0' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'logdev') != -1) {
+        format_partition($part, 'xfs', options => '-f -m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m');
+        script_run("export 'XFS_MKFS_OPTIONS=-m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m' >> $CONFIG_FILE");
     }
     else {
         format_partition($part, $filesystem);
