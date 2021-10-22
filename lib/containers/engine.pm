@@ -338,29 +338,4 @@ sub configure_insecure_registries {
     file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
 }
 
-package containers::engine::Factory;
-use Mojo::Base -base;
-use testapi;
-has runtime_instance => undef;
-
-sub get_instance {
-    my ($self, $runargs) = @_;
-    if (!keys %{$runargs}) {
-        # Hack for the jobs that use yaml scheduler
-        # We have move to main_*.pm in most of the cases but there is one or two which uses yaml.
-        # This will not work if the module used in the same job twice for both docker and podman
-        check_var('CONTAINER_RUNTIME', 'docker') ? $runargs->{docker} = 1 : $runargs->{podman} = 1;
-    }
-    if (defined $runargs->{docker}) {
-        $self->runtime_instance(containers::engine::docker->new());
-    }
-    elsif (defined $runargs->{podman}) {
-        $self->runtime_instance(containers::engine::podman->new());
-    }
-    else {
-        die 'job doesnt provide Runtime Container tool';
-    }
-    return $self->runtime_instance;
-}
-
 1;

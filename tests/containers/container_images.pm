@@ -15,21 +15,19 @@
 # - remove the container, run it again and verify that the new image works
 # Maintainer: Pavel Dostál <pdostal@suse.cz>, qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base qw(containers::basetest);
 use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release is_tumbleweed);
-use containers::engine;
 
 sub run {
-    my ($self, $runargs) = @_;
+    my ($self) = @_;
     $self->select_serial_terminal();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $factory = containers::engine::Factory->new();
-    my $engine = $factory->get_instance($runargs);
+    my $engine = $self->get_instance($self->{run_args});
 
     install_docker_when_needed($host_distri) if $engine->runtime eq 'docker';
     install_podman_when_needed($host_distri) if $engine->runtime eq 'podman';
@@ -48,7 +46,7 @@ sub run {
             test_rpm_db_backend(image => $iname, runtime => $engine);
             my $beta = $version eq get_var('VERSION') ? get_var('BETA', 0) : 0;
             test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
-            if (defined $runargs->{docker}) {
+            if (defined $self->{run_args}->{docker}) {
                 test_opensuse_based_image(image => $iname, runtime => $engine, version => $version, beta => $beta);
                 scc_restore_docker_image_credentials();
             }

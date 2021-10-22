@@ -8,7 +8,7 @@
 #          Log the test results in docker-3rd_party_images_log.txt
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base qw(containers::basetest);
 use strict;
 use warnings;
 use testapi;
@@ -18,13 +18,11 @@ use containers::common;
 use containers::urls 'get_3rd_party_images';
 use containers::container_images qw(test_3rd_party_image upload_3rd_party_images_logs);
 use registration;
-use containers::engine;
 
 sub run {
-    my ($self, $runargs) = @_;
+    my ($self) = @_;
     $self->select_serial_terminal;
-    my $factory = containers::engine::Factory->new();
-    my $engine = $factory->get_instance($runargs);
+    my $engine = $self->get_instance($self->{run_args});
 
     my ($running_version, $sp, $host_distri) = get_os_release;
 
