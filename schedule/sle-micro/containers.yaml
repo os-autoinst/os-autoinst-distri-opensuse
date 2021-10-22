@@ -33,4 +33,6 @@ schedule:
   - microos/toolbox
   - containers/podman_3rd_party_images
   - containers/podman
-  - containers/podman_image
+  - containers/container_images
+vars:
+  TEST_CONTEXT: "OpenQA::Test::RunArgs"
