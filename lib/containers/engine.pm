@@ -213,7 +213,7 @@ Otherwise it prints the output of info.
 
 =cut
 sub info {
-    my ($self, %args) = shift;
+    my ($self, %args) = @_;
     my $property = $args{property} ? qq(--format '{{.$args{property}}}') : '';
     my $expected = $args{value} ? qq( | grep $args{value}) : '';
     $self->_engine_assert_script_run(sprintf("info %s %s", $property, $expected));
@@ -229,6 +229,19 @@ C<filename> file the logs are written to.
 sub get_container_logs {
     my ($self, $container, $filename) = @_;
     $self->_engine_assert_script_run("container logs $container | tee $filename");
+}
+
+=head2 read_tty
+
+Assert a C<property> against given expected C<value> if C<value> is given.
+Otherwise it prints the output of info.
+
+=cut
+sub read_tty {
+    my ($self) = shift;
+    my %args = (image => '', params => '', pipe => '', cmd => '', @_);
+    my $pipe_cmd = $args{pipe} ? '|' . $args{pipe} : $args{pipe};
+    return $self->_engine_script_output(sprintf("run --entrypoint /bin/bash %s %s -c '%s' %s", $args{params}, $args{image}, $args{cmd}, $pipe_cmd));
 }
 
 =head2 remove_image($image_name)

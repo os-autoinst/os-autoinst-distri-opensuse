@@ -21,7 +21,7 @@ use version_utils;
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(test_seccomp basic_container_tests get_vars can_build_sle_base check_docker_firewall
-  get_docker_version check_runtime_version container_ip registry_url);
+  get_docker_version check_runtime_version container_ip registry_url validate_container_output);
 
 sub test_seccomp {
     my $no_seccomp = script_run('docker info | tee /tmp/docker_info.txt | grep seccomp');
@@ -212,6 +212,23 @@ sub can_build_sle_base {
     # script_run returns 0 if true, but true is 1 on perl
     my $has_sle_registration = !script_run("test -e /etc/zypp/credentials.d/SCCcredentials");
     return check_os_release('sles', 'ID') && $has_sle_registration;
+}
+
+=head2 validate_container_output
+
+validate_container_output($engine, $image, $cmd, $validator)
+
+C<validate_container_output> should be used to validate the output of the C<cmd> which the C<image>
+will run in a container. 
+
+The advantage of C<validate_container_output> is that the I<engine> will know how to run the container for you.
+
+=cut
+
+sub validate_container_output {
+    my ($engine, $image, $cmd, $validator) = @_;
+    my $out = $engine->read_tty(image => $image, cmd => $cmd);
+    $out =~ /$validator/ or die "$validator mismatch: $out";
 }
 
 1;
