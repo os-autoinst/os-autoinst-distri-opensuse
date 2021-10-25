@@ -26,13 +26,9 @@ sub run {
     mouse_hide(1);
     # for timeout selection see bsc#965857
     x11_start_program('gnome-control-center', match_timeout => 120);
-    # If the default page of gnome control center changed by other test, need to
-    # back to default page and continue for the test.
-    if (match_has_tag('gnome-control-center-detail-layout')) {
-        assert_and_click "gnome-control-center-back";
-        assert_screen "gnome-control-center";
-    }
-    if (match_has_tag('gnome-control-center-new-layout')) {
+    # The gnome control center updated, the work flow for non-default page
+    # will be same as gnome-control-center-new-layout.
+    if (match_has_tag('gnome-control-center-new-layout') || match_has_tag('gnome-control-center-detail-layout')) {
         # with GNOME 3.26, the control-center got a different layout / workflow
         type_string "about";
         assert_screen "gnome-control-center-about-typed";
