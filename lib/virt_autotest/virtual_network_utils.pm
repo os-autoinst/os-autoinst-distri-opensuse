@@ -144,7 +144,7 @@ sub test_network_interface {
     save_screenshot;
 
     # Restore the network interface to the default for the Xen guests
-    if (!get_var("SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+    if ($is_sriov_test ne "true") {
         if (is_xen_host()) {
             assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-$nic'");
         }
