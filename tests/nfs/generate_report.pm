@@ -28,7 +28,7 @@ sub upload_pynfs_log {
     script_run('../showresults.py --hidepass result-raw.txt > result-fail.txt');
     upload_logs('result-fail.txt', failok => 1);
 
-    if (script_run('[ -s result-fail.txt ]') == 0) {
+    if (script_output("cat result-fail.txt | grep 'Of those:.*Failed' | sed 's/.*, \\([0-9]\\+\\) Failed,.*/\\1/'") gt 0) {
         $self->result("fail");
         record_info("failed tests", script_output('cat result-fail.txt'), result => 'fail');
     }
