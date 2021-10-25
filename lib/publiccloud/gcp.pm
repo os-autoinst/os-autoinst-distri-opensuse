@@ -24,6 +24,12 @@ has private_key_id => undef;
 has private_key => undef;
 has service_acount_name => undef;
 has client_id => undef;
+has vault_gcp_role_index => undef;
+
+sub vault_gcp_roles {
+    return split(/\s*,\s*/,
+        get_var('PUBLIC_CLOUD_VAULT_ROLES', 'openqa-role,openqa-role1,openqa-role2,openqa-role3'));
+}
 
 sub init {
     my ($self) = @_;
@@ -34,6 +40,25 @@ sub init {
     assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run('gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
+}
+
+=head2
+A service account in GCP can only have up to 10 keys assigned. With this we 
+reach our paralel openqa jobs quite fast.
+To have more keys available, we create 4 service accounts and select randomly
+one. If this fails, the next call of C<get_next_vault_role()> will retrieve
+the next.
+
+=cut
+sub get_next_vault_role {
+    my ($self) = shift;
+    my @known_roles = $self->vault_gcp_roles();
+    if (defined($self->vault_gcp_role_index)) {
+        $self->vault_gcp_role_index(($self->vault_gcp_role_index + 1) % scalar(@known_roles));
+    } else {
+        $self->vault_gcp_role_index(int(rand(scalar(@known_roles))));
+    }
+    return $known_roles[$self->vault_gcp_role_index];
 }
 
 sub create_credentials_file {
@@ -55,7 +80,13 @@ sub create_credentials_file {
           . '}';
     } else {
         record_info('INFO', 'Get credentials from VAULT server.');
-        my $data = $self->vault_get_secrets('/gcp/key/openqa-role');
+
+        my $data = $self->vault_retry(
+            sub { $self->vault_get_secrets('/gcp/key/' . $self->get_next_vault_role(), max_tries => 1) },
+            name => 'vault_get_secrets(gcp)',
+            max_tries => scalar($self->vault_gcp_roles()) * 2,
+            sleep_duration => get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', 5)
+        );
         $credentials_file = b64_decode($data->{private_key_data});
         my $cf_json = decode_json($credentials_file);
         $self->account($cf_json->{client_email});
