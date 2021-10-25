@@ -66,6 +66,7 @@ our @EXPORT = qw(
   load_consoletests
   load_create_hdd_tests
   load_extra_tests
+  load_extra_tests_prepare
   load_inst_tests
   load_iso_in_external_tests
   load_jeos_tests
@@ -2804,69 +2805,6 @@ sub load_extra_tests_kernel {
     loadtest "kernel/tuned";
 }
 
-sub load_qam_publiccloud_tests {
-    my $args = OpenQA::Test::RunArgs->new();
-
-    loadtest "publiccloud/download_repos";
-    loadtest "publiccloud/prepare_instance", run_args => $args;
-    loadtest "publiccloud/register_system", run_args => $args;
-    loadtest "publiccloud/transfer_repos", run_args => $args;
-    loadtest "publiccloud/patch_and_reboot", run_args => $args;
-    if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
-        loadtest("publiccloud/img_proof", run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_LTP')) {
-        loadtest('publiccloud/run_ltp', run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-        loadtest('publiccloud/boottime', run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_FIO')) {
-        loadtest('publiccloud/storage_perf', run_args => $args);
-    } else {
-        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-        loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
-        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_extra_tests_prepare();
-            load_extra_tests_console();
-        }
-        if (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            load_extra_tests_prepare();
-            load_extra_tests_console();
-        }
-        # Finalize
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-    }
-}
-
-sub load_publiccloud_tests {
-    if (get_var('PUBLIC_CLOUD_QAM')) {
-        load_qam_publiccloud_tests();
-    } else {
-        if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
-            loadtest "publiccloud/prepare_tools";
-        }
-        elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
-            loadtest "publiccloud/img_proof";
-        }
-        elsif (get_var('PUBLIC_CLOUD_LTP')) {
-            loadtest 'publiccloud/run_ltp';
-        }
-        elsif (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-            loadtest 'publiccloud/sles4sap';
-        }
-        elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
-            loadtest 'publiccloud/az_accelerated_net';
-        }
-        elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-            loadtest "publiccloud/boottime";
-        }
-        elsif (get_var('PUBLIC_CLOUD_FIO')) {
-            loadtest 'publiccloud/storage_perf';
-        }
-        elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-            loadtest "publiccloud/upload_image";
-        }
-    }
-}
-
 # Scheduling set for validation of specific installation
 sub load_installation_validation_tests {
     load_system_prepare_tests;
@@ -2904,9 +2842,8 @@ sub load_transactional_role_tests {
 
 sub load_common_opensuse_sle_tests {
     load_autoyast_clone_tests if get_var("CLONE_SYSTEM");
-    load_publiccloud_tests if get_var('PUBLIC_CLOUD');
     loadtest "terraform/create_image" if get_var('TERRAFORM');
-    load_create_hdd_tests if get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1");
+    load_create_hdd_tests if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) && !get_var('PUBLIC_CLOUD');
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/);
