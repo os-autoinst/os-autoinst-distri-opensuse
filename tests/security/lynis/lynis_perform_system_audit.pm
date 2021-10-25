@@ -24,7 +24,7 @@ sub run {
     # Run "# lynis audit system" to "Performs a system audit" and save the outputs
     assert_script_run("rm -rf $lynis_audit_system_current_file");
     assert_script_run("rm -rf $lynis_audit_system_error_file");
-    assert_script_run("lynis audit system --nocolors > $lynis_audit_system_current_file 2> $lynis_audit_system_error_file", timeout => 600);
+    assert_script_run("lynis audit system --nocolors > $lynis_audit_system_current_file 2> $lynis_audit_system_error_file", timeout => 900);
 
     # Upload the outputs for reference: e.g.,
     # file "$lynis_audit_system_current_file" can be used to be a new baseline
