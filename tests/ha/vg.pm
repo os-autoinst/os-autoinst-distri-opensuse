@@ -72,7 +72,18 @@ sub run {
 
         # With lvmlockd, VG lock should be stopped before starting HA resource
         if (get_var("USE_LVMLOCKD")) {
-            assert_script_run "vgchange -an $vg_name";
+            # With slow HW "vgchange -an" might fail with RC5 at the first try
+            my $start_time = time;
+            while (script_run "vgchange -an $vg_name") {
+                if (time - $start_time < $default_timeout) {
+                    sleep 5;
+                }
+                else {
+                    # if command fails, "-vvvv" will show detailed output of the command
+                    script_run "vgchange -an -vvvv $vg_name";
+                    die "Volume group was not deactivated within $default_timeout seconds.";
+                }
+            }
             assert_script_run "vgchange --lockstop $vg_name";
         }
     }
