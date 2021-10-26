@@ -25,6 +25,30 @@ use version_utils qw(get_os_release);
 use containers::common;
 use testapi;
 
+
+sub packages_to_install {
+    my $host_version = get_required_var('HOST_VERSION');
+    $host_version =~ s/-SP/./;
+    my $arch = get_required_var('ARCH');
+
+    # common packages
+    my @packages = ('git-core', 'python3', 'python3-devel', 'gcc');
+    if ($host_version eq "12.5") {
+        push @packages, 'python36-pip';
+    } elsif ($host_version eq '15') {
+        assert_script_run("SUSEConnect -p PackageHub/15/$arch");
+        push @packages, ('go1.10', 'skopeo');
+    } elsif ($host_version =~ /15\./) {
+        # Desktop module is needed for SDK module, which is required for installing go
+        assert_script_run("SUSEConnect -p sle-module-desktop-applications/$host_version/$arch");
+        assert_script_run("SUSEConnect -p sle-module-development-tools/$host_version/$arch");
+        push @packages, ('go', 'skopeo');
+    } else {
+        die("Host is not supported for running BCI tests.");
+    }
+    return @packages;
+}
+
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
@@ -48,14 +72,7 @@ sub run {
     }
 
     record_info('Install', 'Install needed packages');
-    my @packages = ('git-core', 'python3', 'python3-devel', 'gcc');
-    if (check_var('HOST_VERSION', '12-SP5')) {
-        # pip is not installed in 12-SP5 by default in our hdds
-        push @packages, 'python36-pip';
-    } else {
-        # skopeo is not available in <=12-SP5
-        push @packages, 'skopeo';
-    }
+    my @packages = packages_to_install();
     foreach my $pkg (@packages) {
         record_info('pkg', $pkg);
         zypper_call("--quiet in $pkg", timeout => 300);
