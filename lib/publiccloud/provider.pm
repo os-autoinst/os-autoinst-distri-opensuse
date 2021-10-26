@@ -11,6 +11,8 @@ package publiccloud::provider;
 use testapi qw(is_serial_terminal :DEFAULT);
 use Mojo::Base -base;
 use publiccloud::instance;
+use Carp;
+use List::Util qw(max);
 use Data::Dumper;
 use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
@@ -511,6 +513,25 @@ sub escape_single_quote {
     return $s;
 }
 
+sub vault_retry {
+    my ($self, $code, %args) = @_;
+    my $max_tries = max(1, get_var('PUBLIC_CLOUD_VAULT_TRIES', $args{max_tries} // 3));
+    my $sleep_duration = get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', $args{sleep_duration} // 60);
+    $args{name} //= Carp::shortmess("vault_retry()");
+
+    my $ret;
+    my $try_cnt = 0;
+
+    while ($try_cnt++ < $max_tries) {
+        eval {
+            $ret = $code->();
+        };
+        return $ret unless ($@);
+        sleep $sleep_duration;
+    }
+    die($args{name} . " call failed after $max_tries attempts -- " . $@);
+}
+
 =head2 __vault_login
 
 Login to vault using C<_SECRET_PUBLIC_CLOUD_REST_USER> and
@@ -544,17 +565,10 @@ Wrapper arround C<<$self->vault_login()>> to have retry capability.
 =cut
 sub vault_login {
     my $self = shift;
-    my $max_tries = get_var('PUBLIC_CLOUD_VAULT_TRIES', 3);
-    my $try_cnt = 0;
-    my $ret;
-    while ($try_cnt++ < $max_tries) {
-        eval {
-            $ret = $self->__vault_login();
-        };
-        return $ret unless $@;
-        sleep 10;
-    }
-    die("vault_login() failed after $max_tries attempts -- " . $@);
+    return $self->vault_retry(
+        sub { $self->__vault_login() },
+        name => 'vault_login()', sleep_duration => 10
+    );
 }
 
 =head2 __vault_api
@@ -604,23 +618,18 @@ Wrapper around C<<$self->vault_api()>> to get retry capability.
 =cut
 sub vault_api {
     my ($self, $path, %args) = @_;
-    my $ret;
-    my $max_tries = get_var('PUBLIC_CLOUD_VAULT_TRIES', 3);
-    my $try_cnt = 0;
+    my $max_tries = delete($args{max_tries}) // 3;
+    my $sleep_duration = delete($args{sleep_duration}) // 60;
 
-    while ($try_cnt++ < $max_tries) {
-        eval {
-            $ret = $self->__vault_api($path, %args);
-        };
-        return $ret unless ($@);
-        sleep get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', 60);
-    }
-    die("vault_api() call failed after $max_tries attempts -- " . $@);
+    return $self->vault_retry(
+        sub { $self->__vault_api($path, %args) },
+        name => 'vault_api()', max_tries => $max_tries, sleep_duration => $sleep_duration
+    );
 }
 
 =head2 vault_get_secrets
 
-  my $data = $csp->vault_get_secrets('/azure/creds/openqa-role')
+  my $data = $csp->vault_get_secrets('/azure/creds/openqa-role' [, max_tries => 3][, sleep_duration => 60])
 
 This is a wrapper around C<vault_api()> to retrieve secrets from aws, gce or
 azure secret engine.
@@ -628,10 +637,10 @@ It prepend C<'/v1/' + $NAMESPACE> to the given path before sending the request.
 It stores lease_id and also adjust the token-live-time.
 =cut
 sub vault_get_secrets {
-    my ($self, $path) = @_;
-    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . $path, method => 'get');
+    my ($self, $path, %args) = @_;
+    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . $path, method => 'get', %args);
     $self->vault_lease_id($res->{lease_id});
-    $self->vault_api('/v1/auth/token/renew-self', method => 'post', data => {increment => $res->{lease_duration} . 's'});
+    $self->vault_api('/v1/auth/token/renew-self', method => 'post', data => {increment => $res->{lease_duration} . 's'}, %args);
     return $res->{data};
 }
 
