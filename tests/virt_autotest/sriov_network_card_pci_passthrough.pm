@@ -375,7 +375,7 @@ sub unplug_vf_from_vm {
     record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nbdf='$vf->{vm_bdf}'   mac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 
     #bring the nic down
-    script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 60);
+    script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 300);
 
     #detach vf from guest
     my $vf_xml_file = "vf_in_vm.xml";
