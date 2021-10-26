@@ -143,7 +143,7 @@
 
 <h2 id="vault_get_secrets">vault_get_secrets</h2>
 
-<pre><code>  my $data = $csp-&gt;vault_get_secrets(&#39;/azure/creds/openqa-role&#39;)</code></pre>
+<pre><code>  my $data = $csp-&gt;vault_get_secrets(&#39;/azure/creds/openqa-role&#39; [, max_tries =&gt; 3][, sleep_duration =&gt; 60])</code></pre>
 
 <p>This is a wrapper around <code>vault_api()</code> to retrieve secrets from aws, gce or azure secret engine. It prepend <code>&#39;/v1/&#39; + $NAMESPACE</code> to the given path before sending the request. It stores lease_id and also adjust the token-live-time.</p>
 
