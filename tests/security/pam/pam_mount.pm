@@ -27,6 +27,7 @@ sub run {
     my $user = 'bernhard';
     my $key = 'SUSE_t595_qw';
     my $testfile = 'testfile';
+    assert_script_run "modprobe loop";
     my $loopdev = script_output 'losetup -f';
     my $loop_vol = 'enc_loop';
 
