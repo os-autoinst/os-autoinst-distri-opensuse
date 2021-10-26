@@ -68,12 +68,19 @@ sub run {
     assert_script_run "sed -i 's/^root_password.*/root_password = $password/' ./instance.inf";
     assert_script_run "mkdir slapd.d";
     assert_script_run("dscreate from-file ./instance.inf", timeout => 180);
+    assert_script_run("echo '127.0.0.1    susetest' >> /etc/hosts");
     assert_script_run "dsctl localhost status";
     assert_script_run "slaptest -f slapd.conf -F ./slapd.d";
 
     # Check migration tools
     assert_script_run "openldap_to_ds --confirm localhost ./slapd.d ./db.ldif";
     assert_script_run "ldapmodify -H ldap://localhost -x -D 'cn=Directory Manager' -w $password -f aci.ldif";
+
+    # Check refint and unique plugins status
+    my $out = script_output "dsconf localhost plugin attr-uniq list";
+    my @cn = split('\n', $out);
+    validate_script_output("dsconf localhost plugin attr-uniq show $cn[-1]", sub { m/nsslapd-pluginEnabled: on/ });
+    validate_script_output("dsconf localhost plugin referential-integrity show", sub { m/nsslapd-pluginEnabled: on/ });
 
     # Manual fix memberof plugin
     assert_script_run "dsconf localhost plugin memberof show";
