@@ -186,7 +186,7 @@ sub test_opensuse_based_image {
                 # SUSEConnect zypper service is supported only on SLE based image on SLE host
                 my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
                 $runtime->run_container($image, cmd => "$plugin -v", keep_container => 1);
-                $runtime->run_container($image, cmd => "$plugin lp", keep_container => 1, timeout => 420);
+                $runtime->run_container($image, cmd => "$plugin lp", keep_container => 1, timeout => 420, retry => 3, delay => 60);
                 $runtime->run_container($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
             }
         } else {

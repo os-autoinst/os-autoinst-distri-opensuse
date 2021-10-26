@@ -137,7 +137,8 @@ sub run_container {
     my $params = sprintf qq(%s %s %s), $keep_container, $mode, $name;
     my $cmd = sprintf qq(run %s %s %s), $params, $image_name, $remote;
     record_info "cmd_info", "Container executes:\noptions $params $image_name $remote";
-    $self->_engine_assert_script_run($cmd, timeout => $args{timeout});
+    my $retries = $args{retry} // 1;
+    return $self->_engine_script_retry($cmd, timeout => $args{timeout}, retry => $retries, delay => $args{delay});
 }
 
 =head2 pull($image_name, [%args])
