@@ -23,7 +23,8 @@ use warnings;
 use base 'opensusebasetest';
 use testapi;
 use utils 'zypper_call';
-use power_action_utils "power_action";
+use power_action_utils 'power_action';
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
@@ -37,7 +38,7 @@ sub run {
 
     # Install the tpm2.0 related packages
     # and then start the TPM2 Access Broker & Resource Manager
-    zypper_call "in ibmswtpm2 tpm2.0-abrmd tpm2.0-abrmd-devel openssl tpm2-0-tss tpm2-tss-engine tpm2.0-tools";
+    zypper_call "in expect ibmswtpm2 tpm2.0-abrmd tpm2.0-abrmd-devel openssl tpm2-0-tss tpm2-tss-engine tpm2.0-tools";
 
     # As we use TPM emulator, we should do some modification for tpm2-abrmd service
     # and make it connect to "--tcti=libtss2-tcti-mssim.so"
@@ -62,10 +63,12 @@ EOF
     $self->select_serial_terminal;
 
     # Start the emulator
-    assert_script_run "su - tss -c '/usr/lib/ibmtss/tpm_server&'";
+    my $server = script_output('ls /usr/*/ibmtss/tpm_server | tail -1');
+    die 'missing tpm_server path\n' if ($server eq '');
+    assert_script_run "su - tss -c '$server &'";
 
-    # Start the tpm2-abrmd service
-    assert_script_run "systemctl start tpm2-abrmd";
+    # Restart the tpm2-abrmd service
+    assert_script_run "systemctl restart tpm2-abrmd";
     assert_script_run "systemctl is-active tpm2-abrmd";
 }
 
