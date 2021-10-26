@@ -32,6 +32,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
+use Installation::Popups::YesNoPopupController;
 use YaST::Bootloader::BootloaderController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
@@ -152,6 +153,10 @@ sub get_license_agreement {
 
 sub get_ok_popup_controller {
     return Installation::Popups::OKPopupController->new();
+}
+
+sub get_yes_no_popup_controller {
+    return Installation::Popups::YesNoPopupController->new();
 }
 
 sub get_encrypted_volume_activation {
