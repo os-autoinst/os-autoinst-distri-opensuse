@@ -13,7 +13,7 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/disk_activation
-  - installation/multipath
+  - installation/activate_multipath
   - installation/registration/register_via_scc
   - installation/module_selection/select_module_desktop
   - installation/add_on_product/skip_install_addons
@@ -86,3 +86,4 @@ test_data:
               status: 'active ready running'
             - name: sdb
               status: 'active ready running'
+  multipath_activation_message: 'The system seems to have multipath hardware'
