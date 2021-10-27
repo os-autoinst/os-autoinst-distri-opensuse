@@ -79,8 +79,8 @@ sub run {
                     sleep 5;
                 }
                 else {
-                    # if command fails, "-vvvv" will show detailed output of the command
-                    script_run "vgchange -an -vvvv $vg_name";
+                    # if command fails, "-dddddd" redirects debug LV6 to /var/log/messages
+                    script_run "vgchange -an -dddddd $vg_name";
                     die "Volume group was not deactivated within $default_timeout seconds.";
                 }
             }
