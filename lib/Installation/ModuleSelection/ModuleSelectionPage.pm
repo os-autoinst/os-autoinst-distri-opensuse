@@ -39,22 +39,29 @@ sub is_shown {
     return $self->{rt_items}->exist();
 }
 
-sub get_modules {
+sub get_modules_full_name {
     my ($self) = @_;
     my @modules = ($self->{rt_items}->text() =~ /<a href='(.*?)'.*<\/a>/g);
     return \@modules;
 }
 
+sub get_modules {
+    my ($self) = @_;
+    my @modules = ($self->{rt_items}->text() =~ /<a href='?"?(.*?)-\d+/g);
+    return \@modules;
+}
+
 sub get_selected_modules {
     my ($self) = @_;
-    my @modules = ($self->{rt_items}->text() =~ /<a href='(.*?)'.*inst_checkbox-on.*<\/a>/g);
+    my @modules = ($self->{rt_items}->text() =~ /<a href='(.*?)-\d+.*inst_checkbox-on|<a href="(.*?)-\d+.*\[x\]/g);
+    @modules = grep defined, @modules;
     return \@modules;
 }
 
 sub select_module {
     my ($self, $module) = @_;
     my $module_name = $self->{"rt_item_$module"};
-    my ($module_full_name) = grep { /$module_name/ } $self->get_modules()->@*;
+    my ($module_full_name) = grep { /$module_name/ } $self->get_modules_full_name()->@*;
     return $self->{rt_items}->activate_link($module_full_name);
 }
 

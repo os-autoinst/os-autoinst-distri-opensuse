@@ -53,4 +53,14 @@ sub view_development_versions {
     $self->get_module_selection_page()->uncheck_hide_development_versions();
 }
 
+sub get_selected_modules {
+    my ($self) = @_;
+    return $self->get_module_selection_page()->get_selected_modules();
+}
+
+sub get_modules {
+    my ($self) = @_;
+    return $self->get_module_selection_page()->get_modules();
+}
+
 1;
