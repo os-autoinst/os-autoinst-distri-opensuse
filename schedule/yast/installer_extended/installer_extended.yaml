@@ -6,6 +6,7 @@ description: >
      - License has to be accepted and there is pop-up with a hint.
      - License translations (except SLE 15 due to missing translations in the
        beta phase).
+     - Check available and selected by default modules for installation.
 vars:
   CHECK_PRESELECTED_MODULES: '1'
   CHECK_RELEASENOTES: '1'
@@ -25,6 +26,7 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_selection/view_development_versions
+  - installation/module_selection/verify_module_selection
   - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_text_mode
@@ -78,3 +80,20 @@ test_data:
       - language: Traditional Chinese
         text: 版軟體的
   beta_text: 'You are accessing our Beta Distribution'
+  modules:
+    - sle-ha
+    - sle-module-live-patching
+    - sle-we
+    - sle-module-basesystem
+    - sle-module-containers
+    - sle-module-desktop-applications
+    - sle-module-development-tools
+    - sle-module-legacy
+    - sle-module-public-cloud
+    - PackageHub
+    - sle-module-server-applications
+    - sle-module-transactional-server
+    - sle-module-web-scripting
+  selected_modules:
+    - sle-module-basesystem
+    - sle-module-server-applications
