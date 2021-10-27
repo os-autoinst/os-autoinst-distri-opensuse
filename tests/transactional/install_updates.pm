@@ -30,7 +30,7 @@ sub run {
     add_test_repositories;
     record_info 'Updates', script_output('zypper lu');
     trup_call 'up', timeout => 600;
-    check_reboot_changes;
+    process_reboot(trigger => 1);
 }
 
 sub test_flags {
