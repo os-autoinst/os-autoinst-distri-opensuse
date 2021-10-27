@@ -28,7 +28,6 @@ tests/console/hostname.pm
 tests/console/x_vt.pm
 tests/console/zypper_lr.pm
 tests/console/zypper_ref.pm
-tests/console/ncurses.pm
 tests/console/yast2_lan.pm
 tests/console/curl_https.pm
 tests/console/glibc_tunables.pm
@@ -51,7 +50,6 @@ tests/x11/firefox.pm
 tests/x11/ooffice.pm
 tests/x11/oomath.pm
 tests/x11/oocalc.pm
-tests/x11/plasma_browser_integration.pm
 tests/x11/khelpcenter.pm
 tests/x11/systemsettings5.pm
 tests/x11/dolphin.pm
