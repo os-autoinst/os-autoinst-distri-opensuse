@@ -700,4 +700,12 @@ sub get_state_from_instance
     die('get_state_from_instance() isn\'t implemented');
 }
 
+=head2 get_default_tag
+Returns a default tag for container images based of the current job id
+=cut
+sub get_default_tag {
+    my ($self) = @_;
+    return join('-', $self->resource_name, get_current_job_id());
+}
+
 1;
