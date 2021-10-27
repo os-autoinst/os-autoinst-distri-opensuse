@@ -31,7 +31,7 @@ lock so that we can run a new zypper for our test.
 sub wait_quit_zypper {
     # sometimes the zypper processes already in quit process but can't pgrep, we
     # need wait several seconds for them to finish deactivate.
-    assert_script_run('for ((i=60; i>0; i--)) do if (! pgrep \'zypper|purge-kernels|rpm\' > /dev/null); then sleep 10; break; else sleep 10; continue; fi done', 600);
+    assert_script_run('for ((i=60; i>0; i--)) do if (! pgrep \'zypper|purge-kernels|rpm\' > /dev/null); then sleep 20; break; else sleep 10; continue; fi done', 600);
 }
 
 1;
