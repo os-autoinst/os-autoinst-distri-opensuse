@@ -138,7 +138,9 @@ sub run {
     enter_cmd "mkdir -p ~/.vnc/";
     enter_cmd "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd";
     enter_cmd "chmod 0600 ~/.vnc/passwd";
-    enter_cmd "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"";
+    enter_cmd 'pgrep -a Xvnc';
+    enter_cmd "pvnc=\$(pgrep -f Xvnc[[:space:]]*:${xvncport}[[:space:]]*-geometry)";
+    enter_cmd '[ -n "$pvnc" ] && kill -9 $pvnc';
     enter_cmd "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &";
 
     my $ps = 'powershell -Command';
