@@ -84,7 +84,7 @@ sub reboot_and_wait {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            assert_screen 'pxe-qa-net-mitigation', 90;
+            assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
             send_key 'ret';
             assert_screen([qw(grub2 grub1)], 60);
             #send key 'up' to stop grub timer counting down, to be more robust to select xen

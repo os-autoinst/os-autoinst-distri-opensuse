@@ -55,7 +55,7 @@ sub login_to_console {
 
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
-            assert_screen 'pxe-qa-net-mitigation', 90;
+            assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
             send_key 'ret';
             assert_screen([qw(grub2 grub1)], 60);
             send_key 'up';
