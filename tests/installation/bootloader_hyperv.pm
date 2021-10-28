@@ -112,8 +112,10 @@ sub run {
                 hyperv_cmd_with_retry("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
                 # Decompress the XZ compressed image
                 last if $hdd !~ m/vhdx\.xz/;
-                hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
-                last;
+                if ($svirt->run_cmd("Test-Path $root\\cache\\$basenamehdd -PathType Leaf")) {
+                    record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
+                    hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
+                }
             }
             # Make sure the disk file is present
             hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
