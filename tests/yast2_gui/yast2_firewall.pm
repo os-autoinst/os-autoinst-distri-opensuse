@@ -99,9 +99,23 @@ sub verify_service_started {
 
 sub verify_interface {
     my (%args) = @_;
+    my $zone = $args{zone};
 
     assert_and_click 'yast2_firewall_interfaces_menu';
-    assert_screen 'yast2_firewall_interfaces_' . $args{device} . '_' . $args{zone};
+
+    # Try with zone name used in call and give it the same time as the default ofr assert screen is
+    if (!defined(check_screen('yast2_firewall_interfaces_' . $args{device} . '_' . $zone, timeout => 30))) {
+        # according to poo#101370 the zone naming changed from 'default' to 'public'
+        # so let's try with 'public'.
+        record_info('Note:', "No matching needle for $zone, let me try 'public' instead");
+        $zone = 'public';
+    }
+    else {
+        return $zone;    # check screen already matched, so tell it to the caller
+    }
+
+    assert_screen 'yast2_firewall_interfaces_' . $args{device} . '_' . $zone;
+    return $zone;        # Tell the caller what needle matched.
 }
 
 sub change_interface_zone {
@@ -160,11 +174,17 @@ sub configure_firewalld {
     select_console 'x11', await_console => 0;
     y2_module_guitest::launch_yast2_module_x11('firewall', target_match => 'firewall-start-page');
 
-    verify_interface(device => $iface, zone => 'default');
+    my $matched_zone = verify_interface(device => $iface, zone => 'default');
     verify_zone(name => 'public', interfaces => $iface, default => 'default');
     set_default_zone 'trusted';
-    verify_zone(name => 'trusted', interfaces => $iface, default => 'default', menu_selected => 1);
 
+    # If we have eth0 assigned to public instead of default, then we must change the needle
+    if ($matched_zone eq 'public') {
+        verify_zone(name => 'trusted', default => 'default', menu_selected => 1);
+    }
+    else {
+        verify_zone(name => 'trusted', interfaces => $iface, default => 'default', menu_selected => 1);
+    }
     record_info('Interface/Zones', "Verify zone info assigning interface to different zone");
     change_interface_zone 'public';
     verify_interface(device => $iface, zone => 'public');
