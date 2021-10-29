@@ -200,6 +200,13 @@
         },
         "type": "bug"
     },
+    "bsc#1192164": {
+        "description": "wickedd.*: unexpected combination of interface flags 0x11003",
+        "products": {
+            "sle": ["15-SP4"]
+        },
+        "type": "bug"
+    },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
         "products": {
@@ -254,7 +261,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
