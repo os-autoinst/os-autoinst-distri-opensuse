@@ -81,7 +81,7 @@ sub run {
             send_key 'alt-e';
             sleep 3;
             send_key 'alt-e';
-            record_soft_failure 'bsc#1129280 - Toggled "enable apparmor" to ensure systemd unit is started';
+            record_info 'bsc#1129280', 'bsc#1129280 - Toggled "enable apparmor" to ensure systemd unit is started';
             assert_screen 'yast2_apparmor_enabled';
         }
     }
