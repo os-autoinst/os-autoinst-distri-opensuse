@@ -19,6 +19,9 @@ sub run {
 
     $self->select_serial_terminal;
 
+    # Skip test on migration
+    return if is_upgrade();
+
     # saptune is not installed by default on SLES4SAP 12 on ppc64le
     zypper_call "-n in saptune" if (is_ppc64le() and is_sle('<15'));
 
