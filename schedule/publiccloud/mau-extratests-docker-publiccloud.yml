@@ -11,6 +11,9 @@ conditional_schedule:
       15-SP2:
         - containers/podman
         - containers/podman_3rd_party_images
+      15-SP3:
+        - containers/podman
+        - containers/podman_3rd_party_images
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos

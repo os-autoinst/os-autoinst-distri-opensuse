@@ -17,8 +17,6 @@ use warnings;
 sub run {
     my ($self) = @_;
 
-    my @solutions = qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER\+HANA S4HANA-APP\+DB S4HANA-APPSERVER S4HANA-DBSERVER SAP-ASE);
-
     $self->select_serial_terminal;
 
     # saptune is not installed by default on SLES4SAP 12 on ppc64le
@@ -27,10 +25,6 @@ sub run {
     assert_script_run "saptune daemon start";
 
     assert_script_run "saptune daemon stop";
-
-    my $output = script_output "saptune solution list";
-    my $regexp = join('.+', @solutions);
-    die "Command 'saptune solution list' output is not recognized" unless ($output =~ m|$regexp|s);
 }
 
 1;

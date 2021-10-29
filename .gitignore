@@ -10,3 +10,4 @@ tools/tidy
 docs/*.html
 docs/**/*.html
 /script/yaml_generator/env/
+__pycache__/

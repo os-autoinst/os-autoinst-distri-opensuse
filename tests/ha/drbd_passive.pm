@@ -15,6 +15,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use version_utils 'is_sle';
+use utils 'zypper_call';
 use testapi;
 use lockapi;
 use hacluster;
@@ -47,6 +48,8 @@ sub run {
 
     # Wait until DRBD test is initialized
     barrier_wait("DRBD_INIT_$cluster_name");
+
+    zypper_call '-n up';
 
     # Do the DRBD configuration only on the first node
     if (is_node(1)) {

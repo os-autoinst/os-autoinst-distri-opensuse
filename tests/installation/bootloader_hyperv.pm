@@ -112,8 +112,10 @@ sub run {
                 hyperv_cmd_with_retry("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
                 # Decompress the XZ compressed image
                 last if $hdd !~ m/vhdx\.xz/;
-                hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
-                last;
+                if ($svirt->run_cmd("Test-Path $root\\cache\\$basenamehdd -PathType Leaf")) {
+                    record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
+                    hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
+                }
             }
             # Make sure the disk file is present
             hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
@@ -138,7 +140,9 @@ sub run {
     enter_cmd "mkdir -p ~/.vnc/";
     enter_cmd "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd";
     enter_cmd "chmod 0600 ~/.vnc/passwd";
-    enter_cmd "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"";
+    enter_cmd 'pgrep -a Xvnc';
+    enter_cmd "pvnc=\$(pgrep -f Xvnc[[:space:]]*:${xvncport}[[:space:]]*-geometry)";
+    enter_cmd '[ -n "$pvnc" ] && kill -9 $pvnc';
     enter_cmd "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &";
 
     my $ps = 'powershell -Command';

@@ -141,14 +141,35 @@ our %guest_params = (
     'guest_default_target' => '',   #This indicates whether guest os default target(multi-user, graphical or others), not virt-install argument.
                                     #The following parameters end with 'options' are derived from above parameters. They contains options and
                                     #corresponding values which are passed to virt-install command line directly to perform guest installations.
-    'guest_virt_options' => '',     #[guest_virt_options] = "--connect [host_hypervisor_uri] --virt-type [host_virt_type] --[guest_virt_type]"
-    'guest_platform_options' => '', #[guest_platform_options] = "--arch [guest_arch] --machine [guest_machine_type]"
-    'guest_name_options' => '',     #[guest_name_options] = "--name [guest_name]"
-    'guest_memory_options' => '',   #[guest_memory_options] = "--memory [guest_memory]"
-    'guest_vcpus_options' => '',    #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
-    'guest_cpumodel_options' => '', #[guest_cpumodel_options] = "--cpu [guest_cpumodel]"
-    'guest_metadata_options' => '', #[guest_metadata_options] = "--metadata [guest_metadata]"
-    'guest_xpath_options' => '',    #[guest_xpath_options] = [guest_xpath_options] . "--xml $_ " foreach ([@guest_xpath])
+    'guest_do_registration' => '',  #This indicates whether guest to be registered or subscribed with content provider. Not virt-install argument.
+                                    #It can be given 'true','false' or empty. Only 'true' means do registration/subscription.
+    'guest_registration_server' => '',    #This is the address of registration/subscription server of content provider.
+                                          #Not virt-install argument. It can be left empty if not needed.
+    'guest_registration_username' => '',  #This is the username to be used in registration/subscription. Not virt-install argument.
+                                          #It can be email address, free text or empty if not needed.
+    'guest_registration_password' => '',  #This is the password to be used in registration/subscription. Not virt-install argument.
+                                          #It is normally used together with [guest_registration_username] or empty if not needed.
+    'guest_registration_code' => '',      #This is the code or key to used in registraiton/subscription. Not virt-install argument.
+                                          #It can be used together with [guest_registration_username], standalone or empty if not needed.
+                                          #Do not recommend to use the parameter in guest profile directly, use test suite setting UNIFIED_GUEST_REG_CODES.
+    'guest_registration_extensions' => '',    #This refers to additional modules/extensions/products to be registered together with guest os or
+                                              #by using individual registration/subscription code/key. Multiple modules/extensions/products are
+                                              #separated by hash key. For example, "sle-module-legacy#sle-module-basesystem#SLES-LTSS".
+                                              #Not virt-install argument. Can be left empty if not needed.
+    'guest_registration_extensions_codes' => '',    #This refers to registration/subscription codes/keys to be used by modules/extensions/products in
+        #[guest_registration_extensions]. Can be empty if not needed, but if anyone in [guest_registration_extensions] needs its own code/key, all the
+        #others should also be given theirs even empty. For example, "sle-module-legacy#sle-module-basesystem#SLES-LTSS" needs "##SLES-LTSS-CODE-OR-KEY"
+        #to be set in [guest_registration_extensions_codes]. And the codes/keys should be separated by hash key and put in the same order as their
+        #corresponding modules/extensions/products in [guest_registration_extensions]. Not virt-install argument. Do not recommend to use the parameter
+        #in guest profile directly, use test suite setting UNIFIED_GUEST_REG_EXTS_CODES.
+    'guest_virt_options' => '',    #[guest_virt_options] = "--connect [host_hypervisor_uri] --virt-type [host_virt_type] --[guest_virt_type]"
+    'guest_platform_options' => '',    #[guest_platform_options] = "--arch [guest_arch] --machine [guest_machine_type]"
+    'guest_name_options' => '',        #[guest_name_options] = "--name [guest_name]"
+    'guest_memory_options' => '',      #[guest_memory_options] = "--memory [guest_memory]"
+    'guest_vcpus_options' => '',       #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
+    'guest_cpumodel_options' => '',    #[guest_cpumodel_options] = "--cpu [guest_cpumodel]"
+    'guest_metadata_options' => '',    #[guest_metadata_options] = "--metadata [guest_metadata]"
+    'guest_xpath_options' => '',       #[guest_xpath_options] = [guest_xpath_options] . "--xml $_ " foreach ([@guest_xpath])
     'guest_installation_method_options' => '', #[guest_installation_method_options] = "--location [guest_installation_media] --install [guest_installation_fine_grained]
                                                #--autoconsole [guest_autoconsole] or --noautoconsole" or
                                                #"--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]"
@@ -1047,7 +1068,9 @@ sub config_guest_installation_extra_args {
 
 #Configure [guest_installation_automation_options].User can still change [guest_installation_automation],[guest_installation_automation_file],[guest_os_name],[guest_version_major],
 #[host_virt_type],[guest_virt_type],[guest_default_target] and [guest_arch] by passing non-empty arguments using hash.Fill in unattended installation file with [guest_installation_media],
-#[guest_secure_boot],[guest_boot_settings],[guest_storage_label],[guest_domain_name],[guest_name] and host public rsa key.Start HTTP server using python3 modules in unattended
+#[guest_secure_boot],[guest_boot_settings],[guest_storage_label],[guest_domain_name],[guest_name] and host public rsa key.User can also change [guest_do_registration],[guest_registration_server],
+#[guest_registration_username],[guest_registration_password],[guest_registration_code],[guest_registration_extensions] and [guest_registration_extensions_codes] which are used in configuring
+#guest installation automation registration.Subroutine config_guest_installation_automation_registration is called to perform this task.Start HTTP server using python3 modules in unattended
 #automation file folder to serve unattended guest installation.Mark guest installation as FAILED if HTTP server can not be started up or unattended installation file is not accessible.
 #Common varaibles are used in guest unattended installation file and to be replaced with actual values.They are common variables that are relevant to guest itself or its attributes,
 #so they can be used in any unattended installation files regardless of autoyast or kickstart or others.For example, if you want to set guest ethernet interface mac address somewhere
@@ -1055,7 +1078,8 @@ sub config_guest_installation_extra_args {
 #than variables used in the unattended installation file, so keep using standardized common varialbes in unattened installation file will make it come alive automatically regardless of
 #the actual kind of automation being used.
 #Currently the following common variables are supported:[Module-Basesystem,Module-Desktop-Applications,Module-Development-Tools,Module-Legacy,Module-Server-Applications,Module-Web-Scripting,
-#Product-SLES,Authorized-Keys,Secure-Boot,Boot-Loader-Type,Disk-Label,Domain-Name,Host-Name,Device-MacAddr,Logging-HostName and Logging-HostPort]
+#Product-SLES,Authorized-Keys,Secure-Boot,Boot-Loader-Type,Disk-Label,Domain-Name,Host-Name,Device-MacAddr,Logging-HostName,Logging-HostPort,Do-Registration,Registration-Server,Registration-UserName,
+#Registration-Password and Registration-Code]
 sub config_guest_installation_automation {
     my $self = shift;
 
@@ -1065,7 +1089,7 @@ sub config_guest_installation_automation {
     assert_script_run("curl -s -o $common_log_folder/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file} " . data_url("virt_autotest/guest_unattended_installation_files/$self->{guest_installation_automation_file}"));
     $self->{guest_installation_automation_file} = "$common_log_folder/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file}";
     assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
-    if (($self->{guest_version_major} ge 15) and ($self->{guest_os_name} =~ /sles/img)) {
+    if (($self->{guest_version_major} ge 15) and ($self->{guest_os_name} =~ /sles/im)) {
         my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Product-SLES');
         my $_guest_installation_media_extension_url = '';
         foreach (@_guest_installation_media_extensions) {
@@ -1091,7 +1115,7 @@ sub config_guest_installation_automation {
     else {
         assert_script_run("sed -ri \'/##Secure-Boot##/d;\' $self->{guest_installation_automation_file}");
     }
-    my $_boot_loader = ($self->{guest_boot_settings} =~ /uefi|ovmf/img ? 'grub2-efi' : 'grub2');
+    my $_boot_loader = ($self->{guest_boot_settings} =~ /uefi|ovmf/im ? 'grub2-efi' : 'grub2');
     assert_script_run("sed -ri \'s/##Boot-Loader-Type##/$_boot_loader/g;\' $self->{guest_installation_automation_file}");
     my $_disk_label = ($self->{guest_storage_label} eq 'gpt' ? 'gpt' : 'msdos');
     assert_script_run("sed -ri \'s/##Disk-Label##/$_disk_label/g;\' $self->{guest_installation_automation_file}");
@@ -1100,6 +1124,7 @@ sub config_guest_installation_automation {
     assert_script_run("sed -ri \'s/##Device-MacAddr##/$self->{guest_macaddr}/g;\' $self->{guest_installation_automation_file}");
     assert_script_run("sed -ri \'s/##Logging-HostName##/$self->{host_name}.$self->{host_domain_name}/g;\' $self->{guest_installation_automation_file}");
     assert_script_run("sed -ri \'s/##Logging-HostPort##/514/g;\' $self->{guest_installation_automation_file}");
+    $self->config_guest_installation_automation_registration;
     $self->validate_guest_installation_automation_file;
 
     my $_http_server_command = "python3 -m http.server 8666 --bind $self->{host_ipaddr}";
@@ -1127,11 +1152,49 @@ sub config_guest_installation_automation {
     }
     elsif ($self->{guest_installation_automation} eq 'kickstart') {
         $self->{guest_installation_automation_options} = "--extra-args \"inst.ks=$self->{guest_installation_automation_file}\"";
-        $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/img) and ($self->{guest_version_major} lt 7));
+        $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/im) and ($self->{guest_version_major} lt 7));
     }
     if (script_run("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
         record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}");
         $self->record_guest_installation_result('FAILED');
+    }
+    return $self;
+}
+
+#Configure registration/subscription/activation information in guest unattended installation file using guest parameters, including guest_do_registration,guest_registration_server,
+#guest_registration_username,guest_registration_password,guest_registration_code,guest_registration_extensions and guest_registration_extensions_codes].
+sub config_guest_installation_automation_registration {
+    my $self = shift;
+
+    $self->reveal_myself;
+    $self->{guest_do_registration} = 'false' if ($self->{guest_do_registration} eq '');
+    record_info("Guest $self->{guest_name} registration status: $self->{guest_do_registration}", "Good luck !");
+    if ($self->{guest_do_registration} eq 'false') {
+        assert_script_run("sed -ri \'/<suse_register>/,/<\\\/suse_register>/d\' $self->{guest_installation_automation_file}") if ($self->{guest_os_name} =~ /sles/im);
+    }
+    else {
+        assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Server##/$self->{guest_registration_server}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-UserName##/$self->{guest_registration_username}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Password##/$self->{guest_registration_password}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Code##/$self->{guest_registration_code}/g;\' $self->{guest_installation_automation_file}");
+        if (($self->{guest_registration_extensions} ne '') and ($self->{guest_os_name} =~ /sles/im)) {
+            my @_guest_registration_extensions = split(/#/, $self->{guest_registration_extensions});
+            my @_guest_registration_extensions_codes = ('') x scalar @_guest_registration_extensions;
+            @_guest_registration_extensions_codes = split(/#/, $self->{guest_registration_extensions_codes}) if ($self->{guest_registration_extensions_codes} ne '');
+            my %_store_of_guest_registration_extensions;
+            @_store_of_guest_registration_extensions{@_guest_registration_extensions} = @_guest_registration_extensions_codes;
+            my $_guest_registration_version = ($self->{guest_version_minor} eq '0' ? $self->{guest_version_major} : $self->{guest_version_major} . '.' . $self->{guest_version_minor});
+            foreach (keys %_store_of_guest_registration_extensions) {
+                my $_guest_registration_extension_clip = "  <addon>\\n" .
+                  "        <name>$_<\\\/name>\\n" .
+                  "        <version>$_guest_registration_version<\\\/version>\\n" .
+                  "        <arch>$self->{guest_arch}<\\\/arch>\\n" .
+                  "        <reg_code>$_store_of_guest_registration_extensions{$_}<\\\/reg_code>\\n" .
+                  "      <\\\/addon>";
+                assert_script_run("sed -zri \'s/<\\\/addons>.*\\n.*<\\\/suse_register>/$_guest_registration_extension_clip\\n    <\\\/addons>\\n  <\\\/suse_register>/\' $self->{guest_installation_automation_file}");
+            }
+        }
     }
     return $self;
 }

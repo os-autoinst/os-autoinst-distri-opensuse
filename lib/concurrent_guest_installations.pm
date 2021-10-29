@@ -63,11 +63,13 @@ sub instantiate_guests_and_profiles {
         $guest_instances{$_element} = bless({%$self}, ref($self));
         diag "Guest $_element is blessed";
         my $_ua = LWP::UserAgent->new;
-        my $_geturl = data_url("virt_autotest/guest_params_xml_files/$_store_of_guests{$_element}.xml");
+        my $_geturl = data_url("virt_autotest/guest_params_xml_files/$_store_of_guests{$_element}{PROFILE}.xml");
         my $_req = HTTP::Request->new(GET => "$_geturl");
         my $_res = $_ua->request($_req);
         my $_guest_profile = (XML::Simple->new)->XMLin($_res->content, SuppressEmpty => '');
         $_guest_profile->{guest_name} = $_element;
+        $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
+        $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $guest_instances_profiles{$_element} = $_guest_profile;
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
