@@ -31,7 +31,7 @@ sub run {
     enter_cmd "exit";
 
     # Remote access SLES via Xephyr
-    enter_cmd "Xephyr -query 10.0.2.1 -screen 1024x768+0+0 -terminate :1";
+    enter_cmd "Xephyr -query 10.0.2.1 -screen 1024x768+0+0 -terminate :2";
     assert_screen 'xdmcp-gdm', 90;
     send_key 'ret';
     assert_screen 'xdmcp-login-gdm';
