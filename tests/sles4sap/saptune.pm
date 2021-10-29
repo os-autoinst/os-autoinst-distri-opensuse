@@ -22,9 +22,7 @@ sub run {
     # saptune is not installed by default on SLES4SAP 12 on ppc64le
     zypper_call "-n in saptune" if (is_ppc64le() and is_sle('<15'));
 
-    assert_script_run "saptune daemon start";
-
-    assert_script_run "saptune daemon stop";
+    assert_script_run "saptune daemon status";
 }
 
 1;
