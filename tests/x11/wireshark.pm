@@ -80,14 +80,15 @@ sub run {
     wait_still_screen 2;
     # Load the Capture file
     enter_cmd "wireshark /tmp/capture.pcap -Y 'dns.a and dns.qry.name==\"www.suse.com\"'";
-    wait_still_screen 3;
+    wait_still_screen 5;
     assert_screen("wireshark-capturing-list", TIMEOUT);
     assert_screen("wireshark-dns-response-list", TIMEOUT);
     send_key "alt-f4";
     wait_still_screen 2;
 
     enter_cmd "wireshark";
-    assert_screen "wireshark-welcome", 30;
+    assert_screen("wireshark-welcome", TIMEOUT);
+    wait_still_screen 3;
     # Unselect the display of the Protocol in the UI.
     send_key "ctrl-shift-p";
     assert_screen("wireshark-preferences", TIMEOUT);
