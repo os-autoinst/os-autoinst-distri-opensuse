@@ -8,9 +8,7 @@
 #          Log the test results in docker-3rd_party_images_log.txt
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use version_utils;
@@ -25,11 +23,11 @@ sub run {
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $engine = containers::engine::podman->new();
 
     script_run("echo 'Container base image tests:' > /var/tmp/podman-3rd_party_images_log.txt");
     # In SLE we need to add the Containers module
     install_podman_when_needed($host_distri);
+    my $engine = $self->containers_factory('podman');
     $engine->configure_insecure_registries();
     my $images = get_3rd_party_images();
     for my $image (@{$images}) {
