@@ -41,7 +41,8 @@ sub is_shown {
 
 sub get_modules_full_name {
     my ($self) = @_;
-    my @modules = ($self->{rt_items}->text() =~ /<a href='(.*?)'.*<\/a>/g);
+    my @modules = ($self->{rt_items}->text() =~ /<a href="(.*?)">|<a href='(.*?)' /g);
+    @modules = grep defined, @modules;
     return \@modules;
 }
 
