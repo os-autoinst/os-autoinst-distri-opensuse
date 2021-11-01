@@ -32,13 +32,9 @@ sub run {
     my $self = shift;
     select_console 'root-console';
 
-    # Also panic when softlockup
-    # workaround bsc#1104778, skip s390x in 12SP4
+    # Enable panic when softlockup happens
     assert_script_run('echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf');
-    my $output = script_output('sysctl -p', 10, proceed_on_failure => 1);
-    unless ($output =~ /kernel.softlockup_panic = 1/) {
-        record_soft_failure 'bsc#1104778';
-    }
+    script_run('sysctl -p');
 
     # Activate kdump
     prepare_for_kdump;
