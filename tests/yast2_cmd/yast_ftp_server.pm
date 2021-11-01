@@ -59,7 +59,8 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     zypper_call 'in yast2-ftp-server';
     zypper_call 'in yast2-users';
 

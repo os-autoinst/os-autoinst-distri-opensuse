@@ -23,7 +23,8 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     zypper_call("in yast2-users yast2-nis-client ypbind", exitcode => [0, 102, 103, 106]);
 
     # adds a new user with a password and homedir and verifies
