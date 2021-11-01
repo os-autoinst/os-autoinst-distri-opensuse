@@ -248,39 +248,11 @@ sub test_pgsql {
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
-        # due to orderless numbering untill version 94 is gone
-        my $pg_versions = <<'EOF';
-#!/bin/bash
-PG_VER=$(update-alternatives --list postgresql)
-if [[ $(echo $PG_VER|grep 94) ]]; then
-    export PG_OLDEST='postgresql94'
-elif [[ $(echo $PG_VER|grep 96) ]]; then
-    export PG_OLDEST='postgresql96'
-elif [[ $(echo $PG_VER|grep 10) ]]; then
-    export PG_OLDEST='postgresql10'
-elif [[ $(echo $PG_VER|grep 11) ]]; then
-    export PG_OLDEST='postgresql11'
-elif [[ $(echo $PG_VER|grep 12) ]]; then
-    export PG_OLDEST='postgresql12'
-fi
-echo PG_OLDEST=/usr/lib/$PG_OLDEST >/tmp/pg_versions
-if [[ $(echo $PG_VER|grep 12) ]]; then
-    export PG_LATEST='postgresql12'
-elif [[ $(echo $PG_VER|grep 11) ]]; then
-    export PG_LATEST='postgresql11'
-elif [[ $(echo $PG_VER|grep 10) ]]; then
-    export PG_LATEST='postgresql10'
-elif [[ $(echo $PG_VER|grep 96) ]]; then
-    export PG_LATEST='postgresql96'
-elif [[ $(echo $PG_VER|grep 94) ]]; then
-    export PG_LATEST='postgresql94'
-fi
-echo PG_LATEST=/usr/lib/$PG_LATEST >>/tmp/pg_versions
-EOF
-        $pg_versions =~ s/\n/\\n/g;
-        script_run "echo -e '$pg_versions' > pg_versions.sh";
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
-        assert_script_run 'sudo bash pg_versions.sh && . /tmp/pg_versions';
+        assert_script_run 'export PG_OLDEST=$(sudo update-alternatives --list postgresql|head -n1)';
+        assert_script_run 'export PG_LATEST=$(sudo update-alternatives --list postgresql|tail -n1)';
+        # compare version number, first line (oldest) is smaller than last line (latest)
+        assert_script_run q((($(echo $PG_OLDEST|awk -Fsql '{print$2}') < $(echo $PG_LATEST|awk -Fsql '{print$2}'))));
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
         assert_script_run 'initdb -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
@@ -294,7 +266,7 @@ EOF
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
         assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data2 start';
-        assert_script_run './analyze_new_cluster.sh';
+        assert_script_run 'vacuumdb --all --analyze-in-stages';
         assert_script_run './delete_old_cluster.sh';
     }
     # turn off pager, othwerwise assert_script_run can time out
