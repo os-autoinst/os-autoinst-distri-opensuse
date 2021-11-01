@@ -101,15 +101,21 @@ sub run {
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    # Wait for guests to finish installation
-    # script_run("wait", timeout => 1200);
-    #script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
-    # Unfortunately this doesn't cover the second step of the installation, where ssh is available
-    my $sleep_delay = 1200;
-    $sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
-    sleep($sleep_delay);                     # XXX Get rid of this sleep!
-    start_guests();
-    record_info("guests installed", "Guest installation completed");
+    ##########################################################################################################
+    ## The following block has been commented because it is only required for parallel guest installation.  ##
+    ## For now we had to switch back to sequential guest installation (See poo#101542), however the code    ##
+    ## is intentionally kept here for when we enable parallel guest installation again.                     ##
+    ## Note: Double commented comments (##) remain comments!                                                ##
+    ##########################################################################################################
+    ## Wait for guests to finish installation
+    ## script_run("wait", timeout => 1200);
+    ##script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
+    ## Unfortunately this doesn't cover the second step of the installation, where ssh is available
+    ##my $sleep_delay = 1200;
+    ##$sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
+    ##sleep($sleep_delay);                     # XXX Get rid of this sleep!
+    ##start_guests();
+    ##record_info("guests installed", "Guest installation completed");
 
     # Adding the PCI bridges requires the guests to be shutdown
     record_info("shutdown guests", "Shutting down all guests");

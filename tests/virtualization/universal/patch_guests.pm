@@ -33,8 +33,7 @@ sub run {
     record_info "BEFORE", "This phase is BEFORE the patching";
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Probing the guest, adding test repositories and patching the system";
-        ensure_online($guest, skip_ping => (is_hyperv_virtualization || is_vmware_virtualization))
-          foreach (keys %virt_autotest::common::guests);
+        ensure_online($guest, skip_ping => (is_hyperv_virtualization || is_vmware_virtualization));
 
         my ($guest_running_version, $guest_running_sp) = get_os_release("ssh root\@$guest");
 

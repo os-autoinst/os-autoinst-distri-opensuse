@@ -1,6 +1,6 @@
 # XEN regression tests
 #
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-client iputils nmap xen-tools
@@ -58,7 +58,7 @@ sub run {
             # Download the diskimage. Note: this could be merged with download_image.pm at some point
             my $source = $guest->{source};
             my $disk = $guest->{disk};
-            script_retry("wget -qO '$disk' '$source'", retry => 3, delay => 60, timeout => 300);
+            script_retry("curl $source -o $disk", retry => 3, delay => 60, timeout => 300);
             import_guest($guest);
         } else {
             die "Unsupported method '$method' for guest $guest";
