@@ -5,7 +5,7 @@
 #          This test module covers the server setup processes
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#88513, poo#92410, poo#93832, tc#1768672
+# Tags: poo#88513, poo#92410, poo#93832, poo#101698, tc#1768672
 
 use base 'consoletest';
 use testapi;
@@ -51,7 +51,7 @@ sub run {
     assert_script_run("sed -i -e 's/master/$local_name.example.com/' -e 's/minion/$remote_name.example.com/' /etc/hosts");
 
     # Create ldap user and group
-    my $ldap_user = $testapi::username;
+    my $ldap_user = get_var('SSS_USERNAME');
     my $ldap_passwd = $testapi::password;
     my $ldap_group = 'server_admins';
     my $uid = '1003';
