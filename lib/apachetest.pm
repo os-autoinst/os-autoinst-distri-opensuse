@@ -335,7 +335,6 @@ sub test_mysql {
 
 # poo#62000
 sub postgresql_cleanup {
-    select_console 'root-console';
     # Clean up
     systemctl 'stop postgresql';
     systemctl 'disable postgresql';
