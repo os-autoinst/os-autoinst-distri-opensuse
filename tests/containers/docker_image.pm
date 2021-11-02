@@ -15,21 +15,20 @@
 # - remove the container, run it again and verify that the new image works
 # Maintainer: Pavel Dostál <pdostal@suse.cz>, qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release is_tumbleweed);
-use containers::engine;
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal();
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $engine = containers::engine::docker->new();
+    my $engine = $self->containers_factory('docker');
 
     install_docker_when_needed($host_distri);
     $engine->configure_insecure_registries();

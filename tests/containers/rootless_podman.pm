@@ -15,7 +15,7 @@
 # - Restore /etc/zypp/credentials.d/ credentials
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use containers::common;
@@ -24,7 +24,6 @@ use containers::urls 'get_suse_container_urls';
 use containers::utils 'registry_url';
 use version_utils qw(get_os_release);
 use version_utils 'is_sle';
-use containers::engine;
 use Utils::Architectures;
 
 sub run {
@@ -40,7 +39,7 @@ sub run {
 
     my ($untested_images, $released_images) = get_suse_container_urls();
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $podman = containers::engine::podman->new();
+    my $podman = $self->containers_factory('podman');
 
     install_podman_when_needed($host_distri);
     $podman->configure_insecure_registries();

@@ -8,21 +8,20 @@
 # This module is unified to run independented the host os.
 # Maintainer: Fabian Vogt <fvogt@suse.com>, qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release check_os_release);
-use containers::engine;
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal();
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $engine = containers::engine::podman->new();
+    my $engine = $self->containers_factory('podman');
     install_podman_when_needed($host_distri);
     $engine->configure_insecure_registries();
 

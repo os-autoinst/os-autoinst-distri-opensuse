@@ -8,6 +8,7 @@
 
 package containers::basetest;
 use Mojo::Base 'opensusebasetest';
+use containers::engine;
 
 sub containers_factory {
     my ($self, $runtime) = @_;

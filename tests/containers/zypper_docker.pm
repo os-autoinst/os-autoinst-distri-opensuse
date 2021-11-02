@@ -14,20 +14,17 @@
 #      * zypper-docker can apply the updates:                    'zypper-docker update'
 # Maintainer: Antonio Caristia <acaristia@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use Utils::Architectures;
 use utils;
 use version_utils 'get_os_release';
-use strict;
-use warnings;
 use containers::common;
-use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = containers::engine::docker->new();
+    my $docker = $self->containers_factory('docker');
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);

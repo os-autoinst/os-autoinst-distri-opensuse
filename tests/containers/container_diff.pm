@@ -7,21 +7,18 @@
 # Summary: Print and save diffs between two cotaniners using container-diff tool
 # Maintainer: qac team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(is_sle get_os_release);
-use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = containers::engine::docker->new();
+    my $docker = $self->containers_factory('docker');
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);

@@ -13,9 +13,8 @@
 # continue when the docker partition is fulled up.
 # Maintainer: qac team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'containers::basetest';
 use testapi;
-use containers::engine;
 use containers::common;
 use containers::urls 'get_suse_container_urls';
 use version_utils qw(get_os_release);
@@ -95,7 +94,7 @@ sub run {
     $self->select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $docker = containers::engine::docker->new();
+    my $docker = $self->containers_factory('docker');
     install_docker_when_needed($host_distri);
     $docker->configure_insecure_registries();
     my $btrfs_dev = '/var/lib/docker';

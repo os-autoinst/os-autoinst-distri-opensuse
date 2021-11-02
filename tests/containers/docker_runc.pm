@@ -12,21 +12,18 @@
 #      * complete lifecycle (create, start, pause, resume, kill, delete)
 # Maintainer: qac team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle get_os_release);
 use containers::common;
-use strict;
-use warnings;
-use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $docker = containers::engine::docker->new();
+    my $docker = $self->containers_factory('docker');
     my @runtimes = ();
     push @runtimes, "runc" if (is_leap(">15.1") or !is_sle('=15'));
 
