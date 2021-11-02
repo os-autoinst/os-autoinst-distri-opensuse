@@ -9,7 +9,7 @@
 use base "sles4sap";
 use testapi;
 use utils "zypper_call";
-use version_utils "is_sle";
+use version_utils qw(is_sle is_upgrade);
 use Utils::Architectures;
 use strict;
 use warnings;
