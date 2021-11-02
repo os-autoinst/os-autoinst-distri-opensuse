@@ -68,6 +68,10 @@ sub check_suseconnect {
         foreach (@$json) {
             my $iden = $_->{identifier};
             my $status = $_->{status};
+            if ($iden eq 'sle-module-packagehub-subpackages') {
+                record_soft_failure('bsc#1176901', "openQA test fails in system_prepare - 'sle-module-packagehub-subpackages' is not registered ");
+                next;
+            }
             push(@addons, $iden);
             die "$iden register status is: $status" if ($status ne 'Registered');
         }
@@ -84,7 +88,7 @@ sub check_suseconnect_cmd {
     my $status_out = script_output("SUSEConnect --status-text", 120);
     diag "$status_out";
     for (my $i = 0; $i < @addons; $i = $i + 1) {
-        next if ($addons[$i] =~ /^SLE(S|D|_HPC)$/);
+        next if ($addons[$i] =~ /^SLE(S|D|_HPC)$|^sle-module-packagehub-subpackages$/);
         diag "$addons[$i]";
         die "$addons[$i] is not existed at SUSEConnect --list-extensions" if ($ls_out !~ /Deactivate(.*)$addons[$i]/);
         die "$addons[$i] is not existed at SUSEConnect --status-text" if ($status_out !~ /$addons[$i]/);

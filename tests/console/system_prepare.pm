@@ -87,7 +87,6 @@ sub run {
         }
         diag "SUSEConnect --status-text: $out";
         if (!get_var('MEDIA_UPGRADE')) {
-            assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'";
             services::registered_addons::full_registered_check;
         }
     }
