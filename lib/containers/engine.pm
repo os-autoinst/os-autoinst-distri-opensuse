@@ -291,39 +291,4 @@ sub cleanup_system_host {
     }
 }
 
-# Container engine subclasses here
-package containers::engine::docker;
-use Mojo::Base 'containers::engine';
-use testapi;
-use containers::utils qw(registry_url);
-use utils qw(systemctl file_content_replace);
-has runtime => 'docker';
-
-sub configure_insecure_registries {
-    my ($self) = shift;
-    my $registry = registry_url();
-    # Allow our internal 'insecure' registry
-    assert_script_run(
-        'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
-    assert_script_run('cat /etc/docker/daemon.json');
-    systemctl('restart docker');
-    record_info "setup $self->runtime", "deamon.json ready";
-}
-
-package containers::engine::podman;
-use Mojo::Base 'containers::engine';
-use testapi;
-use containers::utils qw(registry_url);
-use utils qw(systemctl file_content_replace);
-has runtime => "podman";
-
-sub configure_insecure_registries {
-    my ($self) = shift;
-    my $registry = registry_url();
-
-    assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
-    assert_script_run "chmod 644 /etc/containers/registries.conf";
-    file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
-}
-
 1;
