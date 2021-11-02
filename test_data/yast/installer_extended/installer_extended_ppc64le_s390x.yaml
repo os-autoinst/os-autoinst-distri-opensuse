@@ -1,0 +1,45 @@
+---
+license:
+  language: English (US)
+  translations:
+    - language: Czech
+      text: Licenční smlouva společnosti
+    - language: English (US)
+      text: End User License Agreement
+    - language: French
+      text: Contrat de licence utilisateur final
+    - language: German
+      text: Endbenutzer-Lizenzvereinbarung
+    - language: Italian
+      text: Contratto di licenza
+    - language: Japanese
+      text: 版ソフトウェア
+    - language: Korean
+      text: 소프트웨어
+    - language: Portuguese (Brazilian)
+      text: Contrato de Licença para Usuário Final
+    - language: Russian
+      text: Лицензионное соглашение
+    - language: Simplified Chinese
+      text: 软件的
+    - language: Spanish
+      text: Acuerdo de licencia de usuario final
+    - language: Traditional Chinese
+      text: 版軟體的
+beta_text: 'You are accessing our Beta Distribution'
+modules:
+  - sle-ha
+  - sle-module-live-patching
+  - sle-module-basesystem
+  - sle-module-containers
+  - sle-module-desktop-applications
+  - sle-module-development-tools
+  - sle-module-legacy
+  - sle-module-public-cloud
+  - PackageHub
+  - sle-module-server-applications
+  - sle-module-transactional-server
+  - sle-module-web-scripting
+selected_modules:
+  - sle-module-basesystem
+  - sle-module-server-applications

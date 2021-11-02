@@ -1,4 +1,4 @@
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base class for the ssh_interactive initiation phase
@@ -10,6 +10,7 @@ use base "consoletest";
 use publiccloud::utils;
 use strict;
 use warnings;
+use utils 'script_retry';
 use testapi;
 
 sub post_fail_hook {

@@ -106,7 +106,7 @@ sub setup_console_in_grub {
             if (is_sle('<=12-SP4') || is_sle('=15')) {
                 $dom0_options = "dom0_mem=2048M,max:2048M";
             }
-            if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH")) {
+            if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH")) {
                 $dom0_options .= " iommu=on";
             }
             $cmd
@@ -127,7 +127,7 @@ sub setup_console_in_grub {
 
         #enable Intel VT-d for SR-IOV test running on intel SUTs
         my $intel_option = "";
-        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
+        if (get_var("ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH") && script_run("grep Intel /proc/cpuinfo") == 0) {
             $intel_option = "intel_iommu=on";
         }
 

@@ -25,14 +25,14 @@ use containers::utils 'registry_url';
 use version_utils qw(get_os_release);
 use version_utils 'is_sle';
 use containers::engine;
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    if (is_s390x) {
-        record_soft_failure("poo#101154 - Test images broken for s390x");
+    if ((is_s390x || is_ppc64le) && check_bsc1192051()) {
+        record_soft_failure("bsc#1192051 - Permission denied for faccessat2");
         return;
     }
 
@@ -121,6 +121,14 @@ sub verify_userid_on_container {
     my $cmd = '(id | grep uid=0) && zypper -n -q in sudo shadow && useradd geeko -u 1000 && (sudo -u geeko id | grep geeko)';
     script_retry("podman run -ti --rm '$image' bash -c '$cmd'", timeout => 300, retry => 3, delay => 60);
 
+}
+
+# Check if bsc#1192051 is present. bsc#1192051 is basically a permission denied error in faccessat2
+sub check_bsc1192051() {
+    # Test needs to pass, if seccomp filtering is off
+    assert_script_run('podman run --security-opt=seccomp=unconfined --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"');
+    # And this one is the actual check for bsc#1192051, with seccomp filtering on
+    return script_run('podman run --rm -it registry.opensuse.org/opensuse/tumbleweed:latest bash -c "test -x /bin/sh"') != 0;
 }
 
 sub post_run_hook {

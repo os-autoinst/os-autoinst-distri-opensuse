@@ -36,6 +36,11 @@ sub is_res_host {
     return get_var("HDD_1") =~ /(res82.qcow2|res79.qcow2)/;
 }
 
+sub is_ubuntu_host {
+    # returns if booted image is Ubuntu
+    return get_var("HDD_1") =~ /ubuntu/;
+}
+
 sub load_image_tests_podman {
     loadtest 'containers/podman_image';
 }
@@ -89,7 +94,7 @@ sub load_container_tests {
 
     if (is_container_image_test()) {
         # Container Image tests
-        loadtest 'containers/host_configuration' unless is_res_host;
+        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host);
         load_image_tests_podman() if ($runtime =~ 'podman');
         load_image_tests_docker() if ($runtime =~ 'docker');
     } else {

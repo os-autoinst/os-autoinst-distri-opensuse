@@ -15,13 +15,15 @@ use version_utils qw(is_tumbleweed is_leap is_sle);
 
 sub run {
     # First, list all X processes, including user process and gdm process
-    script_run('ps -ef | grep bin/X');
-    if (script_run("ps -ef | grep bin/X | egrep 'tty7|wayland'") == 1) {
-        if ((is_tumbleweed || is_leap('>=15.2') || is_sle('>=15-SP2')) && script_run('ps -ef | grep bin/X | grep tty2') == 0) {
-            diag('user X process runs on tty2 for systems with GNOME 3.32+, see boo#1138327');
+    script_run("ps -ef | grep -E 'bin/X|/gnome-session'");
+    if (script_run("ps -ef | grep bin/X | grep -E 'tty7|wayland'") == 1) {
+        if (check_var('DESKTOP', 'gnome')
+            && (is_tumbleweed || is_leap('>=15.2') || is_sle('>=15-SP2'))
+            && script_run("ps -ef | grep -E 'bin/X|/gnome-session' | grep tty2") == 0) {
+            diag('user session runs on tty2 for systems with GNOME 3.32+, see boo#1138327');
         }
         else {
-            die 'Expected tty7 used by X or wayland not found';
+            die 'Graphical session not found on tty7';
         }
     }
 }
