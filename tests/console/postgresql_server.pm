@@ -22,7 +22,8 @@ use apachetest qw(setup_pgsqldb destroy_pgsqldb test_pgsql postgresql_cleanup);
 use Utils::Systemd 'systemctl';
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # install the postgresql server package
     zypper_call "in postgresql-server sudo";
