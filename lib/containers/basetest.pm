@@ -7,18 +7,19 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::basetest;
+use containers::docker;
+use containers::podman;
 use Mojo::Base 'opensusebasetest';
-use containers::engine;
 
 sub containers_factory {
     my ($self, $runtime) = @_;
     my $engine;
 
     if ($runtime eq 'docker') {
-        $engine = containers::engine::docker->new();
+        $engine = containers::docker->new();
     }
     elsif ($runtime eq 'podman') {
-        $engine = containers::engine::podman->new();
+        $engine = containers::podman->new();
     }
     else {
         die("Unknown runtime $runtime. Only 'docker' and 'podman' are allowed.");
