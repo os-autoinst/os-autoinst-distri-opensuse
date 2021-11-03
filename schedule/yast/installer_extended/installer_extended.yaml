@@ -83,7 +83,6 @@ test_data:
   modules:
     - sle-ha
     - sle-module-live-patching
-    - sle-we
     - sle-module-basesystem
     - sle-module-containers
     - sle-module-desktop-applications
