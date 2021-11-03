@@ -6,6 +6,11 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">30</timeout>
+    </global>
+  </bootloader>
   <login_settings>
     <autologin_user>bernhard</autologin_user>
   </login_settings>
