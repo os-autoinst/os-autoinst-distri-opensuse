@@ -65,7 +65,8 @@ sub run {
     wait_still_screen 2;
     type_password;
     send_key("ret");
-    wait_still_screen 2;
+    # bumped timeout to 10 to avoid loosing focus with desktop notification
+    wait_still_screen 10;
     send_key "alt-k";
     wait_still_screen 2;
     send_key "e";
