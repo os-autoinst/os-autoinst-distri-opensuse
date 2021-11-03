@@ -20,7 +20,7 @@ sub run {
     select_console 'root-console';
 
     # Run test case
-    run_testcase('fail-safe', make => 1, timeout => 300);
+    run_testcase('fail-safe', make => 1, timeout => 500);
 
     # Compare current test results with baseline
     my $result = compare_run_log('fail_safe');
