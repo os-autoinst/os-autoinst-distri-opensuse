@@ -155,7 +155,9 @@ sub basic_container_tests {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # Containers' state can be saved to a docker image
-    if (script_run("$runtime container exec $container_name zypper -n in curl", 300)) {
+    my $ret = script_run("$runtime container exec $container_name zypper -n in curl", 600);
+    die('zypper inside container timed out') if (!defined($ret));
+    if ($ret != 0) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless (($output =~ m/Installing: curl.*done/) || ($output =~ m/\'curl\' .* already installed/));
