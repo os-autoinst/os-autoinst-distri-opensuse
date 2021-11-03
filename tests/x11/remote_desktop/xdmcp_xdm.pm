@@ -29,7 +29,7 @@ sub run {
     enter_cmd "exit";
 
     # Remote access SLES via Xephyr
-    enter_cmd "Xephyr -query 10.0.2.1 -terminate :1";
+    enter_cmd "Xephyr -query 10.0.2.1 -terminate :2";
     assert_screen 'xdmcp-xdm', 90;
     enter_cmd "$username";
     wait_still_screen 3;
