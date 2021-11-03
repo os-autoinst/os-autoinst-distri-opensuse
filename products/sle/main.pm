@@ -1,7 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2019 SUSE LLC
+# Copyright 2012-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 use strict;
@@ -13,13 +13,14 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
 use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm);
 use main_containers;
+use main_publiccloud;
 use Utils::Architectures;
 use DistributionProvider;
 
@@ -651,6 +652,9 @@ if (is_jeos) {
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
+}
+elsif (is_public_cloud) {
+    load_publiccloud_tests();
 }
 elsif (is_container_test) {
     load_container_tests();
