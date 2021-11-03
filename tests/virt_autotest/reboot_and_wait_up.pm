@@ -14,7 +14,6 @@ use login_console;
 use ipmi_backend_utils;
 use base "proxymode";
 use power_action_utils 'power_action';
-use ipmi_backend_utils;
 use Utils::Architectures;
 use virt_autotest::utils;
 
@@ -59,7 +58,16 @@ sub reboot_and_wait_up {
             #login is required when sol console is used for the first time
             unless (check_screen('text-logged-in-root')) {
                 #The timeout can't be too small since autoyast installation
-                assert_screen "text-login", 600;
+                #Xen console may output additional messages about vm on sol whose output is disrupted.
+                #So in order to get login prompt back on screen, 'ret' key should be fired up. But the
+                #os name banner might not be available anymore, only 'linux-login' needle can be matched.
+                if (is_xen_host) {
+                    send_key 'ret' for (0 .. 2);
+                    assert_screen [qw(text-login linux-login)], 600;
+                }
+                else {
+                    assert_screen "text-login", 600;
+                }
                 enter_cmd "root";
                 assert_screen "password-prompt";
                 type_password;
