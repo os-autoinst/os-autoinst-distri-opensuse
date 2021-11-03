@@ -19,24 +19,21 @@
 #      * images can be deleted
 # Maintainer: qac team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use registration;
 use containers::common;
 use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
-use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my $dir = "/root/DockerTest";
-    my $podman = containers::engine::podman->new();
+    my $podman = $self->containers_factory('podman');
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_podman_when_needed($host_distri);

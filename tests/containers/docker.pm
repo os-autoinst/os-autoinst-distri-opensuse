@@ -24,17 +24,14 @@
 # - test networking outside of host
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use containers::common;
 use version_utils qw(is_sle is_leap is_tumbleweed is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
 use publiccloud::utils;
-use containers::engine;
 
 my $stop_firewall = 0;    # Post-run flag to stop the firewall (failsafe)
 
@@ -46,7 +43,7 @@ sub run {
     my $dir = "/root/DockerTest";
 
     my ($running_version, $sp, $host_distri) = get_os_release;
-    my $engine = containers::engine::docker->new();
+    my $engine = $self->containers_factory('docker');
     install_docker_when_needed($host_distri);
     test_seccomp();
     $engine->configure_insecure_registries();

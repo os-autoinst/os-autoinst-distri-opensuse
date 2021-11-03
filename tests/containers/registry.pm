@@ -14,16 +14,13 @@
 # - images can be deleted
 # Maintainer: qac team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use version_utils qw(is_sle is_tumbleweed is_leap get_os_release);
 use registration;
 use containers::common;
 use containers::utils;
-use containers::engine;
 
 sub registry_push_pull {
     my %args = @_;
@@ -78,7 +75,7 @@ sub run {
 
     # Run docker tests
     install_docker_when_needed($host_distri);
-    my $docker = containers::engine::docker->new();
+    my $docker = $self->containers_factory('docker');
     $docker->configure_insecure_registries();
     my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
     registry_push_pull(image => $tumbleweed, runtime => $docker);
@@ -86,7 +83,7 @@ sub run {
 
     # Run podman tests
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        my $podman = containers::engine::podman->new();
+        my $podman = $self->containers_factory('docker');
         install_podman_when_needed($host_distri);
         $podman->configure_insecure_registries();
         registry_push_pull(image => $tumbleweed, runtime => $podman);

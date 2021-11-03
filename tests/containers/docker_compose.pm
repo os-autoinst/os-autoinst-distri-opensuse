@@ -17,21 +17,18 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use registration;
 use utils;
 use version_utils qw(is_sle get_os_release);
 use containers::common;
 use publiccloud::utils 'is_ondemand';
-use strict;
-use warnings;
-use containers::engine;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = containers::engine::docker->new();
+    my $docker = $self->containers_factory('docker');
     my ($running_version, $sp, $host_distri) = get_os_release;
 
     install_docker_when_needed($host_distri);

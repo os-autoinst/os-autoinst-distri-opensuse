@@ -16,7 +16,6 @@ use containers::common;
 use containers::urls 'get_3rd_party_images';
 use containers::container_images qw(test_3rd_party_image upload_3rd_party_images_logs);
 use registration;
-use containers::engine;
 
 sub run {
     my ($self) = @_;
