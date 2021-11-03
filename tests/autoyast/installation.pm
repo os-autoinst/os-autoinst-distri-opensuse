@@ -167,6 +167,7 @@ sub run {
 
     check_screen \@needles, $check_time;
     until (match_has_tag('reboot-after-installation')
+          || match_has_tag('opensuse-welcome')
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('inst-bootmenu')
@@ -345,7 +346,9 @@ sub run {
     push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     # There will be another reboot for IPMI backend
     push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
-    until (match_has_tag 'reboot-after-installation') {
+    until (match_has_tag('reboot-after-installation')
+          || match_has_tag('opensuse-welcome'))
+    {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-postinstall-error')) {
@@ -379,9 +382,6 @@ sub run {
         }
         elsif (match_has_tag('lang_and_keyboard')) {
             return;
-        }
-        elsif (match_has_tag('opensuse-welcome')) {
-            return;             # Popup itself is processed in opensuse_welcome module
         }
         elsif (match_has_tag('encrypted-disk-password-prompt')) {
             return;
