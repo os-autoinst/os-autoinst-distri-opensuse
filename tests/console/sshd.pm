@@ -116,8 +116,8 @@ sub run {
 
     # Port forwarding (bsc#1131709 bsc#1133386)
     assert_script_run "echo 'sshd.pm: Testing port forwarding' | logger";
-    assert_script_run "( ssh -vNL 4242:localhost:22 $ssh_testman\@localhost & )";
-    assert_script_run "( ssh -vNR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost & )";
+    background_script_run "ssh -vNL 4242:localhost:22 $ssh_testman\@localhost 2>/tmp/ssh_log1";
+    background_script_run "ssh -vNR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost 2>/tmp/ssh_log2";
     assert_script_run 'until ss -tulpn|grep sshd|egrep "4242|5252";do sleep 1;done';
 
     # Scan public keys on forwarded ports
@@ -231,6 +231,9 @@ sub post_fail_hook {
 sub cleanup() {
     my $self = shift;
     systemctl('start ' . $self->firewall) if $reenable_firewall;
+    # Show debug log contents
+    script_run('cat /tmp/ssh_log*');
+    script_run('rm -f /tmp/ssh_log*');
     check_journal();
 }
 
