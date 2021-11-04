@@ -12,6 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures;
 use audit_test qw(run_testcase compare_run_log);
 
 sub run {
@@ -24,27 +25,33 @@ sub run {
 
     select_console 'root-console';
 
-    # Configure bridge for ip_eb_tables workaround
-    assert_script_run("cat > $f_ifcfg_br0 <<'END'\n$br0_config\nEND\n( exit \$?)");
+    # Audit ebtables tests need bridge network. When system role is CC, the bridge is set up
+    # automatically in x86 and arm, so we only need to configure the bridge network for s390x
+    if (is_s390x) {
+        # Configure bridge for ip_eb_tables workaround
+        assert_script_run("cat > $f_ifcfg_br0 <<'END'\n$br0_config\nEND\n( exit \$?)");
 
-    # Creating backup for eth0 configuration
-    assert_script_run("cp $f_ifcfg_eth0 $bakf_ifcfg_eth0");
+        # Creating backup for eth0 configuration
+        assert_script_run("cp $f_ifcfg_eth0 $bakf_ifcfg_eth0");
 
-    # Configure eth0 for ip_eb_tables workaround
-    assert_script_run("cat > $f_ifcfg_eth0 <<'END'\n$eth0_config\nEND\n( exit \$?)");
+        # Configure eth0 for ip_eb_tables workaround
+        assert_script_run("cat > $f_ifcfg_eth0 <<'END'\n$eth0_config\nEND\n( exit \$?)");
 
-    assert_script_run("service network restart");
-    assert_script_run("bridge link show");
+        assert_script_run("service network restart");
+        assert_script_run("bridge link show");
+    }
 
+    record_info('Bridge network', 'bsc#1190475');
     # Run test case
     run_testcase('ip+eb-tables', timeout => 300);
 
-    # Clean-up and restore configuration
-    assert_script_run("rm $f_ifcfg_br0");
-    assert_script_run("rm $f_ifcfg_eth0");
-    assert_script_run("cp $bakf_ifcfg_eth0 $f_ifcfg_eth0");
-    assert_script_run("service network restart");
-
+    if (is_s390x) {
+        # Clean-up and restore configuration
+        assert_script_run("rm $f_ifcfg_br0");
+        assert_script_run("rm $f_ifcfg_eth0");
+        assert_script_run("cp $bakf_ifcfg_eth0 $f_ifcfg_eth0");
+        assert_script_run("service network restart");
+    }
     # Compare current test results with baseline
     my $result = compare_run_log('ip_eb_tables');
     $self->result($result);
