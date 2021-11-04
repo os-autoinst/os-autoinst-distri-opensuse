@@ -75,8 +75,7 @@ sub run {
     $self->setup_ref();
 
     # Start hostapd
-    $self->write_cfg('/tmp/hostapd.conf', $self->hostapd_conf);
-    $self->netns_exec('hostapd -P /tmp/hostapd.pid -B /tmp/hostapd.conf');
+    $self->hostapd_start($self->hostapd_conf);
 
     # Setup sut
     $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $self->ifcfg_wlan);
@@ -88,9 +87,8 @@ sub run {
     $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
 
     # Reconfigure hostapd
-    assert_script_run('kill $(cat /tmp/hostapd.pid)');
-    $self->write_cfg('/tmp/hostapd.conf', $self->hostapd_conf_2);
-    $self->netns_exec('hostapd -P /tmp/hostapd.pid -B /tmp/hostapd.conf');
+    $self->hostapd_kill();
+    $self->hostapd_start($self->hostapd_conf_2);
 
     # Check after reconnect
     $self->assert_sta_connected(timeout => $WAIT_SECONDS);
