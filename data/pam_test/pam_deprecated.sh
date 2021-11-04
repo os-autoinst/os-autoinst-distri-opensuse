@@ -53,7 +53,19 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "check for valid login shell" {                       # case 04
+@test "deny access if too many attempts fail" {               # case 04
+    sed -i '/^auth/i\auth required pam_tally2.so onerr=fail deny=1 unlock_time=10' /etc/pam.d/pam_test
+
+    run bash -c "echo -en '$USER_ERR_PW' | pam_test auth $USER_NOR" # error password triggers this case
+    [ "$status" -ne 0 ]
+    sleep 2 # this time is less than 10s
+    run bash -c "echo -en '$USER_NOR_PW' | pam_test auth $USER_NOR"
+    [ "$status" -ne 0 ]
+    sleep 12
+    echo -en "$USER_NOR_PW" | pam_test auth $USER_NOR
+}
+
+@test "check for valid login shell" {                       # case 05
     sed -i '/^account/i\account required pam_shells.so' /etc/pam.d/pam_test
 
     bash -c "echo -en '$USER_NOR_PW' | pam_test auth $USER_NOR"
@@ -64,29 +76,29 @@ teardown() {
 }
 
 # This part about "password"
-@test "set a short invalid password" {                      # case 05
+@test "set a short invalid password" {                      # case 06
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\nsuse\nsuse' | passwd"
     [ "$status" -ne 0 ]
 }
 
-@test "set a simplistic/systematic invalid password" {      # case 06
+@test "set a simplistic/systematic invalid password" {      # case 07
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\nabcd1234\nabcd1234' | passwd"
     [ "$status" -ne 0 ]
 }
 
-@test "set a specific password" {                           # case 07
+@test "set a specific password" {                           # case 08
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\n!!\n!!' | passwd"
     [ "$status" -ne 0 ]
 }
 
-@test "encrypt a password with DES" {                       # case 08
+@test "encrypt a password with DES" {                       # case 09
     echo -en 'pamunix0' | pam_test auth $USER_PAM_DES
     run bash -c "echo -en 'pamunix' | pam_test auth $USER_PAM_DES"
     [ "$status" -ne 0 ]
     echo -en 'pamunix0_xxxx' | pam_test auth $USER_PAM_DES
 }
 
-@test "encrypt a password with bigcrypt" {                  # case 09
+@test "encrypt a password with bigcrypt" {                  # case 10
     echo -en 'pamunix01' | pam_test auth $USER_PAM_BIG
     run bash -c "echo -en 'pamunix0' | pam_test auth $USER_PAM_BIG"
     [ "$status" -ne 0 ]
@@ -94,15 +106,50 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "check password change minimum days handling" {       # case 10
+@test "check password change minimum days handling" {       # case 11
     chage -m 10000 $USER_NOR
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\nSu135@se\nSu135@se' | passwd"
     chage -m 0 $USER_NOR
     [[ "$output" =~ "You must wait longer to change your password" ]]
 }
 
+@test "set a complex password" {                            # case 12
+    pam-config -a --cracklib --cracklib-retry=1 --cracklib-minlen=8 --cracklib-dcredit=-1 --cracklib-ucredit=-1 --cracklib-lcredit=-1 --cracklib-ocredit=-1
+    
+    # the length of password is less than 8
+    run su - $USER_NOR -c "echo -en '$USER_NOR_PW\nGe13r@n\nGe13r@n' | passwd"
+    output01="$output"
+
+    # the password is lack of uppercase
+    run su - $USER_NOR -c "echo -en '$USER_NOR_PW\nge135r@n\nge135r@n' | passwd"
+    output02="$output"
+
+    # the password is lack of lowercase 
+    run su - $USER_NOR -c "echo -en '$USER_NOR_PW\nGE135R@N\nGE135R@N' | passwd"
+    output03="$output"
+
+    # the password is lack of digits
+    run su - $USER_NOR -c "echo -en '$USER_NOR_PW\nGeaaar@n\nGeaaar@n' | passwd"
+    output04="$output"
+
+    # the password is lack of special characters
+    run su - $USER_NOR -c "echo -en '$USER_NOR_PW\nGe135r7n\nGe135r7n' | passwd"
+    output05="$output"
+
+    # the password is conform to rules
+    run su - $USER_NOR -c "echo -en '$USER_NOR_PW\nGe135r@n\nGe135r@n' | passwd"
+    output06="$output"
+
+    pam-config -a --cracklib --cracklib-retry --cracklib-minlen --cracklib-dcredit --cracklib-ucredit --cracklib-lcredit --cracklib-ocredit
+    echo $USER_NOR:$USER_NOR_PW | chpasswd
+    [[ "$output01" =~ "BAD PASSWORD" ]] && [[ "$output02" =~ "BAD PASSWORD" ]]
+    [[ "$output03" =~ "BAD PASSWORD" ]] && [[ "$output04" =~ "BAD PASSWORD" ]]
+    [[ "$output05" =~ "BAD PASSWORD" ]] && [[ "$output06" =~ "password updated successfully" ]]
+}
+
+
 # This part "invalid access"
-@test "deny services based on an arbitrary file" {          # case 11
+@test "deny services based on an arbitrary file" {          # case 13
     sed -i '/^auth/i\auth requisite pam_listfile.so item=user sense=deny file=/etc/deny' /etc/pam.d/pam_test
     touch /etc/deny
     echo "$USER_NOR" >> /etc/deny
@@ -112,7 +159,7 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "prevent non-root users from login" {                 # case 12
+@test "prevent non-root users from login" {                 # case 14
     sed -i '/^auth/i\auth requisite pam_nologin.so' /etc/pam.d/pam_test
     touch /etc/nologin
 
@@ -122,7 +169,7 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "logdaemon style login access control" {              # case 13
+@test "logdaemon style login access control" {              # case 15
     echo "-:ALL EXCEPT $USER_NOR :LOCAL" >> /etc/security/access.conf
     pam-config -a --access --access-nodefgroup
 
@@ -132,19 +179,19 @@ teardown() {
     [ "$status" -ne 0 ]
 }
 
-@test "test account characteristics -- deny users in users group" {   # case 14
+@test "test account characteristics -- deny users in users group" {   # case 16
     sed -i '/^auth/i\auth required pam_succeed_if.so user notingroup users' /etc/pam.d/pam_test
     run bash -c "echo -en '$USER_NOR_PW' | pam_test auth $USER_NOR"
     [ "$status" -ne 0 ]
 }
 
-@test "test account characteristics -- deny users with uid > 10000" { # case 15
+@test "test account characteristics -- deny users with uid > 10000" { # case 17
     sed -i '/^auth/i\auth required pam_succeed_if.so uid > 10000' /etc/pam.d/pam_test
     run bash -c "echo -en '$USER_NOR_PW' | pam_test auth $USER_NOR"
     [ "$status" -ne 0 ]
 }
 
-@test "time controled access" {                                       # case 16
+@test "time controled access" {                                       # case 18
     sed -i '/^account/i\account required pam_time.so' /etc/pam.d/pam_test
     echo "*;*;$USER_NOR;!Al0000-2400" >> /etc/security/time.conf
     run bash -c "echo -en '$USER_NOR_PW' | pam_test auth $USER_NOR"
@@ -152,7 +199,7 @@ teardown() {
 }
 
 # The extra tests
-@test "modify group access" {                                         # case 17
+@test "modify group access" {                                         # case 19
     echo "*;*;$USER_NOR;Al0000-2400;wheel" >> /etc/security/group.conf
     pam-config -a --group
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\n' | su - $USER_NOR -c 'id -Gn'"
@@ -160,38 +207,38 @@ teardown() {
     [[ "$output" =~ "wheel" ]]
 }
 
-@test "limit resources -- maximum number of processes" {              # case 18
+@test "limit resources -- maximum number of processes" {              # case 20
     echo "$USER_NOR hard nproc 0" >> /etc/security/limits.conf
     run su - $USER_NOR
     [[ "$output" =~ "Resource temporarily unavailable" ]]
 }
 
-@test "limit resources -- limits the core file size" {                # case 19
+@test "limit resources -- limits the core file size" {                # case 21
     echo '* soft core 1' >> /etc/security/limits.conf
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\n' | su - $USER_NOR -c 'prlimit -c'"
     [[ "$output" =~ "1024" ]]
 }
 
-@test "limit resources -- maximum number of open files" {             # case 20
+@test "limit resources -- maximum number of open files" {             # case 22
     echo '* hard nofile 512' >> /etc/security/limits.conf
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\n' | su - $USER_NOR -c 'prlimit -n'"
     [[ "$output" =~ files[[:space:]]*512[[:space:]]*512 ]]
 }
 
-@test "limit resources -- maximum number of processes in users group" {  # case 21
+@test "limit resources -- maximum number of processes in users group" {  # case 23
     echo '@users soft nproc 20' >> /etc/security/limits.conf
     echo '@users hard nproc 50' >> /etc/security/limits.conf
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\n' | su - $USER_NOR -c 'prlimit -u'"
     [[ "$output" =~ processes[[:space:]]*20[[:space:]]*50 ]]
 }
 
-@test "limit resources -- maximum number of logins" {                 # case 22
+@test "limit resources -- maximum number of logins" {                 # case 24
     echo '@users - maxlogins 0' >> /etc/security/limits.conf
     run bash -c "echo -ne '$USER_NOR_PW\n' | su - $USER_NOR -c 'prlimit' 2>&1"
     [[ "$output" =~ "cannot open session: Permission denied" ]]
 }
 
-@test "limit resources -- maximum nice priority" {                    # case 23
+@test "limit resources -- maximum nice priority" {                    # case 25
     echo '* soft nice 19' >> /etc/security/limits.conf
     echo '* hard nice -20' >> /etc/security/limits.conf
     run su - $USER_NOR -c "echo -ne '$USER_NOR_PW\n' | su - $USER_NOR -c 'prlimit -e'"
