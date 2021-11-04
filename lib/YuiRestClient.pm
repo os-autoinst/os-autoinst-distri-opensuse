@@ -6,7 +6,7 @@ use warnings;
 
 use constant {
     API_VERSION => 'v1',
-    TIMEOUT => 60,
+    TIMEOUT => 90,
     INTERVAL => 1
 };
 
