@@ -86,6 +86,38 @@ sub extract_bss_nr {
     return $nr;
 }
 
+sub recover_console {
+    if (testapi::is_serial_terminal()) {
+        type_string(qq(\c\\));          # Send QUIT signal
+    }
+    else {
+        send_key('ctrl-\\');            # Send QUIT signal
+    }
+    assert_script_run('echo CHECK_CONSOLE');
+}
+
+sub retry {
+    my ($self, $code, %args) = @_;
+    $args{max_tries} //= 3;
+    $args{sleep_duration} //= 5;
+    $args{cleanup} //= sub { $self->recover_console };
+    $args{name} //= Carp::shortmess("retry()");
+
+    my $ret;
+    my $try_cnt = 0;
+
+    while ($try_cnt++ < $args{max_tries}) {
+        eval { $ret = $code->() };
+        return $ret unless ($@);
+        my $errmsg = $@;
+        eval { $args{cleanup}->($errmsg) } or
+          bmwqemu::fctwarn($args{name} . ' -- cleanup failed with: ' . $@);
+
+        sleep $args{sleep_duration};
+    }
+    die($args{name} . ' call failed after ' . $args{max_tries} . ' attempts -- ' . $@);
+}
+
 sub netns_exec {
     my ($self, $cmd, @args) = @_;
     $cmd = 'ip netns exec ' . $self->netns_name . ' ' . $cmd;
@@ -289,7 +321,16 @@ sub hostapd_start {
     my ($self, $config, %args) = @_;
     $args{name} //= 'hostapd';
     $config = $self->write_cfg("/tmp/$args{name}.conf", $config);
-    $self->netns_exec("hostapd -P '/tmp/$args{name}.pid' -B '/tmp/$args{name}.conf'");
+    $self->retry(
+        sub {
+            $self->netns_output("hostapd -P '/tmp/$args{name}.pid' -B '/tmp/$args{name}.conf'");
+        },
+        cleanup => sub {
+            my ($err) = @_;
+            $self->recover_console();
+            record_info('HOSTAPD', $err, result => 'fail');
+        }
+    );
 
     ## Check for multi BSS setup
     my @bsss = $config =~ (/^bss=(.*)$/gm);
