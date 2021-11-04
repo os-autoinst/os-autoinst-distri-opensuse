@@ -233,7 +233,7 @@ sub handle_login {
     # for S390x testing, since they are not using qemu built-in vnc, it is
     # expected that polkit authentication window can open for first time login.
     # see bsc#1177446 for more information.
-    if (check_screen(qw[authentication-required-user-settings authentication-required-modify-system], 5)) {
+    if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 10)) {
         type_password($mypwd);
         send_key 'ret';
     }
