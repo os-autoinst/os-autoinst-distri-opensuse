@@ -239,12 +239,18 @@ sub rmt_wizard {
         zypper_call("ar -f http://download.suse.de/ibs/Devel:/SCC:/RMT/$url/ scc_rmt");
         zypper_call '--gpg-auto-import-keys ref';
     }
+    my $setup_console = current_console();
 
     # install RMT and mariadb
     zypper_call 'in rmt-server';
     zypper_call 'in mariadb';
 
     enter_cmd "yast2 rmt;echo yast2-rmt-wizard-\$? > /dev/$serialdev";
+    # On x11, workaround bsc#1191112 by mouse click or drag the dialog.
+    if (($setup_console =~ /x11/) && (check_var('RMT_TEST', 'rmt_chinese'))) {
+        record_soft_failure('bsc#1191112 - When navigating through YaST module screens the next screen appears, but its content is not loaded');
+        mouse_set(100, 100);
+    }
     assert_screen 'yast2_rmt_registration';
     send_key 'alt-u';
     wait_still_screen(2, 5);
@@ -269,13 +275,24 @@ sub rmt_wizard {
     send_key 'alt-n';
     assert_screen 'yast2_rmt_ssl_CA_password';
     type_password_twice;
-    assert_screen ['yast2_rmt_firewall', 'yast2_rmt_firewall_disable'], 50;
-    if (check_screen 'yast2_rmt_firewall') {
-        send_key 'alt-o';
+    # On x11, workaround bsc#1191112 by mouse click or drag the dialog.
+    if (($setup_console =~ /x11/) && (check_var('RMT_TEST', 'rmt_chinese'))) {
+        record_soft_failure('bsc#1191112 - When navigating through YaST module screens the next screen appears, but its content is not loaded');
+        wait_still_screen(10, 15);
+        mouse_drag(startx => 480, starty => 50, endx => 485, endy => 50, button => 'left');
+    }
+    assert_screen [qw(yast2_rmt_firewall yast2_rmt_firewall_disable)], 50;
+    if (match_has_tag('yast2_rmt_firewall')) {
+        if (check_var('RMT_TEST', 'rmt_chinese')) {
+            send_key 'alt-t';
+        }
+        else {
+            send_key 'alt-o';
+        }
     }
     wait_still_screen;
     send_key 'alt-n';
-    assert_screen 'yast2_rmt_service_status';
+    assert_screen 'yast2_rmt_service_status', 90;
     send_key_until_needlematch('yast2_rmt_config_summary', 'alt-n', 3, 10);
     send_key 'alt-f';
     wait_serial("yast2-rmt-wizard-0", 800) || die 'rmt wizard failed, it can be connection issue or credential issue';

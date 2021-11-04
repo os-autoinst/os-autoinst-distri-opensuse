@@ -240,7 +240,11 @@ sub handle_login {
     }
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc';
+        send_key_until_needlematch [qw(generic-desktop opensuse-welcome language-change-required-update-folder)], 'esc';
+        if (match_has_tag('language-change-required-update-folder')) {
+            assert_and_click('reserve_old_folder_name');
+            assert_screen([qw(generic-desktop opensuse-welcome)]);
+        }
     }
 }
 
