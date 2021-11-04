@@ -10,7 +10,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_filesystem_options()->go_forward();
+    $testapi::distri->get_partitioning_scheme()->go_forward();
 }
 
 1;
