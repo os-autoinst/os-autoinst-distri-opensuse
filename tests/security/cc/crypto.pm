@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'crypto' test case of 'audit-test' test suite
-# Maintainer: llzhao <llzhao@suse.com>
+# Maintainer: llzhao <llzhao@suse.com>, liuxiaojing <xiaojing.liu@suse.com>
 # Tags: poo#95485
 
 use base 'consoletest';
@@ -21,9 +21,6 @@ sub run {
 
     # Install certification-sles-eal4: needed by test case `crypto`
     zypper_call('in certification-sles-eal4');
-
-    # Export MODE
-    assert_script_run("export MODE=$audit_test::mode");
 
     # Run test case
     run_testcase('crypto', make => 1, timeout => 900);
