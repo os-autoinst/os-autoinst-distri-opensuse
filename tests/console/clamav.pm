@@ -114,6 +114,7 @@ sub post_run_hook {
     assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && is_aarch64);
     systemctl('stop clamd', timeout => 500);
     systemctl('stop freshclam');
+    zypper_call('rm -u clamav');
 }
 
 sub post_fail_hook {
