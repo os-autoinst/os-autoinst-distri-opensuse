@@ -71,6 +71,7 @@ EOF
         )\" >> /etc/tomcat/workers.properties", timeout => 180
     );
 
+    assert_script_run("touch /etc/tomcat/workers.properties");
     # Connection from apache2 to tomcat: apache2 part
     systemctl('stop apache2');
     assert_script_run('cp -ai /usr/share/doc/packages/apache2-mod_jk/jk.conf /etc/apache2/conf.d');
@@ -85,6 +86,7 @@ EOF
         );
         assert_script_run("sed -i 's|servlets-examples|examples/servlets|g' /etc/apache2/conf.d/jk.conf");
         assert_script_run("sed -i 's|jsp-examples|examples/jsp|g' /etc/apache2/conf.d/jk.conf");
+        assert_script_run("touch /etc/apache2/conf.d/jk.conf");
     }
 }
 
