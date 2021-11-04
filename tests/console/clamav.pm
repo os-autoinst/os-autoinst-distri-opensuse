@@ -37,7 +37,8 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in clamav vim');
+    # procps is used for cleanup
+    zypper_call('in clamav vim procps');
     zypper_call('info clamav');
 
     # Check Clamav version
@@ -111,17 +112,19 @@ sub run {
 }
 
 sub post_run_hook {
+    my ($self) = @_;
     assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && is_aarch64);
     systemctl('stop clamd', timeout => 500);
     systemctl('stop freshclam');
     zypper_call('rm -u clamav');
+    # Really make sure there's no process left over which could cause an OOM condition.
+    script_run('pkill -9 -f clam');
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
     upload_logs('/etc/freshclam.conf');
-
 }
 
 sub test_flags {
