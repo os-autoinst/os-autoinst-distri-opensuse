@@ -66,13 +66,11 @@ sub build_and_run_image {
     }
     file_content_replace("$dir/BuildTest/Dockerfile", baseimage_var => $base) if defined $base;
 
-
     # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
     $builder->build($dir . "/BuildTest", "myapp", (timeout => is_x86_64 ? 600 : 1200));
     assert_script_run("rm -rf $dir");
     script_run("$runtime images");
     assert_script_run("$runtime images --all | grep myapp");
-
 
     if ($runtime->runtime eq 'docker' && $builder->runtime eq 'buildah') {
         assert_script_run "buildah push myapp docker-daemon:myapp:latest";
@@ -154,13 +152,8 @@ sub test_opensuse_based_image {
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($host_version, $host_sp, $host_id) = get_os_release();
-    my ($image_version, $image_sp, $image_id);
+    my ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
 
-    if ($runtime->runtime =~ /buildah/) {
-        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run $image");
-    } else {
-        ($image_version, $image_sp, $image_id) = get_os_release("$runtime run --entrypoint '' $image");
-    }
     record_info "Host", "Host has '$host_version', '$host_sp', '$host_id' in /etc/os-release";
     record_info "Image", "Image has '$image_version', '$image_sp', '$image_id' in /etc/os-release";
 
@@ -171,16 +164,9 @@ sub test_opensuse_based_image {
             my $pretty_version = $version =~ s/-SP/ SP/r;
             my $betaversion = $beta ? '\s\([^)]+\)' : '';
             record_info "Validating", "Validating That $image has $pretty_version on /etc/os-release";
-            # TODO: implement
-            # $out = $runtime->read($image, cmd => "grep PRETTY_NAME /etc/os-release | cut -d= -f2");
-            if ($runtime->runtime =~ /buildah/) {
-                validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
-                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
-            } else {
-                # zypper-docker changes the layout of the image
-                validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
-                    sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
-            }
+            # zypper-docker changes the layout of the image
+            validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
+                sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
             unless (is_unreleased_sle) {
                 # SUSEConnect zypper service is supported only on SLE based image on SLE host
@@ -194,16 +180,7 @@ sub test_opensuse_based_image {
         }
     } else {
         $version =~ s/^Jump://i;
-        if ($runtime->runtime =~ /buildah/) {
-            if (script_output("$runtime run $image grep PRETTY_NAME /etc/os-release") =~ /WARN.+from \"\/etc\/containers\/mounts.conf\" doesn\'t exist, skipping/) {
-                record_soft_failure "bcs#1183482 - libcontainers-common contains SLE files on TW";
-            }
-            validate_script_output("$runtime run $image grep PRETTY_NAME /etc/os-release | cut -d= -f2",
-                sub { /"openSUSE (Leap )?${version}.*"/ });
-        }
-        else {
-            validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
-        }
+        validate_script_output qq{$runtime container run --entrypoint '/bin/bash' --rm $image -c 'cat /etc/os-release'}, sub { /PRETTY_NAME="openSUSE (Leap )?${version}.*"/ };
     }
 
     # Zypper is supported only on openSUSE or on SLE based image on SLE host
@@ -226,11 +203,9 @@ sub test_zypper_on_container {
 
     $runtime->run_container($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
     $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 300);
-    unless ($runtime->runtime eq 'buildah') {
-        $runtime->commit('refreshed', "refreshed-image", timeout => 120);
-        $runtime->remove_container('refreshed');
-        $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300);
-    }
+    $runtime->commit('refreshed', "refreshed-image", timeout => 120);
+    $runtime->remove_container('refreshed');
+    $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300);
     record_info "The End", "zypper test completed";
 }
 
