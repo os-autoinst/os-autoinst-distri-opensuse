@@ -24,7 +24,7 @@ sub containers_factory {
     else {
         die("Unknown runtime $runtime. Only 'docker' and 'podman' are allowed.");
     }
-
+    $engine->init();
     return $engine;
 }
 

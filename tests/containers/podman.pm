@@ -24,7 +24,6 @@ use testapi;
 use utils;
 use registration;
 use containers::common;
-use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
 
@@ -34,10 +33,6 @@ sub run {
 
     my $dir = "/root/DockerTest";
     my $podman = $self->containers_factory('podman');
-    my ($running_version, $sp, $host_distri) = get_os_release;
-
-    install_podman_when_needed($host_distri);
-    $podman->configure_insecure_registries();
 
     # Run basic runtime tests
     basic_container_tests(runtime => $podman->runtime);

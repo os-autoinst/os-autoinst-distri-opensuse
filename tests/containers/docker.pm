@@ -28,7 +28,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
 use containers::common;
-use version_utils qw(is_sle is_leap is_tumbleweed is_jeos get_os_release);
+use version_utils qw(is_jeos);
 use containers::utils;
 use containers::container_images;
 use publiccloud::utils;
@@ -42,11 +42,8 @@ sub run {
     my $sleep_time = 90 * get_var('TIMEOUT_SCALE', 1);
     my $dir = "/root/DockerTest";
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
     my $engine = $self->containers_factory('docker');
-    install_docker_when_needed($host_distri);
     test_seccomp();
-    $engine->configure_insecure_registries();
 
     if ($self->firewall() eq 'firewalld') {
         # on publiccloud we need to install firewalld first

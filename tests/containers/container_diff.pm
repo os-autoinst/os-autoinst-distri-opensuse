@@ -13,16 +13,12 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(is_sle get_os_release);
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my $docker = $self->containers_factory('docker');
-    my ($running_version, $sp, $host_distri) = get_os_release;
 
-    install_docker_when_needed($host_distri);
-    $docker->configure_insecure_registries() if is_sle();
     zypper_call("install container-diff") if (script_run("which container-diff") != 0);
 
     my ($untested_images, $released_images) = get_suse_container_urls();

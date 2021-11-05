@@ -21,17 +21,13 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(get_os_release check_os_release is_tumbleweed);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal();
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
     my $engine = $self->containers_factory('docker');
 
-    install_docker_when_needed($host_distri);
-    $engine->configure_insecure_registries();
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE'));
 
     # We may test either one specific image VERSION or comma-separated CONTAINER_IMAGE_VERSIONS

@@ -29,8 +29,6 @@ sub run {
 
     record_info 'Setup', 'Setup the environment';
     # runC cannot create or extract the root filesystem on its own. Use Docker to create it.
-    install_docker_when_needed($host_distri);
-    $docker->configure_insecure_registries();
 
     # create the rootfs directory
     assert_script_run('mkdir rootfs');
