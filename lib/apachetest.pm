@@ -248,7 +248,7 @@ sub test_pgsql {
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
-        if (is_sle('<=12-sp3')) {
+        if (script_run('rpm -q postgresql96') == 0) {
             # due to orderless numbering untill version 94 is gone
             my $pg_versions = <<'EOF';
 #!/bin/bash
@@ -263,9 +263,25 @@ elif [[ $(echo $PG_VER|grep 11) ]]; then
     export PG_OLDEST='postgresql11'
 elif [[ $(echo $PG_VER|grep 12) ]]; then
     export PG_OLDEST='postgresql12'
+elif [[ $(echo $PG_VER|grep 13) ]]; then
+    export PG_OLDEST='postgresql13'
+elif [[ $(echo $PG_VER|grep 14) ]]; then
+    export PG_OLDEST='postgresql14'
+elif [[ $(echo $PG_VER|grep 15) ]]; then
+    export PG_OLDEST='postgresql15'
+elif [[ $(echo $PG_VER|grep 16) ]]; then
+    export PG_OLDEST='postgresql16'
 fi
 echo PG_OLDEST=/usr/lib/$PG_OLDEST >/tmp/pg_versions
-if [[ $(echo $PG_VER|grep 12) ]]; then
+if [[ $(echo $PG_VER|grep 16) ]]; then
+    export PG_LATEST='postgresql16'
+elif [[ $(echo $PG_VER|grep 15) ]]; then
+    export PG_LATEST='postgresql15'
+elif [[ $(echo $PG_VER|grep 14) ]]; then
+    export PG_LATEST='postgresql14'
+elif [[ $(echo $PG_VER|grep 13) ]]; then
+    export PG_LATEST='postgresql13'
+elif [[ $(echo $PG_VER|grep 12) ]]; then
     export PG_LATEST='postgresql12'
 elif [[ $(echo $PG_VER|grep 11) ]]; then
     export PG_LATEST='postgresql11'
