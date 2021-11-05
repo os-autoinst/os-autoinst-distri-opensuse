@@ -22,7 +22,6 @@ use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
 use containers::utils 'registry_url';
-use version_utils qw(get_os_release);
 use version_utils 'is_sle';
 use Utils::Architectures;
 
@@ -38,11 +37,8 @@ sub run {
     my $image = 'registry.opensuse.org/opensuse/tumbleweed:latest';
 
     my ($untested_images, $released_images) = get_suse_container_urls();
-    my ($running_version, $sp, $host_distri) = get_os_release;
     my $podman = $self->containers_factory('podman');
 
-    install_podman_when_needed($host_distri);
-    $podman->configure_insecure_registries();
     my $user = $testapi::username;
     my $subuid_start = get_user_subuid($user);
     if ($subuid_start eq '') {

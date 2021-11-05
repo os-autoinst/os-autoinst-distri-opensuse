@@ -21,7 +21,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use registration;
 use utils;
-use version_utils qw(is_sle get_os_release);
+use version_utils qw(is_sle);
 use containers::common;
 use publiccloud::utils 'is_ondemand';
 
@@ -29,9 +29,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my $docker = $self->containers_factory('docker');
-    my ($running_version, $sp, $host_distri) = get_os_release;
 
-    install_docker_when_needed($host_distri);
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
@@ -53,7 +51,6 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    $docker->configure_insecure_registries();
     file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
     assert_script_run 'docker-compose pull', 600;
 

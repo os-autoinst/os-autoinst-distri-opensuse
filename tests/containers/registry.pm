@@ -17,7 +17,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed is_leap get_os_release);
+use version_utils qw(is_sle is_tumbleweed is_leap);
 use registration;
 use containers::common;
 use containers::utils;
@@ -61,7 +61,6 @@ sub registry_push_pull {
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my ($running_version, $sp, $host_distri) = get_os_release;
 
     # Install and check that it's running
     add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1) if is_sle(">=15");
@@ -74,18 +73,14 @@ sub run {
     assert_script_run 'curl -s http://127.0.0.1:5000/v2/_catalog | grep repositories';
 
     # Run docker tests
-    install_docker_when_needed($host_distri);
     my $docker = $self->containers_factory('docker');
-    $docker->configure_insecure_registries();
     my $tumbleweed = 'registry.opensuse.org/opensuse/tumbleweed';
     registry_push_pull(image => $tumbleweed, runtime => $docker);
     $docker->cleanup_system_host();
 
     # Run podman tests
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        my $podman = $self->containers_factory('docker');
-        install_podman_when_needed($host_distri);
-        $podman->configure_insecure_registries();
+        my $podman = $self->containers_factory('podman');
         registry_push_pull(image => $tumbleweed, runtime => $podman);
         $podman->cleanup_system_host();
     }

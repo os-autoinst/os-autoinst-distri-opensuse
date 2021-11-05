@@ -18,16 +18,12 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils 'get_os_release';
 use containers::common;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     my $docker = $self->containers_factory('docker');
-    my ($running_version, $sp, $host_distri) = get_os_release;
-
-    install_docker_when_needed($host_distri);
 
     # install zypper-docker and verify installation
     zypper_call('in zypper-docker');

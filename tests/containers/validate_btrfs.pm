@@ -17,7 +17,6 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use containers::common;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(get_os_release);
 
 # Get the total and used GiB of a given btrfs device
 sub _btrfs_fi {
@@ -93,10 +92,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
-    my ($running_version, $sp, $host_distri) = get_os_release;
     my $docker = $self->containers_factory('docker');
-    install_docker_when_needed($host_distri);
-    $docker->configure_insecure_registries();
     my $btrfs_dev = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
     _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);

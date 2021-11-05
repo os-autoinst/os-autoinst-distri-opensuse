@@ -11,7 +11,6 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use version_utils;
 use containers::common;
 use containers::urls 'get_3rd_party_images';
 use containers::container_images qw(test_3rd_party_image upload_3rd_party_images_logs);
@@ -21,13 +20,8 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-
     script_run("echo 'Container base image tests:' > /var/tmp/podman-3rd_party_images_log.txt");
-    # In SLE we need to add the Containers module
-    install_podman_when_needed($host_distri);
     my $engine = $self->containers_factory('podman');
-    $engine->configure_insecure_registries();
     my $images = get_3rd_party_images();
     for my $image (@{$images}) {
         test_3rd_party_image($engine, $image);
