@@ -9,19 +9,15 @@
 #    rmt mirror, test import SMT data to RMT
 # Maintainer: Yutao wang <yuwang@suse.com>
 
+use base "consoletest";
 use strict;
 use warnings;
 use testapi;
-use base 'x11test';
 use repo_tools;
 use utils;
-use x11utils 'turn_off_gnome_screensaver';
 
 sub run {
-    x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
-    # Avoid blank screen since smt sync needs time
-    turn_off_gnome_screensaver;
-    become_root;
+    select_console 'root-console';
     rmt_wizard();
     # sync from SCC
     rmt_sync;
@@ -102,9 +98,6 @@ sub run {
     assert_script_run("rmt-cli repo list");
     assert_script_run("rmt-cli repo list | grep 4205");
     assert_script_run("rmt-cli repo list | grep 4203");
-
-
-    enter_cmd "killall xterm";
 }
 
 sub test_flags {
