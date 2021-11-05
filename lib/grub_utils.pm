@@ -48,7 +48,10 @@ sub grub_test {
         send_key 'ret';
     }
     # Avoid return key not received occasionally for hyperv-uefi guest at first boot
-    send_key 'ret' if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI')) {
+        sleep 5;
+        send_key 'ret';
+    }
 }
 
 =head2 handle_installer_medium_bootup
