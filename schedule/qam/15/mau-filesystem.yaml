@@ -20,6 +20,7 @@ schedule:
 - console/snapper_create
 - console/snapper_thin_lvm
 - network/cifs
+- network/samba/server
 - console/udisks2
 - console/coredump_collect
 ...
