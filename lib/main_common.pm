@@ -118,6 +118,8 @@ our @EXPORT = qw(
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
   load_wicked_create_hdd
+  load_mm_nfs_test
+  load_mm_nfsv4_test
 );
 
 sub init_main {
@@ -569,6 +571,7 @@ sub load_system_role_tests {
     }
 }
 sub load_jeos_tests {
+    return if get_var('START_AFTER_TEST');
     if ((is_arm || is_aarch64) && is_opensuse()) {
         # Enable jeos-firstboot, due to boo#1020019
         load_boot_tests();
@@ -599,6 +602,9 @@ sub load_jeos_tests {
     loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
     # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
     loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
+    if (get_var('PUBLISH_HDD_1')) {
+        set_var('INSTALLONLY', 1);
+    }
 }
 
 sub installzdupstep_is_applicable {
@@ -797,7 +803,7 @@ sub load_bootloader_s390x {
 
 sub boot_hdd_image {
     # On JeOS we don't need to load any test to boot, but to keep main.pm sane just return.
-    is_jeos() ? return 1 : get_required_var('BOOT_HDD_IMAGE');
+    (is_jeos() && !get_var('START_AFTER_TEST')) ? return 1 : get_required_var('BOOT_HDD_IMAGE');
     if (is_svirt) {
         if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
             loadtest 'installation/bootloader_hyperv';
@@ -3191,6 +3197,28 @@ sub load_nfs_tests {
     loadtest "nfs/install";
     loadtest "nfs/run";
     loadtest "nfs/generate_report";
+}
+
+sub load_mm_nfs_test {
+    set_var('INSTALLONLY', 1);
+    boot_hdd_image;
+    if (get_var("NFSSERVER")) {
+        loadtest "console/yast2_nfs_server";
+    }
+    else {
+        loadtest "console/yast2_nfs_client";
+    }
+}
+
+sub load_mm_nfsv4_test {
+    set_var('INSTALLONLY', 1);
+    boot_hdd_image;
+    if (get_var("NFS4SERVER")) {
+        loadtest "console/yast2_nfs4_server";
+    }
+    else {
+        loadtest "console/yast2_nfs4_client";
+    }
 }
 
 1;

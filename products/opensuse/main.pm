@@ -262,6 +262,14 @@ if (is_jeos) {
     load_jeos_tests();
 }
 
+if (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
+    load_mm_nfs_test;
+    return 1;
+}
+if (get_var("NFS4SERVER") || get_var("NFS4CLIENT")) {
+    load_mm_nfsv4_test;
+    return 1;
+}
 
 if (is_kernel_test()) {
     load_kernel_tests();

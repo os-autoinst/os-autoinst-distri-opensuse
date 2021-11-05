@@ -1059,24 +1059,12 @@ else {
         return 1;
     }
     elsif (get_var("NFSSERVER") || get_var("NFSCLIENT")) {
-        set_var('INSTALLONLY', 1);
-        boot_hdd_image;
-        if (get_var("NFSSERVER")) {
-            loadtest "console/yast2_nfs_server";
-        }
-        else {
-            loadtest "console/yast2_nfs_client";
-        }
+        load_mm_nfs_test;
+        return 1;
     }
     elsif (get_var("NFS4SERVER") || get_var("NFS4CLIENT")) {
-        set_var('INSTALLONLY', 1);
-        boot_hdd_image;
-        if (get_var("NFS4SERVER")) {
-            loadtest "console/yast2_nfs4_server";
-        }
-        else {
-            loadtest "console/yast2_nfs4_client";
-        }
+        load_mm_nfsv4_test;
+        return 1;
     }
     elsif (get_var('QAM_CURL')) {
         set_var('INSTALLONLY', 1);
