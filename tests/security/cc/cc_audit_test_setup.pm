@@ -41,6 +41,9 @@ sub run {
     # Install tool packages
     zypper_call('in wget');
 
+    # Install command ping. It's used by ip+eb-tables test case and audit-remote
+    zypper_call('in iputils');
+
     # Workaround for restarting audit service
     assert_script_run('sed -i \'/\[Unit\]/aStartLimitIntervalSec=0\' /usr/lib/systemd/system/auditd.service');
     assert_script_run('systemctl daemon-reload');
