@@ -21,7 +21,7 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use utils qw(clear_console zypper_call systemctl);
-use version_utils;
+use version_utils qw(is_jeos);
 use testapi;
 use lockapi;
 use mmapi;
@@ -37,9 +37,14 @@ sub run {
     server_configure_network($self);
 
     # Make sure packages are installed
-    zypper_call 'in yast2-nfs-server', timeout => 480, exitcode => [0, 106, 107];
+    # JeOS does not pull recommended packages by default
+    if (is_jeos) {
+        zypper_call 'in yast2-nfs-server nfs-kernel-server', timeout => 480, exitcode => [0, 106, 107];
+    } else {
+        zypper_call 'in yast2-nfs-server', timeout => 480, exitcode => [0, 106, 107];
+        try_nfsv2();
+    }
 
-    try_nfsv2();
 
     prepare_exports($rw, $ro);
 

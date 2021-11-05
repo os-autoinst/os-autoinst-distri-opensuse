@@ -22,7 +22,7 @@ use base "y2_module_consoletest";
 use strict;
 use warnings;
 use utils qw(zypper_call systemctl script_retry);
-use version_utils;
+use version_utils qw(is_jeos is_sle is_opensuse);
 use testapi;
 use lockapi;
 use mm_network;
@@ -36,7 +36,11 @@ sub run {
 
     setup_static_mm_network('10.0.2.102/24');
 
-    zypper_call('in yast2-nfs-client nfs-client nfs4-acl-tools', timeout => 480, exitcode => [0, 106, 107]);
+    if (is_jeos) {
+        zypper_call('in yast2-nfs-client nfs-client nfs4-acl-tools btrfsprogs e2fsprogs sudo', timeout => 480, exitcode => [0, 106, 107]);
+    } else {
+        zypper_call('in yast2-nfs-client nfs-client nfs4-acl-tools', timeout => 480, exitcode => [0, 106, 107]);
+    }
 
     mutex_wait('nfs4_ready');
     script_retry('ping -c3 10.0.2.101', delay => 15, retry => 12);
@@ -93,7 +97,11 @@ sub run {
     # Test NFSv4 ACL
     assert_script_run "nfs4_getfacl /tmp/nfs/client/secret.txt";
     # Below, we are trying to set recursive attributes to a file. Does not make sense, but may trigger bsc#967251 or bsc#1157915
-    assert_script_run "nfs4_setfacl -R -a A:df:$testapi::username\@localdomain:RX /tmp/nfs/client/secret.txt";
+    if (is_jeos) {
+        assert_script_run "nfs4_setfacl -R -a A:df:\$(id -u $testapi::username):RX /tmp/nfs/client/secret.txt";
+    } else {
+        assert_script_run "nfs4_setfacl -R -a A:df:$testapi::username\@localdomain:RX /tmp/nfs/client/secret.txt";
+    }
     assert_script_run "nfs4_getfacl /tmp/nfs/client/secret.txt | grep \"A::`id -u $testapi::username`:rxtcy\"";
     assert_script_run "sudo -u $testapi::username cat /tmp/nfs/client/secret.txt";
 

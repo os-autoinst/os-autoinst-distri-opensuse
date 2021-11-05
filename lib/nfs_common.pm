@@ -124,11 +124,13 @@ sub client_common_tests {
     # remove added nfs from /etc/fstab
     assert_script_run 'sed -i \'/nfs/d\' /etc/fstab';
 
-    # compare saved and current fstab, should be same
-    assert_script_run 'diff -b /etc/fstab fstab_before';
+    unless (is_jeos) {
+        # compare saved and current fstab, should be same
+        assert_script_run 'diff -b /etc/fstab fstab_before';
 
-    # compare last line, should be not deleted
-    assert_script_run 'diff -b <(tail -n1 /etc/fstab) <(tail -n1 fstab_before)';
+        # compare last line, should be not deleted
+        assert_script_run 'diff -b <(tail -n1 /etc/fstab) <(tail -n1 fstab_before)';
+    }
 
     # Remote symlinked directory is visible, removable but not accessible
     assert_script_run "ls -la /tmp/nfs/client/symlinkeddir";
