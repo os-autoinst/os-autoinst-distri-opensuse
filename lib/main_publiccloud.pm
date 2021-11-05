@@ -31,14 +31,21 @@ sub load_docker_tests() {
     loadtest 'containers/zypper_docker' unless (is_aarch64 && is_sle('<=15'));
 }
 
-sub load_maintenance_publiccloud_tests {
-    my $args = OpenQA::Test::RunArgs->new();
+# Prepare a publiccloud instance for tunneled test runs (e.g. consoletests)
+sub prepare_tunneled_instance {
+    my ($args, $mu_run) = @_;
+    $mu_run //= 0;    # maintenance test runs need to transfer the update repositories
 
-    loadtest "publiccloud/download_repos";
-    loadtest "publiccloud/prepare_instance", run_args => $args;
-    loadtest "publiccloud/register_system", run_args => $args;
-    loadtest "publiccloud/transfer_repos", run_args => $args;
-    loadtest "publiccloud/patch_and_reboot", run_args => $args;
+    loadtest("publiccloud/prepare_instance", run_args => $args);
+    loadtest("publiccloud/register_system", run_args => $args);
+    loadtest("publiccloud/transfer_repos", run_args => $args) if ($mu_run);
+    loadtest("publiccloud/patch_and_reboot", run_args => $args) if ($mu_run);
+    loadtest("publiccloud/ssh_interactive_start", run_args => $args) if ($mu_run);
+}
+
+sub load_maintenance_publiccloud_tests {
+    my $args = $_[0];
+
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
@@ -46,7 +53,6 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_FIO')) {
         loadtest('publiccloud/storage_perf', run_args => $args);
     } else {
-        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_extra_tests_prepare();
@@ -56,7 +62,6 @@ sub load_maintenance_publiccloud_tests {
             load_podman_tests() if is_sle('>=15-sp1');
             load_docker_tests();
         }
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
 }
 
@@ -78,13 +83,22 @@ sub load_publiccloud_consoletests {
 }
 
 sub load_publiccloud_tests {
+    my $mu_run = get_var('PUBLIC_CLOUD_QAM', 0);    # Maintenance update test runs
+    my $args = OpenQA::Test::RunArgs->new();
+
     loadtest 'boot/boot_to_desktop';
+    loadtest("publiccloud/download_repos") if ($mu_run);
+
+    # Prepare tunneled instance, i.e. an instance will be created and the root- and user-consoles will be tunneled to it
+    # Use this one to run "normal" tests on publiccloud (e.g. consoletests, container test runs)
+    prepare_tunneled_instance($args, $mu_run) if (get_var("TUNNELED", 0));
+
     if (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
         loadtest 'publiccloud/download_repos';
         loadtest 'shutdown/shutdown';
     }
-    elsif (get_var('PUBLIC_CLOUD_QAM')) {
-        load_maintenance_publiccloud_tests();
+    elsif ($mu_run) {
+        load_maintenance_publiccloud_tests($args);
     } else {
         if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
             loadtest "publiccloud/prepare_tools";
@@ -115,6 +129,7 @@ sub load_publiccloud_tests {
             loadtest "publiccloud/upload_image";
         }
     }
+    loadtest("publiccloud/ssh_interactive_end", run_args => $args) if (get_var("TUNNELED", 0));
 }
 
 1;
