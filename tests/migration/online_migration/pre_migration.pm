@@ -59,7 +59,7 @@ sub run {
     # create btrfs subvolume for aarch64 before migration
     create_btrfs_subvolume() if (is_aarch64);
     # We need to close gnome notification banner before migration.
-    if (check_var('DESKTOP', 'gnome') && (is_aarch64 || is_ppc64le)) {
+    if (check_var('DESKTOP', 'gnome')) {
         select_console 'user-console';
         turn_off_gnome_show_banner;
     }
