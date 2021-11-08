@@ -22,7 +22,8 @@ use utils qw(systemctl zypper_call);
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     zypper_call("in nfs-client yast2-nfs-client nfs-kernel-server yast2-nfs-server", exitcode => [0, 102, 103, 106]);
 
     # sets up a nfs service on localhost

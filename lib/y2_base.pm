@@ -15,7 +15,7 @@ use ipmi_backend_utils;
 use network_utils;
 use y2_logs_helper 'get_available_compression';
 
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 
 use Carp::Always;
 use File::Copy 'copy';
@@ -170,7 +170,7 @@ sub post_run_hook {
     my $self = shift;
 
     $self->SUPER::post_run_hook;
-    save_screenshot;
+    save_screenshot unless is_serial_terminal;
     YuiRestClient::Logger->info($autotest::current_test->{name} . " test module finished") if YuiRestClient::is_libyui_rest_api;
 }
 1;
