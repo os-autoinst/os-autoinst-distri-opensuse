@@ -16,6 +16,7 @@ use publiccloud::eks;
 use publiccloud::ecr;
 use publiccloud::gce;
 use publiccloud::gcr;
+use publiccloud::gke;
 use strict;
 use warnings;
 
@@ -73,6 +74,19 @@ sub provider_factory {
         $args{service} //= 'GCE';
         if ($args{service} eq 'GCR') {
             $provider = publiccloud::gcr->new(
+                account => get_var('PUBLIC_CLOUD_ACCOUNT'),
+                service_acount_name => get_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),
+                project_id => get_var('PUBLIC_CLOUD_PROJECT_ID'),
+                private_key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
+                private_key => get_var('PUBLIC_CLOUD_KEY'),
+                client_id => get_var('PUBLIC_CLOUD_CLIENT_ID'),
+                region => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
+                storage_name => get_var('PUBLIC_CLOUD_STORAGE', 'openqa-storage'),
+                username => get_var('PUBLIC_CLOUD_USER', 'susetest')
+            );
+        }
+        elsif ($args{service} eq 'GKE') {
+            $provider = publiccloud::gke->new(
                 account => get_var('PUBLIC_CLOUD_ACCOUNT'),
                 service_acount_name => get_var('PUBLIC_CLOUD_SERVICE_ACCOUNT'),
                 project_id => get_var('PUBLIC_CLOUD_PROJECT_ID'),
