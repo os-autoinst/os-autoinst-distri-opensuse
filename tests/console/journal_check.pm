@@ -52,7 +52,7 @@ sub run {
 
     $self->select_serial_terminal;
 
-    my @journal_output = split(/\n/, script_output("journalctl --no-pager -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise | tail -n +2"));
+    my @journal_output = split(/\n/, script_output("journalctl --no-pager --quiet -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise"));
 
     # Find lines which matches to the pattern_bug
     foreach my $bug (keys %$bug_pattern) {
