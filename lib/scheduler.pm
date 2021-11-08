@@ -55,7 +55,8 @@ sub parse_schedule_module {
         my $condition = $schedule->{conditional_schedule}->{$module};
         # Iterate over variables in the condition
         foreach my $var (keys %{$condition}) {
-            next unless my $val = get_var($var);
+            my $val = get_var($var);
+            next if (!defined $val);
             # If value of the variable matched the conditions
             # Iterate over the list of the modules to be loaded
             push(@scheduled, parse_schedule_module($schedule, $_)) for (@{$condition->{$var}->{$val}});
