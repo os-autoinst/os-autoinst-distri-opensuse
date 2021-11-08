@@ -84,9 +84,9 @@ sub run {
     assert_script_run("rpm -q sapconf");
 
     if (is_upgrade()) {
-        # Stop & disable tuned service to avoid conflict with active saptune
-        systemctl "stop tuned";
-        systemctl "disable tuned";
+        # Stop & disable saptune service to avoid conflict with active saptune
+        systemctl "stop saptune";
+        systemctl "disable saptune";
         # Some versions of sapconf check for this directory and refuse to start
         assert_script_run "rm -rf /var/lib/saptune/saved_state";
         systemctl "enable sapconf";
