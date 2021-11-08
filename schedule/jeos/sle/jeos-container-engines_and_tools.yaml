@@ -38,5 +38,4 @@ schedule:
     - containers/podman_3rd_party_images
     - containers/registry
     - containers/zypper_docker
-    - containers/container_diff
     - containers/rootless_podman
