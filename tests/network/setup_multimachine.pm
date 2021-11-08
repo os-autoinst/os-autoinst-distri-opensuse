@@ -13,7 +13,7 @@ use testapi;
 use lockapi;
 use mm_network 'setup_static_mm_network';
 use utils qw(zypper_call permit_root_ssh);
-use Utils::Systemd qw(disable_and_stop_service systemctl);
+use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
 use version_utils qw(is_sle is_opensuse);
 
 sub is_networkmanager {
@@ -31,7 +31,7 @@ sub run {
     assert_script_run('echo "10.0.2.102 client minion" >> /etc/hosts');
 
     # Configure static network, disable firewall
-    disable_and_stop_service($self->firewall);
+    disable_and_stop_service($self->firewall) if check_unit_file($self->firewall);
     disable_and_stop_service('apparmor', ignore_failure => 1);
 
     # Configure the internal network an  try it
