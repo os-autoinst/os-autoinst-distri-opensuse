@@ -6,7 +6,7 @@
 # Summary: The module provides interface to act on the Overview page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::Overview::OverviewPage;
+package Installation::InstallationSettings::InstallationSettingsPage;
 use strict;
 use warnings;
 use YuiRestClient::Wait;

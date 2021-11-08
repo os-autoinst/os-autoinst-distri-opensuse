@@ -20,7 +20,7 @@ use Installation::License::Opensuse::LicenseAgreementController;
 use Installation::License::LicenseAgreementCustomController;
 use Installation::LocalUser::LocalUserController;
 use Installation::Navigation::NavigationController;
-use Installation::Overview::OverviewController;
+use Installation::InstallationSettings::InstallationSettingsController;
 use Installation::Registration::RegisteredSystemController;
 use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
@@ -107,8 +107,8 @@ sub get_navigation {
     return Installation::Navigation::NavigationController->new();
 }
 
-sub get_overview_controller {
-    return Installation::Overview::OverviewController->new();
+sub get_installation_settings {
+    return Installation::InstallationSettings::InstallationSettingsController->new();
 }
 
 sub get_network_settings {
@@ -162,5 +162,6 @@ sub get_yes_no_popup_controller {
 sub get_encrypted_volume_activation {
     return Installation::SystemProbing::EncryptedVolumeActivationController->new();
 }
+
 
 1;
