@@ -116,6 +116,15 @@ sub load_publiccloud_tests {
             load_publiccloud_consoletests();
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         }
+        elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
+            my $args = OpenQA::Test::RunArgs->new();
+            loadtest "publiccloud/prepare_instance", run_args => $args;
+            loadtest "publiccloud/register_system", run_args => $args;
+            loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+            load_podman_tests();
+            load_docker_tests();
+            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+        }
         elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
             loadtest "publiccloud/upload_image";
         }
