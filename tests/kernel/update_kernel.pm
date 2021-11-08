@@ -21,6 +21,7 @@ use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use Utils::Backends;
+use Utils::Systemd qw(disable_and_stop_service);
 
 sub check_kernel_package {
     my $kernel_name = shift;
@@ -462,6 +463,8 @@ sub run {
     }
 
     check_kernel_package($kernel_package);
+
+    disable_and_stop_service('purge-kernels.service', mask_service => 1);
 
     if (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);
