@@ -22,7 +22,7 @@ sub run {
 
     # curl
     assert_script_run 'curl -L openqa.opensuse.org';    # openQA Networking (required for mirrors)
-    assert_script_run 'curl -L github.com';             # Required for kubeadm (behind the scenes)
+    assert_script_run 'curl -L github.com';    # Required for kubeadm (behind the scenes)
 
 }
 

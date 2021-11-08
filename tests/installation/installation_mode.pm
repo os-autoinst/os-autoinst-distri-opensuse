@@ -39,7 +39,7 @@ sub run {
         }
     }
     if (get_var("AUTOCONF")) {
-        send_key "alt-s";        # toggle automatic configuration
+        send_key "alt-s";    # toggle automatic configuration
         assert_screen "autoconf-deselected", 10;
     }
     send_key $cmd{next};

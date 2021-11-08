@@ -407,7 +407,7 @@ sub evolution_add_self_signed_ca {
         assert_and_click 'evolution_wizard-receiving';
         send_key $cmd{next};    # select "Next" key
         wait_still_screen(2);
-        send_key 'ret';         # Go to next page (previous key just selected the key)
+        send_key 'ret';    # Go to next page (previous key just selected the key)
     }
     else {
         send_key $cmd{next};
@@ -728,7 +728,7 @@ sub start_gnome_settings {
             }
 
             send_key 'super';    # if launcher is open, close it (search string will also be removed).
-            send_key 'esc';      # close launcher, if it still open
+            send_key 'esc';    # close launcher, if it still open
         }
         send_key 'super';
         wait_still_screen;

@@ -27,7 +27,7 @@ sub run {
     my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));    #format 15 or 15-SP1
     ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
     #get the version that the host should upgrade to
-    my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');                        #format sles-15-sp0
+    my $host_upgrade_version = get_required_var('UPGRADE_PRODUCT');    #format sles-15-sp0
     ($host_upgrade_version) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
     diag("Debug info for reboot_and_wait_up_upgrade: host_installed_version is $host_installed_version, host_upgrade_version is $host_upgrade_version");
     #online upgrade actually

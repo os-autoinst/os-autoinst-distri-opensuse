@@ -36,14 +36,14 @@ our $confirm = $is_older_product ? $cmd{ok} : $cmd{next};
 # firewalld UI
 our %fw = (
     service_stop => 'alt-s',    # Start-Up: Stop now (button)
-    service_start => 'alt-s',   # Start-Up: Start now (button)
+    service_start => 'alt-s',    # Start-Up: Start now (button)
     zones_set_as_default => 'alt-s',    # Zones: Set As Default (button)
-    interfaces_change_zone => 'alt-c',  # Interfaces: Change Zone (button)
+    interfaces_change_zone => 'alt-c',    # Interfaces: Change Zone (button)
     interfaces_change_zone_zone => 'alt-z',    # Interfaces->Change Zone: Zone (drop-down)
-    zones_service_add => 'alt-d',              # Zones->Services: Add (button)
-    zones_ports => 'alt-p',                    # Zones->Ports: Ports (tab)
-    yes => 'alt-y',                            # Yes
-    tcp => 'alt-t'                             # TCP Ports (textbox)
+    zones_service_add => 'alt-d',    # Zones->Services: Add (button)
+    zones_ports => 'alt-p',    # Zones->Ports: Ports (tab)
+    yes => 'alt-y',    # Yes
+    tcp => 'alt-t'    # TCP Ports (textbox)
 );
 
 1;

@@ -192,7 +192,7 @@ sub set_guest_memory {
     assert_script_run("virsh setmem --domain $guest --size $memory" . "M --live");
     assert_script_run("virsh dommemstat $guest");
     assert_script_run("ssh root\@$guest free", 60);
-    sleep 5;                                    # give the VM some time to adjust
+    sleep 5;    # give the VM some time to adjust
     my $guestmemory = get_guest_memory($guest);
     # Memory reposts are not precise, we allow for a +/-10% acceptance range
     my $within_tolerance = ($min_memory <= $guestmemory) && ($guestmemory <= $max_memory);
@@ -209,7 +209,7 @@ sub test_vmem_change {
         }
     }
     return if (is_xen_host && $guest =~ m/hvm/i);    # memory change not supported on HVM guest
-    set_guest_memory($guest, 2048, 1500, 2252);      # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G
+    set_guest_memory($guest, 2048, 1500, 2252);    # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G
     set_guest_memory($guest, 3072, 2457, 3379);
     set_guest_memory($guest, 2048, 1500, 2252);
 }

@@ -39,13 +39,13 @@ sub run {
     mouse_tclick('left', 0.10);    # triple click to select a line
     sleep 1;
 
-    send_key "ctrl-c";             # copy
+    send_key "ctrl-c";    # copy
     send_key "right";
     send_key "ret";
-    send_key "ctrl-v";             # paste in next line
+    send_key "ctrl-v";    # paste in next line
 
     # edit some words
-    send_key "ctrl-end";           # go to the end of document
+    send_key "ctrl-end";    # go to the end of document
     send_key "ret";
     type_string "This file is opened, edited and saved by openQA!";
     sleep 1;

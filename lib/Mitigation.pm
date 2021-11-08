@@ -207,7 +207,7 @@ sub vulnerabilities {
         }
     }
     record_info("$self->{'name'} vulnerable", "Testing will continue.");
-    return 1;            #Affected
+    return 1;    #Affected
 }
 
 sub sysfs {

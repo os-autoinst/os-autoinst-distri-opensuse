@@ -16,7 +16,7 @@ sub run {
         send_key "ret";    #faster boot if boot from cd
     }
     assert_screen("bootloader", 10);
-    send_key "ret";        #faster boot
+    send_key "ret";    #faster boot
 
 }
 

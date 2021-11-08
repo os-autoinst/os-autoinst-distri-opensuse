@@ -48,7 +48,7 @@ sub run {
     $self->firefox_preferences;
     assert_and_click 'firefox-changesaving-showblankpage';
     wait_still_screen 2, 4;    #There might be a notification
-    send_key "alt-tab";        #Switch to xterm
+    send_key "alt-tab";    #Switch to xterm
     wait_still_screen 2, 4;
     assert_screen 'xterm-left-open';
 

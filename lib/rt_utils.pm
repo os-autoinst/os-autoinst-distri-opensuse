@@ -16,7 +16,7 @@ sub select_kernel {
     if (match_has_tag "grub2-$kernel-selected") {    # if requested kernel is selected continue
         send_key 'ret';
     }
-    else {                                           # else go to that kernel thru grub2 advanced options
+    else {    # else go to that kernel thru grub2 advanced options
         send_key_until_needlematch 'grub2-advanced-options', 'down';
         send_key 'ret';
         send_key_until_needlematch "grub2-$kernel-selected", 'down';

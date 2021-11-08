@@ -59,12 +59,12 @@ sub run {
     # Csync2 settings screen
     assert_screen 'yast-cluster-csync2';
     wait_screen_change { send_key 'alt-G' };    # Generate Pre-Shared-Keys
-    send_key 'alt-O';                           # Validation
+    send_key 'alt-O';    # Validation
     wait_screen_change { send_key 'alt-S' };    # Add suggested files
     wait_screen_change { send_key 'alt-A' };    # Add Sync host
     type_string "$hostname";
-    send_key 'alt-O';                           # Validation
-    send_key 'alt-u';                           # Turn csync2 on
+    send_key 'alt-O';    # Validation
+    send_key 'alt-u';    # Turn csync2 on
     wait_still_screen 10;
     save_screenshot;
     wait_screen_change { send_key 'alt-n' };

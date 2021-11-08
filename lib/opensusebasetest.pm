@@ -246,11 +246,11 @@ sub investigate_yast2_failure {
     my %y2log_errors = (
         "No textdomain configured" => undef,    # Detecting missing translations
                                                 # Detecting specific errors proposed by the YaST dev team
-        "nothing provides" => undef,            # Detecting missing required packages
+        "nothing provides" => undef,    # Detecting missing required packages
         "but this requirement cannot be provided" => undef,    # Detecting package conflicts
-        "Could not load icon|Couldn't load pixmap" => undef,   # Detecting missing icons
-        "Internal error. Please report a bug report" => undef, # Detecting internal errors
-        "error.*@.*is not allowed" => undef,                   # Detecting incompatible type classes, see bsc#1158589
+        "Could not load icon|Couldn't load pixmap" => undef,    # Detecting missing icons
+        "Internal error. Please report a bug report" => undef,    # Detecting internal errors
+        "error.*@.*is not allowed" => undef,    # Detecting incompatible type classes, see bsc#1158589
     );
     # Hash with known errors which we don't want to track in each postfail hook
     my %y2log_known_errors = (
@@ -259,7 +259,7 @@ sub investigate_yast2_failure {
         "<3>.*3 packages failed.*badlist" => 'bsc#1170322',
         "<3>.*Unknown option.*MultiSelectionBox widget" => 'bsc#1170431',
         "<3>.*XML.*Argument.*to Read.*is nil" => 'bsc#1170432',
-        "<3>.*no[t]? mount" => 'bsc#1092088',                  # Detect not mounted partition
+        "<3>.*no[t]? mount" => 'bsc#1092088',    # Detect not mounted partition
         "<3>.*lib/cheetah.rb" => 'bsc#1153749',
         # The error below will be cleaned up, see https://trello.com/c/5qTQZKH3/2918-sp2-logs-cleanup
         # Adding reference to trello, detect those in single scenario

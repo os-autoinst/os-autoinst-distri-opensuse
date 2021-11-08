@@ -19,7 +19,7 @@ sub run {
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-nw-swpm-master-password";
     type_password;
-    send_key 'tab';       #password confirmation
+    send_key 'tab';    #password confirmation
     type_password;
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-nw-swpm-db-params";
@@ -28,7 +28,7 @@ sub run {
     assert_screen "sles4sap-wizard-nw-swpm-sld-params";
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-nw-swpm-skey-generation";
-    send_key 'alt-e';     #dEfault key
+    send_key 'alt-e';    #dEfault key
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-nw-swpm-diag-agents";
     send_key $cmd{next};

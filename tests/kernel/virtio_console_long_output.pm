@@ -48,7 +48,7 @@ sub run {
     assert_script_run('curl -O ' . autoinst_url . "/files/" . $filename);
     my $sha1sum = sha1_sum(trim($testdata));    # cause script_output() trim the data
     record_info("FILE", "SHA1: $sha1sum\nSIZE: $size");
-    $testdata = undef;                          # free
+    $testdata = undef;    # free
 
     for (my $i = 0; $i < $repeat; $i++) {
         my $output = undef;

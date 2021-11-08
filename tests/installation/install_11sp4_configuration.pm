@@ -70,7 +70,7 @@ sub run {
     assert_screen 'inst-usersetup';
     send_key 'alt-f';    # Select full name text field
     wait_screen_change { type_string "$realname" };
-    send_key 'tab';      # Select password field
+    send_key 'tab';    # Select password field
     send_key 'tab';
     for (1 .. 2) {
         wait_screen_change { type_string "$password\t" };

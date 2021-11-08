@@ -102,14 +102,14 @@ sub run {
     assert_screen 'installation-bootloader-options';
     my $protect_key = is_sle('=12-sp1') && !get_var('UEFI') ? 'a' : 'e';
     send_key "alt-$protect_key";    # check protect boot loader with pw
-    send_key 'alt-r';               # uncheck protect entry modification only
-    send_key 'alt-p';               # selecet password field
+    send_key 'alt-r';    # uncheck protect entry modification only
+    send_key 'alt-p';    # selecet password field
     type_password;
     send_key 'tab';
     type_password;
     sleep 2;
     save_screenshot;
-    send_key 'alt-o';               # OK
+    send_key 'alt-o';    # OK
     wait_serial 'yast-bootloader-status-0', 60 || die "'yast bootloader' didn't finish";
     # verify password protect
     assert_script_run 'grep \'password\' /boot/grub2/grub.cfg';

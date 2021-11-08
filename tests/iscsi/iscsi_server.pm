@@ -162,7 +162,7 @@ sub target_backstore_tab {
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 45);
     send_key 'delete';    # text it is automatically selected after tab, delete
     type_string_slow_extended $test_data->{target_conf}->{name};
-    send_key 'tab';       # tab to identifier field
+    send_key 'tab';    # tab to identifier field
     wait_still_screen(stilltime => 1, timeout => 5, similarity_level => 44);
     send_key 'delete';
     type_string_slow_extended $test_data->{target_conf}->{id};

@@ -47,21 +47,21 @@ sub add_device {
         send_key 'alt-n';
         assert_screen 'yast2_lan';    # yast2 lan overview tab
     }
-    send_key 'alt-a';                 # Add NIC
+    send_key 'alt-a';    # Add NIC
     assert_screen 'yast2_lan_hardware_dialog';
-    send_key 'alt-d';                 # Device type
-    send_key 'home';                  # Jump to beginning of list
+    send_key 'alt-d';    # Device type
+    send_key 'home';    # Jump to beginning of list
     send_key_until_needlematch "yast2_lan_device_type_$device", 'down';
-    send_key 'alt-n';                 # Next
+    send_key 'alt-n';    # Next
     assert_screen 'yast2_lan_network_card_setup';
-    send_key 'alt-y';                 # Dynamic address
+    send_key 'alt-y';    # Dynamic address
     wait_still_screen;
     if ($device eq 'bridge') {
-        send_key 'alt-g';             # General
-        send_key 'alt-i';             # Bridged devices
+        send_key 'alt-g';    # General
+        send_key 'alt-i';    # Bridged devices
         assert_screen 'yast2_lan_bridged_devices';
         if (check_screen('yast2_lan_default_NIC_bridge', 0)) {
-            send_key 'alt-d';         # select Bridged Devices region
+            send_key 'alt-d';    # select Bridged Devices region
             send_key 'spc';
             wait_still_screen;
             save_screenshot;
@@ -75,7 +75,7 @@ sub add_device {
         assert_screen 'yast2_lan_bond_slaves';
         send_key_until_needlematch 'yast2_lan_bond_slave_tab_selected', 'tab';
         assert_and_click 'yast2_lan_bond_slave_network_interface';    # select network interface
-        send_key 'spc';                                               # check network interface
+        send_key 'spc';    # check network interface
         wait_still_screen;
         save_screenshot;
         send_key 'alt-n';
@@ -102,15 +102,15 @@ sub select_special_device_tab {
     send_key 'home';
     send_key_until_needlematch ["yast2_lan_device_${device}_selected", "yast2_lan_device_bsc1111483"], 'down', 5;
     return if check_bsc1111483;
-    send_key 'alt-i';                     # Edit NIC
+    send_key 'alt-i';    # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     if ($device eq 'bridge') {
-        send_key 'alt-g';                 # General
-        send_key 'alt-i';                 # Bridged devices
+        send_key 'alt-g';    # General
+        send_key 'alt-i';    # Bridged devices
         assert_screen 'yast2_lan_bridged_devices';
     }
     elsif ($device eq 'bond') {
-        send_key 'alt-o';                 # Bond slaves
+        send_key 'alt-o';    # Bond slaves
         assert_screen 'yast2_lan_bond_slaves';
     }
     elsif ($device eq 'VLAN') {
@@ -137,9 +137,9 @@ sub delete_device {
     send_key 'alt-i';    # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     wait_screen_change { send_key 'alt-y' };    # Dynamic address
-    send_key 'alt-n';                           # Next
+    send_key 'alt-n';    # Next
     close_network_settings;
-    assert_script_run '> journal.log';          # clear journal.log
+    assert_script_run '> journal.log';    # clear journal.log
 }
 
 sub check_device {

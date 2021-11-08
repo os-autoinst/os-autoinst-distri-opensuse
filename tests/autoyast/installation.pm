@@ -41,7 +41,7 @@ use validate_encrypt_utils "validate_encrypted_volume_activation";
 my $confirmed_licenses = 0;
 my $stage = 'stage1';
 my $maxtime = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
-my $check_time = 50;                                 #Period to check screen during stage 1 and 2
+my $check_time = 50;    #Period to check screen during stage 1 and 2
 
 # Full install with updates can take extremely long time
 $maxtime = 5500 * get_var('TIMEOUT_SCALE', 1) if is_released;
@@ -178,7 +178,7 @@ sub run {
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
-            last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
+            last;    # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
         }
         elsif (match_has_tag('import-untrusted-gpg-key')) {
             handle_untrusted_gpg_key;
@@ -189,7 +189,7 @@ sub run {
             @needles = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
             $pxe_boot_done = 1;
             send_key 'ret';    # boot from harddisk
-            next;              # first stage is over, now we should see grub with autoyast-boot
+            next;    # first stage is over, now we should see grub with autoyast-boot
         }
         #repeat until timeout or login screen
         elsif (match_has_tag('nonexisting-package')) {

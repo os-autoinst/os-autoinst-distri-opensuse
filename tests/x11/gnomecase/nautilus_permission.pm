@@ -52,8 +52,8 @@ sub run {
     assert_screen 'nautilus-access-permission';
     send_key "down";
     send_key "ret";
-    send_key "esc";      #close the dialog
-                         #reopen the properties menu to check if the changes kept
+    send_key "esc";    #close the dialog
+                       #reopen the properties menu to check if the changes kept
     if (is_sle('15+') || is_leap('15.0+') || is_tumbleweed) {
         assert_and_click('nautilus-newfile-matched', button => 'right');
     }
@@ -61,15 +61,15 @@ sub run {
         send_key "shift-f10";
     }
     assert_screen 'nautilus-rightkey-menu';
-    send_key "r";        #choose properties
+    send_key "r";    #choose properties
     assert_screen 'nautilus-properties';
-    send_key "up";       #move focus onto tab
-                         # For Tumbleweed it is needed one more hit to reach the tab
-                         # In case that the problem appears again, switch to an assert and click strategy for reaching the tab
+    send_key "up";    #move focus onto tab
+                      # For Tumbleweed it is needed one more hit to reach the tab
+                      # In case that the problem appears again, switch to an assert and click strategy for reaching the tab
     send_key "up";
     send_key "right";    #move to tab Permissions
     assert_screen 'nautilus-permissions-changed';
-    send_key "esc";      #close the dialog
+    send_key "esc";    #close the dialog
 
 
     #clean: remove the created new note

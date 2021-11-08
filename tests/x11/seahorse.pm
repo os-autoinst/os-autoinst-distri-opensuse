@@ -24,24 +24,24 @@ sub run {
     wait_still_screen(3);
     assert_and_dclick "seahorse-password-keyring";    # Selection: Password keyring
     my @tags = qw(seahorse-name-new-keyring ok_on_top);
-    assert_screen \@tags, 60;                         # "Add a password keyring; name it"
-                                                      # may be with ok buttom on top or bottom of popup
+    assert_screen \@tags, 60;    # "Add a password keyring; name it"
+                                 # may be with ok buttom on top or bottom of popup
     if (match_has_tag "ok_on_top") {
         record_info 'alt-o ignored', 'poo#42686 so try ret key';
-        type_string "Default Keyring";                # Name of the keyring
+        type_string "Default Keyring";    # Name of the keyring
         wait_still_screen(1, 2);
-        send_key "ret";                               # &Ok
+        send_key "ret";    # &Ok
     }
     else {
-        type_string "Default Keyring";                # Name of the keyring
+        type_string "Default Keyring";    # Name of the keyring
         wait_still_screen(1, 2);
-        send_key "alt-o";                             # &Ok
+        send_key "alt-o";    # &Ok
     }
-    assert_screen "seahorse-password-dialog";         # Dialog "Passphrase for the new keyring"
-    type_password;                                    # Users password (for auto unlock, it has to be the same)
-    send_key "ret";                                   # Next field (confirm PW)
-    type_password;                                    # Re-type user password
-    send_key "ret";                                   # Confirm password
+    assert_screen "seahorse-password-dialog";    # Dialog "Passphrase for the new keyring"
+    type_password;    # Users password (for auto unlock, it has to be the same)
+    send_key "ret";    # Next field (confirm PW)
+    type_password;    # Re-type user password
+    send_key "ret";    # Confirm password
     wait_still_screen 1;
     if (check_screen "seahorse-keyring-locked") {
         assert_and_click "unlock";
@@ -55,8 +55,8 @@ sub run {
     }
     elsif (match_has_tag "seahorse-default_keyring") {
         assert_and_click('seahorse-default_keyring', button => 'right');    # right click the new keyring
-        assert_and_click('seahorse-set_as_default', timeout => 60);         # Set the new keyring as default
-        send_key "alt-f4";                                                  # Close seahorse
+        assert_and_click('seahorse-set_as_default', timeout => 60);    # Set the new keyring as default
+        send_key "alt-f4";    # Close seahorse
     }
 }
 

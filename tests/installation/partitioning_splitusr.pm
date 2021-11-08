@@ -39,8 +39,8 @@ sub run {
         save_screenshot;
         send_key 'ret';
     }
-    wait_screen_change { send_key $cmd{resize} };                          # Resize
-    send_key 'alt-u';                                                      # Custom size
+    wait_screen_change { send_key $cmd{resize} };    # Resize
+    send_key 'alt-u';    # Custom size
     send_key $cmd{size_hotkey} if is_storage_ng;
     type_string '5G';
     send_key(is_storage_ng() ? $cmd{next} : 'ret');

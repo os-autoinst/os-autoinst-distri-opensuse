@@ -303,24 +303,24 @@ sub run {
         if (!get_var('BOOT_HDD_IMAGE') && get_var('ISO') && get_var('HDD_1') && !is_jeos && !is_microos) {
             enter_cmd "echo -en '\\033[B' > \$pty";    # key down
         }
-        enter_cmd "echo e > \$pty";                    # edit
+        enter_cmd "echo e > \$pty";    # edit
 
         my $max = (!is_jeos) ? 2 : (is_sle '<15-sp1') ? 4 : 13;
         enter_cmd "echo -en '\\033[B' > \$pty" for (1 .. $max);    # $max-times key down
-        enter_cmd "echo -en '\\033[K' > \$pty";                    # end of line
+        enter_cmd "echo -en '\\033[K' > \$pty";    # end of line
 
         if (is_sle '12-SP2+') {
             enter_cmd "echo -en ' xen-fbfront.video=32,1024,768 xen-kbdfront.ptr_size=1024,768' > \$pty";    # set kernel framebuffer
-            enter_cmd "echo -en ' console=hvc console=tty' > \$pty";                                         # set consoles
+            enter_cmd "echo -en ' console=hvc console=tty' > \$pty";    # set consoles
         }
         else {
-            enter_cmd "echo -en ' xenfb.video=4,1024,768 ' > \$pty";                                         # set kernel framebuffer
-            enter_cmd "echo -en ' console=xvc console=tty ' > \$pty";                                        # set consoles
-            $cmdline .= 'linemode=0 ';                                                                       # workaround for bsc#1066919
+            enter_cmd "echo -en ' xenfb.video=4,1024,768 ' > \$pty";    # set kernel framebuffer
+            enter_cmd "echo -en ' console=xvc console=tty ' > \$pty";    # set consoles
+            $cmdline .= 'linemode=0 ';    # workaround for bsc#1066919
         }
         enter_cmd "echo -en ' $cmdline' > \$pty";
 
-        enter_cmd "echo -en '\\x18' > \$pty";                                                                # send Ctrl-x to boot guest kernel
+        enter_cmd "echo -en '\\x18' > \$pty";    # send Ctrl-x to boot guest kernel
         save_screenshot;
     }
 

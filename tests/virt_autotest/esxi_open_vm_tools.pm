@@ -88,9 +88,9 @@ sub check_vm_power_state {
 sub wait_for_vm_network {
     my $vm_ip = shift;    # vm ip address
     my $if_pingable = shift;    # 1 or 0; check if the vm network is pingable or not
-    my $times = shift // 9;     # the number of ping execution
-    my $count = shift // 3;     # ping waits for the count
-    my $interval = shift // 5;  # wait secs between each ping
+    my $times = shift // 9;    # the number of ping execution
+    my $count = shift // 3;    # ping waits for the count
+    my $interval = shift // 5;    # wait secs between each ping
     my $cmd;
 
     # This ping command is used for waiting VM bootup or shutdown

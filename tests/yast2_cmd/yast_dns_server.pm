@@ -104,10 +104,10 @@ sub run {
     #i.e. dnsrecord add zone=example.org query=example.org. type=MX value='10 mail01'
     $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");    #delegated domain
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "subdomain.example.org.", type => "NS", value => "ns1");
-    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");            #host adress
+    $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");    #host adress
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "host1", type => "A", value => "192.168.100.3");
 
-    $self->cmd_handle("dnsrecord", "add", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR", value => "host1");       ##PTR
+    $self->cmd_handle("dnsrecord", "add", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR", value => "host1");    ##PTR
     $self->cmd_handle("dnsrecord", "remove", zone => "100.168.192.in-addr.arpa", query => "123", type => "PTR", value => "host1");
     $self->cmd_handle("dnsrecord", "add", zone => "example.org", query => "ns6", type => "CNAME", value => "server6.anywhere.net.");    ##CNAME
     $self->cmd_handle("dnsrecord", "remove", zone => "example.org", query => "ns6", type => "CNAME", value => "server6.anywhere.net.");
@@ -120,8 +120,8 @@ sub run {
     systemctl("stop named.service") unless systemctl("is-active named.service", ignore_failure => 1);
     assert_script_run("yast2 dns-server startup atboot");
     my $out = script_output("yast2 dns-server startup show 2>&1");
-    record_soft_failure("bsc#1151130") unless $out =~ /enabled in the boot process/;                                                    #sle15+ bug
-    record_soft_failure("bsc#1151130") unless systemctl("is-active named.service", ignore_failure => 1);                                #sle12sp4- bug
+    record_soft_failure("bsc#1151130") unless $out =~ /enabled in the boot process/;    #sle15+ bug
+    record_soft_failure("bsc#1151130") unless systemctl("is-active named.service", ignore_failure => 1);    #sle12sp4- bug
     assert_script_run("yast2 dns-server startup manual");
 
     #remove zone, stop service

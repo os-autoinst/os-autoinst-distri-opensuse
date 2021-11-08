@@ -78,7 +78,7 @@ sub armnn_onnx_test_run {
 
 sub run {
     my ($self) = @_;
-    my $armnn_backends = get_var("ARMNN_BACKENDS");          # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
+    my $armnn_backends = get_var("ARMNN_BACKENDS");    # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
 
     $self->select_serial_terminal;
     zypper_call $armnn_backends =~ /GpuAcc/ ? 'in armnn-opencl' : 'in armnn';

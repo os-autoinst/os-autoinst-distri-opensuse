@@ -28,12 +28,12 @@ sub run {
         enter_cmd "firefox http://master";    # open openattic web running on master node
         $self->x11test::firefox_check_default;    # close default browser pop-up
         assert_screen 'openattic-login';
-        send_key 'tab';                           # username login field
+        send_key 'tab';    # username login field
         type_string 'openattic';
-        send_key 'tab';                           # password field
+        send_key 'tab';    # password field
         enter_cmd "openattic";
         assert_and_click 'firefox-passwd-confirm_remember';
-        send_key 'esc';                           # get rid of unsecure connection pop-up
+        send_key 'esc';    # get rid of unsecure connection pop-up
         assert_screen 'openattic-dashboard';
         send_key_until_needlematch 'openattic-health-status-ok', 'f5', 10, 30;
         barrier_wait {name => 'all_tests_done', check_dead_job => 1};

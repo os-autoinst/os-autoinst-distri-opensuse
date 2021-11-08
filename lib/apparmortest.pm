@@ -76,7 +76,7 @@ sub aa_tmp_prof_prepare {
         if (!(is_sle('<16') or is_leap('<16.0'))) {    # apparmor >= 3.0
             assert_script_run "cp -r $prof_dir/abi $prof_dir/disable $prof_dir_tmp/";
         }
-        if (is_sle('<15') or is_leap('<15.0')) {       # apparmor < 2.8.95
+        if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
             assert_script_run "cp -r $prof_dir/program-chunks $prof_dir/disable $prof_dir_tmp/";
         }
     }
@@ -545,7 +545,7 @@ sub adminer_setup {
     if (!defined($ret)) {
         # Wait more time
         record_info("Firefox loading adminer failed", "Retrying workaround");
-        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);       # nocheck: old code, should be updated
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
     }
     if (match_has_tag("unresponsive-script")) {
         send_key_until_needlematch("adminer-login", 'ret', 5, 5);

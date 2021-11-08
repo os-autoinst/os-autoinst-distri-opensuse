@@ -179,7 +179,7 @@ sub run {
                 assert_screen 'dvd-selector';
                 send_key_until_needlematch 'addon-dvd-list', 'tab', 5;    # jump into addon list
                 send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
-                send_key 'alt-o';                                                   # continue
+                send_key 'alt-o';    # continue
             }
             handle_addon($addon);
             # add another add-on if $addon is not first from all ADDONS and not in SLE 15+
@@ -206,13 +206,13 @@ sub run {
         for my $addon (split(/,/, get_var('ADDONURL'))) {
             assert_screen 'addon-menu-active';
             my $uc_addon = uc $addon;    # variable name is upper case
-            send_key 'alt-u';            # specify url
+            send_key 'alt-u';    # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';            # select URL field
+            send_key 'alt-u';    # select URL field
             type_string get_required_var("ADDONURL_$uc_addon");    # repo URL
             send_key $cmd{next};
-            wait_still_screen;                                     # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
+            wait_still_screen;    # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
             my @tags = ('addon-products', "addon-betawarning-$addon", "addon-license-$addon", 'import-untrusted-gpg-key');
             assert_screen(\@tags, 90);
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
@@ -238,7 +238,7 @@ sub run {
             wait_still_screen 2;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {    # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                     # add another add-on
+                send_key 'alt-a';    # add another add-on
             }
         }
     }

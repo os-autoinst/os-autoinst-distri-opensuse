@@ -67,11 +67,11 @@ sub run {
 
             open_yast2_lan();
             for (1 .. 2) { send_key "tab" }    # move to device list
-            send_key "alt-i";                  # open edit device dialog
+            send_key "alt-i";    # open edit device dialog
             wait_still_screen;
             assert_screen 'edit-network-card';
-            send_key "alt-y";                  # select dynamic address option
-            send_key "alt-n";                  # next
+            send_key "alt-y";    # select dynamic address option
+            send_key "alt-n";    # next
             assert_screen 'dynamic-ip-address-set';
             close_yast2_lan();
 
@@ -141,7 +141,7 @@ sub run {
 
     for (1 .. 2) { send_key "tab" }    # move to device list
     send_key_until_needlematch 'vlan-selected', 'down', 5, 5;    # move to vlan
-    send_key "alt-t";                                            # remove vlan
+    send_key "alt-t";    # remove vlan
     assert_screen 'vlan-deleted';
     close_yast2_lan();
     wait_still_screen;

@@ -91,7 +91,7 @@ sub get_edit_formatting_options_page {
 
 sub get_edit_partition_size_page {
     my ($self) = @_;
-    return $self->{EditPartitionSizePage};     # Same as get_formatting_options_edit_page
+    return $self->{EditPartitionSizePage};    # Same as get_formatting_options_edit_page
 }
 
 sub get_encrypt_password_page {

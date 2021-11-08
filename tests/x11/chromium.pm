@@ -23,7 +23,7 @@ sub run {
     x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
 
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
-    send_key 'ctrl-l';                        # select text in address bar
+    send_key 'ctrl-l';    # select text in address bar
 
     # Additional waiting to prevent unready address bar
     # https://progress.opensuse.org/issues/36304

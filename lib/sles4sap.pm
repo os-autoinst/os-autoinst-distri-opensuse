@@ -532,7 +532,7 @@ sub check_service_state {
     my $uc_state = uc $state;
 
     my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
-    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+    $time_to_wait = 600 if ($time_to_wait > 600);    # Limit this to 10 minutes max
 
     while ($time_to_wait > 0) {
         my $output = script_output "pgrep -a sapstartsrv | grep -w $sid", proceed_on_failure => 1;
@@ -574,7 +574,7 @@ sub check_instance_state {
     my $uc_state = uc $state;
 
     my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
-    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+    $time_to_wait = 600 if ($time_to_wait > 600);    # Limit this to 10 minutes max
 
     while ($time_to_wait > 0) {
         my $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";

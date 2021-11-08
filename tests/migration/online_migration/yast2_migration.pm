@@ -136,7 +136,7 @@ sub run {
             assert_screen 'addon-products', 90;
         }
         wait_still_screen 2;
-        send_key 'alt-o';        # ok
+        send_key 'alt-o';    # ok
         wait_serial('yast2-addon-done-0') || die 'yast2 add-on failed';
     }
 
@@ -177,12 +177,12 @@ sub run {
             wait_screen_change { send_key 'alt-t' };    # install product
             assert_screen ['yast2-migration-addon-not-installed', 'yast2-migration-inconsistency', 'yast2-migration-target'], 150;
             if (match_has_tag 'yast2-migration-addon-not-installed') {
-                send_key 'alt-o';                       # ok
+                send_key 'alt-o';    # ok
                 assert_screen 'yast2-migration-inconsistency';
-                send_key 'alt-c';                       # continue
+                send_key 'alt-c';    # continue
                 for my $addon (split(/,/, get_var('MIGRATION_REMOVE_ADDONS'))) {
                     assert_screen 'yast2-migration-add-addon';
-                    send_key 'alt-y';                   # yes
+                    send_key 'alt-y';    # yes
                 }
             }
             if (match_has_tag 'yast2-migration-inconsistency') {

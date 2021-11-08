@@ -33,7 +33,7 @@ sub undo_redo_once {
     assert_screen 'gnote-new-note';
     send_key "ctrl-shift-z";    #redo
     wait_still_screen 3;
-    send_key "left";            #unselect text
+    send_key "left";    #unselect text
     assert_screen 'gnote-new-note-1';
 }
 

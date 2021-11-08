@@ -48,7 +48,7 @@ sub hostname_via_dhcp {
     wait_screen_change { send_key $cmd{spc}; };
     assert_screen "yast2_lan-hostname-DHCP-$dhcp-selected";    # make sure that the option is actually selected
     send_key $cmd{ok};
-    assert_screen 'console-visible';                           # yast module exited
+    assert_screen 'console-visible';    # yast module exited
     wait_still_screen;
 
     if ($dhcp eq 'no') {

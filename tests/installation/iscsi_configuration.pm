@@ -31,7 +31,7 @@ sub run {
     assert_screen 'iscsi-ibft';
     send_key 'alt-o';    # OK
     assert_screen 'disk-activation-iscsi';
-    wipe_iscsi_disk;     # At this point should be mounted and can proceed to erase it
+    wipe_iscsi_disk;    # At this point should be mounted and can proceed to erase it
     send_key $cmd{next};
 }
 

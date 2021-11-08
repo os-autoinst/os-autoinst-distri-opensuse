@@ -29,7 +29,7 @@ sub run {
         send_key 'alt-y';    # Yes
     }
     assert_screen "sles4sap-wizard-tuned-profile-applied";
-    send_key 'alt-o';        # Ok
+    send_key 'alt-o';    # Ok
     send_key $cmd{next};
     if (check_screen('sles4sap-wizard-no-space-left', 30)) {
         send_key 'alt-o';    #Okay
@@ -40,7 +40,7 @@ sub run {
     save_screenshot;
     assert_screen "sles4sap-wizard-swpm-progress", 600;
     assert_screen "sles4sap-wizard-completed", 18000;    # 5 hours timeout should be enough even for NW
-    send_key 'alt-f';                                    #Finish
+    send_key 'alt-f';    #Finish
 }
 
 1;

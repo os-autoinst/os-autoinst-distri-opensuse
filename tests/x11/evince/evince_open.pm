@@ -23,7 +23,7 @@ sub run {
 
     send_key "alt-f10";    # maximize window
     assert_screen 'evince-open-pdf', 5;
-    send_key "ctrl-w";     # close evince
+    send_key "ctrl-w";    # close evince
 }
 
 # add milestone flag to open in maximized window mode by default

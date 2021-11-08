@@ -49,11 +49,11 @@ sub run {
         sleep 1;
         send_key 'd';
         sleep 1;
-        send_key 'i';         # enter vim insert mode
+        send_key 'i';    # enter vim insert mode
         sleep 1;
         enter_cmd "test email";
         sleep 1;
-        send_key 'esc';       # escape insert mode
+        send_key 'esc';    # escape insert mode
         sleep 1;
         save_screenshot;
         enter_cmd ":wq";

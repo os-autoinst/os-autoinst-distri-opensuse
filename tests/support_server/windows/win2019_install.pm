@@ -30,7 +30,7 @@ sub run {
     send_key 'alt-b';    # browse button
     send_key 'c';
     save_screenshot;
-    send_key 'c';        # go to second CD drive with drivers
+    send_key 'c';    # go to second CD drive with drivers
     send_key 'right';    # choose win2019 INF files
     sleep 0.5;
     send_key 'down';

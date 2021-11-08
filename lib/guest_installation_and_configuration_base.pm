@@ -46,48 +46,48 @@ use version_utils;
 our %guest_params = (
     'guest_os_name' => '',    #[guest_os_name]:sles,opensuse,oraclelinux or others.Not virt-install argument.
     'guest_os_word_length' => '',    #[guest_os_word_length]:64 or 32.Not virt-install argument.
-    'guest_version' => '',           #[guest_version]:15-sp3 or others.Not virt-install argument.
-    'guest_version_major' => '',     #[guest_version_major]:15 or others.Not virt-install argument.
-    'guest_version_minor' => '',     #[guest_version_minor]:3 or others.Not virt-install argument.
-    'guest_build' => '',             #Build number if developing release or 'gm'.Not virt-install argument.It should be left empty in guest params xml file
+    'guest_version' => '',    #[guest_version]:15-sp3 or others.Not virt-install argument.
+    'guest_version_major' => '',    #[guest_version_major]:15 or others.Not virt-install argument.
+    'guest_version_minor' => '',    #[guest_version_minor]:3 or others.Not virt-install argument.
+    'guest_build' => '',    #Build number if developing release or 'gm'.Not virt-install argument.It should be left empty in guest params xml file
         #if developing release will be installed for the guest.It will be set to the same as BUILD from test suite settings in config_guest_params.
         #Otherwise it must be set to 'gm' in guest params xml file if non-developing release will be installed for the guest.
     'host_hypervisor_uri' => '',    #virt-install --connect [host_hypervisor_uri]
-    'host_virt_type' => '',         #virt-install --virt-type [host_virt_type]
-    'guest_virt_type' => '',        #virt-install --[guest_virt_type(hvm or paravirt)]
-    'guest_machine_type' => '',     #virt-install --machine [guest_machine_type]
-    'guest_arch' => '',             #virt-install --arch [guest_arch]
-    'guest_name' => '',             #virt-install --name [guest_name]
-    'guest_domain_name' => '',      #This will be used for DNS configuration, not virt-install argument
-    'guest_memory' => '',           #virt-install --memory [guest_memory]
-    'guest_vcpus' => '',            #virt-install --vcpus [guest_vcpus]
-    'guest_cpumodel' => '',         #virt-install --cpu [guest_cpumodel]
-    'guest_metadata' => '',         #virt-install --metadata [guest_metadata]
-    'guest_xpath' => '',            #virt-install --xml [guest_xpath].It can contain multiple items seperated by hash key
+    'host_virt_type' => '',    #virt-install --virt-type [host_virt_type]
+    'guest_virt_type' => '',    #virt-install --[guest_virt_type(hvm or paravirt)]
+    'guest_machine_type' => '',    #virt-install --machine [guest_machine_type]
+    'guest_arch' => '',    #virt-install --arch [guest_arch]
+    'guest_name' => '',    #virt-install --name [guest_name]
+    'guest_domain_name' => '',    #This will be used for DNS configuration, not virt-install argument
+    'guest_memory' => '',    #virt-install --memory [guest_memory]
+    'guest_vcpus' => '',    #virt-install --vcpus [guest_vcpus]
+    'guest_cpumodel' => '',    #virt-install --cpu [guest_cpumodel]
+    'guest_metadata' => '',    #virt-install --metadata [guest_metadata]
+    'guest_xpath' => '',    #virt-install --xml [guest_xpath].It can contain multiple items seperated by hash key
     'guest_installation_automation' => '', #This indicates whether guest uses autoyast or kickstart installation (autoyast, kickstart or empty), not virt-install argument
     'guest_installation_automation_file' => '', #virt-install --extra-args "autoyast=[guest_installation_automation_file] or inst.ks=[guest_installation_automation_file]"
-    'guest_installation_method' => '',          #virt-install --[guest_installation_method(location, cdrom, pxe, import and etc)]
-    'guest_installation_method_others' => '',   #virt-install --[guest_installation_method] [guest_installation_method_others] or
-                                                #--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]
-    'guest_installation_extra_args' => '',      #virt-install --extra-args [guest_installation_extra_args].It can contain multiple itmes seperated by hash key
-    'guest_installation_wait' => '',            #virt-install --wait [guest_installation_wait]
-    'guest_installation_media' => '',           #virt-install --location [guest_installation_media] or --cdrom [guest_installation_media]
+    'guest_installation_method' => '',    #virt-install --[guest_installation_method(location, cdrom, pxe, import and etc)]
+    'guest_installation_method_others' => '',    #virt-install --[guest_installation_method] [guest_installation_method_others] or
+                                                 #--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]
+    'guest_installation_extra_args' => '',    #virt-install --extra-args [guest_installation_extra_args].It can contain multiple itmes seperated by hash key
+    'guest_installation_wait' => '',    #virt-install --wait [guest_installation_wait]
+    'guest_installation_media' => '',    #virt-install --location [guest_installation_media] or --cdrom [guest_installation_media]
     'guest_installation_fine_grained' => '',    #virt-install --install [guest_installation_fine_grained]
-    'guest_boot_settings' => '',                #virt-install --boot [guest_boot_settings]
+    'guest_boot_settings' => '',    #virt-install --boot [guest_boot_settings]
     'guest_secure_boot' => '',    #This indicates whether uefi secure boot is enabled(true, false or empty) during installation in unattended installation file,
                                   #not virt-install argument
-    'guest_os_variant' => '',     #virt-install --os-variant [guest_os_variant]
-    'guest_storage_path' => '',   #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_type' => '',   #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_format' => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_label' => '',  #This indicates whether guest disk uses gpt or mbr in unattended installation file, not virt-install argument
-    'guest_storage_size' => '',   #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_others' => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_network_type' => '',   #This indicates whether guest uses bridge, nat or other network types, not virt-install argument
-    'guest_network_device' => '', #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
-    'guest_network_others' => '', #virt-install --netowrk=bridge=[guest_network_device],mac=[guest_macaddr],[guest_network_others]
-                                  #(Also can be used with other network type)
-    'guest_macaddr' => '',        #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
+    'guest_os_variant' => '',    #virt-install --os-variant [guest_os_variant]
+    'guest_storage_path' => '',    #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_type' => '',    #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_format' => '',  #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_label' => '',    #This indicates whether guest disk uses gpt or mbr in unattended installation file, not virt-install argument
+    'guest_storage_size' => '',    #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_others' => '',  #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_network_type' => '',    #This indicates whether guest uses bridge, nat or other network types, not virt-install argument
+    'guest_network_device' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
+    'guest_network_others' => '',    #virt-install --netowrk=bridge=[guest_network_device],mac=[guest_macaddr],[guest_network_others]
+                                     #(Also can be used with other network type)
+    'guest_macaddr' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
     'guest_netaddr' => '', #This indicates the subnet to which guest will be connected. It takes the form ip_address/subnet_mask_length and defaults to 192.168.123.255/24,
         #not virt-install argument. If 'host-default' is given, this indicates guest will use host network and host bridge device that already exists
         #and are connected directly to default gateway, for example, br0. If br0 or any other host bridge devices already conneced to host network that
@@ -95,63 +95,63 @@ our %guest_params = (
     'guest_ipaddr' => '',    #virt-install --extra-args "ip=[guest_ipaddr]" if it is a static ip address, otherwise it is not virt-install argument.
                              #It stores the final guest ip address obtained from ip discovery
     'guest_ipaddr_static' => '',    #This indicates whether guest uses static ip address(true or false), not virt-install argument
-    'guest_graphics' => '',         #virt-install --graphics [guest_graphics]
-    'guest_controller' => '',       #TODO            #virt-install --controller [guest_controller]
-    'guest_input' => '',            #TODO            #virt-install --input [guest_input]
-    'guest_serial' => '',           #virt-install --serial [guest_serial]
-    'guest_parallel' => '',         #TODO            #virt-install --parallel [guest_parallel]
-    'guest_channel' => '',          #TODO            #virt-install --channel [guest_channel]
-    'guest_console' => '',          #virt-install --console [guest_console]
-    'guest_hostdev' => '',          #TODO            #virt-install --hostdev [guest_hostdev]
-    'guest_filesystem' => '',       #TODO            #virt-install --filesystem [guest_filesystem]
-    'guest_sound' => '',            #TODO            #virt-install --sound [guest_sound]
-    'guest_watchdog' => '',         #TODO            #virt-install --watchdog [guest_watchdog]
-    'guest_video' => '',            #virt-install --video [guest_video]
-    'guest_smartcard' => '',        #TODO            #virt-install --smartcard [guest_smartcard]
-    'guest_redirdev' => '',         #TODO            #virt-install --redirdev [guest_redirdev]
-    'guest_memballoon' => '',       #TODO            #virt-install --memballoon [guest_memballoon]
-    'guest_tpm' => '',              #TODO            #virt-install --tpm [guest_tpm]
-    'guest_rng' => '',              #TODO            #virt-install --rng [guest_rng]
-    'guest_panic' => '',            #TODO            #virt-install --panic [guest_panic]
-    'guest_memdev' => '',           #TODO            #virt-install --memdev [guest_memdev]
-    'guest_vsock' => '',            #TODO            #virt-install --vsock [guest_vsock]
-    'guest_iommu' => '',            #TODO            #virt-install --iommu [guest_iommu]
-    'guest_iothreads' => '',        #TODO            #virt-install --iothreads [guest_iothreads]
-    'guest_seclabel' => '',         #TODO            #virt-install --seclabel [guest_seclabel]
-    'guest_keywrap' => '',          #TODO            #virt-install --keywrap [guest_keywrap]
-    'guest_cputune' => '',          #TODO            #virt-install --cputune [guest_cputune]
-    'guest_memtune' => '',          #TODO            #virt-install --memtune [guest_memtune]
-    'guest_blkiotune' => '',        #TODO            #virt-install --blkiotune [guest_blkiotune]
+    'guest_graphics' => '',    #virt-install --graphics [guest_graphics]
+    'guest_controller' => '',    #TODO            #virt-install --controller [guest_controller]
+    'guest_input' => '',    #TODO            #virt-install --input [guest_input]
+    'guest_serial' => '',    #virt-install --serial [guest_serial]
+    'guest_parallel' => '',    #TODO            #virt-install --parallel [guest_parallel]
+    'guest_channel' => '',    #TODO            #virt-install --channel [guest_channel]
+    'guest_console' => '',    #virt-install --console [guest_console]
+    'guest_hostdev' => '',    #TODO            #virt-install --hostdev [guest_hostdev]
+    'guest_filesystem' => '',    #TODO            #virt-install --filesystem [guest_filesystem]
+    'guest_sound' => '',    #TODO            #virt-install --sound [guest_sound]
+    'guest_watchdog' => '',    #TODO            #virt-install --watchdog [guest_watchdog]
+    'guest_video' => '',    #virt-install --video [guest_video]
+    'guest_smartcard' => '',    #TODO            #virt-install --smartcard [guest_smartcard]
+    'guest_redirdev' => '',    #TODO            #virt-install --redirdev [guest_redirdev]
+    'guest_memballoon' => '',    #TODO            #virt-install --memballoon [guest_memballoon]
+    'guest_tpm' => '',    #TODO            #virt-install --tpm [guest_tpm]
+    'guest_rng' => '',    #TODO            #virt-install --rng [guest_rng]
+    'guest_panic' => '',    #TODO            #virt-install --panic [guest_panic]
+    'guest_memdev' => '',    #TODO            #virt-install --memdev [guest_memdev]
+    'guest_vsock' => '',    #TODO            #virt-install --vsock [guest_vsock]
+    'guest_iommu' => '',    #TODO            #virt-install --iommu [guest_iommu]
+    'guest_iothreads' => '',    #TODO            #virt-install --iothreads [guest_iothreads]
+    'guest_seclabel' => '',    #TODO            #virt-install --seclabel [guest_seclabel]
+    'guest_keywrap' => '',    #TODO            #virt-install --keywrap [guest_keywrap]
+    'guest_cputune' => '',    #TODO            #virt-install --cputune [guest_cputune]
+    'guest_memtune' => '',    #TODO            #virt-install --memtune [guest_memtune]
+    'guest_blkiotune' => '',    #TODO            #virt-install --blkiotune [guest_blkiotune]
     'guest_memorybacking' => '',    #TODO            #virt-install --memorybacking [guest_memorybacking]
-    'guest_features' => '',         #virt-install --features [guest_features]
-    'guest_clock' => '',            #TODO            #virt-install --clock [guest_clock]
-    'guest_power_management' => '', #virt-install --pm [guest_power_management]
-    'guest_events' => '',           #virt-install --events [guest_events]
-    'guest_resource' => '',         #TODO            #virt-install --resource [guest_resource]
-    'guest_sysinfo' => '',          #TODO            #virt-install --sysinfo [guest_sysinfo]
-    'guest_qemu_command' => '',     #virt-install --qemu-commandline [guest_qemu_command]
-    'guest_launchsecurity' => '',   #TODO            #virt-install --launchSecurity [guest_launchsecurity]
-    'guest_autostart' => '',        #TODO            #virt-install --[guest_autostart(autostart or empty)]
-    'guest_transient' => '',        #TODO            #virt-install --[guest_transient(transient or empty)]
-    'guest_destroy_on_exit' => '',  #TODO            #virt-install --[guest_destroy_on_exit(true or false)]
-    'guest_autoconsole' => '',      #virt-install --autoconsole [guest_autoconsole(text or graphical or none)] or empty.
-                                    #For virt-manager earlier than 3.0.0, this option does not exist and should be left empty.
+    'guest_features' => '',    #virt-install --features [guest_features]
+    'guest_clock' => '',    #TODO            #virt-install --clock [guest_clock]
+    'guest_power_management' => '',    #virt-install --pm [guest_power_management]
+    'guest_events' => '',    #virt-install --events [guest_events]
+    'guest_resource' => '',    #TODO            #virt-install --resource [guest_resource]
+    'guest_sysinfo' => '',    #TODO            #virt-install --sysinfo [guest_sysinfo]
+    'guest_qemu_command' => '',    #virt-install --qemu-commandline [guest_qemu_command]
+    'guest_launchsecurity' => '',    #TODO            #virt-install --launchSecurity [guest_launchsecurity]
+    'guest_autostart' => '',    #TODO            #virt-install --[guest_autostart(autostart or empty)]
+    'guest_transient' => '',    #TODO            #virt-install --[guest_transient(transient or empty)]
+    'guest_destroy_on_exit' => '',    #TODO            #virt-install --[guest_destroy_on_exit(true or false)]
+    'guest_autoconsole' => '',    #virt-install --autoconsole [guest_autoconsole(text or graphical or none)] or empty.
+                                  #For virt-manager earlier than 3.0.0, this option does not exist and should be left empty.
     'guest_noautoconsole' => '',    #virt-install --noautoconsole if true.This option should only be given 'true', 'false' or empty.
-    'guest_noreboot' => '',         #TODO            #virt-install --[guest_noreboot(true or false)]
-    'guest_default_target' => '',   #This indicates whether guest os default target(multi-user, graphical or others), not virt-install argument.
-                                    #The following parameters end with 'options' are derived from above parameters. They contains options and
-                                    #corresponding values which are passed to virt-install command line directly to perform guest installations.
-    'guest_do_registration' => '',  #This indicates whether guest to be registered or subscribed with content provider. Not virt-install argument.
-                                    #It can be given 'true','false' or empty. Only 'true' means do registration/subscription.
+    'guest_noreboot' => '',    #TODO            #virt-install --[guest_noreboot(true or false)]
+    'guest_default_target' => '',    #This indicates whether guest os default target(multi-user, graphical or others), not virt-install argument.
+                                     #The following parameters end with 'options' are derived from above parameters. They contains options and
+                                     #corresponding values which are passed to virt-install command line directly to perform guest installations.
+    'guest_do_registration' => '',    #This indicates whether guest to be registered or subscribed with content provider. Not virt-install argument.
+                                      #It can be given 'true','false' or empty. Only 'true' means do registration/subscription.
     'guest_registration_server' => '',    #This is the address of registration/subscription server of content provider.
                                           #Not virt-install argument. It can be left empty if not needed.
-    'guest_registration_username' => '',  #This is the username to be used in registration/subscription. Not virt-install argument.
-                                          #It can be email address, free text or empty if not needed.
-    'guest_registration_password' => '',  #This is the password to be used in registration/subscription. Not virt-install argument.
-                                          #It is normally used together with [guest_registration_username] or empty if not needed.
-    'guest_registration_code' => '',      #This is the code or key to used in registraiton/subscription. Not virt-install argument.
-                                          #It can be used together with [guest_registration_username], standalone or empty if not needed.
-                                          #Do not recommend to use the parameter in guest profile directly, use test suite setting UNIFIED_GUEST_REG_CODES.
+    'guest_registration_username' => '',    #This is the username to be used in registration/subscription. Not virt-install argument.
+                                            #It can be email address, free text or empty if not needed.
+    'guest_registration_password' => '',    #This is the password to be used in registration/subscription. Not virt-install argument.
+                                            #It is normally used together with [guest_registration_username] or empty if not needed.
+    'guest_registration_code' => '',    #This is the code or key to used in registraiton/subscription. Not virt-install argument.
+                                        #It can be used together with [guest_registration_username], standalone or empty if not needed.
+                                        #Do not recommend to use the parameter in guest profile directly, use test suite setting UNIFIED_GUEST_REG_CODES.
     'guest_registration_extensions' => '',    #This refers to additional modules/extensions/products to be registered together with guest os or
                                               #by using individual registration/subscription code/key. Multiple modules/extensions/products are
                                               #separated by hash key. For example, "sle-module-legacy#sle-module-basesystem#SLES-LTSS".
@@ -164,38 +164,38 @@ our %guest_params = (
         #in guest profile directly, use test suite setting UNIFIED_GUEST_REG_EXTS_CODES.
     'guest_virt_options' => '',    #[guest_virt_options] = "--connect [host_hypervisor_uri] --virt-type [host_virt_type] --[guest_virt_type]"
     'guest_platform_options' => '',    #[guest_platform_options] = "--arch [guest_arch] --machine [guest_machine_type]"
-    'guest_name_options' => '',        #[guest_name_options] = "--name [guest_name]"
-    'guest_memory_options' => '',      #[guest_memory_options] = "--memory [guest_memory]"
-    'guest_vcpus_options' => '',       #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
+    'guest_name_options' => '',    #[guest_name_options] = "--name [guest_name]"
+    'guest_memory_options' => '',    #[guest_memory_options] = "--memory [guest_memory]"
+    'guest_vcpus_options' => '',    #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
     'guest_cpumodel_options' => '',    #[guest_cpumodel_options] = "--cpu [guest_cpumodel]"
     'guest_metadata_options' => '',    #[guest_metadata_options] = "--metadata [guest_metadata]"
-    'guest_xpath_options' => '',       #[guest_xpath_options] = [guest_xpath_options] . "--xml $_ " foreach ([@guest_xpath])
+    'guest_xpath_options' => '',    #[guest_xpath_options] = [guest_xpath_options] . "--xml $_ " foreach ([@guest_xpath])
     'guest_installation_method_options' => '', #[guest_installation_method_options] = "--location [guest_installation_media] --install [guest_installation_fine_grained]
                                                #--autoconsole [guest_autoconsole] or --noautoconsole" or
                                                #"--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]"
     'guest_installation_extra_args_options' => '', #[guest_installation_extra_args_options] = "[guest_installation_extra_args_options] . --extra-args $_ foreach
         #[@guest_installation_extra_args] --extra-args ip=[guest_ipaddr(if static)] [guest_installation_automation_options]"
     'guest_installation_automation_options' => '', #[guest_installation_automation_options] = "--extra-args [autoyast|inst.ks][ks]=[guest_installation_automation_file]"
-    'guest_boot_options' => '',                    #[guest_boot_options} = "--boot [guest_boot_settings]"
-    'guest_os_variant_options' => '',              #[guest_os_variant_options] = "--os-variant [guest_os_variant]"
-    'guest_storage_options' => '',                 #[guest_storage_options] = "--disk path=[guest_storage_path],size=[guest_storage_size],
-                                                   #format=[guest_storage_format],[guest_storage_others]"
-    'guest_network_selection_options' => '',       #[guest_network_selection_options] = "--network=bridge=[guest_network_device],mac=[guest_macaddr]"
-    'guest_graphics_and_video_options' => '',      #[guest_graphics_and_video_options] = "--video [guest_video] --graphics [guest_graphics]"
-    'guest_serial_options' => '',                  #[guest_serial_options] = "--serial [guest_serial]"
-    'guest_console_options' => '',                 #[guest_console_options] = "--console [guest_console]"
-    'guest_features_options' => '',                #[guest_features_options] = "--features [guest_features]"
-    'guest_power_management_options' => '',        #[guest_power_management_options] = "--pm [guest_power_management]"
-    'guest_events_options' => '',                  #[guest_events_options] = "--events [guest_events]"
-    'guest_qemu_command_options' => '',            #[guest_qemu_command_options] = "--qemu-commandline [guest_qemu_command]"
-    'virt_install_command_line' => '',             #This is the complete virt-install command line which is composed of above parameters end with 'options'
-    'virt_install_command_line_dryrun' => '',      #This is [virt_install_command_line] appended with --dry-run
-    'host_ipaddr' => '',                           #This is get_required_var('SUT_IP')
-    'host_name' => '',                             #This is script_output('hostname')
-    'host_domain_name' => '',                      #This is script_output('dnsdomainname')
-                                                   #The following five parameters are detailed guest os information,not virt-install arguments
-    'guest_log_folder' => '',                      #Log folder for individual guest [common_log_folder]/[guest_name]
-    'guest_installation_result' => '',             #PASSED,FAILED,TIMEOUT,UNKNOWN or others
+    'guest_boot_options' => '',    #[guest_boot_options} = "--boot [guest_boot_settings]"
+    'guest_os_variant_options' => '',    #[guest_os_variant_options] = "--os-variant [guest_os_variant]"
+    'guest_storage_options' => '',    #[guest_storage_options] = "--disk path=[guest_storage_path],size=[guest_storage_size],
+                                      #format=[guest_storage_format],[guest_storage_others]"
+    'guest_network_selection_options' => '',    #[guest_network_selection_options] = "--network=bridge=[guest_network_device],mac=[guest_macaddr]"
+    'guest_graphics_and_video_options' => '',    #[guest_graphics_and_video_options] = "--video [guest_video] --graphics [guest_graphics]"
+    'guest_serial_options' => '',    #[guest_serial_options] = "--serial [guest_serial]"
+    'guest_console_options' => '',    #[guest_console_options] = "--console [guest_console]"
+    'guest_features_options' => '',    #[guest_features_options] = "--features [guest_features]"
+    'guest_power_management_options' => '',    #[guest_power_management_options] = "--pm [guest_power_management]"
+    'guest_events_options' => '',    #[guest_events_options] = "--events [guest_events]"
+    'guest_qemu_command_options' => '',    #[guest_qemu_command_options] = "--qemu-commandline [guest_qemu_command]"
+    'virt_install_command_line' => '',    #This is the complete virt-install command line which is composed of above parameters end with 'options'
+    'virt_install_command_line_dryrun' => '',    #This is [virt_install_command_line] appended with --dry-run
+    'host_ipaddr' => '',    #This is get_required_var('SUT_IP')
+    'host_name' => '',    #This is script_output('hostname')
+    'host_domain_name' => '',    #This is script_output('dnsdomainname')
+                                 #The following five parameters are detailed guest os information,not virt-install arguments
+    'guest_log_folder' => '',    #Log folder for individual guest [common_log_folder]/[guest_name]
+    'guest_installation_result' => '',    #PASSED,FAILED,TIMEOUT,UNKNOWN or others
     'guest_installation_session_config' => '',   #Absolute path of screen command config file that will be used in screen -c [guest_installation_session_config]
                                                  #to start guest installation session. The content of the config file includes content of global /etc/screenrc
                                                  #and logfile="absolute path of guest installation log file".
@@ -204,8 +204,8 @@ our %guest_params = (
         #guest installation screen using [guest_installation_session_command] = screen -t [guest_name] virsh console --force [guest_name]
     'guest_installation_attached' => '',    #This indicates whether guest installation screen is already connected or attached(true or false)
     'guest_netaddr_attached' => '',  #Array reference that stores the actual subnets in which guest may reside, for example, ('10.10.10.0/24', '11.11.11.0/24').
-    'start_run' => '',               #Guest creation start time
-    'stop_run' => ''                 #Guest creation finish time
+    'start_run' => '',    #Guest creation start time
+    'stop_run' => ''    #Guest creation finish time
 );
 
 our $AUTOLOAD;

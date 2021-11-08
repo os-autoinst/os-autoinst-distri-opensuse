@@ -61,10 +61,10 @@ sub break_dependency {
 
     if (check_var('VIDEOMODE', 'text')) {
         while (check_screen('dependency-issue-text', 5)) {    # repeat it untill all dependency issues are resolved
-            wait_screen_change { send_key 'alt-s' };          # Solution
-            send_key 'down';                                  # down to option break dependency
-            send_key 'ret';                                   # select option break dependency
-            wait_screen_change { send_key 'alt-o' };          # OK - Try Again
+            wait_screen_change { send_key 'alt-s' };    # Solution
+            send_key 'down';    # down to option break dependency
+            send_key 'ret';    # select option break dependency
+            wait_screen_change { send_key 'alt-o' };    # OK - Try Again
         }
     }
     else {

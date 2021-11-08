@@ -52,7 +52,7 @@ sub run {
         # Set use_lvmetad=0, clvmd doesn't support lvmetad. Set locking_type=3 for clvmd
         set_lvm_config($lvm_conf, use_lvmetad => 0, locking_type => 3);
         systemctl 'stop lvm2-lvmetad.socket';    # Stop lvmetad
-        systemctl 'disable lvm2-lvmetad.socket'; # Disable lvmetad
+        systemctl 'disable lvm2-lvmetad.socket';    # Disable lvmetad
     }
 
     # Add clvmd/lvmlockd into the cluster configuration

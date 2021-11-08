@@ -28,7 +28,7 @@ sub rescan_devices {
     send_key $cmd{rescandevices};    # Rescan devices
     assert_screen 'rescan-devices-warning';    # Confirm rescan
     send_key 'alt-y';
-    wait_still_screen;                         # Wait until rescan is done
+    wait_still_screen;    # Wait until rescan is done
 }
 
 # add a new primary partition
@@ -137,7 +137,7 @@ sub setraidlevel {
     wait_screen_change { send_key "alt-$entry{$level}"; };
 
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
-    wait_screen_change { send_key "tab"; };      # skip RAID name input field
+    wait_screen_change { send_key "tab"; };    # skip RAID name input field
 }
 
 sub set_lvm {

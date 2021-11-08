@@ -164,16 +164,16 @@ sub create_guest {
     my $autoyast = $guest->{autoyast};
     my $macaddress = $guest->{macaddress};
     my $on_reboot = $guest->{on_reboot} // "restart";    # configurable on_reboot policy
-    my $extra_params = $guest->{extra_params} // "";     # extra-parameters
+    my $extra_params = $guest->{extra_params} // "";    # extra-parameters
     my $memory = $guest->{memory} // "2048";
     my $maxmemory = $guest->{maxmemory} // $memory + 256;    # use by default just a bit more, so that we don't waste memory but still use the functionality
     my $vcpus = $guest->{vcpus} // "2";
-    my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;         # same as for memory, test functionality but don't waste resources
+    my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
     $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
-        send_key 'ret';                                      # Make some visual separator
+        send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
@@ -212,12 +212,12 @@ sub import_guest {
     my $memory = $guest->{memory} // "2048";
     my $maxmemory = $guest->{maxmemory} // $memory + 256;    # use by default just a bit more, so that we don't waste memory but still use the functionality
     my $vcpus = $guest->{vcpus} // "2";
-    my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;         # same as for memory, test functionality but don't waste resources
+    my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $network_model = $guest->{network_model} // "";
 
     if ($method eq 'virt-install' || $method eq '') {
         record_info "$name", "Going to import $name guest";
-        send_key 'ret';                                      # Make some visual separator
+        send_key 'ret';    # Make some visual separator
 
         my $network = "network=default,mac=$macaddress,";
         $network .= ",model=$network_model" unless ($network_model eq "");
