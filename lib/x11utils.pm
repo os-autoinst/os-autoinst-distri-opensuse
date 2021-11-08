@@ -25,6 +25,8 @@ our @EXPORT = qw(
   select_user_gnome
   turn_off_screensaver
   turn_off_kde_screensaver
+  turn_off_plasma_screen_energysaver
+  turn_off_plasma_screenlocker
   turn_off_gnome_screensaver
   turn_off_gnome_screensaver_for_gdm
   turn_off_gnome_suspend
@@ -337,22 +339,50 @@ sub select_user_gnome {
     }
 }
 
+=head2 turn_off_plasma_screen_energysaver
+
+ turn_off_plasma_screen_energysaver()
+
+Turns off the Plasma desktop screen energy saving.
+
+=cut
+sub turn_off_plasma_screen_energysaver {
+    x11_start_program('kcmshell5 powerdevilprofilesconfig', target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
+    assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
+    assert_screen 'kde-energysaver-disabled';
+    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
+    send_key 'ctrl-ret';
+    assert_screen 'generic-desktop';
+}
+
+=head2 turn_off_plasma_screenlocker
+
+ turnoff_plasma_screenlocker()
+
+Turns off the Plasma desktop screenlocker.
+
+=cut
+sub turn_off_plasma_screenlocker {
+    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
+    assert_and_click 'kde-disable-screenlock' if match_has_tag('kde-screenlock-enabled');
+    assert_screen 'screenlock-disabled';
+    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
+    send_key 'ctrl-ret';
+    assert_screen 'generic-desktop';
+}
+
 =head2 turn_off_kde_screensaver
 
- turn_off_kde_screensaver();
+  turn_off_kde_screensaver()
 
-Turns off the screensaver on KDE
+Prevents screen from being locked or turning black while using the Plasma
+desktop. Call before tests that are not providing input for a long time, to
+prevent needles from failing.
 
 =cut
 sub turn_off_kde_screensaver {
-    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
-    if (match_has_tag('kde-screenlock-enabled')) {
-        assert_and_click('kde-disable-screenlock');
-    }
-    assert_screen 'screenlock-disabled';
-    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
-    send_key('ctrl-ret');
-    assert_screen 'generic-desktop';
+    turn_off_plasma_screenlocker;
+    turn_off_plasma_screen_energysaver;
 }
 
 =head2 turn_off_gnome_screensaver
