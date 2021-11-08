@@ -78,7 +78,7 @@ sub run {
     record_info('LVM usage stats', 'Verify LVM usage stats are updated after adding a file.');
     my $test_file = '/home/test_file.txt';
     assert_script_run 'df -h  | tee original_usage';
-    assert_script_run "dd if=/dev/zero of=$test_file count=1024 bs=1M";
+    assert_script_run "fallocate -l 1G $test_file";
     assert_script_run "ls -lah $test_file";
     if ((script_run "sync && diff <(cat original_usage) <(df -h)") != 1) {
         die "LVM usage stats do not differ!";
