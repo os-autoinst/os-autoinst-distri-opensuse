@@ -19,6 +19,12 @@ sub is_selected {
     $self->property('value');
 }
 
+sub is_enabled {
+    my ($self) = @_;
+    my $is_enabled = $self->property('enabled');
+    return !defined $is_enabled || $is_enabled;
+}
+
 1;
 
 __END__

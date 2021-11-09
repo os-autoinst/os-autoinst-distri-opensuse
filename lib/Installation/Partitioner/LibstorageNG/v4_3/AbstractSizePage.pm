@@ -13,6 +13,7 @@ package Installation::Partitioner::LibstorageNG::v4_3::AbstractSizePage;
 use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
+use YuiRestClient::Wait;
 
 sub init {
     my $self = shift;
@@ -24,6 +25,9 @@ sub init {
 sub set_custom_size {
     my ($self, $size) = @_;
     if ($size) {
+        YuiRestClient::Wait::wait_until(object => sub {
+                return $self->{rb_custom_size}->is_enabled();
+        }, message => "Custom size radio button takes too long to be enabled");
         $self->{rb_custom_size}->select();
         $self->{tb_size}->set($size);
     }
