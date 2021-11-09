@@ -109,12 +109,13 @@ sub run {
                 # If the image exists, do nothing
                 last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
                 # Copy HDD from NFS share to local cache on Hyper-V
-                hyperv_cmd_with_retry("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
+                hyperv_cmd_with_retry("copy /z $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
                 # Decompress the XZ compressed image
-                last if $hdd !~ m/vhdx\.xz/;
-                if ($svirt->run_cmd("Test-Path $root\\cache\\$basenamehdd -PathType Leaf")) {
+                if ($hdd =~ m/vhdx\.xz/) {
                     record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
-                    hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
+                    my ($ret, $stdout, $stderr) = $svirt->run_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd", wantarray => 1);
+                    defined($stderr) && $stderr =~ /xz: $root\\cache\\$basenamehdd: File exists/ && sleep 60;
+                    last;
                 }
             }
             # Make sure the disk file is present
