@@ -31,14 +31,14 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{SelectHardDisksPage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksPage->new({app => YuiRestClient::get_app()});
+    $self->{SelectDisksPage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
 sub get_select_disks_to_use_page {
     my ($self) = @_;
-    die "Select Hard Disk(s) page is not displayed" unless $self->{SelectDisksToUsePage}->is_shown();
-    return $self->{SelectHardDisksPage};
+    die "Select Hard Disk(s) page is not displayed" unless $self->{SelectDisksPage}->is_shown();
+    return $self->{SelectDisksPage};
 }
 
 sub select_disks {

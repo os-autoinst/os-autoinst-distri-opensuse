@@ -20,7 +20,10 @@ schedule:
   - installation/system_probing/activate_encrypted_volume
   - installation/addon_products_sle
   - installation/system_role/accept_selected_role_SLES_with_GNOME
-  - installation/partitioning/encrypt_lvm_ignore_existing
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/accept_default_hard_disks_selection
+  - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
