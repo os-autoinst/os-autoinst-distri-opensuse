@@ -17,7 +17,6 @@ use Utils::Architectures;
 use strict;
 use warnings;
 
-
 our @EXPORT = qw(
   is_container_test
   load_container_tests
@@ -55,7 +54,7 @@ sub load_image_tests_docker {
 }
 
 sub load_host_tests_podman {
-    unless (is_sle('<15-SP1')) {
+    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
         # podman package is only available as of 15-SP1
         loadtest 'containers/podman';
         loadtest 'containers/podman_image';
@@ -82,6 +81,7 @@ sub load_host_tests_docker {
         loadtest 'containers/docker_compose';
     }
     loadtest 'containers/validate_btrfs' if is_x86_64;
+    loadtest "containers/container_diff" if (is_opensuse());
 }
 
 

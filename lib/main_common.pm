@@ -12,7 +12,6 @@ use File::Basename;
 use File::Find;
 use Exporter;
 use testapi qw(check_var get_var get_required_var set_var check_var_array diag);
-use containers::urls 'get_suse_container_urls';
 use autotest;
 use utils;
 use wicked::TestContext;
@@ -1214,7 +1213,6 @@ sub load_consoletests {
         loadtest "console/mariadb_srv";
         # disable these tests of server packages for SLED (poo#36436)
         load_console_server_tests() unless is_desktop;
-        load_extra_tests_docker() unless (!is_opensuse || is_desktop || !is_released);
     }
     if (check_var("DESKTOP", "xfce")) {
         loadtest "console/xfce_gnome_deps";
@@ -1702,29 +1700,6 @@ sub load_extra_tests_sdk {
     loadtest 'console/gdb';
 }
 
-sub load_extra_tests_docker {
-    my ($image_names, $stable_names) = get_suse_container_urls();
-    return unless @$image_names;
-
-    if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
-        loadtest 'containers/podman';
-        loadtest "containers/podman_image" unless is_public_cloud;
-        loadtest "containers/podman_3rd_party_images";
-    }
-
-    loadtest "containers/docker";
-    loadtest "containers/docker_runc";
-    loadtest "containers/docker_3rd_party_images";
-    if ((!is_public_cloud() && is_sle(">=12-sp3")) || is_opensuse()) {
-        loadtest "containers/docker_image";
-        loadtest "containers/container_diff";
-    }
-    loadtest "containers/docker_compose" unless (is_sle('<15') || is_sle('>=15-sp2'));
-    loadtest 'containers/registry';
-    loadtest "containers/zypper_docker" unless is_tumbleweed;
-    loadtest "containers/rootless_podman" unless is_sle('<15-SP2');
-}
-
 sub load_extra_tests_prepare {
     # setup $serialdev permission and so on
     loadtest "console/system_prepare";
@@ -1744,7 +1719,7 @@ sub load_extra_tests {
 
     # Extra tests are too long, split the test into subtest according to the
     # EXTRATEST variable; old EXTRATEST=1 settings is equivalent to
-    # EXTRATEST=zypper,console,opensuse,docker,kdump in textmode or
+    # EXTRATEST=zypper,console,opensuse,kdump in textmode or
     # EXTRATEST=desktop in dektop tests
     foreach my $test_name (split(/,/, get_var('EXTRATEST'))) {
         if (my $test_to_run = main_common->can("load_extra_tests_$test_name")) {
