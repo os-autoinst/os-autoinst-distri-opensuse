@@ -298,6 +298,8 @@ sub select_user_gnome {
     elsif (match_has_tag('displaymanager-user-selected')) {
         if ($myuser =~ 'bernhard') {
             send_key 'ret';
+            # sometimes the system is slow, need wait several seconds for the screen to change.
+            wait_still_screen 5 if is_s390x;
         }
         else {
             assert_and_click "displaymanager-$myuser";
