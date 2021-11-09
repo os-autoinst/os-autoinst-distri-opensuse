@@ -19,6 +19,7 @@ schedule:
 - console/snapper_undochange
 - console/snapper_create
 - network/cifs
+- network/samba/server
 - console/udisks2
 - console/coredump_collect
 ...
