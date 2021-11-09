@@ -146,7 +146,18 @@ sub login_to_console {
     set_ssh_console_timeout_before_use if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx');
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
+    # double-check xen kernel for xen host
+    $self->double_check_xen_role if is_xen_host;
 
+}
+
+#Just only match bootmenu-xen-kernel needle was not enough for xen host if got Xen domain0 kernel panic(bsc#1192258)
+#Need to double-check xen kernel after matched bootmenu-xen-kernel needle successfully
+sub double_check_xen_role {
+    record_info 'INFO', 'Double-check xen kernel';
+    #assert_script_run("lsmod | grep xen");
+    die 'Double-check xen kernel failed' if (script_run('lsmod | grep xen') != 0);
+    save_screenshot;
 }
 
 sub run {
