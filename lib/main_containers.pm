@@ -11,17 +11,22 @@ use base 'Exporter';
 use Exporter;
 use utils;
 use version_utils;
-use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var);
 use Utils::Architectures;
 use strict;
 use warnings;
-
+use Carp 'croak';
 
 our @EXPORT = qw(
   is_container_test
   load_container_tests
 );
+
+sub loadtest {
+    my ($test, %args) = @_;
+    croak "extensions are not allowed here '$test'" if $test =~ /\.pm$/;
+    autotest::loadtest("tests/$test.pm", %args);
+}
 
 sub is_container_test {
     return get_var('CONTAINER_RUNTIME', 0);
