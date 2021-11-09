@@ -84,7 +84,7 @@ sub run {
     }
     assert_script_run("snapper list");
     # Delete all those snapshots we just created so other tests are not confused
-    assert_script_run("snapper delete --sync $first_snap_to_delete-" . get_last_snap_number());
+    assert_script_run("snapper delete --sync $first_snap_to_delete-" . get_last_snap_number(), timeout => 180);
     assert_script_run("snapper list");
 }
 
