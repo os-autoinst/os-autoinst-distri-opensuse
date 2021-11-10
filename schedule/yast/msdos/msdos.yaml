@@ -19,7 +19,7 @@ schedule:
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - '{{disable_grub_timeout}}'
+  - '{{disable_boot_menu_timeout}}'
   - installation/start_install
   - installation/await_install
   - '{{logs_from_installation_system}}'
@@ -31,18 +31,18 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 conditional_schedule:
-  disable_grub_timeout:
+  disable_boot_menu_timeout:
     ARCH:
       s390x:
-        - installation/disable_grub_timeout
+        - installation/bootloader_settings/disable_boot_menu_timeout
     BACKEND:
       qemu:
-        - installation/disable_grub_timeout
+        - installation/bootloader_settings/disable_boot_menu_timeout
       pvm_hmc:
-        - installation/disable_grub_timeout
+        - installation/bootloader_settings/disable_boot_menu_timeout
     VIRSH_VMM_TYPE:
       hvm:
-        - installation/disable_grub_timeout
+        - installation/bootloader_settings/disable_boot_menu_timeout
   logs_from_installation_system:
     ARCH:
       s390x:

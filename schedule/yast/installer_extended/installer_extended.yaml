@@ -37,7 +37,7 @@ schedule:
   - installation/authentication/root_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
+  - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/start_install
 conditional_schedule:
   compare_checksums:
