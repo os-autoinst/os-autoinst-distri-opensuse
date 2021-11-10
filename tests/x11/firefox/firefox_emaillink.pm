@@ -35,36 +35,31 @@ sub run {
     send_key "e";
     assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt', 'firefox-email_link-send'], 90);
     if (match_has_tag('firefox-email-mutt')) {
-        if (is_sle('<=12-sp2')) {
-            record_soft_failure 'bsc#1131297';
-        }
-        else {
-            send_key 'y';    # yes
-            sleep 1;
-            enter_cmd "test\@suse.com";
-            sleep 1;
-            send_key 'home';    # beginning of subject
-            sleep 1;
-            send_key 'ctrl-k';    # delete existing subject
-            sleep 1;
-            enter_cmd "test subject";
-            sleep 1;
-            send_key 'd';
-            sleep 1;
-            send_key 'd';
-            sleep 1;
-            send_key 'i';         # enter vim insert mode
-            sleep 1;
-            enter_cmd "test email";
-            sleep 1;
-            send_key 'esc';       # escape insert mode
-            sleep 1;
-            save_screenshot;
-            enter_cmd ":wq";
-            sleep 1;
-            assert_screen('mutt-send');
-            send_key 'y';
-        }
+        send_key 'y';    # yes
+        sleep 1;
+        enter_cmd "test\@suse.com";
+        sleep 1;
+        send_key 'home';    # beginning of subject
+        sleep 1;
+        send_key 'ctrl-k';    # delete existing subject
+        sleep 1;
+        enter_cmd "test subject";
+        sleep 1;
+        send_key 'd';
+        sleep 1;
+        send_key 'd';
+        sleep 1;
+        send_key 'i';         # enter vim insert mode
+        sleep 1;
+        enter_cmd "test email";
+        sleep 1;
+        send_key 'esc';       # escape insert mode
+        sleep 1;
+        save_screenshot;
+        enter_cmd ":wq";
+        sleep 1;
+        assert_screen('mutt-send');
+        send_key 'y';
     }
     elsif (match_has_tag('firefox-email_link-welcome')) {
         send_key $next_key;
