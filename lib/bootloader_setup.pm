@@ -350,7 +350,9 @@ sub uefi_bootmenu_params {
         send_key "home";
         for (1 .. 6) { send_key "down"; }
         # On Leap/SLE we need to move down (grub 2.04)
-        if (is_sle('<16') || is_leap('<16.0')) {
+        # skip additional movement downwards in
+        # sle15sp4+, leap15.4+ and TW (grub 2.06)
+        if (is_sle('<15-SP4') || is_leap('<15.4')) {
             for (1 .. 4) { send_key "down"; }
         }
     }
