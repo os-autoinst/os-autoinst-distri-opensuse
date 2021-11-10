@@ -3,24 +3,18 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: The class introduces all accessing methods for Bootloader
+# Summary: The class introduces all accessing methods for Boot code options tab in bootloader module
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Bootloader::BootCodeOptionsPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
-sub new {
-    my ($class, $args) = @_;
-    my $self = bless {
-        app => $args->{app}
-    }, $class;
-    return $self->init();
-}
-
 sub init {
     my ($self) = @_;
-    $self->{cmb_bootloader} = $self->{app}->combobox({id => '"Bootloader::LoaderTypeWidget"'});
+    $self->SUPER::init();
+    $self->{cmb_bootloader} = $self->{app}->combobox({id => "\"Bootloader::LoaderTypeWidget\""});
     $self->{cb_write_to_partition} = $self->{app}->checkbox({id => 'boot'});
     $self->{cb_bootdev} = $self->{app}->checkbox({id => 'mbr'});
     $self->{cb_custom_boot} = $self->{app}->checkbox({id => 'custom'});
@@ -28,7 +22,7 @@ sub init {
     $self->{cb_trusted_boot} = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
     $self->{cb_generic_to_mbr} = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
     $self->{cb_set_active_flag} = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
-    $self->{tb_boot_options} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
+    $self->{tb_boot_loader_settings} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
     $self->{btn_ok} = $self->{app}->button({id => 'next'});
     $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
     return $self;
@@ -36,7 +30,7 @@ sub init {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{tb_boot_options}->selected_tab();
+    return $self->{cmb_bootloader}->exist();
 }
 
 sub get_bootloader_type {
@@ -94,14 +88,9 @@ sub uncheck_write_to_mbr {
     $self->{cb_bootdev}->uncheck();
 }
 
-sub press_ok {
+sub switch_tab_bootloader_options {
     my ($self) = @_;
-    return $self->{btn_ok}->click();
-}
-
-sub press_cancel {
-    my ($self) = @_;
-    return $self->{btn_cancel}->click();
+    $self->{tb_boot_loader_settings}->select("Boot&loader Options");
 }
 
 1;

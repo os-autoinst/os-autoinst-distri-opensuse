@@ -27,7 +27,6 @@ sub verify_current_options {
     YaST::Module::run_actions {
         my %current_settings = $bootloader->get_current_settings();
         compare_settings({expected => $test_data->{bootcode_options}, current => \%current_settings});
-        $bootloader->accept_changes();
     } module => 'bootloader', ui => 'qt';
     validate_cfg_file($test_data->{bootcode_applied_params}->{verify_current_options});
     verify_boot_code();
@@ -39,7 +38,6 @@ sub change_settings_then_verify {
     YaST::Module::run_actions {
         record_info $action;
         $bootloader->$action();
-        $bootloader->accept_changes();
     } module => 'bootloader', ui => 'qt';
     validate_cfg_file($test_data->{bootcode_applied_params}->{$action});    # verify changes in /etc/default/grub_installdevice
     verify_boot_code({device => $args->{device}, generic_boot_code => $args->{generic_boot_code}});
@@ -57,7 +55,7 @@ sub verify_boot_code {    # Check if boot code is installed, defaults to GRUB on
 }
 
 sub run {
-    $bootloader = $testapi::distri->get_bootloader();
+    $bootloader = $testapi::distri->get_bootloader_settings();
     $test_data = get_test_suite_data();
     start_root_shell_in_xterm();
 
