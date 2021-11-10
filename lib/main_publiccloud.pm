@@ -77,56 +77,89 @@ sub load_publiccloud_consoletests {
     loadtest 'console/libgcrypt';
 }
 
-sub load_publiccloud_tests {
-    loadtest 'boot/boot_to_desktop';
-    if (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
-        loadtest 'publiccloud/download_repos';
-        loadtest 'shutdown/shutdown';
+sub load_latest_publiccloud_tests {
+    my $args = OpenQA::Test::RunArgs->new();
+    if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
+        loadtest "publiccloud/prepare_tools";
     }
-    elsif (get_var('PUBLIC_CLOUD_QAM')) {
-        load_maintenance_publiccloud_tests();
-    } else {
-        if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
-            loadtest "publiccloud/prepare_tools";
+    elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+        loadtest "publiccloud/img_proof", run_args => $args;
+    }
+    elsif (get_var('PUBLIC_CLOUD_LTP')) {
+        loadtest 'publiccloud/run_ltp', run_args => $args;
+    }
+    elsif (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+        loadtest 'publiccloud/sles4sap';
+    }
+    elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
+        loadtest 'publiccloud/az_accelerated_net';
+    }
+    elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
+        loadtest "publiccloud/boottime", run_args => $args;
+    }
+    elsif (get_var('PUBLIC_CLOUD_FIO')) {
+        loadtest 'publiccloud/storage_perf', run_args => $args;
+    }
+    elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+        loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest "publiccloud/register_system", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+        load_extra_tests_prepare();
+        load_publiccloud_consoletests();
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+    }
+    elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
+        loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest "publiccloud/register_system", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+        load_podman_tests();
+        load_docker_tests();
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+    }
+    elsif (get_var('PUBLIC_CLOUD_CREATE_TOOLS_IMG')) {
+        loadtest "publiccloud/upload_image";
+    }
+    else {
+        die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
+    }
+}
+
+sub load_create_publiccloud_tools_image {
+    loadtest 'autoyast/prepare_profile';
+    loadtest 'installation/bootloader';
+    loadtest 'autoyast/installation';
+    loadtest 'publiccloud/prepare_tools';
+    loadtest 'shutdown/shutdown';
+}
+
+sub load_publiccloud_download_repos {
+    loadtest 'publiccloud/download_repos';
+    loadtest 'shutdown/shutdown';
+}
+
+=head2 load_publiccloud_tests
+
+C<load_publiccloud_tests> schedules the test jobs for the variety of groups.
+All the jobs expected to run after the B<publiccloud_download_testrepos> which boots from the preinstalled images
+which B<create_hdd_autoyast_pc> publishes. The later is scheduled when I<PUBLIC_CLOUD_TOOLS_REPO> is defined and it is the only one which does not schedule C<boot/boot_to_desktop>. The C<boot/boot_to_desktop> is also run as an isolated smoke test in the B<PC Tools Image> job group.
+
+The rest of the scheduling is divided into two separate subroutines C<load_maintenance_publiccloud_tests> and C<load_latest_publiccloud_tests>.
+
+=cut
+
+sub load_publiccloud_tests {
+    if (check_var('PUBLIC_CLOUD_TOOLS_REPO', 1)) {
+        load_create_publiccloud_tools_image();
+    }
+    else {
+        loadtest 'boot/boot_to_desktop';
+        if (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
+            load_publiccloud_download_repos();
         }
-        elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
-            loadtest "publiccloud/img_proof";
-        }
-        elsif (get_var('PUBLIC_CLOUD_LTP')) {
-            loadtest 'publiccloud/run_ltp';
-        }
-        elsif (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-            loadtest 'publiccloud/sles4sap';
-        }
-        elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
-            loadtest 'publiccloud/az_accelerated_net';
-        }
-        elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-            loadtest "publiccloud/boottime";
-        }
-        elsif (get_var('PUBLIC_CLOUD_FIO')) {
-            loadtest 'publiccloud/storage_perf';
-        }
-        elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            my $args = OpenQA::Test::RunArgs->new();
-            loadtest "publiccloud/prepare_instance", run_args => $args;
-            loadtest "publiccloud/register_system", run_args => $args;
-            loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-            load_extra_tests_prepare();
-            load_publiccloud_consoletests();
-            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        }
-        elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-            my $args = OpenQA::Test::RunArgs->new();
-            loadtest "publiccloud/prepare_instance", run_args => $args;
-            loadtest "publiccloud/register_system", run_args => $args;
-            loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-            load_podman_tests();
-            load_docker_tests();
-            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        }
-        elsif (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-            loadtest "publiccloud/upload_image";
+        elsif (get_var('PUBLIC_CLOUD_QAM')) {
+            load_maintenance_publiccloud_tests();
+        } else {
+            load_latest_publiccloud_tests();
         }
     }
 }

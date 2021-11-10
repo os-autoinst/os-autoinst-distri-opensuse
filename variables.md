@@ -139,6 +139,7 @@ PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only w
 PUBLIC_CLOUD_CHECK_BOOT_TIME | boolean | false | If set, boottime test module is added to the job.
 PUBLIC_CLOUD_CLIENT_ID | string | "" | In GCE one of the variables used to authenticate  user.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
+PUBLIC_CLOUD_CREATE_TOOLS_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
 PUBLIC_CLOUD_DOWNLOAD_TESTREPO | boolean | false | If set, it schedules `publiccloud/download_repos` job.
