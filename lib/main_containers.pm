@@ -40,6 +40,14 @@ sub is_ubuntu_host {
     return get_var("HDD_1") =~ /ubuntu/;
 }
 
+sub is_opensuse_jeos {
+    return (is_opensuse && is_jeos);
+}
+
+sub is_container_jeos {
+    return (get_var('CONTAINER_RUNTIME', 0) && ((is_leap && is_ppc64le) || check_var('CONTAINERS_NO_SUSE_OS', 1)));
+}
+
 sub load_image_tests_podman {
     loadtest 'containers/podman_image';
 }
@@ -84,23 +92,44 @@ sub load_host_tests_docker {
     loadtest "containers/container_diff" if (is_opensuse());
 }
 
+sub load_jeos_containers {
+    loadtest 'containers/podman';
+    loadtest 'containers/podman_image';
+    loadtest 'containers/podman_3rd_party_images';
+    loadtest 'containers/docker';
+    loadtest 'containers/docker_runc';
+    loadtest 'containers/docker_3rd_party_images';
+    loadtest 'containers/docker_image';
+    loadtest 'containers/docker_compose';
+    loadtest 'containers/registry' if is_x86_64;
+    loadtest 'containers/zypper_docker';
+    loadtest 'containers/rootless_podman';
+}
 
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
-        loadtest 'boot/boot_to_desktop';
+        loadtest 'boot/boot_to_desktop' if (is_container_jeos || !is_jeos);
     }
 
     if (is_container_image_test()) {
         # Container Image tests
-        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host);
-        load_image_tests_podman() if ($runtime =~ 'podman');
-        load_image_tests_docker() if ($runtime =~ 'docker');
+        if (is_opensuse_jeos() && !is_container_jeos) {
+            load_jeos_containers();
+        } else {
+            loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host);
+            load_image_tests_podman() if ($runtime =~ 'podman');
+            load_image_tests_docker() if ($runtime =~ 'docker');
+        }
     } else {
         # Container Host tests
-        load_host_tests_podman() if ($runtime =~ 'podman');
-        load_host_tests_docker() if ($runtime =~ 'docker');
+        if (is_opensuse_jeos() && !is_container_jeos) {
+            load_jeos_containers();
+        } else {
+            load_host_tests_podman() if ($runtime =~ 'podman');
+            load_host_tests_docker() if ($runtime =~ 'docker');
+        }
     }
     loadtest 'console/coredump_collect';
 }
