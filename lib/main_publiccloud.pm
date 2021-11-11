@@ -116,7 +116,7 @@ sub load_latest_publiccloud_tests {
         load_docker_tests();
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
-    elsif (get_var('PUBLIC_CLOUD_CREATE_TOOLS_IMG')) {
+    elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image";
     }
     else {
