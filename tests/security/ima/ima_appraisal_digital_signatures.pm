@@ -2,16 +2,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA appraisal using digital signatures
-# Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#49154, poo#92347
+# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Tags: poo#53579, poo#100694, poo#102311
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
-use power_action_utils "power_action";
+use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -22,12 +22,15 @@ sub run {
     my $sample_cmd = 'yes --version';
 
     my $mok_priv = '/root/certs/key.asc';
-    my $cert_der = "/root/certs/ima_cert.der";
-    my $mok_pass = "suse";
+    my $cert_der = '/root/certs/ima_cert.der';
+    my $mok_pass = 'suse';
 
     add_grub_cmdline_settings("ima_appraise=fix", update_grub => 1);
 
-    power_action('reboot', textmode => 1);
+    # We need re-enable the secureboot after removing "ima_appraise=fix" kernel parameter
+    power_action("reboot", textmode => 1);
+    $self->wait_grub(bootloader_time => 200);
+    $self->tianocore_disable_secureboot;
     $self->wait_boot(textmode => 1);
     $self->select_serial_terminal;
 
@@ -65,9 +68,10 @@ sub run {
         replace_grub_cmdline_settings('ima_appraise=fix', '', update_grub => 1);
 
         power_action('reboot', textmode => 1);
+        $self->wait_grub(bootloader_time => 200);
+        $self->tianocore_disable_secureboot('re_enable');
         $self->wait_boot(textmode => 1);
         $self->select_serial_terminal;
-
         assert_script_run "dmesg | grep IMA:.*completed";
 
         # Remove security.ima attribute manually, and verify it is empty

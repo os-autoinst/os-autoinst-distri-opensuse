@@ -1,18 +1,18 @@
-# Copyright 2019 SUSE LLC
+# Copyright 2019-2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup environment for EVM protection testing
 # Note: This case should come after 'ima_setup'
-# Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#53579
+# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Tags: poo#53579, poo#100694, poo#102311
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use bootloader_setup "add_grub_cmdline_settings";
-use power_action_utils "power_action";
+use bootloader_setup qw(replace_grub_cmdline_settings tianocore_disable_secureboot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -38,7 +38,10 @@ sub run {
 
     add_grub_cmdline_settings("evm=fix ima_appraise=fix ima_appraise_tcb", update_grub => 1);
 
-    power_action('reboot', textmode => 1);
+    record_info("bsc#1189988: ", "We need disable secureboot with ima fix mode");
+    power_action("reboot", textmode => 1);
+    $self->wait_grub(bootloader_time => 200);
+    $self->tianocore_disable_secureboot;
     $self->wait_boot(textmode => 1);
     $self->select_serial_terminal;
 

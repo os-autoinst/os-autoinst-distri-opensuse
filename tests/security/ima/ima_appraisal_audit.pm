@@ -6,13 +6,13 @@
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#49568, poo#92347
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
-use power_action_utils "power_action";
+use power_action_utils 'power_action';
 
 sub audit_verify {
 }
@@ -44,7 +44,7 @@ sub run {
 
         # Test both default(no ima_apprais=) and ima_appraise=log situation
         add_grub_cmdline_settings("ima_appraise=log", update_grub => 1);
-        power_action('reboot', textmode => 1);
+        power_action("reboot", textmode => 1);
         $self->wait_boot(textmode => 1);
         $self->select_serial_terminal;
 

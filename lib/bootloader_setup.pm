@@ -334,7 +334,8 @@ sub uefi_bootmenu_params {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
     #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5);
-    (is_jeos) ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
+    (is_jeos)
+      ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
       : send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
@@ -647,14 +648,17 @@ sub autoyast_boot_params {
         $autoyast_args .= "$proto://10.0.2.1/";
         $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
         $autoyast_args .= $ay_var;
-    } elsif ($ay_var =~ /^ASSET_\d+$/) {
+    }
+    elsif ($ay_var =~ /^ASSET_\d+$/) {
         # In case profile is uploaded as an ASSET we need just filename
         $ay_var = basename(get_required_var($ay_var));
         $autoyast_args .= autoinst_url("/assets/other/$ay_var");
-    } elsif ($ay_var !~ /^slp$|:\/\//) {
+    }
+    elsif ($ay_var !~ /^slp$|:\/\//) {
         # Getting profile from the worker as openQA asset
         $autoyast_args .= data_url($ay_var);
-    } else {
+    }
+    else {
         # Getting profile by direct url or slp
         $autoyast_args .= $ay_var;
     }
@@ -772,7 +776,8 @@ sub remote_install_bootmenu_params {
         if (is_sle('=11-sp4')) {
             #11-SP4 only support ssh=1
             $params .= " ssh=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
-        } else {
+        }
+        else {
             $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
         }
     }
@@ -894,7 +899,12 @@ sub tianocore_enter_menu {
 }
 
 sub tianocore_disable_secureboot {
-    my $basetest = shift;
+
+    my ($basetest, $revert) = @_;
+
+    my $neelle_sb_conf_attempt = $revert ? 'tianocore-devicemanager-sb-conf-disabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
+    my $neelle_sb_change_state = $revert ? 'tianocore-devicemanager-sb-conf-enabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
+    my $neelle_sb_config_state = $revert ? 'tianocore-secureboot-enabled' : 'tianocore-secureboot-not-enabled';
 
     assert_screen 'grub2';
     send_key 'c';
@@ -906,18 +916,18 @@ sub tianocore_disable_secureboot {
     send_key 'ret';
     send_key_until_needlematch('tianocore-devicemanager-sb-conf', 'down', 5, 5);
     send_key 'ret';
-    send_key_until_needlematch('tianocore-devicemanager-sb-conf-attempt-sb', 'down', 5, 5);
+    send_key_until_needlematch($neelle_sb_conf_attempt, 'down', 5, 5);
     send_key 'spc';
     assert_screen 'tianocore-devicemanager-sb-conf-changed';
     send_key 'ret';
-    assert_screen 'tianocore-devicemanager-sb-conf-attempt-sb';
+    assert_screen($neelle_sb_change_state);
     send_key 'f10';
     assert_screen 'tianocore-bootmanager-save-changes';
     send_key 'Y';
     send_key_until_needlematch 'tianocore-devicemanager', 'esc';
     send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
     send_key 'ret';
-    send_key 'ret' if check_screen('tianocore-secureboot-not-enabled', 20);
+    send_key 'ret' if check_screen($neelle_sb_config_state, 20);
     $basetest->wait_grub;
 }
 
@@ -990,7 +1000,8 @@ sub zkvm_add_disk {
             my $name = $svirt->name;
             my $patched_img = "$zkvm_img_path/$name" . "a.img";
             $svirt->add_disk({file => $patched_img, dev_id => 'a'});
-        } else {
+        }
+        else {
             # Copy existing disk image to local storage
             if (get_var("HDD_$di")) {
                 my $basename = basename(get_var("HDD_$di"));
@@ -1002,10 +1013,12 @@ sub zkvm_add_disk {
                 if (my $size = get_var("HDDSIZEGB_$di")) {
                     $size .= "G";
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
-                } else {
+                }
+                else {
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id});
                 }
-            } else {
+            }
+            else {
                 # Create a new image, most likely it can be image for installation
                 # or additional optional drive for further testing
                 my $size = sprintf("%dG", get_var("HDDSIZEGB_$di", get_var('HDDSIZEGB', 4)));
@@ -1021,18 +1034,22 @@ sub zkvm_add_pty {
     my ($svirt) = shift;
 
     # serial console used for the serial log
-    $svirt->add_pty({
+    $svirt->add_pty(
+        {
             pty_dev => SERIAL_CONSOLE_DEFAULT_DEVICE,
             pty_dev_type => 'pty',
             target_type => 'sclp',
-            target_port => SERIAL_CONSOLE_DEFAULT_PORT});
+            target_port => SERIAL_CONSOLE_DEFAULT_PORT
+        });
 
     # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
-    $svirt->add_pty({
+    $svirt->add_pty(
+        {
             pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
             pty_dev_type => 'pty',
             target_type => 'virtio',
-            target_port => SERIAL_TERMINAL_DEFAULT_PORT});
+            target_port => SERIAL_TERMINAL_DEFAULT_PORT
+        });
 }
 
 sub zkvm_add_interface {
@@ -1147,7 +1164,10 @@ sub add_grub_cmdline_settings {
             add => $add,
             update_grub => 0,
             search => get_cmdline_var(),
-        }, ['update_grub', 'search'], @_);
+        },
+        ['update_grub', 'search'],
+        @_
+    );
 
     change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
 }
@@ -1181,7 +1201,10 @@ sub replace_grub_cmdline_settings {
             new => $new,
             update_grub => 0,
             search => get_cmdline_var(),
-        }, ['update_grub', 'search'], @_);
+        },
+        ['update_grub', 'search'],
+        @_
+    );
     change_grub_config($old, $new, $args{search}, "g", $args{update_grub});
 }
 
@@ -1278,7 +1301,8 @@ sub compare_bootparams {
     my @difference = arrays_subset($expected_boot_params, $received_boot_params);
     if (scalar @difference > 0) {
         record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
-    } else {
+    }
+    else {
         record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters:\n" . join("\n", @{$expected_boot_params}));
     }
 }
@@ -1364,11 +1388,13 @@ sub prepare_disks {
         if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING')) {
             create_encrypted_part(disk => $d);
             if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
-                mimic_user_to_import(disk => $d,
+                mimic_user_to_import(
+                    disk => $d,
                     passwd => get_var('ETC_PASSWD'),
                     shadow => get_var('ETC_SHADOW'));
             }
-        } else {
+        }
+        else {
             script_run "parted /dev/$d mklabel gpt";
             script_run "sync";
         }
