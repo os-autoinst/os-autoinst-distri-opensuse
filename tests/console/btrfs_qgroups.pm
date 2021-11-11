@@ -80,7 +80,8 @@ sub run {
     # Check limits
     assert_script_run "dd if=/dev/zero bs=10M count=3 of=nofile";
     foreach my $c ('a' .. 'b') {
-        assert_script_run "! cp nofile $c/nofile";
+        assert_script_run "cp --reflink=always nofile $c/nofile";
+        assert_script_run "! cp --reflink=never --remove-destination nofile $c/nofile";
         assert_script_run "sync && rm $c/nofile";
     }
     assert_script_run "cp nofile c/nofile";
