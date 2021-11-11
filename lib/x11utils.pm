@@ -236,11 +236,11 @@ sub handle_login {
     if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 10)) {
         type_password($mypwd);
         send_key 'ret';
+        wait_still_screen;
     }
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key('esc');
-        assert_screen([qw(generic-desktop opensuse-welcome)]);
+        send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc';
     }
 }
 
