@@ -541,6 +541,14 @@ sub take_first_disk_storage_ng {
         assert_screen 'partition-scheme';
     }
     elsif (is_ipmi) {
+        select_console('install-shell');
+        my $mem_size = script_output 'free -b | awk \'/Mem/ {print $2}\'';
+        my $disk_size = script_output 'lsblk -dnb /dev/sda -o SIZE';
+        select_console 'installation';
+        if ($mem_size > $disk_size) {
+            send_key_until_needlematch [qw(enlarge-enabled enlarge-disabled)], $cmd{next};
+            send_key_until_needlematch('enlarge-disabled', 'alt-a') if (match_has_tag 'enlarge-enabled');
+        }
         send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
         return;
     }
