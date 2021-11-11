@@ -80,7 +80,7 @@ sub load_host_tests_docker {
         loadtest 'containers/registry' if is_x86_64;
         loadtest 'containers/docker_compose';
     }
-    loadtest 'containers/validate_btrfs' if is_x86_64;
+    loadtest 'containers/validate_btrfs' if (is_x86_64 && !is_jeos);
     loadtest "containers/container_diff" if (is_opensuse());
 }
 
