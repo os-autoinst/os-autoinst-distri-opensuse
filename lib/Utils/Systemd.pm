@@ -15,6 +15,7 @@ our @EXPORT = qw(
   get_started_systemd_services
   clear_started_systemd_services
   systemctl
+  check_unit_file
 );
 
 =head1 Utils::Systemd
@@ -84,6 +85,18 @@ Clear the list of started systemd services
 =cut
 sub clear_started_systemd_services {
     %started_systemd_services = ();
+}
+
+=head2 check_unit_file
+
+Check if the unit file exist
+
+=cut
+
+sub check_unit_file {
+    my $unit_file = shift;
+    return 1 if (script_run("systemctl list-unit-files --all $unit_file*") == 0);
+    return 0;
 }
 
 1;
