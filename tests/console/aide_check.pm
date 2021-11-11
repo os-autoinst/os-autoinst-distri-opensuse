@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: aide
@@ -13,7 +13,7 @@
 #          4. Modified the file system and run aide check again
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#64364, tc#1744128
+# Tags: poo#64364, poo#102032, tc#1744128
 
 use base "consoletest";
 use testapi;
@@ -22,10 +22,10 @@ use strict;
 use warnings;
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     zypper_call "in aide";
-
     assert_script_run "cp /etc/aide.conf /etc/aide.conf.bak";
 
     # Initialize the database and move it to the appropriate place before using the --check command
