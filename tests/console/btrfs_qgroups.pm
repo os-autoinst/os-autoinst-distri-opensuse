@@ -79,9 +79,14 @@ sub run {
 
     # Check limits
     assert_script_run "dd if=/dev/zero bs=10M count=3 of=nofile";
+
+    # Use the --reflink=never option if it exists
+    my $reflink_never = "--reflink=never";
+    $reflink_never = "" if script_run('cp --reflink=never /dev/null /tmp/null && rm /tmp/null');
+
     foreach my $c ('a' .. 'b') {
         assert_script_run "cp --reflink=always nofile $c/nofile";
-        assert_script_run "! cp --reflink=never --remove-destination nofile $c/nofile";
+        assert_script_run "! cp $reflink_never --remove-destination nofile $c/nofile";
         assert_script_run "sync && rm $c/nofile";
     }
     assert_script_run "cp nofile c/nofile";
