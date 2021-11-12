@@ -696,8 +696,8 @@ sub wait_until_resources_started {
     my $ret = undef;
 
     # Some CRM options can only been added on recent versions
-    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'" if is_sle '12-sp3+';
-    push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')";
+    push @cmds, "grep -iq 'no inactive resources' <($crm_mon_cmd)" if is_sle '12-sp3+';
+    push @cmds, "! (grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting' <($crm_mon_cmd))";
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
