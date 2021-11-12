@@ -18,7 +18,8 @@ use registration qw(add_suseconnect_product register_product);
 use version_utils "is_sle";
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # make sure SELinux is "enabled" and in "permissive" mode
     validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });

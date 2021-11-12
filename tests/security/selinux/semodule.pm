@@ -12,9 +12,10 @@ use testapi;
 use utils;
 
 sub run {
+    my ($self) = @_;
     my $test_module = "openvpn";
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # test option "-l": list and verify some (not all as it changes often) standard modules
     validate_script_output(

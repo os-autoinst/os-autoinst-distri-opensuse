@@ -14,7 +14,8 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 use Utils::Architectures;
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");

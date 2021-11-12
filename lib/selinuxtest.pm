@@ -108,7 +108,7 @@ sub reboot_and_reconnect {
 sub set_sestatus {
     my ($self, $mode, $type) = @_;
     my $selinux_config_file = '/etc/selinux/config';
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # SELinux by default
     validate_script_output('sestatus', sub { m/SELinux status: .*disabled/ });
@@ -134,7 +134,7 @@ sub set_sestatus {
 
     # reboot the vm and reconnect the console
     $self->reboot_and_reconnect(textmode => 1);
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     validate_script_output(
         'sestatus',
