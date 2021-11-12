@@ -38,7 +38,7 @@ sub run {
     zypper_call("rm apache2");
 
     # for sle, register available extensions and modules, e.g., free addons
-    if (is_sle) {
+    if (is_sle && !main_common::is_updates_tests()) {
         register_product();
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '15') {
