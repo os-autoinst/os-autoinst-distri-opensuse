@@ -85,9 +85,9 @@ sub create_credentials_file {
     } else {
         record_info('INFO', 'Get credentials from VAULT server.');
 
-        my $data = $self->vault_retry(
-            sub { $self->vault_get_secrets('/gcp/key/' . $self->get_next_vault_role(), max_tries => 1) },
-            name => 'vault_get_secrets(gcp)',
+        my $data = $self->vault->retry(
+            sub { $self->vault->get_secrets('/gcp/key/' . $self->get_next_vault_role(), max_tries => 1) },
+            name => 'get_secrets(gcp)',
             max_tries => scalar($self->vault_gcp_roles()) * 2,
             sleep_duration => get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', 5)
         );

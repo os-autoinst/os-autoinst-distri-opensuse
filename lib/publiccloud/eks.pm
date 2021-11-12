@@ -20,7 +20,7 @@ sub vault_create_credentials {
 
     record_info('INFO', 'Get credentials from VAULT server for EKS');
     my $path = '/aws/sts/openqa-role-eks';
-    my $res = $self->vault_api('/v1/' . get_required_var('PUBLIC_CLOUD_VAULT_NAMESPACE') . $path, method => 'post');
+    my $res = $self->vault->api('/v1/' . get_required_var('PUBLIC_CLOUD_VAULT_NAMESPACE') . $path, method => 'post');
     my $data = $res->{data};
 
     $self->key_id($data->{access_key});

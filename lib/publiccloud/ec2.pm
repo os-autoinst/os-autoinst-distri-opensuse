@@ -161,7 +161,7 @@ sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
-    $self->vault_revoke();
+    $self->vault->revoke();
 }
 
 sub describe_instance
