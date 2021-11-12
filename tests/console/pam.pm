@@ -37,7 +37,7 @@ sub run {
     }
     zypper_call('install bats pam-test pam pam-config snapper perl');
     if (is_tumbleweed()) {
-        zypper_call('install pam-deprecated "group(wheel)"');
+        zypper_call('in "group(wheel)"');
     }
 
     # create a snapshot for rollback
@@ -50,9 +50,15 @@ sub run {
         assert_script_run("cd; curl -L -v " . autoinst_url . "/data/pam_test > $archive && cpio -id < $archive && mv data pam_test && rm -f $archive");
         $pamdir = "./pam_test";
     }
-
+    my $pam_version = script_output("rpm -q --qf '%{VERSION}\n' pam");
+    my $limit_pam_version = '1.5.0';
+    my $ret = "";
     my $tap_results = "results.tap";
-    my $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
+    if (package_version_cmp($pam_version, $limit_pam_version) >= 0) {
+        $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
+    } else {
+        $ret = script_run("cd $pamdir; prove -v pam_deprecated.sh >$tap_results", timeout => 180);
+    }
     parse_extra_log(TAP => $tap_results);
 
     # restore the system after running pam.pm
