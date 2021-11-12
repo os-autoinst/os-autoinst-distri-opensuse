@@ -23,6 +23,12 @@ sub run {
     # make sure SELinux is "enabled" and in "permissive" mode
     validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });
 
+    # https://progress.opensuse.org/issues/101481
+    if (is_sle('<=15-sp2') && script_run('zypper lu|grep sle-we-release') == 0) {
+        validate_script_output('zypper -n up --auto-agree-with-product-licenses --no-recommends sle-we-release',
+            sub { m/\(1\/1\) Installing: sle-we-release/ });
+    }
+
     # refresh & update
     zypper_call("ref", timeout => 1200);
     zypper_call("up", timeout => 1200);
