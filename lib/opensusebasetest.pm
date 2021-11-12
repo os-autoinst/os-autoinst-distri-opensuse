@@ -1320,7 +1320,7 @@ sub post_fail_hook {
     # just output error if selected program doesn't exist instead of collecting all logs
     # set current variables in x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {
-        my $program = get_var('IN_X11_START_PROGRAM');
+        my ($program) = get_var('IN_X11_START_PROGRAM') =~ m/(\S+)/;
         select_log_console;
         my $r = script_run "which $program";
         if ($r != 0) {
