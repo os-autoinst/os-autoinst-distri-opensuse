@@ -114,11 +114,7 @@ sub basic_container_tests {
     #   - https://store.docker.com/images/hello-world
     assert_script_run("$runtime image pull $hello_world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    if (!is_s390x) {
-        assert_script_run("$runtime image pull $leap", timeout => 600);
-    } else {
-        record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
-    }
+    assert_script_run("$runtime image pull $leap", timeout => 600);
     #   - pull image of openSUSE Tumbleweed
     assert_script_run("$runtime image pull $tumbleweed", timeout => 600);
 
