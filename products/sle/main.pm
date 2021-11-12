@@ -18,7 +18,7 @@ use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
 use scheduler 'load_yaml_schedule';
-use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm);
+use Utils::Backends qw(is_hyperv is_hyperv_in_gui is_pvm is_ipmi);
 use main_containers;
 use main_publiccloud;
 use Utils::Architectures;
@@ -98,11 +98,24 @@ sub cleanup_needles {
 
     if (!is_sles4sap) {
         unregister_needle_tags("ENV-FLAVOR-SAP-DVD");
+        unregister_needle_tags('ENV-SLES4SAP-1');
     }
 
     if (!is_jeos) {
         unregister_needle_tags('ENV-FLAVOR-JeOS-for-kvm');
         unregister_needle_tags('ENV-JEOS-1');
+    }
+
+    if (is_jeos) {
+        unregister_needle_tags('inst-bootmenu');
+    }
+
+    if (!is_ipmi) {
+        unregister_needle_tags('ENV-BACKEND-ipmi');
+    }
+
+    if (!check_var('VIDEOMODE', 'text')) {
+        unregister_needle_tags('ENV-VIDEOMODE-text');
     }
 
     if (get_var('OFW')) {
