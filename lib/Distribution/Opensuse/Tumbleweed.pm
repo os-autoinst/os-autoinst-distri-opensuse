@@ -14,6 +14,9 @@ use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::AuthenticationForRoot::AuthenticationForRootController;
 use Installation::ClockAndTimeZone::ClockAndTimeZoneController;
+use Installation::DiskActivation::DiskActivationController;
+use Installation::DiskActivation::ConfiguredZFCPDevicesController;
+use Installation::DiskActivation::AddZFCPDeviceController;
 use Installation::LanguageKeyboard::LanguageKeyboardController;
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use Installation::License::Opensuse::LicenseAgreementController;
@@ -163,5 +166,16 @@ sub get_encrypted_volume_activation {
     return Installation::SystemProbing::EncryptedVolumeActivationController->new();
 }
 
+sub get_disk_activation {
+    return Installation::DiskActivation::DiskActivationController->new();
+}
+
+sub get_configured_zfcp_devices {
+    return Installation::DiskActivation::ConfiguredZFCPDevicesController->new();
+}
+
+sub get_add_new_zfcp_device {
+    return Installation::DiskActivation::AddZFCPDeviceController->new();
+}
 
 1;
