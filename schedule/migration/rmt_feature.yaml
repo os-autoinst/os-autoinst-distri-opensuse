@@ -3,4 +3,4 @@ description:    >
     This is for rmt feature test
 schedule:
   - boot/boot_to_desktop
-  - x11/rmt/rmt_feature
+  - console/rmt/rmt_feature

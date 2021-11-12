@@ -12,18 +12,14 @@
 use strict;
 use warnings;
 use testapi;
-use base 'x11test';
+use base 'consoletest';
 use repo_tools;
 use utils;
-use x11utils 'turn_off_gnome_screensaver';
 use lockapi 'mutex_create';
 use mmapi 'wait_for_children';
 
 sub run {
-    x11_start_program('xterm -geometry 150x35+5+5', target_match => 'xterm');
-    # Avoid blank screen since smt sync needs time
-    turn_off_gnome_screensaver;
-    become_root;
+    select_console 'root-console';
     rmt_wizard();
     # sync, enable, mirror and list products
     rmt_sync();
