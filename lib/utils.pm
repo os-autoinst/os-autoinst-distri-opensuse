@@ -206,7 +206,7 @@ sub handle_untrusted_gpg_key {
     }
     else {
         record_info('Cancel import', 'Untrusted gpg key is NOT imported');
-        wait_screen_change { send_key 'alt-c'; send_key 'spc' };      # cancel/no, depending on variant
+        wait_screen_change { send_key 'alt-c'; send_key 'spc' };    # cancel/no, depending on variant
     }
 }
 
@@ -1637,7 +1637,7 @@ sub script_run_interactive {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
             last if ($output =~ /${endmark}0\s/m);    # return value is 0
-            die if ($output =~ /${endmark}/m);        # other return values
+            die if ($output =~ /${endmark}/m);    # other return values
 
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});

@@ -120,7 +120,7 @@ sub run {
 
     #Switch into container as client
     enter_cmd("docker exec -it libssh_container bash", wait_still_screen => 3);
-    assert_script_run("test -f /.dockerenv");                                          #verify inside container
+    assert_script_run("test -f /.dockerenv");    #verify inside container
     assert_script_run("ssh-keyscan susetest >> /root/.ssh/known_hosts");
     validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t", sub { m/libssh_testfile/ });
     validate_script_output("curl -s sftp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });

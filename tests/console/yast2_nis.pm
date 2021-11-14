@@ -54,51 +54,51 @@ sub run() {
     }
     send_key 'alt-m';
     assert_screen 'nis-client-automounter-enabled';    # this checks if nis and automounter got really enabled
-    send_key 'alt-i';                                  # enter Nis domain for enter string suse.de
+    send_key 'alt-i';    # enter Nis domain for enter string suse.de
     send_key_until_needlematch 'nis-domain-empty-field', 'backspace';    # clear NIS Domain field if it is prefilled
     type_string "suse.de";
     send_key 'alt-a';
     #clear suggested NIS server adress
     for (1 .. 15) { send_key 'backspace'; }
     wait_screen_change { type_string "10.162.0.1" };
-    wait_screen_change { send_key 'alt-p' };                             # check Netconfif NIS Policy
+    wait_screen_change { send_key 'alt-p' };    # check Netconfif NIS Policy
     send_key 'up';
     wait_screen_change { send_key 'ret' };
-    assert_screen 'only-manual-changes';                                 # check the needle
-    send_key 'alt-p';                                                    # enter Netconfif NIS Policy again for custom policy
+    assert_screen 'only-manual-changes';    # check the needle
+    send_key 'alt-p';    # enter Netconfif NIS Policy again for custom policy
     wait_screen_change { send_key 'down' };
     send_key 'ret';
-    send_key 'alt-x';                                                    # check Expert...
+    send_key 'alt-x';    # check Expert...
     wait_still_screen 3;
     wait_screen_change { send_key 'alt-b' };
-    assert_screen 'expert_settings';                                     # check the needle enable Broken server
+    assert_screen 'expert_settings';    # check the needle enable Broken server
     send_key 'alt-y';
-    wait_screen_change { type_string "-c" };                             # only checks if the config file has syntax errors and exits
+    wait_screen_change { type_string "-c" };    # only checks if the config file has syntax errors and exits
     wait_still_screen;
     send_key 'alt-o';
     wait_still_screen;
     send_key 'alt-s';
     wait_still_screen;
-    assert_screen 'nfs-client-configuration';                            # enter NFS configuration
-    send_key 'alt-a';                                                    # add nfs settings
-    assert_screen 'nfs-server-hostname';                                 # check that type string is sucessful
-    send_key 'alt-n';                                                    # from here enter some configurations...
+    assert_screen 'nfs-client-configuration';    # enter NFS configuration
+    send_key 'alt-a';    # add nfs settings
+    assert_screen 'nfs-server-hostname';    # check that type string is sucessful
+    send_key 'alt-n';    # from here enter some configurations...
     type_string "nis.suse.de";
     send_key 'alt-r';
     type_string "/mounts";
     send_key 'alt-m';
     type_string "/mounts_local";
     send_key 'alt-o';
-    assert_screen 'nfs_server_added';                                    # check Mount point
+    assert_screen 'nfs_server_added';    # check Mount point
     wait_still_screen;
     send_key 'alt-t';
     wait_still_screen 1;
-    assert_screen 'nis_server_delete';                                   # confirm to delete configuration
+    assert_screen 'nis_server_delete';    # confirm to delete configuration
     send_key 'alt-y';
     wait_still_screen 2;
     send_key 'alt-o';
     wait_still_screen 2;
-    send_key 'alt-f';                                                    # close the dialog...
+    send_key 'alt-f';    # close the dialog...
     assert_screen([qw(nis_server_not_found ypbind_error)]);
     if (match_has_tag 'ypbind_error') {
         record_soft_failure 'bsc#1073281';

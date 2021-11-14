@@ -735,12 +735,12 @@ sub skip_registration {
     wait_screen_change { send_key "alt-s" };    # skip SCC registration
     assert_screen([qw(scc-skip-reg-warning-yes scc-skip-reg-warning-ok scc-skip-reg-no-warning)]);
     if (match_has_tag('scc-skip-reg-warning-ok')) {
-        send_key "alt-o";                       # confirmed skip SCC registration
+        send_key "alt-o";    # confirmed skip SCC registration
         wait_still_screen;
         send_key $cmd{next};
     }
     elsif (match_has_tag('scc-skip-reg-warning-yes')) {
-        send_key "alt-y";                       # confirmed skip SCC registration
+        send_key "alt-y";    # confirmed skip SCC registration
     }
 }
 

@@ -19,8 +19,8 @@ sub run {
     addboot if is_storage_ng;
     # create boot and 2 lvm partitions
     addpart(role => 'raw', size => 15000);    #rootfs + swap
-    addpart(role => 'raw');                   # home on thin lv
-                                              # create volume group for root and swap non thin lvs
+    addpart(role => 'raw');    # home on thin lv
+                               # create volume group for root and swap non thin lvs
     addvg(name => 'vg-no-thin');
     addlv(name => 'lv-swap', role => 'swap', vg => 'vg-no-thin', size => 2000);
     addlv(name => 'lv-root', role => 'OS', vg => 'vg-no-thin');

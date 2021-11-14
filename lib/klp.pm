@@ -310,7 +310,7 @@ sub verify_klp_pkg_patch_is_active {
     my $klp_name = $$kmods[0];
     $klp_name =~ s/\.ko$//;    # strip suffix
     $klp_name =~ s,^([^/]*/)*,,;    # strip directory
-    $klp_name =~ tr/ ,-/:__/;       # transform to KBUILD_MODNAME
+    $klp_name =~ tr/ ,-/:__/;    # transform to KBUILD_MODNAME
 
     my $patches = klp_tool_patches();
     my $active_patch;

@@ -55,7 +55,7 @@ sub run {
         assert_screen('inst-networksettings');
         send_key $cmd{next};    # Next
         @needles = grep { !/inst-networksettings/ } @needles;    # Do not match the previous screen
-        assert_screen(\@needles, timeout => 60);                 # Check the screen again with network up and running
+        assert_screen(\@needles, timeout => 60);    # Check the screen again with network up and running
     }
 
     # Do nothing if pop-up is not found

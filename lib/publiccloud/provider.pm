@@ -408,7 +408,7 @@ sub terraform_apply {
             type_string(qq(\c\\));    # Send QUIT signal
         }
         else {
-            send_key('ctrl-\\');      # Send QUIT signal
+            send_key('ctrl-\\');    # Send QUIT signal
         }
         assert_script_run('true');    # make sure we have a prompt
         record_info('ERROR', 'Terraform apply failed with timeout', result => 'fail');
@@ -481,7 +481,7 @@ sub terraform_destroy {
             type_string(qq(\c\\));    # Send QUIT signal
         }
         else {
-            send_key('ctrl-\\');      # Send QUIT signal
+            send_key('ctrl-\\');    # Send QUIT signal
         }
         assert_script_run('true');    # make sure we have a prompt
         record_info('ERROR', 'Terraform destroy failed with timeout', result => 'fail');

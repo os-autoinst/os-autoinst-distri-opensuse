@@ -38,7 +38,7 @@ sub enter_userinfo {
     $args{max_interval} //= undef;
     send_key 'alt-f';    # Select full name text field
     wait_screen_change { type_string($args{username}, max_interval => $args{max_interval}); };
-    send_key 'tab';      # Select password field
+    send_key 'tab';    # Select password field
     send_key 'tab';
     type_password_and_verification;
 }

@@ -31,7 +31,7 @@ sub run {
     my $work_dir = "/root/certs";
     my $key_pw = "suse";    # Private key password
     my $cdb_pw = "openSUSE";    # Certificate database password
-    my $mok_pw = "novell";      # Mokutil password
+    my $mok_pw = "novell";    # Mokutil password
     my $cert_cfg = "$work_dir/self_signed.conf";
     my $pri_key = "$work_dir/key.asc";
     my $cert_pem = "$work_dir/cert.asc";

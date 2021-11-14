@@ -24,7 +24,7 @@ sub run {
     my $snapshots = get_test_suite_data()->{snapshots};
 
     my $last_printed_num;    # keep track of last snapshot created
-    my $last_uuid;           # keep track of last snapshot uuid
+    my $last_uuid;    # keep track of last snapshot uuid
     my $btrfs_info;
 
     # process each snapshot according to test data

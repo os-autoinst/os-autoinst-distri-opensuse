@@ -501,7 +501,7 @@ sub is_installed_equal_upgrade_major_release {
     my $host_installed_version = get_var('VERSION_TO_INSTALL', get_var('VERSION', ''));    #format 15 or 15-SP1
     ($host_installed_version) = $host_installed_version =~ /^(\d+)/;
     #get the version that the host should upgrade to
-    my $host_upgrade_version = get_var('UPGRADE_PRODUCT', 'sles-1-sp0');                   #format sles-15-sp0
+    my $host_upgrade_version = get_var('UPGRADE_PRODUCT', 'sles-1-sp0');    #format sles-15-sp0
     ($host_upgrade_version) = $host_upgrade_version =~ /sles-(\d+)-sp/i;
     return $host_installed_version eq $host_upgrade_version;
 }

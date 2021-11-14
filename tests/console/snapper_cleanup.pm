@@ -134,7 +134,7 @@ sub run {
     assert_script_run("snapper set-config NUMBER_LIMIT=0; snapper cleanup number; rm -fv data", 300);
     assert_script_run("snapper set-config NUMBER_LIMIT=$number_limit_pre NUMBER_MIN_AGE=$number_min_age_pre");
     assert_script_run("snapper get-config; snapper ls");    # final report
-    assert_script_run("$btrfs_fs_usage");                   # final report
+    assert_script_run("$btrfs_fs_usage");    # final report
 }
 
 1;

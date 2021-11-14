@@ -24,7 +24,7 @@ sub rescan_devices {
     else {
         send_key 'alt-e';
     }
-    wait_still_screen;                             # Wait until rescan is done
+    wait_still_screen;    # Wait until rescan is done
 }
 
 # Format partition with a file system

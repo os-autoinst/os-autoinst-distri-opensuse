@@ -24,7 +24,7 @@ sub run {
         send_key 'alt-w';    # unselect import ssh key checkbox
         assert_screen "inst-import-ssh-and-configuration-unselected";
     }
-    send_key 'alt-a';        # accept
+    send_key 'alt-a';    # accept
 }
 
 1;

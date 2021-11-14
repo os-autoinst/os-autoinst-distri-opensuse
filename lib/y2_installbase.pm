@@ -450,7 +450,7 @@ sub deal_with_dependency_issues {
     }
 
     assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
-    send_key 'alt-a';                          # Accept
+    send_key 'alt-a';    # Accept
     sleep 2;
 
   DO_CHECKS:
@@ -465,16 +465,16 @@ sub deal_with_dependency_issues {
     }
     while (check_screen('error-with-patterns', 2)) {
         record_soft_failure 'bsc#1047337';
-        send_key 'alt-o';                           # OK
+        send_key 'alt-o';    # OK
     }
     sleep 2;
 
     if (check_screen('dependency-issue-fixed', 0)) {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-o';                       # OK
+            send_key 'alt-o';    # OK
         }
         else {
-            send_key 'alt-a';                       # Accept
+            send_key 'alt-a';    # Accept
         }
         sleep 2;
     }

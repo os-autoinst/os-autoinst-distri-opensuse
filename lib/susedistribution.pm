@@ -208,7 +208,7 @@ sub init_desktop_runner {
         } elsif (!check_screen('desktop-runner-plasma-suggestions', $timeout)) {
             # Prepare for next attempt
             send_key 'esc';    # Escape from desktop-runner
-            sleep(5);          # Leave some time for the system to recover
+            sleep(5);    # Leave some time for the system to recover
             send_key_until_needlematch 'desktop-runner', $hotkey, 3, 10;
         } else {
             last;

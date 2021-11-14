@@ -109,7 +109,7 @@ sub run {
     $self->copy_media($proto, $path, $tout, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
-    my $full_size = ceil($RAM / 1024);                        # Use the ceil value of RAM in GB
+    my $full_size = ceil($RAM / 1024);    # Use the ceil value of RAM in GB
     my $half_size = ceil($full_size / 2);
     my $volgroup = 'vg_hana';
     my %mountpts = (
@@ -144,8 +144,8 @@ sub run {
                     assert_script_run "parted --script $disk -- mkpart primary $lastsector -1";
                     assert_script_run "parted --script $disk -- set $partnum lvm on";
                     assert_script_run "test -b $device";    # Check partition was created successfully
-                    script_run "wipefs -a -f $device";      # This is a new partition, but it could have traces of old tests. We do some cleanup
-                    script_run "partprobe $device";         # Reload kernel table
+                    script_run "wipefs -a -f $device";    # This is a new partition, but it could have traces of old tests. We do some cleanup
+                    script_run "partprobe $device";    # Reload kernel table
                 }
             }
             else {

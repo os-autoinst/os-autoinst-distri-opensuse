@@ -19,7 +19,7 @@ use constant {
     SELECTED_HARD_DISK => 'partitioning_raid-disk_%s-selected',
     SELECTED_RAID => 'partitioning_raid-raid-selected',
     SELECTED_CURRENT_VOLUME_MANAGEMENT => 'volume-management_system',    # current proposal
-    SELECTED_VOLUME_MANAGEMENT => 'volume_management_feature',           # existing partition
+    SELECTED_VOLUME_MANAGEMENT => 'volume_management_feature',    # existing partition
     SELECTED_HARD_DISKS => 'partitioning_raid-hard_disks-selected',
     SELECTED_EXISTING_PART => 'partitioning_existing_part_%s-selected',
     CLONE_PARTITION => 'clone_partition',

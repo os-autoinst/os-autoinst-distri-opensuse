@@ -43,7 +43,7 @@ sub run {
     if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.11.95
         assert_script_run($easyprof_cmd . "> " . $output_result);
     }
-    else {                                      # apparmor >= 2.11.95
+    else {    # apparmor >= 2.11.95
         assert_script_run($easyprof_cmd . $easyprof_args_json . "> " . $output_json);
         assert_script_run("aa-easyprof --manifest=$output_json > $output_result");
 

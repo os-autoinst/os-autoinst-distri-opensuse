@@ -26,12 +26,12 @@ sub y2snapper_select_current_conf {
         send_key_until_needlematch 'yast2_snapper-current_configuration_root', 'tab';
         send_key 'down';    # Expand test configuration selection box
         send_key 'down';    # Select test configuration
-        send_key 'ret';     # Apply selection
+        send_key 'ret';    # Apply selection
         send_key 'tab';
     }
     else {
         send_key 'shift-tab';    # Focus Current Configuration selection box
-        send_key 'down';         # Select test configuration
+        send_key 'down';    # Select test configuration
     }
 }
 

@@ -24,7 +24,7 @@ sub select_device_type {
     my ($self, $device) = @_;
     assert_screen(HARDWARE_DIALOG);
     send_key 'alt-d';    # Select 'Device Type' dropdown
-    send_key 'home';     # Jump to beginning of list
+    send_key 'home';    # Jump to beginning of list
     my $device_needle;
     if ($device eq 'bridge') {
         $device_needle = BRIDGE_DEVICE_IN_DROPDOWN;

@@ -91,9 +91,9 @@ sub reboot_x11 {
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
 
             assert_screen 'shutdown-auth';
-            wait_still_screen(3);                                                   # 981299#c41
+            wait_still_screen(3);    # 981299#c41
             type_string $testapi::password, max_interval => 5;
-            wait_still_screen(3);                                                   # 981299#c41
+            wait_still_screen(3);    # 981299#c41
             if (get_var('REBOOT_DEBUG')) {
                 wait_screen_change {
                     # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
@@ -207,9 +207,9 @@ sub poweroff_x11 {
     if (check_var("DESKTOP", "minimalx")) {
         send_key "ctrl-alt-delete";    # logout dialog
         assert_screen 'logoutdialog', 10;
-        send_key "alt-d";              # shut_d_own
+        send_key "alt-d";    # shut_d_own
         assert_screen 'logout-confirm-dialog', 10;
-        send_key "alt-o";              # _o_k
+        send_key "alt-o";    # _o_k
     }
 }
 

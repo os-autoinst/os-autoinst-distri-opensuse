@@ -22,7 +22,7 @@ sub run {
     # Is secure boot enabled?
     assert_screen "bootloader-secureboot-enabled";
     wait_screen_change { send_key $cmd{accept} };    # Accept
-    send_key "alt-o";                                # cOntinue
+    send_key "alt-o";    # cOntinue
 }
 
 1;

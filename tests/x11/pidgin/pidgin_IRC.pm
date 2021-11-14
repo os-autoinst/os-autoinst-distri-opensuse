@@ -55,11 +55,11 @@ sub run {
 
     # IP spoofing or CTCP Version and scan warnings may appear
     assert_screen([qw(pidgin-ready pidgin-spoofing-ip pidgin-ctcp-version)]);    # wait until connection established
-    wait_still_screen 5;                                                         # give some time for warnings to pop-up
+    wait_still_screen 5;    # give some time for warnings to pop-up
     while (check_screen('pidgin-spoofing-ip') || check_screen('pidgin-ctcp-version')) {
-        send_key is_sle('<15') ? "alt-tab" : "alt-`";                            # focus on warning
+        send_key is_sle('<15') ? "alt-tab" : "alt-`";    # focus on warning
         wait_still_screen 2;
-        send_key "ctrl-w";                                                       # close it
+        send_key "ctrl-w";    # close it
         wait_still_screen 2;
     }
     assert_screen('pidgin-ready');

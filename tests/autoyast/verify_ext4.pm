@@ -25,7 +25,7 @@ sub verify_registration {
 
 sub verify_partitioning {
     assert_script_run 'findmnt -S /dev/vda2 | grep "/.*ext4"';    # generic search
-    assert_script_run 'findmnt -s | grep "swap\s\+UUID.*swap"';   # search for swap only in /etc/fstab
+    assert_script_run 'findmnt -s | grep "swap\s\+UUID.*swap"';    # search for swap only in /etc/fstab
     assert_script_run 'findmnt -s | grep "/\s\+UUID.*ext4\s\+acl,user_xattr"';    # Search for attr. only in /etc/fstab
 }
 

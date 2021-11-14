@@ -17,9 +17,9 @@ sub run {
     my ($self) = @_;
     send_key "alt-f4";    # open logout dialog
     assert_screen 'logoutdialog', 15;
-    send_key "tab";       # reboot
+    send_key "tab";    # reboot
     save_screenshot;
-    send_key "ret";       # confirm
+    send_key "ret";    # confirm
     $self->wait_boot;
 }
 

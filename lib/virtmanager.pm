@@ -591,8 +591,8 @@ sub detect_login_screen {
     my $timeout = shift // 5;    # Can be increased f.e. if the guest is booting
 
     return if check_screen 'virt-manager_login-screen', $timeout;
-    wait_still_screen 3;         # Connecting to guest's console
-    mouse_set(30, 200);          # Go inside of the guest's console
+    wait_still_screen 3;    # Connecting to guest's console
+    mouse_set(30, 200);    # Go inside of the guest's console
     save_screenshot();
     mouse_set(300, 70);
 
@@ -652,7 +652,7 @@ sub select_guest {
     wait_still_screen 3;    # Guests may be still loading
     if (!check_screen "virt-manager_list-$guest") {    # If the guest is hidden down in the list
         if (is_sle('12-SP2+') || check_var("REGRESSION", "qemu-hypervisor")) {
-            send_key 'end';                            # Go down so we will see every guest unselected on the way up
+            send_key 'end';    # Go down so we will see every guest unselected on the way up
         } else {
             assert_and_click("virt-manager_list-arrowdown", clicktime => 10) for (1 .. 5);    # Go down so we will see every guest unselected on the way up
         }
@@ -707,17 +707,17 @@ sub establish_connection {
         }
         send_key 'tab';
         send_key 'spc';
-        wait_still_screen 1;        # Connect to remote host ticked
+        wait_still_screen 1;    # Connect to remote host ticked
         send_key 'tab';
         send_key 'tab';
         type_string 'root';
-        wait_still_screen 1;        # root written
+        wait_still_screen 1;    # root written
         send_key 'tab';
         type_string "$hypervisor";
-        wait_still_screen 1;        # $hypervisor written
+        wait_still_screen 1;    # $hypervisor written
         send_key 'tab';
         send_key 'spc';
-        wait_still_screen 1;        # autoconnect ticked
+        wait_still_screen 1;    # autoconnect ticked
         send_key 'ret';
 
         assert_screen "virt-manager_connected";

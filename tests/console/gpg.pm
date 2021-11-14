@@ -73,20 +73,20 @@ EOF
         enter_cmd "$key_size";
         assert_screen 'gpg-set-expiration';    # Key is valid for? (0)
         send_key 'ret';
-        assert_screen 'gpg-set-correct';       # Is this correct? (y/N)
+        assert_screen 'gpg-set-correct';    # Is this correct? (y/N)
         enter_cmd "y";
-        assert_screen 'gpg-set-realname';      # Real name:
+        assert_screen 'gpg-set-realname';    # Real name:
         enter_cmd "$username";
-        assert_screen 'gpg-set-email';         # Email address:
+        assert_screen 'gpg-set-email';    # Email address:
         enter_cmd "$email";
-        assert_screen 'gpg-set-comment';       # Comment:
+        assert_screen 'gpg-set-comment';    # Comment:
         send_key 'ret';
-        assert_screen 'gpg-set-okay';          # Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
+        assert_screen 'gpg-set-okay';    # Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
         enter_cmd "O";
     }
 
     assert_screen("gpg-passphrase-enter");
-    enter_cmd "REALSECRETPHRASE";              # Input insecure passphrase
+    enter_cmd "REALSECRETPHRASE";    # Input insecure passphrase
     assert_screen("gpg-passphrase-insecure");
     send_key 'tab';
     send_key 'ret';

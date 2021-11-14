@@ -29,9 +29,9 @@ sub run {
         send_key 'alt-x';    # XEN Server, only available on x86_64: bsc#1088175
         send_key 'alt-e';    # Xen tools
     }
-    send_key 'alt-k';        # KVM Server
-    send_key 'alt-v';        # KVM tools
-    send_key 'alt-l';        # libvirt-lxc
+    send_key 'alt-k';    # KVM Server
+    send_key 'alt-v';    # KVM tools
+    send_key 'alt-l';    # libvirt-lxc
 
     # launch the installation
     send_key 'alt-a';

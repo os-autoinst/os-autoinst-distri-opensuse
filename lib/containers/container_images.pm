@@ -81,7 +81,7 @@ sub build_and_run_image {
     assert_script_run("$runtime run --rm --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
     assert_script_run("$runtime run -d --name myapp -p 8888:80 myapp");
     script_retry("$runtime ps -a | grep myapp", delay => 5, retry => 3);    # ensure container is running
-    assert_script_run("$runtime logs myapp");                               # show logs for easier problem investigation
+    assert_script_run("$runtime logs myapp");    # show logs for easier problem investigation
 
     # Test that the exported port is reachable
     script_retry('curl http://localhost:8888/ | grep "The test shall pass"', delay => 5, retry => 6);

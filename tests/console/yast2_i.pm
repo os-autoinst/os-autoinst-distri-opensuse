@@ -116,7 +116,7 @@ sub run {
     assert_screen "$pkgname-selected-for-install";
 
     if (!check_var('VERSION', '12')) {    #this functionality isn't avivable in SLE12SP0
-        send_key "alt-p";                 # go to search box again
+        send_key "alt-p";    # go to search box again
         for (1 .. length($pkgname)) { send_key "backspace" }
         enter_cmd("$recommended");
         assert_screen "$recommended-selected-for-install", 10;
@@ -135,7 +135,7 @@ sub run {
         enter_cmd("$pkgname");
         assert_screen "$pkgname-selected-for-install", 10;
     }
-    send_key "alt-a";        # accept
+    send_key "alt-a";    # accept
 
     # Expect Automatic changes view
     if (check_screen('yast2-sw_automatic-changes', 5)) {

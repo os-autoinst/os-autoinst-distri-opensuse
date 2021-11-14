@@ -141,7 +141,7 @@ sub create_new_partition_table {
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
-        send_key 'alt-p' if (is_storage_ng);                  # return back to Partitions tab
+        send_key 'alt-p' if (is_storage_ng);    # return back to Partitions tab
     }
     unless (is_storage_ng_newui) {
         assert_screen 'partition-create-new-table';
@@ -259,7 +259,7 @@ sub addpart {
             send_key(is_storage_ng() ? 'alt-r' : 'alt-a');    # Select to format partition
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
-            wait_screen_change { send_key 'home' };           # start from the top of the list
+            wait_screen_change { send_key 'home' };    # start from the top of the list
             assert_screen(((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
@@ -270,7 +270,7 @@ sub addpart {
     }
     if ($args{fsid}) {    # $args{fsid} will describe needle tag below
         send_key 'alt-i';    # select File system ID
-        send_key 'home';     # start from the top of the list
+        send_key 'home';    # start from the top of the list
 
         # Bug is applicable for pre storage-ng only
         if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text') && !is_storage_ng()) {

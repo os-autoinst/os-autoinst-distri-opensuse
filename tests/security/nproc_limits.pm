@@ -30,7 +30,7 @@ sub run {
     $self->select_serial_terminal;
 
     validate_script_output "ulimit -u", sub { m/unlimited/ };    # soft limit
-    validate_script_output "ulimit -u -H", sub { m/unlimited/ }; # hard limit
+    validate_script_output "ulimit -u -H", sub { m/unlimited/ };    # hard limit
 }
 
 sub test_flags {

@@ -19,8 +19,8 @@ sub download_image {
     my ($n) = @_;
     my $asset = 'ASSET_' . $n;
     my $target = get_var("$asset");    #i.e graphical-4.0.0.tar.bz2 or 00011400-graphical-4.0.0.tar.bz2
-    $target =~ s/^\d+-//;              #remove if private assets reference
-    $target =~ s/\Q.$img_suffix\E$//;  #remove suffix
+    $target =~ s/^\d+-//;    #remove if private assets reference
+    $target =~ s/\Q.$img_suffix\E$//;    #remove suffix
     bmwqemu::diag("image '$target' will be downloaded from $asset:");
     my $iurl = data_url("$asset");
     script_output "wget $iurl -O - |tar -xj -C /", 1300;
@@ -31,7 +31,7 @@ sub download_image {
 sub run {
     my $self = shift;
     my $indexes = get_var_array("IMAGE_DOWNLOAD");
-    for my $n (@{$indexes}) {          #process all referenced assets for image filename
+    for my $n (@{$indexes}) {    #process all referenced assets for image filename
         download_image($n);
     }
 }

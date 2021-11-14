@@ -72,10 +72,10 @@ sub run {
         send_key $cmd{next};
     }
     assert_screen 'sap-wizard-hana-system-parameters';
-    send_key 'alt-s';                                          # SAP SID
+    send_key 'alt-s';    # SAP SID
     send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');
     type_string $sid;
-    wait_screen_change { send_key 'alt-a' };                   # SAP Password
+    wait_screen_change { send_key 'alt-a' };    # SAP Password
     type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
     type_password $sles4sap::instance_password;
@@ -92,12 +92,12 @@ sub run {
         last if match_has_tag 'sap-product-installation';
         send_key $cmd{next} if match_has_tag 'sap-wizard-disk-selection-warning';    # A warning can be shown
         if (match_has_tag 'sap-wizard-disk-selection') {
-            assert_and_click 'sap-wizard-disk-selection';                            # Install in sda
+            assert_and_click 'sap-wizard-disk-selection';    # Install in sda
             send_key 'alt-o';
         }
         send_key 'alt-o' if match_has_tag 'sap-wizard-partition-issues';
         send_key 'alt-y' if match_has_tag 'sap-wizard-continue-installation';
-        wait_still_screen 1;                                                         # Slow down the loop
+        wait_still_screen 1;    # Slow down the loop
     }
 
     if (check_var('DESKTOP', 'textmode')) {

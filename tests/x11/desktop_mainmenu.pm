@@ -30,7 +30,7 @@ sub run {
         mouse_set(0, 0);
         sleep 1;
         assert_screen_change { send_key "ctrl-esc" };    # open menu
-        send_key "up";                                   # go into Applications submenu
+        send_key "up";    # go into Applications submenu
         mouse_hide(1);
     }
     else {

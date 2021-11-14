@@ -108,7 +108,7 @@ sub run {
 
     # Sort binaries into:
     my %installable;    #Binaries already released that can already be installed.
-    my @new_binaries;   #Binaries introduced by the update that will be installed after the repos are added.
+    my @new_binaries;    #Binaries introduced by the update that will be installed after the repos are added.
 
     foreach my $b (@l2, @l3) {
         if (zypper_call("se -t package -x $b", exitcode => [0, 104]) eq '104') {

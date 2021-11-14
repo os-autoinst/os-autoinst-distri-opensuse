@@ -82,16 +82,16 @@ sub extract_bss_nr {
     my ($self, $nr) = @_;
     $nr = $self unless (ref($self));    # allow as static function
     $nr //= 0;
-    $nr = $1 if $nr =~ /_(\d+)$/;       # extract number, e.g. `bss_1` would result in `1`
+    $nr = $1 if $nr =~ /_(\d+)$/;    # extract number, e.g. `bss_1` would result in `1`
     return $nr;
 }
 
 sub recover_console {
     if (testapi::is_serial_terminal()) {
-        type_string(qq(\c\\));          # Send QUIT signal
+        type_string(qq(\c\\));    # Send QUIT signal
     }
     else {
-        send_key('ctrl-\\');            # Send QUIT signal
+        send_key('ctrl-\\');    # Send QUIT signal
     }
     assert_script_run('echo CHECK_CONSOLE');
 }

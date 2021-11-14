@@ -147,16 +147,16 @@ sub ensure_unlocked_desktop {
                     next;    # most probably screen is locked
                 }
             }
-            last;            # desktop is unlocked, mission accomplished
+            last;    # desktop is unlocked, mission accomplished
         }
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                send_key 'esc';                                                                           # end screenlock
+                send_key 'esc';    # end screenlock
                 diag("Screen lock present");
             };
         }
-        wait_still_screen 1;                                                                              # slow down loop
+        wait_still_screen 1;    # slow down loop
     }
 }
 
@@ -262,9 +262,9 @@ sub handle_logout {
     }
     else {
         my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
-        send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
+        send_key_until_needlematch 'logoutdialog', "$key";    # opens logout dialog
     }
-    assert_and_click 'logout-button';                                  # press logout
+    assert_and_click 'logout-button';    # press logout
 }
 
 =head2 handle_relogin

@@ -28,7 +28,7 @@ sub run {
     assert_screen 'evince-fullscreen-mode', 5;
     send_key "esc";
 
-    send_key "f5";     # presentation mode
+    send_key "f5";    # presentation mode
     assert_screen 'evince-presentation-mode', 5;
     send_key "esc";
 

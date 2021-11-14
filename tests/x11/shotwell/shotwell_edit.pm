@@ -40,7 +40,7 @@ sub run {
     wait_still_screen 2;
     send_key "esc";
     assert_screen 'shotwell-removed-picture', 60;
-    send_key "ctrl-q";          # Quit shotwell
+    send_key "ctrl-q";    # Quit shotwell
 
     # Clean shotwell's library then remove the test pictures
     $self->clean_shotwell();
