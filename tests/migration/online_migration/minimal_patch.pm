@@ -18,6 +18,7 @@ sub run {
     select_console 'root-console';
     disable_installation_repos;
     minimal_patch_system(version_variable => 'HDDVERSION');
+    cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
     deregister_dropped_modules;
 }
 
