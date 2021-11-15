@@ -20,7 +20,8 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
   - '{{disable_boot_menu_timeout}}'
-  - installation/start_install
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - '{{logs_from_installation_system}}'
   - installation/reboot_after_installation

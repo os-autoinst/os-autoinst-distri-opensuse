@@ -19,7 +19,8 @@ schedule:
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/start_install
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/reboot_after_installation
   - installation/first_boot

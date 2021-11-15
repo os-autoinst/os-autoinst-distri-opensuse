@@ -28,7 +28,8 @@ schedule:
   - installation/installation_overview
   - installation/edit_optional_kernel_cmd_parameters
   - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/start_install
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation

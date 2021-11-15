@@ -34,7 +34,8 @@ schedule:
   - installation/select_patterns
   - installation/installation_overview
   - installation/bootloader_settings/disable_boot_menu_timeout
-  - installation/start_install
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
