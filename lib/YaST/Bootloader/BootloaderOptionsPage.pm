@@ -3,7 +3,8 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: The class introduces all accessing methods for Boot loader options tab in bootloader module
+# Summary: The class introduces all accessing methods for Bootloader Options tab
+# in Boot Loader Settings.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Bootloader::BootloaderOptionsPage;
@@ -23,9 +24,9 @@ sub is_shown {
     $self->{txt_grub_timeout}->exist();
 }
 
-sub disable_grub_timeout {
-    my ($self) = @_;
-    $self->{txt_grub_timeout}->set("-1");
+sub set_grub_timeout {
+    my ($self, $timeout) = @_;
+    $self->{txt_grub_timeout}->set($timeout);
 }
 
 1;

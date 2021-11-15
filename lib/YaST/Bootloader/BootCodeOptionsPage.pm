@@ -3,7 +3,8 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: The class introduces all accessing methods for Boot code options tab in bootloader module
+# Summary: The class introduces all accessing methods for Boot Code Options tab
+# in Boot Loader Settings.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Bootloader::BootCodeOptionsPage;
@@ -22,7 +23,7 @@ sub init {
     $self->{cb_trusted_boot} = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
     $self->{cb_generic_to_mbr} = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
     $self->{cb_set_active_flag} = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
-    $self->{tb_boot_loader_settings} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
+    $self->{tab_boot_loader_settings} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
     $self->{btn_ok} = $self->{app}->button({id => 'next'});
     $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
     return $self;
@@ -88,9 +89,14 @@ sub uncheck_write_to_mbr {
     $self->{cb_bootdev}->uncheck();
 }
 
-sub switch_tab_bootloader_options {
+sub switch_to_bootloader_options_tab {
     my ($self) = @_;
-    $self->{tb_boot_loader_settings}->select("Boot&loader Options");
+    $self->{tab_boot_loader_settings}->select('Bootloader Options');
+}
+
+sub switch_to_kernel_parameters_tab {
+    my ($self) = @_;
+    $self->{tab_boot_loader_settings}->select('Kernel Parameters');
 }
 
 1;
