@@ -62,7 +62,7 @@ sub cleanup {
 }
 
 sub test_flags {
-    return {fatal => 0, milestone => 0};
+    return {fatal => 0, milestone => 0, always_rollback => 1};
 }
 
 1;

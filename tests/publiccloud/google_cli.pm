@@ -8,6 +8,7 @@
 # without any warranty.
 
 # Summary: Create VM in GCP using gcloud binary
+# We currently don't package gcloud binary
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
@@ -30,6 +31,10 @@ sub run {
         assert_script_run "curl $url -o google-cloud-sdk.tar.gz";
         assert_script_run "tar xvf google-cloud-sdk.tar.gz";
         assert_script_run "google-cloud-sdk/install.sh --quiet --usage-reporting false --command-completion true";
+
+        # The 'gcloud' binary in not in $PATH by default
+        assert_script_run "echo 'source /root/google-cloud-sdk/completion.bash.inc' >> ~/.bashrc";
+        assert_script_run "echo 'source ~/google-cloud-sdk/path.bash.inc' >> ~/.bashrc";
         assert_script_run "source ~/.bashrc";
     }
 
@@ -62,7 +67,7 @@ sub cleanup {
 }
 
 sub test_flags {
-    return {fatal => 0, milestone => 0};
+    return {fatal => 0, milestone => 0, always_rollback => 1};
 }
 
 1;
