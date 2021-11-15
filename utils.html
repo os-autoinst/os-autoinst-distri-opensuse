@@ -79,6 +79,7 @@
       <li><a href="#install_patterns-install_patterns">install_patterns install_patterns();</a></li>
       <li><a href="#permit_root_ssh-permit_root_ssh">permit_root_ssh permit_root_ssh();</a></li>
       <li><a href="#permit_root_ssh_in_sol-permit_root_ssh_in_sol">permit_root_ssh_in_sol permit_root_ssh_in_sol();</a></li>
+      <li><a href="#cleanup_disk_space-cleanup_disk_space">cleanup_disk_space cleanup_disk_space();</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -588,6 +589,10 @@
 <h2 id="permit_root_ssh_in_sol-permit_root_ssh_in_sol">permit_root_ssh_in_sol permit_root_ssh_in_sol();</h2>
 
 <p>for ipmi backend, PermitRootLogin has to be set in sol console however, assert_script_run and script_run is not stable in sole console enter_cmd or type_string are acceptable</p>
+
+<h2 id="cleanup_disk_space-cleanup_disk_space">cleanup_disk_space cleanup_disk_space();</h2>
+
+<p>In fully_patch_system and minimal_patch_system, we&#39;ll create so many snapshots. which will cost large part of the disk space. We need to delete these snapshots before the migration only if the available space is less than DISK_LOW_WATERMARK.</p>
 
 
 </body>
