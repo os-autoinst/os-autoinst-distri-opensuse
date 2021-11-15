@@ -10,6 +10,7 @@ package containers::basetest;
 use containers::docker;
 use containers::podman;
 use Mojo::Base 'opensusebasetest';
+use testapi 'get_var';
 
 sub containers_factory {
     my ($self, $runtime) = @_;
@@ -26,6 +27,10 @@ sub containers_factory {
     }
     $engine->init();
     return $engine;
+}
+
+sub test_flags {
+    return get_var('PUBLIC_CLOUD') ? {no_rollback => 1} : {};
 }
 
 1;
