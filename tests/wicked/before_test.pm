@@ -17,6 +17,7 @@ use network_utils qw(iface setup_static_network);
 use serial_terminal;
 use main_common 'is_updates_tests';
 use repo_tools 'generate_version';
+use wicked::wlan;
 
 sub run {
     my ($self, $ctx) = @_;
