@@ -23,10 +23,6 @@ sub run {
 
     select_console 'root-console';
 
-    # Stop firewalld for multi-machine tests
-    systemctl('stop firewalld');
-    systemctl('disable firewalld');
-
     zypper_call('in bridge-utils');
 
     # Need to do 'make netconfig' to generate 'lblnet_tst_server'
