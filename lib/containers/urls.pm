@@ -278,13 +278,21 @@ sub get_3rd_party_images {
         "$ex_reg/library/fedora",
         "registry.access.redhat.com/ubi8/ubi",
         "registry.access.redhat.com/ubi8/ubi-minimal",
+        "registry.access.redhat.com/ubi8/ubi-micro",
         "registry.access.redhat.com/ubi8/ubi-init");
 
-    # poo#72124 Ubuntu image (occasionally) fails on s390x
-    push @images, "$ex_reg/library/ubuntu" unless is_s390x;
-
-    # Missing centos container image for s390x.
-    push @images, "$ex_reg/library/centos" unless is_s390x;
+    # - ubi9 images require z14+ s390x machine, they are not ready in OSD yet.
+    #     on z13: "Fatal glibc error: CPU lacks VXE support (z14 or later required)".
+    # - poo#72124 Ubuntu image (occasionally) fails on s390x.
+    # - CentOS image not available on s390x.
+    push @images, (
+        "registry.access.redhat.com/ubi9-beta/ubi",
+        "registry.access.redhat.com/ubi9-beta/ubi-minimal",
+        "registry.access.redhat.com/ubi9-beta/ubi-micro",
+        "registry.access.redhat.com/ubi9-beta/ubi-init",
+        "$ex_reg/library/ubuntu",
+        "$ex_reg/library/centos"
+    ) unless is_s390x;
 
     # RedHat UBI7 images are not built for aarch64
     push @images, (
