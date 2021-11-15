@@ -12,7 +12,7 @@ conditional_schedule:
     kernel_cmd_parameters:
         BACKEND:
             pvm_hmc:
-            - installation/edit_optional_kernel_cmd_parameters
+            - installation/bootloader_settings/disable_plymouth
     shutdown_svirt:
         BACKEND:
             svirt:

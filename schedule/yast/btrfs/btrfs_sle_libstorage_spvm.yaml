@@ -6,7 +6,6 @@ description:    >
 vars:
   FILESYSTEM: btrfs
   DESKTOP: textmode
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -26,7 +25,7 @@ schedule:
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
+  - installation/bootloader_settings/disable_plymouth
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/start_install
   - installation/await_install

@@ -6,7 +6,6 @@ description: >
   is scheduled and OPT_KERNEL_PARAMS variable is set.
 name: activate_encrypted_volume
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
   YUI_REST_API: 1
 schedule:
@@ -28,7 +27,7 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
+  - installation/bootloader_settings/disable_plymouth
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/start_install
   - installation/await_install
