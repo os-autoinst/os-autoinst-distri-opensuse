@@ -255,54 +255,63 @@ sub power_action {
     $args{textmode} //= check_var('DESKTOP', 'textmode');
     $args{first_reboot} //= 0;
     die "'action' was not provided" unless $action;
+
     prepare_system_shutdown;
+
     unless ($args{keepconsole}) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
+
     unless ($args{observe}) {
         if ($args{textmode}) {
             enter_cmd "$action";
         }
-        else {
-            if ($action eq 'reboot') {
-                reboot_x11;
+        elsif ($action eq 'reboot') {
+            reboot_x11;
+        }
+        elsif ($action eq 'poweroff') {
+            if (check_var('BACKEND', 's390x')) {
+                record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
+                select_console 'root-console';
+                enter_cmd "$action";
             }
-            elsif ($action eq 'poweroff') {
-                if (check_var('BACKEND', 's390x')) {
-                    record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
-                    select_console 'root-console';
-                    enter_cmd "$action";
-                }
-                else {
-                    poweroff_x11;
-                }
+            else {
+                poweroff_x11;
             }
         }
     }
+
     my $soft_fail_data;
     my $shutdown_timeout = 60;
+
     if (is_sle('15-sp1+') && check_var('DESKTOP', 'textmode') && ($action eq 'poweroff')) {
         $soft_fail_data = {bugref => 'bsc#1158145', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+
     # Shutdown takes longer than 60 seconds on SLE12 SP4 and SLE 15
     if (is_sle('12+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         $soft_fail_data = {bugref => 'bsc#1055462', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+
     # The timeout is increased as shutdown takes longer on Live CD
     if (get_var('LIVECD')) {
         $soft_fail_data = {soft_timeout => 60, timeout => $shutdown_timeout *= 4, bugref => "bsc#1096241"};
     }
+
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $soft_fail_data = {bugref => 'bsc#1057637', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+
     # Kubeadm also requires some extra time
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         $soft_fail_data = {bugref => 'poo#55127', soft_timeout => 90, timeout => $shutdown_timeout *= 2};
     }
+
     # Sometimes QEMU CD-ROM pop-up is displayed on shutdown, see bsc#1137230
     if (is_opensuse && check_screen 'qemu-cd-rom-authentication-required') {
         $soft_fail_data = {bugref => 'bsc#1137230', soft_timeout => 60, timeout => $shutdown_timeout *= 5};
     }
+
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast or s390 zKVM reboot, as did initial reboot already
     if (check_var('VIRSH_VMM_FAMILY', 'kvm')
