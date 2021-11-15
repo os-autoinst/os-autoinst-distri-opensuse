@@ -1317,14 +1317,14 @@ sub post_fail_hook {
 
     return if (get_var('NOLOGS'));
 
-    # just output error if selected program doesn't exist instead of collecting all logs
-    # set current variables in x11_start_program
+    # set by x11_start_program
     if (get_var('IN_X11_START_PROGRAM')) {
-        my $program = get_var('IN_X11_START_PROGRAM');
+        my ($program) = get_var('IN_X11_START_PROGRAM') =~ m/(\S+)/;
+        set_var('IN_X11_START_PROGRAM', undef);
         select_log_console;
         my $r = script_run "which $program";
         if ($r != 0) {
-            record_info("no $program", "Could not find '$program' on the system", result => 'fail') && die "$program does not exist on the system";
+            record_info("no $program", "Could not find '$program' on the system", result => 'fail');
         }
     }
 
