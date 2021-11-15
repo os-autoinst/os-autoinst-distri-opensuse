@@ -43,4 +43,9 @@ sub enable_ssh_service {
     return $self;
 }
 
+sub access_booting_options {
+    my ($self) = @_;
+    $self->get_overview_page()->access_booting_options();
+}
+
 1;

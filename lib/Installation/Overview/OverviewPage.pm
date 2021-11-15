@@ -65,6 +65,11 @@ sub open_ssh_port {
     });
 }
 
+sub access_booting_options {
+    my ($self) = @_;
+    $self->{txt_overview}->activate_link('bootloader_stuff');
+}
+
 sub press_install {
     my ($self) = @_;
     return $self->{btn_install}->click();

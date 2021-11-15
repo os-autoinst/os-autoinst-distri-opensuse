@@ -27,7 +27,7 @@ schedule:
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/disable_grub_timeout
+  - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system

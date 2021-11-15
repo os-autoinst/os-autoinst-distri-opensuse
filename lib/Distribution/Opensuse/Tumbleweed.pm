@@ -33,7 +33,7 @@ use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
 use Installation::Popups::YesNoPopupController;
-use YaST::Bootloader::BootloaderController;
+use YaST::Bootloader::BootloaderSettingsController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
 use YaST::Firstboot::LanguageAndKeyboardLayoutController;
@@ -143,8 +143,8 @@ sub get_registration_of_registered_system {
     return Installation::Registration::RegisteredSystemController->new();
 }
 
-sub get_bootloader {
-    return YaST::Bootloader::BootloaderController->new();
+sub get_bootloader_settings {
+    return YaST::Bootloader::BootloaderSettingsController->new();
 }
 
 sub get_license_agreement {

@@ -31,7 +31,7 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/edit_optional_kernel_cmd_parameters
-  - installation/disable_grub_timeout
+  - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
