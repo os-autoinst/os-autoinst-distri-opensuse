@@ -27,22 +27,27 @@ sub run {
     select_console 'x11', await_console => 0;
     ensure_unlocked_desktop;
     turn_off_kde_screensaver;
-
     my @updates_installed_tags = qw(updates_none updates_available updates_available-tray);
     assert_screen [qw(updates_available-tray tray-without-updates-available)];
     if (match_has_tag 'updates_available-tray') {
-        assert_and_click("updates_available-tray");
-
         # First update package manager, then packages, then bsc#992773 (2x)
         while (1) {
-            assert_and_click_until_screen_change('updates_click-install');
+            assert_screen_change {
+                assert_and_click_until_screen_change("updates_available-tray");
+            };
+            assert_screen_change {
+                assert_and_click_until_screen_change('updates_click-install');
+            };
 
-            # Wait until installation starts, intended to time out
-            wait_still_screen(stilltime => 4, timeout => 5);
-
-            # Wait until installation is done
-            assert_screen \@updates_installed_tags, 3600;
-
+            # Wait until installation is done.
+            my $start_time = time;
+            my $timeout = 3600 * get_var('TIMEOUT_SCALE', 1);
+            do {
+                # Check for needles matching the end of the update installation.
+                die "Installing updates took over " . ($timeout / 3600) . " hour(s)." if (time - $start_time > $timeout);
+                assert_screen \@updates_installed_tags, 3600;
+                # Make sure that the match was not false, and that the installing panel is not still up
+            } while (check_screen([qw(pkit_installing_state updates_waiting)]));
             # Make sure the applet has fetched the current status from the backend
             # and has finished redrawing. In case the update status changed after
             # the assert_screen, record a soft failure
@@ -72,7 +77,7 @@ sub run {
                 }
                 elsif (check_screen 'updates_available-tray', 30) {
                     # There were updates. Do the update again
-                    assert_and_click("updates_available-tray");
+                    next;
                 }
                 else {
                     die "Invalid state.";
