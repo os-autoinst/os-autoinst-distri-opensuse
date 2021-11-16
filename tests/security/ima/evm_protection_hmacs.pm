@@ -1,18 +1,18 @@
-# Copyright 2019-2020 SUSE LLC
+# Copyright 2019-2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test EVM protection using HMACs
 # Note: This case should come after 'evm_setup'
-# Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#53579
+# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Tags: poo#53579, poo#100694, poo#102311
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use bootloader_setup "replace_grub_cmdline_settings";
-use power_action_utils "power_action";
+use bootloader_setup qw(replace_grub_cmdline_settings tianocore_disable_secureboot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -40,7 +40,10 @@ sub run {
 
     replace_grub_cmdline_settings('evm=fix ima_appraise=fix', '', update_grub => 1);
 
+    # We need re-enable the secureboot after removing "ima_appraise=fix" kernel parameter
     power_action('reboot', textmode => 1);
+    $self->wait_grub(bootloader_time => 200);
+    $self->tianocore_disable_secureboot('re_enable');
     $self->wait_boot(textmode => 1);
     $self->select_serial_terminal;
     my $ret = script_output($sample_cmd, 30, proceed_on_failure => 1);

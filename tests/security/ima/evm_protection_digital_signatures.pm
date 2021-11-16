@@ -3,16 +3,16 @@
 #
 # Summary: Test EVM protection using digital signatures
 # Note: This case should come after 'evm_protection_hmacs'
-# Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#53582, poo#92347
+# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Tags: poo#53579, poo#100694, poo#102311
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use bootloader_setup "replace_grub_cmdline_settings";
-use power_action_utils "power_action";
+use bootloader_setup qw(replace_grub_cmdline_settings tianocore_disable_secureboot);
+use power_action_utils 'power_action';
 
 sub run {
     my ($self) = @_;
@@ -61,7 +61,11 @@ sub run {
     }
     else {
         replace_grub_cmdline_settings('evm=fix ima_appraise=fix', '', update_grub => 1);
+
+        # We need re-enable the secureboot after removing "ima_appraise=fix" kernel parameter
         power_action('reboot', textmode => 1);
+        $self->wait_grub(bootloader_time => 200);
+        $self->tianocore_disable_secureboot('re_enable');
         $self->wait_boot(textmode => 1);
         $self->select_serial_terminal;
 
