@@ -44,6 +44,8 @@ sub run {
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");
 
+    assert_script_run("lsblk");
+
     # Install bzip2 to check for bsc#1165915
     if (script_run("zypper -n in bzip2") == 8) {
         record_soft_failure('bsc#1165915');

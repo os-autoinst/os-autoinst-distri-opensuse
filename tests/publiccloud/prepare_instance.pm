@@ -61,9 +61,15 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
+    my $additional_disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE', 0);
+    my $additional_disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE', '');    # Optional variable, also if PUBLIC_CLOUD_HDD2_SIZE is set
+
     # Create public cloud instance
     my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance(check_connectivity => 1);
+    my %instance_args;
+    $instance_args{check_connectivity} = 1;
+    $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
+    my $instance = $provider->create_instance(%instance_args);
     $instance->wait_for_guestregister();
     $args->{my_provider} = $provider;
     $args->{my_instance} = $instance;
