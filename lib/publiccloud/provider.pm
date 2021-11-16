@@ -42,7 +42,6 @@ Needs provider specific credentials, e.g. key_id, key_secret, region.
 sub init {
     my ($self) = @_;
     $self->create_ssh_key();
-    $self->vault(publiccloud::vault->new());
 }
 
 =head2 conv_openqa_tf_name
@@ -522,7 +521,6 @@ This method is called called after each test on failure or success.
 sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy();
-    $self->vault->revoke();
     assert_script_run "cd";
 }
 
@@ -554,14 +552,6 @@ This function implements a provider specifc get_state call for a given instance.
 sub get_state_from_instance
 {
     die('get_state_from_instance() isn\'t implemented');
-}
-
-=head2 get_default_tag
-Returns a default tag for container images based of the current job id
-=cut
-sub get_default_tag {
-    my ($self) = @_;
-    return join('-', $self->resource_name, get_current_job_id());
 }
 
 1;

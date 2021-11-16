@@ -1,3 +1,12 @@
+# SUSE's openQA tests
+#
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Base class for publiccloud tests
+#
+# Maintainer: qa-c team <qa-c@suse.de>
+
 package publiccloud::k8sbasetest;
 use Mojo::Base 'publiccloud::basetest';
 use utils 'script_retry';

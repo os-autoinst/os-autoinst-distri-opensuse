@@ -34,16 +34,14 @@ sub provider_factory {
             $provider = publiccloud::ecr->new(
                 key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
                 key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
-                username => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
+                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
             );
         }
         elsif ($args{service} eq 'EKS') {
             $provider = publiccloud::eks->new(
                 key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
                 key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
-                username => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
+                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1')
             );
         }
         elsif ($args{service} eq 'EC2') {
