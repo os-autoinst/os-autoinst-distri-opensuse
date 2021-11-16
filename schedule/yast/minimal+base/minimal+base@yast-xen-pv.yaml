@@ -27,7 +27,8 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/select_patterns
   - installation/installation_overview
-  - installation/start_install
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
