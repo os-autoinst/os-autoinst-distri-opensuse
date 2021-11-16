@@ -27,6 +27,21 @@ sub rescan_devices {
     wait_still_screen;    # Wait until rescan is done
 }
 
+# Select partition
+sub select_partition {
+    my $partition_needle_name = shift;
+    send_key 'tab';
+    send_key 'tab';
+    send_key 'tab';
+    for (1 ... 100) {
+        send_key 'down';
+        send_key_until_needlematch("expert-partitioner-label", "right", 50, 1);
+        if (check_screen $partition_needle_name, 2) {
+            last;
+        }
+    }
+}
+
 # Format partition with a file system
 sub format_partition {
     my $filesystem = get_required_var('PARTITION_FILE_SYSTEM');
@@ -51,17 +66,15 @@ sub run {
 
 
     # Select device
-    my $disk = get_required_var('SPECIFIC_DISK');
-    send_key 'tab';
-    send_key 'tab';
-    send_key 'tab';
-    for (1 ... 100) {
-        send_key 'down';
-        send_key_until_needlematch("expert-partitioner-label", "right", 50, 1);
-        if (check_screen "expert-partitioner-$disk", 2) {
-            last;
-        }
+    # set swap for vt
+    if (get_var("MITIGATION_INSTALL")) {
+        select_partition "expert-partitioner-swap";
+        send_key 'alt-e';
+        send_key 'alt-a';
+        send_key $cmd{next};
     }
+    my $disk = get_required_var('SPECIFIC_DISK');
+    select_partition "expert-partitioner-$disk";
 
     # Edit device
     send_key 'alt-e';
