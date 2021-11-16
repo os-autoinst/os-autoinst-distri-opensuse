@@ -95,8 +95,9 @@ sub prepare_repos {
 
     add_qa_head_repo;
     add_qa_web_repo;
-    add_suseconnect_product('sle-module-python2') if is_sle('>15') && get_var('FLAVOR') !~ /-Updates$|-Incidents/;
-    zypper_call("in qa_testset_automation qa_tools python-base python-xml");
+    add_suseconnect_product('sle-module-python2') if is_sle('>15') && is_sle('<15-sp4') && get_var('FLAVOR') !~ /-Updates$|-Incidents/;
+    my $python_packages = is_sle('<15-sp4') ? 'python-base python-xml' : '';
+    zypper_call("in qa_testset_automation qa_tools ${python_packages}");
 }
 
 # Create qaset/config file, reset qaset, and start testrun
@@ -151,8 +152,10 @@ sub run {
     upload_logs($log, timeout => 100);
 
     # JUnit xml report
-    assert_script_run("/usr/share/qa/qaset/bin/junit_xml_gen.py -n 'regression' -d -o /tmp/junit.xml /var/log/qaset");
-    parse_junit_log("/tmp/junit.xml");
+    if (is_sle('<15-sp4')) {
+        assert_script_run("/usr/share/qa/qaset/bin/junit_xml_gen.py -n 'regression' -d -o /tmp/junit.xml /var/log/qaset");
+        parse_junit_log("/tmp/junit.xml");
+    }
 
     unless ($testrun_finished) {
         die "Test run didn't finish within time limit";
