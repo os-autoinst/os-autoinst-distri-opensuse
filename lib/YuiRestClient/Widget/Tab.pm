@@ -7,15 +7,19 @@ use warnings;
 
 use parent 'YuiRestClient::Widget::Base';
 use YuiRestClient::Action;
+use YuiRestClient::Sanitizer;
 
 sub select {
     my ($self, $item) = @_;
-    $self->action(action => YuiRestClient::Action::YUI_SELECT, value => $item);
+    my $items = $self->property('items');
+    ($item) = grep { YuiRestClient::Sanitizer::sanitize($_) eq $item } map { $_->{label} } @{$items};
+    return $self->action(action => YuiRestClient::Action::YUI_SELECT, value => $item);
 }
-sub selected_tab {
+
+sub selected_items {
     my ($self) = @_;
-    my $tabs = $self->property('items');
-    return map { $_->{label} } grep { $_->{selected} } @{$tabs};
+    my $items = $self->property('items');
+    return map { YuiRestClient::Sanitizer::sanitize($_->{label}) } grep { $_->{selected} } @{$items};
 }
 
 1;
