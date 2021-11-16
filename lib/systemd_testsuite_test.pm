@@ -108,7 +108,6 @@ sub testsuiteprepare {
     assert_script_run "rm -rf /var/tmp/systemd-test*";
     assert_script_run "clear";
     assert_script_run "cd /usr/lib/systemd/tests";
-    assert_script_run "./run-tests.sh $testname --setup 2>&1 | tee /tmp/testsuite.log", 300;
 
     if ($option eq 'nspawn') {
         my $testservicepath = script_output "sed -n '/testservice=/s/root/nspawn-root/p' logs/$testname-setup.log";
