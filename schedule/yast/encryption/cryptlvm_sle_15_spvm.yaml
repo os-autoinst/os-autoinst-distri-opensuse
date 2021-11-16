@@ -8,7 +8,6 @@ description: >
   system roles wizard screen.
 name: cryptlvm
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
   YUI_REST_API: 1
 schedule:
@@ -30,7 +29,7 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
+  - installation/bootloader_settings/disable_plymouth
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation

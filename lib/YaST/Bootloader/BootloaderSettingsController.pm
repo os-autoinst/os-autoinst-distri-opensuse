@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use YuiRestClient;
 use YaST::Bootloader::BootCodeOptionsPage;
+use YaST::Bootloader::KernelParametersPage;
 use YaST::Bootloader::BootloaderOptionsPage;
 
 sub new {
@@ -21,21 +22,28 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{BootCodePage} = YaST::Bootloader::BootCodeOptionsPage->new({app => YuiRestClient::get_app()});
-    $self->{BootloaderPage} = YaST::Bootloader::BootloaderOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{BootCodeOptionsPage} = YaST::Bootloader::BootCodeOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{KernelParametersPage} = YaST::Bootloader::KernelParametersPage->new({app => YuiRestClient::get_app()});
+    $self->{BootloaderOptionsPage} = YaST::Bootloader::BootloaderOptionsPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
 sub get_boot_code_options_page {
     my ($self) = @_;
-    die "Boot code options tab is not shown" unless $self->{BootCodePage}->is_shown();
-    return $self->{BootCodePage};
+    die 'Boot Code Options tab is not shown' unless $self->{BootCodeOptionsPage}->is_shown();
+    return $self->{BootCodeOptionsPage};
+}
+
+sub get_kernel_parameters_page {
+    my ($self) = @_;
+    die 'Kernel Parameters tab is not shown' unless $self->{KernelParametersPage}->is_shown();
+    return $self->{KernelParametersPage};
 }
 
 sub get_bootloader_options_page {
     my ($self) = @_;
-    die "Boot loader options tab is not shown" unless $self->{BootloaderPage}->is_shown();
-    return $self->{BootloaderPage};
+    die 'Bootloader Options tab is not shown' unless $self->{BootloaderOptionsPage}->is_shown();
+    return $self->{BootloaderOptionsPage};
 }
 
 sub get_current_settings {
@@ -73,9 +81,18 @@ sub write_to_partition {
 
 sub disable_grub_timeout {
     my ($self) = @_;
-    $self->get_boot_code_options_page->switch_tab_bootloader_options();
-    $self->get_bootloader_options_page->disable_grub_timeout();
+    $self->get_boot_code_options_page->switch_to_bootloader_options_tab();
+    $self->get_bootloader_options_page->set_grub_timeout('-1');
     $self->get_bootloader_options_page->press_next();
+}
+
+sub disable_plymouth {
+    my ($self) = @_;
+    $self->get_boot_code_options_page()->switch_to_kernel_parameters_tab();
+    my $param = $self->get_kernel_parameters_page()->get_optional_kernel_param();
+    $param =~ s/plymouth.*?\s+//g;
+    $self->get_kernel_parameters_page()->set_optional_kernel_param($param);
+    $self->get_kernel_parameters_page()->press_next();
 }
 
 1;
