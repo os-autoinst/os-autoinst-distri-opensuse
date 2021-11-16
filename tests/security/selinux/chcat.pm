@@ -28,7 +28,7 @@ sub run {
     my $default_category_root = $systemhigh;
     my $default_category_commonfile = $systemlow;
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");

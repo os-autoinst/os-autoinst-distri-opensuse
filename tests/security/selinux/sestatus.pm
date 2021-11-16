@@ -16,8 +16,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-
-    select_console "root-console";
+    $self->select_serial_terminal;
     $self->set_sestatus("permissive", "minimum");
 }
 

@@ -19,7 +19,7 @@ sub run {
     my $fcontext_type1 = "etc_t";
     my $fcontext_type2 = "bin_t";
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");

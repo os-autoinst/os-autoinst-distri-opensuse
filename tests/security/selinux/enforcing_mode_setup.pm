@@ -16,7 +16,7 @@ use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # make sure SELinux in "permissive" mode
     validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*permissive.*/sx });
@@ -36,7 +36,7 @@ sub run {
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     validate_script_output(
         "sestatus",

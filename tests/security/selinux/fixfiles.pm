@@ -16,7 +16,7 @@ sub run {
     my ($self) = shift;
     my $file_output = $selinuxtest::file_output;
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # test `fixfiles check` can print any incorrect file context labels
     assert_script_run("fixfiles check > $file_output 2>&1", timeout => 300);

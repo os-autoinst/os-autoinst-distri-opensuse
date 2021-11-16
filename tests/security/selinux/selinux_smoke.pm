@@ -15,13 +15,25 @@ use warnings;
 use testapi;
 use utils;
 use registration qw(add_suseconnect_product register_product);
-use version_utils "is_sle";
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # make sure SELinux is "enabled" and in "permissive" mode
     validate_script_output("sestatus", sub { m/SELinux\ status: .*enabled.* Current\ mode: .*permissive/sx });
+
+    if (is_tumbleweed && script_run('fixfiles check /etc/selinux/config |& grep "command not found"') == 0) {
+        record_soft_failure('boo#1190813');
+        assert_script_run("sed -i 's/ //' /etc/selinux/config");
+    }
+
+    # https://progress.opensuse.org/issues/101481
+    if (is_sle('<=15-sp2') && script_run('zypper lu|grep sle-we-release') == 0) {
+        validate_script_output('zypper -n up --auto-agree-with-product-licenses --no-recommends sle-we-release',
+            sub { m/\(1\/1\) Installing: sle-we-release/ });
+    }
 
     # refresh & update
     zypper_call("ref", timeout => 1200);
@@ -32,7 +44,7 @@ sub run {
     zypper_call("rm apache2");
 
     # for sle, register available extensions and modules, e.g., free addons
-    if (is_sle) {
+    if (is_sle && !main_common::is_updates_tests()) {
         register_product();
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '15') {
