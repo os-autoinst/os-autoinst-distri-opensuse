@@ -1,0 +1,44 @@
+---
+name: gnome
+description: >
+    Maintainer: qe-core@suse.de
+    gnome tests, booted and run gnome tests from published qcow2 image
+conditional_schedule:
+    opensuse_tests:
+        DISTRI:
+            opensuse:
+                - x11/gnome_tweak_tool
+                - x11/glxgears
+                - x11/firefox_audio
+                - x11/chromium
+                - x11/graphicsMagick
+                - x11/ooffice
+                - x11/oomath
+                - x11/oocalc
+                - x11/gnome_music
+                - x11/evolution
+                - x11/inkscape
+                - x11/gimp
+                - x11/hexchat
+                - x11/vlc
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/check_network
+    - console/system_state
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - x11/user_gui_login
+    - x11/desktop_runner
+    - x11/xterm
+    - x11/sshxterm
+    - x11/gnome_control_center
+    - x11/gnome_terminal
+    - x11/gedit
+    - x11/firefox
+    - x11/nautilus
+    - x11/desktop_mainmenu
+    - '{{opensuse_tests}}'
+    - x11/reboot_gnome
+    - shutdown/shutdown
