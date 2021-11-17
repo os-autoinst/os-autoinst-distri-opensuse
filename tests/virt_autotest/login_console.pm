@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2012-2018 SUSE LLC
+# Copyright 2012-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm and xen support fully
@@ -28,6 +28,25 @@ sub set_ssh_console_timeout_before_use {
     check_screen([qw(linux-login virttest-displaymanager)], 60);
     save_screenshot;
     send_key 'ret';
+}
+
+#Just only match bootmenu-xen-kernel needle was not enough for xen host if got Xen domain0 kernel panic(bsc#1192258)
+#Need to double-check xen role after matched bootmenu-xen-kernel needle successfully
+sub double_check_xen_role {
+    record_info 'INFO', 'Double-check xen kernel';
+    if (script_run('lsmod | grep xen') == 0) {
+        diag("Boot up xen kernel successfully");
+    }
+    else {
+        record_info 'INFO', 'Check Xen hypervisor as Grub2 menuentry';
+        die 'Check Xen hypervisor as Grub2 menuentry failed' if (script_run('grub2-once --list | grep Xen') != 0);
+        save_screenshot;
+        die 'Double-check xen kernel failed';
+    }
+
+    record_info 'INFO', 'Check if start bootloader from a read-only snapshot';
+    assert_script_run('touch /root/read-only.fs && rm -rf /root/read-only.fs');
+    save_screenshot;
 }
 
 sub login_to_console {
@@ -146,7 +165,8 @@ sub login_to_console {
     set_ssh_console_timeout_before_use if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx');
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
-
+    # double-check xen role for xen host
+    double_check_xen_role if is_xen_host;
 }
 
 sub run {
