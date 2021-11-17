@@ -1,7 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
+# Copyright © 2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
 
 # Summary: Prepare systemd and testsuite.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
@@ -14,8 +18,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     $self->testsuiteinstall;
-    assert_script_run('cd /usr/lib/systemd/tests');
-    assert_script_run('./run-tests.sh --prepare', 600);
+    $self->testsuiteprepare;
 }
 
 sub test_flags {

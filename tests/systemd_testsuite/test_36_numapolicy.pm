@@ -1,7 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
+# Copyright © 2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
 
 # Summary: Run test executed by TEST-36-NUMAPOLICY from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
@@ -11,19 +15,14 @@ use warnings;
 use strict;
 use testapi;
 
-sub pre_run_hook {
-    my ($self) = @_;
-    #prepare test
-    $self->testsuiteprepare('TEST-36-NUMAPOLICY');
-}
-
 sub run {
+    my ($self) = @_;
+    my $test = 'TEST-36-NUMAPOLICY';
+
+
     #run test
     my $timeout = 1200;
-    assert_script_run 'cd /usr/lib/systemd/tests';
-    assert_script_run './run-tests.sh TEST-36-NUMAPOLICY --run 2>&1 | tee /tmp/testsuite.log', $timeout;
-    assert_script_run 'grep "PASS: ...TEST-36-NUMAPOLICY" /tmp/testsuite.log';
-    script_run './run-tests.sh TEST-36-NUMAPOLICY --clean';
+    assert_script_run "NO_BUILD=1 make -C test/$test clean setup run 2> /tmp/testerr.log", $timeout;
 }
 
 sub test_flags {

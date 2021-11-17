@@ -1,7 +1,11 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2020 SUSE LLC
-# SPDX-License-Identifier: FSFAP
+# Copyright © 2019-2020 SUSE LLC
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium without royalty provided the copyright
+# notice and this notice are preserved.  This file is offered as-is,
+# without any warranty.
 
 # Summary: Run test executed by TEST-09-ISSUE-2691 from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
@@ -12,18 +16,14 @@ use strict;
 use testapi;
 use power_action_utils 'power_action';
 
-sub pre_run_hook {
-    my ($self) = @_;
-    #prepare test
-    $self->testsuiteprepare('TEST-09-ISSUE-2691', 'needreboot');
-}
-
 sub run {
+    my ($self) = @_;
+    my $test = 'TEST-09-ISSUE-2691', 'needreboot';
+
+
     #run test
     my $timeout = 300;
-    assert_script_run 'cd /usr/lib/systemd/tests';
-    assert_script_run './run-tests.sh TEST-09-ISSUE-2691 --run 2>&1 | tee /tmp/testsuite.log', $timeout;
-    assert_script_run 'grep "PASS: ...TEST-09-ISSUE-2691" /tmp/testsuite.log';
+    assert_script_run "NO_BUILD=1 make -C test/$test clean setup run 2> /tmp/testerr.log", $timeout;
 }
 
 sub test_flags {

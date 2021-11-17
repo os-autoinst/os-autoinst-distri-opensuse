@@ -1,6 +1,6 @@
 name:           suse_patches-systemd_testsuite
 description:    >
-    Maintainer: slindomansilla <slindomansilla@suse.com>
+    Maintainer: tblume <tblume@suse.com>
     Modified upstream testsuite to be run as system test.
 conditional_schedule:
     systemd_testsuite_if_VERSION:
@@ -11,7 +11,6 @@ conditional_schedule:
                 - systemd_testsuite/test_18_failureaction
                 - systemd_testsuite/test_19_delegate
                 - systemd_testsuite/test_20_mainpidgames
-                - systemd_testsuite/test_21_sysusers
                 - systemd_testsuite/test_23_type_exec
                 - systemd_testsuite/test_24_cryptsetup
                 - systemd_testsuite/test_25_import
@@ -33,19 +32,73 @@ conditional_schedule:
                 - systemd_testsuite/test_43_privateuser_unpriv
                 - systemd_testsuite/test_44_log_namespace
                 - systemd_testsuite/test_47_issue_14566
+                - systemd_testsuite/test_48_start_stop_no_reload
+                - systemd_testsuite/test_49_runtime_bind_paths
+                - systemd_testsuite/test_50_dissect
+                - systemd_testsuite/test_51_issue_16115
+                - systemd_testsuite/test_52_honorfirstshutdown
+                - systemd_testsuite/test_53_issue_16347
+                - systemd_testsuite/test_54_creds
+                - systemd_testsuite/test_55_oomd
+                - systemd_testsuite/test_57_onsuccess_uphold
+                - systemd_testsuite/test_58_repart
+                - systemd_testsuite/test_59_reloading_restart
+                - systemd_testsuite/test_60_mount_ratelimit
+                - systemd_testsuite/test_61_unittests_qemu
+            '15-SP4':
+                - systemd_testsuite/test_16_extend_timeout
+                - systemd_testsuite/test_17_udev
+                - systemd_testsuite/test_18_failureaction
+                - systemd_testsuite/test_19_delegate
+                - systemd_testsuite/test_20_mainpidgames
+                - systemd_testsuite/test_23_type_exec
+                - systemd_testsuite/test_24_cryptsetup
+                - systemd_testsuite/test_25_import
+                - systemd_testsuite/test_26_setenv
+                - systemd_testsuite/test_27_stdoutfile
+                - systemd_testsuite/test_28_percentj_wantedby
+                - systemd_testsuite/test_29_portable
+                - systemd_testsuite/test_30_onclockchange
+                - systemd_testsuite/test_31_device_enumeration
+                - systemd_testsuite/test_32_oompolicy
+                - systemd_testsuite/test_33_clean_unit
+                - systemd_testsuite/test_34_dynamicusermigrate
+                - systemd_testsuite/test_36_numapolicy
+                - systemd_testsuite/test_37_runtimedirectorypreserve
+                - systemd_testsuite/test_39_execreload
+                - systemd_testsuite/test_40_exec_command_ex
+                - systemd_testsuite/test_41_oneshot_restart
+                - systemd_testsuite/test_42_execstoppost
+                - systemd_testsuite/test_43_privateuser_unpriv
+                - systemd_testsuite/test_44_log_namespace
+                - systemd_testsuite/test_47_issue_14566
+                - systemd_testsuite/test_48_start_stop_no_reload
+                - systemd_testsuite/test_49_runtime_bind_paths
+                - systemd_testsuite/test_50_dissect
+                - systemd_testsuite/test_51_issue_16115
+                - systemd_testsuite/test_52_honorfirstshutdown
+                - systemd_testsuite/test_53_issue_16347
+                - systemd_testsuite/test_54_creds
+                - systemd_testsuite/test_55_oomd
+                - systemd_testsuite/test_56_exit_type
+                - systemd_testsuite/test_57_onsuccess_uphold
+                - systemd_testsuite/test_58_repart
+                - systemd_testsuite/test_59_reloading_restart
+                - systemd_testsuite/test_60_mount_ratelimit
+                - systemd_testsuite/test_61_unittests_qemu
             '15-SP3':
                 - systemd_testsuite/test_16_extend_timeout
                 - systemd_testsuite/test_17_udev
                 - systemd_testsuite/test_18_failureaction
                 - systemd_testsuite/test_19_delegate
                 - systemd_testsuite/test_20_mainpidgames
-                - systemd_testsuite/test_24_unit_tests
+                - systemd_testsuite/test_24_cryptsetup
                 - systemd_testsuite/test_25_import
                 - systemd_testsuite/test_23_type_exec
                 - systemd_testsuite/test_26_setenv
                 - systemd_testsuite/test_27_stdoutfile
                 - systemd_testsuite/test_28_percentj_wantedby
-                - systemd_testsuite/test_29_udev_id_renaming
+                - systemd_testsuite/test_29_portable
                 - systemd_testsuite/test_30_onclockchange
                 - systemd_testsuite/test_31_device_enumeration
                 - systemd_testsuite/test_32_oompolicy
@@ -62,10 +115,11 @@ conditional_schedule:
                 - systemd_testsuite/test_47_issue_14566
 schedule:
     - boot/boot_to_desktop
-    - systemd_testsuite/prepare_systemd_and_testsuite
-    - systemd_testsuite/binary_tests
+    - systemd_testsuite/prepare_tests
+#binary tests are done at build time now
+#    - systemd_testsuite/binary_tests
     - systemd_testsuite/test_01_basic
-    - systemd_testsuite/test_02_unittests
+    - systemd_testsuite/test_02_unit_tests
     - systemd_testsuite/test_03_jobs
     - systemd_testsuite/test_04_journal
     - systemd_testsuite/test_05_rlimits

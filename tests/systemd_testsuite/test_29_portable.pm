@@ -3,7 +3,7 @@
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Run test executed by TEST-29-PORTABLE from upstream after openSUSE/SUSE patches.
+# Summary: Run test executed by TEST-29-UDEV-ID_RENAMING from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
 use base 'systemd_testsuite_test';
@@ -11,19 +11,14 @@ use warnings;
 use strict;
 use testapi;
 
-sub pre_run_hook {
-    my ($self) = @_;
-    #prepare test
-    $self->testsuiteprepare('TEST-29-PORTABLE');
-}
-
 sub run {
+    my ($self) = @_;
+    my $test = 'TEST-29-PORTABLE';
+
+
     #run test
     my $timeout = 300;
-    assert_script_run 'cd /usr/lib/systemd/tests';
-    assert_script_run './run-tests.sh TEST-29-PORTABLE --run 2>&1 | tee /tmp/testsuite.log', $timeout;
-    assert_script_run 'grep "PASS: ...TEST-29-PORTABLE" /tmp/testsuite.log';
-    script_run './run-tests.sh TEST-29-PORTABLE --clean';
+    assert_script_run "NO_BUILD=1 make -C test/$test clean setup run 2> /tmp/testerr.log", $timeout;
 }
 
 sub test_flags {

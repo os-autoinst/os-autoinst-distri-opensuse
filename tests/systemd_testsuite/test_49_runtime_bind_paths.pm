@@ -1,13 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
+# Copyright © 2020 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Run test executed by TEST-03-JOBS from upstream after openSUSE/SUSE patches.
+# Summary: Run test executed by TEST-47-ISSUE-14566 from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
 use base 'systemd_testsuite_test';
@@ -17,7 +17,7 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    my $test = 'TEST-03-JOBS', 'nspawn';
+    my $test = 'TEST-49-RUNTIME-BIND-PATHS';
 
 
     #run test

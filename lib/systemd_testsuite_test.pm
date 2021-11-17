@@ -39,7 +39,8 @@ sub testsuiteinstall {
                 $sub_project = "Leap:/$version/openSUSE_Leap_$version.$service_pack/";
             }
             $qa_testsuite_repo = 'https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/' . $sub_project;
-        }
+
+    }
         else {
             my $version_with_service_pack = get_required_var('VERSION');
             $qa_testsuite_repo = "http://download.suse.de/ibs/QA:/Head/SLE-$version_with_service_pack/";
@@ -55,6 +56,10 @@ sub testsuiteinstall {
         zypper_call "ar -c $utils::OPENQA_FTP_URL/" . $devel_repo . " devel-repo";
     }
 
+    if (is_opensuse()) {
+        zypper_call 'in make';
+    }
+
     zypper_call 'in strace';
 
     # install systemd testsuite
@@ -67,7 +72,8 @@ sub testsuiteinstall {
 
 	}
         else {
-            zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1 systemd-lang';
+		# zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1 systemd-lang';
+            zypper_call 'in --from systemd-testrepo systemd systemd-sysvinit udev libsystemd0 systemd-coredump libudev1 systemd-lang libblkid1';
         }
         change_grub_config('=.*', '=9', 'GRUB_TIMEOUT');
         grub_mkconfig;
@@ -87,7 +93,7 @@ sub testsuiteinstall {
     }
 
     if (is_tumbleweed()) {
-        $testsuite_pkg = 'systemd-tests';
+        $testsuite_pkg = 'systemd-testsuite';
          script_run "echo testsuite package is $testsuite_pkg";
     }
 
@@ -143,7 +149,12 @@ sub post_fail_hook {
     #upload logs from given testname
     $self->tar_and_upload_log('/usr/lib/systemd/tests/logs', '/tmp/systemd_testsuite-logs.tar.bz2');
     $self->tar_and_upload_log('/var/log/journal /run/log/journal', 'binary-journal-log.tar.bz2');
-    $self->save_and_upload_log('journalctl --no-pager -axb -o short-precise', 'journal.txt');
+    my $journal = script_output('sed -n "/getter/{s/.*\(\/var\/tmp\/.*\)root.*/\1system.journal/p;q}" /tmp/testerr.log');
+    assert_script_run "echo journalfile is: $journal";
+
+    $self->tar_and_upload_log("$journal", 'binary-journal-log.tar.bz2');
+    $self->save_and_upload_log("journalctl -b -o short-precise --file $journal", 'journal.txt');
+    sleep 10;
     upload_logs('/shutdown-log.txt', failok => 1);
 }
 
