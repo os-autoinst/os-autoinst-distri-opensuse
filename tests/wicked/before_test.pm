@@ -133,8 +133,7 @@ sub run {
             $need_reboot = 1;
         }
         if (check_var('WICKED', 'ipv6')) {
-            my $repo_url = 'https://download.opensuse.org/repositories/home:/asmorodskyi/';
-            $repo_url = 'http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/' if (is_sle());
+            my $repo_url = 'http://download.suse.de/ibs/home:/wicked-maintainers:/openQA/';
             zypper_ar($repo_url . generate_version('_') . '/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
             $package_list .= ' ndisc6';
         }
