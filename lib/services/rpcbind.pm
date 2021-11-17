@@ -57,12 +57,20 @@ sub check_enabled {
 sub check_service {
     common_service_action('rpcbind.socket', $service_type, 'is-enabled');
     common_service_action('rpcbind.socket', $service_type, 'is-active');
+    common_service_action($nfs_server, $service_type, 'is-enabled');
+    common_service_action($nfs_server, $service_type, 'is-active');
 }
 
 sub check_function {
     assert_script_run("rpcinfo");
     # Wait for updated rpcinfo.
-    sleep(5);
+    if (script_run('rpcinfo | grep nfs') != 0) {
+        record_soft_failure('bsc#1193028', "rpcinfo can not get nfs info in time on s390x");
+        for (1 .. 10) {
+            last if (script_run('rpcinfo | grep nfs') == 0);
+            sleep 5;
+        }
+    }
     assert_script_run('rpcinfo | grep nfs');
     assert_script_run('mkdir -p /tmp/nfs');
     assert_script_run('mount -t nfs localhost:/rpcbindtest /tmp/nfs');
