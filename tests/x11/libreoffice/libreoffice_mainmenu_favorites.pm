@@ -21,7 +21,7 @@ use version_utils 'is_sle';
 sub run {
     # start destop application memu
     wait_still_screen;
-    send_key "alt-f1";
+    send_key "super";
     assert_screen('test-desktop_mainmenu-1');
 
     # find the favorites button
