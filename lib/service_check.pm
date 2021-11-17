@@ -279,6 +279,11 @@ sub install_services {
             $srv_check_results{'before_migration'} = 'FAIL';
         }
     }
+    # Keep the configuration file clean
+    if (is_ppc64le) {
+        assert_script_run("sed -i '\$d' /etc/bash.bashrc.local");
+        assert_script_run '. /etc/bash.bashrc.local';
+    }
 }
 
 =head2 check_services
