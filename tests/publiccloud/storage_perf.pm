@@ -22,8 +22,8 @@ sub run {
     my ($self) = @_;
     my $reg_code = get_var('SCC_REGCODE');
     my $runtime = get_var('PUBLIC_CLOUD_FIO_RUNTIME', 300);
-    my $disk_size = get_var('PUBLIC_CLOUD_FIO_SSD_SIZE');
-    my $disk_type = get_var('PUBLIC_CLOUD_FIO_SSD_TYPE');
+    my $disk_size = get_var('PUBLIC_CLOUD_HDD2_SIZE');
+    my $disk_type = get_var('PUBLIC_CLOUD_HDD2_TYPE');
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI');
 
     my @scenario = (
