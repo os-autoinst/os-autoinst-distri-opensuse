@@ -35,7 +35,7 @@ sub press_ok {
 
 sub switch_tab_kernel {
     my ($self) = @_;
-    $self->{tab_cwm}->select("&Kernel Settings");
+    $self->{tab_cwm}->select("Kernel Settings");
     return $self;
 }
 

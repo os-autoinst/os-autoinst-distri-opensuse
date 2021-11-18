@@ -44,7 +44,7 @@ QE YaST <qa-sle-yast@suse.de>
 
 =head1 SYNOPSIS
 
-$self->{tab_cwm}->select("&Kernel Settings");
+$self->{tab_cwm}->select("Kernel Settings");
 
 return $self->{tb_boot_options}->selected_tab();
 

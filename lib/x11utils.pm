@@ -445,6 +445,10 @@ Start a root shell in xterm.
 sub start_root_shell_in_xterm {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
+    # Verification runs for poo#102557 showed that the terminal window does not get focus,
+    # so we click into it.
+    mouse_set(400, 400);
+    mouse_click(['left']);
     become_root;
 }
 
