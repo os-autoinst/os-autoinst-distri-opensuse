@@ -130,13 +130,14 @@ when it exits or when the daemon exits
 sub run_container {
     my ($self, $image_name, %args) = @_;
     die 'image name or id is required' unless $image_name;
-    my $mode = $args{daemon} ? '-d' : '-i';
-    my $remote = $args{cmd} ? "$args{cmd}" : '';
-    my $name = $args{name} ? "--name $args{name}" : '';
-    my $keep_container = $args{keep_container} ? '' : '--rm';
-    my $params = sprintf qq(%s %s %s), $keep_container, $mode, $name;
-    my $cmd = sprintf qq(run %s %s %s), $params, $image_name, $remote;
-    record_info "cmd_info", "Container executes:\noptions $params $image_name $remote";
+    # Assemble command: $RUNTIME run [-d|-i] [--rm] [--name $NAME] $IMAGE [$CMD]
+    my $params = '';    # container runtime parameters
+    $params = $args{daemon} ? '-d' : '-i';
+    $params .= ' --rm' unless ($args{keep_container});
+    $params .= " --name '$args{name}'" if ($args{name});
+    my $cmd = "run $params $image_name";
+    $cmd .= " $args{cmd}" if ($args{cmd});
+    record_info "cmd_info", "Container executes:\n$cmd";
     my $retries = $args{retry} // 1;
     return $self->_engine_script_retry($cmd, timeout => $args{timeout}, retry => $retries, delay => $args{delay});
 }
