@@ -36,16 +36,11 @@ sub enable_ssh_service {
     my ($self) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
             $self->{txt_overview}->activate_link('security--enable_sshd');
-            return $self->is_ssh_enabled;
-    });
+            return $self->is_ssh_service_enabled;
+    }, message => "'SSH service will be enabled' message is not shown, though SSH service is expected to be enabled.");
 }
 
-sub is_shown {
-    my ($self) = @_;
-    return $self->{txt_overview}->exist();
-}
-
-sub is_ssh_enabled {
+sub is_ssh_service_enabled {
     my ($self) = @_;
     my $overview_content = $self->get_overview_content();
     return ($overview_content =~ m/SSH service will be enabled/);
@@ -57,12 +52,17 @@ sub is_ssh_port_open {
     return ($overview_content =~ m/SSH port will be open/);
 }
 
+sub is_shown {
+    my ($self) = @_;
+    return $self->{txt_overview}->exist();
+}
+
 sub open_ssh_port {
     my ($self) = @_;
     YuiRestClient::Wait::wait_until(object => sub {
             $self->{txt_overview}->activate_link('security--open_ssh');
             return $self->is_ssh_port_open;
-    });
+    }, message => "'SSH port will be open' message is not shown, though SSH port is expected to be opened.");
 }
 
 sub access_booting_options {

@@ -34,13 +34,12 @@ sub get_installation_settings_page {
 
 sub enable_ssh_service {
     my ($self) = @_;
-    if (!$self->get_installation_settings_page()->is_ssh_enabled()) {
-        $self->get_installation_settings_page()->enable_ssh_service();
-    }
-    if (!$self->get_installation_settings_page()->is_ssh_port_open()) {
-        $self->get_installation_settings_page()->open_ssh_port();
-    }
-    return $self;
+    $self->get_installation_settings_page()->enable_ssh_service();
+}
+
+sub open_ssh_port {
+    my ($self) = @_;
+    $self->get_installation_settings_page()->open_ssh_port();
 }
 
 sub access_booting_options {
@@ -51,6 +50,11 @@ sub access_booting_options {
 sub install {
     my ($self) = @_;
     $self->get_installation_settings_page()->press_install();
+}
+
+sub is_ssh_service_enabled {
+    my ($self) = @_;
+    $self->get_installation_settings_page()->is_ssh_service_enabled();
 }
 
 1;
