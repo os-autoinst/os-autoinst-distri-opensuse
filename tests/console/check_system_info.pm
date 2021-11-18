@@ -89,7 +89,7 @@ sub run {
     script_run('zypper lr | tee /tmp/zypperlr.txt');
 
     # Need make sure the system is registered then check modules
-    my $output = script_output 'SUSEConnect -s';
+    my $output = script_output('SUSEConnect -s', timeout => 180);
     # Check the expected addons before migration
     if (check_var('VERSION', get_required_var('ORIGIN_SYSTEM_VERSION')) && ($output !~ /Not Registered/)) {
         my $addons = get_var('SCC_ADDONS', "");
