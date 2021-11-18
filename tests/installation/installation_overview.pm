@@ -59,6 +59,7 @@ sub ensure_ssh_unblocked {
 }
 
 sub check_default_target {
+    my ($self) = @_;
     # Check the systemd target where scenario make it possible
     return if (is_microos || is_sle_micro || is_upgrade || is_hyperv ||
         get_var('REMOTE_CONTROLLER') || (get_var('BACKEND', '') =~ /spvm|pvm_hmc|ipmi/));
@@ -69,17 +70,7 @@ sub check_default_target {
     # Set expectations
     my $expected_target = check_var('DESKTOP', 'textmode') ? "multi-user" : "graphical";
 
-    select_console 'install-shell';
-
-    my $target_search = 'default target has been set';
-    # default.target is not yet linked, so we parse logs and assert expectations
-    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1",
-            proceed_on_failure => 1)) {
-        $log_line =~ /$target_search: (?<current_target>.*)/;
-        assert_equals($expected_target, $+{current_target}, "Mismatch in default.target");
-    }
-
-    select_console 'installation';
+    $self->validate_default_target($expected_target);
 }
 
 sub run {
@@ -100,7 +91,7 @@ sub run {
             }
         }
         ensure_ssh_unblocked;
-        check_default_target;
+        $self->check_default_target();
     }
 }
 
