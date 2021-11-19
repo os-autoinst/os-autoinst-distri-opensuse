@@ -23,7 +23,9 @@ sub format_dasd {
 sub add_zfcp_disk {
     my $channel = shift;
     assert_screen 'zfcp-disk-management';
-    send_key 'alt-a';
+    send_key 'alt-h';
+    sleep(1);
+    save_screenshot;
     assert_screen 'zfcp-add-device';
     send_key 'alt-a';
     assert_screen 'zfcp-channel-select';
