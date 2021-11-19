@@ -110,7 +110,8 @@ sub check_mok {
     diag('Expected regex used to verify SecureBoot: ' . $state);
     validate_script_output 'mokutil --sb-state', $state;
 
-    if (script_output('mokutil --list-new', proceed_on_failure => 1) =~ /MokNew is empty/) {
+    my $output = script_output('mokutil --list-new', proceed_on_failure => 1);
+    if ($output eq '' || $output =~ /MokNew is empty/) {
         record_info 'MOK updates', 'No new certificates are expected to be enrolled';
     } else {
         push @errors, 'No new boot certificates are expected';
