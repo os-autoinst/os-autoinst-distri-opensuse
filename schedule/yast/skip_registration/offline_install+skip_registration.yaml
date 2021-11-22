@@ -23,7 +23,7 @@ schedule:
   - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
