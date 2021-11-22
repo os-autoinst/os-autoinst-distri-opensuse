@@ -17,6 +17,7 @@ our @EXPORT = qw(
   desktop_runner_hotkey
   ensure_unlocked_desktop
   ensure_fullscreen
+  handle_additional_polkit_windows
   handle_login
   handle_logout
   handle_relogin
@@ -182,6 +183,29 @@ sub ensure_fullscreen {
     }
 }
 
+sub handle_additional_polkit_windows {
+    my $mypwd = shift // $testapi::password;
+    if (match_has_tag('authentication-required-user-settings')) {
+        # for S390x testing, since they are not using qemu built-in vnc, it is
+        # expected that polkit authentication window can open for first time login.
+        # see bsc#1177446 for more information.
+        record_soft_failure 'bsc#1192992 - multiple authentication due to repositories refresh on s390x';
+        wait_still_screen(5);
+        my $counter = 5;
+        while (check_screen('authentication-required-user-settings', 10) && $counter) {
+            type_password($mypwd);
+            send_key 'ret';
+            wait_still_screen(2, 4);
+            $counter--;
+        }
+    }
+    if (match_has_tag('authentication-required-modify-system')) {
+        type_password($mypwd);
+        send_key 'ret';
+        wait_still_screen(2, 4);
+    }
+}
+
 =head2 handle_login
 
  handle_login($myuser, $user_selected);
@@ -234,14 +258,7 @@ sub handle_login {
     type_password($mypwd);
     send_key 'ret';
     wait_still_screen;
-    # for S390x testing, since they are not using qemu built-in vnc, it is
-    # expected that polkit authentication window can open for first time login.
-    # see bsc#1177446 for more information.
-    if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 10)) {
-        type_password($mypwd);
-        send_key 'ret';
-        wait_still_screen;
-    }
+    handle_additional_polkit_windows($mypwd) if check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 15);
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
         send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc';
