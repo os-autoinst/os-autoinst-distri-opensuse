@@ -237,6 +237,11 @@ sub handle_login {
         type_password($mypwd);
         send_key 'ret';
         wait_still_screen;
+        # If there are additional polkit windows, use `esc` to discard them.
+        if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 10)) {
+            record_soft_failure("bsc#1192992");
+            send_key_until_needlematch('generic-desktop', 'esc');
+        }
     }
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
