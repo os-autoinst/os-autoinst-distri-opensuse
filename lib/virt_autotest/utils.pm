@@ -192,11 +192,10 @@ sub create_guest {
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
-        # HOTFIX: Run installation sequentially due to poo#101256
-        assert_script_run("$virtinstall >> ~/virt-install_$name.txt 2>&1", timeout => 2700);
-        ## wait for initrd to ensure the installation is starting
-        # Note: This is not needed for sequential installation but left here, for when we will work on parallel installation again.
-        #script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
+        script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
+
+        # wait for initrd to ensure the installation is starting
+        script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
     } else {
         die "unsupported create_guest method '$method'";
     }
