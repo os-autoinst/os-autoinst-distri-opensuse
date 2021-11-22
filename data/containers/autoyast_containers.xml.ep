@@ -172,6 +172,7 @@
           <format config:type="boolean">true</format>
           <fstopt>defaults</fstopt>
           <mount>swap</mount>
+          <size>2G</size>
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
