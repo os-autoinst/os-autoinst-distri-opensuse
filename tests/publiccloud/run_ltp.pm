@@ -47,7 +47,7 @@ sub upload_ltp_logs
 {
     my ($self) = @_;
     my $log_file = Mojo::File::path('ulogs/ltp_log.json');
-    my $ltp_testsuite = get_required_var('COMMAND_FILE');
+    my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
 
     upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
     upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
@@ -128,12 +128,12 @@ sub run {
 
     # Use lib/LTP/WhiteList module to exclude tests
     if (get_var('LTP_KNOWN_ISSUES')) {
-        my $exclude = get_var('COMMAND_EXCLUDE', '');
-        my @skipped_tests = list_skipped_tests($ltp_env, get_required_var('COMMAND_FILE'));
+        my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
+        my @skipped_tests = list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
         if (@skipped_tests) {
             $exclude .= '|' if (length($exclude) > 0);
             $exclude .= '^(' . join('|', @skipped_tests) . ')$';
-            set_var('COMMAND_EXCLUDE', $exclude);
+            set_var('LTP_COMMAND_EXCLUDE', $exclude);
         }
     }
 
@@ -155,8 +155,8 @@ sub run {
     my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log --verbose ';
     $cmd .= '--timeout=1200 ';
-    $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
-    $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
+    $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
+    $cmd .= '--exclude \'' . get_required_var('LTP_COMMAND_EXCLUDE') . '\' ';
     $cmd .= '--backend=ssh';
     $cmd .= ':user=' . $instance->username;
     $cmd .= ':key_file=' . $instance->ssh_key;
@@ -208,11 +208,11 @@ and connect to the CSP instance using SSH. This is done via the run_ltp_ssh.pl s
 
 =head1 Configuration
 
-=head2 COMMAND_FILE
+=head2 LTP_COMMAND_FILE
 
 The LTP test command file (e.g. syscalls, cve)
 
-=head2 COMMAND_EXCLUDE
+=head2 LTP_COMMAND_EXCLUDE
 
 This regex is used to exclude tests from command file.
 
