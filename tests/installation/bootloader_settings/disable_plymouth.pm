@@ -12,7 +12,7 @@ use warnings;
 use base 'y2_installbase';
 
 sub run {
-    $testapi::distri->get_overview_controller()->access_booting_options();
+    $testapi::distri->get_installation_settings()->access_booting_options();
     $testapi::distri->get_bootloader_settings()->disable_plymouth();
 }
 
