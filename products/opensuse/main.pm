@@ -258,7 +258,7 @@ sub load_default_tests {
 }
 
 # load the tests in the right order
-if (is_jeos && !is_container_test) {
+if (is_jeos) {
     load_jeos_tests();
 }
 
