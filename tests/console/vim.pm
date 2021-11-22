@@ -7,8 +7,7 @@
 # Package: vim
 # Summary: Test vim editor display including syntax highlighting
 # - Check if vim is installed
-# - Check if vim-data is installed (should not be on JeOS (cexcept openSUSE
-# aarch64))
+# - Check if vim-data is installed (should not be on JeOS)
 # - Run "vim /etc/passwd"
 # - Check if file is opened correctly (with syntax hightlight)
 # - Force exit vim (":q!")
@@ -19,13 +18,13 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
-use version_utils qw(is_jeos is_opensuse);
+use version_utils qw(is_jeos);
 
 sub run {
     select_console 'root-console';
     assert_script_run 'rpm -qi --whatprovides vim_client';
-    # vim-data package must not be present on JeOS (except on aarch64 openSUSE)
-    assert_script_run('! rpm -qi vim-data') if (is_jeos() && !(is_aarch64 && is_opensuse()));
+    # vim-data package must not be present on JeOS
+    assert_script_run('! rpm -qi vim-data') if is_jeos();
     enter_cmd "vim /etc/passwd";
     my $jeos = is_jeos() ? '-jeos' : '';
     assert_screen "vim-showing-passwd$jeos";
