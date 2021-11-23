@@ -250,7 +250,13 @@ sub is_ltp_test {
           || get_var('LTP_COMMAND_FILE'));
 }
 
+sub is_publiccloud_ltp_test {
+    return (get_var('LTP_COMMAND_FILE') && get_var('PUBLIC_CLOUD'));
+}
+
 sub is_kernel_test {
+    # ignore ltp tests in publiccloud
+    return if is_publiccloud_ltp_test();
     return is_ltp_test() ||
       (get_var('QA_TEST_KLP_REPO')
         || get_var('INSTALL_KLP_PRODUCT')
