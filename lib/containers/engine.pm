@@ -114,7 +114,7 @@ sub build {
     record_info "$container_tag created", "";
 }
 
-=head2 run_container($image_name, [mode, name, remote, keep_container, timeout])
+=head2 run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])
 
 Run a container.
 C<image_name> is required and can be the image id, the name or name with tag.
@@ -125,6 +125,8 @@ if C<cmd> found then it will execute the given command into the container.
 The container is always removed after exit.
 if C<keep_container> is 1 the container is not removed after creation. Default to get removed
 when it exits or when the daemon exits
+if C<retry> is given, the command is being repeated the given amount of times on failure
+If C<delay> is given, this defines the number of seconds between retries
 
 =cut
 sub run_container {

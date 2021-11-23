@@ -168,12 +168,13 @@ sub test_opensuse_based_image {
             validate_script_output("$runtime run --entrypoint /bin/bash $image -c 'grep PRETTY_NAME /etc/os-release' | cut -d= -f2",
                 sub { /"SUSE Linux Enterprise Server ${pretty_version}${betaversion}"/ });
 
+            # SUSEConnect zypper service is supported only on SLE based image on SLE host
             unless (is_unreleased_sle) {
-                # SUSEConnect zypper service is supported only on SLE based image on SLE host
+                # we set --entrypoint specifically to the zypper plugin to avoid bsc#1192941
                 my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
-                $runtime->run_container($image, cmd => "$plugin -v", keep_container => 1);
-                $runtime->run_container($image, cmd => "$plugin lp", keep_container => 1, timeout => 420, retry => 3, delay => 60);
-                $runtime->run_container($image, cmd => "$plugin lm", keep_container => 1, timeout => 420);
+                validate_script_output("$runtime run --entrypoint $plugin -i $image -v", sub { m/container-suseconnect version .*/ });
+                validate_script_output("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ });
+                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*Installed product.*\n.*Registration server set to.*\nAll available modules.*/ });
             }
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
@@ -201,11 +202,17 @@ sub test_zypper_on_container {
     die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
-    $runtime->run_container($image, cmd => "zypper lr -s", keep_container => 1, timeout => 120);
-    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 300);
+    # Check for bsc#1192941, which affects the docker runtime only
+    # bsc#1192941 states that the entrypoint of a derived image is set in a way, that program arguments are not passed anymore
+    # we run 'zypper ls' on a container, and if we detect the zypper usage message, we know that the 'ls' parameter was ignored
+    if ($runtime->runtime eq 'docker') {
+        record_soft_failure("bsc#1192941 zypper-docker entrypoint confuses program arguments") if (script_run("docker run --rm -ti $image zypper ls | grep 'Usage:'") == 0);
+    }
+    validate_script_output("$runtime run -i --entrypoint '' $image zypper lr -s", sub { m/.*Alias.*Name.*Enabled.*GPG.*Refresh.*Service/ });
+    $runtime->run_container($image, name => 'refreshed', cmd => "zypper -nv ref", keep_container => 1, timeout => 300, retry => 3, delay => 60);
     $runtime->commit('refreshed', "refreshed-image", timeout => 120);
     $runtime->remove_container('refreshed');
-    $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300);
+    $runtime->run_container($image, name => "refreshed-image", cmd => "zypper -nv ref", timeout => 300, retry => 3, delay => 60);
     record_info "The End", "zypper test completed";
 }
 
