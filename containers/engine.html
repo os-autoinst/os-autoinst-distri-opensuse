@@ -18,7 +18,7 @@
       <li><a href="#start_container-image_name">start_container($image_name)</a></li>
       <li><a href="#halt_container-container_name">halt_container($container_name)</a></li>
       <li><a href="#build-dockerfile_path-container_tag-args">build($dockerfile_path, $container_tag, [%args])</a></li>
-      <li><a href="#run_container-image_name-mode-name-remote-keep_container-timeout">run_container($image_name, [mode, name, remote, keep_container, timeout])</a></li>
+      <li><a href="#run_container-image_name-mode-name-remote-keep_container-timeout-retry-delay">run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])</a></li>
       <li><a href="#pull-image_name-args">pull($image_name, [%args])</a></li>
       <li><a href="#commit">commit</a></li>
       <li><a href="#enum_images">enum_images</a></li>
@@ -51,9 +51,9 @@
 
 <p>Build a container from a Dockerfil. <code>dockerfile_path</code> is the directory with the Dockerfile as well as the root of the build context. <code>container_tag</code> will be the name of the container. Give <code>timeout</code> if you want to change the timeout passed to <code>assert_script_run</code>. Default for containers is 300.</p>
 
-<h2 id="run_container-image_name-mode-name-remote-keep_container-timeout">run_container($image_name, [mode, name, remote, keep_container, timeout])</h2>
+<h2 id="run_container-image_name-mode-name-remote-keep_container-timeout-retry-delay">run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])</h2>
 
-<p>Run a container. <code>image_name</code> is required and can be the image id, the name or name with tag. If <code>daemon</code> is enabled then container will run in the detached mode. Otherwise will be in the interactive mode. Set <code>name</code> is you want to name the container. if <code>cmd</code> found then it will execute the given command into the container. The container is always removed after exit. if <code>keep_container</code> is 1 the container is not removed after creation. Default to get removed when it exits or when the daemon exits</p>
+<p>Run a container. <code>image_name</code> is required and can be the image id, the name or name with tag. If <code>daemon</code> is enabled then container will run in the detached mode. Otherwise will be in the interactive mode. Set <code>name</code> is you want to name the container. if <code>cmd</code> found then it will execute the given command into the container. The container is always removed after exit. if <code>keep_container</code> is 1 the container is not removed after creation. Default to get removed when it exits or when the daemon exits if <code>retry</code> is given, the command is being repeated the given amount of times on failure If <code>delay</code> is given, this defines the number of seconds between retries</p>
 
 <h2 id="pull-image_name-args">pull($image_name, [%args])</h2>
 
