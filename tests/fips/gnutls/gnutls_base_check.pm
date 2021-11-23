@@ -1,24 +1,36 @@
-# Copyright 2020 SUSE LLC
+# Copyright 2020-2021 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Package: gnutls openssl
-# Summary: SLES15SP2 FIPS certification, we need to certify gnutls and libnettle
+# Package: gnutls / libnettle
+# Summary: SLES15SP2 and SLES15SP4 FIPS certification need to certify gnutls and libnettle
 #          In this case, will do some base check for gnutls
-# Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#63223, tc#1744099
+#
+# Maintainer: rfan1 <richard.fan@suse.com>, Ben Chou <bchou@suse.com>
+# Tags: poo#63223, poo#102770, tc#1744099
 
 use base 'consoletest';
 use testapi;
 use strict;
 use warnings;
 use utils 'zypper_call';
-use version_utils qw(is_tumbleweed);
+use version_utils qw(is_tumbleweed is_sle);
 
 sub run {
     select_console 'root-console';
 
-    # Install the gnutls and openssl apackages
-    zypper_call 'in gnutls openssl';
+    # Install the gnutls / libnettle packages
+    zypper_call('in gnutls libnettle8');
+    zypper_call('info gnutls libnettle8');
+    my $current_ver = script_output("rpm -q --qf '%{version}\n' gnutls");
+
+    # gnutls attempt to update to 3.7.2+ in SLE15 SP4 base on the feature
+    # SLE-19765: Update libnettle and gnutls to new major versions
+    if (!is_sle('<15-sp4') && ($current_ver ge 3.7.2)) {
+        record_info('gnutls version', "Version of Current gnutls package: $current_ver");
+    }
+    else {
+        record_soft_failure('jsc#SLE-19765: gnutls version is outdated and need to be updated over 3.7.2+ for SLE15-SP4');
+    }
 
     # Check the library is in FIPS kernel mode, and skip checking this in FIPS ENV mode
     # Since ENV mode is not pulled out/installed the fips library
