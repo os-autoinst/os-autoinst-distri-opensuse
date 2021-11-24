@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#decode_azure_json">decode_azure_json</a></li>
       <li><a href="#my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</a></li>
+      <li><a href="#cleanup-This-method-is-called-called-after-each-test-on-failure-or-success-to-revoke-the-credentials">cleanup This method is called called after each test on failure or success to revoke the credentials</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/azure.pm</h1>
@@ -29,6 +30,8 @@
 <h2 id="my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</h2>
 
 <p>Extract resource group and vm name from full instance id which looks like <code>/subscriptions/c011786b-59d7-4817-880c-7cd8a6ca4b19/resourceGroups/openqa-suse-de-1ec3f5a05b7c0712/providers/Microsoft.Compute/virtualMachines/openqa-suse-de-1ec3f5a05b7c0712</code></p>
+
+<h2 id="cleanup-This-method-is-called-called-after-each-test-on-failure-or-success-to-revoke-the-credentials">cleanup This method is called called after each test on failure or success to revoke the credentials</h2>
 
 
 </body>
