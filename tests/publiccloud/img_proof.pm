@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: python3-img-proof
 # Summary: Use img-proof framework to test public cloud SUSE images
@@ -28,78 +24,78 @@ $test_sles_for_dev .= ',test_sles_motd' unless get_var('BETA');
 # to compare repo name with VERSION which has 'Beta/Snapshot' so test will always fail
 our $test_sles_on_demand_for_dev = 'test_sles_wait_on_registration,test_refresh,test_sles_smt_reg,test_sles_guestregister';
 
-our $azure_byos_updates      = 'test_sles,test_sles_azure';
+our $azure_byos_updates = 'test_sles,test_sles_azure';
 our $azure_on_demand_updates = 'test_sles,test_sles_on_demand,test_sles_azure';
 
-our $azure_byos      = $test_sles_for_dev . ',test_sles_azure';
+our $azure_byos = $test_sles_for_dev . ',test_sles_azure';
 our $azure_on_demand = $test_sles_for_dev . ',' . $test_sles_on_demand_for_dev . ',test_sles_azure';
 
-our $ec2_byos_updates      = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
+our $ec2_byos_updates = 'test_sles,test_sles_ec2,test_sles_ec2_byos';
 our $ec2_on_demand_updates = 'test_sles,test_sles_ec2,test_sles_on_demand,test_sles_ec2_on_demand';
 
-our $ec2_byos       = $test_sles_for_dev . ',test_sles_ec2,test_sles_ec2_byos';
+our $ec2_byos = $test_sles_for_dev . ',test_sles_ec2,test_sles_ec2_byos';
 our $ec2_byos_chost = $test_sles_for_dev . ',test_sles_ec2';
-our $ec2_on_demand  = $test_sles_for_dev . ',test_sles_ec2,' . $test_sles_on_demand_for_dev . ',test_sles_ec2_on_demand';
+our $ec2_on_demand = $test_sles_for_dev . ',test_sles_ec2,' . $test_sles_on_demand_for_dev . ',test_sles_ec2_on_demand';
 
-our $gce_byos_updates      = 'test_sles,test_sles_gce';
+our $gce_byos_updates = 'test_sles,test_sles_gce';
 our $gce_on_demand_updates = 'test_sles,test_update,test_sles_smt_reg,test_sles_guestregister,test_sles_on_demand,test_sles_gce';
 
-our $gce_byos      = $test_sles_for_dev . ',test_sles_gce';
+our $gce_byos = $test_sles_for_dev . ',test_sles_gce';
 our $gce_on_demand = $test_sles_for_dev . ',test_update,test_sles_smt_reg,test_sles_guestregister,' . $test_sles_on_demand_for_dev . ',test_sles_gce';
 
 our $img_proof_tests = {
-    'Azure-BYOS'                        => $azure_byos,
-    'AZURE-BYOS-Updates'                => $azure_byos_updates,
-    'AZURE-BYOS-Image-Updates'          => $azure_byos_updates,
-    'AZURE-BYOS-gen2-Updates'           => $azure_byos_updates,
-    'AZURE-BYOS-gen2-Image-Updates'     => $azure_byos_updates,
-    'Azure-Basic'                       => $azure_on_demand,
-    'AZURE-Basic-Updates'               => $azure_on_demand_updates,
-    'AZURE-Basic-Image-Updates'         => $azure_on_demand_updates,
-    'AZURE-Basic-gen2-Updates'          => $azure_on_demand_updates,
-    'AZURE-Basic-gen2-Images-Updates'   => $azure_on_demand_updates,
-    'Azure-Standard'                    => $azure_on_demand,
-    'AZURE-Standard-Updates'            => $azure_on_demand_updates,
-    'AZURE-Standard-Image-Updates'      => $azure_on_demand_updates,
-    'AZURE-Standard-gen2-Updates'       => $azure_on_demand_updates,
+    'Azure-BYOS' => $azure_byos,
+    'AZURE-BYOS-Updates' => $azure_byos_updates,
+    'AZURE-BYOS-Image-Updates' => $azure_byos_updates,
+    'AZURE-BYOS-gen2-Updates' => $azure_byos_updates,
+    'AZURE-BYOS-gen2-Image-Updates' => $azure_byos_updates,
+    'Azure-Basic' => $azure_on_demand,
+    'AZURE-Basic-Updates' => $azure_on_demand_updates,
+    'AZURE-Basic-Image-Updates' => $azure_on_demand_updates,
+    'AZURE-Basic-gen2-Updates' => $azure_on_demand_updates,
+    'AZURE-Basic-gen2-Images-Updates' => $azure_on_demand_updates,
+    'Azure-Standard' => $azure_on_demand,
+    'AZURE-Standard-Updates' => $azure_on_demand_updates,
+    'AZURE-Standard-Image-Updates' => $azure_on_demand_updates,
+    'AZURE-Standard-gen2-Updates' => $azure_on_demand_updates,
     'AZURE-Standard-gen2-Image-Updates' => $azure_on_demand_updates,
-    'Azure-CHOST-BYOS'                  => $azure_byos,
-    'Azure-HPC'                         => $azure_on_demand,
-    'Azure-HPC-BYOS'                    => $azure_byos,
-    'AZURE-Priority-Updates'            => $azure_on_demand_updates,
-    'AZURE-Priority-Image-Updates'      => $azure_on_demand_updates,
-    'AZURE-Priority-gen2-Updates'       => $azure_on_demand_updates,
+    'Azure-CHOST-BYOS' => $azure_byos,
+    'Azure-HPC' => $azure_on_demand,
+    'Azure-HPC-BYOS' => $azure_byos,
+    'AZURE-Priority-Updates' => $azure_on_demand_updates,
+    'AZURE-Priority-Image-Updates' => $azure_on_demand_updates,
+    'AZURE-Priority-gen2-Updates' => $azure_on_demand_updates,
     'AZURE-Priority-gen2-Image-Updates' => $azure_on_demand_updates,
 
-    'EC2-CHOST-BYOS'             => $ec2_byos_chost,
-    'EC2-HVM'                    => $ec2_on_demand,
-    'EC2-HVM-ARM'                => $ec2_on_demand,
-    'EC2-Updates'                => $ec2_on_demand_updates,
-    'EC2-ARM-Updates'            => $ec2_on_demand_updates,
-    'EC2-BYOS-Updates'           => $ec2_byos_updates,
-    'EC2-BYOS-ARM-Updates'       => $ec2_byos_updates,
-    'EC2-HVM-BYOS'               => $ec2_byos,
-    'EC2-HVM-BYOS-Updates'       => $ec2_byos_updates,
-    'EC2-HVM-HPC-BYOS'           => $ec2_byos,
-    'EC2-BYOS-Image-Updates'     => $ec2_byos_updates,
-    'EC2-Image-Updates'          => $ec2_on_demand_updates,
+    'EC2-CHOST-BYOS' => $ec2_byos_chost,
+    'EC2-HVM' => $ec2_on_demand,
+    'EC2-HVM-ARM' => $ec2_on_demand,
+    'EC2-Updates' => $ec2_on_demand_updates,
+    'EC2-ARM-Updates' => $ec2_on_demand_updates,
+    'EC2-BYOS-Updates' => $ec2_byos_updates,
+    'EC2-BYOS-ARM-Updates' => $ec2_byos_updates,
+    'EC2-HVM-BYOS' => $ec2_byos,
+    'EC2-HVM-BYOS-Updates' => $ec2_byos_updates,
+    'EC2-HVM-HPC-BYOS' => $ec2_byos,
+    'EC2-BYOS-Image-Updates' => $ec2_byos_updates,
+    'EC2-Image-Updates' => $ec2_on_demand_updates,
     'EC2-BYOS-ARM-Image-Updates' => $ec2_byos_updates,
-    'EC2-ARM-Image-Updates'      => $ec2_on_demand_updates,
+    'EC2-ARM-Image-Updates' => $ec2_on_demand_updates,
 
-    GCE                      => $gce_on_demand,
-    'GCE-Updates'            => $gce_on_demand_updates,
-    'GCE-BYOS'               => $gce_byos,
-    'GCE-BYOS-Updates'       => $gce_byos_updates,
-    'GCE-CHOST-BYOS'         => $gce_byos,
+    GCE => $gce_on_demand,
+    'GCE-Updates' => $gce_on_demand_updates,
+    'GCE-BYOS' => $gce_byos,
+    'GCE-BYOS-Updates' => $gce_byos_updates,
+    'GCE-CHOST-BYOS' => $gce_byos,
     'GCE-BYOS-Image-Updates' => $gce_byos_updates,
-    'GCE-Image-Updates'      => $gce_on_demand_updates,
+    'GCE-Image-Updates' => $gce_on_demand_updates,
 };
 
 sub run {
     my ($self, $args) = @_;
 
     my $flavor = get_required_var('FLAVOR');
-    my $tests  = get_required_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
+    my $tests = get_required_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
     my $provider;
     my $instance;
 
@@ -107,8 +103,8 @@ sub run {
 
     # QAM passes the instance as argument
     if (get_var('PUBLIC_CLOUD_QAM')) {
-        $instance         = $args->{my_instance};
-        $provider         = $args->{my_provider};
+        $instance = $args->{my_instance};
+        $provider = $args->{my_provider};
         $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
         $provider = $self->provider_factory();
@@ -122,8 +118,8 @@ sub run {
     $instance->wait_for_guestregister() if is_ondemand();
 
     my $img_proof = $provider->img_proof(
-        instance    => $instance,
-        tests       => $tests,
+        instance => $instance,
+        tests => $tests,
         results_dir => 'img_proof_results'
     );
 
@@ -138,8 +134,8 @@ sub run {
         for my $t (@{$self->{extra_test_results}}) {
             next if ($t->{name} !~ m/registration|repo|smt|guestregister|update/);
             my $filename = 'result-' . $t->{name} . '.json';
-            my $file     = path(bmwqemu::result_dir(), $filename);
-            my $json     = Mojo::JSON::decode_json($file->slurp);
+            my $file = path(bmwqemu::result_dir(), $filename);
+            my $json = Mojo::JSON::decode_json($file->slurp);
             next if ($json->{result} ne 'fail');
             $instance->upload_log('/var/log/cloudregister');
             last;

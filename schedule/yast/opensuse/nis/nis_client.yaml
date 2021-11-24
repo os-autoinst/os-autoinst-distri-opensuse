@@ -1,0 +1,11 @@
+---
+name:          nis_client
+description:    >
+  Multimachine nis test, client side. Configures a nis client and enables a nfs export with autofs.
+schedule:
+  - boot/boot_to_desktop
+  - x11/nis_client
+  - x11/nis_client_validate
+test_data:
+  nis_domain: nis.openqa.suse.de
+  username: nis_user

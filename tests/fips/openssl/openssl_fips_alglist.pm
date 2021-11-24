@@ -1,29 +1,38 @@
-# openssl fips test
+# SUSE's openQA tests
+# openssl FIPS test
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: openssl
-# Summary: FIPS : openssl should only list FIPS approved cryptographic functions
-#                 while system is working in fips mode
+# Summary: openssl should only list FIPS approved cryptographic functions
+#          while system is working in FIPS mode
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#44831, poo#65375
+# Tags: poo#44831, poo#65375, poo#101932
 
 use base "consoletest";
 use testapi;
 use strict;
 use warnings;
-use utils;
-use version_utils 'is_sle';
+use utils 'zypper_call';
+use version_utils qw(is_sle);
 
 sub run {
     select_console 'root-console';
-    zypper_call 'in openssl';
+
+    zypper_call('in openssl');
+    zypper_call('info openssl');
+    my $current_ver = script_output("rpm -q --qf '%{version}\n' openssl");
+
+    # openssl attempt to update to 1.1.1+ in SLE15 SP4 base on the feature
+    # SLE-19640: Update openssl 1.1.1 to current stable release
+    if (!is_sle('<15-sp4') && ($current_ver ge 1.1.1)) {
+        record_info('openssl version', "Version of Current openssl package: $current_ver");
+    }
+    else {
+        record_soft_failure('jsc#SLE-19640: openssl version is outdated and need to be updated over 1.1.1+ for SLE15-SP4');
+    }
 
     # Seperate the diffrent openssl command usage between SLE12 and SLE15
     if (is_sle('<15')) {

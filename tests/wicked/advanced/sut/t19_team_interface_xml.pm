@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: iproute2 wicked
 # Summary: Create a team interface from wicked XML files
@@ -33,7 +29,7 @@ sub run {
 
     $self->wicked_command('ifup', 'team0');
     die('Missing interface team0') unless ifc_exists('team0');
-    validate_script_output('ip a s dev ' . $ctx->iface(),  sub { /master team0/ });
+    validate_script_output('ip a s dev ' . $ctx->iface(), sub { /master team0/ });
     validate_script_output('ip a s dev ' . $ctx->iface2(), sub { /master team0/ });
 
     $self->ping_with_timeout(type => 'host', interface => 'team0', count_success => 5, timeout => 4);

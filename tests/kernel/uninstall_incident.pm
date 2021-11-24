@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Disable kernel incident repositories and force package downgrade.
 #          Used mainly for livepatch uninstallation testing.
@@ -35,7 +31,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1,
     };
 }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: virt_autotest: Virtualization multi-machine job : Guest Migration
 # Maintainer: jerry <jtang@suse.com>
@@ -37,8 +33,8 @@ sub run {
     }
 
     #Query and save the ip addres
-    my $ip_out   = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 3);
-    my $name_out = $self->execute_script_run('hostname',                                         3);
+    my $ip_out = $self->execute_script_run('ip route show|grep kernel|cut -d" " -f12|head -1', 3);
+    my $name_out = $self->execute_script_run('hostname', 3);
 
     $self->set_ip_and_hostname_to_var;
 }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: HPC extended tests for some functional specifics
 #    This module is meant to provide some specific tests for migrated
@@ -22,7 +18,7 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
 
     record_info('Post migration tests');

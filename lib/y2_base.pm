@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
@@ -19,7 +15,7 @@ use ipmi_backend_utils;
 use network_utils;
 use y2_logs_helper 'get_available_compression';
 
-use testapi;
+use testapi qw(is_serial_terminal :DEFAULT);
 
 use Carp::Always;
 use File::Copy 'copy';
@@ -45,8 +41,8 @@ sub save_strace_gdb_output {
         chomp(my $yast_pid = wait_serial(qr/^[\d{4}]/, 10));
         return unless defined($yast_pid);
         my $trace_timeout = 120;
-        my $strace_log    = '/tmp/yast_trace.log';
-        my $strace_ret    = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
+        my $strace_log = '/tmp/yast_trace.log';
+        my $strace_ret = script_run("timeout $trace_timeout strace -f -o $strace_log -tt -p $yast_pid", ($trace_timeout + 5));
 
         upload_logs($strace_log, failok => 1) if script_run "! [[ -e $strace_log ]]";
 
@@ -76,7 +72,7 @@ sub save_strace_gdb_output {
         }
         unless ($system_management_locked) {
             my $gdb_output = '/tmp/yast_gdb.log';
-            my $gdb_ret    = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
+            my $gdb_ret = script_run("gdb attach $yast_pid --batch -q -ex 'thread apply all bt' -ex q > $gdb_output", ($trace_timeout + 5));
             upload_logs($gdb_output, failok => 1) if script_run '! [[ -e /tmp/yast_gdb.log ]]';
         }
     }
@@ -90,7 +86,7 @@ sub save_system_logs {
     if (get_var('FILESYSTEM', 'btrfs') =~ /btrfs/) {
         script_run 'btrfs filesystem df /mnt | tee /tmp/btrfs-filesystem-df-mnt.txt';
         script_run 'btrfs filesystem usage /mnt | tee /tmp/btrfs-filesystem-usage-mnt.txt';
-        upload_logs('/tmp/btrfs-filesystem-df-mnt.txt',    failok => 1);
+        upload_logs('/tmp/btrfs-filesystem-df-mnt.txt', failok => 1);
         upload_logs('/tmp/btrfs-filesystem-usage-mnt.txt', failok => 1);
     }
     script_run 'df -h';
@@ -107,7 +103,7 @@ sub save_system_logs {
     script_run('for run in {1..3}; do echo "RUN: $run"; vmstat; sleep 5; done | tee /tmp/cpu_mem_usage.log');
     upload_logs('/tmp/cpu_mem_usage.log', failok => 1);
 
-    $self->save_and_upload_log('pstree',  '/tmp/pstree');
+    $self->save_and_upload_log('pstree', '/tmp/pstree');
     $self->save_and_upload_log('ps auxf', '/tmp/ps_auxf');
 }
 
@@ -150,7 +146,7 @@ sub upload_widgets_json {
     save_screenshot;
     if (get_var('YUI_REST_API')) {
         my $json_content = to_json(YuiRestClient::get_app()->check_connection());
-        my $json_path    = $autotest::current_test->{name} . '-widgets.json';
+        my $json_path = $autotest::current_test->{name} . '-widgets.json';
         save_tmp_file($json_path, $json_content);
         make_path('ulogs');
         copy(hashed_string($json_path), "ulogs/$json_path");
@@ -174,7 +170,7 @@ sub post_run_hook {
     my $self = shift;
 
     $self->SUPER::post_run_hook;
-    save_screenshot;
+    save_screenshot unless is_serial_terminal;
     YuiRestClient::Logger->info($autotest::current_test->{name} . " test module finished") if YuiRestClient::is_libyui_rest_api;
 }
 1;

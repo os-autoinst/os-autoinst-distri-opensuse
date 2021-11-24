@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: validate packages in the SUT
 # - Reads test data structure with expectations for packages
@@ -22,7 +18,7 @@ use scheduler 'get_test_suite_data';
 
 sub run {
     my $test_data = get_test_suite_data();
-    my %packages  = %{$test_data->{software}->{packages}};
+    my %packages = %{$test_data->{software}->{packages}};
     # Variable to accumulate errors
     my $errors = '';
     # Validate packages

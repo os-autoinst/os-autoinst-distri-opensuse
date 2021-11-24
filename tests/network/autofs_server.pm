@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: nfs-kernel-server nfs-client
 # Summary: It shares a dir via nfs for autofs testing, and another dir
@@ -44,11 +40,11 @@ use warnings;
 sub run {
     # MM tests autofs requires barrier_create
     barrier_create('AUTOFS_SUITE_READY', 2);
-    barrier_create('AUTOFS_FINISHED',    2);
+    barrier_create('AUTOFS_FINISHED', 2);
     mutex_create 'barrier_setup_done';
 
     select_console "root-console";
-    my $test_share_dir     = "/tmp/nfs/server";
+    my $test_share_dir = "/tmp/nfs/server";
     my $nfsidmap_share_dir = "/home/tux";
     if (is_opensuse) {
         zypper_call('modifyrepo -e 1');

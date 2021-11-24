@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: smt SUSEConnect
 # Summary: run smt server, check client registration
@@ -26,7 +22,7 @@ sub run {
 
     assert_script_run 'smt-repos -m';
     validate_script_output 'SUSEConnect --status', sub { m/"identifier":"SLES","version":"12\.5","arch":"x86_64","status":"Registered"/ };
-    validate_script_output 'smt-repos -o',         sub { m/SLES12-SP5-Updates/ };
+    validate_script_output 'smt-repos -o', sub { m/SLES12-SP5-Updates/ };
 
     mutex_create 'barrier_setup_done';
     barrier_wait 'smt_setup';

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The module provides interface to act with Local User page
 #
@@ -26,11 +22,11 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
-    $self->{tb_full_name}        = $self->{app}->textbox({id => 'full_name'});
-    $self->{tb_username}         = $self->{app}->textbox({id => 'username'});
-    $self->{tb_password}         = $self->{app}->textbox({id => 'pw1'});
-    $self->{ch_autologin}        = $self->{app}->checkbox({id => 'autologin'});
-    $self->{ch_use_for_admin}    = $self->{app}->checkbox({id => 'root_pw'});
+    $self->{tb_full_name} = $self->{app}->textbox({id => 'full_name'});
+    $self->{tb_username} = $self->{app}->textbox({id => 'username'});
+    $self->{tb_password} = $self->{app}->textbox({id => 'pw1'});
+    $self->{ch_autologin} = $self->{app}->checkbox({id => 'autologin'});
+    $self->{ch_use_for_admin} = $self->{app}->checkbox({id => 'root_pw'});
     return $self;
 }
 
@@ -61,7 +57,7 @@ sub is_shown {
 
 sub set_autologin {
     my ($self, $is_checked) = @_;
-    $self->{ch_autologin}->check()   if $is_checked;
+    $self->{ch_autologin}->check() if $is_checked;
     $self->{ch_autologin}->uncheck() if !$is_checked;
 }
 

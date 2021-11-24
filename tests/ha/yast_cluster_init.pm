@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-cluster crmsh
 # Summary: Deploy a cluster with YaST
@@ -21,11 +17,11 @@ use version_utils qw(is_sle);
 use hacluster;
 
 sub run {
-    my $cluster_name  = get_cluster_name;
-    my $hostname      = get_hostname;
+    my $cluster_name = get_cluster_name;
+    my $hostname = get_hostname;
     my $quorum_policy = 'stop';
-    my $node_01_host  = choose_node(1);
-    my $node_02_host  = choose_node(2);
+    my $node_01_host = choose_node(1);
+    my $node_02_host = choose_node(2);
 
     # Start yast2 cluster module
     script_run("yast2 cluster; echo yast2-cluster-status-\$? > /dev/$serialdev", 0);
@@ -63,12 +59,12 @@ sub run {
     # Csync2 settings screen
     assert_screen 'yast-cluster-csync2';
     wait_screen_change { send_key 'alt-G' };    # Generate Pre-Shared-Keys
-    send_key 'alt-O';                           # Validation
+    send_key 'alt-O';    # Validation
     wait_screen_change { send_key 'alt-S' };    # Add suggested files
     wait_screen_change { send_key 'alt-A' };    # Add Sync host
     type_string "$hostname";
-    send_key 'alt-O';                           # Validation
-    send_key 'alt-u';                           # Turn csync2 on
+    send_key 'alt-O';    # Validation
+    send_key 'alt-u';    # Turn csync2 on
     wait_still_screen 10;
     save_screenshot;
     wait_screen_change { send_key 'alt-n' };

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: git-core
 # Case 1525281  - FIPS: git
@@ -27,8 +23,8 @@ use utils qw(zypper_call);
 
 sub run {
     my $username = $testapi::username;
-    my $email    = "you\@example.com";
-    my $self     = shift;
+    my $email = "you\@example.com";
+    my $self = shift;
     $self->select_serial_terminal;
 
     # Create a test repo

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Cleanup and switch (back) to X11
 # - from root-console execute 'loginctl --no-pager'
@@ -21,6 +17,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use strict;
 use warnings;
@@ -39,7 +36,7 @@ sub run {
     # On s390x sometimes the vnc will still be there and the next select_console
     # will create another vnc. This will make the OpenQA have 2 vnc sessions at
     # the same time. We'd cleanup the previous one and setup the new one.
-    assert_script_run 'pkill Xvnc ||:' if !check_var('DESKTOP', 'textmode') && check_var('ARCH', 's390x');
+    assert_script_run 'pkill Xvnc ||:' if !check_var('DESKTOP', 'textmode') && is_s390x;
     # logout root (and later user) so they don't block logout
     # in KDE
     enter_cmd "exit";

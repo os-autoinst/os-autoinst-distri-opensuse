@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: bcache-tools
 # Summary: Validate bcache in writethrough
@@ -26,7 +22,7 @@ use scheduler 'get_test_suite_data';
 use Test::Assert 'assert_true';
 
 sub run {
-    my $test_data  = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my $cachingdev = $test_data->{profile}->{partitioning}->{drive}->[1]->{device};
     select_console 'root-console';
 

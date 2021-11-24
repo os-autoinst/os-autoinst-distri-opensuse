@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces methods in Expert Partitioner to handle
 # an Error Dialog.
@@ -25,8 +21,8 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_ok}      = $self->{app}->button({id => 'ok'});
-    $self->{rt_error}    = $self->{app}->richtext({type => 'YRichText'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
+    $self->{rt_error} = $self->{app}->richtext({type => 'YRichText'});
     $self->{lbl_heading} = $self->{app}->label({label => 'Error'});
     return $self;
 }

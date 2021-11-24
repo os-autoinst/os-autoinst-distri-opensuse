@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-control-center-qt yast2-kdump yast2-boot-server yast2-sound
 # Summary: YaST2 UI test yast2-control-center provides sanity checks for YaST modules
@@ -71,9 +67,9 @@ sub start_online_update {
     # which are removed unless explicitly selected to be kept
     if (is_opensuse && !get_var('KEEP_ONLINE_REPOS')) {
         select_console 'root-console';
-        my $version     = lc get_required_var('VERSION');
+        my $version = lc get_required_var('VERSION');
         my $update_name = is_tumbleweed() ? $version : 'leap/' . $version . '/oss';
-        my $repo_arch   = get_required_var('ARCH');
+        my $repo_arch = get_required_var('ARCH');
         $repo_arch = 'ppc' if ($repo_arch =~ /ppc64|ppc64le/);
         if ($repo_arch =~ /i586|i686|x86_64/) {
             zypper_call("ar -f http://download.opensuse.org/update/$update_name repo-update");

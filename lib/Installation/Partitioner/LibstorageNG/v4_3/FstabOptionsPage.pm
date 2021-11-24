@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handle page for fstab options when adding
 # or editing a partition using Expert Partitioner.
@@ -27,8 +23,8 @@ sub new {
 sub init {
     my $self = shift;
     $self->{btn_fstab_options} = $self->{app}->button({id => '"Y2Partitioner::Widgets::FstabOptionsButton"'});
-    $self->{cb_mount_by}       = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::MountBy"'});
-    $self->{btn_ok}            = $self->{app}->button({id => 'ok'});
+    $self->{cb_mount_by} = $self->{app}->combobox({id => '"Y2Partitioner::Widgets::MountBy"'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     return $self;
 }
 
@@ -46,7 +42,7 @@ sub edit_fstab_options {
 
 sub edit_fstab_mount_by {
     my ($self, $args) = @_;
-    my $default            = "UUID";
+    my $default = "UUID";
     my @acceptable_options = ("Device ID", "Device Name", "Device Path", "UUID", "Volume Label");
     die "The mounting option, $args->{mount_by} doesn't belong in the acceptable values :"
       . join(", ", @acceptable_options) unless (grep(/^$args->{mount_by}$/, @acceptable_options));

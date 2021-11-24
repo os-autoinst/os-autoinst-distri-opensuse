@@ -1,16 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: cloud-regionsrv-client
 # Summary: Register the remote system
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>, Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::ssh_interactive_init';
 use version_utils;
@@ -37,18 +33,19 @@ sub run {
         $args->{my_instance}->retry_ssh_command("sudo SUSEConnect -r $regcode", timeout => 420, retry => 3);
         my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
         $arch = "aarch64" if ($arch eq "arm64");
+        my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
         for my $addon (@addons) {
             next if ($addon =~ /^\s+$/);
             record_info $addon, "Going to register '$addon' addon";
             if ($addon =~ /ltss/) {
                 $regcode = get_required_var('SCC_REGCODE_LTSS');
-                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r $regcode");
+                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r $regcode");
             } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
-                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch);
+                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch);
             } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
-                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), '${VERSION_ID}', $arch);
+                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch);
             } else {
-                ssh_add_suseconnect_product($args->{my_instance}->public_ip, get_addon_fullname($addon), undef, $arch);
+                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch);
             }
         }
     }

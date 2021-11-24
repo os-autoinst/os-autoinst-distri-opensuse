@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: lvm2
 # Summary: Create clustered LVM in HA tests
@@ -20,32 +16,32 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my $cluster_name    = get_cluster_name;
-    my $lvm_conf        = '/etc/lvm/lvm.conf';
-    my $lv_name         = 'lv_openqa';
-    my $vg_exclusive    = 'false';
+    my $cluster_name = get_cluster_name;
+    my $lvm_conf = '/etc/lvm/lvm.conf';
+    my $lv_name = 'lv_openqa';
+    my $vg_exclusive = 'false';
     my $activation_mode = 'activation_mode=shared';
-    my $vg_type         = '--clustered y';
-    my $resource        = 'lun';
-    my $vg_luns         = undef;
+    my $vg_type = '--clustered y';
+    my $resource = 'lun';
+    my $vg_luns = undef;
 
     # This test can be called multiple time
     if (read_tag eq 'cluster_md') {
         $resource = 'cluster_md';
-        $vg_luns  = '/dev/md*' if is_node(1);
+        $vg_luns = '/dev/md*' if is_node(1);
 
         # Use a named RAID in SLE15
         $vg_luns = "/dev/md/$resource" if (is_sle('15+') && is_node(1));
     }
     elsif (read_tag eq 'drbd_passive') {
-        $resource     = 'drbd_passive';
-        $vg_luns      = "/dev/$resource" if is_node(1);
+        $resource = 'drbd_passive';
+        $vg_luns = "/dev/$resource" if is_node(1);
         $vg_exclusive = 'true';
-        $vg_type      = '--clustered n';
+        $vg_type = '--clustered n';
     }
     elsif (read_tag eq 'drbd_active') {
         $resource = 'drbd_active';
-        $vg_luns  = "/dev/$resource" if is_node(1);
+        $vg_luns = "/dev/$resource" if is_node(1);
     }
     else {
         $vg_luns = '"' . get_lun . '" "' . get_lun . '"' if is_node(1);
@@ -76,7 +72,18 @@ sub run {
 
         # With lvmlockd, VG lock should be stopped before starting HA resource
         if (get_var("USE_LVMLOCKD")) {
-            assert_script_run "vgchange -an $vg_name";
+            # With slow HW "vgchange -an" might fail with RC5 at the first try
+            my $start_time = time;
+            while (script_run "vgchange -an $vg_name") {
+                if (time - $start_time < $default_timeout) {
+                    sleep 5;
+                }
+                else {
+                    # if command fails, "-dddddd" redirects debug LV6 to /var/log/messages
+                    script_run "vgchange -an -dddddd $vg_name";
+                    die "Volume group was not deactivated within $default_timeout seconds.";
+                }
+            }
             assert_script_run "vgchange --lockstop $vg_name";
         }
     }

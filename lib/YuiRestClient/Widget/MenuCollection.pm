@@ -1,13 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::MenuCollection;
 
@@ -26,3 +17,60 @@ sub select {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::MenuCollection - handle YMenuButton, YMenuBar
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+$self->{menu_btn_add}->select('&From List');
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+Selects menu items by using their menu path description.
+
+      {
+        "class": "YMenuButton",
+        "debug_label": "test",
+        "icon_base_path": "",
+        "id": "test_id",
+        "items": [
+          {
+            "label": "button1"
+          },
+          {
+            "label": "button2"
+          },
+          {
+            "label": "button3"
+          }
+        ],
+        "items_count": 3,
+        "label": "button group"
+        }
+
+=head2 Class and object methods
+
+B<select($path)> - select menu item specified by path
+
+Path descriptions can be strings like '&From List' or '&File|Open File...' for 
+nested menu items.
+
+=cut

@@ -1,13 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::Button;
 
@@ -23,4 +14,58 @@ sub click {
     return $self->action(action => YuiRestClient::Action::YUI_PRESS);
 }
 
+sub is_enabled {
+    my ($self) = @_;
+    my $is_enabled = $self->property('enabled');
+    return !defined $is_enabled || $is_enabled;
+}
+
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::Button - Handle YQWizardButton, YPushButton
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+$self->{btn_next}->click()
+
+$self->{button}->is_enabled()
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+This class provides methods to interact with libyui button objects.
+
+=head2 Class and object methods 
+
+B<click()> - Send a press event to a button
+
+The button object receives a press event. 
+
+B<is_enabled()> - Check if button is enabled 
+
+=over 4
+
+=item * If the button object has a property 'enabled' then the value of this property is returned
+
+=item * If the button object has no property 'enabled' then it is considered to be enabled by default
+
+=back
+
+=cut

@@ -1,14 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'trustedprograms' test case of 'audit-test' test suite
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: rfan1 <richard.fan@suse.com>, Liu Xiaojing <xiaojing.liu@suse.com>
 # Tags: poo#95908
 
 use base 'consoletest';
@@ -52,7 +48,7 @@ sub run {
     my $result = compare_run_log('trustedprograms');
 
     # Upload log files in tests, e.g. pam01.log
-    my $output    = script_output('ls tests | grep .log');
+    my $output = script_output('ls tests | grep .log');
     my @log_files = split(/\n/, $output);
     upload_logs("tests/$_") for @log_files;
 

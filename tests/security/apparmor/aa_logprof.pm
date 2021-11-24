@@ -1,17 +1,5 @@
-# Copyright (C) 2018-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: audit nscd apparmor-utils
 # Summary: Test the utility for updating AppArmor security profiles.
@@ -39,15 +27,15 @@ sub run {
     my ($self) = @_;
     my $log_file = $apparmortest::audit_log;
     my $output;
-    my $aa_tmp_prof     = "/tmp/apparmor.d";
+    my $aa_tmp_prof = "/tmp/apparmor.d";
     my $interactive_str = [
         {
             prompt => qr/\(A\)llow/m,
-            key    => 'a',
+            key => 'a',
         },
         {
             prompt => qr/\(S\)ave Changes/m,
-            key    => 's',
+            key => 's',
         },
     ];
 
@@ -91,7 +79,7 @@ sub run {
         $self->test_profile_content_is_special("aa-logprof -f", "Reading log entries.*");
 
         # Verify "aa-logprof" can work with "log message contains a filename with unbalanced parenthesis"
-        my $testfile     = "/usr/bin/ls";
+        my $testfile = "/usr/bin/ls";
         my $test_special = '/usr/bin/l\(s';
         $self->create_log_content_is_special("$testfile", "$test_special");
         script_run_interactive("aa-logprof -f $log_file", $interactive_str, 30);

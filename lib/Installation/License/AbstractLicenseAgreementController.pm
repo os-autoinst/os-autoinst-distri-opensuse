@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Abstract class with business actions for License Agreement Page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -31,9 +27,9 @@ sub get_license_agreement_page {
 sub collect_current_license_agreement_info {
     my ($self) = @_;
     return {
-        language            => $self->get_license_agreement_page()->get_selected_language(),
+        language => $self->get_license_agreement_page()->get_selected_language(),
         available_languages => [$self->get_license_agreement_page()->get_available_languages()],
-        text                => $self->get_license_agreement_page()->get_eula_content()};
+        text => $self->get_license_agreement_page()->get_eula_content()};
 }
 
 sub accept_license ();

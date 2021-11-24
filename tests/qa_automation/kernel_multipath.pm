@@ -1,22 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Use qa_test_multipath to test multipath over iscsi
 # - Install open-iscsi qa_test_multipath
@@ -63,7 +48,7 @@ sub qaset_waitdone {
     my ($timeout) = @_;
     assert_script_run(
         "until [ -f /var/log/qaset/control/DONE ]; do sleep 5; done",
-        timeout      => $timeout,
+        timeout => $timeout,
         fail_message => "qaset failed to announce overall completion within $timeout s");
 }
 
@@ -85,14 +70,14 @@ sub qaset_waitstop {
     # (FIXME: how many?) seconds. It is thus unsafe to start polling for
     # SYSTEM_DIRTY immediately after such a restart. Hence $prewait.
     #
-    my %args     = @_;
+    my %args = @_;
     my $testname = $args{testname};
-    my $timeout  = $args{timeout};
-    my $prewait  = $args{prewait} // 15;    # 15 is guessed to be enough :-/
+    my $timeout = $args{timeout};
+    my $prewait = $args{prewait} // 15;    # 15 is guessed to be enough :-/
     sleep $prewait if $prewait > 0;
     assert_script_run(
         "until [ -f /var/log/qaset/control/SYSTEM_DIRTY ]; do sleep 5; done",
-        timeout      => $timeout,
+        timeout => $timeout,
         fail_message => "$testname: qaset run failed to complete in $timeout s");
 }
 
@@ -117,7 +102,7 @@ sub start_testrun {
     systemctl 'start multipathd';
 
     # Set default variables for iscsi iqn and target
-    my $iqn    = get_var("ISCSI_IQN",    "iqn.2016-02.de.openqa");
+    my $iqn = get_var("ISCSI_IQN", "iqn.2016-02.de.openqa");
     my $target = get_var("ISCSI_TARGET", "10.0.2.1");
 
     # Connect to iscsi server and obtain wwid for multipath configuration
@@ -142,6 +127,8 @@ sub start_testrun {
     }
 
     $self->qaset_config();
+    # workaround dashboard query https://sd.suse.com/servicedesk/customer/portal/1/SD-62274
+    assert_script_run('rm /usr/share/qa/qaset/libs/msg_queue.sh');
     assert_script_run("/usr/share/qa/qaset/qaset reset");
 
     if (get_var('ISCSI_MULTIPATH_FLAKY')) {

@@ -1,11 +1,7 @@
 # SUSE"s openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libzzip-0-13 zziplib-devel zip
 # Summary: test that uses zip command line tool to regression test.
@@ -30,7 +26,7 @@ use version_utils 'is_sle';
 
 sub run {
     my $filezip = "files.zip";
-    my $self    = shift;
+    my $self = shift;
     $self->select_serial_terminal;
 
     # development module needed for dependencies, released products are tested with sdk module

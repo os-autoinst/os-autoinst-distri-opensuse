@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 
 # Package: yast2-network hostname iproute2
@@ -49,7 +45,7 @@ sub run {
     }
 
     my $hostname = get_var('HOSTNAME', 'susetest');
-    my $domain   = "zq1.de";
+    my $domain = "zq1.de";
 
     send_key "alt-s";    # open hostname tab
     assert_screen [qw(yast2_lan-hostname-tab dhcp-popup)];

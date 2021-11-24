@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: expect openssl
 # Summary: Setup dirmngr testing environment - create Root CA,
@@ -30,11 +18,11 @@ sub dirmngr_setup {
 
     my $myca_dir = "/home/linux/myca";
 
-    my $ca_cfg  = "$myca_dir/etc/root-ca.conf";
-    my $ca_csr  = "$myca_dir/ca/root-ca.csr";
-    my $ca_crt  = "$myca_dir/ca/root-ca.crt";
-    my $ca_key  = "$myca_dir/ca/root-ca/private/root-ca.key";
-    my $ca_crl  = "$myca_dir/crl/root-ca.crl";
+    my $ca_cfg = "$myca_dir/etc/root-ca.conf";
+    my $ca_csr = "$myca_dir/ca/root-ca.csr";
+    my $ca_crt = "$myca_dir/ca/root-ca.crt";
+    my $ca_key = "$myca_dir/ca/root-ca/private/root-ca.key";
+    my $ca_crl = "$myca_dir/crl/root-ca.crl";
     my $ssl_pwd = "susetesting";
 
     # Create myca directories
@@ -83,10 +71,10 @@ sub dirmngr_setup {
 
     my $crt_csr_t1 = "$myca_dir/certs/test1.csr";
     my $crt_key_t1 = "$myca_dir/certs/test1.key";
-    my $crt_t1     = "$myca_dir/certs/test1.crt";
+    my $crt_t1 = "$myca_dir/certs/test1.crt";
     my $crt_csr_t2 = "$myca_dir/certs/test2.csr";
     my $crt_key_t2 = "$myca_dir/certs/test2.key";
-    my $crt_t2     = "$myca_dir/certs/test2.crt";
+    my $crt_t2 = "$myca_dir/certs/test2.crt";
 
     # Create test certificates (test1.crt)
     #assert_script_run("openssl req -new -config $ca_cfg -out $crt_csr_t1 -keyout $crt_key_t1");
@@ -134,10 +122,10 @@ sub dirmngr_setup {
         expect \"Enter pass phrase for\"; send \"$ssl_pwd\\n\"; interact'"
     );
 
-    my $ca_der      = "$myca_dir/ca/root-ca.crt.der";
+    my $ca_der = "$myca_dir/ca/root-ca.crt.der";
     my $crt_crl_der = "$myca_dir/crl/root-ca.crl.der";
-    my $crt_der_t1  = "$myca_dir/certs/test1.crt.der";
-    my $crt_der_t2  = "$myca_dir/certs/test2.crt.der";
+    my $crt_der_t1 = "$myca_dir/certs/test1.crt.der";
+    my $crt_der_t2 = "$myca_dir/certs/test2.crt.der";
 
     # Convert certificates to DER for dirmngr
     assert_script_run("openssl x509 -in $ca_crt -outform der -out $ca_der");

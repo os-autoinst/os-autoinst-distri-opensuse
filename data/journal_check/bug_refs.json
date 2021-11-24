@@ -119,6 +119,20 @@
         },
         "type": "bug"
     },
+    "bsc#1190401": {
+        "description": "Lines of type 'g' don't take a GECOS field",
+        "products": {
+            "sle-micro": [ "5.1" ]
+        },
+        "type": "bug"
+    },
+    "bsc#1190662": {
+        "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
+        "products": {
+            "sle-micro": [ "5.1" ]
+        },
+        "type": "bug"
+    },
     "bsc#1182961": {
         "description": "could not read from '/sys/module/pcc_pufreq/initstate': No such device",
         "products": {
@@ -139,7 +153,7 @@
         "description": "systemd-vconsole-setup.service",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "bug"
     },
@@ -172,11 +186,39 @@
         },
         "type": "bug"
     },
+    "boo#1188729": {
+        "description": "socfpga_setup_ocram_self_refresh: Unable to find mmio-sram in dtb",
+        "products": {
+            "opensuse": ["Tumbleweed", "15.3"]
+        },
+        "type": "bug"
+    },
+    "bsc#1191951": {
+        "description": "kernel: wait_for_initramfs\\(\\) called before rootfs_initcalls",
+        "products": {
+            "sle": ["15-SP4"]
+        },
+        "type": "bug"
+    },
+    "bsc#1192164": {
+        "description": "wickedd.*: unexpected combination of interface flags 0x11003",
+        "products": {
+            "sle": ["15-SP4"]
+        },
+        "type": "bug"
+    },
+    "bsc#1191575": {
+        "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns",
+        "products": {
+            "sle": ["15-SP4"]
+        },
+        "type": "bug"
+    },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended PCI configuration space under this bridge|PCI: System does not support PCI",
         "products": {
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
@@ -191,7 +233,7 @@
         "type": "ignore"
     },
     "boot-marker": {
-        "description": "-- Boot\\s+\\w+\\s+--",
+        "description": "-- Boot\\s+\\w+\\s+--|-- Reboot --",
         "products": {
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
@@ -206,7 +248,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
@@ -216,7 +258,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
@@ -226,14 +268,14 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
     "xen-trim-btrfs-on-mechaninal-drive": {
         "description": "kernel: BTRFS warning.*: failed to trim.*, last error -512",
         "products": {
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },
@@ -251,7 +293,7 @@
             "sle-micro": [ "5.0", "5.1" ],
             "opensuse": ["Tumbleweed", "15.2", "15.3"],
             "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "ignore"
     },

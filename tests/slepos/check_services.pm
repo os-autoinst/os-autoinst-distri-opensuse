@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: installed services SLEPOS test
 # Maintainer: Pavel Sladek <psladek@suse.cz>
@@ -37,7 +33,7 @@ sub run {
         #get bs services from ldap
         my $services = script_output(
             "posAdmin --query --list --base $basedn --scService --scServiceStatus TRUE --scServiceStartScript | grep scServiceStartScript:|cut -d ' ' -f 2");
-        my $extdhcp   = script_output("posAdmin --query  --list --base $basedn --scLocation --scDhcpExtern ");
+        my $extdhcp = script_output("posAdmin --query  --list --base $basedn --scLocation --scDhcpExtern ");
         my $nodhcpsrv = 0;
         $nodhcpsrv = 1 if $extdhcp =~ /scDhcpExtern: TRUE/;
         my @services = split('\n', $services);

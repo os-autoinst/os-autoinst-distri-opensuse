@@ -6,6 +6,7 @@ description: >
      - License has to be accepted and there is pop-up with a hint.
      - License translations (except SLE 15 due to missing translations in the
        beta phase).
+     - Check available and selected by default modules for installation.
 vars:
   CHECK_PRESELECTED_MODULES: '1'
   CHECK_RELEASENOTES: '1'
@@ -16,16 +17,19 @@ schedule:
   - '{{compare_checksums}}'
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
+  - installation/validate_beta_message
+  - installation/access_beta_distribution
   - '{{switch_keyboard_layout}}'
-  - installation/product_selection/select_product
+  - installation/product_selection/install_SLES
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/view_development_versions
+  - installation/module_selection/verify_module_selection
+  - installation/module_selection/skip_module_selection
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/releasenotes
   - installation/clock_and_timezone/accept_timezone_configuration
@@ -33,8 +37,9 @@ schedule:
   - installation/authentication/root_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
 conditional_schedule:
   compare_checksums:
     BACKEND:
@@ -48,7 +53,6 @@ conditional_schedule:
       qemu:
         - installation/language_keyboard/switch_keyboard_layout
 test_data:
-  product: SLES
   license:
     language: English (US)
     translations:
@@ -76,5 +80,21 @@ test_data:
         text: Acuerdo de licencia de usuario final
       - language: Traditional Chinese
         text: 版軟體的
-  system_role:
-    default: 'Text Mode'
+  beta_text: 'You are accessing our Beta Distribution'
+  modules:
+    - sle-ha
+    - sle-module-live-patching
+    - sle-we
+    - sle-module-basesystem
+    - sle-module-containers
+    - sle-module-desktop-applications
+    - sle-module-development-tools
+    - sle-module-legacy
+    - sle-module-public-cloud
+    - PackageHub
+    - sle-module-server-applications
+    - sle-module-transactional-server
+    - sle-module-web-scripting
+  selected_modules:
+    - sle-module-basesystem
+    - sle-module-server-applications

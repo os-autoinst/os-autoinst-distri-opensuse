@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Raid Type Page in
 # Add RAID wizard, that are common for all the versions of the page (e.g. for
@@ -26,10 +22,10 @@ sub set_raid_level {
     my ($self, $raid_level) = @_;
     assert_screen(RAID_TYPE_PAGE);
     my %entry = (
-        0  => 0,
-        1  => 1,
-        5  => 5,
-        6  => 6,
+        0 => 0,
+        1 => 1,
+        5 => 5,
+        6 => 6,
         10 => 'g'
     );
     wait_screen_change { send_key "alt-$entry{$raid_level}"; };
@@ -38,7 +34,7 @@ sub set_raid_level {
 sub select_available_devices_table {
     assert_screen(RAID_TYPE_PAGE);
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
-    wait_screen_change { send_key "tab"; };      # move to "Avilable Devices" table
+    wait_screen_change { send_key "tab"; };    # move to "Avilable Devices" table
 }
 
 sub select_devices_from_list {

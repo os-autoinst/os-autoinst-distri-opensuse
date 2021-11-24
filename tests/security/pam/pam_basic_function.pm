@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Basic function check for PAM, and prepare the setup for other
 #          pam tests, e.g., create user, install some packages
@@ -44,7 +32,7 @@ sub run {
     assert_script_run 'ldd `which passwd` | grep pam';
 
     # Add user "suse",and use this user for later tests
-    my $user   = 'suse';
+    my $user = 'suse';
     my $passwd = 'susetesting';
     assert_script_run "useradd -d /home/$user -m $user";
     assert_script_run "echo $user:$passwd | chpasswd";

@@ -13,12 +13,13 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/warning/no_root
   - installation/partitioning/warning/snapshots_small_root
   - installation/partitioning/warning/no_boot
@@ -34,8 +35,9 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -48,5 +50,3 @@ conditional_schedule:
         - installation/hostname_inst
       svirt:
         - installation/hostname_inst
-test_data:
-  product: SLES

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Download repositores from the internal server
 #
@@ -32,8 +28,7 @@ sub run {
     select_host_console();    # select console on the host, not the PC instance
 
     # Skip maintenance updates. This is useful for debug runs
-    # Note: QAM_PUBLICCLOUD_SKIP_DOWNLOAD is left for backwards compatability and will be removed in the future
-    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', get_var('QAM_PUBLICCLOUD_SKIP_DOWNLOAD', 0));
+    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
 
     # Trigger to skip the download to speed up verification runs
     if ($skip_mu) {
@@ -59,7 +54,7 @@ sub run {
             next if $maintrepo !~ m/^http/;
             script_run("echo 'Downloading $maintrepo ...' >> ~/repos/qem_download_status.txt");
             my ($parent) = $maintrepo =~ 'https?://(.*)$';
-            my ($domain) = $parent    =~ '^([a-zA-Z.]*)';
+            my ($domain) = $parent =~ '^([a-zA-Z.]*)';
             $ret = script_run "wget --no-clobber -r -R 'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*' --domains $domain --no-parent $parent $maintrepo", timeout => 600;
             if ($ret !~ /0|8/) {
                 # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
@@ -79,8 +74,8 @@ sub run {
             }
         }
         # Failsafe: Fail if there are no test repositories, otherwise we have the wrong template link
-        my $count             = scalar @repos;
-        my $check_empty_repos = get_var('QAM_PUBLICCLOUD_IGNORE_EMPTY_REPO', 0) == 0;
+        my $count = scalar @repos;
+        my $check_empty_repos = get_var('PUBLIC_CLOUD_IGNORE_EMPTY_REPO', 0) == 0;
         die "No test repositories" if ($check_empty_repos && $count == 0);
 
         my $size = script_output("du -hs ~/repos");
@@ -99,8 +94,8 @@ sub run {
 
 sub test_flags {
     return {
-        fatal                    => 1,
-        milestone                => 1,
+        fatal => 1,
+        milestone => 1,
         publiccloud_multi_module => 1
     };
 }

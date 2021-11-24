@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openvpn easy-rsa iputils
 # Summary: Test OpenVPN on two machines - this one is the server.
@@ -30,10 +26,10 @@ use warnings;
 sub run {
     my $self = shift;
     barrier_create 'SETUP_DONE', 2;
-    barrier_create('OPENVPN_STATIC_STARTED',  2);
+    barrier_create('OPENVPN_STATIC_STARTED', 2);
     barrier_create('OPENVPN_STATIC_FINISHED', 2);
-    barrier_create('OPENVPN_CA_STARTED',      2);
-    barrier_create('OPENVPN_CA_FINISHED',     2);
+    barrier_create('OPENVPN_CA_STARTED', 2);
+    barrier_create('OPENVPN_CA_FINISHED', 2);
     mutex_create 'barrier_setup_done';
     barrier_wait 'SETUP_DONE';
     $self->select_serial_terminal;
@@ -70,11 +66,11 @@ sub run {
 
     # Generate certificates
     assert_script_run("easyrsa init-pki");
-    assert_script_run("easyrsa gen-dh",                              600);
-    assert_script_run("yes '' | easyrsa build-ca nopass",            120);
-    assert_script_run("yes '' | easyrsa gen-req server nopass",      120);
+    assert_script_run("easyrsa gen-dh", 600);
+    assert_script_run("yes '' | easyrsa build-ca nopass", 120);
+    assert_script_run("yes '' | easyrsa gen-req server nopass", 120);
     assert_script_run("echo 'yes' | easyrsa sign-req server server", 120);
-    assert_script_run("yes '' | easyrsa gen-req client nopass",      120);
+    assert_script_run("yes '' | easyrsa gen-req client nopass", 120);
     assert_script_run("echo 'yes' | easyrsa sign-req client client", 120);
     mutex_create 'OPENVPN_CA_KEYS';
 

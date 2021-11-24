@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: library for VT perf testsuites
 # Maintainer: James Wang <jnwang@suse.com>
@@ -51,7 +47,7 @@ C<$git_repo_url> URL in string.
 =cut
 sub switch_to_linux_default_enable {
     my $self = shift;
-    my $ret  = script_run("grep \"mitigations=off\" /proc/cmdline");
+    my $ret = script_run("grep \"mitigations=off\" /proc/cmdline");
     if ($ret eq 0) {
         #Sometime parameter be writen on the line of GRUB_CMDLINE_LINUX
         assert_script_run("sed -i '/GRUB_CMDLINE_LINUX=/s/mitigations=off/ /g' /etc/default/grub");
@@ -82,7 +78,7 @@ C<$git_branch_name> Branch name in string.
 C<$git_repo_url> URL in string.
 =cut
 sub switch_to_xen_default_enable {
-    my $self   = shift;
+    my $self = shift;
     my $reboot = 0;
 
     my $ret = script_run("xl info | grep \"xen_commandline\" | grep \"spec-ctrl=off\"");

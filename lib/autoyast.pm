@@ -5,12 +5,8 @@ Provide translations for autoyast XML file
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Provide translations for autoyast XML file
 # Maintainer: Jan Baier <jbaier@suse.cz>
@@ -23,6 +19,8 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
+use Utils::Architectures;
 use version_utils 'is_sle';
 use registration qw(scc_version get_addon_fullname);
 use File::Copy 'copy';
@@ -60,17 +58,17 @@ sub expand_patterns {
         if (is_sle('15+')) {
             my @sle15;
             push @sle15, qw(base minimal_base enhanced_base apparmor sw_management yast2_basis);
-            push @sle15, qw(x11 gnome_basic fonts)                                                       if check_var('DESKTOP', 'gnome');
+            push @sle15, qw(x11 gnome_basic fonts) if check_var('DESKTOP', 'gnome');
             push @sle15, qw(gnome gnome_x11 office x11_enhanced gnome_imaging gnome_multimedia x11_yast) if check_var('SLE_PRODUCT', 'sled') || get_var('SCC_ADDONS') =~ m/we/;
             return [@sle15];
         }
         elsif (is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) {
             my @sle12;
-            push @sle12, qw(Minimal apparmor base documentation)                 if check_var('DESKTOP', 'textmode');
+            push @sle12, qw(Minimal apparmor base documentation) if check_var('DESKTOP', 'textmode');
             push @sle12, qw(Minimal apparmor base x11 documentation gnome-basic) if check_var('DESKTOP', 'gnome');
-            push @sle12, qw(desktop-base desktop-gnome)                          if get_var('SCC_ADDONS') =~ m/we/;
-            push @sle12, qw(yast2)                                               if is_sle('>=12-sp3');
-            push @sle12, qw(32bit)                                               if !check_var('ARCH', 'aarch64') && get_var('DESKTOP') =~ /gnome|textmode/;
+            push @sle12, qw(desktop-base desktop-gnome) if get_var('SCC_ADDONS') =~ m/we/;
+            push @sle12, qw(yast2) if is_sle('>=12-sp3');
+            push @sle12, qw(32bit) if !is_aarch64 && get_var('DESKTOP') =~ /gnome|textmode/;
             return [@sle12];
         }
         # SLED12 has different patterns
@@ -87,20 +85,20 @@ sub expand_patterns {
             if (get_var('SCC_ADDONS') =~ m/base/) {
                 push @all, qw(base minimal_base enhanced_base documentation
                   apparmor x11 x11_enhanced yast2_basis sw_management fonts);
-                push @all, qw(32bit) unless check_var('ARCH', 's390x');
+                push @all, qw(32bit) unless is_s390x;
             }
             if (get_var('SCC_ADDONS') =~ m/serverapp/) {
                 push @all, qw(kvm_tools file_server mail_server gnome_basic
                   lamp_server gateway_server dhcp_dns_server directory_server
                   kvm_server fips sap_server ofed);
-                push @all, qw(xen_server xen_tools) unless check_var('ARCH', 's390x') || check_var('ARCH', 'aarch64');
-                push @all, qw(oracle_server)        unless check_var('ARCH', 'aarch64');
+                push @all, qw(xen_server xen_tools) unless is_s390x || is_aarch64;
+                push @all, qw(oracle_server) unless is_aarch64;
             }
             push @all, qw(devel_basis devel_kernel devel_yast) if
               get_var('SCC_ADDONS') =~ m/sdk/;
             push @all, qw(gnome gnome_x11 gnome_multimedia gnome_imaging office
               technical_writing books) if get_var('SCC_ADDONS') =~ m/we/;
-            push @all, qw(gnome_basic)               if get_var('SCC_ADDONS') =~ m/desktop/;
+            push @all, qw(gnome_basic) if get_var('SCC_ADDONS') =~ m/desktop/;
             push @all, qw(multimedia laptop imaging) if get_var('SCC_ADDONS') =~ m/desktop/ && check_var('SLE_PRODUCT', 'sled');
         }
         elsif (is_sle('12+')) {
@@ -154,9 +152,9 @@ sub expand_addons {
     my @addons = grep { defined $_ && $_ } split(/,/, get_var('SCC_ADDONS', ''));
     foreach my $addon (@addons) {
         $addons{$addon} = {
-            name    => get_addon_fullname($addon),
+            name => get_addon_fullname($addon),
             version => get_product_version($addon),
-            arch    => get_var('ARCH'),
+            arch => get_var('ARCH'),
         };
     }
     return \%addons;
@@ -176,14 +174,14 @@ sub expand_template {
     my $template = Mojo::Template->new(vars => 1);
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
     my $vars = {
-        addons   => expand_addons,
-        repos    => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
+        addons => expand_addons,
+        repos => [split(/,/, get_var('MAINT_TEST_REPO', ''))],
         patterns => expand_patterns,
         # pass reference to get_required_var function to be able to fetch other variables
         get_var => \&get_required_var,
         # pass reference to check_var
         check_var => \&check_var,
-        is_ltss   => get_var('SCC_REGCODE_LTSS') ? '1' : '0'
+        is_ltss => get_var('SCC_REGCODE_LTSS') ? '1' : '0'
     };
     my $output = $template->render($profile, $vars);
     return $output;
@@ -261,8 +259,8 @@ profile:
 sub validate_autoyast_profile {
     my $profile = shift;
 
-    my $xpc         = get_xpc(init_autoyast_profile());                              # get XPathContext
-    my $errors      = [];
+    my $xpc = get_xpc(init_autoyast_profile());    # get XPathContext
+    my $errors = [];
     my $expressions = [map { '/ns:profile' . $_ } generate_expressions($profile)];
     run_expressions(xpc => $xpc, expressions => $expressions, errors => $errors);
     my $report = create_report(errors => $errors, expressions => $expressions);
@@ -350,8 +348,8 @@ sub has_properties {
     my $node = shift;
     return 0 unless ref $node;
     return scalar(grep {
-            $_ eq '_t'        ||
-              $_ eq '__text'  ||
+            $_ eq '_t' ||
+              $_ eq '__text' ||
               $_ eq '__count' ||
               $_ eq '_descendant'
     } keys %{$node});
@@ -365,11 +363,11 @@ Based on the properties of the node will create a predicate for the XPATH expres
 
 =cut
 sub create_xpath_predicate {
-    my $node       = shift;
+    my $node = shift;
     my @predicates = ();
 
     if (has_properties($node)) {
-        push @predicates, "text()='$node->{__text}'"      if $node->{__text};
+        push @predicates, "text()='$node->{__text}'" if $node->{__text};
         push @predicates, '@t=' . "'" . $node->{_t} . "'" if $node->{_t};
         if ($node->{__count}) {
             my ($list_item) = grep { ref $node->{$_} } keys %{$node};
@@ -530,9 +528,9 @@ Run XPATH expressions. Errors handled are 'no node found' and 'more than one nod
 sub run_expressions {
     my (%args) = @_;
 
-    my $xpc         = $args{xpc};
+    my $xpc = $args{xpc};
     my $expressions = $args{expressions};
-    my $errors      = $args{errors};
+    my $errors = $args{errors};
 
     my @nodes = ();
     for my $exp (@{$expressions}) {
@@ -556,9 +554,9 @@ Create a report with the errors found and listing all the XPATH expressions exec
 sub create_report {
     my %args = @_;
 
-    my $expressions         = $args{expressions};
-    my $errors              = $args{errors};
-    my $error_summary       = @{$errors} ? "Errors found:\n" . join("\n", @{$errors}) : "Errors found:\nnone";
+    my $expressions = $args{expressions};
+    my $errors = $args{errors};
+    my $error_summary = @{$errors} ? "Errors found:\n" . join("\n", @{$errors}) : "Errors found:\nnone";
     my $expressions_summary = "Expressions executed:\n" . join("\n", @{$expressions});
     return "$error_summary\n\n$expressions_summary\n";
 }
@@ -576,11 +574,11 @@ sub create_report {
 
 =cut
 sub detect_profile_directory {
-    my (%args)  = @_;
+    my (%args) = @_;
     my $profile = $args{profile};
-    my $path    = $args{path};
+    my $path = $args{path};
 
-    my $dir    = "autoyast_";
+    my $dir = "autoyast_";
     my $regexp = $dir . '\E[^/]+\/';
 
     if (!$profile && $path !~ /\Q$regexp/) {
@@ -629,7 +627,7 @@ sub adjust_network_conf {
     if (check_var('BACKEND', 's390x')) {
         ($hostip) = get_var('S390_NETWORK_PARAMS') =~ /HostIP=(.*?)\//;
     }
-    elsif (check_var('BACKEND', 'svirt')) {
+    elsif (is_svirt) {
         $hostip = get_var('VIRSH_GUEST');
     }
     $profile =~ s/\{\{HostIP\}\}/$hostip/g if $hostip;
@@ -680,9 +678,9 @@ sub expand_variables {
 
 =cut
 sub upload_profile {
-    my (%args)  = @_;
+    my (%args) = @_;
     my $profile = $args{profile};
-    my $path    = $args{path};
+    my $path = $args{path};
 
     if (check_var('IPXE', '1')) {
         $path = get_required_var('SUT_IP') . $path;
@@ -737,6 +735,11 @@ sub test_ayp_url {
     if ($ayp_url =~ /^http/) {
         # replace default qemu gateway by loopback
         $ayp_url =~ s/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/localhost/;
+
+        # if the $ayp_url ends with a / we use the rules_and_classes approach
+        # that means we should test for rules/rules.xml because retrieving
+        # the directory will end up in a 404.
+        $ayp_url =~ s/\/$/\/rules\/rules.xml/;
 
         if (head($ayp_url)) {
             record_info("ayp url ok", "Autoyast profile url $ayp_url is reachable from the worker");
@@ -800,7 +803,7 @@ sub prepare_ay_file {
 
     # if profile is a template, expand and rename
     $profile = expand_template($profile) if $path =~ s/^(.*\.xml)\.ep$/$1/;
-    die $profile                         if $profile->isa('Mojo::Exception');
+    die $profile if $profile->isa('Mojo::Exception');
 
     $profile = expand_version($profile);
     $profile = adjust_network_conf($profile);

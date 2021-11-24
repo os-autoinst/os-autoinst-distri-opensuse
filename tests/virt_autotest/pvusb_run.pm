@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This feature allows USB devices to be passthrough directly to the guest.
 #          The added tests are unit test for this feature.
@@ -21,7 +17,7 @@ use Utils::Architectures;
 
 sub get_script_run {
     my $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-pvusb-run";
-    my $which_usb    = get_var("PVUSB_DEVICE", "");
+    my $which_usb = get_var("PVUSB_DEVICE", "");
     if ($which_usb eq "") {
         die "The PVUSB_DEVICE is not properly set in workers.ini.";
     }
@@ -37,8 +33,8 @@ sub get_script_run {
 }
 
 sub run {
-    my $self            = shift;
-    my $timeout         = get_var('MAX_TEST_TIME', '5000');
+    my $self = shift;
+    my $timeout = get_var('MAX_TEST_TIME', '5000');
     my $upload_log_name = 'pvusb-test-logs';
     $self->run_test($timeout, "Congratulations! All test is successful!", "no", "yes", "/var/log/qa/", $upload_log_name);
 }

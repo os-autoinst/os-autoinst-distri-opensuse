@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate that instsys and install urls match the boot parameters.
 #
@@ -19,7 +15,7 @@ use testapi;
 
 
 sub run {
-    assert_screen 'startshell', 90;
+    assert_screen 'startshell', 180;
     my $arch = get_var('ARCH');
     assert_script_run("grep -Pzo \"instsys url:(.|\\n)*disk:/boot/$arch/root\" /var/log/linuxrc.log");
     my $mirror = get_netboot_mirror;

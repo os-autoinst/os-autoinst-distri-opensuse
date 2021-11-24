@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces methods to control Notification Dialog
 # which has only "Ok" button.
@@ -25,9 +21,9 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_ok}      = $self->{app}->button({id => 'ok_msg'});
-    $self->{lbl_header}  = $self->{app}->label({label => 'Warning'});
-    $self->{lbl_warning} = $self->{app}->label({type  => 'YLabel'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok_msg'});
+    $self->{lbl_header} = $self->{app}->label({label => 'Warning'});
+    $self->{lbl_warning} = $self->{app}->label({type => 'YLabel'});
     return $self;
 }
 

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Expert partitioner, full LVM encryption with MSDOS-MBR, without extra /boot on x86_64 arch https://fate.suse.com/320215
 #          on s390x and ppc64le with extra /boot, not on aarch64 because of UEFI

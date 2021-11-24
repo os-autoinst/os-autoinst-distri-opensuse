@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: common functions for FIPS web browser tests
 # Maintainer: llzhao <llzhao@suse.com>
@@ -59,9 +47,9 @@ sub setup_web_browser_env {
         if ($ret ne 0) {
             register_product();
             my $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
-            my $arch    = get_required_var('ARCH');
+            my $arch = get_required_var('ARCH');
             script_run("SUSEConnect -d -p PackageHub/$version/$arch", 300);
-            script_run("SUSEConnect -p PackageHub/$version/$arch",    300);
+            script_run("SUSEConnect -p PackageHub/$version/$arch", 300);
         }
     }
     zypper_call("--no-refresh --no-gpg-checks search -it pattern fips") if get_var('FIPS_ENABLED');
@@ -81,8 +69,8 @@ sub run_web_browser_text_based {
 
     my %https_url = (
         google => "https://www.google.com/ncr",
-        suse   => "https://www.suse.com/",
-        OBS    => "https://build.opensuse.org/",
+        suse => "https://www.suse.com/",
+        OBS => "https://build.opensuse.org/",
     );
 
     for my $p (keys %https_url) {

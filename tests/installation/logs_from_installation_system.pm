@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Collect logs from the installation system just before we try to
 #   reboot into the installed system
@@ -24,6 +20,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use lockapi;
 use utils;
 use Utils::Backends 'use_ssh_serial_console';
@@ -34,6 +31,17 @@ sub run {
     my ($self) = @_;
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     select_console 'install-shell';
+
+    # permit root ssh login for CC test:
+    # in "Common Criteria" "System Role" system, root ssh login is disabled
+    # by default, we need enable it
+    if (check_var('SYSTEM_ROLE', 'Common_Criteria') && is_sle && check_var('ARCH', 's390x')) {
+        my $stor_inst = "/var/log/YaST2/storage-inst/*committed.yml";
+        my $root_hd = script_output("cat $stor_inst | grep -B4 'mount_point: \"/\"' | grep name | awk -F \\\" '{print \$2}'");
+        assert_script_run("mount $root_hd /mnt");
+        assert_script_run("sed -i -e 's/PermitRootLogin no/PermitRootLogin yes/g' /mnt/etc/ssh/sshd_config");
+        assert_script_run('umount /mnt');
+    }
 
     # check for right boot-device on s390x (zVM, DASD ONLY)
     if (check_var('BACKEND', 's390x') && !check_var('S390_DISK', 'ZFCP')) {
@@ -50,8 +58,8 @@ sub run {
         if (is_sle) {
             set_serial_console_on_vh('/mnt', '', 'xen') if (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen'));
             set_serial_console_on_vh('/mnt', '', 'kvm') if (check_var('HOST_HYPERVISOR', 'kvm') || check_var('SYSTEM_ROLE', 'kvm'));
-            adjust_for_ipmi_xen('/mnt')                 if (get_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
-            set_pxe_efiboot('/mnt')                     if check_var('ARCH', 'aarch64');
+            adjust_for_ipmi_xen('/mnt') if (get_var('REGRESSION') && (get_var('XEN') || check_var('HOST_HYPERVISOR', 'xen')));
+            set_pxe_efiboot('/mnt') if is_aarch64;
         }
     }
     else {

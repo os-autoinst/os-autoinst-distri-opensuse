@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 #
 # Summary: switch IPMI to QEMU
@@ -28,9 +24,9 @@ use power_action_utils 'power_action';
 use testapi;
 use utils;
 use version_utils 'get_os_release';
-my $cliect_ini_url    = get_var('CLIENT_INI');
-my $webui_hostname    = get_var('WEBUI_HOSTNAME');
-my $nfs_hostname      = get_var('NFS_HOSTNAME');
+my $cliect_ini_url = get_var('CLIENT_INI');
+my $webui_hostname = get_var('WEBUI_HOSTNAME');
+my $nfs_hostname = get_var('NFS_HOSTNAME');
 my $qemu_worker_class = get_var('QEMU_WORKER_CLASS');
 #Set IPMI2QEMU_PKGS to custom packages installation
 my $zypper_add_pkgs = get_var('IPMI2QEMU_PKGS', 'openQA-worker,perl-DBIx-Class-DeploymentHandler,perl-YAML-Tiny,perl-Test-Assert,perl-JSON');

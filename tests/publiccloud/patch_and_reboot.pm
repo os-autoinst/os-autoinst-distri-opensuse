@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
@@ -24,8 +20,10 @@ sub run {
     my ($self, $args) = @_;
     select_host_console();    # select console on the host, not the PC instance
 
+    my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+
     $args->{my_instance}->retry_ssh_command(cmd => "sudo zypper -n ref", timeout => 240, retry => 6);
-    ssh_fully_patch_system($args->{my_instance}->public_ip);
+    ssh_fully_patch_system($remote);
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 }
 

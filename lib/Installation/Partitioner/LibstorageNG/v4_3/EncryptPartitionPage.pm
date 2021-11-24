@@ -1,16 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handles encryption of a partition using Expert Partitioner.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::EncryptPartitionPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -24,9 +21,9 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{tb_pass}         = $self->{app}->textbox({id => 'pw1'});
+    $self->SUPER::init();
+    $self->{tb_pass} = $self->{app}->textbox({id => 'pw1'});
     $self->{tb_pass_reenter} = $self->{app}->textbox({id => 'pw2'});
-    $self->{btn_next}        = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -45,11 +42,6 @@ sub enter_password {
 sub reenter_password {
     my ($self, $password) = @_;
     return $self->{tb_pass_reenter}->set($password);
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

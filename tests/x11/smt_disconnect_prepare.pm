@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: nfs-kernel-server nfs-client iproute2 SUSEConnect
 # Summary: Do some prepare for internal and external SMT on disconnect SMT case
@@ -56,7 +52,7 @@ sub run {
     # internal smt should close network to simulate a restricted network
     if (check_var("SMT", "internal")) {
         my $net_conf = parse_network_configuration();
-        my $mac      = $net_conf->{fixed}->{mac};
+        my $mac = $net_conf->{fixed}->{mac};
         script_run "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`";
         assert_script_run("ip link set \$NIC down");
     }

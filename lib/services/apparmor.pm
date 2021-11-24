@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: apparmor-parser patterns-base-apparmor apparmor-utils
 # Summary: Package for apparmor service tests
@@ -74,8 +70,8 @@ sub check_aa_enforce {
     diag 'check aa_enforce.';
 
     my $executable_name = "/usr/sbin/nscd";
-    my $profile_name    = "usr.sbin.nscd";
-    my $named_profile   = "";
+    my $profile_name = "usr.sbin.nscd";
+    my $named_profile = "";
     systemctl('restart apparmor');
 
     # Recalculate profile name in case

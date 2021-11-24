@@ -1,17 +1,5 @@
-# Copyright (C) 2018-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup environment for selinux tests
 # Maintainer: llzhao <llzhao@suse.com>
@@ -23,10 +11,11 @@ use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use Utils::Architectures 'is_x86_64';
+use Utils::Architectures;
 
 sub run {
-    select_console "root-console";
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # program 'sestatus' can be found in policycoreutils pkgs
     zypper_call("in policycoreutils");
@@ -40,9 +29,9 @@ sub run {
 
     # install as many as SELinux related packages
     my @pkgs = (
-        "selinux-tools", "libselinux-devel",  "libselinux1",  "python3-selinux", "libsepol1",   "libsepol-devel",
-        "libsemanage1",  "libsemanage-devel", "checkpolicy",  "mcstrans",        "restorecond", "setools-console",
-        "setools-devel", "setools-java",      "setools-libs", "setools-tcl"
+        "selinux-tools", "libselinux-devel", "libselinux1", "python3-selinux", "libsepol1", "libsepol-devel",
+        "libsemanage1", "libsemanage-devel", "checkpolicy", "mcstrans", "restorecond", "setools-console",
+        "setools-devel", "setools-java", "setools-libs", "setools-tcl"
     );
     foreach my $pkg (@pkgs) {
         my $results = script_run("zypper --non-interactive se $pkg");

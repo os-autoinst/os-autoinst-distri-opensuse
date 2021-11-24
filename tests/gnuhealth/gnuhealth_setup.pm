@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Initial setup of gnuhealth, e.g. database
 # Maintainer: Oliver Kurz <okurz@suse.de>
@@ -25,9 +21,9 @@ sub run() {
     wait_screen_change { script_run 'su postgres', 0 };
     script_run 'sed -i -e \'s/\(\(local\|host\).*all.*all.*\)\(md5\|ident\)/\1trust/g\' /var/lib/pgsql/data/pg_hba.conf', 0;
 
-    script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"',           0;
+    script_run 'psql -c "CREATE USER tryton WITH CREATEDB;"', 0;
     script_run 'createdb gnuhealth --encoding=\'UTF8\' --owner=tryton', 0;
-    script_run 'exit',                                                  0;
+    script_run 'exit', 0;
     systemctl 'restart postgresql';
     assert_script_run 'echo susetesting > /tmp/pw';
     my $cmd = 'sudo -u tryton env TRYTONPASSFILE=/tmp/pw trytond-admin -c /etc/tryton/trytond.conf --all -d gnuhealth --password';

@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
 #          from sles15sp2, update tpm2.0-tools to the stable 4 release
@@ -29,7 +17,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Write/Read data to/from a Non-Volatile (NV) index
-    my $test_dir  = "tpm2_tools_encrypt";
+    my $test_dir = "tpm2_tools_encrypt";
     my $test_file = "nv.test_w";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";
@@ -45,9 +33,9 @@ sub run {
 
     # Create an ECC primary object
     my $context_out = "context.out";
-    my $key_priv    = "key.priv";
-    my $key_pub     = "key.pub";
-    my $key_ctx     = "key.ctx";
+    my $key_priv = "key.priv";
+    my $key_pub = "key.pub";
+    my $key_ctx = "key.ctx";
     assert_script_run "tpm2_createprimary -C o -g sha256 -G ecc -c $context_out -T tabrmd";
 
     # tpm2_create(1) - Create a child objec

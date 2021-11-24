@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Unified dependency issues resolver
 # - If manual intervention is needed during software selection on installation:

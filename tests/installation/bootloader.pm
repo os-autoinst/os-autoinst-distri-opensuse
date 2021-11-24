@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Bootloader to setup boot process with arguments/options
 # - Check if bootloader is isolinux or grub and set different commands for each
@@ -43,8 +39,8 @@ use Utils::Backends 'is_pvm';
 # hint: press shift-f10 trice for highest debug level
 sub run {
     return boot_pvm if is_pvm;
-    return          if get_var('BOOT_HDD_IMAGE');
-    return          if select_bootmenu_option == 3;
+    return if get_var('BOOT_HDD_IMAGE');
+    return if select_bootmenu_option == 3;
     # the default loader is isolinux on openSUSE/SLE products with product-builder
     my $boot_cmd = 'ret';
     # Tumbleweed livecd has been switched to grub with kiwi 9.17.41 except 32bit

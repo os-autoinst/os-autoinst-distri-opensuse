@@ -20,6 +20,10 @@ conditional_schedule:
     ARCH:
       's390x':
         - transactional/host_config
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - installation/enable_selinux
 
 schedule:
   - installation/bootloader_start
@@ -31,6 +35,7 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - installation/disable_grub_timeout
+  - '{{selinux}}'
   - installation/start_install
   - installation/await_install
   - installation/logs_from_installation_system
@@ -44,6 +49,7 @@ schedule:
   - microos/one_line_checks
   - microos/services_enabled
   - microos/cockpit_service
+  - transactional/trup_smoke
   - transactional/filesystem_ro
   - transactional/transactional_update
   - transactional/rebootmgr

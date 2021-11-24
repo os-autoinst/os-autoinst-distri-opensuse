@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: C and C++ source compilation to check that gcc from toolchain module
 # Maintainer: qe-core@suse.de
@@ -20,7 +16,7 @@ sub run {
     assert_script_run('curl --output ./gawk-src.tar.gz ' . data_url('toolchain/gawk-src.tar.gz'));
     assert_script_run('tar xf gawk-src.tar.gz');
     assert_script_run('cd ./gawk-4.1.4');
-    assert_script_run('./configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi',                    600);
+    assert_script_run('./configure 2>&1 | tee /tmp/configure.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 600);
     assert_script_run('make -j$(getconf _NPROCESSORS_ONLN) 2>&1 | tee /tmp/make.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', 3600);
     assert_script_run('./gawk \'{ print }\' /etc/hostname');
     save_screenshot;

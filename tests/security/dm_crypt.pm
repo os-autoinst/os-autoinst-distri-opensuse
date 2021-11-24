@@ -1,17 +1,5 @@
-# Copyright © 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: cryptsetup
 # Summary: Test dm-crypt cipher support with cryptsetup tool. Make sure
@@ -29,9 +17,9 @@ sub run {
     select_console 'root-console';
 
     my $crypt_pass = "dm#*crypt";
-    my $crypt_tmp  = "/tmp/foo";
-    my $crypt_dev  = "foo";
-    my $bench_log  = "/tmp/cryptsetup_benchmark.log";
+    my $crypt_tmp = "/tmp/foo";
+    my $crypt_dev = "foo";
+    my $bench_log = "/tmp/cryptsetup_benchmark.log";
 
     # To avoid run it with FIPS_ENV_MODE
     die "This case depends on kernel function and should not run in FIPS env mode, FIPS should be enabled with fips=1"
@@ -57,13 +45,13 @@ sub run {
     assert_script_run "dd if=/dev/urandom of=$crypt_tmp bs=4M count=3";
 
     my @check_list = (
-        {name => "aes",     mode => "xts-plain64", hash => "sha1"},
-        {name => "aes",     mode => "xts-plain64", hash => "md5", no_support => 1},
-        {name => "aes",     mode => "xts-plain64", hash => "sha256"},
-        {name => "aes",     mode => "xts-plain",   hash => "sha512"},
-        {name => "aes",     mode => "cbc-plain64", hash => "sha256"},
+        {name => "aes", mode => "xts-plain64", hash => "sha1"},
+        {name => "aes", mode => "xts-plain64", hash => "md5", no_support => 1},
+        {name => "aes", mode => "xts-plain64", hash => "sha256"},
+        {name => "aes", mode => "xts-plain", hash => "sha512"},
+        {name => "aes", mode => "cbc-plain64", hash => "sha256"},
         {name => "serpent", mode => "xts-plain64", hash => "sha256", no_fips => 1},
-        {name => "twofish", mode => "cbc-plain64", hash => "sha1",   no_fips => 1},
+        {name => "twofish", mode => "cbc-plain64", hash => "sha1", no_fips => 1},
     );    # Not all the combinations will be checked here
 
     foreach my $c (@check_list) {

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: chromium
 # Summary: Basic test of chromium visiting an html-test
@@ -27,7 +23,7 @@ sub run {
     x11_start_program('chromium --password-store=basic', target_match => 'chromium-main-window', match_timeout => 50);
 
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
-    send_key 'ctrl-l';                        # select text in address bar
+    send_key 'ctrl-l';    # select text in address bar
 
     # Additional waiting to prevent unready address bar
     # https://progress.opensuse.org/issues/36304

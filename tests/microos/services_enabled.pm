@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check that services are enables based on system role
 # Maintainer: Martin Kravec <mkravec@suse.com>
@@ -19,11 +15,11 @@ use testapi;
 
 my %services_for = (
     default => [qw(sshd issue-generator issue-add-ssh-keys transactional-update.timer)],
-    cloud   => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
+    cloud => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
     cluster => [qw(chronyd)],
-    admin   => [qw(docker kubelet etcd)],
-    worker  => [qw(salt-minion systemd-timesyncd)],
-    plain   => undef
+    admin => [qw(docker kubelet etcd)],
+    worker => [qw(salt-minion systemd-timesyncd)],
+    plain => undef
 );
 
 sub check_services {
@@ -58,7 +54,7 @@ sub run {
 
         %services = map_services @{$services_for{default}};
         if ($role) {
-            %services = (%services, map_services @{$services_for{$role}})   if $services_for{$role};
+            %services = (%services, map_services @{$services_for{$role}}) if $services_for{$role};
             %services = (%services, map_services @{$services_for{cluster}}) if $role =~ /admin|worker/;
         }
 

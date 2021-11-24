@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for YaST module
 # System Settings Page.
@@ -26,7 +22,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_ok}  = $self->{app}->button({id => 'next'});
+    $self->{btn_ok} = $self->{app}->button({id => 'next'});
     $self->{tab_cwm} = $self->{app}->tab({id => '_cwm_tab'});
     return $self;
 }
@@ -39,7 +35,7 @@ sub press_ok {
 
 sub switch_tab_kernel {
     my ($self) = @_;
-    $self->{tab_cwm}->select("&Kernel Settings");
+    $self->{tab_cwm}->select("Kernel Settings");
     return $self;
 }
 

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: tftp yast2-tftp-server
 # Summary: configure and test tftp server
@@ -36,22 +32,22 @@ sub run {
     my $firewall_detail_shortcut = 'alt-i';
 
     if (is_sle('>15') || is_leap('>15.0') || is_tumbleweed) {
-        sleep 10 if is_sle('>15');                                  #15.1 needs little more time to initialize
+        sleep 10 if is_sle('>15');    #15.1 needs little more time to initialize
         send_key 'alt-t';
-        send_key 'up';                                              #selects 'Start'
-        send_key 'ret';                                             #confirm
+        send_key 'up';    #selects 'Start'
+        send_key 'ret';    #confirm
 
-        send_key 'alt-a';                                           #start service after reboot
-        send_key 'up';                                              #selects 'Start on demand'
-        send_key 'ret';                                             #confirm
+        send_key 'alt-a';    #start service after reboot
+        send_key 'up';    #selects 'Start on demand'
+        send_key 'ret';    #confirm
 
-        send_key 'alt-i';                                           #enter boot image directory field
+        send_key 'alt-i';    #enter boot image directory field
         $firewall_detail_shortcut = 'alt-d';
     } else {
-        sleep 10 if is_sle('=15');                                  #15.0 needs little more time to initialize
-        assert_screen 'yast2_tftp-server_configuration';            #main screen with service status
-        send_key 'alt-e';                                           # enable tftp
-        send_key 'alt-t';                                           #enter boot image directory field
+        sleep 10 if is_sle('=15');    #15.0 needs little more time to initialize
+        assert_screen 'yast2_tftp-server_configuration';    #main screen with service status
+        send_key 'alt-e';    # enable tftp
+        send_key 'alt-t';    #enter boot image directory field
     }
     wait_still_screen(3);
     assert_screen([qw(yast2_tftp-server_configuration_enabled yast2_tftp-server_configuration_enabled_new)]);
@@ -67,16 +63,16 @@ sub run {
 
     #we only need to open the port if closed:
     if (match_has_tag('yast2_tftp_closed_port')) {
-        send_key 'alt-f';                        # open tftp port in firewall
+        send_key 'alt-f';    # open tftp port in firewall
         assert_screen 'yast2_tftp_open_port';
-        send_key $firewall_detail_shortcut;      # open firewall details window
+        send_key $firewall_detail_shortcut;    # open firewall details window
         assert_screen 'yast2_tftp_firewall_details';
-        send_key 'alt-o';                        # close the window
+        send_key 'alt-o';    # close the window
         assert_screen 'yast2_tftp_open_port';    # assert that window is closed
     }
 
     # view log
-    send_key 'alt-v';                            # open log window
+    send_key 'alt-v';    # open log window
 
     # bsc#1008493 is still open, but error pop-up doesn't always appear immediately
     # so wait still screen before assertion
@@ -87,7 +83,7 @@ sub run {
         # softfail for opensuse when error for view log throws out
         record_soft_failure "bsc#1008493";
         wait_screen_change { send_key 'alt-o' };    # confirm the error message
-        send_key 'alt-c';                           # close that error window
+        send_key 'alt-c';    # close that error window
     }
     elsif (match_has_tag('yast2_tftp_view_journal')) {
         # open filter settings pop-up
@@ -98,15 +94,15 @@ sub run {
         send_key 'alt-q';
     }
     else {
-        send_key 'alt-c';                           # close the window
+        send_key 'alt-c';    # close the window
     }
 
     # now finish tftp server configuration
-    send_key 'alt-o';                               # confirm changes
+    send_key 'alt-o';    # confirm changes
 
     # and confirm for creating new directory
     assert_screen 'yast2_tftp_create_new_directory';
-    send_key 'alt-y';                               # approve creation of new directory
+    send_key 'alt-y';    # approve creation of new directory
 
     # wait for yast2 tftp configuration completion
     wait_serial("$module_name-0", 180) || die "'yast2 tftp-server' failed";

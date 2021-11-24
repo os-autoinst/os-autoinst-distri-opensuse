@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: docker MozillaFirefox
 # Summary: check HAWK GUI with the a python+selenium script and firefox
@@ -71,15 +67,15 @@ sub run {
     turn_off_gnome_screensaver;
 
     my $pyscr = 'hawk_test';
-    my $path  = 'test';
+    my $path = 'test';
 
     # Run test
-    my $browser    = 'firefox';
-    my $node1      = choose_node(1);
-    my $node2      = choose_node(2);
-    my $results    = "$path/$pyscr.results";
-    my $retcode    = "$path/$pyscr.ret";
-    my $logs       = "$path/$pyscr.log";
+    my $browser = 'firefox';
+    my $node1 = choose_node(1);
+    my $node2 = choose_node(2);
+    my $results = "$path/$pyscr.results";
+    my $retcode = "$path/$pyscr.ret";
+    my $logs = "$path/$pyscr.log";
     my $virtual_ip = "10.0.2.222/24";
 
     add_to_known_hosts($node1);

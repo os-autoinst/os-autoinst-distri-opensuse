@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Guided Setup of
 # Libstorage-NG Partitioner.
@@ -27,11 +23,11 @@ sub new {
     my ($class, $args) = @_;
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
-        PartitioningSchemePage    => Installation::Partitioner::LibstorageNG::PartitioningSchemePage->new(),
-        TooSimplePasswordDialog   => Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog->new(),
-        FileSystemOptionsPage     => Installation::Partitioner::LibstorageNG::FileSystemOptionsPage->new(),
-        FileSystemOptionsLvmPage  => Installation::Partitioner::LibstorageNG::FileSystemOptionsLvmPage->new(),
-        SelectHardDisksPage       => Installation::Partitioner::LibstorageNG::SelectHardDisksPage->new()
+        PartitioningSchemePage => Installation::Partitioner::LibstorageNG::PartitioningSchemePage->new(),
+        TooSimplePasswordDialog => Installation::Partitioner::LibstorageNG::TooSimplePasswordDialog->new(),
+        FileSystemOptionsPage => Installation::Partitioner::LibstorageNG::FileSystemOptionsPage->new(),
+        FileSystemOptionsLvmPage => Installation::Partitioner::LibstorageNG::FileSystemOptionsLvmPage->new(),
+        SelectHardDisksPage => Installation::Partitioner::LibstorageNG::SelectHardDisksPage->new()
     }, $class;
 }
 
@@ -88,10 +84,10 @@ sub edit_proposal_for_existing_partition {
 # the required test combinations.
 sub _set_partitioning {
     my ($self, %args) = @_;
-    my $is_lvm            = $args{is_lvm};
-    my $is_encrypted      = $args{is_encrypted};
+    my $is_lvm = $args{is_lvm};
+    my $is_encrypted = $args{is_encrypted};
     my $has_separate_home = $args{has_separate_home};
-    my $has_enlarge_swap  = $args{has_enlarge_swap};
+    my $has_enlarge_swap = $args{has_enlarge_swap};
     if ($is_lvm) {
         $self->get_partitioning_scheme_page()->select_logical_volume_management_checkbox();
     }

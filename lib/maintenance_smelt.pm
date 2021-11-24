@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package maintenance_smelt;
 
@@ -27,11 +23,11 @@ sub query_smelt {
 }
 
 sub get_incident_packages {
-    my $mr        = $_[0];
+    my $mr = $_[0];
     my $gql_query = "{incidents(incidentId: $mr){edges{node{incidentpackagesSet{edges{node{package{name}}}}}}}}";
-    my $graph     = JSON->new->utf8->decode(query_smelt($gql_query));
-    my @nodes     = @{$graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges}};
-    my @packages  = map { $_->{node}{package}{name} } @nodes;
+    my $graph = JSON->new->utf8->decode(query_smelt($gql_query));
+    my @nodes = @{$graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges}};
+    my @packages = map { $_->{node}{package}{name} } @nodes;
     return @packages;
 }
 
@@ -42,7 +38,7 @@ sub get_packagebins_in_modules {
     my ($self) = @_;
     my ($package_name, $module_ref) = ($self->{package_name}, $self->{modules});
     my $response = Mojo::UserAgent->new->get("https://smelt.suse.de/api/v1/basic/maintained/$package_name/")->result->body;
-    my $graph    = JSON->new->utf8->decode($response);
+    my $graph = JSON->new->utf8->decode($response);
     # Get the modules to which this package provides binaries.
     my @existing_modules = grep { exists($graph->{$_}) } @{$module_ref};
     my @arr;

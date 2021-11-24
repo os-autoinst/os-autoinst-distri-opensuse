@@ -1,0 +1,55 @@
+name:           btrfs_textmode
+description:    >
+  Validate default installation with btrfs.
+vars:
+  FILESYSTEM: btrfs  # Used for log collection in lib/y2_base
+  YUI_REST_API: 1
+conditional_schedule:
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/access_beta_distribution
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - '{{access_beta_distribution}}'
+  - installation/licensing/accept_license
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role/select_role_server
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_no_cow_attribute
+  - console/verify_no_separate_home
+  - console/validate_subvolumes
+test_data:
+  device: vda
+  table_type: gpt
+  subvolume:
+    cow:
+      - /
+      - /home
+      - /root
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
+  validate_subvolumes:
+    - subvolume: home
+      mount_point: /

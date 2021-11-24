@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: sbd crmsh
 # Summary: Add stonith sbd resource
@@ -22,7 +18,7 @@ use hacluster;
 
 sub run {
     my $cluster_name = get_cluster_name;
-    my $sbd_cfg      = '/etc/sysconfig/sbd';
+    my $sbd_cfg = '/etc/sysconfig/sbd';
 
     if (is_node(1)) {
         # Create sbd device

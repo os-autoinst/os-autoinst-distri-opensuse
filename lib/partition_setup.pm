@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package partition_setup;
 
@@ -14,6 +10,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use version_utils ':VERSION';
 use installation_user_settings 'await_password_check';
 use Utils::Architectures;
@@ -100,7 +97,7 @@ sub create_new_partition_table {
     my ($table_type) = shift // (is_storage_ng) ? 'GPT' : 'MSDOS';
     my %table_type_hotkey = (
         MSDOS => 'alt-m',
-        GPT   => 'alt-g',
+        GPT => 'alt-g',
     );
 
     assert_screen 'partitioning-edit-proposal-button';
@@ -144,7 +141,7 @@ sub create_new_partition_table {
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
         send_key((is_storage_ng) ? $cmd{next} : $cmd{ok});    # OK
-        send_key 'alt-p' if (is_storage_ng);                  # return back to Partitions tab
+        send_key 'alt-p' if (is_storage_ng);    # return back to Partitions tab
     }
     unless (is_storage_ng_newui) {
         assert_screen 'partition-create-new-table';
@@ -262,7 +259,7 @@ sub addpart {
             send_key(is_storage_ng() ? 'alt-r' : 'alt-a');    # Select to format partition
             wait_still_screen 1;
             send_key((is_storage_ng) ? 'alt-f' : 'alt-s');
-            wait_screen_change { send_key 'home' };           # start from the top of the list
+            wait_screen_change { send_key 'home' };    # start from the top of the list
             assert_screen(((is_storage_ng) ? 'partition-selected-ext2-type' : 'partition-selected-btrfs-type'), timeout => 10);
             send_key_until_needlematch "partition-selected-$args{format}-type", 'down', 10, 5;
         }
@@ -273,7 +270,7 @@ sub addpart {
     }
     if ($args{fsid}) {    # $args{fsid} will describe needle tag below
         send_key 'alt-i';    # select File system ID
-        send_key 'home';     # start from the top of the list
+        send_key 'home';    # start from the top of the list
 
         # Bug is applicable for pre storage-ng only
         if ($args{role} eq 'raw' && !check_var('VIDEOMODE', 'text') && !is_storage_ng()) {
@@ -409,12 +406,12 @@ C<$part_size> is the size of partition.
 
 =cut
 sub addboot {
-    my $part_size          = shift;
+    my $part_size = shift;
     my %default_boot_sizes = (
-        ofw        => 8,
-        uefi       => 256,
-        bios_boot  => 2,
-        zipl       => 500,
+        ofw => 8,
+        uefi => 256,
+        bios_boot => 2,
+        zipl => 500,
         unenc_boot => 500
     );
 
@@ -424,11 +421,11 @@ sub addboot {
     elsif (get_var('UEFI')) {    # UEFI needs partition mounted to /boot/efi for
         addpart(role => 'efi', size => $part_size // $default_boot_sizes{uefi});
     }
-    elsif (is_storage_ng && check_var('ARCH', 'x86_64')) {
+    elsif (is_storage_ng && is_x86_64) {
         # Storage-ng has GPT by defaut, so need bios-boot partition for legacy boot, which is only on x86_64
         addpart(role => 'raw', fsid => 'bios-boot', size => $part_size // $default_boot_sizes{bios_boot});
     }
-    elsif (check_var('ARCH', 's390x')) {
+    elsif (is_s390x) {
         # s390x need /boot/zipl on ext partition
         addpart(role => 'OS', size => $part_size // $default_boot_sizes{zipl}, format => 'ext2', mount => '/boot/zipl');
     }
@@ -450,12 +447,12 @@ force-selected at the end if needed (in some cases [sv]da is at the end of the l
 =cut
 sub select_first_hard_disk {
     # Try to handle most of the device type
-    my @tags    = 'existing-partitions';
+    my @tags = 'existing-partitions';
     my @devices = ('sdb' .. 'sdz', 'vdb' .. 'vdz', 'pmem0' .. 'pmem9', 'nvme0n1');
     foreach my $device (@devices) {
         push @tags, "hard-disk-dev-$device-selected";
     }
-    my $matched_needle = check_screen \@tags;           # save detected needle
+    my $matched_needle = check_screen \@tags;    # save detected needle
     return 1 if match_has_tag 'existing-partitions';    # no selection of hard-disk is required
 
     # SUT may have any number disks, only keep the first, unselect all other disks
@@ -527,7 +524,7 @@ sub take_first_disk_storage_ng {
     assert_screen [qw(existing-partitions partition-scheme)];
     # If drive(s) is/are not formatted, we have select hard disks page
     if (match_has_tag 'existing-partitions') {
-        if (check_var('BACKEND', 'ipmi') && !check_var('VIDEOMODE', 'text')) {
+        if (is_ipmi && !check_var('VIDEOMODE', 'text')) {
             send_key_until_needlematch("remove-menu", "tab");
             while (check_screen('remove-menu', 3)) {
                 send_key 'spc';
@@ -543,7 +540,7 @@ sub take_first_disk_storage_ng {
         send_key $cmd{next};
         assert_screen 'partition-scheme';
     }
-    elsif (check_var('BACKEND', 'ipmi')) {
+    elsif (is_ipmi) {
         send_key_until_needlematch 'after-partitioning', $cmd{next}, 10, 3;
         return;
     }

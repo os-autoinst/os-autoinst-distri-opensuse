@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: For openSUSE virtualization test only. login in console, install kvm/xen patterns if needed.
 #  - Even if you'd like to run tests without host installation(IPMI_DO_NOT_RESTART_HOST=1), this module is still necessary as login console in this module is required.
@@ -50,9 +46,21 @@ sub run {
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call("in -t pattern ${hypervisor}_server ${hypervisor}_tools", 1800);
     set_serial_console_on_vh('', '', $hypervisor);
+    systemctl 'enable libvirtd', ignore_failure => 1;
 
     virt_autotest::utils::install_default_packages();
     save_screenshot;
+
+    #set up necessary network bridge br0 for kvm/xen hypervisor.
+    #SLE sets up br0 during installation as kvm/xen role, while openSUSE TW does not.
+    #change MACAddressPolicy to none, or the network bridge will get a different MAC address from its enslave
+    #it is specific to TW because it uses udev naming scheme v247, see bsc#1136600
+    my $bridge_rule_file = "/usr/lib/systemd/network/98-default-bridge.link";
+    assert_script_run("echo \"[Match]\nDriver=bridge\n\n[Link]\nMACAddressPolicy=none\" > $bridge_rule_file", 60);
+    my $default_netdevice = get_var('SUT_NETDEVICE', 'eno1');
+    script_run("echo \"BOOTPROTO='dhcp'\nSTARTMODE='auto'\nBRIDGE='yes'\nBRIDGE_PORTS='$default_netdevice'\" > /etc/sysconfig/network/ifcfg-br0");
+    script_run("echo \"BOOTPROTO='none'\nSTARTMODE='auto'\" > /etc/sysconfig/network/ifcfg-$default_netdevice");
+
 }
 
 sub test_flags { {fatal => 1} }

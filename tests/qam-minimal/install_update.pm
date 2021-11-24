@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 
 # Summary: QAM Minimal test in openQA
@@ -42,7 +38,7 @@ sub run {
 
     # Set and check patch variables
     my $incident_id = get_var('INCIDENT_ID');
-    my $patch       = get_var('INCIDENT_PATCH');
+    my $patch = get_var('INCIDENT_PATCH');
     check_patch_variables($patch, $incident_id);
 
     my $repo = get_required_var('INCIDENT_REPO');

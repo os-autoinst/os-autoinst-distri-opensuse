@@ -1,6 +1,9 @@
 name:   offline_spvm_Upgrade
 description:    >
     This is for spvm upgrade migration
+vars:
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
+  UPGRADE_TARGET_VERSION: '%VERSION%'
 schedule:
   - installation/bootloader
   - installation/welcome

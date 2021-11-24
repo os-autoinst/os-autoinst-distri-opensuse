@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Configure NetWeaver filesystems
 # Maintainer: Loic Devulder <ldevulder@suse.de>
@@ -18,13 +14,13 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)      = @_;
-    my $type        = get_required_var('INSTANCE_TYPE');
+    my ($self) = @_;
+    my $type = get_required_var('INSTANCE_TYPE');
     my $instance_id = get_required_var('INSTANCE_ID');
-    my $sid         = get_required_var('INSTANCE_SID');
-    my $arch        = get_required_var('ARCH');
-    my $lun         = get_lun;
-    my $sap_dir     = "/usr/sap/$sid";
+    my $sid = get_required_var('INSTANCE_SID');
+    my $arch = get_required_var('ARCH');
+    my $lun = get_lun;
+    my $sap_dir = "/usr/sap/$sid";
     my ($proto, $path) = $self->fix_path(get_required_var('NW'));
 
     # LUN information is needed after for the HA configuration

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test WiFi setup with wicked (WPA-PSK with DHCP)
 #          If a connection is established, the AP will went down and a other
@@ -19,11 +15,11 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has wicked_version => '>=0.6.66';
-has ssid           => 'Virtual WiFi PSK Secured';
-has psk            => 'TopSecretWifiPassphrase!';
+has ssid => 'Virtual WiFi PSK Secured';
+has psk => 'TopSecretWifiPassphrase!';
 
 has ssid_2 => 'Second WiFi PSK Secured';
-has psk_2  => 'TopSecret2222!';
+has psk_2 => 'TopSecret2222!';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -70,7 +66,7 @@ has ifcfg_wlan => q(
 );
 
 sub run {
-    my $self         = shift;
+    my $self = shift;
     my $WAIT_SECONDS = get_var("WICKED_WAIT_SECONDS", 70);
     $self->select_serial_terminal;
     return if ($self->skip_by_wicked_version());
@@ -79,8 +75,7 @@ sub run {
     $self->setup_ref();
 
     # Start hostapd
-    $self->write_cfg('/tmp/hostapd.conf', $self->hostapd_conf);
-    $self->netns_exec('hostapd -P /tmp/hostapd.pid -B /tmp/hostapd.conf');
+    $self->hostapd_start($self->hostapd_conf);
 
     # Setup sut
     $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $self->ifcfg_wlan);
@@ -92,9 +87,8 @@ sub run {
     $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
 
     # Reconfigure hostapd
-    assert_script_run('kill $(cat /tmp/hostapd.pid)');
-    $self->write_cfg('/tmp/hostapd.conf', $self->hostapd_conf_2);
-    $self->netns_exec('hostapd -P /tmp/hostapd.pid -B /tmp/hostapd.conf');
+    $self->hostapd_kill();
+    $self->hostapd_start($self->hostapd_conf_2);
 
     # Check after reconnect
     $self->assert_sta_connected(timeout => $WAIT_SECONDS);

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: procps
 # Summary: Test procps installation and verify that its tools work as exepected
@@ -35,10 +31,10 @@ sub run {
 
     assert_script_run("rpm -q procps");
 
-    validate_script_output("free",    sub { m/total\s+used\s+free.*\nMem:\s+\d+\s+\d+\s+\d+.*(\n.*)+/ });
+    validate_script_output("free", sub { m/total\s+used\s+free.*\nMem:\s+\d+\s+\d+\s+\d+.*(\n.*)+/ });
     validate_script_output("pgrep 1", sub { m/\d+/ });
-    validate_script_output("pmap 1",  sub { m/1:\s+(.*systemd|init)/ });
-    validate_script_output("pwdx 1",  sub { m/1:\s+\// });
+    validate_script_output("pmap 1", sub { m/1:\s+(.*systemd|init)/ });
+    validate_script_output("pwdx 1", sub { m/1:\s+\// });
     validate_script_output("vmstat",
         qr/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+).*(\s+|\d+)+/s);
     validate_script_output("w",

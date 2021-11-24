@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: transactional-update
 # Summary: Enable SELinux on transactional server
@@ -30,12 +26,14 @@ sub run {
     # install and enable SELinux if not done by default
     if (script_run('test -d /sys/fs/selinux && test -e /etc/selinux/config') != 0) {
         assert_script_run('transactional-update setup-selinux');
+        upload_logs('/var/log/transactional-update.log');
+        shift->save_and_upload_log('rpm -qa', 'installed_pkgs.txt');
         process_reboot(trigger => 1);
     }
 
     assert_script_run('selinuxenabled');
-    record_info('SELinux',       script_output('sestatus'));
-    record_info('Audit report',  script_output('aureport'));
+    record_info('SELinux', script_output('sestatus'));
+    record_info('Audit report', script_output('aureport'));
     record_info('Audit denials', script_output('aureport -a', proceed_on_failure => 1));
     upload_logs($audit_log);
 }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: efibootmgr openssl mokutil parted coreutils sbsigntools
 # Summary: Check EFI boot in images or after OS installation
@@ -15,16 +11,16 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call is_efi_boot);
 use version_utils qw(is_leap is_opensuse is_sle is_jeos);
-use Utils::Architectures qw(is_x86_64 is_aarch64);
+use Utils::Architectures;
 use jeos qw(reboot_image set_grub_gfxmode);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common qw(is_updates_tests);
 use constant {
-    SYSFS_EFI_BITS      => '/sys/firmware/efi/fw_platform_size',
-    GRUB_DEFAULT        => '/etc/default/grub',
-    GRUB_CFG            => '/boot/grub2/grub.cfg',
+    SYSFS_EFI_BITS => '/sys/firmware/efi/fw_platform_size',
+    GRUB_DEFAULT => '/etc/default/grub',
+    GRUB_CFG => '/boot/grub2/grub.cfg',
     SYSCONFIG_BOOTLADER => '/etc/sysconfig/bootloader',
-    MOCK_CRT            => '/boot/efi/EFI/mock.der'
+    MOCK_CRT => '/boot/efi/EFI/mock.der'
 };
 
 my @errors;
@@ -46,7 +42,7 @@ sub get_expected_efi_settings {
 
 sub efibootmgr_current_boot {
     my $ebm_raw = script_output 'efibootmgr --verbose';
-    my $h       = {};
+    my $h = {};
 
     ($h->{bootid}) = $ebm_raw =~ /^BootCurrent:\s+(\d+)/m;
     die 'Missing BootCurrent: in efibootmgr\'s output' unless $h->{bootid};
@@ -73,9 +69,9 @@ sub check_efi_state {
     # get data from efivars
     # {8be4df61-93ca-11d2-aa0d-00e098032b8c} {global} efi_guid_global EFI Global Variable
     # save only the first capture
-    my ($efi_guid_global, undef) = script_output('efivar --list-guids') =~ /\{((\w+-){4}\w+)\}.*\s+efi_guid_global\s+/;
+    my ($efi_guid_global, undef) = script_output('efivar --list-guids') =~ /\{((\w+-){3,4}\w+)\}.*\s+efi_guid_global\s+/;
     diag "Found efi guid=$efi_guid_global";
-    diag('Expected state of SecureBoot: ' . get_var('DISABLE_SECUREBOOT', 0) ? 'Disabled' : 'Enabled');
+    diag('Expected state of SecureBoot: ' . (get_var('DISABLE_SECUREBOOT', 0) ? 'Disabled' : 'Enabled'));
 
     if (script_run("efivar -dn $efi_guid_global-SecureBoot") == !get_var('DISABLE_SECUREBOOT', 0)) {
         push @errors, 'System\'s SecureBoot state is unexpected according to efivar';
@@ -85,7 +81,7 @@ sub check_efi_state {
     my $found = efibootmgr_current_boot;
     if (exists($expected->{exec}) && $expected->{exec}) {
         record_info "Expected", "EFI executable: $expected->{exec} ( $expected->{label} )";
-        record_info "Found",    "EFI executable: $found->{exec} ( $found->{label} )";
+        record_info "Found", "EFI executable: $found->{exec} ( $found->{label} )";
         unless (exists $found->{exec} && exists $found->{label} &&
             $found->{exec} eq $expected->{exec} && $found->{label} eq $expected->{label}) {
             push @errors, 'No efi executable found by efibootmgr or SUT booted using unexpected efi binary';
@@ -114,7 +110,8 @@ sub check_mok {
     diag('Expected regex used to verify SecureBoot: ' . $state);
     validate_script_output 'mokutil --sb-state', $state;
 
-    if (script_output('mokutil --list-new', proceed_on_failure => 1) =~ /MokNew is empty/) {
+    my $output = script_output('mokutil --list-new', proceed_on_failure => 1);
+    if ($output eq '' || $output =~ /MokNew is empty/) {
         record_info 'MOK updates', 'No new certificates are expected to be enrolled';
     } else {
         push @errors, 'No new boot certificates are expected';
@@ -138,8 +135,8 @@ sub check_mok {
 
 sub get_esp_info {
     my $blk_dev_driver = {
-        qemu         => 'virtblk',
-        svirt_xen    => 'xvd',
+        qemu => 'virtblk',
+        svirt_xen => 'xvd',
         svirt_hyperv => 'scsi'
     };
     # return a the first element (drive or partition number) from parted's output
@@ -166,7 +163,7 @@ sub get_esp_info {
 sub verification {
     my ($self, $msg, $expected, $setup) = @_;
 
-    $setup->()                if ($setup && ref($setup) eq 'CODE');
+    $setup->() if ($setup && ref($setup) eq 'CODE');
     $self->reboot_image($msg) if ($msg);
     check_efi_state $expected;
     check_mok;
@@ -194,7 +191,7 @@ sub run {
     # JeOS always boots firstly from removable, but the boot record will be changed to non-removable by updates
     # Therefore the expected boot for JeOS under development and maintenance updates test slow might be different
     # Installed SUT by YaST2 boots from non-removable by default
-    my $exp_data              = get_expected_efi_settings;
+    my $exp_data = get_expected_efi_settings;
     my $booted_from_removable = is_jeos;
     if ($booted_from_removable && is_updates_tests) {
         # Updates got installed, so it might no longer be removable
@@ -252,10 +249,10 @@ sub post_fail_hook {
     set_var('_EXPECT_EFI_MOK_MANAGER', 0);
     select_console('log-console');
 
-    upload_logs(GRUB_DEFAULT,        log_name => 'etc_default_grub.txt');
-    upload_logs(GRUB_CFG,            log_name => 'grub.cfg');
+    upload_logs(GRUB_DEFAULT, log_name => 'etc_default_grub.txt');
+    upload_logs(GRUB_CFG, log_name => 'grub.cfg');
     upload_logs(SYSCONFIG_BOOTLADER, log_name => 'etc_sysconfig_bootloader.txt');
-    upload_logs('/etc/fstab',        log_name => 'fstab.txt');
+    upload_logs('/etc/fstab', log_name => 'fstab.txt');
 }
 
 1;

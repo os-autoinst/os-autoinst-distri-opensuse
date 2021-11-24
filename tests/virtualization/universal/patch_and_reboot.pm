@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: rpm nmap libvirt-client
 # Summary: Apply patches to the running system
@@ -24,7 +20,7 @@ use utils;
 use qam;
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $kernel_log = shift // '/tmp/virt_kernel.txt';
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
     $self->select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;

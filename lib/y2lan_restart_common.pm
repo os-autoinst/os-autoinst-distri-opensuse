@@ -5,12 +5,8 @@ Library for non-destructive testing using yast2 lan.
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: YaST logic on Network Restart while no config changes were made
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -69,7 +65,7 @@ sub initialize_y2lan
     }
     # Enable DEBUG for NetworkManager or wicked, in order to get detailed messages and easier detection of restart.
     my $debug_conf = is_network_manager_default() ?
-      'DEBUG="no"/DEBUG="yes"' :           # DEBUG configuration for NetworkManager
+      'DEBUG="no"/DEBUG="yes"' :    # DEBUG configuration for NetworkManager
       '(WICKED_LOG_LEVEL).*/\1="info"';    # DEBUG configuration for wicked
     assert_script_run 'sed -i -E \'s/' . $debug_conf . '/\' /etc/sysconfig/network/config';
     assert_script_run 'systemctl restart network';
@@ -97,7 +93,7 @@ sub open_network_settings {
     }
     else {
         assert_screen 'yast2_lan', 180;    # yast2 lan overview tab
-        send_key 'home';                   # select first device
+        send_key 'home';    # select first device
         wait_still_screen 1, 1;
     }
 }
@@ -149,7 +145,7 @@ sub check_network_status {
     else {
         assert_script_run 'dig suse.com|grep \'status: NOERROR\'';    # test if conection and DNS is working
     }
-    assert_script_run 'cat journal.log';                              # print journal.log
+    assert_script_run 'cat journal.log';    # print journal.log
     my $journal_findings = script_output('cat journal.log');
     record_info "$expected_status", "Network status expects $expected_status";
     if ($expected_status eq 'no_restart_or_reload') {
@@ -246,12 +242,12 @@ sub set_network {
         send_key 'alt-t';    # set to static ip
         assert_screen 'yast2_lan_static_ip_selected';
         send_key 'tab';
-        if ($args{ip}) {     # To spare time, no update what to is already filled from previous run
+        if ($args{ip}) {    # To spare time, no update what to is already filled from previous run
             send_key_until_needlematch('ip_textfield_empty', 'backspace');    # delete existing IP if any
             type_string $args{ip};
         }
         send_key 'tab';
-        if ($args{mask}) {                                                    # To spare time, no update what to is already filled from previous run
+        if ($args{mask}) {    # To spare time, no update what to is already filled from previous run
             send_key_until_needlematch('mask_textfield_empty', 'backspace');    # delete existing netmask if any
             type_string $args{mask};
         }
@@ -292,19 +288,19 @@ Check update of /etc/hosts. In order to target bugs bsc#1115644 and bsc#1052042,
 =cut
 sub check_etc_hosts_update {
 
-    my $ip   = '192.168.122.10';
+    my $ip = '192.168.122.10';
     my $mask = '255.255.255.0';
     script_run "cat /etc/hosts";
 
     record_info 'Test', 'Set static ip, FQDN and validate /etc/hosts entry';
     my $hostname = "test-1";
-    my $fqdn     = $hostname . '.susetest.com';
+    my $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
     validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
 
     record_info 'Test', 'Change FQDN and validate /etc/hosts entry';
     $hostname = "test-2";
-    $fqdn     = $hostname . '.susetest.com';
+    $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
     validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
 
@@ -313,7 +309,7 @@ sub check_etc_hosts_update {
 
     record_info 'Test', 'Set to static from dchp, set FQDN and validate /etc/hosts entry';
     $hostname = "test-3";
-    $fqdn     = $hostname . '.susetest.com';
+    $fqdn = $hostname . '.susetest.com';
     set_network(static => 1, fqdn => $fqdn, ip => $ip, mask => $mask);
     validate_etc_hosts_entry(ip => $ip, host => $hostname, fqdn => $fqdn);
 
@@ -402,7 +398,7 @@ sub open_yast2_lan {
     $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
 
     if ($is_nm) {
-        handle_Networkmanager_controlled;                             # don't change any settings
+        handle_Networkmanager_controlled;    # don't change any settings
         return "Controlled by network manager";
     }
 

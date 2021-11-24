@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Verify Warning Dialog for boot partition with too small size
 # to contain kernel.
@@ -22,13 +18,13 @@ my $partitioner;
 
 sub run {
     my $test_data = get_test_suite_data();
-    my $disk      = $test_data->{disks}[0];
+    my $disk = $test_data->{disks}[0];
     $partitioner = $testapi::distri->get_expert_partitioner();
 
     $partitioner->run_expert_partitioner();
     foreach my $partition (@{$disk->{partitions}->{boot_small_for_kernel}}) {
         $partitioner->add_partition_on_gpt_disk({
-                disk      => $disk->{name},
+                disk => $disk->{name},
                 partition => $partition
         });
     }

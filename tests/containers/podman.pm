@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: podman
 # Summary: Test podman installation and extended usage in a Kubic system
@@ -21,46 +17,63 @@
 #      * containers can be stopped
 #      * containers can be deleted
 #      * images can be deleted
-# Maintainer: Richard Brown <rbrown@suse.com>
+# Maintainer: qac team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
+use version_utils;
 use registration;
 use containers::common;
-use version_utils qw(is_sle is_leap is_jeos get_os_release);
 use containers::utils;
 use containers::container_images;
+use publiccloud::utils;
+use Utils::Systemd qw(systemctl disable_and_stop_service);
+
+my $stop_firewall = 0;    # Post-run flag to stop the firewall (failsafe)
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
     my $dir = "/root/DockerTest";
+    my $podman = $self->containers_factory('podman');
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
+    if ($self->firewall() eq 'firewalld') {
+        zypper_call('in ' . $self->firewall()) if (is_publiccloud || is_jeos);
+        systemctl('restart ' . $self->firewall());
+        $stop_firewall = 1;
+        $podman->check_containers_firewall();
+    }
 
-    install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'podman');
-
-    # Run basic tests for podman
-    basic_container_tests(runtime => "podman");
-
-    # Build an image from Dockerfile and test it
-    build_and_run_image(runtime => 'podman', base => 'registry.opensuse.org/opensuse/leap:latest');
+    # Run basic runtime tests
+    basic_container_tests(runtime => $podman->runtime);
+    # Build an image from Dockerfile and run it
+    build_and_run_image(runtime => $podman, dockerfile => 'Dockerfile.python3', base => registry_url('python', '3'));
 
     # Clean container
-    clean_container_host(runtime => "podman");
+    $podman->cleanup_system_host();
 }
 
 sub post_fail_hook {
     my ($self) = @_;
+    cleanup($self->firewall());
     select_console 'log-console';
     script_run "podman version | tee /dev/$serialdev";
     script_run "podman info --debug | tee /dev/$serialdev";
     $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my $self = shift;
+    cleanup($self->firewall());
+    $self->SUPER::post_run_hook;
+}
+
+# must ensure firewalld is stopped, if it is only enabled in this test (e.g. publiccloud test runs)
+sub cleanup() {
+    my $firewall = shift;
+    disable_and_stop_service($firewall) if $stop_firewall;
 }
 
 1;

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class represents current (i.e. latest) Leap 15 distribution and
 # provides access to its features.
@@ -20,6 +16,7 @@ use warnings FATAL => 'all';
 use parent 'Distribution::Sle::15_current';
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use Installation::License::Opensuse::LicenseAgreementController;
+use Installation::SystemRole::SystemRoleController;
 
 =head2 get_firstboot_license_agreement
 
@@ -33,6 +30,10 @@ sub get_firstboot_license_agreement {
 
 sub get_license_agreement {
     return Installation::License::Opensuse::LicenseAgreementController->new();
+}
+
+sub get_system_role_controller {
+    return Installation::SystemRole::SystemRoleController->new();
 }
 
 1;

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate zfcp in the installed system:
 #          - Verification of FCP devices online
@@ -43,8 +39,8 @@ sub compare_fcp_devices {
     my (%args) = @_;
 
     my $devs_expected = [map { $_->{fcp_channel} } @{$args{devs_expected}}];
-    my $devs_current  = $args{devs_current};
-    my $only_warning  = $args{only_warning};
+    my $devs_current = $args{devs_current};
+    my $only_warning = $args{only_warning};
 
     if (scalar arrays_subset($devs_expected, $devs_current) > 0) {
         my $message = "Unexpected FCP devices online found in the installed system. " .
@@ -113,13 +109,13 @@ sub verify_scsi_devices {
     for my $fcp_device (@{$fcp_devices}) {
         for my $lun (@{$fcp_device->{fcp_luns}}) {
             # Validate scsi devices with specific scsi command
-            my $peripheral_type       = $lun->{scsi}->{peripheral_type};
+            my $peripheral_type = $lun->{scsi}->{peripheral_type};
             my $vendor_model_revision = $lun->{scsi}->{vendor_model_revision};
 
             # Validate scsi devices with specific command for zfcp: lszfcp
-            my $fcp_channel  = $fcp_device->{fcp_channel};
-            my $wwpn         = $lun->{wwpn};
-            my $bus_wwpn     = "$fcp_channel/$wwpn";
+            my $fcp_channel = $fcp_device->{fcp_channel};
+            my $wwpn = $lun->{wwpn};
+            my $bus_wwpn = "$fcp_channel/$wwpn";
             my $iscsi_output = script_output("lszfcp -D -b $fcp_channel | grep '$bus_wwpn'");
 
             # Store SCSI target id H:C:T:L

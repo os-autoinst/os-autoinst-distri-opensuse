@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic check for cockpit service
 # Maintainer: qa-c team <qa-c@suse.de>
@@ -41,7 +37,7 @@ sub run {
     systemctl('is-enabled cockpit.socket');
     systemctl('is-active cockpit.service', expect_false => 1);
     assert_script_run('curl http://localhost:9090', fail_message => 'Cannot fetch index page');
-    assert_script_run('lsof -i :9090',              fail_message => 'Port 9090 is not opened!');
+    assert_script_run('lsof -i :9090', fail_message => 'Port 9090 is not opened!');
     systemctl('is-active cockpit.service');
 
 

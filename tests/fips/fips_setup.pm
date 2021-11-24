@@ -1,17 +1,5 @@
-# Copyright © 2016-2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: patterns-server-enterprise-fips
 # Summary: Setup fips mode for further testing:
@@ -49,7 +37,7 @@ sub run {
 
     # FIPS_INSTALLATION is only applicable for system installaton
     die "FIPS_INSTALLATION is require to run this script for installation" if get_var("!BOOT_HDD_IMAGE");
-    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!"          if get_var("!FIPS_ENABLED");
+    die "FIPS setup is only applicable for FIPS_ENABLED=1 image!" if get_var("!FIPS_ENABLED");
 
     # If FIPS_ENV_MODE, then set ENV for some FIPS modules. It is a
     # workaround when fips=1 kernel cmdline is not working.

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: parted
 # Summary: Create partitions for xfstests
@@ -23,8 +19,9 @@ use utils;
 use testapi;
 use filesystem_utils qw(str_to_mb parted_print partition_num_by_type mountpoint_to_partition
   partition_table create_partition remove_partition format_partition);
+use File::Basename;
 
-my $INST_DIR    = '/opt/xfstests';
+my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
 
 # Number of SCRATCH disk in SCRATCH_DEV_POOL, other than btrfs has only 1 SCRATCH_DEV, xfstests specific
@@ -36,18 +33,18 @@ sub partition_amount_by_homesize {
         # If enough space, then have 5 disks in SCRATCH_DEV_POOL, or have 2 disks in SCRATCH_DEV_POOL
         # At least 8 GB in each SCRATCH_DEV (SCRATCH_DEV_POOL only available for btrfs tests)
         if ($home_size >= 49152) {
-            $ret{num}  = 5;
+            $ret{num} = 5;
             $ret{size} = 1024 * int($home_size / (($ret{num} + 1) * 1024));
             return %ret;
         }
         else {
-            $ret{num}  = 2;
+            $ret{num} = 2;
             $ret{size} = 1024 * int($home_size / (($ret{num} + 1) * 1024));
             return %ret;
         }
     }
     elsif ($home_size) {
-        $ret{num}  = 1;
+        $ret{num} = 1;
         $ret{size} = int($home_size / 2);
         return %ret;
     }
@@ -65,7 +62,7 @@ sub partition_amount_by_homesize {
 # $dev: Optional. Device to be partitioned. Default: same device as root partition
 # $delhome: Delete home partition to get free space for test partition.
 sub do_partition_for_xfstests {
-    my $ref  = shift;
+    my $ref = shift;
     my %para = %{$ref};
     my ($part_table, $part_type, $test_dev);
     unless ($para{size}) {
@@ -109,7 +106,7 @@ sub do_partition_for_xfstests {
     # Create TEST_DEV
     $test_dev = create_partition($para{dev}, $part_type, $para{size});
     parted_print(dev => $para{dev});
-    format_partition($test_dev, $para{fstype});
+    format_with_options($test_dev, $para{fstype});
     # Create SCRATCH_DEV or SCRATCH_DEV_POOL
     my @scratch_dev;
     my $num = $para{amount};
@@ -138,30 +135,31 @@ sub do_partition_for_xfstests {
     }
     # Create SCRATCH_LOGDEV with disk partition
     if (get_var('XFSTESTS_LOGDEV')) {
-        my $logdev = create_partition($para{dev}, $part_type, 100);
+        my $logdev = create_partition($para{dev}, $part_type, 1024);
         format_partition($logdev, $para{fstype});
         script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
         script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
     }
     # Sync
     script_run('sync');
+    return $para{size} . 'M';
 }
 
 # Create loop device by giving inputs
 # only available when enable XFSTESTS_LOOP_DEVICE in openQA
 # Inputs explain
 # $filesystem: filesystem type
-# $size: Size of each partition size for TEST_DEV and SCRATCH_DEV. Default: 5120
+# $size: Size of free space of the rootfs. The size of each TEST_DEV or SCRATCH_DEV is split 90% of $size equally.
 sub create_loop_device_by_rootsize {
-    my $ref    = shift;
-    my %para   = %{$ref};
+    my $ref = shift;
+    my %para = %{$ref};
     my $amount = 1;
     my ($size, $count, $bsize);
     if ($para{fstype} =~ /btrfs/) {
         $amount = 5;
     }
     # Use 90% of free space, not use all space in /root
-    $size  = int($para{size} * 0.9 / ($amount + 1));
+    $size = int($para{size} * 0.9 / ($amount + 1));
     $bsize = 4096;
     $count = int($size * 1024 * 1024 / $bsize);
     my $num = 0;
@@ -174,11 +172,11 @@ sub create_loop_device_by_rootsize {
             $filename = "test_dev";
         }
         assert_script_run("fallocate -l \$(($bsize * $count)) $INST_DIR/$filename", 300);
-        assert_script_run("losetup -fP $INST_DIR/$filename",                        300);
+        assert_script_run("losetup -fP $INST_DIR/$filename", 300);
         $num += 1;
     }
     script_run("losetup -a");
-    format_partition("$INST_DIR/test_dev", $para{fstype});
+    format_with_options("$INST_DIR/test_dev", $para{fstype});
     # Create mount points
     script_run('mkdir /mnt/test /mnt/scratch');
     # Setup configure file xfstests/local.config
@@ -196,22 +194,75 @@ sub create_loop_device_by_rootsize {
     }
     # Create SCRATCH_LOGDEV with loop device
     if (get_var('XFSTESTS_LOGDEV')) {
-        my $logdev      = "/dev/loop100";
+        my $logdev = "/dev/loop100";
         my $logdev_name = "logdev";
 
-        assert_script_run("fallocate -l 100M $INST_DIR/$logdev_name",  300);
+        assert_script_run("fallocate -l 1G $INST_DIR/$logdev_name", 300);
         assert_script_run("losetup -P $logdev $INST_DIR/$logdev_name", 300);
-        format_partition("$INST_DIR/logdev_name", $para{fstype});
+        format_partition("$INST_DIR/$logdev_name", $para{fstype});
         script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
         script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
     }
     # Sync
     script_run('sync');
+    return $size . 'M';
 }
 
 sub set_config {
     my $self = shift;
     script_run("echo 'export KEEP_DMESG=yes' >> $CONFIG_FILE");
+}
+
+sub post_env_info {
+    my $size = shift;
+    # record version info
+    my $ver_log = get_var('VERSION_LOG', '/opt/version.log');
+    record_info('Version', script_output("cat $ver_log"));
+
+    # record partition size info
+    my $size_info = get_var('XFSTESTS_TEST_DEV') . "    $size\n";
+    if (my $scratch_dev = get_var("XFSTESTS_SCRATCH_DEV")) {
+        $size_info = $size_info . $scratch_dev . "    $size\n";
+    }
+    else {
+        my @scratch_dev_pool = split(/ /, get_var("XFSTESTS_SCRATCH_DEV_POOL"));
+        foreach (@scratch_dev_pool) {
+            $size_info = $size_info . $_ . "    $size\n";
+        }
+    }
+    record_info('Size', $size_info);
+}
+
+sub format_with_options {
+    my ($part, $filesystem) = @_;
+    # In case to test different mkfs.xfs options
+    if ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink_1024') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=1, -i sparse=1, -b size=1024');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=1, -i sparse=1, -b size=1024' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink_normapbt') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=0, -i sparse=1');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=0, -i sparse=1' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'reflink') != -1) {
+        format_partition($part, $filesystem, options => '-f -m reflink=1,rmapbt=1, -i sparse=1');
+        script_run("export 'XFS_MKFS_OPTIONS=-m reflink=1,rmapbt=1, -i sparse=1' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'nocrc_512') != -1) {
+        format_partition($part, $filesystem, options => '-f -m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512');
+        script_run("export 'XFS_MKFS_OPTIONS=-m crc=0,reflink=0,rmapbt=0, -i sparse=0, -b size=512' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'nocrc') != -1) {
+        format_partition($part, $filesystem, options => '-f -m crc=0,reflink=0,rmapbt=0, -i sparse=0');
+        script_run("export 'XFS_MKFS_OPTIONS=-m crc=0,reflink=0,rmapbt=0, -i sparse=0' >> $CONFIG_FILE");
+    }
+    elsif ($filesystem eq 'xfs' && index(get_required_var('TEST'), 'logdev') != -1) {
+        format_partition($part, 'xfs', options => '-f -m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m');
+        script_run("export 'XFS_MKFS_OPTIONS=-m crc=1,reflink=0,rmapbt=0, -i sparse=0 -lsize=100m' >> $CONFIG_FILE");
+    }
+    else {
+        format_partition($part, $filesystem);
+    }
 }
 
 sub run {
@@ -220,7 +271,7 @@ sub run {
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
     # by default we use /home partition spaces for test, and don't need this setting
-    my $device  = get_var('XFSTESTS_DEVICE');
+    my $device = get_var('XFSTESTS_DEVICE');
     my $loopdev = get_var('XFSTESTS_LOOP_DEVICE');
 
     my $filesystem = get_required_var('XFSTESTS');
@@ -228,27 +279,28 @@ sub run {
     if ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
         $para{fstype} = $filesystem;
-        $para{dev}    = $device;
-        do_partition_for_xfstests(\%para);
+        $para{dev} = $device;
+        post_env_info(do_partition_for_xfstests(\%para));
     }
     else {
         if ($loopdev) {
             $para{fstype} = $filesystem;
-            $para{size}   = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
-            $para{size}   = str_to_mb($para{size});
-            create_loop_device_by_rootsize(\%para);
+            $para{size} = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
+            $para{size} = str_to_mb($para{size});
+            post_env_info(create_loop_device_by_rootsize(\%para));
         }
         else {
             my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");
-            my %size_num  = partition_amount_by_homesize($home_size);
-            $para{fstype}  = $filesystem;
-            $para{amount}  = $size_num{num};
-            $para{size}    = $size_num{size};
+            my %size_num = partition_amount_by_homesize($home_size);
+            $para{fstype} = $filesystem;
+            $para{amount} = $size_num{num};
+            $para{size} = $size_num{size};
             $para{delhome} = 1;
-            do_partition_for_xfstests(\%para);
+            post_env_info(do_partition_for_xfstests(\%para));
         }
     }
     set_config;
+    upload_logs($CONFIG_FILE, timeout => 60, log_name => basename($CONFIG_FILE));
 }
 
 sub test_flags {

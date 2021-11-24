@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 ## no critic (RequireFilenameMatchesPackage);
 package x11test;
@@ -19,7 +15,7 @@ use LWP::Simple;
 use Config::Tiny;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils 'select_user_gnome';
+use x11utils qw(select_user_gnome handle_gnome_activities);
 use POSIX 'strftime';
 use mm_network;
 
@@ -66,7 +62,7 @@ sub prepare_sle_classic {
     if (is_sle('15+')) {
         assert_and_click 'dm-gnome-shell';
         send_key 'ret';
-        assert_screen 'desktop-gnome-shell', 350;
+        handle_gnome_activities;
     }
     else {
         assert_and_click 'dm-sle-classic';
@@ -237,7 +233,7 @@ END_LOCAL_CONFIG
 
 sub check_new_mail_evolution {
     my ($self, $mail_search, $i, $protocol) = @_;
-    my $config      = $self->getconfig_emailaccount;
+    my $config = $self->getconfig_emailaccount;
     my $mail_passwd = $config->{$i}->{passwd};
     assert_screen "evolution_mail-online", 240;
     send_key 'f12';
@@ -283,8 +279,8 @@ sub get_dated_random_string {
 sub send_meeting_request {
 
     my ($self, $sender, $receiver, $mail_subject) = @_;
-    my $config      = $self->getconfig_emailaccount;
-    my $mail_box    = $config->{$receiver}->{mailbox};
+    my $config = $self->getconfig_emailaccount;
+    my $mail_box = $config->{$receiver}->{mailbox};
     my $mail_passwd = $config->{$sender}->{passwd};
 
     #create new meeting
@@ -411,7 +407,7 @@ sub evolution_add_self_signed_ca {
         assert_and_click 'evolution_wizard-receiving';
         send_key $cmd{next};    # select "Next" key
         wait_still_screen(2);
-        send_key 'ret';         # Go to next page (previous key just selected the key)
+        send_key 'ret';    # Go to next page (previous key just selected the key)
     }
     else {
         send_key $cmd{next};
@@ -421,15 +417,15 @@ sub evolution_add_self_signed_ca {
 sub setup_mail_account {
     my ($self, $proto, $account) = @_;
 
-    my $config          = $self->getconfig_emailaccount;
-    my $mail_box        = $config->{$account}->{mailbox};
+    my $config = $self->getconfig_emailaccount;
+    my $mail_box = $config->{$account}->{mailbox};
     my $mail_sendServer = $config->{$account}->{sendServer};
     my $mail_recvServer = $config->{$account}->{recvServer};
-    my $mail_user       = $config->{$account}->{user};
-    my $mail_passwd     = $config->{$account}->{passwd};
-    my $mail_sendport   = $config->{$account}->{sendport};
-    my $port_key        = $proto eq 'pop' ? 'recvport' : 'imapport';
-    my $mail_recvport   = $config->{$account}->{$port_key};
+    my $mail_user = $config->{$account}->{user};
+    my $mail_passwd = $config->{$account}->{passwd};
+    my $mail_sendport = $config->{$account}->{sendport};
+    my $port_key = $proto eq 'pop' ? 'recvport' : 'imapport';
+    my $mail_recvport = $config->{$account}->{$port_key};
 
     $self->start_evolution($mail_box);
     # Open Server Type screen.
@@ -535,7 +531,7 @@ sub start_clean_firefox {
     my $count = 10;
     while ($count--) {
         # workaround for bsc#1046005
-        wait_screen_change { assert_and_click 'firefox_titlebar' };
+        assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
         if (check_screen 'firefox_trackinfo', 3) {
             record_info 'Tracking protection', 'Track info did show up';
             assert_and_click 'firefox_trackinfo';
@@ -568,7 +564,7 @@ sub start_clean_firefox {
         assert_and_click 'firefox_readerview_window';
     }
     # workaround for bsc#1046005
-    wait_screen_change { assert_and_click 'firefox_titlebar' };
+    assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
 
     # Help
     send_key "alt-h";
@@ -591,9 +587,9 @@ sub start_firefox_with_profile {
     enter_cmd "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla";
     # Start Firefox
     enter_cmd "firefox $url >firefox.log 2>&1 &";
-    wait_still_screen 2,                4;
+    wait_still_screen 2, 4;
     assert_screen 'firefox-url-loaded', 300;
-    wait_still_screen 2,                4;
+    wait_still_screen 2, 4;
 }
 
 sub start_firefox {
@@ -655,7 +651,7 @@ sub firefox_check_popups {
             # accidentially moving the firefox window around, skip it.
             if (!check_var("DESKTOP", "kde")) {
                 # workaround for bsc#1046005
-                wait_screen_change { assert_and_click 'firefox_titlebar' };
+                assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
             }
         }
     }
@@ -666,7 +662,7 @@ sub firefox_open_url {
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
-        assert_and_click 'firefox_titlebar';
+        assert_and_click 'firefox_titlebar' if check_screen('firefox_titlebar', 2);
         wait_still_screen 1, 2;
         send_key 'alt-d';
         send_key 'delete';
@@ -684,6 +680,11 @@ sub firefox_open_url {
     unless ($do_not_check_loaded_url) {
         assert_screen 'firefox-url-loaded', 300;
     }
+}
+
+sub firefox_preferences {
+    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 3, 15;
+    send_key_until_needlematch 'firefox-preferences', 'n', 3, 15;
 }
 
 sub exit_firefox_common {
@@ -713,10 +714,10 @@ sub exit_firefox {
 }
 
 sub start_gnome_settings {
-    my $is_sle_12_sp1          = (check_var('DISTRI', 'sle') && check_var('VERSION', '12-SP1'));
+    my $is_sle_12_sp1 = (check_var('DISTRI', 'sle') && check_var('VERSION', '12-SP1'));
     my $workaround_repetitions = 5;
-    my $i                      = $workaround_repetitions;
-    my $settings_menu_loaded   = 0;
+    my $i = $workaround_repetitions;
+    my $settings_menu_loaded = 0;
 
     # the loop is a workaround for SP1: bug in launcher. Sometimes it doesn't react to click
     # The bug will be NOT fixed for SP1.
@@ -727,7 +728,7 @@ sub start_gnome_settings {
             }
 
             send_key 'super';    # if launcher is open, close it (search string will also be removed).
-            send_key 'esc';      # close launcher, if it still open
+            send_key 'esc';    # close launcher, if it still open
         }
         send_key 'super';
         wait_still_screen;
@@ -739,7 +740,8 @@ sub start_gnome_settings {
 
     if (!$is_sle_12_sp1 || $settings_menu_loaded) {
         assert_and_click 'settings';
-        assert_screen 'gnome-settings';
+        my $timeout = (check_var('ARCH', 'aarch64')) ? '180' : '30';
+        assert_screen 'gnome-settings', $timeout;
     }
 }
 
@@ -835,9 +837,9 @@ sub setup_evolution_for_ews {
 sub evolution_send_message {
     my ($self, $account) = @_;
 
-    my $config       = $self->getconfig_emailaccount;
-    my $mailbox      = $config->{$account}->{mailbox};
-    my $mail_passwd  = $config->{$account}->{passwd};
+    my $config = $self->getconfig_emailaccount;
+    my $mailbox = $config->{$account}->{mailbox};
+    my $mail_passwd = $config->{$account}->{passwd};
     my $mail_subject = $self->get_dated_random_string(4);
 
     send_key "shift-ctrl-m";

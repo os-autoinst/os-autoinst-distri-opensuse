@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 #
 # Summary:  Install build on specified parition and format this partition
@@ -28,7 +24,7 @@ sub rescan_devices {
     else {
         send_key 'alt-e';
     }
-    wait_still_screen;                             # Wait until rescan is done
+    wait_still_screen;    # Wait until rescan is done
 }
 
 # Format partition with a file system

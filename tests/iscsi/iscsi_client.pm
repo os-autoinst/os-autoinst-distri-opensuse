@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-iscsi-client open-iscsi lsscsi util-linux e2fsprogs
 # Summary: Test suite for iSCSI server and client
@@ -44,8 +40,8 @@ sub initiator_service_tab {
             );
         } else {
             change_service_configuration(
-                after_writing => {start           => 'alt-f'},
-                after_reboot  => {start_on_demand => 'alt-a'}
+                after_writing => {start => 'alt-f'},
+                after_reboot => {start_on_demand => 'alt-a'}
             );
         }
     }
@@ -157,7 +153,7 @@ sub run {
 sub post_fail_hook {
     my $self = shift;
     $self->SUPER::post_fail_hook;
-    $self->save_and_upload_log("iscsiadm --mode session -P 3",                     "/tmp/iscsi_init_session_data.log");
+    $self->save_and_upload_log("iscsiadm --mode session -P 3", "/tmp/iscsi_init_session_data.log");
     $self->save_and_upload_log("tar czvf /tmp/iscsi_initconf.tar.gz /etc/iscsi/*", "/tmp/iscsi_initconf.tar.gz");
 }
 

@@ -1,17 +1,5 @@
-# Copyright (C) 2015-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package utils;
 
@@ -24,9 +12,9 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
 use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
-use Utils::Architectures qw(is_aarch64 is_ppc64le);
+use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
-use Utils::Backends 'has_ttys';
+use Utils::Backends;
 use Mojo::UserAgent;
 use zypper qw(wait_quit_zypper);
 
@@ -101,6 +89,7 @@ our @EXPORT = qw(
   susefirewall2_to_firewalld
   permit_root_ssh
   permit_root_ssh_in_sol
+  cleanup_disk_space
 );
 
 =head1 SYNOPSIS
@@ -218,7 +207,7 @@ sub handle_untrusted_gpg_key {
     }
     else {
         record_info('Cancel import', 'Untrusted gpg key is NOT imported');
-        wait_screen_change { send_key 'alt-c'; send_key 'spc' };      # cancel/no, depending on variant
+        wait_screen_change { send_key 'alt-c'; send_key 'spc' };    # cancel/no, depending on variant
     }
 }
 
@@ -248,7 +237,7 @@ sub integration_services_check_ip {
     $ips_host_pov = $1;
     # Guest-side of Integration Services
     my $ips_guest_pov = script_output("default_iface=\$(awk '\$2 == 00000000 { print \$1 }' /proc/net/route); ip addr show dev \"\$default_iface\" | awk '\$1 == \"inet\" { sub(\"/.*\", \"\", \$2); print \$2 }'");
-    record_info('IP (host)',  $ips_host_pov);
+    record_info('IP (host)', $ips_host_pov);
     record_info('IP (guest)', $ips_guest_pov);
     die "ips_host_pov=<$ips_host_pov> ips_guest_pov=<$ips_guest_pov>" if $ips_host_pov ne $ips_guest_pov;
     die 'Client nor host see IP address of the VM' unless $ips_host_pov;
@@ -534,12 +523,12 @@ for example:
 C<dumb_term> will default to C<is_serial_terminal()>.
 =cut
 sub zypper_call {
-    my $command          = shift;
-    my %args             = @_;
+    my $command = shift;
+    my %args = @_;
     my $allow_exit_codes = $args{exitcode} || [0];
-    my $timeout          = $args{timeout}  || 700;
-    my $log              = $args{log};
-    my $dumb_term        = $args{dumb_term} // is_serial_terminal;
+    my $timeout = $args{timeout} || 700;
+    my $log = $args{log};
+    my $dumb_term = $args{dumb_term} // is_serial_terminal;
 
     my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
@@ -641,15 +630,15 @@ Examples:
 =cut
 sub zypper_ar {
     my ($url, %args) = @_;
-    my $name         = $args{name}         // '';
-    my $priority     = $args{priority}     // undef;
-    my $params       = $args{params}       // '';
+    my $name = $args{name} // '';
+    my $priority = $args{priority} // undef;
+    my $params = $args{params} // '';
     my $no_gpg_check = $args{no_gpg_check} // '';
 
     $no_gpg_check = $no_gpg_check ? "--no-gpgcheck" : "";
     my $prioarg = defined($priority) && !is_sle('<=12') ? "-p $priority" : "";
-    my $cmd_ar  = "--gpg-auto-import-keys ar -f $prioarg $no_gpg_check $params $url";
-    my $cmd_mr  = "mr -p $priority $url";
+    my $cmd_ar = "--gpg-auto-import-keys ar -f $prioarg $no_gpg_check $params $url";
+    my $cmd_mr = "mr -p $priority $url";
     my $cmd_ref = "--gpg-auto-import-keys ref";
 
     # repo file
@@ -678,7 +667,7 @@ the second run will update the system.
 =cut
 sub fully_patch_system {
     # special handle for 11-SP4 s390 install
-    if (is_sle('=11-SP4') && check_var('ARCH', 's390x') && check_var('BACKEND', 's390x')) {
+    if (is_sle('=11-SP4') && is_s390x && check_var('BACKEND', 's390x')) {
         # first run, possible update of packager -- exit code 103
         zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
         handle_patch_11sp4_zvm();
@@ -696,7 +685,7 @@ sub fully_patch_system {
         record_soft_failure 'bsc#1176655 openQA test fails in patch_sle - binutils-devel-2.31-9.29.1.aarch64 requires binutils = 2.31-9.29.1';
         my $para = '';
         $para = '--force-resolution' if get_var('FORCE_DEPS');
-        $ret  = zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
+        $ret = zypper_call("patch --with-interactive -l $para", exitcode => [0, 102], timeout => 6000);
         save_screenshot;
     }
 
@@ -713,12 +702,12 @@ the second run will update the system.
 
 =cut
 sub ssh_fully_patch_system {
-    my $host = shift;
+    my $remote = shift;
     # first run, possible update of packager -- exit code 103
-    my $ret = script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", 1500);
+    my $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 1500);
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
     # second run, full system update
-    $ret = script_run("ssh root\@$host 'zypper -n patch --with-interactive -l'", 6000);
+    $ret = script_run("ssh $remote 'sudo zypper -n patch --with-interactive -l'", 6000);
     die "Zypper failed with $ret" if ($ret != 0 && $ret != 102);
 }
 
@@ -839,7 +828,7 @@ Sets C<BRIDGED_NETWORKING> to C<1> if applicable.
 =cut
 sub set_bridged_networking {
     my $ret = 0;
-    if (check_var('BACKEND', 'svirt') and !check_var('ARCH', 's390x')) {
+    if (is_svirt and !is_s390x) {
         my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
         $ret = ($vmm_family =~ /xen|vmware|hyperv/);
     }
@@ -886,7 +875,7 @@ C<$wait_change> defaults to 2 (seconds) and C<$repeat> defaults to 3.
 sub assert_and_click_until_screen_change {
     my ($mustmatch, $wait_change, $repeat) = @_;
     $wait_change //= 2;
-    $repeat      //= 3;
+    $repeat //= 3;
     my $i = 0;
 
     # This is not totally race free - wait_screen_change may timeout, then the screen
@@ -941,7 +930,7 @@ Example:
 sub assert_screen_with_soft_timeout {
     my ($mustmatch, %args) = @_;
     # as in assert_screen
-    $args{timeout}      //= 30;
+    $args{timeout} //= 30;
     $args{soft_timeout} //= 0;
     my $needle_info = ref($mustmatch) eq "ARRAY" ? join(',', @$mustmatch) : $mustmatch;
     die("\$args{bugref} is not set in assert_screen_with_soft_timeout") unless ($args{bugref});
@@ -978,7 +967,7 @@ sub addon_decline_license {
         if (check_screen 'next-button-is-active', 5) {
             send_key $cmd{next};
             assert_screen "license-refuse";
-            send_key 'alt-n';         # no, don't refuse agreement
+            send_key 'alt-n';    # no, don't refuse agreement
             wait_still_screen 2;
             send_key $cmd{accept};    # accept license
         }
@@ -996,9 +985,9 @@ sub addon_decline_license {
 TODO someone should document this
 =cut
 sub addon_license {
-    my ($addon)  = @_;
-    my $uc_addon = uc $addon;                      # variable name is upper case
-    my @tags     = ('import-untrusted-gpg-key');
+    my ($addon) = @_;
+    my $uc_addon = uc $addon;    # variable name is upper case
+    my @tags = ('import-untrusted-gpg-key');
     push @tags, (get_var("BETA_$uc_addon") ? "addon-betawarning-$addon" : "addon-license-$addon");
   license: {
         do {
@@ -1115,7 +1104,7 @@ sub service_action {
     my ($name, $args) = @_;
 
     # default action is to 'stop' ${service_name}.service unit file
-    my @types   = $args->{type}   ? @{$args->{type}}   : 'service';
+    my @types = $args->{type} ? @{$args->{type}} : 'service';
     my @actions = $args->{action} ? @{$args->{action}} : 'stop';
     foreach my $action (@actions) {
         foreach my $type (@types) {
@@ -1154,7 +1143,7 @@ sub get_x11_console_tty {
       && !is_leap('<15.0')
       && !is_microos
       && !check_var('VIRSH_VMM_FAMILY', 'hyperv')
-      && !check_var('VIRSH_VMM_TYPE',   'linux')
+      && !check_var('VIRSH_VMM_TYPE', 'linux')
       && !get_var('VERSION_LAYERED');
     # $newer_gdm means GDM version >= 3.32, which will start gnome desktop
     # on tty2 including auto-login cases.
@@ -1251,8 +1240,8 @@ sub disable_serial_getty {
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     # Doing early due to bsc#1103199 and bsc#1112109
     # Mask if is qemu backend as use serial in remote installations e.g. during reboot
-    my $mask = check_var('BACKEND', 'qemu');
-    my $cmd  = $mask ? 'mask' : 'disable';
+    my $mask = is_qemu;
+    my $cmd = $mask ? 'mask' : 'disable';
     disable_and_stop_service($service_name, mask_service => $mask, ignore_failure => 1);
     record_info 'serial-getty', "Serial getty $cmd for $testapi::serialdev";
 }
@@ -1316,9 +1305,9 @@ sub shorten_url {
     my $ua = Mojo::UserAgent->new;
 
     my $res = $ua->post('s.qa.suse.de' => form => {url => $url, wishId => $args{wishid}})->result;
-    if    ($res->is_success) { return $res->body }
-    elsif ($res->is_error)   { die "Shorten url got $res->code response: $res->message" }
-    else                     { die "Shorten url failed with unknown error" }
+    if ($res->is_success) { return $res->body }
+    elsif ($res->is_error) { die "Shorten url got $res->code response: $res->message" }
+    else { die "Shorten url failed with unknown error" }
 }
 
 =head2 _handle_login_not_found
@@ -1367,10 +1356,10 @@ can be set to 1.
 =cut
 sub reconnect_mgmt_console {
     my (%args) = @_;
-    $args{timeout}             //= 300;
+    $args{timeout} //= 300;
     $args{grub_expected_twice} //= 0;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         my $login_ready = serial_terminal::get_login_message();
         console('installation')->disable_vnc_stalls;
 
@@ -1421,7 +1410,7 @@ sub reconnect_mgmt_console {
             select_console('x11', await_console => 0);
         }
     }
-    elsif (check_var('ARCH', 'ppc64le')) {
+    elsif (is_ppc64le) {
         if (check_var('BACKEND', 'spvm')) {
             select_console 'novalink-ssh', await_console => 0;
         } elsif (check_var('BACKEND', 'pvm_hmc')) {
@@ -1432,16 +1421,16 @@ sub reconnect_mgmt_console {
             }
         }
     }
-    elsif (check_var('ARCH', 'x86_64')) {
-        if (check_var('BACKEND', 'ipmi')) {
+    elsif (is_x86_64) {
+        if (is_ipmi) {
             select_console 'sol', await_console => 0;
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 300);
             # boot to hard disk is default
             send_key 'ret';
         }
     }
-    elsif (check_var('ARCH', 'aarch64')) {
-        if (check_var('BACKEND', 'ipmi')) {
+    elsif (is_aarch64) {
+        if (is_ipmi) {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
@@ -1528,11 +1517,11 @@ Example:
 =cut
 sub script_retry {
     my ($cmd, %args) = @_;
-    my $ecode   = $args{expect}  // 0;
-    my $retry   = $args{retry}   // 10;
-    my $delay   = $args{delay}   // 30;
+    my $ecode = $args{expect} // 0;
+    my $retry = $args{retry} // 10;
+    my $delay = $args{delay} // 30;
     my $timeout = $args{timeout} // 30;
-    my $die     = $args{die}     // 1;
+    my $die = $args{die} // 1;
 
     my $ret;
 
@@ -1549,7 +1538,7 @@ sub script_retry {
         last if defined($ret) && $ret == $ecode;
 
         die("Waiting for Godot: $cmd") if $retry == $_ && $die == 1;
-        sleep $delay                   if ($delay > 0);
+        sleep $delay if ($delay > 0);
     }
 
     return $ret;
@@ -1579,10 +1568,10 @@ Example:
 =cut
 sub script_output_retry {
     my ($cmd, %args) = @_;
-    my $retry   = $args{retry}   // 10;
-    my $delay   = $args{delay}   // 30;
+    my $retry = $args{retry} // 10;
+    my $delay = $args{delay} // 30;
     my $timeout = $args{timeout} // 30;
-    my $die     = $args{die}     // 1;
+    my $die = $args{die} // 1;
 
     my $exec = "timeout " . ($timeout - 3) . " $cmd";
     for (1 .. $retry) {
@@ -1629,7 +1618,7 @@ sub script_run_interactive {
 
     if ($cmd) {
         script_run("(script -qe -a /dev/null -c \'", 0);
-        script_run($cmd,                             0);
+        script_run($cmd, 0);
         # Can not get return value from script_run, so we have to do it in
         # the shell with $? following the endmark.
         script_run("\'; echo $endmark\$?) |& tee /dev/$serialdev", 0);
@@ -1641,14 +1630,15 @@ sub script_run_interactive {
         push(@words, $k->{prompt});
     }
 
-    push(@words, $endmark);
+    # Hack: '$' doesn't match '\r\n' line endings, so use '\s' instead
+    push(@words, qr/${endmark}\d+\s/m);
 
     {
         do {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
-            last if ($output =~ /($endmark)0$/m);    # return value is 0
-            die  if ($output =~ /$endmark/m);        # other return values
+            last if ($output =~ /${endmark}0\s/m);    # return value is 0
+            die if ($output =~ /${endmark}/m);    # other return values
 
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});
@@ -1678,7 +1668,7 @@ ref:bsc#1122591
 =cut
 sub create_btrfs_subvolume {
     my $fstype;
-    $fstype = script_output("df -PT /boot/grub2/arm64-efi/ | grep -v \"Filesystem\" | awk '{print \$2}'");
+    $fstype = script_output("df -PT /boot/grub2/arm64-efi/ | grep -v \"Filesystem\" | awk '{print \$2}'", 120);
     return if ('btrfs' ne chomp($fstype));
     my @sub_list = split(/\n/, script_output("btrfs subvolume list /boot/grub2/arm64-efi/", 120));
     foreach my $line (@sub_list) {
@@ -1706,10 +1696,10 @@ Example to create a RAID C<5> array over C<3> loop devices, C<200> Mb each:
 
 =cut
 sub create_raid_loop_device {
-    my %args         = @_;
-    my $raid_type    = $args{raid_type}  // 1;
-    my $device_num   = $args{device_num} // 2;
-    my $file_size    = $args{file_size}  // 100;
+    my %args = @_;
+    my $raid_type = $args{raid_type} // 1;
+    my $device_num = $args{device_num} // 2;
+    my $file_size = $args{file_size} // 100;
     my $loop_devices = "";
 
     for my $num (1 .. $device_num) {
@@ -1745,28 +1735,28 @@ Disabled by default.
 sub file_content_replace {
     my ($filename, %to_replace) = @_;
     $to_replace{'--sed-modifier'} //= '';
-    $to_replace{'--debug'}        //= 0;
+    $to_replace{'--debug'} //= 0;
     my $sed_modifier = delete $to_replace{'--sed-modifier'};
-    my $debug        = delete $to_replace{'--debug'};
+    my $debug = delete $to_replace{'--debug'};
     foreach my $key (keys %to_replace) {
         my $value = $to_replace{$key};
         $value =~ s/'/'"'"'/g;
         $value =~ s'/'\/'g;
-        $key   =~ s/'/'"'"'/g;
-        $key   =~ s'/'\/'g;
+        $key =~ s/'/'"'"'/g;
+        $key =~ s'/'\/'g;
         assert_script_run(sprintf("sed -E 's/%s/%s/%s' -i %s", $key, $value, $sed_modifier, $filename));
     }
     script_run("cat $filename") if $debug;
 }
 
 sub handle_patch_11sp4_zvm {
-    my $zypper_patch_conflict     = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
-    my $zypper_continue           = qr/^Continue\? \[y/m;
-    my $zypper_patch_done         = qr/^ZYPPER-DONE/m;
+    my $zypper_patch_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
+    my $zypper_continue = qr/^Continue\? \[y/m;
+    my $zypper_patch_done = qr/^ZYPPER-DONE/m;
     my $zypper_patch_notification = qr/^View the notifications now\? \[y/m;
-    my $zypper_error              = qr/^Abort, retry, ignore\? \[a/m;
-    my $timeout                   = 6000;
-    my $patch_checks              = [
+    my $zypper_error = qr/^Abort, retry, ignore\? \[a/m;
+    my $timeout = 6000;
+    my $patch_checks = [
         $zypper_patch_conflict, $zypper_continue, $zypper_patch_done, $zypper_patch_notification, $zypper_error
     ];
     script_run("(zypper patch --with-interactive -l;echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
@@ -1830,7 +1820,8 @@ This functions checks if ca-certificates-suse is installed and if it is not it a
 sub ensure_ca_certificates_suse_installed {
     return unless is_sle;
     if (script_run('rpm -qi ca-certificates-suse') == 1) {
-        my $distversion = get_required_var("VERSION") =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
+        my $host_version = get_var("HOST_VERSION") ? 'HOST_VERSION' : 'VERSION';
+        my $distversion = get_required_var($host_version) =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
         zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/SLE_$distversion/SUSE:CA.repo");
         zypper_call("in ca-certificates-suse");
     }
@@ -1853,10 +1844,10 @@ sub get_pattern_list {
     my ($cmd, $start) = @_;
 
     my $pkg_name;
-    my @column   = ();
+    my @column = ();
     my @pkg_list = ();
-    my %seen     = ();
-    my @unique   = ();
+    my %seen = ();
+    my @unique = ();
 
     my @pkg_lines = split(/\n/, script_output($cmd, 120));
 
@@ -1873,7 +1864,7 @@ sub get_pattern_list {
 
     if (@pkg_list) {
         # unique and sort the @pkg_list
-        %seen   = map { $_ => 1 } @pkg_list;
+        %seen = map { $_ => 1 } @pkg_list;
         @unique = sort keys %seen;
     }
 
@@ -1892,7 +1883,7 @@ sub install_patterns {
     my @pt_list;
     my @pt_list_un;
     my @pt_list_in;
-    my $pcm_list    = 0;
+    my $pcm_list = 0;
     my $cf_selected = 0;
 
     if (is_sle('15+')) {
@@ -1921,7 +1912,7 @@ sub install_patterns {
         $installed_pt{$_} = 1;
     }
     @pt_list = sort grep(!$installed_pt{$_}, @pt_list_un);
-    $pcm     = grep /$pcm_list/, @pt_list_in;
+    $pcm = grep /$pcm_list/, @pt_list_in;
 
     for my $pt (@pt_list) {
         # if pattern is set default, skip
@@ -1944,6 +1935,10 @@ sub install_patterns {
         }
         # skip the installation of "SAP Application Server Base", poo#75058.
         if (($pt =~ /sap_server/) && is_sle('=11-SP4')) {
+            next;
+        }
+        # skip the installation of "fips" for SLED cases, poo#98745.
+        if (($pt =~ /fips/) && check_var('SLE_PRODUCT', 'sled')) {
             next;
         }
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
@@ -1993,15 +1988,15 @@ sub get_secureboot_status {
 sub assert_secureboot_status {
     my $expected = shift;
 
-    my $state    = get_secureboot_status;
+    my $state = get_secureboot_status;
     my $statestr = $state ? 'on' : 'off';
     die "Error: SecureBoot is $statestr" if $state xor $expected;
 }
 
 sub susefirewall2_to_firewalld {
     my $timeout = 360;
-    $timeout = 1200 if check_var('ARCH', 'aarch64');
-    assert_script_run('susefirewall2-to-firewalld -c',                                     timeout => $timeout);
+    $timeout = 1200 if is_aarch64;
+    assert_script_run('susefirewall2-to-firewalld -c', timeout => $timeout);
     assert_script_run('firewall-cmd --permanent --zone=external --add-service=vnc-server', timeout => 60);
     # On some platforms such as Aarch64, the 'firewalld restart'
     # can't finish in the default timeout.
@@ -2048,6 +2043,35 @@ sub permit_root_ssh_in_sol {
 
     $sshd_config_file //= "/etc/ssh/sshd_config";
     enter_cmd("[ `grep \"^PermitRootLogin *yes\" $sshd_config_file | wc -l` -gt 0 ] || (echo 'PermitRootLogin yes' >>$sshd_config_file; systemctl restart sshd)");
+}
+
+=head2 cleanup_disk_space
+    cleanup_disk_space();
+
+In fully_patch_system and minimal_patch_system, we'll create so many
+snapshots. which will cost large part of the disk space. We need to
+delete these snapshots before the migration only if the available space
+is less than DISK_LOW_WATERMARK.
+
+=cut
+
+sub cleanup_disk_space {
+    # we just do the disk clean up only if the available disk space is
+    # less than DISK_LOW_WATERMARK
+    return unless get_var("DISK_LOW_WATERMARK");
+    my $avail = script_output('findmnt -n -D -r -o avail / | awk \'{print $1+0}\'', timeout => 120);
+    diag "available space = $avail GB";
+    return if ($avail > get_var("DISK_LOW_WATERMARK"));
+
+    record_soft_failure "bsc#1192331", "Low diskspace on Filesystem root";
+
+    my @snap_lists = split /\n/, script_output("snapper list --disable-used-space | grep important= | grep -v single | awk \'{print \$1}\'");
+    foreach my $snapid (@snap_lists) {
+        assert_script_run("snapper delete -s $snapid", timeout => 120) if ($snapid > 3);
+    }
+
+    # set the snapshot number to 5-10
+    assert_script_run('snapper -croot set-config NUMBER_LIMIT=5-10');
 }
 
 1;

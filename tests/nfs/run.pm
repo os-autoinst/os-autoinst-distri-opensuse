@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Run tests
 # Maintainer: Yong Sun <yosun@suse.com>
@@ -21,7 +17,7 @@ use utils;
 use power_action_utils 'power_action';
 
 sub pynfs_server_test_all {
-    my $self   = shift;
+    my $self = shift;
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ./$folder");
@@ -76,8 +72,13 @@ BOOT_HDD_IMAGE=1
 DESKTOP=textmode
 HDD_1=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed.qcow2
 CTHON04=1
+NFSVERSION=3
 UEFI_PFLASH_VARS=SLES-%VERSION%-%ARCH%-%BUILD%@%MACHINE%-minimal_with_sdk%BUILD_SDK%_installed-uefi-vars.qcow2
 START_AFTER_TEST=create_hdd_minimal_base+sdk
+
+=head2 NFSVERSION
+
+Fill 3 or 4 in this parameter to set test NFSv3 or NFSv4.
 
 =head2 CTHON04_GIT_URL
 

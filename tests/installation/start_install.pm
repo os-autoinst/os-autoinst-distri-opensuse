@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Verify installation starts and is in progress
 # - If install type is upgrade, handle conflict solution screen, license popup,
@@ -23,6 +19,7 @@ use strict;
 use warnings;
 use lockapi;
 use testapi;
+use Utils::Architectures;
 use mmapi;
 use version_utils qw(is_sle is_upgrade);
 
@@ -108,7 +105,7 @@ sub run {
         && !get_var("NICEVIDEO")
         && !get_var("UPGRADE")
         && !check_var('VIDEOMODE', 'text')
-        && (!is_sle('=11-sp4') || !check_var('ARCH', 's390x') || !check_var('BACKEND', 's390x')))
+        && (!is_sle('=11-sp4') || !is_s390x || !check_var('BACKEND', 's390x')))
     {
         my $counter = 20;
         while ($counter--) {

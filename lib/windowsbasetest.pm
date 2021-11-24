@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package windowsbasetest;
 use Mojo::Base qw(basetest);
@@ -104,7 +100,7 @@ sub wait_boot_windows {
     # Reset the consoles: there is no user logged in anywhere
     reset_consoles;
 
-    assert_screen 'windows-screensaver',        600;
+    assert_screen 'windows-screensaver', 600;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';    # press shutdown button

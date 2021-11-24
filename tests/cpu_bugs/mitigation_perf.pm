@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: mitigation_perf: virutalization and vulnerabiluty performance test
 # Maintainer: xgwang@suse.com
@@ -18,24 +14,36 @@ use base "consoletest";
 
 sub get_perf_exec_cmd {
     my $vt_perf_auto_path = '/root/vt-perf-auto/vt_perf_run.py';
-    my $host              = get_var('HOST');
-    my $qaset_runid       = get_var('QASET_RUNID');
-    my $prd_ver           = get_var('PERF_PRD_VER');
-    my $rls_ver           = get_var('PERF_REL_VER');
-    my $hyper_type        = get_var('HYPER_TYPE');
-    my $logfile           = 'screenlog_' . $hyper_type . '.' . $host;
+    my $host = get_var('HOST');
+    my $qaset_role = get_var('QASET_ROLE');
+    my $prd_ver = get_var('PERF_PRD_VER');
+    my $rls_ver = get_var('PERF_REL_VER');
+    my $hyper_type = get_var('HYPER_TYPE');
+    my $logfile = 'screenlog_' . $hyper_type . '.' . $host;
 
     my $exec_cmd = 'screen -dmS vt_perf_auto_' . $host . ' -L -Logfile ' . $logfile . ' sh -c "script -c \\"';
 
-    $exec_cmd .= " python3 " . $vt_perf_auto_path;
+    $exec_cmd .= " python3 " . $vt_perf_auto_path . " perf_run ";
     $exec_cmd .= " --host=" . $host;
     $exec_cmd .= " --hypervisor=" . $hyper_type;
-    $exec_cmd .= " --qaset-runid=" . $qaset_runid;
+    $exec_cmd .= " --qaset-role=" . $qaset_role;
     $exec_cmd .= " --product-ver=" . lc($prd_ver);
     $exec_cmd .= " --release-ver=" . lc($rls_ver);
 
-    if (check_var('NETTEST', '1')) {
-        $exec_cmd .= " --nettest";
+    if (check_var('BAREMETAL_NETTEST', '1')) {
+        $exec_cmd .= " --baremetal-nettest";
+    }
+    if (check_var('KVMGUEST_NETTEST', '1')) {
+        $exec_cmd .= " --kvm-guest-nettest";
+    }
+    if (check_var('DOM0_NETTEST', '1')) {
+        $exec_cmd .= " --dom0-nettest";
+    }
+    if (check_var('XEN_HVM_NETTEST', '1')) {
+        $exec_cmd .= " --xen-hvm-nettest";
+    }
+    if (check_var('XEN_PV_NETTEST', '1')) {
+        $exec_cmd .= " --xen-pv-nettest";
     }
 
     if ($hyper_type eq 'kvm') {
@@ -59,7 +67,7 @@ sub get_baremetal_and_kvm_guest_perf_cmd {
     if (check_var('KVMGUEST_PERF', '1')) {
         $exec_cmd .= " --enable-kvm-guest";
         $exec_cmd .= " --kvm-tc-run-times=" . get_var('KVMGUEST_TC_RUN_TIMES', 3);
-        $exec_cmd .= " --kvm-hyper_mitigation=" . get_var('KVM_HYPER_STATUS',    'all');
+        $exec_cmd .= " --kvm-hyper_mitigation=" . get_var('KVM_HYPER_STATUS', 'all');
         $exec_cmd .= " --kvm-guest_mitigation=" . get_var('KVMGUEST_KER_STATUS', 'all');
         foreach my $testcase (split(/,+/, get_var('KVMGUEST_CASES', ''))) {
             $exec_cmd .= " --kvm-tc=" . $testcase;
@@ -115,12 +123,12 @@ sub get_xen_dom0_and_guest_perf_cmd {
 }
 
 sub run {
-    my $self                = shift;
+    my $self = shift;
     my $miti_perf_code_path = '/root/vt-perf-auto';
-    my $logfile             = 'screenlog_' . get_var('HYPER_TYPE') . '.' . get_var('HOST');
-    my $svirt               = select_console('svirt', await_console => 0);
-    my $ret                 = $svirt->run_cmd('test -d ' . $miti_perf_code_path);
-    my $ipmi_host           = get_var("IPMI_HOST");
+    my $logfile = 'screenlog_' . get_var('HYPER_TYPE') . '_openqa.' . get_var('HOST');
+    my $svirt = select_console('svirt', await_console => 0);
+    my $ret = $svirt->run_cmd('test -d ' . $miti_perf_code_path);
+    my $ipmi_host = get_var("IPMI_HOST");
     if ($ret != 0) {
         $svirt->run_cmd('git clone ' . $miti_perf_code_path);
     } else {

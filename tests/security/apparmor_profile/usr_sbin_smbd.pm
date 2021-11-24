@@ -1,17 +1,5 @@
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: samba samba-client yast2-samba-client yast2-samba-server nautilus
 # apparmor-utils
@@ -82,7 +70,7 @@ sub samba_server_setup {
     type_string("/home/$testdir");
     send_key "alt-o";
     assert_screen("samba-server-configuration-shares-newshare-createdir");
-    send_key "alt-y";
+    assert_and_click("samba-server-configuration-shares-newshare-createdir-Yes", timeout => 60);
     assert_screen("samba-server-configuration");
     send_key "alt-o";
 
@@ -95,11 +83,11 @@ sub samba_server_setup {
 # Start "nautilus" to access the shares by "Windows Shares"
 sub samba_client_access {
     my $self = shift;
-    my $ip   = shift;
+    my $ip = shift;
 
     my $testuser = $apparmortest::testuser;
-    my $testdir  = $apparmortest::testdir;
-    my $pw       = $apparmortest::pw;
+    my $testdir = $apparmortest::testdir;
+    my $pw = $apparmortest::pw;
 
     # Start "nautilus" to access the shares by "Windows Shares"
     select_console 'x11';
@@ -153,15 +141,15 @@ sub samba_client_access {
 }
 
 sub run {
-    my ($self)        = shift;
-    my $audit_log     = $apparmortest::audit_log;
-    my $prof_dir      = $apparmortest::prof_dir;
-    my $profile_name  = "usr.sbin.smbd";
+    my ($self) = shift;
+    my $audit_log = $apparmortest::audit_log;
+    my $prof_dir = $apparmortest::prof_dir;
+    my $profile_name = "usr.sbin.smbd";
     my $named_profile = "";
-    my $testuser      = $apparmortest::testuser;
-    my $testdir       = $apparmortest::testdir;
-    my $pw            = $apparmortest::pw;
-    my $ip            = "";
+    my $testuser = $apparmortest::testuser;
+    my $testdir = $apparmortest::testdir;
+    my $pw = $apparmortest::pw;
+    my $ip = "";
 
     # Set up samba server
     $self->samba_server_setup();

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: New test: Test installation with update repos
 #    Basically for Leap only. https://progress.opensuse.org/issues/9620
@@ -104,8 +100,8 @@ sub run {
     if (get_var("WITH_UNTESTED_REPO")) {
         assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
         while (1) {
-            send_key 'alt-t';       # Trust
-                                    # for some reason the key is prompted twice, bug?
+            send_key 'alt-t';    # Trust
+                                 # for some reason the key is prompted twice, bug?
             last unless check_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48', 30;
         }
     }

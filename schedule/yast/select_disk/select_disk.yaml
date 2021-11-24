@@ -9,14 +9,17 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup
+  - installation/partitioning/guided_setup/select_disks
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
@@ -24,8 +27,9 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/installation_overview
   - "{{edit_optional_kernel_cmd_parameters}}"
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -36,9 +40,8 @@ conditional_schedule:
   edit_optional_kernel_cmd_parameters:
     BACKEND:
       pvm_hmc:
-        - installation/edit_optional_kernel_cmd_parameters
+        - installation/bootloader_settings/disable_plymouth
 test_data:
-  product: SLES
   guided_partitioning:
     disks:
       - vda

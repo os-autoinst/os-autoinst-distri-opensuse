@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: add addon to SLES via DVD or URL
 # Maintainer: Jozef Pupava <jpupava@suse.com>
@@ -58,23 +54,23 @@ sub run {
             $uc_addon = uc $addon;    # varibale name is upper case
             assert_screen 'inst-addon';
             if (check_var('SCC_REGISTER', 'network')) {
-                send_key 'alt-u';     # specify url
+                send_key 'alt-u';    # specify url
                 send_key $cmd{next};
                 assert_screen 'addonurl-entry', 3;
                 type_string get_var("ADDONURL_$uc_addon");
-                send_key 'alt-p';     # name
+                send_key 'alt-p';    # name
                 type_string "SLE$uc_addon" . get_var('VERSION') . "_repo";
                 send_key $cmd{next};
             }
             else {
                 wait_screen_change { send_key 'alt-v' };    # DVD
                 send_key $cmd{next};
-                assert_screen 'dvd-selector',                        3;
-                send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
+                assert_screen 'dvd-selector', 3;
+                send_key_until_needlematch 'addon-dvd-list', 'tab', 5;    # jump into addon list
                 send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
-                send_key 'alt-o';                                                   # continue
+                send_key 'alt-o';    # continue
             }
-            if (check_screen('import-untrusted-gpg-key', 10)) {                     # workaround untrusted key pop-up, record soft fail and trust it
+            if (check_screen('import-untrusted-gpg-key', 10)) {    # workaround untrusted key pop-up, record soft fail and trust it
                 record_info 'untrusted key', 'Workaround untrusted key by accepting it', result => 'softfail';
                 send_key 'alt-t';
             }
@@ -91,10 +87,10 @@ sub run {
             send_key $cmd{next};
             assert_screen 'addon-yast2-patterns';
             send_key_until_needlematch 'addon-yast2-view-selected', 'alt-v', 10;
-            send_key 'spc';                             # open view menu
+            send_key 'spc';    # open view menu
             wait_screen_change { send_key 'alt-r' };
             wait_screen_change { send_key 'alt-r' };    # go to repositories
-            send_key 'ret';                             # open repositories tab
+            send_key 'ret';    # open repositories tab
             assert_screen "addon-yast2-repo-$addon";
             # accept repositories
             send_key 'alt-a';
@@ -133,10 +129,10 @@ sub run {
                 }
             }
             if ((split(/,/, get_var('ADDONS')))[-1] ne $addon) {    # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                   # add another add-on
+                send_key 'alt-a';    # add another add-on
             }
             else {
-                send_key 'alt-o';                                   # ok continue
+                send_key 'alt-o';    # ok continue
             }
         }
         if (defined $perform_reboot) {

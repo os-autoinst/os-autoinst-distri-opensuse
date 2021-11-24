@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Case#1436079: Firefox: Password Management
@@ -46,9 +42,7 @@ sub run {
     # Start Firefox
     $self->start_firefox_with_profile;
 
-    send_key "alt-e";
-    wait_still_screen 2, 4;
-    send_key "n";
+    $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
     send_key_until_needlematch('firefox-primary-passwd-selected', 'alt-shift-u', 3, 1);
     send_key 'spc';
@@ -70,6 +64,7 @@ sub run {
     send_key "tab";
     type_string "calamari";
     send_key "ret";
+    wait_still_screen(2);
     assert_and_click('firefox-passwd-confirm_remember');
     assert_screen('firefox-passwd-confirm_master_pw');
     enter_cmd $masterpw. "";
@@ -77,8 +72,7 @@ sub run {
     $self->firefox_open_url($mozlogin);
     assert_screen('firefox-passwd-auto_filled');
 
-    send_key "alt-e";
-    send_key "n";    #Preferences
+    $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
     send_key_until_needlematch 'firefox-saved-logins-button', 'alt-shift-l', 5, 1;
     wait_still_screen 3;

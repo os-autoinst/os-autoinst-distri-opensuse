@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces methods to operate clone partitioning dialog
 # of an expert partitioner.
@@ -29,7 +25,7 @@ sub new {
 sub init {
     my $self = shift;
 
-    $self->{btn_ok}           = $self->{app}->button({id => 'ok'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     $self->{lst_target_disks} = $self->{app}->selectionbox({
             id => '"Y2Partitioner::Dialogs::PartitionTableClone::DevicesSelector"'
     });
@@ -45,7 +41,7 @@ sub select_disks {
     foreach my $disk (@disks) {
         # Find list item which matches wanted disk
         if (my ($lst_item) = grep $_ =~ $disk, @available) {
-            $self->{lst_target_disks}->select($lst_item);
+            $self->{lst_target_disks}->check($lst_item);
         }
         else {
             die "$disk cannot be found in the list of target disks";
@@ -60,7 +56,7 @@ sub select_all_disks {
     my @disks = $self->{lst_target_disks}->items();
     #Select all disks
     foreach my $disk (@disks) {
-        $self->{lst_target_disks}->select($disk);
+        $self->{lst_target_disks}->check($disk);
     }
     return $self;
 }

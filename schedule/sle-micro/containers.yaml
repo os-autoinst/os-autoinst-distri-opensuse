@@ -20,11 +20,16 @@ conditional_schedule:
     FLAVOR:
       'MicroOS-Image-Updates':
         - transactional/install_updates
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - transactional/enable_selinux
 schedule:
   - '{{boot}}'
   - transactional/host_config
   - '{{registration}}'
   - '{{maintenance}}'
+  - '{{selinux}}'
   - microos/toolbox
   - containers/podman_3rd_party_images
   - containers/podman

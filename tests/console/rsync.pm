@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: rsync coreutils
 # Summary: This module creates files that are synced afterwards using rsync.
@@ -40,21 +36,21 @@ sub run {
     assert_script_run('tar -cvf /tmp/rsync_test_folder_a/rsync_test_tar.tar /tmp/rsync_test_folder_a/rsync_test_file');
 
     my $md5_initial_file = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_file');
-    my $md5_initial_sh   = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_sh.sh');
-    my $md5_initial_tar  = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_tar.tar');
+    my $md5_initial_sh = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_sh.sh');
+    my $md5_initial_tar = script_output('md5sum /tmp/rsync_test_folder_a/rsync_test_tar.tar');
 
     enter_cmd("rsync -avzr /tmp/rsync_test_folder_a/ root\@localhost:/tmp/rsync_test_folder_b; echo \$\? > /tmp/rsync_return_code.txt");
     assert_script_run('time sync');
 
     # keep the md5 hash value of the synced file and folder
     my $md5_synced_file = script_output('md5sum /tmp/rsync_test_folder_b/rsync_test_file');
-    my $md5_synced_sh   = script_output('md5sum /tmp/rsync_test_folder_b/rsync_test_sh.sh');
-    my $md5_synced_tar  = script_output('md5sum /tmp/rsync_test_folder_b/rsync_test_tar.tar');
+    my $md5_synced_sh = script_output('md5sum /tmp/rsync_test_folder_b/rsync_test_sh.sh');
+    my $md5_synced_tar = script_output('md5sum /tmp/rsync_test_folder_b/rsync_test_tar.tar');
 
     # compare the hash values
     die("MD5 hash value of the synced text file is different from the initial one") unless ($md5_initial_file == $md5_synced_file);
-    die("MD5 hash value of the synced sh file is different from the initial one")   unless ($md5_initial_sh == $md5_synced_sh);
-    die("MD5 hash value of the synced tar file is different from the initial one")  unless ($md5_initial_tar == $md5_synced_tar);
+    die("MD5 hash value of the synced sh file is different from the initial one") unless ($md5_initial_sh == $md5_synced_sh);
+    die("MD5 hash value of the synced tar file is different from the initial one") unless ($md5_initial_tar == $md5_synced_tar);
 }
 
 sub post_run_hook {

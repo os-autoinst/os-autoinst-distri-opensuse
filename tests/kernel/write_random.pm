@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Write 100M of random data
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
@@ -31,7 +27,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1,
     };
 }

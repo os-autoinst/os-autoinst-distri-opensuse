@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Product Selection
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -15,6 +11,7 @@ use strict;
 use warnings;
 use YuiRestClient;
 use Installation::ProductSelection::ProductSelectionPage;
+use Installation::Popups::OKPopup;
 
 sub new {
     my ($class, $args) = @_;
@@ -25,6 +22,7 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{ProductSelectionPage} = Installation::ProductSelection::ProductSelectionPage->new({app => YuiRestClient::get_app()});
+    $self->{AccessBetaDistributionPopup} = Installation::Popups::OKPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -34,15 +32,21 @@ sub get_product_selection_page {
     return $self->{ProductSelectionPage};
 }
 
-sub select_product {
+sub get_access_beta_distribution_popup {
+    my ($self) = @_;
+    die "Popup for accessing Beta Distribution is not displayed" unless $self->{AccessBetaDistributionPopup}->is_shown();
+    return $self->{AccessBetaDistributionPopup};
+}
+
+sub install_product {
     my ($self, $product) = @_;
-    $product =~ s/ /_/g;
-    if (my $selector = $self->get_product_selection_page()->can("select_$product")) {
-        $selector->($self->get_product_selection_page());
-    }
-    else {
-        die "No handler defined for product '$product'";
-    }
+    $self->get_product_selection_page()->install_product($product);
+    $self->get_product_selection_page()->press_next();
+}
+
+sub access_beta_distribution {
+    my ($self) = @_;
+    $self->get_access_beta_distribution_popup()->press_ok();
 }
 
 1;

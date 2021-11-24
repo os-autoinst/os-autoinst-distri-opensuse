@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Install btrfs-progs
 # Maintainer: An Long <lan@suse.com>
@@ -20,7 +16,7 @@ use constant STATUS_LOG => '/opt/status.log';
 # Create log file used to generate junit xml report
 sub log_create {
     my $file = shift;
-    my $cmd  = "[[ -f $file ]] || echo 'Test in progress' > $file";
+    my $cmd = "[[ -f $file ]] || echo 'Test in progress' > $file";
     assert_script_run($cmd);
 }
 
@@ -67,7 +63,7 @@ sub run {
     else {
         # Build test suite of btrfs-progs from git
         use constant INST_DIR => '/opt/btrfs-progs-tests';
-        use constant GIT_URL  => get_var('BTRFS_PROGS_GIT_URL', 'https://github.com/kdave/btrfs-progs.git');
+        use constant GIT_URL => get_var('BTRFS_PROGS_GIT_URL', 'https://github.com/kdave/btrfs-progs.git');
         my $keep_default_btrfs_binary;
         if (get_var('KEEP_DEFAULT_BTRFS_BINARY')) {
             $keep_default_btrfs_binary = 1;

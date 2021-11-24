@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: HPC_Module: Add test for conman  package
 #
@@ -61,7 +57,7 @@ sub run {
     assert_screen('socket-response');
 
     # test from conman side
-    enter_cmd("&E");       # enable echoing
+    enter_cmd("&E");    # enable echoing
     enter_cmd("Hello from conman...");
     send_key('ctrl-l');    # send \n
     type_string '&.';

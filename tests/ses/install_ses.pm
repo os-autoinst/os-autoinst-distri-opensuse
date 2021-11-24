@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Install SES and deepsea-qa from repo as stable or git as latest unstable code
 # Maintainer: Jozef Pupava <jpupava@suse.com>
@@ -19,7 +15,7 @@ use version_utils 'is_sle';
 
 sub run {
     select_console 'root-console';
-    my $git_deepsea        = get_var('GIT_DEEPSEA', 'SUSE/DeepSea.git');
+    my $git_deepsea = get_var('GIT_DEEPSEA', 'SUSE/DeepSea.git');
     my $git_deepsea_branch = get_var('GIT_DEEPSEA_BRANCH');
     $git_deepsea_branch ||= is_sle('<15') ? 'SES5' : 'master';
     # SES6 latest packages

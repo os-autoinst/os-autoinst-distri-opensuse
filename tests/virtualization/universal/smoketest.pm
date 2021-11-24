@@ -1,11 +1,7 @@
 # VM smoke tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openssh binutils util-linux
 # Summary: Tests, if the machine is up and running
@@ -22,13 +18,13 @@ use virt_autotest::utils;
 
 # List of CVEs that are tested by the spectre-meltdown-test script
 my %cves = (
-    "CVE-2017-5753"  => "Spectre Variant 1",
-    "CVE-2017-5715"  => "Spectre Variant 2",
-    "CVE-2018-3640"  => "Spectre Variant 3a",
-    "CVE-2018-3639"  => "Spectre Variant 4",
-    "CVE-2018-3615"  => "Foreshadow (SGX)",
-    "CVE-2018-3620"  => "Foreshadow-NG (OS)",
-    "CVE-2018-3646"  => "Foreshadow-NG (VMM)",
+    "CVE-2017-5753" => "Spectre Variant 1",
+    "CVE-2017-5715" => "Spectre Variant 2",
+    "CVE-2018-3640" => "Spectre Variant 3a",
+    "CVE-2018-3639" => "Spectre Variant 4",
+    "CVE-2018-3615" => "Foreshadow (SGX)",
+    "CVE-2018-3620" => "Foreshadow-NG (OS)",
+    "CVE-2018-3646" => "Foreshadow-NG (VMM)",
     "CVE-2018-12126" => "Fallout",
     "CVE-2018-12130" => "ZombieLoad",
     "CVE-2018-12127" => "RIDL",
@@ -68,7 +64,7 @@ sub run_test {
 }
 
 sub ignore_cve_fail {
-    my $cve   = $_[0];
+    my $cve = $_[0];
     my $guest = $_[1];
 
     # Exceptions we are aware of

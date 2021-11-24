@@ -7,22 +7,23 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - '{{disk_activation}}'
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -31,7 +32,7 @@ schedule:
   - console/system_prepare
   - console/prepare_test_data
   - console/consoletest_setup
-  - console/validate_product_name_installed
+  - console/validate_product_installed_SLES
   - console/verify_network
   - locale/keymap_or_locale
   - console/validate_installed_patterns
@@ -45,13 +46,11 @@ conditional_schedule:
       s390x:
         - installation/disk_activation
 test_data:
-  product: SLES
-  system_role:
-    default: 'Text Mode'
   software:
     patterns:
       - apparmor
       - base
       - enhanced_base
       - x11
+      - x11_yast
       - yast2_basis

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: General library for every system that uses transactional-updates
 # Like MicroOS and transactional-server
@@ -20,11 +16,11 @@ use strict;
 use warnings;
 use testapi;
 use microos 'microos_reboot';
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action prepare_system_shutdown);
 use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
 use Utils::Backends 'is_pvm';
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures;
 
 our @EXPORT = qw(
   process_reboot
@@ -67,14 +63,18 @@ sub handle_first_grub {
 
 sub process_reboot {
     my (%args) = @_;
-    $args{trigger}            //= 0;
+    $args{trigger} //= 0;
     $args{automated_rollback} //= 0;
-    $args{expected_grub}      //= 1;
+    $args{expected_grub} //= 1;
 
     handle_first_grub if ($args{automated_rollback});
 
     if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
+    } elsif (check_var('BACKEND', 's390x')) {
+        prepare_system_shutdown;
+        enter_cmd "reboot";
+        opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
     } else {
         power_action('reboot', observe => !$args{trigger}, keepconsole => 1);
         if (is_s390x || is_pvm) {
@@ -98,7 +98,7 @@ sub check_reboot_changes {
     my $change_expected = shift // 1;
 
     # Compare currently mounted and default subvolume
-    my $time    = time;
+    my $time = time;
     my $mounted = "mnt-$time";
     my $default = "def-$time";
     assert_script_run "mount | grep 'on / ' | egrep -o 'subvolid=[0-9]*' | cut -d'=' -f2 > $mounted";
@@ -106,7 +106,7 @@ sub check_reboot_changes {
     my $change_happened = script_run "diff $mounted $default";
 
     # If changes are expected check that default subvolume changed
-    die "Error during diff"                                             if $change_happened > 1;
+    die "Error during diff" if $change_happened > 1;
     die "Change expected: $change_expected, happened: $change_happened" if $change_expected != $change_happened;
 
     # Reboot into new snapshot
@@ -115,7 +115,7 @@ sub check_reboot_changes {
 
 # Return names and version of packages for transactional-update tests
 sub rpmver {
-    my $q    = shift;
+    my $q = shift;
     my $arch = get_var('ARCH');
     my $iobs = is_opensuse() ? 'obs' : 'ibs';
 
@@ -143,7 +143,7 @@ sub rpmver {
 # Optionally skip exit status check in case immediate reboot is expected
 sub trup_call {
     my ($cmd, %args) = @_;
-    $args{timeout}   //= 90;
+    $args{timeout} //= 180;
     $args{exit_code} //= 0;
 
     # Always wait for rollback.service to be finished before triggering manually transactional-update

@@ -1,18 +1,6 @@
 ## no critic (Strict)
-# Copyright © 2017-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # See kernel/install_ltp.pm and kernel/run_ltp.pm for documentation.
 package main_ltp;
@@ -22,7 +10,7 @@ use testapi qw(check_var get_required_var get_var);
 use utils;
 use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_tests);
 use 5.018;
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 use version_utils 'is_opensuse';
 use LTP::utils qw(loadtest_kernel shutdown_ltp);
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -78,7 +66,7 @@ sub load_kernel_tests {
         loadtest_kernel 'qa_test_klp';
         unless (get_var('KOTD_REPO') ||
             get_var('INSTALL_KOTD') ||
-            get_var('AZURE')        ||
+            get_var('AZURE') ||
             is_opensuse) {
             loadtest_kernel 'install_klp_product';
         }
@@ -113,7 +101,7 @@ sub load_kernel_tests {
         loadtest_kernel 'numa_irqbalance';
     }
 
-    if (check_var('BACKEND', 'svirt') && get_var('PUBLISH_HDD_1')) {
+    if (is_svirt && get_var('PUBLISH_HDD_1')) {
         loadtest_kernel '../shutdown/svirt_upload_assets';
     }
 }

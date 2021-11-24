@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wicked
 # Summary: VLAN - ifup all, ifdown one card
@@ -25,8 +21,8 @@ sub run {
     my $config = '/etc/sysconfig/network/ifcfg-' . $ctx->iface() . '.42';
     $self->get_from_data('wicked/ifcfg/eth0.42', $config);
     file_content_replace($config, interface => $ctx->iface(), ip_address => $self->get_ip(type => 'vlan_changed', netmask => 1));
-    $self->wicked_command('ifup',     'all');
-    $self->wicked_command('ifdown',   $ctx->iface() . '.42');
+    $self->wicked_command('ifup', 'all');
+    $self->wicked_command('ifdown', $ctx->iface() . '.42');
     $self->wicked_command('ifreload', 'all');
     die('VLAN interface does not exists') unless ifc_exists($ctx->iface() . '.42');
     $self->ping_with_timeout(type => 'vlan_changed', timeout => '50');

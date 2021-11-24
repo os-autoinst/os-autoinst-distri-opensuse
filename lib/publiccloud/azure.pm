@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: helper class for azure
 #
@@ -19,12 +15,13 @@ use Data::Dumper;
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(script_output_retry);
 
-has tenantid        => undef;
-has subscription    => undef;
-has resource_group  => 'openqa-upload';
+has tenantid => undef;
+has subscription => undef;
+has resource_group => 'openqa-upload';
 has storage_account => 'openqa';
-has container       => 'sle-images';
-has lease_id        => undef;
+has container => 'sle-images';
+has lease_id => undef;
+has vault => undef;
 
 =head2 decode_azure_json
 
@@ -42,6 +39,7 @@ sub decode_azure_json {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
+    $self->vault(publiccloud::vault->new());
     $self->vault_create_credentials() unless ($self->key_id);
     $self->az_login();
     assert_script_run("az account set --subscription " . $self->subscription);
@@ -68,11 +66,11 @@ sub vault_create_credentials {
     my ($self) = @_;
 
     record_info('INFO', 'Get credentials from VAULT server.');
-    my $data = $self->vault_get_secrets('/azure/creds/openqa-role');
+    my $data = $self->vault->get_secrets('/azure/creds/openqa-role');
     $self->key_id($data->{client_id});
     $self->key_secret($data->{client_secret});
 
-    my $res = $self->vault_api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/secret/azure/openqa-role', method => 'get');
+    my $res = $self->vault->api('/v1/' . get_var('PUBLIC_CLOUD_VAULT_NAMESPACE', '') . '/secret/azure/openqa-role', method => 'get');
     $self->tenantid($res->{data}->{tenant_id});
     $self->subscription($res->{data}->{subscription_id});
 
@@ -83,7 +81,7 @@ sub vault_create_credentials {
 
 sub resource_exist {
     my ($self) = @_;
-    my $group  = $self->resource_group;
+    my $group = $self->resource_group;
     my $output = script_output_retry("az group show --name '$group' --output json", retry => 3, timeout => 30, delay => 10);
     return ($output ne '[]');
 }
@@ -119,7 +117,7 @@ sub get_storage_account_keys {
     my $output = script_output("az storage account keys list --resource-group "
           . $self->resource_group . " --account-name " . $self->storage_account);
     my $json = decode_azure_json($output);
-    my $key  = undef;
+    my $key = undef;
     if (@{$json} > 0) {
         $key = $json->[0]->{value};
     }
@@ -175,7 +173,7 @@ sub img_proof {
     my ($self, %args) = @_;
 
     my $credentials_file = 'azure_credentials.txt';
-    my $credentials      = "{" . $/
+    my $credentials = "{" . $/
       . '"clientId": "' . $self->key_id . '", ' . $/
       . '"clientSecret": "' . $self->key_secret . '", ' . $/
       . '"subscriptionId": "' . $self->subscription . '", ' . $/
@@ -193,8 +191,8 @@ sub img_proof {
 
     $args{credentials_file} = $credentials_file;
     $args{instance_type} //= 'Standard_A2';
-    $args{user}          //= 'azureuser';
-    $args{provider}      //= 'azure';
+    $args{user} //= 'azureuser';
+    $args{provider} //= 'azure';
 
     if (my $parsed_id = $self->parse_instance_id($args{instance})) {
         $args{running_instance_id} = $parsed_id->{vm_name};
@@ -207,15 +205,27 @@ sub terraform_apply {
     my ($self, %args) = @_;
     $args{vars} //= {};
     my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER");
-    my $sku   = get_var("PUBLIC_CLOUD_AZURE_SKU");
+    my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU");
     $args{vars}->{offer} = $offer if ($offer);
-    $args{vars}->{sku}   = $sku   if ($sku);
+    $args{vars}->{sku} = $sku if ($sku);
 
-    $self->SUPER::terraform_apply(%args);
+    my @instances = $self->SUPER::terraform_apply(%args);
+    $self->upload_boot_diagnostics('resource_group' => $self->get_resource_group_from_terraform_show());
+    return @instances;
 }
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
+
+    my $resgroup = $self->get_resource_group_from_terraform_show();
+    return if (!defined($resgroup));
+
+    eval { $self->upload_boot_diagnostics('resource_group' => $resgroup) }
+      or record_info('Bootlog upl error', 'Failed to upload bootlog');
+    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+}
+
+sub get_resource_group_from_terraform_show {
     my $resgroup;
     my $out = script_output('terraform show -json');
     eval {
@@ -228,32 +238,20 @@ sub on_terraform_apply_timeout {
     };
     if ($@ || !defined($resgroup)) {
         record_info('ERROR', "Unable to get resource-group:\n$out", result => 'fail');
-        return;
     }
+    return $resgroup;
+}
 
-    my $tries = 3;
-    while ($tries gt 0) {
-        $tries = $tries - 1;
-        eval {
-            my $bootlog_name = '/tmp/azure-bootlog.txt';
-            my $cmd_enable = 'az vm boot-diagnostics enable --ids $(az vm list -g ' . $resgroup . ' --query \'[].id\' -o tsv) --storage ' . $self->storage_account;
-            $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
-            record_info('INFO', $cmd_enable . $/ . $out);
-            script_run('az vm boot-diagnostics get-boot-log --ids $(az vm list -g ' . $resgroup . ' --query \'[].id\' -o tsv) > ' . $bootlog_name);
-            upload_logs($bootlog_name, failok => 1);
-            $tries = 0;
-        };
-        if ($@) {
-            if (is_serial_terminal()) {
-                type_string(qq(\c\\));    # Send QUIT signal
-            }
-            else {
-                send_key('ctrl-\\');      # Send QUIT signal
-            }
-        }
-    }
+sub upload_boot_diagnostics {
+    my ($self, %args) = @_;
+    return if !defined($args{resource_group});
 
-    assert_script_run("az group delete --yes --no-wait --name $resgroup") unless get_var('PUBLIC_CLOUD_NO_CLEANUP_ON_FAILURE');
+    my $bootlog_name = '/tmp/azure-bootlog.txt';
+    my $cmd_enable = 'az vm boot-diagnostics enable --ids $(az vm list -g ' . $args{resource_group} . ' --query \'[].id\' -o tsv)';
+    my $out = script_output($cmd_enable, 60 * 5, proceed_on_failure => 1);
+    record_info('INFO', $cmd_enable . $/ . $out);
+    assert_script_run('az vm boot-diagnostics get-boot-log --ids $(az vm list -g ' . $args{resource_group} . ' --query \'[].id\' -o tsv) | jq -r "." > ' . $bootlog_name);
+    upload_logs($bootlog_name, failok => 1);
 }
 
 sub on_terraform_destroy_timeout {
@@ -270,7 +268,7 @@ sub on_terraform_destroy_timeout {
 sub get_state_from_instance
 {
     my ($self, $instance) = @_;
-    my $id  = $instance->instance_id();
+    my $id = $instance->instance_id();
     my $out = decode_azure_json(script_output("az vm get-instance-view --ids '$id' --query instanceView.statuses[1] --output json", quiet => 1));
     die("Expect PowerState but got " . $out->{code}) unless ($out->{code} =~ m'PowerState/(.+)$');
     return $1;
@@ -291,7 +289,7 @@ sub stop_instance
     # We assume that the instance_id on azure is actually the name
     # which is equal to the resource group
     # TODO maybe we need to change the azure.tf file to retrieve the id instead of the name
-    my $id       = $instance->instance_id();
+    my $id = $instance->instance_id();
     my $attempts = 60;
 
     die('Outdated instance object') if ($self->get_ip_from_instance($instance) ne $instance->public_ip);
@@ -330,6 +328,16 @@ sub parse_instance_id
         return {subscription => $1, resource_group => $2, vm_name => $3};
     }
     return;
+}
+
+=head2 cleanup
+This method is called called after each test on failure or success to revoke the credentials
+=cut
+
+sub cleanup {
+    my ($self) = @_;
+    $self->SUPER::cleanup();
+    $self->vault->revoke();
 }
 
 1;

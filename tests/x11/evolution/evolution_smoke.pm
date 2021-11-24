@@ -1,11 +1,7 @@
 # Evolution tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: glib2-tools evolution
 # Summary: Case #1503857: Evolution First time launch and setup assistant
@@ -26,8 +22,8 @@ use utils;
 use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
-    my $self        = shift;
-    my $mail_box    = 'nooops_test3@aim.com';
+    my $self = shift;
+    my $mail_box = 'nooops_test3@aim.com';
     my $mail_passwd = 'hkiworexcmmeqmzt';
 
     mouse_hide(1);

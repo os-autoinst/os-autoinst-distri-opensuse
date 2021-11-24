@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
@@ -20,7 +16,7 @@ use bmwqemu;
 use ipmi_backend_utils;
 use version_utils 'is_upgrade';
 use bootloader_setup 'prepare_disks';
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures;
 
 use HTTP::Tiny;
 use IPC::Run;
@@ -61,15 +57,15 @@ sub set_pxe_boot {
 }
 
 sub set_bootscript {
-    my $host        = get_required_var('SUT_IP');
-    my $ip          = inet_ntoa(inet_aton($host));
+    my $host = get_required_var('SUT_IP');
+    my $ip = inet_ntoa(inet_aton($host));
     my $http_server = get_required_var('IPXE_HTTPSERVER');
-    my $url         = "$http_server/v1/bootscript/script.ipxe/$ip";
-    my $arch        = get_required_var('ARCH');
-    my $autoyast    = get_var('AUTOYAST', '');
-    my $regurl      = get_var('SCC_URL');
-    my $console     = get_var('IPXE_CONSOLE');
-    my $install     = get_required_var('MIRROR_HTTP');
+    my $url = "$http_server/v1/bootscript/script.ipxe/$ip";
+    my $arch = get_required_var('ARCH');
+    my $autoyast = get_var('AUTOYAST', '');
+    my $regurl = get_var('SCC_URL');
+    my $console = get_var('IPXE_CONSOLE');
+    my $install = get_required_var('MIRROR_HTTP');
 
     my $kernel = get_required_var('MIRROR_HTTP');
     my $initrd = get_required_var('MIRROR_HTTP');
@@ -84,7 +80,7 @@ sub set_bootscript {
 
 
     my $cmdline_extra;
-    $cmdline_extra .= " regurl=$regurl "   if $regurl;
+    $cmdline_extra .= " regurl=$regurl " if $regurl;
     $cmdline_extra .= " console=$console " if $console;
 
     $cmdline_extra .= " root=/dev/ram0 initrd=initrd textmode=1" if check_var('IPXE_UEFI', '1');
@@ -122,10 +118,10 @@ END_BOOTSCRIPT
 }
 
 sub set_bootscript_hdd {
-    my $host        = get_required_var('SUT_IP');
-    my $ip          = inet_ntoa(inet_aton($host));
+    my $host = get_required_var('SUT_IP');
+    my $ip = inet_ntoa(inet_aton($host));
     my $http_server = get_required_var('IPXE_HTTPSERVER');
-    my $url         = "$http_server/v1/bootscript/script.ipxe/$ip";
+    my $url = "$http_server/v1/bootscript/script.ipxe/$ip";
 
     my $bootscript = <<"END_BOOTSCRIPT";
 #!ipxe
@@ -154,8 +150,8 @@ sub run {
     } else {
         select_console 'sol', await_console => 0;
         my $ssh_vnc_wait_time = 1500;
-        my $ssh_vnc_tag       = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
-        my @tags              = ($ssh_vnc_tag);
+        my $ssh_vnc_tag = eval { check_var('VIDEOMODE', 'text') ? 'sshd' : 'vnc' } . '-server-started';
+        my @tags = ($ssh_vnc_tag);
         if (check_screen(\@tags, $ssh_vnc_wait_time)) {
             save_screenshot;
             sleep 2;

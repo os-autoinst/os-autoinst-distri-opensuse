@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: transactional-update
 # Summary: Host configuration operations (e.g. disable grub timeout,
@@ -24,8 +20,8 @@ sub run {
 
     # GRUB Configuration
     my $disable_grub_timeout = get_var('DISABLE_GRUB_TIMEOUT');
-    my $extrabootparams      = get_var('EXTRABOOTPARAMS');
-    assert_script_run("sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=-1/' /etc/default/grub")                         if $disable_grub_timeout;
+    my $extrabootparams = get_var('EXTRABOOTPARAMS');
+    assert_script_run("sed -i 's/GRUB_TIMEOUT=.*/GRUB_TIMEOUT=-1/' /etc/default/grub") if $disable_grub_timeout;
     assert_script_run("sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*/& $extrabootparams/' /etc/default/grub") if $extrabootparams;
 
     if ($disable_grub_timeout or $extrabootparams) {

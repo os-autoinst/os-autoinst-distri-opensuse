@@ -1,17 +1,5 @@
-# Copyright (C) 2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Ship the "swtpm" software TPM emulator for QEMU,
 #          prepare a test image with with grub timeout=1, and
@@ -45,7 +33,8 @@ sub run {
 
     # Define a new udev rule file to keep the NIC name persistent across OS rebooting
     my $udev_rule_file = '/etc/udev/rules.d/70-persistent-net.rules';
-    my $nic_name       = script_output("ls /etc/sysconfig/network | grep ifcfg- | grep -v lo | awk -F '-' '{print \$2}'");
+    my $mac_addr = get_var("NICMAC");
+    my $nic_name = script_output("grep $mac_addr /sys/class/net/*/address |cut -d / -f 5");
     assert_script_run("wget --quiet " . data_url("swtpm/70-persistent-net.rules") . " -O $udev_rule_file");
     assert_script_run("sed -i 's/NAME=\"\"/ NAME=\"$nic_name\"/' $udev_rule_file");
 

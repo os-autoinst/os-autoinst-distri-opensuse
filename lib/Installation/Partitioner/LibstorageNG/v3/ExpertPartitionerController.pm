@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Libstorage-NG (ver.3) Expert
 # Partitioner.
@@ -36,9 +32,9 @@ sub new {
         SuggestedPartitioningPage => Installation::Partitioner::LibstorageNG::SuggestedPartitioningPage->new(),
         ExpertPartitionerPage => Installation::Partitioner::LibstorageNG::ExpertPartitionerPage->new({add_partition_shortcut => 'alt-d', add_raid_shortcut => 'alt-r'}),
         NewPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({custom_size_shortcut => 'alt-o'}),
-        RolePage             => Installation::Partitioner::RolePage->new({raw_volume_shortcut => 'alt-r'}),
+        RolePage => Installation::Partitioner::RolePage->new({raw_volume_shortcut => 'alt-r'}),
         FormattingOptionsPage => Installation::Partitioner::LibstorageNG::FormattingOptionsPage->new({do_not_format_shortcut => 'alt-t', format_shortcut => 'alt-r', filesystem_shortcut => 'alt-f', do_not_mount_shortcut => 'alt-d'}),
-        RaidTypePage    => Installation::Partitioner::RaidTypePage->new(),
+        RaidTypePage => Installation::Partitioner::RaidTypePage->new(),
         RaidOptionsPage => Installation::Partitioner::RaidOptionsPage->new({chunk_size_shortcut => 'alt-u'})
     }, $class;
 }

@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 =head1 Utils::Architectures
 
@@ -37,6 +25,7 @@ use constant {
           is_aarch64
           is_arm
           is_ppc64le
+          is_ppc64
           is_orthos_machine
           is_supported_suse_domain
         )
@@ -126,6 +115,17 @@ Returns C<check_var('ppc64le')>.
 =cut
 sub is_ppc64le {
     return check_var('ARCH', 'ppc64le');
+}
+
+=head2 is_ppc64
+
+ is_ppc64();
+
+ Returns C<check_var('ppc64')>.
+
+=cut
+sub is_ppc64 {
+    return check_var('ARCH', 'ppc64');
 }
 
 =head2 is_orthos_machine

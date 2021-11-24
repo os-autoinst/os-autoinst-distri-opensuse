@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functionality for testing rancher container
 # Maintainer: George Gkioulis <ggkioulis@suse.com>
@@ -26,7 +22,7 @@ use Utils::Systemd 'disable_and_stop_service';
 our @EXPORT = qw(setup_rancher_container kubectl_basic_test prepare_mm_network);
 
 sub setup_rancher_container {
-    my %args    = @_;
+    my %args = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
 

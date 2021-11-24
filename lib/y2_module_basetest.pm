@@ -5,12 +5,8 @@ This module provides common subroutines for YaST2 modules in graphical and text 
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: This module provides common subroutines for YaST2 modules in graphical and text mode
 # Maintainer: QE YaST <qa-sle-yast@suse.de>

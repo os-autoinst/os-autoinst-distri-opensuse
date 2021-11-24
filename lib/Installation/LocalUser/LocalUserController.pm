@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Local user dialog
 #
@@ -15,7 +11,7 @@ package Installation::LocalUser::LocalUserController;
 use strict;
 use warnings;
 use Installation::LocalUser::LocalUserPage;
-use Installation::Warnings::ConfirmationWarning;
+use Installation::Popups::YesNoPopup;
 use YuiRestClient;
 
 sub new {
@@ -26,8 +22,8 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{LocalUserPage}       = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
-    $self->{WeakPasswordWarning} = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{LocalUserPage} = Installation::LocalUser::LocalUserPage->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -45,8 +41,8 @@ sub get_weak_password_warning {
 sub create_user {
     my ($self, %args) = @_;
     my $full_name = $args{full_name};
-    my $username  = $args{username};
-    my $password  = $args{password};
+    my $username = $args{username};
+    my $password = $args{password};
     $self->get_local_user_page()->enter_full_name($full_name);
     $self->get_local_user_page()->enter_username($username) if defined $username;
     $self->get_local_user_page()->enter_password($password);

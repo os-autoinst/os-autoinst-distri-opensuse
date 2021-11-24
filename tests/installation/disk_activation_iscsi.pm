@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: initial installation: iSCSI client for the supportserver
 #          supportserver to provide one iSCSI target which will
@@ -23,7 +19,7 @@ sub run {
     my $iscsi_server_ip;
 
     # Defaults: the values from the supportserver and client
-    $iscsi_iqn       = get_var('ISCSI_IQN',       "iqn.2016-02.de.openqa");
+    $iscsi_iqn = get_var('ISCSI_IQN', "iqn.2016-02.de.openqa");
     $iscsi_server_ip = get_var('ISCSI_SERVER_IP', "10.0.2.1");
 
     die "WITHISCSI not set" unless get_var('WITHISCSI');
@@ -39,23 +35,23 @@ sub run {
     type_string "$iscsi_iqn";
     wait_still_screen(5, 30);
     save_screenshot;
-    send_key "alt-n";       # "Connected Targets" tab, empty list
+    send_key "alt-n";    # "Connected Targets" tab, empty list
     assert_screen 'iscsi-initiator-connected-targets-none-fs';
-    send_key $cmd{add};     # go to "iSCSI Initiator Discovery" screen
+    send_key $cmd{add};    # go to "iSCSI Initiator Discovery" screen
     assert_screen 'iscsi-discovery-fs';
-    send_key "alt-i";       # go to IP address field
+    send_key "alt-i";    # go to IP address field
     wait_still_screen(2, 10);
     type_string "$iscsi_server_ip";
     wait_still_screen(5, 30);
     save_screenshot;
-    send_key "alt-n";       # iSCSI Initiator Discovery: discovered targets list, first one is selected
+    send_key "alt-n";    # iSCSI Initiator Discovery: discovered targets list, first one is selected
     wait_still_screen(2, 10);
     save_screenshot;
-    send_key "alt-o";       # press Connect button
+    send_key "alt-o";    # press Connect button
     wait_still_screen(2, 10);
     assert_screen 'iscsi-initiator-startup-and-authentication';
-    send_key "alt-s";       # startup mode. Selection list: *manual onboot automatic
-    send_key "down";        # Wanted: onboot. Show resulting setting.
+    send_key "alt-s";    # startup mode. Selection list: *manual onboot automatic
+    send_key "down";    # Wanted: onboot. Show resulting setting.
     wait_still_screen(2, 10);
     save_screenshot;
     send_key $cmd{next};    # Now connect

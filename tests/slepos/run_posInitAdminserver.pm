@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic SLEPOS test
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
@@ -31,15 +27,15 @@ sub run {
     ';
 
     enter_cmd "posInitAdminserver 2>&1 | tee /dev/$serialdev";
-    wait_serial "company name.*:"                                   and enter_cmd get_var('ORGANIZATION') . "";
-    wait_serial "2 letter abbreviation.*:"                          and enter_cmd get_var('COUNTRY') . "";
-    wait_serial "LDAP administrator password.*:"                    and enter_cmd get_var('ADMINPASS') . "";
-    wait_serial "password again.*:"                                 and enter_cmd get_var('ADMINPASS') . "";
-    wait_serial "Enable secure connection"                          and enter_cmd get_var('SSL') . "";
+    wait_serial "company name.*:" and enter_cmd get_var('ORGANIZATION') . "";
+    wait_serial "2 letter abbreviation.*:" and enter_cmd get_var('COUNTRY') . "";
+    wait_serial "LDAP administrator password.*:" and enter_cmd get_var('ADMINPASS') . "";
+    wait_serial "password again.*:" and enter_cmd get_var('ADMINPASS') . "";
+    wait_serial "Enable secure connection" and enter_cmd get_var('SSL') . "";
     wait_serial "Please enter LDAP configuration database password" and send_key 'ret';
-    wait_serial "Recreate LDAP database?"                           and enter_cmd "yes";
-    wait_serial "Enable SUSE Manager integration.*"                 and enter_cmd "no";
-    wait_serial "Continue with configuration"                       and send_key 'ret';
+    wait_serial "Recreate LDAP database?" and enter_cmd "yes";
+    wait_serial "Enable SUSE Manager integration.*" and enter_cmd "no";
+    wait_serial "Continue with configuration" and send_key 'ret';
     wait_serial "configuration successful";
 
     script_output "

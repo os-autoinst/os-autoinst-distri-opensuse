@@ -1,11 +1,7 @@
 # VIRTUAL MACHINE UEFI FEATURES VERIFICATION MODULE
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This module tests virtual machine with UEFI/Secureboot by
 # using efibootmgr -v and mokutil --sb-state.And also performs power
@@ -26,11 +22,12 @@ use utils;
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
+use version_utils "is_sle";
 
 sub run_test {
     my $self = shift;
 
-    $self->check_guest_bootloader($_)  foreach (keys %virt_autotest::common::guests);
+    $self->check_guest_bootloader($_) foreach (keys %virt_autotest::common::guests);
     $self->check_guest_bootcurrent($_) foreach (keys %virt_autotest::common::guests);
     if (is_kvm_host) {
         record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
@@ -40,7 +37,12 @@ sub run_test {
     else {
         record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
     }
-    $self->check_guest_pmsuspend_enabled;
+    if (is_sle('>=15')) {
+        $self->check_guest_pmsuspend_enabled;
+    }
+    else {
+        record_info("SLES that is eariler than 15 does not support power management functionality with uefi", "Skip check_guest_pmsuspend_enabled");
+    }
     return $self;
 }
 
@@ -89,8 +91,20 @@ sub check_guest_pmsuspend_enabled {
 
     $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
     if (is_kvm_host) {
-        $self->do_guest_pmsuspend($_, 'hybrid') foreach (keys %virt_autotest::common::guests);
-        $self->do_guest_pmsuspend($_, 'disk')   foreach (keys %virt_autotest::common::guests);
+        foreach (keys %virt_autotest::common::guests) {
+            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
+                record_info("PMSUSPEND to hyrbrid is not supported here", "Guest $_ on kvm sles 15+ host");
+                next;
+            }
+            $self->do_guest_pmsuspend($_, 'hybrid');
+        }
+        foreach (keys %virt_autotest::common::guests) {
+            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
+                record_info("PMSUSPEND to disk is not supported here", "Guest $_ on kvm sles 15+ host");
+                next;
+            }
+            $self->do_guest_pmsuspend($_, 'disk');
+        }
     }
     else {
         record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
@@ -101,7 +115,7 @@ sub check_guest_pmsuspend_enabled {
 sub do_guest_pmsuspend {
     my ($self, $suspend_domain, $suspend_target, $suspend_duration) = @_;
     carp("Guest domain name must be given before performing dompmsuspend.") if (!(defined $suspend_domain) or ($suspend_domain eq ''));
-    $suspend_target   //= 'mem';
+    $suspend_target //= 'mem';
     $suspend_duration //= 0;
 
     record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports suspend to disk and hybrid modes");

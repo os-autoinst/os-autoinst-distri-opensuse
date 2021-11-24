@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handle user name and password entry; check for password security
 # - Check if installer is on user setup step
@@ -39,7 +35,7 @@ sub run {
     if (get_var('ASSERT_BSC1122804')) {
         # retry if not typed correctly
         my $max_tries = 4;
-        my $retry     = 0;
+        my $retry = 0;
         do {
             enter_userinfo(max_interval => utils::VERY_SLOW_TYPING_SPEED);
             assert_screen([qw(inst-userinfostyped-ignore-full-name inst-userinfostyped-expected-typefaces)]);

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 # Summary: Manage processes with chrt command
 #           1) Retrieve scheduler's extreme values (min/max) for priorities
 #           2) Verify that RT processes have already exist
@@ -46,7 +42,7 @@ sub snapshot_running_rt_processes {
 }
 
 sub remap_args {
-    my $type    = shift;
+    my $type = shift;
     my %arg_map = (SCHED_FIFO => '--fifo', SCHED_RR => '--rr');
     die 'Scheduler type does not exist!' unless exists $arg_map{$type};
 
@@ -98,7 +94,7 @@ sub run {
 
     foreach (qw(SCHED_RR SCHED_FIFO)) {
         my $scheduler_policy = remap_args($_);
-        my $scheduler        = $_;
+        my $scheduler = $_;
         # Try to modify *rt_tester's* bash proces with a sequence of valid and invalid priorities
         foreach ($sched_settings->{$scheduler}->{min}, 42, 100, -1, $sched_settings->{$scheduler}->{max}) {
             record_info('Change', "Change policy to $scheduler, set priority to $_");

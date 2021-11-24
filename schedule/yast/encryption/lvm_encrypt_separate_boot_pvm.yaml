@@ -7,7 +7,6 @@ description: >
   module is scheduled and OPT_KERNEL_PARAMS variable is set.
   Also, we don't test gnome on powerVM, so set Desktop to textmode.
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
   UNENCRYPTED_BOOT: 1
   ENCRYPT: 1
@@ -15,18 +14,19 @@ vars:
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/new_partitioning_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
+  - installation/bootloader_settings/disable_plymouth
   - installation/disable_grub_timeout
   - installation/start_install
   - installation/await_install
@@ -39,5 +39,3 @@ schedule:
   - console/force_scheduled_tasks
   - console/validate_lvm
   - console/validate_encrypt
-test_data:
-  product: SLES

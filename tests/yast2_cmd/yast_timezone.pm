@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-country
 # Summary: yast timezone, list, set and show summary
@@ -24,10 +20,11 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     zypper_call "in yast2-country";
     my $timezone = script_output 'yast timezone summary 2>&1 | grep "Current Time Zone" | cut -d: -f2';
-    record_info 'default timezone',                   $timezone;
+    record_info 'default timezone', $timezone;
     validate_script_output 'yast timezone list 2>&1', sub { m#Africa/Cairo# };
     assert_script_run 'yast timezone set timezone=Africa/Cairo';
     validate_script_output 'yast timezone summary 2>&1', sub { m#Africa/Cairo# };

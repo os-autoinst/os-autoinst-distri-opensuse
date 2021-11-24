@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Register base product & extensions with SUSEConnect
 # Maintainer: Lemon <leli@suse.com>
@@ -68,8 +64,8 @@ sub command_register {
     # precompile regexes
     my $zypper_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_continue = qr/^Continue\? \[y/m;
-    my $zypper_done     = qr/Run.*to list these programs|^ZYPPER-DONE/m;
-    my $registered      = qr/Registered*/m;
+    my $zypper_done = qr/Run.*to list these programs|^ZYPPER-DONE/m;
+    my $registered = qr/Registered*/m;
 
     if (!$addon) {
         my $reg_code = get_required_var("SCC_REGCODE");
@@ -104,7 +100,7 @@ sub command_register {
 
     else {
         my $addon_version = int $version;
-        my $addon_name    = get_addon_fullname("$addon");
+        my $addon_name = get_addon_fullname("$addon");
 
         # register extension without reg code.
         if (!$addon_regcode) {

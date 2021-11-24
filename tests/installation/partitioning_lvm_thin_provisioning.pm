@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: LVM thin provisioning setup
 # Maintainer: Martin Loviska <mloviska@suse.com>
@@ -23,8 +19,8 @@ sub run {
     addboot if is_storage_ng;
     # create boot and 2 lvm partitions
     addpart(role => 'raw', size => 15000);    #rootfs + swap
-    addpart(role => 'raw');                   # home on thin lv
-                                              # create volume group for root and swap non thin lvs
+    addpart(role => 'raw');    # home on thin lv
+                               # create volume group for root and swap non thin lvs
     addvg(name => 'vg-no-thin');
     addlv(name => 'lv-swap', role => 'swap', vg => 'vg-no-thin', size => 2000);
     addlv(name => 'lv-root', role => 'OS', vg => 'vg-no-thin');

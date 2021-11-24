@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test module to verify iBFT configuration
 # iSCSI Boot Firmware Table (iBFT) is a mechanism for the iSCSI tools to
@@ -23,31 +19,31 @@ use Test::Assert 'assert_equals';
 
 my $ibft_expected = {
     ethernet => {
-        flags       => 3,
-        prefix_len  => 24,
+        flags => 3,
+        prefix_len => 24,
         subnet_mask => '255.255.255.0',
-        gateway     => '10.0.2.2',
-        ip_addr     => '10.0.2.15',
-        mac         => '',
+        gateway => '10.0.2.2',
+        ip_addr => '10.0.2.15',
+        mac => '',
     },
     initiator => {
         initiator_name => 'iqn.2010-04.org.ipxe:00000000-0000-0000-0000-000000000000',
-        flags          => 3,
+        flags => 3,
     },
     target => {
         target_name => get_required_var('NBF'),
-        flags       => 3,
-        port        => 3260,
-        ip_addr     => get_required_var('WORKER_HOSTNAME'),
-        chap_type   => 0
+        flags => 3,
+        port => 3260,
+        ip_addr => get_required_var('WORKER_HOSTNAME'),
+        chap_type => 0
     },
     acpi_header => {
         oem_table_id => 'iPXE',
-        oem_id       => 'FENSYS',
-        signature    => 'iBFT'
+        oem_id => 'FENSYS',
+        signature => 'iBFT'
     },
     backstore => {
-        model  => q/'FILEIO|IBLOCK'/,
+        model => q/'FILEIO|IBLOCK'/,
         vendor => q/'LIO-ORG'/
     }
 };
@@ -56,7 +52,7 @@ my $ibft_expected = {
 # bit 1: Firmware boot selected flag should be set
 sub is_ibft_boot_flag {
     my $received = shift;
-    my $mask     = oct 0b0000_0011;
+    my $mask = oct 0b0000_0011;
     diag("Comparing flag bits...\nGot: $received\nExpected: $mask");
     if (($received & $mask) == 3) {
         return !!1;
@@ -65,12 +61,12 @@ sub is_ibft_boot_flag {
 }
 
 sub ibft_validation {
-    my $self              = shift;
-    my @domain            = qw(ethernet initiator target acpi_header);
+    my $self = shift;
+    my @domain = qw(ethernet initiator target acpi_header);
     my $kb_ibft_messsages = q/'iBFT found at|iBFT detected|ibft0: renamed from'/;
-    my $ibft_grub         = {
+    my $ibft_grub = {
         CONFIG_ISCSI_IBFT_FIND => 'y',
-        CONFIG_ISCSI_IBFT      => 'm'
+        CONFIG_ISCSI_IBFT => 'm'
     };
 
     # Check if ibft drivers have been loaded
@@ -84,7 +80,7 @@ sub ibft_validation {
     # Scan for ibft interface
     assert_script_run 'ip a | grep -i ibft';
     my $ibft_setup = script_output 'for a in `find /sys/firmware/ibft/ -type f -print`; do  echo -n "$a:";  cat $a; echo; done';
-    my @config     = split(/\n/, $ibft_setup);
+    my @config = split(/\n/, $ibft_setup);
 
     foreach my $ditem (@domain) {
         my %ibft_sysfs = map { chomp; (my $filtered = $_) =~ s/.*\///; $filtered =~ s/-/_/; split(/:/, $filtered, 2) } grep { m/$ditem/ } @config;
@@ -104,7 +100,7 @@ sub ibft_validation {
 }
 
 sub run {
-    my $self   = shift;
+    my $self = shift;
     my $reg_tx = qr/txdata_octets:\s+\d+/;
     my $reg_rx = qr/rxdata_octets:\s+\d+/;
     # Requires NICTYPE=user and backend/qemu.pm code to run

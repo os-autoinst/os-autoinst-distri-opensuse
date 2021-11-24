@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: firewalld apache2
 # Summary: Test Firewalld Policy Feature
@@ -45,9 +41,9 @@ use version_utils qw(is_sle);
 
 my $FW_EXT_IP = '10.0.2.101';
 my $FW_INT_IP = '10.0.3.101';
-my $SRV_IP    = '10.0.2.102';
-my $SRV_PORT  = '80';
-my $CLI_IP    = '10.0.3.102';
+my $SRV_IP = '10.0.2.102';
+my $SRV_PORT = '80';
+my $CLI_IP = '10.0.3.102';
 
 sub set_ip {
     my ($ip, $nic) = @_;
@@ -173,11 +169,11 @@ sub run {
     }
 
     if ($hostname eq "firewall") {
-        barrier_create 'BARRIER_READY',          3;
-        barrier_create 'CONFIGURATION_DONE',     3;
-        barrier_create 'SERVER_READY',           3;
+        barrier_create 'BARRIER_READY', 3;
+        barrier_create 'CONFIGURATION_DONE', 3;
+        barrier_create 'SERVER_READY', 3;
         barrier_create 'CONNECTION_TEST_1_DONE', 3;
-        barrier_create 'FIREWALL_POLICY_READY',  3;
+        barrier_create 'FIREWALL_POLICY_READY', 3;
         barrier_create 'CONNECTION_TEST_2_DONE', 3;
         mutex_create 'barrier_setup_done';
     }

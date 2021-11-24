@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Firefox emaillink test (Case#1436117)
@@ -35,41 +31,35 @@ sub run {
     $self->start_firefox_with_profile;
 
     # Email link
-    send_key "alt-f";
-    wait_still_screen 3;
+    send_key_until_needlematch 'firefox-file-menu', 'alt-f', 3, 15;
     send_key "e";
     assert_screen(['firefox-email_link-welcome', 'firefox-email-mutt', 'firefox-email_link-send'], 90);
     if (match_has_tag('firefox-email-mutt')) {
-        if (is_sle('<=12-sp2')) {
-            record_soft_failure 'bsc#1131297';
-        }
-        else {
-            send_key 'y';         # yes
-            sleep 1;
-            enter_cmd "test\@suse.com";
-            sleep 1;
-            send_key 'home';      # beginning of subject
-            sleep 1;
-            send_key 'ctrl-k';    # delete existing subject
-            sleep 1;
-            enter_cmd "test subject";
-            sleep 1;
-            send_key 'd';
-            sleep 1;
-            send_key 'd';
-            sleep 1;
-            send_key 'i';         # enter vim insert mode
-            sleep 1;
-            enter_cmd "test email";
-            sleep 1;
-            send_key 'esc';       # escape insert mode
-            sleep 1;
-            save_screenshot;
-            enter_cmd ":wq";
-            sleep 1;
-            assert_screen('mutt-send');
-            send_key 'y';
-        }
+        send_key 'y';    # yes
+        sleep 1;
+        enter_cmd "test\@suse.com";
+        sleep 1;
+        send_key 'home';    # beginning of subject
+        sleep 1;
+        send_key 'ctrl-k';    # delete existing subject
+        sleep 1;
+        enter_cmd "test subject";
+        sleep 1;
+        send_key 'd';
+        sleep 1;
+        send_key 'd';
+        sleep 1;
+        send_key 'i';    # enter vim insert mode
+        sleep 1;
+        enter_cmd "test email";
+        sleep 1;
+        send_key 'esc';    # escape insert mode
+        sleep 1;
+        save_screenshot;
+        enter_cmd ":wq";
+        sleep 1;
+        assert_screen('mutt-send');
+        send_key 'y';
     }
     elsif (match_has_tag('firefox-email_link-welcome')) {
         send_key $next_key;

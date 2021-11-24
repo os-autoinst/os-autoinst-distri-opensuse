@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check PSI proc files are accessible when psi=1
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
@@ -16,7 +12,7 @@ use warnings;
 use testapi;
 use power_action_utils 'power_action';
 use bootloader_setup 'add_grub_cmdline_settings';
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 
 sub boot {
     my $self = shift;

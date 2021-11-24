@@ -1,11 +1,7 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: btrfsprogs zypper
 # Summary: sle12 online migration testsuite
@@ -15,9 +11,11 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use migration;
-use version_utils 'is_sle';
+use version_utils;
+use x11utils 'turn_off_gnome_show_banner';
 
 sub check_or_install_packages {
     if (get_var("FULL_UPDATE") || get_var("MINIMAL_UPDATE")) {
@@ -59,7 +57,12 @@ sub run {
     # solve conflict during online migration with live patching addon
     remove_kgraft_patch if is_sle('<15');
     # create btrfs subvolume for aarch64 before migration
-    create_btrfs_subvolume() if (check_var('ARCH', 'aarch64'));
+    create_btrfs_subvolume() if (is_aarch64);
+    # We need to close gnome notification banner before migration.
+    if (check_var('DESKTOP', 'gnome')) {
+        select_console 'user-console';
+        turn_off_gnome_show_banner;
+    }
 }
 
 sub test_flags {

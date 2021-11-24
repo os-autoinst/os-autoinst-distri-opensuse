@@ -1,11 +1,7 @@
 # Gnome tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: glib2-tools nautilus
 # Summary: Case 1503753: Gnome - Some types of files should
@@ -24,11 +20,11 @@ sub run {
     x11_start_program('xterm');
 
     my @applications = (
-        ['image/jpg',           'eog.desktop'],
-        ['image/png',           'eog.desktop'],
-        ['application/pdf',     'evince.desktop'],
+        ['image/jpg', 'eog.desktop'],
+        ['image/png', 'eog.desktop'],
+        ['application/pdf', 'evince.desktop'],
         ['application/x-bzip2', 'org.gnome.FileRoller.desktop'],
-        ['application/gzip',    'org.gnome.FileRoller.desktop']);
+        ['application/gzip', 'org.gnome.FileRoller.desktop']);
     my $defaultApps = check_default_apps(@applications);
     if ($defaultApps) {
         prepare_application_environment();
@@ -64,42 +60,42 @@ sub prepare_application_environment {
 
 sub open_default_apps {
     # Open test files with default applications
-    assert_and_dclick "gnomecase-defaultapps-jpgfile";     #open jpg
+    assert_and_dclick "gnomecase-defaultapps-jpgfile";    #open jpg
     assert_screen 'gnomecase-defaultapps-jpgopen';
-    send_key "ctrl-w";                                     #close eog
+    send_key "ctrl-w";    #close eog
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-pngfile";     #open png
+    assert_and_dclick "gnomecase-defaultapps-pngfile";    #open png
     assert_screen 'gnomecase-defaultapps-pngopen';
-    send_key "ctrl-w";                                     #close eog
+    send_key "ctrl-w";    #close eog
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-pdffile";     #open pdf
+    assert_and_dclick "gnomecase-defaultapps-pdffile";    #open pdf
     wait_still_screen;
     send_key "super-up";
     assert_screen 'evince-open-pdf';
-    send_key "ctrl-w";                                     #close evince
+    send_key "ctrl-w";    #close evince
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-bz2file";     #open bzip
+    assert_and_dclick "gnomecase-defaultapps-bz2file";    #open bzip
     assert_screen 'gnomecase-defaultapps-bz2open';
-    send_key "ctrl-w" unless is_sle('15+');                #close fileroller
+    send_key "ctrl-w" unless is_sle('15+');    #close fileroller
     wait_still_screen;
-    assert_and_dclick "gnomecase-defaultapps-gzfile";      #open gzip
+    assert_and_dclick "gnomecase-defaultapps-gzfile";    #open gzip
     assert_screen 'gnomecase-defaultapps-gzopen';
-    send_key "ctrl-w" unless is_sle('15+');                #close fileroller
+    send_key "ctrl-w" unless is_sle('15+');    #close fileroller
     wait_still_screen;
     assert_and_dclick "gnomecase-defaultapps-htmlfile";    #open html
     assert_screen 'gnomecase-defaultapps-firefoxopen';
-    send_key "alt-f4";                                     #close firefox
+    send_key "alt-f4";    #close firefox
     wait_still_screen;
-    send_key "ctrl-w";                                     #close nautilus
+    send_key "ctrl-w";    #close nautilus
 }
 
 # For each element, will check if the mimetype will open with the correct application
 sub check_default_apps {
     my @apps = @_;
 
-    my $default     = 1;
+    my $default = 1;
     my $application = "";
-    my @message     = ();
+    my @message = ();
     for my $app (@apps) {
         if (is_sle('<15')) {
             $application = script_output("gvfs-mime --query '$app->[0]' | awk 'NR==1{print \$NF}' | sed 's/[[:space:]]//'");

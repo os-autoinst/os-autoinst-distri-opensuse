@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary:  Validate partition table via program 'blkid'.
 #
@@ -22,7 +18,7 @@ use filesystem_utils 'get_partition_table_via_blkid';
 sub run {
     select_console('root-console');
     my $errors = '';
-    my $disks  = get_test_suite_data()->{disks};
+    my $disks = get_test_suite_data()->{disks};
 
     my $actual;
     foreach my $disk (@{$disks}) {

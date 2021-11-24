@@ -1,17 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Run NFV Performance tests
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use lockapi;
@@ -23,12 +20,12 @@ our $test_url;
 sub run_test {
     my ($test, $vswitch) = @_;
     my $testname = "$test\_$vswitch";
-    my $cmd      = "./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch $vswitch $test";
+    my $cmd = "./vsperf --conf-file=/root/vswitchperf/conf/10_custom.conf --vswitch $vswitch $test";
     record_info("INFO", "Running test case $testname");
     record_info("INFO", "Command to run: $cmd");
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         assert_script_run($cmd, timeout => 60 * 60 * 1.5);
-    } elsif (check_var('BACKEND', 'qemu')) {
+    } elsif (is_qemu) {
         record_info("INFO", "Skip test as this is a virtual environment. Generate dummy results instead.");
         assert_script_run("mkdir -p $results_dir/results_dummy");
         assert_script_run("curl " . data_url('nfv/result_0_dummy.csv') . " -o $results_dir/results_dummy/result_0_dummy.csv");
@@ -48,8 +45,8 @@ sub run {
     $self->select_serial_terminal;
 
     # Arrayss for test specs
-    my @tests   = ('phy2phy_tput', 'pvp_tput',   'pvvp_tput');
-    my @vswitch = ('OvsVanilla',   'OvsVanilla', 'OvsVanilla');
+    my @tests = ('phy2phy_tput', 'pvp_tput', 'pvvp_tput');
+    my @vswitch = ('OvsVanilla', 'OvsVanilla', 'OvsVanilla');
 
     # Get OVS version
     $ovs_version = script_output(q(ovs-vswitchd --version|head -1|awk '{print $NF}'));

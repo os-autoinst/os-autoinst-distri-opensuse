@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class represents current (i.e. latest) Sle15 distribution and
 # provides access to its features.
@@ -24,6 +20,10 @@ use Installation::License::Sle::LicenseAgreementController;
 use Installation::License::Sle::Firstboot::LicenseAgreementController;
 use Installation::ProductSelection::ProductSelectionController;
 use Installation::Registration::RegistrationController;
+use Installation::ModuleSelection::ModuleSelectionController;
+use Installation::AddOnProduct::AddOnProductController;
+use Installation::AddOnProductInstallation::AddOnProductInstallationController;
+use Installation::SystemRole::Sle::SystemRoleController;
 
 =head2 get_license_agreement
 
@@ -46,6 +46,22 @@ sub get_product_selection {
 
 sub get_registration {
     return Installation::Registration::RegistrationController->new();
+}
+
+sub get_module_selection {
+    return Installation::ModuleSelection::ModuleSelectionController->new();
+}
+
+sub get_add_on_product {
+    return Installation::AddOnProduct::AddOnProductController->new();
+}
+
+sub get_add_on_product_installation {
+    return Installation::AddOnProductInstallation::AddOnProductInstallationController->new();
+}
+
+sub get_system_role_controller() {
+    return Installation::SystemRole::Sle::SystemRoleController->new();
 }
 
 1;

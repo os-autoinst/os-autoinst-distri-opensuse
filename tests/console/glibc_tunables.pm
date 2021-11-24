@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 Guillaume GARDET
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 Guillaume GARDET
+# SPDX-License-Identifier: FSFAP
 
 # Package: glibc
 # Summary: Check GLIBC_TUNABLES support
@@ -16,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     select_console 'root-console';

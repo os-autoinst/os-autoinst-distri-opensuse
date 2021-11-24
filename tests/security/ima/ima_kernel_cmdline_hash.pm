@@ -1,21 +1,9 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA kernel command line for IMA hash
-# Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#48932
+# Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
+# Tags: poo#48932, poo#100892
 
 use base "opensusebasetest";
 use strict;
@@ -33,17 +21,27 @@ sub run {
     my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
 
     my @algo_list = (
-        {algo => "md5",    len => 32},
-        {algo => "sha1",   len => 40},
+        {algo => "md5", len => 32},
+        {algo => "sha1", len => 40},
         {algo => "sha256", len => 64},
         {algo => "sha512", len => 128},
         {algo => "rmd160", len => 40},
-        {algo => "wp512",  len => 128},
+        {algo => "wp512", len => 128},
         {algo => "tgr192", len => 48},
     );
 
     # Add kernel modules to enable some algorithms
     my $algo_modlist = "rmd160 wp512 tgr192";
+
+    # On newer kernel, tgr192 algorithms may be removed due to
+    # upsteam commit, then we need skip it, refer to bsc#1191521
+    my $results = script_run("zcat /proc/config.gz | grep CONFIG_CRYPTO_TGR192");
+    if ($results) {
+        for (my $i = 0; $i < scalar(@algo_list); $i++) {
+            splice @algo_list, $i, 1 if ($algo_list[$i]->{algo} eq 'tgr192');
+        }
+        $algo_modlist =~ s/ tgr192//;
+    }
     $algo_modlist .= " sha512" if (!is_sle && !is_leap);
 
     assert_script_run "echo -e $algo_modlist | sed 's/ /\\n/g' > /etc/modules-load.d/hash.conf";
@@ -53,9 +51,10 @@ sub run {
     add_grub_cmdline_settings('ima_policy=tcb ima_hash=none');
     my $last_algo = "none";
 
-    for my $i (@algo_list) {
-        replace_grub_cmdline_settings("ima_hash=$last_algo", "ima_hash=@$i{algo}", update_grub => 1);
-        $last_algo = @$i{algo};
+    foreach my $hash_algo (@algo_list) {
+        my $ima_hash = $hash_algo->{algo};
+        replace_grub_cmdline_settings("ima_hash=$last_algo", "ima_hash=$ima_hash", update_grub => 1);
+        $last_algo = $ima_hash;
 
         # Grep and output grub settings to the terminal for debugging
         assert_script_run("grep GRUB_CMDLINE_LINUX /etc/default/grub");
@@ -65,11 +64,11 @@ sub run {
         $self->wait_boot;
         $self->select_serial_terminal;
 
-        my $meas_tmpfile = "/tmp/ascii_runtime_measurements-" . @$i{algo};
+        my $meas_tmpfile = "/tmp/ascii_runtime_measurements-$ima_hash";
         assert_script_run("cp $meas_file $meas_tmpfile");
         upload_logs "$meas_tmpfile";
 
-        my $out = script_output("grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*@$i{algo}:[a-fA-F0-9]\\{@$i{len}\\}\\s*\\/' $meas_file |wc -l");
+        my $out = script_output("grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*$ima_hash:[a-fA-F0-9]\\{$hash_algo->{len}\\}\\s*\\/' $meas_file |wc -l");
         die('Too few items') if ($out < 100);
     }
 }

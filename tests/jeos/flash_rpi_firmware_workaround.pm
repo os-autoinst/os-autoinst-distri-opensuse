@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: This module copies all files from USB to µSD on Raspberry Pi (required to chain boot from µSD to USB).
 # It is currently used on:
@@ -19,7 +15,7 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;

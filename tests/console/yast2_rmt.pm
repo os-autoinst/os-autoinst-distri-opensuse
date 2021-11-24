@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: rmt-server yast2-rmt
 # Summary: Test for the yast2-rmt module
@@ -71,8 +67,8 @@ sub test_config {
         script_run("systemctl is-active $_") && die "The systemd unit $_ is not active";
     }
     assert_script_run("firewall-cmd --list-services |egrep 'http[[:space:]]https'", fail_message => 'The firewall ports are not opened');
-    assert_script_run("grep rmt /etc/rmt.conf",                                     fail_message => 'Missing values in /etc/rmt.conf');
-    assert_script_run("wget --no-check-certificate https://localhost/rmt.crt",      fail_message => 'Certificate not found at https://localhost/rmt.crt');
+    assert_script_run("grep rmt /etc/rmt.conf", fail_message => 'Missing values in /etc/rmt.conf');
+    assert_script_run("wget --no-check-certificate https://localhost/rmt.crt", fail_message => 'Certificate not found at https://localhost/rmt.crt');
     # yast2-rmt was changed to no longer include the host name as part of the CA
     assert_script_run("openssl x509 -noout -subject -in 'rmt.crt' | grep 'RMT Certificate Authority'", fail_message => 'Incorrect CN name in the certificate');
 }

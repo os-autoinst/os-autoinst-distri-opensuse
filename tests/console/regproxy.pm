@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Setup regproxy and redirect registry.opensuse.org to it
 # Maintainer: Fabian Vogt <fvogt@suse.com>
@@ -39,12 +35,16 @@ sub run {
     assert_script_run('popd');
 
     # Redirect to localhost
+    assert_script_run('cp -a /etc/hosts hosts.bak');
     assert_script_run('echo -e "127.0.0.1\tregistry.opensuse.org" >> /etc/hosts');
     script_run('nscd -i hosts');    # Just ignore the return value
 
     # Verify that it works
     validate_script_output('curl -kH "Host: registry.opensuse.org" https://localhost/v2', sub { m/{}/ });
-    validate_script_output('curl https://registry.opensuse.org/v2',                       sub { m/{}/ });
+    validate_script_output('curl https://registry.opensuse.org/v2', sub { m/{}/ });
+
+    # Backdate /etc/hosts to not trigger mkdumprd on reboot (boo#1190532)
+    assert_script_run('touch -r hosts.bak /etc/hosts && rm hosts.bak');
 }
 
 sub test_flags {

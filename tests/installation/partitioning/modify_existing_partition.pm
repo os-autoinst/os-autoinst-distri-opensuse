@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: modify and resize existing partitions on a pre-formatted disk.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -18,12 +14,12 @@ use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data   = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my $partitioner = $testapi::distri->get_expert_partitioner();
     $partitioner->run_expert_partitioner();
-    my $disk       = $test_data->{disks}[0]->{name};
+    my $disk = $test_data->{disks}[0]->{name};
     my @partitions = @{$test_data->{disks}[0]->{partitions}};
-    my $root_part  = $partitions[0];
+    my $root_part = $partitions[0];
 
     record_info("Resize root");
     $partitioner->resize_partition({disk => $disk, partition => $root_part});

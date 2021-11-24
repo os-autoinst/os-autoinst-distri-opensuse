@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: gb18030
 # Summary: GB18030-2005 standard certification
@@ -27,7 +23,7 @@ use utils;
 use x11utils;
 
 sub test_gb18030_file {
-    my $filename     = shift;
+    my $filename = shift;
     my $needlenumber = shift;
 
     x11_start_program('gedit ' . $filename . '.txt', target_match => 'gedit-gb18030-' . $filename . '-opened');
@@ -76,7 +72,7 @@ sub run {
     enter_cmd("exit");
 
     test_gb18030_file('double', 45);
-    test_gb18030_file('four',   9);
+    test_gb18030_file('four', 9);
 }
 
 1;

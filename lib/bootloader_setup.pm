@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package bootloader_setup;
 
@@ -17,10 +13,11 @@ use File::Basename 'basename';
 use Mojo::Util 'trim';
 use Time::HiRes 'sleep';
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap is_sle is_tumbleweed);
 use mm_network;
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_CONSOLE_DEFAULT_DEVICE SERIAL_CONSOLE_DEFAULT_PORT);
 
@@ -72,7 +69,7 @@ our @EXPORT = qw(
 
 our $zkvm_img_path = "/var/lib/libvirt/images";
 
-use constant GRUB_CFG_FILE     => "/boot/grub2/grub.cfg";
+use constant GRUB_CFG_FILE => "/boot/grub2/grub.cfg";
 use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
@@ -109,10 +106,10 @@ sub add_custom_grub_entries {
     my @grub_params = split(/\s*;\s*/, trim(get_var('GRUB_PARAM', '')));
     return unless $#grub_params >= 0;
 
-    my $script_old     = "/etc/grub.d/10_linux";
+    my $script_old = "/etc/grub.d/10_linux";
     my $script_old_esc = $script_old =~ s~/~\\/~rg;
-    my $cfg_old        = 'grub.cfg.old';
-    my $distro         = "openSUSE" . ' \\?' . get_required_var('VERSION');
+    my $cfg_old = 'grub.cfg.old';
+    my $distro = "openSUSE" . ' \\?' . get_required_var('VERSION');
 
     if (check_var('SLE_PRODUCT', 'slert')) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
@@ -128,12 +125,12 @@ sub add_custom_grub_entries {
     upload_logs($cfg_old, failok => 1);
 
     my $section_old = "sed -e '1,/$script_old_esc/d' -e '/$script_old_esc/,\$d' $cfg_old";
-    my $cnt_old     = script_output("$section_old | grep -c 'menuentry .$distro'");
+    my $cnt_old = script_output("$section_old | grep -c 'menuentry .$distro'");
 
     my $i = 10;
     foreach my $grub_param (@grub_params) {
         $i++;
-        my $script_new     = "/etc/grub.d/${i}_linux_openqa";
+        my $script_new = "/etc/grub.d/${i}_linux_openqa";
         my $script_new_esc = $script_new =~ s~/~\\/~rg;
         assert_script_run("cp -v $script_old $script_new");
 
@@ -147,7 +144,7 @@ sub add_custom_grub_entries {
         upload_logs(GRUB_CFG_FILE, failok => 1);
 
         my $section_new = "sed -e '1,/$script_new_esc/d' -e '/$script_new_esc/,\$d' " . GRUB_CFG_FILE;
-        my $cnt_new     = script_output("$section_new | grep -c 'menuentry .$distro'");
+        my $cnt_new = script_output("$section_new | grep -c 'menuentry .$distro'");
         die("Unexpected number of grub entries: $cnt_new, expected: $cnt_old") if ($cnt_old != $cnt_new);
         $cnt_new = script_output("grep -c 'menuentry .$distro.*($grub_param)' " . GRUB_CFG_FILE);
         die("Unexpected number of new grub entries: $cnt_new, expected: " . ($cnt_old)) if ($cnt_old != $cnt_new);
@@ -337,8 +334,9 @@ sub uefi_bootmenu_params {
     # assume bios+grub+anim already waited in start.sh
     # in grub2 it's tricky to set the screen resolution
     #send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5);
-    (is_jeos) ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
-      :         send_key 'e';
+    (is_jeos)
+      ? send_key_until_needlematch('grub2-enter-edit-mode', 'e', 5, 0.5)
+      : send_key 'e';
     # Kiwi in TW uses grub2-mkconfig instead of the custom kiwi config
     # Locate gfxpayload parameter and update it
     if (is_jeos && (is_tumbleweed || is_sle('>=15-sp1') || is_leap('>=15.1'))) {
@@ -353,7 +351,9 @@ sub uefi_bootmenu_params {
         send_key "home";
         for (1 .. 6) { send_key "down"; }
         # On Leap/SLE we need to move down (grub 2.04)
-        if (is_sle('<16') || is_leap('<16.0')) {
+        # skip additional movement downwards in
+        # sle15sp4+, leap15.4+ and TW (grub 2.06)
+        if (is_sle('<15-SP4') || is_leap('<15.4')) {
             for (1 .. 4) { send_key "down"; }
         }
     }
@@ -450,7 +450,7 @@ sub bootmenu_default_params {
         push @params, "Y2DEBUG=1" unless is_jeos || is_microos;
 
         # gfxpayload variable replaced vga option in grub2
-        if (!is_jeos && !is_microos && (check_var('ARCH', 'i586') || check_var('ARCH', 'x86_64'))) {
+        if (!is_jeos && !is_microos && (is_i586 || is_x86_64)) {
             push @params, "vga=791";
             my $video = 'video=1024x768';
             $video .= '-16' if check_var('QEMUVGA', 'cirrus');
@@ -501,7 +501,7 @@ sub bootmenu_network_source {
         }
         else {
             my $m_protocol = get_var('INSTALL_SOURCE', 'http');
-            my $m_mirror   = get_netboot_mirror;
+            my $m_mirror = get_netboot_mirror;
             die "No mirror defined, please set MIRROR_$m_protocol variable" unless $m_mirror;
             # In case of https we have to use boot options and not UI
             if ($m_protocol eq "https") {
@@ -547,7 +547,7 @@ sub bootmenu_remote_target {
 sub select_installation_source {
     my ($args_ref) = @_;
     my $m_protocol = $args_ref->{m_protocol};
-    my $m_mirror   = $args_ref->{m_mirror};
+    my $m_mirror = $args_ref->{m_mirror};
     my ($m_server, $m_share, $m_directory);
 
     # Parse SUSEMIRROR into variables
@@ -648,14 +648,17 @@ sub autoyast_boot_params {
         $autoyast_args .= "$proto://10.0.2.1/";
         $autoyast_args .= 'data/' if $ay_var !~ /^aytests\//;
         $autoyast_args .= $ay_var;
-    } elsif ($ay_var =~ /^ASSET_\d+$/) {
+    }
+    elsif ($ay_var =~ /^ASSET_\d+$/) {
         # In case profile is uploaded as an ASSET we need just filename
         $ay_var = basename(get_required_var($ay_var));
         $autoyast_args .= autoinst_url("/assets/other/$ay_var");
-    } elsif ($ay_var !~ /^slp$|:\/\//) {
+    }
+    elsif ($ay_var !~ /^slp$|:\/\//) {
         # Getting profile from the worker as openQA asset
         $autoyast_args .= data_url($ay_var);
-    } else {
+    }
+    else {
         # Getting profile by direct url or slp
         $autoyast_args .= $ay_var;
     }
@@ -668,7 +671,7 @@ sub autoyast_boot_params {
 sub specific_bootmenu_params {
     my @params;
 
-    if (!check_var('ARCH', 's390x')) {
+    if (!is_s390x) {
         my @netsetup;
         my $autoyast = get_var("AUTOYAST", "");
         if ($autoyast || get_var("AUTOUPGRADE") && get_var("AUTOUPGRADE") ne 'local') {
@@ -677,7 +680,7 @@ sub specific_bootmenu_params {
             # profile has DHCLIENT_SET_HOSTNAME="yes" in /etc/sysconfig/network/dhcp,
             # 'ifcfg=*=dhcp' sets this variable in ifcfg-eth0 as well and we can't
             # have them both as it's not deterministic. Don't set on IPMI with net interface defined in SUT_NETDEVICE.
-            my $ifcfg = check_var('BACKEND', 'ipmi') ? '' : 'ifcfg=*=dhcp SetHostname=0';
+            my $ifcfg = is_ipmi ? '' : 'ifcfg=*=dhcp SetHostname=0';
             @netsetup = split ' ', get_var("NETWORK_INIT_PARAM", "$ifcfg");
             push @params, @netsetup;
             push @params, autoyast_boot_params;
@@ -751,7 +754,7 @@ sub specific_bootmenu_params {
 
     # Return parameters as string of space-separated values, because s390x test
     # modules are using strings but not arrays to combine bootloader parameters.
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         return " @params ";
     }
 
@@ -773,7 +776,8 @@ sub remote_install_bootmenu_params {
         if (is_sle('=11-sp4')) {
             #11-SP4 only support ssh=1
             $params .= " ssh=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
-        } else {
+        }
+        else {
             $params .= " sshd=1 VNC=1 VNCSize=1024x768 VNCPassword=$testapi::password ";
         }
     }
@@ -895,7 +899,12 @@ sub tianocore_enter_menu {
 }
 
 sub tianocore_disable_secureboot {
-    my $basetest = shift;
+
+    my ($basetest, $revert) = @_;
+
+    my $neelle_sb_conf_attempt = $revert ? 'tianocore-devicemanager-sb-conf-disabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
+    my $neelle_sb_change_state = $revert ? 'tianocore-devicemanager-sb-conf-enabled' : 'tianocore-devicemanager-sb-conf-attempt-sb';
+    my $neelle_sb_config_state = $revert ? 'tianocore-secureboot-enabled' : 'tianocore-secureboot-not-enabled';
 
     assert_screen 'grub2';
     send_key 'c';
@@ -907,17 +916,18 @@ sub tianocore_disable_secureboot {
     send_key 'ret';
     send_key_until_needlematch('tianocore-devicemanager-sb-conf', 'down', 5, 5);
     send_key 'ret';
-    send_key_until_needlematch('tianocore-devicemanager-sb-conf-attempt-sb', 'down', 5, 5);
+    send_key_until_needlematch($neelle_sb_conf_attempt, 'down', 5, 5);
     send_key 'spc';
     assert_screen 'tianocore-devicemanager-sb-conf-changed';
     send_key 'ret';
-    assert_screen 'tianocore-devicemanager-sb-conf-attempt-sb';
+    assert_screen($neelle_sb_change_state);
     send_key 'f10';
     assert_screen 'tianocore-bootmanager-save-changes';
     send_key 'Y';
-    send_key_until_needlematch 'tianocore-devicemanager',  'esc';
+    send_key_until_needlematch 'tianocore-devicemanager', 'esc';
     send_key_until_needlematch 'tianocore-mainmenu-reset', 'down';
     send_key 'ret';
+    send_key 'ret' if check_screen($neelle_sb_config_state, 20);
     $basetest->wait_grub;
 }
 
@@ -980,17 +990,18 @@ sub tianocore_http_boot {
 }
 
 sub zkvm_add_disk {
-    my ($svirt)  = @_;
+    my ($svirt) = @_;
     my $numdisks = get_var('NUMDISKS') // 1;
-    my $hdd_dir  = sprintf("%s/openqa/share/factory/hdd", svirt_host_basedir());
-    my $dev_id   = 'a';
+    my $hdd_dir = sprintf("%s/openqa/share/factory/hdd", svirt_host_basedir());
+    my $dev_id = 'a';
     for my $di (1 .. $numdisks) {
         if (get_var('PATCHED_SYSTEM') && $dev_id eq 'a') {
             diag('in patched systems just load the patched image');
-            my $name        = $svirt->name;
+            my $name = $svirt->name;
             my $patched_img = "$zkvm_img_path/$name" . "a.img";
             $svirt->add_disk({file => $patched_img, dev_id => 'a'});
-        } else {
+        }
+        else {
             # Copy existing disk image to local storage
             if (get_var("HDD_$di")) {
                 my $basename = basename(get_var("HDD_$di"));
@@ -1002,10 +1013,12 @@ sub zkvm_add_disk {
                 if (my $size = get_var("HDDSIZEGB_$di")) {
                     $size .= "G";
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
-                } else {
+                }
+                else {
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id});
                 }
-            } else {
+            }
+            else {
                 # Create a new image, most likely it can be image for installation
                 # or additional optional drive for further testing
                 my $size = sprintf("%dG", get_var("HDDSIZEGB_$di", get_var('HDDSIZEGB', 4)));
@@ -1021,26 +1034,30 @@ sub zkvm_add_pty {
     my ($svirt) = shift;
 
     # serial console used for the serial log
-    $svirt->add_pty({
-            pty_dev      => SERIAL_CONSOLE_DEFAULT_DEVICE,
+    $svirt->add_pty(
+        {
+            pty_dev => SERIAL_CONSOLE_DEFAULT_DEVICE,
             pty_dev_type => 'pty',
-            target_type  => 'sclp',
-            target_port  => SERIAL_CONSOLE_DEFAULT_PORT});
+            target_type => 'sclp',
+            target_port => SERIAL_CONSOLE_DEFAULT_PORT
+        });
 
     # sut-serial (serial terminal: emulation of QEMU's virtio console for svirt)
-    $svirt->add_pty({
-            pty_dev      => SERIAL_TERMINAL_DEFAULT_DEVICE,
+    $svirt->add_pty(
+        {
+            pty_dev => SERIAL_TERMINAL_DEFAULT_DEVICE,
             pty_dev_type => 'pty',
-            target_type  => 'virtio',
-            target_port  => SERIAL_TERMINAL_DEFAULT_PORT});
+            target_type => 'virtio',
+            target_port => SERIAL_TERMINAL_DEFAULT_PORT
+        });
 }
 
 sub zkvm_add_interface {
     my ($svirt) = shift;
     # temporary use of hardcoded '+4' to workaround messed up network setup on z/KVM
-    my $vtap   = $svirt->instance + 4;
+    my $vtap = $svirt->instance + 4;
     my $netdev = get_required_var('NETDEV');
-    my $mac    = get_required_var('VIRSH_MAC');
+    my $mac = get_required_var('VIRSH_MAC');
     # direct access to the tap device, use of $vtap temporarily
     $svirt->add_interface({type => 'direct', source => {dev => $netdev, mode => 'bridge'}, target => {dev => 'macvtap' . $vtap}, mac => {address => $mac}});
 }
@@ -1072,7 +1089,7 @@ sub ensure_shim_import {
     my (%args) = @_;
     $args{tags} //= [qw(inst-bootmenu bootloader-shim-import-prompt)];
     # aarch64 firmware 'tianocore' can take longer to load
-    my $bootloader_timeout = check_var('ARCH', 'aarch64') ? 90 : 30;
+    my $bootloader_timeout = is_aarch64 ? 90 : 30;
     assert_screen($args{tags}, $bootloader_timeout);
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
@@ -1118,16 +1135,16 @@ C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and 
 sub change_grub_config {
     die((caller(0))[3] . ' expects from 3 to 5 arguments') unless (@_ >= 3 && @_ <= 5);
     my ($old, $new, $search, $modifiers, $update_grub) = @_;
-    $modifiers   //= '';
+    $modifiers //= '';
     $update_grub //= 0;
-    $new         //= '';
+    $new //= '';
     $search = "/$search/" if defined $search;
 
     assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
 
     if ($update_grub) {
         grub_mkconfig();
-        upload_logs(GRUB_CFG_FILE,     failok => 1);
+        upload_logs(GRUB_CFG_FILE, failok => 1);
         upload_logs(GRUB_DEFAULT_FILE, failok => 1);
     }
 }
@@ -1141,13 +1158,16 @@ C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and 
 C<$search> if set, bypass default grub cmdline variable.
 =cut
 sub add_grub_cmdline_settings {
-    my $add  = shift;
+    my $add = shift;
     my %args = testapi::compat_args(
         {
-            add         => $add,
+            add => $add,
             update_grub => 0,
-            search      => get_cmdline_var(),
-        }, ['update_grub', 'search'], @_);
+            search => get_cmdline_var(),
+        },
+        ['update_grub', 'search'],
+        @_
+    );
 
     change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
 }
@@ -1173,15 +1193,18 @@ C<$update_grub> if set, regenerate /boot/grub2/grub.cfg with grub2-mkconfig and 
 C<$search> if set, bypass default grub cmdline variable.
 =cut
 sub replace_grub_cmdline_settings {
-    my $old  = shift;
-    my $new  = shift;
+    my $old = shift;
+    my $new = shift;
     my %args = testapi::compat_args(
         {
-            old         => $old,
-            new         => $new,
+            old => $old,
+            new => $new,
             update_grub => 0,
-            search      => get_cmdline_var(),
-        }, ['update_grub', 'search'], @_);
+            search => get_cmdline_var(),
+        },
+        ['update_grub', 'search'],
+        @_
+    );
     change_grub_config($old, $new, $args{search}, "g", $args{update_grub});
 }
 
@@ -1278,7 +1301,8 @@ sub compare_bootparams {
     my @difference = arrays_subset($expected_boot_params, $received_boot_params);
     if (scalar @difference > 0) {
         record_info("params mismatch", "Actual bootloader params do not correspond to the expected ones. Mismatched params: @difference", result => 'fail');
-    } else {
+    }
+    else {
         record_info("params ok", "Bootloader parameters are typed correctly.\nVerified parameters:\n" . join("\n", @{$expected_boot_params}));
     }
 }
@@ -1294,8 +1318,8 @@ It is useful to test encrypted partitions activation in the installer.
 =cut
 
 sub create_encrypted_part {
-    my (%args)    = @_;
-    my $disk      = $args{disk};
+    my (%args) = @_;
+    my $disk = $args{disk};
     my $luks_type = exists($args{luks_type}) ? "--type $args{luks_type}" : "";
     # create partition table
     assert_script_run "parted -s /dev/$disk mklabel gpt";
@@ -1318,11 +1342,11 @@ store content of the /etc/passwd and /etc/shadow files accordingly.
 =cut
 sub mimic_user_to_import {
     my (%args) = @_;
-    my $disk   = $args{disk};
+    my $disk = $args{disk};
     my $passwd = $args{passwd};
     my $shadow = $args{shadow};
     my $mapper = "/dev/mapper/crypt";
-    my $mount  = "/mnt/crypt";
+    my $mount = "/mnt/crypt";
     # open LUKS partition
     assert_script_run "echo nots3cr3t | cryptsetup luksOpen -q /dev/${disk}1 crypt";
     # format it and create passwd and shadow files
@@ -1364,11 +1388,13 @@ sub prepare_disks {
         if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING')) {
             create_encrypted_part(disk => $d);
             if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
-                mimic_user_to_import(disk => $d,
+                mimic_user_to_import(
+                    disk => $d,
                     passwd => get_var('ETC_PASSWD'),
                     shadow => get_var('ETC_SHADOW'));
             }
-        } else {
+        }
+        else {
             script_run "parted /dev/$d mklabel gpt";
             script_run "sync";
         }

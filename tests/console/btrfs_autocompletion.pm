@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: bash-completion btrfsprogs
 # Summary: Bash autocompletion for btrfs
@@ -46,9 +42,9 @@ sub run {
         assert_script_run('source $(rpmquery -l bash-completion | grep bash_completion.sh)');
     }
 
-    compare_commands("btrfs device stats ",                  "btrfs d\tst\t");
-    compare_commands("btrfs subvolume get-default ",         "btrfs su\tg\t");
-    compare_commands("btrfs filesystem usage ",              "btrfs fi\tu\t");
+    compare_commands("btrfs device stats ", "btrfs d\tst\t");
+    compare_commands("btrfs subvolume get-default ", "btrfs su\tg\t");
+    compare_commands("btrfs filesystem usage ", "btrfs fi\tu\t");
     compare_commands("btrfs inspect-internal min-dev-size ", "btrfs i\tm\t");
 
     # Check loading of complete function

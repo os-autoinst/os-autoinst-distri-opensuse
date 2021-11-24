@@ -1,0 +1,40 @@
+---
+name: installer_extended
+description: >
+  Test suite performs additional UI checks. As of now following is tested:
+     - Switch keyboard layout and test it (only when is not VNC installation)
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - '{{access_beta_distribution}}'
+  - '{{switch_keyboard_layout}}'
+  - installation/licensing/accept_license
+  - installation/online_repos
+  - installation/installation_mode
+  - installation/logpackages
+  - installation/system_role/select_role_desktop_with_KDE_plasma
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
+  - installation/installation_overview
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+conditional_schedule:
+  switch_keyboard_layout:
+    # Include only installations not using remote protocol, because on those,
+    # VNC client (or its X server) determines the keyboard layout
+    BACKEND:
+      qemu:
+        - installation/language_keyboard/switch_keyboard_layout
+  access_beta_distribution:
+    BETA:
+      1:
+        - installation/validate_beta_message
+        - installation/access_beta_distribution
+test_data:
+  beta_text: 'openSUSE Beta Distribution'

@@ -1,23 +1,17 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wireshark
 # Summary: Wireshark test
 #  Start:
 #   - start wireshark in fullscreen
 #  Basic GUI:
-#   - check file set option
 #  Capture test:
-#   - start capturing
+#   - start capturing with the DNS filter set
 #   - (from console) generate traffic including a DNS A request
 #     for www.suse.com
-#   - set filter for DNS A
 #   - examine capture
 #   - save capture
 #   - load capture
@@ -32,199 +26,103 @@
 use base "opensusebasetest";
 use strict;
 use warnings;
+use version_utils 'is_sle';
 use testapi;
 use utils;
 
+# allow a TIMEOUT second timeout for asserting needles
+use constant TIMEOUT => 90;
+
 sub run {
-    select_console 'x11';
-    x11_start_program('xterm');
-    become_root;
+    my ($self) = @_;
+    $self->select_serial_terminal();
     quit_packagekit;
     zypper_call "in wireshark";
 
-    # start
-    if (check_var("VERSION", "Tumbleweed")) {
-        enter_cmd "wireshark-gtk";
-    }
-    else {    # works for SLE12-SP1+
-        enter_cmd "wireshark";
-    }
-    assert_screen "wireshark-welcome", 30;
+    select_console 'x11';
+    x11_start_program('xterm');
+    become_root;
+    enter_cmd "wireshark";
+    assert_screen("wireshark-welcome", TIMEOUT);
     send_key "super-up";
-    assert_screen "wireshark-fullscreen";
-
-    # check GUI version
-    assert_and_click "wireshark-help";
-    assert_and_click "about-wireshark";
-    assert_screen [qw(wireshark-gui-qt wireshark-gui-gtk)];
-    my $wireshark_gui_version = match_has_tag("wireshark-gui-qt") ? "qt" : "gtk";
-    assert_and_click "wireshark-about-ok";
-
-    # check GUI/file set
-    assert_and_click "wireshark-file";
-    send_key_until_needlematch "wireshark-file-set", "down";
-    # old GTK UI
-    if ($wireshark_gui_version eq "gtk") {
-        assert_and_click "wireshark-file-set-list";
-        assert_screen "wireshark-file-set-lists";
-        send_key "alt-f4";
-    }
-    # new QT UI greys out List Files item when no files are available
-    else {
-        send_key "right";
-        assert_screen "wireshark-no-files-available";
-        send_key "esc";
-        wait_still_screen 3, 6;
-        send_key "esc";
-    }
-
-    assert_screen "wireshark-fullscreen";
+    assert_screen("wireshark-fullscreen", TIMEOUT);
+    send_key "alt-f4";
 
     ####################
     #   Capture test   #
     ####################
-    # start capturing
-    # GTK GUI has the Interfaces menu and all interfaces deselected by default
-    if ($wireshark_gui_version eq "gtk") {
-        assert_and_click "wireshark-interfaces";
-        wait_still_screen 3;
-        send_key "spc";
-    }
-    # QT GUI no longer allows to manage interfaces via dedicated menu item
-    else {
-        send_key "ctrl-k";
-        wait_still_screen 3, 6;
-        assert_and_click "wireshark-manage-interfaces";
-        wait_still_screen 3;
-        assert_screen "wireshark-eth0-selected";
-        assert_and_click "wireshark-interfaces-ok";
-    }
-
-    wait_still_screen 2, 4;
-    assert_and_click "wireshark-interfaces-start";
-    assert_screen "wireshark-capturing";
+    # Start capture  on interface eth0 with the filter set and dump the capture to a file
+    enter_cmd "wireshark -i eth0 -k -Y 'dns.a and dns.qry.name==\"www.suse.com\"' -w /tmp/capture.pcap";
     assert_screen "wireshark-capturing-list";
 
-    # generate traffic
-    select_console 'root-console';
+    $self->select_serial_terminal();
+    # Generate the DNS request traffic
     assert_script_run "dig www.suse.com A";
-    assert_script_run "host www.suse.com";    # check for valid IP address
+    assert_script_run "host www.suse.com";
     select_console 'x11', await_console => 0;
-    assert_screen "wireshark-capturing";
-
-    # set filter
-    if ($wireshark_gui_version eq "qt") {
-        wait_still_screen 2;
-        send_key "ctrl-/";
-    }
-    assert_screen "wireshark-filter-selected";
-    enter_cmd "dns.a and dns.qry.name == \"www.suse.com\"";
-    assert_screen "wireshark-filter-applied";
-    assert_screen "wireshark-capturing";
-
-    # examine capture
-    assert_screen "wireshark-dns-response-list";
+    wait_still_screen 2;
+    assert_and_click("wireshark-dns-response-list", TIMEOUT);
     assert_and_click "wireshark-dns-response-details";
     send_key "right";
     send_key_until_needlematch "wireshark-dns-response-details-answers", "down";
-    wait_still_screen 1;
+    wait_still_screen 2;
     assert_and_click "wireshark-dns-response-details-answers";
-    send_key "right";
-    assert_screen "wireshark-dns-response-details-answers-expanded";
+    send_key_until_needlematch "wireshark-dns-response-details-answers-expanded", "right";
     send_key "up";    # expand 'Queries' as well
     send_key "right";
-    assert_screen "wireshark-dns-response-details-queries-expanded";
+    assert_screen("wireshark-dns-response-details-queries-expanded", TIMEOUT);
     send_key "down";
     send_key "right";
-    assert_screen "wireshark-dns-response-details-queries-expanded2";
-
-    # save capture and quit
-    assert_and_click "wireshark-capturing-stop";
-    assert_screen "wireshark-capturing-stopped";
-    send_key "ctrl-q";
+    assert_screen("wireshark-dns-response-details-queries-expanded2", TIMEOUT);
+    send_key("ctrl-e");
     wait_still_screen 1;
-    assert_and_click "wireshark-quit-save";
-    assert_and_click "wireshark-quit-save-filename";
-    wait_still_screen 1, 2;
-    enter_cmd "/tmp/wireshark-openQA-test";
-    wait_still_screen 1;
-    send_key 'ret';    # 2 times return for SP2
+    send_key "alt-f4";
     wait_still_screen 2;
-    assert_script_run "test -f /tmp/wireshark-openQA-test.pcapng";
+    # Load the Capture file
+    enter_cmd "wireshark /tmp/capture.pcap -Y 'dns.a and dns.qry.name==\"www.suse.com\"'";
+    wait_still_screen 5;
+    assert_screen("wireshark-capturing-list", TIMEOUT);
+    assert_screen("wireshark-dns-response-list", TIMEOUT);
+    send_key "alt-f4";
+    wait_still_screen 2;
 
-    # start and load capture
-    enter_cmd "wireshark /tmp/wireshark-openQA-test.pcapng";
+    enter_cmd "wireshark";
+    assert_screen("wireshark-welcome", TIMEOUT);
     wait_still_screen 3;
-    # QT menu requires user to place focus in the filter field
-    send_key "ctrl-/" if $wireshark_gui_version eq "qt";
-    assert_screen "wireshark-filter-selected";
-    enter_cmd "dns.a and dns.qry.name == \"www.suse.com\"";
-    # Sometimes checksum error window popup, then we need close this windows since this caused by offload feature
-    assert_screen([qw(wireshark-filter-applied wireshark-checksum-error)]);
-    if (match_has_tag('wireshark-checksum-error')) {
-        # Close checksum-error window, when we hit this error, the show submenu was extended
-        # we need escape the submenu then send alt-c to close the checksum error page.
-        send_key "esc";
-        wait_still_screen 3;
-        send_key "esc";
-        wait_screen_change { send_key 'alt-c' };
+    # Unselect the display of the Protocol in the UI.
+    send_key "ctrl-shift-p";
+    assert_screen("wireshark-preferences", TIMEOUT);
+    send_key_until_needlematch "wireshark-preferences-columns-protocol-displayed", "down";
+    assert_and_click "wireshark-preferences-columns-protocol-unselect";
+    assert_screen("wireshark-preferences-columns-protocol-not-displayed-selected", TIMEOUT);
+    assert_and_click "wireshark-preferences-apply";
+    if (is_sle("=12-sp5")) {
+        send_key "alt-f4";
     }
-    else {
-        assert_screen "wireshark-dns-response-list";
-    }
-
-    # close capture
-    assert_and_click "wireshark-close-capture";
-    assert_screen "wireshark-fullscreen";
-
+    wait_still_screen 3, 6;
     ####################
     #   Profile test   #
     ####################
     # Create new 'openQA' profile.
     send_key "ctrl-shift-a";
-    assert_screen "wireshark-profiles";
+    assert_screen("wireshark-profiles", TIMEOUT);
     assert_and_click "wireshark-profiles-new";
     enter_cmd "openQA";
-    # QT GUI does not close Profiles menu window after creating new profile
-    if ($wireshark_gui_version eq "qt") {
-        wait_still_screen 1;
-        send_key "ret";
-    }
-    assert_screen "wireshark-fullscreen";
-
-    # Unselect the display of the Protocol in the UI.
-    send_key "ctrl-shift-p";
-    assert_screen "wireshark-preferences";
-    assert_and_click "wireshark-preferences-columns";
-    assert_screen "wireshark-preferences-columns-protocol-displayed";
-    assert_and_click "wireshark-preferences-columns-protocol-unselect";
-    assert_screen "wireshark-preferences-columns-protocol-not-displayed-selected";
-    assert_and_click "wireshark-preferences-apply";
-    wait_still_screen 3, 6;
-    send_key "alt-f4" if $wireshark_gui_version eq "gtk";
-    assert_screen "wireshark-fullscreen";
-
+    wait_still_screen 1;
+    send_key "ret";
+    assert_screen("wireshark-fullscreen", TIMEOUT);
     # Change back to the Default profile.
     send_key "ctrl-shift-a";
-    assert_screen "wireshark-profiles";
+    assert_screen("wireshark-profiles", TIMEOUT);
     assert_and_dclick "wireshark-profiles-default";
     wait_still_screen 3;
-    # QT GUI does not close window after selecting profile
-    send_key "ret" if $wireshark_gui_version eq "qt";
-    assert_screen "wireshark-fullscreen";
+    send_key "ret";
+    assert_screen("wireshark-fullscreen", TIMEOUT);
+    send_key "alt-f4";
+    #cleanup
+    enter_cmd "rm /tmp/capture.pcap";
+    enter_cmd "killall xterm";
+    assert_screen('generic-desktop');
 
-    # Verify that the Protocol is properly displayed.
-    send_key "ctrl-shift-p";
-    assert_screen "wireshark-preferences";
-    assert_and_click "wireshark-preferences-columns";
-    assert_screen 'wireshark-preferences-columns-protocol-displayed';
-    send_key "alt-f4";
-    assert_screen "wireshark-fullscreen";
-    send_key "alt-f4";
-    assert_screen "generic-desktop-with-terminal";
-    # clean-up
-    assert_script_run "rm /tmp/wireshark-openQA-test.pcapng";
-    enter_cmd "exit";
-    enter_cmd "exit";
 }
 1;

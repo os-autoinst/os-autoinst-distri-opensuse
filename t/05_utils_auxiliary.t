@@ -17,14 +17,14 @@ subtest 'script_retry' => sub {
     # script_run runs the commands on the local machine as bash
     $testapi->redefine("script_run", sub { return system("bash -c '$_[0]'"); });
 
-    is script_retry('true',       retry => 2, delay => 0, timeout => 1), 0, "script_retry(true)";
+    is script_retry('true', retry => 2, delay => 0, timeout => 1), 0, "script_retry(true)";
     is script_retry('echo Hello', retry => 2, delay => 0, timeout => 1), 0, "script_retry(echo)";
     isnt script_retry('false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry(false)";
     dies_ok { script_retry('false', retry => 2, delay => 0, timeout => 1) } 'script_retry(false) is expected to die';
     isnt script_retry('! true', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('! true')";
-    isnt script_retry('!true', retry => 2, delay => 0, timeout => 1, die => 0),  0, "script_retry('!true')";
-    is script_retry('!false', retry => 2, delay => 0, timeout => 1, die => 0),   0, "script_retry('!false')";
-    is script_retry('! false', retry => 2, delay => 0, timeout => 1, die => 0),  0, "script_retry('! false')";
+    isnt script_retry('!true', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('!true')";
+    is script_retry('!false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('!false')";
+    is script_retry('! false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('! false')";
     is script_retry('!  false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('!  false')";
     # This fails on first run but succeeds on second run. Test if we are actually retrying
     is script_retry('rm -f test', retry => 1, delay => 0, timeout => 1), 0, 'removing test file';

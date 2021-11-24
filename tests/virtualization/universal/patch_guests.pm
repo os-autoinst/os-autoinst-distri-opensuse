@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openssh rpm nmap systemd-sysvinit libvirt-client
 # Summary: Apply patches to the all of our guests and reboot them
@@ -37,8 +33,7 @@ sub run {
     record_info "BEFORE", "This phase is BEFORE the patching";
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "Probing the guest, adding test repositories and patching the system";
-        ensure_online($guest, skip_ping => (is_hyperv_virtualization || is_vmware_virtualization))
-          foreach (keys %virt_autotest::common::guests);
+        ensure_online($guest, skip_ping => (is_hyperv_virtualization || is_vmware_virtualization));
 
         my ($guest_running_version, $guest_running_sp) = get_os_release("ssh root\@$guest");
 
@@ -71,7 +66,7 @@ sub run {
         if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 12, die => 0) != 0) {
             record_soft_failure "Reboot on $guest failed";
             unless (is_vmware_virtualization || is_hyperv_virtualization) {
-                script_run "virsh destroy $guest",      90;
+                script_run "virsh destroy $guest", 90;
                 assert_script_run "virsh start $guest", 60;
             }
         }

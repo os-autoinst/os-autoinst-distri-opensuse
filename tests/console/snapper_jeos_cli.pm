@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper coreutils
 # Summary: Snapshot creation and rollback on JeOS
@@ -13,6 +9,7 @@
 
 use base 'consoletest';
 use testapi;
+use Utils::Architectures;
 use utils;
 use strict;
 use warnings;
@@ -24,7 +21,7 @@ sub check_package
 {
     my ($not_installed, $pkgname, $check_path) = @_;
     my $error = 'Package is ' . ($not_installed ? ' ' : ' not ') . ' installed';
-    my $ret   = script_run("rpm -q $pkgname");
+    my $ret = script_run("rpm -q $pkgname");
     die($error) if ($not_installed) ? !$ret : $ret;
     $ret = script_run("ls -l $check_path");
     die($error) if ($not_installed) ? !$ret : $ret;
@@ -42,7 +39,7 @@ sub rollback_and_reboot {
     assert_script_run("snapper rollback $rollback_id");
     assert_script_run("snapper list");
     power_action('reboot');
-    if (check_var('ARCH', 'aarch64')) {
+    if (is_aarch64) {
         $self->wait_boot(bootloader_time => 300);
     }
     else {
@@ -56,8 +53,8 @@ sub run {
     my ($self) = @_;
 
     select_console('root-console');
-    my $file       = '/etc/openQA_snapper_test';
-    my $pkgname    = 'zsh';
+    my $file = '/etc/openQA_snapper_test';
+    my $pkgname = 'zsh';
     my $check_path = '/usr/share/zsh/functions';
     my $openqainit = script_output("snapper create -p -d openqainit");
 

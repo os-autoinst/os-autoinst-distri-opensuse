@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check default system role selection screen (only for SLE) and select system role. Added in SLE 12 SP2
 # - Check default system role
@@ -17,14 +13,15 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_opensuse is_microos is_sle_micro);
 
 my %role_hotkey = (
-    gnome    => 's',
+    gnome => 's',
     textmode => 't',
-    minimal  => 'm',
-    kvm      => 'k',
-    xen      => 'x',
+    minimal => 'm',
+    kvm => 'k',
+    xen => 'x',
 );
 
 sub change_system_role {
@@ -33,8 +30,8 @@ sub change_system_role {
     if (is_sle('15+') || is_opensuse || is_microos || is_sle_micro) {
         if (check_var('VIDEOMODE', 'text')) {
             # Expect that no actions are done before and default system role is preselected
-            send_key_until_needlematch "system-role-$system_role-focused",  'down';    # select role
-            send_key_until_needlematch "system-role-$system_role-selected", 'spc';     # enable role
+            send_key_until_needlematch "system-role-$system_role-focused", 'down';    # select role
+            send_key_until_needlematch "system-role-$system_role-selected", 'spc';    # enable role
         }
         else {
             if (!check_screen("system-role-$system_role-selected")) {
@@ -73,10 +70,10 @@ sub assert_system_role {
 }
 
 sub run {
-    if (is_sle('=12-SP5') && !check_var('ARCH', 'x86_64')) {
+    if (is_sle('=12-SP5') && !is_x86_64) {
         record_info("Skip screen", "System Role screen is displayed only for x86_64 in SLE-12-SP5 due to it has more than one role available");
     }
-    elsif (check_var('ARCH', 'aarch64') && is_sle('>=12-SP3') && is_sle('<15')) {
+    elsif (is_aarch64 && is_sle('>=12-SP3') && is_sle('<15')) {
         record_info("Skip screen", "System Role screen is  not displayed on aarch64 between 12SP3 and 12SP5");
     }
     else {

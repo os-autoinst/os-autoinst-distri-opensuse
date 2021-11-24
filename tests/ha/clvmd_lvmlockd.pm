@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: lvm2-clvm lvm2-cmirrord crmsh
 # Summary: Configure clvmd or lvmlockd
@@ -22,8 +18,8 @@ use hacluster;
 
 sub run {
     my $cluster_name = get_cluster_name;
-    my $lvm_conf     = '/etc/lvm/lvm.conf';
-    my $lock_mgr     = 'clvm';
+    my $lvm_conf = '/etc/lvm/lvm.conf';
+    my $lock_mgr = 'clvm';
 
     # lvmlockd is only available in SLE15+
     if (get_var("USE_LVMLOCKD")) {
@@ -55,7 +51,7 @@ sub run {
     else {
         # Set use_lvmetad=0, clvmd doesn't support lvmetad. Set locking_type=3 for clvmd
         set_lvm_config($lvm_conf, use_lvmetad => 0, locking_type => 3);
-        systemctl 'stop lvm2-lvmetad.socket';       # Stop lvmetad
+        systemctl 'stop lvm2-lvmetad.socket';    # Stop lvmetad
         systemctl 'disable lvm2-lvmetad.socket';    # Disable lvmetad
     }
 

@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright (C) 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Install HANA with SAP Installation Wizard. Verify installation with
 # sles4sap/hana_test
@@ -17,14 +13,14 @@ use warnings;
 use testapi;
 use utils qw(file_content_replace type_string_slow);
 use x11utils qw(turn_off_gnome_screensaver);
-use version_utils qw(package_version_cmp);
+use version_utils qw(package_version_cmp is_sle);
 
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
     my $timeout = bmwqemu::scale_timeout(3600);
-    my $sid     = get_required_var('INSTANCE_SID');
-    my $instid  = get_required_var('INSTANCE_ID');
+    my $sid = get_required_var('INSTANCE_SID');
+    my $instid = get_required_var('INSTANCE_ID');
 
     $self->select_serial_terminal;
 
@@ -51,7 +47,7 @@ sub run {
         assert_screen 'sap-installation-wizard';
     } else {
         select_console 'x11';
-        mouse_hide;                    # Hide the mouse so no needle will fail because of the mouse pointer appearing
+        mouse_hide;    # Hide the mouse so no needle will fail because of the mouse pointer appearing
         x11_start_program('xterm');
         turn_off_gnome_screensaver;    # Disable screensaver
         enter_cmd "killall xterm";
@@ -68,7 +64,7 @@ sub run {
     type_string_slow "$path", wait_still_screen => 1;
     save_screenshot;
     send_key $cmd{next};
-    assert_screen 'sap-wizard-copying-media',     120;
+    assert_screen 'sap-wizard-copying-media', 120;
     assert_screen 'sap-wizard-supplement-medium', $timeout;    # We need to wait for the files to be copied
     send_key $cmd{next};
     if (package_version_cmp($wizard_package_version, '4.3.0') <= 0) {
@@ -76,28 +72,32 @@ sub run {
         send_key $cmd{next};
     }
     assert_screen 'sap-wizard-hana-system-parameters';
-    send_key 'alt-s';                                          # SAP SID
+    send_key 'alt-s';    # SAP SID
     send_key_until_needlematch 'sap-wizard-sid-empty', 'backspace' if check_var('DESKTOP', 'textmode');
     type_string $sid;
-    wait_screen_change { send_key 'alt-a' };                   # SAP Password
+    wait_screen_change { send_key 'alt-a' };    # SAP Password
     type_password $sles4sap::instance_password;
     wait_screen_change { send_key 'tab' };
     type_password $sles4sap::instance_password;
-    wait_screen_change { send_key $cmd{ok} };
+    if (is_sle('<15-SP4')) {
+        wait_screen_change { send_key $cmd{ok} };
+    } else {
+        wait_screen_change { send_key $cmd{next} };
+    }
     assert_screen 'sap-wizard-profile-ready', 300;
     send_key $cmd{next};
 
     while (1) {
         assert_screen [qw(sap-wizard-disk-selection-warning sap-wizard-disk-selection sap-wizard-partition-issues sap-wizard-continue-installation sap-product-installation)], no_wait => 1;
-        last                if match_has_tag 'sap-product-installation';
+        last if match_has_tag 'sap-product-installation';
         send_key $cmd{next} if match_has_tag 'sap-wizard-disk-selection-warning';    # A warning can be shown
         if (match_has_tag 'sap-wizard-disk-selection') {
-            assert_and_click 'sap-wizard-disk-selection';                            # Install in sda
+            assert_and_click 'sap-wizard-disk-selection';    # Install in sda
             send_key 'alt-o';
         }
         send_key 'alt-o' if match_has_tag 'sap-wizard-partition-issues';
         send_key 'alt-y' if match_has_tag 'sap-wizard-continue-installation';
-        wait_still_screen 1;                                                         # Slow down the loop
+        wait_still_screen 1;    # Slow down the loop
     }
 
     if (check_var('DESKTOP', 'textmode')) {

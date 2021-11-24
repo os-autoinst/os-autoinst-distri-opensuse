@@ -5,12 +5,8 @@ Functional methods to operate on network
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Functional methods to operate on network
 # Maintainer: Anton Smorodskyi <asmorodskyi@suse.com>
@@ -38,8 +34,8 @@ Set DNS server defined via required variable C<STATIC_DNS_SERVER>
 sub setup_static_network {
     my (%args) = @_;
     # Set default values
-    $args{ip}     //= '10.0.2.15';
-    $args{gw}     //= testapi::host_ip();
+    $args{ip} //= '10.0.2.15';
+    $args{gw} //= testapi::host_ip();
     $args{silent} //= 0;
     configure_static_dns(get_host_resolv_conf(), $args{silent});
     assert_script_run('echo default ' . $args{gw} . ' - - > /etc/sysconfig/network/routes');

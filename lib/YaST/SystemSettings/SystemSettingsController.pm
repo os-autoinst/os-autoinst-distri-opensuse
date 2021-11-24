@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces actions System Settings Dialog.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -30,10 +26,10 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{SystemSettingsPage} = YaST::SystemSettings::SystemSettingsPage->new({app => YuiRestClient::get_app()});
-    $self->{ErrorDialog}        = Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog->new({app => YuiRestClient::get_app()});
-    $self->{KernelSettingsTab}  = YaST::SystemSettings::KernelSettingsTab->new({app => YuiRestClient::get_app()});
-    $self->{AddPCIIDPopup}      = YaST::SystemSettings::AddPCIIDPopup->new({app => YuiRestClient::get_app()});
-    $self->{PCIIDSetupTab}      = YaST::SystemSettings::PCIIDSetupTab->new({app => YuiRestClient::get_app()});
+    $self->{ErrorDialog} = Installation::Partitioner::LibstorageNG::v4_3::ErrorDialog->new({app => YuiRestClient::get_app()});
+    $self->{KernelSettingsTab} = YaST::SystemSettings::KernelSettingsTab->new({app => YuiRestClient::get_app()});
+    $self->{AddPCIIDPopup} = YaST::SystemSettings::AddPCIIDPopup->new({app => YuiRestClient::get_app()});
+    $self->{PCIIDSetupTab} = YaST::SystemSettings::PCIIDSetupTab->new({app => YuiRestClient::get_app()});
     return $self;
 }
 

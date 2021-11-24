@@ -1,16 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Page to handle License Agreement page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::License::LicenseAgreementPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -24,9 +21,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{btn_next}    = $self->{app}->button({id => 'next'});
+    $self->SUPER::init($args);
     $self->{cb_language} = $self->{app}->combobox($args->{cb_language_filter});
-    $self->{rt_eula}     = $self->{app}->richtext($args->{rt_eula_filter});
+    $self->{rt_eula} = $self->{app}->richtext($args->{rt_eula_filter});
     return $self;
 }
 
@@ -48,11 +45,6 @@ sub get_eula_content {
 sub get_selected_language {
     my ($self) = @_;
     return $self->{cb_language}->value();
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 sub select_language {

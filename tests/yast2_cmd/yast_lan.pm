@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-network
 # Summary: yast lan in cli, creates, edits and deletes device and lists and
@@ -26,7 +22,8 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     zypper_call "in yast2-network";
     my $type = is_sle('>15') ? 'type=vlan' : '';
     validate_script_output "yast lan add name=vlan50 ethdevice=eth0 $type 2>&1", sub { m/Virtual/ || m/vlan50/ }, timeout => 60;

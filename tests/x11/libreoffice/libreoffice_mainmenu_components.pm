@@ -1,11 +1,7 @@
 # LibreOffice tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libreoffice libreoffice-base libreoffice-calc libreoffice-draw
 # libreoffice-impress libreoffice-writer
@@ -107,7 +103,7 @@ sub run {
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-lo';    #open lo
         assert_screen 'welcome-to-libreoffice';
-        send_key "ctrl-q";                        #close lo
+        send_key "ctrl-q";    #close lo
 
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-base';    #open base
@@ -116,12 +112,12 @@ sub run {
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-calc';    #open calc
         assert_screen 'test-oocalc-1';
-        send_key "ctrl-q";                          #close calc
+        send_key "ctrl-q";    #close calc
 
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-draw';    #open draw
         assert_screen 'oodraw-launched';
-        send_key "ctrl-q";                          #close draw
+        send_key "ctrl-q";    #close draw
 
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-impress';    #open impress
@@ -135,12 +131,12 @@ sub run {
             send_key 'alt-f4';    # close impress template window
             assert_screen 'ooimpress-launched';
         }
-        send_key "ctrl-q";        #close impress
+        send_key "ctrl-q";    #close impress
 
         $self->open_mainmenu();
         assert_and_click 'mainmenu-office-writer';    #open writer
         assert_screen 'test-ooffice-1';
-        send_key "ctrl-q";                            #close writer
+        send_key "ctrl-q";    #close writer
     }
 
     # launch components from Activities overview
@@ -189,7 +185,7 @@ sub run {
     assert_screen 'overview-office-draw';
     send_key "ret";
     assert_screen 'oodraw-launched';
-    send_key "ctrl-q";     #close draw
+    send_key "ctrl-q";    #close draw
 
     $self->open_overview();
     type_string "impress";    #open impress
@@ -205,15 +201,15 @@ sub run {
         send_key 'alt-f4';    # close impress template window
         assert_screen 'ooimpress-launched';
     }
-    send_key "ctrl-q";        #close impress
+    send_key "ctrl-q";    #close impress
 
     $self->open_overview();
-    type_string "writer";     #open writer
+    type_string "writer";    #open writer
     assert_screen 'overview-office-writer';
     send_key "ret";
     assert_screen 'test-ooffice-1';
     assert_and_click('ooffice-writing-area', timeout => 10);
-    send_key "ctrl-q";        #close writer
+    send_key "ctrl-q";    #close writer
 }
 
 1;

@@ -1,22 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: collaborate with tests/qa_automation/kernel_multipath.pm for a
 #          multipath client robustness test. This supportserver module will
@@ -32,7 +17,7 @@ use mmapi;
 use iscsi;
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $count = 1;
     # See: data/supportserver/iscsi/multipath_flaky_luns.sh
     my $meddler_pidfile = "/tmp/multipath_flaky_luns.pid";
@@ -45,11 +30,11 @@ sub run {
     $jobid_client = (keys %$jobid_client)[0];
 
     my $testcase_in_progress = 0;
-    my $done_all             = 0;
-    my $client_says_proceed  = 0;
+    my $done_all = 0;
+    my $client_says_proceed = 0;
     # poll frequency in seconds :-/
     my $poll_client_says_proceed = 5;
-    my $delay_meddling           = 10;
+    my $delay_meddling = 10;
 
     while (1) {
         # check whether multipathed iSCSI target it is really tidied up, then
@@ -69,8 +54,8 @@ sub run {
             until ($client_says_proceed) {
                 sleep $poll_client_says_proceed;
                 $testcase_in_progress = mutex_try_lock("flakyserver_testcase_started$count", $jobid_client);
-                $done_all             = mutex_try_lock('flakyserver_testcases_done_all',     $jobid_client);
-                $client_says_proceed  = $testcase_in_progress || $done_all;
+                $done_all = mutex_try_lock('flakyserver_testcases_done_all', $jobid_client);
+                $client_says_proceed = $testcase_in_progress || $done_all;
 
                 # DEBUG: provide an idea of timing
                 record_info("Proceed?", "\$count =  $count: Received "

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'audit-remote-libvirt' test case of 'audit-test' test suite
 # Maintainer: llzhao <llzhao@suse.com>
@@ -25,31 +21,31 @@ sub run {
     select_console 'root-console';
 
     # Install the required packages for libvirt environment setup,
-    zypper_call("in qemu libvirt virt-install virt-manager");
+    zypper_call('in qemu libvirt virt-install virt-manager');
 
     # Start libvirtd daemon and start the default libvirt network
-    assert_script_run("systemctl start libvirtd");
-    assert_script_run("virsh net-start default");
-    assert_script_run("systemctl is-active libvirtd");
-    assert_script_run("virsh net-list | grep default | grep active");
+    assert_script_run('systemctl start libvirtd');
+    assert_script_run('virsh net-define /etc/libvirt/qemu/networks/default.xml');
+    assert_script_run('virsh net-start default');
+    assert_script_run('systemctl is-active libvirtd');
+    assert_script_run('virsh net-list | grep default | grep active');
 
     # Download the pre-installed guest images and sample xml files
-    my $vm_name      = 'vm-swtpm-legacy';
-    my $hdd_1        = get_required_var('HDD_1');
-    my $legacy_image = 'swtpm_legacy@64bit.qcow2';
-    assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$hdd_1"), 900);
-    assert_script_run("mv $image_path/$hdd_1 $image_path/$legacy_image");
-    assert_script_run("wget --quiet " . data_url("swtpm/swtpm_legacy.xml") . " -P $image_path");
+    my $vm_name = 'nested-L2-vm';
+    my $vm_L2 = get_required_var('HDD_L2');
+    assert_script_run("wget -c -P $image_path " . autoinst_url("/assets/hdd/$vm_L2"), 900);
+    assert_script_run("mv $image_path/$vm_L2 $image_path/$vm_name.qcow2");
+    assert_script_run("wget --quiet " . data_url("cc/$vm_name.xml") . " -P $image_path");
 
     # Define the guest vm and start it
     assert_script_run("cd $image_path");
-    assert_script_run('virsh define swtpm_legacy.xml');
+    assert_script_run("virsh define $vm_name.xml");
     assert_script_run("virsh start $vm_name");
 
     # Export AUDIT_TEST_REMOTE_VM
     assert_script_run("export AUDIT_TEST_REMOTE_VM=$vm_name");
     # Export AUGROK
-    assert_script_run("export AUGROK=$audit_test::testdir$audit_test::testfile_tar/audit-test/utils/augrok");
+    assert_script_run("export AUGROK=$audit_test::test_dir/audit-test/utils/augrok");
 
     # Run test case
     run_testcase('audit-remote-libvirt', make => 0, timeout => 120);

@@ -1,17 +1,5 @@
-# Copyright (C) 2018-2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: screen apparmor-utils audit nscd
 # Summary: Test the profile generation utility of Apparmor using aa-genprof.
@@ -75,15 +63,15 @@ sub run {
         [
             {
                 prompt => qr/\(A\)llow.*\(D\)eny/m,
-                key    => 'a',
+                key => 'a',
             },
             {
                 prompt => qr/\(S\)ave Changes/m,
-                key    => 's',
+                key => 's',
             },
             {
                 prompt => qr/\(S\)can system.*\(F\)inish/m,
-                key    => 'f',
+                key => 'f',
             },
         ],
         30

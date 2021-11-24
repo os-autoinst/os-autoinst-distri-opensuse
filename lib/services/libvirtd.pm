@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Package for libvirtd service check tests for migration
 #
@@ -20,15 +16,15 @@ use warnings;
 
 #default guest vm params
 our %guest_params = (
-    name      => 'nested_vm_test',
-    ram       => '',
-    memory    => '512',
-    vcpus     => '',
+    name => 'nested_vm_test',
+    ram => '',
+    memory => '512',
+    vcpus => '',
     'os-type' => '',
-    disk      => 'none',
-    network   => '',
-    graphics  => 'vnc',
-    boot      => 'cdrom',
+    disk => 'none',
+    network => '',
+    graphics => 'vnc',
+    boot => 'cdrom',
 );
 
 sub remove_repo {
@@ -75,7 +71,7 @@ sub initialize_virt_install_command {
 }
 
 sub pre_guest_env {
-    my %hash  = @_;
+    my %hash = @_;
     my $guest = $hash{name};
     script_run("virsh net-start --network default");
     script_run("virsh net-autostart --network default");
@@ -85,15 +81,15 @@ sub pre_guest_env {
 }
 
 sub check_guest_status {
-    my %hash   = @_;
-    my $guest  = $hash{name};
+    my %hash = @_;
+    my $guest = $hash{name};
     my $status = $hash{status};
     script_run("virsh list --all");
     script_retry("virsh list --all | grep $guest | grep $status", delay => 5, retry => 10, die => 1);
 }
 
 sub shutdown_guest {
-    my %hash  = @_;
+    my %hash = @_;
     my $guest = $hash{name};
     #script_run("virsh shutdown $guest");
     script_run("virsh destroy $guest");
@@ -105,9 +101,9 @@ sub shutdown_guest {
 # stage is 'before' or 'after' system migration.
 sub full_libvirtd_check {
     my (%hash) = @_;
-    my $stage  = $hash{stage};
-    my $type   = $hash{service_type};
-    my $pkg    = $hash{srv_pkg_name};
+    my $stage = $hash{stage};
+    my $type = $hash{service_type};
+    my $pkg = $hash{srv_pkg_name};
     if ($stage eq 'before') {
         install_service();
         common_service_action($pkg, $type, 'enable');

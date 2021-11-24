@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel
 # make dracut
@@ -22,8 +18,8 @@ use utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self       = shift;
-    my $git_tree   = get_required_var('KERNEL_GIT_TREE');
+    my $self = shift;
+    my $git_tree = get_required_var('KERNEL_GIT_TREE');
     my $git_branch = get_var('KERNEL_GIT_BRANCH', 'master');
 
     $self->select_serial_terminal;

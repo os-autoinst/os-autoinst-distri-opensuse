@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 package reset_partition;
 # Summary: reset_partition: Ensure and reset hard disk partition for virt_autotest.
@@ -24,8 +20,8 @@ use virt_autotest::utils qw(is_xen_host);
 
 sub reset_partition {
     my ($libvirt_disk) = @_;
-    my $new_disk       = "";
-    my $virt_point     = "/var/lib/libvirt/";
+    my $new_disk = "";
+    my $virt_point = "/var/lib/libvirt/";
 
     # Install requested pkgs
     my @pkgs = qw/xfsprogs coreutils util-linux/;
@@ -33,11 +29,11 @@ sub reset_partition {
 
     # Get some debug info about hard disk topology
     record_info("Report file system disk space", script_output("df"));
-    record_info("Find mounted filesystem",       script_output("findmnt"));
+    record_info("Find mounted filesystem", script_output("findmnt"));
 
     # Check with all existed Hard disks
     my @disks = split(/\n/, script_output("lsblk -n -l -o NAME -d -e 7,11"));
-    my $dev   = "/dev/";
+    my $dev = "/dev/";
     foreach my $disk (@disks) {
         assert_script_run('file ' . $dev . $disk);
     }
@@ -82,8 +78,8 @@ sub reset_partition {
     }
 
     # Check with new /var/lib/libvirt mounted point
-    record_info("System MOUNT Info",       script_output("mount"));
-    record_info("List Block Devices",      script_output("lsblk"));
+    record_info("System MOUNT Info", script_output("mount"));
+    record_info("List Block Devices", script_output("lsblk"));
     record_info("Ensure /var/lib/libvirt", script_output("ls -al /var/lib/libvirt"));
 
 }

@@ -1,11 +1,7 @@
 # SUSE's Apache tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 =head1 Apache tests
 
@@ -248,12 +244,13 @@ sub test_pgsql {
     assert_script_run 'echo "postgres ALL=(root) NOPASSWD: ALL" >>/etc/sudoers';
     assert_script_run "gpasswd -a postgres \$(stat -c %G /dev/$serialdev)";
     enter_cmd "su - postgres", wait_still_screen => 1;
-    enter_cmd "PS1='# '",      wait_still_screen => 1;
+    enter_cmd "PS1='# '", wait_still_screen => 1;
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
-        # due to orderless numbering untill version 94 is gone
-        my $pg_versions = <<'EOF';
+        if (script_run('rpm -q postgresql96') == 0) {
+            # due to orderless numbering untill version 94 is gone
+            my $pg_versions = <<'EOF';
 #!/bin/bash
 PG_VER=$(update-alternatives --list postgresql)
 if [[ $(echo $PG_VER|grep 94) ]]; then
@@ -266,9 +263,25 @@ elif [[ $(echo $PG_VER|grep 11) ]]; then
     export PG_OLDEST='postgresql11'
 elif [[ $(echo $PG_VER|grep 12) ]]; then
     export PG_OLDEST='postgresql12'
+elif [[ $(echo $PG_VER|grep 13) ]]; then
+    export PG_OLDEST='postgresql13'
+elif [[ $(echo $PG_VER|grep 14) ]]; then
+    export PG_OLDEST='postgresql14'
+elif [[ $(echo $PG_VER|grep 15) ]]; then
+    export PG_OLDEST='postgresql15'
+elif [[ $(echo $PG_VER|grep 16) ]]; then
+    export PG_OLDEST='postgresql16'
 fi
 echo PG_OLDEST=/usr/lib/$PG_OLDEST >/tmp/pg_versions
-if [[ $(echo $PG_VER|grep 12) ]]; then
+if [[ $(echo $PG_VER|grep 16) ]]; then
+    export PG_LATEST='postgresql16'
+elif [[ $(echo $PG_VER|grep 15) ]]; then
+    export PG_LATEST='postgresql15'
+elif [[ $(echo $PG_VER|grep 14) ]]; then
+    export PG_LATEST='postgresql14'
+elif [[ $(echo $PG_VER|grep 13) ]]; then
+    export PG_LATEST='postgresql13'
+elif [[ $(echo $PG_VER|grep 12) ]]; then
     export PG_LATEST='postgresql12'
 elif [[ $(echo $PG_VER|grep 11) ]]; then
     export PG_LATEST='postgresql11'
@@ -281,10 +294,17 @@ elif [[ $(echo $PG_VER|grep 94) ]]; then
 fi
 echo PG_LATEST=/usr/lib/$PG_LATEST >>/tmp/pg_versions
 EOF
-        $pg_versions =~ s/\n/\\n/g;
-        script_run "echo -e '$pg_versions' > pg_versions.sh";
+            $pg_versions =~ s/\n/\\n/g;
+            script_run "echo -e '$pg_versions' > pg_versions.sh";
+            assert_script_run 'sudo bash pg_versions.sh && . /tmp/pg_versions';
+        }
+        else {
+            assert_script_run 'export PG_OLDEST=$(sudo update-alternatives --list postgresql|head -n1)';
+            assert_script_run 'export PG_LATEST=$(sudo update-alternatives --list postgresql|tail -n1)';
+            # compare version number, first line (oldest) is smaller than last line (latest)
+            assert_script_run q((($(echo $PG_OLDEST|awk -Fsql '{print$2}') < $(echo $PG_LATEST|awk -Fsql '{print$2}'))));
+        }
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
-        assert_script_run 'sudo bash pg_versions.sh && . /tmp/pg_versions';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
         assert_script_run 'initdb -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
@@ -298,7 +318,8 @@ EOF
         assert_script_run 'initdb -D /var/lib/pgsql/data2';
         assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data2 start';
-        assert_script_run './analyze_new_cluster.sh';
+        my $analyze = is_sle('=12-sp2') ? './analyze_new_cluster.sh' : 'vacuumdb --all --analyze-in-stages';
+        assert_script_run "$analyze";
         assert_script_run './delete_old_cluster.sh';
     }
     # turn off pager, othwerwise assert_script_run can time out
@@ -367,7 +388,6 @@ sub test_mysql {
 
 # poo#62000
 sub postgresql_cleanup {
-    select_console 'root-console';
     # Clean up
     systemctl 'stop postgresql';
     systemctl 'disable postgresql';

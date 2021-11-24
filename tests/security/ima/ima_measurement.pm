@@ -1,17 +1,5 @@
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA measurement function
 # Maintainer: llzhao <llzhao@suse.com>
@@ -29,9 +17,9 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my $meas_file    = "/sys/kernel/security/ima/ascii_runtime_measurements";
+    my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
     my $meas_tmpfile = "/tmp/ascii_runtime_measurements";
-    my $sample_file  = "/tmp/sample.txt";
+    my $sample_file = "/tmp/sample.txt";
 
     add_grub_cmdline_settings('ima_policy=tcb', update_grub => 1);
 
@@ -47,7 +35,7 @@ sub run {
     # Format verification
     assert_script_run(
         "head -n1 $meas_file |grep '^10\\s*[a-fA-F0-9]\\{40\\}\\s*ima-ng\\s*sha256:0\\{64\\}\\s*boot_aggregate'",
-        timeout      => '60',
+        timeout => '60',
         fail_message => 'boot_aggregate item check failed'
     );
 
@@ -56,7 +44,7 @@ sub run {
 
     # Test a sample file created in run time
     assert_script_run("echo 'This is a test!' > $sample_file");
-    my $sample_sha      = script_output("sha256sum $sample_file |cut -d' ' -f1");
+    my $sample_sha = script_output("sha256sum $sample_file |cut -d' ' -f1");
     my $sample_meas_sha = script_output("grep '$sample_file' $meas_file |awk -F'[ :]' '{print \$5}'");
     die 'The SHA256 values does not match' if ($sample_sha ne $sample_meas_sha);
 }

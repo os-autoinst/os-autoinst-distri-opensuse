@@ -1,40 +1,30 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: container-diff
 # Summary: Print and save diffs between two cotaniners using container-diff tool
-# Maintainer: Pavel Dostál <pdostal@suse.cz>
+# Maintainer: qac team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(is_sle get_os_release);
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+    my $docker = $self->containers_factory('docker');
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-
-    install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker') if (is_sle());
-    zypper_call("install container-diff")                   if (script_run("which container-diff") != 0);
+    zypper_call("install container-diff") if (script_run("which container-diff") != 0);
 
     my ($untested_images, $released_images) = get_suse_container_urls();
     # container-diff
     for my $i (@{$untested_images}) {
-        my $image_file             = $untested_images->[$i] =~ s/\/|:/-/gr;
+        my $image_file = $untested_images->[$i] =~ s/\/|:/-/gr;
         my $container_diff_results = "/tmp/container-diff-$image_file.txt";
         assert_script_run("docker pull $untested_images->[$i]", 360);
         assert_script_run("docker pull $released_images->[$i]", 360);
@@ -44,7 +34,7 @@ sub run {
     }
 
     # Clean container
-    clean_container_host(runtime => "docker");
+    $docker->cleanup_system_host();
 }
 
 1;

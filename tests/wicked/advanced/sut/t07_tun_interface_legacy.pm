@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Advanced test cases for wicked
 # Test 7 : Create a tun interface from legacy ifcfg files
@@ -23,7 +19,7 @@ sub run {
     my $config = '/etc/sysconfig/network/ifcfg-tun1';
     record_info('Info', 'Create a tun interface from legacy ifcfg files');
     $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
-    $self->get_from_data('wicked/ifcfg/tun1_sut',            $config);
+    $self->get_from_data('wicked/ifcfg/tun1_sut', $config);
     $self->setup_openvpn_client('tun1');
     $self->setup_tuntap($config, 'tun1', $ctx->iface());
     my $res = $self->get_test_result('tun1');

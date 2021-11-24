@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
@@ -17,6 +13,7 @@ use base "consoletest";
 use bootloader_setup;
 use strict;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 
@@ -24,20 +21,20 @@ use Mitigation;
 
 our %mitigations_list =
   (
-    name                   => "spectre_v2_user",
-    CPUID                  => hex 'C000000',
-    IA32_ARCH_CAPABILITIES => 2,                   #bit1 -- EIBRS
-    parameter              => 'spectre_v2_user',
-    cpuflags               => ['ibpb', 'stibp'],
-    sysfs_name             => "spectre_v2",
-    sysfs                  => {
-        on           => "IBPB: always-on,.* STIBP: forced,.*",
-        off          => "IBPB: disabled,.*STIBP: disabled",
-        prctl        => "IBPB: conditional.*STIBP: conditional.*",
-        prctl_ibpb   => "IBPB: always-on.*STIBP: conditional.*",
-        seccomp      => "STIBP: conditional.*",
+    name => "spectre_v2_user",
+    CPUID => hex 'C000000',
+    IA32_ARCH_CAPABILITIES => 2,    #bit1 -- EIBRS
+    parameter => 'spectre_v2_user',
+    cpuflags => ['ibpb', 'stibp'],
+    sysfs_name => "spectre_v2",
+    sysfs => {
+        on => "IBPB: always-on,.* STIBP: forced,.*",
+        off => "IBPB: disabled,.*STIBP: disabled",
+        prctl => "IBPB: conditional.*STIBP: conditional.*",
+        prctl_ibpb => "IBPB: always-on.*STIBP: conditional.*",
+        seccomp => "STIBP: conditional.*",
         seccomp_ibpb => "IBPB: always-on.*STIBP: conditional.*",
-        auto         => "IBPB: conditional,.* STIBP: conditional,.*",
+        auto => "IBPB: conditional,.* STIBP: conditional,.*",
     },
     cmdline => [
         "on",
@@ -51,14 +48,14 @@ our %mitigations_list =
   );
 
 sub run {
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         $mitigations_list{cpuflags} = ['ibpb'];
-        $mitigations_list{sysfs}->{on}           =~ s/STIBP: forced/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{prctl}        =~ s/STIBP: conditional/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{prctl_ibpb}   =~ s/STIBP: conditional/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{seccomp}      =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{on} =~ s/STIBP: forced/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{prctl} =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{prctl_ibpb} =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{seccomp} =~ s/STIBP: conditional/STIBP: disabled/g;
         $mitigations_list{sysfs}->{seccomp_ibpb} =~ s/STIBP: conditional/STIBP: disabled/g;
-        $mitigations_list{sysfs}->{auto}         =~ s/STIBP: conditional/STIBP: disabled/g;
+        $mitigations_list{sysfs}->{auto} =~ s/STIBP: conditional/STIBP: disabled/g;
     }
     my $obj = Mitigation->new(\%mitigations_list);
     if (($obj->read_cpuid_edx() & $obj->CPUID()) eq 0) {

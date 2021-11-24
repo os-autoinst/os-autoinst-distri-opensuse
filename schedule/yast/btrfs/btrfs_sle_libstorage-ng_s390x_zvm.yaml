@@ -8,23 +8,26 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/disk_activation
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/select_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -32,12 +35,11 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/force_scheduled_tasks
-  - console/check_resume
-  - console/validate_product_name_installed
+  - console/hibernation_disabled
+  - console/validate_product_installed_SLES
   - console/validate_no_cow_attribute
   - console/verify_no_separate_home
 test_data:
-  product: SLES
   device: vda
   table_type: gpt
   subvolume:

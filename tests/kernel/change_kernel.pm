@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: zypper rpm
 # Summary: Change the default kernel using a package
@@ -35,8 +31,8 @@ sub from_rpm {
 sub run {
     my $self = shift;
     my $repo = get_var('CHANGE_KERNEL_REPO');
-    my $rpm  = get_var('ASSET_CHANGE_KERNEL_RPM');
-    my $pkg  = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
+    my $rpm = get_var('ASSET_CHANGE_KERNEL_RPM');
+    my $pkg = get_var('CHANGE_KERNEL_PKG') || 'kernel-default';
 
     $self->wait_boot;
     $self->select_serial_terminal;

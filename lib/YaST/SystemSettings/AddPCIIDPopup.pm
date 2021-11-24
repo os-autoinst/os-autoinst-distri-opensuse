@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for YaST module
 # PCI ID add pop-up window.
@@ -26,7 +22,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_ok}    = $self->{app}->button({id => 'ok'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     $self->{tb_driver} = $self->{app}->textbox({id => 'driver'});
     $self->{tb_sysdir} = $self->{app}->textbox({id => 'sysdir'});
     return $self;

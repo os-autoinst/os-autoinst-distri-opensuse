@@ -1,12 +1,8 @@
 
 # SUSE's Racoon tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: ipsec-tools iproute2
 # Summary: Test Racoon host-to-host scenario
@@ -27,9 +23,9 @@ sub run {
     my $is_ipsec_primary = get_var('IPSEC_PRIMARY');
 
     # Static IP address for Primary host and secondary host
-    my $ipsec_primary_ip   = "10.0.2.49/15";
+    my $ipsec_primary_ip = "10.0.2.49/15";
     my $ipsec_secondary_ip = "10.0.2.50/15";
-    my $my_static_ip       = $is_ipsec_primary ? $ipsec_primary_ip : $ipsec_secondary_ip;
+    my $my_static_ip = $is_ipsec_primary ? $ipsec_primary_ip : $ipsec_secondary_ip;
 
     # install ipsec-tools and config gateway and static ip on worker
     configure_default_gateway;
@@ -61,9 +57,9 @@ sub set_config {
     my ($is_primary, $host_ip, $remote_ip) = @_;
 
     # Split subnet mask
-    my ($host)   = split('/', $host_ip);
+    my ($host) = split('/', $host_ip);
     my ($remote) = split('/', $remote_ip);
-    my $cert     = $is_primary ? "server" : "client";
+    my $cert = $is_primary ? "server" : "client";
     assert_script_run "ip route";
     assert_script_run "ip addr";
     assert_script_run "ping -c 6 10.0.2.2";

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
@@ -17,6 +13,7 @@ use base "consoletest";
 use bootloader_setup;
 use strict;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 
@@ -28,24 +25,24 @@ print "mds_taa.pm -> load\n";
 
 my %mds_taa_list =
   (
-    name       => "mds_taa",
-    parameter  => ["mds", "tsx_async_abort"],
+    name => "mds_taa",
+    parameter => ["mds", "tsx_async_abort"],
     sysfs_name => ["mds", "tsx_async_abort"],
-    sysfs      => {
+    sysfs => {
         off => {
-            mds             => "Vulnerable; SMT vulnerable",
+            mds => "Vulnerable; SMT vulnerable",
             tsx_async_abort => "Vulnerable",
         },
         full => {
-            mds             => "Mitigation: Clear CPU buffers; SMT vulnerable",
+            mds => "Mitigation: Clear CPU buffers; SMT vulnerable",
             tsx_async_abort => "Mitigation: Clear CPU buffers; SMT vulnerable",
         },
         default => {
-            mds             => "Mitigation: Clear CPU buffers; SMT vulnerable",
+            mds => "Mitigation: Clear CPU buffers; SMT vulnerable",
             tsx_async_abort => "Mitigation: Clear CPU buffers; SMT vulnerable",
         },
         "full,nosmt" => {
-            mds             => "Mitigation: Clear CPU buffers; SMT disabled",
+            mds => "Mitigation: Clear CPU buffers; SMT disabled",
             tsx_async_abort => "Mitigation: Clear CPU buffers; SMT disabled",
         },
     },
@@ -59,23 +56,23 @@ my %mds_taa_list =
 sub update_list_for_qemu {
     my $self = shift;
 
-    $mds_taa_list{sysfs}->{full}->{mds}         =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{full}->{mds} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mds_taa_list{sysfs}->{"full,nosmt"}->{mds} =~ s/SMT disabled/SMT Host state unknown/ig;
-    $mds_taa_list{sysfs}->{default}->{mds}      =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{default}->{mds} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mds_taa_list{sysfs}->{off}->{mds} = "Vulnerable; SMT Host state unknown";
 
-    $mds_taa_list{sysfs}->{full}->{tsx_async_abort}         =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{full}->{tsx_async_abort} =~ s/SMT vulnerable/SMT Host state unknown/ig;
     $mds_taa_list{sysfs}->{"full,nosmt"}->{tsx_async_abort} =~ s/SMT disabled/SMT Host state unknown/ig;
-    $mds_taa_list{sysfs}->{default}->{tsx_async_abort}      =~ s/SMT vulnerable/SMT Host state unknown/ig;
+    $mds_taa_list{sysfs}->{default}->{tsx_async_abort} =~ s/SMT vulnerable/SMT Host state unknown/ig;
 
     if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/) {
-        $mds_taa_list{sysfs}->{default}->{mds}                  = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
-        $mds_taa_list{sysfs}->{default}->{tsx_async_abort}      = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
-        $mds_taa_list{sysfs}->{off}->{mds}                      = $mds_taa_list{sysfs}->{default}->{mds};
-        $mds_taa_list{sysfs}->{off}->{tsx_async_abort}          = $mds_taa_list{sysfs}->{default}->{mds};
-        $mds_taa_list{sysfs}->{full}->{mds}                     = $mds_taa_list{sysfs}->{default}->{mds};
-        $mds_taa_list{sysfs}->{full}->{tsx_async_abort}         = $mds_taa_list{sysfs}->{default}->{tsx_async_abort};
-        $mds_taa_list{sysfs}->{'full,nosmt'}->{mds}             = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{default}->{mds} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+        $mds_taa_list{sysfs}->{default}->{tsx_async_abort} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+        $mds_taa_list{sysfs}->{off}->{mds} = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{off}->{tsx_async_abort} = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{full}->{mds} = $mds_taa_list{sysfs}->{default}->{mds};
+        $mds_taa_list{sysfs}->{full}->{tsx_async_abort} = $mds_taa_list{sysfs}->{default}->{tsx_async_abort};
+        $mds_taa_list{sysfs}->{'full,nosmt'}->{mds} = $mds_taa_list{sysfs}->{default}->{mds};
         $mds_taa_list{sysfs}->{'full,nosmt'}->{tsx_async_abort} = $mds_taa_list{sysfs}->{default}->{tsx_async_abort};
     }
 }
@@ -83,8 +80,8 @@ sub update_list_for_qemu {
 sub run {
     my $self = shift;
 
-    my $taa_obj     = taa->new($taa::mitigations_list);
-    my $mds_obj     = Mitigation->new(\%mds::mitigations_list);
+    my $taa_obj = taa->new($taa::mitigations_list);
+    my $mds_obj = Mitigation->new(\%mds::mitigations_list);
     my $taa_vul_ret = $taa_obj->vulnerabilities();
     my $mds_vul_ret = $mds_obj->vulnerabilities();
     print "taa_vul_ret = $taa_vul_ret\n";
@@ -92,7 +89,7 @@ sub run {
 
     if ($taa_vul_ret and $mds_vul_ret) {
         record_info("Both TAA and MDS", "Testing will continue.");
-        if (check_var('BACKEND', 'qemu')) {
+        if (is_qemu) {
             update_list_for_qemu();
         }
         my $mds_taa_obj = Mitigation->new(\%mds_taa_list);

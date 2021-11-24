@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: nfs-client
 # Summary: Validate nfs share is mounted after is enabled in AutoYaST installation.
@@ -19,7 +15,7 @@ use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 
 sub check_nfs_server {
-    my $data     = shift;
+    my $data = shift;
     my $expected = "$data->{remote_dir} *";
     record_info('showmount', 'Check export list for server');
     my $actual = script_output("showmount -e --no-headers $data->{server}");

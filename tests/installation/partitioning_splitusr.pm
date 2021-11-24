@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test custom partitioning selection: Split off '/usr' partition
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
@@ -43,15 +39,15 @@ sub run {
         save_screenshot;
         send_key 'ret';
     }
-    wait_screen_change { send_key $cmd{resize} };                          # Resize
-    send_key 'alt-u';                                                      # Custom size
+    wait_screen_change { send_key $cmd{resize} };    # Resize
+    send_key 'alt-u';    # Custom size
     send_key $cmd{size_hotkey} if is_storage_ng;
     type_string '5G';
     send_key(is_storage_ng() ? $cmd{next} : 'ret');
     if (is_storage_ng) {
         # warning: / should be >= 10 GiB or disable snapshots
         assert_screen 'partition-splitusr-root-warning';
-        wait_screen_change { send_key 'alt-y' };              # accept warning for small /
+        wait_screen_change { send_key 'alt-y' };    # accept warning for small /
         wait_screen_change { send_key 'alt-s' };
         send_key_until_needlematch 'vda-selected', 'left';    # Select vda again
     }

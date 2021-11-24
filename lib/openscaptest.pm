@@ -1,17 +1,5 @@
-# Copyright (C) 2017-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for openSCAP test cases
 # Maintainer: llzhao <llzhao@suse.com>
@@ -45,14 +33,14 @@ our @EXPORT = qw(
   pre_run_hook
 );
 
-our $oval_result         = "scan-oval-results.xml";
-our $oval_result_single  = "scan-oval-results-single.xml";
-our $xccdf_result        = "scan-xccdf-results.xml";
+our $oval_result = "scan-oval-results.xml";
+our $oval_result_single = "scan-oval-results-single.xml";
+our $xccdf_result = "scan-xccdf-results.xml";
 our $xccdf_result_single = "scan-xccdf-results-single.xml";
 
-our $source_ds        = 'source-ds.xml';
+our $source_ds = 'source-ds.xml';
 our $source_ds_result = 'source-ds-results.xml';
-our $arf_result       = "arf-results.xml";
+our $arf_result = "arf-results.xml";
 
 sub oscap_get_test_file {
     my ($source) = @_;

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Select desktop in installer based on test settings
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
@@ -38,19 +34,19 @@ sub run {
         # up to 42.1 textmode was below 'other'
         if (!($d eq 'textmode' && check_screen 'has-server-selection', 2)) {
             send_key_until_needlematch 'selection_on_desktop_other', 'tab';    # Move the selection to 'Other'
-            send_key 'spc';                                                    # open 'Other' selection'
+            send_key 'spc';    # open 'Other' selection'
         }
     }
     send_key_until_needlematch "selection_on_desktop_$d", 'tab';    # Move selection to the specific desktop
-    send_key 'spc';                                                 # Select the desktop
+    send_key 'spc';    # Select the desktop
 
     assert_screen "$d-selected";
     if (check_var('VERSION', 'Tumbleweed') && !get_var('OFFLINE_SUT')) {
-        send_key 'alt-o';                                   # configure online repos
-        wait_still_screen 3;                                # wait for the potential 'low memory warning' to show up
+        send_key 'alt-o';    # configure online repos
+        wait_still_screen 3;    # wait for the potential 'low memory warning' to show up
         assert_screen 'repo-list';
         wait_screen_change { send_key $cmd{ok} } if match_has_tag 'repo-list-low_memory_warning';
-        send_key 'alt-c';                                   # cancel
+        send_key 'alt-c';    # cancel
         send_key_until_needlematch "$d-selected", 'tab';    # select correct field to match needle
     }
     send_key $cmd{next};

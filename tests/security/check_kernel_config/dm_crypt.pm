@@ -1,17 +1,5 @@
-# Copyright (C) 2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: dm crypt -> add flags to optionally bypass kcryptd
 #          workqueues, the options are 'no_read_workqueue' and
@@ -27,13 +15,16 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
+use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     # Make sure the code changes are there
-    assert_script_run("rpm -q kernel-default --changelog | grep 'dm crypt' | grep 'kcryptd workqueues'");
+    if (is_sle) {
+        assert_script_run("rpm -q kernel-default --changelog | grep 'dm crypt' | grep 'kcryptd workqueues'");
+    }
 
     # Simulate a ram device
     assert_script_run("modprobe brd rd_nr=1 rd_size=512000");

@@ -1,17 +1,5 @@
-# Copyright (C) 2017-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Base module for AppArmor test cases
 # Maintainer: llzhao <llzhao@suse.com>
@@ -46,24 +34,24 @@ our @EXPORT = qw(
   test_profile_content_is_special
 );
 
-our $prof_dir      = "/etc/apparmor.d";
-our $audit_log     = "/var/log/audit/audit.log";
-our $mail_err_log  = "/var/log/mail.err";
+our $prof_dir = "/etc/apparmor.d";
+our $audit_log = "/var/log/audit/audit.log";
+our $mail_err_log = "/var/log/mail.err";
 our $mail_warn_log = "/var/log/mail.warn";
 our $mail_info_log = "/var/log/mail.info";
 
 our $mail_recipient = "recipient";
-our $mail_sender    = "sender";
-our $pw             = "te5tpw";
-our $mail_subject   = "Subject: Postfix test";
-our $mail_content   = "hello world";
-our $testdomain     = "testdomain.com";
+our $mail_sender = "sender";
+our $pw = "te5tpw";
+our $mail_subject = "Subject: Postfix test";
+our $mail_content = "hello world";
+our $testdomain = "testdomain.com";
 
 our $adminer_file = "adminer.php5";
-our $adminer_dir  = "/srv/www/htdocs/adminer/";
+our $adminer_dir = "/srv/www/htdocs/adminer/";
 
 our $testuser = "testuser";
-our $testdir  = "testdir";
+our $testdir = "testdir";
 
 # $prof_dir_tmp: The target temporary directory
 # $type:
@@ -88,7 +76,7 @@ sub aa_tmp_prof_prepare {
         if (!(is_sle('<16') or is_leap('<16.0'))) {    # apparmor >= 3.0
             assert_script_run "cp -r $prof_dir/abi $prof_dir/disable $prof_dir_tmp/";
         }
-        if (is_sle('<15') or is_leap('<15.0')) {       # apparmor < 2.8.95
+        if (is_sle('<15') or is_leap('<15.0')) {    # apparmor < 2.8.95
             assert_script_run "cp -r $prof_dir/program-chunks $prof_dir/disable $prof_dir_tmp/";
         }
     }
@@ -163,7 +151,7 @@ sub aa_status_stdout_check {
 
     my $start_line = script_output("aa-status | grep -n 'profiles are in' | grep $profile_mode | cut -d ':' -f1");
     my $total_line = script_output("aa-status | grep 'profiles are in' | grep $profile_mode | cut -d ' ' -f1");
-    my $lines      = $start_line + $total_line;
+    my $lines = $start_line + $total_line;
 
     assert_script_run("aa-status | head -$lines | tail -$total_line | sed 's/[ \t]*//g' | grep -x $profile_name");
 }
@@ -205,8 +193,8 @@ Set up mail server with Postfix and Dovecot:
 
 =cut
 sub setup_mail_server_postfix_dovecot {
-    my ($self)   = @_;
-    my $ip       = "";
+    my ($self) = @_;
+    my $ip = "";
     my $hostname = "mail";
     my $mail_dir = "/home";
 
@@ -226,9 +214,9 @@ sub setup_mail_server_postfix_dovecot {
     assert_script_run("rcnetwork restart");
 
     # Double check the setting
-    validate_script_output("hostname --short",      sub { m/$hostname/ });
-    validate_script_output("hostname --domain",     sub { m/$testdomain/ });
-    validate_script_output("hostname --fqdn",       sub { m/$hostname.$testdomain/ });
+    validate_script_output("hostname --short", sub { m/$hostname/ });
+    validate_script_output("hostname --domain", sub { m/$testdomain/ });
+    validate_script_output("hostname --fqdn", sub { m/$hostname.$testdomain/ });
     validate_script_output("hostname --ip-address", sub { m/$ip/ });
 
     # 2. Setting mail sender/recipient as needed
@@ -340,7 +328,7 @@ sub send_mail_smtp {
             },
             {
                 prompt => qr/250 2.0.0 Ok: queued as.*/m,
-                key    => "ctrl-]",
+                key => "ctrl-]",
             },
             {
                 prompt => qr/telnet>/m,
@@ -375,7 +363,7 @@ sub retrieve_mail_pop3 {
             },
             {
                 prompt => qr/.*$mail_subject.*/m,
-                key    => "ctrl-]",
+                key => "ctrl-]",
             },
             {
                 prompt => qr/telnet>/m,
@@ -432,7 +420,7 @@ sub retrieve_mail_imap {
             },
             {
                 prompt => qr/.*$mail_subject.*/m,
-                key    => "ctrl-]",
+                key => "ctrl-]",
             },
             {
                 prompt => qr/telnet>/m,
@@ -557,7 +545,7 @@ sub adminer_setup {
     if (!defined($ret)) {
         # Wait more time
         record_info("Firefox loading adminer failed", "Retrying workaround");
-        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);       # nocheck: old code, should be updated
+        check_screen([qw(adminer-login unresponsive-script)], timeout => 300);    # nocheck: old code, should be updated
     }
     if (match_has_tag("unresponsive-script")) {
         send_key_until_needlematch("adminer-login", 'ret', 5, 5);
@@ -654,9 +642,9 @@ sub yast2_apparmor_setup {
 # Yast2 Apparmor: check apparmor is enabled
 sub yast2_apparmor_is_enabled {
     enter_cmd("yast2 apparmor &");
-    assert_screen("AppArmor-Configuration-Settings", timeout => 180);
-    send_key "alt-l";
-    assert_screen("AppArmor-Settings-Enable-Apparmor");
+    assert_screen("AppArmor-Configuration-Settings", timeout => 300);
+    assert_and_click("AppArmor-Launch", timeout => 60);
+    assert_screen("AppArmor-Settings-Enable-Apparmor", timeout => 60);
 }
 
 # Yast2 Apparmor clean up
@@ -688,8 +676,8 @@ sub create_a_test_profile_name_is_special {
 # to verify all the commands should be succeeded
 sub test_profile_content_is_special {
     my ($self, $cmd, $msg) = @_;
-    my $test          = "test_profile";
-    my $test_profile  = "/etc/apparmor.d/usr.sbin." . "$test";
+    my $test = "test_profile";
+    my $test_profile = "/etc/apparmor.d/usr.sbin." . "$test";
     my $local_profile = "/etc/apparmor.d/local/usr.sbin.cupsd";
 
     # Create an empty local profile under "/etc/apparmor.d/local/"
@@ -705,7 +693,7 @@ sub test_profile_content_is_special {
     my $current_ver = script_output("rpm -q --qf '%{version}' apparmor-utils");
 
     my $cmd1 = $cmd eq "aa-logprof" ? $cmd : "$cmd $test_profile";
-    my $ret  = script_run($cmd1, sub { m/$msg/ });
+    my $ret = script_run($cmd1, sub { m/$msg/ });
     if ($ret == 0) {
         if ("$cmd" eq "aa-disable") {
             # The profile will not be listed out if disabled

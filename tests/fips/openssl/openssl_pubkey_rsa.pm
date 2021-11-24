@@ -1,11 +1,7 @@
 # openssl fips test
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Test description: Verify openssl could generate RSA public key pair
 # and succeed to encrypt/decrypt/sign/verify message.
@@ -28,11 +24,11 @@ use warnings;
 sub run {
     select_console 'root-console';
 
-    my $file_raw      = "hello.txt";
-    my $file_enc      = $file_raw . ".enc";
-    my $file_dec      = $file_raw . ".tmp";
-    my $dgst_alg      = "sha256";
-    my $file_sig      = $file_raw . ".$dgst_alg" . ".sig";
+    my $file_raw = "hello.txt";
+    my $file_enc = $file_raw . ".enc";
+    my $file_dec = $file_raw . ".tmp";
+    my $dgst_alg = "sha256";
+    my $file_sig = $file_raw . ".$dgst_alg" . ".sig";
     my @rsa_key_sizes = (2048, 3072, 4096);
 
     # Prepare temp directory and file for testing

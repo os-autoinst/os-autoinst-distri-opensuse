@@ -9,20 +9,24 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning/encrypt_lvm
+  - installation/registration/register_via_scc
+  - installation/module_selection/select_module_desktop
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -35,5 +39,3 @@ schedule:
   - console/yast2_i
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
-test_data:
-  product: SLES

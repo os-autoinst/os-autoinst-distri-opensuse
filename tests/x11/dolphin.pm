@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: dolphin
 # Summary: Start dolphin and do some file operations
@@ -41,8 +37,8 @@ sub run {
     my $create_new = assert_screen 'dolphin_create_new';
 
     my $lastarea = $create_new->{area}->[-1];
-    my $x        = int($lastarea->{x} + $lastarea->{w} / 2);
-    my $y        = int($lastarea->{y} + $lastarea->{h} / 2);
+    my $x = int($lastarea->{x} + $lastarea->{w} / 2);
+    my $y = int($lastarea->{y} + $lastarea->{h} / 2);
 
     # Workaround: In 42.3 clicking without moving doesn't open the submenu
     mouse_set($x - 5, $y);

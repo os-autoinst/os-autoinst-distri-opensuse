@@ -33,7 +33,7 @@ schedule:
 - locale/keymap_or_locale
 - console/force_scheduled_tasks
 - console/hostname
-- console/pcre
+- console/php_pcre
 - console/curl_https
 - console/http_srv
 - console/dns_srv

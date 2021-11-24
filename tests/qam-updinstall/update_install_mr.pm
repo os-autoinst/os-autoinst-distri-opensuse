@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 
 # Summary: QAM incident install test in openQA
@@ -31,31 +27,31 @@ use testapi;
 
 sub install_packages {
     my $patch_info = shift;
-    my $pattern    = qr/\s+(\S+)(?!\.(src|nosrc))\.\S*\s<\s.*/;
+    my $pattern = qr/\s+(\S+)(?!\.(src|nosrc))\.\S*\s<\s.*/;
 
     # loop over packages in patchinfo and try installation
     foreach my $line (split(/\n/, $patch_info)) {
         if (my ($package) = $line =~ $pattern and $1 !~ /-devel$|-patch-/) {
             # uninstall conflicting packages to allow problemless install
             my %conflict = (
-                'reiserfs-kmp-default'   => 'kernel-default-base',
-                'kernel-default'         => 'kernel-default-base',
-                'kernel-default-extra'   => 'kernel-default-base',
-                'kernel-default-base'    => 'kernel-default',
-                'kernel-azure'           => 'kernel-azure-base',
-                'kernel-azure-base'      => 'kernel-azure',
-                'kernel-rt'              => 'kernel-rt-base',
-                'kernel-rt-base'         => 'kernel-rt',
-                'kernel-xen'             => 'kernel-xen-base',
-                'kernel-xen-base'        => 'kernel-xen',
-                'xen-tools'              => 'xen-tools-domU',
-                'xen-tools-domU'         => 'xen-tools',
-                'p11-kit-nss-trust'      => 'mozilla-nss-certs',
-                'rmt-server-config'      => 'rmt-server-pubcloud',
+                'reiserfs-kmp-default' => 'kernel-default-base',
+                'kernel-default' => 'kernel-default-base',
+                'kernel-default-extra' => 'kernel-default-base',
+                'kernel-default-base' => 'kernel-default',
+                'kernel-azure' => 'kernel-azure-base',
+                'kernel-azure-base' => 'kernel-azure',
+                'kernel-rt' => 'kernel-rt-base',
+                'kernel-rt-base' => 'kernel-rt',
+                'kernel-xen' => 'kernel-xen-base',
+                'kernel-xen-base' => 'kernel-xen',
+                'xen-tools' => 'xen-tools-domU',
+                'xen-tools-domU' => 'xen-tools',
+                'p11-kit-nss-trust' => 'mozilla-nss-certs',
+                'rmt-server-config' => 'rmt-server-pubcloud',
                 'cluster-md-kmp-default' => 'kernel-default-base',
-                'dlm-kmp-default'        => 'kernel-default-base',
-                'gfs2-kmp-default'       => 'kernel-default-base',
-                'ocfs2-kmp-default'      => 'kernel-default-base'
+                'dlm-kmp-default' => 'kernel-default-base',
+                'gfs2-kmp-default' => 'kernel-default-base',
+                'ocfs2-kmp-default' => 'kernel-default-base'
             );
             zypper_call("rm $conflict{$package}", exitcode => [0, 104]) if $conflict{$package};
             # go to next package if it's not provided by repos
@@ -86,9 +82,9 @@ sub change_repos_state {
 }
 
 sub run {
-    my ($self)      = @_;
+    my ($self) = @_;
     my $incident_id = get_required_var('INCIDENT_ID');
-    my $repos       = get_required_var('INCIDENT_REPO');
+    my $repos = get_required_var('INCIDENT_REPO');
 
     $self->select_serial_terminal;
 

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Executes all the integration tests to verify that
 # vsperf can control openvswitch properly
@@ -20,7 +16,7 @@ use utils;
 use mmapi;
 
 sub run {
-    my $self        = shift;
+    my $self = shift;
     my $vsperf_conf = "/etc/vsperf_ovs.conf";
 
     $self->select_serial_terminal;

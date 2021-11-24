@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
@@ -15,6 +11,7 @@ use warnings;
 use base "virt_autotest_base";
 use virt_autotest::utils;
 use testapi;
+use Utils::Architectures;
 use virt_utils;
 use utils;
 use Utils::Backends 'is_remote_backend';
@@ -29,7 +26,7 @@ sub install_package {
         set_var('QA_HEAD_REPO', $qa_server_repo);
         bmwqemu::save_vars();
     }
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("zypper --non-interactive rr server-repo");
         lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f '$qa_server_repo' server-repo");
     }
@@ -41,8 +38,8 @@ sub install_package {
     #workaround for dependency on xmlstarlet for qa_lib_virtauto on sles11sp4 and sles12sp1
     #workaround for dependency on bridge-utils for qa_lib_virtauto on sles15sp0
     my $repo_0_to_install = get_var("REPO_0_TO_INSTALL", '');
-    my $dependency_repo   = '';
-    my $dependency_rpms   = '';
+    my $dependency_repo = '';
+    my $dependency_rpms = '';
     if ($repo_0_to_install =~ /SLES-11-SP4/m) {
         $dependency_repo = 'http://download.suse.de/ibs/SUSE:/SLE-11:/Update/standard/';
         $dependency_rpms = 'xmlstarlet';
@@ -57,7 +54,7 @@ sub install_package {
     }
 
     if ($dependency_repo) {
-        if (check_var('ARCH', 's390x')) {
+        if (is_s390x) {
             lpar_cmd("zypper --non-interactive --no-gpg-checks ar -f ${dependency_repo} dependency_repo");
             lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
             lpar_cmd("zypper --non-interactive in $dependency_rpms");
@@ -72,17 +69,17 @@ sub install_package {
     }
 
     ###Install KVM role patterns for aarch64 virtualization host
-    if (is_remote_backend && check_var('ARCH', 'aarch64')) {
-        zypper_call("--gpg-auto-import-keys ref",         timeout => 180);
+    if (is_remote_backend && is_aarch64) {
+        zypper_call("--gpg-auto-import-keys ref", timeout => 180);
         zypper_call("in -t pattern kvm_server kvm_tools", timeout => 300);
     }
 
     #install qa_lib_virtauto
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("zypper --non-interactive --gpg-auto-import-keys ref");
         my $pkg_lib_data = "qa_lib_virtauto-data";
-        my $cmd          = "rpm -q $pkg_lib_data";
-        my $ret          = console('svirt')->run_cmd($cmd);
+        my $cmd = "rpm -q $pkg_lib_data";
+        my $ret = console('svirt')->run_cmd($cmd);
         if ($ret == 0) {
             lpar_cmd("zypper --non-interactive rm $pkg_lib_data");
         }
@@ -90,7 +87,7 @@ sub install_package {
     }
     else {
         zypper_call("--gpg-auto-import-keys ref", 180);
-        zypper_call("in qa_lib_virtauto",         1800);
+        zypper_call("in qa_lib_virtauto", 1800);
     }
 
     if (get_var("PROXY_MODE")) {

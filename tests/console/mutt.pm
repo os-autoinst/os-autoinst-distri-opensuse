@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: mutt wget
 # Summary: Test basic capabilities of mutt
@@ -45,7 +41,7 @@ sub run {
     record_info 'send mail', 'Write new mail from command line';
     assert_script_run 'echo -e "Hello,\nthis is message from admin." | mutt -s "Hello from openQA" -- nimda@localhost';
 
-    record_info 'postfix log',                                 'Check if the mail was really send';
+    record_info 'postfix log', 'Check if the mail was really send';
     validate_script_output 'journalctl --no-pager -u postfix', sub { m/postfix\/qmgr.*<admin\@localhost>/ };
 
     select_console "user-console";
@@ -81,7 +77,7 @@ sub run {
     save_screenshot;
 
     $self->select_serial_terminal;
-    record_info 'postfix log',                                 'Check if the mail was really send';
+    record_info 'postfix log', 'Check if the mail was really send';
     validate_script_output 'journalctl --no-pager -u postfix', sub { m/postfix\/qmgr.*<nimda\@localhost>/ };
 
     select_console "root-console";

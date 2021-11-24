@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Stress test the virtio serial terminal with long output.
 # Maintainer: cfamullaconrad@suse.com
@@ -19,9 +15,9 @@ use serial_terminal;
 
 sub create_test_data
 {
-    my $size        = shift // 1024 * 1024;
+    my $size = shift // 1024 * 1024;
     my $line_length = shift // 79;
-    my @a           = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+    my @a = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
 
     my $data = "";
     for (my $i = 1; $i < $size; $i++) {
@@ -36,8 +32,8 @@ sub create_test_data
 }
 
 sub run {
-    my $self   = shift;
-    my $size   = get_var('VIRTIO_CONSOLE_TEST_FILESIZE') // 200 * 1024;
+    my $self = shift;
+    my $size = get_var('VIRTIO_CONSOLE_TEST_FILESIZE') // 200 * 1024;
     my $repeat = 1000;
 
     $self->select_serial_terminal;
@@ -52,7 +48,7 @@ sub run {
     assert_script_run('curl -O ' . autoinst_url . "/files/" . $filename);
     my $sha1sum = sha1_sum(trim($testdata));    # cause script_output() trim the data
     record_info("FILE", "SHA1: $sha1sum\nSIZE: $size");
-    $testdata = undef;                          # free
+    $testdata = undef;    # free
 
     for (my $i = 0; $i < $repeat; $i++) {
         my $output = undef;

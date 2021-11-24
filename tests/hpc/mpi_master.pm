@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic MPI integration test. Checking for installability and
 #     usability of mpirun and mpicc. Using mpirun locally and across
@@ -23,9 +19,9 @@ use registration;
 use version_utils 'is_sle';
 
 sub run {
-    my $self          = shift;
-    my $mpi           = $self->get_mpi();
-    my $mpi_c         = 'simple_mpi.c';
+    my $self = shift;
+    my $mpi = $self->get_mpi();
+    my $mpi_c = 'simple_mpi.c';
     my @cluster_nodes = $self->cluster_names();
     my $cluster_nodes = join(',', @cluster_nodes);
 

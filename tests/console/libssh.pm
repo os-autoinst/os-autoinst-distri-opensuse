@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libssh4 libssh2-1
 # Summary: libssh version 1 and version 2 test
@@ -124,14 +120,14 @@ sub run {
 
     #Switch into container as client
     enter_cmd("docker exec -it libssh_container bash", wait_still_screen => 3);
-    assert_script_run("test -f /.dockerenv");                                          #verify inside container
+    assert_script_run("test -f /.dockerenv");    #verify inside container
     assert_script_run("ssh-keyscan susetest >> /root/.ssh/known_hosts");
-    validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t",                sub { m/libssh_testfile/ });
+    validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t", sub { m/libssh_testfile/ });
     validate_script_output("curl -s sftp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });
     assert_script_run("curl -s sftp://susetest/tmp/test/libssh_block.raw -u root:nots3cr3t -o /tmp/libssh_block.raw");
-    validate_script_output("curl -s scp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t",             sub { m/libssh_testcase001/ });
+    validate_script_output("curl -s scp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });
     validate_script_output('curl -s sftp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
-    validate_script_output('curl -s scp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa',  sub { m/libssh_testcase001/ });
+    validate_script_output('curl -s scp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
     validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15-sp1'); #libssh is not supported by libvirt for sle12 and sle15sp1
     validate_script_output('virsh -c "qemu+libssh2://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ });
     #Switch back to host

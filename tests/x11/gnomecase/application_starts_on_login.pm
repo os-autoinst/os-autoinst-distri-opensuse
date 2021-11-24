@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: gnome-tweaks gnome-tweak-tool dconf-editor
 # Summary: testcase 5255-1503973: Gnome: Applications starts on login
@@ -41,7 +37,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
 use x11utils qw(handle_relogin turn_off_gnome_screensaver);
 

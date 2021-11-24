@@ -29,6 +29,7 @@
   /etc/php7/conf.d/xmlreader.ini r,
   /etc/php7/conf.d/xmlwriter.ini r,
   /run/httpd.pid rw,
+  /run/httpd.pid.?????? rw,
   /usr/lib{,32,64}/** mr,
   /usr/lib{,32,64}/apache2*/** mr,
   /var/log/apache2/** rw,

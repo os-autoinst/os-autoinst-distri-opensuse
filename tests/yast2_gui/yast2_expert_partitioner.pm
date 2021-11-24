@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This test will check that creating, resizing, encrypting and
 #          deleting a partition, a volume group and some logical volumes work as
@@ -46,7 +42,7 @@ my $test_data;
 
 sub pre_run_hook {
     $partitioner = $testapi::distri->get_expert_partitioner();
-    $test_data   = get_test_suite_data();
+    $test_data = get_test_suite_data();
 }
 
 sub add_custom_partition {
@@ -54,7 +50,7 @@ sub add_custom_partition {
     YaST::Module::run_actions {
         $partitioner->confirm_only_use_if_familiar();
         $partitioner->add_partition_on_gpt_disk({
-                disk      => $disk->{name},
+                disk => $disk->{name},
                 partition => $disk->{partitions}[0]
         });
         $partitioner->show_summary_and_accept_changes();
@@ -62,10 +58,10 @@ sub add_custom_partition {
 }
 
 sub verify_custom_partition {
-    my $index     = shift // 0;
+    my $index = shift // 0;
     my $partition = $test_data->{disks}[0]->{partitions}[$index];
-    my $name      = "/dev/$partition->{name}";
-    my $size      = $partition->{size} =~ s/iB//r;
+    my $name = "/dev/$partition->{name}";
+    my $size = $partition->{size} =~ s/iB//r;
 
     x11_start_program('xterm');
     become_root;
@@ -80,7 +76,7 @@ sub resize_custom_partition {
     YaST::Module::run_actions {
         $partitioner->confirm_only_use_if_familiar();
         $partitioner->resize_partition({
-                disk      => $test_data->{disks}[0]->{name},
+                disk => $test_data->{disks}[0]->{name},
                 partition => $test_data->{disks}[0]->{partitions}[1]
         });
         $partitioner->show_summary_and_accept_changes();
@@ -95,7 +91,7 @@ sub delete_resized_partition {
     YaST::Module::run_actions {
         $partitioner->confirm_only_use_if_familiar();
         $partitioner->delete_partition({
-                disk      => $test_data->{disks}[0]->{name},
+                disk => $test_data->{disks}[0]->{name},
                 partition => $test_data->{disks}[0]->{partitions}[1]
         });
         $partitioner->show_summary_and_accept_changes();

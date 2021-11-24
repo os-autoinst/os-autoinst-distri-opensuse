@@ -9,7 +9,7 @@ help:
 
 .PHONY: prepare
 prepare:
-	git clone git://github.com/os-autoinst/os-autoinst
+	git clone https://github.com/os-autoinst/os-autoinst.git
 	$(MAKE) check-links
 	cd os-autoinst && cpanm -nq --installdeps .
 	cpanm -nq --installdeps .
@@ -116,8 +116,10 @@ else ifeq ($(TESTS),static)
 test: test-static
 else ifeq ($(TESTS),unit)
 test: unit-test perlcritic
+else ifeq ($(TESTS),isotovideo)
+test: test-isotovideo
 else
-test: unit-test test-static test-compile perlcritic
+test: unit-test test-static test-compile test-isotovideo perlcritic
 endif
 
 PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet --stern --include "strict" --include Perl::Critic::Policy::HashKeyQuote
@@ -152,3 +154,7 @@ test-invalid-syntax:
 .PHONY: test-code-style
 test-code-style:
 	tools/check_code_style
+
+.PHONY: test-isotovideo
+test-isotovideo:
+	tools/test_isotovideo

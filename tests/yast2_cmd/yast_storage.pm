@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-storage
 # Summary: yast storage test
@@ -25,9 +21,9 @@ sub run {
     #    assert_script_run 'yast disk list disks';
     #    assert_script_run 'yast disk list partitions';
     #
-    my $lsblk_output      = script_output("lsblk");
+    my $lsblk_output = script_output("lsblk");
     my $list_disks_output = script_output("yast disk list disks");
-    my $list_part_output  = script_output("yast disk list partitions");
+    my $list_part_output = script_output("yast disk list partitions");
 
     # Checks that all disks listed by 'lsblk' are part of 'yast disk list disks'
     my $current_test_device;
@@ -36,7 +32,7 @@ sub run {
     for my $lsblk_line (split /^/, $lsblk_output) {
         if ($lsblk_line =~ /^([a-z]d[a-z])(.*)disk/) {
             $current_test_device = $1;
-            $found               = 0;
+            $found = 0;
             for my $list_disks_line (split /^/, $list_disks_output) {
                 if ($list_disks_line =~ /^(.*)$current_test_device/) {
                     $found++;
@@ -55,7 +51,7 @@ sub run {
     for my $lsblk_line (split /^/, $lsblk_output) {
         if ($lsblk_line =~ /([a-z]d[a-z][1-9]+)(.*)part/) {
             $current_test_device = $1;
-            $found               = 0;
+            $found = 0;
             for my $list_part_line (split /^/, $list_part_output) {
                 if ($list_part_line =~ /^(.*)$current_test_device/) {
                     $found++;

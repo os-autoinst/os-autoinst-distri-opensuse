@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 #
 # Summary: Add repo into QEMU
@@ -22,8 +18,8 @@ use utils;
 use version_utils 'is_sle';
 my $cliect_ini_url = get_required_var('CLIENT_INI');
 my $worker_ini_url = get_required_var('WORKER_INI');
-my $addonurl_hpc   = get_required_var('ADDONURL_HPC');
-my $addonurl_sdk   = get_required_var('ADDONURL_SDK');
+my $addonurl_hpc = get_required_var('ADDONURL_HPC');
+my $addonurl_sdk = get_required_var('ADDONURL_SDK');
 sub run {
     my $self = shift;
     #SLE >= 15, we need hpc, sdk modules

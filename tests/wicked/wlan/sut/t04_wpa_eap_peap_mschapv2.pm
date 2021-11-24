@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test WiFi setup with wicked (WPA-EAP/PEAP/MSCHAPv2 with DHCP)
 # - WiFi Access point:
@@ -25,7 +21,7 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has use_radius => 1;
-has ssid       => 'EAP protected WLAN';
+has ssid => 'EAP protected WLAN';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -89,7 +85,7 @@ has ifcfg_wlan => sub { [
     ),
         {
             wicked_version => '>=0.6.66',
-            config         => q(
+            config => q(
             BOOTPROTO='dhcp'
             STARTMODE='auto'
 

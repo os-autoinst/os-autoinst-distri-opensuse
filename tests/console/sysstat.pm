@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: sysstat
 # Summary: test sysstat basic functionalities
@@ -19,7 +15,7 @@
 
 use base 'consoletest';
 use utils qw(zypper_call systemctl);
-use Utils::Architectures 'is_arm';
+use Utils::Architectures;
 use version_utils qw(is_sle is_leap is_opensuse);
 use strict;
 use warnings;
@@ -68,13 +64,13 @@ sub run {
         validate_script_output "sar -r", sub { /kbmemfree   kbavail kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
         validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command/ };
     } else {
-        validate_script_output "sar -r",  sub { /kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
+        validate_script_output "sar -r", sub { /kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
         validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest    %CPU   CPU  Command/ };
     }
 
-    validate_script_output "iostat",     sub { /avg-cpu:  %user   %nice %system %iowait  %steal   %idle/ };
-    validate_script_output "mpstat",     sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
-    validate_script_output "sar -u",     sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
+    validate_script_output "iostat", sub { /avg-cpu:  %user   %nice %system %iowait  %steal   %idle/ };
+    validate_script_output "mpstat", sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
+    validate_script_output "sar -u", sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
     validate_script_output "sar -n DEV", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
     #from version 12.1.2 iostat supports discard I/O statistics.
     if (version->parse(script_output('rpm --qf "%{VERSION}\n" -q sysstat')) >= version->parse('12.1.2')) {

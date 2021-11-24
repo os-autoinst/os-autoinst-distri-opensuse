@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Edit Proposal Settings of
 # Libstorage Partitioner.
@@ -25,8 +21,8 @@ sub new {
     my ($class, $args) = @_;
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::Libstorage::SuggestedPartitioningPage->new(),
-        ProposalSettingsDialog    => Installation::Partitioner::Libstorage::ProposalSettingsDialog->new(),
-        PasswordDialog            => Installation::Partitioner::Libstorage::PasswordDialog->new()
+        ProposalSettingsDialog => Installation::Partitioner::Libstorage::ProposalSettingsDialog->new(),
+        PasswordDialog => Installation::Partitioner::Libstorage::PasswordDialog->new()
     }, $class;
 }
 
@@ -63,8 +59,8 @@ sub edit_proposal_for_existing_partition {
 # the required test combinations.
 sub _set_partitioning {
     my ($self, %args) = @_;
-    my $is_lvm            = $args{is_lvm};
-    my $is_encrypted      = $args{is_encrypted};
+    my $is_lvm = $args{is_lvm};
+    my $is_encrypted = $args{is_encrypted};
     my $has_separate_home = $args{has_separate_home};
     if ($is_lvm) {
         if ($is_encrypted) {

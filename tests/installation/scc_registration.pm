@@ -1,17 +1,5 @@
-# Copyright © 2014-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2014-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Do the registration against SCC or skip it
 # - If SCC_REGISTER or REGISTER is installation
@@ -41,9 +29,9 @@ sub run {
         record_info('Skip reg.', 'Skip registration');
         assert_screen_with_soft_timeout(
             [qw(scc-registration yast2-windowborder-corner registration-online-repos)],
-            timeout      => 300,
+            timeout => 300,
             soft_timeout => 100,
-            bugref       => 'bsc#1028774'
+            bugref => 'bsc#1028774'
         );
         if (match_has_tag('yast2-windowborder-corner')) {
             if (check_var("INSTALLER_NO_SELF_UPDATE", 1)) {
@@ -58,9 +46,9 @@ sub run {
             }
             assert_screen_with_soft_timeout(
                 'scc-registration',
-                timeout      => 300,
+                timeout => 300,
                 soft_timeout => 100,
-                bugref       => 'bsc#1028774'
+                bugref => 'bsc#1028774'
             );
         }
 

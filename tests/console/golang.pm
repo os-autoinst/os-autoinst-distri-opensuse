@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test the 2 newest go versions by compiling and running man_or_boy.go
 # Maintainer: Dominik Heidler <dominik@heidler.eu>
@@ -35,7 +31,7 @@ sub run {
     }
 
     script_run "zypper se go | grep ' go[0-9][0-9.]* '";
-    my $older_go  = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -2 | head -1";
+    my $older_go = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -2 | head -1";
     my $latest_go = script_output "zypper se go | grep ' go[0-9][0-9.]* ' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -1 | head -1";
     record_info "Go Versions", "Detected Go versions:\nOlder: $older_go\nLatest: $latest_go";
     record_info "$older_go";

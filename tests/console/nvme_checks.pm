@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: nvme-cli
 # Summary: Smoke tests for NVM Express.
@@ -31,7 +27,7 @@ use scheduler 'get_test_suite_data';
 sub _check_basic_installation {
     my $nvm_test_data = shift;
     assert_script_run("lspci -nn | grep -i nvm");
-    assert_script_run("test -d $nvm_test_data->{nvme_sys_path}",        fail_message => "$nvm_test_data->{nvme_sys_path} not found as block device");
+    assert_script_run("test -d $nvm_test_data->{nvme_sys_path}", fail_message => "$nvm_test_data->{nvme_sys_path} not found as block device");
     assert_script_run("test -c /dev/$nvm_test_data->{nvm_char_device}", fail_message => "/dev/$nvm_test_data->{nvme_char_device} not found as character device");
 
     my @nvm_partitions = split(/\n/, script_output("ls /dev/$nvm_test_data->{nvm_disk}*"));
@@ -45,14 +41,14 @@ sub _exercise_nvme_commands_and_validate_output {
     # send Identify Admin Command to the NVMe controller.
     assert_script_run("nvme id-ctrl -H /dev/$nvm_test_data->{nvm_char_device} > id_ctrl_output");
     record_info "Identify Admin Command Output", script_output("cat id_ctrl_output");
-    my $MODE       = '\/dev\/' . $nvm_test_data->{nvm_char_device};
-    my $SN         = $nvm_test_data->{sn};
-    my $MODEL      = $nvm_test_data->{model};
-    my $NAMESPACE  = $nvm_test_data->{namespace_count};
-    my $DISK_SIZE  = $nvm_test_data->{nvm_disk_size};
+    my $MODE = '\/dev\/' . $nvm_test_data->{nvm_char_device};
+    my $SN = $nvm_test_data->{sn};
+    my $MODEL = $nvm_test_data->{model};
+    my $NAMESPACE = $nvm_test_data->{namespace_count};
+    my $DISK_SIZE = $nvm_test_data->{nvm_disk_size};
     my $BLOCK_SIZE = $nvm_test_data->{nvm_block_size};
     my $list_regex = qr/${MODE}\s+$SN\s+${MODEL}\s+${NAMESPACE}\s+${DISK_SIZE}\s+GB.*\d+\s+GB\s+${BLOCK_SIZE}/;
-    validate_script_output("nvme list",                                                                     sub { $list_regex });
+    validate_script_output("nvme list", sub { $list_regex });
     validate_script_output("nvme list-ns /dev/$nvm_test_data->{nvm_char_device} | awk -F ':' '{print $2}'", sub { /$nvm_test_data->{nvm_ns}/ });
     # the details of this namespace
     # check LBA Format fields
@@ -101,10 +97,10 @@ sub _collect_nvme_debug_info {
     my @tar_input_files;
     my %cmds = (
         nvme_admin_command_info => 'tar cvPf nmve_sys_class.tar /sys/class/nvme/',
-        nvme_devices_list       => 'ls -la /dev/vcme',
-        nvme_devices_info       => 'blkid',
-        nvme_controller_info    => 'lspci -nn',
-        nvme_cli_version        => 'rpm -qa nvme-cli'
+        nvme_devices_list => 'ls -la /dev/vcme',
+        nvme_devices_info => 'blkid',
+        nvme_controller_info => 'lspci -nn',
+        nvme_cli_version => 'rpm -qa nvme-cli'
     );
 
     foreach (keys %cmds) {

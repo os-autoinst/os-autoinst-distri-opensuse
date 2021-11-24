@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: autoconf automake gcc git-core make
 # Summary: Tests for kernel live patching infrastructure
@@ -34,7 +30,7 @@ sub run {
     }
 
     my $git_repo = get_required_var('QA_TEST_KLP_REPO');
-    my $dir      = basename($git_repo);
+    my $dir = basename($git_repo);
     $dir =~ s/\.git$//;
 
     (is_sle(">12-sp1") || !is_sle) ? $self->select_serial_terminal() : select_console('root-console');

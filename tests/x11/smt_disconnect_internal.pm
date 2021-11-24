@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: smt yast2-smt
 # Summary: Disconnected SMT internal
@@ -52,7 +48,7 @@ sub run {
 
     # network up and mount mobile disk
     my $net_conf = parse_network_configuration();
-    my $mac      = $net_conf->{fixed}->{mac};
+    my $mac = $net_conf->{fixed}->{mac};
     script_run "NIC=`grep $mac /sys/class/net/*/address |cut -d / -f 5`";
     assert_script_run("ip link set \$NIC up");
     assert_script_run("mount -t nfs $external_IP\:\/mnt\/Mobile-disk \/mnt\/Mobile-disk");
@@ -72,8 +68,8 @@ sub run {
     mutex_unlock('disconnect_smt_3');
 
     # daily Internal SMT Server Operation
-    assert_script_run("smt-sync --fromdir \/mnt\/Mobile-disk",                           600);
-    assert_script_run("smt-mirror --fromdir \/mnt\/Mobile-disk",                         600);
+    assert_script_run("smt-sync --fromdir \/mnt\/Mobile-disk", 600);
+    assert_script_run("smt-mirror --fromdir \/mnt\/Mobile-disk", 600);
     assert_script_run("smt-sync --createdbreplacementfile \/mnt\/Mobile-disk\/updateDB", 600);
     # check enabled repos
     assert_script_run("smt-repos  --only-enabled | grep SLES12-SP3-Installer-Updates");

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate that the mounting option of each partition
 # defined in test data, is set in fstab is as expected.
@@ -39,7 +35,7 @@ sub validate_mounting_option {
     record_info("Check $args->{partition}",
         "Check if $args->{partition} partition is mounted by $args->{mount_by} option");
     my %mount_by = (
-        UUID          => "UUID",
+        UUID => "UUID",
         "Device Name" => "/dev/$args->{partition}",
         "Device Path" => "/dev/disk/by-path/");
     assert_script_run("grep \"$mount_by{$args->{mount_by}}\" /etc/fstab | grep \" $args->{mount_point} \"");
@@ -53,8 +49,8 @@ sub run {
         foreach my $partition (@{$disk->{partitions}}) {
             if ($partition->{fstab_options}) {
                 validate_mounting_option({
-                        partition   => $partition->{name},
-                        mount_by    => $partition->{fstab_options}{mount_by},
+                        partition => $partition->{name},
+                        mount_by => $partition->{fstab_options}{mount_by},
                         mount_point => $partition->{mounting_options}{mount_point}});
             }
         }

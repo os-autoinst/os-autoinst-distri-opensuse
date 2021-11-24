@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Per TPM2 stack, we would like to add the tpm2-tss-engine,
 #          For tpm2_enginee tests, we need tpm2-abrmd serive active.
@@ -32,9 +20,9 @@ sub run {
     # RSA operations
     # RSA decrypt
     my $test_enc_dir = "tpm2_engine_rsa_decrypt";
-    my $test_file    = "mydata";
-    my $rsa_key      = "mykey";
-    my $enc_file     = "mycipher";
+    my $test_file = "mydata";
+    my $rsa_key = "mykey";
+    my $enc_file = "mycipher";
     assert_script_run "mkdir $test_enc_dir";
     assert_script_run "cd $test_enc_dir";
     assert_script_run "echo tpm2test > $test_file";
@@ -47,7 +35,7 @@ sub run {
 
     # RSA sign
     my $test_sign_dir = "tpm2_engine_rsa_sign";
-    my $sig_file      = "mysig";
+    my $sig_file = "mysig";
     assert_script_run "mkdir $test_sign_dir";
     assert_script_run "cd $test_sign_dir";
     assert_script_run "echo tpm2test > $test_file";

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: SLE12 release notes
 # Maintainer: Jozef Pupava <jpupava@suse.com>
@@ -15,6 +11,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_microos);
 
 sub run {
@@ -74,7 +71,7 @@ sub run {
     # no relnotes for ltss in QAM_MINIMAL
     push @no_relnotes, qw(ltss) if get_var('QAM_MINIMAL');
     # no HA-GEO release-notes for s390x on SLE12-SP1 GM media, see bsc#1033504
-    if (check_var('ARCH', 's390x') and check_var('BASE_VERSION', '12-SP1')) {
+    if (is_s390x and check_var('BASE_VERSION', '12-SP1')) {
         push @no_relnotes, qw(geo);
     }
     if (@addons) {

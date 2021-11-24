@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Combine modules with the actions that are required after reboot.
 # Reconnect management-consoles on remote backends and then process GRUB.
@@ -18,7 +14,8 @@ use strict;
 use warnings;
 use grub_utils qw(grub_test);
 use testapi;
-use Utils::Backends 'is_remote_backend';
+use Utils::Architectures;
+use Utils::Backends;
 use utils qw(reconnect_mgmt_console);
 
 sub run {
@@ -27,7 +24,7 @@ sub run {
         reconnect_mgmt_console();
     }
 
-    unless (check_var('ARCH', 's390x') || check_var('BACKEND', 'ipmi')) {
+    unless (is_s390x || is_ipmi) {
         record_info 'Handle GRUB';
         grub_test();
     }

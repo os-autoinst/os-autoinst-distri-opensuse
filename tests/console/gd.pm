@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: gd
 # Summary: gd regression test
@@ -47,7 +43,7 @@ sub run {
     validate_script_output 'if [[ -s convert.gd ]]; then echo "OK"; else echo "FAIL"; fi', sub { m/OK/ };
     assert_script_run('gdtopng convert.gd convert2.png');
     validate_script_output('if [[ -s convert2.png ]]; then echo "OK"; else echo "FAIL"; fi', sub { m/OK/ });
-    validate_script_output('webpng -l convert.png',                                          sub { m/Index	Red	Green	Blue Alpha\n0	112	70	54	0\n/ });
+    validate_script_output('webpng -l convert.png', sub { m/Index	Red	Green	Blue Alpha\n0	112	70	54	0\n/ });
     validate_script_output('webpng -d convert.png', sub { m/Width: 337 Height: 193 Colors: 69\nFirst 100% transparent index: none\nInterlaced: no/ });
     validate_script_output('webpng -a convert.png', sub { m/alpha channel information:\nNOT a true color image\n0 alpha channels/ });
 }

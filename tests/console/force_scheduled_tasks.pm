@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: cronie btrfsmaintenance
 # Summary: Avoid suprises later and run scheduled tasks explicitly, be it cron
@@ -50,7 +46,7 @@ sub run {
 
     # Make sure there's no load before we trigger one via cron.
     my $is_settled = settle_load;
-    my $before     = time;
+    my $before = time;
     # run cron jobs or systemd timers which can affect system performance and mask systemd timers later
     # if cron directories exist, try to run present cron jobs
     if (script_run('ls -a /etc/cron.{hourly,daily,weekly,monthly}') == 0) {

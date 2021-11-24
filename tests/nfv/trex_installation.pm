@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Trex traffic generator installation
 #
@@ -13,6 +9,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use utils;
@@ -20,14 +17,14 @@ use lockapi;
 use mmapi;
 
 sub run {
-    my ($self)       = @_;
+    my ($self) = @_;
     my $trex_version = get_required_var('TG_VERSION');
-    my $tarball      = "$trex_version.tar.gz";
-    my $url          = "http://trex-tgn.cisco.com/trex/release/$tarball";
-    my $trex_dest    = "/tmp/trex-core";
-    my $trex_conf    = "/etc/trex_cfg.yaml";
-    my $PORT_1       = get_required_var('PORT_1');
-    my $PORT_2       = get_required_var('PORT_2');
+    my $tarball = "$trex_version.tar.gz";
+    my $url = "http://trex-tgn.cisco.com/trex/release/$tarball";
+    my $trex_dest = "/tmp/trex-core";
+    my $trex_conf = "/etc/trex_cfg.yaml";
+    my $PORT_1 = get_required_var('PORT_1');
+    my $PORT_2 = get_required_var('PORT_2');
 
     $self->select_serial_terminal;
 
@@ -44,7 +41,7 @@ sub run {
     assert_script_run("sed -i 's/PORT_1/$PORT_2/' -i $trex_conf");
     assert_script_run("cat $trex_conf");
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         record_info("INFO", "Bring Mellanox interfaces up");
         assert_script_run("ip link set dev eth2 up");
         assert_script_run("ip link set dev eth3 up");

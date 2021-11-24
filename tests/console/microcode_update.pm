@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: ucode-intel ucode-amd
 # Summary: Test microcode update on bare-metal (ipmi backend)
@@ -30,7 +26,7 @@ sub run {
     }
     else {
         $vendor = 'intel';
-        $match  = 'microcode updated';
+        $match = 'microcode updated';
     }
     # different true exit status value bash 0 perl 1
     unless (script_run "zypper if ucode-$vendor|grep 'not installed'") {

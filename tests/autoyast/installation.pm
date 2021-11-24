@@ -1,17 +1,5 @@
-# Copyright © 2015-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Autoyast installation
 # - Create a list with expected installation steps
@@ -38,21 +26,22 @@ use strict;
 use warnings;
 use base 'y2_installbase';
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'prepare_system_shutdown';
 use version_utils qw(is_sle is_microos is_released is_upgrade);
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'untick_welcome_on_next_startup';
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 use scheduler 'get_test_suite_data';
 use autoyast 'test_ayp_url';
 use y2_logs_helper qw(upload_autoyast_profile upload_autoyast_schema);
 use validate_encrypt_utils "validate_encrypted_volume_activation";
 
 my $confirmed_licenses = 0;
-my $stage              = 'stage1';
-my $maxtime            = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
-my $check_time         = 50;                                    #Period to check screen during stage 1 and 2
+my $stage = 'stage1';
+my $maxtime = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
+my $check_time = 50;    #Period to check screen during stage 1 and 2
 
 # Full install with updates can take extremely long time
 $maxtime = 5500 * get_var('TIMEOUT_SCALE', 1) if is_released;
@@ -131,16 +120,16 @@ sub run {
     if (get_var('EXTRABOOTPARAMS') =~ m/startshell=1/) {
         push @needles, 'linuxrc-start-shell-after-installation';
     }
-    push @needles, 'autoyast-confirm'        if get_var('AUTOYAST_CONFIRM');
+    push @needles, 'autoyast-confirm' if get_var('AUTOYAST_CONFIRM');
     push @needles, 'autoyast-postpartscript' if get_var('USRSCR_DIALOG');
     # Do not try to fail early in case of autoyast_error_dialog scenario
     # where we test that certain error are properly handled
     push @needles, 'autoyast-error' unless get_var('AUTOYAST_EXPECT_ERRORS');
     # Autoyast reboot automatically without confirmation, usually assert 'bios-boot' that is not existing on zVM
     # So push a needle to check upcoming reboot on zVM that is a way to indicate the stage done
-    push @needles, 'autoyast-stage1-reboot-upcoming' if check_var('ARCH', 's390x') || (is_pvm && !is_upgrade);
+    push @needles, 'autoyast-stage1-reboot-upcoming' if is_s390x || (is_pvm && !is_upgrade);
     # Similar situation over IPMI backend, we can check against PXE menu
-    push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
+    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
     # Import untrusted certification for SMT
     push @needles, 'untrusted-ca-cert' if get_var('SMT_URL');
     # Workaround for removing package error during upgrade
@@ -148,7 +137,7 @@ sub run {
     # resolve conflicts and this is a workaround during the update
     push(@needles, 'manual-intervention') if get_var("BREAK_DEPS", '1');
     # match openSUSE Welcome dialog on matching distros
-    push(@needles, 'opensuse-welcome')        if opensuse_welcome_applicable;
+    push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     push(@needles, 'salt-formula-motd-setup') if get_var("SALT_FORMULAS_PATH");
     # If it's beta, we may match license screen before pop-up shows, so check for pop-up first
     if (get_var('BETA')) {
@@ -163,21 +152,22 @@ sub run {
     push @needles, 'expired-gpg-key' if is_sle('=15');
 
     # Push needle 'inst-bootmenu' to ensure boot from hard disk on aarch64
-    push(@needles, 'inst-bootmenu') if (check_var('ARCH', 'aarch64') && get_var('UPGRADE'));
+    push(@needles, 'inst-bootmenu') if (is_aarch64 && get_var('UPGRADE'));
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if check_var('BACKEND', 's390x');
     my $postpartscript = 0;
-    my $confirmed      = 0;
-    my $pxe_boot_done  = 0;
+    my $confirmed = 0;
+    my $pxe_boot_done = 0;
 
-    my $i          = 1;
+    my $i = 1;
     my $num_errors = 0;
-    my $timer      = 0;    # Prevent endless loop
+    my $timer = 0;    # Prevent endless loop
 
     check_screen \@needles, $check_time;
     until (match_has_tag('reboot-after-installation')
+          || match_has_tag('opensuse-welcome')
           || match_has_tag('bios-boot')
           || match_has_tag('autoyast-stage1-reboot-upcoming')
           || match_has_tag('inst-bootmenu')
@@ -188,7 +178,7 @@ sub run {
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-boot')) {
             send_key 'ret';    # press enter if grub timeout is disabled, like we have in reinstall scenarios
-            last;              # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
+            last;    # if see grub, we get to the second stage, as it appears after bios-boot which we may miss
         }
         elsif (match_has_tag('import-untrusted-gpg-key')) {
             handle_untrusted_gpg_key;
@@ -196,10 +186,10 @@ sub run {
             next;
         }
         elsif (match_has_tag('prague-pxe-menu') || match_has_tag('qa-net-selection')) {
-            @needles       = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
+            @needles = grep { $_ ne 'prague-pxe-menu' and $_ ne 'qa-net-selection' } @needles;
             $pxe_boot_done = 1;
             send_key 'ret';    # boot from harddisk
-            next;              # first stage is over, now we should see grub with autoyast-boot
+            next;    # first stage is over, now we should see grub with autoyast-boot
         }
         #repeat until timeout or login screen
         elsif (match_has_tag('nonexisting-package')) {
@@ -236,7 +226,7 @@ sub run {
                 validate_encrypted_volume_activation({
                         mapped_device => $test_data->{mapped_device},
                         device_status => $test_data->{device_status}->{message},
-                        properties    => $test_data->{device_status}->{properties}
+                        properties => $test_data->{device_status}->{properties}
                 });
             }
 
@@ -247,7 +237,7 @@ sub run {
 
             wait_screen_change { send_key 'tab' };
             wait_screen_change { send_key 'ret' };
-            @needles   = grep { $_ ne 'autoyast-confirm' } @needles;
+            @needles = grep { $_ ne 'autoyast-confirm' } @needles;
             $confirmed = 1;
         }
         elsif (match_has_tag('autoyast-license')) {
@@ -290,7 +280,7 @@ sub run {
             next;
         }
         elsif (match_has_tag('autoyast-postpartscript')) {
-            @needles        = grep { $_ ne 'autoyast-postpartscript' } @needles;
+            @needles = grep { $_ ne 'autoyast-postpartscript' } @needles;
             $postpartscript = 1;
         }
         elsif (match_has_tag('autoyast-error')) {
@@ -329,7 +319,7 @@ sub run {
     }
 
     # Cannot verify second stage properly on s390x, so reconnect to already installed system
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         reconnect_mgmt_console(timeout => 700, grub_timeout => 180);
         return;
     }
@@ -340,12 +330,12 @@ sub run {
     }
 
     # If we didn't see pxe, the reboot is going now
-    $self->wait_boot if check_var('BACKEND', 'ipmi') and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
+    $self->wait_boot if is_ipmi and not get_var('VIRT_AUTOTEST') and not $pxe_boot_done;
 
     # Second stage starts here
     $maxtime = 1000 * get_var('TIMEOUT_SCALE', 1);    # Max waiting time for stage 2
-    $timer   = 0;
-    $stage   = 'stage2';
+    $timer = 0;
+    $stage = 'stage2';
 
     check_screen \@needles, $check_time;
     @needles = qw(reboot-after-installation autoyast-postinstall-error autoyast-boot unreachable-repo warning-pop-up inst-bootmenu lang_and_keyboard encrypted-disk-password-prompt);
@@ -355,8 +345,10 @@ sub run {
     # match openSUSE Welcome dialog on matching distros
     push(@needles, 'opensuse-welcome') if opensuse_welcome_applicable;
     # There will be another reboot for IPMI backend
-    push @needles, qw(prague-pxe-menu qa-net-selection) if check_var('BACKEND', 'ipmi');
-    until (match_has_tag 'reboot-after-installation') {
+    push @needles, qw(prague-pxe-menu qa-net-selection) if is_ipmi;
+    until (match_has_tag('reboot-after-installation')
+          || match_has_tag('opensuse-welcome'))
+    {
         #Verify timeout and continue if there was a match
         next unless verify_timeout_and_check_screen(($timer += $check_time), \@needles);
         if (match_has_tag('autoyast-postinstall-error')) {
@@ -390,9 +382,6 @@ sub run {
         }
         elsif (match_has_tag('lang_and_keyboard')) {
             return;
-        }
-        elsif (match_has_tag('opensuse-welcome')) {
-            return;             # Popup itself is processed in opensuse_welcome module
         }
         elsif (match_has_tag('encrypted-disk-password-prompt')) {
             return;

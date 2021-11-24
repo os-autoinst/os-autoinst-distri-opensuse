@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Case#1436106: Firefox: Downloading
@@ -41,12 +37,9 @@ my $dl_link_01 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.1/iso/
 my $dl_link_02 = "http://mirrors.kernel.org/opensuse/distribution/leap/15.2/iso/openSUSE-Leap-15.2-DVD-x86_64.iso";
 
 sub dl_location_switch {
-    my ($tg) = @_;
-    send_key "alt-e";
-    wait_still_screen 2, 4;
-    send_key "n";
-    assert_screen('firefox-preferences');
+    my ($self, $tg) = @_;
 
+    $self->firefox_preferences;
     if ($tg ne "ask") {
         send_key "alt-shift-v";    #"Save files to Downloads"
     }
@@ -88,9 +81,11 @@ sub dl_resume {
 }
 
 sub dl_menu {
-    wait_still_screen 3,                                   6;
-    send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
-    wait_still_screen 3,                                   6;
+    # sometimes menu does close due high load or some worker hickup, check & open menu again if not present
+    for (1 .. 2) {
+        wait_still_screen 3, 6;
+        send_key_until_needlematch 'firefox-downloading-menu', 'shift-f10', 3, 3;
+    }
 }
 
 sub run {
@@ -98,7 +93,7 @@ sub run {
 
     $self->start_firefox_with_profile;
 
-    dl_location_switch("ask");
+    dl_location_switch($self, "ask");
     dl_save($self, $dl_link_01);
     send_key 'ctrl-shift-y';
     assert_screen('firefox-downloading-library', 90);
@@ -137,7 +132,7 @@ sub run {
     wait_still_screen 3, 6;
 
     # Multiple files downloading
-    dl_location_switch("save");
+    dl_location_switch($self, "save");
 
     dl_save($self, $dl_link_01);
     dl_save($self, $dl_link_02);

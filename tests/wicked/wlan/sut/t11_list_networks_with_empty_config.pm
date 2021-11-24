@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test WiFi setup with wicked (WPA-PSK with DHCP)
 #          If a connection is established, the AP will went down and a other
@@ -20,10 +16,10 @@ use testapi;
 use utils qw(random_string);
 
 has wicked_version => '>=0.6.66';
-has ssid           => 'First SSID';
-has ssid_1         => 'Second SSID';
-has ssid_2         => 'Third SSID';
-has ssid_3         => 'Fourth SSID';
+has ssid => 'First SSID';
+has ssid_1 => 'Second SSID';
+has ssid_2 => 'Third SSID';
+has ssid_3 => 'Fourth SSID';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd
@@ -82,7 +78,7 @@ sub run {
         $self->write_cfg('/etc/sysconfig/network/ifcfg-' . $self->sut_ifc, $ifcfg);
         $self->wicked_command('ifup --timeout 20', $self->sut_ifc);
 
-        record_info('show-xml',    script_output('wicked show-xml ' . $self->sut_ifc));
+        record_info('show-xml', script_output('wicked show-xml ' . $self->sut_ifc));
         record_info('show-config', script_output('wicked show-config ' . $self->sut_ifc));
         record_info('scan-results', script_output('wicked show-xml ' . $self->sut_ifc . q( | wicked xpath --reference 'object/wireless/scan-results/bss' 'bssid:%{bssid} ssid:%{ssid} age:%{age}')));
 

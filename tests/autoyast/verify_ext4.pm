@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: util-linux SUSEConnect
 # Summary: Validate autoyast_ext4 profile.
@@ -28,8 +24,8 @@ sub verify_registration {
 }
 
 sub verify_partitioning {
-    assert_script_run 'findmnt -S /dev/vda2 | grep "/.*ext4"';                    # generic search
-    assert_script_run 'findmnt -s | grep "swap\s\+UUID.*swap"';                   # search for swap only in /etc/fstab
+    assert_script_run 'findmnt -S /dev/vda2 | grep "/.*ext4"';    # generic search
+    assert_script_run 'findmnt -s | grep "swap\s\+UUID.*swap"';    # search for swap only in /etc/fstab
     assert_script_run 'findmnt -s | grep "/\s\+UUID.*ext4\s\+acl,user_xattr"';    # Search for attr. only in /etc/fstab
 }
 

@@ -1,13 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::RichText;
 
@@ -28,3 +19,54 @@ sub activate_link {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::RichText - handle rich text objects
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+return $self->{rt_welcome}->text();
+
+return $self->{rt_items}->activate_link($module_full_name);
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+Class to work with YRichText objects. Rich text objects are
+
+    {
+         "class": "YRichText",
+         "enabled": false,
+         "hstretch": true,
+         "id": "test",
+         "text": "<small>Select something here</small>",
+         "vstretch": true,
+         "vweight": 25
+    }
+
+=head2 Class and object methods
+
+B<text()> - return the value of the "text" property.
+
+B<activate_link($link)> - activates a link in the rich text
+
+If the rich text field contains a link, then this link can be activated with
+this function. 
+
+=cut

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-network
 # Summary: yast2 lan hostname via DHCP test https://bugzilla.suse.com/show_bug.cgi?id=984890
@@ -24,8 +20,8 @@ sub hostname_via_dhcp {
 
     # keyboard shortcuts
     $cmd{hostname_dns_tab} = 'alt-s';
-    $cmd{home}             = 'home';
-    $cmd{spc}              = 'spc';
+    $cmd{home} = 'home';
+    $cmd{spc} = 'spc';
     y2_module_consoletest::yast2_console_exec(yast2_module => 'lan');
     # 'Global Options' tab is opened after accepting the warning on the systems
     # with Network Manager.
@@ -47,12 +43,12 @@ sub hostname_via_dhcp {
 
     wait_screen_change { send_key 'down'; };    # open roll-down list
     send_key $cmd{home};
-    assert_screen("yast2_lan-hostname-DHCP-no");               # check that topmost option is selected
+    assert_screen("yast2_lan-hostname-DHCP-no");    # check that topmost option is selected
     send_key_until_needlematch "yast2_lan-hostname-DHCP-$dhcp", 'down';
     wait_screen_change { send_key $cmd{spc}; };
     assert_screen "yast2_lan-hostname-DHCP-$dhcp-selected";    # make sure that the option is actually selected
     send_key $cmd{ok};
-    assert_screen 'console-visible';                           # yast module exited
+    assert_screen 'console-visible';    # yast module exited
     wait_still_screen;
 
     if ($dhcp eq 'no') {

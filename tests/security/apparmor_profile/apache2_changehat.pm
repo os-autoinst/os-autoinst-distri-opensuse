@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: apparmor-parser apache2-mod_apparmor apparmor-utils
 # Summary: Test Web application apache2 using ChangeHat.
@@ -62,16 +50,16 @@ use registration qw(add_suseconnect_product register_product);
 sub run {
     my ($self) = shift;
 
-    my $audit_log    = $apparmortest::audit_log;
-    my $prof_dir     = $apparmortest::prof_dir;
+    my $audit_log = $apparmortest::audit_log;
+    my $prof_dir = $apparmortest::prof_dir;
     my $adminer_file = $apparmortest::adminer_file;
-    my $adminer_dir  = $apparmortest::adminer_dir;
-    my $pw           = $apparmortest::pw;
+    my $adminer_dir = $apparmortest::adminer_dir;
+    my $pw = $apparmortest::pw;
 
-    my $apache2_err_log    = "/var/log/apache2/error_log";
+    my $apache2_err_log = "/var/log/apache2/error_log";
     my $apparmor_conf_file = "/etc/apache2/conf.d/apparmor.conf";
-    my $profile_name       = "usr.sbin.httpd-prefork";
-    my $named_profile      = "";
+    my $profile_name = "usr.sbin.httpd-prefork";
+    my $named_profile = "";
 
     # Disable apparmor in case
     systemctl("stop apparmor");
@@ -86,10 +74,11 @@ sub run {
         if ($version == '15') {
             $version = get_required_var('VERSION') =~ s/([0-9]+)-SP([0-9]+)/$1.$2/r;
         }
-        my $arch    = get_required_var('ARCH');
-        my $params  = " ";
+        my $arch = get_required_var('ARCH');
+        my $params = " ";
         my $timeout = 180;
         add_suseconnect_product("sle-module-web-scripting", "$version", "$arch", "$params", "$timeout");
+        add_suseconnect_product("sle-module-legacy", "$version", "$arch", "$params", "$timeout");
     }
     zypper_call("in apache2 apache2-mod_apparmor apache2-mod_php7 php7 php7-mysql");
 

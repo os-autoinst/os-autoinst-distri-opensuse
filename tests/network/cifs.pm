@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: samba samba-client cifs-utils nmap coreutils util-linux
 # Summary: Test samba client and CIFS mount
@@ -44,7 +40,7 @@ sub setup_local_server() {
 }
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
     my $smb_remote = get_var("CIFS_TEST_REMOTE") // "currywurst.qam.suse.de";
     $self->select_serial_terminal;

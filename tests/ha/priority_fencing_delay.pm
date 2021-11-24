@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test the priority fencing delay feature
 # The node with the master resource must always win the fencing match
@@ -26,7 +22,7 @@ sub stonith_iptables {
         script_run "iptables -A INPUT -s $partner_ip -j DROP; iptables -A OUTPUT -d $partner_ip -j DROP";
         if (is_node(1)) {
             # Wait for the stonith match, then flush the rules for the next test
-            script_run "until $crm_mon_cmd | grep -qi offline ; do sleep 1; done", 60;
+            script_run "until grep -qi offline <($crm_mon_cmd) ; do sleep 1; done", 60;
             assert_script_run "iptables -F; iptables -X";
         }
 

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Clock and Time Zone
 #          dialog.
@@ -39,8 +35,8 @@ sub get_clock_and_time_zone_page {
 sub collect_current_clock_and_time_zone_info {
     my ($self) = @_;
     return {
-        region              => $self->get_clock_and_time_zone_page()->get_region(),
-        time_zone           => $self->get_clock_and_time_zone_page()->get_time_zone(),
+        region => $self->get_clock_and_time_zone_page()->get_region(),
+        time_zone => $self->get_clock_and_time_zone_page()->get_time_zone(),
         hw_clock_set_to_UTC => $self->get_clock_and_time_zone_page()->is_hw_clock_set_to_UTC()};
 }
 

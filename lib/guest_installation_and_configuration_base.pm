@@ -1,11 +1,7 @@
 # VIRTUAL MACHINE INSTALLATION AND CONFIGURATION BASE MODULE
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This module provides framework and APIs to install virtual
 # machine by using virt-install comman line.It supports configuration
@@ -48,147 +44,172 @@ use version_utils;
 #For example, [guest_installation_media] might be given URL that contains upper case characters which is completely acceptable.
 #Please refer to lib/concurrent_guest_installations.pm and tests/virt_autotest/uefi_guest_installation.pm for how to use guest params xml file.
 our %guest_params = (
-    'guest_os_name'        => '',    #[guest_os_name]:sles,opensuse,oraclelinux or others.Not virt-install argument.
+    'guest_os_name' => '',    #[guest_os_name]:sles,opensuse,oraclelinux or others.Not virt-install argument.
     'guest_os_word_length' => '',    #[guest_os_word_length]:64 or 32.Not virt-install argument.
-    'guest_version'        => '',    #[guest_version]:15-sp3 or others.Not virt-install argument.
-    'guest_version_major'  => '',    #[guest_version_major]:15 or others.Not virt-install argument.
-    'guest_version_minor'  => '',    #[guest_version_minor]:3 or others.Not virt-install argument.
-    'guest_build'          => '',    #Build number if developing release or 'gm'.Not virt-install argument.It should be left empty in guest params xml file
+    'guest_version' => '',    #[guest_version]:15-sp3 or others.Not virt-install argument.
+    'guest_version_major' => '',    #[guest_version_major]:15 or others.Not virt-install argument.
+    'guest_version_minor' => '',    #[guest_version_minor]:3 or others.Not virt-install argument.
+    'guest_build' => '',    #Build number if developing release or 'gm'.Not virt-install argument.It should be left empty in guest params xml file
         #if developing release will be installed for the guest.It will be set to the same as BUILD from test suite settings in config_guest_params.
         #Otherwise it must be set to 'gm' in guest params xml file if non-developing release will be installed for the guest.
-    'host_hypervisor_uri'           => '',    #virt-install --connect [host_hypervisor_uri]
-    'host_virt_type'                => '',    #virt-install --virt-type [host_virt_type]
-    'guest_virt_type'               => '',    #virt-install --[guest_virt_type(hvm or paravirt)]
-    'guest_machine_type'            => '',    #virt-install --machine [guest_machine_type]
-    'guest_arch'                    => '',    #virt-install --arch [guest_arch]
-    'guest_name'                    => '',    #virt-install --name [guest_name]
-    'guest_domain_name'             => '',    #This will be used for DNS configuration, not virt-install argument
-    'guest_memory'                  => '',    #virt-install --memory [guest_memory]
-    'guest_vcpus'                   => '',    #virt-install --vcpus [guest_vcpus]
-    'guest_cpumodel'                => '',    #virt-install --cpu [guest_cpumodel]
-    'guest_metadata'                => '',    #virt-install --metadata [guest_metadata]
-    'guest_xpath'                   => '',    #virt-install --xml [guest_xpath].It can contain multiple items seperated by hash key
+    'host_hypervisor_uri' => '',    #virt-install --connect [host_hypervisor_uri]
+    'host_virt_type' => '',    #virt-install --virt-type [host_virt_type]
+    'guest_virt_type' => '',    #virt-install --[guest_virt_type(hvm or paravirt)]
+    'guest_machine_type' => '',    #virt-install --machine [guest_machine_type]
+    'guest_arch' => '',    #virt-install --arch [guest_arch]
+    'guest_name' => '',    #virt-install --name [guest_name]
+    'guest_domain_name' => '',    #This will be used for DNS configuration, not virt-install argument
+    'guest_memory' => '',    #virt-install --memory [guest_memory]
+    'guest_vcpus' => '',    #virt-install --vcpus [guest_vcpus]
+    'guest_cpumodel' => '',    #virt-install --cpu [guest_cpumodel]
+    'guest_metadata' => '',    #virt-install --metadata [guest_metadata]
+    'guest_xpath' => '',    #virt-install --xml [guest_xpath].It can contain multiple items seperated by hash key
     'guest_installation_automation' => '', #This indicates whether guest uses autoyast or kickstart installation (autoyast, kickstart or empty), not virt-install argument
     'guest_installation_automation_file' => '', #virt-install --extra-args "autoyast=[guest_installation_automation_file] or inst.ks=[guest_installation_automation_file]"
-    'guest_installation_method'        => '',    #virt-install --[guest_installation_method(location, cdrom, pxe, import and etc)]
+    'guest_installation_method' => '',    #virt-install --[guest_installation_method(location, cdrom, pxe, import and etc)]
     'guest_installation_method_others' => '',    #virt-install --[guest_installation_method] [guest_installation_method_others] or
                                                  #--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]
-    'guest_installation_extra_args'    => '',    #virt-install --extra-args [guest_installation_extra_args].It can contain multiple itmes seperated by hash key
-    'guest_installation_wait'          => '',    #virt-install --wait [guest_installation_wait]
-    'guest_installation_media'         => '',    #virt-install --location [guest_installation_media] or --cdrom [guest_installation_media]
-    'guest_installation_fine_grained'  => '',    #virt-install --install [guest_installation_fine_grained]
-    'guest_boot_settings'              => '',    #virt-install --boot [guest_boot_settings]
-    'guest_secure_boot'    => '', #This indicates whether uefi secure boot is enabled(true, false or empty) during installation in unattended installation file,
+    'guest_installation_extra_args' => '',    #virt-install --extra-args [guest_installation_extra_args].It can contain multiple itmes seperated by hash key
+    'guest_installation_wait' => '',    #virt-install --wait [guest_installation_wait]
+    'guest_installation_media' => '',    #virt-install --location [guest_installation_media] or --cdrom [guest_installation_media]
+    'guest_installation_fine_grained' => '',    #virt-install --install [guest_installation_fine_grained]
+    'guest_boot_settings' => '',    #virt-install --boot [guest_boot_settings]
+    'guest_secure_boot' => '',    #This indicates whether uefi secure boot is enabled(true, false or empty) during installation in unattended installation file,
                                   #not virt-install argument
-    'guest_os_variant'     => '', #virt-install --os-variant [guest_os_variant]
-    'guest_storage_path'   => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_type'   => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_format' => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_label'  => '', #This indicates whether guest disk uses gpt or mbr in unattended installation file, not virt-install argument
-    'guest_storage_size'   => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_storage_others' => '', #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
-    'guest_network_type'   => '', #This indicates whether guest uses bridge, nat or other network types, not virt-install argument
-    'guest_network_device' => '', #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
-    'guest_network_others' => '', #virt-install --netowrk=bridge=[guest_network_device],mac=[guest_macaddr],[guest_network_others]
-                                  #(Also can be used with other network type)
-    'guest_macaddr'        => '', #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
-    'guest_netaddr'        => '', #This indicates the subnet to which guest will be connected. It takes the form ip_address/subnet_mask_length and
-        #defaults to 192.168.123.255/24, not virt-install argument. If 'host-default' is given, this indicates guest will use host network
-        #and host bridge device that already exists and are connected directly to default gateway, for example, br0. If br0 or any other
-        #host bridge devices already conneced to host network that do not exist, [guest_network_device] wil be configured to connect to host
-        #network and used for guest configuration.
-    'guest_ipaddr'           => '',    #virt-install --extra-args "ip=[guest_ipaddr]" if it is a static ip address, otherwise it is not virt-install argument.
-                                       #It stores the final guest ip address obtained from ip discovery
-    'guest_ipaddr_static'    => '',    #This indicates whether guest uses static ip address(true or false), not virt-install argument
-    'guest_graphics'         => '',    #virt-install --graphics [guest_graphics]
-    'guest_controller'       => '',    #TODO            #virt-install --controller [guest_controller]
-    'guest_input'            => '',    #TODO            #virt-install --input [guest_input]
-    'guest_serial'           => '',    #virt-install --serial [guest_serial]
-    'guest_parallel'         => '',    #TODO            #virt-install --parallel [guest_parallel]
-    'guest_channel'          => '',    #TODO            #virt-install --channel [guest_channel]
-    'guest_console'          => '',    #virt-install --console [guest_console]
-    'guest_hostdev'          => '',    #TODO            #virt-install --hostdev [guest_hostdev]
-    'guest_filesystem'       => '',    #TODO            #virt-install --filesystem [guest_filesystem]
-    'guest_sound'            => '',    #TODO            #virt-install --sound [guest_sound]
-    'guest_watchdog'         => '',    #TODO            #virt-install --watchdog [guest_watchdog]
-    'guest_video'            => '',    #virt-install --video [guest_video]
-    'guest_smartcard'        => '',    #TODO            #virt-install --smartcard [guest_smartcard]
-    'guest_redirdev'         => '',    #TODO            #virt-install --redirdev [guest_redirdev]
-    'guest_memballoon'       => '',    #TODO            #virt-install --memballoon [guest_memballoon]
-    'guest_tpm'              => '',    #TODO            #virt-install --tpm [guest_tpm]
-    'guest_rng'              => '',    #TODO            #virt-install --rng [guest_rng]
-    'guest_panic'            => '',    #TODO            #virt-install --panic [guest_panic]
-    'guest_memdev'           => '',    #TODO            #virt-install --memdev [guest_memdev]
-    'guest_vsock'            => '',    #TODO            #virt-install --vsock [guest_vsock]
-    'guest_iommu'            => '',    #TODO            #virt-install --iommu [guest_iommu]
-    'guest_iothreads'        => '',    #TODO            #virt-install --iothreads [guest_iothreads]
-    'guest_seclabel'         => '',    #TODO            #virt-install --seclabel [guest_seclabel]
-    'guest_keywrap'          => '',    #TODO            #virt-install --keywrap [guest_keywrap]
-    'guest_cputune'          => '',    #TODO            #virt-install --cputune [guest_cputune]
-    'guest_memtune'          => '',    #TODO            #virt-install --memtune [guest_memtune]
-    'guest_blkiotune'        => '',    #TODO            #virt-install --blkiotune [guest_blkiotune]
-    'guest_memorybacking'    => '',    #TODO            #virt-install --memorybacking [guest_memorybacking]
-    'guest_features'         => '',    #virt-install --features [guest_features]
-    'guest_clock'            => '',    #TODO            #virt-install --clock [guest_clock]
+    'guest_os_variant' => '',    #virt-install --os-variant [guest_os_variant]
+    'guest_storage_path' => '',    #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_type' => '',    #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_format' => '',  #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_label' => '',    #This indicates whether guest disk uses gpt or mbr in unattended installation file, not virt-install argument
+    'guest_storage_size' => '',    #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_storage_others' => '',  #virt-install --disk path=[guest_storage_path],size=[guest_storage_size],format=[guest_storage_format],[guest_storage_others]
+    'guest_network_type' => '',    #This indicates whether guest uses bridge, nat or other network types, not virt-install argument
+    'guest_network_device' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
+    'guest_network_others' => '',    #virt-install --netowrk=bridge=[guest_network_device],mac=[guest_macaddr],[guest_network_others]
+                                     #(Also can be used with other network type)
+    'guest_macaddr' => '',    #virt-install --network=bridge=[guest_network_device],mac=[guest_macaddr] (Also can be used with other network type)
+    'guest_netaddr' => '', #This indicates the subnet to which guest will be connected. It takes the form ip_address/subnet_mask_length and defaults to 192.168.123.255/24,
+        #not virt-install argument. If 'host-default' is given, this indicates guest will use host network and host bridge device that already exists
+        #and are connected directly to default gateway, for example, br0. If br0 or any other host bridge devices already conneced to host network that
+        #do not exist, [guest_network_device] wil be configured to connect to host network and used for guest configuration.
+    'guest_ipaddr' => '',    #virt-install --extra-args "ip=[guest_ipaddr]" if it is a static ip address, otherwise it is not virt-install argument.
+                             #It stores the final guest ip address obtained from ip discovery
+    'guest_ipaddr_static' => '',    #This indicates whether guest uses static ip address(true or false), not virt-install argument
+    'guest_graphics' => '',    #virt-install --graphics [guest_graphics]
+    'guest_controller' => '',    #TODO            #virt-install --controller [guest_controller]
+    'guest_input' => '',    #TODO            #virt-install --input [guest_input]
+    'guest_serial' => '',    #virt-install --serial [guest_serial]
+    'guest_parallel' => '',    #TODO            #virt-install --parallel [guest_parallel]
+    'guest_channel' => '',    #TODO            #virt-install --channel [guest_channel]
+    'guest_console' => '',    #virt-install --console [guest_console]
+    'guest_hostdev' => '',    #TODO            #virt-install --hostdev [guest_hostdev]
+    'guest_filesystem' => '',    #TODO            #virt-install --filesystem [guest_filesystem]
+    'guest_sound' => '',    #TODO            #virt-install --sound [guest_sound]
+    'guest_watchdog' => '',    #TODO            #virt-install --watchdog [guest_watchdog]
+    'guest_video' => '',    #virt-install --video [guest_video]
+    'guest_smartcard' => '',    #TODO            #virt-install --smartcard [guest_smartcard]
+    'guest_redirdev' => '',    #TODO            #virt-install --redirdev [guest_redirdev]
+    'guest_memballoon' => '',    #TODO            #virt-install --memballoon [guest_memballoon]
+    'guest_tpm' => '',    #TODO            #virt-install --tpm [guest_tpm]
+    'guest_rng' => '',    #TODO            #virt-install --rng [guest_rng]
+    'guest_panic' => '',    #TODO            #virt-install --panic [guest_panic]
+    'guest_memdev' => '',    #TODO            #virt-install --memdev [guest_memdev]
+    'guest_vsock' => '',    #TODO            #virt-install --vsock [guest_vsock]
+    'guest_iommu' => '',    #TODO            #virt-install --iommu [guest_iommu]
+    'guest_iothreads' => '',    #TODO            #virt-install --iothreads [guest_iothreads]
+    'guest_seclabel' => '',    #TODO            #virt-install --seclabel [guest_seclabel]
+    'guest_keywrap' => '',    #TODO            #virt-install --keywrap [guest_keywrap]
+    'guest_cputune' => '',    #TODO            #virt-install --cputune [guest_cputune]
+    'guest_memtune' => '',    #TODO            #virt-install --memtune [guest_memtune]
+    'guest_blkiotune' => '',    #TODO            #virt-install --blkiotune [guest_blkiotune]
+    'guest_memorybacking' => '',    #TODO            #virt-install --memorybacking [guest_memorybacking]
+    'guest_features' => '',    #virt-install --features [guest_features]
+    'guest_clock' => '',    #TODO            #virt-install --clock [guest_clock]
     'guest_power_management' => '',    #virt-install --pm [guest_power_management]
-    'guest_events'           => '',    #virt-install --events [guest_events]
-    'guest_resource'         => '',    #TODO            #virt-install --resource [guest_resource]
-    'guest_sysinfo'          => '',    #TODO            #virt-install --sysinfo [guest_sysinfo]
-    'guest_qemu_command'     => '',    #virt-install --qemu-commandline [guest_qemu_command]
-    'guest_launchsecurity'   => '',    #TODO            #virt-install --launchSecurity [guest_launchsecurity]
-    'guest_autostart'        => '',    #TODO            #virt-install --[guest_autostart(autostart or empty)]
-    'guest_transient'        => '',    #TODO            #virt-install --[guest_transient(transient or empty)]
-    'guest_destroy_on_exit'  => '',    #TODO            #virt-install --[guest_destroy_on_exit(true or false)]
-    'guest_autoconsole'      => '',    #virt-install --autoconsole [guest_autoconsole(text or graphical)] or virt-install --noautoconsole if empty
-    'guest_noreboot'         => '',    #TODO            #virt-install --[guest_noreboot(true or false)]
-    'guest_default_target'   => '',    #This indicates whether guest os default target(multi-user, graphical or others), not virt-install argument
-        #The following parameters end with 'options' are derived from above parameters. They contains options and corresponding values
-        #which are passed to virt-install command line directly to perform guest installations.
-    'guest_virt_options'                => '',    #[guest_virt_options] = "--connect [host_hypervisor_uri] --virt-type [host_virt_type] --[guest_virt_type]"
-    'guest_platform_options'            => '',    #[guest_platform_options] = "--arch [guest_arch] --machine [guest_machine_type]"
-    'guest_name_options'                => '',    #[guest_name_options] = "--name [guest_name]"
-    'guest_memory_options'              => '',    #[guest_memory_options] = "--memory [guest_memory]"
-    'guest_vcpus_options'               => '',    #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
-    'guest_cpumodel_options'            => '',    #[guest_cpumodel_options] = "--cpu [guest_cpumodel]"
-    'guest_metadata_options'            => '',    #[guest_metadata_options] = "--metadata [guest_metadata]"
-    'guest_xpath_options'               => '',    #[guest_xpath_options] = [guest_xpath_options] . "--xml $_ " foreach ([@guest_xpath])
+    'guest_events' => '',    #virt-install --events [guest_events]
+    'guest_resource' => '',    #TODO            #virt-install --resource [guest_resource]
+    'guest_sysinfo' => '',    #TODO            #virt-install --sysinfo [guest_sysinfo]
+    'guest_qemu_command' => '',    #virt-install --qemu-commandline [guest_qemu_command]
+    'guest_launchsecurity' => '',    #TODO            #virt-install --launchSecurity [guest_launchsecurity]
+    'guest_autostart' => '',    #TODO            #virt-install --[guest_autostart(autostart or empty)]
+    'guest_transient' => '',    #TODO            #virt-install --[guest_transient(transient or empty)]
+    'guest_destroy_on_exit' => '',    #TODO            #virt-install --[guest_destroy_on_exit(true or false)]
+    'guest_autoconsole' => '',    #virt-install --autoconsole [guest_autoconsole(text or graphical or none)] or empty.
+                                  #For virt-manager earlier than 3.0.0, this option does not exist and should be left empty.
+    'guest_noautoconsole' => '',    #virt-install --noautoconsole if true.This option should only be given 'true', 'false' or empty.
+    'guest_noreboot' => '',    #TODO            #virt-install --[guest_noreboot(true or false)]
+    'guest_default_target' => '',    #This indicates whether guest os default target(multi-user, graphical or others), not virt-install argument.
+                                     #The following parameters end with 'options' are derived from above parameters. They contains options and
+                                     #corresponding values which are passed to virt-install command line directly to perform guest installations.
+    'guest_do_registration' => '',    #This indicates whether guest to be registered or subscribed with content provider. Not virt-install argument.
+                                      #It can be given 'true','false' or empty. Only 'true' means do registration/subscription.
+    'guest_registration_server' => '',    #This is the address of registration/subscription server of content provider.
+                                          #Not virt-install argument. It can be left empty if not needed.
+    'guest_registration_username' => '',    #This is the username to be used in registration/subscription. Not virt-install argument.
+                                            #It can be email address, free text or empty if not needed.
+    'guest_registration_password' => '',    #This is the password to be used in registration/subscription. Not virt-install argument.
+                                            #It is normally used together with [guest_registration_username] or empty if not needed.
+    'guest_registration_code' => '',    #This is the code or key to used in registraiton/subscription. Not virt-install argument.
+                                        #It can be used together with [guest_registration_username], standalone or empty if not needed.
+                                        #Do not recommend to use the parameter in guest profile directly, use test suite setting UNIFIED_GUEST_REG_CODES.
+    'guest_registration_extensions' => '',    #This refers to additional modules/extensions/products to be registered together with guest os or
+                                              #by using individual registration/subscription code/key. Multiple modules/extensions/products are
+                                              #separated by hash key. For example, "sle-module-legacy#sle-module-basesystem#SLES-LTSS".
+                                              #Not virt-install argument. Can be left empty if not needed.
+    'guest_registration_extensions_codes' => '',    #This refers to registration/subscription codes/keys to be used by modules/extensions/products in
+        #[guest_registration_extensions]. Can be empty if not needed, but if anyone in [guest_registration_extensions] needs its own code/key, all the
+        #others should also be given theirs even empty. For example, "sle-module-legacy#sle-module-basesystem#SLES-LTSS" needs "##SLES-LTSS-CODE-OR-KEY"
+        #to be set in [guest_registration_extensions_codes]. And the codes/keys should be separated by hash key and put in the same order as their
+        #corresponding modules/extensions/products in [guest_registration_extensions]. Not virt-install argument. Do not recommend to use the parameter
+        #in guest profile directly, use test suite setting UNIFIED_GUEST_REG_EXTS_CODES.
+    'guest_virt_options' => '',    #[guest_virt_options] = "--connect [host_hypervisor_uri] --virt-type [host_virt_type] --[guest_virt_type]"
+    'guest_platform_options' => '',    #[guest_platform_options] = "--arch [guest_arch] --machine [guest_machine_type]"
+    'guest_name_options' => '',    #[guest_name_options] = "--name [guest_name]"
+    'guest_memory_options' => '',    #[guest_memory_options] = "--memory [guest_memory]"
+    'guest_vcpus_options' => '',    #[guest_vcpus_options] = "--vcpus [guest_vcpus]"
+    'guest_cpumodel_options' => '',    #[guest_cpumodel_options] = "--cpu [guest_cpumodel]"
+    'guest_metadata_options' => '',    #[guest_metadata_options] = "--metadata [guest_metadata]"
+    'guest_xpath_options' => '',    #[guest_xpath_options] = [guest_xpath_options] . "--xml $_ " foreach ([@guest_xpath])
     'guest_installation_method_options' => '', #[guest_installation_method_options] = "--location [guest_installation_media] --install [guest_installation_fine_grained]
                                                #--autoconsole [guest_autoconsole] or --noautoconsole" or
                                                #"--[guest_installation_method] [guest_installation_media],[guest_installation_method_others]"
     'guest_installation_extra_args_options' => '', #[guest_installation_extra_args_options] = "[guest_installation_extra_args_options] . --extra-args $_ foreach
         #[@guest_installation_extra_args] --extra-args ip=[guest_ipaddr(if static)] [guest_installation_automation_options]"
     'guest_installation_automation_options' => '', #[guest_installation_automation_options] = "--extra-args [autoyast|inst.ks][ks]=[guest_installation_automation_file]"
-    'guest_boot_options'               => '',      #[guest_boot_options} = "--boot [guest_boot_settings]"
-    'guest_os_variant_options'         => '',      #[guest_os_variant_options] = "--os-variant [guest_os_variant]"
-    'guest_storage_options'            => '',      #[guest_storage_options] = "--disk path=[guest_storage_path],size=[guest_storage_size],
-                                                   #format=[guest_storage_format],[guest_storage_others]"
-    'guest_network_selection_options'  => '',      #[guest_network_selection_options] = "--network=bridge=[guest_network_device],mac=[guest_macaddr]"
-    'guest_graphics_and_video_options' => '',      #[guest_graphics_and_video_options] = "--video [guest_video] --graphics [guest_graphics]"
-    'guest_serial_options'             => '',      #[guest_serial_options] = "--serial [guest_serial]"
-    'guest_console_options'            => '',      #[guest_console_options] = "--console [guest_console]"
-    'guest_features_options'           => '',      #[guest_features_options] = "--features [guest_features]"
-    'guest_power_management_options'   => '',      #[guest_power_management_options] = "--pm [guest_power_management]"
-    'guest_events_options'             => '',      #[guest_events_options] = "--events [guest_events]"
-    'guest_qemu_command_options'       => '',      #[guest_qemu_command_options] = "--qemu-commandline [guest_qemu_command]"
-    'virt_install_command_line'        => '',      #This is the complete virt-install command line which is composed of above parameters end with 'options'
-    'virt_install_command_line_dryrun' => '',      #This is [virt_install_command_line] appended with --dry-run
-    'host_ipaddr'                      => '',      #This is get_required_var('SUT_IP')
-    'host_name'                        => '',      #This is script_output('hostname')
-    'host_domain_name'                 => '',      #This is script_output('dnsdomainname')
-                                                   #The following five parameters are detailed guest os information,not virt-install arguments
-    'guest_log_folder'                 => '',      #Log folder for individual guest [common_log_folder]/[guest_name]
-    'guest_installation_result'        => '',      #PASSED,FAILED,TIMEOUT,UNKNOWN or others
+    'guest_boot_options' => '',    #[guest_boot_options} = "--boot [guest_boot_settings]"
+    'guest_os_variant_options' => '',    #[guest_os_variant_options] = "--os-variant [guest_os_variant]"
+    'guest_storage_options' => '',    #[guest_storage_options] = "--disk path=[guest_storage_path],size=[guest_storage_size],
+                                      #format=[guest_storage_format],[guest_storage_others]"
+    'guest_network_selection_options' => '',    #[guest_network_selection_options] = "--network=bridge=[guest_network_device],mac=[guest_macaddr]"
+    'guest_graphics_and_video_options' => '',    #[guest_graphics_and_video_options] = "--video [guest_video] --graphics [guest_graphics]"
+    'guest_serial_options' => '',    #[guest_serial_options] = "--serial [guest_serial]"
+    'guest_console_options' => '',    #[guest_console_options] = "--console [guest_console]"
+    'guest_features_options' => '',    #[guest_features_options] = "--features [guest_features]"
+    'guest_power_management_options' => '',    #[guest_power_management_options] = "--pm [guest_power_management]"
+    'guest_events_options' => '',    #[guest_events_options] = "--events [guest_events]"
+    'guest_qemu_command_options' => '',    #[guest_qemu_command_options] = "--qemu-commandline [guest_qemu_command]"
+    'virt_install_command_line' => '',    #This is the complete virt-install command line which is composed of above parameters end with 'options'
+    'virt_install_command_line_dryrun' => '',    #This is [virt_install_command_line] appended with --dry-run
+    'host_ipaddr' => '',    #This is get_required_var('SUT_IP')
+    'host_name' => '',    #This is script_output('hostname')
+    'host_domain_name' => '',    #This is script_output('dnsdomainname')
+                                 #The following five parameters are detailed guest os information,not virt-install arguments
+    'guest_log_folder' => '',    #Log folder for individual guest [common_log_folder]/[guest_name]
+    'guest_installation_result' => '',    #PASSED,FAILED,TIMEOUT,UNKNOWN or others
+    'guest_installation_session_config' => '',   #Absolute path of screen command config file that will be used in screen -c [guest_installation_session_config]
+                                                 #to start guest installation session. The content of the config file includes content of global /etc/screenrc
+                                                 #and logfile="absolute path of guest installation log file".
     'guest_installation_session' => '', #Guest installation process started by "screen -t [guest_name] [virt_install_command_line]. It is in the form of 3401.pts-1.vh017
     'guest_installation_session_command' => '', #If there is no [guest_installation_session] or [guest_installation_session] is terminated, start or re-connect to
         #guest installation screen using [guest_installation_session_command] = screen -t [guest_name] virsh console --force [guest_name]
     'guest_installation_attached' => '',    #This indicates whether guest installation screen is already connected or attached(true or false)
     'guest_netaddr_attached' => '',  #Array reference that stores the actual subnets in which guest may reside, for example, ('10.10.10.0/24', '11.11.11.0/24').
-    'start_run'              => '',  #Guest creation start time
-    'stop_run'               => ''   #Guest creation finish time
+    'start_run' => '',    #Guest creation start time
+    'stop_run' => ''    #Guest creation finish time
 );
 
 our $AUTOLOAD;
-our $common_log_folder           = '/tmp/guest_installation_and_configuration';
+our $common_log_folder = '/tmp/guest_installation_and_configuration';
 our $common_environment_prepared = 'false';
 
 #Any subroutine calls this subroutine announces its identity and it is being executed
@@ -217,10 +238,10 @@ sub initialize_guest_params {
 
     $self->reveal_myself;
     $self->{$_} //= '' foreach (keys %guest_params);
-    $self->{host_ipaddr}      = get_required_var('SUT_IP');
-    $self->{host_name}        = script_output("hostname");
+    $self->{host_ipaddr} = get_required_var('SUT_IP');
+    $self->{host_name} = script_output("hostname");
     $self->{host_domain_name} = script_output("dnsdomainname");
-    $self->{start_run}        = time();
+    $self->{start_run} = time();
     return $self;
 }
 
@@ -231,7 +252,7 @@ sub initialize_guest_params {
 #Secondly,config_guest_params can also be called direcly, for example,$self->config_guest_params(%testhash).
 #Call revise_guest_version_and_build to correct guest version and build parameters to avoid mismatch if necessary.
 sub config_guest_params {
-    my $self          = shift;
+    my $self = shift;
     my %_guest_params = @_;
 
     $self->reveal_myself;
@@ -263,7 +284,7 @@ sub config_guest_params {
 #if non-developing [guest_version].This subroutine help make things better and life easier but the end user should always pay attention and use
 #meaningful and correct guest parameter and profile.
 sub revise_guest_version_and_build {
-    my $self          = shift;
+    my $self = shift;
     my %_guest_params = @_;
 
     $self->reveal_myself;
@@ -364,7 +385,7 @@ sub clean_up_all_guests {
         diag("Going to clean up all guests on $self->{host_name}");
         foreach (@_guests_to_clean_up) {
             script_run("virsh destroy $_");
-            script_run("virsh undefine $_ --nvram")            if (script_run("virsh undefine $_") ne 0);
+            script_run("virsh undefine $_ --nvram") if (script_run("virsh undefine $_") ne 0);
             script_run("rm -f -r $self->{guest_storage_path}") if ($self->{guest_storage_path} ne '');
         }
         script_run("rm -f -r /var/lib/libvirt/images/*");
@@ -383,7 +404,7 @@ sub prepare_guest_environment {
     $self->{guest_log_folder} = $common_log_folder . '/' . $self->{guest_name};
     script_run("rm -f -r $self->{guest_log_folder}");
     assert_script_run("mkdir -p $self->{guest_log_folder}");
-    script_run("sed -i -r '/^.*$self->{guest_name}.*\$/d' /etc/hosts");
+    script_run("sed -i -r \'/^.*$self->{guest_name}.*\$/d\' /etc/hosts");
     return $self;
 }
 
@@ -394,8 +415,8 @@ sub config_guest_name {
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_installation_result} eq '') {
-        $self->{guest_domain_name}  = 'testvirt.net'            if ($self->{guest_domain_name} eq '');
-        $self->{guest_domain_name}  = $self->{host_domain_name} if ($self->{guest_netaddr} eq 'host-default');
+        $self->{guest_domain_name} = 'testvirt.net' if ($self->{guest_domain_name} eq '');
+        $self->{guest_domain_name} = $self->{host_domain_name} if ($self->{guest_netaddr} eq 'host-default');
         $self->{guest_name_options} = "--name $self->{guest_name}";
     }
     return $self;
@@ -422,11 +443,11 @@ sub config_guest_vcpus {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_current_vcpus_options    = $self->{guest_vcpus_options};
+    my $_current_vcpus_options = $self->{guest_vcpus_options};
     my $_current_cpumodel_options = $self->{guest_cpumodel_options};
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
-    $self->{guest_vcpus}            = 2 if ($self->{guest_vcpus} eq '');
-    $self->{guest_vcpus_options}    = "--vcpus $self->{guest_vcpus}";
+    $self->{guest_vcpus} = 2 if ($self->{guest_vcpus} eq '');
+    $self->{guest_vcpus_options} = "--vcpus $self->{guest_vcpus}";
     $self->{guest_cpumodel_options} = "--cpu $self->{guest_cpumodel}" if ($self->{guest_cpumodel} ne '');
     $self->modify_guest_params($self->{guest_name}, 'guest_vcpus_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_vcpus_options ne $self->{guest_vcpus_options}));
     $self->modify_guest_params($self->{guest_name}, 'guest_cpumodel_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_cpumodel_options ne $self->{guest_cpumodel_options}));
@@ -441,7 +462,7 @@ sub config_guest_memory {
     $self->reveal_myself;
     my $_current_memory_options = $self->{guest_memory_options};
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
-    $self->{guest_memory}         = 2048 if ($self->{guest_memory} eq '');
+    $self->{guest_memory} = 2048 if ($self->{guest_memory} eq '');
     $self->{guest_memory_options} = "--memory $self->{guest_memory}";
     $self->modify_guest_params($self->{guest_name}, 'guest_memory_options') if (($self->{guest_installation_result} eq 'PASSED') and ($_current_memory_options ne $self->{guest_memory_options}));
     return $self;
@@ -460,7 +481,7 @@ sub config_guest_virtualization {
             $self->{host_virt_type} = 'xen' if (script_output("journalctl -b | grep -i \"Hypervisor detected.*Xen\"", proceed_on_failure => 1) ne '');
         }
         $self->{guest_virt_options} = $self->{guest_virt_options} . "--virt-type $self->{host_virt_type} ";
-        $self->{guest_virt_type}    = 'hvm' if ($self->{guest_virt_type} eq '');
+        $self->{guest_virt_type} = 'hvm' if ($self->{guest_virt_type} eq '');
         $self->{guest_virt_options} = $self->{guest_virt_options} . "--$self->{guest_virt_type}";
     }
     return $self;
@@ -473,7 +494,7 @@ sub config_guest_platform {
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_installation_result} eq '') {
-        $self->{guest_platform_options} = "--arch $self->{guest_arch}"                                               if ($self->{guest_arch} ne '');
+        $self->{guest_platform_options} = "--arch $self->{guest_arch}" if ($self->{guest_arch} ne '');
         $self->{guest_platform_options} = $self->{guest_platform_options} . " --machine $self->{guest_machine_type}" if ($self->{guest_machine_type} ne '');
     }
     return $self;
@@ -516,7 +537,7 @@ sub config_guest_consoles {
 
     $self->reveal_myself;
     my $_current_console_options = $self->{guest_console_options};
-    my $_current_serial_options  = $self->{guest_serial_options};
+    my $_current_serial_options = $self->{guest_serial_options};
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_console} ne '') {
         $self->{guest_console_options} = "--console $self->{guest_console}";
@@ -630,9 +651,9 @@ sub config_guest_storage {
     my $_current_storage_options = $self->{guest_storage_options};
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_storage_type} eq 'disk') {
-        $self->{guest_storage_size}   = '16'    if ($self->{guest_storage_size} eq '');
+        $self->{guest_storage_size} = '16' if ($self->{guest_storage_size} eq '');
         $self->{guest_storage_format} = 'qcow2' if ($self->{guest_storage_format} eq '');
-        $self->{guest_storage_label}  = 'gpt'   if ($self->{guest_storage_label} eq '');
+        $self->{guest_storage_label} = 'gpt' if ($self->{guest_storage_label} eq '');
         if ($self->{guest_storage_path} eq '') {
             $self->{guest_storage_path} = "/var/lib/libvirt/images/$self->{guest_name}.$self->{guest_storage_format}";
         }
@@ -658,7 +679,7 @@ sub config_guest_network_selection {
 
     $self->reveal_myself;
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
-    $self->config_guest_macaddr    if ($self->{guest_macaddr} eq '');
+    $self->config_guest_macaddr if ($self->{guest_macaddr} eq '');
     if ($self->{guest_network_type} eq 'bridge') {
         if ($self->{guest_network_device} eq '') {
             if ($self->{guest_netaddr} eq 'host-default') {
@@ -667,7 +688,7 @@ sub config_guest_network_selection {
             }
             elsif ($self->{guest_netaddr} eq '') {
                 $self->{guest_network_device} = 'br123';
-                $self->{guest_netaddr}        = '192.168.123.255/24';
+                $self->{guest_netaddr} = '192.168.123.255/24';
                 record_info("Guest $self->{guest_name} has no given network bridge device and no given subnet although it is configured to use network bridge.", "Set network bridge device to $self->{guest_network_device} and subnet to $self->{guest_netaddr} because guest chooses to not use host network.");
             }
             else {
@@ -718,9 +739,9 @@ sub config_guest_network_bridge {
     my ($self, $_guest_network_device, $_guest_network_address, $_guest_network_domain) = @_;
 
     $self->reveal_myself;
-    $_guest_network_device  //= '';
+    $_guest_network_device //= '';
     $_guest_network_address //= '';
-    $_guest_network_domain  //= $self->{guest_domain_name};
+    $_guest_network_domain //= $self->{guest_domain_name};
     diag("This subroutine requires network device and network address as passed in arguments.") if (($_guest_network_device eq '') or ($_guest_network_address eq ''));
     if ($_guest_network_address ne 'host-default') {
         my ($_guest_network_ipaddr, $_guest_network_mask, $_guest_netwok_mask_len, $_guest_network_ipaddr_gw, $_guest_network_ipaddr_start, $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev) = virt_autotest::utils::parse_subnet_address_ipv4($_guest_network_address);
@@ -741,20 +762,20 @@ sub write_guest_network_bridge_device_config {
     my ($self, $_ipaddr, $_name, $_bootproto, $_startmode, $_zone, $_bridge, $_bridge_ports, $_bridge_stp, $_bridge_forwarddelay) = @_;
 
     $self->reveal_myself;
-    $_ipaddr              //= '0.0.0.0';
-    $_name                //= '';
-    $_bootproto           //= 'dhcp';
-    $_startmode           //= 'auto';
-    $_zone                //= '';
-    $_bridge              //= '';
-    $_bridge_ports        //= '';
-    $_bridge_stp          //= 'off';
+    $_ipaddr //= '0.0.0.0';
+    $_name //= '';
+    $_bootproto //= 'dhcp';
+    $_startmode //= 'auto';
+    $_zone //= '';
+    $_bridge //= '';
+    $_bridge_ports //= '';
+    $_bridge_stp //= 'off';
     $_bridge_forwarddelay //= '15';
     script_run("cp /etc/sysconfig/network/ifcfg-$_name /etc/sysconfig/network/backup-ifcfg-$_name");
     script_run("cp /etc/sysconfig/network/backup-ifcfg-$_name $common_log_folder");
     my $_bridge_device_config_file = '/etc/sysconfig/network/ifcfg-' . $_name;
     $_ipaddr = '0.0.0.0' if ($_ipaddr eq '');
-    $_ipaddr = ''        if (!($_ipaddr =~ /\d+\.\d+\.\d+\.\d+/));
+    $_ipaddr = '' if (!($_ipaddr =~ /\d+\.\d+\.\d+\.\d+/));
     type_string("cat > $_bridge_device_config_file <<EOF
 IPADDR=\'$_ipaddr\'
 NAME=\'$_name\'
@@ -778,12 +799,12 @@ sub config_guest_network_bridge_device {
     my $self = shift;
 
     $self->reveal_myself;
-    my $_bridge_network          = shift;
+    my $_bridge_network = shift;
     my $_bridge_network_in_route = shift;
-    my $_bridge_device           = shift;
+    my $_bridge_device = shift;
     $_bridge_device //= $self->{guest_network_device};
     if ((script_output("ip route show | grep -o $_bridge_device", proceed_on_failure => 1) eq '') and (script_output("ip route show | grep -o $_bridge_network_in_route", proceed_on_failure => 1) eq '')) {
-        my $_detect_active_route   = '';
+        my $_detect_active_route = '';
         my $_detect_inactive_route = '';
         if ($self->{guest_netaddr} ne 'host-default') {
             $self->write_guest_network_bridge_device_config($_bridge_network, $_bridge_device, 'static', 'auto', '', 'yes');
@@ -806,7 +827,7 @@ sub config_guest_network_bridge_device {
             script_retry("systemctl restart network", timeout => 60, delay => 15, retry => 3, die => 0);
             type_string("reset\n");
             select_console('root-ssh') if (!(check_screen('text-logged-in-root')));
-            $_detect_active_route   = script_output("ip route show default | grep -i $_bridge_device",                  proceed_on_failure => 1);
+            $_detect_active_route = script_output("ip route show default | grep -i $_bridge_device", proceed_on_failure => 1);
             $_detect_inactive_route = script_output("ip route show default | grep -i $_host_default_network_interface", proceed_on_failure => 1);
         }
         if (($_detect_active_route ne '') and ($_detect_inactive_route eq '')) {
@@ -834,14 +855,14 @@ sub config_guest_network_bridge_services {
     my $_detect_signature = script_output("cat /etc/sysconfig/network/config | grep \"#Modified by guest_installation_and_configuration_base module\"", proceed_on_failure => 1);
     if (!($_detect_signature =~ /#Modified by guest_installation_and_configuration_base module/im)) {
         assert_script_run("cp /etc/sysconfig/network/config /etc/sysconfig/network/config_backup");
-        assert_script_run("sed -ri 's/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"\"/g' /etc/sysconfig/network/config");
+        assert_script_run("sed -ri \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"\"/g\' /etc/sysconfig/network/config");
         assert_script_run("echo \'#Modified by guest_installation_and_configuration_base module\' >> /etc/sysconfig/network/config");
     }
     record_info("Content of /etc/sysconfig/network/config", script_output("cat /etc/sysconfig/network/config", proceed_on_failure => 1));
 
     $_detect_signature = script_output("cat /etc/resolv.conf | grep \"#Modified by guest_installation_and_configuration_base module\"", proceed_on_failure => 1);
     my $_detect_name_server = script_output("cat /etc/resolv.conf | grep \"nameserver $_guest_network_ipaddr_gw\"", proceed_on_failure => 1);
-    my $_detect_domain_name = script_output("cat /etc/resolv.conf | grep $self->{guest_domain_name}",               proceed_on_failure => 1);
+    my $_detect_domain_name = script_output("cat /etc/resolv.conf | grep $self->{guest_domain_name}", proceed_on_failure => 1);
     assert_script_run("awk -v dnsvar=$_guest_network_ipaddr_gw \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\\n\"; done=1 } 1\' /etc/resolv.conf > /etc/resolv.conf.tmp") if ($_detect_name_server eq '');
     assert_script_run("sed -ir \'/^search/ s/\$/ $self->{guest_domain_name}/\' /etc/resolv.conf.tmp") if ($_detect_domain_name eq '');
     if ($_detect_signature eq '') {
@@ -855,14 +876,16 @@ sub config_guest_network_bridge_services {
     my $_dnsmasq_log = "$common_log_folder/dnsmasq_listen_address_$_guest_network_ipaddr_gw_transformed" . '_log';
     my $_dnsmasq_command = "/usr/sbin/dnsmasq --bind-dynamic --listen-address=$_guest_network_ipaddr_gw --bogus-priv --domain-needed --expand-hosts --dhcp-range=$_guest_network_ipaddr_start,$_guest_network_ipaddr_end,$_guest_network_mask,8h --interface=$_guest_network_device --dhcp-authoritative --no-negcache --dhcp-option=option:router,$_guest_network_ipaddr_gw --log-queries --local=/$self->{guest_domain_name}/ --domain=$self->{guest_domain_name} --log-dhcp --dhcp-fqdn --dhcp-sequential-ip --dhcp-client-update --dns-loop-detect --no-daemon --server=/$self->{guest_domain_name}/$_guest_network_ipaddr_gw --server=/$_guest_network_ipaddr_rev/$_guest_network_ipaddr_gw";
     my $_retry_counter = 5;
-    while (($_retry_counter gt 0) and (script_output("pgrep -i -f \"$_dnsmasq_command\"", proceed_on_failure => 1) eq '')) {
+    #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
+    while (($_retry_counter gt 0) and (script_output("ps ax | grep -i \"$_dnsmasq_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '')) {
         script_run("((nohup $_dnsmasq_command  &>$_dnsmasq_log) &)");
         save_screenshot;
         send_key('ret');
         save_screenshot;
         $_retry_counter--;
     }
-    if (script_output("pgrep -i -f \"$_dnsmasq_command\"", proceed_on_failure => 1) eq '') {
+    #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
+    if (script_output("ps ax | grep -i \"$_dnsmasq_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '') {
         record_info("DHCP and DNS services can not start.Mark guest $self->{guest_name} installation as FAILED", "The command used is ((nohup $_dnsmasq_command  &>$_dnsmasq_log) &)");
         $self->record_guest_installation_result('FAILED');
     }
@@ -885,7 +908,7 @@ sub config_guest_network_bridge_policy {
     my ($self, $_guest_network_device) = @_;
 
     $self->reveal_myself;
-    my @_default_route_devices          = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", proceed_on_failure => 0));
+    my @_default_route_devices = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", proceed_on_failure => 0));
     my $_iptables_default_route_devices = '';
     $_iptables_default_route_devices = "iptables --table nat --append POSTROUTING --out-interface $_ -j MASQUERADE\n" . $_iptables_default_route_devices foreach (@_default_route_devices);
     my $_network_policy_config_file = '/tmp/network_policy_bridge_device_' . $_guest_network_device . '_default_route_device';
@@ -900,6 +923,8 @@ LANG=POSIX
 SHELL=/bin/bash
 PWD=/root
 iptables-save > $self->{guest_log_folder}/iptables_before_modification_by_$self->{guest_name}
+systemctl stop SuSEFirewall2
+systemctl disable SuSEFirewall2
 systemctl stop firewalld
 systemctl disable firewalld
 systemctl stop apparmor
@@ -948,7 +973,8 @@ sub config_guest_installation_method {
     }
     $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . ($self->{guest_installation_method_others} ne '' ? ",$self->{guest_installation_method_others}" : '') if ($self->{guest_installation_method_others} ne '');
     $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . ($self->{guest_installation_fine_grained} ne '' ? " --install $self->{guest_installation_fine_grained}" : '') if ($self->{guest_installation_fine_grained} ne '');
-    $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . ($self->{guest_autoconsole} ne '' ? " --autoconsole $self->{guest_autoconsole}" : ' --noautoconsole');
+    $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . " --autoconsole $self->{guest_autoconsole}" if ($self->{guest_autoconsole} ne '');
+    $self->{guest_installation_method_options} = $self->{guest_installation_method_options} . " --noautoconsole" if ($self->{guest_noautoconsole} eq 'true');
     return $self;
 }
 
@@ -962,11 +988,11 @@ sub config_guest_installation_media {
     $self->reveal_myself;
     $self->{guest_installation_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
 #This is just auxiliary functionality to help correct and set correct installation media major and minor version if it mismatches with guest_version.It is not mandatory
-#necessary and can be skipped without causing any issue.The end user should always pay attention and use meaningful and correct guest parameters and profiles.
+  #necessary and can be skipped without causing any issue.The end user should always pay attention and use meaningful and correct guest parameters and profiles.
     if ($self->{guest_os_name} =~ /sles|oraclelinux/im) {
         if (!($self->{guest_installation_media} =~ /-$self->{guest_version}-/im)) {
             record_info("Guest $self->{guest_name} installation media $self->{guest_installation_media} does not match with version $self->{guest_version}", "Going to correct it !");
-            my $_guest_version_major_indicator = ($self->{guest_os_name} =~ /sles/im ? ''   : 'R');
+            my $_guest_version_major_indicator = ($self->{guest_os_name} =~ /sles/im ? '' : 'R');
             my $_guest_version_minor_indicator = ($self->{guest_os_name} =~ /sles/im ? 'SP' : 'U');
             $self->{guest_installation_media} =~ /-((r)?(\d*))-((sp|u)?(\d*))?/im;
             if ($self->{guest_version_minor} ne 0) {
@@ -990,7 +1016,7 @@ sub config_guest_installation_media {
 
 #If guest chooses to use iso installation media, then this iso media should be available on INSTALLATION_MEDIA_NFS_SHARE and mounted locally at INSTALLATION_MEDIA_LOCAL_SHARE.
     if ($self->{guest_installation_media} =~ /^.*\.iso$/im) {
-        my $_installation_media_nfs_share   = get_var('INSTALLATION_MEDIA_NFS_SHARE',   '');
+        my $_installation_media_nfs_share = get_var('INSTALLATION_MEDIA_NFS_SHARE', '');
         my $_installation_media_local_share = get_var('INSTALLATION_MEDIA_LOCAL_SHARE', '');
         if (($_installation_media_nfs_share eq '') or (($_installation_media_local_share eq '') or ($_installation_media_local_share =~ /^$common_log_folder.*$/im))) {
             record_info("Can not mount iso installation media $self->{guest_installation_media}", "Installation media nfs share is not provided or installation media local share should not be empty or the common log folder $common_log_folder or any subfolders in $common_log_folder.Mark guest $self->{guest_name} installation as FAILED !");
@@ -1042,7 +1068,9 @@ sub config_guest_installation_extra_args {
 
 #Configure [guest_installation_automation_options].User can still change [guest_installation_automation],[guest_installation_automation_file],[guest_os_name],[guest_version_major],
 #[host_virt_type],[guest_virt_type],[guest_default_target] and [guest_arch] by passing non-empty arguments using hash.Fill in unattended installation file with [guest_installation_media],
-#[guest_secure_boot],[guest_boot_settings],[guest_storage_label],[guest_domain_name],[guest_name] and host public rsa key.Start HTTP server using python3 modules in unattended
+#[guest_secure_boot],[guest_boot_settings],[guest_storage_label],[guest_domain_name],[guest_name] and host public rsa key.User can also change [guest_do_registration],[guest_registration_server],
+#[guest_registration_username],[guest_registration_password],[guest_registration_code],[guest_registration_extensions] and [guest_registration_extensions_codes] which are used in configuring
+#guest installation automation registration.Subroutine config_guest_installation_automation_registration is called to perform this task.Start HTTP server using python3 modules in unattended
 #automation file folder to serve unattended guest installation.Mark guest installation as FAILED if HTTP server can not be started up or unattended installation file is not accessible.
 #Common varaibles are used in guest unattended installation file and to be replaced with actual values.They are common variables that are relevant to guest itself or its attributes,
 #so they can be used in any unattended installation files regardless of autoyast or kickstart or others.For example, if you want to set guest ethernet interface mac address somewhere
@@ -1050,7 +1078,8 @@ sub config_guest_installation_extra_args {
 #than variables used in the unattended installation file, so keep using standardized common varialbes in unattened installation file will make it come alive automatically regardless of
 #the actual kind of automation being used.
 #Currently the following common variables are supported:[Module-Basesystem,Module-Desktop-Applications,Module-Development-Tools,Module-Legacy,Module-Server-Applications,Module-Web-Scripting,
-#Product-SLES,Authorized-Keys,Secure-Boot,Boot-Loader-Type,Disk-Label,Domain-Name,Host-Name,Device-MacAddr,Logging-HostName and Logging-HostPort]
+#Product-SLES,Authorized-Keys,Secure-Boot,Boot-Loader-Type,Disk-Label,Domain-Name,Host-Name,Device-MacAddr,Logging-HostName,Logging-HostPort,Do-Registration,Registration-Server,Registration-UserName,
+#Registration-Password and Registration-Code]
 sub config_guest_installation_automation {
     my $self = shift;
 
@@ -1060,7 +1089,7 @@ sub config_guest_installation_automation {
     assert_script_run("curl -s -o $common_log_folder/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file} " . data_url("virt_autotest/guest_unattended_installation_files/$self->{guest_installation_automation_file}"));
     $self->{guest_installation_automation_file} = "$common_log_folder/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file}";
     assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
-    if (($self->{guest_version_major} ge 15) and ($self->{guest_os_name} =~ /sles/img)) {
+    if (($self->{guest_version_major} ge 15) and ($self->{guest_os_name} =~ /sles/im)) {
         my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Product-SLES');
         my $_guest_installation_media_extension_url = '';
         foreach (@_guest_installation_media_extensions) {
@@ -1068,7 +1097,7 @@ sub config_guest_installation_automation {
             $_guest_installation_media_extension_url =~ s/\//PLACEHOLDER/img;
             assert_script_run("sed -ri \'s/##$_##/$_guest_installation_media_extension_url/g;\' $self->{guest_installation_automation_file}");
         }
-        assert_script_run("sed -ri 's/PLACEHOLDER/\\\//g;' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/PLACEHOLDER/\\\//g;\' $self->{guest_installation_automation_file}");
     }
 
     if (!((script_run("[[ -f /root/.ssh/id_rsa.pub ]] && [[ -f /root/.ssh/id_rsa.pub.bak ]]") eq 0) and (script_run("cmp /root/.ssh/id_rsa.pub /root/.ssh/id_rsa.pub.bak") eq 0))) {
@@ -1086,7 +1115,7 @@ sub config_guest_installation_automation {
     else {
         assert_script_run("sed -ri \'/##Secure-Boot##/d;\' $self->{guest_installation_automation_file}");
     }
-    my $_boot_loader = ($self->{guest_boot_settings} =~ /uefi|ovmf/img ? 'grub2-efi' : 'grub2');
+    my $_boot_loader = ($self->{guest_boot_settings} =~ /uefi|ovmf/im ? 'grub2-efi' : 'grub2');
     assert_script_run("sed -ri \'s/##Boot-Loader-Type##/$_boot_loader/g;\' $self->{guest_installation_automation_file}");
     my $_disk_label = ($self->{guest_storage_label} eq 'gpt' ? 'gpt' : 'msdos');
     assert_script_run("sed -ri \'s/##Disk-Label##/$_disk_label/g;\' $self->{guest_installation_automation_file}");
@@ -1095,18 +1124,21 @@ sub config_guest_installation_automation {
     assert_script_run("sed -ri \'s/##Device-MacAddr##/$self->{guest_macaddr}/g;\' $self->{guest_installation_automation_file}");
     assert_script_run("sed -ri \'s/##Logging-HostName##/$self->{host_name}.$self->{host_domain_name}/g;\' $self->{guest_installation_automation_file}");
     assert_script_run("sed -ri \'s/##Logging-HostPort##/514/g;\' $self->{guest_installation_automation_file}");
+    $self->config_guest_installation_automation_registration;
     $self->validate_guest_installation_automation_file;
 
     my $_http_server_command = "python3 -m http.server 8666 --bind $self->{host_ipaddr}";
-    my $_retry_counter       = 5;
-    while (($_retry_counter gt 0) and (script_output("pgrep -i -f \"$_http_server_command\"", proceed_on_failure => 1) eq '')) {
+    my $_retry_counter = 5;
+    #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
+    while (($_retry_counter gt 0) and (script_output("ps ax | grep -i \"$_http_server_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '')) {
         script_run("cd $common_log_folder && ((nohup $_http_server_command &>$common_log_folder/http_server_log) &) && cd ~");
         save_screenshot;
         send_key("ret");
         save_screenshot;
         $_retry_counter--;
     }
-    if (script_output("pgrep -i -f \"$_http_server_command\"", proceed_on_failure => 1) eq '') {
+    #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
+    if (script_output("ps ax | grep -i \"$_http_server_command\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1) eq '') {
         record_info("HTTP server can not start and serve unattended installation file.Mark guest $self->{guest_name} installation as FAILED", "The command used is ((nohup $_http_server_command &>$common_log_folder/http_server_log) &)");
         $self->record_guest_installation_result('FAILED');
         return $self;
@@ -1120,11 +1152,49 @@ sub config_guest_installation_automation {
     }
     elsif ($self->{guest_installation_automation} eq 'kickstart') {
         $self->{guest_installation_automation_options} = "--extra-args \"inst.ks=$self->{guest_installation_automation_file}\"";
-        $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/img) and ($self->{guest_version_major} lt 7));
+        $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/im) and ($self->{guest_version_major} lt 7));
     }
     if (script_run("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
         record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}");
         $self->record_guest_installation_result('FAILED');
+    }
+    return $self;
+}
+
+#Configure registration/subscription/activation information in guest unattended installation file using guest parameters, including guest_do_registration,guest_registration_server,
+#guest_registration_username,guest_registration_password,guest_registration_code,guest_registration_extensions and guest_registration_extensions_codes].
+sub config_guest_installation_automation_registration {
+    my $self = shift;
+
+    $self->reveal_myself;
+    $self->{guest_do_registration} = 'false' if ($self->{guest_do_registration} eq '');
+    record_info("Guest $self->{guest_name} registration status: $self->{guest_do_registration}", "Good luck !");
+    if ($self->{guest_do_registration} eq 'false') {
+        assert_script_run("sed -ri \'/<suse_register>/,/<\\\/suse_register>/d\' $self->{guest_installation_automation_file}") if ($self->{guest_os_name} =~ /sles/im);
+    }
+    else {
+        assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Server##/$self->{guest_registration_server}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-UserName##/$self->{guest_registration_username}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Password##/$self->{guest_registration_password}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Code##/$self->{guest_registration_code}/g;\' $self->{guest_installation_automation_file}");
+        if (($self->{guest_registration_extensions} ne '') and ($self->{guest_os_name} =~ /sles/im)) {
+            my @_guest_registration_extensions = split(/#/, $self->{guest_registration_extensions});
+            my @_guest_registration_extensions_codes = ('') x scalar @_guest_registration_extensions;
+            @_guest_registration_extensions_codes = split(/#/, $self->{guest_registration_extensions_codes}) if ($self->{guest_registration_extensions_codes} ne '');
+            my %_store_of_guest_registration_extensions;
+            @_store_of_guest_registration_extensions{@_guest_registration_extensions} = @_guest_registration_extensions_codes;
+            my $_guest_registration_version = ($self->{guest_version_minor} eq '0' ? $self->{guest_version_major} : $self->{guest_version_major} . '.' . $self->{guest_version_minor});
+            foreach (keys %_store_of_guest_registration_extensions) {
+                my $_guest_registration_extension_clip = "  <addon>\\n" .
+                  "        <name>$_<\\\/name>\\n" .
+                  "        <version>$_guest_registration_version<\\\/version>\\n" .
+                  "        <arch>$self->{guest_arch}<\\\/arch>\\n" .
+                  "        <reg_code>$_store_of_guest_registration_extensions{$_}<\\\/reg_code>\\n" .
+                  "      <\\\/addon>";
+                assert_script_run("sed -zri \'s/<\\\/addons>.*\\n.*<\\\/suse_register>/$_guest_registration_extension_clip\\n    <\\\/addons>\\n  <\\\/suse_register>/\' $self->{guest_installation_automation_file}");
+            }
+        }
     }
     return $self;
 }
@@ -1207,7 +1277,7 @@ sub start_guest_installation {
     my $_start_installation_timestamp = localtime();
     $_start_installation_timestamp =~ s/ |:/_/g;
     my $_guest_installation_dryrun_log = "$common_log_folder/$self->{guest_name}/$self->{guest_name}" . "_installation_dryrun_log_" . $_start_installation_timestamp;
-    my $_guest_installation_log        = "$common_log_folder/$self->{guest_name}/$self->{guest_name}" . "_installation_log_" . $_start_installation_timestamp;
+    my $_guest_installation_log = "$common_log_folder/$self->{guest_name}/$self->{guest_name}" . "_installation_log_" . $_start_installation_timestamp;
     assert_script_run("touch $_guest_installation_log && chmod 777 $_guest_installation_log");
     if (script_run("set -o pipefail;$self->{virt_install_command_line_dryrun} 2>&1 | tee -a $_guest_installation_dryrun_log", timeout => 600 / get_var('TIMEOUT_SCALE', 1)) ne 0) {
         record_info("Guest $self->{guest_name} installation dry run failed", "The virt-install command used is $self->{virt_install_command_line_dryrun}");
@@ -1219,7 +1289,13 @@ sub start_guest_installation {
     script_run("set +o pipefail");
     save_screenshot;
     record_info("Guest $self->{guest_name} installation dry run succeeded", "Going to install by using $self->{virt_install_command_line}");
-    type_string("screen -t $self->{guest_name} -L -Logfile $_guest_installation_log $self->{virt_install_command_line}\n", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+    #Use "screen" in the most compatible way, screen -t "title (window's name)" -c "screen configuration file" -L(turn on output logging) "command to run".
+    #The -Logfile option is only supported by more recent operating systems.
+    $self->{guest_installation_session_config} = script_output("cd ~;pwd") . '/' . $self->{guest_name} . '_installation_screen_config';
+    script_run("rm -f -r $self->{guest_installation_session_config};touch $self->{guest_installation_session_config};chmod 777 $self->{guest_installation_session_config}");
+    script_run("cat /etc/screenrc > $self->{guest_installation_session_config};sed -in \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
+    script_run("echo \"logfile $_guest_installation_log\" >> $self->{guest_installation_session_config}");
+    type_string("screen -t $self->{guest_name} -L -c $self->{guest_installation_session_config} $self->{virt_install_command_line}\n", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
     record_info("Guest $self->{guest_name} installation started", "The virt-install command line is $self->{virt_install_command_line}");
     return $self;
 }
@@ -1234,7 +1310,8 @@ sub get_guest_installation_session {
         return $self;
     }
     my $installation_tty = script_output("tty | awk -F\"/\" 'BEGIN { OFS=\"-\" } {print \$3,\$4}\'", proceed_on_failure => 1);
-    my $installation_pid = script_output("pgrep -i -f \"SCREEN -t $self->{guest_name}\"",            proceed_on_failure => 1);
+    #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
+    my $installation_pid = script_output("ps ax | grep -i \"SCREEN -t $self->{guest_name}\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1);
     $self->{guest_installation_session} = ($installation_pid eq '' ? '' : $installation_pid . ".$installation_tty." . $self->{host_name});
     record_info("Guest $self->{guest_name} installation screen process info", "$self->{guest_name} $self->{guest_installation_session}");
     return $self;
@@ -1257,7 +1334,7 @@ sub terminate_guest_installation_session {
 
 #Get dynamic allocated guest ip address using nmap scan and store it in [guest_ipaddr].
 sub get_guest_ipaddr {
-    my $self             = shift;
+    my $self = shift;
     my @subnets_in_route = @_;
 
     $self->reveal_myself;
@@ -1296,7 +1373,7 @@ sub monitor_guest_installation {
 
     $self->reveal_myself;
     save_screenshot;
-    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 text-login guest-console-text-login)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
+    if (!(check_screen([qw(text-logged-in-root guest-installation-in-progress guest-installation-failures grub2 linux-login text-login guest-console-text-login)], 180 / get_var('TIMEOUT_SCALE', 1)))) {
         save_screenshot;
         record_info("Can not detect any interested screens on guest $self->{guest_name} installation process", "Going to detach current screen anyway");
         $self->detach_guest_installation_screen;
@@ -1310,7 +1387,7 @@ sub monitor_guest_installation {
         record_info("Installation failed due to errors for guest $self->{guest_name}", "Bad luck ! Mark it as FAILED");
         $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     }
-    elsif (match_has_tag('text-login') or match_has_tag('guest-console-text-login')) {
+    elsif (match_has_tag('linux-login') or match_has_tag('text-login') or match_has_tag('guest-console-text-login')) {
         save_screenshot;
         $self->detach_guest_installation_screen;
         my $_detect_installation_result = $self->check_guest_installation_result_via_ssh;
@@ -1325,8 +1402,8 @@ sub monitor_guest_installation {
     }
     elsif (match_has_tag('text-logged-in-root')) {
         save_screenshot;
-        if ($self->{guest_autoconsole} eq '') {
-            record_info("Can not monitor and obtain guest $self->{guest_name} installation progress", "Installation screen process $self->{guest_installation_session} is not attached currently or already terminated on reboot/shutoff after installation finished or at certain stage");
+        if (!($self->has_autoconsole_for_sure)) {
+            record_info("Can not monitor and obtain guest $self->{guest_name} installation progress", "Installation screen process $self->{guest_installation_session} is not attached currently or already terminated on reboot/shutoff after installation finished or at certain stage or guest $self->{guest_name} has no autoconsole");
         }
         else {
             record_info("Can not monitor and obtain guest $self->{guest_name} installation progress", "Installation screen process $self->{guest_installation_session} is not attached currently");
@@ -1380,11 +1457,11 @@ sub attach_guest_installation_screen {
     save_screenshot;
     record_info("Attaching $self->{guest_name} installation screen process $self->{guest_installation_session}", "Trying hard");
     if (($self->{guest_installation_attached} eq 'false') or ($self->{guest_installation_attached} eq '')) {
-        if (($self->{guest_installation_session} eq '') and ($self->{guest_autoconsole} eq '')) {
-            record_info("Guest $self->{guest_name} has no autoconsole and installation screen process $self->{guest_installation_session} may terminate on reboot/shutoff after installation finishes or at certain stage", "Reconnect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
+        if (($self->{guest_installation_session} eq '') and (!($self->has_autoconsole_for_sure))) {
+            record_info("Guest $self->{guest_name} has no autoconsole or installation screen process $self->{guest_installation_session} may terminate on reboot/shutoff after installation finishes or at certain stage", "Reconnect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
             $self->do_attach_guest_installation_screen_without_session;
         }
-        elsif (($self->{guest_installation_session} eq '') and ($self->{guest_autoconsole} ne '')) {
+        elsif (($self->{guest_installation_session} eq '') and ($self->has_autoconsole_for_sure)) {
             record_info("Guest $self->{guest_name} has autoconsole but no installation screen session info to attach", "Trying to get installation screen session info");
             $self->get_guest_installation_session;
             if ($self->{guest_installation_session} eq '') {
@@ -1418,8 +1495,8 @@ sub do_attach_guest_installation_screen {
         record_info("Attached $self->{guest_name} installation screen process $self->{guest_installation_session} successfully", "Well done !");
     }
     else {
-        if ($self->{guest_autoconsole} eq '') {
-            record_info("Guest $self->{guest_name} has no autoconsole and installation screen process $self->{guest_installation_session} may terminate on reboot/shutoff after installaton finishes or at certain stage", "Reconnect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
+        if (!($self->has_autoconsole_for_sure)) {
+            record_info("Guest $self->{guest_name} has no autoconsole or installation screen process $self->{guest_installation_session} may terminate on reboot/shutoff after installaton finishes or at certain stage", "Reconnect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
         }
         else {
             record_info("Failed to attach $self->{guest_name} installation screen process $self->{guest_installation_session}", "Bad luck ! Try to re-connect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
@@ -1474,7 +1551,12 @@ sub do_attach_guest_installation_screen_without_session {
             my $_attach_timestamp = localtime();
             $_attach_timestamp =~ s/ |:/_/g;
             my $_guest_installation_log = "$common_log_folder/$self->{guest_name}/$self->{guest_name}" . "_installation_log_" . $_attach_timestamp;
-            $self->{guest_installation_session_command} = "screen -t $self->{guest_name} -L -Logfile $_guest_installation_log virsh console --force $self->{guest_name}";
+            $self->{guest_installation_session_config} = script_output("cd ~;pwd") . '/' . $self->{guest_name} . '_installation_screen_config' if ($self->{guest_installation_session_config} eq '');
+            script_run("> $self->{guest_installation_session_config};cat /etc/screenrc > $self->{guest_installation_session_config};sed -in \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
+            script_run("echo \"logfile $_guest_installation_log\" >> $self->{guest_installation_session_config}");
+         #Use "screen" in the most compatible way, screen -t "title (window's name)" -c "screen configuration file" -L(turn on output logging) "command to run".
+            #The -Logfile option is only supported by more recent operating systems.
+            $self->{guest_installation_session_command} = "screen -t $self->{guest_name} -L -c $self->{guest_installation_session_config} virsh console --force $self->{guest_name}";
             wait_screen_change {
                 type_string("$self->{guest_installation_session_command}\n");
             };
@@ -1569,6 +1651,24 @@ sub do_detach_guest_installation_screen {
     return $self;
 }
 
+#Return true if guest has [guest_autoconsole] and [guest_noautoconsole] that are not equal to 'none', 'true' or empty which indicates guest definitely has autoconsole.
+#Empty value may indicate there is autoconsole or the opposite which depends on detailed configuration of guest.
+sub has_autoconsole_for_sure {
+    my $self = shift;
+
+    $self->reveal_myself;
+    return (($self->{guest_autoconsole} ne 'none') and ($self->{guest_autoconsole} ne '') and ($self->{guest_noautoconsole} ne 'true') and ($self->{guest_noautoconsole} ne ''));
+}
+
+#Return true if guest has [guest_autoconsole] or [guest_noautoconsole] that are equal to 'none' or 'true' which indicates guest definitely has no autoconsole.
+#Empty value may indicate there is autoconsole or the opposite which depends on detailed configuration of guest.
+sub has_noautoconsole_for_sure {
+    my $self = shift;
+
+    $self->reveal_myself;
+    return (($self->{guest_autoconsole} eq 'none') or ($self->{guest_noautoconsole} eq 'true'));
+}
+
 #Record final guest installation result in [guest_installation_result] and set [stop_run] and [stop_timestamp].
 sub record_guest_installation_result {
     my ($self, $_guest_installation_result) = @_;
@@ -1577,7 +1677,7 @@ sub record_guest_installation_result {
     $_guest_installation_result //= '';
     $self->{guest_installation_result} = $_guest_installation_result;
     record_info("Guest $self->{guest_name} installation has already been marked as $self->{guest_installation_result}", "It is done !");
-    $self->{stop_run}       = time();
+    $self->{stop_run} = time();
     $self->{stop_timestamp} = localtime($self->{stop_run});
     return $self;
 }
@@ -1627,7 +1727,7 @@ sub power_cycle_guest {
     $self->reveal_myself;
     $_power_cycle_style //= 'grace';
     my $_guest_name = '';
-    my $_time_out   = '600';
+    my $_time_out = '600';
     if ($_power_cycle_style eq 'force') {
         script_run("virsh destroy $self->{guest_name}");
     }
@@ -1677,7 +1777,7 @@ sub AUTOLOAD {
     my $self = shift;
 
     $self->reveal_myself;
-    my $type  = ref($self) || croak "$self is not an object";
+    my $type = ref($self) || croak "$self is not an object";
     my $field = $AUTOLOAD;
     $field =~ s/.*://;
     unless (exists $self->{$field}) {
@@ -1699,7 +1799,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "", "/root");
+    virt_utils::collect_host_and_guest_logs("", "", "/root /var/log");
     save_screenshot;
     $self->upload_coredumps;
     save_screenshot;

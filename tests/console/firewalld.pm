@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: firewalld
 # Summary: Test FirewallD basic usage, including nftables/iptables
@@ -42,7 +38,7 @@ sub check_rules {
     else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 25");
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | grep 110");
-        if (is_leap("<16") || is_sle("<16")) {
+        if (is_leap("<16.0") || is_sle("<16")) {
             assert_script_run("nft list chain inet firewalld filter_FWDI_public | grep icmp");
         } else {
             assert_script_run("nft list chain inet firewalld filter_FWD_public | grep icmp");
@@ -72,7 +68,7 @@ sub collect_in_fwd_rule_count {
     }
     else {
         assert_script_run("nft list chain inet firewalld filter_IN_public_allow | wc -l > /tmp/nr_in_public.txt");
-        if (is_leap("<16") || is_sle("<16")) {
+        if (is_leap("<16.0") || is_sle("<16")) {
             assert_script_run("nft list chain inet firewalld filter_FWDI_public | wc -l > /tmp/nr_fwdi_public.txt");
         } else {
             assert_script_run("nft list chain inet firewalld filter_FWD_public | wc -l > /tmp/nr_fwd_public.txt");
@@ -87,7 +83,7 @@ sub verify_in_fwd_rule_count {
     }
     else {
         assert_script_run("test `nft list chain inet firewalld filter_IN_public_allow | wc -l` -eq `cat /tmp/nr_in_public.txt`");
-        if (is_leap("<16") || is_sle("<16")) {
+        if (is_leap("<16.0") || is_sle("<16")) {
             assert_script_run("test `nft list chain inet firewalld filter_FWDI_public | wc -l` -eq `cat /tmp/nr_fwdi_public.txt`");
         } else {
             assert_script_run("test `nft list chain inet firewalld filter_FWD_public | wc -l` -eq `cat /tmp/nr_fwd_public.txt`");
@@ -144,7 +140,7 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_pre.txt");
         assert_script_run("iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l > /tmp/nr_rules_nat_post.txt");
-    } elsif (is_leap("<16") || is_sle("<16")) {
+    } elsif (is_leap("<16.0") || is_sle("<16")) {
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | wc -l > /tmp/nr_rules_nat_pre.txt");
         assert_script_run("nft list chain ip firewalld nat_POST_public_allow | wc -l > /tmp/nr_rules_nat_post.txt");
     } else {
@@ -158,7 +154,7 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("iptables -t nat -L PRE_public_allow | grep 'to::22'");
         assert_script_run("iptables -t nat -L POST_public_allow | grep MASQUERADE");
-    } elsif (is_leap("<16") || is_sle("<16")) {
+    } elsif (is_leap("<16.0") || is_sle("<16")) {
         assert_script_run("nft list chain ip firewalld nat_PRE_public_allow | grep 'redirect to :22'");
         assert_script_run("nft list chain ip firewalld nat_POST_public_allow | grep masquerade");
     } else {
@@ -172,7 +168,7 @@ sub test_masquerading {
     if (uses_iptables) {
         assert_script_run("test `iptables -t nat -L PRE_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `iptables -t nat -L POST_public_allow --line-numbers | sed '/^num\\|^\$\\|^Chain/d' | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
-    } elsif (is_leap("<16") || is_sle("<16")) {
+    } elsif (is_leap("<16.0") || is_sle("<16")) {
         assert_script_run("test `nft list chain ip firewalld nat_PRE_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_pre.txt`");
         assert_script_run("test `nft list chain ip firewalld nat_POST_public_allow | wc -l` -eq `cat /tmp/nr_rules_nat_post.txt`");
     } else {

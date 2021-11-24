@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-snapper grub2
 # Summary: Show user defined comments in grub2 menu for snapshots
@@ -30,7 +26,7 @@ use power_action_utils 'power_action';
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
-    $name      //= 'grub_comment';
+    $name //= 'grub_comment';
     $user_data //= 'bootloader="Bootloader_Comment"';
     # Open the 'C'reate dialog and wait until it is there
     send_key "alt-c";

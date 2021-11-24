@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: KVM Guest install under the mitigation enable/disable
 # Maintainer: James Wang <jnwang@suse.com>
@@ -22,17 +18,17 @@ use lockapi;
 use utils;
 use mmapi;
 
-my $syspath      = '/sys/devices/system/cpu/vulnerabilities/';
-my $name         = get_var('VM_NAME');
-my $install_url  = get_var('INSTALL_REPO');
+my $syspath = '/sys/devices/system/cpu/vulnerabilities/';
+my $name = get_var('VM_NAME');
+my $install_url = get_var('INSTALL_REPO');
 my $logfile_path = get_var('VM_INST_LOG');
-my $cpu          = get_var('CPU_FEATURE');
-my $vm_pool      = get_var('VM_POOL');
-my $vm_shares    = get_var('VM_SHARES');
-my $source_host  = get_var("SOURCE_HOSTNAME");
-my $dest_host    = get_var("DEST_HOSTNAME");
-my $subname      = "";
-my $cpu_1        = "";
+my $cpu = get_var('CPU_FEATURE');
+my $vm_pool = get_var('VM_POOL');
+my $vm_shares = get_var('VM_SHARES');
+my $source_host = get_var("SOURCE_HOSTNAME");
+my $dest_host = get_var("DEST_HOSTNAME");
+my $subname = "";
+my $cpu_1 = "";
 
 
 sub check_working_status {

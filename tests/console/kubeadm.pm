@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: kubernetes-*-kubeadm kubernetes*-client
 # Summary: Test kubeadm to bootstrap single node k8s cluster. Intended for use in Kubic (only place where k8s is supported)
@@ -21,7 +17,7 @@ sub run {
     select_console("root-console");
 
     record_info 'Test #1', 'Test: Initialize kubeadm';
-    assert_script_run("kubeadm init --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 --kubernetes-version=\$(kubelet --version|sed -e 's/Kubernetes v//g') | tee /dev/$serialdev", 300);
+    assert_script_run("kubeadm init --v=5 --cri-socket=/var/run/crio/crio.sock --pod-network-cidr=10.244.0.0/16 --kubernetes-version=\$(kubelet --version|sed -e 's/Kubernetes v//g') | tee /dev/$serialdev", 300);
 
     record_info 'Test #2', 'Test: Configure kubectl';
     assert_script_run('mkdir -p ~/.kube');

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper btrfsprogs
 # Summary: Display of used space per snapshot
@@ -21,10 +17,10 @@ use strict;
 use warnings;
 use testapi;
 
-use constant COLUMN_FILTER    => "awk -F '|' '{print \$1  \$6}'";              # Filter by columns: # and Used Space
+use constant COLUMN_FILTER => "awk -F '|' '{print \$1  \$6}'";    # Filter by columns: # and Used Space
 use constant SUBVOLUME_FILTER => "tail -n4 | sed -n 2,3p | cut -d ' ' -f2";    # Subvolume IDs
-use constant CREATE_BIG_FILE  => "touch /big-data && btrfs prop set /big-data compression '' && dd if=/dev/zero of=/big-data bs=1M count=1024";
-use constant REMOVE_BIG_FILE  => "rm /big-data";
+use constant CREATE_BIG_FILE => "touch /big-data && btrfs prop set /big-data compression '' && dd if=/dev/zero of=/big-data bs=1M count=1024";
+use constant REMOVE_BIG_FILE => "rm /big-data";
 
 =head2 ensure_size_displayed
 Ensure column for size is displayed or not if flag is provided
@@ -60,7 +56,7 @@ sub query_space_several_snapshot {
     record_info("Query multiple", "Query the exclusive space when data is included in several snapshots");
     my $args = '--cleanup number --print-number';
     foreach my $action (qw(create remove)) {
-        my $command     = '"' . ($action eq "create" ? CREATE_BIG_FILE : REMOVE_BIG_FILE) . '"';
+        my $command = '"' . ($action eq "create" ? CREATE_BIG_FILE : REMOVE_BIG_FILE) . '"';
         my $description = '"' . $action . ' big data"';
         # Create two pair of pre- and post- snapshots
         assert_script_run "snapper create --command $command --description $description $args";

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libreoffice
 # Summary: LibreOffice: Favorite Documents link in Computer menu
@@ -25,7 +21,7 @@ use version_utils 'is_sle';
 sub run {
     # start destop application memu
     wait_still_screen;
-    send_key "alt-f1";
+    send_key "super";
     assert_screen('test-desktop_mainmenu-1');
 
     # find the favorites button

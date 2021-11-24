@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Add default user with simple password in YaST interactive
 # installation and accept corresponding warning pop-up
@@ -18,7 +14,7 @@ use warnings;
 use Test::Assert ':all';
 
 sub run {
-    my $local_user   = $testapi::distri->get_local_user();
+    my $local_user = $testapi::distri->get_local_user();
     my $warning_text = 'The password is too simple:\nit is based on a dictionary word.';
 
     $local_user->create_user(full_name => $testapi::realname, password => $testapi::password);

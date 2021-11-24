@@ -1,17 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces methods in Expert Partitioner to handle
 # the final summary displayed before accepting changes in the system.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::SummaryPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -25,13 +22,8 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{btn_next} = $self->{app}->button({id => 'next'});
+    $self->SUPER::init();
     return $self;
-}
-
-sub press_next_button {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

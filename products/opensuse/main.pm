@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 use strict;
 use warnings;
@@ -18,6 +14,7 @@ use File::Find;
 use File::Basename;
 use DistributionProvider;
 use scheduler 'load_yaml_schedule';
+use main_containers;
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
@@ -39,7 +36,7 @@ sub cleanup_needles {
     for my $wm (qw(mate lxqt enlightenment awesome)) {
         remove_desktop_needles($wm) unless check_var('DE_PATTERN', $wm);
     }
-    unregister_needle_tags('ENV-LEAP-1')             unless is_leap;
+    unregister_needle_tags('ENV-LEAP-1') unless is_leap;
     unregister_needle_tags('ENV-VERSION-Tumbleweed') unless is_tumbleweed;
     for my $flavor (qw(Krypton-Live Argon-Live GNOME-Live KDE-Live XFCE-Live Rescue-CD JeOS-for-AArch64 JeOS-for-kvm-and-xen)) {
         unregister_needle_tags("ENV-FLAVOR-$flavor") unless check_var('FLAVOR', $flavor);
@@ -66,7 +63,7 @@ if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
     # lightdm is the default DM for Tumbleweed and Leap 15.0 per boo#1081760
     if (is_leap('<15.0')) {
-        set_var("XDMUSED",           1);
+        set_var("XDMUSED", 1);
         set_var('DM_NEEDS_USERNAME', 1);
     }
     # Set patterns for the new system role flow, as we need to select patterns, similarly to SLE12
@@ -84,7 +81,7 @@ if (is_using_system_role && check_var('DESKTOP', 'xfce') && !get_var('PATTERNS')
 }
 
 # openSUSE specific variables
-set_var('LEAP',      '1') if is_leap;
+set_var('LEAP', '1') if is_leap;
 set_var("WALLPAPER", '/usr/share/wallpapers/openSUSEdefault/contents/images/1280x1024.jpg');
 
 # set KDE and GNOME, ...
@@ -165,10 +162,10 @@ sub load_otherDE_tests {
         loadtest "x11/reboot_icewm";
         loadtest "installation/opensuse_welcome" if opensuse_welcome_applicable($de);
         # here comes the actual desktop specific test
-        if ($de =~ /^awesome$/)       { load_awesome_tests(); }
+        if ($de =~ /^awesome$/) { load_awesome_tests(); }
         if ($de =~ /^enlightenment$/) { load_enlightenment_tests(); }
-        if ($de =~ /^mate$/)          { load_mate_tests(); }
-        if ($de =~ /^lxqt$/)          { load_lxqt_tests(); }
+        if ($de =~ /^mate$/) { load_mate_tests(); }
+        if ($de =~ /^lxqt$/) { load_lxqt_tests(); }
         load_shutdown_tests;
         return 1;
     }
@@ -265,8 +262,12 @@ if (is_jeos) {
     load_jeos_tests();
 }
 
+
 if (is_kernel_test()) {
     load_kernel_tests();
+}
+elsif (is_container_test) {
+    load_container_tests();
 }
 elsif (get_var('NFV')) {
     load_nfv_tests();
@@ -293,8 +294,8 @@ elsif (get_var("SUPPORT_SERVER")) {
     loadtest "support_server/login";
     loadtest "support_server/setup";
     loadtest "support_server/meddle_multipaths" if (get_var("SUPPORT_SERVER_TEST_INSTDISK_MULTIPATH"));
-    loadtest "support_server/custom_pxeboot"    if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
-    loadtest "support_server/flaky_mp_iscsi"    if (get_var("ISCSI_MULTIPATH_FLAKY"));
+    loadtest "support_server/custom_pxeboot" if (get_var("SUPPORT_SERVER_PXE_CUSTOMKERNEL"));
+    loadtest "support_server/flaky_mp_iscsi" if (get_var("ISCSI_MULTIPATH_FLAKY"));
     unless (load_slenkins_tests()) {    # either run the slenkins control node or just wait for connections
         loadtest "support_server/wait_children";
     }
@@ -317,7 +318,7 @@ elsif (get_var('SECURITY_TEST')) {
 elsif (get_var('VIRT_AUTOTEST')) {
     prepare_target() unless get_var('IPMI_DO_NOT_RESTART_HOST');
     loadtest "virt_autotest/switch_to_ssh_and_install_hypervisor";
-    loadtest "virt_autotest/reboot_and_wait_up_normal"  unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    loadtest "virt_autotest/reboot_and_wait_up_normal" unless get_var('IPMI_DO_NOT_RESTART_HOST');
     loadtest "virt_autotest/unified_guest_installation" unless get_var('SKIP_GUEST_INSTALL');
     loadtest "virt_autotest/set_config_as_glue";
     if (get_var('ENABLE_VIR_NET')) {
@@ -325,9 +326,9 @@ elsif (get_var('VIRT_AUTOTEST')) {
         loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
         loadtest "virt_autotest/libvirt_nated_virtual_network";
     }
-    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSSHTROUGH');
-    loadtest "virtualization/universal/hotplugging"             if get_var('ENABLE_HOTPLUGGING');
-    loadtest "virtualization/universal/storage"                 if get_var('ENABLE_STORAGE');
+    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH');
+    loadtest "virtualization/universal/hotplugging" if get_var('ENABLE_HOTPLUGGING');
+    loadtest "virtualization/universal/storage" if get_var('ENABLE_STORAGE');
 }
 elsif (get_var('XFSTESTS')) {
     prepare_target();

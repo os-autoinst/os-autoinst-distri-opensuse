@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: host_upgrade_step3_run : Get the second stage script name for host upgrade test.
 #          This test verifies virtualization host upgrade test result.
@@ -17,7 +13,7 @@ use utils "zypper_call";
 use virt_utils;
 use strict;
 use warnings;
-use Utils::Architectures qw(is_x86_64 is_aarch64);
+use Utils::Architectures;
 use version_utils 'is_sle';
 
 sub get_script_run {
@@ -40,7 +36,7 @@ sub run {
         zypper_call("rr server-repo qa-test-repo");
         zypper_call("--no-gpg-checks ar -f '$qa_test_repo' qa-test-repo");
         zypper_call("--gpg-auto-import-keys ref", 300);
-        zypper_call("in qa_lib_virtauto",         300);
+        zypper_call("in qa_lib_virtauto", 300);
     }
     update_guest_configurations_with_daily_build();
     $self->run_test(5400, "Host upgrade virtualization test pass", "no", "yes", "/var/log/qa/", "host-upgrade-postVerify-logs");

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libreoffice-writer
 # Summary: Case 1503978 - LibreOffice: pyuno bridge
@@ -17,14 +13,14 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self     = shift;
-    my $mail_ssl = '1';     #Set it as 1, if you want enable SSL
+    my $self = shift;
+    my $mail_ssl = '1';    #Set it as 1, if you want enable SSL
 
-    my $config        = $self->getconfig_emailaccount;
-    my $mailbox       = $config->{internal_account_A}->{mailbox};
-    my $mail_server   = $config->{internal_account_A}->{sendServer};
-    my $mail_user     = $config->{internal_account_A}->{user};
-    my $mail_passwd   = $config->{internal_account_A}->{passwd};
+    my $config = $self->getconfig_emailaccount;
+    my $mailbox = $config->{internal_account_A}->{mailbox};
+    my $mail_server = $config->{internal_account_A}->{sendServer};
+    my $mail_user = $config->{internal_account_A}->{user};
+    my $mail_passwd = $config->{internal_account_A}->{passwd};
     my $mail_sendport = $config->{internal_account_A}->{sendport};
 
     x11_start_program('libreoffice --writer', target_match => 'test-ooffice-1');

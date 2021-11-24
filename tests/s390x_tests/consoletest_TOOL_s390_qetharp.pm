@@ -1,11 +1,7 @@
 # SUSE’s openQA tests
 #
-# Copyright © 2018-2019 IBM Corp.
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 IBM Corp.
+# SPDX-License-Identifier: FSFAP
 
 # Summary: s390 qetharp
 # Maintainer: Elif Aslan <elas@linux.vnet.ibm.com>
@@ -21,8 +17,8 @@ sub run {
     $self->copy_testsuite('TOOL_s390_qetharp');
     $self->execute_script('10S_cleanup_s390_qetharp.sh');
     $self->execute_script('20S_prepare_s390_qetharp.sh', '1000');
-    $self->execute_script('30S_qetharp_test.sh',         '1000');
-    $self->execute_script('40S_Ping_Test.sh',            '1000');
+    $self->execute_script('30S_qetharp_test.sh', '1000');
+    $self->execute_script('40S_Ping_Test.sh', '1000');
     $self->cleanup_testsuite('TOOL_s390_qetharp');
 
 }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: SUSEConnect
 # Summary: Test SUSEConnect by registering system, module and deregistration.
@@ -24,8 +20,8 @@ use registration;
 use version_utils 'is_sle';
 
 sub run {
-    my $reg_code      = get_required_var("SCC_REGCODE");
-    my $arch          = get_required_var("ARCH");
+    my $reg_code = get_required_var("SCC_REGCODE");
+    my $arch = get_required_var("ARCH");
     my $live_reg_code = get_required_var("SCC_REGCODE_LIVE");
 
     my $self = shift;

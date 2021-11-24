@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package mailtest;
 use base Exporter;
@@ -26,8 +22,8 @@ our @EXPORT = qw($mail_server_name $mail_server_ip $mail_client_ip
 );
 
 our $mail_server_name = undef;
-our $mail_server_ip   = undef;
-our $mail_client_ip   = undef;
+our $mail_server_ip = undef;
+our $mail_client_ip = undef;
 
 # Disable postfix dns lookup if mail server isn't FQDN
 sub postfix_dns_lookup_off {
@@ -73,7 +69,7 @@ sub prepare_mail_server {
 sub prepare_mail_client {
 
     $mail_server_name = get_var("MAIL_SERVER_NAME", "mail.openqa.suse");
-    $mail_server_ip   = get_var("MAIL_SERVER_IP");
+    $mail_server_ip = get_var("MAIL_SERVER_IP");
 
     # Stop PackageKit
     quit_packagekit;
@@ -90,11 +86,11 @@ sub prepare_mail_client {
         mutex_unlock "mail_server";
 
         # Get parent job info
-        my $parents          = get_parents;
-        my $mail_server_job  = $parents->[0];
+        my $parents = get_parents;
+        my $mail_server_job = $parents->[0];
         my $mail_server_vars = get_job_autoinst_vars($mail_server_job);
         $mail_server_name = $mail_server_vars->{MAIL_SERVER_NAME};
-        $mail_server_ip   = $mail_server_vars->{MAIL_SERVER_IP};
+        $mail_server_ip = $mail_server_vars->{MAIL_SERVER_IP};
     }
 
     if ($mail_server_ip) {
@@ -107,12 +103,12 @@ sub prepare_mail_client {
 }
 
 sub mailx_setup {
-    my %args   = @_;
-    my $user   = $args{user} || "$username";
-    my $pass   = $args{pass} || "$password";
-    my $host   = $args{host} || "localhost";
-    my $port   = $args{port} || "25";
-    my $ssl    = $args{ssl}  || "no";
+    my %args = @_;
+    my $user = $args{user} || "$username";
+    my $pass = $args{pass} || "$password";
+    my $host = $args{host} || "localhost";
+    my $port = $args{port} || "25";
+    my $ssl = $args{ssl} || "no";
     my $mailrc = "~/.mailrc";
 
     # Configure mailx via mailrc to avoid long command-line
@@ -127,10 +123,10 @@ sub mailx_setup {
 }
 
 sub mailx_send_mail {
-    my %args    = @_;
-    my $to      = $args{to};
+    my %args = @_;
+    my $to = $args{to};
     my $subject = $args{subject} || "Testing Mail";
-    my $opts    = $args{opts}    || "";
+    my $opts = $args{opts} || "";
 
     assert_script_run "echo 'Mail body' | mailx -v -s '$subject' $opts $to";
 }

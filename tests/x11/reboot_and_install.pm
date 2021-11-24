@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Ensure the system can reboot from gnome
 # Maintainer: Jozef Pupava <jpupava@suse.com>
@@ -15,6 +11,7 @@ use strict;
 use warnings;
 
 use testapi;
+use Utils::Architectures;
 use utils 'workaround_type_encrypted_passphrase';
 use power_action_utils 'power_action';
 use version_utils 'is_sle12_hdd_in_upgrade';
@@ -36,14 +33,14 @@ sub run {
 
     # on s390 zKVM we handle the boot of the patched system differently
     set_var('PATCHED_SYSTEM', 1) if get_var('PATCH');
-    return                       if get_var('S390_ZKVM');
+    return if get_var('S390_ZKVM');
 
     # give some time to shutdown+reboot from gnome. Also, because mainly we
     # are coming from old systems here it is unlikely the reboot time
     # increases
     return if select_bootmenu_option(300) == 3;
     # set uefi bootmenu parameters properly for aarch64, such like gfxpayload and so on
-    if (check_var('ARCH', 'aarch64')) {
+    if (is_aarch64) {
         uefi_bootmenu_params;
     }
     bootmenu_default_params;
@@ -58,7 +55,7 @@ sub run {
     }
     else {
         # boot
-        my $key = get_var('OFW') || check_var('ARCH', 'aarch64') ? 'ctrl-x' : 'ret';
+        my $key = get_var('OFW') || is_aarch64 ? 'ctrl-x' : 'ret';
         send_key $key;
     }
 

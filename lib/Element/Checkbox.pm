@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces checkbox as a UI element with its accessing
 # methods.
@@ -19,9 +15,9 @@ use testapi;
 sub new {
     my ($class, %args) = @_;
     my $self = bless {
-        checked_needle   => $args{checked_needle},
+        checked_needle => $args{checked_needle},
         unchecked_needle => $args{unchecked_needle},
-        shortcut         => $args{shortcut}
+        shortcut => $args{shortcut}
     }, $class;
 }
 
@@ -104,8 +100,8 @@ Example:
 
 sub set_state {
     my ($self, %args) = @_;
-    my $state          = $args{state};
-    my $shortcut       = $args{shortcut};
+    my $state = $args{state};
+    my $shortcut = $args{shortcut};
     my $checked_needle = $args{checked_needle},
       my $unchecked_needle = $args{unchecked_needle};
 

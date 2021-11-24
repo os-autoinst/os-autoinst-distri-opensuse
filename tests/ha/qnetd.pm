@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: crmsh corosync-qnetd
 # Summary: Test qdevice/qnetd
@@ -30,9 +26,9 @@ sub handle_diskless_sbd_scenario_cluster_node {
 
 sub qdevice_status {
     my ($expected_status) = @_;
-    my $num_nodes         = get_required_var('NUM_NODES');
+    my $num_nodes = get_required_var('NUM_NODES');
     my $quorum_status_cmd = 'crm corosync status quorum';
-    my $qnetd_status_cmd  = 'crm corosync status qnetd';
+    my $qnetd_status_cmd = 'crm corosync status qnetd';
     my $output;
 
     $num_nodes-- if ($expected_status eq 'stopped');
@@ -41,7 +37,7 @@ sub qdevice_status {
     exec_and_insert_password($qnetd_status_cmd) if is_node(2);
 
     # Check qdevice status
-    $output = script_output "$qnetd_status_cmd"                if ($expected_status ne 'stopped');
+    $output = script_output "$qnetd_status_cmd" if ($expected_status ne 'stopped');
     die "Heuristics script for quorum is failing in all nodes" if ($expected_status =~ /^split-brain/ && $output !~ /Heuristics:\s+Pass\s/);
 
     $output = script_output "$quorum_status_cmd";
@@ -52,22 +48,22 @@ sub qdevice_status {
         return;
     }
 
-    my @regexps     = map { $_ . ($num_nodes + 1) } ('Expected votes:\s+', 'Highest expected:\s+');
+    my @regexps = map { $_ . ($num_nodes + 1) } ('Expected votes:\s+', 'Highest expected:\s+');
     my $total_votes = ($expected_status eq 'split-brain-check') ? $num_nodes : $num_nodes + 1;
     push @regexps, 'Total votes:\s+' . $total_votes;
     push @regexps, 'Quorum:\s+' . $num_nodes;
 
     push @regexps, 'Flags:\s+Quorate\s+Qdevice' if ($expected_status eq 'started' || $expected_status eq 'split-brain-check');
-    push @regexps, 'Flags:\s+2Node\s+Quorate'   if ($expected_status eq 'stopped');
+    push @regexps, 'Flags:\s+2Node\s+Quorate' if ($expected_status eq 'stopped');
 
     die "Qdevice membership information does not match expected info" if ($expected_status eq 'started' && $output !~ /\s+0\s+1\s+Qdevice/);
-    die "Qdevice membership information shown when stopped"           if ($expected_status eq 'stopped' && $output =~ /\s+0\s+1\s+Qdevice/);
+    die "Qdevice membership information shown when stopped" if ($expected_status eq 'stopped' && $output =~ /\s+0\s+1\s+Qdevice/);
 
     foreach my $exp (@regexps) { die "Unexpected output. Output does not match [$exp]" unless ($output =~ /$exp/) }
 }
 
 sub run {
-    my $cluster_name  = get_cluster_name;
+    my $cluster_name = get_cluster_name;
     my $qdevice_check = "/etc/corosync/qdevice/check_master.sh";
 
     if (check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
@@ -81,7 +77,7 @@ sub run {
 
     if (is_node(1)) {
         my $qnet_node_host = choose_node(3);
-        my $qnet_node_ip   = get_ip($qnet_node_host);
+        my $qnet_node_ip = get_ip($qnet_node_host);
 
         # Add a promotable resource to check if the current node is hosting
         # master instance of the resource. If so, this cluster partition

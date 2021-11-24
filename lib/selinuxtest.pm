@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Base module for SELinux test cases
 # Maintainer: llzhao <llzhao@suse.com>
@@ -30,10 +26,10 @@ our @EXPORT = qw(
 );
 
 our $file_contexts_local = '/etc/selinux/minimum/contexts/files/file_contexts.local';
-our $file_output         = '/tmp/cmd_output';
-our $policypkg_repo      = get_var('SELINUX_POLICY_PKGS');
-our $policyfile_tar      = 'testing-master';
-our $dir                 = '/tmp/';
+our $file_output = '/tmp/cmd_output';
+our $policypkg_repo = get_var('SELINUX_POLICY_PKGS');
+our $policyfile_tar = 'testing-master';
+our $dir = '/tmp/';
 
 # download SELinux policy pkgs
 sub download_policy_pkgs {
@@ -112,7 +108,7 @@ sub reboot_and_reconnect {
 sub set_sestatus {
     my ($self, $mode, $type) = @_;
     my $selinux_config_file = '/etc/selinux/config';
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # SELinux by default
     validate_script_output('sestatus', sub { m/SELinux status: .*disabled/ });
@@ -138,7 +134,7 @@ sub set_sestatus {
 
     # reboot the vm and reconnect the console
     $self->reboot_and_reconnect(textmode => 1);
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     validate_script_output(
         'sestatus',

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Wait for installer welcome screen. Covers loading linuxrc
 # - Check if system is on installer environment
@@ -71,19 +67,18 @@ sub get_product_shortcuts {
             sled => 'x',
             sles4sap => is_ppc64le() ? 'i'
             : (is_sle('15-SP2+') && is_x86_64() && !is_quarterly_iso()) ? 't'
-            : (is_sle('15-SP3+') && is_x86_64()) ? 't'
             : 'p',
             hpc => is_x86_64() ? 'g' : 'u',
-            rt  => is_x86_64() ? 't' : undef
+            rt => is_x86_64() ? 't' : undef
         );
     }
     # Else return old shortcuts
     return (
-        sles     => 's',
-        sled     => 'u',
+        sles => 's',
+        sled => 'u',
         sles4sap => is_ppc64le() ? 'u' : 'x',
-        hpc      => is_x86_64()  ? 'x' : 'u',
-        rt       => is_x86_64()  ? 'u' : undef
+        hpc => is_x86_64() ? 'x' : 'u',
+        rt => is_x86_64() ? 'u' : undef
     );
 }
 
@@ -91,7 +86,7 @@ sub run {
     my ($self) = @_;
     my $iterations;
 
-    my @welcome_tags     = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
+    my @welcome_tags = ('inst-welcome-confirm-self-update-server', 'scc-invalid-url');
     my $expect_beta_warn = get_var('BETA');
     if ($expect_beta_warn) {
         push @welcome_tags, 'inst-betawarning';
@@ -114,7 +109,7 @@ sub run {
     while ($iterations++ < scalar(@welcome_tags)) {
         # See poo#19832, sometimes manage to match same tag twice and test fails due to broken sequence
         wait_still_screen 5;
-        my $timeout = check_var('ARCH', 'aarch64') ? '1000' : '500';
+        my $timeout = is_aarch64 ? '1000' : '500';
         assert_screen(\@welcome_tags, $timeout);
         # Normal exit condition
         if ((match_has_tag 'inst-betawarning') || (match_has_tag 'inst-welcome') || (match_has_tag 'inst-welcome-no-product-list')) {
@@ -188,9 +183,9 @@ sub run {
         # before switching to console during installation
         wait_screen_change { send_key 'alt-y' };
         wait_screen_change { send_key 'ctrl-alt-shift-x' };
-        my $method     = uc get_required_var('INSTALL_SOURCE');
+        my $method = uc get_required_var('INSTALL_SOURCE');
         my $mirror_src = get_required_var("MIRROR_$method");
-        my $rc         = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
+        my $rc = script_run 'grep -o --color=always install=' . $mirror_src . ' /proc/cmdline';
         die "Install source mismatch in boot parameters!\n" unless ($rc == 0);
         $rc = script_run "grep --color=always -e \"^RepoURL: $mirror_src\" -e \"^ZyppRepoURL: $mirror_src\" /etc/install.inf";
         die "Install source mismatch in linuxrc settings!\n" unless ($rc == 0);

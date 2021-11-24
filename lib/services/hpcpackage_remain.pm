@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Make installed versions of HPC library packages remain
 # installed after migration to new service pack
@@ -28,6 +24,7 @@ use utils;
 use strict;
 use Data::Dumper;
 use warnings;
+use registration;
 
 my @diffpkg;
 
@@ -75,9 +72,9 @@ sub check_pkg {
     my @pkglist = split('\n', script_output("rpm -qa", proceed_on_failure => 1, timeout => 180));
     diag "Before migration: " . Dumper(\@diffpkg);
     diag "After migration:" . Dumper(\@pkglist);
-    my @after  = del_num(@pkglist);
+    my @after = del_num(@pkglist);
     my @before = del_num(@diffpkg);
-    my %hash_a = map  { $_ => 1 } @after;
+    my %hash_a = map { $_ => 1 } @after;
     my @b_only = grep { !$hash_a{$_} } @before;
     if (@b_only) {
         die "After migration, some packages are miss: " . Dumper(\@b_only);
@@ -89,10 +86,14 @@ sub full_pkgcompare_check {
     my $stage = $hash{stage};
 
     if ($stage eq 'before') {
+        # It need python2 module to compare packages
+        add_suseconnect_product("sle-module-python2", undef, undef, undef, 300, 1) if (get_var('DROPPED_MODULES', '') =~ /python2/);
         list_pkg("orignalq1w2.txt");
         install_pkg();
         list_pkg("installe3r4.txt");
         compare_pkg("/tmp/orignalq1w2.txt", "/tmp/installe3r4.txt");
+        # De-register python2 module again
+        remove_suseconnect_product('sle-module-python2') if (get_var('DROPPED_MODULES', '') =~ /python2/);
     }
     else {
         check_pkg;

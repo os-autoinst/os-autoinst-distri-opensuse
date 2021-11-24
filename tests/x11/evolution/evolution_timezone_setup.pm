@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 #testcase 5255-1503908:Evolution: setup timezone
 
@@ -26,8 +22,8 @@ use testapi;
 use utils;
 
 sub run {
-    my $self     = shift;
-    my $account  = "internal_account";
+    my $self = shift;
+    my $account = "internal_account";
     my $hostname = get_var('HOSTNAME');
     if ($hostname eq 'client') {
         $account = "internal_account_C";

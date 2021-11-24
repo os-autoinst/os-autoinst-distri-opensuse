@@ -1,11 +1,7 @@
 # VIRSH TEST MODULE BASE PACKAGE
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This is the base package for virsh test modules, for example,
 # tests/virtualization/universal/hotplugging.pm
@@ -98,7 +94,7 @@ sub junit_log_provision {
         }
     }
     print "The data to be used for xml generation:", Dumper(\%stats);
-    my %tc_result  = %{$stats{test_results}};
+    my %tc_result = %{$stats{test_results}};
     my $xml_result = generateXML_from_data(\%tc_result, \%stats);
     script_run "echo \'$xml_result\' > /tmp/output.xml";
     save_screenshot;
@@ -109,11 +105,11 @@ sub junit_log_params_provision {
     my $self = shift;
 
     my $start_time = $self->{"start_run"};
-    my $stop_time  = $self->{"stop_run"};
-    $self->{"test_time"}         = strftime("\%H:\%M:\%S", gmtime($stop_time - $start_time));
+    my $stop_time = $self->{"stop_run"};
+    $self->{"test_time"} = strftime("\%H:\%M:\%S", gmtime($stop_time - $start_time));
     $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
-    $self->{"product_name"}      = ref($self);
-    $self->{"package_name"}      = ref($self);
+    $self->{"product_name"} = ref($self);
+    $self->{"package_name"} = ref($self);
 }
 
 sub analyzeResult {
@@ -125,7 +121,7 @@ sub analyzeResult {
     $self->{$_ . '_nums'} = 0 foreach (@test_item_status_array);
     foreach my $guest (keys %virt_autotest::common::guests) {
         foreach my $item (keys %{$self->{test_results}->{$guest}}) {
-            my $item_status      = $self->{test_results}->{$guest}->{$item}->{status};
+            my $item_status = $self->{test_results}->{$guest}->{$item}->{status};
             my $test_item_status = first { $item_status =~ /^$_/i } @test_item_status_array;
             $self->{$test_item_status . '_nums'} += 1;
         }
@@ -135,8 +131,8 @@ sub analyzeResult {
     #the correctness and effectivenees of entire JUnit log
     if ($status eq 'FAILED' && $self->{"fail_nums"} eq '0') {
         $self->{"fail_nums"} = '1';
-        my $uncheckpoint_failure       = script_output("cat /root/commands_history | tail -3 | head -1");
-        my @involved_failure_guest     = grep { $uncheckpoint_failure =~ /$_/img } (keys %virt_autotest::common::guests);
+        my $uncheckpoint_failure = script_output("cat /root/commands_history | tail -3 | head -1");
+        my @involved_failure_guest = grep { $uncheckpoint_failure =~ /$_/img } (keys %virt_autotest::common::guests);
         my $uncheckpoint_failure_guest = "";
         if (!scalar @involved_failure_guest) {
             $uncheckpoint_failure_guest = "NO SPECIFIC TEST GUEST INVOLVED";
@@ -148,12 +144,12 @@ sub analyzeResult {
         script_run("($uncheckpoint_failure) 2>&1 | tee -a /root/commands_failure", quiet => 1);
         my $uncheckpoint_failure_error = script_output("cat /root/commands_failure", type_command => 0, proceed_on_failure => 1, quiet => 1);
         $self->{test_results}->{$uncheckpoint_failure_guest}->{$uncheckpoint_failure}->{status} = 'FAILED';
-        $self->{test_results}->{$uncheckpoint_failure_guest}->{$uncheckpoint_failure}->{error}  = $uncheckpoint_failure_error;
+        $self->{test_results}->{$uncheckpoint_failure_guest}->{$uncheckpoint_failure}->{error} = $uncheckpoint_failure_error;
     }
 
     if ($status eq 'PASSED' and !defined $self->{test_results}) {
         $self->{test_results}->{'ALL GUESTS'}->{'ALL TESTS'}->{status} = 'PASSED';
-        $self->{test_results}->{'ALL GUESTS'}->{'ALL TESTS'}->{error}  = 'NONE';
+        $self->{test_results}->{'ALL GUESTS'}->{'ALL TESTS'}->{error} = 'NONE';
     }
 }
 
@@ -180,7 +176,7 @@ sub post_fail_hook {
 
 sub get_virt_disk_and_available_space {
     # ensure the available disk space size for virt disk - /var/lib/libvirt
-    my $virt_disk_name      = script_output 'lsblk -rnoPKNAME $(findmnt -nrvoSOURCE /var/lib/libvirt)';
+    my $virt_disk_name = script_output 'lsblk -rnoPKNAME $(findmnt -nrvoSOURCE /var/lib/libvirt)';
     my $virt_available_size = script_output("df -k | grep libvirt | awk '{print \$4}'");
     # default available virt disk unit as GiB
     $virt_available_size = int($virt_available_size / 1048576);

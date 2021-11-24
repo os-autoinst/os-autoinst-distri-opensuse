@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-rear rear23a
 # Summary: Install ReaR packages and create a ReaR backup on an NFS server
@@ -18,11 +14,11 @@ use testapi;
 use utils qw(file_content_replace quit_packagekit zypper_call);
 
 sub run {
-    my ($self)     = @_;
-    my $hostname   = get_var('HOSTNAME', 'susetest');
-    my $arch       = get_required_var('ARCH');
+    my ($self) = @_;
+    my $hostname = get_var('HOSTNAME', 'susetest');
+    my $arch = get_required_var('ARCH');
     my $backup_url = get_required_var('BACKUP_URL');
-    my $timeout    = bmwqemu::scale_timeout(600);
+    my $timeout = bmwqemu::scale_timeout(600);
 
     # Disable packagekit and install ReaR
     get_var('USE_YAST_REAR') ? select_console 'root-console' : $self->select_serial_terminal;

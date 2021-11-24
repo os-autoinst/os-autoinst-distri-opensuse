@@ -1,11 +1,7 @@
 #SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Test IPsec tunnel in Open vSwitch with 3 different authentication methods
 #
@@ -32,14 +28,14 @@ use utils;
 use console::ovs_utils;
 
 
-my $server_ip   = "10.0.2.101";
-my $client_ip   = "10.0.2.102";
-my $server_vpn  = "192.0.0.1";
-my $client_vpn  = "192.0.0.2";
-my $server_mac  = "00:00:00:00:00:01";
-my $client_mac  = "00:00:00:00:00:02";
-my $dir         = "/etc/keys/";
-my $dir_certs   = "/etc/ipsec.d/certs/";
+my $server_ip = "10.0.2.101";
+my $client_ip = "10.0.2.102";
+my $server_vpn = "192.0.0.1";
+my $client_vpn = "192.0.0.2";
+my $server_mac = "00:00:00:00:00:01";
+my $client_mac = "00:00:00:00:00:02";
+my $dir = "/etc/keys/";
+my $dir_certs = "/etc/ipsec.d/certs/";
 my $dir_private = "/etc/ipsec.d/private/";
 my $dir_cacerts = "/etc/ipsec.d/cacerts/";
 
@@ -54,7 +50,7 @@ sub run {
     zypper_call('in openvswitch-ipsec openvswitch-pki tcpdump openvswitch-vtep', timeout => 300);
 
     # Start the openvswitch and openvswitch-ipsec services
-    systemctl 'start openvswitch',       timeout => 200;
+    systemctl 'start openvswitch', timeout => 200;
     systemctl 'start openvswitch-ipsec', timeout => 200;
 
     # Setup ovs bridge

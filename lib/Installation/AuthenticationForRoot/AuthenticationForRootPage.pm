@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handles Authentication for the System Administrator "root" page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -25,8 +21,8 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->{lbl_import_public_ssh_key} = $self->{app}->label({label => 'Import Public SSH Key'});
-    $self->{tb_confirm_password}       = $self->{app}->textbox({id => 'pw2'});
-    $self->{tb_password}               = $self->{app}->textbox({id => 'pw1'});
+    $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
+    $self->{tb_password} = $self->{app}->textbox({id => 'pw1'});
     return $self;
 }
 

@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Process online repos during installation, relevant for openSUSE only
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -59,15 +47,15 @@ sub run {
 
     if (match_has_tag('network-not-configured')) {
         # On slow workers the network may be unconfigured - poo#87719
-        send_key("alt-i");                                       # Edit button
+        send_key("alt-i");    # Edit button
         assert_screen('static-ip-address-set');
-        send_key("alt-y");                                       # Select Dynamic address
+        send_key("alt-y");    # Select Dynamic address
         assert_screen('dynamic-ip-address-set');
-        send_key $cmd{next};                                     # Next
+        send_key $cmd{next};    # Next
         assert_screen('inst-networksettings');
-        send_key $cmd{next};                                     # Next
+        send_key $cmd{next};    # Next
         @needles = grep { !/inst-networksettings/ } @needles;    # Do not match the previous screen
-        assert_screen(\@needles, timeout => 60);                 # Check the screen again with network up and running
+        assert_screen(\@needles, timeout => 60);    # Check the screen again with network up and running
     }
 
     # Do nothing if pop-up is not found

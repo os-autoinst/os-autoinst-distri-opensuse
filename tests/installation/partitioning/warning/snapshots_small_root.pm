@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Verify "There is no device mounted at '/'" Error Dialog is
 # shown when saving partitioner settings with no root mounted.
@@ -22,16 +18,16 @@ my $partitioner;
 
 sub run {
     my $test_data = get_test_suite_data();
-    my $disk      = $test_data->{disks}[0];
+    my $disk = $test_data->{disks}[0];
     $partitioner = $testapi::distri->get_expert_partitioner();
 
     $partitioner->run_expert_partitioner();
     $partitioner->add_partition_on_gpt_disk({
-            disk      => $disk->{name},
+            disk => $disk->{name},
             partition => $disk->{partitions}->{snapshots_small_root}
     });
 
-    assert_matches(qr/$test_data->{warnings}->{snapshots_small_root}/, $partitioner->get_warning_label_text(),
+    assert_matches(qr/$test_data->{warnings}->{snapshots_small_root}/, $partitioner->get_yes_no_popup_text(),
         "'Root is too small for snapshots' Warning Dialog did not appear, while it is expected.");
 }
 

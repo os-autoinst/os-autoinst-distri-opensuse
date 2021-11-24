@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Select and install product addons based on test variables
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
@@ -18,10 +14,10 @@ use testapi;
 
 sub run {
     if (check_screen('network-setup', 10)) {    # won't appear for NET installs
-        send_key $cmd{next};                        # use network
+        send_key $cmd{next};    # use network
         assert_screen 'dhcp-network';
         wait_screen_change { send_key 'alt-d' };    # DHCP
-        send_key 'alt-o';                           # OK
+        send_key 'alt-o';    # OK
     }
 
     assert_screen 'addon-selection';
@@ -30,29 +26,29 @@ sub run {
 
         # FIXME: do the same as sle here
         foreach my $url (split(/\+/, get_var("ADDONURL"))) {
-            send_key "alt-a";                            # Add another
-            send_key $cmd{xnext};                        # Specify URL (default)
+            send_key "alt-a";    # Add another
+            send_key $cmd{xnext};    # Specify URL (default)
             wait_still_screen(1);
             type_string $url;
             wait_screen_change { send_key $cmd{next} };
             if (get_var("ADDONURL") !~ m{/update/}) {    # update is already trusted, so would trigger "delete"
                 send_key "alt-i";
                 assert_screen 'import-untrusted-gpg-key-598D0E63B3FD7E48';
-                send_key "alt-t";                        # confirm import (trust) key
+                send_key "alt-t";    # confirm import (trust) key
             }
         }
         assert_screen 'addon-selection';
-        wait_screen_change { send_key $cmd{next} };      # done
+        wait_screen_change { send_key $cmd{next} };    # done
     }
 
     if (get_var("ADDONS")) {
 
         for my $i (split(/,/, get_var('ADDONS'))) {
-            send_key 'alt-d';                            # DVD
+            send_key 'alt-d';    # DVD
             send_key $cmd{xnext};
             assert_screen 'dvd-selector';
             send_key_until_needlematch 'addon-dvd-list', 'tab';
-            send_key_until_needlematch "addon-dvd-$i",   'down';
+            send_key_until_needlematch "addon-dvd-$i", 'down';
             send_key 'alt-o';
             if (get_var("BETA")) {
                 assert_screen "addon-betawarning-$i";

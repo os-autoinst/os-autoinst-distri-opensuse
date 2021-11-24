@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libreoffice-math
 # Summary: Test formula rendering in oomath
@@ -33,7 +29,7 @@ sub run {
     my $retries = 7;
     for (1 .. $retries) {
         type_string_slow "E %PHI = H %PHI\nnewline\n1 = 1";
-        last                                                             if check_screen('test-oomath-1', 2);
+        last if check_screen('test-oomath-1', 2);
         die "Could not match on correct formula within multiple retries" if $_ == $retries;
         record_info 'workaround', 'retrying unstable formula typing, see https://progress.opensuse.org/issues/53795 for details';
         send_key 'ctrl-a';

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary:  base class for convert QA:Head ctcs2 wrapper testsuite test log to junit format
 # Maintainer: Yong Sun <yosun@suse.com>
@@ -28,7 +24,7 @@ sub analyzeResult {
     foreach (split("\n", $text)) {
         if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED)\s+\((\S+)\)/g) {
             $result->{$1}{status} = $2;
-            $result->{$1}{time}   = $3;
+            $result->{$1}{time} = $3;
         }
     }
     return $result;
@@ -43,7 +39,7 @@ sub generateXML {
     my $pass_num = 0;
     my $fail_num = 0;
     my $skip_num = 0;
-    my $writer   = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => "self");
+    my $writer = XML::Writer->new(DATA_MODE => 'true', DATA_INDENT => 2, OUTPUT => "self");
 
     foreach my $test (keys(%test_results)) {
         if ($test_results{$test}->{status} =~ m/PASSED/) {
@@ -58,24 +54,24 @@ sub generateXML {
     }
     $writer->startTag(
         'testsuites',
-        error    => "0",
+        error => "0",
         failures => "$fail_num",
-        name     => "",
-        skipped  => "$skip_num",
-        tests    => "$case_num",
-        time     => ""
+        name => "",
+        skipped => "$skip_num",
+        tests => "$case_num",
+        time => ""
     );
     $writer->startTag(
         'testsuite',
-        error     => "0",
-        failures  => "$fail_num",
-        hostname  => `hostname`,
-        id        => "0",
-        name      => get_var('QA_TESTSET', 'xfstests'),
-        package   => get_var('QA_TESTSET', 'test_result'),
-        skipped   => "0",
-        tests     => "$case_num",
-        time      => "",
+        error => "0",
+        failures => "$fail_num",
+        hostname => `hostname`,
+        id => "0",
+        name => get_var('QA_TESTSET', 'xfstests'),
+        package => get_var('QA_TESTSET', 'test_result'),
+        skipped => "0",
+        tests => "$case_num",
+        time => "",
         timestamp => `date`
     );
 
@@ -94,9 +90,9 @@ sub generateXML {
         $writer->startTag(
             'testcase',
             classname => get_var('QA_TESTSET') || get_var('XFSTESTS'),
-            name      => $test,
-            status    => $case_status,
-            time      => $test_results{$test}->{time});
+            name => $test,
+            status => $case_status,
+            time => $test_results{$test}->{time});
         if ((get_var('XFSTESTS') || get_var('QA_TESTSET')) && ($case_status eq 'failure' || $case_status eq 'skipped')) {
             (my $test_path = $test) =~ s/-/\//;
             $test_path = '/opt/log/' . $test_path;

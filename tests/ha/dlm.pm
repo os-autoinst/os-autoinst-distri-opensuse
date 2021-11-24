@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: crmsh
 # Summary: Configure DLM in cluster configuration
@@ -30,8 +26,8 @@ sub run {
     if (is_node(1)) {
         # Create DLM resource
         assert_script_run 'EDITOR="sed -ie \'$ a primitive dlm ocf:pacemaker:controld\'" crm configure edit', $default_timeout;
-        assert_script_run 'EDITOR="sed -ie \'$ a group base-group dlm\'" crm configure edit',                 $default_timeout;
-        assert_script_run 'EDITOR="sed -ie \'$ a clone base-clone base-group\'" crm configure edit',          $default_timeout;
+        assert_script_run 'EDITOR="sed -ie \'$ a group base-group dlm\'" crm configure edit', $default_timeout;
+        assert_script_run 'EDITOR="sed -ie \'$ a clone base-clone base-group\'" crm configure edit', $default_timeout;
     }
     else {
         diag 'Wait until DLM resource is created...';

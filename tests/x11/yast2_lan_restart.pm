@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2
 # Summary: YaST logic on Network Restart while no config changes were made
@@ -52,14 +48,14 @@ sub check_network_card_setup_tabs {
 }
 
 sub check_default_gateway {
-    send_key 'alt-u';        # Routing tab
+    send_key 'alt-u';    # Routing tab
     assert_screen 'yast2_lan_routing_tab';
-    send_key 'alt-f';        # select Default IPv4 Gateway
+    send_key 'alt-f';    # select Default IPv4 Gateway
     type_string '10.0.2.2';
     save_screenshot;
-    send_key 'alt-g';        # Global options tab
+    send_key 'alt-g';    # Global options tab
     assert_screen 'yast2_lan_global_options_tab';
-    send_key 'alt-u';        # Routing tab
+    send_key 'alt-u';    # Routing tab
     assert_screen 'yast2_lan_routing_tab';
     send_key 'alt-f';
     send_key 'backspace';    # Delete selected IP
@@ -68,7 +64,7 @@ sub check_default_gateway {
 sub change_hw_device_name {
     my $dev_name = shift;
 
-    send_key 'alt-i';        # Edit NIC
+    send_key 'alt-i';    # Edit NIC
     assert_screen 'yast2_lan_network_card_setup';
     if (is_sle('15-SP2+')) {
         send_key 'alt-g';    # Starting with SLE15 SP2, "Device name" field is shown in General tab
@@ -76,7 +72,7 @@ sub change_hw_device_name {
         send_key 'alt-w';    # Hardware tab
         assert_screen 'yast2_lan_hardware_tab';
     }
-    send_key 'alt-e';                           # Change device name
+    send_key 'alt-e';    # Change device name
     assert_screen 'yast2_lan_device_name';
     send_key 'tab' for (1 .. 2);
     type_string $dev_name;
@@ -88,7 +84,7 @@ sub change_hw_device_name {
 
 sub run {
     initialize_y2lan;
-    verify_network_configuration;               # check simple access to Overview tab
+    verify_network_configuration;    # check simple access to Overview tab
     my $service_status_after_conf = (is_sle('<=15')) ? 'no_restart_or_reload' : 'reload';
     if ($backend eq "svirt") {
         verify_network_configuration(\&check_network_settings_tabs, $service_status_after_conf);

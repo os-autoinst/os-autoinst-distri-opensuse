@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
 #          from sles15sp2, update tpm2.0-tools to the stable 4 release
@@ -32,9 +20,9 @@ sub run {
     my $test_dir = "tpm2_tools_auth";
     my $prim_ctx = "prim.ctx";
     my $key_priv = "key.priv";
-    my $key_pub  = "key.pub";
+    my $key_pub = "key.pub";
     my $key_name = "key.name";
-    my $ket_ctx  = "key.ctx";
+    my $ket_ctx = "key.ctx";
     assert_script_run "mkdir $test_dir";
     assert_script_run "cd $test_dir";
     assert_script_run "tpm2_createprimary -Q -C o -c $prim_ctx -T tabrmd";
@@ -59,7 +47,7 @@ sub run {
 
     # Tpm2_changeauth - Configures authorization values for the various hierarchies, NV indices
     # Set owner, endorsement and lockout authorizations to $new_pass
-    my $new_pass   = "newpass";
+    my $new_pass = "newpass";
     my $newer_pass = "newerpass";
     assert_script_run "tpm2_changeauth -c owner $new_pass -T tabrmd";
     assert_script_run "tpm2_changeauth -c endorsement $new_pass -T tabrmd";

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Provide functionality for tomcat installation and configuration,
 # accessing the tomcat manager page, and browsing tomcat examples using keyboard.
@@ -82,6 +78,7 @@ sub tomcat_manager_test() {
     send_key('tab');
     type_string('admin');
     assert_and_click('tomcat-OK-autentication');
+    wait_still_screen(2);
     assert_and_click('tomcat-click-save-login');
     assert_screen('tomcat-web-application-manager', TIMEOUT);
 }

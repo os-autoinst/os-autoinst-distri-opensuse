@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yp-tools
 # Summary: Validate YaST configuration functionality for NIS
@@ -28,7 +24,7 @@ sub run {
     turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
     become_root;
 
-    assert_script_run "ls /etc/yp.conf",              fail_message => "File /etc/yp.conf doesn't exist";
+    assert_script_run "ls /etc/yp.conf", fail_message => "File /etc/yp.conf doesn't exist";
     assert_script_run "grep \"ypserv\" /etc/yp.conf", fail_message => "\"ypserv\" was not found in /etc/yp.conf";
     assert_script_run "grep \"$test_data->{nis_domain}\" /etc/defaultdomain",
       fail_message => "\"$test_data->{nis_domain}\" was not found in /etc/defaultdomain";

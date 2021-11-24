@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: firewalld
 # Summary: Ensure firewall is running
@@ -20,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils "is_upgrade";
-use Utils::Architectures 'is_ppc64le';
+use Utils::Architectures;
 
 sub run {
     my ($self) = @_;

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-apparmor
 # Summary: Check configuration of apparmor, add and delete apparmor profiles;
@@ -73,7 +69,7 @@ sub run {
         send_key 'alt-l';
     }
 
-    assert_screen([qw(yast2_apparmor_disabled yast2_apparmor_enabled)]);
+    assert_screen([qw(yast2_apparmor_disabled yast2_apparmor_enabled)], 90);
     if (match_has_tag 'yast2_apparmor_disabled') {
         send_key 'alt-e';
         assert_screen 'yast2_apparmor_enabled';
@@ -85,7 +81,7 @@ sub run {
             send_key 'alt-e';
             sleep 3;
             send_key 'alt-e';
-            record_soft_failure 'bsc#1129280 - Toggled "enable apparmor" to ensure systemd unit is started';
+            record_info 'bsc#1129280', 'bsc#1129280 - Toggled "enable apparmor" to ensure systemd unit is started';
             assert_screen 'yast2_apparmor_enabled';
         }
     }

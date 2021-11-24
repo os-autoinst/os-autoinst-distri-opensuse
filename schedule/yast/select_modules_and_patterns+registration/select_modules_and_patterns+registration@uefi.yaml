@@ -17,12 +17,12 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
+  - installation/registration/skip_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
@@ -31,8 +31,9 @@ schedule:
   - installation/resolve_dependency_issues
   - installation/select_patterns
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -47,5 +48,3 @@ schedule:
   - console/suseconnect_scc
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
-test_data:
-  product: SLES

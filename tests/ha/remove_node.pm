@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: ha-cluster-bootstrap
 # Summary: Remove a node both by its hostname and ip address
@@ -21,10 +17,10 @@ use version_utils 'is_sle';
 
 sub remove_state_join {
     my ($method, $cluster_name, $node_01, $node_02) = @_;
-    my $remove_cmd     = 'ha-cluster-remove -y -c';
-    my $join_cmd       = 'ha-cluster-join -y -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
+    my $remove_cmd = 'ha-cluster-remove -y -c';
+    my $join_cmd = 'ha-cluster-join -y -i ' . get_var('SUT_NETDEVICE', 'eth0') . ' -c';
     my $remove_timeout = bmwqemu::scale_timeout(60);
-    my $timer          = bmwqemu::scale_timeout(5);
+    my $timer = bmwqemu::scale_timeout(5);
 
     # Waiting for the other nodes to be ready
     barrier_wait("REMOVE_NODE_BY_" . "$method" . "_INIT_" . "$cluster_name");
@@ -57,8 +53,8 @@ sub run {
     my $cluster_name = get_cluster_name;
     my $node_01_host = choose_node(1);
     my $node_02_host = choose_node(2);
-    my $node_01_ip   = get_ip($node_01_host);
-    my $node_02_ip   = get_ip($node_02_host);
+    my $node_01_ip = get_ip($node_01_host);
+    my $node_02_ip = get_ip($node_02_host);
 
     # Both remove and join the second node  by its hostname
     remove_state_join('HOST', $cluster_name, $node_01_host, $node_02_host);

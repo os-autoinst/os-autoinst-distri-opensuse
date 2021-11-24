@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2021 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check initial partitioning screen and prepare optional substeps
 # - If DUALBOOT is set, keep windows partition by resizing it
@@ -21,6 +17,10 @@ use version_utils qw(is_leap is_storage_ng is_sle is_tumbleweed);
 use partition_setup qw(%partition_roles is_storage_ng_newui);
 
 sub run {
+    if (check_var('SYSTEM_ROLE', 'Common_Criteria')) {
+        assert_screen 'Common-Criteria-Evaluated-Configuration-RN-Next';
+        send_key 'alt-n';
+    }
     assert_screen 'partitioning-edit-proposal-button', 40;
     if (check_var('PARTITION_EDIT', 'ext4_btrfs')) {
         send_key 'alt-g';
@@ -42,26 +42,26 @@ sub run {
         # Define changed shortcuts
         $cmd{addraid} = 'alt-r';
         # for newer storage-ng toolbar has changed
-        $cmd{addraid}          = 'alt-d' if is_storage_ng_newui;
-        $cmd{customsize}       = 'alt-o';
-        $cmd{donotformat}      = 'alt-t';
-        $cmd{exp_part_finish}  = 'alt-n';
-        $cmd{filesystem}       = 'alt-r';
-        $cmd{guidedsetup}      = 'alt-g';
-        $cmd{rescandevices}    = 'alt-r';
-        $cmd{resize}           = 'alt-r';
-        $cmd{raw_volume}       = 'alt-r';
+        $cmd{addraid} = 'alt-d' if is_storage_ng_newui;
+        $cmd{customsize} = 'alt-o';
+        $cmd{donotformat} = 'alt-t';
+        $cmd{exp_part_finish} = 'alt-n';
+        $cmd{filesystem} = 'alt-r';
+        $cmd{guidedsetup} = 'alt-g';
+        $cmd{rescandevices} = 'alt-r';
+        $cmd{resize} = 'alt-r';
+        $cmd{raw_volume} = 'alt-r';
         $cmd{enable_snapshots} = 'alt-a';
-        $cmd{addpart}          = 'alt-r' if is_storage_ng_newui;
-        $cmd{addvg}            = 'alt-d';
-        $cmd{addlv}            = 'alt-g';
+        $cmd{addpart} = 'alt-r' if is_storage_ng_newui;
+        $cmd{addvg} = 'alt-d';
+        $cmd{addlv} = 'alt-g';
         # Set shortcut for role selection when creating partition
         $partition_roles{raw} = $cmd{raw_volume};
 
         if (check_var('DISTRI', 'opensuse')) {
             $cmd{expertpartitioner} = 'alt-e';
-            $cmd{enablelvm}         = 'alt-e';
-            $cmd{encryptdisk}       = 'alt-a';
+            $cmd{enablelvm} = 'alt-e';
+            $cmd{encryptdisk} = 'alt-a';
         }
     }
 

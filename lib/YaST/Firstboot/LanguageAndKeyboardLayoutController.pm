@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Language and Keyboard
 #          Layout dialog.
@@ -39,7 +35,7 @@ sub get_language_and_keyboard_layout_page {
 sub collect_current_language_and_keyboard_layout_info {
     my ($self) = @_;
     return {
-        language        => $self->get_language_and_keyboard_layout_page()->get_language(),
+        language => $self->get_language_and_keyboard_layout_page()->get_language(),
         keyboard_layout => $self->get_language_and_keyboard_layout_page()->get_keyboard_layout()};
 }
 

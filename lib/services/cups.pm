@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Package for cups service tests
 #
@@ -59,8 +55,8 @@ sub check_function {
         common_service_action 'cups', $service_type, 'restart';
     }
     # Add printers
-    record_info "lpadmin",                                          "Try to add printers and enable them";
-    validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ };
+    record_info "lpadmin", "Try to add printers and enable them";
+    validate_script_output('lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/lpstat: No destinations added/ }, timeout => 120);
     assert_script_run 'lpadmin -p printer_tmp -v file:/tmp/test_cups -m raw -E';
     assert_script_run 'lpadmin -p printer_null -v file:/dev/null -m raw -E';
     assert_script_run 'cupsenable printer_tmp printer_null';
@@ -75,7 +71,7 @@ sub check_function {
     foreach my $printer (qw(printer_tmp printer_null)) {
         assert_script_run "cupsdisable $printer";
         assert_script_run "lp -d $printer -o cpi=12 -o lpi=8 sample.ps";
-        validate_script_output 'lpstat -o',          sub { m/$printer-\d+/ };
+        validate_script_output 'lpstat -o', sub { m/$printer-\d+/ };
         validate_script_output 'ls /var/spool/cups', sub { m/d\d+/ };
         assert_script_run "cancel -a $printer";
     }
@@ -110,7 +106,7 @@ sub check_function {
     # Remove printers
     record_info "lpadmin -x", "Removing printers";
     assert_script_run "lpadmin -x $_" foreach (qw(printer_tmp printer_null));
-    validate_script_output 'lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ };
+    validate_script_output('lpstat -p -d -o 2>&1 || test $? -eq 1', sub { m/No destinations added/ }, timeout => 120);
 }
 
 # check apache service before and after migration

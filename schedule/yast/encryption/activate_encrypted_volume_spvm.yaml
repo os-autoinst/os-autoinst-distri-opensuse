@@ -6,21 +6,20 @@ description: >
   is scheduled and OPT_KERNEL_PARAMS variable is set.
 name: activate_encrypted_volume
 vars:
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   DESKTOP: textmode
-  ENCRYPT_ACTIVATE_EXISTING: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/system_probing/activate_encrypted_volume
   - console/validate_encrypted_volume_activation
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/encrypt_lvm_reuse_existing
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
@@ -28,16 +27,16 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_plymouth
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
 test_data:
-  product: SLES
   mapped_device: '/dev/mapper/cr-auto-1'
   device_status:
     message: 'is active.'

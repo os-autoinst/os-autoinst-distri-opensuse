@@ -1,11 +1,7 @@
 # openssl fips test
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: openssl
 # Summary: FIPS: openssl_fips_cipher
@@ -27,10 +23,10 @@ sub run {
     zypper_call 'in openssl';
 
     my $enc_passwd = "pass1234";
-    my $hash_alg   = "sha256";
-    my $file_raw   = "hello.txt";
-    my $file_enc   = "hello.txt.enc";
-    my $file_dec   = "hello.txt.tmp";
+    my $hash_alg = "sha256";
+    my $file_raw = "hello.txt";
+    my $file_enc = "hello.txt.enc";
+    my $file_dec = "hello.txt.tmp";
 
     # Prepare temp directory and file for testing
     assert_script_run "mkdir fips-test && cd fips-test && echo Hello > $file_raw";

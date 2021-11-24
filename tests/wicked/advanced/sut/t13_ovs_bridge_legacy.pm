@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openvswitch wicked
 # Summary: Advanced test cases for wicked
@@ -23,12 +19,12 @@ use utils 'systemctl';
 sub run {
     my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-br0';
-    my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
+    my $dummy = '/etc/sysconfig/network/ifcfg-dummy0';
     record_info('Info', 'Create OVS Bridge interface from legacy ifcfg files');
     systemctl('start openvswitch');
     $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
-    $self->get_from_data('wicked/ifcfg/ovsbr0',              $config);
-    $self->get_from_data('wicked/ifcfg/dummy0',              $dummy);
+    $self->get_from_data('wicked/ifcfg/ovsbr0', $config);
+    $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     record_info('INFO', script_output('ovs-vsctl show'));
     my $res = $self->get_test_result('br0');

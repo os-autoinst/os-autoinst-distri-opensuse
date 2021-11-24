@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: mailx
 # Summary: Test mailx send/reveive mails with SSL enabled
@@ -28,7 +24,7 @@ sub run {
     zypper_call "in mailx";
 
     # Send testing mail
-    my $subject   = "Testing mailx";
+    my $subject = "Testing mailx";
     my $user_mail = "$username\@$mail_server_name";
     mailx_setup(ssl => "yes", host => "$mail_server_name");
     mailx_send_mail(subject => "$subject", to => "$user_mail");

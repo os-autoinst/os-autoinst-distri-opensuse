@@ -1,17 +1,5 @@
-# Copyright © 2015-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package containers::common;
 
@@ -25,9 +13,15 @@ use utils qw(zypper_call systemctl file_content_replace script_retry);
 use version_utils qw(is_sle is_leap is_microos is_sle_micro is_opensuse is_jeos is_public_cloud get_os_release check_version);
 use containers::utils qw(can_build_sle_base registry_url);
 
-our @EXPORT = qw(install_podman_when_needed install_docker_when_needed allow_selected_insecure_registries
-  clean_container_host test_container_runtime test_container_image scc_apply_docker_image_credentials
+our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed
+  test_container_runtime test_container_image scc_apply_docker_image_credentials
   scc_restore_docker_image_credentials install_buildah_when_needed test_rpm_db_backend activate_containers_module);
+
+
+sub is_unreleased_sle {
+    # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
+    return (get_var('SCC_URL', '') =~ /proxy/);
+}
 
 sub activate_containers_module {
     my ($running_version, $sp, $host_distri) = get_os_release;
@@ -42,22 +36,22 @@ sub activate_containers_module {
 
 sub install_podman_when_needed {
     my $host_os = shift;
-    my @pkgs    = qw(podman);
+    my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
             assert_script_run "dnf -y install @pkgs", timeout => 160;
         } elsif ($host_os eq 'ubuntu') {
-            my $version_id  = script_output('(. /etc/os-release && echo $VERSION_ID)');
+            my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
             my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
             assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
             assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
-            assert_script_run "apt-get update",            timeout => 160;
-            assert_script_run "apt-get -y install podman", timeout => 220;
+            assert_script_run "apt-get update", timeout => 300;
+            assert_script_run "apt-get -y install podman", timeout => 300;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sles';
             push(@pkgs, 'podman-cni-config') if is_jeos();
-            push(@pkgs, 'apparmor-parser')   if is_leap("=15.1");    # bsc#1123387
+            push(@pkgs, 'apparmor-parser') if is_leap("=15.1");    # bsc#1123387
             zypper_call "in @pkgs";
         }
     }
@@ -98,7 +92,7 @@ sub install_docker_when_needed {
     systemctl('enable docker');
     systemctl('is-enabled docker');
     # docker start, but taking bsc#1187479 into account. Please remove softfailure handling, once bsc#1187479 is solved.
-    if (systemctl('start docker', ignore_failure => 1) != 0) {
+    if (systemctl('start docker', timeout => 180, ignore_failure => 1) != 0) {
         # Check for docker start timeout, bsc#1187479
         if (script_run('journalctl -e | grep "timeout waiting for containerd to start"') == 0) {
             # Retry one more time
@@ -116,47 +110,12 @@ sub install_docker_when_needed {
 
 sub install_buildah_when_needed {
     my $host_os = shift;
-    my @pkgs    = qw(buildah);
+    my @pkgs = qw(buildah);
     if (script_run("which buildah") != 0) {
         # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
         activate_containers_module if $host_os =~ 'sles';
         zypper_call "in @pkgs";
         record_info('buildah', script_output('buildah info'));
-    }
-}
-
-sub allow_selected_insecure_registries {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-    my $registry = registry_url();
-
-    assert_script_run "echo $runtime ...";
-    if ($runtime =~ /docker/) {
-        # Allow our internal 'insecure' registry
-        assert_script_run(
-'echo "{ \"debug\": true, \"insecure-registries\" : [\"localhost:5000\", \"registry.suse.de\", \"' . $registry . '\"] }" > /etc/docker/daemon.json');
-        assert_script_run('cat /etc/docker/daemon.json');
-        systemctl('restart docker');
-    } elsif ($runtime =~ /podman/) {
-        assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
-        assert_script_run "chmod 644 /etc/containers/registries.conf";
-        file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
-    } else {
-        die "Unsupported runtime - " . $runtime;
-    }
-}
-
-sub clean_container_host {
-    my %args    = @_;
-    my $runtime = $args{runtime};
-    die "You must define the runtime!" unless $runtime;
-    if ($runtime =~ /buildah/) {
-        assert_script_run("$runtime rm --all",          timeout => 180);
-        assert_script_run("$runtime rmi --all --force", timeout => 300);
-    } else {
-        assert_script_run("$runtime ps -q | xargs -r $runtime stop", 180);
-        assert_script_run("$runtime system prune -a -f",             300);
     }
 }
 
@@ -217,12 +176,12 @@ sub test_container_runtime {
 
 # Test a given image. Takes the image and container runtime (docker or podman) as arguments
 sub test_container_image {
-    my %args    = @_;
-    my $image   = $args{image};
+    my %args = @_;
+    my $image = $args{image};
     my $runtime = $args{runtime};
     my $logfile = "/var/tmp/container_logs";
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     # Images from docker.io registry are listed without the 'docker.io/library/'
@@ -231,37 +190,23 @@ sub test_container_image {
 
     my $smoketest = qq[/bin/sh -c '/bin/uname -r; /bin/echo "Heartbeat from $image"; ps'];
 
-    if ($runtime =~ /buildah/) {
-        if (script_run("buildah images | grep '$image'") != 0) {
-            assert_script_run("buildah pull $image", timeout => 300);
-            assert_script_run("buildah inspect --format='{{.FromImage}}' $image | grep '$image'");
-        }
-        # Ignore stderr explicitly, script_output with serial_terminal captures that as well.
-        my $container = script_output("buildah from $image 2>/dev/null");
-        record_info 'Container', qq[Testing:\nContainer "$container" based on image "$image"];
-        assert_script_run("buildah run $container $smoketest");
-    } else {
-        # Pull the image if necessary
-        if (script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'") != 0) {
-            # At least on publiccloud, this image pull can take long and occasinally fails due to network issues
-            script_retry("$runtime pull $image", retry => 3, timeout => 420);
-            assert_script_run("$runtime image inspect --format='{{.RepoTags}}' $image | grep '$image'");
-        }
-        assert_script_run("$runtime container create --name testing $image $smoketest");
-        assert_script_run("$runtime container start 'testing'");
-        assert_script_run("$runtime wait 'testing'", 90);
-        assert_script_run("$runtime container logs 'testing' | tee '$logfile'");
-        assert_script_run("$runtime container rm 'testing'");
-        if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
-            upload_logs("$logfile");
-            die "Kernel smoke test failed for $image";
-        }
-        if (script_run("grep \"Heartbeat from $image\" '$logfile'") != 0) {
-            upload_logs("$logfile");
-            die "Heartbeat test failed for $image";
-        }
-        assert_script_run "rm -f $logfile";
+    $runtime->pull($image, timeout => 420);
+    $runtime->check_image_in_host($image);
+    $runtime->create_container(image => $image, name => 'testing', cmd => $smoketest);
+    return if $runtime->runtime eq 'buildah';
+    $runtime->start_container('testing');
+    $runtime->halt_container('testing');
+    $runtime->get_container_logs('testing', $logfile);
+    $runtime->remove_container('testing');
+    if (script_run("grep \"`uname -r`\" '$logfile'") != 0) {
+        upload_logs("$logfile");
+        die "Kernel smoke test failed for $image";
     }
+    if (script_run("grep \"Heartbeat from $image\" '$logfile'") != 0) {
+        upload_logs("$logfile");
+        die "Heartbeat test failed for $image";
+    }
+    assert_script_run "rm -f $logfile";
 }
 
 sub scc_apply_docker_image_credentials {
@@ -275,11 +220,11 @@ sub scc_restore_docker_image_credentials {
 }
 
 sub test_rpm_db_backend {
-    my %args    = @_;
-    my $image   = $args{image};
+    my %args = @_;
+    my $image = $args{image};
     my $runtime = $args{runtime};
 
-    die 'Argument $image not provided!'   unless $image;
+    die 'Argument $image not provided!' unless $image;
     die 'Argument $runtime not provided!' unless $runtime;
 
     my ($running_version, $sp, $host_distri) = get_os_release("$runtime run $image");

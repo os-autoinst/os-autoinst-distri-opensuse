@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox tomcat tomcat-webapps tomcat-admin-webapps
 # Summary: Tomcat regression test
@@ -27,7 +23,7 @@ use Tomcat::Utils;
 use Tomcat::ModjkTest;
 use utils;
 use version_utils 'is_sle';
-use x11utils 'ensure_unlocked_desktop';
+use x11utils qw(turn_off_screensaver);
 
 sub run() {
 
@@ -39,6 +35,7 @@ sub run() {
     $self->switch_to_desktop();
 
     # start firefox
+    $self->turn_off_screensaver();
     $self->start_firefox_with_profile();
 
     # check that the tomcat web service works
@@ -63,37 +60,26 @@ sub run() {
     my $websocket_test = Tomcat::WebSocketsTest->new();
     $websocket_test->test_all_examples();
 
-    # Close firefox
-    $self->close_firefox();
-    assert_screen('generic-desktop');
-
     # Install and configure apache2 and apache2-mod_jk connector
     Tomcat::ModjkTest->mod_jk_setup();
     $self->switch_to_desktop();
 
-    # start firefox
-    $self->start_firefox_with_profile();
     $self->firefox_open_url('http://localhost/examples/servlets');
     send_key_until_needlematch('tomcat-servlet-examples-page', 'ret');
 
     $self->firefox_open_url('http://localhost/examples/jsp');
     send_key_until_needlematch('tomcat-jsp-examples', 'ret');
-    $self->close_firefox();
 
     $self->select_serial_terminal();
     systemctl('start tomcat');
 
     my $with_modjk = 1;
     $self->switch_to_desktop();
-    # start firefox
-    $self->start_firefox_with_profile();
     record_info('Servlet Testing');
     $servlet_test->test_all_examples($with_modjk);
 
     record_info('JSP Testing');
     $jsp_test->test_all_examples($with_modjk);
-
-    $self->close_firefox();
 
     $self->select_serial_terminal();
     # Connection from apache2 to tomcat: Functionality test
@@ -101,9 +87,6 @@ sub run() {
 
     # switch to desktop
     $self->switch_to_desktop();
-
-    # start firefox
-    $self->start_firefox_with_profile();
 
     $self->firefox_open_url('http://localhost');
     send_key_until_needlematch('tomcat-succesfully-installed', 'ret');
@@ -121,7 +104,6 @@ sub switch_to_desktop {
     # switch to desktop
     if (!check_var('DESKTOP', 'textmode')) {
         select_console('x11', await_console => 0);
-        ensure_unlocked_desktop;
     }
 }
 

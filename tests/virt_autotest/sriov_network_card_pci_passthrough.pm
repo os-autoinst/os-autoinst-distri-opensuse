@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: A test to pass SR-IOV Ethernet VFs to guest via libvirt. Both KVM & XEN hosts are supported.
 # Test environment: one or more Ethernet card with SR-IOV features in host machine as a secondary network card;
@@ -85,7 +73,7 @@ sub run_test {
         save_network_device_status_logs($log_dir, $guest, "1-initial");
 
         #detach 3 vf ethernet devices from host
-        my @vfs               = ();
+        my @vfs = ();
         my $passthru_vf_count = 3;    #the number of vfs to be passed through to guests
         for (my $i = 0; $i < $passthru_vf_count; $i++) {
 
@@ -219,7 +207,7 @@ sub enable_vf {
     }
 
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
-    my @vfs        = split("\n", $vf_devices);
+    my @vfs = split("\n", $vf_devices);
 
 }
 
@@ -333,7 +321,7 @@ sub plugin_vf_device {
     #get the mac address and bdf by parsing the domain xml
     #tips: there may be multiple interfaces and multiple hostdev devices in the guest
     my $nics_count = script_output "virsh dumpxml $vm --inactive | grep -c \"<interface.*type='hostdev'\"";
-    my $devs_xml   = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
+    my $devs_xml = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
     $vf->{host_id} =~ /pci_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)_([a-z\d]+)/;
     my ($dom, $bus, $slot, $func) = ($1, $2, $3, $4);    #these are different with those in host_devices.xml
     for (my $i = 0; $i < $nics_count; $i++) {
@@ -387,7 +375,7 @@ sub unplug_vf_from_vm {
     record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nbdf='$vf->{vm_bdf}'   mac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 
     #bring the nic down
-    script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 60);
+    script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 300);
 
     #detach vf from guest
     my $vf_xml_file = "vf_in_vm.xml";
@@ -419,7 +407,7 @@ sub save_network_device_status_logs {
 
     #list pci devices in guest
     print_cmd_output_to_file("lspci", $log_file, $vm);
-    print_cmd_output_to_file("ip a",  $log_file, $vm);
+    print_cmd_output_to_file("ip a", $log_file, $vm);
     print_cmd_output_to_file("lsmod", $log_file, $vm) if is_xen_host;
 
     script_run "mv $log_file $log_dir/${vm}_${test_step}_network_device_status.txt";

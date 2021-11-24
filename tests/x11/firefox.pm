@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Very basic firefox test opening an html-test
@@ -28,8 +24,10 @@ sub run() {
     $self->start_firefox;
     wait_still_screen;
     send_key('alt');
+    wait_still_screen;
     assert_screen('firefox-top-bar-highlighted');
     send_key('h');
+    wait_still_screen;
     assert_screen('firefox-help-menu');
     send_key_until_needlematch('test-firefox-3', 'a', 9, 6);
 

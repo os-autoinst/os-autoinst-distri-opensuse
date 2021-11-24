@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for HA Cluster tests
 
@@ -89,10 +85,10 @@ Extension (HA or HAE) tests.
 =back
 
 =cut
-our $crm_mon_cmd     = 'crm_mon -R -r -n -N -1';
+our $crm_mon_cmd = 'crm_mon -R -r -n -N -1';
 our $softdog_timeout = bmwqemu::scale_timeout(60);
 our $prev_console;
-our $join_timeout    = bmwqemu::scale_timeout(60);
+our $join_timeout = bmwqemu::scale_timeout(60);
 our $default_timeout = bmwqemu::scale_timeout(30);
 
 # Private functions
@@ -139,7 +135,7 @@ success or croaks if command execution fails in SUT.
 =cut
 
 sub add_file_in_csync {
-    my %args      = @_;
+    my %args = @_;
     my $conf_file = $args{conf_file} // '/etc/csync2/csync2.cfg';
 
     if (defined($conf_file) && defined($args{value})) {
@@ -208,7 +204,7 @@ Returns 0 on failure.
 
 sub get_ip {
     my $node_hostname = shift;
-    my $node_ip       = get_var('USE_SUPPORT_SERVER') ? script_output "host -t A $node_hostname" :
+    my $node_ip = get_var('USE_SUPPORT_SERVER') ? script_output "host -t A $node_hostname" :
       script_output "awk 'BEGIN {RET=1} /$node_hostname/ {print \$1; RET=0; exit} END {exit RET}' /etc/hosts";
     return _just_the_ip($node_ip);
 }
@@ -223,7 +219,7 @@ Returns the IP address of SUT or 0 if the address cannot be determined. Special 
 
 sub get_my_ip {
     my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
-    my $node_ip   = script_output "ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
+    my $node_ip = script_output "ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
     return _just_the_ip($node_ip);
 }
 
@@ -270,7 +266,7 @@ hostnames in the tests settings, for example B<alpha-node01>, B<alpha-node02>, e
 
 sub is_node {
     my $node_number = shift;
-    my $hostname    = get_hostname;
+    my $hostname = get_hostname;
 
     # Node number must be coded with 2 digits
     $node_number = sprintf("%02d", $node_number);
@@ -306,7 +302,7 @@ settings, for example B<alpha-node01>, B<alpha-node02>, etc.
 =cut
 
 sub choose_node {
-    my $node_number  = shift;
+    my $node_number = shift;
     my $tmp_hostname = get_hostname;
 
     # Node number must be coded with 2 digits
@@ -330,7 +326,7 @@ screenshot.
 
 sub save_state {
     script_run 'yes | crm configure show', $default_timeout;
-    assert_script_run "$crm_mon_cmd",      $default_timeout;
+    assert_script_run "$crm_mon_cmd", $default_timeout;
     save_screenshot;
 }
 
@@ -344,7 +340,7 @@ Checks if B<$package> is installed in SUT. Returns true or false.
 
 sub is_package_installed {
     my $package = shift;
-    my $ret     = script_run "rpm -q $package";
+    my $ret = script_run "rpm -q $package";
 
     _test_var_defined $ret;
     return ($ret == 0);
@@ -361,7 +357,7 @@ true or false.
 
 sub check_rsc {
     my $rsc = shift;
-    my $ret = script_run "$crm_mon_cmd 2>/dev/null | grep -q '\\<$rsc\\>'";
+    my $ret = script_run "grep -q '\\<$rsc\\>' <($crm_mon_cmd 2>/dev/null)";
 
     _test_var_defined $ret;
     return ($ret == 0);
@@ -377,9 +373,9 @@ running in SUT. Returns 0 if process is running or croaks on timeout.
 =cut
 
 sub ensure_process_running {
-    my $process   = shift;
+    my $process = shift;
     my $starttime = time;
-    my $ret       = undef;
+    my $ret = undef;
 
     while ($ret = script_run "ps -A | grep -q '\\<$process\\>'") {
         my $timerun = time - $starttime;
@@ -409,9 +405,9 @@ the cluster; uses B<$regexp> to check. Returns 0 on success or croaks on timeout
 sub ensure_resource_running {
     my ($rsc, $regex) = @_;
     my $starttime = time;
-    my $ret       = undef;
+    my $ret = undef;
 
-    while ($ret = script_run("crm resource status $rsc | grep -E -q '$regex'", $default_timeout)) {
+    while ($ret = script_run("grep -E -q '$regex' <(crm resource status $rsc)", $default_timeout)) {
         my $timerun = time - $starttime;
         if ($timerun < $default_timeout) {
             sleep 5;
@@ -451,9 +447,9 @@ Returns 0 on success or croaks on failure.
 =cut
 
 sub write_tag {
-    my $tag     = shift;
+    my $tag = shift;
     my $rsc_tag = '/tmp/' . get_cluster_name . '.rsc';
-    my $ret     = script_run "echo $tag > $rsc_tag";
+    my $ret = script_run "echo $tag > $rsc_tag";
 
     _test_var_defined $ret;
     return ($ret == 0);
@@ -513,7 +509,7 @@ Remove filter B<$filter> from F</etc/lvm/lvm.conf>.
 =cut
 
 sub lvm_remove_filter {
-    my $filter   = shift;
+    my $filter = shift;
     my $lvm_conf = '/etc/lvm/lvm.conf';
 
     assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;$filter;;' $lvm_conf";
@@ -555,13 +551,13 @@ logs from the B<HAWK> test, from B<CTS> and from B<HANA> are also included.
 sub ha_export_logs {
     my $bootstrap_log = '/var/log/ha-cluster-bootstrap.log';
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $hb_log        = '/var/log/hb_report';
+    my $hb_log = '/var/log/hb_report';
     my $packages_list = '/tmp/packages.list';
-    my $iscsi_devs    = '/tmp/iscsi_devices.list';
-    my $mdadm_conf    = '/etc/mdadm.conf';
-    my $clustername   = get_cluster_name;
-    my $report_opt    = !is_sle('12-sp4+') ? '-f0' : '';
-    my $cts_log       = '/tmp/cts_cluster_exerciser.log';
+    my $iscsi_devs = '/tmp/iscsi_devices.list';
+    my $mdadm_conf = '/etc/mdadm.conf';
+    my $clustername = get_cluster_name;
+    my $report_opt = !is_sle('12-sp4+') ? '-f0' : '';
+    my $cts_log = '/tmp/cts_cluster_exerciser.log';
     my @y2logs;
 
     select_console 'root-console';
@@ -569,7 +565,7 @@ sub ha_export_logs {
     # Extract HA logs and upload them
     script_run "touch $corosync_conf";
     script_run "hb_report $report_opt -E $bootstrap_log $hb_log", 300;
-    upload_logs("$bootstrap_log",  failok => 1);
+    upload_logs("$bootstrap_log", failok => 1);
     upload_logs("$hb_log.tar.bz2", failok => 1);
 
     script_run "crm configure show > /tmp/crm.txt";
@@ -659,9 +655,9 @@ checks before the HA stack starts to stop the resources. Croaks on timeout.
 =cut
 
 sub wait_until_resources_stopped {
-    my %args      = @_;
-    my $timeout   = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $ret       = undef;
+    my %args = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $ret = undef;
     my $starttime = time;
     my $minchecks = $args{minchecks} // 3;
 
@@ -694,14 +690,14 @@ setting. Croaks on timeout.
 
 # If changing this, remember to also change wait_until_resources_started in tests/publiccloud/sles4sap.pm
 sub wait_until_resources_started {
-    my %args    = @_;
-    my @cmds    = ('crm cluster wait_for_startup');
+    my %args = @_;
+    my @cmds = ('crm cluster wait_for_startup');
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $ret     = undef;
+    my $ret = undef;
 
     # Some CRM options can only been added on recent versions
-    push @cmds, "$crm_mon_cmd | grep -iq 'no inactive resources'" if is_sle '12-sp3+';
-    push @cmds, "! ($crm_mon_cmd | grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting')";
+    push @cmds, "grep -iq 'no inactive resources' <($crm_mon_cmd)" if is_sle '12-sp3+';
+    push @cmds, "! (grep -Eioq ':[[:blank:]]*failed|:[[:blank:]]*starting' <($crm_mon_cmd))";
 
     # Execute each comnmand to validate that the cluster is running
     # This can takes time, so a loop is a good idea here
@@ -739,12 +735,12 @@ the file, so it will not be selected again. Croaks on failure.
 
 # This function returns the first available LUN
 sub get_lun {
-    my %args          = @_;
-    my $hostname      = get_hostname;
-    my $cluster_name  = get_cluster_name;
+    my %args = @_;
+    my $hostname = get_hostname;
+    my $cluster_name = get_cluster_name;
     my $lun_list_file = '/tmp/' . $cluster_name . '-lun.list';
-    my $use_once      = $args{use_once} // 1;
-    my $supportdir    = get_var('NFS_SUPPORT_DIR', '/mnt');
+    my $use_once = $args{use_once} // 1;
+    my $supportdir = get_var('NFS_SUPPORT_DIR', '/mnt');
 
     # Use mutex to be sure that only *one* node at a time can access the file
     mutex_lock 'iscsi';

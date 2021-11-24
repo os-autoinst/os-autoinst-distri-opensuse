@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: clamav
 # Summary: check freshclam and clamscan against some fake virus samples
@@ -23,12 +19,13 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_jeos is_opensuse is_sle);
 
 sub scan_and_parse {
-    my $re       = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
-    my $cmd      = shift;
+    my $re = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
+    my $cmd = shift;
     my $log_file = "$cmd.log";
 
     script_run "$cmd -i --log=$log_file eicar_test_files", 300;
@@ -57,12 +54,10 @@ sub run {
     my $host = is_sle ? 'openqa.suse.de' : 'openqa.opensuse.org';
     assert_script_run("sed -i '/mirror1/i PrivateMirror $host/assets/repo/cvd' /etc/freshclam.conf");
     assert_script_run('freshclam');
-    assert_script_run("sed -i '/PrivateMirror $host/d' /etc/freshclam.conf");
-    assert_script_run('freshclam');
 
     # clamd takes a lot of memory at startup so a swap partition is needed on JeOS
     # But openSUSE aarch64 JeOS has already a swap and BTRFS does not support swapfile
-    if (is_jeos && !(is_opensuse && check_var('ARCH', 'aarch64'))) {
+    if (is_jeos && !(is_opensuse && is_aarch64)) {
         assert_script_run("mkdir -p /var/lib/swap");
         assert_script_run("dd if=/dev/zero of=/var/lib/swap/swapfile bs=1M count=512");
         assert_script_run("mkswap /var/lib/swap/swapfile");
@@ -116,9 +111,16 @@ sub run {
 }
 
 sub post_run_hook {
-    assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && check_var('ARCH', 'aarch64'));
+    assert_script_run("swapoff /var/lib/swap/swapfile") if is_jeos && !(is_opensuse && is_aarch64);
     systemctl('stop clamd', timeout => 500);
     systemctl('stop freshclam');
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    upload_logs('/etc/freshclam.conf');
+
 }
 
 sub test_flags {

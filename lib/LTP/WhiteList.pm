@@ -1,17 +1,5 @@
-# Copyright © 2019-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Override known failures for QAM
 # Maintainer: Jan Baier <jbaier@suse.cz>
@@ -141,7 +129,7 @@ sub find_whitelist_testsuite {
     return undef unless defined($path) and -e $path;
 
     my $content = path($path)->slurp;
-    my $issues  = Mojo::JSON::decode_json($content);
+    my $issues = Mojo::JSON::decode_json($content);
     return undef unless $issues;
     return $issues->{$suite};
 }
@@ -166,7 +154,7 @@ sub whitelist_entry_match
     my @attributes = qw(product ltp_version revision arch kernel backend retval flavor);
 
     foreach my $attr (@attributes) {
-        next         unless defined $entry->{$attr};
+        next unless defined $entry->{$attr};
         return undef unless defined $env->{$attr};
         return undef if ($env->{$attr} !~ m/$entry->{$attr}/);
     }

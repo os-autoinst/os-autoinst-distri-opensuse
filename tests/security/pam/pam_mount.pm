@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for pam-mount, the encrypted volume should be mounted
 #          and unmounted during user login and logout
@@ -36,10 +24,11 @@ sub run {
     zypper_call 'in pam_mount';
 
     # Define the uesr and encrypt key for the volume
-    my $user     = 'bernhard';
-    my $key      = 'SUSE_t595_qw';
+    my $user = 'bernhard';
+    my $key = 'SUSE_t595_qw';
     my $testfile = 'testfile';
-    my $loopdev  = script_output 'losetup -f';
+    assert_script_run "modprobe loop";
+    my $loopdev = script_output 'losetup -f';
     my $loop_vol = 'enc_loop';
 
     # Setup a loop device to be used as encrypted volume
@@ -66,7 +55,7 @@ sub run {
     );
 
     # Create file "/etc/pam_mount_keys/enc_key" with a password contained
-    my $key_dir  = '/etc/pam_mount_keys';
+    my $key_dir = '/etc/pam_mount_keys';
     my $key_file = 'enc_key';
     assert_script_run "mkdir -p $key_dir";
     assert_script_run "echo '$key' > $key_dir/$key_file";
@@ -88,7 +77,7 @@ expect \"Enter passphrase for \/dev\/$loopdev: \"; send \"$key\\n\"; interact'"
     assert_script_run "cryptsetup luksClose $loop_vol";
 
     # Configure the "/etc/security/pam_mount.conf.xml" file
-    my $pam_mount_cfg     = '/etc/security/pam_mount.conf.xml';
+    my $pam_mount_cfg = '/etc/security/pam_mount.conf.xml';
     my $pam_mount_cfg_bak = '/etc/security/pam_mount.conf.xml.bak';
     assert_script_run "cp $pam_mount_cfg $pam_mount_cfg_bak";
     assert_script_run "sed -i '/<pam_mount>/,/<\\/pam_mount>/d' $pam_mount_cfg";
@@ -102,10 +91,10 @@ EOF
     );
 
     # Modify the pam common-session and common-auth files
-    my $pam_session     = '/etc/pam.d/common-session';
+    my $pam_session = '/etc/pam.d/common-session';
     my $pam_session_bak = '/etc/pam.d/common-session.bak';
-    my $pam_auth        = '/etc/pam.d/common-auth';
-    my $pam_auth_bak    = '/etc/pam.d/common-auth.bak';
+    my $pam_auth = '/etc/pam.d/common-auth';
+    my $pam_auth_bak = '/etc/pam.d/common-auth.bak';
     assert_script_run "cp $pam_session $pam_session_bak";
     assert_script_run "cp $pam_auth $pam_auth_bak";
     assert_script_run "sed -i '\$a session \[success=1 default=ignore\] pam_succeed_if.so service = systemd-user' $pam_session";

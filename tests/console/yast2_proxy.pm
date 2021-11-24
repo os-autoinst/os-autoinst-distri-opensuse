@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: squid yast2-squid yast2-proxy
 # Summary: Test that squid proxy can be started after setup with YaST
@@ -21,13 +17,13 @@ use version_utils qw(is_sle is_leap);
 use yast2_widget_utils 'change_service_configuration';
 
 my %sub_menu_needles = (
-    start_up      => 'yast2_proxy_start-up',
-    http_ports    => 'yast2_proxy_http_ports_selected',
-    patterns      => 'yast2_proxy_http_refresh_patterns_selected',
+    start_up => 'yast2_proxy_start-up',
+    http_ports => 'yast2_proxy_http_ports_selected',
+    patterns => 'yast2_proxy_http_refresh_patterns_selected',
     cache_setting => 'yast2_proxy_http_cache_setting_selected',
-    cache_dir     => 'yast2_proxy_http_cache_directory_selected',
-    access_ctrl   => 'yast2_proxy_http_access_control_selected',
-    log_timeouts  => 'yast2_proxy_logging_timeouts_selected',
+    cache_dir => 'yast2_proxy_http_cache_directory_selected',
+    access_ctrl => 'yast2_proxy_http_access_control_selected',
+    log_timeouts => 'yast2_proxy_logging_timeouts_selected',
     miscellaneous => 'yast2_proxy_miscellaneous_selected'
 );
 
@@ -89,8 +85,8 @@ sub run {
     }
     else {
         change_service_configuration(
-            after_writing => {start         => 'alt-f'},
-            after_reboot  => {start_on_boot => 'alt-a'}
+            after_writing => {start => 'alt-f'},
+            after_reboot => {start_on_boot => 'alt-a'}
         );
     }
 
@@ -272,7 +268,7 @@ sub run {
     # move to Start-Up and start proxy server now
     #	for (1..35) {send_key 'tab'; save_screenshot;}
     send_key_until_needlematch 'yast2_proxy_miscellaneous_selected', 'shift-tab';
-    send_key_until_needlematch 'yast2_proxy_start-up',               'up';
+    send_key_until_needlematch 'yast2_proxy_start-up', 'up';
     wait_still_screen 1;
     send_key 'ret';
 

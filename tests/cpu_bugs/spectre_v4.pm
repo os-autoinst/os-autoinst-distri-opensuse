@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
@@ -24,17 +20,17 @@ use Mitigation;
 
 our %mitigations_list =
   (
-    name                   => "spectre_v4",
-    CPUID                  => hex '80000000',
-    IA32_ARCH_CAPABILITIES => 16,                            #bit4 --SSB_NO
-    parameter              => 'spec_store_bypass_disable',
-    cpuflags               => ['ssbd'],
-    sysfs_name             => "spec_store_bypass",
-    sysfs                  => {
-        on      => "Mitigation: Speculative Store Bypass disabled",
-        off     => "Vulnerable",
-        auto    => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
-        prctl   => "Mitigation: Speculative Store Bypass disabled via prctl",
+    name => "spectre_v4",
+    CPUID => hex '80000000',
+    IA32_ARCH_CAPABILITIES => 16,    #bit4 --SSB_NO
+    parameter => 'spec_store_bypass_disable',
+    cpuflags => ['ssbd'],
+    sysfs_name => "spec_store_bypass",
+    sysfs => {
+        on => "Mitigation: Speculative Store Bypass disabled",
+        off => "Vulnerable",
+        auto => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
+        prctl => "Mitigation: Speculative Store Bypass disabled via prctl",
         seccomp => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
         default => "Mitigation: Speculative Store Bypass disabled via prctl and seccomp",
     },

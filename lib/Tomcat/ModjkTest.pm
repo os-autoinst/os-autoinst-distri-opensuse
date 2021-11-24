@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Provide the functionality for apache2 apache2-mod_jk installation
 # and configuration to tests regarding interaction between tomcat and apache2
@@ -101,7 +97,7 @@ sub load_jk_module() {
         die "failed to appended jk to the APACHE_MODULES line";
     }
     systemctl('start apache2');
-    validate_script_output("apachectl -M | grep jk_module",                        sub { ".*jk_module.*" });
+    validate_script_output("apachectl -M | grep jk_module", sub { ".*jk_module.*" });
     validate_script_output("grep mod_jk /etc/apache2/sysconfig.d/loadmodule.conf", sub { "LoadModule jk_module.*" });
 }
 

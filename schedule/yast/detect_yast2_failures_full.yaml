@@ -10,12 +10,12 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
+  - installation/registration/skip_registration
   - installation/addon_products_sle
-  - installation/system_role
+  - installation/system_role/select_role_text_mode
   - installation/partitioning/raid_gpt
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
@@ -23,13 +23,13 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
 test_data:
-  product: SLES
   <<: !include test_data/yast/raid/raid0_gpt_bios_boot.yaml

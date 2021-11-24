@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Testopia Case#1595207 - FIPS: x3270
 # Package: x3270 openssl
@@ -18,6 +14,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'power_action';
 
@@ -28,15 +25,15 @@ sub run {
     # Reboot the system when x11 launch fail to Workaround the Switch Console error
     # (s390x limitation) s390x does not support snapshot to rollback the lastgood snapshot
     # This workaround can avoid the blocked test fail from the last case
-    if (check_var('ARCH', 's390x') && check_var('FIPS_ENABLED', 1) && !get_var("FIPS_ENV_MODE")) {
+    if (is_s390x && check_var('FIPS_ENABLED', 1) && !get_var("FIPS_ENV_MODE")) {
         power_action('reboot', textmode => 1);
         $self->wait_boot(bootloader_time => 200);
     }
 
     select_console 'root-console';
 
-    my $cert_file     = '/tmp/server.cert';
-    my $key_file      = '/tmp/server.key';
+    my $cert_file = '/tmp/server.cert';
+    my $key_file = '/tmp/server.key';
     my $tracelog_file = '/tmp/x3270-trace.log';
 
     # Install x3270

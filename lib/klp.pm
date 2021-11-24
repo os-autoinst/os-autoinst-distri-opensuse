@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package klp;
 
@@ -24,8 +20,8 @@ our @EXPORT = qw(
 );
 
 sub install_klp_product {
-    my $arch           = get_required_var('ARCH');
-    my $version        = get_required_var('VERSION');
+    my $arch = get_required_var('ARCH');
+    my $version = get_required_var('VERSION');
     my $livepatch_repo = get_var('REPO_SLE_MODULE_LIVE_PATCHING');
     my $release_override;
     my $lp_product;
@@ -39,11 +35,11 @@ sub install_klp_product {
     # SLE15 has different structure of modules and products than SLE12
     if (is_sle('15+')) {
         $lp_product = 'sle-module-live-patching';
-        $lp_module  = 'SLE-Module-Live-Patching';
+        $lp_module = 'SLE-Module-Live-Patching';
     }
     else {
         $lp_product = 'sle-live-patching';
-        $lp_module  = 'SLE-Live-Patching';
+        $lp_module = 'SLE-Live-Patching';
     }
 
     if ($livepatch_repo) {
@@ -51,25 +47,25 @@ sub install_klp_product {
     }
 
     # install kgraft product
-    zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/",                 name => "kgraft-pool");
+    zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
     zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
     zypper_call("mr -e kgraft-update");
 }
 
 sub is_klp_pkg {
-    my $pkg  = shift;
+    my $pkg = shift;
     my $base = qr/(?:kgraft-|kernel-live)patch/;
 
     if ($$pkg{name} =~ m/^${base}-\d+/) {
         if ($$pkg{name} =~ m/^${base}-(\d+_\d+_\d+-\d+_*\d*_*\d*)-([a-z][a-z0-9]*)$/) {
-            my $kver    = $1;
+            my $kver = $1;
             my $kflavor = $2;
             $kver =~ s/_/./g;
             return {
-                name    => $$pkg{name},
+                name => $$pkg{name},
                 version => $$pkg{version},
-                kver    => $kver,
+                kver => $kver,
                 kflavor => $kflavor,
             };
 
@@ -142,7 +138,7 @@ sub _klp_pkg_get_gitrev {
     my $klp_pkg = shift;
 
     my $pkg_name = "$$klp_pkg{name}-$$klp_pkg{version}";
-    my $output   = script_output("rpm -qi '$pkg_name'");
+    my $output = script_output("rpm -qi '$pkg_name'");
     my $gitrev;
     for my $line (split /\n/, $output) {
         if ($line =~ /^GIT Revision:\s+([a-z0-9]+)$/) {
@@ -177,7 +173,7 @@ sub verify_initrd_for_klp_pkg {
     # with all the required content, namely the livepatching dracut
     # module and all kernel modules provided by the given livepatch
     # package.
-    my %req_kmods           = map { $_ => 0 } @{klp_pkg_get_kernel_modules($klp_pkg)};
+    my %req_kmods = map { $_ => 0 } @{klp_pkg_get_kernel_modules($klp_pkg)};
     my $dracut_module_found = 0;
 
     my $initrd = "/boot/initrd-$$klp_pkg{kver}-$$klp_pkg{kflavor}";
@@ -225,7 +221,7 @@ sub _klp_tool {
 
 sub klp_tool_patches {
     my $klp_tool = _klp_tool();
-    my $output   = script_output("$klp_tool -v patches");
+    my $output = script_output("$klp_tool -v patches");
 
     my @patches;
     my $cur_patch;
@@ -253,7 +249,7 @@ sub klp_tool_patches {
 
 sub klp_wait_for_transition {
     my $klp_tool = _klp_tool();
-    my $timeout  = 61;
+    my $timeout = 61;
 
     while ($timeout--) {
         my $output = script_output("$klp_tool status");
@@ -291,7 +287,7 @@ sub _get_kernel_tainted {
 }
 
 sub is_kernel_tainted {
-    my $mask    = shift;
+    my $mask = shift;
     my $tainted = _get_kernel_tainted();
 
     return ($tainted & $mask);
@@ -312,9 +308,9 @@ sub verify_klp_pkg_patch_is_active {
     }
 
     my $klp_name = $$kmods[0];
-    $klp_name =~ s/\.ko$//;         # strip suffix
+    $klp_name =~ s/\.ko$//;    # strip suffix
     $klp_name =~ s,^([^/]*/)*,,;    # strip directory
-    $klp_name =~ tr/ ,-/:__/;       # transform to KBUILD_MODNAME
+    $klp_name =~ tr/ ,-/:__/;    # transform to KBUILD_MODNAME
 
     my $patches = klp_tool_patches();
     my $active_patch;
@@ -364,7 +360,7 @@ sub verify_klp_pkg_patch_is_active {
         die "Unable to recognize livepatch tag in 'uname -v' output: '$output'";
     }
 
-    my $pkgdesc_gitrev     = klp_pkg_get_gitrev($klp_pkg);
+    my $pkgdesc_gitrev = klp_pkg_get_gitrev($klp_pkg);
     my $pkgdesc_gitrev_len = length($pkgdesc_gitrev);
     my $uname_v_gitrev_len = length($uname_v_gitrev);
     if (($pkgdesc_gitrev_len > $uname_v_gitrev_len &&

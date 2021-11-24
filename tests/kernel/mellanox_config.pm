@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: pciutils mstflint
 # Summary: Mellanox Link protocol config
@@ -19,17 +15,18 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $protocol = get_var('MLX_PROTOCOL', 2);
 
     # allow to configure SR-IOV and enable virtual functions
-    my $sriov_en = get_var('MLX_SRIOV',   0);
-    my $num_vfs  = get_var('MLX_NUM_VFS', 0);
+    my $sriov_en = get_var('MLX_SRIOV', 0);
+    my $num_vfs = get_var('MLX_NUM_VFS', 0);
 
     if ($sriov_en == 0 && $num_vfs > 0) {
         diag "MLX_SRIOV=0: set MLX_NUM_VFS to 0 as well";
@@ -38,7 +35,7 @@ sub run {
 
     # right now, this code will only do something reasonable if we
     # run on a baremetal machine (and thus on IPMI backend)
-    return unless check_var('BACKEND', 'ipmi');
+    return unless is_ipmi;
 
     $self->select_serial_terminal;
 

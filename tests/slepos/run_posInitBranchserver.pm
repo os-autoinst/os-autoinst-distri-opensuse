@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic SLEPOS test
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
@@ -37,14 +33,14 @@ sub run {
 
     enter_cmd "posInitBranchserver 2>&1 | tee /dev/$serialdev";
     wait_serial "Please, select initialization mode:" and enter_cmd "1" unless get_var('SLEPOS') =~ /^combo/;
-    wait_serial "company name.*:"                     and enter_cmd get_var('ORGANIZATION') . "";
-    wait_serial "2 letter abbreviation.*:"            and enter_cmd get_var('COUNTRY') . "";
-    wait_serial "name of organizational unit.*:"      and enter_cmd get_var('ORGANIZATIONAL_UNIT') . "";
-    wait_serial "branch name.*:"                      and enter_cmd get_var('LOCATION') . "";
+    wait_serial "company name.*:" and enter_cmd get_var('ORGANIZATION') . "";
+    wait_serial "2 letter abbreviation.*:" and enter_cmd get_var('COUNTRY') . "";
+    wait_serial "name of organizational unit.*:" and enter_cmd get_var('ORGANIZATIONAL_UNIT') . "";
+    wait_serial "branch name.*:" and enter_cmd get_var('LOCATION') . "";
 
 
     wait_serial "name or IP of the AdminServer.*:" and enter_cmd get_var('ADMINSERVER_ADDR') . "";
-    wait_serial "Branch Server access password:"   and enter_cmd get_var('USER_PASSWORD') . "";
+    wait_serial "Branch Server access password:" and enter_cmd get_var('USER_PASSWORD') . "";
 
     wait_serial "Is Admin Server LDAP fingerprint correct" and enter_cmd "Y" if get_var('SSL') eq 'yes';
 

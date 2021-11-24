@@ -1,14 +1,10 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Run 'syscalls' test case of 'audit-test' test suite
-# Maintainer: Liu Xiaojing <xiaojing.liu@suse.com>
+# Maintainer: rfan1 <richard.fan@suse.com>, Liu Xiaojing <xiaojing.liu@suse.com>
 # Tags: poo#94684
 
 use base 'consoletest';

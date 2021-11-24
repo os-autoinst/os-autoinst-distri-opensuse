@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package Utils::Systemd;
 
@@ -27,6 +15,7 @@ our @EXPORT = qw(
   get_started_systemd_services
   clear_started_systemd_services
   systemctl
+  check_unit_file
 );
 
 =head1 Utils::Systemd
@@ -49,12 +38,12 @@ Raise a failure if I<$ignore_failure> evaluates to true. Default: false
 sub disable_and_stop_service {
     my ($service_name, %args) = @_;
     die "disable_and_stop_service(): no service name given" if ($service_name =~ /^ *$/);
-    $args{mask_service}   //= 0;
+    $args{mask_service} //= 0;
     $args{ignore_failure} //= 0;
 
-    systemctl("mask $service_name",    ignore_failure => $args{ignore_failure}) if ($args{mask_service});
+    systemctl("mask $service_name", ignore_failure => $args{ignore_failure}) if ($args{mask_service});
     systemctl("disable $service_name", ignore_failure => $args{ignore_failure}) unless ($args{mask_service});
-    systemctl("stop $service_name",    ignore_failure => $args{ignore_failure});
+    systemctl("stop $service_name", ignore_failure => $args{ignore_failure});
 }
 
 =head2 systemctl
@@ -67,7 +56,7 @@ Please note that return code of this function is handle by 'script_run' or
 sub systemctl {
     my ($command, %args) = @_;
     croak "systemctl(): no command specified" if ($command =~ /^ *$/);
-    my $expect_false  = $args{expect_false} ? '! ' : '';
+    my $expect_false = $args{expect_false} ? '! ' : '';
     my @script_params = ("${expect_false}systemctl --no-pager $command", timeout => $args{timeout}, fail_message => $args{fail_message});
     if ($command =~ /^(re)?start ([^ ]+)/) {
         my $unit_name = $2;
@@ -96,6 +85,18 @@ Clear the list of started systemd services
 =cut
 sub clear_started_systemd_services {
     %started_systemd_services = ();
+}
+
+=head2 check_unit_file
+
+Check if the unit file exist
+
+=cut
+
+sub check_unit_file {
+    my $unit_file = shift;
+    return 1 if (script_run("systemctl list-unit-files --all $unit_file*") == 0);
+    return 0;
 }
 
 1;

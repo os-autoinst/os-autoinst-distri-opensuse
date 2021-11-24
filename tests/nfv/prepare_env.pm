@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: openvswitch installation and CLI test
 #
@@ -21,6 +17,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use utils;
@@ -37,13 +34,13 @@ sub get_trafficgen_ip {
 }
 
 sub run {
-    my ($self)         = @_;
-    my $vsperf_repo    = "https://gerrit.opnfv.org/gerrit/vswitchperf";
+    my ($self) = @_;
+    my $vsperf_repo = "https://gerrit.opnfv.org/gerrit/vswitchperf";
     my $vsperf_version = get_required_var('VSPERF_VERSION');
-    my $vnf_image      = get_required_var('VNF_IMAGE');
-    my $trafficgen_ip  = get_trafficgen_ip();
-    my $children       = get_children();
-    my $child_id       = (keys %$children)[0];
+    my $vnf_image = get_required_var('VNF_IMAGE');
+    my $trafficgen_ip = get_trafficgen_ip();
+    my $children = get_children();
+    my $child_id = (keys %$children)[0];
 
     $self->select_serial_terminal;
     record_info("INFO", "Install needed packages for NFV tests: OVS, DPKD, QEMU");
@@ -56,7 +53,7 @@ sub run {
 
     record_info("INFO", "Start openvswitch service");
     systemctl 'enable openvswitch', timeout => 60 * 2;
-    systemctl 'start openvswitch',  timeout => 60 * 2;
+    systemctl 'start openvswitch', timeout => 60 * 2;
 
     record_info("INFO", "VSPerf Installation");
     assert_script_run("cd vswitchperf/systems");
@@ -102,7 +99,7 @@ sub run {
     record_info("INFO", "Wait for mutex NFV_TRAFFICGEN_READY");
     mutex_wait('NFV_TRAFFICGEN_READY', $child_id);
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         # Generate ssh keypair and ssh-copy-id to the Traffic generator machine
         record_info("INFO", "Grant SSH access to trafficgen machine $trafficgen_ip");
         assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa');

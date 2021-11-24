@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openvpn dhcp-server wicked git
 # Summary: Do basic checks to make sure system is ready for wicked testing
@@ -21,6 +17,7 @@ use network_utils qw(iface setup_static_network);
 use serial_terminal;
 use main_common 'is_updates_tests';
 use repo_tools 'generate_version';
+use wicked::wlan;
 
 sub run {
     my ($self, $ctx) = @_;
@@ -31,7 +28,7 @@ sub run {
     $ctx->iface2($ifaces[1]) if (@ifaces > 1);
 
     my $enable_command_logging = 'export PROMPT_COMMAND=\'logger -t openQA_CMD "$(history 1 | sed "s/^[ ]*[0-9]\+[ ]*//")"\'';
-    my $escaped                = $enable_command_logging =~ s/'/'"'"'/gr;
+    my $escaped = $enable_command_logging =~ s/'/'"'"'/gr;
     assert_script_run("echo '$escaped' >> /root/.bashrc");
     assert_script_run($enable_command_logging);
     # image which we using for sle15 don't have firewall running.
@@ -95,7 +92,7 @@ sub run {
             if ($branch) {
                 assert_script_run("git checkout $branch");
             }
-            assert_script_run('./autogen.sh ',       timeout => 600);
+            assert_script_run('./autogen.sh ', timeout => 600);
             assert_script_run('make ; make install', timeout => 600);
         } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
             record_info('REPO', $wicked_repo);
@@ -137,7 +134,7 @@ sub run {
         }
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
-        $package_list .= ' gcc'                         if check_var('WICKED', 'advanced');
+        $package_list .= ' gcc' if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
         record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));

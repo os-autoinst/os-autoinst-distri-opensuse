@@ -37,7 +37,10 @@ sub load_boot_from_disk_tests {
     # Preparation for start testing
     loadtest 'microos/disk_boot';
     loadtest 'installation/system_workarounds' if is_aarch64;
-    loadtest 'transactional/enable_selinux'    if (get_var("ENABLE_SELINUX"));
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+    # ^ runs only outside of stagings, clear repos otherwise
+    loadtest 'update/zypper_clear_repos' if is_staging;
+    loadtest 'transactional/enable_selinux' if (get_var("ENABLE_SELINUX"));
     loadtest 'microos/networking';
 }
 
@@ -52,6 +55,7 @@ sub load_feature_tests {
     loadtest 'microos/image_checks' if is_image_flavor;
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
+    loadtest 'transactional/trup_smoke';
     load_transactional_role_tests;
     loadtest 'microos/cockpit_service' unless is_staging;
     loadtest 'console/journal_check';
@@ -89,10 +93,10 @@ sub load_installation_tests {
         # Full list of installation test-modules can be found at 'main_common.pm'
         load_inst_tests unless get_var 'BOOT_HDD_IMAGE';
         load_boot_from_disk_tests;
-        load_tdup_tests             if (get_var 'TDUP');
+        load_tdup_tests if (get_var 'TDUP');
         loadtest 'console/regproxy' if is_regproxy_required;
-        load_feature_tests          if (check_var 'EXTRA', 'FEATURES');
-        load_qemu_tests()           if (check_var 'EXTRA', 'VIRTUALIZATION');
+        load_feature_tests if (check_var 'EXTRA', 'FEATURES');
+        load_qemu_tests() if (check_var 'EXTRA', 'VIRTUALIZATION');
         loadtest 'shutdown/shutdown';
     }
 }
@@ -111,7 +115,7 @@ return 1 if load_yaml_schedule;
 
 if (get_var 'STACK_ROLE') {
     load_boot_from_disk_tests;
-    load_tdup_tests      if (get_var 'TDUP');
+    load_tdup_tests if (get_var 'TDUP');
     load_feature_tests() if (check_var 'EXTRA', 'FEATURES');
     loadtest 'shutdown/shutdown';
 }

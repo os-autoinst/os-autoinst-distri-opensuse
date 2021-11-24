@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Base class for all WLAN related tests
 # Maintainer: cfamullaconrad@suse.com
@@ -24,18 +20,18 @@ use Encode qw/encode_utf8/;
 use File::Basename;
 use testapi;
 
-has wicked_version      => undef;
-has eap_user            => 'tester';
-has eap_password        => 'test1234';
-has ca_cert             => '/etc/raddb/certs/ca.pem';
-has client_cert         => '/etc/raddb/certs/client.crt';
-has client_key          => '/etc/raddb/certs/client.key';
-has client_key_no_pass  => '/etc/raddb/certs/client_no_pass.key';
+has wicked_version => undef;
+has eap_user => 'tester';
+has eap_password => 'test1234';
+has ca_cert => '/etc/raddb/certs/ca.pem';
+has client_cert => '/etc/raddb/certs/client.crt';
+has client_key => '/etc/raddb/certs/client.key';
+has client_key_no_pass => '/etc/raddb/certs/client_no_pass.key';
 has client_key_password => 'whatever';
 
 has netns_name => 'wifi_ref';
-has ref_ifc    => 'wlan0';
-has ref_phy    => 'phy0';
+has ref_ifc => 'wlan0';
+has ref_phy => 'phy0';
 sub ref_ip {
     return shift->get_ip(is_wicked_ref => 1, @_);
 }
@@ -48,9 +44,9 @@ sub sut_ip {
 
 # Test config, needed because of code duplication checks
 has hostapd_conf => "";
-has ifcfg_wlan   => "";
-has use_dhcp     => 1;
-has use_radius   => 0;
+has ifcfg_wlan => "";
+has use_dhcp => 1;
+has use_radius => 0;
 
 sub sut_hw_addr {
     my $self = shift;
@@ -77,8 +73,8 @@ sub get_ip {
     my ($self, %args) = @_;
     my $bss_nr = extract_bss_nr($args{bss});
 
-    my $suffix = $bss_nr > 0     ? "_bss$bss_nr"      : "";
-    my $type   = $self->use_dhcp ? "wlan_dhcp$suffix" : "wlan$suffix";
+    my $suffix = $bss_nr > 0 ? "_bss$bss_nr" : "";
+    my $type = $self->use_dhcp ? "wlan_dhcp$suffix" : "wlan$suffix";
     return $self->SUPER::get_ip(type => $type, is_wicked_ref => $args{is_wicked_ref}, netmask => $args{netmask});
 }
 
@@ -86,8 +82,40 @@ sub extract_bss_nr {
     my ($self, $nr) = @_;
     $nr = $self unless (ref($self));    # allow as static function
     $nr //= 0;
-    $nr = $1 if $nr =~ /_(\d+)$/;       # extract number, e.g. `bss_1` would result in `1`
+    $nr = $1 if $nr =~ /_(\d+)$/;    # extract number, e.g. `bss_1` would result in `1`
     return $nr;
+}
+
+sub recover_console {
+    if (testapi::is_serial_terminal()) {
+        type_string(qq(\c\\));    # Send QUIT signal
+    }
+    else {
+        send_key('ctrl-\\');    # Send QUIT signal
+    }
+    assert_script_run('echo CHECK_CONSOLE');
+}
+
+sub retry {
+    my ($self, $code, %args) = @_;
+    $args{max_tries} //= 3;
+    $args{sleep_duration} //= 5;
+    $args{cleanup} //= sub { $self->recover_console };
+    $args{name} //= Carp::shortmess("retry()");
+
+    my $ret;
+    my $try_cnt = 0;
+
+    while ($try_cnt++ < $args{max_tries}) {
+        eval { $ret = $code->() };
+        return $ret unless ($@);
+        my $errmsg = $@;
+        eval { $args{cleanup}->($errmsg) } or
+          bmwqemu::fctwarn($args{name} . ' -- cleanup failed with: ' . $@);
+
+        sleep $args{sleep_duration};
+    }
+    die($args{name} . ' call failed after ' . $args{max_tries} . ' attempts -- ' . $@);
 }
 
 sub netns_exec {
@@ -120,7 +148,7 @@ sub restart_dhcp_server {
     my ($self, %args) = @_;
 
     $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
-    $args{sut_ip}  //= $self->sut_ip(bss => $args{bss});
+    $args{sut_ip} //= $self->sut_ip(bss => $args{bss});
 
     $self->stop_dhcp_server(%args);
     $self->netns_exec(sprintf('dnsmasq --no-resolv --pid-file=%s --interface=%s --except-interface=lo --bind-interfaces --dhcp-range=%s,static --dhcp-host=%s,%s',
@@ -229,7 +257,7 @@ with return value
 sub write_cfg {
     my ($self, $filename, $content, %args) = @_;
     my ($filename_orig, $content_orig);
-    $args{env}           //= {};
+    $args{env} //= {};
     $args{encode_base64} //= 0;
     my $rand = random_string;
     # replace variables
@@ -240,10 +268,10 @@ sub write_cfg {
     $content =~ s/^[ \t]+$//mg;
 
     if ($args{encode_base64}) {
-        $content       = encode_utf8($content);
-        $content_orig  = $content;
+        $content = encode_utf8($content);
+        $content_orig = $content;
         $filename_orig = $filename;
-        $content       = b64_encode($content);
+        $content = b64_encode($content);
         $filename .= '.base64';
     }
 
@@ -264,10 +292,10 @@ END_OF_CONTENT_$rand
 
 sub assert_sta_connected {
     my ($self, %args) = @_;
-    $args{sta}     //= $self->sut_hw_addr;
+    $args{sta} //= $self->sut_hw_addr;
     $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
     $args{timeout} //= 0;
-    $args{sleep}   //= 1;
+    $args{sleep} //= 1;
     my $endtime = time() + $args{timeout};
 
     while (1) {
@@ -293,7 +321,16 @@ sub hostapd_start {
     my ($self, $config, %args) = @_;
     $args{name} //= 'hostapd';
     $config = $self->write_cfg("/tmp/$args{name}.conf", $config);
-    $self->netns_exec("hostapd -P '/tmp/$args{name}.pid' -B '/tmp/$args{name}.conf'");
+    $self->retry(
+        sub {
+            $self->netns_output("hostapd -P '/tmp/$args{name}.pid' -B '/tmp/$args{name}.conf'");
+        },
+        cleanup => sub {
+            my ($err) = @_;
+            $self->recover_console();
+            record_info('HOSTAPD', $err, result => 'fail');
+        }
+    );
 
     ## Check for multi BSS setup
     my @bsss = $config =~ (/^bss=(.*)$/gm);
@@ -312,7 +349,7 @@ sub hostapd_kill {
 sub assert_connection {
     my ($self, %args) = @_;
     $args{timeout} //= 0;
-    $args{sleep}   //= 1;
+    $args{sleep} //= 1;
     my $endtime = time() + $args{timeout};
 
     while (1) {
@@ -331,7 +368,7 @@ sub setup_ref {
     my $self = shift;
 
     $self->netns_exec('ip addr add dev ' . $self->ref_ifc() . ' ' . $self->ref_ip(netmask => 1));
-    $self->restart_dhcp_server()                if ($self->use_dhcp());
+    $self->restart_dhcp_server() if ($self->use_dhcp());
     $self->netns_exec('radiusd -d /etc/raddb/') if ($self->use_radius());
 }
 
@@ -402,8 +439,8 @@ sub run {
                 $self->assert_connection();
 
                 $self->wicked_command('ifstatus --verbose', $self->sut_ifc);
-                $self->wicked_command('show-config',        $self->sut_ifc);
-                $self->wicked_command('show-xml',           $self->sut_ifc);
+                $self->wicked_command('show-config', $self->sut_ifc);
+                $self->wicked_command('show-xml', $self->sut_ifc);
 
             } else {
                 record_info("Skip cfg", $ifcfg_wlan->{config});

@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-client
 # Summary: Storage pool / volume test
@@ -31,7 +27,7 @@ sub run_test {
     assert_script_run "mkdir -p /pool_testing";
     script_run "virsh pool-destroy testing";
     script_run "virsh vol-delete --pool testing $_-storage" foreach (keys %virt_autotest::common::guests);
-    script_run "virsh vol-delete --pool testing $_-clone"   foreach (keys %virt_autotest::common::guests);
+    script_run "virsh vol-delete --pool testing $_-clone" foreach (keys %virt_autotest::common::guests);
     script_run "virsh pool-undefine testing";
     # Ensure the new pool directory is empty
     script_run('rm -f /pool_testing/*');
@@ -58,7 +54,7 @@ sub run_test {
     assert_script_run("virsh vol-create-as testing $_-storage 100M", 120) foreach (keys %virt_autotest::common::guests);
 
     record_info "Listing";
-    assert_script_run("ls /pool_testing/",                        120) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("ls /pool_testing/", 120) foreach (keys %virt_autotest::common::guests);
     assert_script_run("virsh vol-list testing | grep $_-storage", 120) foreach (keys %virt_autotest::common::guests);
 
     record_info "Info";
@@ -77,10 +73,10 @@ sub run_test {
 
     record_info "Clone";
     assert_script_run("virsh vol-clone --pool testing $_-storage $_-clone", 120) foreach (keys %virt_autotest::common::guests);
-    assert_script_run("virsh vol-info --pool testing $_-clone",             120) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-info --pool testing $_-clone", 120) foreach (keys %virt_autotest::common::guests);
 
     record_info "Remove";
-    assert_script_run("virsh vol-delete --pool testing $_-clone",   120) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-delete --pool testing $_-clone", 120) foreach (keys %virt_autotest::common::guests);
     assert_script_run("virsh vol-delete --pool testing $_-storage", 120) foreach (keys %virt_autotest::common::guests);
 
     record_info "Pool destroy";

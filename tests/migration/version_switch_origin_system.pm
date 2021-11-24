@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Change the VERSION to ORIGIN_SYSTEM_VERSION and also
 #       reload needles.
@@ -27,12 +23,12 @@ sub run {
 
     if (get_var('VERSION') ne $original_version) {
         # Switch to original system version and reload needles
-        set_var('VERSION', $original_version, reload_needles => 1);
+        set_var('VERSION', $original_version);
     }
 
     # Reset vars for autoyast installation of origin system
     if (get_var('UPGRADE_ON_ZVM')) {
-        set_var('UPGRADE',      0);
+        set_var('UPGRADE', 0);
         set_var('SCC_REGISTER', 'none');
     }
 

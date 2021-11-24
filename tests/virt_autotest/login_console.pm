@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm and xen support fully
 # Maintainer: alice <xlai@suse.com>
@@ -16,6 +12,7 @@ use strict;
 use warnings;
 use File::Basename;
 use testapi;
+use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host);
@@ -38,7 +35,7 @@ sub login_to_console {
     $timeout //= 5;
     $counter //= 240;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         #Switch to s390x lpar console
         reset_consoles;
         my $svirt = select_console('svirt', await_console => 0);
@@ -47,7 +44,7 @@ sub login_to_console {
 
     reset_consoles;
     reset_consoles;
-    if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx') {
+    if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx') {
         select_console 'sol', await_console => 1;
         send_key 'ret';
         ipmi_backend_utils::ipmitool 'chassis power reset';
@@ -58,7 +55,7 @@ sub login_to_console {
 
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
-            assert_screen 'pxe-qa-net-mitigation', 90;
+            assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
             send_key 'ret';
             assert_screen([qw(grub2 grub1)], 60);
             send_key 'up';
@@ -131,7 +128,7 @@ sub login_to_console {
         }
         #setup vars
         set_var("reboot_for_upgrade_step", undef);
-        set_var("after_upgrade",           "yes");
+        set_var("after_upgrade", "yes");
     }
     save_screenshot;
     send_key 'ret';
@@ -146,7 +143,7 @@ sub login_to_console {
     }
 
     # Set ssh console timeout for thunderx machine
-    set_ssh_console_timeout_before_use if (is_remote_backend && check_var('ARCH', 'aarch64') && get_var('IPMI_HW') eq 'thunderx');
+    set_ssh_console_timeout_before_use if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx');
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 

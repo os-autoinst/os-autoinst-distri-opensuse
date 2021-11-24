@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: crmsh
 # Summary: Add some workarounds after upgrade from a SLE11-SP4
@@ -23,10 +19,10 @@ use hacluster;
 sub run {
     return unless check_var('HDDVERSION', '11-SP4');
 
-    my ($self)        = @_;
-    my $cluster_name  = get_cluster_name;
+    my ($self) = @_;
+    my $cluster_name = get_cluster_name;
     my $corosync_conf = '/etc/corosync/corosync.conf';
-    my $crm_conf      = '/tmp/crm_conf.save';
+    my $crm_conf = '/tmp/crm_conf.save';
 
     # We execute this test after a reboot, so we need to log in
     select_console 'root-console';
@@ -37,7 +33,7 @@ sub run {
     # to /etc/hosts if name resolution is failing
     if (is_node(1) or is_node(2)) {
         my $hostname = get_hostname;
-        my $partner  = is_node(1) ? choose_node(2) : choose_node(1);
+        my $partner = is_node(1) ? choose_node(2) : choose_node(1);
 
         my $ret_q1 = script_run "host $hostname";
         my $ret_q2 = script_run "host $partner";
@@ -45,7 +41,7 @@ sub run {
         if ($ret_q1 or $ret_q2) {
             record_info "Name resolution failing", "Cannot resolve own name or name of partner. Will attempt to add hosts to /etc/hosts", result => 'softfail';
             my $device = get_var('SUT_NETDEVICE', 'eth0');
-            my $addr   = script_output "ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
+            my $addr = script_output "ip -4 addr show dev $device | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p'";
             if ($addr =~ m/10\.0\.2/) {    # Expected addresses are in 10.0.2/24 and start with 10.0.2.15
                 assert_script_run "echo \"$addr  $hostname\" >> /etc/hosts";
                 $addr =~ s/\.([0-9]+)$/\./;

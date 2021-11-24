@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic SLEPOS test
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
@@ -20,18 +16,18 @@ use lockapi;
 
 sub run {
     set_var('ORGANIZATION', "myorg");
-    set_var('COUNTRY',      "us");
-    set_var('ADMINPASS',    "adminpass");
-    set_var('SSL',          get_var('SSL') ? "yes" : "no");
+    set_var('COUNTRY', "us");
+    set_var('ADMINPASS', "adminpass");
+    set_var('SSL', get_var('SSL') ? "yes" : "no");
     if (get_var('SLEPOS') =~ /^branchserver/) {
         set_var('ORGANIZATIONAL_UNIT', "myorgunit1");
-        set_var('LOCATION',            "mybranch1");
-        set_var('USER_PASSWORD',       "branchpass");
+        set_var('LOCATION', "mybranch1");
+        set_var('USER_PASSWORD', "branchpass");
     }
     elsif (get_var('SLEPOS') =~ /^combo/) {
         set_var('ORGANIZATIONAL_UNIT', "myorgunit1");
-        set_var('LOCATION',            "mycombobranch");
-        set_var('USER_PASSWORD',       "branchpass");
+        set_var('LOCATION', "mycombobranch");
+        set_var('USER_PASSWORD', "branchpass");
     }
 
     if (get_var('IP_BASED')) {

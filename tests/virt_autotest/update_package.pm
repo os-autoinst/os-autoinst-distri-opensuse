@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 package update_package;
 # Summary: update_package: Update all packages and use real repo as guest installation source before test.
@@ -22,8 +18,8 @@ use version_utils 'is_sle';
 use virt_autotest::utils qw(is_xen_host is_kvm_host);
 
 sub update_package {
-    my $self           = shift;
-    my $test_type      = get_var('TEST_TYPE', 'Milestone');
+    my $self = shift;
+    my $test_type = get_var('TEST_TYPE', 'Milestone');
     my $update_pkg_cmd = "source /usr/share/qa/virtautolib/lib/virtlib;update_virt_rpms";
     my $ret;
     if ($test_type eq 'Milestone') {
@@ -34,7 +30,7 @@ sub update_package {
     }
 
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         lpar_cmd("$update_pkg_cmd");
         upload_asset "/tmp/update_virt_rpms.log", 1, 1;
     }

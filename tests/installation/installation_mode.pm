@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Installation/upgrade mode selection during installation
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
@@ -43,7 +39,7 @@ sub run {
         }
     }
     if (get_var("AUTOCONF")) {
-        send_key "alt-s";        # toggle automatic configuration
+        send_key "alt-s";    # toggle automatic configuration
         assert_screen "autoconf-deselected", 10;
     }
     send_key $cmd{next};

@@ -1,13 +1,4 @@
 # SUSE's openQA tests
-#
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
-
-# Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YuiRestClient::Widget::RadioButton;
 
@@ -28,4 +19,60 @@ sub is_selected {
     $self->property('value');
 }
 
+sub is_enabled {
+    my ($self) = @_;
+    my $is_enabled = $self->property('enabled');
+    return !defined $is_enabled || $is_enabled;
+}
+
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+YuiRestClient::Widget::RadioButton - Handle radio buttons
+
+=head1 COPYRIGHT
+
+Copyright © 2020 SUSE LLC
+
+SPDX-License-Identifier: FSFAP
+
+=head1 AUTHORS
+
+QE YaST <qa-sle-yast@suse.de>
+
+=head1 SYNOPSIS
+
+$self->{rb_skip_registration}->select();
+
+$self->{$rb_name}->is_selected();
+
+=head1 DESCRIPTION
+
+=head2 Overview
+
+Class representing a RadioButton in the UI. It can be YRadioButton.
+
+    {
+      "class": "YRadioButton",
+      "debug_label": "Manually",
+      "id": "manual",
+      "label": "&Manually",
+      "notify": true,
+      "value": false
+    }
+
+=head2 Class and object methods
+
+B<select()> - selects the radio button 
+
+This will set the "value" property to true and deselect all other radio buttons
+of the current group.
+
+B<is_selected()> - returns the "value" property of the radio button
+
+=cut

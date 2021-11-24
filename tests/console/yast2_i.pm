@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-packager
 # Summary: Install packages using yast2.
@@ -37,8 +33,8 @@ sub set_action {
 }
 
 sub run {
-    my $self        = shift;
-    my $pkgname     = get_var("PACKAGETOINSTALL_RECOMMENDED", "yast2-nfs-client");
+    my $self = shift;
+    my $pkgname = get_var("PACKAGETOINSTALL_RECOMMENDED", "yast2-nfs-client");
     my $recommended = get_var("PACKAGETOINSTALL_RECOMMENDED", "nfs-client");
     my $output;
     my $y2_exit_action;
@@ -120,7 +116,7 @@ sub run {
     assert_screen "$pkgname-selected-for-install";
 
     if (!check_var('VERSION', '12')) {    #this functionality isn't avivable in SLE12SP0
-        send_key "alt-p";                 # go to search box again
+        send_key "alt-p";    # go to search box again
         for (1 .. length($pkgname)) { send_key "backspace" }
         enter_cmd("$recommended");
         assert_screen "$recommended-selected-for-install", 10;
@@ -139,7 +135,7 @@ sub run {
         enter_cmd("$pkgname");
         assert_screen "$pkgname-selected-for-install", 10;
     }
-    send_key "alt-a";        # accept
+    send_key "alt-a";    # accept
 
     # Expect Automatic changes view
     if (check_screen('yast2-sw_automatic-changes', 5)) {
@@ -164,7 +160,7 @@ sub run {
 
     wait_serial("$module_name-0", 120) || die "'yast2 sw_single' didn't finish";
 
-    $self->clear_and_verify_console;         # clear screen to see that second update does not do any more
+    $self->clear_and_verify_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname");    # erase $pkgname
     script_run("echo mark yast test", 0);    # avoid zpper needle
     assert_script_run("! rpm -q $pkgname");

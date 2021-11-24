@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 #
 # Summary: run performance cases
@@ -22,10 +18,10 @@ use File::Basename;
 
 sub full_run {
     my $time_out //= 6;
-    my $list_path   = "/root/qaset";
+    my $list_path = "/root/qaset";
     my $remote_list = get_var("FULL_LIST");
-    my $hostname    = script_output "hostname";
-    my $runlist     = get_var("RUN_LIST");
+    my $hostname = script_output "hostname";
+    my $runlist = get_var("RUN_LIST");
     #setup run list
     assert_script_run("wget -N -P $list_path $remote_list 2>&1");
     assert_script_run("cp $list_path/$runlist $list_path/list");

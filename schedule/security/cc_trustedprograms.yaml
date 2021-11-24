@@ -1,7 +1,0 @@
-name: cc_trustedprograms
-description:    >
-    This is for audit_test trustedprograms
-schedule:
-    - boot/boot_to_desktop
-    - security/cc/cc_audit_test_setup
-    - security/cc/trustedprograms

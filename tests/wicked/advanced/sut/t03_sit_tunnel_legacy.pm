@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wicked
 # Summary: Advanced test cases for wicked
@@ -24,7 +20,7 @@ sub run {
     my $config = '/etc/sysconfig/network/ifcfg-sit1';
     record_info('Info', 'Create a SIT interface from legacy ifcfg files');
     $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
-    $self->get_from_data('wicked/ifcfg/sit1',                $config);
+    $self->get_from_data('wicked/ifcfg/sit1', $config);
     $self->setup_tunnel($config, 'sit1', $ctx->iface());
     my $res = $self->get_test_result('sit1', 'v6');
     die if ($res eq 'FAILED');

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: lvm2
 # Summary: Simple LVM thin provisioning check
@@ -19,11 +15,11 @@ use testapi;
 use utils;
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $lv_stats = {
         write_access => qr/\s{2}LV Write Access \s+ read\/write/,
-        status       => qr/\s{2}LV Status \s+ available/,
-        readahead    => qr/\s{2}Read ahead sectors \s+ auto/,
+        status => qr/\s{2}LV Status \s+ available/,
+        readahead => qr/\s{2}Read ahead sectors \s+ auto/,
         # 254 as major no. points to dev-mapper, see /proc/devices
         block_device => qr/\s{2}Block device \s+ 254:\d/
     };

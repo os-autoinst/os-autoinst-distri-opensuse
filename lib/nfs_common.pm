@@ -9,7 +9,7 @@ use mm_network;
 use version_utils;
 
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT = qw(server_configure_network try_nfsv2 prepare_exports yast_handle_firewall add_shares
   mount_export client_common_tests check_nfs_ready yast2_server_initial yast2_client_exit check_y2_nfs_func install_service config_service start_service check_service $rw $ro);
 
@@ -154,7 +154,7 @@ sub client_common_tests {
     assert_script_run "rm /tmp/nfs/client/symlinkedfile";
 
     # Copy large file from NFS and test it's checksum
-    assert_script_run "time cp /tmp/nfs/client/random /var/tmp/", 120;
+    assert_script_run "time cp /tmp/nfs/client/random /var/tmp/", 300;
     assert_script_run "md5sum /var/tmp/random | cut -d' ' -f1 > /var/tmp/random.md5sum";
     assert_script_run "diff /tmp/nfs/client/random.md5sum /var/tmp/random.md5sum";
 }
@@ -277,9 +277,19 @@ sub check_y2_nfs_func {
     stop_service();
     # we need to cleanup the nfs settings after service check was done.
     if ($stage eq 'after') {
-        zypper_call 'rm yast2-nfs-server nfs-kernel-server', timeout => 480;
-        script_run ':> /etc/exports';
+        zypper_call 'rm yast2-nfs-server', timeout => 480;
+        # remove added nfs entry from /etc/fstab and /etc/exports
+        assert_script_run 'sed -i \'/srv/d\' /etc/fstab';
+        assert_script_run 'sed -i \'/srv/d\' /etc/exports';
         script_run 'rm -fr /srv/*';
+        script_run 'rm -fr /tmp/nfs';
+        # we need to restart rpcbind and rpcbind.socket for rpcbind test
+        systemctl('restart nfs-server');
+        systemctl('is-active nfs-server');
+        systemctl('restart rpcbind');
+        systemctl('is-active rpcbind');
+        systemctl('restart rpcbind.socket', timeout => 120);
+        systemctl('is-active rpcbind.socket');
     }
 }
 

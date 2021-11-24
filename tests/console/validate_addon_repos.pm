@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate that addon repos activated during the installation are
 # properly added and enabled.
@@ -25,14 +21,14 @@ sub run {
 
     for my $addon (split(/,/, get_required_var('ADDONURL'))) {
         my $uc_addon = uc($addon);
-        my $uri      = get_required_var("ADDONURL_$uc_addon");
-        my $alias    = get_required_var("REPO_SLE_PRODUCT_$uc_addon");
-        my $name     = get_required_var("DISTRI") . "-$addon";
+        my $uri = get_required_var("ADDONURL_$uc_addon");
+        my $alias = get_required_var("REPO_SLE_PRODUCT_$uc_addon");
+        my $name = get_required_var("DISTRI") . "-$addon";
         validate_repo_properties({
-                Alias       => $alias,
-                Name        => $name,
-                URI         => $uri,
-                Enabled     => 'Yes',
+                Alias => $alias,
+                Name => $name,
+                URI => $uri,
+                Enabled => 'Yes',
                 Autorefresh => 'On'
         });
     }

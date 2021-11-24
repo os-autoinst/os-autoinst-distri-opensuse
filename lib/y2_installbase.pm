@@ -1,18 +1,6 @@
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 package y2_installbase;
 
 use parent 'y2_base';
@@ -20,12 +8,15 @@ use strict;
 use warnings;
 
 use testapi;
+use Utils::Architectures;
 
 use version_utils qw(is_microos is_sle);
 use y2_logs_helper 'get_available_compression';
 use utils qw(type_string_slow zypper_call);
 use lockapi;
 use mmapi;
+
+my $workaround_bsc1189550_done;
 
 =head1 y2_installbase
 
@@ -116,7 +107,7 @@ sub go_to_patterns {
         send_key 'alt-s';
     }
     else {
-        assert_screen 'installation-settings-overview-loaded',  60;
+        assert_screen 'installation-settings-overview-loaded', 90;
         send_key_until_needlematch 'packages-section-selected', 'tab';
         send_key 'ret';
     }
@@ -160,7 +151,8 @@ highlight cursor one item down.
 =cut
 sub move_down {
     my $ret = wait_screen_change { send_key 'down' };
-    last         if (!$ret);                      # down didn't change the screen, so exit here
+    workaround_bsc1189550() if (!$workaround_bsc1189550_done && is_sle('>=15-sp3'));
+    last if (!$ret);    # down didn't change the screen, so exit here
     check12qtbug if check_var('VERSION', '12');
 }
 
@@ -268,10 +260,6 @@ sub select_specific_patterns_by_iteration {
     delete $patterns{default};
     delete $patterns{all};
 
-    if (is_sle('>=15-sp3')) {
-        record_soft_failure('bsc#1189550 - Problem with scroll bar event in pattern selection');
-    }
-
     while (1) {
         die "looping for too long" unless ($counter--);
         my $needs_to_be_selected;
@@ -282,7 +270,7 @@ sub select_specific_patterns_by_iteration {
 
         if ($ret) {    # unneedled pattern
             for my $p (keys %patterns) {
-                my $sel     = 1;
+                my $sel = 1;
                 my $pattern = $p;    # store pattern untouched
                 if ($p =~ /^-/) {
                     # this pattern shall be deselected as indicated by '-' prefix
@@ -291,7 +279,7 @@ sub select_specific_patterns_by_iteration {
                 }
                 if (match_has_tag("pattern-$p")) {
                     $needs_to_be_selected = $sel;
-                    $current_pattern      = $p;
+                    $current_pattern = $p;
                     delete $patterns{$pattern};    # mark this pattern as processed
                     record_info($current_pattern, $needs_to_be_selected);
                 }
@@ -302,7 +290,6 @@ sub select_specific_patterns_by_iteration {
         my $selected = check_screen([qw(current-pattern-selected on-category)], 0);
         if ($selected && $selected->{needle}->has_tag('on-category')) {
             move_down;
-            workaround_bsc1189550() if is_sle('>=15-sp3');
             next;
         }
         if ($needs_to_be_selected && !$selected) {
@@ -320,7 +307,6 @@ sub select_specific_patterns_by_iteration {
         last if ((get_var('PATTERNS', '') =~ /default/) && !(scalar keys %patterns));
 
         move_down;
-        workaround_bsc1189550() if is_sle('>=15-sp3');
     }
     # check if we have processed all patterns mentioned in the test suite settings
     my @unseen = keys %patterns;
@@ -337,8 +323,8 @@ Example
   switch_selection(action => 'select', needles => ['current-pattern-selected']);
 =cut
 sub switch_selection {
-    my (%args)  = @_;
-    my $action  = $args{action};
+    my (%args) = @_;
+    my $action = $args{action};
     my $needles = $args{needles};
     wait_screen_change {
         send_key ' ';
@@ -374,7 +360,7 @@ sub use_ifconfig {
 }
 
 sub get_ip_address {
-    return if (get_var('NET') || check_var('ARCH', 's390x'));
+    return if (get_var('NET') || is_s390x);
     return if (get_var('NOLOGS'));
 
     # avoid known issue in FIPS mode: bsc#985969
@@ -394,7 +380,7 @@ sub get_ip_address {
 
 sub get_to_console {
     my @tags = qw(yast-still-running linuxrc-install-fail linuxrc-repo-not-found);
-    my $ret  = check_screen(\@tags, 5);
+    my $ret = check_screen(\@tags, 5);
     if ($ret && match_has_tag("linuxrc-repo-not-found")) {    # KVM only
         send_key "ctrl-alt-f9";
         assert_screen "inst-console";
@@ -464,7 +450,7 @@ sub deal_with_dependency_issues {
     }
 
     assert_screen 'dependency-issue-fixed';    # make sure the dependancy issue is fixed now
-    send_key 'alt-a';                          # Accept
+    send_key 'alt-a';    # Accept
     sleep 2;
 
   DO_CHECKS:
@@ -479,16 +465,16 @@ sub deal_with_dependency_issues {
     }
     while (check_screen('error-with-patterns', 2)) {
         record_soft_failure 'bsc#1047337';
-        send_key 'alt-o';                           # OK
+        send_key 'alt-o';    # OK
     }
     sleep 2;
 
     if (check_screen('dependency-issue-fixed', 0)) {
         if (check_var('VIDEOMODE', 'text')) {
-            send_key 'alt-o';                       # OK
+            send_key 'alt-o';    # OK
         }
         else {
-            send_key 'alt-a';                       # Accept
+            send_key 'alt-a';    # Accept
         }
         sleep 2;
     }
@@ -501,7 +487,7 @@ sub deal_with_dependency_issues {
     # Refer ticket: https://progress.opensuse.org/issues/48371
     assert_screen([qw(installation-settings-overview-loaded adapting_proposal)], 90);
     if (match_has_tag('adapting_proposal')) {
-        my $timeout  = 600;
+        my $timeout = 600;
         my $interval = 10;
         my $timetick = 0;
 
@@ -530,7 +516,7 @@ sub save_remote_upload_y2logs {
     my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
     enter_cmd "save_y2logs $filename";
     my $uploadname = +(split('/', $filename))[2];
-    my $upname     = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
+    my $upname = ($args{log_name} || $autotest::current_test->{name}) . '-' . $uploadname;
     enter_cmd "curl --form upload=\@$filename --form upname=$upname " . autoinst_url("/uploadlog/$upname") . "";
     save_screenshot();
     $self->investigate_yast2_failure();
@@ -561,14 +547,16 @@ sub post_fail_hook {
     }
 }
 
+sub workaround_bsc1189550 {
+    record_soft_failure('bsc#1189550 - Problem with scroll bar event in pattern selection');
+    wait_screen_change { send_key 'end' };
+    wait_screen_change { send_key 'home' };
+    $workaround_bsc1189550_done = 1;
+}
+
 # All steps in the installation are 'fatal'.
 sub test_flags {
     return {fatal => 1};
-}
-
-sub workaround_bsc1189550 {
-    move_down;
-    wait_screen_change { send_key 'up' };
 }
 
 1;

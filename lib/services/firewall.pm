@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Package for firewall service tests
 #
@@ -21,9 +17,9 @@ use utils;
 use strict;
 use warnings;
 
-my $service      = 'firewalld';
+my $service = 'firewalld';
 my $service_type = 'Systemd';
-my $pkg          = 'SuSEfirewall2';
+my $pkg = 'SuSEfirewall2';
 
 sub install_service {
     zypper_call('in ' . $pkg);
@@ -60,7 +56,7 @@ sub full_firewall_check {
         start_service();
     } else {
         $service = 'firewalld';
-        $pkg     = 'susefirewall2-to-firewalld';
+        $pkg = 'susefirewall2-to-firewalld';
         install_service();
         susefirewall2_to_firewalld();
     }

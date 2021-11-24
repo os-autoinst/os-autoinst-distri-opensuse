@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-client zypper
 # Summary: tests running system containers images with libvirt-lxc
@@ -26,7 +22,7 @@ sub run() {
     # Check the repositories on the host first
     zypper_call("lr");
 
-    my $url    = get_required_var('SYSCONTAINER_IMAGE_URL');
+    my $url = get_required_var('SYSCONTAINER_IMAGE_URL');
     my $rootfs = '/tmp/rootfs';
 
     # Create XML file

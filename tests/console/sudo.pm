@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: sudo expect
 # Summary: sudo test
@@ -30,7 +26,7 @@ sub sudo_with_pw {
     my ($command, %args) = @_;
     my ($grep, $env);
     $grep = '|grep ' . $args{grep} if defined $args{grep};
-    $env  = "set $args{env};"      if defined $args{env};
+    $env = "set $args{env};" if defined $args{env};
     my $password = $args{password} //= $testapi::password;
     assert_script_run 'sudo -K';
     if ($command =~ /sudo -i|sudo -s|sudo su/) {

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Libstorage Expert
 # Partitioner.
@@ -30,13 +26,13 @@ sub new {
     my ($class, $args) = @_;
     my $self = bless {
         SuggestedPartitioningPage => Installation::Partitioner::Libstorage::SuggestedPartitioningPage->new(),
-        PreparingHardDiskPage     => Installation::Partitioner::Libstorage::PreparingHardDiskPage->new(),
-        ExpertPartitionerPage     => Installation::Partitioner::ExpertPartitionerPage->new({add_partition_shortcut => 'alt-d', add_raid_shortcut => 'alt-i'}),
-        NewPartitionSizePage      => Installation::Partitioner::NewPartitionSizePage->new({custom_size_shortcut => 'alt-c'}),
-        NewPartitionTypePage      => Installation::Partitioner::NewPartitionTypePage->new(),
-        RolePage                  => Installation::Partitioner::RolePage->new({raw_volume_shortcut => 'alt-a'}),
+        PreparingHardDiskPage => Installation::Partitioner::Libstorage::PreparingHardDiskPage->new(),
+        ExpertPartitionerPage => Installation::Partitioner::ExpertPartitionerPage->new({add_partition_shortcut => 'alt-d', add_raid_shortcut => 'alt-i'}),
+        NewPartitionSizePage => Installation::Partitioner::NewPartitionSizePage->new({custom_size_shortcut => 'alt-c'}),
+        NewPartitionTypePage => Installation::Partitioner::NewPartitionTypePage->new(),
+        RolePage => Installation::Partitioner::RolePage->new({raw_volume_shortcut => 'alt-a'}),
         FormattingOptionsPage => Installation::Partitioner::Libstorage::FormattingOptionsPage->new({do_not_format_shortcut => 'alt-d', format_shortcut => 'alt-a', filesystem_shortcut => 'alt-s', do_not_mount_shortcut => 'alt-u'}),
-        RaidTypePage    => Installation::Partitioner::RaidTypePage->new(),
+        RaidTypePage => Installation::Partitioner::RaidTypePage->new(),
         RaidOptionsPage => Installation::Partitioner::RaidOptionsPage->new({chunk_size_shortcut => 'alt-c'})
     }, $class;
 }
@@ -117,8 +113,8 @@ sub _finish_partition_creation {
 
 sub add_raid {
     my ($self, $args) = @_;
-    my $raid_level            = $args->{raid_level};
-    my $chunk_size            = $args->{chunk_size};
+    my $raid_level = $args->{raid_level};
+    my $chunk_size = $args->{chunk_size};
     my $device_selection_step = $args->{device_selection_step};
     $self->get_expert_partitioner_page()->select_item_in_system_view_table('raid');
     $self->get_expert_partitioner_page()->press_add_raid_button();

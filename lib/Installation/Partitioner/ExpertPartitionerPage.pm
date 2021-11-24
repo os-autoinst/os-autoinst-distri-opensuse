@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Expert Partitioner
 # Page, that are common for all the versions of the page (e.g. for both
@@ -19,42 +15,42 @@ use testapi;
 use parent 'Installation::WizardPage';
 
 use constant {
-    EXPERT_PARTITIONER_PAGE            => 'expert-partitioner',
-    SELECTED_HARD_DISK                 => 'partitioning_raid-disk_%s-selected',
-    SELECTED_RAID                      => 'partitioning_raid-raid-selected',
-    SELECTED_CURRENT_VOLUME_MANAGEMENT => 'volume-management_system',                 # current proposal
-    SELECTED_VOLUME_MANAGEMENT         => 'volume_management_feature',                # existing partition
-    SELECTED_HARD_DISKS                => 'partitioning_raid-hard_disks-selected',
-    SELECTED_EXISTING_PART             => 'partitioning_existing_part_%s-selected',
-    CLONE_PARTITION                    => 'clone_partition',
-    ALL_DISKS_SELECTED                 => 'all_disks_selected',
-    PARTITIONS_TAB                     => 'partitions_tab_selected',
-    OVERVIEW_TAB                       => 'overview_tab_selected',
-    NEW_PARTITION_TABLE_TYPE           => 'new_partition_table_type',
-    SELECTED_CREATE_NEW_TABLE          => 'selected_create_new_table',
-    DELETING_CURRENT_DEVICES           => 'deleting_current_devices',
-    NEW_PARTITION_TYPE                 => 'partition-type'
+    EXPERT_PARTITIONER_PAGE => 'expert-partitioner',
+    SELECTED_HARD_DISK => 'partitioning_raid-disk_%s-selected',
+    SELECTED_RAID => 'partitioning_raid-raid-selected',
+    SELECTED_CURRENT_VOLUME_MANAGEMENT => 'volume-management_system',    # current proposal
+    SELECTED_VOLUME_MANAGEMENT => 'volume_management_feature',    # existing partition
+    SELECTED_HARD_DISKS => 'partitioning_raid-hard_disks-selected',
+    SELECTED_EXISTING_PART => 'partitioning_existing_part_%s-selected',
+    CLONE_PARTITION => 'clone_partition',
+    ALL_DISKS_SELECTED => 'all_disks_selected',
+    PARTITIONS_TAB => 'partitions_tab_selected',
+    OVERVIEW_TAB => 'overview_tab_selected',
+    NEW_PARTITION_TABLE_TYPE => 'new_partition_table_type',
+    SELECTED_CREATE_NEW_TABLE => 'selected_create_new_table',
+    DELETING_CURRENT_DEVICES => 'deleting_current_devices',
+    NEW_PARTITION_TYPE => 'partition-type'
 };
 
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        add_raid_shortcut               => $args->{add_raid_shortcut},
-        add_partition_shortcut          => $args->{add_partition_shortcut},
-        edit_partition_shortcut         => $args->{edit_partition_shortcut},
-        resize_partition_shortcut       => $args->{resize_partition_shortcut},
-        partition_table_shortcut        => $args->{partition_table_shortcut},
-        clone_partition_chortcut        => $args->{clone_partition_chortcut},
-        ok_clone_shortcut               => $args->{ok_clone_shortcut},
+        add_raid_shortcut => $args->{add_raid_shortcut},
+        add_partition_shortcut => $args->{add_partition_shortcut},
+        edit_partition_shortcut => $args->{edit_partition_shortcut},
+        resize_partition_shortcut => $args->{resize_partition_shortcut},
+        partition_table_shortcut => $args->{partition_table_shortcut},
+        clone_partition_chortcut => $args->{clone_partition_chortcut},
+        ok_clone_shortcut => $args->{ok_clone_shortcut},
         available_target_disks_shortcut => $args->{avail_tgt_disks_shortcut},
-        overview_tab                    => 'alt-o',
-        select_msdos_shortcut           => $args->{select_msdos_shortcut},
-        modify_hard_disks_shortcut      => $args->{modify_hard_disks_shortcut},
-        press_yes_shortcut              => $args->{press_yes_shortcut},
-        partitions_tab_shortcut         => $args->{partitions_tab_shortcut},
-        select_gpt_shortcut             => $args->{select_gpt_shortcut},
-        select_primary_shortcut         => $args->{select_primary_shortcut},
-        select_extended_shortcut        => $args->{select_extended_shortcut}
+        overview_tab => 'alt-o',
+        select_msdos_shortcut => $args->{select_msdos_shortcut},
+        modify_hard_disks_shortcut => $args->{modify_hard_disks_shortcut},
+        press_yes_shortcut => $args->{press_yes_shortcut},
+        partitions_tab_shortcut => $args->{partitions_tab_shortcut},
+        select_gpt_shortcut => $args->{select_gpt_shortcut},
+        select_primary_shortcut => $args->{select_primary_shortcut},
+        select_extended_shortcut => $args->{select_extended_shortcut}
     }, $class;
 }
 
@@ -162,7 +158,7 @@ sub select_all_disks_to_clone {
     my ($self, $numdisks) = @_;
     assert_screen(CLONE_PARTITION);
     send_key($self->{available_target_disks_shortcut});
-    send_key "spc";           # Select first disk before going down,
+    send_key "spc";    # Select first disk before going down,
     for (2 .. $numdisks) {    # then start from 2nd.
         send_key "down";
         send_key "spc";

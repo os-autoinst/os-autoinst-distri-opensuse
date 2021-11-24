@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Testmodule to upload images to CSP
 #
@@ -36,7 +32,7 @@ sub run {
 
     # Download the given image. Check for 404 errors and make them better visible
     my $cmd = "wget --no-check-certificate $img_url -O $img_name";
-    my $rc  = script_run("$cmd 2>download.txt", timeout => 60 * 10);
+    my $rc = script_run("$cmd 2>download.txt", timeout => 60 * 10);
     if ($rc != 0) {
         upload_logs("download.txt");
         script_run("cat download.txt");

@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Fortran test
 # Maintainer: Michal Nowak <mnowak@suse.com>
@@ -21,8 +17,8 @@ use version_utils qw(is_sle is_leap);
 sub run {
     my $self = shift;
 
-    my $package_main   = data_url('toolchain/fcvs21_f95.tar.bz2');
-    my $package_fix    = data_url('toolchain/FM923.DAT');
+    my $package_main = data_url('toolchain/fcvs21_f95.tar.bz2');
+    my $package_fix = data_url('toolchain/FM923.DAT');
     my $package_patch1 = data_url('toolchain/adapt-FM406-to-fortran-95.patch');
     my $package_patch2 = data_url('toolchain/FM509-remove-TEST-016.patch');
 

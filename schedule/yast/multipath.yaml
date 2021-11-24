@@ -3,19 +3,6 @@ description:    >
   Test installation on machine with virtual multipath hardware.
   Tests successful detection of multipath and installation and
   validate multipath configuration and tools after booting.
-conditional_schedule:
-  multipath_on_full_medium:
-    FLAVOR:
-      'Full-QR':
-        - installation/multipath
-      'Full':
-        - installation/multipath
-  multipath_on_online_medium:
-    FLAVOR:
-      'Online-QR':
-        - installation/multipath
-      'Online':
-        - installation/multipath
 vars:
   DESKTOP: gnome
   MULTIPATH: 1
@@ -23,16 +10,14 @@ vars:
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - '{{multipath_on_full_medium}}'
-  # for some odd reason multipath is on different positions
-  # in the installation depending on the medium
-  - installation/scc_registration
-  - '{{multipath_on_online_medium}}'
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/select_module_desktop
+  - installation/multipath
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
@@ -40,8 +25,9 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -51,5 +37,4 @@ schedule:
   - console/force_scheduled_tasks
   - console/validate_multipath
 test_data:
-  product: SLES
   <<: !include test_data/yast/multipath.yaml

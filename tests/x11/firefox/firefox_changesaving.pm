@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Case#1436111: Firefox: Preferences Change Saving
@@ -49,13 +45,10 @@ sub run {
     # Open a new tab to avoid the keyboard focus is misled by the homepage
     send_key 'ctrl-t';
     wait_still_screen 3;
-    send_key "alt-e";
-    wait_still_screen 3;
-    send_key "n";
-    assert_screen('firefox-preferences');
+    $self->firefox_preferences;
     assert_and_click 'firefox-changesaving-showblankpage';
     wait_still_screen 2, 4;    #There might be a notification
-    send_key "alt-tab";        #Switch to xterm
+    send_key "alt-tab";    #Switch to xterm
     wait_still_screen 2, 4;
     assert_screen 'xterm-left-open';
 

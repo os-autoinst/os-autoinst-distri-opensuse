@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functions for testing docker
 # Maintainer: Anna Minou <anna.minou@suse.de>, qa-c@suse.de
@@ -17,13 +13,14 @@ use Exporter;
 
 use base "consoletest";
 use testapi;
+use Utils::Architectures;
 use utils;
 use strict;
 use warnings;
 use version_utils;
 use Mojo::Util 'trim';
 
-our @EXPORT = qw(test_seccomp basic_container_tests get_vars can_build_sle_base check_docker_firewall
+our @EXPORT = qw(test_seccomp basic_container_tests get_vars can_build_sle_base
   get_docker_version check_runtime_version container_ip registry_url);
 
 sub test_seccomp {
@@ -41,29 +38,6 @@ sub test_seccomp {
     else {
         record_info('seccomp', 'Docker Engine supports seccomp');
     }
-}
-
-sub check_docker_firewall {
-    my $container_name = 'sut_container';
-    my $docker_version = get_docker_version();
-    systemctl('is-active firewalld');
-    my $running = script_output qq(docker ps -q | wc -l);
-    validate_script_output('ip a s docker0', sub { /state DOWN/ }) if $running == 0;
-    # Docker zone is created for docker version >= 20.10 (Tumbleweed), but it
-    # is backported to docker 19 for SLE15-SP3 and for Leap 15.3
-    if (check_runtime_version($docker_version, ">=20.10") || is_sle('>=15-sp3') || is_leap(">=15.3")) {
-        assert_script_run "firewall-cmd --list-all --zone=docker";
-        validate_script_output "firewall-cmd --list-interfaces --zone=docker", sub { /docker0/ };
-    }
-    # Rules applied before DOCKER. Default is to listen to all tcp connections
-    # ex. output: "1           0        0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0"
-    validate_script_output "iptables -L DOCKER-USER -nvx --line-numbers", sub { /1.+all.+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0/ };
-    assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine');
-    my $container_ip = container_ip($container_name, "docker");
-    # Each running container should have added a new entry to the DOCKER zone.
-    # ex. output: "1           0        0 ACCEPT     tcp  --  !docker0 docker0  0.0.0.0/0            172.17.0.2           tcp dpt:1234"
-    validate_script_output "iptables -L DOCKER -nvx --line-numbers", sub { /1.+ACCEPT.+!docker0 docker0.+$container_ip\s+tcp dpt:1234/ };
-    assert_script_run "docker kill $container_name ";
 }
 
 sub get_docker_version {
@@ -98,14 +72,14 @@ sub registry_url {
 }
 
 sub basic_container_tests {
-    my %args    = @_;
+    my %args = @_;
     my $runtime = $args{runtime};
     die "You must define the runtime!" unless $runtime;
     my $alpine_image_version = '3.6';
-    my $alpine               = registry_url('alpine', $alpine_image_version);
-    my $hello_world          = registry_url('hello-world');
-    my $leap                 = "registry.opensuse.org/opensuse/leap";
-    my $tumbleweed           = "registry.opensuse.org/opensuse/tumbleweed";
+    my $alpine = registry_url('alpine', $alpine_image_version);
+    my $hello_world = registry_url('hello-world');
+    my $leap = "registry.opensuse.org/opensuse/leap";
+    my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
 
     # Test search feature
     validate_script_output("$runtime search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
@@ -117,11 +91,7 @@ sub basic_container_tests {
     #   - https://store.docker.com/images/hello-world
     assert_script_run("$runtime image pull $hello_world", timeout => 300);
     #   - pull image of last released version of openSUSE Leap
-    if (!check_var('ARCH', 's390x')) {
-        assert_script_run("$runtime image pull $leap", timeout => 600);
-    } else {
-        record_soft_failure("bsc#1171672 Missing Leap:latest container image for s390x");
-    }
+    assert_script_run("$runtime image pull $leap", timeout => 600);
     #   - pull image of openSUSE Tumbleweed
     assert_script_run("$runtime image pull $tumbleweed", timeout => 600);
 
@@ -136,7 +106,7 @@ sub basic_container_tests {
     #   - all local images
     my $local_images_list = script_output("$runtime image ls");
     die("$runtime image $tumbleweed not found") unless ($local_images_list =~ /opensuse\/tumbleweed\s*latest/);
-    die("$runtime image $leap not found") if (!check_var('ARCH', 's390x') && !$local_images_list =~ /opensuse\/leap\s*latest/);
+    die("$runtime image $leap not found") if (!is_s390x && !$local_images_list =~ /opensuse\/leap\s*latest/);
 
     # Containers can be spawned
     #   - using 'run'
@@ -158,7 +128,9 @@ sub basic_container_tests {
     die("error: missing container $container_name") unless ($output_containers =~ m/$container_name/);
 
     # Containers' state can be saved to a docker image
-    if (script_run("$runtime container exec $container_name zypper -n in curl", 300)) {
+    my $ret = script_run("$runtime container exec $container_name zypper -n in curl", 600);
+    die('zypper inside container timed out') if (!defined($ret));
+    if ($ret != 0) {
         record_info('poo#40958 - curl install failure, try with force-resolution.');
         my $output = script_output("$runtime container exec $container_name zypper in --force-resolution -y -n curl", 600);
         die('error: curl not installed in the container') unless (($output =~ m/Installing: curl.*done/) || ($output =~ m/\'curl\' .* already installed/));
@@ -193,10 +165,10 @@ sub basic_container_tests {
     # Images can be deleted
     my $cmd_runtime_rmi = "$runtime rmi -a";
     $output_containers = script_output("$runtime container ls -a");
-    die("error: $runtime image rmi -a $leap")                               if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
-    die("error: $runtime image rmi -a $tumbleweed")                         if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
-    die("error: $runtime image rmi -a tw:saved")                            if ($output_containers =~ m/Untagged:.*tw:saved/);
-    record_soft_failure("error: $runtime image rmi -a $alpine")             if ($output_containers =~ m/Untagged:.*alpine/);
+    die("error: $runtime image rmi -a $leap") if ($output_containers =~ m/Untagged:.*opensuse\/leap/);
+    die("error: $runtime image rmi -a $tumbleweed") if ($output_containers =~ m/Untagged:.*opensuse\/tumbleweed/);
+    die("error: $runtime image rmi -a tw:saved") if ($output_containers =~ m/Untagged:.*tw:saved/);
+    record_soft_failure("error: $runtime image rmi -a $alpine") if ($output_containers =~ m/Untagged:.*alpine/);
     record_soft_failure("error: $runtime image rmi -a $hello_world:latest") if ($output_containers =~ m/Untagged:.*hello-world:latest/);
 }
 

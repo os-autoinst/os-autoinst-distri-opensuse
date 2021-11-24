@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openvpn wicked
 # Summary: Advanced test cases for wicked
@@ -24,7 +20,7 @@ sub run {
     my $config = '/etc/sysconfig/network/ifcfg-tap1';
     record_info('Info', 'Create a tap interface from legacy ifcfg files');
     $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
-    $self->get_from_data('wicked/ifcfg/tap1_sut',            $config);
+    $self->get_from_data('wicked/ifcfg/tap1_sut', $config);
     $self->setup_openvpn_client('tap1');
     $self->setup_tuntap($config, 'tap1', $ctx->iface());
     my $res = $self->get_test_result('tap1');

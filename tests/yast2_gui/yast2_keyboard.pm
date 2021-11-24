@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-country xdg-utils
 # Summary: this test checks that YaST2's Keyboard module is behaving
@@ -65,11 +61,12 @@ sub run {
     # 4. simulate german keystrokes to switch back us keymap
     send_key "alt-f2";
     type_string "xdg/su /c |&sbin&zast2 kezboard|";
-    send_key("ret");
-    wait_still_screen 5;
+    send_key_until_needlematch('root-auth-dialog', 'ret', 3, 3);
+    wait_still_screen 2;
     type_password;
     send_key("ret");
-    wait_still_screen 3;
+    # bumped timeout to 10 to avoid loosing focus with desktop notification
+    wait_still_screen 10;
     send_key "alt-k";
     wait_still_screen 2;
     send_key "e";

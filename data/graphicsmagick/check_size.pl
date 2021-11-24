@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: GraphicMagick testsuite
 # Maintainer: Ivan Lausuch <ilausuch@suse.com>
@@ -22,8 +18,8 @@ sub get_size {
 
 sub check_size {
     my $file = shift;
-    my $w    = shift;
-    my $h    = shift;
+    my $w = shift;
+    my $h = shift;
 
     my ($iw, $ih) = get_size($file);
     return $w == $iw && $h == $ih;

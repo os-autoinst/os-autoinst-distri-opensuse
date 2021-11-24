@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2015-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Add new yast2_nfs4_server test
 #    This tests "yast2 nfs-server" by creating an NFS share,
@@ -34,8 +30,8 @@ use nfs_common;
 
 sub run {
     my ($self) = @_;
-    my $rw     = '/srv/nfs';
-    my $ro     = '/srv/nfs/ro';
+    my $rw = '/srv/nfs';
+    my $ro = '/srv/nfs/ro';
     select_console 'root-console';
 
     server_configure_network($self);

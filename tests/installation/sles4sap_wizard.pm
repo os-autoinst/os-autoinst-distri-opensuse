@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Add SLES4SAP tests
 # Maintainer: Denis Zyuzin <dzyuzin@suse.com>
@@ -30,7 +26,7 @@ sub run {
         send_key 'alt-o';    #Okay
     }
     assert_screen "sles4sap-wizard-sapinst";
-    send_key 'tab';          # select protocol droplist
+    send_key 'tab';    # select protocol droplist
     save_screenshot;
     send_key 'home';
     send_key_until_needlematch 'sles4sap-wizard-proto-' . $swpm_proto . '-selected', 'down';
@@ -45,16 +41,16 @@ sub run {
         send_key 'alt-t';    # sap sTandard system
         send_key 'alt-p';    # saP maxdb
     }
-    else {                   #TREX installation
+    else {    #TREX installation
         ($sapinst_proto, $sapinst_path) = split m|://|, get_var('TREX');
         send_key 'alt-l';    # sap standaLone engines
     }
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-choose-product";
-    send_key 'alt-y';        # move focus to list of products
+    send_key 'alt-y';    # move focus to list of products
     send_key_until_needlematch 'sles4sap-wizard-product-' . $sap_product . '-selected', 'down';
     send_key $cmd{next};
-    send_key 'alt-c';        # Copy a medium
+    send_key 'alt-c';    # Copy a medium
     send_key 'tab';
     send_key 'home';
     send_key_until_needlematch 'sles4sap-wizard-sapinst-proto-' . $sapinst_proto . '-selected', 'down';
@@ -63,9 +59,9 @@ sub run {
     send_key $cmd{next};
     assert_screen "sles4sap-wizard-copying-media";
     assert_screen "sles4sap-wizard-more-media";
-    send_key 'alt-n';        # No
+    send_key 'alt-n';    # No
     assert_screen "sles4sap-wizard-supplement-media";
-    send_key 'alt-n';        # No
+    send_key 'alt-n';    # No
     assert_screen "sles4sap-wizard-add-repo";
     send_key $cmd{next};
     if ($sap_product eq 'nw') {

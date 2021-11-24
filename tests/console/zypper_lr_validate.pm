@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: zypper
 # Summary: Validate SLE zypper repositories
@@ -19,17 +15,19 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
+use Utils::Architectures;
 use utils;
 use version_utils 'is_sle';
 
 sub validatelr {
     my ($args) = @_;
 
-    my $alias           = $args->{alias} || "";
-    my $product         = $args->{product};
+    my $alias = $args->{alias} || "";
+    my $product = $args->{product};
     my $product_channel = $args->{product_channel} || "";
-    my $version         = $args->{version};
-    my $major_version   = substr($args->{version}, 0, 2);
+    my $version = $args->{version};
+    my $major_version = substr($args->{version}, 0, 2);
     if (get_var('ZDUP')) {
         $version = "";
     }
@@ -117,7 +115,7 @@ sub validate_repos_sle {
     # On SLE we follow "SLE Channels Checking Table"
     # (https://wiki.microfocus.net/index.php?title=SLE12_SP2_Channels_Checking_Table)
     my (%h_addons, %h_addonurl, %h_scc_addons);
-    my @addons_keys   = split(/,/, get_var('ADDONS',   ''));
+    my @addons_keys = split(/,/, get_var('ADDONS', ''));
     my @addonurl_keys = split(/,/, get_var('ADDONURL', ''));
     my $scc_addon_str = '';
     for my $scc_addon (split(/,/, get_var('SCC_ADDONS', ''))) {
@@ -133,8 +131,8 @@ sub validate_repos_sle {
         $scc_addon_str .= "SLE-" . uc($scc_addon) . ',';
     }
     my @scc_addons_keys = split(/,/, $scc_addon_str);
-    @h_addons{@addons_keys}         = ();
-    @h_addonurl{@addonurl_keys}     = ();
+    @h_addons{@addons_keys} = ();
+    @h_addonurl{@addonurl_keys} = ();
     @h_scc_addons{@scc_addons_keys} = ();
 
     my $base_product;
@@ -143,7 +141,7 @@ sub validate_repos_sle {
     }
 
     # On Xen PV there are no CDs nor DVDs being emulated, "raw" HDD is used instead
-    my $cd  = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
+    my $cd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'cd';
     my $dvd = (check_var('VIRSH_VMM_FAMILY', 'xen') && check_var('VIRSH_VMM_TYPE', 'linux')) ? 'hd' : 'dvd';
 
     # On system with ONLINE_MIGRATION/ZDUP variable set, we don't have SLE media
@@ -152,9 +150,9 @@ sub validate_repos_sle {
     # verified in such a scenario.
     if (!(get_var('ONLINE_MIGRATION') || get_var('ZDUP'))) {
         # This is where we verify base product repos for SLES, SLED, and HA
-        my $uri = check_var('ARCH', 's390x') ? "ftp://" : "$cd:///";
+        my $uri = is_s390x ? "ftp://" : "$cd:///";
         if (check_var('FLAVOR', 'Server-DVD')) {
-            if (check_var("BACKEND", "ipmi") || check_var("BACKEND", "generalhw")) {
+            if (is_ipmi || check_var("BACKEND", "generalhw")) {
                 $uri = "http[s]*://.*suse";
             }
             elsif (get_var('USBBOOT') && is_sle('12-SP3+')) {
@@ -202,10 +200,10 @@ sub validate_repos_sle {
         }
         validatelr(
             {
-                product      => uc $addon,
+                product => uc $addon,
                 enabled_repo => get_var('SCC_REGCODE_' . uc $addon) ? "No" : "Yes",
-                uri          => "$dvd:///",
-                version      => $version
+                uri => "$dvd:///",
+                version => $version
             });
     }
 
@@ -218,11 +216,11 @@ sub validate_repos_sle {
         # After registration, the uri of smt could be http
         if (get_var('SMT_URL')) {
             ($uri = get_var('SMT_URL')) =~ s/https:\/\///;
-            $uri        = "http[s]*://" . $uri;
+            $uri = "http[s]*://" . $uri;
             $nvidia_uri = $uri;
         }
         else {
-            $uri        = "http[s]*://.*suse";
+            $uri = "http[s]*://.*suse";
             $nvidia_uri = "http[s]*://.*nvidia";
         }
 
@@ -243,11 +241,11 @@ sub validate_repos_sle {
                 next if ($scc_product eq 'SLE-IDU' || $scc_product eq 'SLE-IDS');
                 validatelr(
                     {
-                        product         => $scc_product,
+                        product => $scc_product,
                         product_channel => $product_channel,
-                        enabled_repo    => ($product_channel =~ m{(Debuginfo|Source)}) ? "No" : "Yes",
-                        uri             => $uri,
-                        version         => $version
+                        enabled_repo => ($product_channel =~ m{(Debuginfo|Source)}) ? "No" : "Yes",
+                        uri => $uri,
+                        version => $version
                     });
             }
         }
@@ -256,23 +254,23 @@ sub validate_repos_sle {
         if (exists $h_scc_addons{'SLE-IDU'}) {
             validatelr(
                 {
-                    product      => 'IBM-DLPAR-utils',
+                    product => 'IBM-DLPAR-utils',
                     enabled_repo => 'Yes',
-                    uri          => 'http://public.dhe.ibm'
+                    uri => 'http://public.dhe.ibm'
                 });
         }
         if (exists $h_scc_addons{'SLE-IDS'}) {
             validatelr(
                 {
-                    product      => 'IBM-DLPAR-SDK',
+                    product => 'IBM-DLPAR-SDK',
                     enabled_repo => 'Yes',
-                    uri          => 'http://public.dhe.ibm'
+                    uri => 'http://public.dhe.ibm'
                 });
             validatelr(
                 {
-                    product      => 'IBM-DLPAR-Adv-Toolchain',
+                    product => 'IBM-DLPAR-Adv-Toolchain',
                     enabled_repo => 'Yes',
-                    uri          => 'http://ftp.unicamp.br'
+                    uri => 'http://ftp.unicamp.br'
                 });
         }
 
@@ -283,11 +281,11 @@ sub validate_repos_sle {
         if ($base_product eq "SLED" || $we && !get_required_var('FLAVOR') =~ /-Updates$|-Incidents/) {
             validatelr(
                 {
-                    product         => "SLE-",
+                    product => "SLE-",
                     product_channel => 'Desktop-[nN][vV][iI][dD][iI][aA]-Driver',
-                    enabled_repo    => 'Yes',
-                    uri             => $nvidia_uri,
-                    version         => $version
+                    enabled_repo => 'Yes',
+                    uri => $nvidia_uri,
+                    version => $version
                 });
         }
     }
@@ -296,7 +294,7 @@ sub validate_repos_sle {
     # s390x can't use dvd media, only works with network repo
     if (get_var('ZDUP')) {
         my $uri;
-        if (get_var('TEST') =~ m{zdup_offline} and !check_var('ARCH', 's390x')) {
+        if (get_var('TEST') =~ m{zdup_offline} and !is_s390x) {
             $uri = "$dvd:///";
         }
         else {
@@ -304,10 +302,10 @@ sub validate_repos_sle {
         }
         validatelr(
             {
-                product      => "repo1",
+                product => "repo1",
                 enabled_repo => "Yes",
-                uri          => $uri,
-                version      => $version
+                uri => $uri,
+                version => $version
             });
     }
 }
@@ -316,7 +314,7 @@ sub validate_repos {
     my ($version) = @_;
     $version //= get_var('VERSION');
 
-    assert_script_run "zypper lr | tee /dev/$serialdev",    180;
+    assert_script_run "zypper lr | tee /dev/$serialdev", 180;
     assert_script_run "zypper lr -d | tee /dev/$serialdev", 180;
 
     if (!get_var('STAGING') and is_sle('12-SP1+')) {

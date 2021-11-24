@@ -1,11 +1,7 @@
 # Shotwell tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: shotwell
 # Summary: Shotwell: Delete or edit an imported image
@@ -19,7 +15,7 @@ use warnings;
 use testapi;
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my @pictures = qw(shotwell_test.jpg shotwell_test.png);
 
     # Open shotwell
@@ -32,9 +28,9 @@ sub run {
     send_key "alt-home";
     send_key "ret";
     assert_screen 'shotwell-display-picture';
-    send_key "ctrl-r";          # Rotate the picture
+    send_key "ctrl-r";    # Rotate the picture
     assert_screen 'shotwell-rotate-picture';
-    send_key "ctrl-o";          # Crop the picture
+    send_key "ctrl-o";    # Crop the picture
     assert_screen 'shotwell-crop-toolbar';
     send_key "ret";
     assert_screen 'shotwell-crop-picture';
@@ -44,7 +40,7 @@ sub run {
     wait_still_screen 2;
     send_key "esc";
     assert_screen 'shotwell-removed-picture', 60;
-    send_key "ctrl-q";          # Quit shotwell
+    send_key "ctrl-q";    # Quit shotwell
 
     # Clean shotwell's library then remove the test pictures
     $self->clean_shotwell();

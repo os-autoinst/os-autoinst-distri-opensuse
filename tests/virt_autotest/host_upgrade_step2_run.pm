@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
@@ -13,6 +9,7 @@
 use base "host_upgrade_base";
 #use virt_utils qw(set_serialdev);
 use testapi;
+use Utils::Architectures;
 use strict;
 use warnings;
 use virt_utils;
@@ -32,7 +29,7 @@ sub post_execute_script_configuration {
     my $self = shift;
 
     #online upgrade actually
-    if (is_remote_backend && check_var('ARCH', 'aarch64') && is_installed_equal_upgrade_major_release) {
+    if (is_remote_backend && is_aarch64 && is_installed_equal_upgrade_major_release) {
         set_serial_console_on_vh('', '', 'kvm');
         set_pxe_efiboot('');
     }

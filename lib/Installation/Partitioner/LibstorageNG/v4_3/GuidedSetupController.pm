@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Guided Setup of
 # Libstorage-NG Partitioner using REST API.
@@ -19,9 +15,9 @@ use warnings;
 
 use YuiRestClient;
 
-use Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage;
-use Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage;
-use Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsPage;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemePage;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksPage;
 
 =head1 PARTITION_SETUP
 
@@ -40,9 +36,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{FilesystemOptionsPage}  = Installation::Partitioner::LibstorageNG::v4_3::FilesystemOptionsPage->new({app => YuiRestClient::get_app()});
-    $self->{PartitioningSchemePage} = Installation::Partitioner::LibstorageNG::v4_3::PartitioningSchemePage->new({app => YuiRestClient::get_app()});
-    $self->{SelectDisksToUsePage}   = Installation::Partitioner::LibstorageNG::v4_3::SelectDisksToUsePage->new({app => YuiRestClient::get_app()});
+    $self->{FilesystemOptionsPage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsPage->new({app => YuiRestClient::get_app()});
+    $self->{PartitioningSchemePage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemePage->new({app => YuiRestClient::get_app()});
+    $self->{SelectHardDisksPage} = Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksPage->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -60,13 +56,13 @@ sub get_filesystem_options_page {
 
 sub get_select_disks_to_use_page {
     my ($self) = @_;
-    die "Disk to use selection page is not displayed" unless $self->{SelectDisksToUsePage}->is_shown();
-    return $self->{SelectDisksToUsePage};
+    die "Select Hard Disk(s) page is not displayed" unless $self->{SelectHardDisksPage}->is_shown();
+    return $self->{SelectHardDisksPage};
 }
 
 sub setup_disks_to_use {
-    my ($self, @disks) = @_;
-    $self->get_select_disks_to_use_page()->select_hard_disks(@disks);
+    my ($self, $disks) = @_;
+    $self->get_select_disks_to_use_page()->select_hard_disks($disks);
     $self->get_select_disks_to_use_page()->press_next();
 }
 

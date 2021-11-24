@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This test verifies guest migration between two different hosts, either xen to xen, or kvm to kvm.
 #          This is the part to run on the destination host.
@@ -18,24 +14,29 @@ use testapi;
 use lockapi;
 use mmapi;
 use upload_system_log 'upload_supportconfig_log';
-use virt_autotest::utils qw(is_xen_host);
+use virt_autotest::utils qw(is_xen_host is_kvm_host);
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = @_;
 
     my $ip_out = script_output('ip route show | grep -Eo "src\s+([0-9.]*)\s+" | head -1 | cut -d\' \' -f 2', 30);
-    set_var('DST_IP',   $ip_out);
+    set_var('DST_IP', $ip_out);
     set_var('DST_USER', "root");
     set_var('DST_PASS', $password);
     bmwqemu::save_vars();
 
+    #workaround from 15-SP4 kernel(v5.14) new behavior
+    #Refer to bsc#1191511 for more details
+    $self->reset_unprivileged_userfaultfd if (is_sle('>=15-SP4') && is_kvm_host);
+
     #workaround for weird mount failure
     $self->workaround_for_reverse_lock("SRC_IP", 3600);
-    my $src_ip       = $self->get_var_from_child("SRC_IP");
-    my $src_user     = $self->get_var_from_child("SRC_USER");
-    my $src_pass     = $self->get_var_from_child("SRC_PASS");
-    my $hypervisor   = (is_xen_host) ? 'xen' : 'kvm';
-    my $args         = "-d $src_ip -v $hypervisor -u $src_user -p $src_pass";
+    my $src_ip = $self->get_var_from_child("SRC_IP");
+    my $src_user = $self->get_var_from_child("SRC_USER");
+    my $src_pass = $self->get_var_from_child("SRC_PASS");
+    my $hypervisor = (is_xen_host) ? 'xen' : 'kvm';
+    my $args = "-d $src_ip -v $hypervisor -u $src_user -p $src_pass";
     my $pre_test_cmd = "/usr/share/qa/virtautolib/lib/guest_migrate.sh " . $args;
     enter_cmd("$pre_test_cmd ");
     save_screenshot;
@@ -44,8 +45,8 @@ sub run {
     #workaround end
 
     # clean up logs from prevous tests
-    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/',                     30);
-    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/',     30);
+    script_run('[ -d /var/log/qa/ctcs2/ ] && rm -rf /var/log/qa/ctcs2/', 30);
+    script_run('[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/', 30);
     script_run('[ -d /tmp/prj3_migrate_admin_log/ ] && rm -rf /tmp/prj3_migrate_admin_log/', 30);
 
     #mark ready state
@@ -76,6 +77,15 @@ sub run {
 
     #wait for child finish
     wait_for_children;
+}
+
+#Since 15-SP4 kernel(v5.14), default value of unprivileged_userfaultfd sysctl is 0.
+#if unprivileged user want to use userfaultfd syscalls, we just only need to manually
+#reset unprivileged_userfaultfd value is 1 as the workaround on postcopy migration dst
+sub reset_unprivileged_userfaultfd {
+    script_run("sysctl -w vm.unprivileged_userfaultfd=1", 15);
+    script_run("sysctl -a | grep vm.unprivileged_userfaultfd", 15);
+    save_screenshot;
 }
 
 1;

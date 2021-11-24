@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: visualize data integrity of the images provided by comparing checksums.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -15,7 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use data_integrity_utils 'verify_checksum';
-use Utils::Backends 'is_svirt_except_s390x';
+use Utils::Backends;
 
 sub run {
     # If variable is set, we only inform about it

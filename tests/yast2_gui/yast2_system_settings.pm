@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Run yast2 system_settings module, attempt to add a non existing
 # driver in the PCI ID setup and validate the error message. Disable the sysrq
@@ -36,7 +32,7 @@ sub validate_sysrq_config {
     record_info("Validate sysrq", "Validate that sysrq is $expected_status in configuration files");
     my %config_value = (disabled => 0, enabled => 1);
     x11_start_program('xterm -geometry 160x45+5+5', target_match => 'xterm');
-    validate_script_output("cat /proc/sys/kernel/sysrq",                  sub { m/^$config_value{$expected_status}/ });
+    validate_script_output("cat /proc/sys/kernel/sysrq", sub { m/^$config_value{$expected_status}/ });
     validate_script_output("cat /etc/sysctl.d/70-yast.conf | grep sysrq", sub { m/$config_value{$expected_status}$/ });
     close_xterm();
 }

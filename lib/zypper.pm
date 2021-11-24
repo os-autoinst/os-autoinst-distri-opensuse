@@ -1,17 +1,5 @@
-# Copyright (C) 2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package zypper;
 
@@ -41,7 +29,9 @@ lock so that we can run a new zypper for our test.
 
 =cut
 sub wait_quit_zypper {
-    assert_script_run('until ! pgrep \'zypper|purge-kernels|rpm\' > /dev/null; do sleep 10; done', 600);
+    # sometimes the zypper processes already in quit process but can't pgrep, we
+    # need wait several seconds for them to finish deactivate.
+    assert_script_run('for ((i=60; i>0; i--)) do if (! pgrep \'zypper|purge-kernels|rpm\' > /dev/null); then sleep 20; break; else sleep 10; continue; fi done', 600);
 }
 
 1;

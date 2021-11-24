@@ -2,12 +2,28 @@ name: cc_netfilter
 description:    >
     This is for audit_test netfilter
 schedule:
+    - '{{bootloader_zkvm}}'
     - boot/boot_to_desktop
-    - network/setup_multimachine
+    - '{{setup_multimachine}}'
+    - '{{cc_audit_test_setup}}'
     - security/selinux/selinux_setup
     - security/cc/cc_selinux_setup
-    - security/cc/cc_audit_test_setup
     - security/cc/setup_net_test_env
+conditional_schedule:
+    bootloader_zkvm:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+    setup_multimachine:
+        ARCH:
+            aarch64:
+                - network/setup_multimachine
+            x86_64:
+                - network/setup_multimachine
+    cc_audit_test_setup:
+        ARCH:
+            s390x:
+                - security/cc/cc_audit_test_setup
 test_data:
     server:
         first_interface:

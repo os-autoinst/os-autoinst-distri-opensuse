@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Run Deepsea testsuites https://github.com/SUSE/DeepSea/tree/master/qa
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
@@ -22,7 +18,7 @@ use version_utils 'is_sle';
 sub run {
     if (check_var('HOSTNAME', 'master')) {
         my $num_nodes = get_var('NODE_COUNT');
-        barrier_create('salt_master_ready',      $num_nodes + 1);
+        barrier_create('salt_master_ready', $num_nodes + 1);
         barrier_create('salt_minions_connected', $num_nodes + 1);
         systemctl 'start salt-master';
         systemctl 'enable salt-master';
@@ -45,9 +41,9 @@ sub run {
         assert_script_run 'salt \'*\' cmd.run \'lsblk\'';
         # __pycache__ is deleted in testsuite and deepsea cli doe not work properly in SES6
         record_soft_failure 'bsc#1087232' if is_sle('>=15');
-        my $deepsea_cli       = is_sle('>=15') ? '' : '--cli';
+        my $deepsea_cli = is_sle('>=15') ? '' : '--cli';
         my $deepsea_testsuite = get_var('DEEPSEA_TESTSUITE');
-        my $deepsea_options   = get_var('DEEPSEA_OPTIONS');
+        my $deepsea_options = get_var('DEEPSEA_OPTIONS');
         if (is_sle('<15')) {
             my $ses5_ceph_qa_health_ok_repo = get_required_var('SES5_CEPH_QA_HEALTH_OK');
             zypper_call("ar --priority 200 ${ses5_ceph_qa_health_ok_repo}");

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Run QEMU as emulator
 # Maintainer: Dominik Heidler <dheidler@suse.de>
@@ -14,14 +10,15 @@ use strict;
 use warnings;
 use base "consoletest";
 use testapi;
+use Utils::Backends;
 use utils;
 use transactional qw(trup_call check_reboot_changes);
-use Utils::Architectures qw(is_x86_64 is_ppc64le is_s390x is_aarch64);
+use Utils::Architectures;
 use version_utils qw(is_sle_micro is_transactional);
 
 # 'patterns-microos-kvm_host' is required for SUMA client use case
 sub is_qemu_preinstalled {
-    if (is_sle_micro && check_var('FLAVOR', 'MicroOS-Image')) {
+    if (is_sle_micro) {
         assert_script_run('rpm -q patterns-microos-kvm_host');
         return 1;
     }
@@ -72,7 +69,7 @@ sub run {
         }
     }
     elsif (is_aarch64) {
-        is_qemu_preinstalled or install_qemu('qemu-arm');
+        is_qemu_preinstalled or install_qemu('qemu-arm qemu-uefi-aarch64 qemu-ipxe');
         # create pflash volumes for UEFI as described on https://wiki.ubuntu.com/ARM64/QEMU
         assert_script_run 'dd if=/dev/zero of=flash0.img bs=1M count=64';
         assert_script_run 'dd if=/usr/share/qemu/qemu-uefi-aarch64.bin of=flash0.img conv=notrunc';

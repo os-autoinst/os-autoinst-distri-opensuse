@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Controller for YaST Firstboot Host Name Configuration
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -37,7 +33,7 @@ sub get_host_name_page {
 sub collect_current_host_name_info {
     my ($self) = @_;
     return {
-        static_hostname       => $self->get_host_name_page()->get_static_hostname(),
+        static_hostname => $self->get_host_name_page()->get_static_hostname(),
         set_hostname_via_DHCP => $self->get_host_name_page()->get_set_hostname_via_DHCP()};
 }
 

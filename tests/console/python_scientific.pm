@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Scientific python packages
 # * Test numpy
@@ -20,7 +16,7 @@ use utils;
 use version_utils qw(is_sle);
 
 sub run_python_script {
-    my $script  = shift;
+    my $script = shift;
     my $logfile = "output.txt";
     record_info($script, "Running python script: $script");
     assert_script_run("curl " . data_url("python/$script") . " -o '$script'");

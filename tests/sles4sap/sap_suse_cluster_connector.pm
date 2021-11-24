@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test sap_suse_cluster_connector command
 # Maintainer: Loic Devulder <ldevulder@suse.com>
@@ -24,9 +20,9 @@ also provided C<logfile>.
 
 =cut
 sub exec_conn_cmd {
-    my %args    = @_;
+    my %args = @_;
     my $timeout = $args{timeout} // $bmwqemu::default_timeout;
-    my $cmd     = $args{cmd};
+    my $cmd = $args{cmd};
     $cmd .= " --out $args{log_file}" if ($args{log_file});
 
     assert_script_run("$args{binary} $cmd", timeout => $timeout);
@@ -38,12 +34,12 @@ sub exec_conn_cmd {
 }
 
 sub run {
-    my ($self)        = @_;
+    my ($self) = @_;
     my $instance_type = get_required_var('INSTANCE_TYPE');
-    my $instance_id   = get_required_var('INSTANCE_ID');
-    my $instance_sid  = get_required_var('INSTANCE_SID');
-    my $binary        = 'sap_suse_cluster_connector';
-    my $log_file      = "/tmp/${binary}_out.log";
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $instance_sid = get_required_var('INSTANCE_SID');
+    my $binary = 'sap_suse_cluster_connector';
+    my $log_file = "/tmp/${binary}_out.log";
 
     # No need to test this cluster specific part if there is no HA
     return unless get_var('HA_CLUSTER');
@@ -52,7 +48,7 @@ sub run {
 
     # Check the version
     my $package_version = script_output "rpm -q --qf '%{VERSION}' sap-suse-cluster-connector";
-    my $output          = exec_conn_cmd(binary => $binary, cmd => 'gvi', log_file => $log_file);
+    my $output = exec_conn_cmd(binary => $binary, cmd => 'gvi', log_file => $log_file);
 
     # Record the soft failure if the version number differs
     record_soft_failure('bsc#1156661 - Version number mismatch') unless ($output =~ /\($binary $package_version\)/);

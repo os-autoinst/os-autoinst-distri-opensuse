@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: pidgin
 # Summary: Pidgin: IRC
@@ -29,6 +25,7 @@ use version_utils qw(is_sle is_tumbleweed);
 sub run {
     my ($self) = @_;
     my $CHANNELNAME = "susetesting";
+    my $SERVERNAME = "irc.libera.chat";
     x11_start_program('pidgin');
 
     # Focus the welcome window in SLE15
@@ -48,6 +45,9 @@ sub run {
     wait_still_screen 2;
     type_string "$CHANNELNAME";
     wait_still_screen 2;
+    send_key "alt-s";
+    type_string "$SERVERNAME";
+    wait_still_screen 2;
     send_key "alt-a";
 
     # Should create IRC account, close account manager
@@ -55,11 +55,11 @@ sub run {
 
     # IP spoofing or CTCP Version and scan warnings may appear
     assert_screen([qw(pidgin-ready pidgin-spoofing-ip pidgin-ctcp-version)]);    # wait until connection established
-    wait_still_screen 5;                                                         # give some time for warnings to pop-up
+    wait_still_screen 5;    # give some time for warnings to pop-up
     while (check_screen('pidgin-spoofing-ip') || check_screen('pidgin-ctcp-version')) {
-        send_key is_sle('<15') ? "alt-tab" : "alt-`";                            # focus on warning
+        send_key is_sle('<15') ? "alt-tab" : "alt-`";    # focus on warning
         wait_still_screen 2;
-        send_key "ctrl-w";                                                       # close it
+        send_key "ctrl-w";    # close it
         wait_still_screen 2;
     }
     assert_screen('pidgin-ready');

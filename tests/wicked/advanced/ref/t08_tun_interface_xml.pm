@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wicked
 # Summary: Advanced test cases for wicked
@@ -21,11 +17,11 @@ use testapi;
 use utils 'file_content_replace';
 
 sub run {
-    my ($self)         = @_;
-    my $config         = '/etc/sysconfig/network/ifcfg-tun1';
+    my ($self) = @_;
+    my $config = '/etc/sysconfig/network/ifcfg-tun1';
     my $openvpn_server = '/etc/openvpn/server.conf';
     record_info('Info', 'Create a TUN interface from Wicked XML files');
-    $self->get_from_data('wicked/ifcfg/tun1_ref',      $config);
+    $self->get_from_data('wicked/ifcfg/tun1_ref', $config);
     $self->get_from_data('wicked/openvpn/server.conf', $openvpn_server);
     file_content_replace($openvpn_server, device => "tun1");
     $self->setup_tuntap($config, 'tun1');

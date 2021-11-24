@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-firewall yast2-http-server apache2 apache2-prefork firewalld
 # Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
@@ -122,8 +118,8 @@ sub change_interface_zone {
 sub verify_zone {
     my (%args) = @_;
 
-    my $interfaces    = $args{interfaces}    //= 'no_interfaces';
-    my $default       = $args{default}       //= 'no_default';
+    my $interfaces = $args{interfaces} //= 'no_interfaces';
+    my $default = $args{default} //= 'no_default';
     my $menu_selected = $args{menu_selected} //= 0;
 
     assert_and_click 'yast2_firewall_zones' unless $menu_selected;
@@ -172,8 +168,8 @@ sub configure_firewalld {
     record_info('Interface/Zones', "Verify zone info assigning interface to different zone");
     change_interface_zone 'public';
     verify_interface(device => $iface, zone => 'public');
-    verify_zone(name => 'public',  interfaces => $iface);
-    verify_zone(name => 'trusted', default    => 'default');
+    verify_zone(name => 'public', interfaces => $iface);
+    verify_zone(name => 'trusted', default => 'default');
 
     record_info('Zones', "Configure zone adding service and port");
     configure_zone(zone => 'trusted', service => 'bitcoin', port => '7777');

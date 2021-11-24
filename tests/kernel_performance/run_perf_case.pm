@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 #
 # Summary: run performance cases
@@ -22,10 +18,10 @@ use File::Basename;
 use Utils::Backends 'use_ssh_serial_console';
 
 sub run_one_by_one {
-    my $case   = get_var("CASE_NAME");
+    my $case = get_var("CASE_NAME");
     my $repeat = get_var("CASE_REPEAT");
     my $timeout //= 180;
-    my $i         = 1;
+    my $i = 1;
     my $fail_path = get_var("FAIL_PATH");
     my $fail_list = get_var("FAIL_LIST");
 

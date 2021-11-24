@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Enter simple password for root in YaST interactive
 # installation and accept corresponding warning pop-up
@@ -19,7 +15,7 @@ use Test::Assert ':all';
 
 sub run {
     my $auth_for_root = $testapi::distri->get_authentication_for_root();
-    my $warning_text  = 'The password is too simple:\nit is based on a dictionary word.';
+    my $warning_text = 'The password is too simple:\nit is based on a dictionary word.';
 
     $auth_for_root->set_password($testapi::password);
     $testapi::distri->get_navigation()->proceed_next_screen();

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class represents Tumbleweed distribution and provides access to
 # its features.
@@ -24,15 +20,20 @@ use Installation::License::Opensuse::LicenseAgreementController;
 use Installation::License::LicenseAgreementCustomController;
 use Installation::LocalUser::LocalUserController;
 use Installation::Navigation::NavigationController;
-use Installation::Overview::OverviewController;
+use Installation::InstallationSettings::InstallationSettingsController;
 use Installation::Registration::RegisteredSystemController;
 use Installation::Partitioner::LibstorageNG::v4_3::SuggestedPartitioningController;
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemeController;
+use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
+use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
-use Installation::Warnings::WarningsController;
-use YaST::Bootloader::BootloaderController;
+use Installation::Popups::OKPopupController;
+use Installation::Popups::YesNoPopupController;
+use YaST::Bootloader::BootloaderSettingsController;
 use YaST::Firstboot::ConfigurationCompletedController;
 use YaST::Firstboot::HostNameController;
 use YaST::Firstboot::LanguageAndKeyboardLayoutController;
@@ -52,6 +53,18 @@ sub get_partitioner {
 
 sub get_guided_partitioner {
     return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetupController->new();
+}
+
+sub get_select_hard_disks {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksController->new();
+}
+
+sub get_partitioning_scheme {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemeController->new();
+}
+
+sub get_filesystem_options {
+    return Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::FilesystemOptionsController->new();
 }
 
 sub get_expert_partitioner {
@@ -94,8 +107,8 @@ sub get_navigation {
     return Installation::Navigation::NavigationController->new();
 }
 
-sub get_overview_controller {
-    return Installation::Overview::OverviewController->new();
+sub get_installation_settings {
+    return Installation::InstallationSettings::InstallationSettingsController->new();
 }
 
 sub get_network_settings {
@@ -130,16 +143,25 @@ sub get_registration_of_registered_system {
     return Installation::Registration::RegisteredSystemController->new();
 }
 
-sub get_bootloader {
-    return YaST::Bootloader::BootloaderController->new();
+sub get_bootloader_settings {
+    return YaST::Bootloader::BootloaderSettingsController->new();
 }
 
 sub get_license_agreement {
     return Installation::License::Opensuse::LicenseAgreementController->new();
 }
 
-sub get_warnings_controller {
-    return Installation::Warnings::WarningsController->new();
+sub get_ok_popup_controller {
+    return Installation::Popups::OKPopupController->new();
 }
+
+sub get_yes_no_popup_controller {
+    return Installation::Popups::YesNoPopupController->new();
+}
+
+sub get_encrypted_volume_activation {
+    return Installation::SystemProbing::EncryptedVolumeActivationController->new();
+}
+
 
 1;

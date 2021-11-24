@@ -1,0 +1,12 @@
+---
+name: isotovideo
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: "CI: Running isotovideo test"
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run isotovideo tests
+      run: make test-isotovideo

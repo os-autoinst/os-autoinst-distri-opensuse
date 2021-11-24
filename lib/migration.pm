@@ -1,17 +1,5 @@
-# Copyright (C) 2017-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package migration;
 
@@ -22,6 +10,7 @@ use strict;
 use warnings;
 
 use testapi;
+use Utils::Architectures;
 use utils;
 use zypper;
 use registration;
@@ -32,7 +21,7 @@ our @EXPORT = qw(
   setup_sle
   setup_migration
   register_system_in_textmode
-  remove_ltss
+  deregister_dropped_modules
   disable_installation_repos
   record_disk_info
   check_rollback_system
@@ -104,20 +93,34 @@ sub register_system_in_textmode {
 
 # Remove LTSS product and manually remove its relevant package before migration
 # Also remove ltss from SCC_ADDONS setting for registration in upgrade target
-sub remove_ltss {
-    if (get_var('SCC_ADDONS', '') =~ /ltss/) {
-        my $scc_addons = get_var_array('SCC_ADDONS');
-        record_info 'remove ltss', 'got all updates from ltss channel, now remove ltss and drop it from SCC_ADDONS before migration';
-        if (check_var('SLE_PRODUCT', 'hpc')) {
-            remove_suseconnect_product('SLE_HPC-LTSS');
-        } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
-            remove_suseconnect_product('SLES-LTSS');
-        } else {
-            zypper_call 'rm -t product SLES-LTSS';
-            zypper_call 'rm sles-ltss-release-POOL';
+# Besides LTSS, some modules will be dropped in the migration target product,
+# need to remove these modules before migration, add the dropped modules to the
+# setting of DROPPED_MODULES.
+sub deregister_dropped_modules {
+    return unless ((get_var('DROPPED_MODULES')) || (get_var('SCC_ADDONS', '') =~ /ltss/));
+
+    my $droplist = get_var('DROPPED_MODULES', '');
+    $droplist .= ',ltss' if (get_var('SCC_ADDONS', '') =~ /ltss/);
+    my @all_addons = grep($_, split(/,/, get_var('SCC_ADDONS', '')));
+    for my $name (grep($_, split(/,/, $droplist))) {
+        record_info "deregister $name", "deregister $name module and remove it from SCC_ADDONS";
+        if ($name eq 'ltss') {
+            if (check_var('SLE_PRODUCT', 'hpc')) {
+                remove_suseconnect_product('SLE_HPC-LTSS');
+            } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
+                remove_suseconnect_product('SLES-LTSS');
+            } else {
+                zypper_call 'rm -t product SLES-LTSS';
+                zypper_call 'rm sles-ltss-release-POOL';
+            }
         }
-        set_var('SCC_ADDONS', join(',', grep { $_ ne 'ltss' } @$scc_addons));
+        else {
+            remove_suseconnect_product(get_addon_fullname($name));
+        }
+        # remove item from addons
+        @all_addons = grep { $_ ne $name } @all_addons;
     }
+    set_var('SCC_ADDONS', join(',', @all_addons));
 }
 
 # Disable installation repos before online migration
@@ -125,7 +128,7 @@ sub remove_ltss {
 # Other archs: use local DVDs as installation repos
 # https://documentation.suse.com/sles/15-SP2/html/SLES-all/cha-upgrade-online.html#sec-upgrade-online-zypper
 sub disable_installation_repos {
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de|10.160.0.100/ {print \$1}'`";
     }
     else {
@@ -169,8 +172,8 @@ sub check_rollback_system {
     # Check SUSEConnect status for SLE
     # check rollback-helper service is enabled and worked properly
     # If rollback service is activating, need wait some time
-    # Add wait in a loop, max time is 10 minute, because case with much more modules need more time
-    for (1 .. 10) {
+    # Add wait in a loop, max time is 20 minute, because case with much more modules need more time
+    for (1 .. 20) {
         last unless script_run('systemctl --no-pager status rollback') != 0;
         sleep 60;
     }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Waits for the guest to boot, sets some variables for LTP then
 #          dynamically loads the test modules based on the runtest file
@@ -16,6 +12,7 @@ use 5.018;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
+use Utils::Backends;
 use LTP::utils;
 use version_utils 'is_jeos';
 use utils 'assert_secureboot_status';
@@ -25,7 +22,7 @@ sub run {
     my $cmd_file = get_var('LTP_COMMAND_FILE') || '';
 
     # Use standard boot for ipmi backend with IPXE
-    if (check_var('BACKEND', 'ipmi') && !get_var('IPXE_CONSOLE')) {
+    if (is_ipmi && !get_var('IPXE_CONSOLE')) {
         record_info('INFO', 'IPMI boot');
         select_console 'sol', await_console => 0;
         assert_screen('linux-login', 1800);
@@ -64,7 +61,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1,
     };
 }

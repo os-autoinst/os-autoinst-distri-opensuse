@@ -1,12 +1,8 @@
 
 # SUSE's openQA tests
 #
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 # Package: gcc glibc-devel gdb sysvinit-tools
 # Summary: Basic GDB test. (Breakpoints/backtraces/attaching)
 # - Add sdk repository if necessary
@@ -27,9 +23,10 @@ use utils qw(zypper_call);
 use version_utils qw(is_leap is_sle);
 
 sub wait_serial_or_die {
-    my $feedback = shift;
+    my ($feedback, %args) = @_;
+    $args{timeout} //= 10;
 
-    my $e = wait_serial($feedback, 10);
+    my $e = wait_serial($feedback, %args);
     if (!defined $e) {
         die("Unexpected serial output");
     }
@@ -37,12 +34,12 @@ sub wait_serial_or_die {
 
 sub enter_gdb_cmd {
     my $cmd = shift;
-    wait_serial_or_die("(gdb)");
+    wait_serial_or_die('(gdb)', no_regex => 1);
     enter_cmd($cmd);
 }
 
 sub run {
-    my $self      = shift;
+    my $self = shift;
     my $test_deps = 'gcc glibc-devel gdb';
 
     $self->select_serial_terminal;
@@ -57,7 +54,7 @@ sub run {
     assert_script_run("curl -O " . data_url('gdb/test1.c'));
     assert_script_run("gcc -g -std=c99 test1.c -o test1");
     enter_cmd("gdb test1 | tee /dev/$serialdev");
-    wait_serial_or_die("GNU gdb");
+    wait_serial_or_die('GNU gdb');
     #Needed because colour codes mess up the output on $serialdev
     enter_gdb_cmd("set style enabled 0");
     enter_gdb_cmd("break main");
@@ -71,15 +68,15 @@ sub run {
     assert_script_run("curl -O " . data_url('gdb/test2.c'));
     assert_script_run("gcc -g -std=c99  test2.c -o test2");
     enter_cmd("gdb test2 | tee /dev/$serialdev");
-    wait_serial_or_die(qr/GNU gdb/);
+    wait_serial_or_die('GNU gdb');
     enter_gdb_cmd("set style enabled 0");
     enter_gdb_cmd("run");
     wait_serial_or_die("Program received signal SIGSEGV");
     enter_gdb_cmd("backtrace");
-    wait_serial_or_die(s.in main () at test2.c:16.);
+    wait_serial_or_die('in main \(\) at test2\.c:16');
     enter_gdb_cmd("info locals");
     enter_gdb_cmd("up");
-    wait_serial_or_die(s.1 0x000000000040117b in main () at test2.c:16\n16 char * newstr = str_dup(cstr, 5);.);
+    wait_serial_or_die(qr/1\s+.*\s+in main \(\) at test2\.c:16\s+16\s+char \* newstr = str_dup\(cstr, 5\);/);
     enter_gdb_cmd("info locals");
     wait_serial_or_die("<error: Cannot access memory at ");
     enter_gdb_cmd("quit");
@@ -97,11 +94,12 @@ sub run {
     enter_gdb_cmd("break test3.c:9");
     wait_serial_or_die("Breakpoint 1 at");
     enter_gdb_cmd("continue");
-    wait_serial_or_die(s.Breakpoint 1, main () at test3.c:9.);
+    wait_serial_or_die('Breakpoint 1, main () at test3.c:9', no_regex => 1);
     enter_gdb_cmd("quit");
-    wait_serial("Quit anyway?");
+    wait_serial('Quit anyway?', no_regex => 1);
     enter_cmd("y");
-    enter_cmd("y");                      #Workaround to handle sshserial behavior
+    #Workaround to handle sshserial behavior
+    check_var('SERIALDEV', 'sshserial') && enter_cmd("y");
     assert_script_run("pkill -9 test3");
 }
 

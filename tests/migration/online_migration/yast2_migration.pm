@@ -1,11 +1,7 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-registration yast2-migration yast2-add-on
 # Summary: sle12 online migration testsuite
@@ -15,6 +11,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils;
 use power_action_utils 'power_action';
@@ -106,28 +103,10 @@ sub yast2_migration_handle_license_agreement {
 sub run {
     my $self = shift;
 
-    # According to bsc#1106017, use yast2 migration in gnome environment is not possible on s390x
-    # due to vnc session over xinetd service could be stopped during migration that cause gnome exit
-    # so use yast2 migration under root console
-    if (!is_desktop_installed() || yast2_migration_gnome_remote) {
-        select_console 'root-console';
-    }
-    else {
-        select_console 'x11', await_console => 0;
-        ensure_unlocked_desktop;
-        mouse_hide(1);
-        assert_screen 'generic-desktop';
-
-        turn_off_screensaver();
-        x11_start_program('xterm');
-        become_root;
-        if (check_var('HDDVERSION', '12') && get_var('MIGRATION_REMOVE_ADDONS')) {
-            # use latest yast2-registration version because is not officially available
-            assert_script_run 'wget --quiet ' . data_url('yast2-registration-3.1.129.18-1.noarch.rpm');
-            zypper_call '--no-gpg-checks in yast2-registration-3.1.129.18-1.noarch.rpm';
-            record_info 'workaround', 'until the package is available for SLE 12 GA';
-        }
-    }
+    # According to the document: https://documentation.suse.com/sles/15-SP3/html/SLES-all/cha-upgrade-online.html
+    # If you are logged in to a GNOME session running on the machine you are going to update, switch
+    # to a text console. Choose root console at here.
+    select_console 'root-console';
 
     # remove add-on and leave it registered to setup inconsistency for migration
     # https://trello.com/c/CyjL1Was/837-0-yast-migration-warn-user-in-case-of-inconsistencies
@@ -136,7 +115,7 @@ sub run {
         assert_screen 'addon-products';
         send_key 'tab';
         for my $addon (split(/,/, get_var('MIGRATION_REMOVE_ADDONS'))) {
-            send_key_until_needlematch 'addon-list-is-selected',         'tab';     # select add-on list
+            send_key_until_needlematch 'addon-list-is-selected', 'tab';    # select add-on list
             send_key_until_needlematch 'addon-list-first-adon-selected', 'home';    # go on first addon in list
             send_key_until_needlematch 'addon-' . $addon . '-selected-to-remove', 'down';
             send_key 'alt-t';
@@ -157,7 +136,7 @@ sub run {
             assert_screen 'addon-products', 90;
         }
         wait_still_screen 2;
-        send_key 'alt-o';        # ok
+        send_key 'alt-o';    # ok
         wait_serial('yast2-addon-done-0') || die 'yast2 add-on failed';
     }
 
@@ -198,12 +177,12 @@ sub run {
             wait_screen_change { send_key 'alt-t' };    # install product
             assert_screen ['yast2-migration-addon-not-installed', 'yast2-migration-inconsistency', 'yast2-migration-target'], 150;
             if (match_has_tag 'yast2-migration-addon-not-installed') {
-                send_key 'alt-o';                       # ok
+                send_key 'alt-o';    # ok
                 assert_screen 'yast2-migration-inconsistency';
-                send_key 'alt-c';                       # continue
+                send_key 'alt-c';    # continue
                 for my $addon (split(/,/, get_var('MIGRATION_REMOVE_ADDONS'))) {
                     assert_screen 'yast2-migration-add-addon';
-                    send_key 'alt-y';                   # yes
+                    send_key 'alt-y';    # yes
                 }
             }
             if (match_has_tag 'yast2-migration-inconsistency') {
@@ -221,7 +200,7 @@ sub run {
     if (get_var('SMT_URL') =~ /smt/) {
         assert_screen 'import-untrusted-gpg-key', 60;
         send_key 'alt-t';
-        if ((check_var('ARCH', 'x86_64')) && (!(is_leap_migration)) || (check_var('ARCH', 'aarch64'))) {
+        if ((is_x86_64) && (!(is_leap_migration)) || (is_aarch64)) {
             assert_screen 'import-untrusted-gpg-key-nvidia', 300;
             send_key 'alt-t';
         }
@@ -250,7 +229,7 @@ sub run {
 
     # start migration
     my $timeout = 7200;
-    my @tags    = qw(
+    my @tags = qw(
       yast2-migration-wrongdigest yast2-migration-packagebroken yast2-migration-internal-error
       yast2-migration-finish      yast2-migration-notifications
     );

@@ -1,30 +1,18 @@
-# Copyright (C) 2019-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test audit function for IMA appraisal
 # Note: This case should come after 'ima_appraisal_digital_signatures'
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#49568, poo#92347
 
-use base "opensusebasetest";
+use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
-use power_action_utils "power_action";
+use power_action_utils 'power_action';
 
 sub audit_verify {
 }
@@ -56,7 +44,7 @@ sub run {
 
         # Test both default(no ima_apprais=) and ima_appraise=log situation
         add_grub_cmdline_settings("ima_appraise=log", update_grub => 1);
-        power_action('reboot', textmode => 1);
+        power_action("reboot", textmode => 1);
         $self->wait_boot(textmode => 1);
         $self->select_serial_terminal;
 

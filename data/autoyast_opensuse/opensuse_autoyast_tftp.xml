@@ -6,6 +6,11 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">30</timeout>
+    </global>
+  </bootloader>
   <keyboard>
     <keyboard_values>
       <delay/>

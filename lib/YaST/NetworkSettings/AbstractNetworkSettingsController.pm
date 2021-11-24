@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The abstract class introduces interface to business actions and
 # common actions for all the Network Settings Controllers.
@@ -27,9 +23,9 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{OverviewTab}    = YaST::NetworkSettings::OverviewTab->new();
-    $self->{AddressTab}     = YaST::NetworkSettings::NetworkCardSetup::AddressTab->new();
-    $self->{GeneralTab}     = YaST::NetworkSettings::NetworkCardSetup::GeneralTab->new();
+    $self->{OverviewTab} = YaST::NetworkSettings::OverviewTab->new();
+    $self->{AddressTab} = YaST::NetworkSettings::NetworkCardSetup::AddressTab->new();
+    $self->{GeneralTab} = YaST::NetworkSettings::NetworkCardSetup::GeneralTab->new();
     $self->{VLANAddressTab} = YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab->new();
     return $self;
 }

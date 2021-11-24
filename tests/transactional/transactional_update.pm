@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: transactional-update rebootmgr
 # Summary: Test transactional updates
@@ -35,10 +31,10 @@ Optional C<$package> can be specified name of rpm file. default is 'update-test-
 
 =cut
 sub check_package {
-    my (%args)  = @_;
-    my $stage   = $args{stage}   // 'no';
+    my (%args) = @_;
+    my $stage = $args{stage} // 'no';
     my $package = $args{package} // 'update-test-security';
-    my $in_vr   = rpmver('vr');
+    my $in_vr = rpmver('vr');
 
     if ($stage eq 'no') {
         assert_script_run "! rpm -q $package";

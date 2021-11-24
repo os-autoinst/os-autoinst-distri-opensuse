@@ -11,16 +11,16 @@ use utils;
 use testapi;
 use Exporter 'import';
 
-our @EXPORT            = qw(launch_yast2_module_x11 %setup_nis_nfs_x11);
+our @EXPORT = qw(launch_yast2_module_x11 %setup_nis_nfs_x11);
 our %setup_nis_nfs_x11 = (
-    nis_domain     => 'nis.openqa.suse.de',
-    nfs_domain     => 'nfs.openqa.suse.de',
-    nfs_dir        => '/home/nis_user',
+    nis_domain => 'nis.openqa.suse.de',
+    nfs_domain => 'nfs.openqa.suse.de',
+    nfs_dir => '/home/nis_user',
     client_address => '10.0.2.3/24',
     server_address => '10.0.2.1/24',
-    net_mask       => '255.255.255.0',
-    net_address    => '10.0.2.0',
-    message        => q/"nfs is working"/,
+    net_mask => '255.255.255.0',
+    net_address => '10.0.2.0',
+    message => q/"nfs is working"/,
     # nfs mount options -> rw,no_root_squash
     nfs_opts => 'rw,no_'
 );
@@ -54,7 +54,7 @@ sub launch_yast2_module_x11 {
     foreach ($args{target_match}) {
         return if match_has_tag($_);
     }
-    die "unexpected last match"    unless match_has_tag 'root-auth-dialog';
+    die "unexpected last match" unless match_has_tag 'root-auth-dialog';
     die "need password definition" unless $password;
     diag 'assuming root-auth-dialog, typing password';
     type_password;

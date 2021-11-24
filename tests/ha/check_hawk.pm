@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: hawk2 iproute2 netcat-openbsd
 # Summary: Basic check of Hawk Web interface
@@ -22,10 +18,10 @@ use version_utils qw(is_sle);
 use List::Util qw(sum);
 
 sub check_hawk_cpu {
-    my %args             = @_;
-    my $cluster_name     = get_cluster_name;
-    my @cpu_usage        = ();
-    my $threshold        = $args{idle_check} ? 10 : 50;
+    my %args = @_;
+    my $cluster_name = get_cluster_name;
+    my @cpu_usage = ();
+    my $threshold = $args{idle_check} ? 10 : 50;
     my $idle_check_loops = 60;
 
     # Do not wait on barriers if checking CPU usage while HAWK is idle
@@ -60,7 +56,7 @@ sub check_hawk_cpu {
     }
     die "No HAWK/PUMA CPU usage measurements found. Is it running?" unless (@cpu_usage);
     my $cpu_usage = sum(@cpu_usage) / @cpu_usage;
-    my $msg       = "HAWK/PUMA CPU usage was $cpu_usage";
+    my $msg = "HAWK/PUMA CPU usage was $cpu_usage";
     $msg .= " while idle" if $args{idle_check};
     record_info "CPU usage", $msg;
     record_soft_failure "bsc#1179609 - HAWK/PUMA consume a considerable amount of CPU" if ($cpu_usage >= $threshold);
@@ -68,7 +64,7 @@ sub check_hawk_cpu {
 
 sub run {
     my $cluster_name = get_cluster_name;
-    my $hawk_port    = '7630';
+    my $hawk_port = '7630';
 
     barrier_wait("HAWK_INIT_$cluster_name");
 

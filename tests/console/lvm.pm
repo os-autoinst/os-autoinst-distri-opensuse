@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: lvm2 xfsprogs
 # Summary: it covers basic lvm commands
@@ -39,6 +35,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use version_utils;
 use utils 'zypper_call';
 use btrfs_test 'set_playground_disk';
@@ -47,7 +44,7 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         # bring dasd online
         # exit status 0 -> everything ok
         # exit status 8 -> unformatted but still usable (e.g. from previous testrun)
@@ -73,12 +70,12 @@ sub run {
     my $timeout = 180;
 
     # Create pv vg lv
-    validate_script_output("pvcreate ${disk}1",             sub { m/successfully created/ }, $timeout);
-    validate_script_output("pvdisplay",                     sub { m/${disk}1/ },             $timeout);
-    validate_script_output("vgcreate test ${disk}1",        sub { m/successfully created/ }, $timeout);
-    validate_script_output("vgdisplay test",                sub { m/test/ },                 $timeout);
-    validate_script_output("lvcreate -n one -L 1020M test", sub { m/created/ },              $timeout);
-    validate_script_output("lvdisplay",                     sub { m/one/ },                  $timeout);
+    validate_script_output("pvcreate ${disk}1", sub { m/successfully created/ }, $timeout);
+    validate_script_output("pvdisplay", sub { m/${disk}1/ }, $timeout);
+    validate_script_output("vgcreate test ${disk}1", sub { m/successfully created/ }, $timeout);
+    validate_script_output("vgdisplay test", sub { m/test/ }, $timeout);
+    validate_script_output("lvcreate -n one -L 1020M test", sub { m/created/ }, $timeout);
+    validate_script_output("lvdisplay", sub { m/one/ }, $timeout);
 
     # create a fs
     assert_script_run 'mkfs -t xfs /dev/test/one';
@@ -89,8 +86,8 @@ sub run {
     assert_script_run 'umount /mnt/test_lvm';
 
     # extend test volume group
-    validate_script_output("pvcreate ${disk}2",      sub { m/successfully created/ },  $timeout);
-    validate_script_output("pvdisplay",              sub { m/${disk}2/ },              $timeout);
+    validate_script_output("pvcreate ${disk}2", sub { m/successfully created/ }, $timeout);
+    validate_script_output("pvdisplay", sub { m/${disk}2/ }, $timeout);
     validate_script_output("vgextend test ${disk}2", sub { m/successfully extended/ }, $timeout);
 
     # extend one logical volume with the new space
@@ -100,11 +97,11 @@ sub run {
 
     # extend the filesystem
     validate_script_output("xfs_growfs /mnt/test_lvm", sub { m/data blocks changed/ }, $timeout);
-    validate_script_output("df -h /mnt/test_lvm",      sub { m/test/ },                $timeout);
-    validate_script_output("cat /mnt/test_lvm/test",   sub { m/test/ });
+    validate_script_output("df -h /mnt/test_lvm", sub { m/test/ }, $timeout);
+    validate_script_output("cat /mnt/test_lvm/test", sub { m/test/ });
 
     # move data from the original extend to the new one
-    validate_script_output("pvcreate ${disk}3",      sub { m/successfully created/ },  $timeout);
+    validate_script_output("pvcreate ${disk}3", sub { m/successfully created/ }, $timeout);
     validate_script_output("vgextend test ${disk}3", sub { m/successfully extended/ }, $timeout);
     # JeOS kernel does not come with all device mapper modules
     # it tends to keep dm modules tree simple

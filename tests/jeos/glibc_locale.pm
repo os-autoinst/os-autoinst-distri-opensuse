@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This module tests glibc-locale
 # Test flow:
@@ -36,7 +32,7 @@ use power_action_utils qw(power_action);
 
 ## Define test data
 my $suse_lang_conf = '/etc/sysconfig/language';
-my %lc_data        = (en_US => 'en_US.UTF-8', de_DE => 'de_DE.UTF-8');
+my %lc_data = (en_US => 'en_US.UTF-8', de_DE => 'de_DE.UTF-8');
 my %test_data_lang = (
     en_US => 'For bug reporting instructions, please see:',
     de_DE => 'Eine Anleitung zum Melden von Programmfehlern finden Sie hier:'
@@ -57,8 +53,8 @@ sub change_locale {
     if (is_sle('<15')) {
         ## suitable for sles12 family only
         # create a shallow hash copy
-        %rc_lc_modified                 = %$rc_lc_setup_const;
-        $rc_lc_modified{RC_LANG}        = $new_language;
+        %rc_lc_modified = %$rc_lc_setup_const;
+        $rc_lc_modified{RC_LANG} = $new_language;
         $rc_lc_modified{RC_LC_MESSAGES} = $rc_lc_modified{RC_LANG};
 
         for (qw(RC_LANG RC_LC_MESSAGES)) {
@@ -75,7 +71,7 @@ sub change_locale {
 }
 
 sub test_users_locale {
-    my $rc_lc_udpated            = shift;
+    my $rc_lc_udpated = shift;
     my $ldd_help_string_expected = shift;
 
     record_info('Check', "Verifying $rc_lc_udpated->{RC_LANG}");
@@ -104,19 +100,19 @@ sub run {
     my ($self) = @_;
     # C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
     # sle15+ does not enable locale change during firstboot
-    my $lang_ref         = get_var('JEOSINSTLANG', 'en_US');
-    my $lang_new_short   = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
+    my $lang_ref = get_var('JEOSINSTLANG', 'en_US');
+    my $lang_new_short = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',
-        RC_LC_ALL      => qr/^ *$/,
-        RC_LANG        => (is_sle('15+') || is_opensuse) ? qr/^ *$/ : $lc_data{$lang_ref}
+        RC_LC_ALL => qr/^ *$/,
+        RC_LANG => (is_sle('15+') || is_opensuse) ? qr/^ *$/ : $lc_data{$lang_ref}
     };
 
     ## Retrieve user's $LANG env variable after JeOS firstboot
     select_console('user-console');
     clear_console;
 
-    my $lang_booted       = script_output('echo $LANG');
+    my $lang_booted = script_output('echo $LANG');
     my $lang_booted_short = substr($lang_booted, 0, 5);
 
     diag "\nExpected = $lc_data{$lang_ref}\nGot = $lang_booted";
@@ -189,7 +185,7 @@ sub run {
     }
 
     ## Modify default locale, verify new setup, reboot and repeat verification
-    my $rc_lc_changed        = change_locale($lc_data{$lang_new_short}, \%rc_lc_defaults);
+    my $rc_lc_changed = change_locale($lc_data{$lang_new_short}, \%rc_lc_defaults);
     my $updated_glibc_string = test_users_locale($rc_lc_changed, $test_data_lang{$lang_new_short});
     power_action('reboot', textmode => 1);
     record_info('Rebooting', "Expected locale set=$rc_lc_changed->{RC_LANG}");
@@ -201,7 +197,7 @@ sub run {
     return if (is_sle('<15'));
 
     ## Revert locales to default and verify
-    my $rc_lc_reverted        = change_locale($lang_booted_short, $rc_lc_changed);
+    my $rc_lc_reverted = change_locale($lang_booted_short, $rc_lc_changed);
     my $reverted_glibc_string = test_users_locale($rc_lc_reverted, $test_data_lang{$lang_ref});
     power_action('reboot', textmode => 1);
     record_info('Rebooting', "Expected locale set=$rc_lc_reverted->{RC_LANG}");

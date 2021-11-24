@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: KVM Guest install under the mitigation enable/disable
 # Maintainer: James Wang <jnwang@suse.com>
@@ -20,12 +16,12 @@ use power_action_utils 'power_action';
 use testapi;
 use utils;
 
-my $name         = get_required_var('VM_NAME');
-my $install_url  = get_required_var('INSTALL_REPO');
+my $name = get_required_var('VM_NAME');
+my $install_url = get_required_var('INSTALL_REPO');
 my $logfile_path = get_required_var('VM_INST_LOG');
-my $vm_shares    = get_required_var('VM_SHARES');
-my $autoyast     = get_required_var('AUTOYAST');
-my $netdevice    = get_required_var('SUT_NETDEVICE');
+my $vm_shares = get_required_var('VM_SHARES');
+my $autoyast = get_required_var('AUTOYAST');
+my $netdevice = get_required_var('SUT_NETDEVICE');
 sub run {
     script_run("aa-teardown");
     zypper_call('in -t pattern kvm_server kvm_tools');
@@ -82,7 +78,7 @@ sub run {
         '(tail -f -n0 ' . $logfile_path . ' &) | grep -q "Welcome to SUSE"',
         600);
     script_run("virsh destroy $name", 600);
-    script_run("sync",                600);
+    script_run("sync", 600);
     if (script_run("systemctl --all | grep \"apparmor\" | awk \'{print \$3}\' | grep '^not-found\$'") == 1) {
         systemctl("disable apparmor");
         systemctl("stop apparmor");

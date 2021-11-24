@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: bridge-utils libvirt-client openssh qemu-tools util-linux
 # Summary: Virtual network and virtual block device hotplugging
@@ -42,14 +38,14 @@ sub try_attach {
 
 # Add a virtual network interface for the given guest and return the determined MAC address
 sub add_virtual_network_interface {
-    my $self  = shift;
+    my $self = shift;
     my $guest = shift;
     my ($sles_running_version, $sles_running_sp) = get_os_release;
 
     my $mac = "$MAC_PREFIX:" . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
     unless ($guest =~ m/hvm/i && is_sle('<=12-SP2') && is_xen_host) {
         my $persistent_config_option = '';
-        my $interface_model_option   = '';
+        my $interface_model_option = '';
         if (get_var('VIRT_AUTOTEST') && is_xen_host) {
             record_soft_failure 'bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning.';
             $self->{test_results}->{$guest}->{"bsc#1168124 Bridge network interface hotplugging has to be performed at the beginning"}->{status} = 'SOFTFAILED';
@@ -79,7 +75,7 @@ sub add_virtual_network_interface {
 }
 
 sub get_disk_image_name {
-    my $guest       = shift;
+    my $guest = shift;
     my $disk_format = shift // get_var("QEMU_DISK_FORMAT");
     $disk_format //= "raw";    # Fallback in case nor function argument not QEMU_DISK_FORMAT setting is set
     my $disk_image = "/var/lib/libvirt/images/add/$guest.$disk_format";
@@ -88,9 +84,9 @@ sub get_disk_image_name {
 
 # Add a virtual disk to the given guest
 sub test_add_virtual_disk {
-    my $guest       = shift;
+    my $guest = shift;
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
-    my $disk_image  = get_disk_image_name($guest, $disk_format);
+    my $disk_image = get_disk_image_name($guest, $disk_format);
 
     assert_script_run("rm -f $disk_image");
     assert_script_run "qemu-img create -f $disk_format $disk_image 10G";
@@ -140,10 +136,7 @@ sub test_add_vcpu {
     die "Setting vcpus failed" unless (set_vcpus($guest, 2));
     assert_script_run("ssh root\@$guest nproc | grep 2", 60);
     # Add 1 CPU
-    if ($sles_running_version eq '15' && $sles_running_sp eq '4' && is_xen_host && is_fv_guest($guest)) {
-        record_soft_failure('bsc#1188898 Failed to set live vcpu count on fv guest on 15-SP4 Xen host');
-    }
-    elsif ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
+    if ($sles_running_version eq '15' && $sles_running_sp eq '3' && is_xen_host && is_fv_guest($guest)) {
         record_soft_failure('bsc#1180350 Failed to set live vcpu count on fv guest on 15-SP3 Xen host');
     }
     else {
@@ -152,7 +145,9 @@ sub test_add_vcpu {
             record_soft_failure 'bsc#1170026 vCPU hotplugging damages ' . $guest if (script_retry("ssh root\@$guest nproc", delay => 60, retry => 3, timeout => 60, die => 0) != 0);
             #$self->{test_results}->{$guest}->{"bsc#1170026 vCPU hotplugging damages this guest $guest"}->{status} = 'SOFTFAILED' if ($vcpu_nproc != 0);
         } else {
-            script_retry("ssh root\@$guest nproc | grep 3", delay => 60, retry => 3, timeout => 60);
+            # bsc#1191737 Get the wrong vcpu number for 15-SP4 guest via nproc tool
+            my $nproc = (is_kvm_host && $guest =~ m/sles-15-sp4-64/i) ? 'nproc --all' : 'nproc';
+            script_retry("ssh root\@$guest $nproc | grep 3", delay => 60, retry => 3, timeout => 60);
         }
         # Reset CPU count to two
         die "Resetting vcpus failed" unless (set_vcpus($guest, 2));
@@ -173,7 +168,7 @@ sub test_add_vcpu {
 
 # Returns the guest memory in MB
 sub get_guest_memory {
-    my $guest        = shift;
+    my $guest = shift;
     my $kernelmemory = 200000;    # We account to kernel memory to measures which omit it by adding this amount to the measured value
 
     my $memory = 0;
@@ -189,15 +184,15 @@ sub get_guest_memory {
 
 # Set memory of the given guest to the given size in MB
 sub set_guest_memory {
-    my $guest      = shift;
-    my $memory     = shift;
+    my $guest = shift;
+    my $memory = shift;
     my $min_memory = shift // 0.9 * $memory;    # acceptance range for memory check
     my $max_memory = shift // 1.1 * $memory;    # acceptance range for memory check
 
     assert_script_run("virsh setmem --domain $guest --size $memory" . "M --live");
     assert_script_run("virsh dommemstat $guest");
     assert_script_run("ssh root\@$guest free", 60);
-    sleep 5;                                    # give the VM some time to adjust
+    sleep 5;    # give the VM some time to adjust
     my $guestmemory = get_guest_memory($guest);
     # Memory reposts are not precise, we allow for a +/-10% acceptance range
     my $within_tolerance = ($min_memory <= $guestmemory) && ($guestmemory <= $max_memory);
@@ -214,16 +209,16 @@ sub test_vmem_change {
         }
     }
     return if (is_xen_host && $guest =~ m/hvm/i);    # memory change not supported on HVM guest
-    set_guest_memory($guest, 2048, 1500, 2252);      # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G
+    set_guest_memory($guest, 2048, 1500, 2252);    # Lower memory limit is set to 80%, which is enough to distinguish between 2G and 3G
     set_guest_memory($guest, 3072, 2457, 3379);
     set_guest_memory($guest, 2048, 1500, 2252);
 }
 
 sub increase_max_memory {
-    my $guest          = shift;
-    my $increase       = shift // 2048;
+    my $guest = shift;
+    my $increase = shift // 2048;
     my $guest_instance = $virt_autotest::common::guests{$guest};
-    my $maxmemory      = $guest_instance->{maxmemory} // "4096";
+    my $maxmemory = $guest_instance->{maxmemory} // "4096";
     $maxmemory += $increase;
     assert_script_run("virsh setmaxmem $guest $maxmemory" . "M --config");
 }
@@ -253,7 +248,7 @@ sub run_test {
     $mac{$_} = add_virtual_network_interface($self, $_) foreach (keys %virt_autotest::common::guests);
 
     # 2. Hotplug HDD
-    my $lsblk       = 0;
+    my $lsblk = 0;
     my $disk_format = get_var("QEMU_DISK_FORMAT") // "raw";
     record_info "Disk", "Adding another raw disk";
     assert_script_run "mkdir -p /var/lib/libvirt/images/add/";
@@ -261,7 +256,13 @@ sub run_test {
 
     # 3. Hotplugging of vCPUs
     record_info("CPU", "Changing the number of CPUs available");
-    test_add_vcpu($_) foreach (keys %virt_autotest::common::guests);
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        if ($guest eq "sles12sp3PV") {
+            record_soft_failure("Skipping vcpu hotplugging on $guest due to bsc#1187341");
+        } else {
+            test_add_vcpu($guest);
+        }
+    }
 
     # 4. Live memory change of guests
     record_info "Memory", "Changing the amount of memory available";

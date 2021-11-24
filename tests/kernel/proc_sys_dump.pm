@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Partially dump /sys and /proc
 # - Download test script from "https://raw.githubusercontent.com/richiejp/ltp/dump/scripts/proc_sys_dump.sh"
@@ -21,18 +17,18 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use serial_terminal;
 require bmwqemu;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
-    my ($self)         = @_;
-    my $tar_dir        = '/tmp/proc_sys_dump/';
-    my $tar            = $tar_dir . 'tar.xz';
-    my $ps_dump        = 'proc_sys_dump.sh';
-    my $white_list     = '~/proc_sys_whitelist.txt';
+    my ($self) = @_;
+    my $tar_dir = '/tmp/proc_sys_dump/';
+    my $tar = $tar_dir . 'tar.xz';
+    my $ps_dump = 'proc_sys_dump.sh';
+    my $white_list = '~/proc_sys_whitelist.txt';
     my $use_white_list = check_var('PROC_SYS_USE_WHITELIST', 1);
-    my $wl_opt         = $use_white_list ? 'u' : 'w';
-    my $timeout        = $use_white_list ? 120 : 300;
-    my $script_url     = data_url("ltp/$ps_dump");
+    my $wl_opt = $use_white_list ? 'u' : 'w';
+    my $timeout = $use_white_list ? 120 : 300;
+    my $script_url = data_url("ltp/$ps_dump");
 
     $timeout *= 2 if is_aarch64;
 

@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test mokutil signing function - Create necessary key pairs,
 #          sign the kernel, import cert and boot with signed kernel.
@@ -41,11 +29,11 @@ sub run {
     zypper_call('in pesign mozilla-nss-tools');
 
     my $work_dir = "/root/certs";
-    my $key_pw   = "suse";                         # Private key password
-    my $cdb_pw   = "openSUSE";                     # Certificate database password
-    my $mok_pw   = "novell";                       # Mokutil password
+    my $key_pw = "suse";    # Private key password
+    my $cdb_pw = "openSUSE";    # Certificate database password
+    my $mok_pw = "novell";    # Mokutil password
     my $cert_cfg = "$work_dir/self_signed.conf";
-    my $pri_key  = "$work_dir/key.asc";
+    my $pri_key = "$work_dir/key.asc";
     my $cert_pem = "$work_dir/cert.asc";
     my $cert_p12 = "$work_dir/cert.p12";
     my $cert_der = "$work_dir/ima_cert.der";

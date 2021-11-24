@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: gdm gnome-terminal nautilus
 # Summary: Add a case for gdm session switch
@@ -20,6 +16,7 @@ use warnings;
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use x11utils 'handle_gnome_activities';
 
 # Smoke test: launch some applications
 sub application_test {
@@ -41,6 +38,7 @@ sub run {
     assert_and_click "displaymanager-systembutton";
     assert_and_click "displaymanager-system-powerbutton";
     assert_and_click "displaymanager-reboot";
+    assert_and_click "confirm-restart" if (is_sle('>=15-SP4'));
 
     if (get_var("SHUTDOWN_NEEDS_AUTH")) {
         assert_screen 'reboot-auth', 15;
@@ -53,7 +51,7 @@ sub run {
     # Log out and log in again
     $self->switch_wm;
     send_key "ret";
-    assert_screen 'generic-desktop', 350;
+    handle_gnome_activities;
 
     # Log out and switch to icewm
     $self->switch_wm;
@@ -84,7 +82,7 @@ sub run {
     assert_and_click "displaymanager-settings";
     assert_and_click "dm-gnome";
     send_key "ret";
-    assert_screen "generic-desktop", 350;
+    handle_gnome_activities;
 
     # Log out and switch to SLE classic
     $self->prepare_sle_classic;

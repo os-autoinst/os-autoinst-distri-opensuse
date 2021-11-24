@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: haproxy apache2 crmsh
 # Summary: Test haproxy resource agent
@@ -24,15 +20,15 @@ sub run {
     return 1 if is_not_maintenance_update('haproxy');
 
     my $cluster_name = get_cluster_name;
-    my $haproxy_rsc  = 'haproxy';
-    my $haproxy_cfg  = '/etc/haproxy/haproxy.cfg';
-    my $apache_file  = '/srv/www/htdocs/index.html';
-    my $vip_ip       = '10.0.2.20';
-    my $vip_rsc      = 'vip';
-    my $node_01      = choose_node(1);
-    my $node_02      = choose_node(2);
-    my $node_01_ip   = get_ip($node_01);
-    my $node_02_ip   = get_ip($node_02);
+    my $haproxy_rsc = 'haproxy';
+    my $haproxy_cfg = '/etc/haproxy/haproxy.cfg';
+    my $apache_file = '/srv/www/htdocs/index.html';
+    my $vip_ip = '10.0.2.20';
+    my $vip_rsc = 'vip';
+    my $node_01 = choose_node(1);
+    my $node_02 = choose_node(2);
+    my $node_01_ip = get_ip($node_01);
+    my $node_02_ip = get_ip($node_02);
 
     # Waiting for the other nodes to be ready
     barrier_wait("HAPROXY_INIT_$cluster_name");

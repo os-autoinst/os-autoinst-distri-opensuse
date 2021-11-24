@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic tests for HA & SAP grafana dashboards
 # Maintainer: Julien Adamek <jadamek@suse.com>
@@ -19,10 +15,10 @@ use registration;
 use utils qw(zypper_call systemctl);
 
 sub run {
-    my ($self)      = @_;
+    my ($self) = @_;
     my $grafana_log = '/var/log/grafana/grafana.log';
-    my $ip          = get_my_ip();
-    my $timeout     = bmwqemu::scale_timeout(30);
+    my $ip = get_my_ip();
+    my $timeout = bmwqemu::scale_timeout(30);
 
     # Register the PackageHub module and install Grafana
     add_suseconnect_product(get_addon_fullname('phub'));
@@ -57,9 +53,9 @@ sub run {
     type_password;
     send_key 'tab';
     send_key 'ret';
-    assert_and_click "grafana-home",          $timeout;
+    assert_and_click "grafana-home", $timeout;
     assert_and_click "select_suse-dashboard", $timeout;
-    assert_screen "check_suse-dashboard",     $timeout;
+    assert_screen "check_suse-dashboard", $timeout;
 
     # Close the browser and back to the desktop
     send_key 'alt-f4';

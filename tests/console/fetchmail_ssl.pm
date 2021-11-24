@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: postfix fetchmail
 # Summary: Test fetchmail works with SSL enabled
@@ -22,11 +18,11 @@ use utils;
 use mailtest;
 
 sub run {
-    my $self        = shift;
+    my $self = shift;
     my $fetchmailrc = "~/.fetchmailrc";
     my $test_cacert = "~/ca-cert.pem";
-    my $mailbox     = "/var/mail/$username";
-    my $subject     = "Testing fetchmail";
+    my $mailbox = "/var/mail/$username";
+    my $subject = "Testing fetchmail";
 
     select_console "root-console";
     prepare_mail_client;

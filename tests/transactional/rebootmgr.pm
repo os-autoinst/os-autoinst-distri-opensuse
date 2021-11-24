@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: rebootmgr
 # Summary: Test rebootmgr using different strategies
@@ -23,7 +19,7 @@ use Utils::Backends 'is_pvm';
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
-    my $cmd   = shift;
+    my $cmd = shift;
     my $check = shift // 1;
 
     if ($check) {
@@ -36,7 +32,7 @@ sub rbm_call {
 
 sub rbm_check_status {
     my $expected = shift // 0;
-    my $current  = script_run "rebootmgrctl status --quiet";
+    my $current = script_run "rebootmgrctl status --quiet";
 
     if ($current != $expected) {
         die "Unexpected rebootmgr status: $current, expected: $expected";
@@ -45,7 +41,7 @@ sub rbm_check_status {
 
 # Sample time values: +1hour, -20minutes, now, 00:30
 sub rbm_set_window {
-    my $time     = shift;
+    my $time = shift;
     my $duration = shift // '1h';
     rbm_call "set-window \$(date -d $time +%T) $duration";
 }

@@ -27,8 +27,8 @@ testapi::set_distribution(susedistribution->new());
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_ISSUES',   '');
-    $u_url{OS}     = get_var('OS_TEST_TEMPLATE', '');
+    $incidents{OS} = get_var('OS_TEST_ISSUES', '');
+    $u_url{OS} = get_var('OS_TEST_TEMPLATE', '');
 
     my $repos = map_incidents_to_repo(\%incidents, \%u_url);
     set_var('MAINT_TEST_REPO', $repos);

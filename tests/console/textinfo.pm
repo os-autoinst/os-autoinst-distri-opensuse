@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Get useful text-based information from the system and upload it as a log.
 #          For more information regarding the collected data, check data/textinfo
@@ -38,7 +34,8 @@ use testapi;
 
 # have various useful general info included in videos
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     assert_script_run('curl -O ' . data_url('textinfo'));
     assert_script_run('chmod +x textinfo');
     assert_script_run("./textinfo 2>&1 | tee /tmp/info.txt", 150);

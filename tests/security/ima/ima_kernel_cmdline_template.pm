@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA kernel command line for IMA template
 # Maintainer: llzhao <llzhao@suse.com>
@@ -30,29 +18,29 @@ sub run {
     $self->select_serial_terminal;
 
     my $meas_file = "/sys/kernel/security/ima/ascii_runtime_measurements";
-    my $part_n    = "[a-fA-F0-9]\\{40\\}";
-    my $part_ng   = "sha256:[a-fA-F0-9]\\{64\\}";
+    my $part_n = "[a-fA-F0-9]\\{40\\}";
+    my $part_ng = "sha256:[a-fA-F0-9]\\{64\\}";
 
     my @cmdline_list = (
         {
             cmdline => "ima_template=ima",
             pattern => "^10\\s*$part_n\\s*ima\\s*$part_n\\s*\\/",
-            name    => "ima"
+            name => "ima"
         },
         {
             cmdline => "ima_template=ima-ng",
             pattern => "^10\\s*$part_n\\s*ima-ng\\s*$part_ng\\s*\\/",
-            name    => "ima-ng"
+            name => "ima-ng"
         },
         {
             cmdline => "ima_template=ima-sig",
             pattern => "^10\\s*$part_n\\s*ima-sig\\s*$part_ng\\s*\\/",
-            name    => "ima-sig"
+            name => "ima-sig"
         },
         {
             cmdline => "ima_template_fmt='\\''d-ng|n-ng|d|n'\\''",
             pattern => "^10\\s*$part_n\\s*d-ng|n-ng|d|n\\s*$part_ng\\s*\\/.*\\s*$part_n\\s*\\/",
-            name    => "fmt\\:d-ng\\|n-ng\\|d\\|n"
+            name => "fmt\\:d-ng\\|n-ng\\|d\\|n"
         },
     );
 

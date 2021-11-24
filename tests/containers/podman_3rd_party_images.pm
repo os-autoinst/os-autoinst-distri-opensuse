@@ -1,45 +1,32 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: podman
 # Summary: Pull and test several base images (alpine, openSUSE, debian, ubuntu, fedora, centos, ubi) for their base functionality
 #          Log the test results in docker-3rd_party_images_log.txt
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
-use version_utils;
 use containers::common;
 use containers::urls 'get_3rd_party_images';
 use containers::container_images qw(test_3rd_party_image upload_3rd_party_images_logs);
 use registration;
 
-
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    my $runtime = 'podman';
-
-    script_run("echo 'Container base image tests:' > /var/tmp/$runtime-3rd_party_images_log.txt");
-    # In SLE we need to add the Containers module
-    install_podman_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => $runtime);
+    script_run("echo 'Container base image tests:' > /var/tmp/podman-3rd_party_images_log.txt");
+    my $engine = $self->containers_factory('podman');
     my $images = get_3rd_party_images();
     for my $image (@{$images}) {
-        test_3rd_party_image($runtime, $image);
+        test_3rd_party_image($engine, $image);
     }
-    clean_container_host(runtime => $runtime);
+    $engine->cleanup_system_host();
 }
 
 sub post_fail_hook {

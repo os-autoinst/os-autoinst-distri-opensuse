@@ -1,17 +1,5 @@
-# Copyright © 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: LTP helper functions
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
@@ -22,6 +10,7 @@ use base Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use autotest;
 use LTP::WhiteList qw(download_whitelist is_test_disabled);
 use LTP::TestInfo 'testinfo';
@@ -89,11 +78,11 @@ sub get_ltp_version_file {
 }
 
 sub log_versions {
-    my $kernel_pkg     = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
+    my $report_missing_config = shift;
+    my $kernel_pkg = is_jeos || get_var('KERNEL_BASE') ? 'kernel-default-base' : 'kernel-default';
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
-    my $ver_linux_log  = '/tmp/ver_linux_before.txt';
-
-    upload_logs('/boot/config-$(uname -r)', failok => 1);
+    my $ver_linux_log = '/tmp/ver_linux_before.txt';
+    my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
 
     script_run("rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1");
     upload_logs($kernel_pkg_log, failok => 1);
@@ -101,11 +90,30 @@ sub log_versions {
     script_run(get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
     upload_logs($ver_linux_log, failok => 1);
 
-    record_info('KERNEL VERSION',     script_output('uname -a'));
-    record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log",          proceed_on_failure => 1));
-    record_info('KERNEL EXTRA PKG',   script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
-    record_info('KERNEL CONFIG',      script_output('cat /boot/config-$(uname -r)'));
-    record_info('ver_linux',          script_output("cat $ver_linux_log", proceed_on_failure => 1));
+    if ($kernel_config) {
+        my $cmd = "echo '# $kernel_config'; echo; ";
+
+        upload_logs($kernel_config, failok => 1);
+
+        if ($kernel_config eq '/proc/config.gz') {
+            record_soft_failure 'boo#1189879 missing kernel config in kernel package, use /proc/config.gz' if $report_missing_config;
+            $cmd .= "zcat $kernel_config";
+        } else {
+            if ($report_missing_config && $kernel_config !~ /^\/boot\/config-/) {
+                record_soft_failure 'boo#1189879 missing symlink to /boot, use config in /usr/lib/modules/';
+            }
+            $cmd .= "cat $kernel_config";
+        }
+
+        record_info('KERNEL CONFIG', script_output("$cmd"));
+    } elsif ($report_missing_config) {
+        record_soft_failure 'boo#1189879 missing kernel config';
+    }
+
+    record_info('KERNEL VERSION', script_output('uname -a'));
+    record_info('KERNEL DEFAULT PKG', script_output("cat $kernel_pkg_log", proceed_on_failure => 1));
+    record_info('KERNEL EXTRA PKG', script_output('rpm -qi kernel-default-extra', proceed_on_failure => 1));
+    record_info('ver_linux', script_output("cat $ver_linux_log", proceed_on_failure => 1));
 
     script_run('env');
     script_run('aa-enabled; aa-status');
@@ -135,9 +143,9 @@ sub prepare_ltp_env {
 }
 
 sub init_ltp_tests {
-    my $cmd_file   = shift;
+    my $cmd_file = shift;
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
-    my $is_ima     = $cmd_file =~ m/^ima$/i;
+    my $is_ima = $cmd_file =~ m/^ima$/i;
 
     download_whitelist;
 
@@ -228,19 +236,19 @@ sub schedule_tests {
     my ($cmd_file) = @_;
 
     my $test_result_export = {
-        format      => 'result_array:v2',
+        format => 'result_array:v2',
         environment => {},
-        results     => []};
+        results => []};
     my $environment = {
-        product     => get_var('DISTRI') . ':' . get_var('VERSION'),
-        revision    => get_var('BUILD'),
-        flavor      => get_var('FLAVOR'),
-        arch        => get_var('ARCH'),
-        backend     => get_var('BACKEND'),
-        kernel      => '',
-        libc        => '',
-        gcc         => '',
-        harness     => 'SUSE OpenQA',
+        product => get_var('DISTRI') . ':' . get_var('VERSION'),
+        revision => get_var('BUILD'),
+        flavor => get_var('FLAVOR'),
+        arch => get_var('ARCH'),
+        backend => get_var('BACKEND'),
+        kernel => '',
+        libc => '',
+        gcc => '',
+        harness => 'SUSE OpenQA',
         ltp_version => ''
     };
 
@@ -253,7 +261,7 @@ sub schedule_tests {
     }
 
     my $file = get_ltp_version_file();
-    $environment->{kernel}      = script_output('uname -r');
+    $environment->{kernel} = script_output('uname -r');
     $environment->{ltp_version} = script_output("touch $file; cat $file");
     record_info("LTP version", $environment->{ltp_version});
 
@@ -283,7 +291,7 @@ sub parse_openposix_runfile {
     for my $line (@$cmds) {
         chomp($line);
         if ($line =~ m/$cmd_pattern/ && !($line =~ m/$cmd_exclude/)) {
-            my $test  = {name => basename($line, '.run-test') . $suffix, command => $line};
+            my $test = {name => basename($line, '.run-test') . $suffix, command => $line};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             loadtest_runltp($test->{name}, $tinfo);
         }
@@ -298,8 +306,8 @@ sub parse_runtest_file {
 
         #Command format is "<name> <command> [<args>...] [#<comment>]"
         if ($line =~ /^\s* ([\w-]+) \s+ (\S.+) #?/gx) {
-            next if (check_var('BACKEND', 'svirt') && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
-            my $test  = {name => $1 . $suffix, command => $2};
+            next if (is_svirt && ($1 eq 'dnsmasq' || $1 eq 'dhcpd'));    # poo#33850
+            my $test = {name => $1 . $suffix, command => $2};
             my $tinfo = testinfo($test_result_export, test => $test, runfile => $name);
             if ($test->{name} =~ m/$cmd_pattern/ && !($test->{name} =~ m/$cmd_exclude/)) {
                 loadtest_runltp($test->{name}, $tinfo);

@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "#semanage fcontext" command with options
 #          "-D / -a / -m ..." can work
@@ -26,17 +14,17 @@ use testapi;
 use utils;
 
 sub run {
-    my ($self)                = shift;
-    my $file_contexts_local   = $selinuxtest::file_contexts_local;
-    my $test_boolean          = "fips_mode";
-    my $test_dir              = "/testdir";
-    my $test_file             = "testfile";
-    my $fcontext_type_default = "default_t";                         # or, "user_tmp_t";
-    my $fcontext_type1        = "etc_t";
-    my $fcontext_type2        = "bin_t";
-    my $fcontext_type3        = "var_t";
+    my ($self) = shift;
+    my $file_contexts_local = $selinuxtest::file_contexts_local;
+    my $test_boolean = "fips_mode";
+    my $test_dir = "/testdir";
+    my $test_file = "testfile";
+    my $fcontext_type_default = "default_t";    # or, "user_tmp_t";
+    my $fcontext_type1 = "etc_t";
+    my $fcontext_type2 = "bin_t";
+    my $fcontext_type3 = "var_t";
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # create a testing directory/file
     $self->create_test_file("$test_dir", "$test_file");
@@ -58,7 +46,7 @@ sub run {
         });
 
     # check SELinux contexts of test dir and file
-    $self->check_fcontext("$test_dir",                "$fcontext_type_default");
+    $self->check_fcontext("$test_dir", "$fcontext_type_default");
     $self->check_fcontext("${test_dir}/${test_file}", "$fcontext_type_default");
 
     # restorecon
@@ -66,7 +54,7 @@ sub run {
     assert_script_run("restorecon ${test_dir}/${test_file}");
 
     # check SELinux contexts of test dir and file
-    $self->check_fcontext("$test_dir",                "$fcontext_type1");
+    $self->check_fcontext("$test_dir", "$fcontext_type1");
     $self->check_fcontext("${test_dir}/${test_file}", "$fcontext_type2");
 
     # test option "-m": modify local customizations

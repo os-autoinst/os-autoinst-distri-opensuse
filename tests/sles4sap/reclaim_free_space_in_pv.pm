@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: parted lvm2
 # Summary: Try to reclaim some of the space from the system PV which
@@ -26,7 +22,7 @@ sub run {
 
     my $output = script_output q@parted /dev/sda print free | awk '/Free Space/ {print $3}' | tail -1@;
     $output =~ m/([0-9\.]+)([A-Z])B/i;
-    my $free  = $1;
+    my $free = $1;
     my $units = uc($2);
     if ($units eq 'T') {
         $free *= 1024;
@@ -79,7 +75,7 @@ sub run {
     assert_script_run "pvresize -y --setphysicalvolumesize $newsize$unit $device";
     $device =~ s/([0-9]+)$//;
     my $partnum = $1;
-    $newsize += 1;                                                                  # Just to be sure that the partition is bigger than the PV (+1G)
+    $newsize += 1;    # Just to be sure that the partition is bigger than the PV (+1G)
     my $resize_cmd = is_sle('15+') ? 'resizepart' : 'resize';
     assert_script_run "parted -s $device $resize_cmd $partnum $newsize${unit}i";    # Unit in parted must use the 'GiB' notation!
 

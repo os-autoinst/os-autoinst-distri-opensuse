@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openvswitch python-devel python2-libxml2-python libopenssl1_1
 # insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm python-libxml2
@@ -20,6 +16,7 @@ use base "opensusebasetest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils;
 use version_utils 'is_sle';
 
@@ -27,9 +24,9 @@ sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    my $ofed_url      = get_required_var('OFED_URL');
+    my $ofed_url = get_required_var('OFED_URL');
     my $ofed_file_tgz = (split(/\//, $ofed_url))[-1];
-    my $ofed_dir      = ((split(/\.tgz/, $ofed_file_tgz))[0]);
+    my $ofed_dir = ((split(/\.tgz/, $ofed_file_tgz))[0]);
 
     if (is_sle('>=15')) {
         zypper_call('--quiet in openvswitch python-devel python2-libxml2-python libopenssl1_1 insserv-compat libstdc++6-devel-gcc7 createrepo_c rpm', timeout => 500);
@@ -46,7 +43,7 @@ sub run {
     assert_script_run("wget $ofed_url");
     assert_script_run("tar -xvf $ofed_file_tgz");
     assert_script_run("cd $ofed_dir");
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         record_info('INFO', 'OFED install');
         assert_script_run("./mlnxofedinstall --skip-distro-check --add-kernel-support --with-mft --with-mstflint --dpdk --upstream-libs", timeout => 2000);
         assert_script_run("modprobe -rv rpcrdma");

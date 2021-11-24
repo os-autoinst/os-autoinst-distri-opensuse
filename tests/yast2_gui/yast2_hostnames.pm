@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2
 # Summary: yast2_hostnames check hostnames and add/delete hostsnames
@@ -22,10 +18,10 @@ use testapi;
 use utils qw(type_string_slow_extended clear_console);
 
 sub run {
-    my $module       = "host";
+    my $module = "host";
     my $hosts_params = {
-        ip    => '195.135.221.134',
-        fqdn  => 'download.opensuse.org',
+        ip => '195.135.221.134',
+        fqdn => 'download.opensuse.org',
         alias => 'download-srv'
     };
 

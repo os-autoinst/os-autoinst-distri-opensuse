@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for login, user login should fail without authentication
 # Maintainer: rfan1 <richard.fan@suse.com>
@@ -27,16 +15,26 @@ sub run {
     $self->select_serial_terminal;
 
     # Define the user and password, which are already configured in previous milestone
-    my $user   = 'suse';
+    my $user = 'suse';
     my $passwd = 'susetesting';
 
     # Modify the login/sshd files to set the PAM authentication
     my $deny_user_file = '/etc/deniedusers';
-    my $pam_sshd       = '/etc/pam.d/sshd';
-    my $pam_login      = '/etc/pam.d/login';
-    my $pam_sshd_bak   = '/tmp/sshd_bak';
-    my $pam_login_bak  = '/tmp/login_bak';
+    my $pam_sshd = '/etc/pam.d/sshd';
+    my $pam_login = '/etc/pam.d/login';
+    my $pam_sshd_bak = '/tmp/sshd_bak';
+    my $pam_login_bak = '/tmp/login_bak';
+    my $pam_sshd_tw = '/usr/etc/pam.d/sshd';
+    my $pam_login_tw = '/usr/etc/pam.d/login';
+    my $ret_sshd = script_run("[[ -e $pam_sshd ]]");
+    my $ret_login = script_run("[[ -e $pam_login ]]");
     assert_script_run "echo $user > $deny_user_file";
+    if ($ret_sshd != 0) {
+        script_run "cp $pam_sshd_tw $pam_sshd";
+    }
+    if ($ret_login != 0) {
+        script_run "cp $pam_login_tw $pam_login";
+    }
     assert_script_run "cp $pam_sshd $pam_sshd_bak";
     assert_script_run "cp $pam_login $pam_login_bak";
     assert_script_run "sed -i '\$a auth      required   pam_listfile.so   onerr=succeed  item=user  sense=deny  file=$deny_user_file' $pam_sshd";

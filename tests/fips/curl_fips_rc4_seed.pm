@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: curl libcurl4
 # Summary: Test curl RC4 and SEED ciphers with fips enabled
@@ -23,7 +19,7 @@ use warnings;
 sub run {
     select_console 'root-console';
     validate_script_output "curl --ciphers RC4,SEED -v https://eu.httpbin.org/get 2>&1 || true", sub { m/failed setting cipher/ };
-    validate_script_output "rpm -q curl libcurl4",                                               sub { m/curl-.*/ };
+    validate_script_output "rpm -q curl libcurl4", sub { m/curl-.*/ };
 }
 
 1;

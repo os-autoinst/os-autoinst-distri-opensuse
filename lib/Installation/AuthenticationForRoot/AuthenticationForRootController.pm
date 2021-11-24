@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Authentication
 # for the System Administrator "root"
@@ -16,7 +12,7 @@ package Installation::AuthenticationForRoot::AuthenticationForRootController;
 use strict;
 use warnings;
 use Installation::AuthenticationForRoot::AuthenticationForRootPage;
-use Installation::Warnings::ConfirmationWarning;
+use Installation::Popups::YesNoPopup;
 use YuiRestClient;
 
 sub new {
@@ -28,7 +24,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{AuthenticationForRootPage} = Installation::AuthenticationForRoot::AuthenticationForRootPage->new({app => YuiRestClient::get_app()});
-    $self->{WeakPasswordWarning}       = Installation::Warnings::ConfirmationWarning->new({app => YuiRestClient::get_app()});
+    $self->{WeakPasswordWarning} = Installation::Popups::YesNoPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 

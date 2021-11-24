@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: health-checker
 # Summary: Check that health-check service works correctly
@@ -35,7 +31,7 @@ sub get_loggedid {
 
 sub compare_id {
     my $btrfs_id = get_btrfsid;
-    my $hc_id    = get_loggedid;
+    my $hc_id = get_loggedid;
     die "The current snapshot id does not match the one from the health-checker log" unless $hc_id == $btrfs_id;
 }
 
@@ -59,7 +55,7 @@ sub run {
 
     # check that the changes applied and we have a new snapshot
     my $current_id = get_btrfsid;
-    my $logged_id  = get_loggedid;
+    my $logged_id = get_loggedid;
     die "The current snapshot is not ahead of the logged one" unless $current_id > $logged_id;
 
     # Automated rollback shows grub menu twice (timeout disabled)

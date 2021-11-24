@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: kernel-azure kernel-devel dracut kmod-compat qa_lib_ctcs2 qa_test_ltp
 # qa_test_newburn kernel-default
@@ -24,7 +20,7 @@ use kernel 'remove_kernel_packages';
 use klp;
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 
 sub check_kernel_package {
     my $kernel_name = shift;
@@ -32,8 +28,8 @@ sub check_kernel_package {
     script_run('ls -1 /boot/vmlinu[xz]*');
     # Only check versioned kernels in livepatch tests. Some old kernel
     # packages install /boot/vmlinux symlink but don't set package ownership.
-    my $glob  = get_var('KGRAFT', 0) ? '-*' : '*';
-    my $cmd   = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
+    my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
+    my $cmd = 'rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob;
     my $packs = script_output($cmd);
 
     for my $packname (split /\s+/, $packs) {
@@ -63,6 +59,7 @@ sub first_azure_release {
 sub prepare_azure {
     my $self = shift;
 
+    fully_patch_system;
     remove_kernel_packages();
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     check_kernel_package('kernel-azure');
@@ -73,6 +70,7 @@ sub prepare_azure {
 sub prepare_kernel_base {
     my $self = shift;
 
+    fully_patch_system;
     remove_kernel_packages();
     zypper_call("in -l kernel-default-base", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     check_kernel_package('kernel-default-base');
@@ -172,7 +170,7 @@ sub override_shim {
             ['4.12.14-197.83.1', '15+git47-3.13.1']
         ],
         '15-SP2' => [
-            ['5.3.18-22.2',    '15+git47-3.3.1'],
+            ['5.3.18-22.2', '15+git47-3.3.1'],
             ['5.3.18-24.49.2', '15+git47-3.13.1']
         ]
     };
@@ -202,31 +200,34 @@ sub install_lock_kernel {
     # version numbers can be 'out of sync'
     my $numbering_exception = {
         'kernel-source' => {
-            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
-            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
-            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
-            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+            '4.4.114-94.11.3' => '4.4.114-94.11.2',
+            '4.4.126-94.22.1' => '4.4.126-94.22.2',
+            '4.4.178-94.91.2' => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
-            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
+            '5.3.18-24.67.3' => '5.3.18-24.67.2',
+            '5.3.18-24.75.3' => '5.3.18-24.75.2',
+            '5.3.18-24.83.2' => '5.3.18-24.83.1',
         },
         'kernel-macros' => {
-            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
-            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
-            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
-            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+            '4.4.114-94.11.3' => '4.4.114-94.11.2',
+            '4.4.126-94.22.1' => '4.4.126-94.22.2',
+            '4.4.178-94.91.2' => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
-            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
+            '5.3.18-24.67.3' => '5.3.18-24.67.2',
+            '5.3.18-24.75.3' => '5.3.18-24.75.2',
+            '5.3.18-24.83.2' => '5.3.18-24.83.1',
         },
         'kernel-devel' => {
-            '4.4.59-92.17.3'   => '4.4.59-92.17.2',
-            '4.4.114-94.11.3'  => '4.4.114-94.11.2',
-            '4.4.126-94.22.1'  => '4.4.126-94.22.2',
-            '4.4.178-94.91.2'  => '4.4.178-94.91.1',
+            '4.4.59-92.17.3' => '4.4.59-92.17.2',
+            '4.4.114-94.11.3' => '4.4.114-94.11.2',
+            '4.4.126-94.22.1' => '4.4.126-94.22.2',
+            '4.4.178-94.91.2' => '4.4.178-94.91.1',
             '4.12.14-150.14.2' => '4.12.14-150.14.1',
-            '5.3.18-24.67.3'   => '5.3.18-24.67.2',
-            '5.3.18-24.75.3'   => '5.3.18-24.75.2',
+            '5.3.18-24.67.3' => '5.3.18-24.67.2',
+            '5.3.18-24.75.3' => '5.3.18-24.75.2',
+            '5.3.18-24.83.2' => '5.3.18-24.83.1',
         }};
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
@@ -294,7 +295,7 @@ sub prepare_kgraft {
 
     fully_patch_system;
 
-    my $kversion       = zypper_search(q(-s -x kernel-default));
+    my $kversion = zypper_search(q(-s -x kernel-default));
     my $wanted_version = right_kversion($kversion, $incident_klp_pkg);
     install_lock_kernel($wanted_version);
 
@@ -388,7 +389,7 @@ sub install_kotd {
 sub boot_to_console {
     my ($self) = @_;
 
-    select_console('sol', await_console => 0) if check_var('BACKEND', 'ipmi');
+    select_console('sol', await_console => 0) if is_ipmi;
     $self->wait_boot;
     $self->select_serial_terminal;
 }
@@ -396,7 +397,7 @@ sub boot_to_console {
 sub run {
     my $self = shift;
 
-    if (check_var('BACKEND', 'ipmi') && get_var('LTP_BAREMETAL')) {
+    if (is_ipmi && get_var('LTP_BAREMETAL')) {
         # System is already booted after installation, just switch terminal
         $self->select_serial_terminal;
     } else {
@@ -409,12 +410,12 @@ sub run {
         zypper_call("ar -G -f http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update/ 12-SP2-LTSS-ERICSSON");
     }
 
-    my $repo           = get_var('KOTD_REPO');
-    my $incident_id    = undef;
+    my $repo = get_var('KOTD_REPO');
+    my $incident_id = undef;
     my $kernel_package = 'kernel-default';
 
     unless ($repo) {
-        $repo        = get_required_var('INCIDENT_REPO');
+        $repo = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
     }
 

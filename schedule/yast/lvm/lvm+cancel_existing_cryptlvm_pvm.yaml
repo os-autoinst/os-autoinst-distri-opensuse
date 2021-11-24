@@ -4,29 +4,30 @@ description: >
   with unencrypted lvm.
 name: lvm+cancel_existing_cryptlvm
 vars:
-  ENCRYPT_CANCEL_EXISTING: 1
   LVM: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/encrypted_volume_activation
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/system_probing/cancel_encrypted_volume
   - console/validate_encrypted_partition_not_activated
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/lvm_ignore_existing
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_plymouth
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -37,5 +38,4 @@ schedule:
   - console/force_scheduled_tasks
   - console/validate_lvm
 test_data:
-  product: SLES
   enc_disk_part: sda1

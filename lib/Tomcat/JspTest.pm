@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test the tomcat JSP examples
 # Maintainer: QE Core <qe-core@suse.de>
@@ -262,13 +258,14 @@ sub form() {
     send_key('down');
     for (1 .. 2) { send_key('ret'); }
 
-    if (check_screen('tomcat-click-save-login', 10)) {
+    if (check_screen('tomcat-click-save-login', 60)) {
         assert_and_click('tomcat-click-save-login', TIMEOUT);
     }
 
     send_key('tab');
     type_string('tomcat');
     send_key('ret');
+    wait_still_screen;
     assert_screen('tomcat-form-example-result', TIMEOUT);
 }
 

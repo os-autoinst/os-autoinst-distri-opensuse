@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Formatting Options
 # Page of Expert Partitioner Wizard, that are common for all the versions of the
@@ -19,23 +15,23 @@ use testapi;
 use parent 'Installation::WizardPage';
 
 use constant {
-    FORMATTING_OPTIONS_PAGE       => 'partition-format',
-    FILESYSTEM_TYPE               => 'partitioning_%s-format-selected',
-    PARTITION_ID_PREP_BOOT        => 'filesystem-prep',
-    PARTITION_ID_EFI_SYSTEM       => 'partition-selected-efi-type',
-    PARTITION_ID_BIOS_BOOT        => 'partition-selected-bios-boot-type',
-    PARTITION_ID_LINUX_RAID       => 'partition-selected-raid-type',
-    PARTITION_ID_LINUX_LVM        => 'partition-selected-lvm-type',
+    FORMATTING_OPTIONS_PAGE => 'partition-format',
+    FILESYSTEM_TYPE => 'partitioning_%s-format-selected',
+    PARTITION_ID_PREP_BOOT => 'filesystem-prep',
+    PARTITION_ID_EFI_SYSTEM => 'partition-selected-efi-type',
+    PARTITION_ID_BIOS_BOOT => 'partition-selected-bios-boot-type',
+    PARTITION_ID_LINUX_RAID => 'partition-selected-raid-type',
+    PARTITION_ID_LINUX_LVM => 'partition-selected-lvm-type',
     ENCRYPT_DEVICE_OPTION_CHECKED => 'partition-encrypt'
 };
 
 sub new {
     my ($class, $args) = @_;
     my $self = bless {
-        do_not_format_shortcut  => $args->{do_not_format_shortcut},
-        format_shortcut         => $args->{format_shortcut},
-        filesystem_shortcut     => $args->{filesystem_shortcut},
-        do_not_mount_shortcut   => $args->{do_not_mount_shortcut},
+        do_not_format_shortcut => $args->{do_not_format_shortcut},
+        format_shortcut => $args->{format_shortcut},
+        filesystem_shortcut => $args->{filesystem_shortcut},
+        do_not_mount_shortcut => $args->{do_not_mount_shortcut},
         encrypt_device_shortcut => $args->{encrypt_device_shortcut}
     }, $class;
 }

@@ -1,17 +1,5 @@
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package x11utils;
 
@@ -23,7 +11,7 @@ use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap);
 use utils 'assert_and_click_until_screen_change';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 our @EXPORT = qw(
   desktop_runner_hotkey
@@ -37,7 +25,9 @@ our @EXPORT = qw(
   turn_off_screensaver
   turn_off_kde_screensaver
   turn_off_gnome_screensaver
+  turn_off_gnome_screensaver_for_gdm
   turn_off_gnome_suspend
+  turn_off_gnome_show_banner
   untick_welcome_on_next_startup
   start_root_shell_in_xterm
   workaround_boo1170586
@@ -77,7 +67,7 @@ sub ensure_unlocked_desktop {
 
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
-        push(@tags, 'blackscreen')      if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
+        push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
         push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');
         assert_screen \@tags, no_wait => 1;
         # Starting with GNOME 40, upon login, the activities screen is open (assuming the
@@ -91,7 +81,7 @@ sub ensure_unlocked_desktop {
             # bsc#1159950 - gnome-session-failed is detected
             # Note: usually happens on *big* hardware with lot of cpus/memory
             record_soft_failure 'bsc#1159950 - [Build 108.1] openQA test fails in first_boot - gnome-session-failed is detected';
-            select_console 'root-console';               # Workaround command should be executed on a root console
+            select_console 'root-console';    # Workaround command should be executed on a root console
             script_run 'kill $(ps -ef | awk \'/[g]nome-session-failed/ { print $2 }\')';
             select_console 'x11', await_console => 0;    # Go back to X11
         }
@@ -118,6 +108,10 @@ sub ensure_unlocked_desktop {
         if (match_has_tag('authentication-required-user-settings') || match_has_tag('authentication-required-modify-system')) {
             wait_still_screen;    # Check again as the pop-up may be just a glitch, see bsc#1168979
             if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)])) {
+                if (is_sle('>=15-SP4') || is_leap('>=15.4')) {
+                    # auth window needs focus before typing passoword for GNOME40+
+                    assert_and_click('auth-window-password-prompt');
+                }
                 type_password;
                 assert_and_click "authenticate";
             } else {
@@ -128,7 +122,7 @@ sub ensure_unlocked_desktop {
         if ((match_has_tag 'displaymanager-password-prompt') || (match_has_tag 'screenlock-password')) {
             if ($password ne '') {
                 type_password;
-                assert_screen [qw(locked_screen-typed_password login_screen-typed_password generic-desktop)];
+                assert_screen([qw(locked_screen-typed_password login_screen-typed_password generic-desktop)], timeout => 150);
                 next if match_has_tag 'generic-desktop';
             }
             send_key 'ret';
@@ -153,16 +147,16 @@ sub ensure_unlocked_desktop {
                     next;    # most probably screen is locked
                 }
             }
-            last;            # desktop is unlocked, mission accomplished
+            last;    # desktop is unlocked, mission accomplished
         }
         die 'ensure_unlocked_desktop repeated too much. Check for X-server crash.' if ($counter eq 1);    # die loop when generic-desktop not matched
         if (match_has_tag('screenlock') || match_has_tag('blackscreen')) {
             wait_screen_change {
-                send_key 'esc';                                                                           # end screenlock
+                send_key 'esc';    # end screenlock
                 diag("Screen lock present");
             };
         }
-        wait_still_screen 1;                                                                              # slow down loop
+        wait_still_screen 1;    # slow down loop
     }
 }
 
@@ -202,14 +196,16 @@ Example:
 =cut
 sub handle_login {
     my ($myuser, $user_selected, $mypwd) = @_;
-    $myuser        //= $username;
-    $mypwd         //= $testapi::password;
+    $myuser //= $username;
+    $mypwd //= $testapi::password;
     $user_selected //= 0;
 
     save_screenshot();
     # wait for DM, avoid screensaver and try to login
     # Previously this pressed esc, but that makes the text field in SDDM lose focus
-    send_key_until_needlematch('displaymanager', 'shift', 30, 3);
+    # we need send key 'esc' to quit screen saver when desktop is gnome
+    my $mykey = check_var('DESKTOP', 'gnome') ? 'esc' : 'shift';
+    send_key_until_needlematch('displaymanager', $mykey, 30, 3);
     if (get_var('ROOTONLY')) {
         if (check_screen 'displaymanager-username-notlisted', 10) {
             record_soft_failure 'bgo#731320/boo#1047262 "not listed" Login screen for root user is not intuitive';
@@ -237,14 +233,18 @@ sub handle_login {
     # for S390x testing, since they are not using qemu built-in vnc, it is
     # expected that polkit authentication window can open for first time login.
     # see bsc#1177446 for more information.
-    if (check_screen(qw[authentication-required-user-settings authentication-required-modify-system], 5)) {
+    if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 10)) {
         type_password($mypwd);
         send_key 'ret';
+        wait_still_screen;
     }
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key('esc');
-        assert_screen([qw(generic-desktop opensuse-welcome)]);
+        send_key_until_needlematch [qw(generic-desktop opensuse-welcome language-change-required-update-folder)], 'esc';
+        if (match_has_tag('language-change-required-update-folder')) {
+            assert_and_click('reserve_old_folder_name');
+            assert_screen([qw(generic-desktop opensuse-welcome)]);
+        }
     }
 }
 
@@ -260,15 +260,15 @@ sub handle_logout {
     mouse_hide();
     # logout
     if (check_var('DESKTOP', 'gnome') || check_var('DESKTOP', 'lxde')) {
-        my $command      = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
-        my $target_match = check_var('DESKTOP', 'gnome') ? undef                : 'logoutdialog';
+        my $command = check_var('DESKTOP', 'gnome') ? 'gnome-session-quit' : 'lxsession-logout';
+        my $target_match = check_var('DESKTOP', 'gnome') ? undef : 'logoutdialog';
         x11_start_program($command, target_match => $target_match);    # opens logout dialog
     }
     else {
         my $key = check_var('DESKTOP', 'xfce') ? 'alt-f4' : 'ctrl-alt-delete';
-        send_key_until_needlematch 'logoutdialog', "$key";             # opens logout dialog
+        send_key_until_needlematch 'logoutdialog', "$key";    # opens logout dialog
     }
-    assert_and_click 'logout-button';                                  # press logout
+    assert_and_click 'logout-button';    # press logout
 }
 
 =head2 handle_relogin
@@ -300,7 +300,14 @@ sub select_user_gnome {
         assert_and_click "displaymanager-$myuser";
     }
     elsif (match_has_tag('displaymanager-user-selected')) {
-        send_key 'ret';
+        if ($myuser =~ 'bernhard') {
+            send_key 'ret';
+            # sometimes the system is slow, need wait several seconds for the screen to change.
+            wait_still_screen 5 if is_s390x;
+        }
+        else {
+            assert_and_click "displaymanager-$myuser";
+        }
     }
     elsif (match_has_tag('dm-nousers')) {
         type_string $myuser;
@@ -337,6 +344,18 @@ sub turn_off_gnome_screensaver {
     script_run 'gsettings set org.gnome.desktop.session idle-delay 0';
 }
 
+=head2 turn_off_gnome_screensaver_for_gdm
+
+turn_off_gnome_screensaver_for_gdm()
+
+Disable screensaver in gnome for gdm. The function should be run under root. To be called from
+a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver_for_gdm {
+    script_run 'sudo -u gdm dbus-launch gsettings set org.gnome.desktop.session idle-delay 0';
+}
+
 =head2 turn_off_gnome_suspend
 
   turn_off_gnome_suspend()
@@ -363,6 +382,11 @@ sub turn_off_screensaver {
     script_run 'exit', 0;
 }
 
+# turn off the gnome deskop's notification
+sub turn_off_gnome_show_banner {
+    script_run 'gsettings set org.gnome.desktop.notifications show-banners false';
+}
+
 =head2 untick_welcome_on_next_startup
 
  untick_welcome_on_next_startup();
@@ -376,12 +400,12 @@ sub untick_welcome_on_next_startup {
         assert_and_click_until_screen_change("opensuse-welcome-show-on-boot", 5, 5);
         # Moving the cursor already causes screen changes - do not fail the check
         # immediately but allow some time to reach the final state
-        last                                          if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
+        last if check_screen("opensuse-welcome-show-on-boot-unselected", timeout => 5);
         die "Unable to untick 'Show on next startup'" if $retry == 5;
     }
     for my $retry (1 .. 5) {
         send_key 'alt-f4';
-        last                                          if check_screen("generic-desktop", timeout => 5);
+        last if check_screen("generic-desktop", timeout => 5);
         die "Unable to close openSUSE Welcome screen" if $retry == 5;
     }
 }
@@ -410,7 +434,7 @@ Also handle workarounds when needed.
 sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-boo1169203 opensuse-welcome-gnome40-activities)], $args{timeout});
-    send_key 'esc'                              if match_has_tag('opensuse-welcome-gnome40-activities');
+    send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
     workaround_broken_opensuse_welcome_window() if match_has_tag("opensuse-welcome-boo1169203");
     untick_welcome_on_next_startup;
 }
@@ -425,6 +449,10 @@ Start a root shell in xterm.
 sub start_root_shell_in_xterm {
     select_console 'x11';
     x11_start_program("xterm -geometry 155x50+5+5", target_match => 'xterm');
+    # Verification runs for poo#102557 showed that the terminal window does not get focus,
+    # so we click into it.
+    mouse_set(400, 400);
+    mouse_click(['left']);
     become_root;
 }
 
@@ -435,7 +463,7 @@ sub start_root_shell_in_xterm {
 handle_gnome_activities
 =cut
 sub handle_gnome_activities {
-    my @tags    = 'generic-desktop';
+    my @tags = 'generic-desktop';
     my $timeout = 600;
 
     push(@tags, 'gnome-activities') if check_var('DESKTOP', 'gnome');

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validation module to check that previously encrypted partition is active.
 # Covered scenarios:
@@ -27,7 +23,7 @@ sub run {
     validate_encrypted_volume_activation({
             mapped_device => $test_data->{mapped_device},
             device_status => $test_data->{device_status}->{message},
-            properties    => $test_data->{device_status}->{properties}
+            properties => $test_data->{device_status}->{properties}
     });
 }
 

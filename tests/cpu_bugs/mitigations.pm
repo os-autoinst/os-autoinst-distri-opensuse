@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
@@ -15,6 +11,7 @@ use warnings;
 use base "consoletest";
 use bootloader_setup;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 use Data::Dumper;
@@ -27,21 +24,21 @@ foreach my $item (@mitigation_module) {
 }
 my %mitigations_list =
   (
-    name       => "mitigations",
-    parameter  => 'mitigations',
+    name => "mitigations",
+    parameter => 'mitigations',
     sysfs_name => ["itlb_multihit", "l1tf", "mds", "meltdown", "spec_store_bypass", "spectre_v1", "spectre_v2", "tsx_async_abort"],
-    sysfs      => {
+    sysfs => {
         auto => {
             itlb_multihit => "KVM: Mitigation: VMX disabled",
-            spectre_v1    => "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
+            spectre_v1 => "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
         },
         'auto,nosmt' => {
             itlb_multihit => "KVM: Mitigation: VMX disabled",
-            spectre_v1    => "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
+            spectre_v1 => "Mitigation: usercopy/swapgs barriers and __user pointer sanitization",
         },
         off => {
             itlb_multihit => "KVM: Mitigation: VMX disabled",
-            spectre_v1    => "Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers",
+            spectre_v1 => "Vulnerable: __user pointer sanitization and usercopy barriers only; no swapgs barriers",
         },
     },
     cmdline => ["auto,nosmt", "off", "auto"],
@@ -66,7 +63,7 @@ sub run {
         my $current_list;
 
         #UPDATE list for QEMU first
-        if (check_var('BACKEND', 'qemu')) {
+        if (is_qemu) {
             mds::smt_status_qemu();
             taa::update_list_for_qemu();
         }
@@ -75,24 +72,24 @@ sub run {
         #Can't use string "taa::mitigations_list" as a HASH ref while "strict refs" in use.
         if ($item eq 'taa' && $taa::mitigations_list) {
             $current_list = $taa::mitigations_list;
-            $obj          = taa->new($current_list);
-            $item         = "tsx_async_abort";
+            $obj = taa->new($current_list);
+            $item = "tsx_async_abort";
         } elsif ($item eq 'meltdown' && $meltdown::mitigations_list) {
             $current_list = $meltdown::mitigations_list;
-            $obj          = meltdown->new($current_list);
+            $obj = meltdown->new($current_list);
         } elsif ($item eq 'mds' && %mds::mitigations_list) {
             $current_list = \%mds::mitigations_list;
-            $obj          = Mitigation->new($current_list);
+            $obj = Mitigation->new($current_list);
         } elsif ($item eq 'l1tf' && %l1tf::mitigations_list) {
             $current_list = \%l1tf::mitigations_list;
-            $obj          = Mitigation->new($current_list);
+            $obj = Mitigation->new($current_list);
         } elsif ($item eq 'spectre_v2' && %spectre_v2::mitigations_list) {
             $current_list = \%spectre_v2::mitigations_list;
-            $obj          = Mitigation->new($current_list);
+            $obj = Mitigation->new($current_list);
         } elsif ($item eq 'spectre_v4' && %spectre_v4::mitigations_list) {
             $current_list = \%spectre_v4::mitigations_list;
-            $obj          = Mitigation->new($current_list);
-            $item         = "spec_store_bypass";
+            $obj = Mitigation->new($current_list);
+            $item = "spec_store_bypass";
         } else {
             record_info("undefine vulnerabilities items: $item");
         }
@@ -129,56 +126,56 @@ sub run {
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Full generic retpoline,.*IBPB: conditional, IBRS_FW*";
                 }
             }
-            if (check_var('BACKEND', 'qemu')) {
+            if (is_qemu) {
                 #spectre_v2
                 if ($item eq 'spectre_v2') {
-                    $mitigations_list{sysfs}->{auto}->{'spectre_v2'}         =~ s/STIBP: conditional/STIBP: disabled/g;
+                    $mitigations_list{sysfs}->{auto}->{'spectre_v2'} =~ s/STIBP: conditional/STIBP: disabled/g;
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{'spectre_v2'} =~ s/STIBP: conditional/STIBP: disabled/g;
                 }
                 #NO-IBRS
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'mds') {
-                    $mitigations_list{sysfs}->{auto}->{mds}         = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
+                    $mitigations_list{sysfs}->{auto}->{mds} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{mds} = $mitigations_list{sysfs}->{auto}->{mds};
-                    $mitigations_list{sysfs}->{off}->{mds}          = 'Vulnerable; SMT Host state unknown';
+                    $mitigations_list{sysfs}->{off}->{mds} = 'Vulnerable; SMT Host state unknown';
                 }
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'spec_store_bypass') {
-                    $mitigations_list{sysfs}->{auto}->{spec_store_bypass}         = 'Vulnerable';
+                    $mitigations_list{sysfs}->{auto}->{spec_store_bypass} = 'Vulnerable';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{spec_store_bypass} = $mitigations_list{sysfs}->{auto}->{spec_store_bypass};
-                    $mitigations_list{sysfs}->{default}->{spec_store_bypass}      = $mitigations_list{sysfs}->{auto}->{spec_store_bypass};
+                    $mitigations_list{sysfs}->{default}->{spec_store_bypass} = $mitigations_list{sysfs}->{auto}->{spec_store_bypass};
                 }
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'spectre_v2') {
-                    $mitigations_list{sysfs}->{auto}->{spectre_v2}         = 'Mitigation: Full generic retpoline, STIBP: disabled, RSB filling';
+                    $mitigations_list{sysfs}->{auto}->{spectre_v2} = 'Mitigation: Full generic retpoline, STIBP: disabled, RSB filling';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{spectre_v2} = $mitigations_list{sysfs}->{auto}->{spectre_v2};
-                    $mitigations_list{sysfs}->{off}->{spectre_v2}          = 'Vulnerable, STIBP: disabled';
+                    $mitigations_list{sysfs}->{off}->{spectre_v2} = 'Vulnerable, STIBP: disabled';
                 }
                 if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && $item eq 'tsx_async_abort') {
-                    $mitigations_list{sysfs}->{off}->{tsx_async_abort}  = 'Vulnerable';
+                    $mitigations_list{sysfs}->{off}->{tsx_async_abort} = 'Vulnerable';
                     $mitigations_list{sysfs}->{auto}->{tsx_async_abort} = 'Vulnerable: Clear CPU buffers attempted, no microcode; SMT Host state unknown';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{tsx_async_abort} = $mitigations_list{sysfs}->{auto}->{tsx_async_abort};
-                    $mitigations_list{sysfs}->{default}->{tsx_async_abort}      = $mitigations_list{sysfs}->{auto}->{tsx_async_abort};
+                    $mitigations_list{sysfs}->{default}->{tsx_async_abort} = $mitigations_list{sysfs}->{auto}->{tsx_async_abort};
                 }
                 if (get_var('MACHINE', '') =~ /passthrough/ && $item eq 'l1tf') {
-                    $mitigations_list{sysfs}->{auto}->{l1tf}         = 'Mitigation: PTE Inversion; VMX: flush not necessary, SMT disabled';
+                    $mitigations_list{sysfs}->{auto}->{l1tf} = 'Mitigation: PTE Inversion; VMX: flush not necessary, SMT disabled';
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{l1tf} = $mitigations_list{sysfs}->{auto}->{l1tf};
-                    $mitigations_list{sysfs}->{off}->{l1tf}          = $mitigations_list{sysfs}->{auto}->{l1tf};
-                    $mitigations_list{sysfs}->{default}->{l1tf}      = $mitigations_list{sysfs}->{auto}->{l1tf};
+                    $mitigations_list{sysfs}->{off}->{l1tf} = $mitigations_list{sysfs}->{auto}->{l1tf};
+                    $mitigations_list{sysfs}->{default}->{l1tf} = $mitigations_list{sysfs}->{auto}->{l1tf};
                 } elsif ($item eq 'l1tf') {
-                    $mitigations_list{sysfs}->{auto}->{l1tf}         = "Mitigation: PTE Inversion";
-                    $mitigations_list{sysfs}->{off}->{l1tf}          = $mitigations_list{sysfs}->{auto}->{l1tf};
+                    $mitigations_list{sysfs}->{auto}->{l1tf} = "Mitigation: PTE Inversion";
+                    $mitigations_list{sysfs}->{off}->{l1tf} = $mitigations_list{sysfs}->{auto}->{l1tf};
                     $mitigations_list{sysfs}->{'auto,nosmt'}->{l1tf} = $mitigations_list{sysfs}->{auto}->{l1tf};
-                    $mitigations_list{sysfs}->{default}->{l1tf}      = $mitigations_list{sysfs}->{auto}->{l1tf};
+                    $mitigations_list{sysfs}->{default}->{l1tf} = $mitigations_list{sysfs}->{auto}->{l1tf};
                 }
             }
         } elsif ($ret eq 0) {
             record_info("Not affected", "$item");
-            $mitigations_list{sysfs}->{auto}->{$item}         = "Not affected";
-            $mitigations_list{sysfs}->{off}->{$item}          = "Not affected";
+            $mitigations_list{sysfs}->{auto}->{$item} = "Not affected";
+            $mitigations_list{sysfs}->{off}->{$item} = "Not affected";
             $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Not affected";
             if ($item eq 'spectre_v2') {
                 record_info("EIBRS", "This machine support EIBRS on spectre_v2");
-                $mitigations_list{sysfs}->{auto}->{$item}         = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
+                $mitigations_list{sysfs}->{auto}->{$item} = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
                 $mitigations_list{sysfs}->{'auto,nosmt'}->{$item} = "Mitigation: Enhanced IBRS, IBPB: conditional, RSB filling";
-                $mitigations_list{sysfs}->{off}->{$item}          = $current_list->{sysfs}->{off};
+                $mitigations_list{sysfs}->{off}->{$item} = $current_list->{sysfs}->{off};
             }
         } else {
             die("$item vulnerabilities is unkown");
@@ -186,15 +183,15 @@ sub run {
     }
 
     #Handle itlb_multihit
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         if (get_var('MACHINE', '') =~ /passthrough/) {
             record_info("itlb_multihit Not affected", "itlb_multihit is not affected on qemu passthrough");
-            $mitigations_list{sysfs}->{auto}->{'itlb_multihit'}         = "Not affected";
-            $mitigations_list{sysfs}->{off}->{'itlb_multihit'}          = "Not affected";
+            $mitigations_list{sysfs}->{auto}->{'itlb_multihit'} = "Not affected";
+            $mitigations_list{sysfs}->{off}->{'itlb_multihit'} = "Not affected";
             $mitigations_list{sysfs}->{'auto,nosmt'}->{'itlb_multihit'} = "Not affected";
         } else {
-            $mitigations_list{sysfs}->{off}->{'itlb_multihit'}          = "KVM: Mitigation: VMX unsupported";
-            $mitigations_list{sysfs}->{auto}->{'itlb_multihit'}         = "KVM: Mitigation: VMX unsupported";
+            $mitigations_list{sysfs}->{off}->{'itlb_multihit'} = "KVM: Mitigation: VMX unsupported";
+            $mitigations_list{sysfs}->{auto}->{'itlb_multihit'} = "KVM: Mitigation: VMX unsupported";
             $mitigations_list{sysfs}->{'auto,nosmt'}->{'itlb_multihit'} = "KVM: Mitigation: VMX unsupported";
         }
     }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This test verifies sle and windows guest migration from xen to kvm using virt-v2v.
 #          This is the part to run on source host.
@@ -23,7 +19,7 @@ sub run {
     my ($self) = @_;
 
     my $ip_out = script_output('ip route show|grep kernel|cut -d" " -f9|head -1', 30);
-    set_var('SRC_IP',   $ip_out);
+    set_var('SRC_IP', $ip_out);
     set_var('SRC_USER', "root");
     set_var('SRC_PASS', $password);
     bmwqemu::save_vars();

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-nfs-server nfs-kernel-server
 # Summary: Configure nfs-server services in yast command line mode,
@@ -54,8 +50,8 @@ sub check_bsc1142979 {
 }
 
 sub run {
-
-    select_console("root-console");
+    my ($self) = @_;
+    $self->select_serial_terminal;
 
     # Make sure nfs-server packages are installed
     zypper_call("in yast2-nfs-server nfs-kernel-server", exitcode => [0, 102, 103]);
@@ -92,7 +88,7 @@ sub run {
     # 7. Stop the nfs-server service and verify the service status
     assert_script_run("yast nfs-server stop", fail_message => "yast nfs-server failed when stop nfs-server service");
 
-    my $nfs_stop_status    = systemctl("is-active nfs-server",  ignore_failure => 1);
+    my $nfs_stop_status = systemctl("is-active nfs-server", ignore_failure => 1);
     my $nfs_enabled_status = systemctl("is-enabled nfs-server", ignore_failure => 1);
     if ($nfs_stop_status != 3 or $nfs_enabled_status != 1) {
         die "yast nfs-server failed to stop nfs-server service";

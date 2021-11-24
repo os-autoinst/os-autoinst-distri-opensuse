@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test Docker’s btrfs storage driver features for image and container management
 # Among these features are block-level operations, thin provisioning, copy-on-write snapshots,
@@ -17,16 +13,14 @@
 # continue when the docker partition is fulled up.
 # Maintainer: qac team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'containers::basetest';
 use testapi;
-use containers::runtime;
 use containers::common;
 use containers::urls 'get_suse_container_urls';
-use version_utils qw(get_os_release);
 
 # Get the total and used GiB of a given btrfs device
 sub _btrfs_fi {
-    my $dev    = shift;
+    my $dev = shift;
     my $output = script_output("btrfs fi df $dev");
     die "Unexpected btrfs fi output" unless ($output =~ "^Data.+total=(?<total>[0-9]+\.[0-9]*)GiB, used=(?<used>[0-9]+\.[0-9]*)GiB");
     return ($+{total}, $+{used});
@@ -58,7 +52,7 @@ sub _test_btrfs_balancing {
 sub _test_btrfs_thin_partitioning {
     my ($rt, $dev_path) = @_;
     my $dockerfile_path = '~/sle_base_image/docker_build';
-    my $btrfs_head      = '/tmp/subvolumes_saved';
+    my $btrfs_head = '/tmp/subvolumes_saved';
     $rt->build($dockerfile_path, 'thin_image');
     # validate that new subvolume has been created. This should be improved.
     assert_script_run qq{test \$(ls -td $dev_path/btrfs/subvolumes/* | head -n 1) == \$(cat $btrfs_head)};
@@ -68,21 +62,21 @@ sub _test_btrfs_thin_partitioning {
 # Fill up the btrfs subvolume, check if it is full and then increase the available size by adding another disk
 sub _test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
-    my $container  = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
+    my $container = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
     record_info "test btrfs";
     script_run("df -h");
     # Determine the remaining size of /var
-    my $var_free   = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
+    my $var_free = script_output('df 2>/dev/null | grep /var | awk \'{print $4;}\'');
     my $var_blocks = script_output('df 2>/dev/null | grep /var | awk \'{print $2;}\'');
     # Create file in the container enough to fill the "/var" partition (where the container is located)
     my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
-    $rt->up('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
+    $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
     validate_script_output "df -h --sync|grep var", sub { m/\/dev\/vda.+\s+(9[7-9]|100)%/ };
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
-    die("pull should fail on full partition") if ($rt->pull("$container") == 0);
+    die("pull should fail on full partition") if ($rt->pull($container, die => 0) == 0);
     # Increase the amount of available storage by adding the second HDD ('/dev/vdb') to the pool
     assert_script_run "btrfs device add /dev/vdb $dev_path";
     assert_script_run "btrfs fi show $dev_path/btrfs";
@@ -98,13 +92,10 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     die "Module requires two disks to run" unless check_var('NUMDISKS', 2);
-    my ($running_version, $sp, $host_distri) = get_os_release;
-    install_docker_when_needed($host_distri);
-    allow_selected_insecure_registries(runtime => 'docker');
-    my $docker    = containers::runtime->new(runtime => 'docker');
+    my $docker = $self->containers_factory('docker');
     my $btrfs_dev = '/var/lib/docker';
-    my ($untested_images, $released_images) = get_suse_container_urls();
-    _sanity_test_btrfs($docker, $btrfs_dev, $released_images->[0]);
+    my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
+    _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
     _test_btrfs_thin_partitioning($docker, $btrfs_dev);
     _test_btrfs_device_mgmt($docker, $btrfs_dev);
     _test_btrfs_balancing($btrfs_dev);

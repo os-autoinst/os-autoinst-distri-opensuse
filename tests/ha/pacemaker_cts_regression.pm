@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: pacemaker-cts
 # Summary: Execute regression tests with pacemaker-cts
@@ -15,18 +11,19 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils 'zypper_call';
 use hacluster;
 
 sub run {
-    my $cts_path     = '/usr/share/pacemaker/tests';
+    my $cts_path = '/usr/share/pacemaker/tests';
     my @tests_to_run = qw(cts-cli cts-exec cts-scheduler cts-fencing);
-    my $log          = '/tmp/cts_regression.log';
-    my $timeout      = 600;
+    my $log = '/tmp/cts_regression.log';
+    my $timeout = 600;
 
     # Some of the tests take longer to complete in aarch64.
     # This increases the timeout in that ARCH
-    $timeout *= 2 if check_var('ARCH', 'aarch64');
+    $timeout *= 2 if is_aarch64;
 
     zypper_call 'in pacemaker-cts';
 

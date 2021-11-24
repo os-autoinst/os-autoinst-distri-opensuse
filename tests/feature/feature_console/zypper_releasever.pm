@@ -1,11 +1,7 @@
 # SUSE's feature tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distbution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: feature [ECO] zypper: more advanced $releasever handling
 # Maintainer: Lemon <leli@suse.com>
@@ -24,9 +20,9 @@ sub remove_repo {
 sub run {
     select_console 'root-console';
 
-    my $dist            = uc(get_var "DISTRI");
-    my $test_repo       = 'TEST';
-    my $zypper_ar_ok    = qr/^Repository .* successfully added/m;
+    my $dist = uc(get_var "DISTRI");
+    my $test_repo = 'TEST';
+    my $zypper_ar_ok = qr/^Repository .* successfully added/m;
     my $zypper_pk_block = qr/^Tell PackageKit to quit\?/m;
 
     # Add a test repo with $releasever var being used in its name

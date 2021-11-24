@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Start the installation process on s390x zVM using the z3270
 #   terminal and an ssh connection
@@ -32,7 +28,7 @@ sub run {
 
     # reconnect console after reboot
     my $login_ready = qr/starting VNC server/;
-    my $timeout     = 300;
+    my $timeout = 300;
     console('installation')->disable_vnc_stalls;
     console('x3270')->expect_3270(output_delim => $login_ready, timeout => $timeout);
     reset_consoles;
@@ -74,7 +70,7 @@ sub run {
     assert_screen 'inst-usersetup';
     send_key 'alt-f';    # Select full name text field
     wait_screen_change { type_string "$realname" };
-    send_key 'tab';      # Select password field
+    send_key 'tab';    # Select password field
     send_key 'tab';
     for (1 .. 2) {
         wait_screen_change { type_string "$password\t" };

@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: HOST bridge virtual network test:
 #    - Create HOST bridge virtual network
@@ -33,7 +21,7 @@ use utils;
 use version_utils 'is_sle';
 
 our $virt_host_bridge = 'br0';
-our $based_guest_dir  = 'tmp';
+our $based_guest_dir = 'tmp';
 sub run_test {
     my ($self) = @_;
 
@@ -60,14 +48,14 @@ sub run_test {
         ensure_online $guest, skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
-            $affecter  = "--persistent";
+            $affecter = "--persistent";
             $exclusive = "--live --persistent";
         } else {
-            $affecter  = "";
+            $affecter = "";
             $exclusive = "--current";
         }
 
-        $mac   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $mac = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system

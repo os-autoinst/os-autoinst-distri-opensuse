@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-client iputils nmap xen-tools
 # Summary: Installation of HVM and PV guests
@@ -44,7 +40,7 @@ sub run {
         assert_script_run "virsh net-define --file ~/default_network.xml";
     }
     assert_script_run "virsh net-start default || true", 90;
-    assert_script_run "virsh net-autostart default",     90;
+    assert_script_run "virsh net-autostart default", 90;
 
     # Show all guests
     assert_script_run 'virsh list --all';
@@ -53,8 +49,21 @@ sub run {
     # Disable bash monitoring, so the output of completed background jobs doesn't confuse openQA
     script_run("set +m");
 
-    # Install every defined guest
-    create_guest $_, 'virt-install' foreach (values %virt_autotest::common::guests);
+    # Install or import defined guests
+    foreach my $guest (values %virt_autotest::common::guests) {
+        my $method = $guest->{method} // 'virt-install'; # by default install guest using virt-install. SLES11 gets installed via importing a pre-installed guest however
+        if ($method eq "virt-install") {
+            create_guest($guest, $method);
+        } elsif ($method eq "import") {
+            # Download the diskimage. Note: this could be merged with download_image.pm at some point
+            my $source = $guest->{source};
+            my $disk = $guest->{disk};
+            script_retry("curl $source -o $disk", retry => 3, delay => 60, timeout => 300);
+            import_guest($guest);
+        } else {
+            die "Unsupported method '$method' for guest $guest";
+        }
+    }
 
     ## Our test setup requires guests to restart when the machine is rebooted.
     ## Ensure every guest has <on_reboot>restart</on_reboot>

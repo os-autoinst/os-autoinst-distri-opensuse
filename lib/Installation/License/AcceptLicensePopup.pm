@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handles pop-up when proceeding without explicitily
 # accepting the license
@@ -26,7 +22,7 @@ sub new {
 
 sub init {
     my ($self, $args) = @_;
-    $self->{btn_ok}   = $self->{app}->button($args->{btn_ok_filter});
+    $self->{btn_ok} = $self->{app}->button($args->{btn_ok_filter});
     $self->{lbl_text} = $self->{app}->checkbox({label => 'You must accept the license to install this product'});
     return $self;
 }

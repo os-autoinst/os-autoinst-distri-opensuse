@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wicked iproute2
 # Summary: Standalone card - ifdown, ifreload
@@ -24,10 +20,10 @@ sub run {
     my $res;
     record_info('Info', 'Standalone card - ifdown, ifreload');
     $self->get_from_data('wicked/dynamic_address/ifcfg-eth0', $config);
-    $self->wicked_command('ifdown',   $ctx->iface());
+    $self->wicked_command('ifdown', $ctx->iface());
     $self->wicked_command('ifreload', $ctx->iface());
     my $static_ip = $self->get_ip(type => 'host');
-    my $dhcp_ip   = $self->get_current_ip($ctx->iface());
+    my $dhcp_ip = $self->get_current_ip($ctx->iface());
     if (defined($dhcp_ip) && $static_ip ne $dhcp_ip) {
         $res = $self->get_test_result('host');
     } else {

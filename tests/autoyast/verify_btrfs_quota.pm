@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Verify that quota is set and corresponds to the expected limit for the required subvolumes.
 # The list of subvolumes and expected quota limit are stored in 'test_data'.
@@ -22,7 +18,7 @@ sub run {
     my $test_data = get_test_suite_data();
     foreach my $disk (@{$test_data->{disks}}) {
         foreach my $partition (@{$disk->{partitions}}) {
-            my $mount_point             = $partition->{mounting_options}->{mount_point};
+            my $mount_point = $partition->{mounting_options}->{mount_point};
             my $output_btrfs_subvolumes = assert_script_run("btrfs subvolume list $mount_point");
             # Get 'qgroupid' and 'max_rfer' columns from the output. Other columns are not needed for this test.
             my $output_btrfs_qgroups = assert_script_run("btrfs qgroup show -r $mount_point | awk '{print \$1,\$4}'");

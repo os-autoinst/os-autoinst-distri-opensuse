@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: procps yast2-kdump kdump crash mokutil kernel-*-debuginfo
 # Summary: Enable kdump and verify it's enabled
@@ -36,13 +32,9 @@ sub run {
     my $self = shift;
     select_console 'root-console';
 
-    # Also panic when softlockup
-    # workaround bsc#1104778, skip s390x in 12SP4
+    # Enable panic when softlockup happens
     assert_script_run('echo "kernel.softlockup_panic = 1" >> /etc/sysctl.conf');
-    my $output = script_output('sysctl -p', 10, proceed_on_failure => 1);
-    unless ($output =~ /kernel.softlockup_panic = 1/) {
-        record_soft_failure 'bsc#1104778';
-    }
+    script_run('sysctl -p');
 
     # Activate kdump
     prepare_for_kdump;

@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: apparmor-parser apparmor-utils dovecot
 # Summary: Test with "usr.lib.dovecot.*" (mainly *.pop3*) & "usr.sbin.dovecot"
@@ -35,12 +23,12 @@ use utils;
 sub run {
     my ($self) = shift;
 
-    my $audit_log     = $apparmortest::audit_log;
-    my $mail_err_log  = $apparmortest::mail_err_log;
+    my $audit_log = $apparmortest::audit_log;
+    my $mail_err_log = $apparmortest::mail_err_log;
     my $mail_warn_log = $apparmortest::mail_warn_log;
     my $mail_info_log = $apparmortest::mail_info_log;
     my $named_profile = "";
-    my $profile_name  = "";
+    my $profile_name = "";
 
     # Start apparmor
     systemctl("start apparmor");
@@ -53,7 +41,7 @@ sub run {
     validate_script_output("aa-enforce /etc/apparmor.d/$profile_name", sub { m/Setting .*$profile_name to enforce mode./ });
 
     # Recalculate profile name in case
-    $profile_name  = "usr.lib.dovecot.pop3";
+    $profile_name = "usr.lib.dovecot.pop3";
     $named_profile = $self->get_named_profile($profile_name);
     # Check if $profile_name is in "enforce" mode
     $self->aa_status_stdout_check($named_profile, "enforce");

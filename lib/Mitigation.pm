@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Mitigation testcase library provides a class to execute
 # common test steps. Specificaly checkpoint could be done in individual
@@ -59,7 +55,7 @@ use warnings;
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 use bootloader_setup qw(grub_mkconfig change_grub_config add_grub_cmdline_settings remove_grub_cmdline_settings grep_grub_settings set_framebuffer_resolution set_extrabootparams_grub_conf);
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
@@ -84,11 +80,11 @@ C<$timeout> in seconds.
 =cut
 sub reboot_and_wait {
     my ($self, $timeout) = @_;
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console(reset_console_flag => 'on');
         if (get_var("XEN") || check_var("HOST_HYPERVISOR", "xen")) {
-            assert_screen 'pxe-qa-net-mitigation', 90;
+            assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
             send_key 'ret';
             assert_screen([qw(grub2 grub1)], 60);
             #send key 'up' to stop grub timer counting down, to be more robust to select xen
@@ -170,12 +166,12 @@ sub read_cpuid_base {
     #Refer to data/virtualization/spectre-meltdown-checker.sh
     #$value: 1=EAX,2=EBX,3=ECX,4=EDX
     script_output('modprobe cpuid');
-    my $_leaf        = 7;                             #leaf=7
-    my $_ddskip      = int($_leaf / 16);
-    my $_odskip      = int($_leaf - $_ddskip * 16);
+    my $_leaf = 7;    #leaf=7
+    my $_ddskip = int($_leaf / 16);
+    my $_odskip = int($_leaf - $_ddskip * 16);
     my $_odskip_plus = int($_odskip + 1);
-    my $_skip_byte   = int($_odskip * 16);
-    my $ret          = 0;
+    my $_skip_byte = int($_odskip * 16);
+    my $ret = 0;
     $ret = hex script_output(
         "dd if=/dev/cpu/0/cpuid bs=16 skip=$_ddskip count=$_odskip_plus 2>/dev/null | od -j $_skip_byte -A n -t x4 | awk \'{print \$$value}\'"
     );
@@ -211,7 +207,7 @@ sub vulnerabilities {
         }
     }
     record_info("$self->{'name'} vulnerable", "Testing will continue.");
-    return 1;            #Affected
+    return 1;    #Affected
 }
 
 sub sysfs {
@@ -281,7 +277,7 @@ sub check_cpu_flags {
     assert_script_run('cat /proc/cpuinfo');
     foreach my $flag (@{$self->{cpuflags}}) {
         my $ret = script_run('cat /proc/cpuinfo | grep "^flags.*' . $flag . '.*"');
-        if (get_var('MACHINE', '') =~ /NO-IBRS$/ && check_var('BACKEND', 'qemu')) {
+        if (get_var('MACHINE', '') =~ /NO-IBRS$/ && is_qemu) {
             if ($ret ne 0) {
                 record_info("NOT PASSTHROUGH", "Host didn't pass flags into this VM.");
                 return;
@@ -472,7 +468,7 @@ sub cycle_workflow {
     config_and_reboot($qa_password, $cvm_domain_name, $vm_ip_addr);
     if ($DEBUG_MODE) {
         my $vm_vulnerability_output = script_output_from_vm("grep -H . " . $syspath . "*", $qa_password, $vm_ip_addr);
-        my $vm_cmdline_output       = script_output_from_vm("cat /proc/cmdline",           $qa_password, $vm_ip_addr);
+        my $vm_cmdline_output = script_output_from_vm("cat /proc/cmdline", $qa_password, $vm_ip_addr);
         record_info("Debug", "Test Parameter:" . $parameter
               . "\nDomu kernel parameters:" . $vm_cmdline_output
               . "\nVulnerabilities value: " . $vm_vulnerability_output, result => 'ok');
@@ -491,14 +487,14 @@ sub guest_cycle {
     my ($self, $hash, $single, $mode, $qa_password, $gcvm_domain_name, $vm_ip_addr, $hyper_param) = @_;
 
     # Initialize variable for generating junit file
-    my $testsuites_name        = $gcvm_domain_name . '_mitigation_test';
-    my $testsuite_name         = '';
-    my $testcase_name          = '';
+    my $testsuites_name = $gcvm_domain_name . '_mitigation_test';
+    my $testsuite_name = '';
+    my $testcase_name = '';
     my $total_failure_tc_count = 0;
     my $failure_tc_count_in_ts = 0;
-    my $total_tc_count         = 0;
-    my $total_tc_count_in_ts   = 0;
-    my $junit_file             = "/tmp/" . $gcvm_domain_name . "_mitigation_test_junit.xml";
+    my $total_tc_count = 0;
+    my $total_tc_count_in_ts = 0;
+    my $junit_file = "/tmp/" . $gcvm_domain_name . "_mitigation_test_junit.xml";
 
     # Initialize junit sturcture for hypervisor mitigation test
     init_xml(file_name => "$junit_file", testsuites_name => "$testsuites_name");
@@ -506,7 +502,7 @@ sub guest_cycle {
     while (my ($arg, $dict) = each %$hash) {
         if ($mode eq 'all' or $mode eq 'single') {
             $failure_tc_count_in_ts = 0;
-            $total_tc_count_in_ts   = 0;
+            $total_tc_count_in_ts = 0;
             if ($DEBUG_MODE) {
                 record_info("Debug", "Hypervisor params: " . $arg . "\nTest mode: " . $mode . "\nTestCase:" . $single . "\n", result => 'ok');
             }
@@ -523,7 +519,7 @@ sub guest_cycle {
                     record_info("Debug", "DomU kernel params for test: " . $key . "\n", result => 'ok');
                 }
                 # Calculate test case count
-                $total_tc_count       += 1;
+                $total_tc_count += 1;
                 $total_tc_count_in_ts += 1;
                 my $testcase_status = "pass";
 
@@ -534,20 +530,20 @@ sub guest_cycle {
                     $failure_tc_count_in_ts += 1;
                     $total_failure_tc_count += 1;
                     insert_tc2_xml(file_name => "$junit_file",
-                        class_name  => "$key",
+                        class_name => "$key",
                         case_status => "$testcase_status",
-                        sys_output  => "$match_type:" . "$match_value",
-                        sys_err     => "Actual:" . "$actual_output");
+                        sys_output => "$match_type:" . "$match_value",
+                        sys_err => "Actual:" . "$actual_output");
                 } else {
                     insert_tc2_xml(file_name => "$junit_file",
-                        class_name  => "$key",
+                        class_name => "$key",
                         case_status => "$testcase_status");
                 }
                 update_ts_attr(file_name => "$junit_file", attr => 'failures', value => $failure_tc_count_in_ts);
-                update_ts_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count_in_ts);
+                update_ts_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count_in_ts);
                 # update testsuites info
                 update_tss_attr(file_name => "$junit_file", attr => 'failures', value => $total_failure_tc_count);
-                update_tss_attr(file_name => "$junit_file", attr => 'tests',    value => $total_tc_count);
+                update_tss_attr(file_name => "$junit_file", attr => 'tests', value => $total_tc_count);
                 # upload junit file for each case to avoid missing all result once test causes host hang.
                 parse_junit_log("$junit_file");
             }
@@ -569,9 +565,9 @@ sub do_test {
     if (!check_var('TEST', 'MITIGATIONS') && !check_var('TEST', 'KVM_GUEST_MITIGATIONS')) {
         #If it is qemu vm and didn't passthrough cpu flags
         #Meltdown doesn't matter CPU flags
-        if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && check_var('BACKEND', 'qemu') && !(get_var('TEST') =~ /MELTDOWN/)) {
+        if (get_var('MACHINE') =~ /^qemu-.*-NO-IBRS$/ && is_qemu && !(get_var('TEST') =~ /MELTDOWN/)) {
             record_info('NO-IBRS machine', "This is a QEMU VM and didn't passthrough CPU flags.");
-            record_info('INFO',            "Check status of mitigations as like OFF.");
+            record_info('INFO', "Check status of mitigations as like OFF.");
             $self->check_sysfs("off");
             return;
         }
@@ -599,7 +595,7 @@ sub do_test {
 sub init_xml {
     my %args = (
         testsuites_name => 'ts',
-        file_name       => '/tmp/junit.xml'
+        file_name => '/tmp/junit.xml'
     );
     %args = @_;
     my $xml_content = << "EOF";
@@ -613,7 +609,7 @@ EOF
 sub append_ts2_xml {
     my %args = (
         testsuite_name => 'ts',
-        file_name      => '/tmp/junit.xml'
+        file_name => '/tmp/junit.xml'
     );
     %args = @_;
     my $cmd_append_ts2_xml = << "EOF";
@@ -636,8 +632,8 @@ EOF
 sub update_tss_attr {
     my %args = (
         file_name => "/tmp/junit.xml",
-        attr      => 0,
-        value     => 0
+        attr => 0,
+        value => 0
     );
     %args = @_;
     my $cmd_update_tss_attr = << "EOF";
@@ -649,10 +645,10 @@ EOF
 # update testsuite atturate
 sub update_ts_attr {
     my %args = (
-        file_name   => "/tmp/junit.xml",
+        file_name => "/tmp/junit.xml",
         ts_position => -1,
-        attr        => 0,
-        value       => 0
+        attr => 0,
+        value => 0
     );
     %args = @_;
     my $cmd_update_ts_attr = << "EOF";
@@ -664,11 +660,11 @@ EOF
 # Insert one test case to existing junit file
 sub insert_tc2_xml {
     my %args = (
-        file_name   => "/tmp/junit.xml",
-        class_name  => '',
+        file_name => "/tmp/junit.xml",
+        class_name => '',
         case_status => 'pass',
-        sys_output  => '',
-        sys_err     => ''
+        sys_output => '',
+        sys_err => ''
     );
     %args = @_;
     my $cmd_insert_tc2_xml = << "EOF";

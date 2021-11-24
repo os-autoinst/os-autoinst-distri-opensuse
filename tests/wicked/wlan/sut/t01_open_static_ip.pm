@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Test WiFi setup with wicked (Open static IP)
 # - WiFi Access point:
@@ -23,7 +19,7 @@ use Mojo::Base 'wicked::wlan';
 use testapi;
 
 has use_dhcp => 0;
-has ssid     => 'Open Virutal WiFi StaticIP';
+has ssid => 'Open Virutal WiFi StaticIP';
 
 has hostapd_conf => q(
     ctrl_interface=/var/run/hostapd

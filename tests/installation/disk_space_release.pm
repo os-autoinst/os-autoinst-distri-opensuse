@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Warning for migrations with low disk space
 #
@@ -31,9 +27,9 @@ sub run {
     my $required = script_output 'grep -Eo "needs [0-9]+\.?[0-9]* [MG]iB more disk space." /var/log/YaST2/y2log | tail -1';
     if ($required =~ /([0-9]+\.?[0-9]*) ([MG])iB/) {
         my ($req_size, $req_unit) = ($1, $2);
-        if    ($req_unit eq 'M') { }
+        if ($req_unit eq 'M') { }
         elsif ($req_unit eq 'G') { $req_size *= 1024 }
-        else                     { die "Unexpected value of req_unit: $req_unit" }
+        else { die "Unexpected value of req_unit: $req_unit" }
 
         assert_script_run "rm /mnt/FILL_DISK_SPACE";
         assert_script_run "btrfs fi sync /mnt";

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic journal tests
 # Maintainer: qa-c team <qa-c@suse.de>
@@ -18,7 +14,7 @@ use version_utils 'is_opensuse';
 use Mojo::JSON qw(decode_json);
 
 sub parse_bug_refs {
-    my $bug_file       = sprintf("%s/data/journal_check/bug_refs.json", get_var('CASEDIR'));
+    my $bug_file = sprintf("%s/data/journal_check/bug_refs.json", get_var('CASEDIR'));
     my $tested_product = get_required_var('DISTRI');
     my $tested_version = get_required_var('VERSION');
     my %bp;
@@ -51,12 +47,12 @@ sub parse_bug_refs {
 }
 
 sub run {
-    my $self        = shift;
+    my $self = shift;
     my $bug_pattern = parse_bug_refs();
 
     $self->select_serial_terminal;
 
-    my @journal_output = split(/\n/, script_output("journalctl --no-pager -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise | tail -n +2"));
+    my @journal_output = split(/\n/, script_output("journalctl --no-pager --quiet -p ${\get_var('JOURNAL_LOG_LEVEL', 'err')} -o short-precise"));
 
     # Find lines which matches to the pattern_bug
     foreach my $bug (keys %$bug_pattern) {

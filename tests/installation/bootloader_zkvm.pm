@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Interface with the zKVM bootloader based on test settings
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
@@ -27,9 +23,9 @@ sub set_svirt_domain_elements {
     my ($svirt) = shift;
 
     if (!get_var('BOOT_HDD_IMAGE') or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
-        my $repo    = "$utils::OPENQA_FTP_URL/" . get_required_var('REPO_0');
+        my $repo = "$utils::OPENQA_FTP_URL/" . get_required_var('REPO_0');
         my $cmdline = get_var('VIRSH_CMDLINE') . " install=$repo ";
-        my $name    = $svirt->name;
+        my $name = $svirt->name;
 
         $cmdline .= remote_install_bootmenu_params;
 
@@ -45,8 +41,8 @@ sub set_svirt_domain_elements {
         $cmdline .= specific_bootmenu_params;
         $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation');
 
-        $svirt->change_domain_element(os => initrd  => "$zkvm_img_path/$name.initrd");
-        $svirt->change_domain_element(os => kernel  => "$zkvm_img_path/$name.kernel");
+        $svirt->change_domain_element(os => initrd => "$zkvm_img_path/$name.initrd");
+        $svirt->change_domain_element(os => kernel => "$zkvm_img_path/$name.kernel");
         $svirt->change_domain_element(os => cmdline => $cmdline);
 
         # show this on screen and make sure that kernel and initrd are actually saved
@@ -67,9 +63,9 @@ sub set_svirt_domain_elements {
 sub run {
     my $svirt = select_console('svirt', await_console => 0);
 
-    record_info('free -h',              $svirt->get_cmd_output('free -h'));
+    record_info('free -h', $svirt->get_cmd_output('free -h'));
     record_info('virsh freecell --all', $svirt->get_cmd_output('virsh freecell --all'));
-    record_info('virsh domstats',       $svirt->get_cmd_output('virsh domstats'));
+    record_info('virsh domstats', $svirt->get_cmd_output('virsh domstats'));
     set_svirt_domain_elements $svirt;
     zkvm_add_disk $svirt;
     zkvm_add_pty $svirt;

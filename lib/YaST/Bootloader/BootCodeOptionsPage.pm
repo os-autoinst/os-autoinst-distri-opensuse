@@ -1,46 +1,37 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
-# Summary: The class introduces all accessing methods for Bootloader
+# Summary: The class introduces all accessing methods for Boot Code Options tab
+# in Boot Loader Settings.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package YaST::Bootloader::BootCodeOptionsPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
-sub new {
-    my ($class, $args) = @_;
-    my $self = bless {
-        app => $args->{app}
-    }, $class;
-    return $self->init();
-}
-
 sub init {
     my ($self) = @_;
-    $self->{cmb_bootloader}        = $self->{app}->combobox({id => '"Bootloader::LoaderTypeWidget"'});
+    $self->SUPER::init();
+    $self->{cmb_bootloader} = $self->{app}->combobox({id => "\"Bootloader::LoaderTypeWidget\""});
     $self->{cb_write_to_partition} = $self->{app}->checkbox({id => 'boot'});
-    $self->{cb_bootdev}            = $self->{app}->checkbox({id => 'mbr'});
-    $self->{cb_custom_boot}        = $self->{app}->checkbox({id => 'custom'});
-    $self->{cmb_mbr_flag}          = $self->{app}->combobox({id => '"Bootloader::PMBRWidget"'});
-    $self->{cb_trusted_boot}       = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
-    $self->{cb_generic_to_mbr}     = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
-    $self->{cb_set_active_flag}    = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
-    $self->{tb_boot_options}       = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
-    $self->{btn_ok}                = $self->{app}->button({id => 'next'});
-    $self->{btn_cancel}            = $self->{app}->button({id => 'abort'});
+    $self->{cb_bootdev} = $self->{app}->checkbox({id => 'mbr'});
+    $self->{cb_custom_boot} = $self->{app}->checkbox({id => 'custom'});
+    $self->{cmb_mbr_flag} = $self->{app}->combobox({id => '"Bootloader::PMBRWidget"'});
+    $self->{cb_trusted_boot} = $self->{app}->checkbox({id => '"Bootloader::TrustedBootWidget"'});
+    $self->{cb_generic_to_mbr} = $self->{app}->checkbox({id => '"Bootloader::GenericMBRWidget"'});
+    $self->{cb_set_active_flag} = $self->{app}->checkbox({id => '"Bootloader::ActivateWidget"'});
+    $self->{tab_boot_loader_settings} = $self->{app}->tab({id => '"CWM::DumbTabPager"'});
+    $self->{btn_ok} = $self->{app}->button({id => 'next'});
+    $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{tb_boot_options}->selected_tab();
+    return $self->{cmb_bootloader}->exist();
 }
 
 sub get_bootloader_type {
@@ -98,14 +89,14 @@ sub uncheck_write_to_mbr {
     $self->{cb_bootdev}->uncheck();
 }
 
-sub press_ok {
+sub switch_to_bootloader_options_tab {
     my ($self) = @_;
-    return $self->{btn_ok}->click();
+    $self->{tab_boot_loader_settings}->select('Bootloader Options');
 }
 
-sub press_cancel {
+sub switch_to_kernel_parameters_tab {
     my ($self) = @_;
-    return $self->{btn_cancel}->click();
+    $self->{tab_boot_loader_settings}->select('Kernel Parameters');
 }
 
 1;

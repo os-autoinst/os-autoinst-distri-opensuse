@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Make sure the nproc limits are not set in limits.conf
 # Maintainer: llzhao <llzhao@suse.com>
@@ -30,7 +18,7 @@ sub run {
 
     # Check the limits.conf config file
     my $limits_d = script_output('find /etc/security/limits.d/ -name *.conf -exec echo -n "{} " \;');
-    my $out      = script_output("awk '!/^\$/ && !/^\\s*#/ {print \$3}' /etc/security/limits.conf $limits_d");
+    my $out = script_output("awk '!/^\$/ && !/^\\s*#/ {print \$3}' /etc/security/limits.conf $limits_d");
     die("Failed: nproc limits have been set") if $out =~ m/nproc/;
 
     # Set systemd config file and check with ulimit command
@@ -41,7 +29,7 @@ sub run {
     $self->wait_boot;
     $self->select_serial_terminal;
 
-    validate_script_output "ulimit -u",    sub { m/unlimited/ };    # soft limit
+    validate_script_output "ulimit -u", sub { m/unlimited/ };    # soft limit
     validate_script_output "ulimit -u -H", sub { m/unlimited/ };    # hard limit
 }
 

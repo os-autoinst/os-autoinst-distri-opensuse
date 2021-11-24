@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: split the partitioning monster into smaller pieces
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
@@ -29,10 +25,10 @@ sub rescan_devices {
     send_key 'down' for (1 .. 2);
     send_key 'ret';
     assert_screen 'expert-partitioner';
-    send_key $cmd{rescandevices};              # Rescan devices
+    send_key $cmd{rescandevices};    # Rescan devices
     assert_screen 'rescan-devices-warning';    # Confirm rescan
     send_key 'alt-y';
-    wait_still_screen;                         # Wait until rescan is done
+    wait_still_screen;    # Wait until rescan is done
 }
 
 # add a new primary partition
@@ -41,12 +37,12 @@ sub addpart {
     my ($part) = @_;
     my $size = 0;
 
-    if    ($part eq 'boot')      { $size = 300; }
-    elsif ($part eq 'boot-efi')  { $size = 300; }
-    elsif ($part eq 'root')      { $size = 8000; }
-    elsif ($part eq 'swap')      { $size = 100; }
+    if ($part eq 'boot') { $size = 300; }
+    elsif ($part eq 'boot-efi') { $size = 300; }
+    elsif ($part eq 'root') { $size = 8000; }
+    elsif ($part eq 'swap') { $size = 100; }
     elsif ($part eq 'bios-boot') { $size = 2; }
-    else                         { die 'Unknown argument'; }
+    else { die 'Unknown argument'; }
 
     assert_screen "expert-partitioner";
     switch_partitions_tab if (is_storage_ng_newui);
@@ -132,16 +128,16 @@ sub addraid {
 sub setraidlevel {
     my ($level) = @_;
     my %entry = (
-        0  => 0,
-        1  => 1,
-        5  => 5,
-        6  => 6,
+        0 => 0,
+        1 => 1,
+        5 => 5,
+        6 => 6,
         10 => 'g'
     );
     wait_screen_change { send_key "alt-$entry{$level}"; };
 
     wait_screen_change { send_key "alt-i"; };    # move to RAID name input field
-    wait_screen_change { send_key "tab"; };      # skip RAID name input field
+    wait_screen_change { send_key "tab"; };    # skip RAID name input field
 }
 
 sub set_lvm {
@@ -349,7 +345,7 @@ sub add_partitions {
 
     my @devices = qw(vda vdb vdc vdd);
     @devices = qw(xvdb xvdc xvdd xvde) if check_var('VIRSH_VMM_FAMILY', 'xen');
-    @devices = qw(sda sdb sdc sdd)     if check_var('VIRSH_VMM_FAMILY', 'hyperv');
+    @devices = qw(sda sdb sdc sdd) if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     for (@devices) {
         send_key_until_needlematch "partitioning_raid-disk_$_-selected", "down";
         # storage-ng requires bios boot partition if not UEFI and not OFW
@@ -449,8 +445,8 @@ sub add_raid_swap {
     send_key_until_needlematch 'partitioning_raid-swap_format-selected', 'down';
     send_key(is_storage_ng() ? $cmd{next} : $cmd{finish});
     my %needle_raid_swap_added_suffixes = (
-        lvm      => '-lvm',
-        uefi     => '',
+        lvm => '-lvm',
+        uefi => '',
         lvm_uefi => '-lvm-UEFI'
     );
     my $needle_suffix = '';
@@ -519,9 +515,9 @@ sub enter_partitioning {
         assert_screen 'custompart_option-selected';
         send_key $cmd{next};
     }
-    assert_screen 'custompart';                               # verify available storage
+    assert_screen 'custompart';    # verify available storage
     send_key "tab";
-    assert_screen 'custompart_systemview-selected';           # select system (hostname) on System View
+    assert_screen 'custompart_systemview-selected';    # select system (hostname) on System View
     send_key "down";
     assert_screen 'partitioning_raid-hard_disks-selected';    # select Hard Disks on System View
 }

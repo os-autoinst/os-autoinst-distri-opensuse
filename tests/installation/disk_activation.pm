@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: s390x disk activation test
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
@@ -87,13 +83,13 @@ sub run {
             assert_screen 'dasd-selected';
             send_key 'alt-a';    # perform action button
             assert_screen 'action-list';
-            send_key 'a';        # activate
+            send_key 'a';    # activate
         }
 
         # sometimes it happens, that the DASD is in a unstable state, so
         # if the systems wants to format the DASD by itself, do it.
         if (check_screen 'dasd-format-device', 10) {    # format device pop-up
-            send_key 'alt-o';                           # continue
+            send_key 'alt-o';    # continue
             format_dasd;
         }
 
@@ -101,7 +97,7 @@ sub run {
         elsif (check_var('FORMAT_DASD', 'install')) {
             send_key 'alt-s' unless (is_sle('=11-sp4'));    # select all
             assert_screen 'dasd-selected';
-            send_key 'alt-a';                               # perform action button
+            send_key 'alt-a';    # perform action button
             if (check_screen 'dasd-device-formatted', 30) {
                 assert_screen 'action-list';
                 # shortcut changed for sle 15

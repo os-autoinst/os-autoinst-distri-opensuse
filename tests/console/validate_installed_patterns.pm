@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate installed patterns in the SUT
 # - Reads test data with expectations for patterns
@@ -22,7 +18,7 @@ use repo_tools 'get_installed_patterns';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data         = get_test_suite_data();
+    my $test_data = get_test_suite_data();
     my @expected_patterns = @{$test_data->{software}->{patterns}};
 
     select_console 'root-console';

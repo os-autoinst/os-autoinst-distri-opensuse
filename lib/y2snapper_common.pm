@@ -26,12 +26,12 @@ sub y2snapper_select_current_conf {
         send_key_until_needlematch 'yast2_snapper-current_configuration_root', 'tab';
         send_key 'down';    # Expand test configuration selection box
         send_key 'down';    # Select test configuration
-        send_key 'ret';     # Apply selection
+        send_key 'ret';    # Apply selection
         send_key 'tab';
     }
     else {
         send_key 'shift-tab';    # Focus Current Configuration selection box
-        send_key 'down';         # Select test configuration
+        send_key 'down';    # Select test configuration
     }
 }
 
@@ -227,7 +227,7 @@ sub y2snapper_failure_analysis {
     my ($self) = @_;
     # snapper actions can put the system under quite some load so we want to
     # give some more time, e.g. for login in the consoles
-    my $factor                 = 30;
+    my $factor = 30;
     my $previous_timeout_scale = get_var('TIMEOUT_SCALE', 1);
     set_var('TIMEOUT_SCALE', $previous_timeout_scale * $factor);
     select_console('log-console', await_console => 0);

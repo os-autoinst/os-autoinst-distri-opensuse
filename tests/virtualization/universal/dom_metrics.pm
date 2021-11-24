@@ -1,17 +1,5 @@
-# Copyright (C) 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: xen-tools openssh
 # Summary: Obtain the dom0 metrics
@@ -28,7 +16,7 @@ sub run {
     assert_script_run 'vhostmd';
 
     foreach my $guest (keys %virt_autotest::common::guests) {
-        record_info "$guest",                                                     "Obtaining dom0 metrics on xl-$guest";
+        record_info "$guest", "Obtaining dom0 metrics on xl-$guest";
         assert_script_run "xl block-attach xl-$guest /dev/shm/vhostmd0,,xvdc,ro", 180;
         assert_script_run "ssh root\@$guest 'vm-dump-metrics' | grep 'SUSE LLC'";
         assert_script_run "xl block-detach xl-$guest xvdc";

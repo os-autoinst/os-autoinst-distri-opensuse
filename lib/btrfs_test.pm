@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package btrfs_test;
 use base 'consoletest';
@@ -75,7 +71,7 @@ sub snapper_nodbus_restore {
     if (script_run('systemctl is-active dbus')) {
         script_run('systemctl default', 0);
         my $tty = get_root_console_tty;
-        assert_screen "tty$tty-selected", 60;
+        assert_screen "tty$tty-selected", 300;
         reset_consoles;
         select_console 'root-console';
     }

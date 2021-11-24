@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 package qa_run;
 # Summary: base class for qa_automation tests in openQA
@@ -28,15 +24,15 @@ sub test_run_list {
 
 sub system_status {
     my $self = shift;
-    my $log  = shift || "/tmp/system-status.log";
+    my $log = shift || "/tmp/system-status.log";
     my @klst = ("kernel", "cpuinfo", "memory", "iptables", "repos", "dmesg", "journalctl");
     my %cmds = (
-        kernel     => "uname -a",
-        cpuinfo    => "cat /proc/cpuinfo",
-        memory     => "free -m",
-        iptables   => "iptables -L -n --line-numbers",
-        repos      => "zypper repos -u",
-        dmesg      => "dmesg",
+        kernel => "uname -a",
+        cpuinfo => "cat /proc/cpuinfo",
+        memory => "free -m",
+        iptables => "iptables -L -n --line-numbers",
+        repos => "zypper repos -u",
+        dmesg => "dmesg",
         journalctl => "journalctl -xn 100 -o short-precise"
     );
     foreach my $key (@klst) {
@@ -84,9 +80,9 @@ sub qaset_config {
 # Add qa head repo for kernel testing. If QA_SERVER_REPO is set,
 # remove all existing zypper repos first
 sub prepare_repos {
-    my $self           = shift;
+    my $self = shift;
     my $qa_server_repo = get_var('QA_SERVER_REPO', '');
-    my $qa_sdk_repo    = get_var('QA_SDK_REPO',    '');
+    my $qa_sdk_repo = get_var('QA_SDK_REPO', '');
     quit_packagekit;
     if ($qa_server_repo) {
         # Remove all existing repos and add QA_SERVER_REPO
@@ -99,29 +95,32 @@ sub prepare_repos {
 
     add_qa_head_repo;
     add_qa_web_repo;
-    add_suseconnect_product('sle-module-python2') if is_sle('>15') && get_var('FLAVOR') !~ /-Updates$|-Incidents/;
-    zypper_call("in qa_testset_automation qa_tools python-base python-xml");
+    add_suseconnect_product('sle-module-python2') if is_sle('>15') && is_sle('<15-sp4') && get_var('FLAVOR') !~ /-Updates$|-Incidents/;
+    my $python_packages = is_sle('<15-sp4') ? 'python-base python-xml' : '';
+    zypper_call("in qa_testset_automation qa_tools ${python_packages}");
 }
 
 # Create qaset/config file, reset qaset, and start testrun
 sub start_testrun {
     my $self = shift;
     $self->qaset_config();
+    # workaround dashboard query https://sd.suse.com/servicedesk/customer/portal/1/SD-62274
+    assert_script_run('rm /usr/share/qa/qaset/libs/msg_queue.sh');
     assert_script_run("/usr/share/qa/qaset/qaset reset");
     assert_script_run("/usr/share/qa/qaset/run/kernel-all-run.openqa");
 }
 
 # Check whether DONE file exists every $sleep secs in the background
 sub wait_testrun {
-    my $self    = shift;
-    my %args    = @_;
+    my $self = shift;
+    my %args = @_;
     my $timeout = $args{timeout} || 180 * 60;
-    my $sleep   = $args{sleep}   || 30;
-    my $fdone   = '/var/log/qaset/control/DONE';
+    my $sleep = $args{sleep} || 30;
+    my $fdone = '/var/log/qaset/control/DONE';
     my $pattern = "TESTRUN_FINISHED";
-    my $code    = int(rand(999999));
-    my $redir   = (is_serial_terminal) ? "" : " >> /dev/$serialdev";
-    my $cmd     = "code=$code; while [[ ! -f $fdone ]]; do sleep $sleep; done; echo \"$pattern-\$code\" $redir";
+    my $code = int(rand(999999));
+    my $redir = (is_serial_terminal) ? "" : " >> /dev/$serialdev";
+    my $cmd = "code=$code; while [[ ! -f $fdone ]]; do sleep $sleep; done; echo \"$pattern-\$code\" $redir";
     enter_cmd("bash -c '$cmd' &");
     # Set a high timeout value for wait_serial
     # so that it will wait until test run finished or
@@ -143,7 +142,7 @@ sub run {
     $self->prepare_repos();
 
     $self->start_testrun();
-    my $testrun_finished = $self->wait_testrun(timeout => 180 * 60);
+    my $testrun_finished = $self->wait_testrun(timeout => 70 * 60);
 
     # Upload test logs
     my $tarball = "/tmp/qaset.tar.bz2";
@@ -153,8 +152,10 @@ sub run {
     upload_logs($log, timeout => 100);
 
     # JUnit xml report
-    assert_script_run("/usr/share/qa/qaset/bin/junit_xml_gen.py -n 'regression' -d -o /tmp/junit.xml /var/log/qaset");
-    parse_junit_log("/tmp/junit.xml");
+    if (is_sle('<15-sp4')) {
+        assert_script_run("/usr/share/qa/qaset/bin/junit_xml_gen.py -n 'regression' -d -o /tmp/junit.xml /var/log/qaset");
+        parse_junit_log("/tmp/junit.xml");
+    }
 
     unless ($testrun_finished) {
         die "Test run didn't finish within time limit";

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Public cloud utilities
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
@@ -22,7 +18,7 @@ use utils;
 use version_utils;
 use publiccloud::ssh_interactive;
 
-our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
+our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce is_ec2_arm);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -72,6 +68,11 @@ sub is_ondemand() {
 # Check if we are on an AWS test run
 sub is_ec2() {
     return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+}
+
+# Check if we are on an AWS test run and VM running on the host with ARM architecture
+sub is_ec2_arm() {
+    return is_ec2() && get_var('FLAVOR') =~ 'ARM';
 }
 
 # Check if we are on an Azure test run

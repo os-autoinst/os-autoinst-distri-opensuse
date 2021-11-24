@@ -1,0 +1,13 @@
+name: cc_audit_tests
+description:    >
+    This is for cc audit tests in single node
+schedule:
+    - boot/boot_to_desktop
+    - security/cc/cc_audit_test_setup
+    - security/cc/filter
+    - security/cc/syscalls
+    - security/cc/polkit_tests
+    - security/cc/audit_trail_protection
+    - security/cc/trustedprograms
+    - security/selinux/selinux_setup
+    - security/cc/libpam

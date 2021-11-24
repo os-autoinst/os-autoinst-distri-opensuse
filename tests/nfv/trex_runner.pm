@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Trex traffic generator runner
 #
@@ -13,6 +9,7 @@
 
 use base "opensusebasetest";
 use testapi;
+use Utils::Backends;
 use strict;
 use warnings;
 use utils;
@@ -26,7 +23,7 @@ sub run {
 
     record_info("INFO", "Start TREX in background");
     script_run("cd /tmp/trex-core");
-    enter_cmd("nohup bash /tmp/trex-core/t-rex-64 -i &") if (check_var('BACKEND', 'ipmi'));
+    enter_cmd("nohup bash /tmp/trex-core/t-rex-64 -i &") if (is_ipmi);
 
     record_info("INFO", "Wait for NFV tests to be completed. Waiting for Mutex NFV_TESTING_DONE");
     mutex_wait('NFV_TESTING_DONE');

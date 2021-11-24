@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: upload svirt assets
 # Maintainer: Michal Nowak <mnowak@suse.com>
@@ -19,11 +15,11 @@ use version_utils 'is_vmware';
 sub extract_assets {
     my ($args) = @_;
 
-    my $name   = $args->{name};
+    my $name = $args->{name};
     my $format = $args->{format};
 
     enter_cmd("clear");
-    my $image_storage  = '/var/lib/libvirt/images';
+    my $image_storage = '/var/lib/libvirt/images';
     my $svirt_img_name = $image_storage . '/' . $args->{svirt_name} . '.img';
     enter_cmd("test -e $svirt_img_name && echo 'OK'");
     assert_screen('svirt-asset-upload-hdd-image-exists');

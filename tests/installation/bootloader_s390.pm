@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Start the installation process on s390x zVM using the z3270
 #   terminal and an ssh connection
@@ -90,7 +86,7 @@ sub prepare_parmfile {
     my $instsrc = get_var('INSTALL_SOURCE', 'ftp') . '://' . get_var('REPO_HOST', 'openqa') . '/';
     if (check_var('INSTALL_SOURCE', 'smb')) {
         $instsrc .= "inst/" . $repo;
-        $params  .= " info=" . create_infofile("install: $instsrc");
+        $params .= " info=" . create_infofile("install: $instsrc");
     }
     else {
         $params .= " install=" . $instsrc . $repo . " ";
@@ -119,17 +115,17 @@ sub prepare_parmfile {
 }
 
 sub get_to_yast {
-    my $self  = shift;
+    my $self = shift;
     my $s3270 = console('x3270');
 
     my $r;
 
     # qaboot
     my $dir_with_suse_ins = get_var('REPO_UPGRADE_BASE_0') ? get_required_var('REPO_UPGRADE_BASE_0') : get_required_var('REPO_0');
-    my $repo_host         = get_var('REPO_HOST', 'openqa.suse.de');
+    my $repo_host = get_var('REPO_HOST', 'openqa.suse.de');
 
     my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
-    my $sequence                = <<"EO_frickin_boot_parms";
+    my $sequence = <<"EO_frickin_boot_parms";
 ${parmfile_with_Newline_s}
 ENTER
 ENTER
@@ -180,7 +176,7 @@ EO_frickin_boot_parms
     # linuxrc
     $r = $s3270->expect_3270(
         output_delim => qr/Loading Installation System/,
-        timeout      => 300
+        timeout => 300
     ) || die "Installation system was not found";
 
     # set up display_mode for textinstall
@@ -198,12 +194,12 @@ EO_frickin_boot_parms
 
     my $output_delim
       = $display_type eq "SSH" || $display_type eq "SSH-X" ? qr/\Q***  run 'yast.ssh' to start the installation  ***\E/
-      : $display_type eq "VNC"                             ? qr/\Q*** Starting YaST2 ***\E/
-      :                                                      die "unknown vars.json:DISPLAY->TYPE <$display_type>";
+      : $display_type eq "VNC" ? qr/\Q*** Starting YaST2 ***\E/
+      : die "unknown vars.json:DISPLAY->TYPE <$display_type>";
 
     $r = $s3270->expect_3270(
         output_delim => $output_delim,
-        timeout      => 300
+        timeout => 300
     ) || die "Loading Installation system tooks too long";
 
 }
@@ -218,7 +214,7 @@ sub show_debug {
 }
 
 sub create_encrypted_part_dasd {
-    my $self      = shift;
+    my $self = shift;
     my $dasd_path = get_var('DASD_PATH', '0.0.0150');
     # activate install-shell to do pre-install dasd-format
     select_console('install-shell');
@@ -310,7 +306,7 @@ sub run {
     }
 
     # format DASD before installation by default
-    format_dasd                if (check_var('FORMAT_DASD', 'pre_install'));
+    format_dasd if (check_var('FORMAT_DASD', 'pre_install'));
     create_encrypted_part_dasd if get_var('ENCRYPT_ACTIVATE_EXISTING');
 
     select_console("installation");
@@ -345,7 +341,7 @@ sub post_fail_hook {
 
         $r = $s3270->expect_3270(
             output_delim => qr/LINUXRC_LOG_SAVED/,
-            timeout      => 60
+            timeout => 60
         );
         $r ? record_info 'Logs collected', 'Linuxrc logs can be found in autoinst-log.txt' : die "Could not save linuxrc logs";
 
@@ -355,7 +351,7 @@ sub post_fail_hook {
 
         $r = $s3270->expect_3270(
             output_delim => qr/WICKED_LOG_SAVED/,
-            timeout      => 60
+            timeout => 60
         );
         $r ? record_info 'Logs collected', 'wickedd logs can be found in autoinst-log.txt' : die "Could not save wicked logs";
     }

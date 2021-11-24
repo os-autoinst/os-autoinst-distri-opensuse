@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: docker-compose
 # Summary: Test docker-compose installation
@@ -18,27 +14,23 @@
 #      * Single commands can be executed inside of running container
 #      * Exposed ports are accessible from outside of a container
 #      * Logs can be retrieved
-# Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>, Pavel Dostal <pdostal@suse.cz>
+# Maintainer: qac team <qa-c@suse.de>
 
 
-use base "consoletest";
+use Mojo::Base 'containers::basetest';
 use testapi;
 use registration;
 use utils;
-use version_utils qw(is_sle get_os_release);
+use version_utils qw(is_sle);
 use containers::common;
 use publiccloud::utils 'is_ondemand';
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
+    my $docker = $self->containers_factory('docker');
 
-    my ($running_version, $sp, $host_distri) = get_os_release;
-
-    install_docker_when_needed($host_distri);
-    add_suseconnect_product(get_addon_fullname('phub'))    if is_sle();
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
 
     record_info 'Test #1', 'Test: Installation';
@@ -59,7 +51,6 @@ sub run {
     assert_script_run("curl -O " . data_url("containers/docker-compose.yml"));
     assert_script_run("curl -O " . data_url("containers/haproxy.cfg"));
 
-    allow_selected_insecure_registries(runtime => 'docker');
     file_content_replace("docker-compose.yml", REGISTRY => get_var('REGISTRY', 'docker.io'));
     assert_script_run 'docker-compose pull', 600;
 
@@ -85,9 +76,9 @@ sub run {
     assert_script_run 'cd';
 
     # De-registration is disabled for on-demand instances
-    remove_suseconnect_product(get_addon_fullname('phub'))    if (is_sle()          && !is_ondemand());
+    remove_suseconnect_product(get_addon_fullname('phub')) if (is_sle() && !is_ondemand());
     remove_suseconnect_product(get_addon_fullname('python2')) if (is_sle('=15-sp1') && !is_ondemand());
-    clean_container_host(runtime => 'docker');
+    $docker->cleanup_system_host();
 }
 
 sub post_fail_hook {

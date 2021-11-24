@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Boot and install Windows server 2019
 # Maintainer: mmartins <mmartins@suse.com>
@@ -34,7 +30,7 @@ sub run {
     send_key 'alt-b';    # browse button
     send_key 'c';
     save_screenshot;
-    send_key 'c';        # go to second CD drive with drivers
+    send_key 'c';    # go to second CD drive with drivers
     send_key 'right';    # choose win2019 INF files
     sleep 0.5;
     send_key 'down';

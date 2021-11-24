@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Installer for test scripts running inside the tested virtual machine
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
@@ -21,7 +17,7 @@ use Mojo::File 'path';
 sub run {
     my ($self, $tinfo) = @_;
     my $podlist = $tinfo->test;
-    my $path    = get_required_var('CASEDIR') . '/tests';
+    my $path = get_required_var('CASEDIR') . '/tests';
 
     die "Pod list not provided" unless $podlist;
 
@@ -62,7 +58,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1
     };
 }

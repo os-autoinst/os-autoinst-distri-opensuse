@@ -1,17 +1,5 @@
-# Copyright (C) 2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: The openldap_to_ds tool will attempt to automatically migrate
 # custom schema, backens, some overlays from openldap to 389ds.
@@ -37,8 +25,15 @@ sub run {
     zypper_call("in 389-ds sssd sssd-tools");
     zypper_call('info 389-ds');
     # Install openldap since we need use slaptest tools
-    add_suseconnect_product('sle-module-legacy') if is_sle;
-    zypper_call("in openldap2 sssd-ldap openldap2-client");
+    if (is_sle) {
+        my $openldap = get_required_var("OPENLDAP_PKG");
+        assert_script_run('wget ' . $openldap, 200);
+        my @ldap = split('/', $openldap);
+        assert_script_run 'rpm -i ' . $ldap[-1];
+    } else {
+        zypper_call("in openldap2");
+    }
+    zypper_call("in sssd-ldap openldap2-client");
 
     # Disable and stop the nscd daemon because it conflicts with sssd
     disable_and_stop_service("nscd");
@@ -73,12 +68,19 @@ sub run {
     assert_script_run "sed -i 's/^root_password.*/root_password = $password/' ./instance.inf";
     assert_script_run "mkdir slapd.d";
     assert_script_run("dscreate from-file ./instance.inf", timeout => 180);
+    assert_script_run("echo '127.0.0.1    susetest' >> /etc/hosts");
     assert_script_run "dsctl localhost status";
     assert_script_run "slaptest -f slapd.conf -F ./slapd.d";
 
     # Check migration tools
     assert_script_run "openldap_to_ds --confirm localhost ./slapd.d ./db.ldif";
     assert_script_run "ldapmodify -H ldap://localhost -x -D 'cn=Directory Manager' -w $password -f aci.ldif";
+
+    # Check refint and unique plugins status
+    my $out = script_output "dsconf localhost plugin attr-uniq list";
+    my @cn = split('\n', $out);
+    validate_script_output("dsconf localhost plugin attr-uniq show $cn[-1]", sub { m/nsslapd-pluginEnabled: on/ });
+    validate_script_output("dsconf localhost plugin referential-integrity show", sub { m/nsslapd-pluginEnabled: on/ });
 
     # Manual fix memberof plugin
     assert_script_run "dsconf localhost plugin memberof show";
@@ -99,7 +101,7 @@ sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
     $self->tar_and_upload_log('/var/log/dirsrv', '/tmp/ds389.tar.bz2');
-    $self->tar_and_upload_log('/var/log/sssd',   '/tmp/sssd.tar.bz2');
+    $self->tar_and_upload_log('/var/log/sssd', '/tmp/sssd.tar.bz2');
     $self->SUPER::post_fail_hook;
 }
 

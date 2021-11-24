@@ -1,17 +1,5 @@
-# Copyright (C) 2020-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# audit2allow" command with options
 #          "-a / -i / -w / -R / -M / -r" can work
@@ -27,19 +15,20 @@ use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 
 sub run {
-    my $testfile        = "test_file";
-    my $test_module     = "test_module";
-    my $original_audit  = "/var/log/audit/audit.log";
-    my $audit_log       = "/var/log/audit/audit.txt";
+    my ($self) = @_;
+    my $testfile = "test_file";
+    my $test_module = "test_module";
+    my $original_audit = "/var/log/audit/audit.log";
+    my $audit_log = "/var/log/audit/audit.txt";
     my $audit_log_short = "/var/log/audit/audit.short.txt";
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     assert_script_run("systemctl restart auditd");
 
     # read input from logs and translate to why
     assert_script_run("cp $original_audit $audit_log");
-    validate_script_output("audit2allow -a",            sub { m/allow\ .*_t\ .*;.*/sx });
+    validate_script_output("audit2allow -a", sub { m/allow\ .*_t\ .*;.*/sx });
     validate_script_output("audit2allow -i $audit_log", sub { m/allow\ .*_t\ .*;.*/sx });
     assert_script_run("tail -n 500 $audit_log > $audit_log_short");
     validate_script_output(

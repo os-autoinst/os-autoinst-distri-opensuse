@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-network
 # Summary: yast2_network_settings.pm checks Global options, Overview, Hostname/DNS, Routing
@@ -26,12 +22,12 @@ sub run {
 
     # keyboard shorcuts
     $cmd{global_options_tab} = 'alt-g';
-    $cmd{dhcp_client_id}     = 'alt-i';
-    $cmd{overview_tab}       = 'alt-v';
-    $cmd{add_device}         = 'alt-a';
-    $cmd{dynamic_address}    = 'alt-y';
-    $cmd{hostname_dns_tab}   = 'alt-s';
-    $cmd{routing_tab}        = 'alt-u';
+    $cmd{dhcp_client_id} = 'alt-i';
+    $cmd{overview_tab} = 'alt-v';
+    $cmd{add_device} = 'alt-a';
+    $cmd{dynamic_address} = 'alt-y';
+    $cmd{hostname_dns_tab} = 'alt-s';
+    $cmd{routing_tab} = 'alt-u';
 
     select_console 'x11';
     y2_module_guitest::launch_yast2_module_x11('lan', target_match => [qw(yast2-lan-ui yast2_still_susefirewall2 yast2-lan-warning-network-manager)], match_timeout => 120);

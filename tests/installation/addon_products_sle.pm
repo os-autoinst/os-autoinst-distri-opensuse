@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Add add-on via DVD, network or DUD during installation
 # Maintainer: Stephan Kulow <coolo@suse.de>
@@ -28,7 +24,7 @@ sub handle_all_packages_medium {
     # For SLE installation / upgrade with the all-packages media, user has
     # to select the required extensions / modules manually
     my $sle_prod = get_required_var('SLE_PRODUCT');
-    my @addons   = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
+    my @addons = split(/,/, $SLE15_DEFAULT_MODULES{$sle_prod});
 
     # According to installation guide, select a sle product is mandatory
     # (from sle15-SP2 this is not true)
@@ -48,7 +44,7 @@ sub handle_all_packages_medium {
     # Refer to https://fate.suse.com/325293
     if (get_var('MEDIA_UPGRADE') && is_sle('<15', get_var('HDDVERSION')) && !check_var('SLE_PRODUCT', 'sled')) {
         my @demand_addon = qw(desktop serverapp script);
-        push @demand_addon, 'sdk'    if !check_var('SLE_PRODUCT', 'sles4sap');
+        push @demand_addon, 'sdk' if !check_var('SLE_PRODUCT', 'sles4sap');
         push @demand_addon, 'legacy' if !check_var('SLE_PRODUCT', 'rt');
         for my $i (@demand_addon) {
             push @addons, $i if !grep(/^$i$/, @addons);
@@ -67,9 +63,6 @@ sub handle_all_packages_medium {
     for my $i (split(/,/, get_var('SCC_ADDONS', ''))) {
         push @addons, $i if !grep(/^$i$/, @addons);
     }
-
-    # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
-    push @addons, 'python2' if get_var('MEDIA_UPGRADE') && is_sle('<=15', get_var('HDDVERSION')) && is_sle('>15') && !check_var('SLE_PRODUCT', 'rt');
 
     # Record the addons to be enabled for debugging
     record_info 'Extension and Module Selection', join(' ', @addons);
@@ -93,7 +86,7 @@ sub handle_all_packages_medium {
     # Check the addon license agreement
     # To avoid repetition to much, set a counter to match:
     # addon licenses, sles(d) license (as workaround), and addon-products
-    my $counter           = 2 + (scalar @addons_license_tags);
+    my $counter = 2 + (scalar @addons_license_tags);
     my $addon_license_num = 0;
     while ($counter--) {
         assert_screen([qw(addon-products-nonempty sle-product-license-agreement)], 240);
@@ -128,7 +121,7 @@ sub handle_addon {
     if (match_has_tag('import-untrusted-gpg-key')) {
         handle_untrusted_gpg_key;
     }
-    send_key 'tab';                          # select addon-products-$addon
+    send_key 'tab';    # select addon-products-$addon
     wait_still_screen 10;
     if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
         send_key_until_needlematch "addon-list-selected", 'tab';
@@ -165,9 +158,9 @@ sub run {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
-                timeout      => check_var('BACKEND', 'pvm_hmc') ? 600 : 120,
+                timeout => check_var('BACKEND', 'pvm_hmc') ? 600 : 120,
                 soft_timeout => 60,
-                bugref       => 'bsc#1166504');
+                bugref => 'bsc#1166504');
         }
     }
     if (get_var("ADDONS")) {
@@ -184,9 +177,9 @@ sub run {
                 wait_screen_change { send_key 'alt-d' };    # DVD
                 send_key $cmd{next};
                 assert_screen 'dvd-selector';
-                send_key_until_needlematch 'addon-dvd-list',         'tab',  5;     # jump into addon list
+                send_key_until_needlematch 'addon-dvd-list', 'tab', 5;    # jump into addon list
                 send_key_until_needlematch "addon-dvd-sr$sr_number", 'down', 10;    # select addon in list
-                send_key 'alt-o';                                                   # continue
+                send_key 'alt-o';    # continue
             }
             handle_addon($addon);
             # add another add-on if $addon is not first from all ADDONS and not in SLE 15+
@@ -213,13 +206,13 @@ sub run {
         for my $addon (split(/,/, get_var('ADDONURL'))) {
             assert_screen 'addon-menu-active';
             my $uc_addon = uc $addon;    # variable name is upper case
-            send_key 'alt-u';            # specify url
+            send_key 'alt-u';    # specify url
             send_key $cmd{next};
             assert_screen 'addonurl-entry';
-            send_key 'alt-u';                                      # select URL field
+            send_key 'alt-u';    # select URL field
             type_string get_required_var("ADDONURL_$uc_addon");    # repo URL
             send_key $cmd{next};
-            wait_still_screen;                                     # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
+            wait_still_screen;    # wait after key is pressed, e.g. 'addon-products' can apper shortly before initialization
             my @tags = ('addon-products', "addon-betawarning-$addon", "addon-license-$addon", 'import-untrusted-gpg-key');
             assert_screen(\@tags, 90);
             if (match_has_tag("addon-betawarning-$addon") or match_has_tag("addon-license-$addon")) {
@@ -236,8 +229,8 @@ sub run {
             elsif (match_has_tag('import-untrusted-gpg-key')) {
                 handle_untrusted_gpg_key;
             }
-            send_key "tab";                          # select addon-products-$addon
-            wait_still_screen 10;                    # wait until repo is added and list is initialized
+            send_key "tab";    # select addon-products-$addon
+            wait_still_screen 10;    # wait until repo is added and list is initialized
             if (check_var('VIDEOMODE', 'text')) {    # textmode need more tabs, depends on add-on count
                 send_key_until_needlematch "addon-list-selected", 'tab';
             }
@@ -245,7 +238,7 @@ sub run {
             wait_still_screen 2;
             send_key_until_needlematch "addon-products-$addon", 'down';
             if ((split(/,/, get_var('ADDONURL')))[-1] ne $addon) {    # if $addon is not first from all ADDONS
-                send_key 'alt-a';                                     # add another add-on
+                send_key 'alt-a';    # add another add-on
             }
         }
     }

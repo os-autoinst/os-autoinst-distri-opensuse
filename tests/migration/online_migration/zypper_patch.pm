@@ -1,11 +1,7 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: zypper
 # Summary: Fully patch the system before conducting an online migration
@@ -30,7 +26,8 @@ sub run {
     add_test_repositories;
     fully_patch_system;
     install_patterns() if (get_var('PATTERNS'));
-    remove_ltss;
+    deregister_dropped_modules;
+    cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
     power_action('reboot', keepconsole => 1, textmode => 1);
     reconnect_mgmt_console if is_pvm;
 

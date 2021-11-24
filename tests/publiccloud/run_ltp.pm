@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
@@ -21,7 +17,7 @@ use LTP::utils qw(get_ltproot get_ltp_version_file);
 use LTP::WhiteList qw(download_whitelist find_whitelist_testsuite find_whitelist_entry list_skipped_tests override_known_failures);
 use Mojo::File;
 use Mojo::JSON;
-use publiccloud::utils qw(is_byos select_host_console);
+use publiccloud::utils qw(is_byos select_host_console is_ec2_arm);
 use Data::Dumper;
 
 our $root_dir = '/root';
@@ -29,7 +25,7 @@ our $root_dir = '/root';
 sub get_ltp_rpm
 {
     my ($url) = @_;
-    my $ua    = Mojo::UserAgent->new();
+    my $ua = Mojo::UserAgent->new();
     my $links = $ua->get($url)->res->dom->find('a')->map(attr => 'href');
     for my $link (grep(/^ltp-20.*rpm$/, @{$links})) {
         return $link;
@@ -49,11 +45,11 @@ sub instance_log_args
 
 sub upload_ltp_logs
 {
-    my ($self)        = @_;
-    my $log_file      = Mojo::File::path('ulogs/ltp_log.json');
-    my $ltp_testsuite = get_required_var('COMMAND_FILE');
+    my ($self) = @_;
+    my $log_file = Mojo::File::path('ulogs/ltp_log.json');
+    my $ltp_testsuite = get_required_var('LTP_COMMAND_FILE');
 
-    upload_logs("$root_dir/ltp_log.raw",  log_name => 'ltp_log.raw',       failok => 1);
+    upload_logs("$root_dir/ltp_log.raw", log_name => 'ltp_log.raw', failok => 1);
     upload_logs("$root_dir/ltp_log.json", log_name => $log_file->basename, failok => 1);
 
     return unless -e $log_file->to_string;
@@ -63,7 +59,7 @@ sub upload_ltp_logs
         require OpenQA::Parser::Format::LTP;
 
         my $ltp_log = Mojo::JSON::decode_json($log_file->slurp());
-        my $parser  = OpenQA::Parser::Format::LTP->new()->load($log_file->to_string);
+        my $parser = OpenQA::Parser::Format::LTP->new()->load($log_file->to_string);
 
         if (find_whitelist_testsuite($ltp_testsuite)) {
             my %ltp_log_results = map { $_->{test_fqn} => $_->{test} } @{$ltp_log->{results}};
@@ -86,7 +82,7 @@ sub upload_ltp_logs
 
 sub run {
     my ($self, $args) = @_;
-    my $arch     = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
+    my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
     my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
     my $provider;
     my $instance;
@@ -96,7 +92,7 @@ sub run {
     my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
     if ($qam) {
         $instance = $self->{my_instance} = $args->{my_instance};
-        $provider = $self->{provider}    = $args->{my_provider};    # required for cleanup
+        $provider = $self->{provider} = $args->{my_provider};    # required for cleanup
     } else {
         $provider = $self->provider_factory();
         $instance = $self->{my_instance} = $provider->create_instance();
@@ -113,7 +109,7 @@ sub run {
 
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
-        my $ltp_rpm         = get_ltp_rpm($ltp_repo);
+        my $ltp_rpm = get_ltp_rpm($ltp_repo);
         my $source_rpm_path = $root_dir . '/' . $ltp_rpm;
         my $remote_rpm_path = '/tmp/' . $ltp_rpm;
         record_info('LTP RPM', $ltp_repo . $ltp_rpm);
@@ -123,7 +119,7 @@ sub run {
     }
     else {
         $instance->run_ssh_command(cmd => 'sudo zypper -q addrepo -fG ' . $ltp_repo . ' ltp_repo', timeout => 600);
-        $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp',                              timeout => 600);
+        $instance->run_ssh_command(cmd => 'sudo zypper -q in -y ltp', timeout => 600);
     }
 
     download_whitelist();
@@ -132,22 +128,26 @@ sub run {
 
     # Use lib/LTP/WhiteList module to exclude tests
     if (get_var('LTP_KNOWN_ISSUES')) {
-        my $exclude       = get_var('COMMAND_EXCLUDE', '');
-        my @skipped_tests = list_skipped_tests($ltp_env, get_required_var('COMMAND_FILE'));
+        my $exclude = get_var('LTP_COMMAND_EXCLUDE', '');
+        my @skipped_tests = list_skipped_tests($ltp_env, get_required_var('LTP_COMMAND_FILE'));
         if (@skipped_tests) {
             $exclude .= '|' if (length($exclude) > 0);
             $exclude .= '^(' . join('|', @skipped_tests) . ')$';
-            set_var('COMMAND_EXCLUDE', $exclude);
+            set_var('LTP_COMMAND_EXCLUDE', $exclude);
         }
     }
 
-    my $runltp_ng_repo   = get_var("LTP_RUN_NG_REPO",   "https://github.com/metan-ucw/runltp-ng.git");
+    my $runltp_ng_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/metan-ucw/runltp-ng.git");
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
+    if (is_ec2_arm()) {
+        record_info('Workaround', 'AWS Nitro virtualization not recognized by systemd-detect-virt see bsc#1190440');
+        $instance->run_ssh_command('echo "LTP_VIRT_OVERRIDE=amazon" | sudo tee -a /etc/environment');
+    }
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 
-    my $reset_cmd     = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
+    my $reset_cmd = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . $self->instance_log_args();
 
     assert_script_run($log_start_cmd);
@@ -155,8 +155,8 @@ sub run {
     my $cmd = 'perl -I runltp-ng runltp-ng/runltp-ng ';
     $cmd .= '--logname=ltp_log --verbose ';
     $cmd .= '--timeout=1200 ';
-    $cmd .= '--run ' . get_required_var('COMMAND_FILE') . ' ';
-    $cmd .= '--exclude \'' . get_required_var('COMMAND_EXCLUDE') . '\' ';
+    $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
+    $cmd .= '--exclude \'' . get_required_var('LTP_COMMAND_EXCLUDE') . '\' ';
     $cmd .= '--backend=ssh';
     $cmd .= ':user=' . $instance->username;
     $cmd .= ':key_file=' . $instance->ssh_key;
@@ -183,14 +183,14 @@ sub cleanup {
 }
 
 sub gen_ltp_env {
-    my $instance    = shift;
+    my $instance = shift;
     my $environment = {
-        product     => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
-        revision    => get_required_var('BUILD'),
-        arch        => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
-        kernel      => $instance->run_ssh_command(cmd => 'uname -r'),
-        backend     => get_required_var('BACKEND'),
-        flavor      => get_required_var('FLAVOR'),
+        product => get_required_var('DISTRI') . ':' . get_required_var('VERSION'),
+        revision => get_required_var('BUILD'),
+        arch => get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH")),
+        kernel => $instance->run_ssh_command(cmd => 'uname -r'),
+        backend => get_required_var('BACKEND'),
+        flavor => get_required_var('FLAVOR'),
         ltp_version => $instance->run_ssh_command(cmd => q(rpm -q --qf '%{VERSION}\n' ltp)),
     };
 
@@ -208,11 +208,11 @@ and connect to the CSP instance using SSH. This is done via the run_ltp_ssh.pl s
 
 =head1 Configuration
 
-=head2 COMMAND_FILE
+=head2 LTP_COMMAND_FILE
 
 The LTP test command file (e.g. syscalls, cve)
 
-=head2 COMMAND_EXCLUDE
+=head2 LTP_COMMAND_EXCLUDE
 
 This regex is used to exclude tests from command file.
 

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: yast2-ftp-server yast2-users
 # Summary: this test checks "yast ftp-server" module.
@@ -63,7 +59,8 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    select_console 'root-console';
+    my ($self) = @_;
+    $self->select_serial_terminal;
     zypper_call 'in yast2-ftp-server';
     zypper_call 'in yast2-users';
 

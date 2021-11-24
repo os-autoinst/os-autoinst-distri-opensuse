@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: chrome-chrome-stable
 # Summary: GOOGLE Chrome: attempt to install and run google chrome
@@ -16,6 +12,7 @@ use base "x11test";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 
 sub install_google_repo_key {
@@ -36,7 +33,7 @@ sub preserve_privacy_of_non_human_openqa_workers {
 }
 
 sub run {
-    my $arch       = check_var('ARCH', 'i586') ? 'i386' : 'x86_64';
+    my $arch = is_i586 ? 'i386' : 'x86_64';
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
     select_console('x11');
     mouse_hide;

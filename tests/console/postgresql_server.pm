@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: postgresql-server sudo
 # Summary: Postgres tests
@@ -26,7 +22,8 @@ use apachetest qw(setup_pgsqldb destroy_pgsqldb test_pgsql postgresql_cleanup);
 use Utils::Systemd 'systemctl';
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # install the postgresql server package
     zypper_call "in postgresql-server sudo";

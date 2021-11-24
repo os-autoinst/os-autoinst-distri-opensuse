@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: cups
 # Summary: Test basic capabilities of cups
@@ -42,7 +38,7 @@ sub run {
     services::cups::check_service();
     services::cups::check_function();
 
-    disable_and_stop_service('cups.path')   if (script_run('systemctl cat cups.path') == 0);
+    disable_and_stop_service('cups.path') if (script_run('systemctl cat cups.path') == 0);
     disable_and_stop_service('cups.socket') if (script_run('systemctl cat cups.socket') == 0);
     disable_and_stop_service('cups.service');
     validate_script_output '{ systemctl --no-pager status cups.service | cat; } || test $? -eq 3', sub { m/Active:\s*inactive/ };

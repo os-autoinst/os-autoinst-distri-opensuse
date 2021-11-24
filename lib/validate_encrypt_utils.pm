@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: A set of tools to verify encryption.
 #
@@ -48,15 +36,15 @@ This sub reads the output of F</etc/crypttab> and returns C<%crypttab> reference
 Check https://www.freedesktop.org/software/systemd/man/crypttab.html for more info about parsing 
 =cut
 sub parse_devices_in_crypttab {
-    my @lines    = split(/\n/, script_output("cat /etc/crypttab"));
+    my @lines = split(/\n/, script_output("cat /etc/crypttab"));
     my $crypttab = {};
     foreach (@lines) {
         next if /^\s*#.*$/;
         if ($_ =~ /(?<name>.+?)\s+(?<encrypted_device>.+?)($|\s+(?<password>.*?)($|\s+(?<options>.*)))/) {
             $crypttab->{$+{name}} = {
                 encrypted_device => $+{encrypted_device},
-                password         => $+{password},
-                options          => $+{options}};
+                password => $+{password},
+                options => $+{options}};
         }
     }
     return $crypttab;
@@ -76,8 +64,8 @@ sub parse_devices_in_crypttab {
 returns the C<$status> of the encrypted device. If no encrypted device found it returns a reference to an empty anonymous hash.
 =cut
 sub parse_cryptsetup_status {
-    my ($dev)  = @_;
-    my @lines  = split(/\n/, script_output("cryptsetup status $dev", proceed_on_failure => 1));
+    my ($dev) = @_;
+    my @lines = split(/\n/, script_output("cryptsetup status $dev", proceed_on_failure => 1));
     my $status = {};
     foreach (@lines) {
         if (!exists $status->{message} && $_ =~ /is (in)?active/) {
@@ -194,10 +182,10 @@ Where C<%args> expects the following parameters:
 Validates that the device is an encrypted one and tests the backup of the keyslot info.
 =cut
 sub verify_restoring_luks_backups {
-    my (%args)           = @_;
-    my $mapped_dev_path  = $args{encrypted_device_path};
+    my (%args) = @_;
+    my $mapped_dev_path = $args{encrypted_device_path};
     my $backup_file_info = $args{backup_file_info};
-    my $backup_path      = $args{backup_path};
+    my $backup_path = $args{backup_path};
     record_info("LUKS", "Verify storing and restoring for binary backups of LUKS header and keyslot areas.");
     assert_script_run("cryptsetup -v isLuks $mapped_dev_path");
     assert_script_run("cryptsetup -v luksUUID $mapped_dev_path");
@@ -224,7 +212,7 @@ sub verify_restoring_luks_backups {
 =cut
 sub verify_locked_encrypted_partition {
     my $enc_disk_part = shift;
-    my @lines         = split(/\n/, script_output("lsblk -l -n /dev/$enc_disk_part"));
+    my @lines = split(/\n/, script_output("lsblk -l -n /dev/$enc_disk_part"));
     if ((scalar @lines > 1) && (grep { /crypt/ } @lines)) {
         die "partition '/dev/$enc_disk_part' is already unlocked";
     }

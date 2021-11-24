@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: mdadm
 # Summary: cluster-md tests
@@ -20,17 +16,17 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my $mdadm_conf         = '/etc/mdadm.conf';
-    my $clustermd_lun_01   = get_lun(use_once => 0);
-    my $clustermd_lun_02   = get_lun(use_once => 0);
-    my $clustermd_rsc      = 'cluster_md';
-    my $clustermd_device   = '/dev/md0';
+    my $mdadm_conf = '/etc/mdadm.conf';
+    my $clustermd_lun_01 = get_lun(use_once => 0);
+    my $clustermd_lun_02 = get_lun(use_once => 0);
+    my $clustermd_rsc = 'cluster_md';
+    my $clustermd_device = '/dev/md0';
     my $clustermd_name_opt = undef;
-    my $cluster_name       = get_cluster_name;
-    my $node               = get_hostname;
+    my $cluster_name = get_cluster_name;
+    my $node = get_hostname;
 
     if (is_sle '15+') {
-        $clustermd_device   = "/dev/md/$clustermd_rsc";
+        $clustermd_device = "/dev/md/$clustermd_rsc";
         $clustermd_name_opt = "--name=$clustermd_rsc";
     }
 
@@ -50,7 +46,7 @@ sub run {
 
         # We need to create the configuration file on all nodes
         assert_script_run "echo DEVICE $clustermd_lun_01 $clustermd_lun_02 > $mdadm_conf", $default_timeout;
-        assert_script_run "mdadm --detail --scan >> $mdadm_conf",                          $default_timeout;
+        assert_script_run "mdadm --detail --scan >> $mdadm_conf", $default_timeout;
 
         # We need to add the configuration in csync2.conf
         add_file_in_csync(value => "$mdadm_conf");

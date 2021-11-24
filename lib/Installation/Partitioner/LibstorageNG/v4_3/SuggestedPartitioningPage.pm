@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: This class introduces methods to handle Suggested Partitioning page.
 #
@@ -25,7 +21,7 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{summary}          = $self->{app}->richtext({id => 'summary'});
+    $self->{summary} = $self->{app}->richtext({id => 'summary'});
     $self->{btn_guided_setup} = $self->{app}->button({id => 'guided'});
     return $self;
 }

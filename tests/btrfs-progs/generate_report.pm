@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Upload logs and generate junit report
 # Maintainer: An Long <lan@suse.com>
@@ -18,21 +14,21 @@ use ctcs2_to_junit;
 use upload_system_log;
 
 use constant STATUS_LOG => '/opt/status.log';
-use constant LOG_DIR    => '/opt/logs/';
+use constant LOG_DIR => '/opt/logs/';
 use constant JUNIT_FILE => '/opt/output.xml';
 
 sub log_end {
     my $file = shift;
-    my $cmd  = "echo 'Test run complete' >> $file";
+    my $cmd = "echo 'Test run complete' >> $file";
     send_key 'ret';
     assert_script_run($cmd);
 }
 
 # Compress the directory and upload tarball.
 sub upload_tarball {
-    my $dir     = shift;
+    my $dir = shift;
     my $timeout = shift || 90;
-    my $output  = script_output("if [ -d $dir ]; then basename $dir; else echo $dir folder not exist; fi");
+    my $output = script_output("if [ -d $dir ]; then basename $dir; else echo $dir folder not exist; fi");
     if ($output =~ /folder not exist/) { return; }
     my $tarball = "/opt/$output.tar.xz";
     assert_script_run("tar cJf $tarball -C " . dirname($dir) . " " . basename($dir), $timeout);
@@ -55,8 +51,8 @@ sub run {
 
     # Junit xml report
     my $script_output = script_output('cat ' . STATUS_LOG);
-    my $tc_result     = analyzeResult($script_output);
-    my $xml           = generateXML($tc_result);
+    my $tc_result = analyzeResult($script_output);
+    my $xml = generateXML($tc_result);
     assert_script_run("echo \'$xml\' > " . JUNIT_FILE);
     parse_junit_log JUNIT_FILE;
 }

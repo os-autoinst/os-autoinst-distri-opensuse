@@ -145,7 +145,6 @@
       <interface>
         <bootproto>static</bootproto>
         <device>lo</device>
-        <firewall>no</firewall>
         <ipaddr>127.0.0.1</ipaddr>
         <netmask>255.0.0.0</netmask>
         <network>127.0.0.0</network>
@@ -217,6 +216,7 @@
       </interface>
     </interfaces>
   </networking>
+  % }
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
@@ -227,6 +227,9 @@
           <interface>eth0</interface>
         </interfaces>
         <services config:type="list">
+          % if ($check_var->('ARCH', 's390x')) {
+          <service>vnc-server</service>
+          % }
           <service>ssh</service>
         </services>
         <ports config:type="list">
@@ -235,7 +238,6 @@
       </zone>
     </zones>
   </firewall>
-  % }
   <report>
     <errors>
       <log config:type="boolean">true</log>

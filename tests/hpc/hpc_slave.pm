@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: HPC Slave
 #    This test is setting up an HPC slave node, so that various services
@@ -22,7 +18,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
     $self->prepare_user_and_group();
 

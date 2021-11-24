@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: gpg2 haveged
 # Summary: gpg key generation, passphrase test, encrypt file and support fips test
@@ -21,22 +17,24 @@
 # - Cleanup
 #
 # Maintainer: Petr Cervinka <pcervinka@suse.com>, Ben Chou <bchou@suse.com>
-# Tags: poo#65375
+# Tags: poo#65375, poo#97685
 
 use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
+use Utils::Architectures;
 use utils;
 use version_utils 'is_sle';
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
 
-    my $name     = "SUSE Tester";
+    my $name = "SUSE Tester";
     my $username = $name . " " . $key_size;
-    my $passwd   = "This_is_a_test_case";
-    my $email    = "user\@suse.de";
+    my $passwd = "This_is_a_test_case";
+    my $email = "user\@suse.de";
     my $egg_file = 'egg';
 
     # GPG Key Generation
@@ -71,24 +69,24 @@ EOF
         script_run("gpg2 -vv --gen-key &> /dev/$serialdev", 0);
         assert_screen 'gpg-set-keytype';    # Your Selection?
         enter_cmd "1";
-        assert_screen 'gpg-set-keysize';       # What keysize do you want?
+        assert_screen 'gpg-set-keysize';    # What keysize do you want?
         enter_cmd "$key_size";
         assert_screen 'gpg-set-expiration';    # Key is valid for? (0)
         send_key 'ret';
-        assert_screen 'gpg-set-correct';       # Is this correct? (y/N)
+        assert_screen 'gpg-set-correct';    # Is this correct? (y/N)
         enter_cmd "y";
-        assert_screen 'gpg-set-realname';      # Real name:
+        assert_screen 'gpg-set-realname';    # Real name:
         enter_cmd "$username";
-        assert_screen 'gpg-set-email';         # Email address:
+        assert_screen 'gpg-set-email';    # Email address:
         enter_cmd "$email";
-        assert_screen 'gpg-set-comment';       # Comment:
+        assert_screen 'gpg-set-comment';    # Comment:
         send_key 'ret';
-        assert_screen 'gpg-set-okay';          # Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
+        assert_screen 'gpg-set-okay';    # Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit?
         enter_cmd "O";
     }
 
     assert_screen("gpg-passphrase-enter");
-    enter_cmd "REALSECRETPHRASE";              # Input insecure passphrase
+    enter_cmd "REALSECRETPHRASE";    # Input insecure passphrase
     assert_screen("gpg-passphrase-insecure");
     send_key 'tab';
     send_key 'ret';
@@ -98,9 +96,15 @@ EOF
     enter_cmd "$passwd";
 
     # According to FIPS PUB 186-4 Digital Signature Standard (DSS), only the
-    # 2048 and 4096 key length should be supported. See bsc#1125740 comment#15
-    # for details
-    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024' || $key_size == '4096')) {
+    # 2048 and 3072 key length should be supported by default.
+    #
+    # In SPEC, The Digital Signature Standard, section B 3.3 states:
+    # If nlen is neither 2048 nor 3072, then return (FAILURE, 0, 0).
+    # Only 2048 and 3072 are the allowed modulus (n) lengths when generating
+    # the random probable primes p and q for RSA.
+    #
+    # Please see bsc#1165902#c40 that RSA 4096 can be accepted even in FIPS mode
+    if (get_var('FIPS') || get_var('FIPS_ENABLED') && ($key_size == '1024')) {
         wait_serial("failed: Invalid value", 90) || die "It should failed with invalid value!";
         return;
     }
@@ -111,7 +115,7 @@ EOF
 
     # Basic Functions
 
-    my $tfile     = 'foo.txt';
+    my $tfile = 'foo.txt';
     my $tfile_gpg = $tfile . '.gpg';
     my $tfile_asc = $tfile . '.asc';
 
@@ -143,7 +147,7 @@ sub run {
     select_console 'root-console';
 
     # increase entropy for key generation for s390x on svirt backend
-    if (check_var('ARCH', 's390x') && (is_sle('15+') && (check_var('BACKEND', 'svirt')))) {
+    if (is_s390x && (is_sle('15+') && (is_svirt))) {
         zypper_call('in haveged');
         systemctl('start haveged');
     }

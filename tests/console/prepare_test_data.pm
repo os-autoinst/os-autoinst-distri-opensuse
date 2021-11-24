@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: prepare test data
 # - As user, get "test.data" from local autoinst service
@@ -17,12 +13,12 @@
 use base "consoletest";
 use testapi;
 use utils;
-use Utils::Backends 'use_ssh_serial_console';
+use Utils::Backends;
 use strict;
 use warnings;
 
 sub run {
-    check_var("BACKEND", "ipmi") ? use_ssh_serial_console : select_console 'root-console';
+    is_ipmi ? use_ssh_serial_console : select_console 'root-console';
 
     select_console 'user-console';
     assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => 300;

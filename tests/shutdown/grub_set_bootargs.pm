@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Remove quiet kernel option
 # - On SLE12PS2 and aarch64, run commands and wait for screen change
@@ -21,6 +17,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 
 sub run {
     select_console('root-console');
@@ -38,7 +35,7 @@ sub run {
 
     # Slow type for 12-SP2 aarch64 image creation test to try to avoid filling up the key event queue
     for my $cmd (@cmds) {
-        if (check_var('ARCH', 'aarch64') && check_var('VERSION', '12-SP2')) {
+        if (is_aarch64 && check_var('VERSION', '12-SP2')) {
             enter_cmd $cmd . " ; echo cmd-\$? > /dev/$testapi::serialdev", wait_screen_change => 1;
             wait_serial "cmd-0";
         }

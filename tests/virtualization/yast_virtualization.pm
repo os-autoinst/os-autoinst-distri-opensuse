@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-vm
 # Summary: Add virtualization hypervisor components to an installed system
@@ -15,6 +11,7 @@ use base 'y2_module_guitest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 
 sub run {
@@ -28,13 +25,13 @@ sub run {
     }
     y2_module_guitest::launch_yast2_module_x11('virtualization');
     # select everything
-    if (check_var('ARCH', 'x86_64')) {
+    if (is_x86_64) {
         send_key 'alt-x';    # XEN Server, only available on x86_64: bsc#1088175
         send_key 'alt-e';    # Xen tools
     }
-    send_key 'alt-k';        # KVM Server
-    send_key 'alt-v';        # KVM tools
-    send_key 'alt-l';        # libvirt-lxc
+    send_key 'alt-k';    # KVM Server
+    send_key 'alt-v';    # KVM tools
+    send_key 'alt-l';    # libvirt-lxc
 
     # launch the installation
     send_key 'alt-a';
@@ -58,7 +55,9 @@ sub run {
     # manually start the 'default' network if it is not active
     if (script_run("virsh net-info default |& grep '^Active.*no'") == 0) {
         record_soft_failure 'bsc#1123699';
-        record_info("start default network", "libvirtd did not start the network by default");
+        record_info("start default network", "libvirtd did not start the
+            network by default. See
+            https://bugzilla.opensuse.org/show_bug.cgi?id=1123699");
         assert_script_run("virsh net-start default");
     }
     send_key 'ret';

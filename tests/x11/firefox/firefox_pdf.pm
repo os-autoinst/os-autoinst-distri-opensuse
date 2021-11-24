@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Firefox PDF reader test (Case#1436081)
@@ -16,8 +12,6 @@
 # - Click on zoom out button
 # - Click on zoom in button
 # - Access zoom menu and select "Actual size"
-# - Select "Full screen"
-# - Select "Actual size"
 # - Jump to page 3
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
@@ -45,13 +39,6 @@ sub run {
     assert_and_click 'firefox-pdf-zoom_menu_actual_size';    #"Actual Size"
     assert_screen('firefox-pdf-actual_size');
 
-    sleep 1;
-    assert_and_click 'firefox-pdf-icon_fullscreen';          #Full Screen
-
-    wait_still_screen 2;
-    send_key "esc";
-    sleep 1;
-    assert_and_click "firefox-pdf-actual_size";
     assert_and_click "firefox-pdf-page";
     sleep 1;
     send_key "3";

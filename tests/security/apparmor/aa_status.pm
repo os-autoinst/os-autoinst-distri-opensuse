@@ -1,17 +1,5 @@
-# Copyright (C) 2018-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: apparmor-utils apparmor-parser
 # Summary: Test the basic information output function for apparmor using
@@ -40,7 +28,7 @@ sub run {
     services::apparmor::check_aa_status();
 
     # Verify "aa-status" can "handle profile with name contains '('"
-    my $testfile    = "/usr/bin/ls";
+    my $testfile = "/usr/bin/ls";
     my $str_special = '\(test\)';
 
     if (!is_sle("<15-sp3") && !is_leap("<15.3")) {

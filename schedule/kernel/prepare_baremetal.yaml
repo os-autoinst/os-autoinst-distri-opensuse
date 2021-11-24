@@ -14,6 +14,7 @@ schedule:
     - installation/addon_products_sle
     - installation/system_role
     - installation/partitioning
+    - installation/partitioning/no_enlarge_swap
     - installation/partitioning_firstdisk
     - installation/partitioning_finish
     - installation/installer_timezone

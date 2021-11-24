@@ -1,5 +1,6 @@
 package bootbasetest;
 use testapi;
+use Utils::Backends;
 use base 'opensusebasetest';
 use strict;
 use warnings;
@@ -13,7 +14,7 @@ sub post_fail_hook {
 
     # if we found a shell, we do not need the memory dump
     if (!(match_has_tag('emergency-shell') or match_has_tag('emergency-mode'))) {
-        if (check_var('BACKEND', 'qemu')) {
+        if (is_qemu) {
             select_console 'root-console';
             diag 'Save memory dump to debug bootup problems, e.g. for bsc#1005313';
             save_memory_dump;

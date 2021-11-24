@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: This module install armnn and downloads
 #   test programs, models, labels and images.
@@ -82,7 +78,7 @@ sub armnn_onnx_test_run {
 
 sub run {
     my ($self) = @_;
-    my $armnn_backends = get_var("ARMNN_BACKENDS");          # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
+    my $armnn_backends = get_var("ARMNN_BACKENDS");    # Comma-separated list of armnn backends to test explicitly. E.g "CpuAcc,GpuAcc"
 
     $self->select_serial_terminal;
     zypper_call $armnn_backends =~ /GpuAcc/ ? 'in armnn-opencl' : 'in armnn';

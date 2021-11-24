@@ -1,0 +1,19 @@
+---
+name: autoyast_rules_and_classes
+description: >
+  For future testing of AutoYaST rules and classes
+vars:
+  AUTOYAST: autoyast_opensuse/rule-based_example/
+schedule:
+  - autoyast/prepare_rules_and_classes
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/wicked
+  - autoyast/repos
+  - autoyast/clone
+  - autoyast/logs
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot

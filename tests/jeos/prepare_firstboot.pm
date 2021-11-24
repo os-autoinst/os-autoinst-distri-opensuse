@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Enable jeos-firstboot as required by openQA testsuite
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
@@ -20,8 +16,8 @@ use version_utils 'is_leap';
 sub run {
     my ($self) = @_;
 
-    my $default_password          = 'linux';
-    my $distripassword            = $testapi::password;
+    my $default_password = 'linux';
+    my $distripassword = $testapi::password;
     my $reboot_for_jeos_firstboot = 1;
 
     my $is_generalhw_via_ssh = check_var('BACKEND', 'generalhw') && !defined(get_var('GENERAL_HW_VNC_IP'));
@@ -38,7 +34,7 @@ sub run {
     else {
         # Login with default credentials (root:linux)
         assert_screen('linux-login', 300);
-        enter_cmd("root",              wait_still_screen => 5);
+        enter_cmd("root", wait_still_screen => 5);
         enter_cmd("$default_password", wait_still_screen => 5);
     }
 

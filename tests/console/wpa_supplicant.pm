@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wpa_supplicant hostapd iw dnsmasq unzip
 # Summary: Test wpa_supplicant on virtual wifi interfaces
@@ -51,9 +47,9 @@ sub adopt_apparmor {
 
 sub post_fail_hook {
     # Upload logs if present
-    upload_logs("wicked.log")              if (script_run("stat wicked.log") == 0);
+    upload_logs("wicked.log") if (script_run("stat wicked.log") == 0);
     upload_logs("wpa-supplicant_test.txt") if (script_run("stat wpa-supplicant_test.txt") == 0);
-    upload_logs("hostapd.log")             if (script_run("stat hostapd.log") == 0);
+    upload_logs("hostapd.log") if (script_run("stat hostapd.log") == 0);
 }
 
 1;

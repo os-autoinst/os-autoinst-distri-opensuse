@@ -1,11 +1,7 @@
 # Yomi's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Run a scenario passed via the TEST variable
 # Maintainer: Alberto Planas <aplanas@suse.de>
@@ -18,24 +14,24 @@ use utils;
 
 my %SCENARIOS = (
     simple => {
-        efi             => 'False',
-        partition       => "\\'msdos\\'",
-        device_type     => "\\'sd\\'",
+        efi => 'False',
+        partition => "\\'msdos\\'",
+        device_type => "\\'sd\\'",
         root_filesystem => "\\'ext2\\'",
         home_filesystem => 'False',
-        snapper         => 'False',
-        swap            => 'False',
-        mode            => "\\'single\\'",
+        snapper => 'False',
+        swap => 'False',
+        mode => "\\'single\\'",
     },
     'microos-efi' => {
-        efi             => 'True',
-        partition       => "\\'gpt\\'",
-        device_type     => "\\'sd\\'",
+        efi => 'True',
+        partition => "\\'gpt\\'",
+        device_type => "\\'sd\\'",
         root_filesystem => "\\'btrfs\\'",
         home_filesystem => 'False',
-        snapper         => 'True',
-        swap            => 'False',
-        mode            => "\\'microos\\'",
+        snapper => 'True',
+        swap => 'False',
+        mode => "\\'microos\\'",
     },
 );
 
@@ -112,8 +108,8 @@ sub run {
 
     # Reboot the inner QEMU to validate the boot loader
     assert_script_run_qemu 'systemctl reboot';
-    wait_serial('Booting from Hard Disk...', 60)   || die 'not booting from the correct media';
-    wait_serial('localhost login:',          1200) || die 'login not found, QEMU not launched';
+    wait_serial('Booting from Hard Disk...', 60) || die 'not booting from the correct media';
+    wait_serial('localhost login:', 1200) || die 'login not found, QEMU not launched';
 }
 
 1;

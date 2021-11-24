@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: virtualization test utilities.
 # Maintainer: Julie CAO <jcao@suse.com>
@@ -33,7 +21,7 @@ use DateTime;
 use NetAddr::IP;
 use Net::IP qw(:PROC);
 use File::Basename;
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures;
 
 our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
@@ -80,9 +68,9 @@ sub is_pv_guest {
 sub is_guest_ballooned {
     my $guest = shift;
 
-    my $mem     = "";
+    my $mem = "";
     my $cur_mem = "";
-    $mem     = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //memory";
+    $mem = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //memory";
     $cur_mem = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //currentMemory";
     return $mem > $cur_mem;
 }
@@ -129,8 +117,8 @@ sub print_cmd_output_to_file {
 
 sub ssh_setup {
     my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa" : "/var/testvirt.net/.ssh/id_rsa";
-    my $dt              = DateTime->now;
-    my $comment         = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
+    my $dt = DateTime->now;
+    my $comment = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
     if (script_run("[[ -s $default_ssh_key ]]") != 0) {
         my $default_ssh_key_dir = dirname($default_ssh_key);
         script_run("mkdir -p $default_ssh_key_dir");
@@ -141,10 +129,10 @@ sub ssh_setup {
 sub ssh_copy_id {
     my ($guest, %args) = @_;
 
-    my $username        = $args{username}        // 'root';
+    my $username = $args{username} // 'root';
     my $authorized_keys = $args{authorized_keys} // '.ssh/authorized_keys';
-    my $scp             = $args{scp}             // 0;
-    my $mode            = is_sle('=11-sp4')             ? ''                      : '-f';
+    my $scp = $args{scp} // 0;
+    my $mode = is_sle('=11-sp4') ? '' : '-f';
     my $default_ssh_key = (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
     script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
@@ -171,66 +159,75 @@ sub ssh_copy_id {
 sub create_guest {
     my ($guest, $method) = @_;
 
-    my $name         = $guest->{name};
-    my $location     = $guest->{location};
-    my $autoyast     = $guest->{autoyast};
-    my $macaddress   = $guest->{macaddress};
-    my $on_reboot    = $guest->{on_reboot}    // "restart";      # configurable on_reboot policy
-    my $extra_params = $guest->{extra_params} // "";             # extra-parameters
-    my $memory       = $guest->{memory}       // "2048";
-    my $maxmemory    = $guest->{maxmemory}    // $memory + 16;   # use by default just a bit more, so that we don't waste memory but still use the functionality
-    my $vcpus        = $guest->{vcpus}        // "2";
-    my $maxvcpus     = $guest->{maxvcpus}     // $vcpus + 1;     # same as for memory, test functionality but don't waste resources
-    my $extra_args   = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
+    my $name = $guest->{name};
+    my $location = $guest->{location};
+    my $autoyast = $guest->{autoyast};
+    my $macaddress = $guest->{macaddress};
+    my $on_reboot = $guest->{on_reboot} // "restart";    # configurable on_reboot policy
+    my $extra_params = $guest->{extra_params} // "";    # extra-parameters
+    my $memory = $guest->{memory} // "2048";
+    my $maxmemory = $guest->{maxmemory} // $memory + 256;    # use by default just a bit more, so that we don't waste memory but still use the functionality
+    my $vcpus = $guest->{vcpus} // "2";
+    my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
+    my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
     $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
-        send_key 'ret';                                          # Make some visual separator
+        send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
         my ($autoyastURL, $diskformat, $virtinstall);
         $autoyastURL = data_url($autoyast);
-        $diskformat  = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
+        $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
 
         assert_script_run "qemu-img create -f $diskformat /var/lib/libvirt/images/xen/$name.$diskformat 20G", 180;
-        assert_script_run "sync",                                                                             180;
+        assert_script_run "sync", 180;
         script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
 
-        $extra_args  = "autoyast=$autoyastURL $extra_args";
-        $extra_args  = trim($extra_args);
+        $extra_args = "autoyast=$autoyastURL $extra_args";
+        $extra_args = trim($extra_args);
         $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
         $virtinstall .= " --network network=default,mac=$macaddress --autostart --location=$location --wait -1";
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
-        $virtinstall .= " --extra-args '$extra_args'"    unless ($extra_args eq '');
+        $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
-        script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
-
-        # wait for initrd to ensure the installation is starting
-        script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
+        # HOTFIX: Run installation sequentially due to poo#101256
+        assert_script_run("$virtinstall >> ~/virt-install_$name.txt 2>&1", timeout => 2700);
+        ## wait for initrd to ensure the installation is starting
+        # Note: This is not needed for sequential installation but left here, for when we will work on parallel installation again.
+        #script_retry("grep -B99 -A99 'initrd' ~/virt-install_$name.txt", delay => 15, retry => 12, die => 0);
+    } else {
+        die "unsupported create_guest method '$method'";
     }
 }
 
 sub import_guest {
     my ($guest, $method) = @_;
 
-    my $name         = $guest->{name};
-    my $disk         = $guest->{disk};
-    my $macaddress   = $guest->{macaddress};
+    my $name = $guest->{name};
+    my $disk = $guest->{disk};
+    my $macaddress = $guest->{macaddress};
     my $extra_params = $guest->{extra_params} // "";
-    my $memory       = $guest->{memory}       // "4096";
-    my $maxmemory    = $guest->{maxmemory}    // $memory;
-    my $vcpus        = $guest->{vcpus}        // "4";
-    my $maxvcpus     = $guest->{maxvcpus}     // $vcpus;
+    my $memory = $guest->{memory} // "2048";
+    my $maxmemory = $guest->{maxmemory} // $memory + 256;    # use by default just a bit more, so that we don't waste memory but still use the functionality
+    my $vcpus = $guest->{vcpus} // "2";
+    my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
+    my $network_model = $guest->{network_model} // "";
 
-    if ($method eq 'virt-install') {
+    if ($method eq 'virt-install' || $method eq '') {
         record_info "$name", "Going to import $name guest";
         send_key 'ret';    # Make some visual separator
 
+        my $network = "network=default,mac=$macaddress,";
+        $network .= ",model=$network_model" unless ($network_model eq "");
+
         # Run unattended installation for selected guest
         my $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --cpu host";
-        $virtinstall .= " --graphics vnc --disk $disk --network network=default,mac=$macaddress,model=e1000 --noautoconsole  --autostart --import";
+        $virtinstall .= " --graphics vnc --disk $disk --network $network --noautoconsole  --autostart --import";
         assert_script_run $virtinstall;
+    } else {
+        die "unsupported import_guest method '$method'";
     }
 }
 
@@ -248,14 +245,14 @@ sub install_default_packages {
 sub ensure_online {
     my ($guest, %args) = @_;
 
-    my $hypervisor   = $args{HYPERVISOR}    // "192.168.122.1";
-    my $dns_host     = $args{DNS_TEST_HOST} // "suse.de";
-    my $skip_ssh     = $args{skip_ssh}      // 0;
-    my $skip_network = $args{skip_network}  // 0;
-    my $skip_ping    = $args{skip_ping}     // 0;
-    my $ping_delay   = $args{ping_delay}    // 15;
-    my $ping_retry   = $args{ping_retry}    // 60;
-    my $use_virsh    = $args{use_virsh}     // 1;
+    my $hypervisor = $args{HYPERVISOR} // "192.168.122.1";
+    my $dns_host = $args{DNS_TEST_HOST} // "suse.de";
+    my $skip_ssh = $args{skip_ssh} // 0;
+    my $skip_network = $args{skip_network} // 0;
+    my $skip_ping = $args{skip_ping} // 0;
+    my $ping_delay = $args{ping_delay} // 15;
+    my $ping_retry = $args{ping_retry} // 60;
+    my $use_virsh = $args{use_virsh} // 1;
 
     # Ensure guest is running
     # Only xen/kvm support to reboot guest at the moment
@@ -273,7 +270,7 @@ sub ensure_online {
         unless ($skip_ssh == 1) {
             # Wait for ssh to come up
             die "$guest does not start ssh" if (script_retry("nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12) != 0);
-            die "$guest not ssh-reachable"  if (script_run("ssh $guest uname") != 0);
+            die "$guest not ssh-reachable" if (script_run("ssh $guest uname") != 0);
             # Ensure default route is set
             if (script_run("ssh $guest ip r s | grep default") != 0) {
                 assert_script_run("ssh $guest ip r a default via $hypervisor");
@@ -284,7 +281,7 @@ sub ensure_online {
             }
             # Check also if name resolution works - restart libvirtd if not
             if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
-                restart_libvirtd                        if (is_xen_host || is_kvm_host);
+                restart_libvirtd if (is_xen_host || is_kvm_host);
                 die "name resolution failed for $guest" if (script_retry("ssh $guest ping -c 3 -w 120 $dns_host", delay => 1, retry => 10, timeout => 180) != 0);
             }
         }
@@ -315,7 +312,7 @@ sub add_guest_to_hosts {
 
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
 sub remove_additional_disks {
-    my $guest   = $_[0];
+    my $guest = $_[0];
     my $pattern = $_[1] // "x?vd[b-z]";
 
     return if ($guest == 0);
@@ -326,10 +323,10 @@ sub remove_additional_disks {
 # Remove additional network interfaces from $guest. The NIC needs to be identified by it's mac address of mac address prefix (e.g. '00:16:3f:32')
 # returns the status code of the remove command
 sub remove_additional_nic {
-    my $guest      = $_[0] // '';
+    my $guest = $_[0] // '';
     my $mac_prefix = $_[1] // '';
 
-    return                       if ($guest == 0);
+    return if ($guest == 0);
     die "mac_prefix not defined" if ($mac_prefix == 0);
 
     my $cmd = 'for i in `virsh domiflist ' . "'$guest'" . ' | grep ' . "'$mac_prefix'" . ' | awk "{print $5}"`; do virsh detach-interface ' . "'$guest'" . ' bridge --mac "$i"; done';
@@ -378,7 +375,7 @@ sub is_guest_online {
 
 # wait_guest_online($guest, [$timeout]) waits until the given guests is online by probing for an open ssh port
 sub wait_guest_online {
-    my $guest   = shift;
+    my $guest = shift;
     my $retries = shift // 300;
     # Wait until guest is reachable via ssh
     script_retry("nmap $guest -PN -p ssh | grep open", delay => 1, retry => $retries);
@@ -397,6 +394,11 @@ sub shutdown_guests {
 sub wait_guests_shutdown {
     my $retries = shift // 240;
     # Note: Domain-0 is for xen only, but it does not hurt to exclude this also in kvm runs.
+    # Firstly wait for guest shutdown for a while, turn it off forcibly using "virsh destroy" if timed-out.
+    # Then wait for guest shutdown again with default "die => 1".
+    if (script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries, die => 0) ne '0') {
+        script_run("virsh destroy $_") foreach (keys %virt_autotest::common::guests);
+    }
     script_retry("! virsh list | grep -v Domain-0 | grep running", delay => 1, retry => $retries);
 }
 
@@ -435,9 +437,9 @@ sub add_alias_in_ssh_config {
     my ($ssh_config_file, $real_name, $domain_name, $alias_name) = @_;
 
     $ssh_config_file //= '/root/.ssh/config';
-    $real_name       //= '';
-    $domain_name     //= '';
-    $alias_name      //= '';
+    $real_name //= '';
+    $domain_name //= '';
+    $alias_name //= '';
     croak("Real name, domain name and alias name have to be given.") if (($real_name eq '') or ($domain_name eq '') or ($alias_name eq ''));
     if (script_run("test -f $ssh_config_file") ne 0) {
         script_run "mkdir -p " . dirname($ssh_config_file);
@@ -463,14 +465,14 @@ sub parse_subnet_address_ipv4 {
 
     $subnet_address //= '';
     croak("Subnet address argument must be given in the form of \"10.11.12.13/24\"") if (!($subnet_address =~ /\d+\.\d+\.\d+\.\d+\/\d+/));
-    my $subnet              = NetAddr::IP->new($subnet_address);
-    my $subnet_mask         = $subnet->mask();
-    my $subnet_mask_len     = $subnet->masklen();
-    my $subnet_ipaddr       = (split(/\//, $subnet->network()))[0];
-    my $subnet_ipaddr_rev   = ip_reverse($subnet_ipaddr, $subnet_mask_len);
-    my $subnet_ipaddr_gw    = (split(/\//, $subnet->first()))[0];
+    my $subnet = NetAddr::IP->new($subnet_address);
+    my $subnet_mask = $subnet->mask();
+    my $subnet_mask_len = $subnet->masklen();
+    my $subnet_ipaddr = (split(/\//, $subnet->network()))[0];
+    my $subnet_ipaddr_rev = ip_reverse($subnet_ipaddr, $subnet_mask_len);
+    my $subnet_ipaddr_gw = (split(/\//, $subnet->first()))[0];
     my $subnet_ipaddr_start = (split(/\//, $subnet->nth(1)))[0];
-    my $subnet_ipaddr_end   = (split(/\//, $subnet->last()))[0];
+    my $subnet_ipaddr_end = (split(/\//, $subnet->last()))[0];
     return ($subnet_ipaddr, $subnet_mask, $subnet_mask_len, $subnet_ipaddr_gw, $subnet_ipaddr_start, $subnet_ipaddr_end, $subnet_ipaddr_rev);
 }
 
@@ -480,17 +482,17 @@ sub parse_subnet_address_ipv4 {
 sub backup_file {
     my ($backup_target, $destination_folder) = @_;
 
-    $backup_target      //= '';
+    $backup_target //= '';
     $destination_folder //= '';
     croak("The file or folder to be backed up must be given.") if ($backup_target eq '');
     my $backup_timestamp = localtime();
-    $backup_timestamp   =~ s/ |:/_/g;
+    $backup_timestamp =~ s/ |:/_/g;
     $destination_folder =~ s/\/$//g;
     my @backup_target_array = @$backup_target;
     foreach (@backup_target_array) {
         my $backup_target_basename = basename($_);
-        my $backup_target_dirname  = dirname($_);
-        my $destination_target     = $backup_target_basename . '_backup_' . $backup_timestamp;
+        my $backup_target_dirname = dirname($_);
+        my $destination_target = $backup_target_basename . '_backup_' . $backup_timestamp;
         $destination_target = ($destination_folder eq '' ? "$backup_target_dirname/$destination_target" : "$destination_folder/$destination_target");
         script_run("cp -f -r $_ $destination_target");
     }
@@ -503,7 +505,7 @@ sub backup_file {
 sub manage_system_service {
     my ($service_name, $manage_operation) = @_;
 
-    $service_name     //= '';
+    $service_name //= '';
     $manage_operation //= '';
     croak("The operation and service name must be given.") if (($service_name eq '') or ($manage_operation eq ''));
     my @manage_operations = @$manage_operation;
@@ -520,9 +522,9 @@ sub manage_system_service {
 sub setup_rsyslog_host {
     my ($log_host_folder, $log_host_protocol, $log_host_port) = @_;
 
-    $log_host_folder   //= '/var/log/loghost';
+    $log_host_folder //= '/var/log/loghost';
     $log_host_protocol //= 'udp';
-    $log_host_port     //= '514';
+    $log_host_port //= '514';
 
     zypper_call("--gpg-auto-import-keys ref");
     zypper_call("in rsyslog");

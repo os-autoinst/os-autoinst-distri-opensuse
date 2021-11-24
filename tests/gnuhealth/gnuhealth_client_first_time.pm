@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: first time startup for admin user for gnuhealth tryton
 # Maintainer: Oliver Kurz <okurz@suse.de>
@@ -17,7 +13,7 @@ use testapi;
 use version_utils 'is_leap';
 
 sub run {
-    my $gnuhealth    = get_var('GNUHEALTH_CLIENT', 'gnuhealth-client');
+    my $gnuhealth = get_var('GNUHEALTH_CLIENT', 'gnuhealth-client');
     my $gnuhealth_34 = is_leap('<15.2');
     wait_screen_change { send_key 'tab' };
     send_key 'ret';

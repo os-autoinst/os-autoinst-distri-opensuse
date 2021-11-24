@@ -5,10 +5,6 @@ WORKDIR /srv/www/
 
 # copy all the files to the container
 COPY . .
-RUN mkdir templates/ && cp index.html templates
-
-# install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
 
 # tell the port number the container should expose
 EXPOSE 80
@@ -16,4 +12,4 @@ EXPOSE 80
 ENV WORLD_VAR Arda
 
 # run the command
-ENTRYPOINT ["python", "./app.py"]
+ENTRYPOINT "./www.py"

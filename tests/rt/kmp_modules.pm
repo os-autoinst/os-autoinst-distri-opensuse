@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: RT tests
 #    test kmp modules & boot RT kernel script for further automated and regression RT tests
@@ -27,10 +23,10 @@ use Utils::Systemd qw(systemctl);
 
 sub run_lttng_demo_trace {
     my $trace = {
-        label     => 'TEST_TRACE',
-        output    => '/tmp/sched_trace_example',
+        label => 'TEST_TRACE',
+        output => '/tmp/sched_trace_example',
         component => 'sched_switch',
-        channel   => 'test-channel'
+        channel => 'test-channel'
     };
 
     # Trace demo
@@ -109,9 +105,9 @@ sub post_fail_hook {
 
     select_console 'log-console';
 
-    $self->save_and_upload_log("dmesg",                                  "dmesg.log",        {screenshot => 1});
-    $self->save_and_upload_log("journalctl --no-pager -o short-precise", "journalctl.log",   {screenshot => 1});
-    $self->save_and_upload_log('rpm -qa *-kmp-rt',                       "list_of_kmp_rpms", {screenshot => 1});
+    $self->save_and_upload_log("dmesg", "dmesg.log", {screenshot => 1});
+    $self->save_and_upload_log("journalctl --no-pager -o short-precise", "journalctl.log", {screenshot => 1});
+    $self->save_and_upload_log('rpm -qa *-kmp-rt', "list_of_kmp_rpms", {screenshot => 1});
     if ((script_run 'test -e /var/log/modprobe.out') == 0) {
         upload_logs '/var/log/modprobe.out';
     }

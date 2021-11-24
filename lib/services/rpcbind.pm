@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Package for rpcbind service tests
 #
@@ -19,7 +15,7 @@ use strict;
 use warnings;
 
 my $service_type = 'Systemd';
-my $nfs_server   = 'nfs-server';
+my $nfs_server = 'nfs-server';
 
 sub install_service {
     # rpcbind needs nfs-server for testing.
@@ -40,22 +36,22 @@ sub config_service {
 
 sub enable_service {
     common_service_action('rpcbind.socket', $service_type, 'enable');
-    common_service_action($nfs_server,      $service_type, 'enable');
+    common_service_action($nfs_server, $service_type, 'enable');
 }
 
 sub start_service {
     common_service_action('rpcbind.socket', $service_type, 'start');
-    common_service_action($nfs_server,      $service_type, 'start');
+    common_service_action($nfs_server, $service_type, 'start');
 }
 
 sub stop_service {
-    common_service_action($nfs_server,       $service_type, 'stop');
+    common_service_action($nfs_server, $service_type, 'stop');
     common_service_action('rpcbind.service', $service_type, 'stop');
 }
 
 sub check_enabled {
     common_service_action('rpcbind.socket', $service_type, 'is-enabled');
-    common_service_action($nfs_server,      $service_type, 'is-enabled');
+    common_service_action($nfs_server, $service_type, 'is-enabled');
 }
 
 sub check_service {
@@ -81,7 +77,7 @@ sub full_rpcbind_check {
     my (%hash) = @_;
     my ($stage, $type) = ($hash{stage}, $hash{service_type});
     $service_type = $type;
-    $nfs_server   = 'nfsserver' if ($type eq 'SystemV');
+    $nfs_server = 'nfsserver' if ($type eq 'SystemV');
     if ($stage eq 'before') {
         install_service();
         config_service();

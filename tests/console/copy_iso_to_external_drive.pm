@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: parted e2fsprogs
 # Summary: Copy the installation ISO to an external drive
@@ -28,7 +24,7 @@ sub run {
     my $disk = get_var('PLAYGROUNDDISK');
     #partition HDD2
     assert_script_run "echo Disk: $disk";
-    assert_script_run "parted $disk mklabel gpt",                       240;
+    assert_script_run "parted $disk mklabel gpt", 240;
     assert_script_run "parted -a opt $disk mkpart primary ext4 0% 50%", 240;
     my $partition = $disk . "1";
     assert_script_run "mkfs.ext4 $partition", 240;

@@ -1,17 +1,5 @@
-# Copyright (C) 2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: sssd test with openldap as provider
 #
@@ -45,10 +33,10 @@ sub run {
     systemctl('enable --now docker');
     #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default)
     my $pkgs = "openldap2 sudo";
-    my $tag  = get_var("BASE_IMAGE_TAG");
+    my $tag = get_var("BASE_IMAGE_TAG");
     unless ($tag) {
         if (is_opensuse) { $tag = (is_tumbleweed) ? "opensuse/tumbleweed" : "opensuse/leap";
-        } else           { $tag = "registry.suse.com/suse/sle15:15.3"; }
+        } else { $tag = "registry.suse.com/suse/sle15:15.3"; }
     }
     # build container
     # build image, create container, setup openldap database and import testing data
@@ -75,7 +63,7 @@ sub run {
     validate_script_output('sshpass -p open5use ssh adam@localhost whoami', sub { m/adam/ });
     #Change password of remote user
     assert_script_run('sshpass -p open5use ssh bob@localhost \'echo -e "open5use\nn0vell88\nn0vell88" | passwd\'');
-    validate_script_output('sshpass -p n0vell88 ssh bob@localhost echo "login as new password!"',                   sub { m/new password/ });
+    validate_script_output('sshpass -p n0vell88 ssh bob@localhost echo "login as new password!"', sub { m/new password/ });
     validate_script_output('ldapwhoami -x -H ldap://ldapserver -D uid=bob,ou=users,dc=sssdtest,dc=com -w n0vell88', sub { m/bob/ });
     #Sudo run a command as another user
     assert_script_run("sed -i '/Defaults targetpw/s/^/#/' /etc/sudoers");

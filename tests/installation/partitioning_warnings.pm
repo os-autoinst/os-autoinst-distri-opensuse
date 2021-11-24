@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Create small root partition to test 'too small filesystem for snapshots' warning
 #          missing swap warning and on UEFI missing /boot/efi partition
@@ -23,6 +19,7 @@ use base 'y2_installbase';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use partition_setup qw(create_new_partition_table addpart addboot);
 use version_utils qw(is_opensuse is_storage_ng);
 
@@ -35,16 +32,16 @@ sub process_warning {
 
 sub process_missing_special_partitions {
     # Have missing boot/zipl partition warning only in storage_ng
-    if (is_storage_ng && check_var('ARCH', 's390x')) {    # s390x needs /boot/zipl on ext partition
+    if (is_storage_ng && is_s390x) {    # s390x needs /boot/zipl on ext partition
         process_warning(warning => 'no-boot-zipl', key => 'alt-n');
     }
-    elsif (check_var('ARCH', 'ppc64le')) {                # ppc64le needs PReP /boot
+    elsif (is_ppc64le) {    # ppc64le needs PReP /boot
         process_warning(warning => 'no-prep-boot', key => 'alt-n');
     }
     elsif (get_var('UEFI')) {
         process_warning(warning => 'no-efi-boot', key => 'alt-n');
     }
-    elsif (is_storage_ng() && check_var('ARCH', 'x86_64')) {
+    elsif (is_storage_ng() && is_x86_64) {
         # Storage-ng has GPT by defaut, so warn about missing bios-boot partition for legacy boot, which is only on x86_64
         process_warning(warning => 'no-bios-boot', key => 'alt-n');
     }
@@ -70,8 +67,8 @@ sub run {
             fsid => 'PReP'
         },
         uefi => {
-            role  => 'efi',
-            size  => 100,
+            role => 'efi',
+            size => 100,
             mount => '/boot/efi'
         },
         bios => {
@@ -80,10 +77,10 @@ sub run {
             fsid => 'bios-boot'
         },
         zipl => {
-            role   => 'OS',
-            size   => 50,
+            role => 'OS',
+            size => 50,
             format => 'ext2',
-            mount  => '/boot/zipl'
+            mount => '/boot/zipl'
         });
 
     create_new_partition_table;
@@ -126,13 +123,13 @@ sub run {
             process_warning(warning => 'no-swap', key => 'alt-n');
         }
         else {
-            if (!check_var('ARCH', 'ppc64le')) {
+            if (!is_ppc64le) {
                 record_info('Test: Snapshots + small root', 'Enable snapshots for undersized root partition');
                 process_warning(warning => 'too-small-for-snapshots', key => 'alt-n');
             }
             record_info('Test: No boot', "Missing boot partition for " . get_var('ARCH'));
             process_missing_special_partitions;
-            if (check_var('ARCH', 'ppc64le')) {
+            if (is_ppc64le) {
                 record_info('Test: Snapshots + small root', 'Enable snapshots for undersized root partition');
                 process_warning(warning => 'too-small-for-snapshots', key => 'alt-n');
             }

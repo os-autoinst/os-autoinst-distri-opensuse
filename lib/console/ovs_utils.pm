@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functions for testing openvswitch
 # Maintainer: Anna Minou <anna.minou@suse.de>
@@ -33,7 +29,7 @@ sub add_bridge {
 sub ping_check {
     my $server_ip = shift;
     my $client_ip = shift;
-    my $vpn       = shift;
+    my $vpn = shift;
     assert_script_run("cd");
     assert_script_run "(ping -c 20 $vpn &>/dev/null &)";
     if ($vpn eq "192.0.0.2") {

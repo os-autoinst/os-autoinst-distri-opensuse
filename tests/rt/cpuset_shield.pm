@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 # Summary: Basic CPU shielding smoke test with a single memory node
 #		The cpuset feature provides “soft partitioning” of the system's CPUs and memory nodes.
 #	 	A shielded CPU is dedicated to the activities associated with high-priority real-time tasks.
@@ -27,7 +23,7 @@ use testapi;
 my $cpuset_log = '/var/log/cpuset';
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $cmd_base = 'cset --log ' . $cpuset_log . ' shield ';
 
     $self->select_serial_terminal;

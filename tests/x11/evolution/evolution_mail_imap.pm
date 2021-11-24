@@ -1,11 +1,7 @@
 # Evolution tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: evolution
 # Summary: Test Case #1503768: Evolution: send and receive email via IMAP
@@ -27,7 +23,7 @@ use lockapi qw(mutex_wait);
 sub run {
     my $self = shift;
     # Select correct account to use with multimachine.
-    my $account  = "internal_account";
+    my $account = "internal_account";
     my $hostname = get_var('HOSTNAME');
     mutex_wait('service_setup_done') if get_var('QAM_MAIL_EVOLUTION');
     if ($hostname eq 'client') {

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-daemon openssh
 # Summary: Import and test Windows guest
@@ -29,14 +25,14 @@ sub remove_guest {
 }
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $username = 'Administrator';
 
     # Remove already existing guests to ensure a fresh start (needed for restarting jobs)
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
     shutdown_guests();    # Shutdown SLES guests as they are not needed here
 
-    import_guest $_,       'virt-install'                            foreach (values %virt_autotest::common::imports);
+    import_guest $_, 'virt-install' foreach (values %virt_autotest::common::imports);
     add_guest_to_hosts $_, $virt_autotest::common::imports{$_}->{ip} foreach (keys %virt_autotest::common::imports);
 
     # Check if SSH is open because of that means that the guest is installed
@@ -45,8 +41,8 @@ sub run {
     ssh_copy_id $_, username => $username, authorized_keys => 'C:\ProgramData\ssh\administrators_authorized_keys', scp => 1 foreach (keys %virt_autotest::common::imports);
 
     # Print system info, upload it and check the OS version
-    assert_script_run "ssh $username\@$_ 'systeminfo' | tee /tmp/$_-systeminfo.txt"                            foreach (keys %virt_autotest::common::imports);
-    upload_logs "/tmp/$_-systeminfo.txt"                                                                       foreach (keys %virt_autotest::common::imports);
+    assert_script_run "ssh $username\@$_ 'systeminfo' | tee /tmp/$_-systeminfo.txt" foreach (keys %virt_autotest::common::imports);
+    upload_logs "/tmp/$_-systeminfo.txt" foreach (keys %virt_autotest::common::imports);
     assert_script_run "ssh $username\@$_ 'systeminfo' | grep '$virt_autotest::common::imports{$_}->{version}'" foreach (keys %virt_autotest::common::imports);
 }
 

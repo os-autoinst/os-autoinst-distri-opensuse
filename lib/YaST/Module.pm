@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces methods that are common for all YaST modules.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -33,16 +29,16 @@ C<$ui> - User interface the module is expected to be opened with (Possible value
 =cut
 
 sub open {
-    my %args   = @_;
+    my %args = @_;
     my $module = $args{module};
-    my $ui     = lc($args{ui});
-    die 'No module name specified.'    unless defined $module;
+    my $ui = lc($args{ui});
+    die 'No module name specified.' unless defined $module;
     die 'No user interface specified.' unless defined $ui;
     if ($ui eq 'ncurses') {
         yast2_console_exec(
             yast2_module => $module,
-            yast2_opts   => '--ncurses',
-            extra_vars   => get_var('YUI_PARAMS')
+            yast2_opts => '--ncurses',
+            extra_vars => get_var('YUI_PARAMS')
         );
     }
     elsif ($ui eq 'qt') {

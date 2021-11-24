@@ -1,17 +1,5 @@
-# Copyright (C)2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Compare package version with its expected version for SLE15SP3.
 # Maintainer: Yutao Wang <yuwang@suse.com>
@@ -26,9 +14,9 @@ use Mojo::Util 'trim';
 
 my %package = (
     postgresql13 => '13.0.0',
-    python39     => '3.9.0',
-    python3      => '3.6.0',
-    mariadb      => '10.0.0'
+    python39 => '3.9.0',
+    python3 => '3.6.0',
+    mariadb => '10.0.0'
 );
 
 my %locpak = (
@@ -48,7 +36,7 @@ sub cmp_packages {
     my ($pcks, $pckv) = @_;
     record_info($pcks, "$pcks version check after migration");
     my $output = script_output("zypper se -xs $pcks | grep -w $pcks | head -1 | awk -F '|' '{print \$4}'", 100, proceed_on_failure => 1);
-    my $out    = '';
+    my $out = '';
     for my $line (split(/\r?\n/, $output)) {
         if (trim($line) =~ m/^\d+\.\d+(\.\d+)?/) {
             $out = $line;

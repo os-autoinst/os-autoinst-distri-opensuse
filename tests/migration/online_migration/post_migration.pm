@@ -1,11 +1,7 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: SUSEConnect zypper
 # Summary: sle12 online migration testsuite
@@ -28,7 +24,7 @@ sub run {
 
     # Save output info to logfile
     my $out;
-    my $timeout  = bmwqemu::scale_timeout(30);
+    my $timeout = bmwqemu::scale_timeout(30);
     my $waittime = bmwqemu::scale_timeout(5);
     while (1) {
         $out = script_output("SUSEConnect --status-text", proceed_on_failure => 1);

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Hyper-V bootloader with asset downloading
 # Maintainer: Michal Nowak <mnowak@suse.com>
@@ -34,32 +30,36 @@ sub hyperv_cmd_with_retry {
     die 'Command not provided' unless $cmd;
 
     my $attempts = $args->{attempts} // 7;
-    my $sleep    = $args->{sleep}    // 300;
+    my $sleep = $args->{sleep} // 300;
     # Common messages
     my @msgs = $args->{msgs} // (
         'Failed to create the virtual hard disk',
         'The operation cannot be performed while the object is in use',
-        'The process cannot access the file because it is being used by another process');
+        'The process cannot access the file because it is being used by another process',
+        'Access is denied.'
+    );
     for my $retry (1 .. $attempts) {
-        my $stderr = console('svirt')->get_cmd_output($cmd, {wantarray => 1})->[1];
-        return if $stderr =~ m/^\s*$/;    # no output on STDERR, so we are done
+        my ($ret, $stdout, $stderr) = console('svirt')->run_cmd($cmd, wantarray => 1);
+        # return when powershell returns 0 (SUCCESS)
+        return if $ret == 0;
 
         diag "Attempt $retry/$attempts: Command failed";
         my $msg_found = 0;
         foreach my $msg (@msgs) {
             diag "Looking for message: '$msg'";
             # Narrow the error message for an easy match
-            my $s = $stderr;
             # Remove Windows-style new lines (<CR><LF>)
-            $s =~ s{\r\n}{}g;
+            $stdout =~ s/\r\n//g;
+            $stderr =~ s/\r\n//g;
             # Error message is not the expected error message in this cycle,
             # try the next one
-            next unless $s =~ /$msg/;
-            $msg_found = 1;
-            # Error message is the expected one, sleep
-            diag "Sleeping for $sleep seconds...";
-            sleep $sleep;
-            last;
+            if ($stdout =~ /$msg/ || $stderr =~ /$msg/) {
+                $msg_found = 1;
+                # Error message is the expected one, sleep
+                diag "Sleeping for $sleep seconds...";
+                sleep $sleep;
+                last;
+            }
         }
         # Error we don't know if we should attempt to recover from
         die 'Command failed with unhandled error' unless $msg_found;
@@ -68,9 +68,9 @@ sub hyperv_cmd_with_retry {
 }
 
 sub run {
-    my $svirt               = select_console('svirt');
+    my $svirt = select_console('svirt');
     my $hyperv_intermediary = select_console('hyperv-intermediary');
-    my $name                = $svirt->name;
+    my $name = $svirt->name;
 
     # Following two variables specify where the root with expected directories is located.
     # Beware that we deal with Windows so backslash ('\') is used and multiple backslashes
@@ -78,8 +78,8 @@ sub run {
     # as a quotation).
     # Example: HYPERV_DISK="C:" HYPERV_ROOT="\\Users\\root\\VM"
     my $hyperv_disk = get_var('HYPERV_DISK', 'D:');
-    my $root        = $hyperv_disk . get_var('HYPERV_ROOT', '');
-    my $root_nfs    = 'N:';
+    my $root = $hyperv_disk . get_var('HYPERV_ROOT', '');
+    my $root_nfs = 'N:';
 
     # Workaround before fix in svirt (https://github.com/os-autoinst/os-autoinst/pull/901) is deployed
     my $n = get_var('NUMDISKS', 1);
@@ -109,11 +109,14 @@ sub run {
                 # If the image exists, do nothing
                 last if hyperv_cmd("if exist $root\\cache\\$basenamehdd_vhd ( exit 1 )", {ignore_return_code => 1});
                 # Copy HDD from NFS share to local cache on Hyper-V
-                next if hyperv_cmd("copy $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\", {ignore_return_code => 1});
+                hyperv_cmd_with_retry("copy /z $root_nfs\\$hddpath\\$basenamehdd $root\\cache\\");
                 # Decompress the XZ compressed image
-                last if $hdd !~ m/vhdx\.xz/;
-                hyperv_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd");
-                last;
+                if ($hdd =~ m/vhdx\.xz/) {
+                    record_info 'unxz', "Decompressing $root\\cache\\$basenamehdd";
+                    my ($ret, $stdout, $stderr) = $svirt->run_cmd("xz --decompress --keep --verbose $root\\cache\\$basenamehdd", wantarray => 1);
+                    defined($stderr) && $stderr =~ /xz: $root\\cache\\$basenamehdd: File exists/ && sleep 60;
+                    last;
+                }
             }
             # Make sure the disk file is present
             hyperv_cmd("if not exist $root\\cache\\" . $basenamehdd =~ s/vhdx\.xz/vhdx/r . " ( exit 1 )");
@@ -131,25 +134,30 @@ sub run {
     }
 
     my $xvncport = get_required_var('VIRSH_INSTANCE');
-    my $iso      = get_var('ISO') ? "$root\\cache\\" . basename(get_var('ISO')) : undef;
-    my $ramsize  = get_var('QEMURAM',  1024);
+    my $iso = get_var('ISO') ? "$root\\cache\\" . basename(get_var('ISO')) : undef;
+    my $ramsize = get_var('QEMURAM', 1024);
     my $cpucount = get_var('QEMUCPUS', 1);
 
     enter_cmd "mkdir -p ~/.vnc/";
     enter_cmd "vncpasswd -f <<<$testapi::password > ~/.vnc/passwd";
     enter_cmd "chmod 0600 ~/.vnc/passwd";
-    enter_cmd "pkill -f \"Xvnc :$xvncport\"; pkill -9 -f \"Xvnc :$xvncport\"";
+    enter_cmd 'pgrep -a Xvnc';
+    enter_cmd "pvnc=\$(pgrep -f Xvnc[[:space:]]*:${xvncport}[[:space:]]*-geometry)";
+    enter_cmd '[ -n "$pvnc" ] && kill -9 $pvnc';
     enter_cmd "Xvnc :$xvncport -geometry 1024x768 -pn -rfbauth ~/.vnc/passwd &";
 
     my $ps = 'powershell -Command';
 
-    my ($winserver, $winver, $vmguid);
+    my ($ret, $winver, undef) = console('svirt')->run_cmd(qq/$ps (Get-WmiObject Win32_OperatingSystem).Version/, wantarray => 1);
+    die 'Could not find Windows OS version!' if $ret != 0;
 
-    $winver = $svirt->get_cmd_output("$ps (Get-WmiObject Win32_OperatingSystem).Version");
-    if (grep { /6.3.*/ } $winver) {
+    $winver =~ s/\r\n//g;
+    my $winserver;
+
+    if ($winver =~ /6.3.*/) {
         $winserver = '2012r2';
     }
-    elsif (grep { /10.0.*/ } $winver) {
+    elsif ($winver =~ /10.0.*/) {
         $winserver = '2016_or_2019';
     }
     else {
@@ -157,13 +165,14 @@ sub run {
     }
 
     hyperv_cmd("$ps Get-VM");
-    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff",                                       {ignore_return_code => 1});
+    hyperv_cmd("$ps Stop-VM -Force $name -TurnOff", {ignore_return_code => 1});
     hyperv_cmd(qq($ps "\$ProgressPreference='SilentlyContinue'; Remove-VM -Force $name"), {ignore_return_code => 1});
 
-    my $hddsize            = get_var('HDDSIZEGB', 20);
-    my $vm_generation      = get_var('UEFI') ? 2 : 1;
+    my $hddsize = get_var('HDDSIZEGB', 20);
+    my $vm_generation = get_var('UEFI') ? 2 : 1;
     my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
-    my @disk_paths         = ();
+    my @disk_paths = ();
+    my $vmguid;
     if ($winserver eq '2012r2' || $winserver eq '2016_or_2019') {
         for my $n (1 .. get_var('NUMDISKS')) {
             hyperv_cmd("del /F $root\\cache\\${name}_${n}.vhd");
@@ -193,7 +202,8 @@ sub run {
             hyperv_cmd("$ps Add-VMHardDiskDrive -VMName $name -Path $disk_path");
         }
         hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
-        $vmguid = $svirt->get_cmd_output("$ps (Get-VM -VMName $name).id.guid");
+        ($ret, $vmguid, undef) = console('svirt')->run_cmd(qq/$ps (Get-VM -VMName $name).id.guid/, wantarray => 1);
+        die "Have not find any GUID for $name" if $ret != 0;
     }
     else {
         die "Hyper-V $winserver is currently not supported";

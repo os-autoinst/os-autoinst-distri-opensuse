@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-network
 # Summary: Verify that correct value is stored in network config when
@@ -23,7 +19,7 @@ use YaST::Module;
 sub run {
     select_console 'root-console';
     my $network_interface = script_output('ls /sys/class/net | grep ^e');
-    my $test_data         = get_test_suite_data();
+    my $test_data = get_test_suite_data();
 
     YaST::Module::run_actions {
         my $network_settings = $testapi::distri->get_network_settings();

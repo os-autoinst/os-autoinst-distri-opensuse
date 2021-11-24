@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2015-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Configure JeOS
 # Maintainer: qa-c team <qa-c@suse.de>
@@ -15,7 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_leap is_opensuse);
-use Utils::Architectures qw(is_aarch64 is_x86_64);
+use Utils::Architectures;
 use Utils::Backends 'is_hyperv';
 use jeos qw(expect_mount_by_uuid);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions);
@@ -30,8 +26,8 @@ sub post_fail_hook {
 
 sub verify_user_info {
     my (%args) = @_;
-    my $user   = $args{user_is_root};
-    my $lang   = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
+    my $user = $args{user_is_root};
+    my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
 
     my %tz_data = ('en_US' => 'UTC', 'de_DE' => 'Europe/Berlin');
     assert_script_run("timedatectl | awk '\$1 ~ /Time/ { print \$3 }' | grep ^" . $tz_data{$lang} . "\$");

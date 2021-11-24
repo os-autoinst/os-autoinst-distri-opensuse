@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Executes a single LTP test case
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
@@ -26,8 +22,8 @@ require bmwqemu;
 sub start_result {
     my ($self, $file_name, $title) = @_;
     my $result = {
-        title  => $title,
-        text   => $self->next_resultname('txt', $file_name),
+        title => $title,
+        text => $self->next_resultname('txt', $file_name),
         result => 'ok'
     };
     open my $rfh, '>', bmwqemu::result_dir() . "/$result->{text}";
@@ -69,11 +65,11 @@ sub parse_result_line {
 sub parse_ltp_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
     my $results = {
-        pass          => 0,
-        conf          => 0,
-        fail          => 0,
-        brok          => 0,
-        warn          => 0,
+        pass => 0,
+        conf => 0,
+        fail => 0,
+        brok => 0,
+        warn => 0,
         ignored_lines => 0
     };
 
@@ -132,11 +128,11 @@ sub parse_ltp_log {
 sub parse_openposix_log {
     my ($self, $test_log, $fin_msg, $fh) = @_;
     my $results = {
-        pass          => 0,
-        conf          => 0,
-        fail          => 0,
-        brok          => 0,
-        warn          => 0,
+        pass => 0,
+        conf => 0,
+        fail => 0,
+        brok => 0,
+        warn => 0,
         ignored_lines => 0
     };
 
@@ -189,9 +185,9 @@ sub record_ltp_result {
         status => 'fail',
         # Test suite specific data
         test => {
-            result   => '',
+            result => '',
             duration => $duration,
-            log      => $test_log
+            log => $test_log
         }};
 
     unless (defined $test_log) {
@@ -213,13 +209,13 @@ sub record_ltp_result {
     }
 
     if ($results->{brok}) {
-        $details->{result}                = 'fail';
-        $self->{result}                   = 'fail';
+        $details->{result} = 'fail';
+        $self->{result} = 'fail';
         $export_details->{test}->{result} = 'BROK';
     }
     elsif ($results->{fail} || $results->{warn}) {
-        $details->{result}                = 'fail';
-        $self->{result}                   = 'fail';
+        $details->{result} = 'fail';
+        $self->{result} = 'fail';
         $export_details->{test}->{result} = 'FAIL';
     }
     elsif ($results->{pass}) {
@@ -227,8 +223,8 @@ sub record_ltp_result {
         $export_details->{test}->{result} = 'PASS';
     }
     elsif ($results->{conf}) {
-        $details->{result}                = 'skip';
-        $self->{result}                   = 'skip';
+        $details->{result} = 'skip';
+        $self->{result} = 'skip';
         $export_details->{test}->{result} = 'CONF';
     }
     else {
@@ -248,19 +244,19 @@ sub record_ltp_result {
 
 sub write_extra_test_result {
     my ($self, $details) = @_;
-    my $dir      = bmwqemu::result_dir();
+    my $dir = bmwqemu::result_dir();
     my $filename = $details->{test_fqn} =~ s/:/_/gr;
-    my $result   = 'failed';
-    $result = 'passed'  if ($details->{test}->{result} eq 'PASS');
+    my $result = 'failed';
+    $result = 'passed' if ($details->{test}->{result} eq 'PASS');
     $result = 'skipped' if ($details->{test}->{result} eq 'CONF');
 
     my $result_file = {
-        dents   => 0,
+        dents => 0,
         details => [{
                 _source => 'parser',
-                result  => $result,
-                text    => $filename . '.txt',
-                title   => $filename,
+                result => $result,
+                text => $filename . '.txt',
+                title => $filename,
         }],
         result => $result,
     };
@@ -294,19 +290,19 @@ sub pre_run_hook {
 sub run {
     my ($self, $tinfo) = @_;
     die 'Need LTP_COMMAND_FILE to know which tests to run' unless $tinfo && $tinfo->runfile;
-    my $runfile            = $tinfo->runfile;
-    my $timeout            = get_var('LTP_TIMEOUT') || 900;
-    my $is_posix           = $runfile =~ m/^\s*openposix\s*$/i;
+    my $runfile = $tinfo->runfile;
+    my $timeout = get_var('LTP_TIMEOUT') || 900;
+    my $is_posix = $runfile =~ m/^\s*openposix\s*$/i;
     my $test_result_export = $tinfo->test_result_export;
-    my $test               = $tinfo->test;
-    my %env                = %{$test_result_export->{environment}};
+    my $test = $tinfo->test;
+    my %env = %{$test_result_export->{environment}};
 
-    $env{retval}       = 'undefined';
-    $self->{ltp_env}   = \%env;
+    $env{retval} = 'undefined';
+    $self->{ltp_env} = \%env;
     $self->{ltp_tinfo} = $tinfo;
 
-    my $fin_msg    = "### TEST $test->{name} COMPLETE >>> ";
-    my $cmd_text   = qq($test->{command}; echo "$fin_msg\$?");
+    my $fin_msg = "### TEST $test->{name} COMPLETE >>> ";
+    my $cmd_text = qq($test->{command}; echo "$fin_msg\$?");
     my $klog_stamp = "echo 'OpenQA::run_ltp.pm: Starting $test->{name}' > /dev/$serialdev";
     my $start_time = thetime();
     # See poo#16648 for disabled LTP networking related tests.

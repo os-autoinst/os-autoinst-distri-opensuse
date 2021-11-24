@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handles Clock and Time Zone page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -24,7 +20,7 @@ sub new {
 
 sub init {
     my ($self) = @_;
-    $self->{cb_region}    = $self->{app}->combobox({id => 'region'});
+    $self->{cb_region} = $self->{app}->combobox({id => 'region'});
     $self->{cb_time_zone} = $self->{app}->combobox({id => 'timezone'});
     $self->{chb_hw_clock} = $self->{app}->checkbox({id => 'hwclock'});
     return $self;

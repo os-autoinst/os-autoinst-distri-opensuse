@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: lvm2-lockd crmsh csync2 lvm2
 # Summary: Workarounds after upgrade from cluster with clvmd into lvmlockd only systems
@@ -20,16 +16,16 @@ use lockapi;
 use hacluster;
 
 sub run {
-    my ($self)       = @_;
+    my ($self) = @_;
     my $cluster_name = get_cluster_name;
-    my $lvm_conf     = '/etc/lvm/lvm.conf';
+    my $lvm_conf = '/etc/lvm/lvm.conf';
 
     # We may execute this test after a reboot, so we need to log in
     select_console 'root-console';
 
     # Only perform clvm to lvmlockd migration if the cluster is up and has clvm resources
     assert_script_run $crm_mon_cmd;
-    my $clvm_rsc = script_run "$crm_mon_cmd | grep -wq clvm";
+    my $clvm_rsc = script_run "grep -wq clvm <($crm_mon_cmd)";
     return unless (defined $clvm_rsc and $clvm_rsc == 0);
 
     barrier_wait("CLVM_TO_LVMLOCKD_START_$cluster_name");

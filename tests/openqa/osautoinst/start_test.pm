@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Clone an openQA job from O3
 # Maintainer: Dominik Heidler <dheidler@suse.de>
@@ -16,12 +12,12 @@ use base "consoletest";
 use testapi;
 
 sub run {
-    my $arch       = get_required_var('ARCH');
-    my $ttest      = 'minimalx';
+    my $arch = get_required_var('ARCH');
+    my $ttest = 'minimalx';
     my $openqa_url = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
     # aarch64 does not support nested virt, huge pages are not configured and 'gic_version=host' and host cpu options are only usable with KVM
     my $clone_options = ($arch =~ /aarch64/) ? "QEMU_NO_KVM=1 QEMU_HUGE_PAGES_PATH='' QEMUMACHINE=virt QEMUCPU='cortex-a72'" : "";
-    my $cmd           = <<"EOF";
+    my $cmd = <<"EOF";
 last_tw_build=\$(openqa-client --host $openqa_url assets get | sed -n 's/^.*name.*Tumbleweed-NET-$arch-Snapshot\\([0-9]\\+\\)-Media.*\$/\\1/p' | sort -n | tail -n 1)
 echo "Last Tumbleweed build on openqa.opensuse.org: \$last_tw_build"
 [ ! -z \$last_tw_build ]

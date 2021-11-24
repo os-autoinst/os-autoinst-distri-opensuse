@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: btrfsprogs
 # Summary: Btrfs quota group limit tests improvements
@@ -54,14 +50,15 @@ sub run {
     #  /   \ / | \
     # a     b  c  d(k)
     assert_script_run "for c in {a..d}; do btrfs subvolume create \$c; done";
+    assert_script_run "btrfs subvolume list -a $dest";
     assert_script_run "for c in 1/1 1/2 2/1; do btrfs qgroup create \$c .; done";
 
-    assert_script_run "for c in a b; do btrfs qgroup assign \$c 1/1 .; done";
-    assert_script_run "for c in b c d; do btrfs qgroup assign \$c 1/2 .; done";
+    assert_script_run "for c in a b; do btrfs qgroup assign $dest/\$c 1/1 .; done";
+    assert_script_run "for c in b c d; do btrfs qgroup assign $dest/\$c 1/2 .; done";
     assert_script_run "for c in 1/1 1/2; do btrfs qgroup assign \$c 2/1 .; done";
 
     # Set limits
-    assert_script_run "btrfs qgroup limit 50m a .";
+    assert_script_run "btrfs qgroup limit 50m $dest/a .";
     assert_script_run "btrfs qgroup limit 100m 1/1 .";
     assert_script_run "btrfs qgroup limit 500m 2/1 .";
 
@@ -82,16 +79,23 @@ sub run {
 
     # Check limits
     assert_script_run "dd if=/dev/zero bs=10M count=3 of=nofile";
+
+    # Use the --reflink=never option if it exists
+    my $reflink_never = "--reflink=never";
+    $reflink_never = "" if script_run('cp --reflink=never /dev/null /tmp/null && rm /tmp/null');
+
     foreach my $c ('a' .. 'b') {
-        assert_script_run "! cp nofile $c/nofile";
+        assert_script_run "btrfs quota rescan -w .";
+        assert_script_run "cp --reflink=always nofile $c/nofile";
+        assert_script_run "! cp $reflink_never --remove-destination nofile $c/nofile";
         assert_script_run "sync && rm $c/nofile";
     }
     assert_script_run "cp nofile c/nofile";
 
     # Check for quota exceeding
-    assert_script_run 'btrfs subvolume create e';
-    assert_script_run 'btrfs qgroup limit 200m e .';
-    my $write_chunk = 'dd if=/dev/zero bs=1M count=190 of=e/file';
+    assert_script_run "btrfs subvolume create $dest/e";
+    assert_script_run "btrfs qgroup limit 200m $dest/e .";
+    my $write_chunk = 'dd if=/dev/zero bs=1M count=190 of=./e/file';
     # Overwriting same file should not exceed quota
     if (script_run("for c in {1..2}; do $write_chunk; done")) {
         record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
@@ -101,15 +105,15 @@ sub run {
         record_soft_failure 'File overwrite test: bsc#1113042 - btrfs is not informed to commit transaction';
     }
     assert_script_run 'sync';
-    assert_script_run 'rm e/file', fail_message => 'bsc#993841';
+    assert_script_run 'rm ./e/file', fail_message => 'bsc#993841';
     # test exceeding real quota
-    my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=190 of=e/file_$c; done';
+    my $files_creation = '! for c in {1..2}; do dd if=/dev/zero bs=1M count=190 of=./e/file_$c; done';
     assert_script_run $files_creation, 150;
-    if (script_run('rm e/file_*')) {
+    if (script_run('rm ./e/file_*')) {
         record_soft_failure 'File removal test: bsc#1113042 - btrfs is not informed to commit transaction';
         assert_script_run 'sync';
         assert_script_run $files_creation, 150;
-        assert_script_run 'rm -f e/file_*';
+        assert_script_run 'rm -f ./e/file_*';
     }
 
     assert_script_run "cd; umount $dest";

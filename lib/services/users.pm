@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Package for users service test
 # Test steps:
@@ -23,15 +19,16 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use power_action_utils 'reboot_x11';
 use version_utils;
 use x11utils;
 use main_common 'opensuse_welcome_applicable';
 
-our @EXPORT      = qw($newpwd $newUser $pwd4newUser);
-our $newpwd      = "suseTEST-987";
-our $newUser     = "test";
+our @EXPORT = qw($newpwd $newUser $pwd4newUser);
+our $newpwd = "suseTEST-987";
+our $newUser = "test";
 our $pwd4newUser = "helloWORLD-0";
 
 sub lock_screen {
@@ -45,7 +42,7 @@ sub lock_screen {
 sub logout_and_login {
     my ($login_user, $login_pw) = @_;
     my $test_user = $login_user // $username;
-    my $test_pw   = $login_pw   // $newpwd;
+    my $test_pw = $login_pw // $newpwd;
     handle_logout;
     handle_login($test_user, 0, $test_pw);
 }
@@ -104,7 +101,7 @@ sub switch_users {
     type_password "$pwd4newUser\n";
     # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
-    assert_screen "generic-desktop", 120;
+    handle_gnome_activities;
     switch_user;
     send_key "esc";
     assert_and_click "displaymanager-$username";
@@ -112,7 +109,7 @@ sub switch_users {
     # for poo#88247, we have to restore current user's password before migration,
     # so here need to use the original password.
     type_password(get_required_var('FLAVOR') =~ /Migration/ ? "$password\n" : "$newpwd\n");
-    assert_screen "generic-desktop", 120;
+    handle_gnome_activities;
 }
 
 # restore password to original value
@@ -130,6 +127,12 @@ sub restore_passwd {
     assert_screen "password-changed-terminal";
 }
 
+# remove test user
+sub remove_test_user {
+    assert_script_run("pkill -KILL -u $newUser");
+    assert_script_run("userdel -r $newUser");
+}
+
 # check users before and after migration
 # stage is 'before' or 'after' system migration.
 sub full_users_check {
@@ -144,10 +147,18 @@ sub full_users_check {
     }
     # reset consoles before select x11 console will make the connect operation
     # more stable on s390x
-    reset_consoles             if check_var('ARCH',    's390x');
-    turn_off_gnome_screensaver if check_var('DESKTOP', 'gnome');
+    reset_consoles if is_s390x;
+    if (check_var('DESKTOP', 'gnome')) {
+        if (is_s390x) {
+            turn_off_gnome_screensaver;
+        }
+        else {
+            select_console 'root-console';
+            turn_off_gnome_screensaver_for_gdm;
+        }
+    }
     select_console 'x11', await_console => 0;
-    wait_still_screen 5;
+    wait_still_screen 15;
     ensure_unlocked_desktop;
     assert_screen "generic-desktop";
     if ($stage eq 'before') {
@@ -158,13 +169,12 @@ sub full_users_check {
         # verify changed password work well in the following scenario:
         # workaround the lock screen will cause vnc lost connection issue on
         # SLE15+ on s390x for bsc#1182958.
-        if ((check_var('ARCH', 's390x')) && is_sle('15+')) {
+        if ((is_s390x) && is_sle('15+')) {
             record_soft_failure("bsc#1182958, openQA test fails in install_service - gdm crashed after lock screen on s390x");
         }
         else {
             lock_screen;
         }
-        turn_off_gnome_screensaver;
         logout_and_login;
         # for poo#88247, it is hard to deal with the authorization of bernhard in
         # following migration process, we have to restore current user's password.
@@ -175,7 +185,7 @@ sub full_users_check {
         # switch to new added user then switch back
         # it's not supported to switch user on s390x VM with vnc connection,
         # so we have to change this test to logout and login new user.
-        if (check_var('ARCH', 's390x')) {
+        if (is_s390x) {
             logout_and_login($newUser, $pwd4newUser);
         }
         else {
@@ -184,6 +194,8 @@ sub full_users_check {
         send_key "alt-f4";
         send_key "ret";
         select_console 'root-console';
+        # need remove the added test user after users test
+        remove_test_user;
     }
 }
 
@@ -193,8 +205,7 @@ sub users_cleanup {
     my $stage = $hash{stage};
     select_console "root-console";
     if ($stage eq 'before') {
-        script_run("pkill -KILL -u $newUser");
-        script_run("userdel -r $newUser");
+        remove_test_user;
     }
     reset_consoles;
 }

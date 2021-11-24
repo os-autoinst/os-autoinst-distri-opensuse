@@ -1,15 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 package serial_terminal;
 use 5.018;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use autotest;
 use base 'Exporter';
@@ -61,7 +58,7 @@ sub prepare_serial_console {
     # poo#18860 Enable console on hvc0 on SLES < 12-SP2
     # poo#44699 Enable console on hvc1 to fix login issues on ppc64le
     if (!check_var('VIRTIO_CONSOLE', 0)) {
-        if (is_sle('<12-SP2') && !check_var('ARCH', 's390x')) {
+        if (is_sle('<12-SP2') && !is_s390x) {
             add_serial_console('hvc0');
         }
         elsif (get_var('OFW')) {
@@ -81,10 +78,10 @@ wait_serial(get_login_message(), 300);
 =cut
 sub get_login_message {
     my $arch = get_required_var("ARCH");
-    return is_sle()    ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+    return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
       : is_sle_micro() ? qr/Welcome to SUSE Linux Enterprise Micro .*\($arch\)/
-      : is_leap()      ? qr/Welcome to openSUSE Leap.*/
-      :                  qr/Welcome to openSUSE Tumbleweed 20.*/;
+      : is_leap() ? qr/Welcome to openSUSE Leap.*/
+      : qr/Welcome to openSUSE Tumbleweed 20.*/;
 }
 
 =head2 login
@@ -97,7 +94,7 @@ escape sequences (i.e. a single #) and changes the terminal width.
 =cut
 sub login {
     die 'Login expects two arguments' unless @_ == 2;
-    my $user   = shift;
+    my $user = shift;
     my $escseq = qr/(\e [\(\[] [\d\w]{1,2})/x;
 
     $serial_term_prompt = shift;
@@ -146,10 +143,10 @@ This function die on any failure.
 =cut
 sub download_file {
     my ($src, $dst, %opts) = @_;
-    $opts{chunk_size}  //= 1024 * 2;
+    $opts{chunk_size} //= 1024 * 2;
     $opts{chunk_retry} //= 16;
-    $opts{force}       //= 0;
-    $opts{timeout}     //= bmwqemu::scale_timeout(180);
+    $opts{force} //= 0;
+    $opts{timeout} //= bmwqemu::scale_timeout(180);
     record_info('Download file', "From worker ($src) to SUT ($dst)");
     die("Relative path is forbidden - '$src'") if $src =~ m'/\.\.|\.\./';
     $src =~ s'^/+'';
@@ -165,26 +162,26 @@ sub download_file {
 
     open(my $fh, '<:raw', $src) or die "Could not open file '$src' $!";
     my $result_file = $tmpdir . '/result';
-    my $tmpfile     = $tmpdir . '/chunk';
-    my $cnt         = 0;
+    my $tmpfile = $tmpdir . '/chunk';
+    my $cnt = 0;
     while (my $read = read($fh, my $chunk, $opts{chunk_size})) {
-        my $b64   = b64_encode($chunk);
+        my $b64 = b64_encode($chunk);
         my $tries = $opts{chunk_retry};
-        my $sha1  = sha1_sum($b64);
+        my $sha1 = sha1_sum($b64);
         $cnt += 1;
         do {
             die("Failed to transfer chunk[$cnt] of file $src") if ($tries-- < 0);
             script_output("cat > $tmpfile << 'EOT'\n" . $b64 . "EOT", quiet => 1, timeout => $opts{timeout});
         } while ($sha1 ne script_output("sha1sum $tmpfile | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout}));
         assert_script_run("base64 -d $tmpfile >> $result_file", quiet => 1, timeout => $opts{timeout});
-        assert_script_run("rm $tmpfile",                        quiet => 1, timeout => $opts{timeout});
+        assert_script_run("rm $tmpfile", quiet => 1, timeout => $opts{timeout});
     }
     close($fh);
     my $sha1_remote = script_output("sha1sum $result_file | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout});
-    my $sha1        = sha1_sum(path($src)->slurp());
+    my $sha1 = sha1_sum(path($src)->slurp());
     die("Failed to transfer file $src - final checksum mismatch") if ($sha1_remote ne $sha1);
     assert_script_run("mv $result_file '$dst'", quiet => 1, timeout => $opts{timeout});
-    assert_script_run("rmdir $tmpdir",          quiet => 1, timeout => $opts{timeout});
+    assert_script_run("rmdir $tmpdir", quiet => 1, timeout => $opts{timeout});
 }
 
 =head2 upload_file
@@ -201,14 +198,14 @@ sub upload_file {
     my ($src, $dst, %opts) = @_;
     my $chunk_size = $opts{chunk_size} //= 1024 * 2;
     $opts{chunk_retry} //= 16;
-    $opts{timeout}     //= bmwqemu::scale_timeout(180);
+    $opts{timeout} //= bmwqemu::scale_timeout(180);
     record_info('Upload file', "From SUT($src) to worker ($dst)");
 
     $dst = basename($dst);
     $dst = "ulogs/" . $dst;
     my ($fh, $tmpfilename) = tempfile(UNLINK => 1, SUFFIX => '.openqa.upload');
 
-    die("File $src does not exist on SUT")    if (script_run("test -f $src", quiet => 1, timeout => $opts{timeout}) != 0);
+    die("File $src does not exist on SUT") if (script_run("test -f $src", quiet => 1, timeout => $opts{timeout}) != 0);
     die("File $dst already exists on worker") if (-f $dst);
 
     my $filesize = script_output("stat --printf='%s' $src", quiet => 1, timeout => $opts{timeout});
@@ -227,7 +224,7 @@ sub upload_file {
         print $fh b64_decode($b64);
     }
     close($fh);
-    my $sha1        = sha1_sum(path($tmpfilename)->slurp());
+    my $sha1 = sha1_sum(path($tmpfilename)->slurp());
     my $sha1_remote = script_output("sha1sum $src | cut -d ' ' -f 1", quiet => 1, timeout => $opts{timeout});
     die("Failed to upload file $src - final checksum mismatch\nremote: $sha1_remote\ndestination:$sha1") if ($sha1_remote ne $sha1);
     system('mkdir -p ulogs/') == 0 or die('Failed to create ulogs/ directory');

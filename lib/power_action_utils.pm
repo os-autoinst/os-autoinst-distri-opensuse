@@ -5,12 +5,8 @@ The module provides base and helper functions for powering off or rebooting a ma
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The module provides base and helper functions for powering off or rebooting a machine under test.
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
@@ -23,6 +19,7 @@ use strict;
 use warnings;
 use utils;
 use testapi;
+use Utils::Architectures;
 use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
 use Carp 'croak';
 
@@ -51,7 +48,7 @@ sub prepare_system_shutdown {
     # kill the ssh connection before triggering reboot
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
-    if (check_var('ARCH', 's390x')) {
+    if (is_s390x) {
         if (check_var('BACKEND', 's390x')) {
             # kill serial ssh connection (if it exists)
             eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
@@ -94,9 +91,9 @@ sub reboot_x11 {
         if (get_var("SHUTDOWN_NEEDS_AUTH")) {
 
             assert_screen 'shutdown-auth';
-            wait_still_screen(3);                                                   # 981299#c41
+            wait_still_screen(3);    # 981299#c41
             type_string $testapi::password, max_interval => 5;
-            wait_still_screen(3);                                                   # 981299#c41
+            wait_still_screen(3);    # 981299#c41
             if (get_var('REBOOT_DEBUG')) {
                 wait_screen_change {
                     # Extra assert_and_click (with right click) to check the correct number of characters is typed and open up the 'show text' option
@@ -210,9 +207,9 @@ sub poweroff_x11 {
     if (check_var("DESKTOP", "minimalx")) {
         send_key "ctrl-alt-delete";    # logout dialog
         assert_screen 'logoutdialog', 10;
-        send_key "alt-d";              # shut_d_own
+        send_key "alt-d";    # shut_d_own
         assert_screen 'logout-confirm-dialog', 10;
-        send_key "alt-o";              # _o_k
+        send_key "alt-o";    # _o_k
     }
 }
 
@@ -253,59 +250,68 @@ for textmode or with GUI commands otherwise unless explicitly overridden by sett
 =cut
 sub power_action {
     my ($action, %args) = @_;
-    $args{observe}      //= 0;
-    $args{keepconsole}  //= 0;
-    $args{textmode}     //= check_var('DESKTOP', 'textmode');
+    $args{observe} //= 0;
+    $args{keepconsole} //= 0;
+    $args{textmode} //= check_var('DESKTOP', 'textmode');
     $args{first_reboot} //= 0;
     die "'action' was not provided" unless $action;
+
     prepare_system_shutdown;
+
     unless ($args{keepconsole}) {
         select_console $args{textmode} ? 'root-console' : 'x11';
     }
+
     unless ($args{observe}) {
         if ($args{textmode}) {
             enter_cmd "$action";
         }
-        else {
-            if ($action eq 'reboot') {
-                reboot_x11;
+        elsif ($action eq 'reboot') {
+            reboot_x11;
+        }
+        elsif ($action eq 'poweroff') {
+            if (check_var('BACKEND', 's390x')) {
+                record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
+                select_console 'root-console';
+                enter_cmd "$action";
             }
-            elsif ($action eq 'poweroff') {
-                if (check_var('BACKEND', 's390x')) {
-                    record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
-                    select_console 'root-console';
-                    enter_cmd "$action";
-                }
-                else {
-                    poweroff_x11;
-                }
+            else {
+                poweroff_x11;
             }
         }
     }
+
     my $soft_fail_data;
     my $shutdown_timeout = 60;
+
     if (is_sle('15-sp1+') && check_var('DESKTOP', 'textmode') && ($action eq 'poweroff')) {
         $soft_fail_data = {bugref => 'bsc#1158145', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+
     # Shutdown takes longer than 60 seconds on SLE12 SP4 and SLE 15
     if (is_sle('12+') && check_var('DESKTOP', 'gnome') && ($action eq 'poweroff')) {
         $soft_fail_data = {bugref => 'bsc#1055462', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+
     # The timeout is increased as shutdown takes longer on Live CD
     if (get_var('LIVECD')) {
         $soft_fail_data = {soft_timeout => 60, timeout => $shutdown_timeout *= 4, bugref => "bsc#1096241"};
     }
+
     if (get_var("OFW") && check_var('DISTRI', 'opensuse') && check_var('DESKTOP', 'gnome') && get_var('PUBLISH_HDD_1')) {
         $soft_fail_data = {bugref => 'bsc#1057637', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
     }
+
     # Kubeadm also requires some extra time
     if (check_var 'SYSTEM_ROLE', 'kubeadm') {
         $soft_fail_data = {bugref => 'poo#55127', soft_timeout => 90, timeout => $shutdown_timeout *= 2};
     }
+
     # Sometimes QEMU CD-ROM pop-up is displayed on shutdown, see bsc#1137230
     if (is_opensuse && check_screen 'qemu-cd-rom-authentication-required') {
         $soft_fail_data = {bugref => 'bsc#1137230', soft_timeout => 60, timeout => $shutdown_timeout *= 5};
     }
+
     # no need to redefine the system when we boot from an existing qcow image
     # Do not redefine if autoyast or s390 zKVM reboot, as did initial reboot already
     if (check_var('VIRSH_VMM_FAMILY', 'kvm')
@@ -358,7 +364,7 @@ Default $action is reboot, $shutdown_timeout is timeout for shutdown, default va
 # is already booting.
 sub assert_shutdown_and_restore_system {
     my ($action, $shutdown_timeout) = @_;
-    $action           //= 'reboot';
+    $action //= 'reboot';
     $shutdown_timeout //= 60;
     my $vnc_console = get_required_var('SVIRT_VNC_CONSOLE');
     console($vnc_console)->disable_vnc_stalls;
@@ -367,10 +373,10 @@ sub assert_shutdown_and_restore_system {
         reset_consoles;
         my $svirt = console('svirt');
         # Set disk as a primary boot device
-        if (check_var('ARCH', 's390x') or get_var('NETBOOT')) {
-            $svirt->change_domain_element(os        => initrd  => undef);
-            $svirt->change_domain_element(os        => kernel  => undef);
-            $svirt->change_domain_element(os        => cmdline => undef);
+        if (is_s390x or get_var('NETBOOT')) {
+            $svirt->change_domain_element(os => initrd => undef);
+            $svirt->change_domain_element(os => kernel => undef);
+            $svirt->change_domain_element(os => cmdline => undef);
             $svirt->change_domain_element(on_reboot => undef);
             $svirt->define_and_start;
         }
@@ -404,9 +410,9 @@ Example:
 =cut
 sub assert_shutdown_with_soft_timeout {
     my ($args) = @_;
-    $args->{timeout}      //= check_var('ARCH', 's390x') ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
+    $args->{timeout} //= is_s390x ? 600 : get_var('DEBUG_SHUTDOWN') ? 180 : 60;
     $args->{soft_timeout} //= 0;
-    $args->{bugref}       //= "No bugref specified";
+    $args->{bugref} //= "No bugref specified";
     if ($args->{soft_timeout}) {
         diag("assert_shutdown_with_soft_timeout(): soft_timeout=" . $args->{soft_timeout});
         die "soft timeout has to be smaller than timeout" unless ($args->{soft_timeout} < $args->{timeout});

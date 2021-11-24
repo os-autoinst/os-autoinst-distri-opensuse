@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: crmsh
 # Summary: Create filesystem and check content
@@ -24,12 +20,12 @@ sub run {
     return 1 if (read_tag eq 'drbd_passive' and is_not_maintenance_update('drbd'));
 
     my $cluster_name = get_cluster_name;
-    my $node         = get_hostname;
-    my $fs_lun       = undef;
-    my $fs_rsc       = undef;
-    my $resource     = 'lun';
-    my $fs_type      = 'ocfs2';
-    my $fs_opts      = '-F -N 16';         # Force the filesystem creation and allows 16 nodes
+    my $node = get_hostname;
+    my $fs_lun = undef;
+    my $fs_rsc = undef;
+    my $resource = 'lun';
+    my $fs_type = 'ocfs2';
+    my $fs_opts = '-F -N 16';    # Force the filesystem creation and allows 16 nodes
 
     # This Filesystem test can be called multiple time
     if (read_tag eq 'cluster_md') {
@@ -37,9 +33,9 @@ sub run {
     }
     elsif (read_tag eq 'drbd_passive') {
         $resource = 'drbd_passive';
-        $fs_lun   = '/dev/drbd_passive' if is_node(1);
-        $fs_type  = 'xfs';
-        $fs_opts  = '-f';
+        $fs_lun = '/dev/drbd_passive' if is_node(1);
+        $fs_type = 'xfs';
+        $fs_opts = '-f';
     }
     elsif (read_tag eq 'drbd_active') {
         $resource = 'drbd_active';
@@ -103,7 +99,7 @@ sub run {
             }
             else {
                 assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource'\" crm configure edit", $default_timeout;
-                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc'\" crm configure edit",     $default_timeout;
+                assert_script_run "EDITOR=\"sed -ie '\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc'\" crm configure edit", $default_timeout;
             }
 
             # Sometimes we need to cleanup the resource
@@ -142,7 +138,7 @@ sub run {
         }
 
         # Add files/data in the Filesystem
-        assert_script_run "cp -r /usr/bin/ /srv/$fs_rsc ; sync",                               $default_timeout;
+        assert_script_run "cp -r /usr/bin/ /srv/$fs_rsc ; sync", $default_timeout;
         assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out", $default_timeout;
     }
     else {
@@ -186,7 +182,7 @@ sub run {
 
         # Check if files/data are different in the Filesystem
         assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node", $default_timeout;
-        assert_script_run "cd /srv/$fs_rsc ; diff -urN out out_$node",                               $default_timeout;
+        assert_script_run "cd /srv/$fs_rsc ; diff -urN out out_$node", $default_timeout;
     }
 
     # Return to default directory

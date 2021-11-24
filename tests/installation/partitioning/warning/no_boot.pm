@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Verify Warning Dialog for missed boot partition is
 # shown when saving partitioner settings with no boot partition.
@@ -22,17 +18,17 @@ my $partitioner;
 
 sub run {
     my $test_data = get_test_suite_data();
-    my $disk      = $test_data->{disks}[0];
+    my $disk = $test_data->{disks}[0];
     $partitioner = $testapi::distri->get_expert_partitioner();
 
     $partitioner->run_expert_partitioner();
     $partitioner->add_partition_on_gpt_disk({
-            disk      => $disk->{name},
+            disk => $disk->{name},
             partition => $disk->{partitions}->{no_boot}
     });
     $partitioner->accept_changes();
 
-    assert_matches(qr/$test_data->{warnings}->{missing_boot}/, $partitioner->get_warning_rich_text(),
+    assert_matches(qr/$test_data->{warnings}->{missing_boot}/, $partitioner->get_ok_popup_text(),
         "Warning Dialog for missed boot partition did not appear, while it is expected.");
 }
 

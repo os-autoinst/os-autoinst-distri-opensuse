@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Configuration of iSCSI installation
 #    check if iBFT is present
@@ -35,7 +31,7 @@ sub run {
     assert_screen 'iscsi-ibft';
     send_key 'alt-o';    # OK
     assert_screen 'disk-activation-iscsi';
-    wipe_iscsi_disk;     # At this point should be mounted and can proceed to erase it
+    wipe_iscsi_disk;    # At this point should be mounted and can proceed to erase it
     send_key $cmd{next};
 }
 

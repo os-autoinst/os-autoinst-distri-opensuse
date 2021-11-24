@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Upload logs and generate junit report
 # - Get xfs status.log from datadir
@@ -28,13 +24,13 @@ use ctcs2_to_junit;
 use upload_system_log;
 
 my $STATUS_LOG = '/opt/status.log';
-my $LOG_DIR    = '/opt/log';
-my $KDUMP_DIR  = '/opt/kdump';
+my $LOG_DIR = '/opt/log';
+my $KDUMP_DIR = '/opt/kdump';
 my $JUNIT_FILE = '/opt/output.xml';
 
 sub log_end {
     my $file = shift;
-    my $cmd  = "echo '\nTest run complete' >> $file";
+    my $cmd = "echo '\nTest run complete' >> $file";
     send_key 'ret';
     assert_script_run($cmd);
 }
@@ -47,7 +43,7 @@ sub upload_subdirs {
     for my $subdir (split(/\n/, $output)) {
         my $tarball = "$subdir.tar.xz";
         assert_script_run("ll; tar cJf $tarball -C $dir " . basename($subdir), $timeout);
-        upload_logs($tarball, timeout => $timeout, log_name => basename($dir));
+        upload_logs($tarball, timeout => $timeout);
     }
 }
 
@@ -64,7 +60,7 @@ sub run {
 
     # Finalize status log and upload it
     log_end($STATUS_LOG);
-    upload_logs($STATUS_LOG, timeout => 60, log_name => "test");
+    upload_logs($STATUS_LOG, timeout => 60, log_name => $STATUS_LOG);
 
     # Upload test logs
     upload_subdirs($LOG_DIR, 1200);
@@ -79,8 +75,8 @@ sub run {
 
     # Junit xml report
     my $script_output = script_output("cat $STATUS_LOG", 600);
-    my $tc_result     = analyzeResult($script_output);
-    my $xml           = generateXML($tc_result);
+    my $tc_result = analyzeResult($script_output);
+    my $xml = generateXML($tc_result);
     assert_script_run("echo \'$xml\' > $JUNIT_FILE", 7200);
     parse_junit_log($JUNIT_FILE);
 }

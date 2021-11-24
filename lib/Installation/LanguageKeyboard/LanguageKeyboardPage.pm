@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Handles Language/Keyboard page
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -26,7 +22,7 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{cb_keyboard_layout} = $self->{app}->combobox({id => '"Y2Country::Widgets::KeyboardSelectionCombo"'});
-    $self->{tb_keyboard_test}   = $self->{app}->textbox({id => 'keyboard_test'});
+    $self->{tb_keyboard_test} = $self->{app}->textbox({id => 'keyboard_test'});
     return $self;
 }
 

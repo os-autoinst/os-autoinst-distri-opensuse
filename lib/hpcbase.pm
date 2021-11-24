@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for HPC tests
 # Maintainer: Sebastian Chlad <schlad@suse.de>
@@ -87,9 +83,9 @@ The naming follows general pattern of master-slave
 
 =cut
 sub slave_node_names {
-    my ($self)       = @_;
+    my ($self) = @_;
     my $master_nodes = get_required_var("MASTER_NODES");
-    my $nodes        = get_required_var("CLUSTER_NODES");
+    my $nodes = get_required_var("CLUSTER_NODES");
     my @slave_node_names;
 
     my $slave_nodes = $nodes - $master_nodes;
@@ -111,7 +107,7 @@ sub cluster_names {
     my @cluster_names;
 
     my @master_nodes = master_node_names();
-    my @slave_nodes  = slave_node_names();
+    my @slave_nodes = slave_node_names();
 
     push(@master_nodes, @slave_nodes);
     @cluster_names = @master_nodes;

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Address Tab in
 # YaST2 lan module dialog, when VLAN is selected to be configured. The Tab
@@ -20,7 +16,7 @@ use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::AddressTab';
 
 use constant {
-    ADDRESS_TAB     => 'yast2_lan_address_tab_selected',
+    ADDRESS_TAB => 'yast2_lan_address_tab_selected',
     VLAN_ID_WARNING => 'yast2_lan_vlan_id_warning'
 };
 

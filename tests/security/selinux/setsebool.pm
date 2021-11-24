@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# setsebool" command with options "-P / -N" can work
 # Maintainer: llzhao <llzhao@suse.com>
@@ -29,7 +17,7 @@ sub run {
     my ($self) = @_;
     my $test_boolean = "fips_mode";
 
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     # list and verify some (not all as it changes often) boolean(s)
     validate_script_output(
@@ -53,7 +41,7 @@ sub run {
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     validate_script_output("getsebool $test_boolean", sub { m/${test_boolean}\ -->\ on/ });
 
@@ -65,7 +53,7 @@ sub run {
     power_action("reboot", textmode => 1);
     reconnect_mgmt_console if is_pvm;
     $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
-    select_console "root-console";
+    $self->select_serial_terminal;
 
     validate_script_output("getsebool $test_boolean", sub { m/${test_boolean}\ -->\ on/ });
 }

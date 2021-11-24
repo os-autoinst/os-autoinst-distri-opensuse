@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: This module installs the LTP (Linux Test Project) and then reboots.
 # Maintainer: Richard palethorpe <rpalethorpe@suse.com>
@@ -24,7 +20,7 @@ use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
 use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed);
-use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x is_x86_64);
+use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
 
@@ -174,11 +170,11 @@ sub install_build_dependencies {
 }
 
 sub install_from_git {
-    my $url         = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
-    my $rel         = get_var('LTP_RELEASE');
-    my $timeout     = (is_aarch64 || is_s390x) ? 7200 : 1440;
-    my $prefix      = get_ltproot();
-    my $configure   = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
+    my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
+    my $rel = get_var('LTP_RELEASE');
+    my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
+    my $prefix = get_ltproot();
+    my $configure = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
 
     $rel = "-b $rel" if ($rel);
@@ -215,8 +211,9 @@ sub add_ltp_repo {
         if ((is_leap('=15.2') && is_x86_64) || (is_leap('15.3+') && !is_s390x)) {
             $repo = sprintf("Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
-            $repo = "Tumbleweed";
-            $repo = "Factory_PowerPC"  if is_ppc64le();
+            $repo = "Factory";
+            $repo = "Factory_ARM" if is_aarch64();
+            $repo = "Factory_PowerPC" if is_ppc64le();
             $repo = "Factory_zSystems" if is_s390x();
         } else {
             die sprintf("Unexpected combination of version (%s) and architecture (%s) used", get_var('VERSION'), get_var('ARCH'));
@@ -305,9 +302,9 @@ sub setup_network {
 }
 
 sub run {
-    my $self       = shift;
-    my $inst_ltp   = get_var 'INSTALL_LTP';
-    my $cmd_file   = get_var('LTP_COMMAND_FILE');
+    my $self = shift;
+    my $inst_ltp = get_var 'INSTALL_LTP';
+    my $cmd_file = get_var('LTP_COMMAND_FILE');
     my $grub_param = 'ignore_loglevel';
 
     if ($inst_ltp !~ /(repo|git)/i) {
@@ -349,11 +346,11 @@ sub run {
         install_from_repo();
     }
 
-    log_versions;
+    log_versions 1;
 
     zypper_call('in efivar') if is_sle('12+') || is_opensuse;
 
-    $grub_param .= ' console=hvc0'     if (get_var('ARCH') eq 'ppc64le');
+    $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
     if (!is_sle('<12') && defined $grub_param) {
         add_grub_cmdline_settings($grub_param, update_grub => 1);

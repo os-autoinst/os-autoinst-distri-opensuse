@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Setup Networkd test env
 # Maintainer: Dominik Heidler <dheidler@suse.de>
@@ -33,10 +29,10 @@ sub run {
     assert_script_run("ip li set br0 up");
     systemctl("stop firewalld");
 
-    my $pkg_repo            = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
-    my $release_pkg         = 'openSUSE-release';
+    my $pkg_repo = get_var('MIRROR_HTTP', 'dvd:/?devices=/dev/sr0');
+    my $release_pkg = 'openSUSE-release';
     my $systemd_network_pkg = (is_tumbleweed || is_leap('>=15.3')) ? 'systemd-network' : '';
-    my $pkgs_to_install     = "systemd $systemd_network_pkg shadow zypper $release_pkg vim iproute2 iputils grep";
+    my $pkgs_to_install = "systemd $systemd_network_pkg shadow zypper $release_pkg vim iproute2 iputils grep";
 
     $self->setup_nspawn_container("node1", $pkg_repo, $pkgs_to_install);
     $self->setup_nspawn_container("node2", $pkg_repo, $pkgs_to_install);

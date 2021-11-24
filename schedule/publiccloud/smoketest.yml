@@ -7,10 +7,15 @@ conditional_schedule:
     PUBLIC_CLOUD_CONFIDENTIAL_VM:
       '1':
         - publiccloud/sev
+  az_l8s_nvme:
+    PUBLIC_CLOUD_INSTANCE_TYPE:
+      'Standard_L8s_v2':
+        - publiccloud/az_l8s_nvme
+
 schedule:
   - boot/boot_to_desktop
   - publiccloud/download_repos
-  - publiccloud/ssh_interactive_init
+  - publiccloud/prepare_instance
   - publiccloud/register_system
   - publiccloud/transfer_repos
   - publiccloud/patch_and_reboot
@@ -18,4 +23,5 @@ schedule:
   - publiccloud/instance_overview
   - publiccloud/smoketest
   - '{{sev}}'
+  - '{{az_l8s_nvme}}'
   - publiccloud/ssh_interactive_end

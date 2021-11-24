@@ -1,0 +1,6 @@
+name:    rmt_chinese
+description:    >
+    This is for rmt localization test (only for Chinese)
+schedule:
+  - boot/boot_to_desktop
+  - x11/rmt/rmt_chinese

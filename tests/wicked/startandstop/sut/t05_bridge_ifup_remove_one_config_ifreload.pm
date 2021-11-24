@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wicked
 # Summary: Bridge - ifup, remove one config, ifreload
@@ -22,8 +18,8 @@ use network_utils 'ifc_exists';
 sub run {
     my ($self, $ctx) = @_;
     my $config = '/etc/sysconfig/network/ifcfg-br0';
-    my $dummy  = '/etc/sysconfig/network/ifcfg-dummy0';
-    $self->get_from_data('wicked/ifcfg/br0',    $config);
+    my $dummy = '/etc/sysconfig/network/ifcfg-dummy0';
+    $self->get_from_data('wicked/ifcfg/br0', $config);
     $self->get_from_data('wicked/ifcfg/dummy0', $dummy);
     $self->setup_bridge($config, $dummy, 'ifup');
     assert_script_run("rm $config");

@@ -1,17 +1,5 @@
-# Copyright © 2019 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup KDC service for krb5 cryptographic testing
 # Maintainer: Ben Chou <bchou@suse.com>
@@ -51,7 +39,7 @@ sub run {
     script_run("kinit $adm |& tee /dev/$serialdev", 0);
     wait_serial(qr/Password.*\Q$adm\E/) || die "Matching output failed";
     enter_cmd "$pass_a";
-    script_output "echo \$?",       sub { m/^0$/ };
+    script_output "echo \$?", sub { m/^0$/ };
     validate_script_output "klist", sub {
         m/
             Ticket\scache.*\/root\/kcache.*
@@ -71,7 +59,7 @@ sub run {
 
     # Waiting for the finish of krb5 and other testing server
     my $children = get_children();
-    mutex_wait('TEST_DONE_SERVER',     (keys %$children)[0]);
+    mutex_wait('TEST_DONE_SERVER', (keys %$children)[0]);
     mutex_wait('TEST_DONE_SSH_SERVER', (keys %$children)[0]);
     mutex_wait('TEST_DONE_NFS_SERVER', (keys %$children)[0]);
 }

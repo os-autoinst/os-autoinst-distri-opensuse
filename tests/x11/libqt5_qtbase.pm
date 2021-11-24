@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libqt5-qttools yast2-installation gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel
 # Summary: libqt5-qtbase: testing of the qtbase libraries
@@ -35,13 +31,13 @@ sub run {
     assert_screen("designer-qt5-main");
     wait_screen_change { send_key "ctrl-r" };    # run the design preview
     assert_screen("designer-qt5-preview");
-    send_key "alt-f4";                           # close preview
-    send_key "alt-f4";                           # close program
+    send_key "alt-f4";    # close preview
+    send_key "alt-f4";    # close program
 
     # Test release notes
     x11_start_program('/usr/sbin/yast2 inst_release_notes', target_match => 'inst_release_notes');
-    send_key "alt-l";                            # make sure it was closed ('Close' button shortcut)
-    send_key "alt-f4";                           # close program
+    send_key "alt-l";    # make sure it was closed ('Close' button shortcut)
+    send_key "alt-f4";    # close program
 
     # Compile an application and run it, check that exits with 0
     ensure_installed "gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel", timeout => 400;

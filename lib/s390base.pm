@@ -5,13 +5,9 @@ Helper functions for s390 console tests
 =cut
 # SUSE’s openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: helper functions for s390 console tests
 
@@ -83,10 +79,10 @@ Fetch the testcase and common libraries from openQA server.
 
 =cut
 sub pre_run_hook {
-    my ($self)        = @_;
-    my $path          = data_url("s390x");
-    my $tc            = get_required_var('IBM_TESTSET') . get_required_var('IBM_TESTS');
-    my $script_path   = "$path/$tc/$tc.tgz";
+    my ($self) = @_;
+    my $path = data_url("s390x");
+    my $tc = get_required_var('IBM_TESTSET') . get_required_var('IBM_TESTS');
+    my $script_path = "$path/$tc/$tc.tgz";
     my $commonsh_path = "$path/lib/common.tgz";
     select_console 'root-console';
 

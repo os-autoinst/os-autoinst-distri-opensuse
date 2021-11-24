@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: systemd wireguard-tools iperf iproute2 openssh
 # Summary: Connect two machines using wireguard VPN
@@ -38,11 +34,11 @@ sub run {
     my $self = shift;
 
     if (get_var('IS_MM_SERVER')) {
-        barrier_create 'SETUP_DONE',       2;
-        barrier_create 'KEY_TRANSFERED',   2;
-        barrier_create 'VPN_ESTABLISHED',  2;
-        barrier_create 'IPERF_COMPLETED',  2;
-        barrier_create 'WG_QUICK_READY',   2;
+        barrier_create 'SETUP_DONE', 2;
+        barrier_create 'KEY_TRANSFERED', 2;
+        barrier_create 'VPN_ESTABLISHED', 2;
+        barrier_create 'IPERF_COMPLETED', 2;
+        barrier_create 'WG_QUICK_READY', 2;
         barrier_create 'WG_QUICK_ENABLED', 2;
         mutex_create 'barrier_setup_done';
     }
@@ -54,13 +50,13 @@ sub run {
 
     my ($vpn_local, $vpn_remote, $remote);
     if (get_var('IS_MM_SERVER')) {
-        $vpn_local  = '192.168.2.1';
+        $vpn_local = '192.168.2.1';
         $vpn_remote = '192.168.2.2';
-        $remote     = '10.0.2.102';
+        $remote = '10.0.2.102';
     } else {
-        $vpn_local  = '192.168.2.2';
+        $vpn_local = '192.168.2.2';
         $vpn_remote = '192.168.2.1';
-        $remote     = '10.0.2.101';
+        $remote = '10.0.2.101';
     }
 
     if (is_sle()) {

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper
 # Summary: snapper without DBus service running tests / POO#15944 FATE#321049
@@ -37,7 +33,7 @@ sub get_last_snap_number {
     die "Unable to receive snapshot list column header line - got this output: $snap_head" unless (@lines);
     $snap_head = $lines[0];
 
-    my $snap_col_found    = 0;
+    my $snap_col_found = 0;
     my $snap_id_col_index = 1;
     for my $field (split(/\|/, $snap_head)) {
         $field =~ s/^\s+|\s+$//g;    # trim spaces
@@ -88,7 +84,7 @@ sub run {
     }
     assert_script_run("snapper list");
     # Delete all those snapshots we just created so other tests are not confused
-    assert_script_run("snapper delete --sync $first_snap_to_delete-" . get_last_snap_number());
+    assert_script_run("snapper delete --sync $first_snap_to_delete-" . get_last_snap_number(), timeout => 180);
     assert_script_run("snapper list");
 }
 

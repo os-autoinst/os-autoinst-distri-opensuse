@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: wicked wicked-service iproute2
 # Summary: Set up static routes from legacy ifcfg files
@@ -22,7 +18,7 @@ use testapi;
 sub run {
     my ($self, $ctx) = @_;
     record_info('Info', 'Set up static routes from legacy ifcfg files');
-    $self->get_from_data('wicked/static_address/ifcfg-eth0',   '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
+    $self->get_from_data('wicked/static_address/ifcfg-eth0', '/etc/sysconfig/network/ifcfg-' . $ctx->iface());
     $self->get_from_data('wicked/static_address/ifroute-eth0', '/etc/sysconfig/network/ifroute-' . $ctx->iface());
     $self->wicked_command('ifup', $ctx->iface());
     $self->assert_wicked_state(ping_ip => $self->get_remote_ip(type => 'host'), iface => $ctx->iface());

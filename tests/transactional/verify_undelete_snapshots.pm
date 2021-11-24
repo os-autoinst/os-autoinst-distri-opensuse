@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper
 # Summary: Verify that essential snapshots cannot be deleted, see https://jira.suse.com/browse/SLE-3804
@@ -46,10 +42,10 @@ sub run {
     my $current_snap_after_update;
     foreach (@snapshots_after_update) {
         $current_snap_after_update = $+{current_snap} if ($_ =~ /(?<current_snap>^\s*\d+)\-/);
-        $next_snap_after_update    = $+{next_snap}    if ($_ =~ /(?<next_snap>^\s*\d+)\+/);
+        $next_snap_after_update = $+{next_snap} if ($_ =~ /(?<next_snap>^\s*\d+)\+/);
     }
     die('Current snapshot was not marked with -') unless $current_snap_after_update;
-    die('New snapshot not marked with +')         unless $next_snap_after_update;
+    die('New snapshot not marked with +') unless $next_snap_after_update;
     assert_equals($current_snapshot_before, $current_snap_after_update, "Current snapshot number should not 
 	    change after update. \n before= $current_snapshot_before , after= $current_snap_after_update");
 

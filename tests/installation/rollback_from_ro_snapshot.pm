@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Expects SUT booted into RO snapshot with state "before upgrade" (See `boot_into_snapshot`)
 #  (1) It prints some console output only for nice debugging
@@ -35,7 +31,7 @@ sub run {
     if (get_var("UPGRADE")) {
         # if we made a migration, the version should be for example opensuse before migr. 42.1 > 42.2
         # extract number of version id: example SlES 12.2 -> 12.2. for opensuse also ok
-        my $OS_VERSION     = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
+        my $OS_VERSION = script_output("grep VERSION_ID /etc/os-release | cut -c13- | head -c -2");
         my $OLD_OS_VERSION = script_output("grep VERSION_ID /.snapshots/2/snapshot/etc/os-release | cut -c13- | head -c -2");
         # grub_bug bug:956046. menu entry not stable. we could boot in wrong menu-entry.
     }

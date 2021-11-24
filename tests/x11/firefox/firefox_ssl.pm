@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: MozillaFirefox
 # Summary: Case#1436067: Firefox: SSL Certificate
@@ -46,10 +42,7 @@ sub run {
     }
 
     assert_screen('firefox-ssl-loadpage', 60);
-
-    send_key "alt-e";
-    wait_still_screen 3;
-    send_key "n";
+    $self->firefox_preferences;
     assert_and_click('firefox-preferences-search');
     enter_cmd "cert";
     assert_and_click('firefox-ssl-preference-view-certificate');

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: procps
 # Summary: Test procps installation and verify vmstat utility and compare the output with/without load.
@@ -46,8 +42,8 @@ sub run {
     assert_script_run("vmstat 2 10 > /tmp/output_light.log");
     assert_script_run("cat /tmp/output_light.log");
     my ($mem_lite_load_ref, $cpu_lite_load_ref) = read_memory_cpu("/tmp/output_light.log");
-    my @mem_lite_load     = @$mem_lite_load_ref;
-    my @cpu_lite_load     = @$cpu_lite_load_ref;
+    my @mem_lite_load = @$mem_lite_load_ref;
+    my @cpu_lite_load = @$cpu_lite_load_ref;
     my $min_mem_lightload = min(@mem_lite_load);
     my $min_cpu_lightload = min(@cpu_lite_load);
 
@@ -69,8 +65,8 @@ sub run {
     assert_script_run("killall stress-ng");
 
     my ($mem_hvy_ref, $cpu_hvy_ref) = read_memory_cpu("/tmp/output_load.log");
-    my @mem_hvy           = @$mem_hvy_ref;
-    my @cpu_hvy           = @$cpu_hvy_ref;
+    my @mem_hvy = @$mem_hvy_ref;
+    my @cpu_hvy = @$cpu_hvy_ref;
     my $avg_mem_heavyload = average(@mem_hvy);
     my $avg_cpu_heavyload = average(@cpu_hvy);
 

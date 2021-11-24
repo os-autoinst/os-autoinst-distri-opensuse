@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Slurm accounting - database
 #    This test is setting up slurm control backup node with accounting
@@ -20,7 +16,7 @@ use lockapi;
 use utils;
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
     my $nodes = get_required_var("CLUSTER_NODES");
 
     barrier_wait('CLUSTER_PROVISIONED');

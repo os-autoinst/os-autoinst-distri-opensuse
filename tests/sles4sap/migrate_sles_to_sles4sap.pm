@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright (C) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Perform an horizontal migration from SLES to SLES4SAP
 # Maintainer: Ricardo Branco <rbranco@suse.de>
@@ -23,9 +19,9 @@ use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product);
 
 sub run {
-    my ($self)  = @_;
+    my ($self) = @_;
     my $regcode = get_required_var('SCC_REGCODE_SLES4SAP');
-    my $cmd     = '/usr/sbin/Migrate_SLES_to_SLES-for-SAP.sh';
+    my $cmd = '/usr/sbin/Migrate_SLES_to_SLES-for-SAP.sh';
 
     $self->select_serial_terminal;
 

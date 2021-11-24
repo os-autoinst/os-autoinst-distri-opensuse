@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: sle-module-live-patching SLE-Module-Live-Patching sle-live-patching SLE-Live-Patching
 # Summary: This module installs the kernel livepatching product and
@@ -20,7 +16,7 @@ use testapi;
 use utils;
 use klp;
 use power_action_utils 'power_action';
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures;
 use Utils::Backends qw(is_pvm);
 
 sub do_reboot {
@@ -44,7 +40,7 @@ sub run {
 
     my $output = script_output('uname -r');
     if ($output =~ /^([0-9]+([-.][0-9a-z]+)*)-([a-z][a-z0-9]*)/i) {
-        $kver    = $1;
+        $kver = $1;
         $kflavor = $3;
     }
     else {

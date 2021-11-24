@@ -1,17 +1,5 @@
-# Copyright (C) 2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: grub2 supports restricting access to boot menu entries when
 #          building their images/appliances,so that only specified
@@ -24,23 +12,25 @@
 #             3) Wrong user/password is not able to access the grub
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81721, poo#95548, tc#1768659
+# Tags: poo#81721, poo#95548, poo#97175, poo#101238, tc#1768659
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use base 'consoletest';
+use version_utils 'is_sle';
 
-my $sup_user     = 'admin';
-my $sup_passwd   = 'pw_admin';
-my $maint_user   = 'maintainer';
+my $sup_user = 'admin';
+my $sup_passwd = 'pw_admin';
+my $maint_user = 'maintainer';
 my $maint_passwd = 'pw_maintainer';
-my $test_user    = 'tester';
-my $test_passwd  = 'pw_test';
+my $test_user = 'tester';
+my $test_passwd = 'pw_test';
 
 sub switch_boot_menu {
     my $switch = shift;
+
     if (get_var('UEFI')) {
         assert_screen("grub_uefi_firmware_menu_entry", timeout => 90);
         send_key_until_needlematch("grub_auth_boot_menu_entry", "down", 5, 2) if $switch;

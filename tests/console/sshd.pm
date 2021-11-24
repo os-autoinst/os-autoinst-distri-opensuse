@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openssh expect netcat-openbsd psmisc shadow coreutils
 # Summary: Test to verify sshd starts and accepts connections.
@@ -51,7 +47,7 @@ sub run {
     assert_script_run 'cp /etc/ssh/sshd_config{,_before}';
 
     # new user to test sshd
-    my $ssh_testman        = "sshboy";
+    my $ssh_testman = "sshboy";
     my $ssh_testman_passwd = get_var('PUBLIC_CLOUD') ? random_string(8) : 'let3me2in1';
 
     # Allow password authentication for $ssh_testman
@@ -70,7 +66,7 @@ sub run {
     }
 
     # Restart sshd and check it's status
-    my $ret          = systemctl('restart sshd', ignore_failure => 1);
+    my $ret = systemctl('restart sshd', ignore_failure => 1);
     my $fips_enabled = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) eq '1';
 
     # If restarting sshd service is not successful and fips is enabled, we have encountered bsc#1189534
@@ -120,8 +116,8 @@ sub run {
 
     # Port forwarding (bsc#1131709 bsc#1133386)
     assert_script_run "echo 'sshd.pm: Testing port forwarding' | logger";
-    assert_script_run "( ssh -vNL 4242:localhost:22 $ssh_testman\@localhost & )";
-    assert_script_run "( ssh -vNR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost & )";
+    background_script_run "ssh -vNL 4242:localhost:22 $ssh_testman\@localhost 2>/tmp/ssh_log1";
+    background_script_run "ssh -vNR 0.0.0.0:5252:localhost:22 $ssh_testman\@localhost 2>/tmp/ssh_log2";
     assert_script_run 'until ss -tulpn|grep sshd|egrep "4242|5252";do sleep 1;done';
 
     # Scan public keys on forwarded ports
@@ -176,7 +172,7 @@ sub run {
 }
 
 sub test_cryptographic_policies() {
-    my %args        = @_;
+    my %args = @_;
     my $remote_user = $args{remote_user};
 
     # TODO: This does not work for Tumbleweed because of nmap
@@ -235,6 +231,9 @@ sub post_fail_hook {
 sub cleanup() {
     my $self = shift;
     systemctl('start ' . $self->firewall) if $reenable_firewall;
+    # Show debug log contents
+    script_run('cat /tmp/ssh_log*');
+    script_run('rm -f /tmp/ssh_log*');
     check_journal();
 }
 

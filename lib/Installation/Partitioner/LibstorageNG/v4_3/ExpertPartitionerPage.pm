@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Expert Partitioner
 # Page.
@@ -15,6 +11,7 @@ package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use strict;
 use warnings;
 use testapi;
+use parent 'Installation::Navigation::NavigationBase';
 use parent 'Installation::Partitioner::LibstorageNG::ExpertPartitionerPage';
 
 sub new {
@@ -28,22 +25,21 @@ sub new {
 
 sub init {
     my $self = shift;
-
-    $self->{btn_add_partition}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionAddButton"'});
-    $self->{btn_edit_partition}     = $self->{app}->button({id    => '"Y2Partitioner::Widgets::BlkDeviceEditButton"'});
-    $self->{btn_delete_partition}   = $self->{app}->button({id    => '"Y2Partitioner::Widgets::PartitionDeleteButton"'});
-    $self->{btn_lvm_add_vg}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
-    $self->{btn_lvm_delete_vg}      = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmVgDeleteButton"'});
-    $self->{btn_lvm_add_lv}         = $self->{app}->button({id    => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
-    $self->{btn_add_raid}           = $self->{app}->button({id    => '"Y2Partitioner::Widgets::MdAddButton"'});
-    $self->{btn_accept}             = $self->{app}->button({label => 'Accept'});
-    $self->{btn_cancel}             = $self->{app}->button({id    => 'abort'});
-    $self->{menu_bar}               = $self->{app}->menucollection({id => 'menu_bar'});
-    $self->{tbl_devices}            = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
-    $self->{tbl_lvm_devices}        = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
-    $self->{tree_system_view}       = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
+    $self->SUPER::init();
+    $self->{btn_add_partition} = $self->{app}->button({id => '"Y2Partitioner::Widgets::PartitionAddButton"'});
+    $self->{btn_edit_partition} = $self->{app}->button({id => '"Y2Partitioner::Widgets::BlkDeviceEditButton"'});
+    $self->{btn_delete_partition} = $self->{app}->button({id => '"Y2Partitioner::Widgets::PartitionDeleteButton"'});
+    $self->{btn_lvm_add_vg} = $self->{app}->button({id => '"Y2Partitioner::Widgets::LvmVgAddButton"'});
+    $self->{btn_lvm_delete_vg} = $self->{app}->button({id => '"Y2Partitioner::Widgets::LvmVgDeleteButton"'});
+    $self->{btn_lvm_add_lv} = $self->{app}->button({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
+    $self->{btn_add_raid} = $self->{app}->button({id => '"Y2Partitioner::Widgets::MdAddButton"'});
+    $self->{btn_accept} = $self->{app}->button({label => 'Accept'});
+    $self->{btn_cancel} = $self->{app}->button({id => 'abort'});
+    $self->{menu_bar} = $self->{app}->menucollection({id => 'menu_bar'});
+    $self->{tbl_devices} = $self->{app}->table({id => '"Y2Partitioner::Widgets::ConfigurableBlkDevicesTable"'});
+    $self->{tbl_lvm_devices} = $self->{app}->table({id => '"Y2Partitioner::Widgets::LvmDevicesTable"'});
+    $self->{tree_system_view} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::OverviewTree"'});
     $self->{btn_add_logical_volume} = $self->{app}->tree({id => '"Y2Partitioner::Widgets::LvmLvAddButton"'});
-    $self->{btn_next}               = $self->{app}->button({id => 'next'});
 
     return $self;
 }
@@ -135,11 +131,6 @@ sub press_accept_button {
 sub press_cancel_button {
     my ($self) = @_;
     $self->{btn_cancel}->click();
-}
-
-sub press_next_button {
-    my ($self) = @_;
-    $self->{btn_next}->click();
 }
 
 sub select_disk {

@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: rpm
 # Summary: Test the host kernel
@@ -21,7 +17,7 @@ use utils;
 use qam;
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $kernel_log = shift // '/tmp/virt_kernel.txt';
 
     script_run "rpm -qa > /tmp/rpm-qa.txt";

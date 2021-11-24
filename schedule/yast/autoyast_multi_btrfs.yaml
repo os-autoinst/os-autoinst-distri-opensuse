@@ -6,6 +6,7 @@ vars:
   DESKTOP: gnome
   ENCRYPT: 1
   NUMDISKS: '4'
+  QEMURAM: 2048
 schedule:
   - autoyast/prepare_profile
   - installation/isosize

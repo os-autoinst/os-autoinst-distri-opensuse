@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Changes the VERSION to UPGRADE_TARGET_VERSION and
 #       reload needles.
@@ -28,15 +24,15 @@ sub run {
 
     if (get_var('VERSION') ne $upgrade_target_version) {
         # Switch to upgrade target version and reload needles
-        set_var('VERSION', $upgrade_target_version, reload_needles => 1);
+        set_var('VERSION', $upgrade_target_version);
     }
 
     # Reset vars for upgrade on zVM
     if (get_var('UPGRADE_ON_ZVM')) {
-        set_var('UPGRADE',             1);
-        set_var('AUTOYAST',            0);
-        set_var('DESKTOP',             'textmode');
-        set_var('SCC_REGISTER',        'installation');
+        set_var('UPGRADE', 1);
+        set_var('AUTOYAST', 0);
+        set_var('DESKTOP', 'textmode');
+        set_var('SCC_REGISTER', 'installation');
         set_var('REPO_UPGRADE_BASE_0', 0);
         # Set this to load extra needle during scc registration in sle15
         set_var('HDDVERSION', get_var('BASE_VERSION'));
@@ -46,15 +42,11 @@ sub run {
     # Reset DESKTOP after upgrade as desktop change
     if (is_sle('=11-SP4', get_var('HDDVERSION')) && check_var('DM_NEEDS_USERNAME', '1')) {
         set_var('DM_NEEDS_USERNAME', '0');
-        set_var('DESKTOP',           'gnome') if (check_var('DESKTOP', 'kde') && (get_var('ADDONURL', '') !~ /phub/));
+        set_var('DESKTOP', 'gnome') if (check_var('DESKTOP', 'kde') && (get_var('ADDONURL', '') !~ /phub/));
     }
 
     record_info('Version', 'VERSION=' . get_var('VERSION'));
-    if (is_pvm) {
-        reconnect_mgmt_console;
-    } else {
-        reset_consoles_tty;
-    }
+    reconnect_mgmt_console if is_pvm;
 }
 
 1;

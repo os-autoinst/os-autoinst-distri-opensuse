@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utils;
 
-our @ISA    = qw(Exporter);
+our @ISA = qw(Exporter);
 our @EXPORT = qw(setup_vagrant_libvirt setup_vagrant_virtualbox run_vagrant_cmd);
 
 # - install vagrant and vagrant-libvirt
@@ -32,7 +32,7 @@ sub run_vagrant_cmd {
     my ($cmd, %args) = @_;
 
     my $logfile = 'vagrant_cmd.log';
-    my $ret     = script_run("VAGRANT_LOG=DEBUG vagrant $cmd 2> $logfile", %args);
+    my $ret = script_run("VAGRANT_LOG=DEBUG vagrant $cmd 2> $logfile", %args);
     return undef if $ret == 0;
     upload_logs($logfile);
     die "'vagrant $cmd' failed with $ret";

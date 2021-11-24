@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: cdrkit-cdrtools-compat udisks2 util-linux mkisofs
 # Summary: Simple tests for udisks2 using udisksctl checking status,
@@ -33,7 +29,7 @@ sub run {
     }
 
     # Compares block devices from lsblk and udisksctl outputs.
-    my $lsblk_output           = script_output("lsblk");
+    my $lsblk_output = script_output("lsblk");
     my $udiskctl_status_output = script_output("udisksctl status");
     my $current_test_device;
     my @tested_devices;

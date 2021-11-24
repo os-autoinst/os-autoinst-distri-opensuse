@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
@@ -17,6 +13,7 @@ use base "consoletest";
 use bootloader_setup;
 use strict;
 use testapi;
+use Utils::Backends;
 use utils;
 use power_action_utils 'power_action';
 
@@ -26,19 +23,19 @@ our %mitigations_list =
   (
     name => "l1tf",
     #Refer to https://software.intel.com/security-software-guidance/insights/processors-affected-l1-terminal-fault
-    CPUID                  => hex 'ffffffff',    #Ignore CPUID checking
-    IA32_ARCH_CAPABILITIES => 1,                 #Use MSR bit#0 RDCL_NO check
-    parameter              => 'l1tf',
-    cpuflags               => ['flush_l1d'],
-    sysfs_name             => "l1tf",
-    sysfs                  => {
-        full         => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
-        full_force   => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
-        flush        => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
-        flush_nosmt  => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT disabled",
+    CPUID => hex 'ffffffff',    #Ignore CPUID checking
+    IA32_ARCH_CAPABILITIES => 1,    #Use MSR bit#0 RDCL_NO check
+    parameter => 'l1tf',
+    cpuflags => ['flush_l1d'],
+    sysfs_name => "l1tf",
+    sysfs => {
+        full => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
+        full_force => "Mitigation: PTE Inversion; VMX: cache flushes, SMT disabled",
+        flush => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
+        flush_nosmt => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT disabled",
         flush_nowarn => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
-        off          => "Mitigation: PTE Inversion; VMX: vulnerable",
-        default      => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
+        off => "Mitigation: PTE Inversion; VMX: vulnerable",
+        default => "Mitigation: PTE Inversion; VMX: conditional cache flushes, SMT vulnerable",
     },
     cmdline => [
         "full",
@@ -53,7 +50,7 @@ our %mitigations_list =
 
 sub run {
     my $self = shift;
-    if (check_var('BACKEND', 'qemu')) {
+    if (is_qemu) {
         record_info('softfail', "QEMU needn't run this testcase");
         return;
     }

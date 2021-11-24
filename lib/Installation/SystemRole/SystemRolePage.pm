@@ -1,17 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The module provides interface to act on System Role page in
 #          the installer.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::SystemRole::SystemRolePage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -24,9 +21,9 @@ sub new {
 }
 
 sub init {
-    my $self = shift;
+    my ($self) = @_;
+    $self->SUPER::init();
     $self->{sel_role} = $self->{app}->itemselector({id => 'role_selector'});
-    $self->{btn_next} = $self->{app}->button({id => 'next'});
     return $self;
 }
 
@@ -43,11 +40,6 @@ sub is_shown {
 sub select_system_role {
     my ($self, $role) = @_;
     return $self->{sel_role}->select($role);
-}
-
-sub press_next {
-    my ($self) = @_;
-    return $self->{btn_next}->click();
 }
 
 1;

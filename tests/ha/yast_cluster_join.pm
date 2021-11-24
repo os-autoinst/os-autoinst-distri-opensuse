@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: pacemaker csync2
 # Summary: Join a cluster deployed by YaST
@@ -22,7 +18,7 @@ use hacluster;
 sub run {
     my $cluster_name = get_cluster_name;
     my $node_to_join = get_node_to_join;
-    my $hostname     = get_hostname;
+    my $hostname = get_hostname;
 
     # Wait until cluster is initialized
     diag 'Wait until cluster is initialized...';

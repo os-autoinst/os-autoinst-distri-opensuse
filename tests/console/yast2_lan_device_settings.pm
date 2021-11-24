@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-network
 # Summary: Device setup test for yast2-lan/yast2-network
@@ -20,14 +16,15 @@ use strict;
 use base 'y2_module_consoletest';
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2lan_restart_common;
 
 sub run {
-    my $self               = shift;
-    my $static_ip          = "192.168.1.119";
-    my $static_hostname    = 'testhost';
+    my $self = shift;
+    my $static_ip = "192.168.1.119";
+    my $static_hostname = 'testhost';
     my $is_set_in_etc_host = sub { return script_run('grep ' . shift . ' /etc/hosts') == 0 };
 
     select_console 'root-console';
@@ -37,7 +34,7 @@ sub run {
     script_run('ip a');
     script_run('ls -alF /etc/sysconfig/network/');
     save_screenshot;
-    unless (check_var("ARCH", "s390x")) {
+    unless (is_s390x) {
         my $opened = open_yast2_lan();
         wait_still_screen;
         if ($opened eq "Controlled by network manager") {
@@ -70,11 +67,11 @@ sub run {
 
             open_yast2_lan();
             for (1 .. 2) { send_key "tab" }    # move to device list
-            send_key "alt-i";                  # open edit device dialog
+            send_key "alt-i";    # open edit device dialog
             wait_still_screen;
             assert_screen 'edit-network-card';
-            send_key "alt-y";                  # select dynamic address option
-            send_key "alt-n";                  # next
+            send_key "alt-y";    # select dynamic address option
+            send_key "alt-n";    # next
             assert_screen 'dynamic-ip-address-set';
             close_yast2_lan();
 
@@ -92,7 +89,7 @@ sub run {
     if (is_sle('<=15') || is_leap('<=15.0')) {
         open_yast2_lan();
 
-        send_key 'alt-s';                                           # move to hostname/DNS tab
+        send_key 'alt-s';    # move to hostname/DNS tab
         send_key_until_needlematch 'loopback-assigned', 'alt-a';    # assign hostname to loopback IP
         close_yast2_lan();
 
@@ -142,9 +139,9 @@ sub run {
 
     open_yast2_lan();
 
-    for (1 .. 2) { send_key "tab" }                              # move to device list
+    for (1 .. 2) { send_key "tab" }    # move to device list
     send_key_until_needlematch 'vlan-selected', 'down', 5, 5;    # move to vlan
-    send_key "alt-t";                                            # remove vlan
+    send_key "alt-t";    # remove vlan
     assert_screen 'vlan-deleted';
     close_yast2_lan();
     wait_still_screen;

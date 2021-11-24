@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: sapconf availability and basic commands to tuned-adm
 # Working both on plain SLE and SLES4SAP products
@@ -14,14 +10,14 @@
 use base "sles4sap";
 use testapi;
 use version_utils qw(is_staging is_sle is_upgrade);
-use Utils::Architectures 'is_x86_64';
+use Utils::Architectures;
 use Utils::Systemd 'systemctl';
 use strict;
 use warnings;
 
 sub run_developers_tests {
     my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test/repository/sapconf_v5/archive.tar.gz';
-    my $log        = '/tmp/sapconf_test.log';
+    my $log = '/tmp/sapconf_test.log';
 
     # Download and unpack the test scripts supplied by the developers
     # Continue if it can not be downloaded
@@ -73,10 +69,10 @@ sub run_developers_tests {
 sub verify_sapconf_service {
     my ($svc, $desc) = @_;
 
-    my $output      = script_output "systemctl status $svc";
+    my $output = script_output "systemctl status $svc";
     my $statusregex = $svc . ' - ' . $desc . '.+' . 'Loaded: loaded \(/usr/lib/systemd/system/' . $svc . ';.+';
-    my $active      = $statusregex . 'Active: active \((listening|running)\).+';
-    my $success     = $statusregex . 'Active: active \(exited\).+' . 'status=0\/SUCCESS';
+    my $active = $statusregex . 'Active: active \((listening|running)\).+';
+    my $success = $statusregex . 'Active: active \(exited\).+' . 'status=0\/SUCCESS';
     die "Command 'systemctl status $svc' output is not recognized" unless ($output =~ m|$active|s or $output =~ m|$success|s);
 }
 
@@ -88,11 +84,17 @@ sub run {
     assert_script_run("rpm -q sapconf");
 
     if (is_upgrade()) {
-        # Stop & disable tuned service to avoid conflict with active saptune
-        systemctl "stop tuned";
-        systemctl "disable tuned";
+        # Stop & disable saptune service to avoid conflict with active saptune
+        systemctl "stop saptune";
+        systemctl "disable saptune";
         # Some versions of sapconf check for this directory and refuse to start
         assert_script_run "rm -rf /var/lib/saptune/saved_state";
+        systemctl "enable sapconf";
+        systemctl "start sapconf";
+    }
+
+    if (systemctl("-q is-active sapconf.service", ignore_failure => 1)) {
+        record_soft_failure("bsc#1190787 - sapconf is not started");
         systemctl "enable sapconf";
         systemctl "start sapconf";
     }
@@ -101,7 +103,7 @@ sub run {
     record_info("Current profile", "Current default profile: $default_profile");
 
     verify_sapconf_service('sapconf.service', 'sapconf') unless ($default_profile eq 'saptune');
-    verify_sapconf_service('uuidd.socket',    'UUID daemon activation socket');
+    verify_sapconf_service('uuidd.socket', 'UUID daemon activation socket');
     verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
       if is_sle('15+');
 

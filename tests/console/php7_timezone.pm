@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: php7 timezone
 # Summary: Basic timezone and php extra test, to make sure php timezone is consistent with the system one.
@@ -20,11 +16,11 @@ use testapi;
 use apachetest;
 
 my $date_time = "a";
-my $php_time  = "b";
+my $php_time = "b";
 
 sub compare_time {
     $date_time = script_output 'date +"%H:%M"';
-    $php_time  = script_output "php -r 'date_default_timezone_set(\"Europe/Berlin\");echo date(\"H:i\"), \"\n\";'";
+    $php_time = script_output "php -r 'date_default_timezone_set(\"Europe/Berlin\");echo date(\"H:i\"), \"\n\";'";
     return ($date_time eq $php_time);
 }
 

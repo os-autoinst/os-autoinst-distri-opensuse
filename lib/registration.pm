@@ -1,17 +1,5 @@
-# Copyright (C) 2015-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package registration;
 
@@ -20,6 +8,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key script_retry);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
@@ -61,40 +50,40 @@ our @EXPORT = qw(
 # Add python2 module, refer to https://jira.suse.de/browse/SLE-3167
 # Add nvidia compute module, refer to https://jira.suse.com/browse/SLE-16787
 our %SLE15_MODULES = (
-    base      => 'Basesystem',
-    sdk       => 'Development-Tools',
-    desktop   => 'Desktop-Applications',
-    legacy    => 'Legacy',
-    script    => 'Web-Scripting',
+    base => 'Basesystem',
+    sdk => 'Development-Tools',
+    desktop => 'Desktop-Applications',
+    legacy => 'Legacy',
+    script => 'Web-Scripting',
     serverapp => 'Server-Applications',
-    contm     => 'Containers',
-    pcm       => 'Public-Cloud',
-    sapapp    => 'SAP-Applications',
-    python2   => 'Python2',
-    nvidia    => 'NVIDIA-Compute',
+    contm => 'Containers',
+    pcm => 'Public-Cloud',
+    sapapp => 'SAP-Applications',
+    python2 => 'Python2',
+    nvidia => 'NVIDIA-Compute',
 );
 
 # The expected modules of a default installation per product. Use them if they
 # are not preselected, to crosscheck or just recreate automatic selections
 # manually
 our %SLE15_DEFAULT_MODULES = (
-    sles     => 'base,serverapp',
-    sled     => 'base,desktop',
+    sles => 'base,serverapp',
+    sled => 'base,desktop',
     sles4sap => 'base,desktop,serverapp,ha,sapapp',
 );
 
 our %ADDONS_REGCODE = (
-    'sle-ha'                   => get_var('SCC_REGCODE_HA'),
-    'sle-ha-geo'               => get_var('SCC_REGCODE_GEO'),
-    'sle-we'                   => get_var('SCC_REGCODE_WE'),
+    'sle-ha' => get_var('SCC_REGCODE_HA'),
+    'sle-ha-geo' => get_var('SCC_REGCODE_GEO'),
+    'sle-we' => get_var('SCC_REGCODE_WE'),
     'sle-module-live-patching' => get_var('SCC_REGCODE_LIVE'),
-    'sle-live-patching'        => get_var('SCC_REGCODE_LIVE'),
-    'SLES-LTSS'                => get_var('SCC_REGCODE_LTSS'),
+    'sle-live-patching' => get_var('SCC_REGCODE_LIVE'),
+    'SLES-LTSS' => get_var('SCC_REGCODE_LTSS'),
     'SUSE-Linux-Enterprise-RT' => get_var('SCC_REGCODE_RT'),
-    ESPOS                      => get_var('SCC_REGCODE_ESPOS'),
+    ESPOS => get_var('SCC_REGCODE_ESPOS'),
 );
 
-our @SLE15_ADDONS_WITHOUT_LICENSE        = qw(ha sdk wsm we hpcm live);
+our @SLE15_ADDONS_WITHOUT_LICENSE = qw(ha sdk wsm we hpcm live);
 our @SLE15_ADDONS_WITH_LICENSE_NOINSTALL = qw(ha we nvidia);
 
 # Those modules' version is 12 for all of 12 sp products
@@ -183,9 +172,9 @@ sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
     assert_script_run 'source /etc/os-release';
     $version //= '${VERSION_ID}';
-    $arch    //= '${CPU}';
-    $params  //= '';
-    $retry   //= 0;                 # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
+    $arch //= '${CPU}';
+    $params //= '';
+    $retry //= 0;    # run SUSEConnect a 2nd time to workaround the gpg error due to missing repo key on 1st run
 
     # some modules on sle12 use major version e.g. containers module
     my $major_version = '$(echo ${VERSION_ID}|cut -c1-2)';
@@ -195,8 +184,12 @@ sub add_suseconnect_product {
     if ($result != 0 && $retry) {
         if ($name =~ /PackageHub/) {
             record_soft_failure 'bsc#1124318 - Fail to get module repo metadata - running the command again as a workaround';
+
         }
-        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout);
+
+        my $fail_message = ($name =~ /PackageHub/ && check_var('BETA', '1')) ? "PackageHub installation might fail in early development" : undef;
+        assert_script_run("SUSEConnect -p $name/$version/$arch $params", $timeout, $fail_message);
+
     } elsif ($result && !$retry) {
         die "SUSEConnect failed activating module $name with exit code (see log output): $result.";
     }
@@ -213,11 +206,11 @@ sub ssh_add_suseconnect_product {
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
     assert_script_run 'source /tmp/os-release';
     $version //= '${VERSION_ID}';
-    $arch    //= '${CPU}';
-    $params  //= '';
+    $arch //= '${CPU}';
+    $params //= '';
     $timeout //= 300;
     $retries //= 3;
-    $delay   //= 10;
+    $delay //= 10;
 
     script_retry("ssh $remote sudo SUSEConnect -p $name/$version/$arch $params", delay => $delay, retry => $retries, timeout => $timeout);
 }
@@ -231,8 +224,8 @@ Wrapper for SUSEConnect -d $name.
 sub remove_suseconnect_product {
     my ($name, $version, $arch, $params) = @_;
     $version //= scc_version();
-    $arch    //= get_required_var('ARCH');
-    $params  //= '';
+    $arch //= get_required_var('ARCH');
+    $params //= '';
     assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");
 }
 
@@ -339,9 +332,9 @@ sub assert_registration_screen_present {
     if (!get_var("HDD_SCC_REGISTERED")) {
         assert_screen_with_soft_timeout(
             'scc-registration',
-            timeout      => 350,
+            timeout => 350,
             soft_timeout => 300,
-            bugref       => 'bsc#1028774'
+            bugref => 'bsc#1028774'
         );
     }
 }
@@ -575,7 +568,7 @@ sub show_development_versions {
 
 sub fill_in_registration_data {
     fill_in_reg_server() if (!get_var("HDD_SCC_REGISTERED"));
-    return               if handle_scc_popups();
+    return if handle_scc_popups();
     process_modules();
 }
 
@@ -588,8 +581,8 @@ sub handle_scc_popups {
             push @tags, 'untrusted-ca-cert';
         }
         # The SLE15-SP2 license page moved after registration.
-        push @tags, 'license-agreement'                 if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
-        push @tags, 'license-agreement-accepted'        if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
+        push @tags, 'license-agreement-accepted' if (!get_var('MEDIA_UPGRADE') && is_sle('15-SP2+'));
         push @tags, 'leap-to-sle-registrition-finished' if (is_leap_migration);
         # The "Extension and Module Selection" won't be shown during upgrade to sle15, refer to:
         # https://bugzilla.suse.com/show_bug.cgi?id=1070031#c11
@@ -732,7 +725,7 @@ sub yast_scc_registration {
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
     # For Aarch64 if the worker run with heavy loads, it will
     # timeout in nearly 120 seconds. So we set it to 150.
-    assert_screen('scc-registration', timeout => (check_var('ARCH', 'aarch64')) ? 150 : 90,);
+    assert_screen('scc-registration', timeout => (is_aarch64) ? 150 : 90,);
     fill_in_registration_data;
     wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
@@ -742,12 +735,12 @@ sub skip_registration {
     wait_screen_change { send_key "alt-s" };    # skip SCC registration
     assert_screen([qw(scc-skip-reg-warning-yes scc-skip-reg-warning-ok scc-skip-reg-no-warning)]);
     if (match_has_tag('scc-skip-reg-warning-ok')) {
-        send_key "alt-o";                       # confirmed skip SCC registration
+        send_key "alt-o";    # confirmed skip SCC registration
         wait_still_screen;
         send_key $cmd{next};
     }
     elsif (match_has_tag('scc-skip-reg-warning-yes')) {
-        send_key "alt-y";                       # confirmed skip SCC registration
+        send_key "alt-y";    # confirmed skip SCC registration
     }
 }
 
@@ -756,34 +749,34 @@ sub get_addon_fullname {
 
     # extensions product list
     my %product_list = (
-        ha        => 'sle-ha',
-        geo       => 'sle-ha-geo',
-        we        => 'sle-we',
-        sdk       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
-        dev       => 'sle-module-development-tools',
-        ses       => 'ses',
-        live      => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
-        asmm      => is_sle('15+') ? 'sle-module-basesystem'    : 'sle-module-adv-systems-management',
-        base      => 'sle-module-basesystem',
-        contm     => 'sle-module-containers',
-        desktop   => 'sle-module-desktop-applications',
-        hpcm      => 'sle-module-hpc',
-        legacy    => 'sle-module-legacy',
-        lgm       => 'sle-module-legacy',
-        ltss      => 'SLES-LTSS',
-        pcm       => 'sle-module-public-cloud',
-        rt        => 'SUSE-Linux-Enterprise-RT',
-        script    => 'sle-module-web-scripting',
+        ha => 'sle-ha',
+        geo => 'sle-ha-geo',
+        we => 'sle-we',
+        sdk => is_sle('15+') ? 'sle-module-development-tools' : 'sle-sdk',
+        dev => 'sle-module-development-tools',
+        ses => 'ses',
+        live => is_sle('15+') ? 'sle-module-live-patching' : 'sle-live-patching',
+        asmm => is_sle('15+') ? 'sle-module-basesystem' : 'sle-module-adv-systems-management',
+        base => 'sle-module-basesystem',
+        contm => 'sle-module-containers',
+        desktop => 'sle-module-desktop-applications',
+        hpcm => 'sle-module-hpc',
+        legacy => 'sle-module-legacy',
+        lgm => 'sle-module-legacy',
+        ltss => 'SLES-LTSS',
+        pcm => 'sle-module-public-cloud',
+        rt => 'SUSE-Linux-Enterprise-RT',
+        script => 'sle-module-web-scripting',
         serverapp => 'sle-module-server-applications',
-        tcm       => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
-        wsm       => 'sle-module-web-scripting',
-        python2   => 'sle-module-python2',
-        phub      => 'PackageHub',
-        tsm       => 'sle-module-transactional-server',
-        espos     => 'ESPOS',
-        nvidia    => 'sle-module-NVIDIA-compute',
-        idu       => is_sle('15+') ? 'IBM-POWER-Tools'         : 'IBM-DLPAR-utils',
-        ids       => is_sle('15+') ? 'IBM-POWER-Adv-Toolchain' : 'IBM-DLPAR-SDK',
+        tcm => is_sle('15+') ? 'sle-module-development-tools' : 'sle-module-toolchain',
+        wsm => 'sle-module-web-scripting',
+        python2 => 'sle-module-python2',
+        phub => 'PackageHub',
+        tsm => 'sle-module-transactional-server',
+        espos => 'ESPOS',
+        nvidia => 'sle-module-NVIDIA-compute',
+        idu => is_sle('15+') ? 'IBM-POWER-Tools' : 'IBM-DLPAR-utils',
+        ids => is_sle('15+') ? 'IBM-POWER-Adv-Toolchain' : 'IBM-DLPAR-SDK',
     );
     return $product_list{"$addon"};
 }
@@ -877,10 +870,10 @@ sub rename_scc_addons {
 
     my %addons_map = (
         asmm => 'base',
-        geo  => 'ha',
-        tcm  => 'sdk',
-        lgm  => 'legacy',
-        wsm  => 'script',
+        geo => 'ha',
+        tcm => 'sdk',
+        lgm => 'legacy',
+        wsm => 'script',
     );
     my @addons_new = ();
 
@@ -897,14 +890,14 @@ sub verify_scc {
 }
 
 sub investigate_log_empty_license {
-    my $filter_products   = "grep -Po '<SUSE::Connect::Remote::Product.*?(extensions|isbase=(true|false)>)'";
-    my $y2log_file        = '/var/log/YaST2/y2log';
+    my $filter_products = "grep -Po '<SUSE::Connect::Remote::Product.*?(extensions|isbase=(true|false)>)'";
+    my $y2log_file = '/var/log/YaST2/y2log';
     my $filter_empty_eula = qq[grep '.*eula_url="".*'];
-    my $orderuniquebyid   = 'sort -u -t, -k1,1';
-    my $command           = "$filter_products $y2log_file | $filter_empty_eula | $orderuniquebyid";
-    my @products          = split(/\n/, script_output($command));
-    my %fields            = (
-        id            => qr/(?<id>(?<=id=)\d+)/,
+    my $orderuniquebyid = 'sort -u -t, -k1,1';
+    my $command = "$filter_products $y2log_file | $filter_empty_eula | $orderuniquebyid";
+    my @products = split(/\n/, script_output($command));
+    my %fields = (
+        id => qr/(?<id>(?<=id=)\d+)/,
         friendly_name => qr/(?<friendly_name>(?<=friendly_name=").*?(?="))/
     );
     my $message;

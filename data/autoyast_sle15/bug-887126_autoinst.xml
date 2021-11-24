@@ -184,15 +184,14 @@
     <interfaces config:type="list">
       <interface>
         <bootproto>dhcp</bootproto>
-        <device>eth0</device>
         <dhclient_set_default_route>yes</dhclient_set_default_route>
-        <name>RTL-8139/8139C/8139C+</name>
+        <name>eth0</name>
         <startmode>auto</startmode>
       </interface>
       <interface>
         <bootproto>static</bootproto>
         <broadcast>127.255.255.255</broadcast>
-        <device>lo</device>
+        <name>lo</name>
         <firewall>no</firewall>
         <ipaddr>127.0.0.1</ipaddr>
         <netmask>255.0.0.0</netmask>

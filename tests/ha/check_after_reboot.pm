@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-iscsi-client pacemaker-cli
 # Summary: Check cluster status *after* reboot
@@ -15,19 +11,20 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use lockapi;
 use hacluster;
 use version_utils qw(is_sles4sap);
 use utils qw(systemctl);
 
 sub run {
-    my $cluster_name  = get_cluster_name;
+    my $cluster_name = get_cluster_name;
     my $node_to_fence = get_var('NODE_TO_FENCE', undef);
-    my $node_index    = !defined $node_to_fence ? 1 : 2;
+    my $node_index = !defined $node_to_fence ? 1 : 2;
     # In ppc64le and aarch64, workers are slower
     my $timeout_scale = get_var('TIMEOUT_SCALE', 2);
     $timeout_scale = 2 if ($timeout_scale < 2);
-    set_var('TIMEOUT_SCALE', $timeout_scale) unless (check_var('ARCH', 'x86_64'));
+    set_var('TIMEOUT_SCALE', $timeout_scale) unless (is_x86_64);
 
     # Check cluster state *after* reboot
     barrier_wait("CHECK_AFTER_REBOOT_BEGIN_${cluster_name}_NODE${node_index}");
@@ -50,7 +47,7 @@ sub run {
         assert_script_run 'journalctl -b --no-pager -o short-precise > bsc1129385-check-journal.log';
         my $iscsi_fails = script_run 'grep -q "iscsid: cannot make a connection to" bsc1129385-check-journal.log';
         my $csync_fails = script_run 'grep -q "corosync.service: Failed" bsc1129385-check-journal.log';
-        my $pcmk_fails  = script_run 'egrep -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
+        my $pcmk_fails = script_run 'egrep -q "pacemaker.service.+failed" bsc1129385-check-journal.log';
 
         if (defined $iscsi_fails and $iscsi_fails == 0 and defined $csync_fails
             and $csync_fails == 0 and defined $pcmk_fails and $pcmk_fails == 0)
@@ -74,7 +71,7 @@ sub run {
         send_key 'alt-c';
         wait_still_screen 3;
         wait_serial('yast2-iscsi-client-status-0', 90) || die "'yast2 iscsi-client' didn't finish";
-        assert_screen 'root-console',  $default_timeout;
+        assert_screen 'root-console', $default_timeout;
         systemctl 'restart pacemaker', timeout => $default_timeout;
     }
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;
@@ -111,7 +108,7 @@ sub run {
     # Synchronize all nodes
     barrier_wait("CHECK_AFTER_REBOOT_END_${cluster_name}_NODE${node_index}");
     # Note: the following barriers aren't supposed to be used in multiple fencing tests
-    barrier_wait("HAWK_FENCE_$cluster_name")       if (check_var('HAWKGUI_TEST_ROLE', 'server'));
+    barrier_wait("HAWK_FENCE_$cluster_name") if (check_var('HAWKGUI_TEST_ROLE', 'server'));
     barrier_wait("QNETD_TESTS_DONE_$cluster_name") if (check_var('QDEVICE_TEST_ROLE', 'client'));
 
     # In case of HANA cluster we also have to test the failback/takeback after the first fencing

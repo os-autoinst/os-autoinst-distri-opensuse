@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: make the guests(specified by test suite settings) ready(virsh define).
 # Maintainer: Julie CAO <jcao@suse.com>
@@ -18,7 +14,7 @@ use base "virt_autotest_base";
 use virt_utils qw(get_guest_list remove_vm restore_downloaded_guests);
 
 sub run {
-    my $guest_list         = get_guest_list();
+    my $guest_list = get_guest_list();
     my $downloaded_xml_dir = "/tmp/download_vm_xml";
 
     #clean up env

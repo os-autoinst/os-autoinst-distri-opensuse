@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: hsqldb crmsh
 # Summary: Configure HANA-SR cluster
@@ -20,14 +16,14 @@ use strict;
 use warnings;
 
 sub run {
-    my ($self)       = @_;
-    my $instance_id  = get_required_var('INSTANCE_ID');
-    my $sid          = get_required_var('INSTANCE_SID');
+    my ($self) = @_;
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $sid = get_required_var('INSTANCE_SID');
     my $cluster_name = get_cluster_name;
     my ($virtual_ip, $virtual_netmask) = split '/', get_required_var('INSTANCE_IP_CIDR');
 
     # Set SAP variables
-    my $pscmd  = $self->set_ps_cmd("HDB");
+    my $pscmd = $self->set_ps_cmd("HDB");
     my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Synchronize the nodes
@@ -46,8 +42,8 @@ sub run {
 
         # Initiate the template
         file_content_replace($cluster_conf, '--sed-modifier' => 'g',
-            '%SID%'                => $sid,
-            '%HDB_INSTANCE%'       => $instance_id,
+            '%SID%' => $sid,
+            '%HDB_INSTANCE%' => $instance_id,
             '%AUTOMATED_REGISTER%' => get_required_var('AUTOMATED_REGISTER'),
             '%VIRTUAL_IP_ADDRESS%' => $virtual_ip,
             '%VIRTUAL_IP_NETMASK%' => $virtual_netmask);

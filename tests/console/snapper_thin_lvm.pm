@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper lvm2 e2fsprogs util-linux
 # Summary: Test snapper on thin-provisioned LVM
@@ -37,7 +33,7 @@ sub run {
 
     my @snapper_runs = 'snapper';
     push @snapper_runs, 'snapper --no-dbus' if get_var('SNAPPER_NODBUS');
-    my $mnt_thin          = '/mnt/thin';
+    my $mnt_thin = '/mnt/thin';
     my $mnt_thin_snapshot = $mnt_thin . '-snapshot';
 
     zypper_call 'in lvm2';

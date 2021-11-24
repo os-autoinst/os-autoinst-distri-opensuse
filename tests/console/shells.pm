@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
 # Copyright 2017-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# SPDX-License-Identifier: FSFAP
 
 # Package: tcsh zsh bash shadow util-linux
 # Summary: Test all officially SLE supported shells
@@ -26,6 +22,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils 'zypper_call';
 use version_utils 'is_leap';
 
@@ -33,10 +30,10 @@ sub run() {
     select_console 'root-console';
     my @packages = qw(tcsh zsh);
     # ksh does not build for Leap 15.x on aarch64, so, skip it
-    push @packages, qw(ksh) unless (is_leap('15.0+') and check_var('ARCH', 'aarch64'));
+    push @packages, qw(ksh) unless (is_leap('15.0+') and is_aarch64);
     zypper_call("in @packages");
     select_console 'user-console';
-    assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and check_var('ARCH', 'aarch64'));
+    assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and is_aarch64);
     assert_script_run 'tcsh -c "printf \'hello\n\'" | grep hello';
     assert_script_run 'csh -c "printf \'hello\n\'" | grep hello';
     assert_script_run 'zsh -c "echo hello" | grep hello';
@@ -64,11 +61,11 @@ sub tcsh_extra_tests {
     script_run 'logout', 0;
     wait_still_screen(3);
 
-    validate_script_output 'grep -c /home/tcsh_user:/usr/bin/tcsh /tmp/tcsh', sub { /1/ },  timeout => 60;
-    validate_script_output 'grep -c ^/usr/bin/tcsh /tmp/tcsh',                sub { /1/ },  timeout => 60;
-    validate_script_output 'grep -c ^/home/tcsh_user /tmp/tcsh',              sub { /1/ },  timeout => 60;
-    validate_script_output 'grep -c Sourced! /tmp/tcsh',                      sub { /1/ },  timeout => 60;
-    validate_script_output 'grep 12 /tmp/tcsh',                               sub { /12/ }, timeout => 60;
+    validate_script_output 'grep -c /home/tcsh_user:/usr/bin/tcsh /tmp/tcsh', sub { /1/ }, timeout => 60;
+    validate_script_output 'grep -c ^/usr/bin/tcsh /tmp/tcsh', sub { /1/ }, timeout => 60;
+    validate_script_output 'grep -c ^/home/tcsh_user /tmp/tcsh', sub { /1/ }, timeout => 60;
+    validate_script_output 'grep -c Sourced! /tmp/tcsh', sub { /1/ }, timeout => 60;
+    validate_script_output 'grep 12 /tmp/tcsh', sub { /12/ }, timeout => 60;
 
     #cleanup:
     script_run 'rm /tmp/tcsh ~/.tcsh';

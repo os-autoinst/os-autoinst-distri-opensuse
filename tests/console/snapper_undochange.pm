@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2015-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2015-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper
 # Summary: Check that snapper can revert file changes between snapshots
@@ -29,7 +25,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    my $snapfile     = '/etc/snapfile';
+    my $snapfile = '/etc/snapfile';
     my @snapper_runs = 'snapper';
     push @snapper_runs, 'snapper --no-dbus' if get_var('SNAPPER_NODBUS');
 

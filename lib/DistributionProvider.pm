@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: A library that provides the certain distribution depending on the
 # version of the product that is specified for a Test Suite.
@@ -35,10 +31,10 @@ If there is no matched version, then returns Tumbleweed as the default one.
 
 =cut
 sub provide {
-    return Distribution::Sle::15_current->new()    if is_sle('>=15-sp3');
-    return Distribution::Sle::15sp2->new()         if is_sle('>15');
-    return Distribution::Sle::15sp0->new()         if is_sle('=15');
-    return Distribution::Sle::12->new()            if is_sle('12+');
+    return Distribution::Sle::15_current->new() if is_sle('>=15-sp3');
+    return Distribution::Sle::15sp2->new() if is_sle('>15');
+    return Distribution::Sle::15sp0->new() if is_sle('=15');
+    return Distribution::Sle::12->new() if is_sle('12+');
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
     return Distribution::Opensuse::Tumbleweed->new();

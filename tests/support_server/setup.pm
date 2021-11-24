@@ -1,17 +1,5 @@
-# Copyright (C) 2015-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: supportserver and supportserver generator implementation
 # - Configure a static network at "10.0.2.1" and check if it is working
@@ -39,6 +27,7 @@ use warnings;
 use base 'basetest';
 use lockapi;
 use testapi;
+use Utils::Architectures;
 use utils;
 use mm_network;
 use mm_tests;
@@ -48,19 +37,19 @@ use iscsi;
 use version_utils 'is_opensuse';
 use virt_autotest::utils qw(is_vmware_virtualization is_hyperv_virtualization);
 
-my $pxe_server_set       = 0;
-my $http_server_set      = 0;
-my $ftp_server_set       = 0;
-my $tftp_server_set      = 0;
-my $dns_server_set       = 0;
-my $dhcp_server_set      = 0;
-my $ntp_server_set       = 0;
-my $xvnc_server_set      = 0;
-my $ssh_server_set       = 0;
-my $xdmcp_server_set     = 0;
-my $iscsi_server_set     = 0;
+my $pxe_server_set = 0;
+my $http_server_set = 0;
+my $ftp_server_set = 0;
+my $tftp_server_set = 0;
+my $dns_server_set = 0;
+my $dhcp_server_set = 0;
+my $ntp_server_set = 0;
+my $xvnc_server_set = 0;
+my $ssh_server_set = 0;
+my $xdmcp_server_set = 0;
+my $iscsi_server_set = 0;
 my $iscsi_tgt_server_set = 0;
-my $nfs_server_set       = 0;
+my $nfs_server_set = 0;
 
 my $setup_script;
 my $disable_firewall = 0;
@@ -364,10 +353,10 @@ sub setup_iscsi_server {
     # Create the iSCSI LUN
     script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
     my $start = 0;
-    my $size  = 0;
+    my $size = 0;
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
         $start = $size + 1;
-        $size  = $num_lun * $lun_size * 1024;
+        $size = $num_lun * $lun_size * 1024;
         script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}MiB";
     }
 
@@ -525,7 +514,7 @@ sub setup_stunnel_server {
 }
 
 sub setup_mariadb_server {
-    my $ip     = '10.0.2.%';
+    my $ip = '10.0.2.%';
     my $passwd = 'suse';
 
     zypper_call('in mariadb');
@@ -545,13 +534,13 @@ sub setup_mariadb_server {
 }
 
 sub setup_nfs_server {
-    my $nfs_mount       = "/nfs/shared";
+    my $nfs_mount = "/nfs/shared";
     my $nfs_permissions = "rw,sync,no_root_squash";
 
     # Added as the client test code might want to change the default
     # values
     if (get_var("CONFIGURE_NFS_SERVER")) {
-        $nfs_mount       = get_required_var("NFS_MOUNT");
+        $nfs_mount = get_required_var("NFS_MOUNT");
         $nfs_permissions = get_required_var("NFS_PERMISSIONS");
     }
 
@@ -585,7 +574,7 @@ sub run {
     if (exists $server_roles{pxe}) {
         # PXE server cannot be configured on other ARCH than x86_64
         # because 'syslinux' package only exists on it
-        die "PXE server is only supported on x86_64 architecture" unless check_var('ARCH', 'x86_64');
+        die "PXE server is only supported on x86_64 architecture" unless is_x86_64;
         setup_dhcp_server((exists $server_roles{dns}), 1);
         setup_pxe_server();
         setup_tftp_server();

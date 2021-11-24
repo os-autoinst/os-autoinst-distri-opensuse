@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: gdm gnome-settings-daemon
 # Summary: in GNOME, change password for current user and check that it's
@@ -47,7 +43,7 @@ sub reboot_system {
     } else {
         $self->wait_boot();
     }
-    assert_screen "generic-desktop";
+    handle_gnome_activities;
 }
 
 sub auto_login_alter {

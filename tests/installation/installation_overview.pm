@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Check installation overview before and after any pattern change
 # - Check if install scenario has proposals
@@ -27,7 +23,7 @@ use Test::Assert ':all';
 sub ensure_ssh_unblocked {
     if (!get_var('UPGRADE') && is_remote_backend) {
 
-        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab';
+        send_key_until_needlematch [qw(ssh-blocked ssh-open)], 'tab', 25;
         if (match_has_tag 'ssh-blocked') {
             if (check_var('VIDEOMODE', 'text')) {
                 send_key 'alt-c';

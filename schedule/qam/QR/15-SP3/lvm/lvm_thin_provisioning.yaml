@@ -14,8 +14,7 @@ schedule:
   - installation/accept_license
   - installation/scc_registration
   - installation/addon_products_sle
-  - installation/system_role/validate_default_role
-  - installation/system_role/select_role
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning
   - installation/partitioning/new_partitioning_gpt
   - installation/installer_timezone
@@ -36,6 +35,3 @@ schedule:
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
   - console/lvm_thin_check
-test_data:
-  system_role:
-    default: 'SLES with GNOME'

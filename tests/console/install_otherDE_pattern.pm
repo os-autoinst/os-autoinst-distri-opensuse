@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Framework to test other Desktop Environments
 #    Non-Primary desktop environments are generally installed by means
@@ -24,7 +20,7 @@ sub run {
 
     script_run("zypper lr -d | tee /dev/$serialdev");
 
-    my $pattern   = get_var("DE_PATTERN");
+    my $pattern = get_var("DE_PATTERN");
     my $zypp_type = "pattern";
     if (check_var("DE_IS_PKG", 1)) {
         $zypp_type = "package";

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: RAID1 on LVM partition validation
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
@@ -25,7 +21,7 @@ sub run {
 
     select_console 'root-console';
 
-    my $config            = get_test_suite_data();
+    my $config = get_test_suite_data();
     my $expected_num_devs = scalar @{$config->{disks}};
     _check_lvm_partitioning($config);
     _check_raid1_partitioning($config, $expected_num_devs);

@@ -31,4 +31,5 @@ schedule:
     # - sysauth/sssd
     - containers/docker_compose
     - network/cifs
+    - network/samba/server
     - console/orphaned_packages_check

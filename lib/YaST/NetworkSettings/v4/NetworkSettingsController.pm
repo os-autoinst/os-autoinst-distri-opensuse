@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces business actions for Network Settings Dialog
 # (yast2 lan module), version 4.
@@ -28,10 +24,10 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->SUPER::init($args);
-    $self->{DeviceTypeDialog}       = YaST::NetworkSettings::NetworkCardSetup::DeviceTypeDialog->new();
+    $self->{DeviceTypeDialog} = YaST::NetworkSettings::NetworkCardSetup::DeviceTypeDialog->new();
     $self->{BridgedDevicesTabOnAdd} = YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab->new({tab_shortcut => 'alt-v', bridged_devices_shortcut => 'alt-i'});
     $self->{BridgedDevicesTabOnEdit} = YaST::NetworkSettings::NetworkCardSetup::BridgedDevicesTab->new({tab_shortcut => 'alt-b', bridged_devices_shortcut => 'alt-i'});
-    $self->{BondSlavesTabOnAdd}  = YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab->new({tab_shortcut => 'alt-o'});
+    $self->{BondSlavesTabOnAdd} = YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab->new({tab_shortcut => 'alt-o'});
     $self->{BondSlavesTabOnEdit} = YaST::NetworkSettings::NetworkCardSetup::BondSlavesTab->new({tab_shortcut => 'alt-b'});
     return $self;
 }

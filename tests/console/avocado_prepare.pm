@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Avocado setup and network bridge configuration
 #          Test system has to be registered baremetal
@@ -30,7 +26,7 @@ sub run {
     systemctl "stop $firewall";
 
     my $counter = 1;
-    my @repos   = split(/,/, get_var('AVOCADO_REPO'));
+    my @repos = split(/,/, get_var('AVOCADO_REPO'));
     for my $var (@repos) {
         zypper_call("--no-gpg-checks ar -f $var 'AVOCADO_$counter'");
         $counter++;

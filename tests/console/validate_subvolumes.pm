@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate that the subvolumes, specified in the test data,
 # exist in the given partition (described by mount point).
@@ -39,7 +35,7 @@ sub run {
 
     foreach my $subvolume (@{$test_data->{validate_subvolumes}}) {
         validate_subvolume({
-                subvolume   => $subvolume->{subvolume},
+                subvolume => $subvolume->{subvolume},
                 mount_point => $subvolume->{mount_point}
         });
     }

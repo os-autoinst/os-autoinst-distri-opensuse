@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Initialize testing environment for Libvirt Virtual Networks
 # included the following priorities 4 types:
@@ -49,7 +37,7 @@ sub run_test {
     #After deployed guest systems, ensure active pool have at least 40GiB(XEN)
     #or 20GiB(KVM) available disk space on vm host for virtual network test
     my ($ACTIVE_POOL_NAME, $AVAILABLE_POOL_SIZE) = virt_autotest::virtual_network_utils::get_active_pool_and_available_space();
-    record_info('Detect Active POOL NAME:',    $ACTIVE_POOL_NAME);
+    record_info('Detect Active POOL NAME:', $ACTIVE_POOL_NAME);
     record_info('Detect Available POOL SIZE:', $AVAILABLE_POOL_SIZE . 'GiB');
     my $expected_pool_size = get_var('VIRT_EXPECTED_POOLSIZE', (is_xen_host) ? '40' : '20');
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",
@@ -84,7 +72,14 @@ sub run_test {
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
         #Prepare the new guest network interface files for libvirt virtual network
-        assert_script_run("ssh root\@$guest 'cd /etc/sysconfig/network/; cp ifcfg-eth0 ifcfg-eth1; cp ifcfg-eth0 ifcfg-eth2; cp ifcfg-eth0 ifcfg-eth3; cp ifcfg-eth0 ifcfg-eth4; cp ifcfg-eth0 ifcfg-eth5; cp ifcfg-eth0 ifcfg-eth6'");
+        #for some guests, interfaces are named eth0, eth1, eth2, ...
+        #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
+        my $primary_nic = script_output("ssh root\@$guest \"ip a|awk -F': ' '/state UP/ {print \\\$2}'|head -n1\"");
+        $primary_nic =~ /([a-zA-Z]*)(\d)(\w*)/;
+        for (my $i = 1; $i <= 6; $i++) {
+            my $nic = $1 . (int($2) + $i) . $3;
+            assert_script_run("ssh root\@$guest 'cp /etc/sysconfig/network/ifcfg-$primary_nic /etc/sysconfig/network/ifcfg-$nic'");
+        }
         #enable guest wickedd debugging
         assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g' /etc/sysconfig/network/config\"";
         assert_script_run "ssh root\@$guest 'grep 'WICKED_DEBUG' /etc/sysconfig/network/config'";

@@ -1,17 +1,13 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: python3-pip python3-virtualenv python3-ec2imgutils aws-cli
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
 use base "opensusebasetest";
 use strict;
@@ -32,7 +28,7 @@ sub create_script_file {
 sub install_in_venv {
     my ($binary, %args) = @_;
     die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
-    die("Missing binary name")                                         unless ($binary);
+    die("Missing binary name") unless ($binary);
     my $install_timeout = 15 * 60;
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
 
@@ -72,9 +68,14 @@ sub run {
         }
     }
 
+    ensure_ca_certificates_suse_installed();
+
     # Install prerequesite packages test
-    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman');
+    zypper_call('-q in python3-pip python3-devel python3-virtualenv python3-img-proof python3-img-proof-tests podman docker jq');
     record_info('python', script_output('python --version'));
+    systemctl('enable --now docker');
+    assert_script_run('podman ps');
+    assert_script_run('docker ps');
 
     # Install AWS cli
     install_in_venv('aws', requirements => 1);
@@ -106,9 +107,11 @@ sub run {
 
     # Create some directories, ipa will need them
     assert_script_run("img-proof list");
-    record_info('img-proof', script_output('img-proof --version'));
-    my $terraform_version = '0.14.1';
+    my $img_proof_ver = script_output('img-proof --version');
+    record_info('img-proof', $img_proof_ver);
+    set_var('PUBLIC_CLOUD_IMG_PROOF_VER', $img_proof_ver =~ /img-proof, version ([\d\.]+)/);
 
+    my $terraform_version = '0.14.1';
     # Terraform in a container
     my $terraform_wrapper = <<EOT;
 #!/bin/sh
@@ -117,6 +120,16 @@ EOT
 
     create_script_file('terraform', '/usr/bin/terraform', $terraform_wrapper);
     record_info('Terraform', script_output('terraform -version'));
+
+    # Kubectl in a container
+    my $kubectl_version = '1.22';
+    my $kubectl_wrapper = <<EOT;
+#!/bin/sh
+podman run -v /root/:/root/ --rm bitnami/kubectl:$kubectl_version \$@
+EOT
+
+    create_script_file('kubectl', '/usr/bin/kubectl', $kubectl_wrapper);
+    record_info('kubectl', script_output('kubectl version --client=true'));
 
     select_console 'root-console';
 }

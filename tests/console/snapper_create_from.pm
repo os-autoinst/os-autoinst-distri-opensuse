@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: snapper btrfsprogs
 # Summary: Test snapper create when branching from a different snapshot.
@@ -28,7 +24,7 @@ sub run {
     my $snapshots = get_test_suite_data()->{snapshots};
 
     my $last_printed_num;    # keep track of last snapshot created
-    my $last_uuid;           # keep track of last snapshot uuid
+    my $last_uuid;    # keep track of last snapshot uuid
     my $btrfs_info;
 
     # process each snapshot according to test data
@@ -40,7 +36,7 @@ sub run {
 
         # make up next 'snapper create'
         my $snapper_args = "--print-number -d '$snapshot->{description}'";
-        $snapper_args .= " --read-write"             if ($snapshot->{read_write});
+        $snapper_args .= " --read-write" if ($snapshot->{read_write});
         $snapper_args .= " --from $last_printed_num" if ($snapshot->{from});
 
         # execute snapper create when testing for failure and exit earlier

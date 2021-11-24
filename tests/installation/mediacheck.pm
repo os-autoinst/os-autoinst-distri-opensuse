@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Verify mediacheck function on the DVD
 # Maintainer: Max Lin <mlin@suse.com>
@@ -18,7 +14,7 @@ use testapi;
 use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 
 sub run {
-    my $self       = shift;
+    my $self = shift;
     my $iterations = 0;
     ensure_shim_import;
     select_bootmenu_more('inst-onmediacheck', 1);

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: python3-ec2metadata iproute2 ca-certificates
 # Summary: This is just bunch of random commands overviewing the public cloud instance
@@ -48,6 +44,8 @@ sub run {
     assert_script_run("cat /etc/hosts");
     assert_script_run("cat /etc/resolv.conf");
 
+    assert_script_run("lsblk");
+
     # Install bzip2 to check for bsc#1165915
     if (script_run("zypper -n in bzip2") == 8) {
         record_soft_failure('bsc#1165915');
@@ -55,11 +53,24 @@ sub run {
         zypper_call("in bzip2");
     }
 
-    assert_script_run("rpm -qa > /tmp/rpm.list.txt");
-    upload_logs('/tmp/rpm.list.txt', timeout => 180, failok => 1);
-
     assert_script_run("SUSEConnect --status-text", 300);
     zypper_call("lr -d");
+
+    collect_system_information($self);
+}
+
+sub collect_system_information {
+    my ($self) = @_;
+
+    # Collect various system information and pack them to instance_overview.tar
+    script_run("cd /var/tmp");
+    assert_script_run("mkdir -p instance_overview");
+    assert_script_run("rpm -qa | tee instance_overview/rpm.list.txt", timeout => 90);
+    assert_script_run("cat /proc/cpuinfo | tee instance_overview/cpuinfo.txt");
+    assert_script_run("cat /proc/meminfo | tee instance_overview/meminfo.txt");
+    assert_script_run("uname -a | tee instance_overview/uname.txt");
+    $self->tar_and_upload_log("instance_overview/", "instance_overview.tar.gz");
+    script_run("cd");
 }
 
 sub test_flags {

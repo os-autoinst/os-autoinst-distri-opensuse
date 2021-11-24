@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The abstract class introduces interface to business actions for they
 # Expert Partitioner.
@@ -88,10 +84,10 @@ sub _set_partition_role {
 
 sub _set_partition_options {
     my ($self, $args) = @_;
-    my $id                 = $args->{id};
+    my $id = $args->{id};
     my $formatting_options = $args->{formatting_options};
-    my $mounting_options   = $args->{mounting_options};
-    my $encrypt_device     = $args->{encrypt_device};
+    my $mounting_options = $args->{mounting_options};
+    my $encrypt_device = $args->{encrypt_device};
 
     # Set partition id if provided
     if ($id) {

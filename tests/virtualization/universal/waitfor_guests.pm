@@ -1,11 +1,7 @@
 # XEN regression tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: libvirt-client
 # Summary: Wait for guests so they finish the installation
@@ -21,7 +17,7 @@ use utils;
 
 sub ensure_reboot_policy {
     my $guest = shift;
-    my $xml   = "$guest.xml";
+    my $xml = "$guest.xml";
     assert_script_run("virsh dumpxml $guest > $xml");
     assert_script_run("sed 's!.*<on_reboot>.*</on_reboot>!<on_reboot>restart</on_reboot>!' -i $xml");
     assert_script_run("virt-xml-validate $xml");
@@ -32,7 +28,7 @@ sub ensure_reboot_policy {
 
 sub add_pci_bridge {
     my $guest = shift;
-    my $xml   = "$guest.xml";
+    my $xml = "$guest.xml";
 
     assert_script_run("virsh dumpxml $guest > $xml");
 
@@ -44,7 +40,7 @@ sub add_pci_bridge {
         # Skip if a pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pci-bridge'") == 0);
 
-        my $regex     = '<controller type=.pci. .*model=.pci-root..*>';
+        my $regex = '<controller type=.pci. .*model=.pci-root..*>';
         my $addbefore = '<controller type="pci" model="pci-bridge"/>';
         # the add_before.sh script inserts a given line before the line matching the given regex
         assert_script_run("virsh dumpxml $guest | /root/add_before.sh '$regex' '$addbefore' > $xml");
@@ -64,7 +60,7 @@ sub add_pci_bridge {
         # Skip if a pcie-to-pci-bridge is already present
         return if (script_run("cat $xml | grep 'controller' | grep 'pcie-to-pci-bridge'") == 0);
 
-        my $regex     = '<controller type=.pci. .*model=.pcie-root..*>';
+        my $regex = '<controller type=.pci. .*model=.pcie-root..*>';
         my $addbefore = '<controller type="pci" model="pcie-root-port"/><controller type="pci" model="pcie-to-pci-bridge"/>';
         # the add_before.sh script inserts a given line before the line matching the given regex
         assert_script_run("virsh dumpxml $guest | /root/add_before.sh '$regex' '$addbefore' > $xml");
@@ -105,15 +101,21 @@ sub run {
     add_guest_to_hosts $_, $virt_autotest::common::guests{$_}->{ip} foreach (keys %virt_autotest::common::guests);
     assert_script_run "cat /etc/hosts";
 
-    # Wait for guests to finish installation
-    # script_run("wait", timeout => 1200);
-    #script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
-    # Unfortunately this doesn't cover the second step of the installation, where ssh is available
-    my $sleep_delay = 1200;
-    $sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
-    sleep($sleep_delay);                     # XXX Get rid of this sleep!
-    start_guests();
-    record_info("guests installed", "Guest installation completed");
+    ##########################################################################################################
+    ## The following block has been commented because it is only required for parallel guest installation.  ##
+    ## For now we had to switch back to sequential guest installation (See poo#101542), however the code    ##
+    ## is intentionally kept here for when we enable parallel guest installation again.                     ##
+    ## Note: Double commented comments (##) remain comments!                                                ##
+    ##########################################################################################################
+    ## Wait for guests to finish installation
+    ## script_run("wait", timeout => 1200);
+    ##script_retry("! ps x | grep -v 'grep' | grep 'virt-install'", retry => 120, delay => 10);
+    ## Unfortunately this doesn't cover the second step of the installation, where ssh is available
+    ##my $sleep_delay = 1200;
+    ##$sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
+    ##sleep($sleep_delay);                     # XXX Get rid of this sleep!
+    ##start_guests();
+    ##record_info("guests installed", "Guest installation completed");
 
     # Adding the PCI bridges requires the guests to be shutdown
     record_info("shutdown guests", "Shutting down all guests");

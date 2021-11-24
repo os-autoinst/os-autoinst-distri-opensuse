@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Prepare system for Workload Memory Protection basic test
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
@@ -33,17 +29,17 @@ sub run {
     zypper_call 'in sapwmp';
 
     # Create slice cgroup
-    my $systemd_path  = '/etc/systemd/system';
+    my $systemd_path = '/etc/systemd/system';
     my $sap_slice_cfg = 'SAP.slice';
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$sap_slice_cfg -o $systemd_path/$sap_slice_cfg";
     assert_script_run "cat $systemd_path/$sap_slice_cfg";
     systemctl('daemon-reload');
 
     # Add cgroup capture program to startup profile
-    my $sid         = get_required_var('INSTANCE_SID');
+    my $sid = get_required_var('INSTANCE_SID');
     my $instance_id = get_required_var('INSTANCE_ID');
-    my $hostname    = get_hostname;
-    my $profile     = "/usr/sap/${sid}/SYS/profile/${sid}_HDB${instance_id}_${hostname}";
+    my $hostname = get_hostname;
+    my $profile = "/usr/sap/${sid}/SYS/profile/${sid}_HDB${instance_id}_${hostname}";
     assert_script_run 'echo "# all programs spawned below will be put in dedicated cgroup" >> ' . $profile;
     assert_script_run 'echo "Execute_20 = local /usr/lib/sapwmp/sapwmp-capture -a" >> ' . $profile;
     assert_script_run "tail $profile";

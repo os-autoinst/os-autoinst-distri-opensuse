@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: The class introduces all accessing methods for Bond Slaves Tab in
 # YaST2 lan module dialog.
@@ -18,9 +14,9 @@ use testapi;
 use parent 'YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard';
 
 use constant {
-    NETWORK_CARD_SETUP                   => 'yast2_lan_network_card_setup',
-    BOND_SLAVES_TAB                      => 'yast2_lan_bond_slave_tab_selected',
-    ALREADY_CONFIGURED_DEVICE_POPUP      => 'yast2_lan_select_already_configured_device',
+    NETWORK_CARD_SETUP => 'yast2_lan_network_card_setup',
+    BOND_SLAVES_TAB => 'yast2_lan_bond_slave_tab_selected',
+    ALREADY_CONFIGURED_DEVICE_POPUP => 'yast2_lan_select_already_configured_device',
     BOND_SLAVE_DEVICE_CHECKBOX_UNCHECKED => 'yast2_lan_checkbox_unchecked'
 };
 

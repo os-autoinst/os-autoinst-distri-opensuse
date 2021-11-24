@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package locale;
 use base "opensusebasetest";
@@ -65,7 +61,7 @@ sub notification_handler {
 sub verify_default_keymap_x11 {
     my ($self, $test_string, $tag, $program) = @_;
     notification_handler('org.gnome.DejaDup periodic', 'false') if (check_var('DESKTOP', 'gnome'));
-    turn_off_gnome_suspend                                      if (check_var('DESKTOP', 'gnome'));
+    turn_off_gnome_suspend if (check_var('DESKTOP', 'gnome'));
     select_console('x11');
     x11_start_program($program);
     type_string($test_string);

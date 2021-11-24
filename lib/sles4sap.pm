@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2017-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Functions for SAP tests
 
@@ -22,7 +18,7 @@ use isotovideo;
 use ipmi_backend_utils;
 use x11utils qw(ensure_unlocked_desktop);
 use power_action_utils qw(power_action);
-use Utils::Backends qw(use_ssh_serial_console);
+use Utils::Backends;
 use registration qw(add_suseconnect_product);
 use version_utils qw(is_sle);
 use utils qw(zypper_call);
@@ -71,7 +67,7 @@ our $sid;
 our $instance;
 our $ps_cmd;
 our $instance_password = get_var('INSTANCE_PASSWORD', 'Qwerty_123');
-our $systemd_cgls_cmd  = 'systemd-cgls --no-pager -u SAP.slice';
+our $systemd_cgls_cmd = 'systemd-cgls --no-pager -u SAP.slice';
 
 =head2 ensure_serialdev_permissions_for_sap
 
@@ -114,7 +110,7 @@ sub fix_path {
 
     $aux[0] .= ':' if ($proto eq 'nfs');
     $aux[0] = '//' . $aux[0] if ($proto eq 'cifs');
-    $path   = join '/', @aux;
+    $path = join '/', @aux;
     return ($proto, $path);
 }
 
@@ -146,7 +142,7 @@ accordingly. Returns the value of B<$sapadmin>.
 
 sub set_sap_info {
     my ($self, $sid_env, $instance_env) = @_;
-    $sid      = uc($sid_env);
+    $sid = uc($sid_env);
     $instance = $instance_env;
     $sapadmin = lc($sid_env) . 'adm';
     return ($sapadmin);
@@ -212,7 +208,7 @@ Returns the total memory configured in SUT.
 =cut
 
 sub get_total_mem {
-    return get_required_var('QEMURAM') if (check_var('BACKEND', 'qemu'));
+    return get_required_var('QEMURAM') if (is_qemu);
     my $mem = script_output q@grep ^MemTotal /proc/meminfo | awk '{print $2}'@;
     $mem /= 1024;
     return $mem;
@@ -249,7 +245,7 @@ sub prepare_profile {
     my $has_saptune = $self->is_saptune_installed();
 
     if ($has_saptune) {
-        assert_script_run "tuned-adm profile saptune";
+        assert_script_run "saptune daemon start";
         assert_script_run "saptune solution apply $profile";
     }
     elsif (is_sle('15+')) {
@@ -321,9 +317,7 @@ sub prepare_profile {
             $self->select_serial_terminal;
             $output = script_output "saptune daemon status";
         }
-        record_info("tuned status", $output);
-        $output = script_output "tuned-adm active";
-        record_info("tuned profile", $output);
+        record_info("saptune status", $output);
     }
 }
 
@@ -348,7 +342,7 @@ sub copy_media {
     my ($self, $proto, $path, $nettout, $target) = @_;
 
     # First copy media
-    my $mnt_path   = '/mnt';
+    my $mnt_path = '/mnt';
     my $media_path = "$mnt_path/" . get_required_var('ARCH');
     assert_script_run "mkdir $target";
     assert_script_run "mount -t $proto -o ro $path $mnt_path";
@@ -538,7 +532,7 @@ sub check_service_state {
     my $uc_state = uc $state;
 
     my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
-    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+    $time_to_wait = 600 if ($time_to_wait > 600);    # Limit this to 10 minutes max
 
     while ($time_to_wait > 0) {
         my $output = script_output "pgrep -a sapstartsrv | grep -w $sid", proceed_on_failure => 1;
@@ -580,7 +574,7 @@ sub check_instance_state {
     my $uc_state = uc $state;
 
     my $time_to_wait = get_var('WAIT_INSTANCE_STOP_TIME', 300);    # Wait by default for 5 minutes
-    $time_to_wait = 600 if ($time_to_wait > 600);                  # Limit this to 10 minutes max
+    $time_to_wait = 600 if ($time_to_wait > 600);    # Limit this to 10 minutes max
 
     while ($time_to_wait > 0) {
         my $output = script_output "sapcontrol -nr $instance -function GetSystemInstanceList";
@@ -595,7 +589,7 @@ sub check_instance_state {
 
             my $failing_services = 0;
             for my $line (split(/\n/, $output)) {
-                next                if ($line =~ /GetProcessList|OK|^name/);
+                next if ($line =~ /GetProcessList|OK|^name/);
                 $failing_services++ if ($line !~ /GREEN/);
             }
             last unless $failing_services;
@@ -633,7 +627,7 @@ sub check_replication_state {
     my $sapadm = $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));
     # Wait by default for 5 minutes
     my $time_to_wait = 300;
-    my $cmd          = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
+    my $cmd = "su - $sapadm -c 'python2 exe/python_support/systemReplicationStatus.py'";
 
     # Replication check can only be done on PRIMARY node
     my $output = script_output($cmd, proceed_on_failure => 1);
@@ -694,7 +688,7 @@ Restart the SUT and reconnect to the console right after.
 sub reboot {
     my ($self) = @_;
 
-    if (check_var('BACKEND', 'ipmi')) {
+    if (is_ipmi) {
         power_action('reboot', textmode => 1, keepconsole => 1);
         switch_from_ssh_to_sol_console;
         $self->wait_boot(textmode => 1, nologin => get_var('NOAUTOLOGIN', '0'));
@@ -720,9 +714,9 @@ is used and the method croaks on failure.
 sub do_hana_sr_register {
     my ($self, %args) = @_;
     my $current_node = get_hostname;
-    my $instance_id  = get_required_var('INSTANCE_ID');
-    my $sid          = get_required_var('INSTANCE_SID');
-    my $sapadm       = $self->set_sap_info($sid, $instance_id);
+    my $instance_id = get_required_var('INSTANCE_ID');
+    my $sid = get_required_var('INSTANCE_SID');
+    my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
@@ -753,8 +747,8 @@ sub do_hana_takeover {
     return if check_var('AUTOMATED_REGISTER', 'true');
     my ($self, %args) = @_;
     my $instance_id = get_required_var('INSTANCE_ID');
-    my $sid         = get_required_var('INSTANCE_SID');
-    my $sapadm      = $self->set_sap_info($sid, $instance_id);
+    my $sid = get_required_var('INSTANCE_SID');
+    my $sapadm = $self->set_sap_info($sid, $instance_id);
 
     # Node name is mandatory
     die 'Node name should be set' if !defined $args{node};
@@ -828,7 +822,7 @@ sub upload_nw_install_log {
     my ($self) = @_;
 
     $self->save_and_upload_log('ls -alF /sapinst/unattended', '/tmp/nw_unattended_ls.log');
-    $self->save_and_upload_log('ls -alF /sbin/mount*',        '/tmp/sbin_mount_ls.log');
+    $self->save_and_upload_log('ls -alF /sbin/mount*', '/tmp/sbin_mount_ls.log');
     upload_logs('/tmp/check-nw-media', failok => 1);
     upload_logs '/sapinst/unattended/sapinst.log';
     upload_logs '/sapinst/unattended/sapinst_dev.log';

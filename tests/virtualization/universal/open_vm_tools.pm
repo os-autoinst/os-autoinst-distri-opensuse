@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: openssh open-vm-tools
 # Summary: Simple vmware client testing with updated open-vm-tools
@@ -22,11 +18,12 @@ use virt_autotest::common;
 sub run {
     my ($self) = @_;
 
+    # Note: This test module will be deprecated, and the following test code has been moved to tests/virt_autotest/esxi_open_vm_tools.pm
     script_retry "ssh root\@$_ zypper -n in open-vm-tools", delay => 30, retry => 6 foreach (keys %virt_autotest::common::guests);
 
     assert_script_run "ssh root\@$_ /usr/bin/vmware-checkvm | grep 'good'" foreach (keys %virt_autotest::common::guests);
 
-    assert_script_run "ssh root\@$_ systemctl restart vmtoolsd.service"                               foreach (keys %virt_autotest::common::guests);
+    assert_script_run "ssh root\@$_ systemctl restart vmtoolsd.service" foreach (keys %virt_autotest::common::guests);
     assert_script_run "ssh root\@$_ systemctl status vmtoolsd.service | grep 'Started open-vm-tools'" foreach (keys %virt_autotest::common::guests);
 
     assert_script_run "ssh root\@$_ /usr/bin/vmtoolsd -v | grep 'VMware Tools daemon, version'" foreach (keys %virt_autotest::common::guests);

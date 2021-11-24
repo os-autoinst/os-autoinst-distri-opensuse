@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Basic functions for testing vmstat.
 # Maintainer: QE Core <qe-core@suse.de>
@@ -30,10 +26,10 @@ our @EXPORT = qw(read_memory_cpu average);
 sub read_memory_cpu {
 
     my $file_name = shift;
-    my @res_mem   = split '\n', script_output "awk '{print \$4}' $file_name";
-    my @mem_num   = map { $_ =~ m/\d+/ } @res_mem;
-    my @res_cpu   = split '\n', script_output "awk '{print \$13}' $file_name";
-    my @cpu_num   = map { $_ =~ m/\d+/ } @res_cpu;
+    my @res_mem = split '\n', script_output "awk '{print \$4}' $file_name";
+    my @mem_num = map { $_ =~ m/\d+/ } @res_mem;
+    my @res_cpu = split '\n', script_output "awk '{print \$13}' $file_name";
+    my @cpu_num = map { $_ =~ m/\d+/ } @res_cpu;
     return (\@mem_num, \@cpu_num);
 }
 =head2 average
@@ -44,7 +40,7 @@ sub read_memory_cpu {
 
 =cut
 sub average {
-    my @a    = @_;
+    my @a = @_;
     my $size = @a;
     return sum(@a) / $size;
 }

@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: The test module uses Expert Partitioning wizard on disks with GPT
 # partition table to perform installation using data driven pattern. Data is
@@ -33,7 +29,7 @@ sub run {
 
     foreach my $partition (@{$disk->{partitions}}) {
         $partitioner->add_partition_on_gpt_disk({
-                disk      => $disk->{name},
+                disk => $disk->{name},
                 partition => $partition
         });
     }

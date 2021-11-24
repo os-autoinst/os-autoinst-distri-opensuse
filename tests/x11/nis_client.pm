@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: yast2-nis-server yast2-nfs-client
 # Summary: NIS server-client test
@@ -45,7 +41,7 @@ sub setup_nis_client {
         type_string $server_ip;
         assert_screen 'nis_server_address_filled';
     } elsif (match_has_tag 'nis-client-server-in-domain') {
-        send_key 'spc';      # select found NIS server
+        send_key 'spc';    # select found NIS server
         assert_screen 'nis-client-server-in-domain-selected';
         send_key 'alt-o';    # OK
     }
@@ -54,11 +50,11 @@ sub setup_nis_client {
 
 sub nfs_settings_tab {
     assert_screen 'nis-client-enter-nfs-configuration';
-    send_key 'alt-s';          # nfs configuation button
+    send_key 'alt-s';    # nfs configuation button
     assert_screen 'nis-client-nfs-client-configuration';
-    send_key 'alt-s';          # nfs settings tab
+    send_key 'alt-s';    # nfs settings tab
     assert_screen 'nis-client-nfs-settings-tab';
-    send_key 'alt-v';          # nfsv4 domain name field
+    send_key 'alt-v';    # nfsv4 domain name field
     type_string $setup_nis_nfs_x11{nfs_domain};
     wait_still_screen 4, 4;    # blinking cursor
     save_screenshot;
@@ -66,35 +62,35 @@ sub nfs_settings_tab {
 
 sub nfs_shares_tab {
     my $server_ip = shift;
-    send_key 'alt-n';          # nfs shares tab
+    send_key 'alt-n';    # nfs shares tab
     assert_screen 'nis-client-nfs-client-shares-conf';
-    send_key 'alt-a';          # add
+    send_key 'alt-a';    # add
     assert_screen 'nis-client-add-nfs-share';
     # On 15-SP2 "Any (Highest Available)" is selected by default, just keep it.
     assert_screen 'nis-client-default-nfs-version';
-    send_key 'alt-s';          # choose NFS server button
+    send_key 'alt-s';    # choose NFS server button
     assert_screen [qw(nis-client-nfs-server no_nfs_server_found)];
     if (match_has_tag 'no_nfs_server_found') {
         record_soft_failure "bsc#1167589 - yast2 nis and nfs clients do not find server on the same lan";
         # Validate then enter address manually
-        send_key 'alt-o';      # OK
+        send_key 'alt-o';    # OK
         wait_screen_change { send_key "alt-n" };
         type_string $server_ip;
     } elsif (match_has_tag 'nis-client-nfs-server') {
-        send_key 'alt-o';      # OK
+        send_key 'alt-o';    # OK
     }
     assert_screen 'nis-client-add-nfs-share-filled';
-    send_key 'alt-r';          # remote directory text field
+    send_key 'alt-r';    # remote directory text field
     type_string $setup_nis_nfs_x11{nfs_dir};
     assert_screen 'nis-client-add-nfs-share-remotedir';
-    send_key 'alt-m';          # mount point text field
+    send_key 'alt-m';    # mount point text field
     type_string $setup_nis_nfs_x11{nfs_dir};
     assert_screen 'nis-client-add-nfs-share-mountpoint';
-    send_key 'alt-o';          # OK
+    send_key 'alt-o';    # OK
     assert_screen 'nis-client-nfs-client-configuration';
-    send_key 'alt-o';          # OK
+    send_key 'alt-o';    # OK
     assert_screen 'nis-client-configuration';
-    send_key 'alt-f';          # finish
+    send_key 'alt-f';    # finish
     if (is_opensuse) {
         assert_screen 'disable_auto_login_popup';
         send_key "alt-y";
@@ -130,7 +126,7 @@ sub run {
     wait_serial("$module_name-0", 360) || die "'yast2 nis client' didn't finish";
     setup_verification();
     mutex_create('nis_nfs_client_ready');
-    enter_cmd "killall xterm";             # game over -> xterm
+    enter_cmd "killall xterm";    # game over -> xterm
 }
 
 1;

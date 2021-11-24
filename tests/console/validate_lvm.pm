@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Simple LVM partition validation
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
@@ -53,22 +49,22 @@ sub run {
             push(@free_PE, $+{total_free_pe});
         }
     }
-    my $total_PEs      = sum(@PE);
+    my $total_PEs = sum(@PE);
     my $total_free_PEs = sum(@free_PE);
-    my @volumes        = split(/\n/, script_output q[lvscan | awk '{print $2}'| sed s/\'//g]);
-    my $lv_size        = 0;
+    my @volumes = split(/\n/, script_output q[lvscan | awk '{print $2}'| sed s/\'//g]);
+    my $lv_size = 0;
 
     foreach my $volume (@volumes) {
         chomp;
         my $lvdisp_output = script_output "lvdisplay $volume";
         $lv_size += script_output qq[lvdisplay $volume|grep \"Current LE\" | awk '{print \$3}'];
 
-        my $results           = '';
+        my $results = '';
         my $expected_lv_stats = {
             write_access => qr/\s{2}LV Write Access \s+ read\/write/,
-            status       => qr/\s{2}LV Status \s+ available/,
-            readahead    => qr/\s{2}Read ahead sectors \s+ auto/,
-            testactive   => qr/\s{2}# open \s+ [12]/,
+            status => qr/\s{2}LV Status \s+ available/,
+            readahead => qr/\s{2}Read ahead sectors \s+ auto/,
+            testactive => qr/\s{2}# open \s+ [12]/,
             # 254 as major no. points to dev-mapper, see /proc/devices
             block_device => qr/\s{2}Block device \s+ 254:\d/
         };
@@ -82,7 +78,7 @@ sub run {
     record_info('LVM usage stats', 'Verify LVM usage stats are updated after adding a file.');
     my $test_file = '/home/test_file.txt';
     assert_script_run 'df -h  | tee original_usage';
-    assert_script_run "dd if=/dev/zero of=$test_file count=1024 bs=1M";
+    assert_script_run "fallocate -l 1G $test_file";
     assert_script_run "ls -lah $test_file";
     if ((script_run "sync && diff <(cat original_usage) <(df -h)") != 1) {
         die "LVM usage stats do not differ!";
@@ -91,7 +87,7 @@ sub run {
     unless (get_var('MULTIPATH')) {
         record_info('parted align', 'Verify if partition satisfies the alignment constraint of optimal type');
         my $lsblk_output_json = script_output qq[lsblk -p -o NAME,TYPE,MOUNTPOINT -J -e 11];
-        my $drives            = extract_drives_from_json($lsblk_output_json);
+        my $drives = extract_drives_from_json($lsblk_output_json);
         my $i;
         foreach my $dev (@{$drives}) {
             $i = 1;

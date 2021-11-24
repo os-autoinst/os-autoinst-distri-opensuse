@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: ghostscript ghostscript-x11 gv
 # Summary: Add ghostscript test
@@ -40,10 +36,10 @@ sub run {
 
     # special case for gv which is not installed on all flavors
     my $gv_missing = zypper_call("in gv", exitcode => [0, 104]);
-    my $gs_script  = "ghostscript_ps2pdf.sh";
-    my $gs_log     = "ghostscript.log";
-    my $gs_failed  = "/tmp/ghostscript_failed";
-    my $reference  = "alphabet.pdf";
+    my $gs_script = "ghostscript_ps2pdf.sh";
+    my $gs_log = "ghostscript.log";
+    my $gs_failed = "/tmp/ghostscript_failed";
+    my $reference = "alphabet.pdf";
 
     # download ghostscript converter script and test if download succeeded
     # change to user directory to create files which can be accessed later

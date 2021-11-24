@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Creates some files for the aiodio tests, see ltp/testscripts/ltp-aiodio.sh
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
@@ -17,8 +13,8 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-    my $pdir   = '$TMPDIR/aiodio.$$';
-    my $dir    = '$TMPDIR/aiodio';
+    my $pdir = '$TMPDIR/aiodio.$$';
+    my $dir = '$TMPDIR/aiodio';
 
     assert_script_run("mkdir -p $pdir/junkdir $dir/junkdir");
     assert_script_run("dd if=/dev/urandom of=$pdir/junkfile oflag=sync bs=1M count=26");
@@ -36,7 +32,7 @@ sub run {
 
 sub test_flags {
     return {
-        fatal     => 1,
+        fatal => 1,
         milestone => 1,
     };
 }

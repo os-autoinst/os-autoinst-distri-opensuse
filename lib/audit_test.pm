@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Base module for audit-test test cases
 # Maintainer: llzhao <llzhao@suse.com>
@@ -22,7 +18,8 @@ use Mojo::File 'path';
 use Mojo::Util 'trim';
 
 our @EXPORT = qw(
-  $testdir
+  $tmp_dir
+  $test_dir
   $testfile_tar
   $baseline_file
   $code_repo
@@ -35,13 +32,15 @@ our @EXPORT = qw(
   upload_audit_test_logs
 );
 
-our $testdir      = '/tmp/';
-our $code_repo    = get_var('CODE_BASE', 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar');
-our $testfile_tar = 'audit-test-sle15-master';
-our $mode         = get_var('MODE', 64);
+our $tmp_dir = '/tmp/';
+our $test_dir = '/usr/local/eal4_testing';
+our $code_repo = get_var('CODE_BASE', 'https://gitlab.suse.de/security/audit-test-sle15/-/archive/master/audit-test-sle15-master.tar');
+my @lines = split(/[\/\.]+/, $code_repo);
+our $testfile_tar = $lines[-2];
+our $mode = get_var('MODE', 64);
 
 # $current_file: current output file name; $baseline_file: baseline file name
-our $current_file  = 'run.log';
+our $current_file = 'run.log';
 our $baseline_file = 'baseline_run.log';
 
 # Run the specific test case
@@ -77,8 +76,8 @@ sub prepare_for_test {
     my (%args) = @_;
 
     # Run test case
-    assert_script_run("cd ${testdir}${testfile_tar}/audit-test/");
-    assert_script_run('make')           if ($args{make});
+    assert_script_run("cd ${test_dir}/audit-test/");
+    assert_script_run('make') if ($args{make});
     assert_script_run('make netconfig') if ($args{make_netconfig});
 
     # Export MODE
@@ -104,8 +103,8 @@ sub compare_run_log {
     my ($testcase) = @_;
 
     # Read the current test result from rollup.log
-    my $output          = script_output('cat ./rollup.log');
-    my @lines           = split(/\n/, $output);
+    my $output = script_output('cat ./rollup.log');
+    my @lines = split(/\n/, $output);
     my @current_results = parse_lines(\@lines);
 
     my %baseline_results;
@@ -120,15 +119,15 @@ sub compare_run_log {
 
     my $flag = 'ok';
     foreach my $current_result (@current_results) {
-        my $c_id     = $current_result->{id};
+        my $c_id = $current_result->{id};
         my $c_result = $current_result->{result};
-        my $name     = $current_result->{name};
+        my $name = $current_result->{name};
         unless ($baseline_results{$c_id}) {
             my $msg = "poo#93441\nNo baseline found(defined).\n$c_id $name $c_result";
             $flag = _parse_results_with_diff_baseline($name, $c_result, $msg, $flag);
             next;
         }
-        my $b_name   = $baseline_results{$c_id}->{name};
+        my $b_name = $baseline_results{$c_id}->{name};
         my $b_result = $baseline_results{$c_id}->{result};
         if ($c_result ne $b_result) {
             my $info = "poo#93441\nTest result is NOT same as baseline \nCurrent:  $c_id $name $c_result\nBaseline: $c_id $b_name $b_result";

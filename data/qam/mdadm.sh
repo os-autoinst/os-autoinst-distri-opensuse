@@ -48,6 +48,17 @@ function rungrep
   fi
 }
 
+function rungrepdebug
+{
+  pattern=$1
+  shift
+
+  echo "# $@"
+  output=$($@ || exit 1)
+
+  echo "$output" | grep -E "$pattern"
+}
+
 function passed
 {
   echo ""
@@ -63,6 +74,7 @@ function breakdown
   echo ""
 
   run cd $HOME
+  rungrepdebug "/dev/loop42" lsof
 
   # safety, in case we got interrupted halfway through
   mount | fgrep $tempmnt && umount $tempmnt
@@ -275,6 +287,7 @@ done
 
 run losetup -d $DEV_2
 run rm disk2.img
+run sync
 run fallocate -l $IMAGE_SIZE disk2.img
 
 run losetup $DEV_2 disk2.img
@@ -407,9 +420,11 @@ done
 
 run losetup -d $DEV_1
 run rm disk1.img
+run sync
 run fallocate -l $IMAGE_SIZE disk1.img
 
 run losetup $DEV_1 disk1.img
+run sync
 run mdadm --add $MD_DEVICE $DEV_1
 
 sleep 1

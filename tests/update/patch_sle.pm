@@ -1,9 +1,5 @@
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: zypper
 # Summary: Patch SLE qcow2 images before migration (offline)
@@ -13,6 +9,7 @@ use base "consoletest";
 use strict;
 use warnings;
 use testapi;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_desktop_installed is_upgrade is_sles4sap);
 use migration;
@@ -26,7 +23,7 @@ sub patching_sle {
     my ($self) = @_;
 
     # Save VIDEOMODE and SCC_REGISTER vars
-    my $orig_videomode    = get_var('VIDEOMODE',    '');
+    my $orig_videomode = get_var('VIDEOMODE', '');
     my $orig_scc_register = get_var('SCC_REGISTER', '');
 
     # Do not attempt to log into the desktop of a system installed with SLES4SAP
@@ -37,7 +34,7 @@ sub patching_sle {
     # Skip registration here since we use autoyast profile to register origin system on zVM
     if (!get_var('UPGRADE_ON_ZVM')) {
         # Set vars to make yast_scc_registration work in text mode
-        set_var("VIDEOMODE",    'text');
+        set_var("VIDEOMODE", 'text');
         set_var("SCC_REGISTER", 'console');
         # remember we perform registration on pre-created HDD images
         if (is_sle('12-SP2+')) {
@@ -85,13 +82,16 @@ sub patching_sle {
     install_salt_packages() if (check_var_array('SCC_ADDONS', 'asmm'));
 
     # create btrfs subvolume for aarch64
-    create_btrfs_subvolume() if (check_var('ARCH', 'aarch64'));
+    create_btrfs_subvolume() if (is_aarch64);
+
+    # cleanup useless snapshots to save diskspace if we set REMOVE_SNAPSHOTS
+    cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
 
     # Remove test repos after system being patched
     remove_test_repositories;
 
     #migration with LTSS is not possible, remove it before upgrade
-    remove_ltss;
+    deregister_dropped_modules;
 
     if (get_var('FLAVOR', '') =~ /-(Updates|Incidents)$/ || get_var('KEEP_REGISTERED')) {
         # The system is registered.
@@ -108,7 +108,7 @@ sub patching_sle {
     # For example, in case of SLE 12 offline migration tests with smt pattern
     # or modules, we need set SCC_REGISTER=installation at test suite settings
     # to trigger scc registration during offline migration
-    set_var("VIDEOMODE",    $orig_videomode);
+    set_var("VIDEOMODE", $orig_videomode);
     set_var("SCC_REGISTER", $orig_scc_register);
 
     # Record the installed rpm list
@@ -181,7 +181,7 @@ sub sle_register {
             # Needed to workaround a bug with NCC and LTSS module in some cases, see bsc#1158950
             elsif (get_var('SLE11_USE_SCC')) {
                 my $reg_code = get_required_var('NCC_REGCODE');
-                my $reg_mail = get_var('NCC_MAIL');               # email address is not mandatory for SCC
+                my $reg_mail = get_var('NCC_MAIL');    # email address is not mandatory for SCC
                 if (get_var('NCC_REGCODE_SDK')) {
                     my $reg_code_sdk = get_required_var('NCC_REGCODE_SDK');
                     zypper_call("ar http://schnell.suse.de/SLE11/SLE-11-SP4-SDK-GM/s390x/DVD1/ sdk");

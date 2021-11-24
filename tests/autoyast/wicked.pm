@@ -1,17 +1,5 @@
-# Copyright (C) 2015-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Package: wicked systemd iproute2 hwinfo
 # Summary: wicked script for more logs if eth0 is not up
@@ -45,8 +33,8 @@ sub run {
     # For poo#70453, to filter network link from mixed info of the output of wicked cmd
     # we need substr output string from serial. Ex: 'lo0 eth0 END' -> 'eth0'
     ($iflist) =~ s/(.*lo\s)(.*)(\sEND.*)/$2/s;
-    $iflist   =~ s/^\s*//g;
-    $iflist   =~ s/\s*$//g;
+    $iflist =~ s/^\s*//g;
+    $iflist =~ s/\s*$//g;
 
     my $up = 1;
     for my $if (split(/\s+/, $iflist)) {

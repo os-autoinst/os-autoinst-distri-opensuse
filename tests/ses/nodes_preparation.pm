@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Setup network and prepare nodes for SES5 deployment
 #          http://docserv.suse.de/documents/Storage_5/ses-deployment/single-html/#ceph.install.stack
@@ -32,10 +28,10 @@ sub run {
         # create mutex lock and barriers
         mutex_create('master_ready');
         my $all_ses_nodes = get_var('NODE_COUNT') + 1;
-        barrier_create('network_configured',  $all_ses_nodes);
+        barrier_create('network_configured', $all_ses_nodes);
         barrier_create('master_chrony_ready', $all_ses_nodes);
-        barrier_create('deployment_done',     $all_ses_nodes);
-        barrier_create('all_tests_done',      $all_ses_nodes);
+        barrier_create('deployment_done', $all_ses_nodes);
+        barrier_create('all_tests_done', $all_ses_nodes);
     }
     else {
         mutex_lock('master_ready');
@@ -99,7 +95,7 @@ EOF
     if (get_var('SES_TEST_ISSUES')) {
         # repositories must contain SLE, SES and QAM update repo
         my $incident_number = get_var('SES_TEST_ISSUES');
-        my $version         = get_var('VERSION');
+        my $version = get_var('VERSION');
         validate_script_output('zypper lr -u', sub { m/$version/ && m/SUSE-Enterprise-Storage/ && m/Maintenance:\/$incident_number/ });
     }
 }

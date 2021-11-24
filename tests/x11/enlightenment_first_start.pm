@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: enlightenment
 # Summary: Other Desktop Environments: Enlightenment
@@ -16,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub run {
     mouse_hide();

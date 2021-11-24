@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: command-not-found
 # Summary: check that command-not-found works as intended
@@ -29,7 +25,7 @@ sub run {
 
     select_console 'root-console';
     zypper_call("rm $not_installed_pkg") if (script_run("which $not_installed_pkg") == 0);
-    zypper_call('in command-not-found')  if (check_var('DESKTOP', 'textmode'));    # command-not-found is part of the enhanced_base pattern, missing in textmode
+    zypper_call('in command-not-found') if (check_var('DESKTOP', 'textmode'));    # command-not-found is part of the enhanced_base pattern, missing in textmode
 
     # select user-console; for one we want to be sure cnf works for a user, 2nd assert_script_run does not work in root-console
     select_console 'user-console';

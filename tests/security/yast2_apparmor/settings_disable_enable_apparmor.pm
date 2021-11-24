@@ -1,23 +1,11 @@
-# Copyright (C) 2020-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# yast2 apparmor" can disable/enable apparmor service
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#67021, tc#1741266
 
-use base apparmortest;
+use base 'apparmortest';
 use strict;
 use warnings;
 use testapi;
@@ -41,8 +29,8 @@ sub run {
 
     # Enable apparmor service and check
     enter_cmd("yast2 apparmor &");
-    assert_screen("AppArmor-Configuration-Settings", timeout => 60);
-    send_key "alt-l";
+    assert_screen("AppArmor-Configuration-Settings", timeout => 120);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Settings-Disable-Apparmor");
     send_key "alt-e";
     assert_screen("AppArmor-Settings-Enable-Apparmor");

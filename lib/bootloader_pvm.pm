@@ -5,12 +5,8 @@ Library for spvm and pvm_hmc backend to boot and install SLES
 =cut
 # SUSE's openQA tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 package bootloader_pvm;
 
@@ -97,8 +93,8 @@ sub prepare_pvm_installation {
     # clear the prompt (and create an error) in case the above went wrong
     send_key 'ret';
 
-    my $repo     = get_required_var('REPO_0');
-    my $mirror   = get_netboot_mirror;
+    my $repo = get_required_var('REPO_0');
+    my $mirror = get_netboot_mirror;
     my $mntpoint = "mnt/openqa/repo/$repo/boot/ppc64le";
     assert_screen "pvm-grub-command-line-fresh-prompt", no_wait => 1;
     type_string_slow "linux $mntpoint/linux vga=normal install=$mirror ";
@@ -153,8 +149,8 @@ sub boot_pvm {
 
 sub boot_hmc_pvm {
     my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
-    my $lpar_id          = get_required_var('LPAR_ID');
-    my $hmc              = select_console 'powerhmc-ssh';
+    my $lpar_id = get_required_var('LPAR_ID');
+    my $hmc = select_console 'powerhmc-ssh';
 
     # Print the machine details before anything else, Firmware name might be useful when reporting bugs
     record_info("Details", "See the next screen to get details on $hmc_machine_name");
@@ -198,7 +194,7 @@ Boot from spvm backend via novalink and switch to installation console (ssh or v
 
 =cut
 sub boot_spvm {
-    my $lpar_id  = get_required_var('NOVALINK_LPAR_ID');
+    my $lpar_id = get_required_var('NOVALINK_LPAR_ID');
     my $novalink = select_console 'novalink-ssh';
 
     # detach possibly attached terminals - might be left over

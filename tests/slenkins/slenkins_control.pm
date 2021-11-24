@@ -1,17 +1,5 @@
-# Copyright (C) 2017 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2017 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: slenkins support
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
@@ -71,7 +59,7 @@ sub run {
 
     my $i = 0;
     for my $p (@$parents) {
-        my $node     = $settings{$p}->{SLENKINS_NODE};
+        my $node = $settings{$p}->{SLENKINS_NODE};
         my $networks = $settings{$p}->{NETWORKS} // 'fixed';
         my @external_ip;
         my @internal_ip;
@@ -110,7 +98,7 @@ sub run {
         my $disk_name = 'vd';
         $disk_name = 'sd' if ($settings{$p}->{HDDMODEL} || '') eq "virtio-scsi-pci";
         my $disk_size = $settings{$p}->{HDDSIZEGB} || 10;
-        my $num_disks = $settings{$p}->{NUMDISKS}  || 1;
+        my $num_disks = $settings{$p}->{NUMDISKS} || 1;
 
         # In SLEnkins DISK_NAME_NODE_DISK0 is used for first additional disk, e.g. /dev/vdb and so on
         # Drive /dev/vda is always in use as bootdrive and has no dedicated variable

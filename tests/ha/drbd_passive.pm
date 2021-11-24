@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (c) 2016-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: drbd-utils crmsh
 # Summary: DRBD active/passive OpenQA test
@@ -19,6 +15,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use version_utils 'is_sle';
+use utils 'zypper_call';
 use testapi;
 use lockapi;
 use hacluster;
@@ -34,14 +31,14 @@ sub run {
     # write_tag is mandatory for next filesystem module
     write_tag('drbd_passive') and return 1 if is_not_maintenance_update('drbd');
 
-    my $cluster_name  = get_cluster_name;
-    my $drbd_rsc      = 'drbd_passive';
+    my $cluster_name = get_cluster_name;
+    my $drbd_rsc = 'drbd_passive';
     my $drbd_rsc_file = "/etc/drbd.d/$drbd_rsc.res";
 
     # DRBD needs 2 nodes for the test, so we can easily
     # arbitrary choose the first two
-    my $node_01    = choose_node(1);
-    my $node_02    = choose_node(2);
+    my $node_01 = choose_node(1);
+    my $node_02 = choose_node(2);
     my $node_01_ip = get_ip($node_01);
     my $node_02_ip = get_ip($node_02);
 
@@ -51,6 +48,8 @@ sub run {
 
     # Wait until DRBD test is initialized
     barrier_wait("DRBD_INIT_$cluster_name");
+
+    zypper_call '-n up';
 
     # Do the DRBD configuration only on the first node
     if (is_node(1)) {

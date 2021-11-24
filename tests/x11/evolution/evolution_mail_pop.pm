@@ -1,11 +1,7 @@
 # Evolution tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: evolution
 # Summary: Test Case #1503919 - Evolution: send and receive email via POP
@@ -26,7 +22,7 @@ use utils;
 sub run {
     my $self = shift;
     # Select correct account to use with multimachine.
-    my $account  = "internal_account";
+    my $account = "internal_account";
     my $hostname = get_var('HOSTNAME');
     if ($hostname eq 'client') {
         $account = "internal_account_C";

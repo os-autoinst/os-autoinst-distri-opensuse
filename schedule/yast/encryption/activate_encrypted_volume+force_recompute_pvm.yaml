@@ -8,30 +8,33 @@ description: >
 name: activate_encrypted_volume+force_recompute
 vars:
   ENCRYPT: 1
-  ENCRYPT_ACTIVATE_EXISTING: 1
   ENCRYPT_FORCE_RECOMPUTE: 1
   LVM: 1
-  OPT_KERNEL_PARAMS: console=%SERIALDEV% VNCSize=1024x768
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/encrypted_volume_activation
-  - installation/addon_products_sle
-  - installation/system_role
-  - installation/partitioning/encrypt_lvm_ignore_existing
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/system_probing/activate_encrypted_volume
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/accept_default_hard_disks_selection
+  - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/edit_optional_kernel_cmd_parameters
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_plymouth
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
@@ -40,5 +43,3 @@ schedule:
   - installation/first_boot
   - console/validate_lvm
   - console/validate_encrypt
-test_data:
-  product: SLES

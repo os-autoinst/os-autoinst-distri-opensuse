@@ -1,17 +1,5 @@
-# Copyright © 2019-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package scheduler;
 
@@ -32,8 +20,8 @@ our @EXPORT = qw(load_yaml_schedule get_test_suite_data);
 
 my $test_suite_data;
 my $root_project_dir = dirname(__FILE__) . '/../';
-my $include          = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
-my $ypp              = YAML::PP->new(schema => ['Core', $include, 'Merge']);
+my $include = YAML::PP::Schema::Include->new(paths => ($root_project_dir));
+my $ypp = YAML::PP->new(schema => ['Core', $include, 'Merge']);
 $include->yp($ypp);
 $Data::Dumper::Terse = 1;
 
@@ -67,7 +55,8 @@ sub parse_schedule_module {
         my $condition = $schedule->{conditional_schedule}->{$module};
         # Iterate over variables in the condition
         foreach my $var (keys %{$condition}) {
-            next unless my $val = get_var($var);
+            my $val = get_var($var);
+            next if (!defined $val);
             # If value of the variable matched the conditions
             # Iterate over the list of the modules to be loaded
             push(@scheduled, parse_schedule_module($schedule, $_)) for (@{$condition->{$var}->{$val}});
@@ -140,8 +129,8 @@ Parse variables and test modules from a yaml file representing a test suite to b
 
 sub load_yaml_schedule {
     if (my $yamlfile = get_var('YAML_SCHEDULE')) {
-        my $schedule              = $ypp->load_file($root_project_dir . $yamlfile);
-        my %schedule_vars         = parse_vars($schedule);
+        my $schedule = $ypp->load_file($root_project_dir . $yamlfile);
+        my %schedule_vars = parse_vars($schedule);
         my $test_context_instance = undef;
         while (my ($var, $value) = each %schedule_vars) { set_var($var, $value) }
         my @schedule_modules = parse_schedule($schedule);

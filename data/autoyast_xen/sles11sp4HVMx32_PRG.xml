@@ -671,7 +671,7 @@
 ##
 ## Sample NTP configuration file.
 ## See package 'ntp-doc' for documentation, Mini-HOWTO and FAQ.
-## Copyright (c) 1998 S.u.S.E. GmbH Fuerth, Germany.
+## Copyright 1998 S.u.S.E. GmbH Fuerth, Germany.
 ##
 ## Author: Michael Andres,  &lt;ma@suse.de&gt;
 ##         Michael Skibbe,  &lt;mskibbe@suse.de&gt;

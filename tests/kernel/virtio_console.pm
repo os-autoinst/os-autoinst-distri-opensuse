@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Stress test the virtio serial terminal for debugging OpenQA and QEMU
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
@@ -25,8 +21,8 @@ FIN.
 
 sub run {
     my $self = shift;
-    my $m    = get_var('VIRTIO_CONSOLE_TEST_M') || 10;
-    my $n    = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
+    my $m = get_var('VIRTIO_CONSOLE_TEST_M') || 10;
+    my $n = get_var('VIRTIO_CONSOLE_TEST_N') || 10;
     $self->wait_boot;
 
     $self->select_serial_terminal;

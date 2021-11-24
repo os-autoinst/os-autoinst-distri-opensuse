@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2017 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2017 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: evince
 # Summary: Evince: Rotate and Zoom
@@ -30,14 +26,14 @@ use testapi;
 sub run {
     x11_start_program("evince " . autoinst_url . "/data/x11/test.pdf", valid => 0);
 
-    send_key "ctrl-left";     # rotate left
+    send_key "ctrl-left";    # rotate left
     assert_screen 'evince-rotate-left', 5;
     send_key "ctrl-right";
     send_key "ctrl-right";    # rotate right
     assert_screen 'evince-rotate-right', 5;
     send_key "ctrl-left";
 
-    send_key "ctrl-+";        # zoom in
+    send_key "ctrl-+";    # zoom in
     assert_screen 'evince-zoom-in', 5;
 
     for (1 .. 2) {

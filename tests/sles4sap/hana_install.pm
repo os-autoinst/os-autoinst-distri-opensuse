@@ -1,11 +1,7 @@
 # SUSE's SLES4SAP openQA tests
 #
-# Copyright © 2019-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: lvm2 util-linux parted device-mapper
 # Summary: Install HANA via command line. Verify installation with
@@ -16,6 +12,7 @@ use base 'sles4sap';
 use strict;
 use warnings;
 use testapi;
+use Utils::Backends;
 use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
 use version_utils 'is_sle';
@@ -70,10 +67,26 @@ sub debug_locked_device {
     }
 }
 
+sub get_test_summary {
+    my ($self) = @_;
+    my $info = "HANA Installation finished successfully.\n\nOS Details:\n\n";
+    $info .= 'Product Code: ';
+    $info .= script_output 'basename $(realpath /etc/products.d/baseproduct)';
+    $info =~ s/.prod//;
+    $info .= "\n";
+    $info .= script_output 'egrep ^VERSION= /etc/os-release';
+    $info =~ s/VERSION=/Version: /;
+    $info .= "\nProduct Name: ";
+    $info .= script_output q(grep -w summary /etc/products.d/baseproduct | sed -r -e 's@<.?summary>@@g');
+    $info .= "\n\nHANA Details:\n\n";
+    $info .= script_output 'egrep "INFO.*SAP HANA Lifecycle Management" /var/tmp/hdblcm.log | cut -d" " -f3,11-';
+    return $info;
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
-    my $sid    = get_required_var('INSTANCE_SID');
+    my $sid = get_required_var('INSTANCE_SID');
     my $instid = get_required_var('INSTANCE_ID');
 
     $self->select_serial_terminal;
@@ -96,14 +109,14 @@ sub run {
     $self->copy_media($proto, $path, $tout, '/sapinst');
 
     # Mount points information: use the same paths and minimum sizes as the wizard (based on RAM size)
-    my $full_size = ceil($RAM / 1024);                        # Use the ceil value of RAM in GB
+    my $full_size = ceil($RAM / 1024);    # Use the ceil value of RAM in GB
     my $half_size = ceil($full_size / 2);
-    my $volgroup  = 'vg_hana';
-    my %mountpts  = (
-        hanadata   => {mountpt => '/hana/data',         size => "${full_size}g"},
-        hanalog    => {mountpt => '/hana/log',          size => "${half_size}g"},
-        hanashared => {mountpt => '/hana/shared',       size => "${full_size}g"},
-        usr_sap    => {mountpt => "/usr/sap/$sid/home", size => '50g'}
+    my $volgroup = 'vg_hana';
+    my %mountpts = (
+        hanadata => {mountpt => '/hana/data', size => "${full_size}g"},
+        hanalog => {mountpt => '/hana/log', size => "${half_size}g"},
+        hanashared => {mountpt => '/hana/shared', size => "${full_size}g"},
+        usr_sap => {mountpt => "/usr/sap/$sid/home", size => '50g'}
     );
 
     # Partition disks for Hana
@@ -116,12 +129,12 @@ sub run {
         # mountpoints and LVM. Otherwise leave those choices to hdblcm. If running
         # in a different backend, assume sdb exists. Always create mountpoints.
         foreach (keys %mountpts) { assert_script_run "mkdir -p $mountpts{$_}->{mountpt}"; }
-        if ((check_var('BACKEND', 'qemu') and get_var('HDDSIZEGB_2')) or !check_var('BACKEND', 'qemu')) {
+        if ((is_qemu and get_var('HDDSIZEGB_2')) or !is_qemu) {
             # We need 2.5 times $RAM + 50G for HANA installation.
             my $device = get_var('HANA_INST_DEV', '');
             if ($device) {
                 die "Full path to block device expected in HANA_INST_DEV. Got [$device]" unless ($device =~ m|(/dev/\w+)(\d+)|);
-                my $disk    = $1;
+                my $disk = $1;
                 my $partnum = $2;
                 if (script_run "test -b $device") {
                     # Need to create the partition if it does not exist
@@ -131,8 +144,8 @@ sub run {
                     assert_script_run "parted --script $disk -- mkpart primary $lastsector -1";
                     assert_script_run "parted --script $disk -- set $partnum lvm on";
                     assert_script_run "test -b $device";    # Check partition was created successfully
-                    script_run "wipefs -a -f $device";      # This is a new partition, but it could have traces of old tests. We do some cleanup
-                    script_run "partprobe $device";         # Reload kernel table
+                    script_run "wipefs -a -f $device";    # This is a new partition, but it could have traces of old tests. We do some cleanup
+                    script_run "partprobe $device";    # Reload kernel table
                 }
             }
             else {
@@ -146,7 +159,7 @@ sub run {
             # Remove traces of LVM structures from previous tests before configuring
             foreach (keys %mountpts) { script_run "dmsetup remove $volgroup-lv_$_"; }
             foreach my $lv_cmd ('lv', 'vg', 'pv') {
-                my $looptime  = 20;
+                my $looptime = 20;
                 my $lv_device = ($lv_cmd eq 'pv') ? $device : $volgroup;
                 until (script_run "${lv_cmd}remove -f $lv_device 2>&1 | grep -q \"Can't open .* exclusively\.\"") {
                     sleep bmwqemu::scale_timeout(2);
@@ -222,7 +235,7 @@ sub run {
     # Enable autostart of HANA HDB, otherwise DB will be down after the next reboot
     # NOTE: not on HanaSR, as DB is managed by the cluster stack; nor on bare metal,
     # as instance starts automatically faster and sles4sap::test_start() may fail
-    unless (get_var('HA_CLUSTER') or check_var('BACKEND', 'ipmi')) {
+    unless (get_var('HA_CLUSTER') or is_ipmi) {
         my $hostname = script_output 'hostname';
         file_content_replace("$mountpts{hanashared}->{mountpt}/${sid}/profile/${sid}_HDB${instid}_${hostname}", '^Autostart[[:blank:]]*=.*' => 'Autostart = 1');
     }
@@ -234,10 +247,15 @@ sub run {
 
     # Upload installations logs
     $self->upload_hana_install_log;
+    $self->save_and_upload_log('rpm -qa', 'packages.list');
+    $self->save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';
     assert_script_run 'lvs -ao +devices';
+
+    # Test summary
+    record_info 'Test Summary', $self->get_test_summary;
 }
 
 sub test_flags {

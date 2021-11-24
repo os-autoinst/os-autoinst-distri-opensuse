@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: smt-client SUSEConnect
 # Summary: run smt client, register to smt server
@@ -40,7 +36,7 @@ sub run {
 
     #checking registration
     validate_script_output 'SUSEConnect --status', sub { m/"identifier":"SLES","version":"12\.5","arch":"x86_64","status":"Registered"/ };
-    assert_script_run 'smt-agent';                                                                               #client is able to ask for jobs
+    assert_script_run 'smt-agent';    #client is able to ask for jobs
     validate_script_output 'zypper lr --uri', sub { m/SLES12-SP5-Updates *\| Yes/ };
     validate_script_output 'zypper lr --uri', sub { m/SLES12-SP5-Pool *\| Yes/ };
     barrier_wait 'smt_registered';

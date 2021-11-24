@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2017-2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 package upload_system_log;
 # Summary:  base class for collecting and uploading system log
@@ -28,14 +24,14 @@ sub system_status {
     $log //= "/tmp/system-status.txt";
 
     my %cmds = (
-        kernel                     => "uname -a",
-        cpuinfo                    => "cat /proc/cpuinfo",
-        memory                     => "free -m",
-        repos                      => "zypper repos -u",
-        lspci                      => "lspci",
-        lsmod                      => "lsmod",
-        vmstat                     => "vmstat -w",
-        w                          => "w",
+        kernel => "uname -a",
+        cpuinfo => "cat /proc/cpuinfo",
+        memory => "free -m",
+        repos => "zypper repos -u",
+        lspci => "lspci",
+        lsmod => "lsmod",
+        vmstat => "vmstat -w",
+        w => "w",
         '/proc/sys/kernel/tainted' => "cat /proc/sys/kernel/tainted",
     );
 
@@ -63,9 +59,9 @@ sub dmesg_log {
 }
 
 sub upload_system_logs {
-    upload_logs(system_status(),  timeout => 100, failok => 1);
+    upload_logs(system_status(), timeout => 100, failok => 1);
     upload_logs(journalctl_log(), timeout => 100, failok => 1);
-    upload_logs(dmesg_log(),      timeout => 100, failok => 1);
+    upload_logs(dmesg_log(), timeout => 100, failok => 1);
 }
 
 sub upload_supportconfig_log {

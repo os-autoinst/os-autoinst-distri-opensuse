@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved. This file is offered as-is,
-# without any warranty.
+# Copyright 2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Validate multipathing on the installed system.
 # The multipathing support in SUSE Linux Enterprise Server is based on
@@ -73,35 +69,35 @@ sub verify_multipath_configuration {
 sub verify_multipath_topology {
     my (%args) = @_;
 
-    my $wwid      = $args{wwid};
+    my $wwid = $args{wwid};
     my $test_data = $args{test_data};
 
     record_info('topology', 'Verify multipath topology');
     my $topology_output = script_output("multipath -ll");
 
     # Check general topology info
-    my $topology    = $test_data->{topology};
+    my $topology = $test_data->{topology};
     my $ven_pro_rev = $topology->{vendor_product_revision};
     assert_matches(qr/$wwid dm-0 $ven_pro_rev/, $topology_output,
         'General topology info are not displayed properly');
 
     # Check specific topology info
-    my $features  = $topology->{features};
+    my $features = $topology->{features};
     my $hwhandler = $topology->{hwhandler};
-    my $wp        = $topology->{wp};
+    my $wp = $topology->{wp};
     assert_matches(qr/size=.* features='$features' hwhandler='$hwhandler' wp=$wp/,
         $topology_output, 'Specific topology info are not displayed properly');
 
     # Check priority groups
     my $policy = $test_data->{attributes}->{path_selector};
     for my $priority_group (@{$topology->{priority_groups}}) {
-        my $prio   = $priority_group->{prio};
+        my $prio = $priority_group->{prio};
         my $status = $priority_group->{status};
         assert_matches(qr/policy='$policy' prio=$prio status=$status/,
             $topology_output, "Policy/Priority/Status unexpected for priority group");
 
         for my $path (@{$priority_group->{paths}}) {
-            my $name   = $path->{name};
+            my $name = $path->{name};
             my $status = $path->{status};
             assert_matches(qr/\d:\d:\d:\d+ $name \d+:\d+\s+$status/, $topology_output,
                 "Path to '$name' should be '$status'");
@@ -115,7 +111,7 @@ sub verify_multipath_topology {
 sub verify_basic_multipath_configuration {
     my (%args) = @_;
 
-    my $wwid      = $args{wwid};
+    my $wwid = $args{wwid};
     my $test_data = $args{test_data};
 
     verify_packages_installed($test_data->{software});
@@ -137,7 +133,7 @@ sub verify_basic_multipath_configuration {
 sub verify_multipath {
     my (%args) = @_;
 
-    my $wwid      = $args{wwid};
+    my $wwid = $args{wwid};
     my $test_data = $args{test_data};
 
     # Verify the currently used multipathd configuration

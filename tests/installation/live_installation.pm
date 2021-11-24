@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Add test for live installer based on Kde-Live
 #  The live installer was missing for some time from the media and the left overs
@@ -25,7 +21,7 @@ use version_utils "is_upgrade";
 use strict;
 use warnings;
 use x11utils 'turn_off_kde_screensaver';
-use Utils::Architectures qw(is_aarch64);
+use Utils::Architectures;
 
 sub send_key_and_wait {
     my ($key, $wait_time) = @_;

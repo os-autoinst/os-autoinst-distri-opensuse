@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: azure-cli
 # Summary: Network performance for Azure Accelerated NICs
@@ -30,7 +26,7 @@ sub prepare_vm {
     record_info('INFO', 'Create VM');
     my $instance = $provider->create_instance();
     record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
-    record_info('Iperf',    'Install IPerf binaries in VM');
+    record_info('Iperf', 'Install IPerf binaries in VM');
     $instance->run_ssh_command(cmd => "wget https://iperf.fr/download/opensuse/$iperf");
     $instance->run_ssh_command(cmd => "sudo rpm -i  $iperf");
     return $instance;
@@ -46,7 +42,7 @@ sub get_new_ip {
     my ($self, $instance) = @_;
     assert_script_run('az vm list -g ' . $instance->instance_id . ' -d');
     my $cmd = 'az vm list -g ' . $instance->instance_id . q( -d|grep -i publicip|awk '{print $2}'| tr -d '"'| tr -d ',');
-    my $ip  = script_output($cmd);
+    my $ip = script_output($cmd);
     record_info('Instance', "VM has new IP: $ip");
     return $ip;
 }
@@ -60,9 +56,9 @@ It follows the instructions in https://goo.gl/Px6kou
 sub enable_accelerated_net {
     my ($self, $instance) = @_;
     my $name = $instance->{instance_id};
-    assert_script_run("az vm deallocate --resource-group $name --name $name",                                        timeout => 60 * 10);
+    assert_script_run("az vm deallocate --resource-group $name --name $name", timeout => 60 * 10);
     assert_script_run("az network nic update --name $name-nic --resource-group $name --accelerated-networking true", timeout => 60 * 10);
-    assert_script_run("az vm start --resource-group $name --name $name",                                             timeout => 60 * 20);
+    assert_script_run("az vm start --resource-group $name --name $name", timeout => 60 * 20);
     sleep 60 * 3;    # Sometimes, IP is not reachable after the restart and 5 minutes is enough.
     $instance->public_ip($self->get_new_ip($instance));
     die('SR-IOV flags not found') if (!$self->check_sriov($instance));
@@ -79,9 +75,9 @@ ethtool |grep vf_ must show numbers different than 0 if SR-IOV is enabled.
 sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
-    my $lspci_output   = $instance->run_ssh_command(cmd => "sudo lspci");
+    my $lspci_output = $instance->run_ssh_command(cmd => "sudo lspci");
     my $ethtool_output = $instance->run_ssh_command(cmd => "sudo ethtool -S eth0 | grep vf_");
-    record_info('lspci',   $lspci_output);
+    record_info('lspci', $lspci_output);
     record_info('ethtool', $ethtool_output);
     if ($lspci_output =~ m/Mellanox/ && $ethtool_output !~ m/vf_rx_bytes: 0/) {
         record_info('sr-iov', 'SR-IOV is enabled');
@@ -113,8 +109,8 @@ sub run {
     $self->select_serial_terminal;
 
     my $provider = $self->provider_factory();
-    my $client   = $self->prepare_vm($provider);
-    my $server   = $self->prepare_vm($provider);
+    my $client = $self->prepare_vm($provider);
+    my $server = $self->prepare_vm($provider);
 
     $self->enable_accelerated_net($client);
     $self->enable_accelerated_net($server);

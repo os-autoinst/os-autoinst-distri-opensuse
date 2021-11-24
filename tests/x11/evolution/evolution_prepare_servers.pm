@@ -1,11 +1,7 @@
 # Evolution tests
 #
-# Copyright © 2017-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2017-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: dovecot postfix openssl
 # Summary: Setup dovecot and postfix servers as backend for evolution
@@ -46,7 +42,7 @@ sub run() {
             zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
             systemctl 'start postfix';
         }
-        zypper_call("in dovecot 'openssl(cli)'",     exitcode => [0, 102, 103]);
+        zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 

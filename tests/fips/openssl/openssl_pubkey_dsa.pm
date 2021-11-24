@@ -1,11 +1,7 @@
 # openssl fips test
 #
-# Copyright © 2016-2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Test description: Verify openssl could generate DSA public key pair
 # and succeed to sign/verify message.
@@ -33,10 +29,10 @@ use warnings;
 sub run {
     select_console 'root-console';
 
-    my $file_raw      = "hello.txt";
-    my $dgst_alg      = "sha256";
-    my $file_dgt      = $file_raw . ".$dgst_alg";
-    my $file_sig      = $file_dgt . ".sig";
+    my $file_raw = "hello.txt";
+    my $dgst_alg = "sha256";
+    my $file_dgt = $file_raw . ".$dgst_alg";
+    my $file_sig = $file_dgt . ".sig";
     my @dsa_key_sizes = (2048, 3072);
 
     # Add the openssl version check

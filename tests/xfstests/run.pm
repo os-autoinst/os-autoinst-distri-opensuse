@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2018-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2018-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Package: xfsprogs
 # Summary: Run tests
@@ -33,13 +29,13 @@ use power_action_utils 'power_action';
 use filesystem_utils qw(format_partition);
 
 # Heartbeat variables
-my $HB_INTVL     = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
-my $HB_TIMEOUT   = get_var('XFSTESTS_HEARTBEAT_TIMEOUT')  || 200;
-my $HB_PATN      = '<heartbeat>';
-my $HB_DONE      = '<done>';
+my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
+my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT') || 200;
+my $HB_PATN = '<heartbeat>';
+my $HB_DONE = '<done>';
 my $HB_DONE_FILE = '/opt/test.done';
 my $HB_EXIT_FILE = '/opt/test.exit';
-my $HB_SCRIPT    = '/opt/heartbeat.sh';
+my $HB_SCRIPT = '/opt/heartbeat.sh';
 
 # xfstests variables
 # - XFSTESTS_RANGES: Set sub tests ranges. e.g. XFSTESTS_RANGES=xfs/100-199 or XFSTESTS_RANGES=generic/010,generic/019,generic/038
@@ -47,20 +43,20 @@ my $HB_SCRIPT    = '/opt/heartbeat.sh';
 # - XFSTESTS_GROUPLIST: Include/Exclude tests in group(a classification by upstream). e.g. XFSTESTS_GROUPLIST='auto,!dangerous_online_repair'
 # - XFSTESTS_SUBTEST_MAXTIME: Debug use. To set the max time to wait for sub test to finish. Meet this time frame will trigger reboot, and continue next tests.
 # - XFSTESTS: TEST_DEV type, and test in this folder and generic/ folder will be triggered. XFSTESTS=(xfs|btrfs|ext4)
-my $TEST_RANGES  = get_required_var('XFSTESTS_RANGES');
+my $TEST_RANGES = get_required_var('XFSTESTS_RANGES');
 my $TEST_WRAPPER = '/opt/wrapper.sh';
-my %BLACKLIST    = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
-my @GROUPLIST    = split(/,/, get_var('XFSTESTS_GROUPLIST'));
-my $STATUS_LOG   = '/opt/status.log';
-my $INST_DIR     = '/opt/xfstests';
-my $LOG_DIR      = '/opt/log';
-my $KDUMP_DIR    = '/opt/kdump';
-my $MAX_TIME     = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
-my $FSTYPE       = get_required_var('XFSTESTS');
+my %BLACKLIST = map { $_ => 1 } split(/,/, get_var('XFSTESTS_BLACKLIST'));
+my @GROUPLIST = split(/,/, get_var('XFSTESTS_GROUPLIST'));
+my $STATUS_LOG = '/opt/status.log';
+my $INST_DIR = '/opt/xfstests';
+my $LOG_DIR = '/opt/log';
+my $KDUMP_DIR = '/opt/kdump';
+my $MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
+my $FSTYPE = get_required_var('XFSTESTS');
 
 # Create heartbeat script, directories(Call it only once)
 sub test_prepare {
-    my $redir  = " >> /dev/$serialdev";
+    my $redir = " >> /dev/$serialdev";
     my $script = <<END_CMD;
 #!/bin/sh
 rm -f $HB_DONE_FILE $HB_EXIT_FILE
@@ -127,7 +123,7 @@ sub heartbeat_wait {
 # Wait for test to finish
 sub test_wait {
     my $timeout = shift;
-    my $begin   = time();
+    my $begin = time();
     my ($type, $status) = heartbeat_wait;
     my $delta = time() - $begin;
     while ($type eq $HB_PATN and $delta < $timeout) {
@@ -169,9 +165,9 @@ sub log_add {
 # dir      - xfstests installation dir(e.g. /opt/xfstests)
 sub tests_from_category {
     my ($category, $dir) = @_;
-    my $cmd    = "find '$dir/tests/$category' -regex '.*/[0-9]+'";
+    my $cmd = "find '$dir/tests/$category' -regex '.*/[0-9]+'";
     my $output = script_output($cmd, 60);
-    my @tests  = split(/\n/, $output);
+    my @tests = split(/\n/, $output);
     foreach my $test (@tests) {
         $test = basename($test);
     }
@@ -183,7 +179,7 @@ sub tests_from_category {
 # Group name start with ! will exclude in test, and expected to use to update blacklist
 # If TEST_RANGES contain generic tests, then exclude tests from generic folder, else will exclude tests from filesystem type folder
 sub exclude_grouplist {
-    my %tests_list  = ();
+    my %tests_list = ();
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name !~ /^\!/);
@@ -228,7 +224,7 @@ sub tests_from_ranges {
     my %cache;
     my @tests;
     foreach my $range (split(/,/, $ranges)) {
-        my ($min,      $max)     = (0, 99999);
+        my ($min, $max) = (0, 99999);
         my ($category, $min_max) = split(/\//, $range);
         unless (defined($min_max)) {
             next;
@@ -271,9 +267,9 @@ sub save_kdump {
     my ($test, $dir, %args) = @_;
     $args{vmcore} ||= 0;
     $args{kernel} ||= 0;
-    $args{debug}  ||= 0;
+    $args{debug} ||= 0;
     my $name = test_name($test);
-    my $ret  = script_run("mv /var/crash/* $dir/$name");
+    my $ret = script_run("mv /var/crash/* $dir/$name");
     if ($args{debug}) {
         $ret += script_run("if [ -e /usr/lib/debug/boot ]; then tar zcvf $dir/$name/vmcore-debug.tar.gz --absolute-names /usr/lib/debug/boot; fi");
     }
@@ -301,18 +297,6 @@ sub shuffle {
         ($arr[$i], $arr[$j]) = ($arr[$j], $arr[$i]);
     }
     return @arr;
-}
-
-# Set mkfs parameter for different scenario
-sub mkfs_setting {
-    # In case to test xfs reflink feature, test name contain "reflink"
-    if (index(get_required_var('TEST'), 'reflink') != -1) {
-        my $cmd = <<END_CMD;
-mkfs.xfs -f -m reflink=1 \$TEST_DEV
-export XFS_MKFS_OPTIONS="-m reflink=1"
-END_CMD
-        script_run($cmd);
-    }
 }
 
 # Log & Must included: Copy log to ready to save
@@ -383,7 +367,7 @@ sub reload_loop_device {
     my $self = shift;
     assert_script_run("losetup -fP $INST_DIR/test_dev");
     my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
-    my $scratch_num    = 1;
+    my $scratch_num = 1;
     while ($scratch_amount >= $scratch_num) {
         assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
         $scratch_num += 1;
@@ -394,7 +378,7 @@ sub reload_loop_device {
 
 # Umount TEST_DEV and SCRATCH_DEV
 sub umount_xfstests_dev {
-    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null')    if get_var('XFSTESTS_TEST_DEV');
+    script_run('umount ' . get_var('XFSTESTS_TEST_DEV') . ' &> /dev/null') if get_var('XFSTESTS_TEST_DEV');
     script_run('umount ' . get_var('XFSTESTS_SCRATCH_DEV') . ' &> /dev/null') if get_var('XFSTESTS_SCRATCH_DEV');
     if (get_var('XFSTESTS_SCRATCH_DEV_POOL')) {
         script_run("umount $_ &> /dev/null") foreach (split ' ', get_var('XFSTESTS_SCRATCH_DEV_POOL'));
@@ -424,7 +408,6 @@ sub run {
     my %tests_needto_exclude = exclude_grouplist;
     %BLACKLIST = (%BLACKLIST, %tests_needto_exclude);
 
-    mkfs_setting;
     test_prepare;
     heartbeat_start;
     my $status_log_content = "";
@@ -499,10 +482,7 @@ sub run {
     my $local_file = "/tmp/opt_logs.tar.gz";
     script_run("tar zcvf $local_file --absolute-names /opt/log/");
     script_run("NUM=0; while [ ! -f $local_file ]; do sleep 20; NUM=\$(( \$NUM + 1 )); if [ \$NUM -gt 10 ]; then break; fi; done");
-    my $tar_content = script_output("cat $local_file");
-    save_tmp_file('opt_logs.tar.gz', $tar_content);
-    send_key 'ctrl-c';
-    script_run('clear');
+    upload_logs $local_file;
 }
 
 sub post_fail_hook {

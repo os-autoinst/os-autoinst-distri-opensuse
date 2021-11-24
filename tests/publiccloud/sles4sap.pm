@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: pacemaker-cli crmsh csync2
 # Summary: Test public cloud SLES4SAP images
@@ -35,7 +31,7 @@ sub upload_ha_sap_logs {
     # Upload logs from public cloud VM
     $instance->run_ssh_command(cmd => 'sudo chmod o+r /var/log/salt-*');
     foreach my $file (@logfiles) {
-        $instance->upload_log("/var/log/$file", log_name => $instance->{instance_id});
+        $instance->upload_log("/var/log/$file", log_name => "$instance->{instance_id}-$file");
     }
 }
 
@@ -51,7 +47,7 @@ setting. Croaks on timeout.
 =cut
 sub wait_until_resources_started {
     my ($self, %args) = @_;
-    my @cmds    = ('crm cluster wait_for_startup');
+    my @cmds = ('crm cluster wait_for_startup');
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
 
     # At least one node needs to be online
@@ -96,7 +92,7 @@ sub run_cmd {
     my ($self, %args) = @_;
     die('Argument <cmd> missing') unless ($args{cmd});
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 60);
-    my $title   = $args{title} // $args{cmd};
+    my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
     my $cmd = $args{cmd};
 
@@ -165,86 +161,14 @@ sub fence_node {
     }
 }
 
-=head2 workaround_bsc_1179529
-
-    workaround_bsc_1179529();
-
-Workaround bsc#1179529.
-=cut
-sub workaround_bsc_1179529 {
-    my ($self, %args) = @_;
-    $args{hostname} //= $self->{my_instance}->{instance_id};
-
-    record_soft_failure 'bsc#1179529 - [ha-sap-terraform-deployments_v6] DRBD resource fails after reboot on GCE';
-
-    # Get the UUID of DRBD device
-    my $drbd_conf_file = '/etc/drbd.d/sapdata.res';
-    my $drbd_device = $self->run_cmd(cmd => "awk '/[[:blank:]]+disk[[:blank:]]+\\/dev\\// { print substr(\$NF, 6, length(\$NF)-6) }' $drbd_conf_file", quiet => 1);
-    die "DRBD device can't be found!" unless defined $drbd_device;
-    my $drbd_id_device = $self->run_cmd(cmd => "ls -l /dev/disk/by-id/ 2>/dev/null | awk '/\\/${drbd_device}\$/ { print \$9 }' | head -n1", quiet => 1);
-    die "DRBD device ID can't be found!" unless defined $drbd_id_device;
-
-    # All node should be configured
-    my @nodes = split /\n/, $self->run_cmd(cmd => 'crm node show | sed -n \'/:[[:blank:]]*/s/(.*//p\'', quiet => 1);
-    foreach my $node (@nodes) {
-        # Replace current device name by its ID in config file and sync cluster conf
-        $drbd_id_device =~ s/-0-part/-1-part/ unless $node eq $args{hostname};
-        $self->run_cmd(cmd => "sed -i '/[[:blank:]]*disk[[:blank:]]*\\/dev\\//d' $drbd_conf_file",               quiet => 1) if $node eq $args{hostname};
-        $self->run_cmd(cmd => "sed -i '/on $node {/a\\disk /dev/disk/by-id/${drbd_id_device};' $drbd_conf_file", quiet => 1);
-    }
-
-    # Sync config and restart DRBD resource
-    $self->run_cmd(cmd => 'csync2 -xF', quiet => 1);
-    $self->run_cmd(cmd => 'crm resource restart drbd-sapdata', timeout => 120, quiet => 1);
-}
-
-=head2 workaround_bsc_1179838
-
-    workaround_bsc_1179838();
-
-Workaround bsc#1179838.
-=cut
-sub workaround_bsc_1179838 {
-    my ($self) = @_;
-
-    unless ($self->run_cmd(cmd => 'systemctl --no-pager status pacemaker | grep -iq \'Active: inactive (dead)\'', rc_only => 1)) {
-        record_soft_failure 'bsc#1179838 - [ha-sap-terraform-deployments_v6] Pacemaker doesn\'t start correctly after a STONITH';
-        $self->run_cmd(cmd => 'systemctl --no-pager restart pacemaker', quiet => 1);
-        sleep 30;    # We need to wait a "little" before
-    }
-}
-
-=head2 workaround_bsc_1182701
-
-    workaround_bsc_1182701();
-
-Workaround bsc#1182701.
-=cut
-sub workaround_bsc_1182701 {
-    my ($self) = @_;
-
-    # All node should be configured
-    my @nodes = split /\n/, $self->run_cmd(cmd => 'crm node show | sed -n \'/:[[:blank:]]*/s/(.*//p\'', quiet => 1);
-    foreach my $node (@nodes) {
-        # Get the STONITH resource
-        my $stonith_rsc = $self->run_cmd(cmd => "crm configure show | awk '/^primitive[[:blank:]]+rsc_gcp_stonith_.*_$node/ { print \$2 }'", quiet => 1);
-        # Check if workaround is already applied
-        if ($self->run_cmd(cmd => "crm resource param $stonith_rsc show method", rc_only => 1)) {
-            # Add location constraints as a workaround
-            record_soft_failure "bsc#1182701 - [0.9.10-GCE-Build1.6] fence_gce doesn\'t restart the node as expected (on $node)";
-            $self->run_cmd(cmd => "crm resource param $stonith_rsc set method cycle", quiet => 1);
-        }
-    }
-}
-
 sub run {
-    my ($self)        = @_;
-    my $timeout       = 120;
+    my ($self) = @_;
+    my $timeout = 120;
     my @cluster_types = split(',', get_required_var('CLUSTER_TYPES'));
 
     $self->select_serial_terminal;
 
-    my $provider  = $self->provider_factory();
+    my $provider = $self->provider_factory();
     my @instances = $provider->create_instances(check_connectivity => 1);
 
     # Upload all TF/SALT logs first!
@@ -268,26 +192,15 @@ sub run {
                     $self->run_cmd(cmd => 'SAPHanaSR-showAttr');
                 }
 
-                if (is_gce) {
-                    # Workaround bsc#1182701 on GCP - fence_gce doesn't restart the node as expected
-                    $self->workaround_bsc_1182701;
-
-                    # Workaround bsc#1179529 on DRBD cluster (only for GCP)
-                    $self->workaround_bsc_1179529(hostname => $hostname) if $cluster_type eq 'drbd';
-                }
-
                 # Wait for all resources to be up
-                $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout); # We need to be sure that the cluster is OK before a fencing test
+                # We need to be sure that the cluster is OK before a fencing test
+                $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout);
 
                 # Check cluster status
                 $self->run_cmd(cmd => $crm_mon_cmd);
 
                 # Fence the node and let time for HA resources to restart
                 $self->fence_node(hostname => $hostname, timeout => $timeout);
-
-                # Workaround bsc#1179838 on GCP - Pacemaker doesn't start correctly after a STONITH
-                $self->workaround_bsc_1179838 if is_gce;
-
                 $self->wait_until_resources_started(cluster_type => $cluster_type, timeout => $timeout);
                 $self->run_cmd(cmd => $crm_mon_cmd);
 
@@ -296,7 +209,7 @@ sub run {
                     my $remoteHost = $hostname;
                     $remoteHost =~ s/01/02/;
                     my $hana_cmd = "hdbnsutil -sr_register --name=HDB --remoteHost=$remoteHost --remoteInstance=00 --replicationMode=sync --operationMode=logreplay";
-                    $self->run_cmd(cmd => "-i -u prdadm $hana_cmd",                        title => 'HANA register');
+                    $self->run_cmd(cmd => "-i -u prdadm $hana_cmd", title => 'HANA register');
                     $self->run_cmd(cmd => '-i crm resource cleanup msl_SAPHana_PRD_HDB00', title => 'Resources cleanup');
 
                     # Check cluster resources

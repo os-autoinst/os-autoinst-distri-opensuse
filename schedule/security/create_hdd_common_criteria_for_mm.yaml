@@ -1,0 +1,9 @@
+name: create_hdd_common_criteria_for_mm
+description: >
+    This is used to publish the qcow2 file which is CC system role without
+    bridge network, required packages for mm setup usage have been installed as well.
+schedule:
+    - boot/boot_to_desktop
+    - security/cc/remove_bridge_network
+    - security/cc/cc_audit_test_setup
+    - shutdown/shutdown

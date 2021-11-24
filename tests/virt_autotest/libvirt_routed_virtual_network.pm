@@ -1,19 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright (C) 2019-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2019-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Routed virtual network test:
 #    - Create Routed virtual network
@@ -52,8 +40,8 @@ sub run_test {
     my ($mac1, $mac2, $model1, $model2, $affecter, $exclusive);
     my $target1 = '192.168.130.1';
     my $target2 = '192.168.129.1';
-    my $gate1   = '192.168.129.1';
-    my $gate2   = '192.168.130.1';
+    my $gate1 = '192.168.129.1';
+    my $gate2 = '192.168.130.1';
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "ROUTED NETWORK for $guest";
         #NOTE
@@ -71,16 +59,16 @@ sub run_test {
         ensure_online "$guest.clone", skip_network => 1;
 
         if (is_sle('=11-sp4') && is_xen_host) {
-            $affecter  = "--persistent";
+            $affecter = "--persistent";
             $exclusive = "bridge --live --persistent";
         } else {
-            $affecter  = "";
+            $affecter = "";
             $exclusive = "network --current";
         }
 
         #figure out that used with virtio as the network device model during
         #attach-interface via virsh worked for all sles guest
-        $mac1   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $mac1 = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model1 = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system
@@ -89,7 +77,7 @@ sub run_test {
         #Wait for attached interface and associated information to be populated and become stable
         die "Interface model:$model1 mac:$mac1 can not be attached to guest $guest successfully" if (script_retry("virsh domiflist $guest | grep vnet_routed | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"", delay => 30, retry => 10) ne 0);
 
-        $mac2   = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
+        $mac2 = '00:16:3e:32:' . (int(rand(89)) + 10) . ':' . (int(rand(89)) + 10);
         $model2 = (is_xen_host) ? 'netfront' : 'virtio';
 
         #Check guest loaded kernel module before attach interface to guest system

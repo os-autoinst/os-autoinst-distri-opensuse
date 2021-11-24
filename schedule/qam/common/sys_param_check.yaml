@@ -1,0 +1,8 @@
+---
+name:  sys_param_check
+description: >
+ Test basics settings with the robot framework
+schedule:
+  - boot/boot_to_desktop
+  - console/system_prepare
+  - sles4sap/sys_param_check

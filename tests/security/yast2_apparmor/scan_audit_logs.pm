@@ -1,35 +1,23 @@
-# Copyright (C) 2020-2021 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2020-2021 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test "# yast2 apparmor" can scan audit logs
 # Maintainer: llzhao <llzhao@suse.com>
 # Tags: poo#67933, tc#1741266
 
-use base apparmortest;
+use base 'apparmortest';
 use strict;
 use warnings;
 use testapi;
 use utils;
 
 sub run {
-    my ($self)          = shift;
-    my $test_file       = "/usr/sbin/nscd";
-    my $test_profile    = "/etc/apparmor.d/usr.sbin.nscd";
+    my ($self) = shift;
+    my $test_file = "/usr/sbin/nscd";
+    my $test_profile = "/etc/apparmor.d/usr.sbin.nscd";
     my $test_profile_bk = "/tmp/usr.sbin.nscd";
-    my $entry           = '#include <abstractions\/base>';
-    my $audit_log       = $apparmortest::audit_log;
+    my $entry = '#include <abstractions\/base>';
+    my $audit_log = $apparmortest::audit_log;
 
     # Set the testing profile to "enforce" mode
     assert_script_run("aa-enforce $test_file");
@@ -43,8 +31,8 @@ sub run {
     # Enter "yast2 apparmor"
     enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should no records
-    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Scan-Audit-logs-no-records");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-o" };
@@ -71,8 +59,8 @@ sub run {
     # Enter "yast2 apparmor" and verify apparmor can revise the profile based on former violation
     enter_cmd("yast2 apparmor &");
     # Enter "Scan Audit logs" and check there should have records
-    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 60);
-    send_key "alt-l";
+    assert_and_click("AppArmor-Scan-Audit-logs", timeout => 120);
+    assert_and_click("AppArmor-Launch", timeout => 60);
     assert_screen("AppArmor-Scan-Audit-logs-scan-records");
 
     # Audit the entry

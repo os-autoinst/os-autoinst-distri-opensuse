@@ -5,18 +5,18 @@ description: >
   partitions activation and that we can re-ecnrypt the disk.
 name: activate_encrypted_volume+import_users
 vars:
-  ENCRYPT_ACTIVATE_EXISTING: 1
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
-  - installation/validate_beta_popup
-  - installation/product_selection/select_product
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/scc_registration
-  - installation/encrypted_volume_activation
-  - installation/addon_products_sle
-  - installation/system_role
+  - installation/registration/register_via_scc
+  - installation/module_selection/select_module_desktop
+  - installation/system_probing/activate_encrypted_volume
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/encrypt_lvm_reuse_existing
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
@@ -24,12 +24,11 @@ schedule:
   - installation/user_import
   - installation/authentication/root_simple_pwd
   - installation/installation_overview
-  - installation/disable_grub_timeout
-  - installation/start_install
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test
   - installation/first_boot
-test_data:
-  product: SLES

@@ -1,11 +1,7 @@
 # SLE12 online migration tests
 #
-# Copyright © 2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Package: zypper
 # Summary: sle12 online migration testsuite
@@ -22,7 +18,8 @@ sub run {
     select_console 'root-console';
     disable_installation_repos;
     minimal_patch_system(version_variable => 'HDDVERSION');
-    remove_ltss;
+    cleanup_disk_space if get_var('REMOVE_SNAPSHOTS');
+    deregister_dropped_modules;
 }
 
 sub test_flags {

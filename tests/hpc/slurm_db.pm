@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2019 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2019 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: slurm db node
 #    This tests only ensure the proper db is being set for the HPC cluster, so
@@ -22,7 +18,7 @@ use utils;
 use version_utils 'is_sle';
 
 sub run {
-    my $self     = shift;
+    my $self = shift;
     my $hostname = get_required_var("HOSTNAME");
 
     barrier_wait('CLUSTER_PROVISIONED');

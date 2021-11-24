@@ -12,7 +12,7 @@ conditional_schedule:
     kernel_cmd_parameters:
         BACKEND:
             pvm_hmc:
-            - installation/edit_optional_kernel_cmd_parameters
+            - installation/bootloader_settings/disable_plymouth
     shutdown_svirt:
         BACKEND:
             svirt:
@@ -20,13 +20,13 @@ conditional_schedule:
 schedule:
     - installation/bootloader_start
     - installation/setup_libyui
-    - installation/validate_beta_popup
-    - installation/product_selection/select_product
+    - installation/access_beta_distribution
+    - installation/product_selection/install_SLES
     - installation/licensing/accept_license
-    - installation/scc_registration
-    - installation/addon_products_sle
-    - installation/system_role/validate_default_role
-    - installation/system_role/select_role
+    - installation/registration/register_via_scc
+    - installation/module_selection/select_module_transactional
+    - installation/add_on_product/skip_install_addons
+    - installation/system_role/accept_selected_role_transactional_server
     - installation/partitioning/accept_proposed_layout
     - installation/clock_and_timezone/accept_timezone_configuration
     - installation/authentication/use_same_password_for_root
@@ -34,8 +34,9 @@ schedule:
     - installation/resolve_dependency_issues
     - installation/installation_overview
     - "{{kernel_cmd_parameters}}"
-    - installation/disable_grub_timeout
-    - installation/start_install
+    - installation/bootloader_settings/disable_boot_menu_timeout
+    - installation/launch_installation
+    - installation/confirm_installation
     - installation/await_install
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
@@ -48,7 +49,3 @@ schedule:
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - "{{shutdown_svirt}}"
-test_data:
-    product: SLES
-    system_role:
-        default: 'Transactional Server'

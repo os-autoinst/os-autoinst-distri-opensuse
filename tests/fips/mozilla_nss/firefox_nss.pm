@@ -1,11 +1,7 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright © 2016-2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2016-2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Case #1560076 - FIPS: Firefox Mozilla NSS
 #
@@ -20,7 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures;
 
 sub quit_firefox {
     send_key "alt-f4";
@@ -34,7 +30,7 @@ sub firefox_crashreporter {
     select_console 'root-console';
 
     my $firefox_crash_dir = '/home/bernhard/.mozilla/firefox/Crash\ Reports';
-    my $crash_report      = '/home/bernhard/.mozilla/firefox/Crash\ Reports/crashreporter.ini';
+    my $crash_report = '/home/bernhard/.mozilla/firefox/Crash\ Reports/crashreporter.ini';
 
     assert_script_run("ls $firefox_crash_dir");
 
@@ -69,7 +65,7 @@ sub run {
     # - at least one upper case
     # - at least one non-alphabet-non-number character (like: @-.=%)
     my $fips_password = 'openqa@SUSE';
-
+    my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
@@ -77,7 +73,11 @@ sub run {
     firefox_preferences;
 
     # Search "Passwords" section
-    type_string "Use a master", timeout => 2;
+    if ($firefox_version >= 91) {
+        type_string "Use a primary", timeout => 2;
+    } else {
+        type_string "Use a master", timeout => 2;
+    }
     assert_and_click("firefox-master-password-checkbox");
     assert_screen("firefox-passwd-master_setting");
 
@@ -149,7 +149,7 @@ sub run {
 
         # Add max_interval while type password and extend time of click needle match
         type_string($fips_password, max_interval => 2);
-        assert_and_click("firefox-enter-password-OK", 120);
+        assert_and_click("firefox-enter-password-OK" => 120);
         wait_still_screen 10;
 
         # Add a condition to avoid the password missed input

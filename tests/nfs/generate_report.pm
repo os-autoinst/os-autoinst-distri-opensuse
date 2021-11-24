@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2021 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2021 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 # Summary: Upload logs and generate report
 # Maintainer: Yong Sun <yosun@suse.com>
@@ -19,7 +15,7 @@ use testapi;
 use upload_system_log;
 
 sub upload_pynfs_log {
-    my $self   = shift;
+    my $self = shift;
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ~/pynfs/$folder");
@@ -32,7 +28,7 @@ sub upload_pynfs_log {
     script_run('../showresults.py --hidepass result-raw.txt > result-fail.txt');
     upload_logs('result-fail.txt', failok => 1);
 
-    if (script_run('[ -s result-fail.txt ]') == 0) {
+    if (script_output("cat result-fail.txt | grep 'Of those:.*Failed' | sed 's/.*, \\([0-9]\\+\\) Failed,.*/\\1/'") gt 0) {
         $self->result("fail");
         record_info("failed tests", script_output('cat result-fail.txt'), result => 'fail');
     }
@@ -42,31 +38,37 @@ sub upload_cthon04_log {
     my $self = shift;
     assert_script_run('cd ~/cthon04');
     if (script_output("grep 'All tests completed' ./result* | wc -l") =~ '4') {
-        record_info('All tests completed');
+        record_info('Complete', "All tests completed");
     }
     else {
         $self->result("fail");
         record_info("Test fail: Not all test completed");
     }
     if (script_output("grep ' ok.' ./result_basic_test.txt | wc -l") =~ '9') {
-        record_info('Basic test pass');
+        record_info('Pass', "Basic test pass");
     }
     else {
         $self->result("fail");
-        record_info('Basic test failed');
+        record_info('Fail', "Basic test failed");
     }
     if (script_output("egrep ' ok|success' ./result_special_test.txt | wc -l") =~ '7') {
-        record_info('Special test pass');
+        record_info('Pass', "Special test pass");
     }
     else {
         $self->result("fail");
-        record_info('Special test failed');
+        record_info('Fail', "Special test failed");
     }
-    if (script_run("grep 'Congratulations, you passed the locking tests!' ./result_lock_test.txt")) {
+    if (script_run("grep 'Congratulations' ./result_lock_test.txt")) {
         $self->result("fail");
-        record_info('Lock test failed');
+        record_info('Fail', "Lock test failed");
     }
-    upload_logs('result_*', failok => 1);
+    else {
+        record_info('Pass', "Lock test pass");
+    }
+    upload_logs('result_basic_test.txt', failok => 1);
+    upload_logs('result_general_test.txt', failok => 1);
+    upload_logs('result_special_test.txt', failok => 1);
+    upload_logs('result_lock_test.txt', failok => 1);
 }
 
 sub run {

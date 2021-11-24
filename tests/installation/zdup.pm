@@ -1,12 +1,8 @@
 # SUSE's openQA tests
 #
-# Copyright © 2009-2013 Bernhard M. Wiedemann
-# Copyright © 2012-2020 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2009-2013 Bernhard M. Wiedemann
+# Copyright 2012-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 
 # Summary: Offline migration using the DVD medium as repository with
 #   `zypper dup`
@@ -22,18 +18,18 @@ sub run {
     my $self = shift;
 
     # precompile regexes
-    my $zypper_dup_continue      = qr/^Continue\? \[y/m;
-    my $zypper_dup_conflict      = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
+    my $zypper_dup_continue = qr/^Continue\? \[y/m;
+    my $zypper_dup_conflict = qr/^Choose from above solutions by number[\s\S,]* \[1/m;
     my $zypper_dup_notifications = qr/^View the notifications now\? \[y/m;
-    my $zypper_dup_error         = qr/^Abort, retry, ignore\? \[a/m;
-    my $zypper_dup_finish        = qr/^There are some running programs that might use files|ZYPPER-DONE/m;
-    my $zypper_packagekit        = qr/^Tell PackageKit to quit\?/m;
-    my $zypper_packagekit_again  = qr/^Try again\?/m;
+    my $zypper_dup_error = qr/^Abort, retry, ignore\? \[a/m;
+    my $zypper_dup_finish = qr/^There are some running programs that might use files|ZYPPER-DONE/m;
+    my $zypper_packagekit = qr/^Tell PackageKit to quit\?/m;
+    my $zypper_packagekit_again = qr/^Try again\?/m;
     # Check return message about disable all repos or all repos has been disabled
-    my $zypper_repo_disabled    = qr/^Repository '[^']+' has been successfully disabled.|Nothing to change for repository '[^']+'./m;
+    my $zypper_repo_disabled = qr/^Repository '[^']+' has been successfully disabled.|Nothing to change for repository '[^']+'./m;
     my $zypper_dup_fileconflict = qr/^File conflicts .*^Continue\? \[y/ms;
-    my $zypper_retrieving       = qr/Retrieving: \S+/;
-    my $zypper_check_conflicts  = qr/Checking for file conflicts: \S+/;
+    my $zypper_retrieving = qr/Retrieving: \S+/;
+    my $zypper_check_conflicts = qr/Checking for file conflicts: \S+/;
 
     # This is just for reference to know how the network was configured prior to the update
     script_run "ip addr show";
@@ -66,15 +62,15 @@ sub run {
     else {
         #SUSEMIRROR not set, zdup from ftp source for online migration
         if (get_var('TEST') =~ /migration_zdup_online_sle12_ga/) {
-            my $flavor  = get_var("FLAVOR");
+            my $flavor = get_var("FLAVOR");
             my $version = get_var("VERSION");
-            my $build   = get_var("BUILD");
-            my $arch    = get_var("ARCH");
+            my $build = get_var("BUILD");
+            my $arch = get_var("ARCH");
             $defaultrepo = "$utils::OPENQA_FTP_URL/SLE-$version-$flavor-$arch-Build$build-Media1";
         }
         else {
             # SUSEMIRROR not set, zdup from attached ISO
-            my $build  = get_var("BUILD");
+            my $build = get_var("BUILD");
             my $flavor = get_var("FLAVOR");
             script_run "ls -al /dev/disk/by-label";
             my $isoinfo = "isoinfo -d -i /dev/\$dev | grep \"Application id\" | awk -F \" \" '{print \$3}'";

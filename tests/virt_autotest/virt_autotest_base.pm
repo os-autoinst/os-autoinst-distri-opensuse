@@ -1,11 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright © 2012-2016 SUSE LLC
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
+# Copyright 2012-2016 SUSE LLC
+# SPDX-License-Identifier: FSFAP
 #
 package virt_autotest_base;
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
@@ -34,12 +30,12 @@ sub get_script_run {
 sub generateXML {
     my ($self, $data) = @_;
     print Dumper($data);
-    my %my_hash         = %$data;
-    my $pass_nums       = 0;
-    my $fail_nums       = 0;
-    my $skip_nums       = 0;
+    my %my_hash = %$data;
+    my $pass_nums = 0;
+    my $fail_nums = 0;
+    my $skip_nums = 0;
     my $test_time_hours = 0;
-    my $test_time_mins  = 0;
+    my $test_time_mins = 0;
     foreach my $item (keys(%my_hash)) {
         if ($my_hash{$item}->{status} =~ m/PASSED/) {
             $pass_nums += 1;
@@ -54,9 +50,9 @@ sub generateXML {
         my $test_time = eval { $my_hash{$item}->{test_time} ? $my_hash{$item}->{test_time} : '' };
         if ($test_time ne '') {
             my ($time_hours) = $test_time =~ /^(\d+)m.*s$/i;
-            my ($time_mins)  = $test_time =~ /^.*m(\d+)s$/i;
+            my ($time_mins) = $test_time =~ /^.*m(\d+)s$/i;
             $test_time_hours += $time_hours;
-            $test_time_mins  += $time_mins;
+            $test_time_mins += $time_mins;
         }
     }
     $self->{pass_nums} = $pass_nums;
@@ -90,11 +86,11 @@ sub generateXML {
 sub save_test_configuration {
     my ($self, $assert_pattern, $add_junit_log_flag, $upload_virt_log_flag, $log_dir, $compressed_log_name, $upload_guest_assets_flag) = @_;
 
-    $self->{assert_pattern}           = $assert_pattern;
-    $self->{add_junit_log_flag}       = $add_junit_log_flag;
-    $self->{upload_virt_log_flag}     = $upload_virt_log_flag;
-    $self->{log_dir}                  = $log_dir;
-    $self->{compressed_log_name}      = $compressed_log_name;
+    $self->{assert_pattern} = $assert_pattern;
+    $self->{add_junit_log_flag} = $add_junit_log_flag;
+    $self->{upload_virt_log_flag} = $upload_virt_log_flag;
+    $self->{log_dir} = $log_dir;
+    $self->{compressed_log_name} = $compressed_log_name;
     $self->{upload_guest_assets_flag} = $upload_guest_assets_flag;
 }
 
@@ -210,7 +206,7 @@ sub add_junit_log {
     my ($self, $job_output) = @_;
 
     # Parse test result and generate junit file
-    my $tc_result  = $self->analyzeResult($job_output);
+    my $tc_result = $self->analyzeResult($job_output);
     my $xml_result = $self->generateXML($tc_result);
     # Upload and parse junit file.
     $self->push_junit_log($xml_result);
@@ -237,7 +233,7 @@ sub upload_guest_assets {
         # Uploaded guest disk name is different from original disk name in guest xml.
         # This is to differentiate guest disk on different host, hypervisor and product build.
         # Need to recover the disk name when recovering guests from openqa assets.
-        my $guest_disk_name_real      = get_guest_disk_name_from_guest_xml($guest);
+        my $guest_disk_name_real = get_guest_disk_name_from_guest_xml($guest);
         my $guest_disk_name_to_upload = $guest_upload_asset_name . '.disk';
         if ($guest_disk_name_real =~ /qcow2/) {
             # Disk compression only for qcow2

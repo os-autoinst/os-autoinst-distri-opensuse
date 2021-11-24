@@ -1,17 +1,5 @@
-# Copyright (C) 2015-2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright 2015-2020 SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package jeos;
 use Mojo::Base qw(Exporter);
@@ -40,8 +28,8 @@ sub reboot_image {
 # Set GRUB_GFXMODE to 1024x768
 sub set_grub_gfxmode {
     change_grub_config('=.*', '=1024x768', 'GRUB_GFXMODE=');
-    change_grub_config('^#',  '',          'GRUB_GFXMODE');
-    change_grub_config('=.*', '=-1',       'GRUB_TIMEOUT') unless check_var('VIRSH_VMM_TYPE', 'linux');
+    change_grub_config('^#', '', 'GRUB_GFXMODE');
+    change_grub_config('=.*', '=-1', 'GRUB_TIMEOUT') unless check_var('VIRSH_VMM_TYPE', 'linux');
     grep_grub_settings('^GRUB_GFXMODE=1024x768$');
     set_framebuffer_resolution;
     set_extrabootparams_grub_conf;
