@@ -13,7 +13,7 @@
 # Documentation: https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
 
 package publiccloud::ecr;
-use Mojo::Base 'publiccloud::aws';
+use Mojo::Base 'publiccloud::k8s_provider';
 use testapi;
 use utils;
 
@@ -21,7 +21,7 @@ has security_token => undef;
 
 sub init {
     my ($self, %args) = @_;
-    $self->SUPER::init();
+    $self->SUPER::init("ECR");
 }
 
 =head2 push_container_image
@@ -50,11 +50,14 @@ Delete a ECR image
 =cut
 sub delete_image {
     my ($self, $tag) = @_;
-    assert_script_run("aws ecr batch-delete-image --repository-name "
-          . $self->container_registry
-          . " --image-ids imageTag="
-          . $self->{tag});
+    assert_script_run(
+        "aws ecr batch-delete-image --repository-name " . $self->container_registry . " --image-ids imageTag=" . $tag);
     return;
+}
+
+sub cleanup() {
+    my ($self) = @_;
+    $self->provider_client->cleanup();
 }
 
 1;

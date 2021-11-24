@@ -13,6 +13,7 @@ package publiccloud::gcp;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::Util qw(b64_decode);
 use Mojo::JSON 'decode_json';
+use mmapi 'get_current_job_id';
 use testapi;
 use utils;
 
@@ -36,6 +37,7 @@ sub vault_gcp_roles {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
+    $self->vault(publiccloud::vault->new());
 
     $self->gcr_zone(get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io'));
 
@@ -121,6 +123,20 @@ sub get_container_image_full_name {
     my ($self, $tag) = @_;
     my $full_name_prefix = $self->get_container_registry_prefix();
     return "$full_name_prefix/$tag:latest";
+}
+
+=head2 get_default_tag
+Returns a default tag for container images based of the current job id (required by GCR)
+=cut
+sub get_default_tag {
+    my ($self) = @_;
+    return join('-', $self->resource_name, get_current_job_id());
+}
+
+sub cleanup {
+    my ($self) = @_;
+    $self->SUPER::cleanup();
+    $self->vault->revoke();
 }
 
 1;

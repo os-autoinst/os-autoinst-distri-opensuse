@@ -8,10 +8,25 @@
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
 
 package publiccloud::ec2;
-use Mojo::Base 'publiccloud::aws';
+use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
 use publiccloud::utils "is_byos";
+use publiccloud::aws_client;
+
+has ssh_key => undef;
+has ssh_key_file => undef;
+has provider_client => undef;
+
+sub init {
+    my ($self, %params) = @_;
+    $self->SUPER::init();
+    $self->provider_client(publiccloud::aws_client->new(
+            key_id => $self->key_id,
+            key_secret => $self->key_secret,
+            region => $self->region));
+    $self->provider_client->init();
+}
 
 sub find_img {
     my ($self, $name) = @_;
@@ -161,7 +176,7 @@ sub cleanup {
     my ($self) = @_;
     $self->terraform_destroy() if ($self->terraform_applied);
     $self->delete_keypair();
-    $self->vault->revoke();
+    $self->provider_client->cleanup();
 }
 
 sub describe_instance

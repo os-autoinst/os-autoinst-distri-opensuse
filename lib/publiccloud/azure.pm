@@ -21,6 +21,7 @@ has resource_group => 'openqa-upload';
 has storage_account => 'openqa';
 has container => 'sle-images';
 has lease_id => undef;
+has vault => undef;
 
 =head2 decode_azure_json
 
@@ -38,6 +39,7 @@ sub decode_azure_json {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
+    $self->vault(publiccloud::vault->new());
     $self->vault_create_credentials() unless ($self->key_id);
     $self->az_login();
     assert_script_run("az account set --subscription " . $self->subscription);
@@ -326,6 +328,16 @@ sub parse_instance_id
         return {subscription => $1, resource_group => $2, vm_name => $3};
     }
     return;
+}
+
+=head2 cleanup
+This method is called called after each test on failure or success to revoke the credentials
+=cut
+
+sub cleanup {
+    my ($self) = @_;
+    $self->SUPER::cleanup();
+    $self->vault->revoke();
 }
 
 1;
