@@ -41,7 +41,7 @@ sub select_disks {
     foreach my $disk (@disks) {
         # Find list item which matches wanted disk
         if (my ($lst_item) = grep $_ =~ $disk, @available) {
-            $self->{lst_target_disks}->select($lst_item);
+            $self->{lst_target_disks}->check($lst_item);
         }
         else {
             die "$disk cannot be found in the list of target disks";
@@ -56,7 +56,7 @@ sub select_all_disks {
     my @disks = $self->{lst_target_disks}->items();
     #Select all disks
     foreach my $disk (@disks) {
-        $self->{lst_target_disks}->select($disk);
+        $self->{lst_target_disks}->check($disk);
     }
     return $self;
 }
