@@ -3,15 +3,17 @@
 #
 # Summary: Setup environment for EVM protection testing
 # Note: This case should come after 'ima_setup'
+#
 # Maintainer: llzhao <llzhao@suse.com>, rfan1 <richard.fan@suse.com>
-# Tags: poo#53579, poo#100694, poo#102311
+#
+# Tags: poo#53579, poo#100694, poo#102311, poo#102843
 
 use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
 use utils;
-use bootloader_setup qw(replace_grub_cmdline_settings tianocore_disable_secureboot);
+use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings tianocore_disable_secureboot);
 use power_action_utils 'power_action';
 
 sub run {
