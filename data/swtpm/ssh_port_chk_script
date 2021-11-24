@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ip_addr=""
-for (( i = 0; i < 90; i++ )); do
+for (( i = 0; i < 200; i++ )); do
     ip_addr=`ip n | awk ' /192\\.168/ {print $1}'`
     if [[ -n "$ip_addr" ]] && nc -zvw2 $ip_addr 22 2>/dev/null; then
          echo "the vm's ssh port is online"
@@ -12,5 +12,5 @@ for (( i = 0; i < 90; i++ )); do
         sleep 1
     fi
 done
-echo "the ssh service is still offline after waiting 90s"
+echo "the ssh service is still offline after waiting 200s"
 exit 2
