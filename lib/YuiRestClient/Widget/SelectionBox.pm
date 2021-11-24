@@ -87,13 +87,14 @@ Handles a selection box.
 
 B<select($item)> - Select item in a SelectionBox object.
 
+This action puts the item in focus (i.e highlights it), but does not check a checkbox associated with the item.
 The item is identified by its label.
 
-B<check($item)> - Select item in a SelectionBox object.
+B<check($item)> - Check checkbox for an item in a SelectionBox object.
 
 The item is identified by its label.
 
-B<uncheck($item)> - Unselect item in a SelectionBox object.
+B<uncheck($item)> - Uncheck checkbox for an item in a SelectionBox object.
 
 The item is identified by its label.
 
