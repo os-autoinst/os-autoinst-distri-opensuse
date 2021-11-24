@@ -81,6 +81,15 @@ sub run {
     rmt_mirror_repo();
     assert_script_run("rmt-cli product list | grep sle-module-legacy/15/x86_64");
 
+    # disable the mirrored repos
+    assert_script_run("rmt-cli products disable sle-module-legacy/15/x86_64");
+    # cleanup the downloaded files
+    assert_script_run("yes yes | rmt-cli repos clean");
+    my $ret = script_run("ls /usr/share/rmt/public/repo/SUSE/Products/SLE-Module-Legacy/15/x86_64 | wc -l");
+    if ($ret > 0) {
+        die 'cleanup repos failed';
+    }
+
     # import smt data
     my $datapath = "/rmtdata/";
     my $datafile = get_var("SMT_DATA_FILE");
