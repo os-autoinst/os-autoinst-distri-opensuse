@@ -67,9 +67,10 @@ sub ensure_unlocked_desktop {
     my $counter = 10;
 
     # press key to update screen, wait shortly before and after to not match cached screen
-    wait_still_screen(3);
+    my $wait_time = get_var('UPGRADE') ? 10 : 3;
+    wait_still_screen($wait_time);
     send_key 'ctrl';
-    wait_still_screen(3);
+    wait_still_screen($wait_time);
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
