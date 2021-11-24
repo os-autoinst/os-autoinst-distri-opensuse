@@ -32,6 +32,7 @@ use version_utils qw(is_jeos);
 use containers::utils;
 use containers::container_images;
 use publiccloud::utils;
+use Utils::Systemd qw(systemctl disable_and_stop_service);
 
 my $stop_firewall = 0;    # Post-run flag to stop the firewall (failsafe)
 
@@ -46,9 +47,11 @@ sub run {
     test_seccomp();
 
     if ($self->firewall() eq 'firewalld') {
-        # on publiccloud we need to install firewalld first
-        install_and_start_firewalld() if (is_publiccloud || is_jeos);
-        check_docker_firewall();
+        zypper_call('in ' . $self->firewall()) if (is_publiccloud || is_jeos);
+        systemctl('restart ' . $self->firewall());
+        systemctl('restart docker');
+        $stop_firewall = 1;
+        $engine->check_containers_firewall();
     }
 
     # Run basic runtime tests
@@ -62,26 +65,21 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-    cleanup();
+    cleanup($self->firewall());
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my $self = shift;
-    cleanup();
+    cleanup($self->firewall());
     $self->SUPER::post_run_hook;
-}
-
-sub install_and_start_firewalld() {
-    zypper_call('install firewalld');
-    systemctl('start firewalld');
-    systemctl('restart docker');
-    $stop_firewall = 1;
 }
 
 # must ensure firewalld is stopped, if it is only enabled in this test (e.g. publiccloud test runs)
 sub cleanup() {
-    script_run('systemctl stop firewalld; systemctl restart docker') if $stop_firewall;
+    my $firewall = shift;
+    disable_and_stop_service($firewall) if $stop_firewall;
+    systemctl('restart docker');
 }
 
 1;

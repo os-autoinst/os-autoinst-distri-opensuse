@@ -22,10 +22,15 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use utils;
+use version_utils;
 use registration;
 use containers::common;
 use containers::utils;
 use containers::container_images;
+use publiccloud::utils;
+use Utils::Systemd qw(systemctl disable_and_stop_service);
+
+my $stop_firewall = 0;    # Post-run flag to stop the firewall (failsafe)
 
 sub run {
     my ($self) = @_;
@@ -33,6 +38,13 @@ sub run {
 
     my $dir = "/root/DockerTest";
     my $podman = $self->containers_factory('podman');
+
+    if ($self->firewall() eq 'firewalld') {
+        zypper_call('in ' . $self->firewall()) if (is_publiccloud || is_jeos);
+        systemctl('restart ' . $self->firewall());
+        $stop_firewall = 1;
+        $podman->check_containers_firewall();
+    }
 
     # Run basic runtime tests
     basic_container_tests(runtime => $podman->runtime);
@@ -45,10 +57,23 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    cleanup($self->firewall());
     select_console 'log-console';
     script_run "podman version | tee /dev/$serialdev";
     script_run "podman info --debug | tee /dev/$serialdev";
     $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my $self = shift;
+    cleanup($self->firewall());
+    $self->SUPER::post_run_hook;
+}
+
+# must ensure firewalld is stopped, if it is only enabled in this test (e.g. publiccloud test runs)
+sub cleanup() {
+    my $firewall = shift;
+    disable_and_stop_service($firewall) if $stop_firewall;
 }
 
 1;
