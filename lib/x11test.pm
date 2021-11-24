@@ -740,7 +740,8 @@ sub start_gnome_settings {
 
     if (!$is_sle_12_sp1 || $settings_menu_loaded) {
         assert_and_click 'settings';
-        assert_screen 'gnome-settings';
+        my $timeout = (check_var('ARCH', 'aarch64')) ? '180' : '30';
+        assert_screen 'gnome-settings', $timeout;
     }
 }
 
