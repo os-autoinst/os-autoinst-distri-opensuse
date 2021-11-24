@@ -7,7 +7,7 @@
 #          at the same time, install some required packages.
 #
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81256, tc#1768671, poo#93835
+# Tags: poo#81256, tc#1768671, poo#93835, poo#102933
 
 use base 'opensusebasetest';
 use strict;
@@ -33,9 +33,11 @@ sub run {
 
     # Define a new udev rule file to keep the NIC name persistent across OS rebooting
     my $udev_rule_file = '/etc/udev/rules.d/70-persistent-net.rules';
-    my $mac_addr = get_var("NICMAC");
+    my $mac_addr = get_var('NICMAC');
     my $nic_name = script_output("grep $mac_addr /sys/class/net/*/address |cut -d / -f 5");
-    assert_script_run("wget --quiet " . data_url("swtpm/70-persistent-net.rules") . " -O $udev_rule_file");
+    my $net_rule = 'swtpm/70-persistent-net.rules';
+    $net_rule .= '_uefi' if (get_var('UEFI'));
+    assert_script_run("wget --quiet " . data_url("$net_rule") . " -O $udev_rule_file");
     assert_script_run("sed -i 's/NAME=\"\"/ NAME=\"$nic_name\"/' $udev_rule_file");
 
     # Permit ssh login as root

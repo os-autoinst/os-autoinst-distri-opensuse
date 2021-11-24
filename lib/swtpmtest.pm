@@ -3,7 +3,7 @@
 #
 # Summary: Base module for swtpm test cases
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81256, tc#1768671
+# Tags: poo#81256, tc#1768671, poo#102849
 
 package swtpmtest;
 
