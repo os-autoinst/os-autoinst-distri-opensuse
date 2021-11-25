@@ -23,9 +23,7 @@ sub run() {
 
     $self->start_firefox;
     wait_still_screen;
-    send_key('alt');
-    wait_still_screen;
-    assert_screen('firefox-top-bar-highlighted');
+    send_key_until_needlematch('firefox-top-bar-highlighted', 'alt', 4, 10);
     send_key('h');
     wait_still_screen;
     assert_screen('firefox-help-menu');
