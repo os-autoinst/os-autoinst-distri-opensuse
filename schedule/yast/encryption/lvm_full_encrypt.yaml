@@ -10,17 +10,6 @@ vars:
   FULL_LVM_ENCRYPT: 1
   MAX_JOB_TIME: '14400'
   YUI_REST_API: 1
-conditional_schedule:
-  boot_encrypt_reconnect_mgmt_console:
-    ARCH:
-      s390x:
-        - installation/boot_encrypt
-        - installation/handle_reboot
-  grub_test_boot_encrypt:
-    BACKEND:
-      qemu:
-        - installation/handle_reboot
-        - installation/boot_encrypt
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
@@ -44,8 +33,8 @@ schedule:
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - '{{boot_encrypt_reconnect_mgmt_console}}'
-  - '{{grub_test_boot_encrypt}}'
+  - installation/handle_reboot
+  - installation/boot_encrypt
   - installation/first_boot
   - console/hostname
   - console/system_prepare

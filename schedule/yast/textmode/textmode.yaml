@@ -40,11 +40,6 @@ schedule:
   - console/textinfo
   - console/orphaned_packages_check
   - console/consoletest_finish
-conditional_schedule:
-  disk_activation:
-    BACKEND:
-      s390x:
-        - installation/disk_activation
 test_data:
   software:
     patterns:

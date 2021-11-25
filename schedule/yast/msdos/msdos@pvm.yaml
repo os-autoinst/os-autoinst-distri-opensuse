@@ -1,8 +1,7 @@
 ---
-name: addon-module-http
-description: |
-  Test verifies that adding addon using http works fine. We just perform installation
-  here. Using HA here, related ticket: https://progress.opensuse.org/issues/25896
+name:           msdos
+description:    >
+  Test for installation on msdos partition table.
 vars:
   YUI_REST_API: 1
 schedule:
@@ -13,15 +12,14 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
-  - installation/addon_products_sle
-  - installation/system_role/select_role_text_mode
-  - installation/partitioning/accept_proposed_layout
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/msdos_partition_table
   - installation/clock_and_timezone/accept_timezone_configuration
-  - '{{hostname_inst}}'
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
@@ -30,16 +28,7 @@ schedule:
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
-  - console/system_prepare
-  - console/consoletest_setup
-  - console/system_prepare
-  - console/consoletest_setup
-  - console/zypper_ref
-  - console/validate_addon_repos
-conditional_schedule:
-  hostname_inst:
-    BACKEND:
-      qemu:
-        - installation/hostname_inst
-      svirt:
-        - installation/hostname_inst
+  - console/validate_partition_table_via_parted
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
