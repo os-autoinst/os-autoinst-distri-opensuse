@@ -1407,6 +1407,7 @@ sub reconnect_mgmt_console {
                     susefirewall2_to_firewalld();
                 }
             }
+            reset_consoles;
             select_console('x11', await_console => 0);
         }
     }
