@@ -62,7 +62,7 @@ sub cleanup {
     record_info('Cleanup', 'Deleting kubectl job and image.');
     assert_script_run("kubectl delete job " . $self->{job_name});
     assert_script_run("aws ecr batch-delete-image --repository-name "
-          . $self->{provider}->container_registry
+          . $self->{provider}->provider_client->container_registry
           . " --image-ids imageTag="
           . $self->{image_tag});
 }

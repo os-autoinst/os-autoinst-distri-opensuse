@@ -10,6 +10,7 @@
 package publiccloud::aws_client;
 use Mojo::Base -base;
 use testapi;
+use publiccloud::vault;
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
@@ -20,6 +21,7 @@ has region => undef;
 has vault => undef;
 has aws_account_id => undef;
 has service => undef;
+has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
 
 sub vault_create_credentials {
     my ($self) = @_;
@@ -97,6 +99,27 @@ sub init {
     die("Cannot get the UserID") unless ($self->aws_account_id);
     die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/;
 }
+
+=head2 get_container_registry_prefix
+Get the full registry prefix URL (based on the account and region) to push container images on ECR.
+=cut
+sub get_container_registry_prefix {
+    my ($self) = @_;
+    my $region = $self->region;
+    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->aws_account_id, $region);
+    return $full_name_prefix;
+}
+
+=head2 get_container_image_full_name
+Returns the full name of the container image in ECR registry
+C<tag> Tag of the container
+=cut
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = $self->get_container_registry_prefix();
+    return "$full_name_prefix/" . $self->container_registry . ":$tag";
+}
+
 
 sub cleanup {
     my ($self) = @_;
