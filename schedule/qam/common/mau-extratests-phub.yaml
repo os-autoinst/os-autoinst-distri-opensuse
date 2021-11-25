@@ -16,12 +16,16 @@ conditional_schedule:
     VERSION:
       15-SP3:
         - '{{sle15_x86_64}}'
+        - console/python_flake8
       15-SP2:
         - '{{sle15_x86_64}}'
+        - console/python_flake8
       15-SP1:
         - '{{sle15_x86_64}}'
+        - console/python_flake8
       15:
         - '{{sle15_x86_64}}'
+        - console/python_flake8
   sle15_x86_64:
     ARCH:
       x86_64:
