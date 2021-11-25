@@ -1,0 +1,8 @@
+name: ibm_tss_version_check
+description:    >
+    This is for ibm tss version check on aarch64
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/ibmtss/version_check
+    - security/ibmtss/ibmtss_basic_function
