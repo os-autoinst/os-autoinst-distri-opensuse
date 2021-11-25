@@ -13,23 +13,22 @@ use testapi;
 use strict;
 use warnings;
 use utils 'zypper_call';
-use version_utils qw(is_tumbleweed is_sle);
+use version_utils qw(is_tumbleweed is_leap is_sle);
 
 sub run {
     select_console 'root-console';
 
-    # Install the gnutls / libnettle packages
-    zypper_call('in gnutls libnettle8');
-    zypper_call('info gnutls libnettle8');
+    # Install the gnutls / libnettle packages (pulled as dependency)
+    zypper_call('in gnutls');
+
     my $current_ver = script_output("rpm -q --qf '%{version}\n' gnutls");
+    record_info('gnutls version', "Version of Current gnutls package: $current_ver");
 
     # gnutls attempt to update to 3.7.2+ in SLE15 SP4 base on the feature
     # SLE-19765: Update libnettle and gnutls to new major versions
-    if (!is_sle('<15-sp4') && ($current_ver ge 3.7.2)) {
-        record_info('gnutls version', "Version of Current gnutls package: $current_ver");
-    }
-    else {
-        record_soft_failure('jsc#SLE-19765: gnutls version is outdated and need to be updated over 3.7.2+ for SLE15-SP4');
+    # starting with gnu nettle 3.6+: Support for ED448 signature
+    unless (is_sle('<15-SP4') || is_leap('<15.4')) {
+        assert_script_run "gnutls-cli --list | tee -a /dev/$serialdev | grep -w SIGN-EdDSA-Ed448";
     }
 
     # Check the library is in FIPS kernel mode, and skip checking this in FIPS ENV mode
