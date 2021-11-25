@@ -81,7 +81,6 @@ sub load_host_tests_docker {
         loadtest 'containers/docker_compose';
     }
     loadtest 'containers/validate_btrfs' if (is_x86_64 && !is_jeos);
-    loadtest "containers/container_diff" if (is_opensuse());
 }
 
 
@@ -94,7 +93,7 @@ sub load_container_tests {
 
     if (is_container_image_test()) {
         # Container Image tests
-        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host);
+        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host || is_jeos);
         load_image_tests_podman() if ($runtime =~ 'podman');
         load_image_tests_docker() if ($runtime =~ 'docker');
     } else {
