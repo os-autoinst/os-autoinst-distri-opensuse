@@ -888,7 +888,6 @@ sub console_selected {
     # x11 needs special handling because we can not easily know if screen is
     # locked, display manager is waiting for login, etc.
     if ($args{tags} =~ /x11/) {
-        wait_still_screen;
         return ensure_unlocked_desktop;
     }
     assert_screen($args{tags}, no_wait => 1, timeout => $args{timeout});
