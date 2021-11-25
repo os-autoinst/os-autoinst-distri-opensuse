@@ -2,6 +2,7 @@ name: cc_audit_tests
 description:    >
     This is for cc audit tests in single node
 schedule:
+    - '{{bootloader_zkvm}}'
     - boot/boot_to_desktop
     - security/cc/cc_audit_test_setup
     - security/cc/filter
@@ -11,3 +12,8 @@ schedule:
     - security/cc/trustedprograms
     - security/selinux/selinux_setup
     - security/cc/libpam
+conditional_schedule:
+    bootloader_zkvm:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
