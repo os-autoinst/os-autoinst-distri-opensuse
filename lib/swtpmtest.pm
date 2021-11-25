@@ -3,7 +3,7 @@
 #
 # Summary: Base module for swtpm test cases
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#81256, tc#1768671
+# Tags: poo#81256, tc#1768671, poo#102849
 
 package swtpmtest;
 
@@ -86,7 +86,7 @@ sub swtpm_verify {
 
     # Check the vm guest is up via listening to the port 22
     assert_script_run("wget --quiet " . data_url("swtpm/ssh_port_chk_script") . " -P $image_path");
-    assert_script_run("bash $image_path/ssh_port_chk_script");
+    assert_script_run("bash $image_path/ssh_port_chk_script", timeout => 200);
 
     # Login to the vm and run the commands to check tpm device
     my $user = 'root';
