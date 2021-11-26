@@ -128,6 +128,7 @@ schedule:
     - console/unzip
     - console/gpg
     - console/rsync
+    - console/rust
     - console/clamav
     - console/shells
     - console/sudo
