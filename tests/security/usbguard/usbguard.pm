@@ -20,6 +20,12 @@ use warnings;
 use testapi;
 use utils;
 
+sub restart_usbguard_allow_keyboard {
+    # When doing restart usbguared service it will block the "USB Keyboard" on aarch64,
+    # so workaround it for all arches just in case (allow it permanently)
+    assert_script_run('systemctl --no-pager start usbguard.service; id=$(usbguard list-devices | grep block | grep Keyboard | cut -f1 -d :); [[ $id ]] && usbguard allow-device -p $id || echo \"No blocked keyboard found\"');
+}
+
 sub run {
     my $out = '';
     my $user = 'usbguard';
@@ -47,12 +53,11 @@ sub run {
     script_run("f=/etc/nsswitch.conf; [ ! -f \$f ] && cp /usr\$f \$f");
 
     # 1. Verify usbguard service can be started
-    # Start usbguard service
+    # Enable usbguard service
     assert_script_run('usb-devices');
     assert_script_run('systemctl --no-pager enable usbguard.service');
-    # When doing restart usbguared service it will block the "USB Keyboard" on aarch64,
-    # so workaround it for all arches just in case
-    assert_script_run('systemctl --no-pager start usbguard.service; id=$(usbguard list-devices | grep block | grep Keyboard | cut -f1 -d :); [[ $id ]] && usbguard allow-device $id || echo \"No blocked keyboard found\"');
+    # Restart usbguared service and allow the "USB Keyboard" just in case
+    restart_usbguard_allow_keyboard();
     assert_script_run('systemctl --no-pager status usbguard.service');
 
     # Check usbguard service is 'active'
@@ -103,9 +108,10 @@ sub run {
     # Remove this rule and check the rule does not exist
     assert_script_run("cp $f_rules_default $f_rules_default.bk");
     assert_script_run("echo > $f_rules_default");
-    systemctl('restart usbguard.service');
+    # Restart usbguared service and allow the "USB Keyboard" just in case
+    restart_usbguard_allow_keyboard();
     $out = script_run('usbguard list-rules');
-    die("Error: there should no rules if rules config file is empty") if $out =~ m/$msg/;
+    die("Error: there should no these rules if rules config file is empty") if $out =~ m/$msg/;
 
     # Clean up
     assert_script_run("mv $f_rules_default.bk $f_rules_default");
@@ -123,7 +129,7 @@ sub run {
     assert_script_run("usbguard remove-rule 1");
     # usbguard list-rules there should no rules
     $out = script_run('usbguard list-rules');
-    die("Error: there should no rules") if $out =~ m/$msg/;
+    die("Error: there should no these rules") if $out =~ m/$msg/;
 
     # 7. Verify usbguard get/set parameter
     # Get parameter InsertedDevicePolicy
