@@ -48,7 +48,7 @@ my $CLI_IP = '10.0.3.102';
 sub set_ip {
     my ($ip, $nic) = @_;
     script_run "arping -w 1 -I $nic $ip";    # check for duplicate IP
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip/24'\nMTU='1458'\" > /etc/sysconfig/network/ifcfg-$nic";
+    assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip/24'\\nMTU='1458'\" > /etc/sysconfig/network/ifcfg-$nic";
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
 }
