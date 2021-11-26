@@ -44,8 +44,8 @@ sub prepare_NM {
 }
 
 sub generate_certs {
-    assert_script_run 'mkdir -p wpa_enterprise_certificates/{CA,server}';
-    assert_script_run 'cd wpa_enterprise_certificates';
+    assert_script_run 'mkdir -p /etc/wpa_enterprise_certificates/{CA,server}';
+    assert_script_run 'cd /etc/wpa_enterprise_certificates';
 
     enter_cmd 'echo "# generate private keys"';
     assert_script_run 'openssl genrsa -out CA/CA.key 4096';
@@ -73,7 +73,7 @@ sub configure_hostapd {
 sub adopt_apparmor {
     if (script_output('systemctl is-active apparmor', proceed_on_failure => 1) eq 'active') {
         enter_cmd 'echo "# adopt AppArmor"';
-        enter_cmd q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/root\/wpa_enterprise_certificates\/** r,\n}/' /etc/apparmor.d/usr.sbin.hostapd);
+        enter_cmd q(test ! -e /etc/apparmor.d/usr.sbin.hostapd || sed -i -E 's/^}$/  \/etc\/wpa_enterprise_certificates\/** r,\n}/' /etc/apparmor.d/usr.sbin.hostapd);
         systemctl 'reload apparmor';
     }
 }
