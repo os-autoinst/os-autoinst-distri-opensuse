@@ -5,7 +5,7 @@
 #          IBM has tested x86_64, s390x and ppc64le, we only need cover aarch64
 #          This test module covers basic function test
 # Maintainer: rfan1 <richard.fan@suse.com>
-# Tags: poo#101088, poo#102792, tc#1769800
+# Tags: poo#101088, poo#102792, poo#103086, tc#1769800
 
 use base 'opensusebasetest';
 use base 'consoletest';
@@ -48,16 +48,19 @@ sub run {
     assert_script_run('make -f makefiletpmc', timeout => 120);
 
     # Modify the script to use the binaries installed in current system
-    assert_script_run q(sed -i 's/^PREFIX=.*/PREFIX=tss/g' reg.sh);
+    assert_script_run q(sed -i 's#^PREFIX=.*#PREFIX=/usr/bin/tss#g' reg.sh);
+
+    # Modify the rootcerts.txt to use the existing pem files
+    assert_script_run q(sed -i "s#/gsa/yktgsa/home/k/g/kgold/tpm2/utils#$PWD#" certificates/rootcerts.txt);
 
     # Run the script
     assert_script_run('export TPM_INTERFACE_TYPE=socsim');
     my $tsslog = '/tmp/tss.log';
-    script_run("./reg.sh | tee $tsslog", timeout => 120);
+    script_run("./reg.sh -a | tee $tsslog", timeout => 240);
     upload_logs("$tsslog");
 
     # Check the test result
-    assert_script_run("cat $tsslog | grep 'Success - 0 Tests 0 Warnings'");
+    assert_script_run("cat $tsslog | grep 'Success - 35 Tests 0 Warnings'");
 
     # Clean up
     assert_script_run('cd; rm -rf ibmtpm20tss-tss');
