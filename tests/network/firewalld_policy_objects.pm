@@ -142,7 +142,12 @@ sub configure_firewall_policies {
     assert_script_run("firewall-cmd --permanent --policy int-to-ext --add-egress-zone=my-external");
     assert_script_run("firewall-cmd --permanent --policy ext-to-int --add-ingress-zone=my-external");
     assert_script_run("firewall-cmd --permanent --policy ext-to-int --add-egress-zone=my-internal");
-    assert_script_run("firewall-cmd --runtime-to-permanent");
+    if (script_run("firewall-cmd --runtime-to-permanent")) {
+        record_soft_failure("Committing zone change failed due to gh#firewalld/firewalld#890");
+        # As workaround, do it in the permanent config and the --reload later will activate it
+        assert_script_run("firewall-cmd --permanent --zone=my-external --change-interface=$net0");
+        assert_script_run("firewall-cmd --permanent --zone=my-internal --change-interface=$net1");
+    }
 
     # Internal to External policy: Allow http and icmp
     assert_script_run("firewall-cmd --permanent --policy int-to-ext --add-rich-rule='rule family=ipv4 service name=http accept'");
