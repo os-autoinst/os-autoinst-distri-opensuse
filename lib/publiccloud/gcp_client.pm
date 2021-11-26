@@ -3,19 +3,17 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Helper class for Google Cloud Platform
+# Summary: Helper class for google connection and authentication
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
-#             Jose Lausuch <jalausuch@suse.de>
-#             qa-c team <qa-c@suse.de>
+# Maintainer: qa-c team <qa-c@suse.de>
 
-package publiccloud::gcp;
-use Mojo::Base 'publiccloud::provider';
-use Mojo::Util qw(b64_decode);
-use Mojo::JSON 'decode_json';
-use mmapi 'get_current_job_id';
+package publiccloud::gcp_client;
+use Mojo::Base -base;
 use testapi;
 use utils;
+use publiccloud::vault;
+use Mojo::Util qw(b64_decode);
+use Mojo::JSON 'decode_json';
 
 use constant CREDENTIALS_FILE => '/root/google_credentials.json';
 
@@ -27,34 +25,36 @@ has service_acount_name => undef;
 has client_id => undef;
 has vault_gcp_role_index => undef;
 has gcr_zone => undef;
-
-sub vault_gcp_roles {
-    return split(/\s*,\s*/,
-        get_var('PUBLIC_CLOUD_VAULT_ROLES', 'openqa-role,openqa-role1,openqa-role2,openqa-role3'));
-}
-
+has vault => undef;
 
 sub init {
     my ($self) = @_;
-    $self->SUPER::init();
 
     $self->gcr_zone(get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io'));
+
+    $self->vault(publiccloud::vault->new());
 
     $self->create_credentials_file();
     assert_script_run('source ~/.bashrc');
     assert_script_run('ntpdate -s time.google.com');
     assert_script_run('gcloud config set account ' . $self->account);
-    assert_script_run('gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
+    assert_script_run(
+        'gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);
+}
+
+sub vault_gcp_roles {
+    return split(",", get_var('PUBLIC_CLOUD_VAULT_ROLES', 'openqa-role,openqa-role1,openqa-role2,openqa-role3'));
 }
 
 =head2
+
 A service account in GCP can only have up to 10 keys assigned. With this we 
 reach our paralel openqa jobs quite fast.
 To have more keys available, we create 4 service accounts and select randomly
 one. If this fails, the next call of C<get_next_vault_role()> will retrieve
 the next.
-
 =cut
+
 sub get_next_vault_role {
     my ($self) = shift;
     my @known_roles = $self->vault_gcp_roles();
@@ -90,8 +90,7 @@ sub create_credentials_file {
             sub { $self->vault->get_secrets('/gcp/key/' . $self->get_next_vault_role(), max_tries => 1) },
             name => 'get_secrets(gcp)',
             max_tries => scalar($self->vault_gcp_roles()) * 2,
-            sleep_duration => get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', 5)
-        );
+            sleep_duration => get_var('PUBLIC_CLOUD_VAULT_TIMEOUT', 5));
         $credentials_file = b64_decode($data->{private_key_data});
         my $cf_json = decode_json($credentials_file);
         $self->account($cf_json->{client_email});
@@ -106,9 +105,40 @@ sub get_credentials_file_name {
     return CREDENTIALS_FILE;
 }
 
+
+=head2 get_container_registry_prefix
+
+Get the full registry prefix URL for any containers image registry of ECR based on the account and region
+=cut
+
+sub get_container_registry_prefix {
+    my ($self) = @_;
+    return sprintf($self->gcr_zone . '/suse-sle-qa', $self->project_id);
+}
+
+=head2 get_container_image_full_name
+
+Get the full name for a container image in ECR registry
+=cut
+
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = $self->get_container_registry_prefix();
+    return "$full_name_prefix/$tag:latest";
+}
+
+=head2 configure_docker
+
+Configure the docker to access the cloud provider registry
+=cut
+
+sub configure_docker {
+    my ($self) = @_;
+    assert_script_run('gcloud auth configure-docker --quiet ' . $self->gcr_zone);
+}
+
 sub cleanup {
     my ($self) = @_;
-    $self->SUPER::cleanup();
     $self->vault->revoke();
 }
 

@@ -13,7 +13,7 @@
 # Documentation: https://cloud.google.com/container-registry/docs/pushing-and-pulling
 
 package publiccloud::gcr;
-use Mojo::Base 'publiccloud::gcp';
+use Mojo::Base 'publiccloud::k8s_provider';
 use testapi;
 use utils;
 
@@ -21,16 +21,18 @@ use utils;
 
 sub init {
     my ($self, %args) = @_;
-    $self->SUPER::init();
-    assert_script_run('gcloud auth configure-docker --quiet ' . $self->gcr_zone);
+    $self->SUPER::init("GCR");
+    $self->configure_docker();
 }
 
 =head2 push_container_image
+
 Upload a container image to the GCR. Required parameter is the
 name of the image, previously stored in the local registry. And
 the tag (name) in the public cloud containers repository
 Retrieves the full name of the uploaded image or die.
 =cut
+
 sub push_container_image {
     my ($self, $image, $tag) = @_;
 
@@ -43,8 +45,10 @@ sub push_container_image {
 }
 
 =head2 delete_image
+
 Delete a container image in the GCR
 =cut
+
 sub delete_image {
     my ($self, $tag) = @_;
 
