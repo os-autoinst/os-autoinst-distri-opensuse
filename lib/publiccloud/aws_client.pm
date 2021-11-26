@@ -30,8 +30,7 @@ sub vault_create_credentials {
     if ($self->service =~ /ECR|EC2/) {
         record_info('INFO', 'Get credentials from VAULT server.');
         $data = $self->vault->get_secrets('/aws/creds/openqa-role');
-    }
-    elsif ($self->service eq "EKS") {
+    } elsif ($self->service eq "EKS") {
         record_info('INFO', 'Get credentials from VAULT server for EKS');
         my $path = '/aws/sts/openqa-role-eks';
         my $res
@@ -39,8 +38,7 @@ sub vault_create_credentials {
         $data = $res->{data};
         $self->security_token($data->{security_token});
         die('Failed to retrieve token') unless (defined($self->security_token));
-    }
-    else {
+    } else {
         die('Invalid service: ' . $self->service);
     }
 
@@ -58,11 +56,9 @@ sub _check_credentials {
             return 1 if ($out !~ /AuthFailure/m && $out !~ /"aws configure"/m);
             sleep 30;
         }
-    }
-    elsif ($self->service eq "EKS") {
+    } elsif ($self->service eq "EKS") {
         return 1;
-    }
-    else {
+    } else {
         die('Invalid service: ' . $self->service);
     }
 
@@ -101,8 +97,10 @@ sub init {
 }
 
 =head2 get_container_registry_prefix
+
 Get the full registry prefix URL (based on the account and region) to push container images on ECR.
 =cut
+
 sub get_container_registry_prefix {
     my ($self) = @_;
     my $region = $self->region;
@@ -111,15 +109,30 @@ sub get_container_registry_prefix {
 }
 
 =head2 get_container_image_full_name
+
 Returns the full name of the container image in ECR registry
 C<tag> Tag of the container
 =cut
+
 sub get_container_image_full_name {
     my ($self, $tag) = @_;
     my $full_name_prefix = $self->get_container_registry_prefix();
     return "$full_name_prefix/" . $self->container_registry . ":$tag";
 }
 
+=head2 configure_docker
+
+Configure the docker to access the cloud provider registry
+=cut
+
+sub configure_docker {
+    my ($self) = @_;
+    my $full_name_prefix = $self->get_container_registry_prefix();
+
+    assert_script_run("aws ecr get-login-password --region "
+          . $self->region
+          . " | docker login --username AWS --password-stdin $full_name_prefix");
+}
 
 sub cleanup {
     my ($self) = @_;
