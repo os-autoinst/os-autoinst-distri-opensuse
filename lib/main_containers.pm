@@ -59,6 +59,7 @@ sub load_host_tests_podman {
         loadtest 'containers/podman';
         loadtest 'containers/podman_image';
         loadtest 'containers/podman_3rd_party_images';
+        loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah';
         loadtest 'containers/rootless_podman';
     }
@@ -68,6 +69,7 @@ sub load_host_tests_docker {
     loadtest 'containers/docker';
     loadtest 'containers/docker_image';
     loadtest 'containers/docker_3rd_party_images';
+    loadtest 'containers/docker_firewall';
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is not available in factory

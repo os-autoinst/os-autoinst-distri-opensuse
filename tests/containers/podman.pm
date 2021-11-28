@@ -34,6 +34,9 @@ sub run {
     my $dir = "/root/DockerTest";
     my $podman = $self->containers_factory('podman');
 
+    # Test the connectivity of Docker containers
+    $podman->check_containers_connectivity();
+
     # Run basic runtime tests
     basic_container_tests(runtime => $podman->runtime);
     # Build an image from Dockerfile and run it

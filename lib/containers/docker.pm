@@ -9,7 +9,7 @@
 package containers::docker;
 use Mojo::Base 'containers::engine';
 use testapi;
-use containers::utils qw(registry_url);
+use containers::utils qw(registry_url get_docker_version check_runtime_version container_ip);
 use containers::common qw(install_docker_when_needed);
 use utils qw(systemctl file_content_replace);
 use version_utils qw(get_os_release);
@@ -30,6 +30,28 @@ sub configure_insecure_registries {
     assert_script_run('cat /etc/docker/daemon.json');
     systemctl('restart docker');
     record_info "setup $self->runtime", "deamon.json ready";
+}
+
+sub check_containers_connectivity {
+    record_info "connectivity", "Checking that containers can connect to the host, to each other and outside of the host";
+    my $container_name = 'sut_container';
+
+    # Run container in the background
+    assert_script_run "docker run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
+    my $container_ip = container_ip($container_name, 'docker');
+
+    # Connectivity to host check
+    my $default_route = script_output "docker run " . registry_url('alpine') . " ip route show default | awk \'/default/ {print \$3}\'";
+    assert_script_run "docker run --rm " . registry_url('alpine') . " ping -c3 " . $default_route;
+
+    # Cross-container connectivity check
+    assert_script_run "docker run --rm " . registry_url('alpine') . " ping -c3 " . $container_ip;
+
+    # Outisde connectivity check
+    assert_script_run "docker run --rm " . registry_url('alpine') . " wget google.com";
+
+    # Kill the container running on background
+    assert_script_run "docker kill $container_name ";
 }
 
 1;
