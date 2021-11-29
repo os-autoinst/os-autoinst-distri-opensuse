@@ -13,7 +13,9 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/disk_activation
+  - installation/disk_activation/select_configure_dasd_disks
+  - installation/disk_activation/configure_dasd
+  - installation/disk_activation/finish_disk_activation
   - installation/registration/register_via_scc
   - installation/module_selection/select_module_desktop
   - installation/add_on_product/skip_install_addons

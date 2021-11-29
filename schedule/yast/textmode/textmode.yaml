@@ -10,7 +10,6 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - '{{disk_activation}}'
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
