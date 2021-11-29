@@ -19,23 +19,26 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use Mojo::Base qw(consoletest);
+use version_utils qw(get_os_release);
 use testapi;
 
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-
     my $engine = get_required_var('CONTAINER_RUNTIME');
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
+    my $bci_timeout = get_var('BCI_TIMEOUT', 1200);
+
+    my ($version, $sp, $host_distri) = get_os_release;
 
     assert_script_run('cd bci-tests');
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
-    my $build_options = check_var('HOST_VERSION', '12-SP5') ? '' : '-- -n auto';
+    my $build_options = ($host_distri eq 'sles' && $version eq '12') ? '' : '-- -n auto';
     my $cmd = "tox -e build $build_options";
     record_info('Build', $cmd);
-    assert_script_run($cmd, timeout => 900);
+    assert_script_run($cmd, timeout => $bci_timeout);
     upload_logs('junit_build.xml', failok => 1);
 }
 
