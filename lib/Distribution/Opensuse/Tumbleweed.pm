@@ -17,6 +17,7 @@ use Installation::ClockAndTimeZone::ClockAndTimeZoneController;
 use Installation::DiskActivation::DiskActivationController;
 use Installation::DiskActivation::ConfiguredZFCPDevicesController;
 use Installation::DiskActivation::AddZFCPDeviceController;
+use Installation::DiskActivation::DASDDiskManagementController;
 use Installation::LanguageKeyboard::LanguageKeyboardController;
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use Installation::License::Opensuse::LicenseAgreementController;
@@ -176,6 +177,10 @@ sub get_configured_zfcp_devices {
 
 sub get_add_new_zfcp_device {
     return Installation::DiskActivation::AddZFCPDeviceController->new();
+}
+
+sub get_dasd_disk_management {
+    return Installation::DiskActivation::DASDDiskManagementController->new();
 }
 
 1;
