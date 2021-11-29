@@ -76,6 +76,11 @@ sub setup_nfs_server {
         assert_script_run("echo 'NFSD_V4_GRACE=15' >> /etc/sysconfig/nfs && echo 'NFSD_V4_LEASE=15' >> /etc/sysconfig/nfs");
     }
     assert_script_run('systemctl restart rpcbind && systemctl enable nfs-server.service && systemctl restart nfs-server');
+
+    # There's a graceful time we need to wait before using the NFS server
+    # Here we are using the same pynfs approach: wait for gracetime*2 before starting any test suite
+    my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
+    sleep($gracetime * 2);
 }
 
 sub run {
