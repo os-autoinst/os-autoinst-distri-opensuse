@@ -1,5 +1,5 @@
-name:           zfcp
-description:    >
+name: zfcp
+description: >
   Test installation on machine with zfcp multipath disk.
   Only tests succesful detection of multipath and installation.
   No functional testing of multipath itself.
@@ -12,7 +12,11 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/disk_activation
+  - installation/disk_activation/select_configure_zfcp_disks
+  - installation/disk_activation/select_add_zfcp_device
+  - installation/disk_activation/configure_zfcp_device
+  - installation/disk_activation/accept_configured_zfcp_devices
+  - installation/disk_activation/finish_disk_activation
   - installation/activate_multipath
   - installation/registration/register_via_scc
   - installation/module_selection/select_module_desktop
