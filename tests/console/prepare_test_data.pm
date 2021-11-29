@@ -20,8 +20,10 @@ use warnings;
 sub run {
     is_ipmi ? use_ssh_serial_console : select_console 'root-console';
 
+    my $timeout = get_var('PREPARE_TEST_DATA_TIMEOUT', 300);
+
     select_console 'user-console';
-    assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => 300;
+    assert_script_run "curl -L -v -f " . autoinst_url('/data') . " | cpio -id", timeout => $timeout;
     script_run "ls -al data";
 }
 

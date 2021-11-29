@@ -245,3 +245,4 @@ ZFCP_ADAPTERS | string | | Comma separated list of available ZFCP adapters in th
 LINUXRC_BOOT | boolean | true | To be used only in scenarios where we are booting an installed system from the installer medium (for example, a DVD) with the menu option "Boot Linux System" (not "boot From Hard Disk"). This option uses linuxrc.
 ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packages, do not fail if any are found. Upgrade scenarios are expecting orphans by default. Used by console/orphaned_packages_check.pm
 PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
+PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
