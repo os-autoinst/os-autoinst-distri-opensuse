@@ -72,17 +72,16 @@ sub run {
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
 
     # Run the tests for each environment
-    my $cmd_options = check_var('HOST_VERSION', '12-SP5') ? '' : '-- -n auto';
     my $error_count = 0;
     for my $env (split(/,/, $test_envs)) {
         record_info($env);
-        my $ret = script_run("timeout $bci_timeout tox -e $env $cmd_options", timeout => ($bci_timeout + 3));
+        my $ret = script_run("timeout $bci_timeout tox -e $env -- -n auto --reruns 3 --reruns-delay 10", timeout => ($bci_timeout + 3));
         if ($ret == 124) {
             # man timeout: If  the command times out, and --preserve-status is not set, then exit with status 124.
-            record_soft_failure("The command <tox -e $env $cmd_options> timed out.");
+            record_soft_failure("The command <tox -e $env> timed out.");
             $error_count += 1;
         } elsif ($ret != 0) {
-            record_soft_failure("The command <tox -e $env $cmd_options> failed.");
+            record_soft_failure("The command <tox -e $env> failed.");
             $error_count += 1;
         } else {
             record_info('PASSED');

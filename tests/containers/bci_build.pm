@@ -35,8 +35,7 @@ sub run {
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export CONTAINER_RUNTIME=$engine");
     assert_script_run("export BCI_DEVEL_REPO=$bci_devel_repo") if $bci_devel_repo;
-    my $build_options = ($host_distri eq 'sles' && $version eq '12') ? '' : '-- -n auto';
-    my $cmd = "tox -e build $build_options";
+    my $cmd = "tox -e build -- -n auto --reruns 3 --reruns-delay 10";
     record_info('Build', $cmd);
     assert_script_run($cmd, timeout => $bci_timeout);
     upload_logs('junit_build.xml', failok => 1);
