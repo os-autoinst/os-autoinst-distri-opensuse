@@ -66,19 +66,22 @@ sub install_testsuite {
 sub setup_nfs_server {
     my $nfsversion = shift;
     assert_script_run('mkdir -p /exportdir && echo \'/exportdir *(rw,no_root_squash,insecure)\' >> /etc/exports');
-    assert_script_run("echo 'options lockd nlm_grace_period=15' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
+
+    my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
+    assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
+
     if ($nfsversion == '3') {
         assert_script_run("echo 'MOUNT_NFS_V3=\"yes\"' >> /etc/sysconfig/nfs");
         assert_script_run("echo 'MOUNT_NFS_DEFAULT_PROTOCOL=3' >> /etc/sysconfig/autofs && echo 'OPTIONS=\"-O vers=3\"' >> /etc/sysconfig/autofs");
         assert_script_run("echo 'Defaultvers=3' >> /etc/nfsmount.conf && echo 'Nfsvers=3' >> /etc/nfsmount.conf");
     }
     else {
-        assert_script_run("echo 'NFSD_V4_GRACE=15' >> /etc/sysconfig/nfs && echo 'NFSD_V4_LEASE=15' >> /etc/sysconfig/nfs");
+        assert_script_run("sed -i 's/NFSV4LEASETIME=\"\"/NFSV4LEASETIME=\"$nfsgrace\"/' /etc/sysconfig/nfs");
+        assert_script_run("echo -e '[nfsd]\\ngrace-time=$nfsgrace\\nlease-time=$nfsgrace' > /etc/nfs.conf.local");
     }
     assert_script_run('systemctl restart rpcbind && systemctl enable nfs-server.service && systemctl restart nfs-server');
 
     # There's a graceful time we need to wait before using the NFS server
-    # Here we are using the same pynfs approach: wait for gracetime*2 before starting any test suite
     my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
     sleep($gracetime * 2);
 }
