@@ -30,7 +30,7 @@ my $guestvm_cfg = {
     swtpm_2 => {
         xml_file => {uefi => 'swtpm_uefi_2_0.xml', legacy => 'swtpm_legacy_2_0.xml'},
         version => '2.0',
-        expect_cmd => 'tpm2_pcrread sha1:0',
+        expect_cmd => 'tpm2_pcrread sha256:0',
     },
 };
 
