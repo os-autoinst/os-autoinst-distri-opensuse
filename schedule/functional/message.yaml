@@ -28,6 +28,7 @@ conditional_schedule:
                 - x11/pidgin/prep_pidgin
                 - x11/pidgin/pidgin_IRC
                 - x11/pidgin/clean_pidgin
+                - x11/hexchat
 schedule:
     - boot/boot_to_desktop
     - x11/window_system
