@@ -33,7 +33,8 @@ our @EXPORT = qw(
   get_used_partition_space
   lsblk_command
   validate_lsblk
-  get_partition_table_via_blkid);
+  get_partition_table_via_blkid
+  is_lsblk_able_to_display_mountpoints);
 
 =head2 str_to_mb
 
@@ -307,6 +308,26 @@ sub get_used_partition_space {
     return df_command({partition => $partition, column => '5'});
 }
 
+=head2 is_lsblk_able_to_display_mountpoints
+
+ is_lsblk_able_to_display_mountpoints();
+
+Runs utility C<lsblk> using flag --help to retrieve to check for one specific
+column 'MOUNTPOINTS'.
+
+From version util-linux-systemd-2.37 lsblk include new column MOUNTPOINTS
+with all the mountpoints including all the subvolumes in a btrfs system
+and in this case existing column MOUNTPOINT does not contain the primary
+mountpoint for the partition, the first mounted, instead contains the most
+recent one mounted. Therefore we need to workaround this issue.
+Please check bsc#1192996 for further info.
+
+=cut
+
+sub is_lsblk_able_to_display_mountpoints {
+    return script_run('lsblk --help | grep MOUNTPOINTS') == 0;
+}
+
 =head2 lsblk_command
 
  my $json = lsblk_command(output => $output);
@@ -328,7 +349,8 @@ sub lsblk_command {
 
 =head2 create_lsblk_validation_test_data
 
- my $validation_test_data = create_lsblk_validation_test_data($dev);
+ my $validation_test_data = create_lsblk_validation_test_data(
+     device => $dev, has_mountpoints_col => 1);
 
 Converts test data to test data adapted for validation using C<lsblk>.
 
@@ -343,16 +365,22 @@ Returns the following hash ref structure:
         ... }
     };
 
+Named argument B<device> specifies a block device
+Named argument B<has_mountpoints_col> indicates whether version of C<lsblk>
+used contains new MOUNTPOINTS column including all subvolumes mountpoints or not.
+
 =cut
 
 sub create_lsblk_validation_test_data {
-    my $dev = shift;
+    my (%args) = @_;
+    my $dev = $args{device};
+    my $has_mountpoints_col = $args{has_mountpoints_col};
     my $columns = {};
     my %to_lsblk_col = (
         name => 'name',
         size => 'size',
         filesystem => 'fstype',
-        mount_point => 'mountpoint');
+        mount_point => ($has_mountpoints_col) ? 'mountpoints' : 'mountpoint');
 
     my ($col_name, $col_name_test_data, $value);
     for my $k (keys %{$dev}) {
@@ -408,6 +436,8 @@ disks:
   ...
 
 B<type> represents the type of device. Valid values: 'disk' and 'part';
+B<has_mountpoints_col> indicates whether version of C<lsblk>
+used contains new MOUNTPOINTS column including all subvolumes mountpoints or not.
 
 Returns string with all found errors.
 
@@ -416,8 +446,11 @@ sub validate_lsblk {
     my (%args) = @_;
     my $dev = $args{device};
     my $type = $args{type};
+    my $has_mountpoints_col = $args{has_mountpoints_col};
 
-    my $validation_test_data = create_lsblk_validation_test_data($dev);
+    my $validation_test_data = create_lsblk_validation_test_data(
+        device => $dev,
+        has_mountpoints_col => $has_mountpoints_col);
 
     my $blockdev = lsblk_command(
         output => join(',', (keys %{$validation_test_data}, 'type')),
@@ -430,7 +463,17 @@ sub validate_lsblk {
     }
 
     for my $col (keys %{$validation_test_data}) {
-        if ($validation_test_data->{$col}{value} ne $blockdev->{$col}) {
+        if ($col eq 'mountpoints') {
+            my $col_value = $validation_test_data->{$col}{value};
+            my ($mountpoint) = grep { /^\Q$col_value\E$/ } @{$blockdev->{$col}};
+
+            $errors .= "List of mountpoints for blockdevice /dev/$dev->{name}. " .
+              "does not contain expected mountpoint. " .
+              "Expected: '$validation_test_data->{$col}{test_data_name}: " .
+              "$col_value', got: '$col: @{$blockdev->{$col}}\n"
+              unless $mountpoint;
+        }
+        elsif ($validation_test_data->{$col}{value} ne $blockdev->{$col}) {
             $errors .= "Wrong $col in blockdevice /dev/$dev->{name}. " .
               "Expected: '$validation_test_data->{$col}{test_data_name}: " .
               "$validation_test_data->{$col}{value}', got: '$col: $blockdev->{$col}'\n";
