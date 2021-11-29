@@ -36,7 +36,7 @@ sub run {
     my $resource_group = "openqa-cli-test-rg-$job_id";
     my $machine_name = "openqa-cli-test-vm-$job_id";
 
-    assert_script_run("az configure --defaults location=northeurope");
+    assert_script_run("az configure --defaults location=southeastasia");
     assert_script_run("az group create -n $resource_group");
 
     my $image_name = script_output("pint microsoft images --active --json | jq -r '.images[] | select( (.urn | contains(\"sles-15-sp3:gen2\")) and (.state == \"active\") and (.environment == \"PublicAzure\")).urn'");
@@ -66,7 +66,7 @@ sub cleanup {
 }
 
 sub test_flags {
-    return {fatal => 0, milestone => 0};
+    return {fatal => 0, milestone => 0, always_rollback => 1};
 }
 
 1;
