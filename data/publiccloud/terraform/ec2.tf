@@ -102,6 +102,11 @@ resource "aws_instance" "openqa" {
             openqa_created_date = timestamp()
             openqa_created_id = element(random_id.service.*.hex, count.index)
         }, var.tags)
+
+    ebs_block_device {
+        device_name = "/dev/sda1"
+        volume_size = 20
+    }
 }
 
 resource "aws_volume_attachment" "ebs_att" {
