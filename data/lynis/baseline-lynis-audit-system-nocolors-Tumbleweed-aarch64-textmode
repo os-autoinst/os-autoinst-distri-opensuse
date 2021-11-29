@@ -1,5 +1,5 @@
 
-[ Lynis 3.0.5 ]
+[ Lynis 3.0.6 ]
 
 ################################################################################
   Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
@@ -17,11 +17,11 @@
 [2C- Checking profiles...[37C [ DONE ]
 
   ---------------------------------------------------
-  Program version:           3.0.5
+  Program version:           3.0.6
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210929
-  Kernel version:            5.14.6
+  Operating system version:  20211127
+  Kernel version:            5.15.3
   Hardware platform:         aarch64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -36,25 +36,7 @@
   Test category:             all
   Test group:                all
   ---------------------------------------------------
-[2C- Program update status... [32C [ UPDATE AVAILABLE ]
-
-      ===============================================================================
-        Lynis update available
-      ===============================================================================
-
-        Current version : 305   Latest version : 306
-
-        Please update to the latest version.
-        New releases include additional features, bug fixes, tests, and baselines.
-
-        Download the latest version:
-
-        Packages (DEB/RPM) -  https://packages.cisofy.com
-        Website (TAR)      -  https://cisofy.com/downloads/
-        GitHub (source)    -  https://github.com/CISOfy/lynis
-
-      ===============================================================================
-
+[2C- Program update status... [32C [ NO UPDATE ]
 
 [+] System tools
 ------------------------------------
@@ -67,62 +49,21 @@
 [0C [0C
 [2C- Plugins enabled[42C [ NONE ]
 
-=================================================================
-
-  Exception found!
-
-  Function/test:  [GetHostID]
-  Message:        Can't create hostid (no MAC addresses found)
-
-  Help improving the Lynis community with your feedback!
-
-  Steps:
-  - Ensure you are running the latest version (/usr/bin/lynis update check)
-  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
-  - Include relevant parts of the log file or configuration file
-
-  Thanks!
-
-=================================================================
-
-
-=================================================================
-
-  Exception found!
-
-  Function/test:  [GetHostID]
-  Message:        Can't create HOSTID, command ip not found
-
-  Help improving the Lynis community with your feedback!
-
-  Steps:
-  - Ensure you are running the latest version (/usr/bin/lynis update check)
-  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
-  - Include relevant parts of the log file or configuration file
-
-  Thanks!
-
-=================================================================
-
-
 [+] Boot and services
 ------------------------------------
-
-  [WARNING]: Test CORE-1000 had a long execution: 16.923534 seconds
-
 [2C- Service Manager[42C [ systemd ]
 [2C- Checking UEFI boot[39C [ ENABLED ]
 [2C- Checking Secure Boot[37C [ DISABLED ]
 [2C- Checking presence GRUB2[34C [ FOUND ]
 [4C- Checking for password protection[23C [ NONE ]
 [2C- Check running services (systemctl)[23C [ DONE ]
-[8CResult: found 26 running services[20C
+[8CResult: found 24 running services[20C
 [2C- Check enabled services at boot (systemctl)[15C [ DONE ]
-[8CResult: found 24 enabled services[20C
+[8CResult: found 23 enabled services[20C
 [2C- Check startup files (permissions)[24C [ OK ]
 [2C- Running 'systemd-analyze security'[23C
 [8C- after-local.service:[31C [ UNSAFE ]
-[8C- auditd.service:[36C [ MEDIUM ]
+[8C- auditd.service:[36C [ EXPOSED ]
 [8C- chronyd.service:[35C [ EXPOSED ]
 [8C- cron.service:[38C [ UNSAFE ]
 [8C- cups.service:[38C [ UNSAFE ]
@@ -131,14 +72,13 @@
 [8C- emergency.service:[33C [ UNSAFE ]
 [8C- firewalld.service:[33C [ UNSAFE ]
 [8C- getty@tty1.service:[32C [ UNSAFE ]
-[8C- getty@tty4.service:[32C [ UNSAFE ]
 [8C- getty@tty6.service:[32C [ UNSAFE ]
 [8C- haveged.service:[35C [ MEDIUM ]
 [8C- irqbalance.service:[32C [ MEDIUM ]
 [8C- iscsid.service:[36C [ UNSAFE ]
 [8C- iscsiuio.service:[34C [ UNSAFE ]
 [8C- nscd.service:[38C [ UNSAFE ]
-[8C- pcscd.service:[37C [ UNSAFE ]
+[8C- pcscd.service:[37C [ EXPOSED ]
 [8C- plymouth-start.service:[28C [ UNSAFE ]
 [8C- polkit.service:[36C [ UNSAFE ]
 [8C- postfix.service:[35C [ UNSAFE ]
@@ -161,7 +101,6 @@
 [8C- systemd-timesyncd.service:[25C [ PROTECTED ]
 [8C- systemd-udevd.service:[29C [ MEDIUM ]
 [8C- user@0.service:[36C [ UNSAFE ]
-[8C- user@1000.service:[33C [ UNSAFE ]
 [8C- wickedd-auto4.service:[29C [ UNSAFE ]
 [8C- wickedd-dhcp4.service:[29C [ UNSAFE ]
 [8C- wickedd-dhcp6.service:[29C [ UNSAFE ]
@@ -174,7 +113,7 @@
 [2C- Checking kernel version and release[22C [ DONE ]
 [2C- Checking kernel type[37C [ DONE ]
 [2C- Checking loaded kernel modules[27C [ DONE ]
-[6CFound 106 active modules[31C
+[6CFound 91 active modules[32C
 [2C- Checking Linux kernel configuration file[17C [ FOUND ]
 [2C- Checking default I/O kernel scheduler[20C [ NOT FOUND ]
 [2C- Checking core dumps configuration[24C
@@ -268,8 +207,11 @@
 [2C- Mount options of /run[36C [ HARDENED ]
 [2C- Mount options of /tmp[36C [ PARTIALLY HARDENED ]
 [2C- Mount options of /var[36C [ NON DEFAULT ]
-[2C- Total without nodev:14 noexec:18 nosuid:12 ro or noexec (W^X): 18 of total 32[0C
+[2C- Total without nodev:14 noexec:17 nosuid:12 ro or noexec (W^X): 17 of total 31[0C
 [2C- Disable kernel support of some filesystems[15C
+[4C- Module cramfs is blacklisted[27C [ OK ]
+[4C- Module freevxfs is blacklisted[25C [ OK ]
+[4C- Module hfs is blacklisted[30C [ OK ]
 
 [+] USB Devices
 ------------------------------------
@@ -304,10 +246,10 @@
 [4C- Searching RPM package manager[26C [ FOUND ]
 [6C- Querying RPM package manager[25C
 
-  [WARNING]: Test PKGS-7308 had a long execution: 31.921872 seconds
+  [WARNING]: Test PKGS-7308 had a long execution: 29.939799 seconds
 
 
-  [WARNING]: Test PKGS-7328 had a long execution: 10.966953 seconds
+  [WARNING]: Test PKGS-7328 had a long execution: 10.791799 seconds
 
 [2C- Using Zypper to find vulnerable packages[17C [ NONE ]
 [2C- Checking package audit tool[30C [ INSTALLED ]
@@ -472,7 +414,7 @@
 [2C- Checking accounting information[26C [ NOT FOUND ]
 [2C- Checking sysstat accounting data[25C [ NOT FOUND ]
 [2C- Checking auditd[42C [ ENABLED ]
-[4C- Checking audit rules[35C [ OK ]
+[4C- Checking audit rules[35C [ SUGGESTION ]
 [4C- Checking audit configuration file[22C [ OK ]
 [4C- Checking auditd log file[31C [ FOUND ]
 
@@ -500,7 +442,7 @@
 ------------------------------------
 [2C- Checking presence AppArmor[31C [ FOUND ]
 [4C- Checking AppArmor status[31C [ ENABLED ]
-[8CFound 39 unconfined processes[24C
+[8CFound 35 unconfined processes[24C
 [2C- Checking presence SELinux[32C [ NOT FOUND ]
 [2C- Checking presence TOMOYO Linux[27C [ NOT FOUND ]
 [2C- Checking presence grsecurity[29C [ NOT FOUND ]
@@ -605,8 +547,8 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package systemd-249.4-2.2.aarch64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-6.3.aarch64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package systemd-249.7-1.1.aarch64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-7.1.aarch64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -633,7 +575,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CNo bad RPATH usage found in 4320 executables[13C [ OK ]
+[4CNo bad RPATH usage found in 4332 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -641,7 +583,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 86.762008 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 102.225191 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -694,7 +636,7 @@
 
 ================================================================================
 
-  -[ Lynis 3.0.5 Results ]-
+  -[ Lynis 3.0.6 Results ]-
 
   Warnings (2):
   ----------------------------
@@ -704,9 +646,9 @@
   ! iptables module(s) loaded, but no rules active [FIRE-4512] 
       https://cisofy.com/lynis/controls/FIRE-4512/
 
-  Suggestions (40):
+  Suggestions (41):
   ----------------------------
-  * Version of Lynis outdated, consider upgrading to the latest version [LYNIS] 
+  * This release is more than 4 months old. Check the website or GitHub to see if there is an update available. [LYNIS] 
       https://cisofy.com/lynis/controls/LYNIS/
 
   * Set a password on GRUB boot loader to prevent altering boot configuration (e.g. boot in single user mode without password) [BOOT-5122] 
@@ -820,6 +762,9 @@
   * Enable sysstat to collect accounting (no results) [ACCT-9626] 
       https://cisofy.com/lynis/controls/ACCT-9626/
 
+  * Audit daemon is enabled with an empty ruleset. Disable the daemon or define rules [ACCT-9630] 
+      https://cisofy.com/lynis/controls/ACCT-9630/
+
   * Install a file integrity tool to monitor changes to critical and sensitive files [FINT-4350] 
       https://cisofy.com/lynis/controls/FINT-4350/
 
@@ -853,7 +798,7 @@
 
   Lynis security scan details:
 
-  Hardening index : 81 [################    ]
+  Hardening index : 80 [################    ]
   Tests performed : 260
   Plugins enabled : 0
 
@@ -874,11 +819,17 @@
   - Report data                     : /var/log/lynis-report.dat
 
 ================================================================================
-  Notice: Lynis update available
-  Current version : 305    Latest version : 306
+
+  Exceptions found
+  Some exceptional events or information was found!
+
+  What to do:
+  You can help by providing your log file (/var/log/lynis.log).
+  Go to https://cisofy.com/contact/ and send your file to the e-mail address listed
+
 ================================================================================
 
-  Lynis 3.0.5
+  Lynis 3.0.6
 
   Auditing, system hardening, and compliance for UNIX-based systems
   (Linux, macOS, BSD, and others)
