@@ -110,7 +110,7 @@ sub save_system_logs {
 sub save_upload_y2logs {
     my ($self, %args) = @_;
 
-    return if (get_var('NOLOGS'));
+    return if (get_var('NOLOGS') || get_var('Y2LOGS_UPLOADED'));
     $args{suffix} //= '';
 
     # Do not test/recover network if collect from installation system, as it won't work anyway with current approach
