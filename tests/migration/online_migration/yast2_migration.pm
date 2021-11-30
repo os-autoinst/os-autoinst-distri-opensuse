@@ -198,7 +198,7 @@ sub run {
     # migration via smt will install packagehub and NVIDIA compute, we need click trust
     # gpg keys; Same with leap to sle migration, need to trust packagehub gpg key.
     if (get_var('SMT_URL') =~ /smt/) {
-        assert_screen 'import-untrusted-gpg-key', 60;
+        assert_screen 'import-untrusted-gpg-key', 180;
         send_key 'alt-t';
         if ((is_x86_64) && (!(is_leap_migration)) || (is_aarch64)) {
             assert_screen 'import-untrusted-gpg-key-nvidia', 300;
