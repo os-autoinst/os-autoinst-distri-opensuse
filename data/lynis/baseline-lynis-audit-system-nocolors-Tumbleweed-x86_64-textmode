@@ -1,5 +1,5 @@
 
-[ Lynis 3.0.5 ]
+[ Lynis 3.0.6 ]
 
 ################################################################################
   Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
@@ -17,11 +17,11 @@
 [2C- Checking profiles...[37C [ DONE ]
 
   ---------------------------------------------------
-  Program version:           3.0.5
+  Program version:           3.0.6
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20210703
-  Kernel version:            5.12.13
+  Operating system version:  20211129
+  Kernel version:            5.15.5
   Hardware platform:         x86_64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -49,49 +49,8 @@
 [0C [0C
 [2C- Plugins enabled[42C [ NONE ]
 
-=================================================================
-
-  Exception found!
-
-  Function/test:  [GetHostID]
-  Message:        Can't create hostid (no MAC addresses found)
-
-  Help improving the Lynis community with your feedback!
-
-  Steps:
-  - Ensure you are running the latest version (/usr/bin/lynis update check)
-  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
-  - Include relevant parts of the log file or configuration file
-
-  Thanks!
-
-=================================================================
-
-
-=================================================================
-
-  Exception found!
-
-  Function/test:  [GetHostID]
-  Message:        Can't create HOSTID, command ip not found
-
-  Help improving the Lynis community with your feedback!
-
-  Steps:
-  - Ensure you are running the latest version (/usr/bin/lynis update check)
-  - If so, create a GitHub issue at https://github.com/CISOfy/lynis
-  - Include relevant parts of the log file or configuration file
-
-  Thanks!
-
-=================================================================
-
-
 [+] Boot and services
 ------------------------------------
-
-  [WARNING]: Test CORE-1000 had a long execution: 17.226488 seconds
-
 [2C- Service Manager[42C [ systemd ]
 [2C- Checking UEFI boot[39C [ DISABLED ]
 [2C- Checking presence GRUB2[34C [ FOUND ]
@@ -99,7 +58,7 @@
 [2C- Check running services (systemctl)[23C [ DONE ]
 [8CResult: found 24 running services[20C
 [2C- Check enabled services at boot (systemctl)[15C [ DONE ]
-[8CResult: found 25 enabled services[20C
+[8CResult: found 24 enabled services[20C
 [2C- Check startup files (permissions)[24C [ OK ]
 [2C- Running 'systemd-analyze security'[23C
 [8C- after-local.service:[31C [ UNSAFE ]
@@ -129,7 +88,7 @@
 [8C- serial-getty@ttyS0.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS1.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS2.service:[24C [ UNSAFE ]
-[8C- smartd.service:[36C [ UNSAFE ]
+[8C- smartd.service:[36C [ EXPOSED ]
 [8C- snapperd.service:[34C [ MEDIUM ]
 [8C- sshd.service:[38C [ UNSAFE ]
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
@@ -155,7 +114,7 @@
 [2C- Checking kernel version and release[22C [ DONE ]
 [2C- Checking kernel type[37C [ DONE ]
 [2C- Checking loaded kernel modules[27C [ DONE ]
-[6CFound 101 active modules[31C
+[6CFound 86 active modules[32C
 [2C- Checking Linux kernel configuration file[17C [ FOUND ]
 [2C- Checking default I/O kernel scheduler[20C [ NOT FOUND ]
 [2C- Checking core dumps configuration[24C
@@ -164,7 +123,7 @@
 [4C- 'hard' configuration in security/limits.conf[11C [ DEFAULT ]
 [4C- 'soft' configuration in security/limits.conf[11C [ DEFAULT ]
 [4C- Checking setuid core dumps configuration[15C [ DISABLED ]
-[2C- Check if reboot is needed[32C [ NO ]
+[2C- Check if reboot is needed[32C [ YES ]
 
 [+] Memory and Processes
 ------------------------------------
@@ -431,7 +390,7 @@
 [2C- Checking accounting information[26C [ NOT FOUND ]
 [2C- Checking sysstat accounting data[25C [ NOT FOUND ]
 [2C- Checking auditd[42C [ ENABLED ]
-[4C- Checking audit rules[35C [ OK ]
+[4C- Checking audit rules[35C [ SUGGESTION ]
 [4C- Checking audit configuration file[22C [ OK ]
 [4C- Checking auditd log file[31C [ FOUND ]
 
@@ -483,7 +442,7 @@
 [+] File Permissions
 ------------------------------------
 [2C- Starting file permissions check[26C
-[4CFile: /boot/grub2/grub.cfg[31C [ OK ]
+[4CFile: /boot/grub2/grub.cfg[31C [ SUGGESTION ]
 [4CFile: /etc/cron.deny[37C [ OK ]
 [4CFile: /etc/crontab[39C [ OK ]
 [4CFile: /etc/group[41C [ OK ]
@@ -492,7 +451,6 @@
 [4CFile: /etc/hosts.deny[36C [ OK ]
 [4CFile: /etc/issue[41C [ SUGGESTION ]
 [4CFile: /etc/issue.net[37C [ OK ]
-[4CFile: /etc/motd[42C [ OK ]
 [4CFile: /etc/passwd[40C [ OK ]
 [4CFile: /etc/passwd-[39C [ OK ]
 [4CFile: /etc/hosts.equiv[35C [ OK ]
@@ -525,7 +483,6 @@
 [4C- kernel.modules_disabled (exp: 1)[23C [ DIFFERENT ]
 [4C- kernel.perf_event_paranoid (exp: 3)[20C [ DIFFERENT ]
 [4C- kernel.randomize_va_space (exp: 2)[21C [ OK ]
-[4C- kernel.suid_dumpable (exp: 0)[26C [ OK ]
 [4C- kernel.sysrq (exp: 0)[34C [ DIFFERENT ]
 [4C- kernel.unprivileged_bpf_disabled (exp: 1)[14C [ DIFFERENT ]
 [4C- net.core.bpf_jit_harden (exp: 2)[23C [ DIFFERENT ]
@@ -565,8 +522,8 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CWarning: Package systemd-248.3-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-6.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package systemd-249.7-1.1.x86_64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-7.1.x86_64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -593,7 +550,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CNo bad RPATH usage found in 4262 executables[13C [ OK ]
+[4CNo bad RPATH usage found in 4355 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -601,7 +558,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 30.047560 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 31.845813 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -654,18 +611,25 @@
 
 ================================================================================
 
-  -[ Lynis 3.0.5 Results ]-
+  -[ Lynis 3.0.6 Results ]-
 
-  Warnings (2):
+  Warnings (3):
   ----------------------------
+  ! Reboot of system is most likely needed [KRNL-5830] 
+    - Solution : reboot
+      https://cisofy.com/lynis/controls/KRNL-5830/
+
   ! Couldn't find 2 responsive nameservers [NETW-2705] 
       https://cisofy.com/lynis/controls/NETW-2705/
 
   ! iptables module(s) loaded, but no rules active [FIRE-4512] 
       https://cisofy.com/lynis/controls/FIRE-4512/
 
-  Suggestions (39):
+  Suggestions (41):
   ----------------------------
+  * This release is more than 4 months old. Check the website or GitHub to see if there is an update available. [LYNIS] 
+      https://cisofy.com/lynis/controls/LYNIS/
+
   * Set a password on GRUB boot loader to prevent altering boot configuration (e.g. boot in single user mode without password) [BOOT-5122] 
       https://cisofy.com/lynis/controls/BOOT-5122/
 
@@ -777,6 +741,9 @@
   * Enable sysstat to collect accounting (no results) [ACCT-9626] 
       https://cisofy.com/lynis/controls/ACCT-9626/
 
+  * Audit daemon is enabled with an empty ruleset. Disable the daemon or define rules [ACCT-9630] 
+      https://cisofy.com/lynis/controls/ACCT-9630/
+
   * Install a file integrity tool to monitor changes to critical and sensitive files [FINT-4350] 
       https://cisofy.com/lynis/controls/FINT-4350/
 
@@ -810,7 +777,7 @@
 
   Lynis security scan details:
 
-  Hardening index : 81 [################    ]
+  Hardening index : 80 [################    ]
   Tests performed : 259
   Plugins enabled : 0
 
@@ -841,7 +808,7 @@
 
 ================================================================================
 
-  Lynis 3.0.5
+  Lynis 3.0.6
 
   Auditing, system hardening, and compliance for UNIX-based systems
   (Linux, macOS, BSD, and others)
