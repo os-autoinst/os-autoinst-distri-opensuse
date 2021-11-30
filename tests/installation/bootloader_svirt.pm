@@ -305,7 +305,17 @@ sub run {
         }
         enter_cmd "echo e > \$pty";    # edit
 
-        my $max = (!is_jeos) ? 2 : (is_sle '<15-sp1') ? 4 : 13;
+        # move the cursor position in grub2 in order to append kernel command arguments
+        my $max = 2;
+        if (is_jeos) {
+            if (is_sle '<15-sp1') {
+                $max = 4;
+            } elsif (is_sle '15-sp4+') {
+                $max = 9;
+            } else {
+                $max = 13;
+            }
+        }
         enter_cmd "echo -en '\\033[B' > \$pty" for (1 .. $max);    # $max-times key down
         enter_cmd "echo -en '\\033[K' > \$pty";    # end of line
 
