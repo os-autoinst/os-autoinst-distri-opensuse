@@ -182,9 +182,12 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
   }
 
   os_disk {
-    name              = "${var.name}-${element(random_id.service.*.hex, count.index)}-osdisk"
+    name                 = "${var.name}-${element(random_id.service.*.hex, count.index)}-osdisk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
+    # SLE images are 30G by default. Uncomment this line in case we need to increase the disk size
+    # note: value can not be decreased because 30 GB is minimum allowed by Azure
+    # disk_size_gb         = 30
   }
 
   source_image_id =  var.image_id != "" ? azurerm_image.image.0.id : null
