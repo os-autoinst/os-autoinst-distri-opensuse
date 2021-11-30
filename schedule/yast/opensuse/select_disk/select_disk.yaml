@@ -21,19 +21,21 @@ schedule:
   - installation/logpackages
   - installation/system_role/select_role_desktop_with_KDE_plasma
   - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup
+  - installation/partitioning/guided_setup/select_disks
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+  - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
   - installation/await_install
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
-  - installation/grub_test
+  - installation/handle_reboot
   - installation/first_boot
   - console/validate_first_disk_selection
 test_data:
