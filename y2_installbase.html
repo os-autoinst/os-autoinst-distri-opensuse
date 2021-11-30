@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#accept3rdparty">accept3rdparty</a></li>
       <li><a href="#accept_changes">accept_changes</a></li>
+      <li><a href="#validate_default_target">validate_default_target</a></li>
       <li><a href="#back_to_overview_from_packages">back_to_overview_from_packages</a></li>
       <li><a href="#check12qtbug">check12qtbug</a></li>
       <li><a href="#go_to_patterns">go_to_patterns</a></li>
@@ -47,6 +48,14 @@
 <pre><code>    accept_changes();</code></pre>
 
 <p>After making changes in the &quot;pattern selection&quot; screen, accepts changes.</p>
+
+<h2 id="validate_default_target">validate_default_target</h2>
+
+<pre><code>    validate_default_target($expected_target);</code></pre>
+
+<p>The function compares the actual systemd target with the expected one (the one that passed as an argument to the function)</p>
+
+<p><code>$expected_target</code> - systemd target that is expected and need to be validated.</p>
 
 <h2 id="back_to_overview_from_packages">back_to_overview_from_packages</h2>
 
