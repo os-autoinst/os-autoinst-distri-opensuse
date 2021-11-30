@@ -1,8 +1,7 @@
 ---
-name: addon-module-ftp
+name: textmode
 description: |
-  Test verifies that adding addon using ftp works fine.  We just perform installation
-  here. Using HA here, related ticket: https://progress.opensuse.org/issues/25896
+  Installation in textmode which selects System Role 'Text Mode'.
 vars:
   YUI_REST_API: 1
 schedule:
@@ -11,17 +10,18 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
+  - installation/disk_activation
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
-  - installation/addon_products_sle
-  - installation/system_role/select_role_text_mode
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
-  - '{{hostname_inst}}'
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
@@ -31,13 +31,22 @@ schedule:
   - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
+  - console/prepare_test_data
   - console/consoletest_setup
-  - console/zypper_ref
-  - console/validate_addon_repos
-conditional_schedule:
-  hostname_inst:
-    BACKEND:
-      qemu:
-        - installation/hostname_inst
-      svirt:
-        - installation/hostname_inst
+  - console/validate_product_installed_SLES
+  - console/verify_network
+  - locale/keymap_or_locale
+  - console/validate_installed_patterns
+  - console/force_scheduled_tasks
+  - console/textinfo
+  - console/orphaned_packages_check
+  - console/consoletest_finish
+test_data:
+  software:
+    patterns:
+      - apparmor
+      - base
+      - enhanced_base
+      - x11
+      - x11_yast
+      - yast2_basis
