@@ -2,14 +2,14 @@ use Mojo::Base -strict;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
-use publiccloud::gcp;
+use publiccloud::gcp_client;
 use publiccloud::provider;
 use Data::Dumper;
 use testapi;
 
 
 subtest 'get_next_gcp_role' => sub {
-    my $gcp = publiccloud::gcp->new();
+    my $gcp = publiccloud::gcp_client->new();
     my $role = $gcp->get_next_vault_role();
     isnt($role, $gcp->get_next_vault_role(), "Two calls don't return the same role");
 

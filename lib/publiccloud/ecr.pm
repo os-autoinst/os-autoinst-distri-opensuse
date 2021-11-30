@@ -22,6 +22,7 @@ has security_token => undef;
 sub init {
     my ($self, %args) = @_;
     $self->SUPER::init("ECR");
+    $self->configure_docker();
 }
 
 =head2 push_container_image
@@ -37,8 +38,6 @@ sub push_container_image {
     my $full_name_prefix = $self->get_container_registry_prefix();
     my $full_name = $self->get_container_image_full_name($tag);
 
-    assert_script_run(
-        "aws ecr get-login-password --region $region | docker login --username AWS --password-stdin $full_name_prefix");
     assert_script_run("docker tag $image $full_name");
     assert_script_run("docker push $full_name", 180);
 
