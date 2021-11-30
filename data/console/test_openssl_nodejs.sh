@@ -154,6 +154,8 @@ skip_test=(
   ["14.15.1-6.3.1 test/sequential/test-tls-session-timeout.js SLE_12_SP5"]="skip"
   ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15"]="skip"
   ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15_SP1"]="skip"
+  ["10.24.1-1.36.1 test/parallel/test-tls-passphrase.js SLE_15"]="skip"
+  ["10.24.1-1.36.1 test/parallel/test-tls-passphrase.js SLE_15_SP1"]="skip"
 )
 
 # Common flags to use on each test
