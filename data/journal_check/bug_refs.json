@@ -168,7 +168,7 @@
     "bsc#1187613": {
         "description": "kernel: Grant table initialized",
         "products": {
-            "sle": ["15-SP2", "15-SP3"]
+            "sle": ["15-SP2", "15-SP3", "15-SP4"]
         },
         "type": "bug"
     },
