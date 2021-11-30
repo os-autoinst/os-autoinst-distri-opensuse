@@ -19,11 +19,26 @@ use utils;
 has storage_name => undef;
 has provider_client => undef;
 has project_id => undef;
+has account => undef;
+has service_acount_name => undef;
+has private_key_id => undef;
+has private_key => undef;
+has client_id => undef;
 
 sub init {
     my ($self, %params) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::gcp_client->new(%params));
+    $self->provider_client(publiccloud::gcp_client->new(
+            key_id => $self->key_id,
+            key_secret => $self->key_secret,
+            region => $self->region,
+            account => $self->account,
+            service_acount_name => $self->service_acount_name,
+            project_id => $self->project_id,
+            private_key_id => $self->private_key_id,
+            private_key => $self->private_key,
+            client_id => $self->client_id
+    ));
     $self->provider_client->init();
 }
 
@@ -72,6 +87,8 @@ sub img_proof {
     $args{instance_type} //= 'n1-standard-2';
     $args{user} //= 'susetest';
     $args{provider} //= 'gce';
+    $args{key_id} //= $self->provider_client->key_id;
+    $args{key_secret} //= $self->provider_client->key_secret;
 
     return $self->run_img_proof(%args);
 }
