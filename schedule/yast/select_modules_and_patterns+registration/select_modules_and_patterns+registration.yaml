@@ -14,7 +14,6 @@ vars:
   ENABLE_ALL_SCC_MODULES: 1
   ADDONS: all-packages
   YUI_REST_API: 1
-  QEMURAM: 2048
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
