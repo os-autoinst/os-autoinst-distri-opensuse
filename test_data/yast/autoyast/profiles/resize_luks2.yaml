@@ -7,5 +7,5 @@ profile:
         disklabel: gpt
         partitions:
           partition:
-            crypt_method: luks1
+            crypt_method: luks2
             size: 5368709120
