@@ -28,6 +28,7 @@
       <li><a href="#df_command">df_command</a></li>
       <li><a href="#get_partition_size">get_partition_size</a></li>
       <li><a href="#get_used_partition_space">get_used_partition_space</a></li>
+      <li><a href="#is_lsblk_able_to_display_mountpoints">is_lsblk_able_to_display_mountpoints</a></li>
       <li><a href="#lsblk_command">lsblk_command</a></li>
       <li><a href="#create_lsblk_validation_test_data">create_lsblk_validation_test_data</a></li>
       <li><a href="#validate_lsblk">validate_lsblk</a></li>
@@ -105,6 +106,14 @@
 
 <pre><code>  get_used_partition_space($partition)</code></pre>
 
+<h2 id="is_lsblk_able_to_display_mountpoints">is_lsblk_able_to_display_mountpoints</h2>
+
+<pre><code> is_lsblk_able_to_display_mountpoints();</code></pre>
+
+<p>Runs utility <code>lsblk</code> using flag --help to retrieve to check for one specific column &#39;MOUNTPOINTS&#39;.</p>
+
+<p>From version util-linux-systemd-2.37 lsblk include new column MOUNTPOINTS with all the mountpoints including all the subvolumes in a btrfs system and in this case existing column MOUNTPOINT does not contain the primary mountpoint for the partition, the first mounted, instead contains the most recent one mounted. Therefore we need to workaround this issue. Please check bsc#1192996 for further info.</p>
+
 <h2 id="lsblk_command">lsblk_command</h2>
 
 <pre><code> my $json = lsblk_command(output =&gt; $output);</code></pre>
@@ -115,11 +124,14 @@
 
 <h2 id="create_lsblk_validation_test_data">create_lsblk_validation_test_data</h2>
 
-<pre><code> my $validation_test_data = create_lsblk_validation_test_data($dev);</code></pre>
+<pre><code> my $validation_test_data = create_lsblk_validation_test_data(
+     device =&gt; $dev, has_mountpoints_col =&gt; 1);</code></pre>
 
 <p>Converts test data to test data adapted for validation using <code>lsblk</code>.</p>
 
 <p>For the device passed converts its test data to corresponding lsblk columns if available in the mapping of this function. Returns the following hash ref structure: { &lt;lsblk_col_name_1&gt; =&gt; { test_data_name =&gt; &lt;test_data_col_name&gt;, value =&gt; &lt;value&gt; } &lt;lsblk_col_name_2&gt; =&gt; { ... } };</p>
+
+<p>Named argument <b>device</b> specifies a block device Named argument <b>has_mountpoints_col</b> indicates whether version of <code>lsblk</code> used contains new MOUNTPOINTS column including all subvolumes mountpoints or not.</p>
 
 <h2 id="validate_lsblk">validate_lsblk</h2>
 
@@ -131,7 +143,7 @@
 
 <p>disks: - name: vda table_type: gpt allowed_unpartitioned: 0.00GB partitions: - name: vda1 formatting_options: should_format: 1 filesystem: xfs mounting_options: should_mount: 1 mount_point: / ...</p>
 
-<p><b>type</b> represents the type of device. Valid values: &#39;disk&#39; and &#39;part&#39;;</p>
+<p><b>type</b> represents the type of device. Valid values: &#39;disk&#39; and &#39;part&#39;; <b>has_mountpoints_col</b> indicates whether version of <code>lsblk</code> used contains new MOUNTPOINTS column including all subvolumes mountpoints or not.</p>
 
 <p>Returns string with all found errors.</p>
 
