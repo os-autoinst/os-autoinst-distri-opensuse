@@ -107,11 +107,11 @@ sub run {
 
     record_info('Clone', "Clone BCI tests repository: $bci_tests_repo");
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
-    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo");
+    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/bci-tests");
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1};
 }
 
 1;

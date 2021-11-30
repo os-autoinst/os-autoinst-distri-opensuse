@@ -12,5 +12,4 @@ schedule:
   - boot/boot_to_desktop
   - containers/host_configuration
   - containers/bci_prepare
-  - containers/bci_build
-  - containers/bci_test
+  - containers/bci_test_runner
