@@ -841,6 +841,7 @@
     <install_recommended t="boolean">true</install_recommended>
     <instsource/>
     <packages t="list">
+      <package>sudo</package>
       <package>yast2-users</package>
       <package>yast2-services-manager</package>
       <package>yast2-ntp-client</package>
