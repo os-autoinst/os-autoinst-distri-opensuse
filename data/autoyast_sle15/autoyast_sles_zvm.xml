@@ -72,259 +72,222 @@
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>100</gid>
-      <group_password>x</group_password>
       <groupname>users</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>59</gid>
-      <group_password>x</group_password>
       <groupname>maildrop</groupname>
       <userlist>postfix</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>488</gid>
-      <group_password>x</group_password>
       <groupname>kvm</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>42</gid>
-      <group_password>x</group_password>
       <groupname>trusted</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>482</gid>
-      <group_password>x</group_password>
       <groupname>systemd-coredump</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>51</gid>
-      <group_password>x</group_password>
       <groupname>postfix</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>487</gid>
-      <group_password>x</group_password>
       <groupname>lp</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>5</gid>
-      <group_password>x</group_password>
       <groupname>tty</groupname>
       <userlist>bernhard</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>65534</gid>
-      <group_password>x</group_password>
       <groupname>nobody</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>478</gid>
-      <group_password>x</group_password>
       <groupname>polkitd</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>483</gid>
-      <group_password>x</group_password>
       <groupname>systemd-timesync</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>498</gid>
-      <group_password>!</group_password>
       <groupname>mail</groupname>
       <userlist>postfix</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>476</gid>
-      <group_password>x</group_password>
       <groupname>vnc</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>491</gid>
-      <group_password>x</group_password>
       <groupname>dialout</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>65533</gid>
-      <group_password>x</group_password>
       <groupname>nogroup</groupname>
       <userlist>nobody</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>15</gid>
-      <group_password>x</group_password>
       <groupname>shadow</groupname>
       <userlist>vnc</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>495</gid>
-      <group_password>x</group_password>
       <groupname>lock</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>0</gid>
-      <group_password>x</group_password>
       <groupname>root</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>496</gid>
-      <group_password>x</group_password>
       <groupname>kmem</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>1</gid>
-      <group_password>x</group_password>
       <groupname>bin</groupname>
       <userlist>daemon</userlist>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>479</gid>
-      <group_password>x</group_password>
       <groupname>sshd</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>481</gid>
-      <group_password>x</group_password>
       <groupname>chrony</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>493</gid>
-      <group_password>x</group_password>
       <groupname>audio</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>71</gid>
-      <group_password>x</group_password>
       <groupname>ntadmin</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>497</gid>
-      <group_password>x</group_password>
       <groupname>wheel</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>480</gid>
-      <group_password>x</group_password>
       <groupname>nscd</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>477</gid>
-      <group_password>x</group_password>
       <groupname>ts-shell</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>2</gid>
-      <group_password>x</group_password>
       <groupname>daemon</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>492</gid>
-      <group_password>x</group_password>
       <groupname>cdrom</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>499</gid>
-      <group_password>x</group_password>
       <groupname>messagebus</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>489</gid>
-      <group_password>x</group_password>
       <groupname>input</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>494</gid>
-      <group_password>x</group_password>
       <groupname>utmp</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>485</gid>
-      <group_password>x</group_password>
       <groupname>video</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>484</gid>
-      <group_password>x</group_password>
       <groupname>systemd-journal</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>62</gid>
-      <group_password>x</group_password>
       <groupname>man</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>490</gid>
-      <group_password>x</group_password>
       <groupname>disk</groupname>
       <userlist/>
     </group>
     <group>
       <encrypted config:type="boolean">true</encrypted>
       <gid>486</gid>
-      <group_password>x</group_password>
       <groupname>tape</groupname>
       <userlist/>
     </group>
