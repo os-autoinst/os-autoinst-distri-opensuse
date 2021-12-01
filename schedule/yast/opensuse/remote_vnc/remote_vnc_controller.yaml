@@ -7,7 +7,7 @@ schedule:
  - support_server/setup
  - remote/remote_controller
  - installation/welcome
- - installation/online_repos
+ - installation/online_repos/disable_online_repos
  - installation/installation_mode
  - installation/system_role
  - installation/partitioning
