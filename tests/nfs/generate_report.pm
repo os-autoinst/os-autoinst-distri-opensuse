@@ -101,6 +101,8 @@ sub run {
         $self->upload_cthon04_log();
     }
     upload_system_logs();
+
+    autotest::loadtest("tests/shutdown/shutdown.pm");
 }
 
 sub test_flags {
