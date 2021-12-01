@@ -20,6 +20,7 @@ schedule:
 - console/system_state
 - console/prepare_test_data
 - console/consoletest_setup
+- '{{screensaver}}'
 - locale/keymap_or_locale
 - console/textinfo
 - console/hostname
@@ -82,4 +83,8 @@ conditional_schedule:
         - x11/oomath
         - x11/oocalc
         - x11/evolution
+  screensaver:
+    ARCH:
+      s390x:
+        - x11/disable_screensaver
 ...
