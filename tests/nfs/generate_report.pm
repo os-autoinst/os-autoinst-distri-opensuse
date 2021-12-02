@@ -19,19 +19,7 @@ sub upload_pynfs_log {
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ~/pynfs/$folder");
-
-    upload_logs('result-raw.txt', failok => 1);
-
-    script_run('../showresults.py result-raw.txt > result-analysis.txt');
-    upload_logs('result-analysis.txt', failok => 1);
-
-    script_run('../showresults.py --hidepass result-raw.txt > result-fail.txt');
-    upload_logs('result-fail.txt', failok => 1);
-
-    if (script_output("cat result-fail.txt | grep 'Of those:.*Failed' | sed 's/.*, \\([0-9]\\+\\) Failed,.*/\\1/'") gt 0) {
-        $self->result("fail");
-        record_info("failed tests", script_output('cat result-fail.txt'), result => 'fail');
-    }
+    parse_extra_log('XUnit', "result-raw.xml");
 }
 
 sub upload_cthon04_log {
