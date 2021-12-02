@@ -10,7 +10,7 @@ package main_publiccloud;
 use Mojo::Base 'Exporter';
 use utils;
 use version_utils;
-use main_common qw(loadtest load_extra_tests_prepare);
+use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
 
@@ -47,7 +47,6 @@ sub load_maintenance_publiccloud_tests {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_extra_tests_prepare();
             load_publiccloud_consoletests();
         }
         if (get_var('PUBLIC_CLOUD_CONTAINERS')) {
@@ -100,7 +99,6 @@ sub load_latest_publiccloud_tests {
         loadtest "publiccloud/register_system", run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_extra_tests_prepare();
             load_publiccloud_consoletests();
         }
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
