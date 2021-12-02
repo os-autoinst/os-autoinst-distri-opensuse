@@ -1,11 +1,9 @@
 ---
-name:           minimal_x
+name: default
 description:    >
     Maintainer: qe-core <qe-core@suse.de>
-    As default but explicitly unselecting DE patterns,
-    for example gnome, to have only a "minimal X" environment preserved,
-    for example icewm.
-
+    Standard scenario where we mainly just follow installation
+    suggestions without any adjustments.
 conditional_schedule:
     boot:
         ARCH:
@@ -16,7 +14,7 @@ conditional_schedule:
                 - installation/bootloader_zkvm
             aarch64:
                 - installation/isosize
-                - '{{bootloader}}'
+                - installation/bootloader_uefi
             ppc64le:
                 - installation/isosize
                 - installation/bootloader
@@ -24,26 +22,16 @@ conditional_schedule:
         MACHINE:
             64bit:
                 - installation/bootloader
-            aarch64:
-                - installation/bootloader_uefi
             uefi:
                 - installation/bootloader_uefi
-    encrypt_lvm:
-        MACHINE:
-            64bit:
-                - '{{lvm}}'
-            aarch64:
-                - '{{lvm}}'
-            ppc64le:
-                - '{{lvm}}'
-    lvm:
-        LVM:
-            1:
-                - installation/partitioning/encrypt_lvm
-    mgmt_console:
-        ARCH:
-            s390x:
-                - boot/reconnect_mgmt_console
+            64bit-smp:
+                - installation/bootloader
+            svirt-hyperv:
+                - installation/bootloader_hyperv
+                - installation/bootloader
+            svirt-hyperv-uefi:
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
     grub_test:
         ARCH:
             x86_64:
@@ -52,6 +40,10 @@ conditional_schedule:
                 - installation/grub_test
             ppc64le:
                 - installation/grub_test
+    mgmt_console:
+        ARCH:
+            s390x:
+                - boot/reconnect_mgmt_console
     system_workarounds:
         ARCH:
             aarch64:
@@ -60,22 +52,6 @@ conditional_schedule:
         ARCH:
             x86_64:
                 - console/glibc_sanity
-    x_vt:
-        ARCH:
-            x86_64:
-                - console/x_vt
-            aarch64:
-                - console/x_vt
-            ppc64le:
-                - console/x_vt
-    ncurses:
-        ARCH:
-            x86_64:
-                - console/ncurses
-            aarch64:
-                - console/ncurses
-            ppc64le:
-                - console/ncurses
 schedule:
     - '{{boot}}'
     - installation/welcome
@@ -84,7 +60,6 @@ schedule:
     - installation/addon_products_sle
     - installation/system_role
     - installation/partitioning
-    - '{{encrypt_lvm}}'
     - installation/partitioning_finish
     - installation/installer_timezone
     - installation/user_settings
@@ -110,8 +85,6 @@ schedule:
     - console/textinfo
     - console/hostname
     - console/installation_snapshots
-    - '{{x_vt}}'
-    - '{{ncurses}}'
     - console/curl_https
     - console/salt
     - '{{glibc_sanity}}'
@@ -122,5 +95,14 @@ schedule:
     - console/sshd
     - console/ssh_cleanup
     - console/mtab
+    - console/mariadb_srv
+    - console/rsync
+    - console/http_srv
+    - console/apache
+    - console/dns_srv
+    - console/postgresql_server
+    - console/shibboleth
+    - console/apache_ssl
+    - console/apache_nss
     - console/consoletest_finish
 ...
