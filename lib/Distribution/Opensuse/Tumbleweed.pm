@@ -33,6 +33,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSche
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
+use Installation::PerformingInstallation::PerformingInstallationController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
@@ -181,6 +182,10 @@ sub get_add_new_zfcp_device {
 
 sub get_dasd_disk_management {
     return Installation::DiskActivation::DASDDiskManagementController->new();
+}
+
+sub get_performing_installation {
+    return Installation::PerformingInstallation::PerformingInstallationController->new();
 }
 
 1;
