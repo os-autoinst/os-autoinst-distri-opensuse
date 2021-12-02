@@ -23,7 +23,7 @@ schedule:
   - installation/installation_settings/validate_default_target
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/reboot_after_installation
   - installation/first_boot
   - console/validate_partition_table_via_parted
