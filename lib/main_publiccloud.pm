@@ -49,10 +49,13 @@ sub load_maintenance_publiccloud_tests {
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_extra_tests_prepare();
             load_publiccloud_consoletests();
-        }
-        if (get_var('PUBLIC_CLOUD_CONTAINERS')) {
+        } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_podman_tests() if is_sle('>=15-sp1');
             load_docker_tests();
+        } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+            loadtest "publiccloud/xfsprepare";
+            loadtest "xfstests/run";
+            loadtest "xfstests/generate_report";
         }
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
@@ -106,6 +109,10 @@ sub load_latest_publiccloud_tests {
         elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_podman_tests();
             load_docker_tests();
+        } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+            loadtest "publiccloud/xfsprepare";
+            loadtest "xfstests/run";
+            loadtest "xfstests/generate_report";
         }
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
