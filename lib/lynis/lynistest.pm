@@ -259,14 +259,6 @@ sub compare_lynis_section_content {
         }
     }
 
-    # Filter out "System_Tools": "[2C- Starting dbus policy check...[28C"
-    # As this will likely change rather frequently and we have good mechanisms
-    # on our side to tackle this
-    if (grep(/Starting dbus policy check/, @section_current)) {
-        $result = "ok";
-        return $result;
-    }
-
     # If a new section then only check the current
     record_info("CHECK", "Section contents NOT the same then check \"Current\" only");
     for my $s_lynis (@lynis_ok) {
@@ -283,29 +275,6 @@ sub compare_lynis_section_content {
         $s_new = "\\[.*$s_lynis.*\\]";
         $ret = grep(/$s_new/, @section_current);
         if ($ret) {
-            # Filter out some exceptions allowed:
-            # "Boot_and_services": "[4C- Checking for password protection[23C [ WARNING ]"
-            # "Name services": "[4C- Checking /etc/hosts (hostname)[25C [ SUGGESTION ]"
-            # "Kernel: "[4CCPU support: No PAE or NoeXecute supported[15C [ NONE ]"
-            # "Initializing_program": "[2C- Program update status... [32C [ WARNING ]"
-            # "Networking": "[[4C- Minimal of 2 responsive nameservers^[[20C [ WARNING ]"
-            # "Ports and packages": "Using Zypper to find vulnerable packages[17C [ NONE ]"
-            my @exceptions = (
-                "Checking for password protection.*WARNING.*",
-                "Checking /etc/hosts .*hostname.*SUGGESTION.*",
-                "CPU support: No PAE or NoeXecute supported.*NONE.*",
-                "Program update status.*WARNING.*",
-                "Minimal of 2 responsive nameservers.*WARNING.*",
-                "Using Zypper to find vulnerable packages.*NONE.*",
-                "Test .* had a long execution: .* seconds"
-            );
-            for my $exception (@exceptions) {
-                if (grep(/$exception/, @section_current)) {
-                    $result = "ok";
-                    return $result;
-                }
-            }
-
             $result = "softfail";
             record_soft_failure("poo#91383, found $ret [ $s_lynis ] in current output");
         }
