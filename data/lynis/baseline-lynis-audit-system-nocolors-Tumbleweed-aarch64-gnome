@@ -20,8 +20,8 @@
   Program version:           3.0.6
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20211127
-  Kernel version:            5.15.3
+  Operating system version:  20211130
+  Kernel version:            5.15.5
   Hardware platform:         aarch64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -102,7 +102,7 @@
 [8C- serial-getty@ttyS0.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS1.service:[24C [ UNSAFE ]
 [8C- serial-getty@ttyS2.service:[24C [ UNSAFE ]
-[8C- smartd.service:[36C [ UNSAFE ]
+[8C- smartd.service:[36C [ EXPOSED ]
 [8C- sshd.service:[38C [ UNSAFE ]
 [8C- systemd-ask-password-console.service:[14C [ UNSAFE ]
 [8C- systemd-ask-password-plymouth.service:[13C [ UNSAFE ]
@@ -261,10 +261,10 @@
 [4C- Searching RPM package manager[26C [ FOUND ]
 [6C- Querying RPM package manager[25C
 
-  [WARNING]: Test PKGS-7308 had a long execution: 41.652936 seconds
+  [WARNING]: Test PKGS-7308 had a long execution: 63.181040 seconds
 
 
-  [WARNING]: Test PKGS-7328 had a long execution: 18.736488 seconds
+  [WARNING]: Test PKGS-7328 had a long execution: 25.546877 seconds
 
 [2C- Using Zypper to find vulnerable packages[17C [ NONE ]
 [2C- Checking package audit tool[30C [ INSTALLED ]
@@ -608,7 +608,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 116.596012 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 153.666418 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
