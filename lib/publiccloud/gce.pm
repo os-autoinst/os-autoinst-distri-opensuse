@@ -29,8 +29,6 @@ sub init {
     my ($self, %params) = @_;
     $self->SUPER::init();
     $self->provider_client(publiccloud::gcp_client->new(
-            key_id => $self->key_id,
-            key_secret => $self->key_secret,
             region => $self->region,
             account => $self->account,
             service_acount_name => $self->service_acount_name,
@@ -87,8 +85,6 @@ sub img_proof {
     $args{instance_type} //= 'n1-standard-2';
     $args{user} //= 'susetest';
     $args{provider} //= 'gce';
-    $args{key_id} //= $self->provider_client->key_id;
-    $args{key_secret} //= $self->provider_client->key_secret;
 
     return $self->run_img_proof(%args);
 }
