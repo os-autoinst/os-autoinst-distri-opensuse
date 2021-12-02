@@ -22,6 +22,8 @@
       <li><a href="#handle_logout">handle_logout</a></li>
       <li><a href="#handle_relogin">handle_relogin</a></li>
       <li><a href="#select_user_gnome">select_user_gnome</a></li>
+      <li><a href="#turn_off_plasma_screen_energysaver">turn_off_plasma_screen_energysaver</a></li>
+      <li><a href="#turn_off_plasma_screenlocker">turn_off_plasma_screenlocker</a></li>
       <li><a href="#turn_off_kde_screensaver">turn_off_kde_screensaver</a></li>
       <li><a href="#turn_off_gnome_screensaver">turn_off_gnome_screensaver</a></li>
       <li><a href="#turn_off_gnome_screensaver_for_gdm">turn_off_gnome_screensaver_for_gdm</a></li>
@@ -88,11 +90,23 @@
 
 <p>Handle the case when user is not selected in login screen, on gnome. <code>$myuser</code> specifies the username to switch to. If not set, it will default to <code>$username</code>.</p>
 
+<h2 id="turn_off_plasma_screen_energysaver">turn_off_plasma_screen_energysaver</h2>
+
+<pre><code> turn_off_plasma_screen_energysaver()</code></pre>
+
+<p>Turns off the Plasma desktop screen energy saving.</p>
+
+<h2 id="turn_off_plasma_screenlocker">turn_off_plasma_screenlocker</h2>
+
+<pre><code> turnoff_plasma_screenlocker()</code></pre>
+
+<p>Turns off the Plasma desktop screenlocker.</p>
+
 <h2 id="turn_off_kde_screensaver">turn_off_kde_screensaver</h2>
 
-<pre><code> turn_off_kde_screensaver();</code></pre>
+<pre><code>  turn_off_kde_screensaver()</code></pre>
 
-<p>Turns off the screensaver on KDE</p>
+<p>Prevents screen from being locked or turning black while using the Plasma desktop. Call before tests that are not providing input for a long time, to prevent needles from failing.</p>
 
 <h2 id="turn_off_gnome_screensaver">turn_off_gnome_screensaver</h2>
 
