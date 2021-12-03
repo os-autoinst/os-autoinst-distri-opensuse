@@ -1,0 +1,47 @@
+name:           sles15_s390_install
+description:    >
+    This is prepare install task before migration.
+schedule:
+  - installation/bootloader_s390
+  - installation/welcome
+  - installation/accept_license
+  - installation/disk_activation
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - '{{partitioning_filesystem}}'
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - '{{resolve_dependency}}'
+  - '{{select_patterns}}'
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/scc_deregistration
+  - update/patch_sle
+  - '{{install_service_test}}'
+conditional_schedule:
+  install_service_test:
+    REGRESSIONTEST:
+      1:
+        - installation/install_service
+  select_patterns:
+    PATTERNS:
+      all:
+        - installation/select_patterns
+  resolve_dependency:
+    RESOLVE_DEPENDENCY:
+      1:
+        - installation/resolve_dependency_issues
+  partitioning_filesystem:
+    SET_FILESYSTEM:
+      1:
+        - installation/partitioning_filesystem
