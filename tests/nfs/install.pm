@@ -97,4 +97,8 @@ sub run {
     setup_nfs_server(get_var("NFSVERSION"));
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
