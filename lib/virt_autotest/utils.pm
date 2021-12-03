@@ -170,6 +170,7 @@ sub create_guest {
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
+    my $linuxrc = $guest->{linuxrc};
     $extra_args = trim($extra_args);
 
     if ($method eq 'virt-install') {
@@ -184,7 +185,7 @@ sub create_guest {
         assert_script_run "sync", 180;
         script_run "qemu-img info /var/lib/libvirt/images/xen/$name.$diskformat";
 
-        $extra_args = "autoyast=$autoyastURL $extra_args";
+        $extra_args = "$linuxrc autoyast=$autoyastURL $extra_args";
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk /var/lib/libvirt/images/xen/$name.$diskformat --noautoconsole";
