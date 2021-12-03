@@ -16,7 +16,8 @@ use testapi;
 
 sub run {
     select_console('user-console');
-    assert_script_run('stat -c"%N" -L /etc/alternatives/* >/dev/null');    # call stat on all files in /etc/alternatices an report to stderr broken links
+    # call stat on all files in /etc/alternatices and report to stderr broken links
+    assert_script_run('find /etc/alternatives -type l | xargs -r stat -c"%N" -L >/dev/null');
     save_screenshot;
 }
 
