@@ -19,6 +19,12 @@ use utils;
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
 
+# Check if the given user exists, and if not, add it to the system
+sub ensure_user_exists {
+    my ($user, $uid) = @_;
+    assert_script_run("grep '^${user}:' /etc/passwd || useradd '$user' --uid $uid");
+}
+
 # Install requirements
 sub install_xfstests {
     my ($repo) = @_;
@@ -27,6 +33,9 @@ sub install_xfstests {
     zypper_call('in xfsprogs xfsdump btrfsprogs kernel-default xfstests fio');
     assert_script_run('ln -s /usr/lib/xfstests/ /opt/xfstests');    # xfstests/run expects the tests to be in /opt/xfstests
     record_info("xfstests", script_output("rpm -q xfstests"));
+    # Ensure users 'nobody' and 'daemon' exists
+    ensure_user_exists("nobody", 65534);
+    ensure_user_exists("daemon", 2);
     # Create test users (See https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git/tree/README)
     assert_script_run("useradd -mU fsgqa");    # Create home directory (-m) and 'fsgqa' group for the user (-U) as well
     script_run("useradd 123456-fsgqa");    # script_run because only required by few tests and there is a chance that users starting with digits won't work
