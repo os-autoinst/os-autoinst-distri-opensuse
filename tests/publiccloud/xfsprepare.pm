@@ -68,6 +68,8 @@ sub create_config {
     assert_script_run("echo 'export SCRATCH_MNT=$mnt_scratch' >> $CONFIG_FILE");
     assert_script_run("echo 'export TEST_DEV=${device}1' >> $CONFIG_FILE");
     assert_script_run("echo 'export SCRATCH_DEV=${device}2' >> $CONFIG_FILE");
+    # Ensure reflink is enabled (required for several tests)
+    assert_script_run("echo 'MKFS_OPTIONS=\"-m reflink=1\"' >> $CONFIG_FILE");
 }
 
 
