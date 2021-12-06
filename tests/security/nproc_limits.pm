@@ -17,6 +17,7 @@ sub run {
     $self->select_serial_terminal;
 
     # Check the limits.conf config file
+    script_run('test ! -f /etc/security/limits.conf && install /usr/etc/security/limits.conf -t /etc/security');
     my $limits_d = script_output('find /etc/security/limits.d/ -name *.conf -exec echo -n "{} " \;');
     my $out = script_output("awk '!/^\$/ && !/^\\s*#/ {print \$3}' /etc/security/limits.conf $limits_d");
     die("Failed: nproc limits have been set") if $out =~ m/nproc/;
