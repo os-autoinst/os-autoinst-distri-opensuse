@@ -23,9 +23,11 @@ sub run() {
 
     $self->start_firefox;
     wait_still_screen;
-    send_key_until_needlematch('firefox-top-bar-highlighted', 'alt', 4, 10);
-    send_key('h');
-    wait_still_screen;
+    # key 'alt' can show firefox menu, use 'alt-v' to make sure the menu can show
+    send_key('alt', 5);
+    send_key('alt-v', 5);
+    assert_screen('firefox-top-bar-highlighted');
+    send_key('alt-h', 5);
     assert_screen('firefox-help-menu');
     send_key_until_needlematch('test-firefox-3', 'a', 9, 6);
 
