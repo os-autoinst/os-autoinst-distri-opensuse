@@ -61,13 +61,15 @@ sub create_config {
     my ($device, $mnt_xfs, $mnt_scratch) = @_;
 
     ## Version required by xfstests/partition.pm
-    script_run('(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests; uname -r; rpm -qi kernel-default) | tee /opt/version.log');
+    script_run('(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests dbench; uname -r; rpm -qi kernel-default) | tee /opt/version.log');
 
     ## Profile config file containing device and mount point definitions
     assert_script_run("echo 'export TEST_DIR=$mnt_xfs' >> $CONFIG_FILE");
     assert_script_run("echo 'export SCRATCH_MNT=$mnt_scratch' >> $CONFIG_FILE");
     assert_script_run("echo 'export TEST_DEV=${device}1' >> $CONFIG_FILE");
     assert_script_run("echo 'export SCRATCH_DEV=${device}2' >> $CONFIG_FILE");
+    # Ensure reflink is enabled (required for several tests)
+    assert_script_run("echo 'MKFS_OPTIONS=\"-m reflink=1\"' >> $CONFIG_FILE");
 }
 
 
