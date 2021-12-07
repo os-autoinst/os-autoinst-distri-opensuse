@@ -116,6 +116,10 @@ sub install_buildah_when_needed {
             zypper_call('in buildah', timeout => 300);
         }
     }
+    if ((script_output 'buildah info') =~ m/Failed to decode the keys.+ostree_repo/) {
+        assert_script_run "sed -i 's/ostree_repo/#ostree_repo/' /etc/containers/storage.conf";
+        record_soft_failure 'bsc#1189893 - Failed to decode the keys [\"storage.options.ostree_repo\"] from \"/etc/containers/storage.conf\"';
+    }
     record_info('buildah', script_output('buildah info'));
 }
 
