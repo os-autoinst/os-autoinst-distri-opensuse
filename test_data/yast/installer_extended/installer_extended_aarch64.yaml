@@ -34,6 +34,7 @@ modules:
   - sle-module-desktop-applications
   - sle-module-development-tools
   - sle-module-legacy
+  - sle-module-NVIDIA-compute
   - sle-module-public-cloud
   - PackageHub
   - sle-module-server-applications
