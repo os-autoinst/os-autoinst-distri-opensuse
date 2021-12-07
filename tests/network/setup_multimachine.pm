@@ -24,7 +24,7 @@ sub run {
     my ($self) = @_;
     my $hostname = get_var('HOSTNAME');
     select_console 'root-console';
-    my $nm_id = is_sle('15-sp3+') ? 'eth0' : 'Wired connection 1';
+    my $nm_id = is_sle('15-sp4+') ? 'eth0' : 'Wired connection 1';
 
     # Do not use external DNS for our internal hostnames
     assert_script_run('echo "10.0.2.101 server master" >> /etc/hosts');
