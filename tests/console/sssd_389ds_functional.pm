@@ -35,15 +35,21 @@ sub run {
     }
     zypper_call("in sssd sssd-ldap openldap2-client sshpass $docker");
 
-    #Select container base image by specifying variable BASE_IMAGE_TAG. (for sles using sle15sp3 by default).
+    #For released sle versions use sle15sp3 base image by default. For developing sle use corresponding image in registry.suse.de
     my $pkgs = "systemd systemd-sysvinit 389-ds openssl";
-    my $tag = get_var("BASE_IMAGE_TAG");
-    unless ($tag) {
-        if (is_opensuse) { $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
-        } else { $tag = "registry.suse.com/suse/sle15:15.3"; }
+    my $tag = "";
+    if (is_opensuse) {
+        $tag = (is_tumbleweed) ? "registry.opensuse.org/opensuse/tumbleweed" : "registry.opensuse.org/opensuse/leap";
+    } else {
+        $tag = 'registry.suse.com/suse/sle15:15.3';
+        if (get_var("SCC_URL") =~ /\Qproxy.scc.suse.de\E/) {
+            my ($v, $sp) = split("-SP", get_var("VERSION"));
+            $tag = $sp > 0 ? "registry.suse.de/suse/sle-$v-sp$sp/ga/publish/images/suse/sle$v:$v.$sp" : "registry.suse.de/suse/sle-$v/ga/publish/images/suse/sle$v:$v.0";
+            ensure_ca_certificates_suse_installed;
+        }
     }
     systemctl("enable --now $docker") if ($docker eq "docker");
-    # build image, create container, setup 389-ds database and import testing data
+    #build image, create container, setup 389-ds database and import testing data
     assert_script_run("mkdir /tmp/sssd && cd /tmp/sssd");
     assert_script_run("curl " . "--remote-name-all " . data_url("sssd/398-ds/{user_389.ldif,access.ldif,Dockerfile_$docker,instance_389.inf}"));
     assert_script_run(qq($docker build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$docker .), timeout => 600);
