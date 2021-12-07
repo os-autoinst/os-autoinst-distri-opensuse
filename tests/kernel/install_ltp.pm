@@ -169,10 +169,9 @@ sub install_build_dependencies {
     }
 }
 
-sub install_from_git {
+sub prepare_ltp_git {
     my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel = get_var('LTP_RELEASE');
-    my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
     my $prefix = get_ltproot();
     my $configure = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
@@ -186,6 +185,29 @@ sub install_from_git {
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
+}
+
+sub install_selected_from_git {
+    prepare_ltp_git;
+    my @paths = qw(commands/insmod
+      kernel/firmware
+      kernel/device-drivers
+      kernel/syscalls/delete_module
+      kernel/syscalls/finit_module
+      kernel/syscalls/init_module);
+
+    assert_script_run('pushd testcases');
+    foreach (@paths) {
+        assert_script_run("pushd $_ && make && make install && popd", timeout => 600);
+    }
+    assert_script_run("popd");
+}
+
+sub install_from_git {
+    my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
+    my $prefix = get_ltproot();
+
+    prepare_ltp_git;
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
@@ -344,6 +366,10 @@ sub run {
     else {
         add_ltp_repo;
         install_from_repo();
+        if (get_var("LTP_GIT_URL")) {
+            install_build_dependencies;
+            install_selected_from_git;
+        }
     }
 
     log_versions 1;
