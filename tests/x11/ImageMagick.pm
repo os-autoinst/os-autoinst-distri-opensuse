@@ -26,6 +26,12 @@ use testapi;
 use utils;
 
 
+sub compare {
+    my ($original, $copy, $test) = @_;
+    my $rmse = script_output("res=\"\$(compare -metric rmse -format \"%[distortion]\\n\" $original $copy nullim)\" || true; [[ \$? -ne 2 ]] && echo \$res || echo 2", proceed_on_failure => 1);
+    die "$test failed. Expected: diff<0.1, Found: diff=$rmse" unless $rmse < 0.1;
+}
+
 sub run {
     select_console "x11";
     x11_start_program('xterm');
@@ -33,79 +39,54 @@ sub run {
     become_root;
     quit_packagekit;
     zypper_call "in ImageMagick";
-    enter_cmd "exit";
 
-    assert_script_run "wget --quiet " . data_url('imagemagick/bg_script.sh') . " -O bg_script.sh";
+    # Prepare to run tests
+    assert_script_run "wget --quiet " . data_url('imagemagick/im_files.tar.gz') . " -O im_files.tar.gz";
+    assert_script_run "tar -xf im_files.tar.gz";
+    assert_script_run "cd im_files";
+    # Test image identification
+    my $identify = script_output "identify test.png";
+    die "Identify failed" unless index($identify, "test.png PNG 300x388 300x388+0+0 8-bit sRGB") != -1;
+    # Test image comparisson algorithm
+    my $comp_eval = script_output("compare -metric rmse testtilepattern.jpg testtilepattern.gif nullim 2>&1", proceed_on_failure => 1);
+    ($comp_eval) = $comp_eval =~ m/(?<=\().*(?=[^(]*\))/g;
+    die "ImageMagick compare doesn't work as expected" unless ($comp_eval > 0.0051 && $comp_eval < 0.0052);
 
-    assert_script_run "chmod +x bg_script.sh";
-    # execute the script and direct its exit code to the serial console
-    enter_cmd "./bg_script.sh " . data_url('imagemagick/bg_script.sh') . "; echo bg_script-\$? > /dev/$testapi::serialdev";
-
-    my @test_screens = qw(
-      test shape plasma_fractal2 random tile_weave bg tile_aqua tile_water
-      tile_rings tile_disks tree canvas_khaki canvas_salmon canvas_wheat
-      color_sparse color_reset color_flatten color_extent color_border
-      color_fx_constant color_semitrans color_pick_fx color_pick_sparse
-      color_pick_draw color_pick_distort black_threshold white_threshold
-      black_level white_level black_fx white_fx black_evaluate white_evaluate
-      black_gamma white_posterize black_posterize white_alpha black_alpha
-      trans_fx trans_fx_alpha_off trans_compose yellow_gamma color_matte
-      grey_level trans_alpha gradient trans_evaluate gradient_range1
-      trans_threshold gradient_range2 gradient_range3 gradient_ice-sea
-      gradient_range4 gradient_burnished gradient_range5 gradient_grassland
-      gradient_snow_scape rgradient gradient_sunset rgradient_clip
-      rgradient_crop rgradient_range1 rgradient_range2 rgradient_range3
-      rgradient_range4 gradient_transparent gradient_sigmoidal
-      gradient_trans_colorize gradient_cosine gradient_peak gradient_bands
-      gradient_diagonal gradient_srt gradient_swirl gradient_trapezoid
-      gradient_arc gradient_circle gradient_angle_even gradient_angle_masked
-      gradient_angle_odd gradient_triangle gradient_bird gradient_venetian
-      gradient_vent_diag gradient_colormap gradient_rainbow gradient_hue_polar
-      gradient_rainbow_2 gradient_resize gradient_resize2 gradient_resize3
-      gradient_resize4 gradient_resize5 gradient_rs_rainbow
-      gradient_interpolated gradient_clut gradient_clut_recolored
-      gradient_bilinear gradient_mesh gradient_catrom gradient_fx_linear
-      gradient_fx_x4 gradient_fx_cos gradient_fx_radial gradient_fx_spherical
-      gradient_fx_quad2 gradient_fx_angular gradient_inverse_alt
-      gradient_shepards_alt gradient_inverse_RGB gradient_inverse_RGB_Hue
-      sparse_bary_triangle sparse_barycentric sparse_bary_triangle_2
-      sparse_bary_0 sparse_bary_gradient sparse_bary_gradient_2
-      diagonal_gradient sparse_bary_two_point diagonal_gradient_2
-      sparse_bilinear sparse_bilin_0 sparse_voronoi gradient_scale
-      sparse_voronoi_ssampled gradient_math sparse_voronoi_smoothed
-      gradient_equiv sparse_voronoi_blur gradient_shifted
-      sparse_voronoi_gradient gradient_chopped sparse_shepards sparse_inverse
-      sparse_shepards_0.5 sparse_shepards_1 sparse_shepards_2 plasma_smooth
-      sparse_shepards_3 sparse_shepards_8 sparse_shepards_gray
-      rose_alpha_gradient sparse_source sparse_fill shape_edge_pixels
-      shape_edge_in_lights shape_in_lights sparse_blur_simple
-      sparse_blur_pyramid sparse_lines_near_source sparse_lines_near
-      plasma_paint plasma_emboss plasma_sharp plasma_seeded plasma_rnd1
-      plasma_rnd2 plasma_rnd3 plasma_rnd4 plasma_rnd5 random_mask random_black
-      random_white random_1 random_trans random_3 random_5 random_10 random_20
-      random_0_gray random_1_gray random_3_gray random_5_gray random_10_gray
-      random_20_gray random_0_thres random_1_thres random_3_thres random_5_thres
-      random_10_thres random_20_thres random_5_blobs ripples_1 ripples_2
-      ripples_3 ripples_4 random_enhanced ripples_4e random_sigmoidal ripples_4s
-      ripples_3e000 ripples_3e090 ripples_3e180 ripples_3e270 ripples_3.5e
-      tile_size tile_over tile_draw tile_reset tile_distort_sized offset_tile
-      offset_pattern offset_tile_fill offset_pattern_fail offset_pattern_good
-      tile_clone tile_clone_flip tile_mpr tile_mpr_reset tile_mpr_fill
-      tile_distort tile_distort_checks tile_distort_polar pattern_default
-      pattern_hexagons pattern_colored pattern_color_checks
-      pattern_color_hexagons pattern_distorted tile_mod_failure tile_mod_vpixels
-      tile_slanted_bricks tile_mod_success tile_circles tile_hexagons
-      tiled_hexagons tile_line tile_hex_lines tiled_hex_lines
+    # Create image transformations to compare with pretransformed test images
+    my %test_imgs = (
+"Logo creation" => ["convert -fill Snow -background Green3 -strokewidth 2 -stroke Green4 -font Roboto -pointsize 256 -density 90 -size 1800x350 label:susetestlogo testlogo_t.png", "testlogo", ".png", ".png"],
+        "Risize/strip quality" => ["convert test.png -filter point -resize 200% -strip -quality 90 test2_t.png", "test2", ".png", ".png"],
+        Crop => ["convert test.png -gravity center -crop 100x100+0+0 +repage testcrop_t.png", "testcrop", ".png", ".png"],
+"Sparse color image" => ["convert -size 400x400 xc: -colorspace RGB -sparse-color Voronoi '120,40 red 40,320 blue 270,240 lime 320,80 yellow' -scale 25% -colorspace sRGB -fill white -stroke black -draw 'circle 30,10 30,12 circle 10,80 10,82' -draw 'circle 70,60 70,62 circle 80,20 80,22' testsparse_t.png", "testsparse", ".png", ".png"],
+"Sparse color blurred image" => ["convert -size 400x400 xc: -colorspace RGB -sparse-color Voronoi '120,40 red 40,320 blue 270,240 lime 320,80 yellow' -blur 0x15 -colorspace sRGB -fill white -stroke black -draw 'circle 30,10 30,12 circle 10,80 10,82' -draw 'circle 70,60 70,62 circle 80,20 80,22' testsparseblur_t.png", "testsparseblur", ".png", ".png"],
+        "Tiled pattern creation" => ["convert -size 80x80 -tile-offset +20+20 pattern:checkerboard testtilepattern_t.png", "testtilepattern", ".png", ".png"],
+        "png-jpg comparisson" => ["convert -size 80x80 -tile-offset +20+20 pattern:checkerboard testtilepattern_t.jpg", "testtilepattern", ".png", ".jpg"],
+        "png-gif comparisson" => ["convert -size 80x80 -tile-offset +20+20 pattern:checkerboard testtilepattern_t.gif", "testtilepattern", ".png", ".gif"]
     );
-    for my $screen (@test_screens) {
-        assert_screen "imagemagick_$screen";
-        send_key 'alt-f4';
+    foreach my $key (keys %test_imgs) {
+        assert_script_run "$test_imgs{$key}[0]";
+        compare("$test_imgs{$key}[1]$test_imgs{$key}[2]", "$test_imgs{$key}[1]_t$test_imgs{$key}[3]", "$key");
+        assert_script_run "rm $test_imgs{$key}[1]_t$test_imgs{$key}[3]";
     }
 
-    # waiting for the exit code of the script
-    wait_serial "bg_script-0";
-    # clean-up
-    assert_script_run "rm bg_script.sh";
+    # Check against needles - generated tiles image
+    assert_script_run "convert -size 24x24 xc: -draw \"rectangle 3,11 20,12\" tile_line.gif";
+    assert_script_run 'convert tile_line.gif -gravity center\
+    \( +clone -rotate 0 -crop 24x18+0+0 -write mpr:r1 +delete \) \
+    \( +clone -rotate 120 -crop 24x18+0+0 -write mpr:r2 +delete \) \
+    -rotate -120 -crop 24x18+0+0 -write mpr:r3 +repage \
+    -extent 72x36 -page  +0+0  mpr:r3 \
+    -page +24+0  mpr:r1 -page +48+0  mpr:r2 \
+    -page -12+18 mpr:r1 -page +12+18 mpr:r2 \
+    -page +36+18 mpr:r3 -page +60+18 mpr:r1 \
+    -flatten tile_hex_lines.jpg';
+    assert_script_run "convert -size 120x120  tile:tile_hex_lines.jpg  tiled_hex_lines.jpg";
+    enter_cmd "eog --fullscreen tiled_hex_lines.jpg";
+    assert_screen('imagemagick-gui-test');
+    send_key 'alt-f4';
+
+    # Remove test files and finish
+    assert_script_run "cd .. && rm -rf im_files im_files.tar.gz";
     enter_cmd "exit";
 }
 
