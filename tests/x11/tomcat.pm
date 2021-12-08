@@ -59,10 +59,13 @@ sub run() {
     record_info('WebSocket Testing');
     my $websocket_test = Tomcat::WebSocketsTest->new();
     $websocket_test->test_all_examples();
+    record_soft_failure('bsc#1193807') if is_sle('<15');
+    $self->close_firefox() if is_sle('<15');
 
     # Install and configure apache2 and apache2-mod_jk connector
     Tomcat::ModjkTest->mod_jk_setup();
     $self->switch_to_desktop();
+    $self->start_firefox_with_profile() if is_sle('<15');
 
     $self->firefox_open_url('http://localhost/examples/servlets');
     send_key_until_needlematch('tomcat-servlet-examples-page', 'ret');
@@ -70,11 +73,7 @@ sub run() {
     $self->firefox_open_url('http://localhost/examples/jsp');
     send_key_until_needlematch('tomcat-jsp-examples', 'ret');
 
-    $self->select_serial_terminal();
-    systemctl('start tomcat');
-
     my $with_modjk = 1;
-    $self->switch_to_desktop();
     record_info('Servlet Testing');
     $servlet_test->test_all_examples($with_modjk);
 
