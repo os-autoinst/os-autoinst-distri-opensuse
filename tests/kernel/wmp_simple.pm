@@ -27,13 +27,12 @@ sub run {
 
     my $cgroup_mem = get_required_var('WMP_MEMORY_LOW');
     my $stressng_mem = get_required_var('WMP_STRESS_MEM');
+    my $stressng_repo = get_var('WMP_STRESS_REPO', "https://download.opensuse.org/repositories/benchmark/SLE_15_SP3/benchmark.repo");
 
     $self->select_serial_terminal;
 
-    zypper_ar("https://download.opensuse.org/repositories/benchmark/SLE_15_SP3/benchmark.repo", no_gpg_check => 1);
+    zypper_ar($stressng_repo, no_gpg_check => 1);
     zypper_call("in stress-ng");
-
-    #assert_script_run('sysctl vm.swappiness=100');
 
     # configure memory.low
     assert_script_run("systemctl set-property SAP.slice MemoryLow=$cgroup_mem");
