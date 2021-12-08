@@ -1,0 +1,6 @@
+name:    rmt_proxy
+description:    >
+    This is for rmt proxy test
+schedule:
+  - boot/boot_to_desktop
+  - console/rmt/rmt_proxy
