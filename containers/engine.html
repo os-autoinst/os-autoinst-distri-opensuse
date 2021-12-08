@@ -27,7 +27,7 @@
       <li><a href="#info">info</a></li>
       <li><a href="#get_container_logs-container-filename">get_container_logs($container, $filename)</a></li>
       <li><a href="#remove_image-image_name">remove_image($image_name)</a></li>
-      <li><a href="#remove_container">remove_container</a></li>
+      <li><a href="#remove_container-container_name-assert">remove_container($container_name, [assert])</a></li>
       <li><a href="#check_image_in_host">check_image_in_host</a></li>
       <li><a href="#configure_insecure_registries">configure_insecure_registries</a></li>
       <li><a href="#cleanup_system_host">cleanup_system_host</a></li>
@@ -53,7 +53,7 @@
 
 <h2 id="run_container-image_name-mode-name-remote-keep_container-timeout-retry-delay">run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])</h2>
 
-<p>Run a container. <code>image_name</code> is required and can be the image id, the name or name with tag. If <code>daemon</code> is enabled then container will run in the detached mode. Otherwise will be in the interactive mode. Set <code>name</code> is you want to name the container. if <code>cmd</code> found then it will execute the given command into the container. The container is always removed after exit. if <code>keep_container</code> is 1 the container is not removed after creation. Default to get removed when it exits or when the daemon exits if <code>retry</code> is given, the command is being repeated the given amount of times on failure If <code>delay</code> is given, this defines the number of seconds between retries</p>
+<p>Run a container. The method dies, if the run command fails. <code>image_name</code> is required and can be the image id, the name or name with tag. If <code>daemon</code> is enabled then container will run in the detached mode. Otherwise will be in the interactive mode. Set <code>name</code> is you want to name the container. if <code>cmd</code> found then it will execute the given command into the container. The container is always removed after exit. if <code>keep_container</code> is 1 the container is not removed after creation. Default to get removed when it exits or when the daemon exits if <code>retry</code> is given, the command is being repeated the given amount of times on failure If <code>delay</code> is given, this defines the number of seconds between retries</p>
 
 <h2 id="pull-image_name-args">pull($image_name, [%args])</h2>
 
@@ -87,9 +87,9 @@
 
 <p>Remove a image from the pool.</p>
 
-<h2 id="remove_container">remove_container</h2>
+<h2 id="remove_container-container_name-assert">remove_container($container_name, [assert])</h2>
 
-<p>Remove a container from the pool.</p>
+<p>Remove a container from the pool. <code>container_name</code> is the container name to be removed. Required argument. <code>assert</code> Is an optional boolean for asserting that the call is successful. If false the method returns the return value of the call.</p>
 
 <h2 id="check_image_in_host">check_image_in_host</h2>
 
