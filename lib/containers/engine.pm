@@ -116,7 +116,7 @@ sub build {
 
 =head2 run_container($image_name, [mode, name, remote, keep_container, timeout, retry, delay])
 
-Run a container.
+Run a container. The method dies, if the run command fails.
 C<image_name> is required and can be the image id, the name or name with tag.
 If C<daemon> is enabled then container will run in the detached mode. Otherwise will be in the
 interactive mode.
@@ -140,8 +140,18 @@ sub run_container {
     my $cmd = "run $params $image_name";
     $cmd .= " $args{cmd}" if ($args{cmd});
     record_info "cmd_info", "Container executes:\n$cmd";
+
+    # Own retry routine so that we can delete the container between retries if $args{keep_container} is set.
     my $retries = $args{retry} // 1;
-    return $self->_engine_script_retry($cmd, timeout => $args{timeout}, retry => $retries, delay => $args{delay});
+    while ($retries-- > 0) {
+        my $ret = $self->_engine_script_run($cmd, timeout => $args{timeout});
+        return 0 if ($ret == 0);
+        # Here we only remove the container, if we keep it (otherwise the --rm argument should delete it automatically)
+        # Also: don't assert the removal takes place, to not fail in the possible case that no container has been yet created (e.g. network issues)
+        $self->remove_container($args{name}, assert => 0) if ($args{keep_container});
+        sleep($args{delay}) if ($args{delay});
+    }
+    die "engine_script_run failed";
 }
 
 =head2 pull($image_name, [%args])
@@ -244,14 +254,21 @@ sub remove_image {
     $self->_engine_assert_script_run("rmi -f $image_name");
 }
 
-=head2 remove_container
+=head2 remove_container($container_name, [assert])
 
 Remove a container from the pool.
+C<container_name> is the container name to be removed. Required argument.
+C<assert> Is an optional boolean for asserting that the call is successful. If false the method returns the return value of the call.
 
 =cut
 sub remove_container {
-    my ($self, $container_name) = @_;
-    $self->_engine_assert_script_run("rm -f $container_name");
+    my ($self, $container_name, %args) = @_;
+    my $assert = $args{assert} // 1;
+    if ($assert) {
+        $self->_engine_assert_script_run("rm -f $container_name");
+    } else {
+        return $self->_engine_script_run("rm -f $container_name");
+    }
 }
 
 =head2 check_image_in_host
