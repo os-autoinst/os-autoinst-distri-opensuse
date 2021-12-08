@@ -235,7 +235,7 @@ sub add_ltp_repo {
             $repo = sprintf("openSUSE_Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
             $repo = "openSUSE_Factory";
-            $repo = "openSUSE_Factory_ARM" if is_aarch64();
+            $repo = "openSUSE_Factory_ARM" if (is_aarch64() || is_arm());
             $repo = "openSUSE_Factory_PowerPC" if is_ppc64le();
             $repo = "openSUSE_Factory_zSystems" if is_s390x();
         } else {
