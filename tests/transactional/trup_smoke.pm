@@ -12,7 +12,8 @@ use strict;
 use warnings;
 use testapi;
 use transactional;
-
+use Utils::Architectures qw(is_s390x);
+use version_utils qw(is_sle_micro);
 
 sub action {
     my ($target, $text, $reboot) = @_;
@@ -27,7 +28,11 @@ sub run {
 
     select_console 'root-console';
 
-    action('bootloader', 'Reinstall bootloader');
+    if (is_sle_micro && is_s390x) {
+        record_soft_failure "bsc#1191863 -  [s390x] Can't reboot after transactional-update bootloader";
+    } else {
+        action('bootloader', 'Reinstall bootloader');
+    }
     action('grub.cfg', 'Regenerate grub.cfg');
     action('initrd', 'Regenerate initrd');
     action('kdump', 'Regenerate kdump');
