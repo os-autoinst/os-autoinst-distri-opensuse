@@ -51,7 +51,7 @@ sub setup_apache2 {
 
     if ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
-        push @packages, qw(php7-cli) unless (is_sle || is_leap);
+        push @packages, qw(php7-cli) unless (is_sle("<15-SP4") || is_leap("<15.4"));
         zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
     }
 
