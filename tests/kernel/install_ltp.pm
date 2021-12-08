@@ -229,18 +229,19 @@ sub add_ltp_repo {
         }
 
         # ltp for leap15.2 is available only x86_64
-        # ltp for leap15.3+ is missing only s390x
-        if ((is_leap('=15.2') && is_x86_64) || (is_leap('15.3+') && !is_s390x)) {
-            $repo = sprintf("Leap_%s", get_var('VERSION'));
+        if (is_leap('15.4+')) {
+            $repo = get_var('VERSION');
+        } elsif ((is_leap('=15.2') && is_x86_64) || is_leap('15.3+')) {
+            $repo = sprintf("openSUSE_Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
-            $repo = "Factory";
-            $repo = "Factory_ARM" if is_aarch64();
-            $repo = "Factory_PowerPC" if is_ppc64le();
-            $repo = "Factory_zSystems" if is_s390x();
+            $repo = "openSUSE_Factory";
+            $repo = "openSUSE_Factory_ARM" if is_aarch64();
+            $repo = "openSUSE_Factory_PowerPC" if is_ppc64le();
+            $repo = "openSUSE_Factory_zSystems" if is_s390x();
         } else {
             die sprintf("Unexpected combination of version (%s) and architecture (%s) used", get_var('VERSION'), get_var('ARCH'));
         }
-        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$repo/";
+        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/$repo/";
     }
 
     zypper_ar($repo, name => 'ltp_repo');
