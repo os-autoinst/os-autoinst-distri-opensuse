@@ -5,7 +5,7 @@ def ip_config(config, provider)
   return unless ENV['BOX_STATIC_IP'] == '1'
 
   if provider == 'virtualbox'
-    ip = '192.168.201.176'
+    ip = '192.168.56.176'
     ip6 = 'fde4:8dba:82e1::c4'
   elsif provider == 'libvirt'
     ip = '192.168.151.101'
