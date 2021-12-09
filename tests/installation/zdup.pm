@@ -174,4 +174,10 @@ sub run {
     assert_screen "zypper-dup-finish";
 }
 
+sub post_fail_hook {
+    my $self = shift;
+    $utils::IN_ZYPPER_CALL = 1;
+    $self->export_logs();
+}
+
 1;
