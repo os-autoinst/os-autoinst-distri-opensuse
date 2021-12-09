@@ -13,12 +13,14 @@ use warnings;
 use testapi;
 use version_utils 'is_microos';
 use power_action_utils 'power_action';
+use Utils::Architectures qw(is_aarch64);
 
 our @EXPORT = qw(microos_reboot microos_login);
 
 # Assert login prompt and login as root
 sub microos_login {
-    assert_screen 'linux-login-microos', 150;
+    my $login_timeout = is_aarch64 ? 300 : 150;
+    assert_screen 'linux-login-microos', $login_timeout;
 
     if (is_microos 'VMX') {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
