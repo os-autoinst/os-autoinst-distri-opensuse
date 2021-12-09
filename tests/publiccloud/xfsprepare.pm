@@ -13,6 +13,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_sle);
+use registration qw(add_suseconnect_product get_addon_fullname);
 use utils;
 
 # xfstests configuration file, as required by xfstests/run
@@ -28,9 +29,9 @@ sub ensure_user_exists {
 # Install requirements
 sub install_xfstests {
     my ($repo) = @_;
-    # Add filesystem repository, which contains the xfstests
-    zypper_ar($repo, name => "filesystems");
-    zypper_call('in xfsprogs xfsdump btrfsprogs kernel-default xfstests fio');
+    zypper_ar($repo, name => "filesystems");    # Add filesystem repository, which contains the xfstests
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # packagehub is required for dbench (required for e.g. generic/241)
+    zypper_call('in xfsprogs xfsdump btrfsprogs kernel-default xfstests fio dbench');
     assert_script_run('ln -s /usr/lib/xfstests/ /opt/xfstests');    # xfstests/run expects the tests to be in /opt/xfstests
     record_info("xfstests", script_output("rpm -q xfstests"));
     # Ensure users 'nobody' and 'daemon' exists
