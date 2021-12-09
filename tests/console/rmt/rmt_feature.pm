@@ -18,10 +18,12 @@ use utils;
 
 sub run {
     select_console 'root-console';
+    record_info('RMT server setup', 'Start to setup a rmt server');
     rmt_wizard();
     # sync from SCC
     rmt_sync;
     # enable all modules of products at one arch
+    record_info('Enable all modules', 'Enable all modules and free extensions of a base product');
     my $pro = get_var("PRODUCT_ALLM");
     assert_script_run("rmt-cli p e $pro --all-modules");
     assert_script_run("rmt-cli product list | grep $pro");
@@ -38,6 +40,7 @@ sub run {
     }
 
     # enable multiple products with product name at the same time in different way
+    record_info('Enable multiple products', 'Enable multiple products with product name at the same time in different ways');
     assert_script_run("rmt-cli product enable SLES/12.3/x86_64 sle-module-live-patching/15/x86_64");
     assert_script_run("rmt-cli product list | grep SLES/12.3/x86_64");
     assert_script_run("rmt-cli product list | grep sle-module-live-patching/15/x86_64");
@@ -52,6 +55,7 @@ sub run {
     assert_script_run("rmt-cli product list | grep sle-module-live-patching/15.2/ppc64le");
 
     # disable the products enabled above in different way
+    record_info('Disable multipule products', 'Disable multiple products with product name at the same time in different ways');
     assert_script_run("rmt-cli product disable SLES/12.3/x86_64 sle-module-live-patching/15/x86_64");
     assert_script_run("rmt-cli product disable SLES/12.5/x86_64,sle-we/15.2/x86_64");
     assert_script_run("rmt-cli product disable 'SLES/12.5/ppc64le sle-module-containers/15.1/s390x'");
@@ -59,28 +63,34 @@ sub run {
 
     # enable product with product ID 1798-Web and Scripting Module/15.1/x86_64
     # 1973-Web and Scripting Module/15.2/aarch64 1974-Web and Scripting Module/15.2/ppc64le
+    record_info('Enable product by id', 'Enable product by product id');
     assert_script_run("rmt-cli product enable 1798 1973 1974");
     assert_script_run("rmt-cli product list | grep 1798");
     assert_script_run("rmt-cli product list | grep 1973");
     assert_script_run("rmt-cli product list | grep 1974");
 
     # disable product with product ID
+    record_info('Disable product by id', 'Disable product by product id');
     assert_script_run("rmt-cli product disable 1798 1973 1974");
 
     # enable repo with repo ID 3393-SLE-Module-Web-Scripting15-SP1-Pool for sle-15-x86_64
     # 3391-SLE-Module-Web-Scripting15-SP1-Updates for sle-15-x86_64
+    record_info('Enable repo by id', 'Enable repo by repo id');
     assert_script_run("rmt-cli repo enable 3393 3391");
     assert_script_run("rmt-cli repo list | grep 3393");
     assert_script_run("rmt-cli repo list | grep 3391");
 
     # disable repo with repo ID
+    record_info('Disable repo by id', 'Disable repo by repo id');
     assert_script_run("rmt-cli repo disable 3393 3391");
 
     # mirror packages
+    record_info('mirror repo', 'Mirror repos from SCC');
     rmt_enable_pro;
     rmt_mirror_repo();
     assert_script_run("rmt-cli product list | grep sle-module-legacy/15/x86_64");
 
+    record_info('Cleanup repo', 'Disable the enabled repos and cleanup the repos locally');
     # disable the mirrored repos
     assert_script_run("rmt-cli products disable sle-module-legacy/15/x86_64");
     # cleanup the downloaded files
@@ -90,7 +100,25 @@ sub run {
         die 'cleanup repos failed';
     }
 
+    # rmt server could mirror repos that not provided by SCC. Here we test adding custom repo
+    # and attach the repo to a product mirrored from SCC.
+    record_info('Add custom repo', 'Add some custom repos');
+    assert_script_run("rmt-cli repos custom add https://download.opensuse.org/repositories/games:/tools/SLE_15_SP3/x86_64/ Games");
+    assert_script_run("rmt-cli repos custom list | grep Games");
+    # attach the custom repo to a product
+    record_info('Attach the custom repo to a product', 'Attach the custom repo to a product');
+    my $pro2 = get_var("PRODUCT_ATTACH");
+    assert_script_run("rmt-cli products enable $pro2");
+    my @proid2 = split(/\n/, script_output("rmt-cli products list | awk -F '|' '{print \$2}'"));
+    for my $id (@proid2) {
+        assert_script_run("rmt-cli repos custom attach games $id") if ($id =~ /\d{4}/);
+    }
+    assert_script_run("rmt-cli repos custom products games");
+    assert_script_run("rmt-cli repos custom enable games");
+    assert_script_run("rmt-cli repos custom disable games");
+
     # import smt data
+    record_info('Import smt data', 'Import the data saved from a smt server');
     my $datapath = "/rmtdata/";
     my $datafile = get_var("SMT_DATA_FILE");
     my $dataurl = get_var("SMT_DATA_URL");
