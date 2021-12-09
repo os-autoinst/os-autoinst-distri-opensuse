@@ -98,4 +98,8 @@ sub run {
     $self->result('fail') if $failed;
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
