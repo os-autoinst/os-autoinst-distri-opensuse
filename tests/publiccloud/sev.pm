@@ -11,8 +11,14 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-#use version_utils qw(is_sle is_opensuse is_leap is_tumbleweed);
-#use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
+use version_utils qw(is_sle);
+
+# Get the version dependend dmesg message for secure virtualization on confidential compute
+sub get_sev_message {
+    return "AMD Secure Encrypted Virtualization (SEV) active" if is_sle('=15-SP2');
+    # More messages will be added pas a pas, as more versions run this test.
+    return "AMD Memory Encryption Features active";    # Default message
+}
 
 sub run {
     my $self = shift;
@@ -26,7 +32,8 @@ sub run {
 
     # Ensure we are running with activated AMD Memory encryption
     script_run('dmesg | grep SEV | head');
-    assert_script_run('dmesg | grep SEV | grep "AMD Memory Encryption Features active"', fail_message => "AMD-SEV not active on this instance");
+    my $message = get_sev_message();
+    assert_script_run("dmesg | grep SEV | grep '$message'", fail_message => "AMD-SEV not active on this instance");
 }
 
 1;
