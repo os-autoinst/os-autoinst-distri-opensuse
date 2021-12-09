@@ -48,8 +48,8 @@ sub partition_disk {
     my ($device, $mnt_xfs, $mnt_scratch) = @_;
     # Create test and scratch partitions, both formatted with xfs and mounted to the given mountpoints
     assert_script_run("parted $device --script -- mklabel gpt");
-    assert_script_run("parted -s -a min $device mkpart primary 1MB 75%");
-    assert_script_run("parted -s -a min $device mkpart primary 75% 100%");
+    assert_script_run("parted -s -a min $device mkpart primary 1MB 50%");
+    assert_script_run("parted -s -a min $device mkpart primary 50% 100%");
     assert_script_run("mkfs.xfs -L xfstests ${device}1");
     assert_script_run("mkfs.xfs -L scratch ${device}2");
     assert_script_run("mkdir -p $mnt_xfs $mnt_scratch");
