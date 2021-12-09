@@ -103,11 +103,12 @@ sub run {
     # rmt server could mirror repos that not provided by SCC. Here we test adding custom repo
     # and attach the repo to a product mirrored from SCC.
     record_info('Add custom repo', 'Add some custom repos');
-    assert_script_run("rmt-cli repos custom add https://download.opensuse.org/repositories/games:/tools/SLE_15_SP3/x86_64/ Games");
+    my $custom_repo = get_var("CUSTOM_REPO") // 'https://download.opensuse.org/repositories/games:/tools/SLE_15_SP3/x86_64/';
+    assert_script_run("rmt-cli repos custom add $custom_repo Games");
     assert_script_run("rmt-cli repos custom list | grep Games");
     # attach the custom repo to a product
     record_info('Attach the custom repo to a product', 'Attach the custom repo to a product');
-    my $pro2 = get_var("PRODUCT_ATTACH");
+    my $pro2 = get_var("PRODUCT_ATTACH") // 'sle-module-development-tools/15.3/x86_64';
     assert_script_run("rmt-cli products enable $pro2");
     my @proid2 = split(/\n/, script_output("rmt-cli products list | awk -F '|' '{print \$2}'"));
     for my $id (@proid2) {
