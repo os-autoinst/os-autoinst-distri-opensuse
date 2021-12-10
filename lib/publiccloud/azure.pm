@@ -295,7 +295,7 @@ This method is called called after each test on failure or success to revoke the
 sub cleanup {
     my ($self) = @_;
     $self->SUPER::cleanup();
-    $self->vault->revoke();
+    $self->provider_client->cleanup();
 }
 
 1;
