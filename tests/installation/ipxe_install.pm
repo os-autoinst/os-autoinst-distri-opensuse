@@ -47,10 +47,9 @@ sub poweron_host {
 sub set_pxe_boot {
     while (1) {
         my $stdout = ipmitool('chassis bootparam get 5');
-        last if $stdout =~ m/Force PXE/;
+        last if $stdout =~ m/Boot Flag Valid[\d\D]*Force PXE/;
         diag "setting boot device to pxe";
-        my $options;
-        $options = 'options=efiboot' if get_var('IPXE_UEFI');
+        my $options = get_var('IPXE_UEFI') ? 'options=efiboot' : '';
         ipmitool("chassis bootdev pxe ${options}");
         sleep(3);
     }
@@ -137,7 +136,9 @@ sub run {
 
     poweroff_host;
 
-    set_bootscript;
+    #virtualization tests use a static ipxe configuration file
+    set_bootscript unless get_var('VIRT_AUTOTEST');
+
     set_pxe_boot;
 
     poweron_host;
@@ -167,6 +168,15 @@ sub run {
         set_bootscript_hdd if get_var('IPXE_UEFI');
 
         select_console 'installation';
+        save_screenshot;
+
+        # We have textmode installation via ssh and the default vnc installation so far
+        if (check_var('VIDEOMODE', 'text')) {
+            enter_cmd_slow('DISPLAY= yast.ssh');
+        }
+        elsif (check_var('VIDEOMODE', 'ssh-x')) {
+            enter_cmd_slow("yast.ssh");
+        }
         save_screenshot;
 
         wait_still_screen;
