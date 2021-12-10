@@ -39,8 +39,11 @@ sub install_xfstests {
     ensure_user_exists("daemon", 2);
     # Create test users (See https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git/tree/README)
     assert_script_run("useradd -mU fsgqa");    # Create home directory (-m) and 'fsgqa' group for the user (-U) as well
-    script_run("useradd 123456-fsgqa");    # script_run because only required by few tests and there is a chance that users starting with digits won't work
     assert_script_run("useradd fsgqa2");
+
+    # The following is only required by few tests and there is a chance that users starting with digits won't work
+    my $fsgqa_123456 = script_run("useradd 123456-fsgqa") == 0;
+    record_info("123456-fsgqa", "error creating 123456-fsgqa user.\nSome tests will not be able to run", result => 'softfail') unless ($fsgqa_123456);
 }
 
 # Format the additional disk and mount it
@@ -50,11 +53,11 @@ sub partition_disk {
     assert_script_run("parted $device --script -- mklabel gpt");
     assert_script_run("parted -s -a min $device mkpart primary 1MB 50%");
     assert_script_run("parted -s -a min $device mkpart primary 50% 100%");
+    # Note: Each test run creates a new xfs filesystem and mounts it to the given mount point (See create_config),
+    # so we don't need to mount the new devices here. We create a new filesystem to ensure, that this is safe to do
     assert_script_run("mkfs.xfs -L xfstests ${device}1");
     assert_script_run("mkfs.xfs -L scratch ${device}2");
     assert_script_run("mkdir -p $mnt_xfs $mnt_scratch");
-    assert_script_run("mount ${device}1 $mnt_xfs");
-    assert_script_run("mount ${device}2 $mnt_scratch");
 }
 
 # Create configuration files required for the xfstests suite
@@ -69,8 +72,11 @@ sub create_config {
     assert_script_run("echo 'export SCRATCH_MNT=$mnt_scratch' >> $CONFIG_FILE");
     assert_script_run("echo 'export TEST_DEV=${device}1' >> $CONFIG_FILE");
     assert_script_run("echo 'export SCRATCH_DEV=${device}2' >> $CONFIG_FILE");
-    # Ensure reflink is enabled (required for several tests)
-    assert_script_run("echo 'MKFS_OPTIONS=\"-m reflink=1\"' >> $CONFIG_FILE");
+    # Add optional mkfs options
+    my $mkfs_options = get_var('XFS_MKFS_OPTIONS', '');
+    $mkfs_options .= " -m reflink=1" if (get_var('XFS_TESTS_REFLINK', 0) == 1);
+    $mkfs_options =~ s/^\s+|\s+$//g;    # trim string (left and right)
+    assert_script_run("echo 'MKFS_OPTIONS=\"$mkfs_options\"' >> $CONFIG_FILE") unless ($mkfs_options eq '');
 }
 
 
