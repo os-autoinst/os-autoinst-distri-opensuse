@@ -21,8 +21,7 @@ sub run {
     send_key_until_needlematch 'hexchat-nick-empty', 'delete';
     type_string "openqa" . random_string(5);
     assert_and_click "$name-connect-button";
-    my @tags = ("$name-connection-complete-dialog");
-    push(@tags, "$name-SASL-only-error") if get_var("IP_BLACKLISTED_ON_FREENODE");
+    my @tags = ("$name-connection-complete-dialog", "$name-SASL-only-error");
     assert_screen \@tags;
     if (match_has_tag("$name-connection-complete-dialog")) {
         assert_and_click "$name-join-channel";
@@ -35,7 +34,7 @@ sub run {
         assert_screen "$name-quit", 60;
     }
     elsif (match_has_tag("$name-SASL-only-error")) {
-        record_info('SASL required', 'The public IP of the current worker has been blacklisted on freenode, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
+        record_info('SASL required', 'The public IP of the current worker has been blacklisted on Libera, so a SASL connection would be required. https://progress.opensuse.org/issues/66697');
     }
     send_key 'alt-f4';
 }
