@@ -37,6 +37,19 @@ sub init {
     $self->provider_client->init();
 }
 
+=head2 decode_azure_json
+
+    my $json_obj = decode_azure_json($str);
+
+Helper function to decode json string, retrieved from C<az>, into a json
+object.
+Due to https://github.com/Azure/azure-cli/issues/9903 we need to strip all
+color codes from that string first.
+=cut
+sub decode_azure_json {
+    return decode_json(colorstrip(shift));
+}
+
 sub resource_exist {
     my ($self) = @_;
     my $group = $self->resource_group;
