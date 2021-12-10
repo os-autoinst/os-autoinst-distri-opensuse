@@ -231,6 +231,9 @@ VIRSH_OPENQA_BASEDIR | string | /var/lib | The OPENQA_BASEDIR configured on the 
 UNENCRYPTED_BOOT | boolean | false | Indicates/defines existence of unencrypted boot partition in the SUT.
 WAYLAND | boolean | false | Enables wayland tests in the system.
 XDMUSED | boolean | false | Indicates availability of xdm.
+XFS_MKFS_OPTIONS | string | | Define additional mkfs parameters. Used only in publiccloud test runs.
+XFS_TEST_DEVICE | string | | Define the device used for xfs tests. Used only in publiccloud test runs.
+XFS_TESTS_REFLINK | boolean | false | If set to true, the mkfsoption for using reflink will be added. Used only in publiccloud test runs.
 YAML_SCHEDULE | string | | Defines yaml file containing test suite schedule.
 YAML_TEST_DATA | string | | Defines yaml file containing test data.
 YUI_LOG_LEVEL | string | debug | Allows changing log level for YuiRestClient::Logger. Available options are: debug, info, warning, error, fatal.
