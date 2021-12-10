@@ -724,8 +724,9 @@ sub yast_scc_registration {
     }
     my $module_name = y2_module_consoletest::yast2_console_exec(yast2_module => $client_module, yast2_opts => $args{yast2_opts});
     # For Aarch64 if the worker run with heavy loads, it will
-    # timeout in nearly 120 seconds. So we set it to 150.
-    assert_screen('scc-registration', timeout => (is_aarch64) ? 150 : 90,);
+    # timeout in nearly 120 seconds. So we set it to 150. Same
+    # for s390 since timeout happen.
+    assert_screen('scc-registration', timeout => (is_aarch64 || is_s390x) ? 150 : 90,);
     fill_in_registration_data;
     wait_serial("$module_name-0", 150) || die "yast scc failed";
     # To check repos validity after registration, call 'validate_repos' as needed
