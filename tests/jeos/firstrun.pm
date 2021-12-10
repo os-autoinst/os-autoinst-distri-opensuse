@@ -142,7 +142,7 @@ sub run {
     }
     # Manually configure root-console as we skipped some parts in root-console's activation
     $testapi::distri->set_standard_prompt('root');
-    assert_script_run('setterm -blank 0');
+    assert_script_run('setterm -blank 0', timeout => 1200);
 
     verify_user_info(user_is_root => 1);
 
