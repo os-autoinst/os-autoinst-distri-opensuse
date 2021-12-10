@@ -75,4 +75,9 @@ sub vault_create_credentials {
     }
 }
 
+sub cleanup {
+    my ($self) = @_;
+    $self->vault->revoke();
+}
+
 1;
