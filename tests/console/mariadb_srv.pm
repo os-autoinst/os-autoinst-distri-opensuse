@@ -37,7 +37,7 @@ sub run {
         assert_script_run "sed -i 's|resolveip=\"\$bindir/resolveip\"|resolveip=\"/usr/bin/resolveip\"|' /usr/bin/${mariadb}_install_db";
     }
     systemctl "status $mariadb", expect_false => 1, fail_message => 'mariadb should be disabled by default';
-    systemctl "start $mariadb";
+    systemctl "start $mariadb", timeout => 300;
     systemctl "is-active $mariadb";
 
     # Test multiple instance configuration
