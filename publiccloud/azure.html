@@ -14,11 +14,18 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#decode_azure_json">decode_azure_json</a></li>
       <li><a href="#my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</a></li>
       <li><a href="#cleanup-This-method-is-called-called-after-each-test-on-failure-or-success-to-revoke-the-credentials">cleanup This method is called called after each test on failure or success to revoke the credentials</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/azure.pm</h1>
+
+<h2 id="decode_azure_json">decode_azure_json</h2>
+
+<pre><code>    my $json_obj = decode_azure_json($str);</code></pre>
+
+<p>Helper function to decode json string, retrieved from <code>az</code>, into a json object. Due to https://github.com/Azure/azure-cli/issues/9903 we need to strip all color codes from that string first.</p>
 
 <h2 id="my-parsed_id-self-parse_instance_id-instance-say-parsed_id--vm_name-say-parsed_id--resource_group">my $parsed_id = $self-&gt;parse_instance_id($instance); say $parsed_id-&gt;{vm_name}; say $parsed_id-&gt;{resource_group};</h2>
 
