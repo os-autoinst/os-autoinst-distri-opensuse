@@ -170,6 +170,7 @@ PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE)
 PUBLIC_CLOUD_QAM | boolean | false | Previously used to recognize maintenance jobs - now deprecated - should be removed.
 PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
 PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1).
+PUBLIC_CLOUD_RESOURCE_GROUP | string | "qashapopenqa" | Allows to specify resource group name on SLES4SAP PC tests.
 PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
 PUBLIC_CLOUD_SKIP_MU | boolean | false | Debug variable used to run test without maintenance updates repository being applied.
 PUBLIC_CLOUD_SERVICE_ACCOUNT | string | "" | GCE only, used to specify the service account.
