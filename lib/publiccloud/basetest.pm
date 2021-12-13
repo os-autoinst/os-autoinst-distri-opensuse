@@ -62,8 +62,8 @@ sub provider_factory {
             key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
             key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
             region => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
-            tenantid => get_var('PUBLIC_CLOUD_TENANT_ID'),
-            subscription => get_var('PUBLIC_CLOUD_SUBSCRIPTION_ID'),
+            tenantid => get_var('PUBLIC_CLOUD_AZURE_TENANT_ID'),
+            subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
             username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
         );
     }
