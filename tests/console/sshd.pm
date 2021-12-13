@@ -97,7 +97,7 @@ sub run {
     assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
     assert_script_run 'ps ux | egrep ".* \? .* sshd\:"';
     assert_script_run "whoami | grep $ssh_testman";
-    assert_script_run "mkdir .ssh";
+    assert_script_run "mkdir -m 700 .ssh";
 
     # Exit properly and check we're root again
     script_run("exit", 0);
