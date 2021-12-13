@@ -1,4 +1,9 @@
 pull_request_rules:
+  - name: remove outdated reviews
+    conditions:
+      - base=master
+    actions:
+      dismiss_reviews:
   - name: ask to resolve conflict
     conditions:
       - conflict
