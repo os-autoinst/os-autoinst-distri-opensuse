@@ -38,7 +38,8 @@ sub _sanity_test_btrfs {
     $rt->build($dockerfile_path, 'huge_image');
     assert_script_run "btrfs fi df $dev_path/btrfs/";
     assert_script_run "ls -td $dev_path/btrfs/subvolumes/* | head -n 1 > $btrfs_head";
-    validate_script_output "df -h |grep var", sub { m/\/dev\/vda.+[1-6]\d?%/ };
+    # Ensure the var partition has at least 10% free space
+    validate_script_output "df -h | grep var", sub { m/\/dev\/x?[v,s]d[a-z].+ [0-8][0-9]?%/ };
 }
 
 sub _test_btrfs_balancing {
