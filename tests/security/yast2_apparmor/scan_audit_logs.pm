@@ -10,14 +10,13 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
 
 sub run {
     my ($self) = shift;
     my $test_file = "/usr/sbin/nscd";
     my $test_profile = "/etc/apparmor.d/usr.sbin.nscd";
     my $test_profile_bk = "/tmp/usr.sbin.nscd";
-    my $entry = 'include <abstractions\/base>';
+    my $entry = '#include <abstractions\/base>';
     my $audit_log = $apparmortest::audit_log;
 
     # Set the testing profile to "enforce" mode
@@ -50,11 +49,7 @@ sub run {
     # E.g., comment out specific entries from profile, then run corresponding programs to generate audit records
     assert_script_run("cp $test_profile $test_profile_bk");
     assert_script_run("sed -i -e 's/$entry/#$entry/' $test_profile");
-    if (is_sle) {
-        validate_script_output("grep '##' $test_profile", sub { m/#$entry/ });
-    } else {
-        validate_script_output("grep '#' $test_profile", sub { m/#$entry/ });
-    }
+    validate_script_output("grep '##' $test_profile", sub { m/#$entry/ });
     assert_script_run("$test_file");
     validate_script_output("grep 'DENIED' $audit_log", sub { m/type=AVC.*msg=audit.*apparmor=.*DENIED.*profile=.*nscd.*comm=.*nscd.*/ });
 
