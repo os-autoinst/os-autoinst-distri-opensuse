@@ -14,6 +14,7 @@ use YuiRestClient::Widget::CheckBox;
 use YuiRestClient::Widget::ComboBox;
 use YuiRestClient::Widget::Label;
 use YuiRestClient::Widget::MenuCollection;
+use YuiRestClient::Widget::ProgressBar;
 use YuiRestClient::Widget::RadioButton;
 use YuiRestClient::Widget::RichText;
 use YuiRestClient::Widget::SelectionBox;
@@ -111,6 +112,14 @@ sub label {
 sub menucollection {
     my ($self, $filter) = @_;
     return YuiRestClient::Widget::MenuCollection->new({
+            widget_controller => $self->{widget_controller},
+            filter => YuiRestClient::Filter->new($filter)
+    });
+}
+
+sub progressbar {
+    my ($self, $filter) = @_;
+    return YuiRestClient::Widget::ProgressBar->new({
             widget_controller => $self->{widget_controller},
             filter => YuiRestClient::Filter->new($filter)
     });
