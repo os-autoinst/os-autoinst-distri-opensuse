@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
+use version_utils 'is_sle';
 use virt_utils;
 
 sub get_script_run {
@@ -86,7 +87,13 @@ sub run {
         $upload_guest_assets_flag = 'yes';
     }
 
-    $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs", $upload_guest_assets_flag);
+    #Disable assertion and junit report on SLE15SP4 to get around bug 1193574
+    if (is_sle('=15-sp4')) {
+        $self->run_test(7600, "", "no", "no", "/var/log/qa/", "guest-installation-logs", $upload_guest_assets_flag);
+    }
+    else {
+        $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs", $upload_guest_assets_flag);
+    }
 }
 
 1;
