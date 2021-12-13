@@ -1,0 +1,6 @@
+name: apparmor_profile_dnsmasq
+description:    >
+    This is for apparmor profile "usr.sbin.dnsmasq" test
+schedule:
+    - boot/boot_to_desktop
+    - security/apparmor_profile/usr_sbin_dnsmasq
