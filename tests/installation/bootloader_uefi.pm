@@ -49,12 +49,14 @@ use version_utils qw(is_jeos is_microos is_sle);
 sub run {
     my ($self) = @_;
 
-    # Enable boot menu for x86_64 uefi workaround, see bsc#1180080 for details
+    # Enabled boot menu for x86_64 uefi. In migration cases we set cdrom as boot index=0
+    # However migration cases need to boot the hard disk and fully pach it which are the
+    # testing requirements. So we keep this logic to boot the hard disk directly instead
+    # of cdrom boot menu entry
     # Case setting also need BOOT_MENU=1 to support it
     if (is_sle && get_required_var('FLAVOR') =~ /Migration/ && is_x86_64) {
         # Skip workaround on specific scenaio which call this module after migration
         if (!check_screen('bootloader-grub2', 0, no_wait => 1)) {
-            record_soft_failure 'bsc#1180080';
             tianocore_select_bootloader;
             send_key_until_needlematch("ovmf-boot-HDD", 'down', 5, 1);
             send_key "ret";
