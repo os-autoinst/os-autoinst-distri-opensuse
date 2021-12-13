@@ -17,7 +17,7 @@ use LTP::utils qw(get_ltproot get_ltp_version_file);
 use LTP::WhiteList qw(download_whitelist find_whitelist_testsuite find_whitelist_entry list_skipped_tests override_known_failures);
 use Mojo::File;
 use Mojo::JSON;
-use publiccloud::utils qw(is_byos select_host_console is_ec2_arm);
+use publiccloud::utils qw(is_byos select_host_console);
 use Data::Dumper;
 
 our $root_dir = '/root';
@@ -141,10 +141,6 @@ sub run {
     my $runltp_ng_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     assert_script_run("git clone -q --single-branch -b $runltp_ng_branch --depth 1 $runltp_ng_repo");
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
-    if (is_ec2_arm()) {
-        record_info('Workaround', 'AWS Nitro virtualization not recognized by systemd-detect-virt see bsc#1190440');
-        $instance->run_ssh_command('echo "LTP_VIRT_OVERRIDE=amazon" | sudo tee -a /etc/environment');
-    }
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . $self->instance_log_args();

@@ -18,7 +18,7 @@ use utils;
 use version_utils;
 use publiccloud::ssh_interactive;
 
-our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce is_ec2_arm);
+our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -68,11 +68,6 @@ sub is_ondemand() {
 # Check if we are on an AWS test run
 sub is_ec2() {
     return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-}
-
-# Check if we are on an AWS test run and VM running on the host with ARM architecture
-sub is_ec2_arm() {
-    return is_ec2() && get_var('FLAVOR') =~ 'ARM';
 }
 
 # Check if we are on an Azure test run
