@@ -4,6 +4,27 @@ pull_request_rules:
       - base=master
     actions:
       dismiss_reviews:
+  - name: additional checks
+    conditions:
+      - and: &base_checks
+        - base=master
+        - -label~=^acceptance-tests-needed|notready|WIP
+        - -body~=PLACEHOLDER
+        - "status-success~=static tests.*"
+        - "status-success~=unit tests.*"
+        - "status-success~=compile tests.*"
+        - "#check-failure=0"
+        - "#check-pending=0"
+        - linear-history
+      - and:
+        - "#approved-reviews-by>=2"
+        - "#changes-requested-reviews-by=0"
+        # https://doc.mergify.io/examples.html#require-all-requested-reviews-to-be-approved
+        - "#review-requested=0"
+        - "body~=Verification run: http"
+    actions:
+      review:
+        type: APPROVE
   - name: ask to resolve conflict
     conditions:
       - conflict
