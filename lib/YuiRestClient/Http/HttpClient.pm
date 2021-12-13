@@ -5,28 +5,19 @@ use strict;
 use warnings;
 
 use Mojo::UserAgent;
-use YuiRestClient::Logger;
 
 my $ua = Mojo::UserAgent->new;
 
 sub http_get {
     my $url = Mojo::URL->new(shift);
-    sleep(1);
     my $res = $ua->get($url)->result;
-    return $res if $res->is_success;
-    # Die if non OK response code
-    YuiRestClient::Logger->get_instance()->error('Widget not found by url: ' . $url);
-    die $res->message . "\n" . $res->body . "\n$url";
+    return $res;
 }
 
 sub http_post {
     my $url = Mojo::URL->new(shift);
-    sleep(1);
     my $res = $ua->post($url)->result;
-    return $res if $res->is_success;
-    # Die if non OK response code
-    YuiRestClient::Logger->get_instance()->error('Widget not found by url: ' . $url);
-    die $res->message . "\n" . $res->body . "\n$url";
+    return $res;
 }
 
 sub compose_uri {
@@ -82,17 +73,9 @@ Uses Mojo::UserAgent for HTTP protocol.
 
 =head2 Class and object methods
 
-B<http_get($url)> - perform a HTTP/GET to the specified URL
+B<http_get($url)> - perform a HTTP/GET to the specified URL and returns HTTP response
 
-If the GET is successful (HTTP 200) then the data that was retrieved will be 
-returned. If HTTP errors occur the method will log a "Widget not found by url" 
-error message and then die with the error message returned by the server.
-
-B<http_post($url)> - perform a HTTP/POST to the specified URL
-
-If the POST is successful (HTTP 200) then the data that was retrieved will be 
-returned. If HTTP errors occur the method will log a "Widget not found by url" 
-error message and then die with the error message returned by the server.
+B<http_post($url)> - perform a HTTP/POST to the specified URL and returns HTTP response
 
 B<compose_url(%args)> - compose an URL using the named parameter list 
 

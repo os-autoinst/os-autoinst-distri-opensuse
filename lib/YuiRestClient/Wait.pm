@@ -3,7 +3,7 @@
 package YuiRestClient::Wait;
 use strict;
 use warnings;
-
+use DateTime;
 
 sub wait_until {
     my (%args) = @_;
@@ -12,10 +12,12 @@ sub wait_until {
     $args{message} //= '';
 
     die "No object passed to the method" unless $args{object};
-
-    my $counter = abs(int($args{timeout} / $args{interval}));
     my $result;
-    while (--$counter >= 0) {
+    # if timeout is 0, just execute the passed expression once
+    return eval { $args{object}->() } if $args{timeout} == 0;
+
+    my $end_time = DateTime->now()->clone->add(seconds => $args{timeout});
+    while ($end_time->compare(DateTime->now()) > 0) {
         eval { $result = $args{object}->() };
         return $result if $result;
         sleep($args{interval});

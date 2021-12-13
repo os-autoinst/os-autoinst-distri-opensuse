@@ -4,7 +4,6 @@ package YuiRestClient::Http::WidgetController;
 use strict;
 use warnings;
 
-use YuiRestClient::Logger;
 use YuiRestClient::Wait;
 use YuiRestClient::Http::HttpClient;
 
@@ -50,11 +49,17 @@ sub find {
         params => $args
     );
 
-    YuiRestClient::Logger->get_instance()->debug('Finding widget by url: ' . $uri);
+    YuiRestClient::Logger->get_instance()->debug("Finding widget by url: $uri");
 
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_get($uri);
-            return $response->json if $response; },
+            if ($response->is_success) {
+                YuiRestClient::Logger->get_instance()->debug("Found widget by url: $uri");
+                return $response->json;
+            }
+            YuiRestClient::Logger->get_instance()->debug("Widget not found by url: $uri");
+            die $response->message . "\n" . $response->body . "\n$uri";
+        },
         timeout => $self->{timeout},
         interval => $self->{interval}
     );
@@ -70,11 +75,17 @@ sub send_action {
         params => $args
     );
 
-    YuiRestClient::Logger->get_instance()->debug('Sending action to widget by url: ' . $uri);
+    YuiRestClient::Logger->get_instance()->debug("Sending action to widget by url: $uri");
 
     YuiRestClient::Wait::wait_until(object => sub {
             my $response = YuiRestClient::Http::HttpClient::http_post($uri);
-            return $response if $response; },
+            if ($response->is_success) {
+                YuiRestClient::Logger->get_instance()->debug("Action performed on widget by url: $uri");
+                return $response;
+            }
+            YuiRestClient::Logger->get_instance()->debug("Action cannot be performed on widget by url: $uri");
+            die $response->message . "\n" . $response->body . "\n$uri";
+        },
         timeout => $self->{timeout},
         interval => $self->{interval}
     );
