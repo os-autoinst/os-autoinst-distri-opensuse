@@ -11,7 +11,7 @@
 # - Bring pidgin up (can be hidden on tray)
 # - Enable showoffline and check
 # - Exit pidgin
-# Maintainer: Chingkai <chuchingkai@gmail.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 
 use base "x11test";
 use strict;
