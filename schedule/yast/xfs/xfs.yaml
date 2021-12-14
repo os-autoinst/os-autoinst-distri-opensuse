@@ -13,8 +13,6 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  # Called only on BACKEND: s390x
-  - '{{disk_activation}}'
   - installation/registration/register_via_scc
   - installation/module_selection/select_module_desktop
   - installation/add_on_product/skip_install_addons
@@ -33,7 +31,7 @@ schedule:
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
@@ -43,10 +41,6 @@ schedule:
   - console/validate_free_space
   - console/validate_read_write
 conditional_schedule:
-  disk_activation:
-    BACKEND:
-      s390x:
-        - installation/disk_activation
   hostname_inst:
     BACKEND:
       qemu:

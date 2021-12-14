@@ -11,16 +11,14 @@ schedule:
   - '{{access_beta_distribution}}'
   - '{{switch_keyboard_layout}}'
   - installation/licensing/accept_license
-  - installation/online_repos
+  - installation/online_repos/disable_online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role/select_role_desktop_with_KDE_plasma
-  - installation/partitioning/select_guided_setup
-  - installation/partitioning/guided_setup
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/default_user_simple_pwd
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation

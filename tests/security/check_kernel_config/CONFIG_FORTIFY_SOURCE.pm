@@ -11,27 +11,20 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils 'is_sle';
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
     # Check the kernel configuration file to make sure the parameter is enabled by default
-    if (is_sle) {
-        assert_script_run "cat /boot/config-`uname -r` | grep 'CONFIG_FORTIFY_SOURCE=y'";
-        assert_script_run "zcat /proc/config.gz | grep CONFIG_FORTIFY_SOURCE=y";
-    } else {
-        validate_script_output "zcat /proc/config.gz | grep CONFIG_FORTIFY", qr/CONFIG_FORTIFY_SOURCE is not set/;
-    }
+    assert_script_run "grep CONFIG_FORTIFY_SOURCE=y /boot/config-`uname -r`";
+    assert_script_run "zgrep CONFIG_FORTIFY_SOURCE=y /proc/config.gz";
 
     # Check the syslog and 'dmesg' output to make sure no error or warning messages
-    my $results = script_run("dmesg | grep -i FORTIFY");
-    if (!$results) {
+    if (script_run("dmesg | grep -i FORTIFY") == 0) {
         die("Error: please check dmesg log for FORTIFY failure");
     }
-    my $results_1 = script_run("cat /var/log/messages | grep -i FORTIFY");
-    if (!$results_1) {
+    if (script_run("grep -i FORTIFY /var/log/messages") == 0) {
         die("Error: please check syslog for FORTIFY failure");
     }
 }

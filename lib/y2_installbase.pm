@@ -15,6 +15,7 @@ use y2_logs_helper 'get_available_compression';
 use utils qw(type_string_slow zypper_call);
 use lockapi;
 use mmapi;
+use Test::Assert 'assert_equals';
 
 my $workaround_bsc1189550_done;
 
@@ -60,6 +61,30 @@ sub accept_changes {
     }
     $self->accept3rdparty();
     assert_screen 'inst-overview';
+}
+
+=head2 validate_default_target
+
+    validate_default_target($expected_target);
+
+The function compares the actual systemd target with the expected one
+(the one that passed as an argument to the function)
+
+C<$expected_target> - systemd target that is expected and need to be validated.
+=cut
+sub validate_default_target {
+    my ($self, $expected_target) = @_;
+    select_console 'install-shell';
+
+    my $target_search = 'default target has been set';
+    # default.target is not yet linked, so we parse logs and assert expectations
+    if (my $log_line = script_output("grep '$target_search' /var/log/YaST2/y2log | tail -1",
+            proceed_on_failure => 1)) {
+        $log_line =~ /$target_search: (?<current_target>.*)/;
+        assert_equals($expected_target, $+{current_target}, "Mismatch in default.target");
+    }
+
+    select_console 'installation';
 }
 
 =head2 back_to_overview_from_packages

@@ -29,8 +29,11 @@ sub run {
     # Disable Remmina news before launch Remmina
     x11_start_program('xterm');
     my $pref_dir = '~/.config/remmina';
-    assert_script_run "mkdir $pref_dir";
+    assert_script_run "mkdir -p $pref_dir";
     assert_script_run 'echo -e "[remmina_news]\\nperiodic_rmnews_last_get=$(date +%s)" >> ' . $pref_dir . '/remmina.pref';
+    # Using H.264 is the default option, but we don't support that out of the box, so choose RemoteFX instead.
+    # (Disabling this using the UI is cumbersome, tab handling is broken, doesn't scroll)
+    assert_script_run 'echo -e "[remmina]\\ncolordepth=0" >> ' . $pref_dir . '/remmina.pref';
     enter_cmd "exit";
 
     # Start Remmina and login the remote server

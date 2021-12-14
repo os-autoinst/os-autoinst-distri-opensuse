@@ -14,7 +14,6 @@ vars:
   ENABLE_ALL_SCC_MODULES: 1
   ADDONS: all-packages
   YUI_REST_API: 1
-  QEMURAM: 2048
 schedule:
   - installation/bootloader_start
   - installation/setup_libyui
@@ -35,7 +34,7 @@ schedule:
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test

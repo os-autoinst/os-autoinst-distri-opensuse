@@ -11,11 +11,10 @@ package publiccloud::k8s_provider;
 use Mojo::Base -base;
 use testapi;
 use mmapi 'get_current_job_id';
-
+use publiccloud::gcp_client;
 
 has region => undef;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
-has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
 has provider_client => undef;
 
 sub init {
@@ -30,41 +29,64 @@ sub init {
                 region => $self->region,
                 service => $service
             ));
-        $self->provider_client->init();
     }
     elsif ($provider eq 'GCE') {
-        # TODO
+        $self->provider_client(
+            publiccloud::gcp_client->new(
+                region => $self->region,
+                service => $service
+            ));
     }
     elsif ($provider eq 'AZURE') {
-        # TODO
+        die('Not implemented yet');
     }
+    else {
+        die("Invalid provider");
+    }
+
+
+    $self->provider_client->init();
 }
 
 =head2 get_container_registry_prefix
+
 Get the full registry prefix URL (based on the account and region) to push container images on ECR.
 =cut
+
 sub get_container_registry_prefix {
     my ($self) = @_;
-    my $region = $self->region;
-    my $full_name_prefix = sprintf('%s.dkr.ecr.%s.amazonaws.com', $self->provider_client->aws_account_id, $region);
-    return $full_name_prefix;
+    return $self->provider_client->get_container_registry_prefix();
 }
 
 =head2 get_container_image_full_name
-Get the full name for a container image in ECR registry
+
+Returns the full name of the container image in ECR registry
+C<tag> Tag of the container
 =cut
+
 sub get_container_image_full_name {
     my ($self, $tag) = @_;
-    my $full_name_prefix = $self->get_container_registry_prefix();
-    return "$full_name_prefix/" . $self->container_registry . ":$tag";
+    return $self->provider_client->get_container_image_full_name($tag);
 }
 
 =head2 get_default_tag
+
 Returns a default tag for container images based of the current job id
 =cut
+
 sub get_default_tag {
     my ($self) = @_;
     return join('-', $self->resource_name, get_current_job_id());
+}
+
+=head2 configure_docker
+
+Configure the docker to access the cloud provider registry
+=cut
+
+sub configure_docker {
+    my ($self) = @_;
+    $self->provider_client->configure_docker();
 }
 
 1;

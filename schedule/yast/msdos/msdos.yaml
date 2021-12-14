@@ -22,7 +22,7 @@ schedule:
   - '{{disable_boot_menu_timeout}}'
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - '{{logs_from_installation_system}}'
   - installation/reboot_after_installation
   - installation/handle_reboot
@@ -33,9 +33,6 @@ schedule:
   - console/validate_read_write
 conditional_schedule:
   disable_boot_menu_timeout:
-    ARCH:
-      s390x:
-        - installation/bootloader_settings/disable_boot_menu_timeout
     BACKEND:
       qemu:
         - installation/bootloader_settings/disable_boot_menu_timeout
@@ -45,9 +42,6 @@ conditional_schedule:
       hvm:
         - installation/bootloader_settings/disable_boot_menu_timeout
   logs_from_installation_system:
-    ARCH:
-      s390x:
-        - installation/logs_from_installation_system
     BACKEND:
       qemu:
         - installation/logs_from_installation_system

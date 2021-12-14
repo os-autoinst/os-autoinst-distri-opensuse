@@ -15,18 +15,25 @@ ROOT_PW='nots3cr3t'
 setup() {
     # the dir /etc/pam.d/pam_test is static in the tool pam-test
     cp ./pam_test /etc/pam.d/pam_test
-    cp /etc/security/access.conf /etc/security/access.conf.bak
-    cp /etc/security/time.conf /etc/security/time.conf.bak
-    cp /etc/security/group.conf /etc/security/group.conf.bak
-    cp /etc/security/limits.conf /etc/security/limits.conf.bak
+    mkdir -p /etc/security
+    for file in access.conf time.conf group.conf limits.conf; do
+      if [ ! -f /etc/security/$file ]; then
+         cp /usr/etc/security/$file /etc/security/$file
+      else
+         cp /etc/security/$file /etc/security/$file.bak
+      fi
+    done
 }
 
 teardown() {
     rm -f /etc/pam.d/pam_test
-    mv /etc/security/access.conf.bak /etc/security/access.conf
-    mv /etc/security/time.conf.bak /etc/security/time.conf
-    mv /etc/security/group.conf.bak /etc/security/group.conf
-    mv /etc/security/limits.conf.bak /etc/security/limits.conf
+    for file in access.conf time.conf group.conf limits.conf; do
+      if [ -f /etc/security/$file.bak ]; then
+        mv /etc/security/$file.bak /etc/security/$file
+      else
+        rm /etc/security/$file
+      fi
+    done
 }
 
 @test "prepare for next cases" {

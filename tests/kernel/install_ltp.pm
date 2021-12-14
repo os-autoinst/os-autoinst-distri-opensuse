@@ -169,10 +169,9 @@ sub install_build_dependencies {
     }
 }
 
-sub install_from_git {
+sub prepare_ltp_git {
     my $url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $rel = get_var('LTP_RELEASE');
-    my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
     my $prefix = get_ltproot();
     my $configure = "./configure --with-open-posix-testsuite --with-realtime-testsuite --prefix=$prefix";
     my $extra_flags = get_var('LTP_EXTRA_CONF_FLAGS', '');
@@ -186,6 +185,29 @@ sub install_from_git {
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
     assert_script_run("$configure $extra_flags", timeout => 300);
+}
+
+sub install_selected_from_git {
+    prepare_ltp_git;
+    my @paths = qw(commands/insmod
+      kernel/firmware
+      kernel/device-drivers
+      kernel/syscalls/delete_module
+      kernel/syscalls/finit_module
+      kernel/syscalls/init_module);
+
+    assert_script_run('pushd testcases');
+    foreach (@paths) {
+        assert_script_run("pushd $_ && make && make install && popd", timeout => 600);
+    }
+    assert_script_run("popd");
+}
+
+sub install_from_git {
+    my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
+    my $prefix = get_ltproot();
+
+    prepare_ltp_git;
     assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
     assert_script_run 'make install', timeout => 360;
@@ -207,18 +229,19 @@ sub add_ltp_repo {
         }
 
         # ltp for leap15.2 is available only x86_64
-        # ltp for leap15.3+ is missing only s390x
-        if ((is_leap('=15.2') && is_x86_64) || (is_leap('15.3+') && !is_s390x)) {
-            $repo = sprintf("Leap_%s", get_var('VERSION'));
+        if (is_leap('15.4+')) {
+            $repo = get_var('VERSION');
+        } elsif ((is_leap('=15.2') && is_x86_64) || is_leap('15.3+')) {
+            $repo = sprintf("openSUSE_Leap_%s", get_var('VERSION'));
         } elsif (is_tumbleweed) {
-            $repo = "Factory";
-            $repo = "Factory_ARM" if is_aarch64();
-            $repo = "Factory_PowerPC" if is_ppc64le();
-            $repo = "Factory_zSystems" if is_s390x();
+            $repo = "openSUSE_Factory";
+            $repo = "openSUSE_Factory_ARM" if (is_aarch64() || is_arm());
+            $repo = "openSUSE_Factory_PowerPC" if is_ppc64le();
+            $repo = "openSUSE_Factory_zSystems" if is_s390x();
         } else {
             die sprintf("Unexpected combination of version (%s) and architecture (%s) used", get_var('VERSION'), get_var('ARCH'));
         }
-        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/openSUSE_$repo/";
+        $repo = "https://download.opensuse.org/repositories/benchmark:/ltp:/devel/$repo/";
     }
 
     zypper_ar($repo, name => 'ltp_repo');
@@ -344,6 +367,10 @@ sub run {
     else {
         add_ltp_repo;
         install_from_repo();
+        if (get_var("LTP_GIT_URL")) {
+            install_build_dependencies;
+            install_selected_from_git;
+        }
     }
 
     log_versions 1;

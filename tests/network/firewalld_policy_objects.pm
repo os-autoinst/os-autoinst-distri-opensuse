@@ -48,7 +48,7 @@ my $CLI_IP = '10.0.3.102';
 sub set_ip {
     my ($ip, $nic) = @_;
     script_run "arping -w 1 -I $nic $ip";    # check for duplicate IP
-    assert_script_run "echo \"STARTMODE='auto'\nBOOTPROTO='static'\nIPADDR='$ip/24'\nMTU='1458'\" > /etc/sysconfig/network/ifcfg-$nic";
+    assert_script_run "echo -e \"STARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip/24'\\nMTU='1458'\" > /etc/sysconfig/network/ifcfg-$nic";
     assert_script_run "rcnetwork restart";
     assert_script_run "ip addr";
 }
@@ -142,7 +142,12 @@ sub configure_firewall_policies {
     assert_script_run("firewall-cmd --permanent --policy int-to-ext --add-egress-zone=my-external");
     assert_script_run("firewall-cmd --permanent --policy ext-to-int --add-ingress-zone=my-external");
     assert_script_run("firewall-cmd --permanent --policy ext-to-int --add-egress-zone=my-internal");
-    assert_script_run("firewall-cmd --runtime-to-permanent");
+    if (script_run("firewall-cmd --runtime-to-permanent")) {
+        record_soft_failure("Committing zone change failed due to gh#firewalld/firewalld#890");
+        # As workaround, do it in the permanent config and the --reload later will activate it
+        assert_script_run("firewall-cmd --permanent --zone=my-external --change-interface=$net0");
+        assert_script_run("firewall-cmd --permanent --zone=my-internal --change-interface=$net1");
+    }
 
     # Internal to External policy: Allow http and icmp
     assert_script_run("firewall-cmd --permanent --policy int-to-ext --add-rich-rule='rule family=ipv4 service name=http accept'");

@@ -14,12 +14,13 @@ vars:
   EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
   YUI_REST_API: 1
 schedule:
-  - '{{compare_checksums}}'
+  - installation/isosize
+  - installation/data_integrity
   - installation/bootloader_start
   - installation/setup_libyui
   - installation/validate_beta_message
   - installation/access_beta_distribution
-  - '{{switch_keyboard_layout}}'
+  - installation/language_keyboard/switch_keyboard_layout
   - installation/product_selection/install_SLES
   - installation/licensing/verify_license_translations
   - installation/licensing/verify_license_has_to_be_accepted
@@ -36,22 +37,10 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/authentication/root_simple_pwd
   - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-conditional_schedule:
-  compare_checksums:
-    BACKEND:
-      qemu:
-        - installation/isosize
-        - installation/data_integrity
-  switch_keyboard_layout:
-    # Include only installations not using remote protocol, because on those,
-    # VNC client (or its X server) determines the keyboard layout
-    BACKEND:
-      qemu:
-        - installation/language_keyboard/switch_keyboard_layout
 test_data:
   license:
     language: English (US)
@@ -91,6 +80,7 @@ test_data:
     - sle-module-development-tools
     - sle-module-legacy
     - sle-module-public-cloud
+    - sle-module-NVIDIA-compute
     - PackageHub
     - sle-module-server-applications
     - sle-module-transactional-server

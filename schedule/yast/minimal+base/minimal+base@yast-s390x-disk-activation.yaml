@@ -16,7 +16,9 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - installation/disk_activation
+  - installation/disk_activation/select_configure_dasd_disks
+  - installation/disk_activation/configure_dasd
+  - installation/disk_activation/finish_disk_activation
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
@@ -27,11 +29,12 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/select_patterns
-  - installation/installation_overview
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot

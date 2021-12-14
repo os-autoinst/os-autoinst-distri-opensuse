@@ -1,6 +1,6 @@
 # SUSE's Apache tests
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 =head1 Apache tests
@@ -12,13 +12,12 @@ package apachetest;
 
 use base Exporter;
 use Exporter;
-
 use strict;
 use warnings;
-
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap check_version is_tumbleweed);
+use Utils::Architectures qw(is_aarch64);
 
 our @EXPORT = qw(setup_apache2 setup_pgsqldb destroy_pgsqldb test_pgsql test_mysql postgresql_cleanup);
 # Setup apache2 service in different mode: SSL, NSS, NSSFIPS, PHP7
@@ -52,12 +51,13 @@ sub setup_apache2 {
 
     if ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
-        push @packages, qw(php7-cli) unless (is_sle || is_leap);
+        push @packages, qw(php7-cli) unless (is_sle("<15-SP4") || is_leap("<15.4"));
         zypper_call("rm -u apache2-mod_php5 php5", exitcode => [0, 104]);
     }
 
     # Make sure the packages are installed
-    zypper_call("--no-gpg-checks in @packages");
+    my $timeout = is_aarch64 ? 1200 : 300;
+    zypper_call("--no-gpg-checks in @packages", timeout => $timeout);
 
     # Enable php7
     if ($mode eq "PHP7") {

@@ -12,15 +12,14 @@ use base "consoletest";
 use strict;
 use warnings FATAL => 'all';
 use testapi;
+use Test::Assert 'assert_equals';
 
 sub run {
     select_console 'root-console';
 
-    assert_script_run("! lsblk -n | grep '/home'",
-        fail_message => "Fail!\n
-        Expected: /home is NOT on separate partition/volume.\n
-        Actual: /home is on separate partition/volume."
-    );
+    my $root_device = script_output("findmnt -nrvo SOURCE -T /");
+    my $home_device = script_output("findmnt -nrvo SOURCE -T /home");
+    assert_equals($root_device, $home_device, "/home is on a separate partition");
 }
 
 1;

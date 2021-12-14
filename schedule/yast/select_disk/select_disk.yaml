@@ -26,21 +26,15 @@ schedule:
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
   - installation/installation_overview
-  - "{{edit_optional_kernel_cmd_parameters}}"
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_first_disk_selection
-conditional_schedule:
-  edit_optional_kernel_cmd_parameters:
-    BACKEND:
-      pvm_hmc:
-        - installation/bootloader_settings/disable_plymouth
 test_data:
   guided_partitioning:
     disks:

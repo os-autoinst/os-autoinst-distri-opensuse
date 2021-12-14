@@ -21,7 +21,7 @@ use version_utils;
 use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
-use x11utils qw(handle_login ensure_unlocked_desktop);
+use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
 
 # Base class for all openSUSE tests
 
@@ -969,17 +969,6 @@ sub handle_broken_autologin_boo1102563 {
     wait_screen_change { send_key 'alt-f4' };
 }
 
-sub handle_additional_polkit_windows {
-    record_soft_failure 'bsc#1177446 - Polkit popup appears at first login, again';
-    wait_still_screen(3);
-    ensure_unlocked_desktop;
-    # deal with potential followup authentication window which is not
-    # actually a login screen but polkit asking for modification to system
-    # repositories
-    wait_still_screen(3);
-    ensure_unlocked_desktop;
-}
-
 =head2 wait_boot_past_bootloader
 
  wait_boot_past_bootloader([, textmode => $textmode] [,ready_time => $ready_time] [, nologin => $nologin] [, forcenologin => $forcenologin]);
@@ -1034,7 +1023,7 @@ sub wait_boot_past_bootloader {
         push(@tags, 'guest-disable-display');
     }
     # bsc#1177446 - Polkit popup appears at first login, again
-    if (is_sle && !is_sle('<=15-SP1')) {
+    if (is_sle && !is_sle('<=15-SP1') && is_s390x) {
         push(@tags, 'authentication-required-user-settings');
     }
 

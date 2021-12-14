@@ -10,13 +10,35 @@
 #             qa-c team <qa-c@suse.de>
 
 package publiccloud::gce;
-use Mojo::Base 'publiccloud::gcp';
+use Mojo::Base 'publiccloud::provider';
 use Mojo::Util qw(trim);
 use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 
 has storage_name => undef;
+has provider_client => undef;
+has project_id => undef;
+has account => undef;
+has service_acount_name => undef;
+has private_key_id => undef;
+has private_key => undef;
+has client_id => undef;
+
+sub init {
+    my ($self, %params) = @_;
+    $self->SUPER::init();
+    $self->provider_client(publiccloud::gcp_client->new(
+            region => $self->region,
+            account => $self->account,
+            service_acount_name => $self->service_acount_name,
+            project_id => $self->project_id,
+            private_key_id => $self->private_key_id,
+            private_key => $self->private_key,
+            client_id => $self->client_id
+    ));
+    $self->provider_client->init();
+}
 
 sub file2name {
     my ($self, $file) = @_;
@@ -59,7 +81,7 @@ sub upload_img {
 sub img_proof {
     my ($self, %args) = @_;
 
-    $args{credentials_file} = $self->get_credentials_file_name();
+    $args{credentials_file} = $self->provider_client->get_credentials_file_name();
     $args{instance_type} //= 'n1-standard-2';
     $args{user} //= 'susetest';
     $args{provider} //= 'gce';
@@ -148,6 +170,12 @@ sub start_instance
         sleep 1;
     }
     $instance->public_ip($self->get_ip_from_instance($instance));
+}
+
+sub cleanup {
+    my ($self) = @_;
+    $self->SUPER::cleanup();
+    $self->provider_client->cleanup();
 }
 
 1;

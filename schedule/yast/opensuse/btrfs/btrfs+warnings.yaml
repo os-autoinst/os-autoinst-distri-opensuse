@@ -15,7 +15,7 @@ schedule:
   - installation/setup_libyui
   - '{{access_beta_distribution}}'
   - installation/licensing/accept_license
-  - installation/online_repos
+  - installation/online_repos/disable_online_repos
   - installation/installation_mode
   - installation/logpackages
   - installation/system_role/select_role_desktop_with_KDE_plasma
@@ -35,7 +35,7 @@ schedule:
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/grub_test

@@ -10,7 +10,7 @@ package main_publiccloud;
 use Mojo::Base 'Exporter';
 use utils;
 use version_utils;
-use main_common qw(loadtest load_extra_tests_prepare);
+use main_common qw(loadtest);
 use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64);
 
@@ -43,18 +43,18 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest('publiccloud/run_ltp', run_args => $args);
-    } elsif (get_var('PUBLIC_CLOUD_FIO')) {
-        loadtest('publiccloud/storage_perf', run_args => $args);
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview" unless get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS');
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
-            load_extra_tests_prepare();
             load_publiccloud_consoletests();
-        }
-        if (get_var('PUBLIC_CLOUD_CONTAINERS')) {
+        } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_podman_tests() if is_sle('>=15-sp1');
             load_docker_tests();
+        } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+            loadtest "publiccloud/xfsprepare";
+            loadtest "xfstests/run";
+            loadtest "xfstests/generate_report";
         }
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
@@ -78,15 +78,11 @@ sub load_publiccloud_consoletests {
 }
 
 sub load_latest_publiccloud_tests {
-    my $args = OpenQA::Test::RunArgs->new();
-    if (get_var('PUBLIC_CLOUD_PREPARE_TOOLS')) {
-        loadtest "publiccloud/prepare_tools";
-    }
-    elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
-        loadtest "publiccloud/img_proof", run_args => $args;
+    if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+        loadtest "publiccloud/img_proof";
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
-        loadtest 'publiccloud/run_ltp', run_args => $args;
+        loadtest 'publiccloud/run_ltp';
     }
     elsif (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         loadtest 'publiccloud/sles4sap';
@@ -95,25 +91,27 @@ sub load_latest_publiccloud_tests {
         loadtest 'publiccloud/az_accelerated_net';
     }
     elsif (get_var('PUBLIC_CLOUD_CHECK_BOOT_TIME')) {
-        loadtest "publiccloud/boottime", run_args => $args;
+        loadtest "publiccloud/boottime";
     }
     elsif (get_var('PUBLIC_CLOUD_FIO')) {
-        loadtest 'publiccloud/storage_perf', run_args => $args;
+        loadtest 'publiccloud/storage_perf';
     }
-    elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+    elsif (get_var('PUBLIC_CLOUD_CONSOLE_TESTS') || get_var('PUBLIC_CLOUD_CONTAINERS')) {
+        my $args = OpenQA::Test::RunArgs->new();
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/register_system", run_args => $args;
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-        load_extra_tests_prepare();
-        load_publiccloud_consoletests();
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-    }
-    elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
-        loadtest "publiccloud/prepare_instance", run_args => $args;
-        loadtest "publiccloud/register_system", run_args => $args;
-        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
-        load_podman_tests();
-        load_docker_tests();
+        if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
+            load_publiccloud_consoletests();
+        }
+        elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
+            load_podman_tests();
+            load_docker_tests();
+        } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+            loadtest "publiccloud/xfsprepare";
+            loadtest "xfstests/run";
+            loadtest "xfstests/generate_report";
+        }
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
     elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
@@ -129,6 +127,15 @@ sub load_create_publiccloud_tools_image {
     loadtest 'installation/bootloader';
     loadtest 'autoyast/installation';
     loadtest 'publiccloud/prepare_tools';
+    loadtest 'shutdown/shutdown';
+}
+
+# Test CLI tools for each provider
+sub load_publiccloud_cli_tools {
+    loadtest 'boot/boot_to_desktop';
+    loadtest 'publiccloud/azure_cli';
+    loadtest 'publiccloud/aws_cli';
+    loadtest 'publiccloud/google_cli';
     loadtest 'shutdown/shutdown';
 }
 
@@ -148,8 +155,11 @@ The rest of the scheduling is divided into two separate subroutines C<load_maint
 =cut
 
 sub load_publiccloud_tests {
-    if (check_var('PUBLIC_CLOUD_TOOLS_REPO', 1)) {
+    if (check_var('PUBLIC_CLOUD_PREPARE_TOOLS', 1)) {
         load_create_publiccloud_tools_image();
+    }
+    elsif (check_var('PUBLIC_CLOUD_TOOLS_CLI', 1)) {
+        load_publiccloud_cli_tools();
     }
     else {
         loadtest 'boot/boot_to_desktop';

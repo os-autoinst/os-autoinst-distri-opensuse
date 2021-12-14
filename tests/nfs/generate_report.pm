@@ -10,27 +10,46 @@ package generate_report;
 use strict;
 use warnings;
 use base 'opensusebasetest';
-use File::Basename;
+use Mojo::JSON;
 use testapi;
 use upload_system_log;
 
-sub upload_pynfs_log {
+sub display_results {
     my $self = shift;
+    my $skip = "";
+    my $pass = "";
+
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ~/pynfs/$folder");
+    upload_logs('results.json', failok => 1);
 
-    upload_logs('result-raw.txt', failok => 1);
+    my $content = script_output('cat results.json');
+    my $results = Mojo::JSON::decode_json($content);
 
-    script_run('../showresults.py result-raw.txt > result-analysis.txt');
-    upload_logs('result-analysis.txt', failok => 1);
+    die 'failed to parse results.json' unless $results;
+    die 'results.json is not array' unless (ref($results->{testcase}) eq 'ARRAY');
 
-    script_run('../showresults.py --hidepass result-raw.txt > result-fail.txt');
-    upload_logs('result-fail.txt', failok => 1);
+    record_info('Results', "failures: $results->{failures}\nskipped: $results->{skipped}\ntime: $results->{time}");
 
-    if (script_output("cat result-fail.txt | grep 'Of those:.*Failed' | sed 's/.*, \\([0-9]\\+\\) Failed,.*/\\1/'") gt 0) {
-        $self->result("fail");
-        record_info("failed tests", script_output('cat result-fail.txt'), result => 'fail');
+    for my $test (@{$results->{testcase}}) {
+        if (exists($test->{skipped})) {
+            $skip .= "$test->{code}\n";
+        } elsif (!exists($test->{failure})) {
+            $pass .= "$test->{code}\n";
+        }
+    }
+
+    record_info('Passed', $pass);
+    record_info('Skipped', $skip);
+
+    for my $test (@{$results->{testcase}}) {
+        bmwqemu::fctinfo("code: $test->{code}");
+        next unless (exists($test->{failure}));
+
+        my $targs = OpenQA::Test::RunArgs->new();
+        $targs->{data} = $test;
+        autotest::loadtest("tests/nfs/pynfs_failed.pm", name => $test->{code}, run_args => $targs);
     }
 }
 
@@ -76,12 +95,18 @@ sub run {
     $self->select_serial_terminal;
 
     if (get_var("PYNFS")) {
-        $self->upload_pynfs_log();
+        $self->display_results();
     }
     elsif (get_var("CTHON04")) {
         $self->upload_cthon04_log();
     }
     upload_system_logs();
+
+    autotest::loadtest("tests/shutdown/shutdown.pm");
+}
+
+sub test_flags {
+    return {no_rollback => 1};
 }
 
 1;

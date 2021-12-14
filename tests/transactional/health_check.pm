@@ -11,8 +11,10 @@ use strict;
 use warnings;
 use base "opensusebasetest";
 use testapi;
-use transactional qw(process_reboot trup_install trup_shell);
 use utils;
+use transactional qw(process_reboot trup_install trup_shell);
+use Utils::Architectures qw(is_s390x);
+use version_utils qw(is_sle_micro);
 
 
 sub get_btrfsid {
@@ -62,7 +64,14 @@ sub run {
     process_reboot(automated_rollback => 1);
 
     my $final_id = get_btrfsid;
-    die "health-checker does not rollback to the correct snapshot" unless $initial_id == $final_id;
+    unless ($initial_id == $final_id) {
+        if (is_sle_micro && is_s390x) {
+            record_soft_failure "bsc#1191897 - [s390x] health-checker does not rollback to the correct snapshot";
+        } else {
+            die "health-checker does not rollback to the correct snapshot";
+        }
+    }
+
 
     compare_id;
 

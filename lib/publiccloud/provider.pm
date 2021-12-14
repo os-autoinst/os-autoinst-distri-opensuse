@@ -350,6 +350,8 @@ sub terraform_apply {
         my $sap_regcode = get_required_var('SCC_REGCODE_SLES4SAP');
         my $storage_account_name = get_var('STORAGE_ACCOUNT_NAME');
         my $storage_account_key = get_var('STORAGE_ACCOUNT_KEY');
+        # Enable specifying resource group name to allow running multiple tests simultaneously
+        my $resource_group = get_var('PUBLIC_CLOUD_RESOURCE_GROUP', 'qashapopenqa');
         my $sle_version = get_var('FORCED_DEPLOY_REPO_VERSION') ? get_var('FORCED_DEPLOY_REPO_VERSION') : get_var('VERSION');
         $sle_version =~ s/-/_/g;
         my $ha_sap_repo = get_var('HA_SAP_REPO') ? get_var('HA_SAP_REPO') . '/SLE_' . $sle_version : '';
@@ -365,7 +367,7 @@ sub terraform_apply {
             q(%SLE_VERSION%) => $sle_version
         );
         upload_logs(TERRAFORM_DIR . "/$cloud_name/terraform.tfvars", failok => 1);
-        assert_script_run('terraform workspace new qashapopenqa -no-color', $terraform_timeout);
+        assert_script_run("terraform workspace new $resource_group -no-color", $terraform_timeout);
     }
     else {
         assert_script_run('cd ' . TERRAFORM_DIR);

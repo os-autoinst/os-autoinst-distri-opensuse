@@ -100,9 +100,9 @@ our %images_uri = (
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         },
         '15-SP4' => {
-            released => sub { },
+            released => sub { 'registry.suse.com/suse/sle15:15.4' },
             totest => sub {
-                'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4 ';
+                'registry.suse.de/suse/sle-15-sp4/ga/test/images/suse/sle15:15.4';
             },
             available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
         }

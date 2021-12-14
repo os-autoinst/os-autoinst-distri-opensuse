@@ -59,6 +59,7 @@ sub load_host_tests_podman {
         loadtest 'containers/podman';
         loadtest 'containers/podman_image';
         loadtest 'containers/podman_3rd_party_images';
+        loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah';
         loadtest 'containers/rootless_podman';
     }
@@ -68,6 +69,7 @@ sub load_host_tests_docker {
     loadtest 'containers/docker';
     loadtest 'containers/docker_image';
     loadtest 'containers/docker_3rd_party_images';
+    loadtest 'containers/docker_firewall';
     unless (is_sle("<=15") && is_aarch64) {
         # these 2 packages are not avaiable for <=15 (aarch64 only)
         # zypper-docker is not available in factory
@@ -80,8 +82,7 @@ sub load_host_tests_docker {
         loadtest 'containers/registry' if is_x86_64;
         loadtest 'containers/docker_compose';
     }
-    loadtest 'containers/validate_btrfs' if (is_x86_64 && !is_jeos);
-    loadtest "containers/container_diff" if (is_opensuse());
+    loadtest 'containers/validate_btrfs' if (is_x86_64);    # works currently only for x86_64, more are coming (poo#103977)
 }
 
 
@@ -94,7 +95,7 @@ sub load_container_tests {
 
     if (is_container_image_test()) {
         # Container Image tests
-        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host);
+        loadtest 'containers/host_configuration' unless (is_res_host || is_ubuntu_host || is_jeos);
         load_image_tests_podman() if ($runtime =~ 'podman');
         load_image_tests_docker() if ($runtime =~ 'docker');
     } else {

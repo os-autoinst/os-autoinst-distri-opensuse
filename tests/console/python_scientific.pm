@@ -48,12 +48,18 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
+    $self->cleanup();
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my $self = shift;
+    $self->cleanup();
     $self->SUPER::post_run_hook;
+}
+
+sub cleanup {
+    script_run('rm -f python3-numpy-test.py python3-scipy-test.py');
 }
 
 1;

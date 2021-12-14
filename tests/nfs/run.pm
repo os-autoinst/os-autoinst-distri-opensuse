@@ -21,7 +21,7 @@ sub pynfs_server_test_all {
     my $folder = get_required_var('PYNFS');
 
     assert_script_run("cd ./$folder");
-    script_run('./testserver.py -v --rundeps --hidepass --outfile result-raw.txt --maketree localhost:/exportdir all', 3600);
+    script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/exportdir all', 3600);
 }
 
 sub run {

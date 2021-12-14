@@ -39,14 +39,11 @@ sub install_podman_when_needed {
     my @pkgs = qw(podman);
     if (script_run("which podman") != 0) {
         if ($host_os eq 'centos') {
-            assert_script_run "dnf -y install @pkgs", timeout => 160;
+            assert_script_run "dnf -y update", timeout => 900;
+            assert_script_run "dnf -y install @pkgs", timeout => 300;
         } elsif ($host_os eq 'ubuntu') {
-            my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
-            my $ubuntu_repo = "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${version_id}";
-            assert_script_run qq(echo "deb $ubuntu_repo/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list);
-            assert_script_run "curl -L $ubuntu_repo/Release.key | apt-key add -";
-            assert_script_run "apt-get update", timeout => 300;
-            assert_script_run "apt-get -y install podman", timeout => 300;
+            assert_script_run "apt-get update", timeout => 900;
+            assert_script_run "apt-get -y install @pkgs", timeout => 300;
         } else {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if $host_os =~ 'sles';
@@ -55,7 +52,7 @@ sub install_podman_when_needed {
             zypper_call "in @pkgs";
         }
     }
-    assert_script_run('podman info');
+    record_info('podman', script_output('podman info'));
 }
 
 sub install_docker_when_needed {
@@ -69,21 +66,18 @@ sub install_docker_when_needed {
             if ($host_os eq 'centos') {
                 assert_script_run "dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo";
                 # if podman installed use flag "--allowerasing" to solve conflicts
-                assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 120;
+                assert_script_run "dnf -y install docker-ce --nobest --allowerasing", timeout => 300;
             } elsif ($host_os eq 'ubuntu') {
-                my $version_id = script_output('(. /etc/os-release && echo $VERSION_ID)');
-                assert_script_run "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -";
-                assert_script_run q(add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable");
-                assert_script_run "apt-get update", timeout => 160;
+                assert_script_run "apt-get update", timeout => 900;
                 # Make sure you are about to install from the Docker repo instead of the default Ubuntu repo
                 assert_script_run "apt-cache policy docker-ce";
-                assert_script_run "apt-get -y install docker-ce", timeout => 260;
+                assert_script_run "apt-get -y install docker-ce", timeout => 300;
             } else {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
                 activate_containers_module if $host_os =~ 'sles';
 
                 # docker package can be installed
-                zypper_call('in docker', timeout => 900);
+                zypper_call('in docker', timeout => 300);
             }
         }
     }
@@ -105,18 +99,28 @@ sub install_docker_when_needed {
     }
     systemctl('is-active docker');
     systemctl('status docker', timeout => 120);
-    assert_script_run('docker info');
+    record_info('docker', script_output('docker info'));
 }
 
 sub install_buildah_when_needed {
     my $host_os = shift;
-    my @pkgs = qw(buildah);
     if (script_run("which buildah") != 0) {
-        # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
-        activate_containers_module if $host_os =~ 'sles';
-        zypper_call "in @pkgs";
-        record_info('buildah', script_output('buildah info'));
+        if ($host_os eq 'centos') {
+            assert_script_run "dnf -y update", timeout => 900;
+            assert_script_run "dnf -y install buildah", timeout => 300;
+        } elsif ($host_os eq 'ubuntu') {
+            assert_script_run "apt-get update", timeout => 900;
+            assert_script_run "apt-get -y install buildah", timeout => 300;
+        } else {
+            activate_containers_module if $host_os =~ 'sles';
+            zypper_call('in buildah', timeout => 300);
+        }
     }
+    if ((script_output 'buildah info') =~ m/Failed to decode the keys.+ostree_repo/) {
+        assert_script_run "sed -i 's/ostree_repo/#ostree_repo/' /etc/containers/storage.conf";
+        record_soft_failure 'bsc#1189893 - Failed to decode the keys [\"storage.options.ostree_repo\"] from \"/etc/containers/storage.conf\"';
+    }
+    record_info('buildah', script_output('buildah info'));
 }
 
 sub test_container_runtime {

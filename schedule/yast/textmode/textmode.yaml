@@ -10,7 +10,6 @@ schedule:
   - installation/access_beta_distribution
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
-  - '{{disk_activation}}'
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
   - installation/add_on_product/skip_install_addons
@@ -24,7 +23,7 @@ schedule:
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
@@ -40,11 +39,6 @@ schedule:
   - console/textinfo
   - console/orphaned_packages_check
   - console/consoletest_finish
-conditional_schedule:
-  disk_activation:
-    BACKEND:
-      s390x:
-        - installation/disk_activation
 test_data:
   software:
     patterns:

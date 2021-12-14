@@ -1,0 +1,45 @@
+---
+name: addon-module-http
+description: |
+  Test verifies that adding addon using http works fine. We just perform installation
+  here. Using HA here, related ticket: https://progress.opensuse.org/issues/25896
+vars:
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_selection/skip_module_selection
+  - installation/addon_products_sle
+  - installation/system_role/select_role_text_mode
+  - installation/partitioning/accept_proposed_layout
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - '{{hostname_inst}}'
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/handle_reboot
+  - installation/first_boot
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/system_prepare
+  - console/consoletest_setup
+  - console/zypper_ref
+  - console/validate_addon_repos
+conditional_schedule:
+  hostname_inst:
+    BACKEND:
+      qemu:
+        - installation/hostname_inst
+      svirt:
+        - installation/hostname_inst

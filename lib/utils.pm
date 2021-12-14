@@ -1407,6 +1407,7 @@ sub reconnect_mgmt_console {
                     susefirewall2_to_firewalld();
                 }
             }
+            reset_consoles;
             select_console('x11', await_console => 0);
         }
     }
@@ -2065,7 +2066,9 @@ sub cleanup_disk_space {
 
     record_soft_failure "bsc#1192331", "Low diskspace on Filesystem root";
 
-    my @snap_lists = split /\n/, script_output("snapper list --disable-used-space | grep important= | grep -v single | awk \'{print \$1}\'");
+    my $ret = script_run("snapper --help | grep disable-used-space");
+    my $disable = $ret ? '' : '--disable-used-space';
+    my @snap_lists = split /\n/, script_output("snapper list $disable | grep important= | grep -v single | awk \'{print \$1}\'");
     foreach my $snapid (@snap_lists) {
         assert_script_run("snapper delete -s $snapid", timeout => 120) if ($snapid > 3);
     }

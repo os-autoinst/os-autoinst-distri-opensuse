@@ -19,7 +19,7 @@ has ssh_key_file => undef;
 has provider_client => undef;
 
 sub init {
-    my ($self, %params) = @_;
+    my ($self) = @_;
     $self->SUPER::init();
     $self->provider_client(publiccloud::aws_client->new(
             key_id => $self->key_id,
@@ -127,8 +127,8 @@ sub upload_img {
     # because we passing all needed info via params anyway
     assert_script_run('echo " " > /root/.ec2utils.conf');
 
-    assert_script_run("ec2uploadimg --access-id '" . $self->key_id
-          . "' -s '" . $self->key_secret . "' "
+    assert_script_run("ec2uploadimg --access-id '" . $self->provider_client->key_id
+          . "' -s '" . $self->provider_client->key_secret . "' "
           . "--backing-store ssd "
           . "--grub2 "
           . "--machine '" . $img_arch . "' "
@@ -165,8 +165,8 @@ sub img_proof {
     $args{user} //= 'ec2-user';
     $args{provider} //= 'ec2';
     $args{ssh_private_key_file} //= $self->ssh_key_file;
-    $args{key_id} //= $self->key_id;
-    $args{key_secret} //= $self->key_secret;
+    $args{key_id} //= $self->provider_client->key_id;
+    $args{key_secret} //= $self->provider_client->key_secret;
     $args{key_name} //= $self->ssh_key;
 
     return $self->run_img_proof(%args);

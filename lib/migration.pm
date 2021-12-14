@@ -129,7 +129,7 @@ sub deregister_dropped_modules {
 # https://documentation.suse.com/sles/15-SP2/html/SLES-all/cha-upgrade-online.html#sec-upgrade-online-zypper
 sub disable_installation_repos {
     if (is_s390x) {
-        zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de|10.160.0.100/ {print \$1}'`";
+        zypper_call "mr -d `zypper lr -u | awk '/ftp:.*?openqa.suse.de|10.160.0.207|10.160.0.100/ {print \$1}'`";
     }
     else {
         zypper_call "mr -d -l";

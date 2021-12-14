@@ -31,25 +31,14 @@ sub configure_insecure_registries {
     file_content_replace("/etc/containers/registries.conf", REGISTRY => $registry);
 }
 
-sub check_containers_firewall {
-    my ($runtime) = @_;
-    record_info "firewall", "Checking that firewall is enabled, properly configured and containers can reach the Internet";
+sub check_containers_connectivity {
+    record_info "connectivity", "Checking that containers can connect to the host, to each other and outside of the host";
     my $container_name = 'sut_container';
-    systemctl('is-active firewalld');
-
-    # cni-podman0 interface is created when running the first container
-    assert_script_run "podman pull " . registry_url('alpine');
-    assert_script_run "podman run --rm " . registry_url('alpine');
-    validate_script_output('ip a s cni-podman0', sub { /,UP/ });
 
     # Run container in the background
     assert_script_run "podman pull " . registry_url('alpine');
-    assert_script_run "podman run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine');
+    assert_script_run "podman run -id --rm --name $container_name -p 1234:1234 " . registry_url('alpine') . " sleep 30d";
     my $container_ip = container_ip $container_name, 'podman';
-
-    # Cheking rules of specific running container
-    validate_script_output("iptables -vn -t nat -L PREROUTING", sub { /CNI-HOSTPORT-DNAT/ });
-    validate_script_output("iptables -vn -t nat -L POSTROUTING", sub { /CNI-HOSTPORT-MASQ/ });
 
     # Connectivity to host check
     my $default_route = script_output "podman run " . registry_url('alpine') . " ip route show default | awk \'/default/ {print \$3}\'";

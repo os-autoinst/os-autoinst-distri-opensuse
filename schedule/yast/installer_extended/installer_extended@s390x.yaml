@@ -1,0 +1,88 @@
+---
+name: installer_extended
+description: >
+  Test suite performs additional UI checks. As of now following is tested:
+     - Switch keyboard layout and test it (only when is not VNC installation)
+     - License has to be accepted and there is pop-up with a hint.
+     - License translations (except SLE 15 due to missing translations in the
+       beta phase).
+     - Check available and selected by default modules for installation.
+vars:
+  CHECK_PRESELECTED_MODULES: '1'
+  CHECK_RELEASENOTES: '1'
+  EXIT_AFTER_START_INSTALL: '1'
+  EXTRABOOTPARAMS: Y2STRICTTEXTDOMAIN=1
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/validate_beta_message
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
+  - installation/licensing/verify_license_translations
+  - installation/licensing/verify_license_has_to_be_accepted
+  - installation/licensing/accept_license
+  - installation/registration/register_via_scc
+  - installation/module_selection/view_development_versions
+  - installation/module_selection/verify_module_selection
+  - installation/module_selection/skip_module_selection
+  - installation/add_on_product/skip_install_addons
+  - installation/system_role/accept_selected_role_text_mode
+  - installation/partitioning/accept_proposed_layout
+  - installation/releasenotes
+  - installation/clock_and_timezone/accept_timezone_configuration
+  - installation/authentication/default_user_simple_pwd
+  - installation/authentication/root_simple_pwd
+  - installation/resolve_dependency_issues
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+  - installation/installation_settings/validate_default_target
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/launch_installation
+  - installation/confirm_installation
+test_data:
+  license:
+    language: English (US)
+    translations:
+      - language: Czech
+        text: Licenční smlouva společnosti
+      - language: English (US)
+        text: End User License Agreement
+      - language: French
+        text: Contrat de licence utilisateur final
+      - language: German
+        text: Endbenutzer-Lizenzvereinbarung
+      - language: Italian
+        text: Contratto di licenza
+      - language: Japanese
+        text: 版ソフトウェア
+      - language: Korean
+        text: 소프트웨어
+      - language: Portuguese (Brazilian)
+        text: Contrato de Licença para Usuário Final
+      - language: Russian
+        text: Лицензионное соглашение
+      - language: Simplified Chinese
+        text: 软件的
+      - language: Spanish
+        text: Acuerdo de licencia de usuario final
+      - language: Traditional Chinese
+        text: 版軟體的
+  beta_text: 'You are accessing our Beta Distribution'
+  modules:
+    - sle-ha
+    - sle-module-live-patching
+    - sle-we
+    - sle-module-basesystem
+    - sle-module-containers
+    - sle-module-desktop-applications
+    - sle-module-development-tools
+    - sle-module-legacy
+    - sle-module-public-cloud
+    - PackageHub
+    - sle-module-server-applications
+    - sle-module-transactional-server
+    - sle-module-web-scripting
+  selected_modules:
+    - sle-module-basesystem
+    - sle-module-server-applications

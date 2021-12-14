@@ -17,6 +17,7 @@ our @EXPORT = qw(
   desktop_runner_hotkey
   ensure_unlocked_desktop
   ensure_fullscreen
+  handle_additional_polkit_windows
   handle_login
   handle_logout
   handle_relogin
@@ -24,6 +25,8 @@ our @EXPORT = qw(
   select_user_gnome
   turn_off_screensaver
   turn_off_kde_screensaver
+  turn_off_plasma_screen_energysaver
+  turn_off_plasma_screenlocker
   turn_off_gnome_screensaver
   turn_off_gnome_screensaver_for_gdm
   turn_off_gnome_suspend
@@ -65,6 +68,11 @@ all possible options should be handled within loop to get unlocked desktop
 sub ensure_unlocked_desktop {
     my $counter = 10;
 
+    # press key to update screen, wait shortly before and after to not match cached screen
+    my $wait_time = get_var('UPGRADE') ? 10 : 3;
+    wait_still_screen($wait_time);
+    send_key 'ctrl';
+    wait_still_screen($wait_time);
     while ($counter--) {
         my @tags = qw(displaymanager displaymanager-password-prompt generic-desktop screenlock screenlock-password authentication-required-user-settings authentication-required-modify-system guest-disabled-display oh-no-something-has-gone-wrong);
         push(@tags, 'blackscreen') if get_var("DESKTOP") =~ /minimalx|xfce/;    # Only xscreensaver and xfce have a blackscreen as screenlock
@@ -178,6 +186,29 @@ sub ensure_fullscreen {
     }
 }
 
+sub handle_additional_polkit_windows {
+    my $mypwd = shift // $testapi::password;
+    if (match_has_tag('authentication-required-user-settings')) {
+        # for S390x testing, since they are not using qemu built-in vnc, it is
+        # expected that polkit authentication window can open for first time login.
+        # see bsc#1177446 for more information.
+        record_soft_failure 'bsc#1192992 - multiple authentication due to repositories refresh on s390x';
+        wait_still_screen(5);
+        my $counter = 5;
+        while (check_screen('authentication-required-user-settings', 10) && $counter) {
+            type_password($mypwd);
+            send_key 'ret';
+            wait_still_screen(2, 4);
+            $counter--;
+        }
+    }
+    if (match_has_tag('authentication-required-modify-system')) {
+        type_password($mypwd);
+        send_key 'ret';
+        wait_still_screen(2, 4);
+    }
+}
+
 =head2 handle_login
 
  handle_login($myuser, $user_selected);
@@ -230,14 +261,7 @@ sub handle_login {
     type_password($mypwd);
     send_key 'ret';
     wait_still_screen;
-    # for S390x testing, since they are not using qemu built-in vnc, it is
-    # expected that polkit authentication window can open for first time login.
-    # see bsc#1177446 for more information.
-    if (check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 10)) {
-        type_password($mypwd);
-        send_key 'ret';
-        wait_still_screen;
-    }
+    handle_additional_polkit_windows($mypwd) if check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 15);
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
         send_key_until_needlematch [qw(generic-desktop opensuse-welcome language-change-required-update-folder)], 'esc';
@@ -315,22 +339,50 @@ sub select_user_gnome {
     }
 }
 
+=head2 turn_off_plasma_screen_energysaver
+
+ turn_off_plasma_screen_energysaver()
+
+Turns off the Plasma desktop screen energy saving.
+
+=cut
+sub turn_off_plasma_screen_energysaver {
+    x11_start_program('kcmshell5 powerdevilprofilesconfig', target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
+    assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
+    assert_screen 'kde-energysaver-disabled';
+    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
+    send_key 'ctrl-ret';
+    assert_screen 'generic-desktop';
+}
+
+=head2 turn_off_plasma_screenlocker
+
+ turnoff_plasma_screenlocker()
+
+Turns off the Plasma desktop screenlocker.
+
+=cut
+sub turn_off_plasma_screenlocker {
+    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
+    assert_and_click 'kde-disable-screenlock' if match_has_tag('kde-screenlock-enabled');
+    assert_screen 'screenlock-disabled';
+    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
+    send_key 'ctrl-ret';
+    assert_screen 'generic-desktop';
+}
+
 =head2 turn_off_kde_screensaver
 
- turn_off_kde_screensaver();
+  turn_off_kde_screensaver()
 
-Turns off the screensaver on KDE
+Prevents screen from being locked or turning black while using the Plasma
+desktop. Call before tests that are not providing input for a long time, to
+prevent needles from failing.
 
 =cut
 sub turn_off_kde_screensaver {
-    x11_start_program('kcmshell5 screenlocker', target_match => [qw(kde-screenlock-enabled screenlock-disabled)]);
-    if (match_has_tag('kde-screenlock-enabled')) {
-        assert_and_click('kde-disable-screenlock');
-    }
-    assert_screen 'screenlock-disabled';
-    # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
-    send_key('ctrl-ret');
-    assert_screen 'generic-desktop';
+    turn_off_plasma_screenlocker;
+    turn_off_plasma_screen_energysaver;
 }
 
 =head2 turn_off_gnome_screensaver

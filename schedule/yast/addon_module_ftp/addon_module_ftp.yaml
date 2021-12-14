@@ -1,12 +1,9 @@
 ---
-name: minimal+role_minimal
-description: >
-  SLE 15 specific registered installation with minimal role selected.
-  Installation is validated by successful boot and that YaST does not report
-  any issue.
+name: addon-module-ftp
+description: |
+  Test verifies that adding addon using ftp works fine.  We just perform installation
+  here. Using HA here, related ticket: https://progress.opensuse.org/issues/25896
 vars:
-  BSC1167736: '1'
-  SYSTEM_ROLE: minimal
   YUI_REST_API: 1
 schedule:
   - installation/bootloader_start
@@ -16,39 +13,27 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
-  - installation/add_on_product/skip_install_addons
-  - installation/system_role/select_role_minimal
+  - installation/addon_products_sle
+  - installation/system_role/select_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
-  # Called on BACKEND: qemu, svirt
   - '{{hostname_inst}}'
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
   - installation/resolve_dependency_issues
-  - installation/installation_overview
+  - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
   - installation/confirm_installation
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
   - console/system_prepare
   - console/consoletest_setup
-  - console/zypper_lr
   - console/zypper_ref
-  - console/zypper_in
-  - console/firewall_enabled
-  - console/ncurses
-  - console/sshd_running
-  - console/sshd
-  - console/verify_default_target
-  - console/validate_partition_table_via_blkid
-  - console/validate_blockdevices
-  - console/validate_installed_packages
-  - console/validate_installed_patterns
-  - console/orphaned_packages_check
+  - console/validate_addon_repos
 conditional_schedule:
   hostname_inst:
     BACKEND:

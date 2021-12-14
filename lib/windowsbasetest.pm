@@ -7,6 +7,16 @@ package windowsbasetest;
 use Mojo::Base qw(basetest);
 use testapi;
 
+sub windows_run {
+    my ($self, $cmd) = @_;
+    send_key 'super-r';
+    wait_still_screen;
+    send_key 'backspace';
+    assert_screen 'windows-run';
+    enter_cmd $cmd;
+    wait_still_screen;
+}
+
 sub _setup_serial_device {
     type_string '$port = new-Object System.IO.Ports.SerialPort COM1,9600,None,8,one', max_interval => 125;
     wait_screen_change(sub { send_key 'ret' }, 10);

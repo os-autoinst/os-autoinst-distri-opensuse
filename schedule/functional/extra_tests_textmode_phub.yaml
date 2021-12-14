@@ -7,10 +7,10 @@ schedule:
     - boot/boot_to_desktop
     - console/add_phub_extension
     - console/python_scientific
+    - console/python_flake8
     - '{{wpa_supplicant}}'
     - console/vmstat
     - console/sssd_389ds_functional
-    - console/sssd_openldap_functional
     - console/coredump_collect
 conditional_schedule:
     wpa_supplicant:

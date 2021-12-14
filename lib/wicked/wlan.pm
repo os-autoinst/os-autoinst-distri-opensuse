@@ -335,7 +335,9 @@ sub hostapd_start {
     ## Check for multi BSS setup
     my @bsss = $config =~ (/^bss=(.*)$/gm);
     for my $bss (@bsss) {
-        $self->netns_exec('ip addr add dev ' . $bss . ' ' . $self->ref_ip(bss => $bss, netmask => 1));
+        $self->retry(sub {
+                $self->netns_exec('ip addr add dev ' . $bss . ' ' . $self->ref_ip(bss => $bss, netmask => 1));
+        });
         $self->restart_dhcp_server(bss => $bss) if ($self->use_dhcp());
     }
 }

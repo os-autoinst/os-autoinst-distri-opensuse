@@ -14,6 +14,10 @@ use warnings FATAL => 'all';
 use parent 'susedistribution';
 use Installation::AuthenticationForRoot::AuthenticationForRootController;
 use Installation::ClockAndTimeZone::ClockAndTimeZoneController;
+use Installation::DiskActivation::DiskActivationController;
+use Installation::DiskActivation::ConfiguredZFCPDevicesController;
+use Installation::DiskActivation::AddZFCPDeviceController;
+use Installation::DiskActivation::DASDDiskManagementController;
 use Installation::LanguageKeyboard::LanguageKeyboardController;
 use Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use Installation::License::Opensuse::LicenseAgreementController;
@@ -29,6 +33,7 @@ use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSche
 use Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::SelectHardDisksController;
 use Installation::Partitioner::LibstorageNG::GuidedSetupController;
 use Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerController;
+use Installation::PerformingInstallation::PerformingInstallationController;
 use Installation::SystemProbing::EncryptedVolumeActivationController;
 use Installation::SystemRole::SystemRoleController;
 use Installation::Popups::OKPopupController;
@@ -163,5 +168,24 @@ sub get_encrypted_volume_activation {
     return Installation::SystemProbing::EncryptedVolumeActivationController->new();
 }
 
+sub get_disk_activation {
+    return Installation::DiskActivation::DiskActivationController->new();
+}
+
+sub get_configured_zfcp_devices {
+    return Installation::DiskActivation::ConfiguredZFCPDevicesController->new();
+}
+
+sub get_add_new_zfcp_device {
+    return Installation::DiskActivation::AddZFCPDeviceController->new();
+}
+
+sub get_dasd_disk_management {
+    return Installation::DiskActivation::DASDDiskManagementController->new();
+}
+
+sub get_performing_installation {
+    return Installation::PerformingInstallation::PerformingInstallationController->new();
+}
 
 1;

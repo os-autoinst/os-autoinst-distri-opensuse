@@ -25,11 +25,12 @@ schedule:
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/authentication/use_same_password_for_root
   - installation/authentication/default_user_simple_pwd
-  - installation/installation_overview
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
   - installation/bootloader_settings/disable_plymouth
   - installation/disable_grub_timeout
   - installation/start_install
-  - installation/await_install
+  - installation/performing_installation/perform_installation
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot

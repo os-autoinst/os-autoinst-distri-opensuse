@@ -13,7 +13,7 @@
 # - Send message "Hello from openQA" and check
 # - Close chat window
 # - Cleanup
-# Maintainer: nick wang <nwang@suse.com>
+# Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1248849
 
 use base "x11test";
@@ -54,7 +54,8 @@ sub run {
     assert_and_click 'pidgin-irc-account';
 
     # IP spoofing or CTCP Version and scan warnings may appear
-    assert_screen([qw(pidgin-ready pidgin-spoofing-ip pidgin-ctcp-version)]);    # wait until connection established
+    my @tags = qw(pidgin-ready pidgin-spoofing-ip pidgin-ctcp-version pidgin-SASL-only-error);
+    assert_screen \@tags;    # wait until connection established
     wait_still_screen 5;    # give some time for warnings to pop-up
     while (check_screen('pidgin-spoofing-ip') || check_screen('pidgin-ctcp-version')) {
         send_key is_sle('<15') ? "alt-tab" : "alt-`";    # focus on warning
@@ -62,26 +63,30 @@ sub run {
         send_key "ctrl-w";    # close it
         wait_still_screen 2;
     }
-    assert_screen('pidgin-ready');
+    if (match_has_tag("pidgin-SASL-only-error")) {
+        record_info('SASL required', 'The public IP of the current worker has been blacklisted on Libera, so a SASL connection would be required. https://progress.opensuse.org/issues/102653');
+    } else {
+        assert_screen "pidgin-ready";
+        # Join a chat
+        send_key "ctrl-c";
+        wait_still_screen 2;
+        type_string "#sledtesting";
+        wait_still_screen 2;
+        send_key "alt-j";
 
-    # Join a chat
-    send_key "ctrl-c";
-    wait_still_screen 2;
-    type_string "#sledtesting";
-    wait_still_screen 2;
-    send_key "alt-j";
+        # Should open sledtesting channel
+        assert_screen 'pidgin-irc-sledtesting';
 
-    # Should open sledtesting channel
-    assert_screen 'pidgin-irc-sledtesting';
+        # Send a message
+        send_key is_sle('<15') ? "alt-tab" : "alt-`";
+        wait_still_screen 2;
+        enter_cmd "Hello from openQA";
+        assert_screen 'pidgin-irc-msgsent';
+        send_key "ctrl-w";
+        wait_still_screen 2;
 
-    # Send a message
-    send_key is_sle('<15') ? "alt-tab" : "alt-`";
-    wait_still_screen 2;
-    enter_cmd "Hello from openQA";
-    assert_screen 'pidgin-irc-msgsent';
-    send_key "ctrl-w";
-    wait_still_screen 2;
 
+    }
     # Cleaning
     $self->pidgin_remove_account;
 

@@ -5,7 +5,7 @@
 #
 # Summary: Run 'crypto' test case of 'audit-test' test suite
 # Maintainer: llzhao <llzhao@suse.com>, liuxiaojing <xiaojing.liu@suse.com>
-# Tags: poo#95485
+# Tags: poo#95485, poo#102693
 
 use base 'consoletest';
 use strict;
@@ -23,7 +23,7 @@ sub run {
     zypper_call('in certification-sles-eal4');
 
     # Run test case
-    run_testcase('crypto', make => 1, timeout => 900);
+    run_testcase('crypto', make => 1, timeout => 1200);
 
     # Compare current test results with baseline
     my $result = compare_run_log('crypto');

@@ -85,6 +85,7 @@ conditional_schedule:
                 - console/parsec
                 - console/systemd_rpm_macros
                 - console/vsftpd
+                - console/python_flake8
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -128,6 +129,7 @@ schedule:
     - console/unzip
     - console/gpg
     - console/rsync
+    - console/rust
     - console/clamav
     - console/shells
     - console/sudo
