@@ -44,6 +44,11 @@ sub enter_keyboard_test {
     type_string $test;
 }
 
+sub get_keyboard_layout {
+    my ($self) = @_;
+    $self->{cb_keyboard_layout}->value();
+}
+
 sub get_keyboard_test {
     my ($self) = @_;
     $self->{tb_keyboard_test}->value();
