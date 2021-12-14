@@ -82,7 +82,7 @@ sub load_host_tests_docker {
         loadtest 'containers/registry' if is_x86_64;
         loadtest 'containers/docker_compose';
     }
-    loadtest 'containers/validate_btrfs' if (is_x86_64 && !is_jeos);
+    loadtest 'containers/validate_btrfs' if (is_x86_64);    # works currently only for x86_64, more are coming (poo#103977)
 }
 
 
