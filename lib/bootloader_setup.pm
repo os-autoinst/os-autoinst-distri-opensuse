@@ -111,7 +111,11 @@ sub add_custom_grub_entries {
     my $cfg_old = 'grub.cfg.old';
     my $distro = "openSUSE" . ' \\?' . get_required_var('VERSION');
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    # LTSS is supported only on aarch64 HPC 12-SP4
+    if (check_var('VERSION', '12-SP4') && check_var('ARCH', 'aarch64')) {
+        $distro = 'SLE-HPC' . ' \\?' . get_required_var('VERSION');
+    }
+    elsif (check_var('SLE_PRODUCT', 'slert')) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
     }
     elsif (is_sle()) {
