@@ -158,7 +158,7 @@ sub load_publiccloud_tests {
     if (check_var('PUBLIC_CLOUD_PREPARE_TOOLS', 1)) {
         load_create_publiccloud_tools_image();
     }
-    elsif (check_var('PUBLIC_CLOUD_CLI_TOOLS', 1)) {
+    elsif (check_var('PUBLIC_CLOUD_TOOLS_CLI', 1)) {
         load_publiccloud_cli_tools();
     }
     else {
