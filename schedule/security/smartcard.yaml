@@ -1,0 +1,14 @@
+name: smartcard package update
+description:    >
+    Update the whole smart card package chain in SLE-15-SP4
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - security/smartcard/version_check
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader
