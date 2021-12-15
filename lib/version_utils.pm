@@ -519,7 +519,10 @@ Returns true (1) if Product Selection step has to be shown for the certain
 configuration, otherwise returns false (0).
 =cut
 sub has_product_selection {
+    # Possible result of bsc#1192626
+    my $does_not_have = is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x();
     if (is_sle('15+') && !get_var('UPGRADE')) {
+        return 0 if $does_not_have;
         return (is_sle('>=15-SP1') || !is_s390x()) && !get_var('BASE_VERSION');
     }
 }
@@ -536,10 +539,16 @@ configuration, otherwise returns false (0).
 =cut
 sub has_license_on_welcome_screen {
     return 1 if is_sle_micro;
-    return get_var('HASLICENSE') &&
-      (((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
-        || is_sle('<15')
-        || (is_sle('=15') && is_s390x()));
+    if (get_var('HASLICENSE')) {
+        return 1 if (
+            ((is_sle('>=15-SP1') && get_var('BASE_VERSION') && !get_var('UPGRADE')) && is_s390x())
+            || is_sle('<15')
+            || (is_sle('=15') && is_s390x())
+            || (is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x())
+        );
+    }
+
+    return 0;
 }
 
 =head2 has_license_to_accept
