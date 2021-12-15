@@ -246,7 +246,7 @@ The CSP credentials secret used to access API.
 
 The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
 
-=head2 PUBLIC_CLOUD_TENANT_ID
+=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
 
 This is B<only for azure> and used to create the service account file.
 
