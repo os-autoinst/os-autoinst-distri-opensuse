@@ -39,6 +39,7 @@ sub run {
     assert_script_run('curl http://localhost:9090', fail_message => 'Cannot fetch index page');
     assert_script_run('lsof -i :9090', fail_message => 'Port 9090 is not opened!');
     systemctl('is-active cockpit.service');
+    record_info('status', script_output('systemctl status cockpit.service'));
 
 
     # Cockpit should survive a reboot. After reboot cockpit.socket should be
@@ -48,6 +49,7 @@ sub run {
     systemctl('is-enabled cockpit.socket');
     assert_script_run('curl http://localhost:9090', fail_message => 'Cannot fetch index page');
     systemctl('is-active cockpit.service');
+    record_info('status', script_output('systemctl status cockpit.service'));
 }
 
 1;
