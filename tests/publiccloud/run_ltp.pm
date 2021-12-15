@@ -83,7 +83,7 @@ sub upload_ltp_logs
 sub run {
     my ($self, $args) = @_;
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
+    my $ltp_repo = get_var('LTP_REPO', 'http://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
     my $provider;
     my $instance;
 
