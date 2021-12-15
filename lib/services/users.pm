@@ -178,7 +178,6 @@ sub full_users_check {
         logout_and_login;
         # for poo#88247, it is hard to deal with the authorization of bernhard in
         # following migration process, we have to restore current user's password.
-        record_soft_failure("poo#88247, it is hard to deal with the authorization of bernhard in following migration process, we have to restore current users password");
         restore_passwd;
     }
     else {
