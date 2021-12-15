@@ -9,14 +9,15 @@
 package wickedbase;
 
 use base 'opensusebasetest';
-use utils qw(systemctl file_content_replace zypper_call);
+use utils qw(systemctl file_content_replace zypper_call random_string);
+use Encode qw(encode_utf8);
 use network_utils;
 use lockapi;
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
 use Carp;
 use Mojo::File 'path';
-use Mojo::Util 'trim';
+use Mojo::Util qw(b64_encode b64_decode trim);
 use Regexp::Common 'net';
 use File::Basename;
 use version_utils 'check_version';
@@ -70,7 +71,21 @@ sub get_wicked_version {
 =cut
 sub check_wicked_version {
     my ($self, $query) = @_;
+    return 1 if get_var('WICKED_SKIP_VERSION_CHECK', 0);
     return check_version($query, $self->get_wicked_version());
+}
+
+sub skip_by_wicked_version
+{
+    my ($self, $v) = @_;
+    $v //= $self->wicked_version;
+
+    if ($v && !$self->check_wicked_version($v)) {
+        $self->result('skip');
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 =head2 assert_wicked_state
@@ -716,6 +731,62 @@ sub check_ipv6 {
     }
 
     die "There were errors during test" if $errors || $dns_failure;
+}
+
+sub lookup {
+    my ($self, $name, $env) = @_;
+    if (exists $env->{$name}) {
+        return $env->{$name};
+    } elsif (my $v = eval { return $self->$name }) {
+        return $v;
+    }
+    die("Failed to lookup '{{$name}}' variable");
+}
+
+=head2 write_cfg
+
+  write_cfg($filename, $content[, env => {}, encode_base64 => 0 ]);
+
+Write all data at once to the file. Replace all ocurance of C<{{name}}>.
+First lookup is the given c<$env> hash and if it doesn't exists
+it try to lookup a member function with the given c<name> and replace the string
+with return value
+
+=cut
+sub write_cfg {
+    my ($self, $filename, $content, %args) = @_;
+    my ($filename_orig, $content_orig);
+    $args{env} //= {};
+    $args{encode_base64} //= 0;
+    my $rand = random_string;
+    # replace variables
+    $content =~ s/\{\{(\w+)\}\}/$self->lookup($1, $args{env})/eg;
+    # unwrap content
+    my ($indent) = $content =~ /^\r?\n?([ ]*)/m;
+    $content =~ s/^$indent//mg;
+    $content =~ s/^[ \t]+$//mg;
+
+    if ($args{encode_base64}) {
+        $content = encode_utf8($content);
+        $content_orig = $content;
+        $filename_orig = $filename;
+        $content = b64_encode($content);
+        $filename .= '.base64';
+    }
+
+    script_output(qq(cat > '$filename' << 'END_OF_CONTENT_$rand'
+$content
+END_OF_CONTENT_$rand
+));
+
+    if ($args{encode_base64}) {
+        $content = $content_orig;
+        assert_script_run("base64 -d '$filename' > '$filename_orig'");
+        assert_script_run("rm '$filename'");
+    }
+
+    record_info(basename($filename), $content);
+    return $content;
 }
 
 sub run_test_shell_script
