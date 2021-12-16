@@ -86,6 +86,7 @@ EOF
         assert_script_run("sed -i 's|servlets-examples|examples/servlets|g' /etc/apache2/conf.d/jk.conf");
         assert_script_run("sed -i 's|jsp-examples|examples/jsp|g' /etc/apache2/conf.d/jk.conf");
     }
+    systemctl('start tomcat');
 }
 
 # Include mod_jk into the apache2 list of modules to load
