@@ -41,11 +41,15 @@ sub is_ubuntu_host {
 }
 
 sub load_image_tests_podman {
-    loadtest 'containers/podman_image';
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{podman} = 1;
+    loadtest 'containers/image_test', name => 'podman_images', run_args => $engine_args;
 }
 
 sub load_image_tests_docker {
-    loadtest 'containers/docker_image';
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{docker} = 1;
+    loadtest 'containers/image_test', name => 'docker_images', run_args => $engine_args;
     # container_diff package is not avaiable for <=15 in aarch64
     # Also, we don't want to run it on 3rd party hosts
     unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS')) {
@@ -55,9 +59,11 @@ sub load_image_tests_docker {
 
 sub load_host_tests_podman {
     if (is_leap('15.1+') || is_tumbleweed || is_sle("15-sp1+")) {
+        my $engine_args = OpenQA::Test::RunArgs->new();
+        $engine_args->{podman} = 1;
         # podman package is only available as of 15-SP1
         loadtest 'containers/podman';
-        loadtest 'containers/podman_image';
+        loadtest 'containers/image_test', name => 'podman_images', run_args => $engine_args;
         loadtest 'containers/podman_3rd_party_images';
         loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah';
@@ -66,8 +72,10 @@ sub load_host_tests_podman {
 }
 
 sub load_host_tests_docker {
+    my $engine_args = OpenQA::Test::RunArgs->new();
+    $engine_args->{docker} = 1;
     loadtest 'containers/docker';
-    loadtest 'containers/docker_image';
+    loadtest 'containers/image_test', name => 'docker_images', run_args => $engine_args;
     loadtest 'containers/docker_3rd_party_images';
     loadtest 'containers/docker_firewall';
     unless (is_sle("<=15") && is_aarch64) {

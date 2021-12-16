@@ -11,21 +11,21 @@ use containers::docker;
 use containers::podman;
 use Mojo::Base 'opensusebasetest';
 
+has engine => undef;
 sub containers_factory {
-    my ($self, $runtime) = @_;
-    my $engine;
+    my ($self, $runargs) = @_;
 
-    if ($runtime eq 'docker') {
-        $engine = containers::docker->new();
+    if (defined $runargs->{docker}) {
+        $self->engine(containers::docker->new());
     }
-    elsif ($runtime eq 'podman') {
-        $engine = containers::podman->new();
+    elsif (defined $runargs->{podman}) {
+        $self->engine(containers::podman->new());
     }
     else {
-        die("Unknown runtime $runtime. Only 'docker' and 'podman' are allowed.");
+        die("Unknown runtime $self->engine. Only 'docker' and 'podman' are allowed.");
     }
-    $engine->init();
-    return $engine;
+    $self->engine->init();
+    return $self->engine;
 }
 
 1;
