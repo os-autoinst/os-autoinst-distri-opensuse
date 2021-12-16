@@ -105,7 +105,9 @@ sub _set_timeout {
 sub run {
     my $self = shift;
     # NET isos are slow to install
-    my $timeout = is_s390x ? 2400 : 2000;
+    # If this timeout needs to be bumped again, we might be having a bigger network problem
+    # or a peformance problem on the installer
+    my $timeout = (is_s390x || is_ppc64le) ? 2400 : 2000;
 
     # workaround for yast popups and
     # detect "Wrong Digest" error to end test earlier
@@ -130,7 +132,7 @@ sub run {
 
     my $mouse_x = 1;
     while (1) {
-        die 'timeout hit on during await_install' if $timeout <= 0;
+        die "timeout ($timeout) hit on during await_install" if $timeout <= 0;
         my $ret = check_screen \@tags, 30;
         $timeout -= 30;
         diag("left total await_install timeout: $timeout");
