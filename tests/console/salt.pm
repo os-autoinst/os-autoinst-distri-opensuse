@@ -27,8 +27,9 @@ use version_utils qw(is_jeos is_opensuse);
 use registration 'add_suseconnect_product';
 
 sub run {
+    my ($self) = @_;
+    $self->select_serial_terminal;
     if (is_jeos && !is_opensuse) {
-        select_console 'root-console';
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '12') {
             add_suseconnect_product('sle-module-adv-systems-management', $version);
@@ -39,7 +40,6 @@ sub run {
         }
     }
 
-    select_console 'root-console';
     quit_packagekit;
     zypper_call('in salt-master salt-minion');
     my $cmd = <<'EOF';
