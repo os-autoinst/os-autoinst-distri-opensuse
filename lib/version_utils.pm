@@ -519,7 +519,11 @@ Returns true (1) if Product Selection step has to be shown for the certain
 configuration, otherwise returns false (0).
 =cut
 sub has_product_selection {
-    # Possible result of bsc#1192626
+    # Product selection behavior changed for s390 on 15-SP4, so now there's only a single product
+    # and there's no need for the installer to request anything, however for QU this might change
+    # following PR should be used as a reference for when product selection changes again in the
+    # future
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13880
     my $does_not_have = is_sle('>=15-SP4') && check_var('FLAVOR', 'Full') && is_s390x();
     if (is_sle('15+') && !get_var('UPGRADE')) {
         return 0 if $does_not_have;
