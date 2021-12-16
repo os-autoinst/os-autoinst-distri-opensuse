@@ -5,7 +5,7 @@
 #
 # Summary: Setup 'audit-test' test environment of a system with needed packages
 # Maintainer: llzhao <llzhao@suse.com>
-# Tags: poo#93441
+# Tags: poo#93441, poo#104070
 
 use base 'consoletest';
 use strict;
@@ -23,6 +23,10 @@ sub run {
 
     select_console 'root-console';
 
+    if (script_run('which SUSEConnect') != 0) {
+        record_soft_failure('bsc#1193782', 'SUSEConnect is not installed when system role is common criteria');
+        zypper_call('in SUSEConnect');
+    }
     # Add needed modules
     add_suseconnect_product('sle-module-legacy');
     add_suseconnect_product('sle-module-desktop-applications');
