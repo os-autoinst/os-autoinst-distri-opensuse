@@ -163,6 +163,7 @@ sub run {
 
     # license+lang +product (on sle15)
     # On sle 15 license is on different screen, here select the product
+    # see has_product_selection in case the screen fails again in the future
     if (has_product_selection) {
         assert_screen('select-product');
         my $product = get_required_var('SLE_PRODUCT');
