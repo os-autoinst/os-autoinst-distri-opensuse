@@ -1,0 +1,15 @@
+name: ebpf
+description:    >
+    This is for ebpf test
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - security/ebpf/disable_unprivileged_ebpf
+    - security/ebpf/check_cap_bpf
+conditional_schedule:
+    bootloader:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+            ppc64le:
+                - installation/bootloader
