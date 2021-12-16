@@ -18,6 +18,7 @@ sub display_results {
     my $self = shift;
     my $skip = "";
     my $pass = "";
+    my $fail = 0;
 
     my $folder = get_required_var('PYNFS');
 
@@ -50,7 +51,10 @@ sub display_results {
         my $targs = OpenQA::Test::RunArgs->new();
         $targs->{data} = $test;
         autotest::loadtest("tests/nfs/pynfs_failed.pm", name => $test->{code}, run_args => $targs);
+        $fail = 1;
     }
+
+    record_info('ALL PASSED') if (!$fail);
 }
 
 sub upload_cthon04_log {
