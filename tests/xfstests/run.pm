@@ -184,7 +184,7 @@ sub exclude_grouplist {
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name !~ /^\!/);
         $group_name = substr($group_name, 1);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
@@ -202,7 +202,7 @@ sub include_grouplist {
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name =~ /^\!/);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my $tests = substr(script_output($cmd), 0, -1);
