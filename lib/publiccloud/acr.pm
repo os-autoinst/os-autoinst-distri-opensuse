@@ -8,26 +8,29 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Helper class for Amazon Elastic Container Registry (ECR)
+# Summary: Helper class for Azure Container Registry (ACR)
 #
 # Maintainer: Ivan Lausuch <ilausuch@suse.de>, qa-c team <qa-c@suse.de>
-# Documentation: https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
 
-package publiccloud::ecr;
+package publiccloud::acr;
 use Mojo::Base 'publiccloud::k8s_provider';
 use testapi;
 use utils;
 
 has security_token => undef;
+has key_id => undef;
+has key_secret => undef;
+has subscription => undef;
+has tenantid => undef;
 
 sub init {
     my ($self, %args) = @_;
-    $self->SUPER::init("ECR");
+    $self->SUPER::init("ACR");
     $self->configure_docker();
 }
 
 =head2 push_container_image
-Upload a container image to the ECR. Required parameter is the
+Upload a container image to the ACR. Required parameter is the
 name of the image, previously stored in the local registry. And
 the tag (name) in the public cloud containers repository
 Retrieves the full name of the uploaded image or die.
@@ -46,12 +49,14 @@ sub push_container_image {
 }
 
 =head2 delete_image
-Delete a ECR image
+Delete a ACR image
 =cut
 sub delete_image {
     my ($self, $tag) = @_;
+    $tag //= $self->get_default_tag();
+    record_info('INFO', "Deleting image $tag");
     assert_script_run(
-        "aws ecr batch-delete-image --repository-name " . $self->container_registry . " --image-ids imageTag=" . $tag);
+        "az acr repository delete --yes --name " . $self->provider_client->container_registry . " --image " . $tag);
     return;
 }
 

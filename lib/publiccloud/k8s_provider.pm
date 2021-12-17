@@ -38,7 +38,15 @@ sub init {
             ));
     }
     elsif ($provider eq 'AZURE') {
-        die('Not implemented yet');
+        $self->provider_client(
+            publiccloud::azure_client->new(
+                key_id => $self->key_id,
+                key_secret => $self->key_secret,
+                subscription => $self->subscription,
+                tenantid => $self->tenantid,
+                region => $self->region,
+                service => $service
+            ));
     }
     else {
         die("Invalid provider");
