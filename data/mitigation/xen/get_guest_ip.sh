@@ -27,6 +27,7 @@ expect {
 		exp_continue
         }
         \"*:~ #\" {
+                send -- \"sed -i '/GRUB_TIMEOUT=-1/s/=-1/=5/g' /etc/default/grub && grub2-mkconfig -o /boot/grub2/grub.cfg && sync \r\"
                 send -- \"ip route get 1\r\"
         }
 
