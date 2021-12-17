@@ -26,25 +26,6 @@ sub init {
     $self->configure_docker();
 }
 
-=head2 push_container_image
-Upload a container image to the ECR. Required parameter is the
-name of the image, previously stored in the local registry. And
-the tag (name) in the public cloud containers repository
-Retrieves the full name of the uploaded image or die.
-=cut
-sub push_container_image {
-    my ($self, $image, $tag) = @_;
-
-    my $region //= $self->region;
-    my $full_name_prefix = $self->get_container_registry_prefix();
-    my $full_name = $self->get_container_image_full_name($tag);
-
-    assert_script_run("docker tag $image $full_name");
-    assert_script_run("docker push $full_name", 180);
-
-    return $full_name;
-}
-
 =head2 delete_image
 Delete a ECR image
 =cut
