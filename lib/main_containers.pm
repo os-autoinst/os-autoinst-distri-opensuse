@@ -82,7 +82,10 @@ sub load_host_tests_docker {
         loadtest 'containers/registry' if is_x86_64;
         loadtest 'containers/docker_compose';
     }
-    loadtest 'containers/validate_btrfs' if (is_x86_64);    # works currently only for x86_64, more are coming (poo#103977)
+    # works currently only for x86_64, more are coming (poo#103977)
+    # Expected to work for all but JeOS on 15sp4 after
+    # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
+    loadtest 'containers/validate_btrfs' if (is_x86_64 and !(is_jeos && is_sle("=15-SP4")));
 }
 
 
@@ -90,7 +93,7 @@ sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIME');
     if (get_var('BOOT_HDD_IMAGE')) {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
-        loadtest 'boot/boot_to_desktop';
+        loadtest 'boot/boot_to_desktop' unless is_jeos;
     }
 
     if (is_container_image_test()) {
@@ -103,5 +106,5 @@ sub load_container_tests {
         load_host_tests_podman() if ($runtime =~ 'podman');
         load_host_tests_docker() if ($runtime =~ 'docker');
     }
-    loadtest 'console/coredump_collect';
+    loadtest 'console/coredump_collect' unless is_jeos;
 }
