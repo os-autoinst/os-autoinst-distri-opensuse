@@ -121,7 +121,6 @@ sub run {
     }
     # on s390 we might need to install additional packages depending on the installation method
     if (is_s390x) {
-        ssh_password_possibility();
         push(@tags, 'additional-packages');
     }
     # For poo#64228, we need ensure the timeout value less than the MAX_JOB_TIME
