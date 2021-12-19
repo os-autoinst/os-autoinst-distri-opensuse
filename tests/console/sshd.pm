@@ -54,7 +54,9 @@ sub run {
     assert_script_run(qq(echo -e "Match User $ssh_testman\\n\\tPasswordAuthentication yes" >> /etc/ssh/sshd_config)) if (get_var('PUBLIC_CLOUD'));
 
     # Install software needed for this test module
-    zypper_call("in netcat-openbsd expect psmisc");
+    zypper_call("in netcat-openbsd expect");
+    # psmisc might be already provided in busybox
+    zypper_call("in psmisc") if (script_run('which killall') != 0);
 
     # Stop the firewall if it's available
     if (is_upgrade && check_var('ORIGIN_SYSTEM_VERSION', '11-SP4')) {
