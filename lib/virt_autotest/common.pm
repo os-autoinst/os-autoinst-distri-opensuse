@@ -32,7 +32,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a1',
             ip => '192.168.122.106',
             distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+            location => 'http://schnell.suse.de/SLE12/SLE-12-SP3-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.106/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp3HVM => {
@@ -42,7 +42,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a2',
             ip => '192.168.122.105',
             distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+            location => 'http://schnell.suse.de/SLE12/SLE-12-SP3-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.105/24,192.168.122.1,192.168.122.1"',
         },
         sles15PV => {
@@ -52,7 +52,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a3',
             ip => '192.168.122.102',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.102/24,192.168.122.1,192.168.122.1"',
         },
         sles15HVM => {
@@ -62,7 +62,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a4',
             ip => '192.168.122.101',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.101/24,192.168.122.1,192.168.122.1"',
         },
         sles11sp4PVx32 => {
@@ -72,7 +72,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a5',
             ip => '192.168.122.110',
             distro => 'SLE_11_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLES-11-SP4-LATEST/i386/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.110/24,192.168.122.1,192.168.122.1"',
         },
         sles11sp4HVMx32 => {
@@ -104,7 +104,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a8',
             ip => '192.168.122.107',
             distro => 'SLE_11_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLES-11-SP4-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.107/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp4PV => {
@@ -114,7 +114,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a9',
             ip => '192.168.122.104',
             distro => 'SLE_12_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.104/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp4HVM => {
@@ -124,7 +124,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:aa',
             ip => '192.168.122.103',
             distro => 'SLE_12_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.103/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp1HVM => {
@@ -134,7 +134,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:ab',
             ip => '192.168.122.111',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.111/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp1PV => {
@@ -144,7 +144,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:ac',
             ip => '192.168.122.112',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.112/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp2HVM => {
@@ -154,7 +154,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:b0',
             ip => '192.168.122.116',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.116/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp2PV => {
@@ -164,7 +164,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:af',
             ip => '192.168.122.115',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.115/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp3PV => {
@@ -174,7 +174,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:b1',
             ip => '192.168.122.117',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.117/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp3HVM => {
@@ -184,7 +184,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:b2',
             ip => '192.168.122.118',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.118/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp5HVM => {
@@ -194,7 +194,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:ad',
             ip => '192.168.122.113',
             distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.113/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp5PV => {
@@ -204,7 +204,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:ae',
             ip => '192.168.122.114',
             distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.114/24,192.168.122.1,192.168.122.1"',
         },
     );
@@ -225,7 +225,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a2',
             ip => '192.168.122.102',
             distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+            location => 'http://schnell.suse.de/SLE12/SLE-12-SP3-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.102/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp4 => {
@@ -235,7 +235,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:aa',
             ip => '192.168.122.103',
             distro => 'SLE_12_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-12-SP4-Server-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.103/24,192.168.122.1,192.168.122.1"',
         },
         sles15 => {
@@ -245,7 +245,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:a4',
             ip => '192.168.122.101',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-Installer-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.101/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp1 => {
@@ -255,7 +255,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:ab',
             ip => '192.168.122.111',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP1-Installer-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.111/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp2 => {
@@ -265,7 +265,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:af',
             ip => '192.168.122.115',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.115/24,192.168.122.1,192.168.122.1"',
         },
         sles15sp3 => {
@@ -275,7 +275,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:b1',
             ip => '192.168.122.117',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.117/24,192.168.122.1,192.168.122.1"',
         },
         sles12sp5 => {
@@ -285,7 +285,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             macaddress => '52:54:00:78:73:ad',
             ip => '192.168.122.113',
             distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            location => 'http://dist.nue.suse.com/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
             linuxrc => 'ifcfg="eth0=192.168.122.113/24,192.168.122.1,192.168.122.1"',
         },
     );
