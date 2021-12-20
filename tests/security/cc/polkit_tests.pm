@@ -21,15 +21,6 @@ sub run {
 
     # PASSWD is needed by polkit_success
     script_run("export PASSWD=$testapi::password");
-
-    # In cc role based system,polkit-agent-helper-1 needs to be setuid root.
-    # Authentication is required to set the statically configured local
-    # hostname, as well as the pretty hostname.
-    my $results = script_run("journalctl -u dracut-pre-pivot | grep 'crypto checks done'");
-    if (!$results) {
-        assert_script_run('chmod u+s /usr/lib/polkit-1/polkit-agent-helper-1');
-    }
-
     run_testcase('polkit-tests');
 
     # Compare current test results with baseline
