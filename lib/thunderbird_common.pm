@@ -41,21 +41,35 @@ sub tb_setup_account {
     my $mail_sendport = $config->{$account}->{sendport};
     my $port_key = $proto eq 'pop' ? 'recvport' : 'imapport';
     my $mail_recvport = $config->{$account}->{$port_key};
+    my $new_gui = 0;
 
-    wait_still_screen(2, 4);
-    type_string "SUSE Test";
-    send_key 'tab';
-    wait_screen_change { type_string "$mail_box" };
-    send_key 'tab';
-    wait_screen_change { type_string "$mail_passwd" };
-    wait_still_screen(2, 4);
-    send_key 'tab';
-    send_key 'tab';
-    send_key 'spc';    # configure manually
-    wait_still_screen(2, 4);
-    save_screenshot;
-    send_key 'tab';    # scroll page down to see configuration options
-    assert_and_click 'thunderbird_know-your-rights';
+    if (check_screen 'thunderbird-new-gui') {
+        $new_gui = 1;
+        wait_still_screen(2, 4);
+        type_string "SUSE Test";
+        send_key 'tab';
+        wait_screen_change { type_string "$mail_box" };
+        send_key 'tab';
+        wait_screen_change { type_string "$mail_passwd" };
+        wait_still_screen(2, 4);
+        send_key 'tab';
+        send_key 'tab';
+        send_key 'spc';    # configure manually
+        wait_still_screen(2, 4);
+        save_screenshot;
+        send_key 'tab';    # scroll page down to see configuration options
+        assert_and_click 'thunderbird_know-your-rights';
+    }
+    else {
+        send_key "alt-n";
+        wait_still_screen(2, 4);
+        type_string "SUSE Test";
+        send_key "alt-e";
+        wait_screen_change { type_string "$mail_box" };
+        send_key "alt-p";
+        wait_screen_change { type_string "$mail_passwd" };
+        send_key "alt-c";
+    }
 
     if ($proto eq 'pop') {
         assert_and_click 'thunderbird_wizard-imap-selected';
@@ -77,66 +91,64 @@ sub tb_setup_account {
         }
     }
 
-    # If use multimachine, select correct needles to configure thunderbird.
-    if ($hostname eq 'client') {
-        send_key 'end';    # go to the bottom to see whole manual configuration
-        if (check_screen 'thunderbird_in-hostname-start-with-dot') {
-            record_info 'bsc#1191866';
-            # have to edit both hostnames
-            assert_and_click 'thunderbird_in-hostname-start-with-dot';
-            send_key 'delete';
-            assert_and_click 'thunderbird_out-hostname-start-with-dot';
-            send_key 'delete';
+    if ($new_gui) {
+        # If use multimachine, select correct needles to configure thunderbird.
+        if ($hostname eq 'client') {
+            send_key 'end';    # go to the bottom to see whole manual configuration
+            if (check_screen 'thunderbird_in-hostname-start-with-dot') {
+                record_info 'bsc#1191866';
+                # have to edit both hostnames
+                assert_and_click 'thunderbird_in-hostname-start-with-dot';
+                send_key 'delete';
+                assert_and_click 'thunderbird_out-hostname-start-with-dot';
+                send_key 'delete';
+            }
+            if (check_screen 'thunderbird_username') {
+                record_info 'bsc#1191853';
+                assert_and_click 'thunderbird_username';
+                send_key 'ctrl-a';
+                type_string 'admin';
+            }
+            assert_and_click 'thunderbird_wizard-retest';
+            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 15, 1;
+            assert_and_click 'thunderbird_wizard-done';
+            wait_still_screen(2, 4);
+            assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
+            assert_and_click "thunderbird_confirm_security_exception";
+            wait_still_screen(2);
+            assert_and_click 'thunderbird_account-processed' if $proto eq 'pop';
+            assert_and_click 'thunderbird_finish';
+            assert_and_click "thunderbird_skip-system-integration";
+            assert_and_click "thunderbird_get-messages";
         }
-        if (check_screen 'thunderbird_username') {
-            record_info 'bsc#1191853';
-            assert_and_click 'thunderbird_username';
-            send_key 'ctrl-a';
-            type_string 'admin';
+        else {
+            assert_and_click 'thunderbird_startssl-selected-for-imap';
+            assert_and_click 'thunderbird_security-select-none';
+            assert_and_click 'thunderbird_startssl-selected-for-smtp';
+            assert_and_click 'thunderbird_security-select-none';
+            if (check_screen 'thunderbird_username') {
+                record_info 'bsc#1191853';
+                assert_and_click 'thunderbird_username';
+                send_key 'ctrl-a';
+                type_string 'admin';
+            }
+            assert_and_click 'thunderbird_wizard-retest';
+            send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 15, 1;
+            assert_and_click 'thunderbird_wizard-done';
+            wait_still_screen(2);
+            send_key 'end';    # go to the bottom to see whole button and checkbox
+            wait_still_screen(2);
+            assert_and_click 'thunderbird_I-understand-the-risks';
+            assert_and_click 'thunderbird_risks-done';
+            wait_still_screen(2);
+            assert_and_click 'thunderbird_account-processed' if $proto eq 'pop';
+            assert_and_click 'thunderbird_finish';
+            # skip additional integrations
+            assert_and_click "thunderbird_skip-system-integration" if check_screen 'thunderbird_skip-system-integration', 10;
+            assert_and_click "thunderbird_get-messages";
         }
-        assert_and_click 'thunderbird_wizard-retest';
-        send_key_until_needlematch 'thunderbird_wizard-done', 'tab', 15, 1;
-        assert_and_click 'thunderbird_wizard-done';
-        wait_still_screen(2, 4);
-        assert_and_click 'thunderbird_SSL_done_config' unless check_screen('thunderbird_confirm_security_exception');
-        assert_and_click "thunderbird_confirm_security_exception";
-        wait_still_screen(2);
-        assert_and_click 'thunderbird_account-processed' if $proto eq 'pop';
-        assert_and_click 'thunderbird_finish';
-        assert_and_click "thunderbird_skip-system-integration";
-        assert_and_click "thunderbird_get-messages";
     }
     else {
-        send_key "alt-n";
-        wait_still_screen(2, 4);
-        type_string "SUSE Test";
-        send_key "alt-e";
-        wait_screen_change { type_string "$mail_box" };
-        send_key "alt-p";
-        wait_screen_change { type_string "$mail_passwd" };
-
-        send_key "alt-c";
-
-        if ($proto eq 'pop') {
-            assert_and_click 'thunderbird_wizard-imap-selected';
-            assert_and_click 'thunderbird_wizard-imap-pop-open';
-            if (is_tumbleweed) {
-                assert_and_click 'thunderbird_SSL_pop3-selection-click-TW';
-                assert_and_click 'thunderbird_SSL_auth_click';
-                assert_and_click 'thunderbird_wizard-pop-done';
-            }
-            else {
-                # If use multimachine, select correct needles to configure thunderbird.
-                if ($hostname eq 'client') {
-                    assert_and_click 'thunderbird_SSL_auth_click';
-                    wait_still_screen(2);
-                    send_key 'down';
-                    send_key 'ret';
-                }
-                assert_screen "thunderbird_wizard-$proto-selected";
-            }
-        }
-
         # If use multimachine, select correct needles to configure thunderbird.
         if ($hostname eq 'client') {
             send_key_until_needlematch 'thunderbird_SSL_done_config', 'alt-t', 4, 2;
