@@ -40,7 +40,16 @@ sub run {
         assert_screen 'enlightenment_compositing';
     }
     assert_and_click "enlightenment_assistant_next";
-    assert_and_click 'enlightenment_acpid_missing' if (get_required_var('ARCH') =~ /86/ || is_aarch64);
+    if (get_required_var('ARCH') =~ /86/ || is_aarch64) {
+        assert_and_click 'enlightenment_acpid_missing';
+        my $retry = 0;
+        while ($retry < 5) {
+            assert_screen [qw(enlightenment_generic_desktop enlightenment_acpid_missing)];
+            click_lastmatch if match_has_tag 'enlightenment_acpid_missing';
+            last if match_has_tag 'enlightenment_generic_desktop';
+            $retry++;
+        }
+    }
     assert_screen 'enlightenment_generic_desktop';
 }
 
