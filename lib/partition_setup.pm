@@ -136,7 +136,7 @@ sub create_new_partition_table {
 
     # create new partition table, change gpt table if it's available
     # storage-ng always allows partition table selection
-    if (!get_var('UEFI') && !check_var('BACKEND', 's390x') || is_storage_ng) {
+    if (!get_var('UEFI') && !is_backend_s390x || is_storage_ng) {
         assert_screen "create-new-partition-table";
         send_key $table_type_hotkey{$table_type};
         assert_screen "partition-table-$table_type-selected";
@@ -240,7 +240,7 @@ sub addpart {
     my (%args) = @_;
     assert_screen 'expert-partitioner';
     send_key $cmd{addpart};
-    unless (get_var('UEFI') || check_var('BACKEND', 's390x') || is_storage_ng) {
+    unless (get_var('UEFI') || is_backend_s390x || is_storage_ng) {
         assert_screen 'partitioning-type';
         send_key $cmd{next};
     }

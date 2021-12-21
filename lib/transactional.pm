@@ -19,7 +19,7 @@ use microos 'microos_reboot';
 use power_action_utils qw(power_action prepare_system_shutdown);
 use version_utils qw(is_opensuse is_microos is_sle_micro is_sle);
 use utils 'reconnect_mgmt_console';
-use Utils::Backends 'is_pvm';
+use Utils::Backends;
 use Utils::Architectures;
 
 our @EXPORT = qw(
@@ -71,7 +71,7 @@ sub process_reboot {
 
     if (is_microos || is_sle_micro && !is_s390x) {
         microos_reboot $args{trigger};
-    } elsif (check_var('BACKEND', 's390x')) {
+    } elsif (is_backend_s390x) {
         prepare_system_shutdown;
         enter_cmd "reboot";
         opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);

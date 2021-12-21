@@ -20,6 +20,7 @@ use warnings;
 use utils;
 use testapi;
 use Utils::Architectures;
+use Utils::Backends;
 use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
 use Carp 'croak';
 
@@ -49,7 +50,7 @@ sub prepare_system_shutdown {
     console('root-ssh')->kill_ssh if get_var('BACKEND', '') =~ /ipmi|spvm|pvm_hmc/;
 
     if (is_s390x) {
-        if (check_var('BACKEND', 's390x')) {
+        if (is_backend_s390x) {
             # kill serial ssh connection (if it exists)
             eval { console('iucvconn')->kill_ssh unless get_var('BOOT_EXISTING_S390', ''); };
             diag('ignoring already shut down console') if ($@);
@@ -270,7 +271,7 @@ sub power_action {
             reboot_x11;
         }
         elsif ($action eq 'poweroff') {
-            if (check_var('BACKEND', 's390x')) {
+            if (is_backend_s390x) {
                 record_soft_failure('poo#58127 - Temporary workaround, because shutdown module is marked as failed on s390x backend when shutting down from GUI.');
                 select_console 'root-console';
                 enter_cmd "$action";

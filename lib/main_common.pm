@@ -174,7 +174,7 @@ sub setup_env {
     }
 
     # By default format DASD devices before installation
-    if (check_var('BACKEND', 's390x')) {
+    if (is_backend_s390x) {
         # Format DASD before the installation by default
         # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
         # due to channel not activation issue. Need further investigation on it.
@@ -772,7 +772,7 @@ sub unregister_needle_tags {
 sub load_bootloader_s390x {
     return 0 unless is_s390x;
 
-    if (check_var("BACKEND", "s390x")) {
+    if (is_backend_s390x) {
         loadtest "installation/bootloader_s390";
     }
     else {
@@ -830,7 +830,7 @@ sub load_inst_tests {
         loadtest "installation/disk_activation_iscsi";
     }
     if (is_s390x) {
-        if (check_var('BACKEND', 's390x')) {
+        if (is_backend_s390x) {
             loadtest "installation/disk_activation";
         }
         elsif (is_sle('<12-SP2')) {
@@ -950,7 +950,7 @@ sub load_inst_tests {
     # functionality needs to be covered by other backends
     # Skip release notes test on sle 15 if have addons
     if (get_var('CHECK_RELEASENOTES') &&
-        is_sle && !check_var('BACKEND', 'generalhw') && !is_ipmi &&
+        is_sle && !is_generalhw && !is_ipmi &&
         !(is_sle('15+') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }

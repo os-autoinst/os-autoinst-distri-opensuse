@@ -46,6 +46,7 @@ use lockapi;
 use mmapi;
 use utils;
 use Utils::Architectures;
+use Utils::Backends;
 use version_utils qw(:VERSION :BACKEND is_sle is_leap is_sle_micro);
 use ipmi_backend_utils;
 
@@ -91,7 +92,7 @@ sub _set_timeout {
     # aarch64 can be particularily slow depending on the hardware
     ${$timeout} *= 2 if is_aarch64 && get_var('MAX_JOB_TIME');
     # PPC HMC (Power9) performs very slow in general
-    ${$timeout} *= 2 if check_var('BACKEND', 'pvm_hmc') && get_var('MAX_JOB_TIME');
+    ${$timeout} *= 2 if is_pvm_hmc && get_var('MAX_JOB_TIME');
     # encryption, LVM and RAID makes it even slower
     ${$timeout} *= 2 if (get_var('ENCRYPT') || get_var('LVM') || get_var('RAID'));
     # "allpatterns" tests install a lot of packages
@@ -218,7 +219,7 @@ sub run {
     }
 
     # Stop reboot countdown where necessary for e.g. uploading logs
-    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_microos || (is_sle('=11-sp4') && is_s390x && check_var('BACKEND', 's390x'))) {
+    unless (check_var('REBOOT_TIMEOUT', 0) || get_var("REMOTE_CONTROLLER") || is_microos || (is_sle('=11-sp4') && is_s390x && is_backend_s390x)) {
         # Depending on the used backend the initial key press to stop the
         # countdown might not be evaluated correctly or in time. In these
         # cases we keep hitting the keys until the countdown stops.

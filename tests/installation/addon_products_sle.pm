@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use base 'y2_installbase';
 use testapi;
+use Utils::Backends;
 use utils qw(addon_license handle_untrusted_gpg_key assert_screen_with_soft_timeout);
 use version_utils 'is_sle';
 use qam 'advance_installer_window';
@@ -158,7 +159,7 @@ sub run {
         if ($self->process_unsigned_files([qw(inst-addon addon-products)])) {
             assert_screen_with_soft_timeout(
                 [qw(inst-addon addon-products)],
-                timeout => check_var('BACKEND', 'pvm_hmc') ? 600 : 120,
+                timeout => is_pvm_hmc ? 600 : 120,
                 soft_timeout => 60,
                 bugref => 'bsc#1166504');
         }

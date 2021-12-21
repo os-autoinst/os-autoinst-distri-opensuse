@@ -301,7 +301,7 @@ sub configure_service {
     $self->wait_boot(bootloader_time => 300);
 
     select_console 'root-console';
-    if (is_ppc64le || check_var('ARCH', 'ppc64')) {
+    if (is_ppc64le || is_ppc64) {
         if (script_run('kver=$(uname -r); kconfig="/boot/config-$kver"; [ -f $kconfig ] && grep ^CONFIG_RELOCATABLE $kconfig')) {
             record_soft_failure 'poo#49466 -- No kdump if no CONFIG_RELOCATABLE in kernel config';
             return 1;

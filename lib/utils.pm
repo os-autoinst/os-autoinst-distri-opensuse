@@ -306,7 +306,7 @@ sub unlock_if_encrypted {
         type_line_svirt '', expect => "Please enter passphrase for disk.*", timeout => 100, fail_message => 'Could not find "enter passphrase" prompt';
         type_line_svirt "$password";
     }    # Handle zVM scenario
-    elsif (check_var('BACKEND', 's390x')) {
+    elsif (is_backend_s390x) {
         my $console = console('x3270');
         # Enter password before GRUB if boot is encrypted
         # Boot partition is always encrypted, if not using expert partitioner with
@@ -667,7 +667,7 @@ the second run will update the system.
 =cut
 sub fully_patch_system {
     # special handle for 11-SP4 s390 install
-    if (is_sle('=11-SP4') && is_s390x && check_var('BACKEND', 's390x')) {
+    if (is_sle('=11-SP4') && is_s390x && is_backend_s390x) {
         # first run, possible update of packager -- exit code 103
         zypper_call('patch --with-interactive -l', exitcode => [0, 102, 103], timeout => 3000);
         handle_patch_11sp4_zvm();
@@ -1234,7 +1234,7 @@ sub disable_serial_getty {
     my ($self) = @_;
     my $service_name = "serial-getty\@$testapi::serialdev";
     # Do not run on zVM as running agetty is required by iucvconn in order to work
-    return if check_var('BACKEND', 's390x');
+    return if is_backend_s390x;
     # No need to apply on more recent kernels
     return unless is_sle('<=15-SP2') || is_leap('<=15.2');
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
@@ -1334,7 +1334,7 @@ sub _handle_login_not_found {
     return record_soft_failure 'bsc#1040606 - incomplete message when LeanOS is implicitly selected instead of SLES'
       if $str =~ /Welcome to SUSE Linux Enterprise 15/;
     my $error_details = $str;
-    if (check_var('BACKEND', 's390x')) {
+    if (is_backend_s390x) {
         diag 'Trying to look for "blocked tasks" with magic sysrq';
         console('x3270')->sequence_3270("String(\"^-w\\n\")");
         my $r = console('x3270')->expect_3270(buffer_full => qr/(MORE\.\.\.|HOLDING)/);
@@ -1364,7 +1364,7 @@ sub reconnect_mgmt_console {
         console('installation')->disable_vnc_stalls;
 
         # different behaviour for z/VM and z/KVM
-        if (check_var('BACKEND', 's390x')) {
+        if (is_backend_s390x) {
             my $console = console('x3270');
             # grub is handled in unlock_if_encrypted unless affected by bsc#993247 or https://fate.suse.com/321208
             handle_grub_zvm($console) if (!get_var('ENCRYPT') || get_var('ENCRYPT_ACTIVATE_EXISTING') && !get_var('ENCRYPT_FORCE_RECOMPUTE'));
@@ -1412,9 +1412,9 @@ sub reconnect_mgmt_console {
         }
     }
     elsif (is_ppc64le) {
-        if (check_var('BACKEND', 'spvm')) {
+        if (is_spvm) {
             select_console 'novalink-ssh', await_console => 0;
-        } elsif (check_var('BACKEND', 'pvm_hmc')) {
+        } elsif (is_pvm_hmc) {
             select_console 'powerhmc-ssh', await_console => 0;
             if ($args{grub_expected_twice}) {
                 check_screen 'grub2', 60;
