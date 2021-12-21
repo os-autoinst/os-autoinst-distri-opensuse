@@ -42,7 +42,7 @@ sub run {
 
     select_console 'root-console';
 
-    run_testcase('trustedprograms', (make => 1, timeout => 900));
+    run_testcase('trustedprograms', (make => 1, timeout => 1200));
 
     # Compare current test results with baseline
     my $result = compare_run_log('trustedprograms');
