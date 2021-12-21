@@ -18,6 +18,7 @@
       <li><a href="#get_container_image_full_name">get_container_image_full_name</a></li>
       <li><a href="#get_default_tag">get_default_tag</a></li>
       <li><a href="#configure_docker">configure_docker</a></li>
+      <li><a href="#push_container_image">push_container_image</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/k8s_provider.pm</h1>
@@ -37,6 +38,10 @@
 <h2 id="configure_docker">configure_docker</h2>
 
 <p>Configure the docker to access the cloud provider registry</p>
+
+<h2 id="push_container_image">push_container_image</h2>
+
+<p>Upload a container image to the Provider Cotainer registry. Required parameter is the name of the image, previously stored in the local registry. And the tag (name) in the public cloud containers repository Retrieves the full name of the uploaded image or die.</p>
 
 
 </body>
