@@ -2450,6 +2450,7 @@ sub load_security_tests_pam {
     loadtest "security/pam/pam_config";
     loadtest "security/pam/pam_mount";
     loadtest "security/pam/pam_faillock";
+    loadtest "security/pam/pam_u2f";
 }
 
 sub load_security_tests_create_swtpm_hdd {
