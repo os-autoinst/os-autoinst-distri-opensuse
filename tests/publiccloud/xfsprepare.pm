@@ -32,7 +32,7 @@ sub install_xfstests {
     zypper_ar($repo, name => "filesystems");    # Add filesystem repository, which contains the xfstests
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # packagehub is required for dbench (required for e.g. generic/241)
     my $packages = "xfsprogs xfsdump btrfsprogs kernel-default xfstests fio";
-    $packages .= " dbench" if (is_sle(">12-SP4"));    # dbench is not available on 12-SP4
+    $packages .= " dbench" unless (is_sle("<15"));    # dbench is not available on <SLE15
     zypper_call("in $packages");
     assert_script_run('ln -s /usr/lib/xfstests/ /opt/xfstests');    # xfstests/run expects the tests to be in /opt/xfstests
     record_info("xfstests", script_output("rpm -q xfstests"));
