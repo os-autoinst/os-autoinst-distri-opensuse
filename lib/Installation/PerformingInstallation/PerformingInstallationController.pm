@@ -12,7 +12,11 @@ package Installation::PerformingInstallation::PerformingInstallationController;
 use strict;
 use warnings;
 use Installation::PerformingInstallation::PerformingInstallationPage;
+use Installation::Popups::AbstractOKPopup;
+use Installation::Popups::OKPopup;
+use Installation::Popups::OKStopPopup;
 use YuiRestClient;
+use YuiRestClient::Wait;
 
 sub new {
     my ($class, $args) = @_;
@@ -23,6 +27,9 @@ sub new {
 sub init {
     my ($self, $args) = @_;
     $self->{PerformingInstallationPage} = Installation::PerformingInstallation::PerformingInstallationPage->new({app => YuiRestClient::get_app()});
+    $self->{AbstractOKPopup} = Installation::Popups::AbstractOKPopup->new({app => YuiRestClient::get_app()});
+    $self->{OKPopup} = Installation::Popups::OKPopup->new({app => YuiRestClient::get_app()});
+    $self->{OKStopPopup} = Installation::Popups::OKStopPopup->new({app => YuiRestClient::get_app()});
     return $self;
 }
 
@@ -32,9 +39,29 @@ sub get_performing_installation_page {
     return $self->{PerformingInstallationPage};
 }
 
-sub perform {
+sub get_system_reboot_popup {
+    my ($self) = @_;
+    die 'System reboot popup is not displayed' unless $self->{OKPopup}->is_shown();
+    return $self->{OKPopup};
+}
+
+sub get_system_reboot_with_timeout_popup {
+    my ($self) = @_;
+    die 'System reboot with timeout popup is not displayed' unless $self->{OKStopPopup}->is_shown();
+    return $self->{OKStopPopup};
+}
+
+sub wait_installation_popup {
     my ($self, $timeout) = @_;
-    $self->get_performing_installation_page()->wait_finished($timeout);
+    YuiRestClient::Wait::wait_until(object => sub {
+            return $self->{AbstractOKPopup}->is_shown();
+        }, timeout => $timeout,
+        message => 'System reboot popup did not appear');
+}
+
+sub stop_timeout_system_reboot_now {
+    my ($self) = @_;
+    $self->get_system_reboot_with_timeout_popup->press_stop();
 }
 
 1;

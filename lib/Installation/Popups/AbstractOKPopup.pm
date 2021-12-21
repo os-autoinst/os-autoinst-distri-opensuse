@@ -3,11 +3,11 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: The module provides interface to act on the Performing Installation
-#          Page.
+# Summary: The abstract class introduces methods to handle
+# an abstract OK popup with unknown content.
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
-package Installation::PerformingInstallation::PerformingInstallationPage;
+package Installation::Popups::AbstractOKPopup;
 use strict;
 use warnings;
 
@@ -21,13 +21,18 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->{pba_total_packages} = $self->{app}->progressbar({id => 'progressTotal'});
+    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{pba_total_packages}->exist();
+    return $self->{btn_ok}->exist();
+}
+
+sub press_ok {
+    my ($self) = @_;
+    $self->{btn_ok}->click();
 }
 
 1;

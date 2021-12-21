@@ -10,35 +10,24 @@
 package Installation::Popups::OKPopup;
 use strict;
 use warnings;
-
-sub new {
-    my ($class, $args) = @_;
-    my $self = bless {
-        app => $args->{app}
-    }, $class;
-    return $self->init();
-}
+use parent 'Installation::Popups::AbstractOKPopup';
 
 sub init {
     my $self = shift;
-    $self->{rt_warning} = $self->{app}->label({type => 'YRichText'});
-    $self->{btn_ok} = $self->{app}->button({id => 'ok'});
+    $self->SUPER::init();
+    $self->{rtx_warning} = $self->{app}->richtext({type => 'YRichText'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{btn_ok}->exist();
+    return $self->SUPER::is_shown() &&
+      $self->{rtx_warning}->exist();
 }
 
 sub text {
     my ($self) = @_;
-    return $self->{rt_warning}->text();
-}
-
-sub press_ok {
-    my ($self) = @_;
-    $self->{btn_ok}->click();
+    return $self->{rtx_warning}->text();
 }
 
 1;
