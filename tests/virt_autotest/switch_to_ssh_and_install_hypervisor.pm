@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: For openSUSE virtualization test only. login in console, install kvm/xen patterns if needed.
-#  - Even if you'd like to run tests without host installation(IPMI_DO_NOT_RESTART_HOST=1), this module is still necessary as login console in this module is required.
+#  - Even if you'd like to run tests without host installation(DO_NOT_INSTALL_HOST=1), this module is still necessary as login console in this module is required.
 #  - This module is added for openSUSE TW because of the difference beteen SLE and TW. Meanwile, login_console, install_package and update_package from SLE are not needed. The reasons are listed below:
 #    -- login_console is not called after first boot in host installation in TW because kvm/xen patterns have not been installed at that time. reconnect_mgmt_console and first_boot take care of the login function.
 #    -- have to zypper install kvm/xen patterns in TW.
@@ -26,8 +26,13 @@ sub run {
 
     #enable ssh root access for openSUSE TW in sol console
     #root access is not permitted by default in TW, see bsc#1173067#c2
-    select_console 'sol', await_console => 1;
-    send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+    select_console 'sol', await_console => 0;
+    for (my $i = 0; $i <= 4; $i++) {
+        send_key 'ret' if check_screen('sol-console-wait-typing-ret', 60);
+        last if (check_screen([qw(linux-login text-login)], 60));
+        save_screenshot;
+    }
+
     if (check_screen('text-login')) {
         enter_cmd "root";
         assert_screen "password-prompt";
@@ -36,10 +41,10 @@ sub run {
     }
     assert_screen "text-logged-in-root";
     #skip TW host installation and directly login if you'd like to run test on an SUT with TW installed
-    permit_root_ssh_in_sol unless get_var('IPMI_DO_NOT_RESTART_HOST');
+    permit_root_ssh_in_sol unless get_var('DO_NOT_INSTALL_HOST');
     select_console('root-ssh');
 
-    return if get_var('IPMI_DO_NOT_RESTART_HOST');
+    return if get_var('DO_NOT_INSTALL_HOST');
 
     die 'Need one of both to be true: is_kvm_host || is_xen_host' unless is_kvm_host || is_xen_host;
     my $hypervisor = is_kvm_host ? 'kvm' : 'xen';
