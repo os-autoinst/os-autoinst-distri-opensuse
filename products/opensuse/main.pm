@@ -327,7 +327,14 @@ elsif (get_var('VIRT_AUTOTEST')) {
         loadtest "virt_autotest/libvirt_nated_virtual_network";
     }
     loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH');
-    loadtest "virtualization/universal/hotplugging" if get_var('ENABLE_HOTPLUGGING');
+    if (get_var('ENABLE_HOTPLUGGING')) {
+        loadtest 'virtualization/universal/hotplugging_guest_preparation';
+        loadtest 'virtualization/universal/hotplugging_network_interfaces';
+        loadtest 'virtualization/universal/hotplugging_HDD';
+        loadtest 'virtualization/universal/hotplugging_vCPUs';
+        loadtest 'virtualization/universal/hotplugging_memory';
+        loadtest 'virtualization/universal/hotplugging_cleanup';
+    }
     loadtest "virtualization/universal/storage" if get_var('ENABLE_STORAGE');
 }
 elsif (get_var('XFSTESTS')) {
