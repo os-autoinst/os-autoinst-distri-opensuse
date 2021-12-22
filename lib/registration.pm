@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use testapi;
 use Utils::Architectures;
-use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key script_retry);
+use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry);
 use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
@@ -830,6 +830,8 @@ sub scc_deregistration {
     my (%args) = @_;
     $args{version_variable} //= 'VERSION';
     if (is_sle('12-SP1+', get_var($args{version_variable}))) {
+        # Need quit packagekit to ensure it won't block to de-register system via SUSEConnect.
+        quit_packagekit;
         assert_script_run('SUSEConnect --version');
         my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 200);
         if (defined $deregister_ret and $deregister_ret == 104) {
