@@ -1,9 +1,9 @@
 ---
-name: install_sles4sap_dvd
+name: setup_hana_baremetal
 description: >
-  Installation tests for SLES4SAP, use the DVD to boot the installer.
+  Install HANA on a baremetal machine
 
-  Can be used to install sles4sap on baremetal machines using ipxe_install
+
 vars:
   DESKTOP: textmode
   GRUB_TIMEOUT: 300
@@ -12,8 +12,7 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_TYPE: HBD
   RECLAIM_ROOT: '1'
-  START_AFTER_TEST: sles4sap_online_dvd_gnome
-  WMP_TEST_REPO: https://gitlab.suse.de/lpalovsky/wmp_basic_tests/-/archive/master/wmp_basic_tests-master.tgz
+  START_AFTER_TEST: install_sles4sap_baremetal
 schedule:
   - boot/boot_to_desktop
   - console/system_prepare
@@ -29,8 +28,6 @@ conditional_schedule:
     TEST_SLES4SAP:
       1:
         - sles4sap/hana_install
-        - sles4sap/wmp_setup
-        - sles4sap/wmp_check_process
   scc_deregister:
     SCC_DEREGISTER:
       1:
