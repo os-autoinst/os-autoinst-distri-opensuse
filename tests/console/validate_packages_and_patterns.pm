@@ -24,9 +24,15 @@ my %software = ();
 # Define test data
 
 $software{'salt-minion'} = {
-    repo => get_var('SCC_REGCODE_LTSS') ? 'LTSS' : 'Basesystem',
+    repo => 'Basesystem',
     installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
     condition => sub { is_sle('15+') },
+};
+$software{'sles-ltss-release'} = {
+    repo => 'LTSS',
+    installed => 1,
+    condition => sub { is_sle('15+') },
+    available => sub { get_var('SCC_REGCODE_LTSS') }
 };
 $software{'update-test-feature'} = {    # See poo#36451
     repo => is_sle('15+') ? 'Basesystem' : 'SLES',
@@ -60,7 +66,9 @@ sub verify_pattern {
 }
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
+
     my $errors = '';    # Variable to accumulate errors
     for my $name (keys %software) {
         # Skip package if condition is defined and is false
