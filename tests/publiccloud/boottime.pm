@@ -136,15 +136,15 @@ our $thresholds_by_flavor = {
         analyze => $default_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
-    'EC2-HVM' => {
+    EC2 => {
         analyze => $default_ec2_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
-    'EC2-HVM-ARM' => {
+    'EC2-ARM' => {
         analyze => $default_ec2_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
-    'EC2-HVM-BYOS' => {
+    'EC2-BYOS' => {
         analyze => $default_analyze_thresholds,
         blame => $default_blame_thresholds,
     },
