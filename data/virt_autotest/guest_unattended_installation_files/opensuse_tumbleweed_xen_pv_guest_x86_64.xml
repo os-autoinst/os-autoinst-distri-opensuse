@@ -142,7 +142,7 @@
   </timezone>
   <user_defaults>
     <expire/>
-    <group>500</group>
+    <group>100</group>
     <groups/>
     <home>/home</home>
     <inactive/>
