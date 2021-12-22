@@ -27,7 +27,8 @@ sub run {
         add_suseconnect_product 'sle-module-public-cloud';
         zypper_call('in azure-cli jq python3-susepubliccloudinfo');
     }
-    assert_script_run('az --version');
+    record_soft_failure('bsc#1192671') if (script_run('az --version', die => 0) != 0);
+    record_soft_failure('bsc#1192671') if (script_run('az --help', die => 0) != 0);
 
     set_var 'PUBLIC_CLOUD_PROVIDER' => 'AZURE';
     my $provider = $self->provider_factory();
@@ -74,4 +75,3 @@ sub test_flags {
 }
 
 1;
-
