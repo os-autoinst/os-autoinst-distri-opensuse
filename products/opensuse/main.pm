@@ -315,21 +315,6 @@ elsif (get_var('SECURITY_TEST')) {
     prepare_target();
     load_security_tests;
 }
-elsif (get_var('VIRT_AUTOTEST')) {
-    prepare_target() unless get_var('IPMI_DO_NOT_RESTART_HOST');
-    loadtest "virt_autotest/switch_to_ssh_and_install_hypervisor";
-    loadtest "virt_autotest/reboot_and_wait_up_normal" unless get_var('IPMI_DO_NOT_RESTART_HOST');
-    loadtest "virt_autotest/unified_guest_installation" unless get_var('SKIP_GUEST_INSTALL');
-    loadtest "virt_autotest/set_config_as_glue";
-    if (get_var('ENABLE_VIR_NET')) {
-        loadtest "virt_autotest/libvirt_virtual_network_init";
-        loadtest "virt_autotest/libvirt_host_bridge_virtual_network";
-        loadtest "virt_autotest/libvirt_nated_virtual_network";
-    }
-    loadtest "virt_autotest/sriov_network_card_pci_passthrough" if get_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH');
-    loadtest "virtualization/universal/hotplugging" if get_var('ENABLE_HOTPLUGGING');
-    loadtest "virtualization/universal/storage" if get_var('ENABLE_STORAGE');
-}
 elsif (get_var('XFSTESTS')) {
     prepare_target();
     if (check_var('XFSTESTS', 'installation')) {
