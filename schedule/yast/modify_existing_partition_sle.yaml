@@ -26,10 +26,16 @@ schedule:
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
+  - '{{stop_timeout_system_reboot_now}}'
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
   - installation/first_boot
   - console/validate_modify_existing_partition
+conditional_schedule:
+  stop_timeout_system_reboot_now:
+    ARCH:
+      s390x:
+        - installation/performing_installation/stop_timeout_system_reboot_now
 test_data:
   <<: !include test_data/yast/modify_existing_partition/modify_existing_partition.yaml
