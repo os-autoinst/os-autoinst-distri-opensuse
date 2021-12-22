@@ -19,3 +19,7 @@ conditional_schedule:
       generalhw:
         - jeos/prepare_firstboot
         - jeos/firstrun
+        - update/zypper_clear_repos
+        - console/zypper_ar
+        - console/zypper_ref
+        - console/zypper_lr
