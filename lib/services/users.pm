@@ -102,14 +102,8 @@ sub switch_users {
     # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     handle_gnome_activities;
-    switch_user;
-    send_key "esc";
-    assert_and_click "displaymanager-$username";
-    assert_screen "originUser-login-dm";
-    # for poo#88247, we have to restore current user's password before migration,
-    # so here need to use the original password.
-    type_password(get_required_var('FLAVOR') =~ /Migration/ ? "$password\n" : "$newpwd\n");
-    handle_gnome_activities;
+    handle_logout;
+    wait_still_screen 10;
 }
 
 # restore password to original value
@@ -129,7 +123,6 @@ sub restore_passwd {
 
 # remove test user
 sub remove_test_user {
-    assert_script_run("pkill -KILL -u $newUser");
     assert_script_run("userdel -r $newUser");
 }
 
