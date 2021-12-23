@@ -871,6 +871,9 @@ againg if the screen has not changed within C<$wait_change> seconds after
 the C<assert_and_click>. Returns the number of attempts made.
 C<$wait_change> defaults to 2 (seconds) and C<$repeat> defaults to 3.
 
+You can check if the screen changed by using an explicit repeat and comparing it
+to the returned number of attempts. If the value equals repeat the screen didn't change.
+
 =cut
 sub assert_and_click_until_screen_change {
     my ($mustmatch, $wait_change, $repeat) = @_;
