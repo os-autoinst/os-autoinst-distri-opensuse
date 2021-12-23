@@ -20,7 +20,6 @@ use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;
-use ctcs2_to_junit;
 use upload_system_log;
 
 my $STATUS_LOG = '/opt/status.log';
@@ -45,6 +44,61 @@ sub upload_subdirs {
         assert_script_run("ll; tar cJf $tarball -C $dir " . basename($subdir), $timeout);
         upload_logs($tarball, timeout => $timeout);
     }
+}
+
+sub analyze_result {
+    my ($text) = @_;
+    my $test_num = 0;
+    my $pass_num = 0;
+    my $fail_num = 0;
+    my $skip_num = 0;
+    my $total_time = 0;
+    my $test_range = '';
+    foreach (split("\n", $text)) {
+        if ($_ =~ /(\S+)\s+\.{3}\s+\.{3}\s+(PASSED|FAILED|SKIPPED)\s+\((\S+)\)/g) {
+            my $test_name = $1;
+            my $test_status = $2;
+            my $test_time = $3;
+            (my $test_path = $test_name) =~ s/-/\//;
+            $test_num += 1;
+            $test_range = $test_range . $test_path . "\n";
+            $test_path = '/opt/log/' . $test_path;
+            bmwqemu::fctinfo("$test_name");
+            if ($test_status =~ /FAILED|SKIPPED/) {
+                my $test_out_content = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600);
+                my $test_out_bad = '';
+                my $test_full_log = '';
+                my $test_dmesg = '';
+                if ($test_status =~ /FAILED/) {
+                    $test_out_bad = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600);
+                    $test_full_log = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600);
+                    $test_dmesg = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600);
+                    $fail_num += 1;
+                }
+                else {
+                    $skip_num += 1;
+                }
+                # show fail message
+                my $targs = OpenQA::Test::RunArgs->new();
+                $targs->{name} = $test_name;
+                $targs->{time} = $test_time;
+                $targs->{status} = $test_status;
+                $targs->{output} = $test_out_content;
+                if ($test_status =~ /FAILED/) {
+                    $targs->{outbad} = $test_out_bad;
+                    $targs->{fullog} = $test_full_log;
+                    $targs->{dmesg} = $test_dmesg;
+                }
+                autotest::loadtest("tests/xfstests/xfstests_failed.pm", name => $test_name, run_args => $targs);
+            }
+            else {
+                $pass_num += 1;
+            }
+            $total_time += $test_time;
+        }
+    }
+    record_info('Summary', "Test number: $test_num\nPass: $pass_num\nSkip: $skip_num\nFail: $fail_num\nTotal time: $total_time seconds\n");
+    record_info('Test Ranges', "$test_range");
 }
 
 sub run {
@@ -75,10 +129,11 @@ sub run {
 
     # Junit xml report
     my $script_output = script_output("cat $STATUS_LOG", 600);
-    my $tc_result = analyzeResult($script_output);
-    my $xml = generateXML($tc_result);
-    assert_script_run("echo \'$xml\' > $JUNIT_FILE", 7200);
-    parse_junit_log($JUNIT_FILE);
+    analyze_result($script_output);
+}
+
+sub test_flags {
+    return {no_rollback => 1};
 }
 
 1;
