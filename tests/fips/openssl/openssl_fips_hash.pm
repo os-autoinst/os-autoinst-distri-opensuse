@@ -1,6 +1,6 @@
 # openssl fips test
 #
-# Copyright 2016-2020 SUSE LLC
+# Copyright 2016-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Test description: In fips mode, openssl only works with the FIPS
@@ -13,7 +13,7 @@
 #          the cases to verify opessl hash, cipher, or public key algorithms
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tags: poo#44834, poo#64649, poo#64842
+# Tags: poo#44834, poo#64649, poo#64842, poo#104184
 
 use base "consoletest";
 use testapi;
@@ -40,10 +40,14 @@ sub run {
     # Remove md2 and sha, and add rmd160 and md5-sha1 from invalid hash check in fips mode
     my @invalid_hash = ("md4", "md5", "mdc2", "rmd160", "ripemd160", "whirlpool", "md5-sha1");
     for my $hash (@invalid_hash) {
-        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/disabled for fips|disabled for FIPS|unknown option|Unknown digest|dgst: Unrecognized flag/ };
+        validate_script_output "openssl dgst -$hash $tmp_file 2>&1 || true", sub { m/$hash is not a known digest|unknown option|Unknown digest|dgst: Unrecognized flag/ };
     }
 
     script_run 'rm -f $tmp_file';
+}
+
+sub test_flags {
+    return {fatal => 0, always_rollback => 1};
 }
 
 1;
