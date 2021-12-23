@@ -186,7 +186,7 @@ sub full_users_check {
         }
         send_key "alt-f4";
         send_key "ret";
-	select_console 'root-console';
+        select_console 'root-console';
         # need remove the added test user after users test
         remove_test_user;
     }
