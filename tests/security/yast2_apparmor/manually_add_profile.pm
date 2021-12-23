@@ -38,11 +38,16 @@ sub run {
     # Enter "Manually Add Profile" to generate a profile for a program
     # "marked as a program that should not have its own profile",
     # it should be failed
-    assert_and_click("AppArmor-Manually-Add-Profile", timeout => 60);
+    assert_and_click("AppArmor-Manually-Add-Profile", timeout => 90);
     assert_and_click("AppArmor-Launch", timeout => 60);
     send_key_until_needlematch("AppArmor-Chose-a-program-to-generate-a-profile", "alt-n", 30, 3);
     type_string("$test_file");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+    if (!check_screen("AppArmor-generate-a-profile-Error")) {
+        assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+        record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
+        send_key "tab";
+    }
     assert_screen("AppArmor-generate-a-profile-Error");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-o" };
@@ -58,7 +63,13 @@ sub run {
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_bk");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
-    assert_screen("AppArmor-Scan-system-log");
+    if (!check_screen("AppArmor-Scan-system-log")) {
+        assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+        record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
+        send_key "tab";
+    }
+
+    send_key_until_needlematch("AppArmor-Scan-system-log", "tab", 2, 2);
     # Scan systemlog
     send_key "alt-s";
     assert_screen("AppArmor-Scan-system-log");
@@ -76,14 +87,23 @@ sub run {
     assert_screen("AppArmor-Chose-a-program-to-generate-a-profile");
     type_string("$test_file_vsftpd");
     assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
-    assert_screen("AppArmor-Inactive-local-profile");
+    if (!check_screen("AppArmor-Inactive-local-profile")) {
+        assert_and_click("AppArmor-Chose-a-program-to-generate-a-profile-Open", timeout => 60);
+        record_soft_failure("bsc#1190295, add workaround to click 'Open' again");
+        send_key "tab";
+    }
+    mouse_click("right");
+    send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 2, 2);
+    send_key "tab";
+
     # Check "View Profile"
-    send_key "alt-v";
-    assert_screen("AppArmor-View-Profile");
+    assert_and_click("AppArmor-View-Profile-clickview");
+    send_key_until_needlematch("AppArmor-View-Profile", "tab", 2, 2);
     send_key "alt-o";
-    assert_screen("AppArmor-Inactive-local-profile");
+    send_key_until_needlematch("AppArmor-Inactive-local-profile", "tab", 2, 2);
     # Check "Use Profile"
     send_key "alt-u";
+    mouse_click("right");
     assert_screen("AppArmor-Scan-system-log");
     # Exit "yast2 apparmor"
     wait_screen_change { send_key "alt-f" };
