@@ -9,7 +9,7 @@
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143, poo#80754
+# Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143, poo#80754, poo#104314
 
 use base "x11test";
 use strict;
@@ -66,6 +66,8 @@ sub run {
     # - at least one non-alphabet-non-number character (like: @-.=%)
     my $fips_password = 'openqa@SUSE';
     my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
+    record_info('MozillaFirefox version', "Version of Current MozillaFirefox package: $firefox_version");
+
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
 
