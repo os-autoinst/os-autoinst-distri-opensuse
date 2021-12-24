@@ -288,6 +288,8 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = @_;
     select_console 'log-console';
+    $self->save_upload_y2logs;
+    set_var('Y2LOGS_UPLOADED', 1);
     $self->save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.log', {screenshot => 1});
     $self->export_logs_desktop;
     $self->SUPER::post_fail_hook;

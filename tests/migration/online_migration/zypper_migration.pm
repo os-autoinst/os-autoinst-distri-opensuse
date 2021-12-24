@@ -165,10 +165,11 @@ sub run {
 
 sub post_fail_hook {
     my $self = shift;
-    $self->SUPER::post_fail_hook;
     $self->select_serial_terminal;
     script_run("pkill zypper");
+    upload_logs '/var/log/zypper.log';
     $self->upload_solvertestcase_logs();
+    $self->SUPER::post_fail_hook;
 }
 
 1;
