@@ -102,8 +102,19 @@ sub switch_users {
     # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     handle_gnome_activities;
-    handle_logout;
-    wait_still_screen 10;
+    # migration test need logout 'test' to remove 'test' account later
+    if (get_required_var('FLAVOR') =~ /Migration/) {
+        handle_logout;
+        wait_still_screen 10;
+    }
+    else {
+        switch_user;
+        send_key "esc";
+        assert_and_click "displaymanager-$username";
+        assert_screen "originUser-login-dm";
+        type_password "$newpwd\n";
+        handle_gnome_activities;
+    }
 }
 
 # restore password to original value
