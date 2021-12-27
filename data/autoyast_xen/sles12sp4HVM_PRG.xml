@@ -39,7 +39,6 @@
     <CAName>YaST_Default_CA</CAName>
     <ca_commonName>YaST Default CA (suse.cz)</ca_commonName>
     <country>US</country>
-    <locality/>
     <organisation/>
     <organisationUnit/>
     <password>ENTER PASSWORD HERE</password>
@@ -52,51 +51,8 @@
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
   <firewall>
-    <FW_ALLOW_FW_BROADCAST_DMZ>no</FW_ALLOW_FW_BROADCAST_DMZ>
-    <FW_ALLOW_FW_BROADCAST_EXT>no</FW_ALLOW_FW_BROADCAST_EXT>
-    <FW_ALLOW_FW_BROADCAST_INT>no</FW_ALLOW_FW_BROADCAST_INT>
-    <FW_BOOT_FULL_INIT>no</FW_BOOT_FULL_INIT>
-    <FW_CONFIGURATIONS_DMZ>sshd</FW_CONFIGURATIONS_DMZ>
-    <FW_CONFIGURATIONS_EXT>hamsta sshd</FW_CONFIGURATIONS_EXT>
-    <FW_CONFIGURATIONS_INT>sshd</FW_CONFIGURATIONS_INT>
-    <FW_DEV_DMZ/>
-    <FW_DEV_EXT/>
-    <FW_DEV_INT/>
-    <FW_FORWARD_ALWAYS_INOUT_DEV/>
-    <FW_FORWARD_MASQ/>
-    <FW_IGNORE_FW_BROADCAST_DMZ>no</FW_IGNORE_FW_BROADCAST_DMZ>
-    <FW_IGNORE_FW_BROADCAST_EXT>yes</FW_IGNORE_FW_BROADCAST_EXT>
-    <FW_IGNORE_FW_BROADCAST_INT>no</FW_IGNORE_FW_BROADCAST_INT>
-    <FW_IPSEC_TRUST>no</FW_IPSEC_TRUST>
-    <FW_LOAD_MODULES>nf_conntrack_netbios_ns</FW_LOAD_MODULES>
-    <FW_LOG_ACCEPT_ALL>no</FW_LOG_ACCEPT_ALL>
-    <FW_LOG_ACCEPT_CRIT>yes</FW_LOG_ACCEPT_CRIT>
-    <FW_LOG_DROP_ALL>no</FW_LOG_DROP_ALL>
-    <FW_LOG_DROP_CRIT>yes</FW_LOG_DROP_CRIT>
-    <FW_MASQUERADE>no</FW_MASQUERADE>
-    <FW_PROTECT_FROM_INT>no</FW_PROTECT_FROM_INT>
-    <FW_ROUTE>no</FW_ROUTE>
-    <FW_SERVICES_ACCEPT_DMZ/>
-    <FW_SERVICES_ACCEPT_EXT/>
-    <FW_SERVICES_ACCEPT_INT/>
-    <FW_SERVICES_ACCEPT_RELATED_DMZ/>
-    <FW_SERVICES_ACCEPT_RELATED_EXT/>
-    <FW_SERVICES_ACCEPT_RELATED_INT/>
-    <FW_SERVICES_DMZ_IP/>
-    <FW_SERVICES_DMZ_RPC/>
-    <FW_SERVICES_DMZ_TCP/>
-    <FW_SERVICES_DMZ_UDP/>
-    <FW_SERVICES_EXT_IP/>
-    <FW_SERVICES_EXT_RPC/>
-    <FW_SERVICES_EXT_TCP/>
-    <FW_SERVICES_EXT_UDP/>
-    <FW_SERVICES_INT_IP/>
-    <FW_SERVICES_INT_RPC/>
-    <FW_SERVICES_INT_TCP/>
-    <FW_SERVICES_INT_UDP/>
-    <FW_STOP_KEEP_ROUTING_STATE>no</FW_STOP_KEEP_ROUTING_STATE>
-    <enable_firewall config:type="boolean">true</enable_firewall>
-    <start_firewall config:type="boolean">true</start_firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
   </firewall>
   <general>
     <ask-list config:type="list"/>
@@ -1102,38 +1058,13 @@ DefaultPolicy default
     </yesno_messages>
   </report>
   <services-manager>
-    <default_target>graphical</default_target>
+    <default_target>multi-user</default_target>
     <services>
-      <disable config:type="list"/>
-      <enable config:type="list">
-        <service>apparmor</service>
-        <service>btrfsmaintenance-refresh</service>
-        <service>cron</service>
-        <service>display-manager</service>
-        <service>haveged</service>
-        <service>irqbalance</service>
-        <service>iscsi</service>
-        <service>kdump-early</service>
-        <service>kdump</service>
-        <service>mcelog</service>
-        <service>nscd</service>
-        <service>ntpd</service>
-        <service>postfix</service>
-        <service>purge-kernels</service>
-        <service>rollback</service>
-        <service>rsyslog</service>
-        <service>smartd</service>
-        <service>sshd</service>
+      <disable config:type="list">
         <service>SuSEfirewall2</service>
-        <service>SuSEfirewall2_init</service>
-        <service>wicked</service>
-        <service>wickedd-auto4</service>
-        <service>wickedd-dhcp4</service>
-        <service>wickedd-dhcp6</service>
-        <service>wickedd-nanny</service>
-        <service>YaST2-Firstboot</service>
-        <service>YaST2-Second-Stage</service>
-        <service>getty@tty1</service>
+      </disable>
+      <enable config:type="list">
+        <service>sshd</service>
       </enable>
     </services>
   </services-manager>
@@ -1142,53 +1073,10 @@ DefaultPolicy default
     <install_recommended config:type="boolean">true</install_recommended>
     <instsource/>
     <packages config:type="list">
-      <package>sudo</package>
-      <package>binutils</package>
-      <package>iputils</package>
-      <package>yast2-users</package>
-      <package>yast2-services-manager</package>
-      <package>yast2-proxy</package>
-      <package>yast2-printer</package>
-      <package>yast2-ntp-client</package>
-      <package>yast2-nis-client</package>
-      <package>yast2-network</package>
-      <package>yast2-kdump</package>
-      <package>yast2-firewall</package>
-      <package>yast2-country</package>
-      <package>yast2-ca-management</package>
-      <package>yast2-bootloader</package>
-      <package>yast2-add-on</package>
-      <package>snapper</package>
-      <package>sles-release</package>
-      <package>openssh</package>
-      <package>numactl</package>
-      <package>kexec-tools</package>
-      <package>kernel-source</package>
-      <package>kdump</package>
-      <package>irqbalance</package>
-      <package>grub2</package>
-      <package>glibc</package>
-      <package>e2fsprogs</package>
-      <package>btrfsprogs</package>
-      <package>autoyast2-installation</package>
-      <package>autoyast2</package>
-      <package>SuSEfirewall2</package>
     </packages>
     <patterns config:type="list">
-      <pattern>32bit</pattern>
       <pattern>Minimal</pattern>
-      <pattern>apparmor</pattern>
       <pattern>base</pattern>
-      <pattern>documentation</pattern>
-      <pattern>gnome-basic</pattern>
-      <pattern>sles-Minimal-32bit</pattern>
-      <pattern>sles-apparmor-32bit</pattern>
-      <pattern>sles-base-32bit</pattern>
-      <pattern>sles-documentation-32bit</pattern>
-      <pattern>sles-x11-32bit</pattern>
-      <pattern>sles-yast2</pattern>
-      <pattern>x11</pattern>
-      <pattern>yast2</pattern>
     </patterns>
   </software>
   <ssh_import>
