@@ -23,6 +23,7 @@ sub run {
     my ($self, $ctx) = @_;
     $self->select_serial_terminal;
     my @ifaces = split(' ', iface(2));
+    my $need_reboot = 0;
     die("Missing at least one interface") unless (@ifaces);
     $ctx->iface($ifaces[0]);
     $ctx->iface2($ifaces[1]) if (@ifaces > 1);
@@ -94,6 +95,7 @@ sub run {
             }
             assert_script_run('./autogen.sh ', timeout => 600);
             assert_script_run('make ; make install', timeout => 600);
+            $need_reboot = 1;
         } elsif (my $wicked_repo = get_var('WICKED_REPO')) {
             record_info('REPO', $wicked_repo);
             if ($wicked_repo =~ /suse\.de/ && script_run('rpm -qi ca-certificates-suse') == 1) {
@@ -123,6 +125,7 @@ sub run {
                 validate_script_output(q(head -n 1 /usr/share/doc/packages/wicked/ChangeLog | awk '{print $2}'), qr/^$commit_sha$/);
                 record_info('COMMIT', $commit_sha);
             }
+            $need_reboot = 1;
         }
         if (check_var('WICKED', 'ipv6')) {
             my $repo_url = 'https://download.opensuse.org/repositories/home:/asmorodskyi/';
@@ -138,6 +141,7 @@ sub run {
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
         zypper_call('-q in ' . $package_list, timeout => 400);
         $self->reset_wicked();
+        serial_terminal::reboot() if $need_reboot;
         record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     }
 }

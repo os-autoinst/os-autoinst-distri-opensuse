@@ -24,7 +24,7 @@ use strict;
 use warnings;
 use Utils::Architectures;
 
-use constant WICKED_DATA_DIR => '/tmp/wicked/data';
+use constant WICKED_DATA_DIR => '/root/wicked/data';
 
 =head2 wicked_command
 
@@ -99,21 +99,21 @@ sub assert_wicked_state {
 sub reset_wicked {
     my $self = @_;
     # Remove any config file and leave the system clean to start tests
-    script_run('find /etc/sysconfig/network/ -name "ifcfg-*" | grep -v "ifcfg-lo" | xargs rm');
-    script_run('rm -f route');
+    assert_script_run('find /etc/sysconfig/network/ -name "ifcfg-*" -not -name "ifcfg-lo" -exec rm {} \;');
+    assert_script_run('find /etc/sysconfig/network/ -name "routes" -o -name "ifroute-*" -exec rm {} \;');
 
     # Remove any previous manual ip configuration
     my $iface = iface();
-    script_run("ip a flush dev $iface");
-    script_run('ip r flush all');
-    script_run("ip link set dev $iface down");
+    assert_script_run("ip a flush dev $iface");
+    assert_script_run('ip r flush all');
+    assert_script_run("ip link set dev $iface down");
 
     file_content_replace("/etc/sysconfig/network/config", "^NETCONFIG_DNS_STATIC_SERVERS=.*" => " ");
     assert_script_run("netconfig -f update");
 
     # Restart services
-    script_run('rcwickedd restart');
-    script_run('rcwicked restart');
+    assert_script_run('rcwickedd restart');
+    assert_script_run('rcwicked restart');
 }
 
 
