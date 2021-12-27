@@ -10,17 +10,16 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use utils 'zypper_call';
+use utils qw(zypper_call package_upgrade_check);
 
 sub run {
     my $self = shift;
     $self->select_serial_terminal;
 
-    zypper_call('in ibmtss');
-    my $tagert_ver = '1.6.0';
-    my $current_ver = script_output("rpm -q --qf '%{version}\n' ibmtss");
-    record_info("Current ibmtss package version is $current_ver, target version is $tagert_ver");
-    die 'The package version is not updated yet, please check with developer' if ($current_ver lt $tagert_ver);
+    # Version check
+    my $pkg_list = {ibmtss => '1.6.0'};
+    zypper_call("in " . join(' ', keys %$pkg_list));
+    package_upgrade_check($pkg_list);
 }
 
 1;

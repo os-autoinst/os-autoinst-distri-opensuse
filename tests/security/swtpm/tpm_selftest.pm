@@ -14,7 +14,7 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
-use utils qw(zypper_call systemctl);
+use utils qw(zypper_call systemctl package_upgrade_check);
 use Utils::Architectures;
 
 sub run {
@@ -24,13 +24,7 @@ sub run {
     # Version check
     my $pkg_list = {'tpm-tools' => '1.3.9.2', trousers => '0.3.15'};
     zypper_call("in " . join(' ', keys %$pkg_list));
-    foreach my $pkg (keys %$pkg_list) {
-        my $current_ver = script_output("rpm -q --qf '%{version}\n' $pkg");
-        record_info("$pkg version", "Current '$pkg' version is $current_ver, target version is $pkg_list->{$pkg}");
-        if ($current_ver lt $pkg_list->{$pkg}) {
-            die("The package $pkg is not updated yet, please check with developer");
-        }
-    }
+    package_upgrade_check($pkg_list);
 
     # Based on bsc#1193350, swtpm 1.2 device is not supported
     # on arch64 platform any more, so skip the test on aarch64
