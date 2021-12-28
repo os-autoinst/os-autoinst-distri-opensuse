@@ -720,7 +720,7 @@ sub check_ipv6 {
 sub run_test_shell_script
 {
     my ($self, $title, $script_cmd) = @_;
-    my $output = script_output($script_cmd . ' && echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1);
+    my $output = script_output($script_cmd . '; echo "==COLLECT_EXIT_CODE==$?=="', proceed_on_failure => 1, timeout => 300);
     my $result = $output =~ m/==COLLECT_EXIT_CODE==0==/ ? 'ok' : 'fail';
     $self->record_console_test_result($title, $output, result => $result);
 }
