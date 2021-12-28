@@ -59,6 +59,9 @@ sub patching_sle {
         # Update origin system on zVM that is controlled by autoyast profile and reboot is done by end of autoyast installation
         # So we skip reboot here after fully patched on zVM to reduce times of reconnection to s390x
         if (!get_var('UPGRADE_ON_ZVM')) {
+            # Sometimes update package 'polkit' will cause GDM restart, so after
+            # update patches we'd better to select_console to make test robust.
+            select_console 'root-console';
             # Perform sync ahead of reboot to flush filesystem buffers
             assert_script_run 'sync', 600;
             # Open gdm debug info for poo#45236, this issue happen sometimes in openqa env
