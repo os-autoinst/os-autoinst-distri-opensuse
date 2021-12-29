@@ -49,7 +49,6 @@ sub run_ssh_command {
     $args{ssh_opts} //= $self->ssh_opts() . " -i '" . $self->ssh_key . "'";
     $args{username} //= $self->username();
     $args{timeout} //= SSH_TIMEOUT;
-    $args{quiet} //= 1;
     $args{no_quote} //= 0;
     my $rc_only = $args{rc_only} // 0;
     my $timeout = $args{timeout};
