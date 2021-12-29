@@ -18,7 +18,7 @@
 #   * The SCP is tested by copying various files
 #
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
-# Tags: poo#65375, poo#68200
+# Tags: poo#65375, poo#68200, poo#104415
 
 use warnings;
 use base "consoletest";
@@ -121,8 +121,16 @@ sub run {
     assert_script_run 'until ss -tulpn|grep sshd|egrep "4242|5252";do sleep 1;done';
 
     # Scan public keys on forwarded ports
-    assert_script_run "ssh-keyscan -p 4242 localhost >> ~/.ssh/known_hosts";
-    assert_script_run "ssh-keyscan -p 5252 localhost >> ~/.ssh/known_hosts";
+    # Add a workaround about bsc#1193275 in FIPS test
+    my $output_4242 = script_output("ssh-keyscan -p 4242 localhost >> ~/.ssh/known_hosts", proceed_on_failure => 1);
+    if ($output_4242 =~ /choose_kex: unsupported KEX method curve25519-sha256/) {
+        record_soft_failure('bsc#1193275', "Currently the curve25519 is not FIPS approved");
+    }
+
+    my $output_5252 = script_output("ssh-keyscan -p 5252 localhost >> ~/.ssh/known_hosts", proceed_on_failure => 1);
+    if ($output_5252 =~ /choose_kex: unsupported KEX method curve25519-sha256/) {
+        record_soft_failure('bsc#1193275', "Currently the curve25519 is not FIPS approved");
+    }
 
     # Connect to forwarded ports
     assert_script_run "ssh -v -p 4242 $ssh_testman\@localhost whoami";
