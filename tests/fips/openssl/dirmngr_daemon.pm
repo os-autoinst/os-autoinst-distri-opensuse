@@ -15,7 +15,8 @@ use utils;
 
 sub dirmngr_daemon {
 
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $myca_dir = "/home/linux/myca";
 

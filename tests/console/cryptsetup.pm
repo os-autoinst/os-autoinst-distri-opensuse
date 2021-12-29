@@ -21,7 +21,8 @@ use version_utils qw(is_sle);
 sub run {
     # Strengthen password to avoid password quality check failed on Tumbleweed
     my $cryptpasswd = $testapi::password . '123';
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     # Update related packages including latest systemd
     zypper_call('in cryptsetup device-mapper systemd util-linux');

@@ -22,7 +22,8 @@ use warnings;
 use utils qw(zypper_call);
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
     zypper_call 'in openssl';
 
     my $tmp_file = "/tmp/hello.txt";

@@ -22,7 +22,8 @@ use strict;
 use warnings;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $file_raw = "hello.txt";
     my $file_enc = $file_raw . ".enc";

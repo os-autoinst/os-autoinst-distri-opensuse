@@ -23,7 +23,7 @@ sub repo_cleanup {
 
 sub run {
     my ($self) = @_;
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     # Note: Check the ticket in p.o.o for detailed descriptions of the
     #       repository setup logic.
