@@ -1,6 +1,8 @@
 name:          offline_spvm_install
 description:    >
     This is prepare install task before migration.
+vars:
+  ORIGIN_SYSTEM_VERSION: '%HDDVERSION%'
 schedule:
   - installation/bootloader
   - installation/welcome
@@ -28,6 +30,7 @@ schedule:
   - console/system_prepare
   - console/hostname
   - console/force_scheduled_tasks
+  - migration/version_switch_origin_system
   - update/patch_sle
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
