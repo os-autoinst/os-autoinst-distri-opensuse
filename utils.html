@@ -80,6 +80,7 @@
       <li><a href="#permit_root_ssh-permit_root_ssh">permit_root_ssh permit_root_ssh();</a></li>
       <li><a href="#permit_root_ssh_in_sol-permit_root_ssh_in_sol">permit_root_ssh_in_sol permit_root_ssh_in_sol();</a></li>
       <li><a href="#cleanup_disk_space-cleanup_disk_space">cleanup_disk_space cleanup_disk_space();</a></li>
+      <li><a href="#package_upgrade_check-package_upgrade_check">package_upgrade_check package_upgrade_check();</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -593,6 +594,12 @@
 <h2 id="cleanup_disk_space-cleanup_disk_space">cleanup_disk_space cleanup_disk_space();</h2>
 
 <p>In fully_patch_system and minimal_patch_system, we&#39;ll create so many snapshots. which will cost large part of the disk space. We need to delete these snapshots before the migration only if the available space is less than DISK_LOW_WATERMARK.</p>
+
+<h2 id="package_upgrade_check-package_upgrade_check">package_upgrade_check package_upgrade_check();</h2>
+
+<p>This function is used for checking if the package is upgraded to the required version</p>
+
+<p>Sample config of parameter of the function below: my $pkg_list = {ibmtss =&gt; &#39;1.6.0&#39;}; here, &#39;libmtss&#39; is the package name, and &#39;1.6.0&#39; is target version which needs to be upgrated to</p>
 
 
 </body>
