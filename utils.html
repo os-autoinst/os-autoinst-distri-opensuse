@@ -321,6 +321,8 @@
 
 <p>This will repeat <code>assert_and_click($mustmatch)</code> up to <code>$repeat</code> times, trying againg if the screen has not changed within <code>$wait_change</code> seconds after the <code>assert_and_click</code>. Returns the number of attempts made. <code>$wait_change</code> defaults to 2 (seconds) and <code>$repeat</code> defaults to 3.</p>
 
+<p>You can check if the screen changed by using an explicit repeat and comparing it to the returned number of attempts. If the value equals repeat the screen didn&#39;t change.</p>
+
 <h2 id="handle_livecd_reboot_failure">handle_livecd_reboot_failure</h2>
 
 <pre><code> handle_livecd_reboot_failure();</code></pre>
