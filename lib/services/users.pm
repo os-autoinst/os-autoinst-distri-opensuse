@@ -190,6 +190,7 @@ sub full_users_check {
         # so we have to change this test to logout and login new user.
         if (is_s390x) {
             logout_and_login($newUser, $pwd4newUser);
+            handle_logout;
         }
         else {
             switch_users;
