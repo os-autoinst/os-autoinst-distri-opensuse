@@ -21,7 +21,7 @@ use testapi;
 use utils qw(quit_packagekit zypper_call);
 use version_utils qw(is_sle is_leap is_opensuse);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
-use main_common 'is_updates_tests';
+use main_common qw(is_updates_tests is_migration_tests);
 use transactional 'check_reboot_changes';
 
 my $transactional = get_var('TRANSACTIONAL_SERVER');
@@ -40,7 +40,7 @@ sub run {
         assert_script_run("transactional-update register -p sle-module-legacy/$version_id/$arch");
     }
     else {
-        (is_updates_tests || is_opensuse) || add_suseconnect_product('sle-module-legacy');
+        (is_updates_tests || is_opensuse || is_migration_tests) || add_suseconnect_product('sle-module-legacy');
     }
     # Supported Java versions for sle15sp2
     # https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP2/#development-java-versions
@@ -70,7 +70,7 @@ sub run {
         assert_script_run './test_java.sh';
     }
     # if !QAM test suite then cleanup test suite environment
-    unless (is_updates_tests || is_opensuse) {
+    unless (is_updates_tests || is_opensuse || is_migration_tests) {
         if ($transactional == 1) {
             assert_script_run("transactional-update register -d -p sle-module-legacy/$version_id/$arch");
             (script_run 'rpm -qa | grep java-1_') || (script_run 'transactional-update pkg remove --no-confirm java-1_*');
