@@ -18,17 +18,16 @@ use strict;
 use warnings;
 use testapi;
 use base 'consoletest';
-use utils 'zypper_call';
+use utils qw(zypper_call package_upgrade_check);
 
 sub run {
     select_console('root-console');
     zypper_call('in pam_u2f');
 
     # Package version check
-    my $target_ver = '1.1.1';
-    my $current_ver = script_output q(pamu2fcfg --version | awk '{print $2}');
-    record_info("Current pam_u2f version is $current_ver, target version is $target_ver");
-    die 'The package version is lower than expected' if ($current_ver lt $target_ver);
+    my $pkg_list = {'pam_u2f' => '1.1.1'};
+    zypper_call("in " . join(' ', keys %$pkg_list));
+    package_upgrade_check($pkg_list);
 
     # Package change log check
     my $change_log = script_output('rpm -q pam_u2f --changelog');

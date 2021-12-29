@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos);
+use version_utils qw(is_microos is_leap is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use Utils::Backends;
@@ -90,6 +90,7 @@ our @EXPORT = qw(
   permit_root_ssh
   permit_root_ssh_in_sol
   cleanup_disk_space
+  package_upgrade_check
 );
 
 =head1 SYNOPSIS
@@ -2071,6 +2072,35 @@ sub cleanup_disk_space {
 
     # set the snapshot number to 5-10
     assert_script_run('snapper -croot set-config NUMBER_LIMIT=5-10');
+}
+
+
+=head2 package_upgrade_check
+    package_upgrade_check();
+
+This function is used for checking if the package
+is upgraded to the required version
+
+Sample config of parameter of the function below:
+my $pkg_list = {ibmtss => '1.6.0'};
+here, 'libmtss' is the package name, and '1.6.0'
+is target version which needs to be upgrated to
+
+=cut
+
+sub package_upgrade_check {
+    my ($pkg_list, $fail_flag) = @_;
+    foreach my $pkg_name (keys %$pkg_list) {
+        my $current_ver = script_output("rpm -q --qf '%{version}\n' $pkg_name");
+        record_info("Package $pkg_name version", "Current version is $current_ver, target version is $pkg_list->{$pkg_name}");
+        next if (package_version_cmp($current_ver, $pkg_list->{$pkg_name}) >= 0);
+        if ($fail_flag) {
+            die "Error: package $pkg_name is not upgraded yet, please check with developer";
+        }
+        else {
+            record_soft_failure "Warning: package $pkg_name is not upgraded yet";
+        }
+    }
 }
 
 1;
