@@ -2729,7 +2729,12 @@ sub load_hypervisor_tests {
     }
 
     if (check_var('VIRT_PART', 'hotplugging')) {
-        loadtest 'virtualization/universal/hotplugging';    # Try to change properties of guests
+        loadtest 'virtualization/universal/hotplugging_guest_preparation';    # Prepare guests
+        loadtest 'virtualization/universal/hotplugging_network_interfaces';    # Virtual network hotplugging
+        loadtest 'virtualization/universal/hotplugging_HDD';    # Virtual block device hotplugging
+        loadtest 'virtualization/universal/hotplugging_vCPUs';    # Add and remove guests vCPU
+        loadtest 'virtualization/universal/hotplugging_memory';    # Live memory change of guests
+        loadtest 'virtualization/universal/hotplugging_cleanup';    # Restore guests properties
     }
 
     if (check_var('VIRT_PART', 'networking')) {
