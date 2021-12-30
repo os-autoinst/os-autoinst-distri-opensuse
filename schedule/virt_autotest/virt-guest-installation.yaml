@@ -55,7 +55,12 @@ conditional_schedule:
     hotplugging_test:
         ENABLE_HOTPLUGGING:
             1:
-                - virtualization/universal/hotplugging
+                - virtualization/universal/hotplugging_guest_preparation
+                - virtualization/universal/hotplugging_network_interfaces
+                - virtualization/universal/hotplugging_HDD
+                - virtualization/universal/hotplugging_vCPUs
+                - virtualization/universal/hotplugging_memory
+                - virtualization/universal/hotplugging_cleanup
     storage_test:
         ENABLE_STORAGE:
             1:
