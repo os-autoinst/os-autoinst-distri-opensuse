@@ -22,7 +22,7 @@ sub run {
     run_testcase('audit-trail-protection', (make => 1));
 
     # Compare current test results with baseline
-    my $result = compare_run_log('audit_trail_protection');
+    my $result = compare_run_log('audit-trail-protection');
     $self->result($result);
 }
 

@@ -23,7 +23,7 @@ sub run {
     run_testcase('audit-tools');
 
     # Compare current test results with baseline
-    my $result = compare_run_log('audit_tools');
+    my $result = compare_run_log('audit-tools');
     $self->result($result);
 }
 

@@ -22,6 +22,7 @@ sub run {
     if (my $pprofile = get_var('PPROFILE')) {
         assert_script_run("export PPROFILE=$pprofile");
     }
+
     # Run test case
     run_testcase('syscalls', (make => 1, timeout => 720));
 
