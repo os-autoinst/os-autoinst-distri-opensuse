@@ -20,8 +20,8 @@
   Program version:           3.0.6
   Operating system:          Linux
   Operating system name:     openSUSE
-  Operating system version:  20211130
-  Kernel version:            5.15.5
+  Operating system version:  20220102
+  Kernel version:            5.15.12
   Hardware platform:         aarch64
   Hostname:                  susetest
   ---------------------------------------------------
@@ -64,7 +64,7 @@
 [2C- Running 'systemd-analyze security'[23C
 [8C- after-local.service:[31C [ UNSAFE ]
 [8C- auditd.service:[36C [ EXPOSED ]
-[8C- chronyd.service:[35C [ EXPOSED ]
+[8C- chronyd.service:[35C [ PROTECTED ]
 [8C- cron.service:[38C [ UNSAFE ]
 [8C- cups.service:[38C [ UNSAFE ]
 [8C- dbus.service:[38C [ UNSAFE ]
@@ -119,8 +119,6 @@
 [2C- Checking core dumps configuration[24C
 [4C- configuration in systemd conf files[20C [ DEFAULT ]
 [4C- configuration in etc/profile[27C [ DEFAULT ]
-[4C- 'hard' configuration in security/limits.conf[11C [ DEFAULT ]
-[4C- 'soft' configuration in security/limits.conf[11C [ DEFAULT ]
 [4C- Checking setuid core dumps configuration[15C [ DISABLED ]
 
 =================================================================
@@ -246,7 +244,7 @@
 [4C- Searching RPM package manager[26C [ FOUND ]
 [6C- Querying RPM package manager[25C
 
-  [WARNING]: Test PKGS-7308 had a long execution: 17.396742 seconds
+  [WARNING]: Test PKGS-7308 had a long execution: 15.147120 seconds
 
 [2C- Using Zypper to find vulnerable packages[17C [ NONE ]
 [2C- Checking package audit tool[30C [ INSTALLED ]
@@ -411,7 +409,7 @@
 [2C- Checking accounting information[26C [ NOT FOUND ]
 [2C- Checking sysstat accounting data[25C [ NOT FOUND ]
 [2C- Checking auditd[42C [ ENABLED ]
-[4C- Checking audit rules[35C [ SUGGESTION ]
+[4C- Checking audit rules[35C [ OK ]
 [4C- Checking audit configuration file[22C [ OK ]
 [4C- Checking auditd log file[31C [ FOUND ]
 
@@ -464,7 +462,7 @@
 [+] File Permissions
 ------------------------------------
 [2C- Starting file permissions check[26C
-[4CFile: /boot/grub2/grub.cfg[31C [ SUGGESTION ]
+[4CFile: /boot/grub2/grub.cfg[31C [ OK ]
 [4CFile: /etc/cron.deny[37C [ OK ]
 [4CFile: /etc/crontab[39C [ OK ]
 [4CFile: /etc/group[41C [ OK ]
@@ -545,7 +543,7 @@
   [WARNING]: Deprecated function used (logtext)
 
 [4CWarning: Package systemd-249.7-1.1.aarch64 installs an unknown D-BUS autostart/system service: org.freedesktop.timesync1.service[0C [ WARNING ]
-[4CWarning: Package snapper-0.9.0-7.1.aarch64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
+[4CWarning: Package snapper-0.9.0-7.2.aarch64 installs an unknown D-BUS autostart/system service: org.opensuse.Snapper.service[0C [ WARNING ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -572,7 +570,7 @@
 
   [WARNING]: Deprecated function used (logtext)
 
-[4CNo bad RPATH usage found in 4332 executables[13C [ OK ]
+[4CNo bad RPATH usage found in 4335 executables[13C [ OK ]
 
   [WARNING]: Deprecated function used (wait_for_keypress)
 
@@ -580,7 +578,7 @@
 [+] File systems
 ------------------------------------
 
-  [WARNING]: Test BINARY-1000 had a long execution: 59.147902 seconds
+  [WARNING]: Test BINARY-1000 had a long execution: 62.364838 seconds
 
 [2C- Starting look-up of symlinks in /tmp...[18C
 
@@ -643,7 +641,7 @@
   ! iptables module(s) loaded, but no rules active [FIRE-4512] 
       https://cisofy.com/lynis/controls/FIRE-4512/
 
-  Suggestions (41):
+  Suggestions (39):
   ----------------------------
   * This release is more than 4 months old. Check the website or GitHub to see if there is an update available. [LYNIS] 
       https://cisofy.com/lynis/controls/LYNIS/
@@ -654,9 +652,6 @@
   * Consider hardening system services [BOOT-5264] 
     - Details  : Run '/usr/bin/systemd-analyze security SERVICE' for each service
       https://cisofy.com/lynis/controls/BOOT-5264/
-
-  * If not required, consider explicit disabling of core dump in /etc/security/limits.conf file [KRNL-5820] 
-      https://cisofy.com/lynis/controls/KRNL-5820/
 
   * Check PAM configuration, add rounds if applicable and expire passwords to encrypt with new values [AUTH-9229] 
       https://cisofy.com/lynis/controls/AUTH-9229/
@@ -758,9 +753,6 @@
 
   * Enable sysstat to collect accounting (no results) [ACCT-9626] 
       https://cisofy.com/lynis/controls/ACCT-9626/
-
-  * Audit daemon is enabled with an empty ruleset. Disable the daemon or define rules [ACCT-9630] 
-      https://cisofy.com/lynis/controls/ACCT-9630/
 
   * Install a file integrity tool to monitor changes to critical and sensitive files [FINT-4350] 
       https://cisofy.com/lynis/controls/FINT-4350/
