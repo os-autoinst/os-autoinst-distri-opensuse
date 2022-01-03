@@ -28,6 +28,9 @@ BEGIN {
       serial_term_prompt
       upload_file
     );
+    our @EXPORT_OK = qw(
+      reboot
+    );
 }
 
 our $serial_term_prompt;
@@ -230,6 +233,28 @@ sub upload_file {
     system('mkdir -p ulogs/') == 0 or die('Failed to create ulogs/ directory');
     system(sprintf("cp '%s' '%s'", $tmpfilename, $dst)) == 0
       or die("Failed to finally copy file from '$tmpfilename' to '$dst'");
+}
+
+
+sub reboot {
+    my (%args) = @_;
+    $args{console} //= testapi::current_console;
+    $args{reboot_cmd} //= 'systemctl reboot';
+    $args{timeout} //= 300;
+    my $check_file = '/dev/shm/openqa-reboot-check-' . random_string(8);
+
+    bmwqemu::log_call(%args);
+    die('Only root-virtio-terminal is supported') unless $args{console} eq 'root-virtio-terminal';
+
+    assert_script_run("touch '$check_file'");
+
+    record_info('REBOOT', "cmd: " . $args{reboot_cmd});
+    script_run($args{reboot_cmd}, timeout => 0);
+    reset_consoles;
+    wait_serial('[lL]ogin:', timeout => $args{timeout});
+    select_console($args{console});
+
+    assert_script_run("! test -e '$check_file'");
 }
 
 1;
