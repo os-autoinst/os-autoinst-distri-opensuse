@@ -73,6 +73,7 @@ test_data:
     - sle-module-live-patching
     - sle-we
     - sle-module-basesystem
+    - sle-module-certifications
     - sle-module-containers
     - sle-module-desktop-applications
     - sle-module-development-tools
