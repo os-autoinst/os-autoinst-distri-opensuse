@@ -39,7 +39,7 @@ sub _sanity_test_btrfs {
     assert_script_run "btrfs fi df $dev_path/btrfs/";
     assert_script_run "ls -td $dev_path/btrfs/subvolumes/* | head -n 1 > $btrfs_head";
     # Ensure the var partition has at least 10% free space
-    validate_script_output "df -h | grep var", sub { m/\/dev\/x?[v,s]d[a-z].+ [0-8][0-9]?%/ };
+    validate_script_output "df -h | grep var", sub { m/\/dev\/x?[v,s]d[a-z].+ [1-8]?[0-9]%/ };
 }
 
 sub _test_btrfs_balancing {
