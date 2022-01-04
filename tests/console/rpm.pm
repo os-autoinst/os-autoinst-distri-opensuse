@@ -69,7 +69,7 @@ sub run {
         # Get detailed information for a package
         assert_script_run("rpm -qi $installed_pkg");
         # Read changelog of a package
-        assert_script_run("rpm -q --changelog $installed_pkg", 90);
+        assert_script_run("rpm -q --changelog $installed_pkg | tail -n 40", 90);
         # List what a package provides
         assert_script_run("rpm -q --provides $installed_pkg");
         # Dump basic file information of every file in a package
