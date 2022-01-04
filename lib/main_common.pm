@@ -52,6 +52,7 @@ our @EXPORT = qw(
   is_sles4sap_standard
   is_updates_test_repo
   is_updates_tests
+  is_migration_tests
   kdestep_is_applicable
   kdump_is_applicable
   load_autoyast_clone_tests
@@ -302,6 +303,12 @@ sub is_updates_tests {
     return 0 unless $flavor;
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
     return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+}
+
+sub is_migration_tests {
+    my $flavor = get_var('FLAVOR');
+    return 0 unless $flavor;
+    return $flavor =~ /Migration/;
 }
 
 sub is_updates_test_repo {
