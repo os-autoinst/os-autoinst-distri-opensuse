@@ -41,6 +41,7 @@ schedule:
 - console/firewall_enabled
 - console/glibc_sanity
 - console/salt
+- network/snmp
 - console/sshd
 - console/ssh_cleanup
 - console/ncurses

@@ -31,6 +31,7 @@ schedule:
 - console/zypper_ref
 - console/firewall_enabled
 - console/glibc_sanity
+- network/snmp
 - console/sshd
 - console/ssh_cleanup
 - console/ncurses
