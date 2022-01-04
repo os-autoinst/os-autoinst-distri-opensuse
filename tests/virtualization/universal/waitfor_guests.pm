@@ -108,7 +108,6 @@ sub run {
     my $sleep_delay = 1200;
     $sleep_delay = 1800 if (is_xen_host);    # XEN has more guests
     sleep($sleep_delay);    # XXX Get rid of this sleep!
-    start_guests();
     record_info("guests installed", "Guest installation completed");
 
     # Adding the PCI bridges requires the guests to be shutdown
