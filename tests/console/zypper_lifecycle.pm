@@ -37,9 +37,10 @@ our $date_re = qr/[0-9]{4}-[0-9]{2}-[0-9]{2}/;
 
 sub lifecycle_output_check {
     my $output = shift;
-    if ($output =~ /Legacy Module.*2021-07-30|Python 2 Module.*2021-07-30/) {
+    if ($output =~ /Legacy Module.*2021-(07|12)-30|Python 2 Module.*2021-(07|12)-30/) {
         # https://chat.suse.de/channel/qem-openqa-review/thread/KLrXWR5Sy7zprLFcx?jump=e2dxZRDbkXHE5DXQt
-        record_soft_failure 'bsc#123456 Temporary soft fail until EOS is fixed.';
+        # https://progress.opensuse.org/issues/95593
+        record_soft_failure 'bsc#1194294 zypper lifecycle wrong EOL for python2 and legacy module';
         return;
     }
     if (get_var('SCC_REGCODE_LTSS')) {
