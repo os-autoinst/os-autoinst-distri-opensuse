@@ -57,6 +57,7 @@ conditional_schedule:
         - console/textinfo
         - console/hostname
         - console/zypper_lr
+        - console/cpio
         - console/java
         - console/check_system_info
         - console/zypper_ref
