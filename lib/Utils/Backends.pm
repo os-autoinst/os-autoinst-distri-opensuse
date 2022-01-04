@@ -35,6 +35,10 @@ use constant {
           is_svirt
           is_image_backend
           is_ssh_installation
+          is_backend_s390x
+          is_spvm
+          is_pvm_hmc
+          is_generalhw
         )
     ],
     CONSOLES => [
@@ -206,6 +210,38 @@ Returns true if the current instance is running on backend with image support
 sub is_image_backend {
     return (is_qemu || is_svirt);
 }
+
+=head2 is_backend_s390x
+
+Returns true if the current instance is running on backend with s390x
+
+=cut
+
+sub is_backend_s390x { check_var('BACKEND', 's390x'); }
+
+=head2 is_spvm
+
+Returns true if the current instance is running as PowerVM backend 'spvm'
+
+=cut
+
+sub is_spvm { check_var('BACKEND', 'spvm'); }
+
+=head2 is_pvm_hmc
+
+Returns true if the current instance is running as PowerVM backend 'hmc_pvm'
+
+=cut
+
+sub is_pvm_hmc { check_var('BACKEND', 'pvm_hmc'); }
+
+=head2 is_generalhw
+
+Returns true if the current instance is running on backend 'generalhw'
+
+=cut
+
+sub is_generalhw { check_var('BACKEND', 'generalhw'); }
 
 #This subroutine takes absolute file path of sshd config file and desired ssh connection timeout as arguments
 #The ssh connection timeout is counted as seconds

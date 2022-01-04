@@ -30,6 +30,7 @@ beta_text: 'You are accessing our Beta Distribution'
 modules:
   - sle-ha
   - sle-module-basesystem
+  - sle-module-certifications
   - sle-module-containers
   - sle-module-desktop-applications
   - sle-module-development-tools

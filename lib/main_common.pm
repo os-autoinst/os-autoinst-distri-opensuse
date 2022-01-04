@@ -52,6 +52,7 @@ our @EXPORT = qw(
   is_sles4sap_standard
   is_updates_test_repo
   is_updates_tests
+  is_migration_tests
   kdestep_is_applicable
   kdump_is_applicable
   load_autoyast_clone_tests
@@ -174,7 +175,7 @@ sub setup_env {
     }
 
     # By default format DASD devices before installation
-    if (check_var('BACKEND', 's390x')) {
+    if (is_backend_s390x) {
         # Format DASD before the installation by default
         # Skip format dasd before origin system installation by autoyast in 'Upgrade on zVM'
         # due to channel not activation issue. Need further investigation on it.
@@ -302,6 +303,12 @@ sub is_updates_tests {
     return 0 unless $flavor;
     # Incidents might be also Incidents-Gnome or Incidents-Kernel
     return $flavor =~ /-Updates$/ || $flavor =~ /-Incidents/;
+}
+
+sub is_migration_tests {
+    my $flavor = get_var('FLAVOR');
+    return 0 unless $flavor;
+    return $flavor =~ /Migration/;
 }
 
 sub is_updates_test_repo {
@@ -568,6 +575,7 @@ sub load_jeos_tests {
     load_boot_tests();
     loadtest "jeos/firstrun";
     loadtest "jeos/record_machine_id";
+    loadtest "console/system_prepare" if is_sle;
     loadtest "console/force_scheduled_tasks";
     unless (get_var('INSTALL_LTP')) {
         loadtest "jeos/grub2_gfxmode";
@@ -575,8 +583,10 @@ sub load_jeos_tests {
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
     }
-    loadtest "console/journal_check";
-    loadtest "microos/libzypp_config";
+    unless (get_var('CONTAINER_RUNTIME')) {
+        loadtest "console/journal_check";
+        loadtest "microos/libzypp_config";
+    }
     if (is_sle) {
         loadtest "console/suseconnect_scc";
         loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
@@ -585,6 +595,8 @@ sub load_jeos_tests {
     loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
+    # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
+    loadtest "console/zypper_ref" if (get_var('CONTAINER_RUNTIME') && is_sle);
 }
 
 sub installzdupstep_is_applicable {
@@ -772,7 +784,7 @@ sub unregister_needle_tags {
 sub load_bootloader_s390x {
     return 0 unless is_s390x;
 
-    if (check_var("BACKEND", "s390x")) {
+    if (is_backend_s390x) {
         loadtest "installation/bootloader_s390";
     }
     else {
@@ -830,7 +842,7 @@ sub load_inst_tests {
         loadtest "installation/disk_activation_iscsi";
     }
     if (is_s390x) {
-        if (check_var('BACKEND', 's390x')) {
+        if (is_backend_s390x) {
             loadtest "installation/disk_activation";
         }
         elsif (is_sle('<12-SP2')) {
@@ -950,7 +962,7 @@ sub load_inst_tests {
     # functionality needs to be covered by other backends
     # Skip release notes test on sle 15 if have addons
     if (get_var('CHECK_RELEASENOTES') &&
-        is_sle && !check_var('BACKEND', 'generalhw') && !is_ipmi &&
+        is_sle && !is_generalhw && !is_ipmi &&
         !(is_sle('15+') && get_var('ADDONURL'))) {
         loadtest "installation/releasenotes";
     }
@@ -2450,6 +2462,7 @@ sub load_security_tests_pam {
     loadtest "security/pam/pam_config";
     loadtest "security/pam/pam_mount";
     loadtest "security/pam/pam_faillock";
+    loadtest "security/pam/pam_u2f";
 }
 
 sub load_security_tests_create_swtpm_hdd {

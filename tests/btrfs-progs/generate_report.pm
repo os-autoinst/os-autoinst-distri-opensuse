@@ -32,7 +32,7 @@ sub upload_tarball {
     if ($output =~ /folder not exist/) { return; }
     my $tarball = "/opt/$output.tar.xz";
     assert_script_run("tar cJf $tarball -C " . dirname($dir) . " " . basename($dir), $timeout);
-    upload_logs($tarball, timeout => $timeout, log_name => 'upload');
+    upload_logs($tarball, timeout => $timeout);
 }
 
 sub run {
@@ -41,7 +41,7 @@ sub run {
 
     # Finalize status log and upload it
     log_end STATUS_LOG;
-    upload_logs(STATUS_LOG, log_name => "test");
+    upload_logs(STATUS_LOG, log_name => STATUS_LOG);
 
     # Upload test logs
     upload_tarball LOG_DIR;

@@ -156,7 +156,7 @@ sub run {
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
-    prepare_system_shutdown if check_var('BACKEND', 's390x');
+    prepare_system_shutdown if is_backend_s390x;
     my $postpartscript = 0;
     my $confirmed = 0;
     my $pxe_boot_done = 0;

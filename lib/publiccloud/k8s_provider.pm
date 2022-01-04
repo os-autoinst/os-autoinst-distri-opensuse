@@ -38,7 +38,15 @@ sub init {
             ));
     }
     elsif ($provider eq 'AZURE') {
-        die('Not implemented yet');
+        $self->provider_client(
+            publiccloud::azure_client->new(
+                key_id => $self->key_id,
+                key_secret => $self->key_secret,
+                subscription => $self->subscription,
+                tenantid => $self->tenantid,
+                region => $self->region,
+                service => $service
+            ));
     }
     else {
         die("Invalid provider");
@@ -87,6 +95,25 @@ Configure the docker to access the cloud provider registry
 sub configure_docker {
     my ($self) = @_;
     $self->provider_client->configure_docker();
+}
+
+=head2 push_container_image
+
+Upload a container image to the Provider Cotainer registry. 
+Required parameter is the name of the image, previously stored 
+in the local registry. And the tag (name) in the public cloud 
+containers repository Retrieves the full name of the uploaded 
+image or die.
+=cut
+sub push_container_image {
+    my ($self, $image, $tag) = @_;
+
+    my $full_name = $self->get_container_image_full_name($tag);
+
+    assert_script_run("docker tag $image $full_name");
+    assert_script_run("docker push $full_name", 180);
+
+    return $full_name;
 }
 
 1;

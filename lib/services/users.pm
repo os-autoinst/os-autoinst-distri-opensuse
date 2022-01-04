@@ -102,14 +102,19 @@ sub switch_users {
     # handle welcome screen, when needed
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     handle_gnome_activities;
-    switch_user;
-    send_key "esc";
-    assert_and_click "displaymanager-$username";
-    assert_screen "originUser-login-dm";
-    # for poo#88247, we have to restore current user's password before migration,
-    # so here need to use the original password.
-    type_password(get_required_var('FLAVOR') =~ /Migration/ ? "$password\n" : "$newpwd\n");
-    handle_gnome_activities;
+    # migration test need logout 'test' to remove 'test' account later
+    if (get_required_var('FLAVOR') =~ /Migration/) {
+        handle_logout;
+        wait_still_screen 10;
+    }
+    else {
+        switch_user;
+        send_key "esc";
+        assert_and_click "displaymanager-$username";
+        assert_screen "originUser-login-dm";
+        type_password "$newpwd\n";
+        handle_gnome_activities;
+    }
 }
 
 # restore password to original value
@@ -129,7 +134,6 @@ sub restore_passwd {
 
 # remove test user
 sub remove_test_user {
-    assert_script_run("pkill -KILL -u $newUser");
     assert_script_run("userdel -r $newUser");
 }
 
@@ -178,7 +182,6 @@ sub full_users_check {
         logout_and_login;
         # for poo#88247, it is hard to deal with the authorization of bernhard in
         # following migration process, we have to restore current user's password.
-        record_soft_failure("poo#88247, it is hard to deal with the authorization of bernhard in following migration process, we have to restore current users password");
         restore_passwd;
     }
     else {
@@ -187,6 +190,7 @@ sub full_users_check {
         # so we have to change this test to logout and login new user.
         if (is_s390x) {
             logout_and_login($newUser, $pwd4newUser);
+            handle_logout;
         }
         else {
             switch_users;

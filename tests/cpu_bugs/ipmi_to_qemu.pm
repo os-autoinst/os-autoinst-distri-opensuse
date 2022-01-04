@@ -55,8 +55,21 @@ sub run {
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('dup --auto-agree-with-licenses');
     #Convert comma to space for zypper in
-    $zypper_add_pkgs =~ s/,/ /g;
-    zypper_call("in $zypper_add_pkgs");
+    #$zypper_add_pkgs =~ s/,/ /g;
+    for my $pkg (split /,/, $zypper_add_pkgs) {
+        my $retry = 6;
+        for (1 .. $retry) {
+            my $ret = zypper_call("in $pkg", exitcode => [0, 8]);
+            if ($ret == 0) {
+                last;
+            }
+            else {
+                zypper_call('--gpg-auto-import-keys ref');
+                next;
+            }
+            die("Install package failure: zypper in $pkg with retcode $ret") if $retry == $_;
+        }
+    }
     zypper_call('in --replacefiles perl-DBD-SQLite');
 
     #NFS mount

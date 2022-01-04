@@ -31,8 +31,8 @@ use filesystem_utils qw(format_partition);
 # Heartbeat variables
 my $HB_INTVL = get_var('XFSTESTS_HEARTBEAT_INTERVAL') || 30;
 my $HB_TIMEOUT = get_var('XFSTESTS_HEARTBEAT_TIMEOUT') || 200;
-my $HB_PATN = '<heartbeat>';
-my $HB_DONE = '<done>';
+my $HB_PATN = '<h>';    #shorter label <heartbeat> to getting stable under heavy stress
+my $HB_DONE = '<d>';    #shorter label <done> to getting stable under heavy stress
 my $HB_DONE_FILE = '/opt/test.done';
 my $HB_EXIT_FILE = '/opt/test.exit';
 my $HB_SCRIPT = '/opt/heartbeat.sh';
@@ -126,7 +126,9 @@ sub test_wait {
     my $begin = time();
     my ($type, $status) = heartbeat_wait;
     my $delta = time() - $begin;
-    while ($type eq $HB_PATN and $delta < $timeout) {
+    # In case under heavy stress, only match first 2 words in label is enough
+    my $hb_label = substr($HB_PATN, 0, 2);
+    while ($type =~ /$hb_label/ and $delta < $timeout) {
         ($type, $status) = heartbeat_wait;
         $delta = time() - $begin;
     }
@@ -184,7 +186,7 @@ sub exclude_grouplist {
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name !~ /^\!/);
         $group_name = substr($group_name, 1);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
@@ -202,7 +204,7 @@ sub include_grouplist {
     my $test_folder = $TEST_RANGES =~ /generic/ ? "generic" : $FSTYPE;
     foreach my $group_name (@GROUPLIST) {
         next if ($group_name =~ /^\!/);
-        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
+        my $cmd = "awk '/$group_name/' $INST_DIR/tests/$test_folder/group.list | awk '{printf \"$test_folder/\"}{printf \$1}{printf \",\"}' > tmp.group";
         script_run($cmd);
         $cmd = "cat tmp.group";
         my $tests = substr(script_output($cmd), 0, -1);

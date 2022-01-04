@@ -31,7 +31,9 @@ sub install_xfstests {
     my ($repo) = @_;
     zypper_ar($repo, name => "filesystems");    # Add filesystem repository, which contains the xfstests
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # packagehub is required for dbench (required for e.g. generic/241)
-    zypper_call('in xfsprogs xfsdump btrfsprogs kernel-default xfstests fio dbench');
+    my $packages = "xfsprogs xfsdump btrfsprogs kernel-default xfstests fio";
+    $packages .= " dbench" unless (is_sle("<15"));    # dbench is not available on <SLE15
+    zypper_call("in $packages");
     assert_script_run('ln -s /usr/lib/xfstests/ /opt/xfstests');    # xfstests/run expects the tests to be in /opt/xfstests
     record_info("xfstests", script_output("rpm -q xfstests"));
     # Ensure users 'nobody' and 'daemon' exists
@@ -65,6 +67,7 @@ sub create_config {
     my ($device, $mnt_xfs, $mnt_scratch) = @_;
 
     ## Version required by xfstests/partition.pm
+    # note: rpm -qa only prints installed packages, and ignores not present ones (e.g. dbench on SLES12-SP4)
     script_run('(rpm -qa xfsprogs xfsdump btrfsprogs kernel-default xfstests dbench; uname -r; rpm -qi kernel-default) | tee /opt/version.log');
 
     ## Profile config file containing device and mount point definitions

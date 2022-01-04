@@ -10,7 +10,6 @@
 package Installation::PerformingInstallation::PerformingInstallationPage;
 use strict;
 use warnings;
-use YuiRestClient::Wait;
 
 sub new {
     my ($class, $args) = @_;
@@ -29,14 +28,6 @@ sub init {
 sub is_shown {
     my ($self) = @_;
     return $self->{pba_total_packages}->exist();
-}
-
-sub wait_finished {
-    my ($self, $timeout) = @_;
-    YuiRestClient::Wait::wait_until(object => sub {
-            return !($self->is_shown());
-          }, timeout => $timeout, interval => 10, message => "Progress bar displaying total installing packages didn't disappear. " .
-          "Installation got stuck or took more time than $timeout seconds.");
 }
 
 1;

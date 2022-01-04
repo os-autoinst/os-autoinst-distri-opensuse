@@ -31,6 +31,7 @@ modules:
   - sle-ha
   - sle-module-live-patching
   - sle-module-basesystem
+  - sle-module-certifications
   - sle-module-containers
   - sle-module-desktop-applications
   - sle-module-development-tools

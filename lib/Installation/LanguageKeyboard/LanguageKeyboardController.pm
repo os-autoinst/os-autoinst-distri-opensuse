@@ -45,4 +45,11 @@ sub get_keyboard_test {
     $self->get_language_keyboard_page()->get_keyboard_test();
 }
 
+sub wait_for_keyboard_layout_to_be_selected {
+    my ($self, $keyboard_layout) = @_;
+    YuiRestClient::Wait::wait_until(object => sub {
+            $self->get_language_keyboard_page()->get_keyboard_layout() eq $keyboard_layout;
+    });
+}
+
 1;

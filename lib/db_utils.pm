@@ -11,6 +11,7 @@ use testapi;
 
 our @EXPORT = qw(
   influxdb_push_data
+  influxdb_read_data
 );
 
 sub build_influx_kv {
@@ -60,4 +61,26 @@ sub influxdb_push_data {
     my $output = script_output($cmd, quiet => $args{quiet});
     my ($return_code) = $output =~ /RETURN_CODE:(\d+)/;
     die("Fail to push data into Influx DB:\n$output") unless ($return_code >= 200 && $return_code < 300);
+}
+
+=head2 influxdb_read_data
+
+Builds an Influx DB query and read data from specified database
+with C<url_base> and C<db> for the Influx DB name. C<query> contains
+SELECT query for given DB.
+
+returns json with results of SELECT query.
+
+=cut
+sub influxdb_read_data {
+    my ($url_base, $db, $query) = @_;
+    my $ua = Mojo::UserAgent->new();
+    $ua->max_redirects(5);
+    my $mojo_url = Mojo::URL->new($url_base . '/query');
+    $mojo_url->query(db => $db, q => $query);
+    my $res = $ua->get($mojo_url)->res;
+    unless ($res && $res->json) {
+        die sprintf("Failed to get data from InfluxDB. \n Response code : %s \n Message: %s \n", $res->code, $res->message);
+    }
+    return $res->json;
 }

@@ -1,0 +1,7 @@
+name: Update TrouSerS and tpm-tools
+description:    >
+    Update TrouSerS and tpm-tools to the latest version
+schedule:
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/swtpm/tpm_selftest

@@ -768,7 +768,7 @@ sub reconnect_s390 {
     my $textmode = $args{textmode};
     return undef unless is_s390x;
     my $login_ready = get_login_message();
-    if (check_var('BACKEND', 's390x')) {
+    if (is_backend_s390x) {
         my $console = console('x3270');
         # skip grub handle for 11sp4
         if (!is_sle('=11-SP4')) {

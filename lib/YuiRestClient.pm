@@ -110,7 +110,7 @@ sub init_host {
         $host = get_var('SUT_IP');
     } elsif (get_var('S390_ZKVM')) {
         $host = get_var('VIRSH_GUEST');
-    } elsif (check_var('BACKEND', 's390x')) {
+    } elsif (is_backend_s390x) {
         $installation ? select_console('install-shell') : select_console('root-console');
         $host = &$get_ip_from_console_output;
         select_console('installation') if $installation;

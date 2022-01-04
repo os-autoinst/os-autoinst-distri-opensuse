@@ -13,6 +13,7 @@ use warnings;
 use testapi;
 use LWP::Simple;
 use Config::Tiny;
+use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
 use x11utils qw(select_user_gnome handle_gnome_activities);
@@ -740,7 +741,7 @@ sub start_gnome_settings {
 
     if (!$is_sle_12_sp1 || $settings_menu_loaded) {
         assert_and_click 'settings';
-        my $timeout = (check_var('ARCH', 'aarch64')) ? '180' : '30';
+        my $timeout = (is_aarch64) ? '180' : '30';
         assert_screen 'gnome-settings', $timeout;
     }
 }

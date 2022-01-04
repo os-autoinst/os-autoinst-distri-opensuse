@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Helper class for Azure connection and authentication
@@ -19,6 +19,7 @@ has subscription => undef;
 has tenantid => undef;
 has region => undef;
 has vault => undef;
+has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
 sub init {
     my ($self) = @_;
@@ -38,6 +39,7 @@ sub az_login {
     my ($self) = @_;
     my $login_cmd = sprintf(q(while ! az login --service-principal -u '%s' -p '%s' -t '%s'; do sleep 10; done),
         $self->key_id, $self->key_secret, $self->tenantid);
+
     assert_script_run($login_cmd, timeout => 5 * 60);
     #Azure infra need some time to propagate given by Vault credentials
     # Running some verification command does not prove anything because
@@ -61,6 +63,44 @@ sub vault_create_credentials {
         die("Failed to retrieve key - missing $i") unless (defined($self->$i));
     }
 }
+
+=head2 configure_docker
+
+Configure the docker to access the cloud provider registry
+=cut
+
+sub configure_docker {
+    my ($self) = @_;
+
+    my $login_cmd = sprintf(q(while ! az acr login --name '%s' -u '%s' -p '%s'; do sleep 10; done),
+        $self->container_registry, $self->key_id, $self->key_secret);
+    assert_script_run($login_cmd);
+    $login_cmd = sprintf(q(docker login %s.azurecr.io), $self->container_registry);
+    assert_script_run($login_cmd);
+}
+
+=head2 get_container_registry_prefix
+
+Get the full registry prefix URL (based on the account and region) to push container images on ACR.
+=cut
+
+sub get_container_registry_prefix {
+    my ($self) = @_;
+    return sprintf('%s.azurecr.io', $self->container_registry);
+}
+
+=head2 get_container_image_full_name
+
+Returns the full name of the container image in ACR registry
+C<tag> Tag of the container
+=cut
+
+sub get_container_image_full_name {
+    my ($self, $tag) = @_;
+    my $full_name_prefix = $self->get_container_registry_prefix();
+    return "$full_name_prefix/$tag";
+}
+
 
 sub cleanup {
     my ($self) = @_;

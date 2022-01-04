@@ -123,6 +123,7 @@ schedule:
     - console/sqlite3
     - console/sysctl
     - console/sysstat
+    - network/snmp
     - console/curl_ipv6
     - console/wget_ipv6
     - console/ca_certificates_mozilla

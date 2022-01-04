@@ -19,7 +19,7 @@ sub reboot {
     my ($self, %args) = @_;
     $args{setnologin} //= 0;
     power_action('reboot', textmode => 1);
-    $self->wait_boot(nologin => $args{setnologin}, forcenologin => $args{setnologin});
+    $self->wait_boot(nologin => $args{setnologin}, forcenologin => $args{setnologin}, bootloader_time => 300);
 }
 
 sub run {

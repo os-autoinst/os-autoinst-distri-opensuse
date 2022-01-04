@@ -83,7 +83,7 @@ sub upload_ltp_logs
 sub run {
     my ($self, $args) = @_;
     my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_repo = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
+    my $ltp_repo = get_var('LTP_REPO', 'http://download.opensuse.org/repositories/benchmark:/ltp:/devel/' . generate_version("_") . '/');
     my $provider;
     my $instance;
 
@@ -246,7 +246,7 @@ The CSP credentials secret used to access API.
 
 The region to use. (default-azure: westeurope, default-ec2: eu-central-1)
 
-=head2 PUBLIC_CLOUD_TENANT_ID
+=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
 
 This is B<only for azure> and used to create the service account file.
 

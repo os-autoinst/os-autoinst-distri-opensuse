@@ -11,11 +11,63 @@ use base 'opensusebasetest';
 use strict;
 use warnings;
 use testapi;
+use Scalar::Util qw(looks_like_number);
+use Time::HiRes 'sleep';
 use Utils::Architectures;
 use lockapi;
 use hacluster;
 use version_utils qw(is_sles4sap);
 use utils qw(systemctl);
+
+=head2 calculate_sbd_start_delay
+
+Calculates start time delay after node is fenced.
+Prevents cluster failure if fenced node restarts too quickly.
+Delay time is used either if specified in sbd config variable "SBD_DELAY_START"
+or calculated:
+"corosync_token + corosync_consensus + SBD_WATCHDOG_TIMEOUT * 2"
+Variables 'corosync_token' and 'corosync_consensus' are converted to seconds.
+=cut
+sub calculate_sbd_start_delay {
+    my %params;
+    my $default_wait = 35 * get_var('TIMEOUT_SCALE', 1);
+
+    %params = (
+        'corosync_token' => script_output("corosync-cmapctl | awk -F \" = \" '/config.totem.token\\s/ {print \$2}'"),
+        'corosync_consensus' => script_output("corosync-cmapctl | awk -F \" = \" '/totem.consensus\\s/ {print \$2}'"),
+        'sbd_watchdog_timeout' => script_output("awk -F \"=\" '/SBD_WATCHDOG_TIMEOUT/ {print \$2}' /etc/sysconfig/sbd"),
+        'sbd_delay_start' => script_output("awk -F \"=\" '/SBD_DELAY_START/ {print \$2}' /etc/sysconfig/sbd")
+    );
+
+    # if delay is false return 0sec wait
+    if ($params{'sbd_delay_start'} == 'no' || $params{'sbd_delay_start'} == 0) {
+        record_info("SBD start delay", "SBD delay disabled in config file");
+        return 0;
+    }
+
+    # if delay is only true, calculate according to default equation
+    if ($params{'sbd_delay_start'} == 'yes' || $params{'sbd_delay_start'} == 1) {
+        for my $param_key (keys %params) {
+            if (!looks_like_number($params{$param_key})) {
+                record_soft_failure("SBD start delay",
+                    "Parameter '$param_key' returned non numeric value:\n$params{$param_key}");
+                return $default_wait;
+            }
+            my $sbd_delay_start_time =
+              $params{'corosync_token'} / 1000 +
+              $params{'corosync_consensus'} / 1000 +
+              $params{'sbd_watchdog_timeout'} * 2;
+            record_info("SBD start delay", "SBD delay calculated: $sbd_delay_start_time");
+            return ($sbd_delay_start_time);
+        }
+    }
+
+    # if sbd_delay_stat is specified by number explicitly
+    if (looks_like_number($params{'sbd_delay_start'})) {
+        record_info("SBD start delay", "Specified explicitly in config: $params{'sbd_delay_start'}");
+        return $params{'sbd_delay_start'};
+    }
+}
 
 sub run {
     my $cluster_name = get_cluster_name;
@@ -75,10 +127,15 @@ sub run {
         systemctl 'restart pacemaker', timeout => $default_timeout;
     }
     systemctl 'list-units | grep iscsi', timeout => $default_timeout;
-    if (get_var('USE_DISKLESS_SBD') and check_var('QDEVICE_TEST_ROLE', 'client')) {
-        assert_script_run 'crm cluster restart';
-        record_soft_failure 'bsc#1189398 - Node reboots too fast in DISKLESS SBD with QDEVICE';
+
+    if ((!defined $node_to_fence && check_var('HA_CLUSTER_INIT', 'yes')) || (defined $node_to_fence && get_hostname eq "$node_to_fence")) {
+        my $sbd_delay = calculate_sbd_start_delay;
+        record_info("SBD delay $sbd_delay sec", "Calculated SBD start delay: $sbd_delay");
+        sleep $sbd_delay;
     }
+    # Barrier for fenced nodes to wait for start delay.
+    barrier_wait("SBD_START_DELAY_$cluster_name");
+
     systemctl 'status pacemaker', timeout => $default_timeout;
 
     # Wait for resources to be started

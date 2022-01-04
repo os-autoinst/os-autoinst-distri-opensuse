@@ -205,11 +205,11 @@ More infos:
 Azure: https://docs.microsoft.com/en-us/rest/api/compute/virtualmachinesizes/list
 EC2: https://aws.amazon.com/ec2/instance-types/
 
-=head2 PUBLIC_CLOUD_TENANT_ID
+=head2 PUBLIC_CLOUD_AZURE_TENANT_ID
 
 This is B<only for azure> and used to create the service account file.
 
-=head2 PUBLIC_CLOUD_SUBSCRIPTION_ID
+=head2 PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID
 
 This is B<only for azure> and used to create the service account file.
 
