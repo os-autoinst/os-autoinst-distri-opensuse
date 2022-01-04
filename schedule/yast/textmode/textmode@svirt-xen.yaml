@@ -25,7 +25,7 @@ schedule:
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
-  - installation/performing_installation/stop_timeout_system_reboot_now
+  - '{{stop_reboot_timeout}}'
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/first_boot
@@ -40,6 +40,11 @@ schedule:
   - console/textinfo
   - console/orphaned_packages_check
   - console/consoletest_finish
+conditional_schedule:
+  stop_reboot_timeout:
+    VIRSH_VMM_TYPE:
+      linux:
+        - installation/performing_installation/stop_timeout_system_reboot_now
 test_data:
   software:
     patterns:
