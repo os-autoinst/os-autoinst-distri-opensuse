@@ -74,6 +74,7 @@ conditional_schedule:
         - console/yast2_bootloader
         - console/vim
         - console/firewall_enabled
+        - console/krb5
         - console/sshd
         - console/ssh_cleanup
         - console/mtab
