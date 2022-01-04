@@ -1,8 +1,7 @@
 ---
 name: addon-module-http
 description: |
-  Test verifies that adding addon using http works fine. We just perform installation
-  here. Using HA here, related ticket: https://progress.opensuse.org/issues/25896
+   Test verifies that adding addons using http and ftp works fine.
 vars:
   YUI_REST_API: 1
 schedule:
@@ -13,7 +12,9 @@ schedule:
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
   - installation/module_selection/skip_module_selection
-  - installation/addon_products_sle
+  - installation/add_on_product/add_add_on_http_repo_url
+  - installation/add_on_product_installation/add_add_on_ftp_repo_url
+  - installation/add_on_product_installation/accept_add_on_installation
   - installation/system_role/select_role_text_mode
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
@@ -33,7 +34,6 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - console/consoletest_setup
-  - console/system_prepare
-  - console/consoletest_setup
   - console/zypper_ref
-  - console/validate_addon_repos
+  - console/validate_addon_extension_repo_http
+  - console/validate_addon_extension_repo_ftp
