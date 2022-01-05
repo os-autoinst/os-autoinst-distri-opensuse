@@ -207,14 +207,21 @@ sub tb_send_message {
     wait_still_screen(2, 4);
 
     if ($hostname eq 'client') {
-        assert_and_click "thunderbird_attachment_reminder" if check_screen('thunderbird_attachment_reminder', 2);
-        assert_and_click "thunderbird_SSL_error_security_exception";
-        assert_and_click "thunderbird_confirm_security_exception";
-        assert_and_click 'thunderbird_maximized_send-message';
-        assert_and_click "thunderbird_get-messages" unless check_var('SLE_PRODUCT', 'sled');
+        while (1) {
+            my @tags = qw(thunderbird_attachment_reminder thunderbird_SSL_error_security_exception thunderbird_confirm_security_exception thunderbird_maximized_send-message thunderbird_cancel thunderbird_get-messages);
+            wait_still_screen(5, 10);
+            assert_screen(\@tags);
+            click_lastmatch;
+            last if match_has_tag('thunderbird_get-messages');
+        }
     }
     else {
-        assert_screen 'thunderbird_sent-folder-appeared', 90;
+        while (1) {
+            wait_still_screen(5, 10);
+            assert_screen [qw(thunderbird_sent-folder-appeared thunderbird_cancel)];
+            click_lastmatch if match_has_tag('thunderbird_cancel');
+            last if match_has_tag('thunderbird_sent-folder-appeared');
+        }
     }
 
     return $mail_subject;
