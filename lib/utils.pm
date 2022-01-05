@@ -1349,6 +1349,33 @@ sub _handle_login_not_found {
     die "unknown error, system couldn't boot. Detailed bootup log:\n$error_details";
 }
 
+=head2 _handle_firewall
+
+ _handle_firewall();
+
+Internal helper function used by C<reconnect_mgmt_console>.
+
+=cut
+sub _handle_firewall {
+    select_console 'root-console';
+    return if script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) == 0;
+    wait_quit_zypper;
+    my $ret;
+    my $max_num = 3;
+    # Sometimes wait_quit_zypper still not wait enough timeout
+    for (1 .. $max_num) {
+        $ret = zypper_call("in susefirewall2-to-firewalld", exitcode => [0, 7]);
+        if ($ret == 7) {
+            record_info('The ZYPP library is still locked, wait more seconds');
+            wait_quit_zypper;
+        } else {
+            last;
+        }
+    }
+
+    susefirewall2_to_firewalld();
+}
+
 =head2 reconnect_mgmt_console
 
  reconnect_mgmt_console([timeout => $timeout]);
@@ -1404,12 +1431,7 @@ sub reconnect_mgmt_console {
 
         if (!check_var('DESKTOP', 'textmode')) {
             if (check_var("UPGRADE", "1") && is_sle('15+') && is_sle('<15', get_var('HDDVERSION'))) {
-                select_console 'root-console';
-                if (script_run("iptables -S | grep 'A input_ext.*tcp.*dport 59.*-j ACCEPT'", 30) != 0) {
-                    wait_quit_zypper;
-                    zypper_call("in susefirewall2-to-firewalld");
-                    susefirewall2_to_firewalld();
-                }
+                _handle_firewall;
             }
             reset_consoles;
             select_console('x11', await_console => 0);
