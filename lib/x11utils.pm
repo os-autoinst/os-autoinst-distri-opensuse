@@ -1,4 +1,4 @@
-# Copyright 2019-2021 SUSE LLC
+# Copyright 2019-2022 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package x11utils;
@@ -29,6 +29,7 @@ our @EXPORT = qw(
   turn_off_plasma_screenlocker
   turn_off_gnome_screensaver
   turn_off_gnome_screensaver_for_gdm
+  turn_off_gnome_screensaver_for_running_gdm
   turn_off_gnome_suspend
   turn_off_gnome_show_banner
   untick_welcome_on_next_startup
@@ -406,6 +407,18 @@ a command prompt, for example an xterm window.
 =cut
 sub turn_off_gnome_screensaver_for_gdm {
     script_run 'sudo -u gdm dbus-launch gsettings set org.gnome.desktop.session idle-delay 0';
+}
+
+=head2 turn_off_gnome_screensaver_for_running_gdm
+
+turn_off_gnome_screensaver_for_running_gdm()
+
+Disable screensaver in gnome for running gdm. The function should be run under root. To be called
+from a command prompt, for example an xterm window.
+
+=cut
+sub turn_off_gnome_screensaver_for_running_gdm {
+    script_run 'su gdm -s /bin/bash -c "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u gdm)/bus gsettings set org.gnome.desktop.session idle-delay 0"';
 }
 
 =head2 turn_off_gnome_suspend

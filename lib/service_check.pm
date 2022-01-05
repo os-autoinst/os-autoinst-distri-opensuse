@@ -6,7 +6,7 @@ check service status or service function before and after migration
 
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: check service status before and after migration.
@@ -37,6 +37,7 @@ use services::firewall;
 use services::libvirtd;
 use kdump_utils;
 use version_utils 'is_sle';
+use x11utils;
 
 our @EXPORT = qw(
   $default_services
@@ -236,6 +237,15 @@ sub install_services {
     my ($service) = @_;
     # turn off lmod shell debug information
     assert_script_run('echo export LMOD_SH_DBG_ON=1 >> /etc/bash.bashrc.local');
+    # turn off screen saver
+    if (check_var('DESKTOP', 'gnome')) {
+        if (is_s390x) {
+            turn_off_gnome_screensaver;
+        }
+        else {
+            turn_off_gnome_screensaver_for_running_gdm;
+        }
+    }
     # On ppc64le, sometime the console font will be distorted into pseudo graphics characters.
     # we need to reset the console font. As it impacted all the console services, added this command to bashrc file
     assert_script_run('echo /usr/lib/systemd/systemd-vconsole-setup >> /etc/bash.bashrc.local') if is_ppc64le;

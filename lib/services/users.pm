@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Package for users service test
@@ -152,15 +152,6 @@ sub full_users_check {
     # reset consoles before select x11 console will make the connect operation
     # more stable on s390x
     reset_consoles if is_s390x;
-    if (check_var('DESKTOP', 'gnome')) {
-        if (is_s390x) {
-            turn_off_gnome_screensaver;
-        }
-        else {
-            select_console 'root-console';
-            turn_off_gnome_screensaver_for_gdm;
-        }
-    }
     select_console 'x11', await_console => 0;
     wait_still_screen 15;
     ensure_unlocked_desktop;
