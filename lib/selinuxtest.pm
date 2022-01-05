@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2020-2021 SUSE LLC
+# Copyright 2020-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Base module for SELinux test cases
@@ -13,7 +13,7 @@ use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
-use bootloader_setup 'add_grub_cmdline_settings';
+use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils 'power_action';
 
 use base "opensusebasetest";
@@ -121,7 +121,8 @@ sub set_sestatus {
 
     # enable SELinux in grub
     die "Need mode 'enforcing' or 'permissive'" unless $mode =~ /enforcing|permissive/;
-    add_grub_cmdline_settings('security=selinux selinux=1 enforcing=' . ($mode eq 'enforcing' ? 1 : 0), update_grub => 1);
+    replace_grub_cmdline_settings('lsm=apparmor', '', update_grub => 1);
+    add_grub_cmdline_settings('lsm=selinux security=selinux selinux=1 enforcing=' . ($mode eq 'enforcing' ? 1 : 0), update_grub => 1);
 
     # control (enable) the status of SELinux on the system, e.g., "enforcing" or "permissive"
     assert_script_run("sed -i -e 's/^SELINUX=/#SELINUX=/' $selinux_config_file");
