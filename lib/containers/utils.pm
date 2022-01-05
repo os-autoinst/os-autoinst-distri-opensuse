@@ -82,7 +82,7 @@ sub basic_container_tests {
     my $tumbleweed = "registry.opensuse.org/opensuse/tumbleweed";
 
     # Test search feature
-    validate_script_output("$runtime search --no-trunc tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
+    validate_script_output("$runtime search --no-trunc --format \"table {{.Name}} {{.Description}}\" tumbleweed", sub { m/Official openSUSE Tumbleweed images/ });
 
     #   - pull minimalistic alpine image of declared version using tag
     #   - https://store.docker.com/images/alpine
