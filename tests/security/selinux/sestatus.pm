@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2021 SUSE LLC
+# Copyright 2018-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 #
@@ -18,6 +18,10 @@ sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
     $self->set_sestatus("permissive", "minimum");
+}
+
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;

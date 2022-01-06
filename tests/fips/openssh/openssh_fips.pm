@@ -24,7 +24,8 @@ use utils 'zypper_call';
 use version_utils qw(is_sle);
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     zypper_call('info openssh');
     my $current_ver = script_output("rpm -q --qf '%{version}\n' openssh");

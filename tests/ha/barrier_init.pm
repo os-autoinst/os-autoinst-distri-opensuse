@@ -52,6 +52,7 @@ sub run {
         barrier_create("DLM_CHECKED_$cluster_name", $num_nodes);
         barrier_create("DRBD_INIT_$cluster_name", $num_nodes);
         barrier_create("DRBD_CREATE_CONF_$cluster_name", $num_nodes);
+        barrier_create("SBD_START_DELAY_$cluster_name", $num_nodes);
         barrier_create("DRBD_ACTIVATE_DEVICE_$cluster_name", $num_nodes);
         barrier_create("DRBD_CREATE_DEVICE_$cluster_name", $num_nodes);
         barrier_create("DRBD_CHECK_ONE_DONE_$cluster_name", $num_nodes);

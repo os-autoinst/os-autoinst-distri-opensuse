@@ -402,7 +402,7 @@ sub open_yast2_lan {
         return "Controlled by network manager";
     }
 
-    assert_screen [qw(yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 120;
+    assert_screen [qw(yast2_lan install-susefirewall2 install-firewalld dhcp-popup)], 240;
     handle_dhcp_popup;
 
     if (match_has_tag('install-susefirewall2') || match_has_tag('install-firewalld')) {

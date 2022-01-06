@@ -22,7 +22,7 @@ sub run {
         record_info('dmesg', "$args->{dmesg}");
     }
     else {
-        $self->{result} = 'softfail';
+        $self->{result} = 'skip';
     }
 }
 

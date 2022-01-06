@@ -157,7 +157,7 @@ sub run {
         }
     } else {
         script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") or die "Persistent journal should not be enabled by default on SLE!\n";
-        assert_script_run "mkdir ${\ PERSISTENT_LOG_DIR }";
+        assert_script_run "mkdir -p ${\ PERSISTENT_LOG_DIR }";
         assert_script_run "systemd-tmpfiles --create --prefix ${\ PERSISTENT_LOG_DIR }";
         # test for installed rsyslog and for imuxsock existance
         # rsyslog must be there by design

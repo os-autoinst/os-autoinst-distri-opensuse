@@ -16,6 +16,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal;
 use Carp;
 use Mojo::File 'path';
+use Mojo::Util 'trim';
 use Regexp::Common 'net';
 use File::Basename;
 use version_utils 'check_version';
@@ -24,7 +25,7 @@ use strict;
 use warnings;
 use Utils::Architectures;
 
-use constant WICKED_DATA_DIR => '/tmp/wicked/data';
+use constant WICKED_DATA_DIR => '/root/wicked/data';
 
 =head2 wicked_command
 
@@ -99,21 +100,21 @@ sub assert_wicked_state {
 sub reset_wicked {
     my $self = @_;
     # Remove any config file and leave the system clean to start tests
-    script_run('find /etc/sysconfig/network/ -name "ifcfg-*" | grep -v "ifcfg-lo" | xargs rm');
-    script_run('rm -f route');
+    assert_script_run('find /etc/sysconfig/network/ -name "ifcfg-*" -not -name "ifcfg-lo" -exec rm {} \;');
+    assert_script_run('find /etc/sysconfig/network/ -name "routes" -o -name "ifroute-*" -exec rm {} \;');
 
     # Remove any previous manual ip configuration
     my $iface = iface();
-    script_run("ip a flush dev $iface");
-    script_run('ip r flush all');
-    script_run("ip link set dev $iface down");
+    assert_script_run("ip a flush dev $iface");
+    assert_script_run('ip r flush all');
+    assert_script_run("ip link set dev $iface down");
 
     file_content_replace("/etc/sysconfig/network/config", "^NETCONFIG_DNS_STATIC_SERVERS=.*" => " ");
     assert_script_run("netconfig -f update");
 
     # Restart services
-    script_run('rcwickedd restart');
-    script_run('rcwicked restart');
+    assert_script_run('rcwickedd restart');
+    assert_script_run('rcwicked restart');
 }
 
 
@@ -737,6 +738,52 @@ sub record_console_test_result {
     $self->write_resultfile($filename, $content);
 }
 
+sub check_logs {
+    my $self = shift;
+    my @units = qw(wickedd-nanny wickedd-dhcp4 wickedd-dhcp6 wicked wickedd);
+    my $default_exclude = 'wickedd=process \d+ has not exited yet; now doing a blocking waitpid';
+    $default_exclude .= ',wickedd-dhcp6=Link-local IPv6 address is marked duplicate:';
+    $default_exclude .= ',wickedd-nanny=: device has been deleted';
+    $default_exclude .= ',wickedd-dhcp4=unable to confirm lease';
+    $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.waitLinkUp\(\) failed: General failure';
+    $default_exclude .= ',wickedd-nanny=: call to org.opensuse.Network.Interface.waitLinkUp\(\) failed: Object does not support requested method';
+    $default_exclude .= ',wickedd-nanny=: failed to bring up device, still continuing';
+    $default_exclude .= ',wickedd=error retrieving tap attribute from sysfs';
+
+    my $exclude_var = get_var(WICKED_CHECK_LOG_EXCLUDE => $default_exclude);
+    my $exclude_test_var = get_var('WICKED_CHECK_LOG_EXCLUDE_' . $self->{name}, '');
+
+    my @excludes = split(/(?<!\\),/, "$exclude_var,$exclude_test_var");
+    @excludes = map { my $v = trim($_); length($v) > 0 ? $v : () } @excludes;
+
+    for my $unit (@units) {
+        my $cmd = "journalctl -q -p 3 -x -u $unit";
+        for my $exclude (@excludes) {
+            my ($unit_match, $regex) = split(/\s*=\s*/, $exclude, 2);
+            if ($unit_match =~ /^all$/i || $unit_match eq $unit) {
+                $cmd .= "\\\n    | grep -vP '$regex'";
+            }
+        }
+        my $out = trim(script_output($cmd, proceed_on_failure => 1));
+        if (length($out) > 0) {
+            my $msg = "$cmd\n\n$out\n\n";
+            $msg .= "Use WICKED_CHECK_LOG_EXCLUDE to change filter!\n";
+            $msg .= "  WICKED_CHECK_LOG_EXCLUDE=$exclude_var\n";
+            $msg .= '  WICKED_CHECK_LOG_EXCLUDE_' . $self->{name} . "=$exclude_test_var\n";
+            $msg .= "Control if test fail with WICKED_CHECK_LOG_FAIL default off.\n";
+            record_info('LOG-ERROR', $msg, result => 'fail');
+            $self->result('fail') if get_var(WICKED_CHECK_LOG_FAIL => 0) && $self->{name} ne 'before_test';
+        }
+    }
+}
+
+sub reboot {
+    my ($self) = @_;
+    $self->check_logs();
+    serial_terminal::reboot();
+    $self->check_logs();
+}
+
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
@@ -746,6 +793,7 @@ sub post_run {
         script_run('kill ' . get_var('WICKED_TCPDUMP_PID'));
         $self->upload_log_file('/tmp/' . $self->{name} . '_tcpdump.pcap');
     }
+    $self->check_logs();
     $self->upload_wicked_logs('post');
 }
 

@@ -14,7 +14,8 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    my $self = shift;
+    $self->select_serial_terminal;
 
     my $crypt_pass = "dm#*crypt";
     my $crypt_tmp = "/tmp/foo";

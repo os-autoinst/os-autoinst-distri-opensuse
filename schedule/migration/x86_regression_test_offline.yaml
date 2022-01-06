@@ -71,6 +71,8 @@ conditional_schedule:
         - console/upgrade_snapshots
         - console/x_vt
         - console/zypper_lr
+        - console/java
+        - console/cpio
         - console/check_system_info
         - console/zypper_ref
         - console/ncurses
@@ -84,6 +86,7 @@ conditional_schedule:
         - console/yast2_bootloader
         - console/vim
         - console/firewall_enabled
+        - console/krb5
         - console/sshd
         - console/ssh_cleanup
         - console/mtab

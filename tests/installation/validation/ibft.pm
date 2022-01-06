@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use Test::Assert 'assert_equals';
+use version_utils qw(is_sle);
 
 my $ibft_expected = {
     ethernet => {
@@ -76,7 +77,13 @@ sub ibft_validation {
         assert_script_run 'grep -r ' . $entry . '=' . $ibft_grub->{$entry} . ' /boot/';
     }
     # Enabling iBFT autoconfiguration for the interfaces should be done in initrd
-    assert_script_run 'grep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/mkinitrd.log';
+    if (is_sle('<15-sp4')) {
+        assert_script_run 'grep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/mkinitrd.log';
+    } else {
+        # In recent products yast2-bootloader calls dracut instead of mkinitrd, so the logs differ
+        assert_script_run 'zgrep -e rd.iscsi.ibft=1 -e rd.iscsi.firmware=1 /var/log/YaST2/y2log*';
+    }
+
     # Scan for ibft interface
     assert_script_run 'ip a | grep -i ibft';
     my $ibft_setup = script_output 'for a in `find /sys/firmware/ibft/ -type f -print`; do  echo -n "$a:";  cat $a; echo; done';
