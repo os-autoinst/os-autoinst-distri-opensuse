@@ -78,6 +78,8 @@ conditional_schedule:
         - console/upgrade_snapshots
         - console/x_vt
         - console/zypper_lr
+        - console/pam
+        - console/btrfsmaintenance
         - console/cpio
         - console/java
         - console/check_system_info
