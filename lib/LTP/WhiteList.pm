@@ -12,10 +12,12 @@ use warnings;
 use testapi;
 use bmwqemu;
 use bugzilla;
+use Encode;
 use Exporter;
+use File::Copy 'copy';
 use Mojo::UserAgent;
-use Mojo::JSON;
 use Mojo::File 'path';
+use YAML::PP;
 
 our @EXPORT = qw(
   download_whitelist
@@ -36,11 +38,15 @@ sub download_whitelist {
         set_var('LTP_KNOWN_ISSUES_LOCAL', undef);
         return;
     }
+
     my $basename = $path =~ s#.*/([^/]+)#$1#r;
-    save_tmp_file($basename, $res->body);
-    set_var('LTP_KNOWN_ISSUES_LOCAL', hashed_string($basename));
+    my $lfile = hashed_string($basename);
+
     mkdir('ulogs') if (!-d 'ulogs');
-    bmwqemu::save_json_file($res->json, "ulogs/$basename");
+    save_tmp_file($basename, $res->body);
+    copy($lfile, "ulogs/$basename");
+
+    set_var('LTP_KNOWN_ISSUES_LOCAL', $lfile);
 }
 
 sub find_whitelist_entry {
@@ -124,12 +130,22 @@ sub is_test_disabled {
 
 sub find_whitelist_testsuite {
     my ($suite) = @_;
+    my $issues;
 
     my $path = get_var('LTP_KNOWN_ISSUES_LOCAL');
     return undef unless defined($path) and -e $path;
 
-    my $content = path($path)->slurp;
-    my $issues = Mojo::JSON::decode_json($content);
+    # YAML::PP can handle both JSON and YAML
+    # NOTE: JSON Surrogate Pairs not supported
+    my $yp = YAML::PP->new(schema => [qw/ + Merge /]);
+
+    my $content = decode_utf8(path($path)->slurp);
+
+    # YAML::PP cannot handle BOM => remove it
+    $content =~ s/^\x{FEFF}//;
+
+    $issues = $yp->load_string($content);
+
     return undef unless $issues;
     return $issues->{$suite};
 }
