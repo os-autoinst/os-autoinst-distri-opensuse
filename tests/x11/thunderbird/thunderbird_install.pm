@@ -19,8 +19,7 @@ use utils;
 
 sub run {
     my ($self) = @_;
-
-    select_console 'root-console';
+    $self->select_serial_terminal;
 
     quit_packagekit;
     zypper_call("in MozillaThunderbird", exitcode => [0, 102, 103]);
