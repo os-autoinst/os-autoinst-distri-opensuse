@@ -178,9 +178,10 @@ sub prepare_ltp_git {
 
     $rel = "-b $rel" if ($rel);
 
-    my $ret = script_run("git clone -q --depth 1 $url $rel", timeout => 360);
+    script_run('rm -rf ltp');
+    my $ret = script_run("git clone -q --depth 1 $url $rel ltp", timeout => 360);
     if (!defined($ret) || $ret) {
-        assert_script_run("git clone -q $url $rel", timeout => 360);
+        assert_script_run("git clone -q $url $rel ltp", timeout => 360);
     }
     assert_script_run 'cd ltp';
     assert_script_run 'make autotools';
