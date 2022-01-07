@@ -974,7 +974,7 @@ sub libreoffice_start_program {
     my %start_program_args;
     $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
     x11_start_program($program, %start_program_args);
-    if (match_has_tag('ooffice-tip-of-the-day')) {
+    if (check_screen('ooffice-tip-of-the-day', 5)) {
         # Unselect "_S_how tips on startup", select "_O_k"
         send_key "alt-s";
         send_key "alt-o";
