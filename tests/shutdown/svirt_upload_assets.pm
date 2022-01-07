@@ -11,6 +11,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils 'is_vmware';
+use backend::svirt ();
 
 sub extract_assets {
     my ($args) = @_;
@@ -38,6 +39,8 @@ sub extract_assets {
 }
 
 sub run {
+    # Skip if the os-autoinst backend implements this feature
+    return 1 if defined &backend::svirt::do_extract_assets;
     # Not implemented on VMware
     return 1 if is_vmware;
     # connect to VIRSH_HOSTNAME screen and upload asset from there
