@@ -13,13 +13,14 @@ use testapi;
 use base "consoletest";
 
 sub get_perf_exec_cmd {
+    my $logfile = shift;
     my $vt_perf_auto_path = '/root/vt-perf-auto/vt_perf_run.py';
     my $host = get_var('HOST');
     my $qaset_role = get_var('QASET_ROLE');
     my $prd_ver = get_var('PERF_PRD_VER');
     my $rls_ver = get_var('PERF_REL_VER');
     my $hyper_type = get_var('HYPER_TYPE');
-    my $logfile = 'screenlog_' . $hyper_type . '.' . $host;
+    #my $logfile = 'screenlog_' . $hyper_type . '.' . $host;
 
     my $exec_cmd = 'screen -dmS vt_perf_auto_' . $host . ' -L -Logfile ' . $logfile . ' sh -c "script -c \\"';
 
@@ -125,7 +126,29 @@ sub get_xen_dom0_and_guest_perf_cmd {
 sub run {
     my $self = shift;
     my $miti_perf_code_path = '/root/vt-perf-auto';
-    my $logfile = 'screenlog_' . get_var('HYPER_TYPE') . '_openqa.' . get_var('HOST');
+    my $nettest = '';
+    my $test_type = '';
+
+    if (check_var('NETTEST', '1')) {
+        $nettest = '-nettest';
+    }
+    if (check_var('BAREMETAL_PERF', '1')) {
+        $test_type = $test_type . '-baremetal';
+    }
+    if (check_var('KVMGUEST_PERF', '1')) {
+        $test_type = $test_type . '-kvm';
+    }
+    if (check_var('DOM0_PERF', '1')) {
+        $test_type = $test_type . '-dom0';
+    }
+    if (check_var('XEN_HVM_PERF', '1')) {
+        $test_type = $test_type . '-hvm';
+    }
+    if (check_var('XEN_PV_PERF', '1')) {
+        $test_type = $test_type . '-pv';
+    }
+    my $logfile = 'screenlog_openqa-' . get_var('HYPER_TYPE') . $test_type . $nettest . '.' . get_var('HOST');
+
     my $svirt = select_console('svirt', await_console => 0);
     my $ret = $svirt->run_cmd('test -d ' . $miti_perf_code_path);
     my $ipmi_host = get_var("IPMI_HOST");
@@ -135,13 +158,12 @@ sub run {
         $svirt->run_cmd('cd ' . $miti_perf_code_path . "; git pull" . "; cd ..");
     }
 
-    my $perf_exec_cmd = get_perf_exec_cmd();
+    my $perf_exec_cmd = get_perf_exec_cmd($logfile);
     print $perf_exec_cmd . "\n";
     $ret = $svirt->run_cmd('test -f ' . $logfile);
     if ($ret == 0) {
         $svirt->run_cmd('rm -rf ' . $logfile);
     }
-    $svirt->run_cmd("ipmitool -H " . $ipmi_host . " -U root -P susetesting -I lanplus power on");
     sleep 60;
     $svirt->run_cmd($perf_exec_cmd);
     for (;;) {
@@ -152,6 +174,7 @@ sub run {
         }
         sleep(30);
     }
+    upload_logs("/root/$logfile");
     if (check_var('NETTEST', '1')) {
         record_info("Info", "Finished net performanace test on " . get_var('HOST'), result => 'ok');
     } else {
