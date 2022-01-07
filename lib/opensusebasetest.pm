@@ -514,7 +514,9 @@ Upload C</tmp/solverTestCase.tar.bz2>.
 
 =cut
 sub upload_solvertestcase_logs {
-    script_run("zypper -n patch --debug-solver --with-interactive -l");
+    my $ret = script_run("zypper -n patch --debug-solver --with-interactive -l");
+    # if zypper was not found, we just skip upload solverTestCase.tar.bz2
+    return if $ret != 0;
     script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
     upload_logs "/tmp/solverTestCase.tar.bz2 ";
 }

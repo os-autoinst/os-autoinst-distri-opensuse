@@ -35,6 +35,10 @@ sub post_fail_hook {
     my $self = shift;
     select_console 'root-console';
     $self->upload_solvertestcase_logs();
+    # workaround to get the y2logs.tar.bz2 at early stage
+    script_run "save_y2logs /tmp/y2logs.tar.bz2";
+    upload_logs "/tmp/y2logs.tar.bz2";
+    set_var('Y2LOGS_UPLOADED', 1);
     $self->SUPER::post_fail_hook;
 }
 
