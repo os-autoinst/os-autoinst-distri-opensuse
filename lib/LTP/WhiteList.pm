@@ -33,12 +33,12 @@ sub download_whitelist {
     my $res = Mojo::UserAgent->new->get($path)->result;
     unless ($res->is_success) {
         record_info("File not downloaded!", $res->message, result => 'softfail');
-        set_var('LTP_KNOWN_ISSUES', undef);
+        set_var('LTP_KNOWN_ISSUES_LOCAL', undef);
         return;
     }
     my $basename = $path =~ s#.*/([^/]+)#$1#r;
     save_tmp_file($basename, $res->body);
-    set_var('LTP_KNOWN_ISSUES', hashed_string($basename));
+    set_var('LTP_KNOWN_ISSUES_LOCAL', hashed_string($basename));
     mkdir('ulogs') if (!-d 'ulogs');
     bmwqemu::save_json_file($res->json, "ulogs/$basename");
 }
@@ -125,7 +125,7 @@ sub is_test_disabled {
 sub find_whitelist_testsuite {
     my ($suite) = @_;
 
-    my $path = get_var('LTP_KNOWN_ISSUES');
+    my $path = get_var('LTP_KNOWN_ISSUES_LOCAL');
     return undef unless defined($path) and -e $path;
 
     my $content = path($path)->slurp;

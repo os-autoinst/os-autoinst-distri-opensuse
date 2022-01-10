@@ -44,7 +44,7 @@ subtest 'whitelist_entry_match' => sub {
 
 
 subtest override_known_failures => sub {
-    set_var(LTP_KNOWN_ISSUES => 'test_known_issues.json');
+    set_var('LTP_KNOWN_ISSUES_LOCAL' => 'test_known_issues.json');
     my $self = Test::MockObject->new();
     my $msg;
     $self->mock('record_soft_failure_result' => sub { shift; $msg = shift });
