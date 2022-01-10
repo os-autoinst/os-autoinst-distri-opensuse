@@ -2,7 +2,6 @@
 name: install_sles4sap_dvd
 description: >
   Installation tests for SLES4SAP, use the DVD to boot the installer.
-
   Can be used to install sles4sap on baremetal machines using ipxe_install
 vars:
   DESKTOP: textmode
@@ -12,11 +11,10 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_TYPE: HBD
   RECLAIM_ROOT: '1'
-  START_AFTER_TEST: sles4sap_online_dvd_gnome
+  START_AFTER_TEST: setup_hana_baremetal
   WMP_TEST_REPO: https://gitlab.suse.de/lpalovsky/wmp_basic_tests/-/archive/master/wmp_basic_tests-master.tgz
 schedule:
   - boot/boot_to_desktop
-  - console/system_prepare
   - '{{test_sles4sap}}'
   - '{{scc_deregister}}'
   - '{{generate_image}}'
@@ -28,7 +26,7 @@ conditional_schedule:
   test_sles4sap:
     TEST_SLES4SAP:
       1:
-        - sles4sap/hana_install
+        - console/system_prepare
         - sles4sap/wmp_setup
         - sles4sap/wmp_check_process
         - kernel/wmp_simple
