@@ -16,6 +16,10 @@ conditional_schedule:
         - installation/bootloader_uefi
       x86_64:
         - installation/bootloader
+  user_settings_root:
+    VERSION:
+      15-SP4:
+        - installation/user_settings_root
   systemrole_dev:
     HPC:
       installation_dev:
@@ -31,9 +35,8 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
-  - installation/hostname_inst
+  - '{{user_settings_root}}'
   - '{{systemrole_dev}}'
-  - installation/user_settings_root
   - installation/resolve_dependency_issues
   - installation/select_patterns
   - installation/installation_overview
