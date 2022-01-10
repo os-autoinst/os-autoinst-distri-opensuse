@@ -27,7 +27,6 @@ schedule:
   - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/select_patterns
-  - installation/resolve_dependency_issues
   - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
   - installation/launch_installation
