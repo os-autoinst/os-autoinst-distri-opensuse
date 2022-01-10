@@ -174,7 +174,7 @@ sub test_opensuse_based_image {
                 my $plugin = '/usr/lib/zypp/plugins/services/container-suseconnect-zypp';
                 validate_script_output("$runtime run --entrypoint $plugin -i $image -v", sub { m/container-suseconnect version .*/ });
                 validate_script_output("$runtime run --entrypoint $plugin -i $image lp", sub { m/.*All available products.*/ });
-                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*Installed product.*\n.*Registration server set to.*\nAll available modules.*/ });
+                validate_script_output("$runtime run --entrypoint $plugin -i $image lm", sub { m/.*All available modules.*/ });
             }
         } else {
             record_info "non-SLE host", "This host ($host_id) does not support zypper service";
