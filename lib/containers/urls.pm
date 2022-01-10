@@ -271,15 +271,16 @@ sub get_suse_container_urls {
 sub get_3rd_party_images {
     my $ex_reg = get_var('REGISTRY', 'docker.io');
     my @images = (
-        "registry.opensuse.org/opensuse/leap",
-        "registry.opensuse.org/opensuse/tumbleweed",
-        "$ex_reg/library/alpine",
-        "$ex_reg/library/debian",
-        "$ex_reg/library/fedora",
-        "registry.access.redhat.com/ubi8/ubi",
-        "registry.access.redhat.com/ubi8/ubi-minimal",
-        "registry.access.redhat.com/ubi8/ubi-micro",
-        "registry.access.redhat.com/ubi8/ubi-init");
+        # "registry.opensuse.org/opensuse/leap",
+        # "registry.opensuse.org/opensuse/tumbleweed",
+        # "$ex_reg/library/alpine",
+        # "$ex_reg/library/debian",
+        # "$ex_reg/library/fedora",
+        # "registry.access.redhat.com/ubi8/ubi",
+        # "registry.access.redhat.com/ubi8/ubi-minimal",
+        # "registry.access.redhat.com/ubi8/ubi-micro",
+        # "registry.access.redhat.com/ubi8/ubi-init"
+        );
 
     # - ubi9 images require z14+ s390x machine, they are not ready in OSD yet.
     #     on z13: "Fatal glibc error: CPU lacks VXE support (z14 or later required)".
@@ -287,16 +288,17 @@ sub get_3rd_party_images {
     #     on Power8: "Fatal glibc error: CPU lacks ISA 3.00 support (POWER9 or later required)"
     # - poo#72124 Ubuntu image (occasionally) fails on s390x.
     # - CentOS image not available on s390x.
-    push @images, (
-        "registry.access.redhat.com/ubi9-beta/ubi",
-        "registry.access.redhat.com/ubi9-beta/ubi-minimal",
-        "registry.access.redhat.com/ubi9-beta/ubi-micro",
-        "registry.access.redhat.com/ubi9-beta/ubi-init",
-        "$ex_reg/library/ubuntu",
-        "$ex_reg/library/centos"
-    ) unless (is_s390x || is_ppc64le);
+    # push @images, (
+    #     "registry.access.redhat.com/ubi9-beta/ubi",
+    #     "registry.access.redhat.com/ubi9-beta/ubi-minimal",
+    #     "registry.access.redhat.com/ubi9-beta/ubi-micro",
+    #     "registry.access.redhat.com/ubi9-beta/ubi-init",
+    #     "$ex_reg/library/ubuntu",
+    #     "$ex_reg/library/centos"
+    # ) unless (is_s390x || is_ppc64le);
 
     # RedHat UBI7 images are not built for aarch64
+    
     push @images, (
         "registry.access.redhat.com/ubi7/ubi",
         "registry.access.redhat.com/ubi7/ubi-minimal",
