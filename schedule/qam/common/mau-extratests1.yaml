@@ -42,10 +42,12 @@ conditional_schedule:
       15-SP3:
         - console/openssl_nodejs
         - console/golang
+        - console/redis
         - '{{arch_specific}}'
       15-SP2:
         - console/openssl_nodejs
         - console/golang
+        - console/redis
         - '{{arch_specific}}'
       15-SP1:
         - console/openssl_nodejs
