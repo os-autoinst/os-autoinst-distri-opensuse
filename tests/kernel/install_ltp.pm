@@ -352,6 +352,7 @@ sub run {
     }
 
     upload_logs('/boot/config-$(uname -r)', failok => 1);
+    set_zypper_lock_timeout(300);
     add_we_repo_if_available;
 
     if ($inst_ltp =~ /git/i) {
