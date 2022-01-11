@@ -28,8 +28,13 @@ sub init {
 
 sub get_add_on_product_installation_page {
     my ($self) = @_;
-    die "Add-On Product Installation page is not displayed" unless $self->{AddOnProductInstallation}->is_shown();
+    die 'Add-On Product Installation page is not displayed' unless $self->{AddOnProductInstallation}->is_shown();
     return $self->{AddOnProductInstallation};
+}
+
+sub add_add_on_product {
+    my ($self) = @_;
+    $self->get_add_on_product_installation_page()->press_add();
 }
 
 sub accept_add_on_products {

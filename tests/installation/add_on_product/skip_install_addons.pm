@@ -12,7 +12,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_add_on_product()->skip_install_addons();
+    $testapi::distri->get_add_on_product()->accept_current_media_type_selection();
 }
 
 1;
