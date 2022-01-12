@@ -697,6 +697,8 @@ sub exit_firefox_common {
         # confirm "save&quit"
         send_key "ret";
     }
+    # wait a sec because xterm-without-focus can match while firefox is being closed
+    wait_still_screen 2;
     assert_screen [qw(xterm-left-open xterm-without-focus)];
     if (match_has_tag 'xterm-without-focus') {
         # focus it
