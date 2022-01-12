@@ -15,7 +15,7 @@
 # - check if journalctl vacuum functions are working
 # - verify FSS log again
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
-#             Sergio Lindo Mansilla <slindomansilla@suse.com>
+#             Martin Loviska <mloviska@suse.com>
 # Tags: bsc#1063066 bsc#1171858
 
 use Mojo::Base qw(consoletest);
@@ -155,8 +155,10 @@ sub run {
             assert_script_run 'rpm -q systemd-logger';
             assert_script_run "rpm -q --conflicts systemd-logger | tee -a /dev/$serialdev | grep syslog";
         }
+    } elsif (is_sle('15-SP4+')) {
+        record_soft_failure 'bsc#1194467 - [Build 150400.3.9] redundant persistent log settings in sle15sp4';
+        script_output(sprintf("test -d %s && ls --almost-all %s", PERSISTENT_LOG_DIR, PERSISTENT_LOG_DIR));
     } else {
-        script_run("journalctl --boot=-1 | grep 'no persistent journal was found'") or die "Persistent journal should not be enabled by default on SLE!\n";
         assert_script_run "mkdir -p ${\ PERSISTENT_LOG_DIR }";
         assert_script_run "systemd-tmpfiles --create --prefix ${\ PERSISTENT_LOG_DIR }";
         # test for installed rsyslog and for imuxsock existance
