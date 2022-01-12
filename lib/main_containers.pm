@@ -14,6 +14,7 @@ use version_utils;
 use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var);
 use Utils::Architectures;
+use Utils::Backends;
 use strict;
 use warnings;
 
@@ -85,7 +86,8 @@ sub load_host_tests_docker {
     # works currently only for x86_64, more are coming (poo#103977)
     # Expected to work for all but JeOS on 15sp4 after
     # https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/13860
-    loadtest 'containers/validate_btrfs' if (is_x86_64 and !(is_jeos && is_sle("=15-SP4")));
+    # Disabled on svirt backends (VMWare, Hyper-V and XEN) as the device name might be different than vdX
+    loadtest 'containers/validate_btrfs' if (is_x86_64 and is_qemu);
 }
 
 
