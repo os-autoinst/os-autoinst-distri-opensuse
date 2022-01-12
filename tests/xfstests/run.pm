@@ -387,9 +387,16 @@ sub umount_xfstests_dev {
     }
 }
 
+sub config_debug_option {
+    script_run('echo 1 > /proc/sys/kernel/softlockup_all_cpu_backtrace');    # on detection capture more debug information
+    script_run('echo 1 > /proc/sys/kernel/softlockup_panic');    # panic when softlockup
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
+
+    config_debug_option;
 
     # Get wrapper
     assert_script_run("curl -o $TEST_WRAPPER " . data_url('xfstests/wrapper.sh'));
