@@ -61,7 +61,7 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_3rd_party_images';
         loadtest 'containers/podman_firewall';
         loadtest 'containers/buildah';
-        loadtest 'containers/rootless_podman';
+        loadtest 'containers/rootless_podman' unless is_sle("15-sp1");    # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     }
 }
 
