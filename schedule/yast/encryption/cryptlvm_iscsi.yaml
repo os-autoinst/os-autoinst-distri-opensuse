@@ -22,6 +22,7 @@ schedule:
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_SLES_with_GNOME
   - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup/select_disks
   - installation/partitioning/guided_setup/encrypt_lvm_simple_pwd
   - installation/partitioning/guided_setup/accept_default_fs_options
   - installation/partitioning/accept_proposed_layout
@@ -46,6 +47,9 @@ schedule:
   - console/validate_lvm
   - console/validate_encrypt
 test_data:
+  guided_partitioning:
+    disks:
+      - sda
   crypttab:
     num_devices_encrypted: 1
   <<: !include test_data/yast/encryption/default_enc.yaml
