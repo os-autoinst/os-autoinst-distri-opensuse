@@ -40,7 +40,7 @@ conditional_schedule:
     FLAVOR:
       Online:
         - installation/registration/register_via_scc
-        - installation/module_selection/skip_module_selection
+        - installation/module_registration/skip_module_registration
         - installation/add_on_product/skip_install_addons
       Full:
         - installation/registration/skip_registration

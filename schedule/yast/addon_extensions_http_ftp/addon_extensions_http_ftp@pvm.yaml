@@ -11,7 +11,7 @@ schedule:
   - installation/product_selection/install_SLES
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/module_selection/skip_module_selection
+  - installation/module_registration/skip_module_registration
   - installation/add_on_product/add_add_on_http_repo_url
   - installation/add_on_product_installation/add_add_on_ftp_repo_url
   - installation/add_on_product_installation/accept_add_on_installation
