@@ -6,6 +6,8 @@
 # Summary: Check the sles4sap "from scratch" settings (without saptune/sapconf) using the robot framework.
 #          This test is configured to be used with a 2 GB RAM system.
 #          Some values depend of the hardware configuration.
+#          External robotfw testkit is supplied in the SYS_PARAM_CHECK_TEST setting. Defaults to
+#          qa-css-hq.qa.suse.de/robot.tar.gz.
 # Maintainer: Julien Adamek <jadamek@suse.com>
 
 use base "sles4sap";
@@ -45,10 +47,11 @@ sub run {
     my $robot_fw_version = '3.2.2';
     my $test_repo = "/robot/tests/sles-" . get_var('VERSION');
     my $robot_tar = "robot.tar.gz";
+    my $testkit = get_var('SYS_PARAM_CHECK_TEST', "qa-css-hq.qa.suse.de/$robot_tar");
     my $python_bin = is_sle('15+') ? 'python3' : 'python';
 
     # Download and prepare the test environment
-    assert_script_run "cd /; curl -f -v qa-css-hq.qa.suse.de/$robot_tar -o $robot_tar";
+    assert_script_run "cd /; curl -f -v \"$testkit\" -o $robot_tar";
     assert_script_run "tar -xzf $robot_tar";
 
     # Install the robot framework
