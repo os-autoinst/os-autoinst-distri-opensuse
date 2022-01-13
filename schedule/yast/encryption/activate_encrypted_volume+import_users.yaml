@@ -21,7 +21,7 @@ schedule:
   - installation/partitioning/accept_proposed_layout
   - installation/clock_and_timezone/accept_timezone_configuration
   - installation/hostname_inst
-  - installation/user_import
+  - installation/authentication/import_users
   - installation/authentication/root_simple_pwd
   - installation/installation_settings/validate_default_target
   - installation/bootloader_settings/disable_boot_menu_timeout
