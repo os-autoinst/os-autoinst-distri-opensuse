@@ -166,6 +166,7 @@ Run command C<systemctl is-active guestregister> on the instance in a loop and
 wait till guestregister is ready. If guestregister finish with state failed,
 a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
+In case of BYOS images we checking that service is inactive and quit
 =cut
 sub wait_for_guestregister
 {
