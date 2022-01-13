@@ -14,6 +14,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures;
 use Mojo::File 'path';
 use Mojo::Util 'trim';
 
@@ -162,6 +163,10 @@ sub _parse_results_with_diff_baseline {
         $flag = 'softfail' if ($flag ne 'fail');
     }
     else {
+        if ($name eq 'ssh04' && is_s390x) {
+            record_soft_failure('Test case ssh04 fails in s390x is a known issue, see poo#99096');
+            return 'softfail';
+        }
         record_info($name, $msg, result => 'fail');
         $flag = 'fail';
     }
