@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018 SUSE LLC
+# Copyright 2018-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: git-core twopence-shell-client bc iputils python
@@ -67,8 +67,8 @@ sub ibtest_master {
     $args = $args . '--in-vm ' if get_var('IBTEST_IN_VM');
     $args = $args . '--no-mad ' if get_var('IBTEST_NO_MAD');
 
-    if ($phase != '') {
-        $args = $args . "--phase $phase";
+    if ($phase ne '') {
+        $args = $args . "--phase $phase ";
     } else {
         $args = $args - "--start-phase $start_phase " if $start_phase;
         $args = $args - "--end-phase $end_phase " if $end_phase;
@@ -87,9 +87,7 @@ sub ibtest_master {
     # wait until the two machines under test are ready setting up their local things
     assert_script_run('cd hpc-testing');
     barrier_wait('IBTEST_BEGIN');
-
     assert_script_run("./ib-test.sh $args $master $slave", $timeout);
-
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
     parse_extra_log('XUnit', '/tmp/results.xml');
 
