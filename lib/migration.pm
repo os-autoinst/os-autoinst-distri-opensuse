@@ -107,8 +107,8 @@ sub deregister_dropped_modules {
         if ($name eq 'ltss') {
             if (check_var('SLE_PRODUCT', 'hpc')) {
                 remove_suseconnect_product('SLE_HPC-LTSS');
-            } elsif (is_sle('15+') && check_var('SLE_PRODUCT', 'sles')) {
-                remove_suseconnect_product('SLES-LTSS');
+            } elsif ((is_sle('12+') && check_var('SLE_PRODUCT', 'sles')) || (check_var('SLE_PRODUCT', 'sles4sap'))) {
+                remove_suseconnect_product('SLES-LTSS');    # sles4sap also uses SLES-LTSS as its ltss
             } else {
                 zypper_call 'rm -t product SLES-LTSS';
                 zypper_call 'rm sles-ltss-release-POOL';
