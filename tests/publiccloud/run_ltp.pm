@@ -17,7 +17,7 @@ use LTP::utils qw(get_ltproot get_ltp_version_file);
 use LTP::WhiteList qw(download_whitelist find_whitelist_testsuite find_whitelist_entry list_skipped_tests override_known_failures);
 use Mojo::File;
 use Mojo::JSON;
-use publiccloud::utils qw(is_byos select_host_console);
+use publiccloud::utils;
 use Data::Dumper;
 
 our $root_dir = '/root';
@@ -105,8 +105,7 @@ sub run {
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
 
-    $instance->run_ssh_command(cmd => 'sudo SUSEConnect -r ' . get_required_var('SCC_REGCODE'), timeout => 600) if (is_byos() && !$qam);
-
+    registercloudguest($instance) if (is_byos() && !$qam);
     # in repo with LTP rpm is internal we need to manually upload package to VM
     if (get_var('LTP_RPM_MANUAL_UPLOAD')) {
         my $ltp_rpm = get_ltp_rpm($ltp_repo);

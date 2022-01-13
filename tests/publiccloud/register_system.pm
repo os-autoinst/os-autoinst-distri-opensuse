@@ -15,7 +15,7 @@ use warnings;
 use testapi;
 use strict;
 use utils;
-use publiccloud::utils qw(select_host_console is_ondemand);
+use publiccloud::utils;
 
 sub run {
     my ($self, $args) = @_;
@@ -27,26 +27,11 @@ sub run {
         $args->{my_instance}->retry_ssh_command("sudo registercloudguest", timeout => 420, retry => 3);
     } else {
         my @addons = split(/,/, get_var('SCC_ADDONS', ''));
-
-        # note: ssh_script_retry dies on failure
-        my $regcode = get_required_var('SCC_REGCODE');
-        $args->{my_instance}->retry_ssh_command("sudo SUSEConnect -r $regcode", timeout => 420, retry => 3);
-        my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
-        $arch = "aarch64" if ($arch eq "arm64");
         my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+        registercloudguest($args->{my_instance});
         for my $addon (@addons) {
             next if ($addon =~ /^\s+$/);
-            record_info $addon, "Going to register '$addon' addon";
-            if ($addon =~ /ltss/) {
-                $regcode = get_required_var('SCC_REGCODE_LTSS');
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r $regcode");
-            } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch);
-            } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch);
-            } else {
-                ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch);
-            }
+            register_addon($remote, $addon);
         }
     }
     record_info('LR', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr || true"));
@@ -54,4 +39,3 @@ sub run {
 }
 
 1;
-

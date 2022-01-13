@@ -77,10 +77,10 @@ sub run_ssh_command {
         $args{timeout} += 2;
         # Pipe both the standard and error output serial for debug purposes
         $ssh_cmd .= " >/dev/$serialdev 2>&1";
+        $args{quiet} = 0;
+        $args{die_on_timeout} = 1;
         # Run the command and return only the returncode here
-        my $ret = script_run($ssh_cmd, %args, quiet => 0);
-        die("Timeout on $ssh_cmd") unless (defined($ret));
-        return $ret;
+        return script_run($ssh_cmd, %args);
     } else {
         # Run the command, wait for it and return the output
         return script_output($ssh_cmd, %args);

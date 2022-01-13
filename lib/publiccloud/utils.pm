@@ -17,8 +17,9 @@ use testapi;
 use utils;
 use version_utils;
 use publiccloud::ssh_interactive;
+use registration;
 
-our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce);
+our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -47,6 +48,51 @@ sub select_host_console {
     set_var('TUNNELED', 0) if $tunneled;
     opensusebasetest::select_serial_terminal();
     set_var('TUNNELED', $tunneled) if $tunneled;
+}
+
+sub register_addon {
+    my ($remote, $addon) = @_;
+    my $arch = get_var('PUBLIC_CLOUD_ARCH') // "x86_64";
+    $arch = "aarch64" if ($arch eq "arm64");
+    record_info($addon, "Going to register '$addon' addon");
+    if ($addon =~ /ltss/) {
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch, "-r " . get_required_var('SCC_REGCODE_LTSS'));
+    } elsif (is_sle('<15') && $addon =~ /tcm|wsm|contm|asmm|pcm/) {
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '`echo ${VERSION} | cut -d- -f1`', $arch);
+    } elsif (is_sle('<15') && $addon =~ /sdk|we/) {
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), '${VERSION_ID}', $arch);
+    } else {
+        ssh_add_suseconnect_product($remote, get_addon_fullname($addon), undef, $arch);
+    }
+}
+
+sub registercloudguest {
+    my ($instance) = @_;
+    my $regcode = get_required_var('SCC_REGCODE');
+    my $remote = $instance->username . '@' . $instance->public_ip;
+    # not all images currently have registercloudguest pre-installed .
+    # in such a case,we need to regsiter against SCC and install registercloudguest with all needed dependencies and then
+    # unregister and re-register with registercloudguest
+    if ($instance->run_ssh_command(cmd => "sudo which registercloudguest > /dev/null; echo \"registercloudguest\$?\" ", proceed_on_failure => 1) =~ m/registercloudguest1/) {
+        $instance->retry_ssh_command(cmd => "sudo SUSEConnect -r $regcode", timeout => 420, retry => 3);
+        register_addon($remote, 'pcm');
+        my $install_packages = 'cloud-regionsrv-client';    # contains registercloudguest binary
+        if (is_azure()) {
+            $install_packages .= ' cloud-regionsrv-client-plugin-azure regionServiceClientConfigAzure regionServiceCertsAzure';
+        }
+        elsif (is_ec2()) {
+            $install_packages .= ' cloud-regionsrv-client-plugin-ec2 regionServiceClientConfigEC2 regionServiceCertsEC2';
+        }
+        elsif (is_gce()) {
+            $install_packages .= ' cloud-regionsrv-client-plugin-gce regionServiceClientConfigGCE regionServiceCertsGCE';
+        }
+        else {
+            die 'Unexpected provider ' . get_var('PUBLIC_CLOUD_PROVIDER');
+        }
+        $instance->run_ssh_command(cmd => "sudo zypper -q -n in $install_packages", timeout => 420);
+        $instance->run_ssh_command(cmd => "sudo registercloudguest --clean");
+    }
+    $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3);
 }
 
 sub is_publiccloud() {
