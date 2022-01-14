@@ -165,6 +165,10 @@ sub stop_dhcp_server {
 sub before_test {
     my $self = shift // wicked::wlan->new();
     $self->prepare_packages();
+}
+
+sub before_test_after_reboot {
+    my $self = shift // wicked::wlan->new();
     $self->prepare_phys();
     $self->prepare_freeradius_server();
     $self->adopt_apparmor();
