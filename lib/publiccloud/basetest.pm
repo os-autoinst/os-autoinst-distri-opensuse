@@ -46,12 +46,7 @@ sub provider_factory {
             );
         }
         elsif ($args{service} eq 'EC2') {
-            $provider = publiccloud::ec2->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'eu-central-1'),
-                username => get_var('PUBLIC_CLOUD_USER', 'ec2-user')
-            );
+            $provider = publiccloud::ec2->new();
         }
         else {
             die('Unknown service given');
@@ -71,14 +66,7 @@ sub provider_factory {
             );
         }
         elsif ($args{service} eq 'AVM') {
-            $provider = publiccloud::azure->new(
-                key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                key_secret => get_var('PUBLIC_CLOUD_KEY_SECRET'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'westeurope'),
-                tenantid => get_var('PUBLIC_CLOUD_AZURE_TENANT_ID'),
-                subscription => get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID'),
-                username => get_var('PUBLIC_CLOUD_USER', 'azureuser')
-            );
+            $provider = publiccloud::azure->new();
         } else {
             die('Unknown service given');
         }
@@ -99,17 +87,7 @@ sub provider_factory {
             );
         }
         elsif ($args{service} eq 'GCE') {
-            $provider = publiccloud::gce->new(
-                account => get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT'),
-                service_acount_name => get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT'),
-                project_id => get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID'),
-                private_key_id => get_var('PUBLIC_CLOUD_KEY_ID'),
-                private_key => get_var('PUBLIC_CLOUD_KEY'),
-                client_id => get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID'),
-                region => get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b'),
-                storage_name => get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage'),
-                username => get_var('PUBLIC_CLOUD_USER', 'susetest')
-            );
+            $provider = publiccloud::gce->new();
         }
         else {
             die('Unknown service given');

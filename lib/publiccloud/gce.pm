@@ -16,14 +16,16 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 
-has storage_name => undef;
-has provider_client => undef;
-has project_id => undef;
-has account => undef;
-has service_acount_name => undef;
-has private_key_id => undef;
-has private_key => undef;
-has client_id => undef;
+has storage_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage') };
+has provider_client => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
+has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
+has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
+has service_acount_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT') };
+has private_key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has private_key => sub { get_var('PUBLIC_CLOUD_KEY') };
+has client_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID') };
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 
 sub init {
     my ($self, %params) = @_;
