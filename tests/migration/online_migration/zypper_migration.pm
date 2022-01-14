@@ -1,6 +1,6 @@
 # SLE online migration tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zypper, transactional-update
@@ -47,7 +47,7 @@ sub run {
     if (is_sle_micro) {
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
-        my $option = (is_leap_migration) ? " --allow-vendor-change " : " ";
+        my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
         script_run("(zypper migration $option; echo ZYPPER-DONE) |& tee /dev/$serialdev", 0);
     }
     # migration process take long time
