@@ -133,9 +133,8 @@ sub run {
             zypper_ar($repo_url . generate_version('_') . '/', name => 'wicked_maintainers', no_gpg_check => 1, priority => 60);
             $package_list .= ' ndisc6';
         }
-        if (check_var('WICKED', 'wlan')) {
-            wicked::wlan::before_test();
-        }
+        wicked::wlan::prepare_packages() if (check_var('WICKED', 'wlan'));
+
         $package_list .= ' openvswitch iputils';
         $package_list .= ' libteam-tools libteamdctl0 ' if check_var('WICKED', 'advanced') || check_var('WICKED', 'aggregate');
         $package_list .= ' gcc' if check_var('WICKED', 'advanced');
@@ -143,6 +142,7 @@ sub run {
         $self->reset_wicked();
         $self->reboot() if $need_reboot;
         record_info('PKG', script_output(q(rpm -qa 'wicked*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+        wicked::wlan::prepare_sut() if (check_var('WICKED', 'wlan'));
     }
 }
 
