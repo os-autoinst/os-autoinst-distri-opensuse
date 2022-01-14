@@ -14,7 +14,6 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use Utils::Architectures;
 use Mojo::File 'path';
 use Mojo::Util 'trim';
 
@@ -132,7 +131,7 @@ sub compare_run_log {
         my $b_name = $baseline_results{$c_id}->{name};
         my $b_result = $baseline_results{$c_id}->{result};
         if ($c_result ne $b_result) {
-            my $info = "poo#93441\nTest result is NOT same as baseline \nCurrent:  $c_id $name $c_result\nBaseline: $c_id $b_name $b_result";
+            my $info = "Test result is NOT same as baseline \nCurrent:  $c_id $name $c_result\nBaseline: $c_id $b_name $b_result";
             $flag = _parse_results_with_diff_baseline($name, $c_result, $info, $flag);
             next;
         }
@@ -158,14 +157,23 @@ sub compare_run_log {
 #
 sub _parse_results_with_diff_baseline {
     my ($name, $result, $msg, $flag) = @_;
+    my $softfail_tests = {
+        s390x => {
+            ssh04 => 'Test case ssh04 fails in s390x is a known issue, see poo#99096',
+            iptables_SETSOCKOPT => 'bsc#1192324'
+        }
+    };
     if ($result eq 'PASS') {
         record_soft_failure($msg);
         $flag = 'softfail' if ($flag ne 'fail');
     }
     else {
-        if ($name eq 'ssh04' && is_s390x) {
-            record_soft_failure('Test case ssh04 fails in s390x is a known issue, see poo#99096');
-            return 'softfail';
+        my $arch = get_var('ARCH');
+        if ($softfail_tests->{$arch}) {
+            if (my $reason = $softfail_tests->{$arch}->{$name}) {
+                record_soft_failure($msg . "\n" . $reason);
+                return 'softfail';
+            }
         }
         record_info($name, $msg, result => 'fail');
         $flag = 'fail';
