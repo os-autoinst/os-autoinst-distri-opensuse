@@ -3,11 +3,12 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: The module provides interface to act with Local User page
+# Summary: The class provides interface to act with Local User page
 #
 # Maintainer: QE YaST <qa-sle-yast@suse.de>
 
 package Installation::LocalUser::LocalUserPage;
+use parent 'Installation::Navigation::NavigationBase';
 use strict;
 use warnings;
 
@@ -21,12 +22,15 @@ sub new {
 
 sub init {
     my ($self) = @_;
+    $self->SUPER::init();
     $self->{tb_confirm_password} = $self->{app}->textbox({id => 'pw2'});
     $self->{tb_full_name} = $self->{app}->textbox({id => 'full_name'});
     $self->{tb_username} = $self->{app}->textbox({id => 'username'});
     $self->{tb_password} = $self->{app}->textbox({id => 'pw1'});
     $self->{ch_autologin} = $self->{app}->checkbox({id => 'autologin'});
     $self->{ch_use_for_admin} = $self->{app}->checkbox({id => 'root_pw'});
+    $self->{rb_import_users} = $self->{app}->radiobutton({id => 'import'});
+    $self->{btn_choose_users} = $self->{app}->button({id => 'choose_users'});
     return $self;
 }
 
@@ -74,6 +78,16 @@ sub select_use_this_password_for_admin {
 sub has_use_same_password_for_admin_checked {
     my ($self) = @_;
     return $self->{ch_use_for_admin}->is_checked();
+}
+
+sub select_import_users {
+    my ($self) = @_;
+    return $self->{rb_import_users}->select();
+}
+
+sub choose_users_to_import {
+    my ($self) = @_;
+    return $self->{btn_choose_users}->click();
 }
 
 1;
