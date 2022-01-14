@@ -44,4 +44,5 @@ conditional_schedule:
         - installation/add_on_product/skip_install_addons
       Full:
         - installation/registration/skip_registration
-        - installation/addon_products_sle
+        - installation/module_selection/skip_module_selection
+        - installation/add_on_product_installation/accept_add_on_installation
