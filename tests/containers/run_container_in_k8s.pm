@@ -16,19 +16,14 @@ use testapi;
 
 sub run {
     my ($self) = @_;
-
-    $self->select_serial_terminal;
-    $self->install_kubectl();
+    $self->SUPER::init();
 
     my $cmd = '"cat", "/etc/os-release"';
 
-    my $provider = $self->provider_factory(service => 'EKS');
-    $self->{provider} = $provider;
-
-    my $image_tag = $provider->get_default_tag();
+    my $image_tag = $self->{provider}->get_default_tag();
     $self->{image_tag} = $image_tag;
 
-    my $image = $provider->get_container_image_full_name($image_tag);
+    my $image = $self->{provider}->get_container_image_full_name($image_tag);
     my $job_name = $image_tag =~ s/_/-/gr;
     $self->{job_name} = $job_name;
 
@@ -52,7 +47,7 @@ EOT
     $self->apply_manifest($manifest);
     $self->wait_for_job_complete($job_name);
     my $pod = $self->find_pods("job-name=$job_name");
-    record_info('Pod', "Container (POD) successfully created in EKS.\n$pod");
+    record_info('Pod', "Container (POD) successfully created.\n$pod");
     $self->validate_log($pod, "SUSE Linux Enterprise Server");
     record_info('cmd', "Command `$cmd` successfully executed in the image.");
 }
@@ -61,10 +56,7 @@ sub cleanup {
     my ($self) = @_;
     record_info('Cleanup', 'Deleting kubectl job and image.');
     assert_script_run("kubectl delete job " . $self->{job_name});
-    assert_script_run("aws ecr batch-delete-image --repository-name "
-          . $self->{provider}->provider_client->container_registry
-          . " --image-ids imageTag="
-          . $self->{image_tag});
+    $self->{provider}->delete_container_image($self->{image_tag});
 }
 
 sub post_fail_hook {
