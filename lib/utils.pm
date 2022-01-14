@@ -1502,7 +1502,11 @@ sub show_tasks_in_blocked_state {
         send_key 'alt-sysrq-w';
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
-        send_key 'ret';    # ensure clean shell prompt
+
+        # If the 'An error occured during the installation.' OK popup has popped up,
+        # do not press the 'return' key, because it will result in all ttys logging out.
+        send_key 'ret' unless (check_screen 'linuxrc-install-fail');
+
     }
 }
 
