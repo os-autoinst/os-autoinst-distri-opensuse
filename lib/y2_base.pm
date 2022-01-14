@@ -119,9 +119,9 @@ sub save_upload_y2logs {
 
     # Try to recover network if cannot reach gw and upload logs if everything works
     if (can_upload_logs() || (!$args{no_ntwrk_recovery} && recover_network())) {
-        script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs';
+        script_run 'sed -i \'s/^tar \(.*$\)/tar --warning=no-file-changed -\1 || true/\' /usr/sbin/save_y2logs', die_on_timeout => 0;
         my $filename = "/tmp/y2logs$args{suffix}.tar" . get_available_compression();
-        script_run "save_y2logs $filename", 180;
+        script_run "save_y2logs $filename", 180, die_on_timeout => 0;
         upload_logs($filename, failok => 1);
     } else {    # Redirect logs content to serial
         script_run("journalctl -b --no-pager -o short-precise > /dev/$serialdev");

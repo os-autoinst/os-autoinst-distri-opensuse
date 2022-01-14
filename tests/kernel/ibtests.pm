@@ -117,7 +117,7 @@ sub run {
     barrier_wait('IBTEST_SETUP');
 
     # create a ssh key if we don't have one
-    script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
+    script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa', die_on_timeout => 1);
     # distribute the ssh key to the machines
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$master");
     script_run("/usr/bin/clear");

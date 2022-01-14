@@ -141,7 +141,7 @@ sub verify_license_translations {
 sub get_available_compression {
     my %extensions = (bzip2 => '.bz2', gzip => '.gz', xz => '.xz');
     foreach my $binary (sort keys %extensions) {
-        return $extensions{$binary} unless script_run("type $binary");
+        return $extensions{$binary} unless script_run("type $binary", die_on_timeout => 0);
     }
     return "";
 }

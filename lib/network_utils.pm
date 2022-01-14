@@ -69,7 +69,7 @@ Returns if can ping worker host gateway
 sub can_upload_logs {
     my ($gw) = @_;
     $gw ||= testapi::host_ip();
-    return (script_run('ping -c 1 ' . $gw) == 0);
+    return (script_run('ping -c 1 ' . $gw, die_on_timeout => 1) == 0);
 }
 
 

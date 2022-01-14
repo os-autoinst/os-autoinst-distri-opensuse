@@ -1387,8 +1387,8 @@ sub prepare_disks {
     #exclude device 254(zram) as wipefs fails on /dev/zram1 in openSUSE
     my $disks = script_output('lsblk -n -l -o NAME -d -e 7,11,254');
     for my $d (split('\n', $disks)) {
-        script_run "wipefs -af /dev/$d";
-        script_run "sync";
+        script_run "wipefs -af /dev/$d", die_on_timeout => 1;
+        script_run "sync", die_on_timeout => 1;
         if (get_var('ENCRYPT_ACTIVATE_EXISTING') || get_var('ENCRYPT_CANCEL_EXISTING')) {
             create_encrypted_part(disk => $d);
             if (get_var('ETC_PASSWD') && get_var('ETC_SHADOW')) {
@@ -1399,11 +1399,11 @@ sub prepare_disks {
             }
         }
         else {
-            script_run "parted /dev/$d mklabel gpt";
-            script_run "sync";
+            script_run "parted /dev/$d mklabel gpt", die_on_timeout => 1;
+            script_run "sync", die_on_timeout => 1;
         }
     }
-    script_run "lsblk";
+    script_run "lsblk", die_on_timeout => 1;
 }
 
 1;
