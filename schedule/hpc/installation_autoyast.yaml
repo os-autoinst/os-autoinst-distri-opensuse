@@ -1,7 +1,7 @@
 ---
 name: hpc_installation_autoyast
 vars:
-  AUTOYAST: autoyast_sle15/autoyast_hpc_%ARCH%.xml
+  AUTOYAST: autoyast_sle15/autoyast_hpc_%ARCH%.xml.ep
   AUTOYAST_CONFIRM: 1
   HDDSIZEGB: 30
 schedule:

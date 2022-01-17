@@ -43,11 +43,13 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % unless ($check_var->('VERSION', '15-SP4')) {
       <addon>
         <name>sle-module-python2</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % }
     </addons>
   </suse_register>
   <bootloader>
@@ -65,17 +67,31 @@
   <partitioning config:type="list">
     <drive>
       <device>/dev/vda</device>
-      <disklabel>msdos</disklabel>
+      <disklabel>gpt</disklabel>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
         <partition>
           <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <mount>/boot/efi</mount>
+        </partition>
+        <partition>
+          <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
           <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
           <mount>swap</mount>
         </partition>
         <partition>
           <mountby config:type="symbol">device</mountby>
+          <create config:type="boolean">true</create>
           <filesystem config:type="symbol">btrfs</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
           <mount>/</mount>
         </partition>
       </partitions>
@@ -94,7 +110,9 @@
       <package>sle-module-basesystem-release</package>
       <package>sle-module-web-scripting-release</package>
       <package>sle-module-hpc-release</package>
+      % unless ($check_var->('VERSION', '15-SP4')) {
       <package>sle-module-python2-release</package>
+      % }
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
