@@ -23,10 +23,7 @@ has provider_client => undef;
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::aws_client->new(
-            key_id => $self->key_id,
-            key_secret => $self->key_secret,
-            region => $self->region));
+    $self->provider_client(publiccloud::aws_client->new());
     $self->provider_client->init();
 }
 

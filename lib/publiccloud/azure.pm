@@ -30,12 +30,7 @@ has provider_client => undef;
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::azure_client->new(
-            key_id => $self->key_id,
-            key_secret => $self->key_secret,
-            subscription => $self->subscription,
-            tenantid => $self->tenantid,
-            region => $self->region));
+    $self->provider_client(publiccloud::azure_client->new());
     $self->provider_client->init();
 }
 

@@ -30,15 +30,7 @@ has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 sub init {
     my ($self, %params) = @_;
     $self->SUPER::init();
-    $self->provider_client(publiccloud::gcp_client->new(
-            region => $self->region,
-            account => $self->account,
-            service_acount_name => $self->service_acount_name,
-            project_id => $self->project_id,
-            private_key_id => $self->private_key_id,
-            private_key => $self->private_key,
-            client_id => $self->client_id
-    ));
+    $self->provider_client(publiccloud::gcp_client->new());
     $self->provider_client->init();
 }
 

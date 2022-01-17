@@ -17,20 +17,20 @@ use Mojo::JSON 'decode_json';
 
 use constant CREDENTIALS_FILE => '/root/google_credentials.json';
 
-has account => undef;
-has project_id => undef;
-has private_key_id => undef;
-has private_key => undef;
-has service_acount_name => undef;
-has client_id => undef;
+has storage_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage') };
+has provider_client => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
+has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
+has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
+has service_acount_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT') };
+has private_key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has private_key => sub { get_var('PUBLIC_CLOUD_KEY') };
+has client_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID') };
+has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
 has vault_gcp_role_index => undef;
-has gcr_zone => undef;
 has vault => undef;
 
 sub init {
     my ($self) = @_;
-
-    $self->gcr_zone(get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io'));
 
     $self->vault(publiccloud::vault->new());
 

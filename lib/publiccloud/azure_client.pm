@@ -13,11 +13,13 @@ use testapi;
 use utils;
 use publiccloud::vault;
 
-has key_id => undef;
-has key_secret => undef;
-has subscription => undef;
-has tenantid => undef;
-has region => undef;
+has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+has tenantid => sub { get_var('PUBLIC_CLOUD_AZURE_TENANT_ID') };
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+
 has vault => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
