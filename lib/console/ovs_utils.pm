@@ -31,17 +31,19 @@ sub ping_check {
     my $client_ip = shift;
     my $vpn = shift;
     assert_script_run("cd");
-    assert_script_run "(ping -c 20 $vpn &>/dev/null &)";
+    assert_script_run "(ping -c 20 $vpn &>ping.log &)";
     if ($vpn eq "192.0.0.2") {
-        assert_script_run("tcpdump -ni any net -c 10 $client_ip > check.log");
+        assert_script_run("tcpdump -ni any net -c 20 $client_ip > check.log", 300);
+        assert_script_run('cat check.log');
         assert_script_run("grep 'IP $server_ip > $client_ip: ESP' check.log");
     }
     else {
-        assert_script_run("tcpdump -ni any net -c 10 $server_ip > check.log");
+        assert_script_run("tcpdump -ni any net -c 20 $server_ip > check.log", 300);
+        assert_script_run('cat check.log');
         assert_script_run("grep 'IP $client_ip > $server_ip: ESP' check.log");
     }
     assert_script_run("pkill ping");
-    assert_script_run("ping -c 5 $vpn");
-    assert_script_run("rm check.log");
+    assert_script_run('cat ping.log');
+    assert_script_run("rm ping.log check.log");
 }
 1;
