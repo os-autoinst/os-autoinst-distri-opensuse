@@ -67,7 +67,7 @@ sub run {
         assert_script_run './test_java.sh --transactional-server';
     }
     else {
-        assert_script_run './test_java.sh';
+        assert_script_run("./test_java.sh", timeout => 180);
     }
     # if !QAM test suite then cleanup test suite environment
     unless (is_updates_tests || is_opensuse || is_migration_tests) {
