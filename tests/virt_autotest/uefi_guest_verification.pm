@@ -52,7 +52,7 @@ sub check_guest_bootloader {
     record_info("Basic bootloader checking on $guest_name", "efibootmgr -v and mokutil --sb-state should return successfully");
     my $ssh_command_prefix = "ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     script_retry("$ssh_command_prefix root\@$guest_name efibootmgr -v");
-    script_retry("$ssh_command_prefix root\@$guest_name mokutil --sb-state");
+    script_retry("$ssh_command_prefix root\@$guest_name mokutil --sb-state", die => 0);
     return $self;
 }
 
