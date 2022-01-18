@@ -55,7 +55,7 @@ sub run {
     # The 8th test case in netfilter sometimes may end with ERROR because of the performance issue. we need to run it again
     assert_script_run('./run.bash 8', timeout => 300) if ($case_name eq 'netfilter' && script_run('egrep "[8].*ERROR" rollup.log') == 0);
     # Upload logs
-    upload_audit_test_logs();
+    upload_audit_test_logs($case_name);
     # Compare current test results with baseline
     $result = compare_run_log($case_name);
 

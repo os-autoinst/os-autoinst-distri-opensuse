@@ -23,7 +23,7 @@ sub run {
     run_testcase('fail-safe', make => 1, timeout => 500);
 
     # Compare current test results with baseline
-    my $result = compare_run_log('fail_safe');
+    my $result = compare_run_log('fail-safe');
     $self->result($result);
 }
 

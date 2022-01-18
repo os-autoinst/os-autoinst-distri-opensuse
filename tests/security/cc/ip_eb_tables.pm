@@ -53,7 +53,7 @@ sub run {
         assert_script_run("service network restart");
     }
     # Compare current test results with baseline
-    my $result = compare_run_log('ip_eb_tables');
+    my $result = compare_run_log('ip+eb-tables');
     $self->result($result);
 }
 

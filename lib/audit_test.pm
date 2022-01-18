@@ -14,6 +14,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use Utils::Architectures;
 use Mojo::File 'path';
 use Mojo::Util 'trim';
 
@@ -65,12 +66,22 @@ sub run_testcase {
     else {
         assert_script_run('./run.bash', timeout => $args{timeout});
     }
-    upload_audit_test_logs();
+    upload_audit_test_logs($testcase);
 }
 
 sub upload_audit_test_logs {
+    my ($testcase) = @_;
     upload_logs("$current_file");
-    upload_logs("$baseline_file");
+
+    # For syscall test case, different arch has different baseline file,
+    # so we need to upload the correct file
+    if ($testcase eq 'syscalls') {
+        $baseline_file = $baseline_file . '.' . get_var('ARCH');
+    }
+    else {
+        $baseline_file = "baseline_run.log";
+    }
+    upload_logs("$baseline_file", (log_name => "$testcase-baseline_run.log"));
 }
 
 sub prepare_for_test {
@@ -83,6 +94,10 @@ sub prepare_for_test {
 
     # Export MODE
     assert_script_run("export MODE=$audit_test::mode");
+
+    # Which test cases are loaded depends on the ARCH
+    assert_script_run("export ARCH=s390x") if (is_s390x);
+    assert_script_run("export ARCH=aarch") if (is_aarch64);
 }
 
 sub parse_lines {
