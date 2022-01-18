@@ -19,7 +19,7 @@
     <guest_metadata></guest_metadata>
     <guest_xpath></guest_xpath>
     <guest_installation_automation>kickstart</guest_installation_automation>
-    <guest_installation_automation_file>oracle_linux_7_9_graphical_server.ks</guest_installation_automation_file>
+    <guest_installation_automation_file>oracle_linux_7_graphical_server.ks</guest_installation_automation_file>
     <guest_installation_method>location</guest_installation_method>
     <guest_installation_extra_args>sshd=1#sshpassword=nots3cr3t#console=ttyS0,115200n8#textmode=1#inst.noverifyssl#inst.waitfornet=60#inst.geoloc=provider_hostip#inst.geoloc-use-with-ks#inst.sshd#inst.debug#inst.notmux#inst.cmdline#inst.resolution=1024x768#inst.gpt#inst.usefbx#inst.xtimeout=300</guest_installation_extra_args>
     <guest_installation_wait></guest_installation_wait>
@@ -28,7 +28,7 @@
     <guest_installation_fine_grained></guest_installation_fine_grained>
     <guest_boot_settings></guest_boot_settings>
     <guest_secure_boot></guest_secure_boot>
-    <guest_os_variant>ol7.8</guest_os_variant>
+    <guest_os_variant>ol7.9</guest_os_variant>
     <guest_storage_path></guest_storage_path>
     <guest_storage_type>disk</guest_storage_type>
     <guest_storage_format>qcow2</guest_storage_format>
