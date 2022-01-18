@@ -27,11 +27,16 @@ sub init {
 
 sub get_add_on_product_page {
     my ($self) = @_;
-    die "Add On Product page is not displayed" unless $self->{AddOnProduct}->is_shown();
+    die 'Add On Product page is not displayed' unless $self->{AddOnProduct}->is_shown();
     return $self->{AddOnProduct};
 }
 
-sub skip_install_addons {
+sub confirm_like_additional_add_on {
+    my ($self) = @_;
+    $self->get_add_on_product_page()->confirm_like_additional_add_on();
+}
+
+sub accept_current_media_type_selection {
     my ($self) = @_;
     $self->get_add_on_product_page()->press_next();
 }

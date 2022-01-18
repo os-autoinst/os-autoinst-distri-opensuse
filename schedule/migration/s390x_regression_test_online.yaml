@@ -60,6 +60,8 @@ conditional_schedule:
         - console/hostname
         - console/upgrade_snapshots
         - console/zypper_lr
+        - console/pam
+        - console/btrfsmaintenance
         - console/cpio
         - console/java
         - console/check_system_info

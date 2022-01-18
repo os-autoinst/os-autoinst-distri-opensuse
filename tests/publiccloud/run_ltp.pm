@@ -152,7 +152,7 @@ sub run {
     $cmd .= '--logname=ltp_log --verbose ';
     $cmd .= '--timeout=1200 ';
     $cmd .= '--run ' . get_required_var('LTP_COMMAND_FILE') . ' ';
-    $cmd .= '--exclude \'' . get_required_var('LTP_COMMAND_EXCLUDE') . '\' ';
+    $cmd .= '--exclude \'' . get_var('LTP_COMMAND_EXCLUDE') . '\' ' if get_var('LTP_COMMAND_EXCLUDE');
     $cmd .= '--backend=ssh';
     $cmd .= ':user=' . $instance->username;
     $cmd .= ':key_file=' . $instance->ssh_key;

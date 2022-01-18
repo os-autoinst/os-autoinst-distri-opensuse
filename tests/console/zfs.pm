@@ -28,12 +28,10 @@ my $disksize = "100M";    # Size of the test disks
 sub get_repository() {
     if (is_tumbleweed) {
         return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Tumbleweed/filesystems.repo';
+    } elsif (is_leap("=15.4")) {
+        return 'https://download.opensuse.org/repositories/filesystems/15.4/filesystems.repo';
     } elsif (is_leap("=15.3")) {
-        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.3/filesystems.repo';
-    } elsif (is_leap("=15.2")) {
-        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.2/filesystems.repo';
-    } elsif (is_leap("=15.1")) {
-        return 'https://download.opensuse.org/repositories/filesystems/openSUSE_Leap_15.1/filesystems.repo';
+        return 'https://download.opensuse.org/repositories/filesystems/15.3/filesystems.repo';
     } elsif (is_sle("=15.3")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP3/filesystems.repo';
     } elsif (is_sle("=15.2")) {
@@ -42,8 +40,6 @@ sub get_repository() {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_15_SP1/filesystems.repo';
     } elsif (is_sle("=12.5")) {
         return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP5/filesystems.repo';
-    } elsif (is_sle("=12.4")) {
-        return 'https://download.opensuse.org/repositories/filesystems/SLE_12_SP4/filesystems.repo';
     } else {
         die "Unsupported version";
     }

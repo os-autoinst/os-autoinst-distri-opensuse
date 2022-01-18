@@ -65,14 +65,6 @@ sub run {
         }
     }
 
-    ## Our test setup requires guests to restart when the machine is rebooted.
-    ## Ensure every guest has <on_reboot>restart</on_reboot>
-    foreach my $guest (keys %virt_autotest::common::guests) {
-        if (script_run("! virsh dumpxml $guest | grep 'on_reboot' | grep -v 'restart'") != 0) {
-            record_info("$guest bsc#1153028", "Setting on_reboot=restart failed for $guest");
-        }
-    }
-
     script_run 'history -a';
     assert_script_run('cat ~/virt-install*', 30);
     script_run('xl dmesg |grep -i "fail\|error" |grep -vi Loglevel') if (is_xen_host());

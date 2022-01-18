@@ -40,6 +40,7 @@ our @EXPORT = qw(
   ssh_fully_patch_system
   minimal_patch_system
   zypper_search
+  set_zypper_lock_timeout
   workaround_type_encrypted_passphrase
   is_boot_encrypted
   is_bridged_networking
@@ -760,6 +761,21 @@ sub zypper_search {
     # Remove header from package list
     shift @ret;
     return \@ret;
+}
+
+=head2 set_zypper_lock_timeout
+
+ set_zypper_lock_timeout($timeout);
+
+Set how many seconds zypper will wait for other processes to release
+the system lock. If this function is called without arguments, it'll set
+timeout to 300 seconds.
+
+=cut
+sub set_zypper_lock_timeout {
+    my $timeout = shift // 300;
+
+    script_run("export ZYPP_LOCK_TIMEOUT='$timeout'");
 }
 
 =head2 workaround_type_encrypted_passphrase

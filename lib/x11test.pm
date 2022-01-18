@@ -684,8 +684,8 @@ sub firefox_open_url {
 }
 
 sub firefox_preferences {
-    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 3, 15;
-    send_key_until_needlematch 'firefox-preferences', 'n', 3, 15;
+    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 5, 5;
+    send_key_until_needlematch 'firefox-preferences', 'n', 5, 5;
 }
 
 sub exit_firefox_common {
@@ -697,6 +697,8 @@ sub exit_firefox_common {
         # confirm "save&quit"
         send_key "ret";
     }
+    # wait a sec because xterm-without-focus can match while firefox is being closed
+    wait_still_screen 2;
     assert_screen [qw(xterm-left-open xterm-without-focus)];
     if (match_has_tag 'xterm-without-focus') {
         # focus it
