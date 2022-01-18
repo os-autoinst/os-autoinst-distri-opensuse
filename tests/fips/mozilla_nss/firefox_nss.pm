@@ -1,6 +1,6 @@
 # SUSE's openQA tests - FIPS tests
 #
-# Copyright 2016-2021 SUSE LLC
+# Copyright 2016-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Case #1560076 - FIPS: Firefox Mozilla NSS
@@ -9,14 +9,17 @@
 # Summary: FIPS mozilla-nss test for firefox : firefox_nss
 #
 # Maintainer: Ben Chou <bchou@suse.com>
-# Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143, poo#80754, poo#104314
+# Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143,
+#      poo#80754, poo#104314, poo#104989
 
 use base "x11test";
 use strict;
 use warnings;
 use testapi;
 use utils;
+use utils qw(zypper_call package_upgrade_check);
 use Utils::Architectures;
+use version_utils 'is_sle';
 
 sub quit_firefox {
     send_key "alt-f4";
@@ -67,6 +70,21 @@ sub run {
     my $fips_password = 'openqa@SUSE';
     my $firefox_version = script_output(q(rpm -q MozillaFirefox | awk -F '-' '{ split($2, a, "."); print a[1]; }'));
     record_info('MozillaFirefox version', "Version of Current MozillaFirefox package: $firefox_version");
+
+    # mozilla-nss version check
+    my $pkg_list = {
+        'mozilla-nss' => '3.68',
+        'mozilla-nss-certs' => '3.68',
+    };
+
+    if (get_var('FIPS_ENABLED') && !is_sle('<15-sp4')) {
+        zypper_call("in " . join(' ', keys %$pkg_list));
+        package_upgrade_check($pkg_list);
+    }
+    else {
+        my $mozilla_nss_ver = script_output("rpm -q --qf '%{version}\n' mozilla-nss");
+        record_info('mozilla-nss version', "Version of Current package: $mozilla_nss_ver");
+    }
 
     select_console 'x11';
     x11_start_program('firefox https://html5test.opensuse.org', target_match => 'firefox-html-test', match_timeout => 360);
