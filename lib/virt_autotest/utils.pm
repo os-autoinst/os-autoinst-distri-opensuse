@@ -23,7 +23,7 @@ use Net::IP qw(:PROC);
 use File::Basename;
 use Utils::Architectures;
 
-our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest is_guest_ballooned is_xen_host is_kvm_host
+our @EXPORT = qw(is_vmware_virtualization is_hyperv_virtualization is_fv_guest is_pv_guest guest_is_sle is_guest_ballooned is_xen_host is_kvm_host
   check_host check_guest print_cmd_output_to_file ssh_setup ssh_copy_id create_guest import_guest install_default_packages
   upload_y2logs ensure_default_net_is_active ensure_guest_started ensure_online add_guest_to_hosts restart_libvirtd remove_additional_disks
   remove_additional_nic collect_virt_system_logs shutdown_guests wait_guest_online start_guests is_guest_online wait_guests_shutdown
@@ -63,6 +63,23 @@ sub is_pv_guest {
     my $guest = shift;
     return $guest =~ /\bpv\b/;
 }
+
+#Check if guest is SLE with optional filter for:
+#Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
+#usage: guest_is_sle($guest_name, '<=12-sp2')
+sub guest_is_sle {
+    my $guest_name = lc shift;
+    my $query = shift;
+
+    return 0 unless $guest_name =~ /sle/;
+    return 1 unless $query;
+
+    # Version check
+    $guest_name =~ /sles-*(\d{2})(?:-*sp(\d))?/;
+    my $version = $2 eq '' ? "$1-sp0" : "$1-sp$2";
+    return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
+}
+
 
 #return 1 if max_mem > memory in vm configuration file in libvirt
 sub is_guest_ballooned {
@@ -105,7 +122,9 @@ sub check_guest {
 }
 
 #ammend the output of the command to an existing log file
-#passing guest name or an remote IP as the 3rd parameter if running command in a remote machine
+#$machine=<guest_ip> to pass guest name or an remote IP if running command in a remote machine
+#default $machine is the current SUT, ie. the host.
+#make sure '$file' is present in current SUT(host), it wastes time to check the file in each call.
 #only support simple bash command so far, eg. '|' is not supported in $cmd.
 sub print_cmd_output_to_file {
     my ($cmd, $file, $machine) = @_;
