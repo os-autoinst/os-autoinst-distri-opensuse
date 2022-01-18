@@ -16,8 +16,10 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use utils qw(script_output_retry);
 use publiccloud::azure_client;
 
-has tenantid => undef;
-has subscription => undef;
+has tenantid => sub { get_var('PUBLIC_CLOUD_AZURE_TENANT_ID') };
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
 has resource_group => 'openqa-upload';
 has storage_account => 'openqa';
 has container => 'sle-images';

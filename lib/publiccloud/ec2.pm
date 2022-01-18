@@ -14,6 +14,8 @@ use testapi;
 use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
 has ssh_key => undef;
 has ssh_key_file => undef;
 has provider_client => undef;

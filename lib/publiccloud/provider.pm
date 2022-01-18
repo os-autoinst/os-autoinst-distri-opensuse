@@ -22,10 +22,8 @@ use mmapi;
 use constant TERRAFORM_DIR => '/root/terraform';
 use constant TERRAFORM_TIMEOUT => 30 * 60;
 
-has key_id => undef;
-has key_secret => undef;
-has region => undef;
-has username => undef;
+has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
 has prefix => 'openqa';
 has terraform_env_prepared => 0;
 has terraform_applied => 0;
