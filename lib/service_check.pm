@@ -21,6 +21,7 @@ use utils;
 use base 'opensusebasetest';
 use strict;
 use warnings;
+use services::docker;
 use services::apache;
 use services::apparmor;
 use services::dhcpd;
@@ -66,6 +67,12 @@ our $default_services = {
         support_ver => $support_ver_ge15,
         service_check_func => \&services::sshd::full_sshd_check,
         service_cleanup_func => \&services::sshd::sshd_cleanup
+    },
+    docker => {
+        srv_pkg_name => 'docker',
+        srv_proc_name => 'docker',
+        support_ver => $support_ver_ge12,
+        service_check_func => \&services::docker::full_docker_check,
     },
     users => {
         srv_pkg_name => 'users',

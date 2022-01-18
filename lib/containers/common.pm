@@ -76,8 +76,17 @@ sub install_docker_when_needed {
                 # We may run openSUSE with DISTRI=sle and openSUSE does not have SUSEConnect
                 activate_containers_module if $host_os =~ 'sles';
 
+                # Temporarly enable LTSS product on LTSS systems where it is not present
+                my $ltss_needed = 0;
+                if (get_var('SCC_REGCODE_LTSS') && script_run('test -f /etc/products.d/SLES-LTSS.prod') != 0) {
+                    add_suseconnect_product('SLES-LTSS', undef, undef, '-r ' . get_var('SCC_REGCODE_LTSS'));
+                    $ltss_needed = 1;
+                }
+
                 # docker package can be installed
                 zypper_call('in docker', timeout => 300);
+
+                remove_suseconnect_product('SLES-LTSS') if ($ltss_needed);
             }
         }
     }
