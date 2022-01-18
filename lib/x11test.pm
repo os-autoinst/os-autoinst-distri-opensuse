@@ -659,7 +659,7 @@ sub firefox_check_popups {
 }
 
 sub firefox_open_url {
-    my ($self, $url, $do_not_check_loaded_url) = @_;
+    my ($self, $url) = @_;
     my $counter = 1;
     while (1) {
         # make sure firefox window is focused
@@ -677,10 +677,7 @@ sub firefox_open_url {
     }
     enter_cmd_slow "$url";
     wait_still_screen 2, 4;
-    # this is because of adobe flash, screensaver will activate sooner than the page
-    unless ($do_not_check_loaded_url) {
-        assert_screen 'firefox-url-loaded', 300;
-    }
+    send_key_until_needlematch 'firefox-url-loaded', 'f5', 3, 90;
 }
 
 sub firefox_preferences {
