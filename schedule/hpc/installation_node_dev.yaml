@@ -35,8 +35,8 @@ schedule:
   - installation/partitioning
   - installation/partitioning_finish
   - installation/installer_timezone
-  - '{{user_settings_root}}'
   - '{{systemrole_dev}}'
+  - '{{user_settings_root}}'
   - installation/resolve_dependency_issues
   - installation/select_patterns
   - installation/installation_overview
