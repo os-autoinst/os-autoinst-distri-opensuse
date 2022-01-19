@@ -89,7 +89,7 @@
     "bsc#1182500": {
         "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
+            "sle-micro": [ "5.0", "5.1", "5.2" ],
             "microos":  ["Tumbleweed"]
         },
         "type": "bug"
@@ -129,7 +129,7 @@
     "bsc#1190662": {
         "description": "/etc/udev/rules.d/41-qeth-.*Failed to write ATTR",
         "products": {
-            "sle-micro": [ "5.1" ]
+            "sle-micro": [ "5.1", "5.2" ]
         },
         "type": "bug"
     },
