@@ -14,11 +14,9 @@ use testapi;
 use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 
-has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
 has ssh_key => undef;
 has ssh_key_file => undef;
-has provider_client => undef;
 
 sub init {
     my ($self) = @_;
@@ -108,7 +106,7 @@ sub upload_img {
             'eu-west-1-byos-arm64' => 'ami-02eae5be24d203db3',
         };
 
-        my $ami_id_key = $self->region;
+        my $ami_id_key = $self->provider_client->region;
         $ami_id_key .= '-byos' if is_byos();
         $ami_id_key .= '-arm64' if check_var('PUBLIC_CLOUD_ARCH', 'arm64');
         $helper_ami_id = $ami_id_hash->{$ami_id_key} if exists($ami_id_hash->{$ami_id_key});
@@ -136,7 +134,7 @@ sub upload_img {
           . (is_byos() ? '' : '--use-root-swap ')
           . '--ena-support '
           . "--verbose "
-          . "--regions '" . $self->region . "' "
+          . "--regions '" . $self->provider_client->region . "' "
           . "--ssh-key-pair '" . $self->ssh_key . "' "
           . "--private-key-file " . $self->ssh_key_file . " "
           . "-d 'OpenQA upload image' "

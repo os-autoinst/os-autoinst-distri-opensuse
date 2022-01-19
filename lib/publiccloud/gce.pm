@@ -16,17 +16,6 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 
-has storage_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_STORAGE', 'openqa-storage') };
-has provider_client => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
-has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
-has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
-has service_acount_name => sub { get_var('PUBLIC_CLOUD_GOOGLE_SERVICE_ACCOUNT') };
-has private_key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
-has private_key => sub { get_var('PUBLIC_CLOUD_KEY') };
-has client_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_CLIENT_ID') };
-has region => sub { get_var('PUBLIC_CLOUD_REGION', 'europe-west1-b') };
-has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
-
 sub init {
     my ($self, %params) = @_;
     $self->SUPER::init();
@@ -57,7 +46,7 @@ sub find_img {
 sub upload_img {
     my ($self, $file) = @_;
     my $img_name = $self->file2name($file);
-    my $uri = $self->storage_name . '/' . $file;
+    my $uri = $self->provider_client->storage_name . '/' . $file;
     my $guest_os_features = get_var('PUBLIC_CLOUD_GCE_UPLOAD_GUEST_FEATURES', 'MULTI_IP_SUBNET,UEFI_COMPATIBLE,VIRTIO_SCSI_MULTIQUEUE');
 
     assert_script_run("gsutil cp '$file' 'gs://$uri'", timeout => 60 * 60);
@@ -85,7 +74,7 @@ sub img_proof {
 
 sub terraform_apply {
     my ($self, %args) = @_;
-    $args{project} //= $self->project_id;
+    $args{project} //= $self->provider_client->project_id;
     $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
     return $self->SUPER::terraform_apply(%args);
 }

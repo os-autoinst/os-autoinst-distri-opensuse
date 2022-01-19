@@ -19,6 +19,7 @@ has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has tenantid => sub { get_var('PUBLIC_CLOUD_AZURE_TENANT_ID') };
 has region => sub { get_var('PUBLIC_CLOUD_REGION', 'westeurope') };
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
 
 has vault => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
