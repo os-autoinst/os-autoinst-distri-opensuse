@@ -226,7 +226,7 @@ sub remove_suseconnect_product {
     $version //= scc_version();
     $arch //= get_required_var('ARCH');
     $params //= '';
-    assert_script_run("SUSEConnect -d -p $name/$version/$arch $params");
+    assert_script_run("SUSEConnect -d -p $name/$version/$arch $params", timeout => 150);
 }
 
 =head2 cleanup_registration
@@ -833,7 +833,7 @@ sub scc_deregistration {
         # Need quit packagekit to ensure it won't block to de-register system via SUSEConnect.
         quit_packagekit;
         assert_script_run('SUSEConnect --version');
-        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 200);
+        my $deregister_ret = script_run('SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1', 300);
         if (defined $deregister_ret and $deregister_ret == 104) {
             # https://bugzilla.suse.com/show_bug.cgi?id=1119512
             # https://bugzilla.suse.com/show_bug.cgi?id=1122497
