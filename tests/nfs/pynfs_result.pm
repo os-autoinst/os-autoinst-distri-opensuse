@@ -9,7 +9,6 @@ use strict;
 use warnings;
 use base 'opensusebasetest';
 use testapi;
-use Data::Dumper;
 
 sub run {
     my ($self, $args) = @_;
