@@ -134,7 +134,7 @@
         "type": "bug"
     },
     "bsc#1182961": {
-        "description": "could not read from '/sys/module/pcc_pufreq/initstate': No such device",
+        "description": "could not read from '/sys/module/pcc_cpufreq/initstate': No such device",
         "products": {
             "sle-micro": [ "5.0", "5.1" ],
             "microos":  ["Tumbleweed"]
