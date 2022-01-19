@@ -13,6 +13,12 @@ use Data::Dumper;
 
 sub run {
     my ($self, $args) = @_;
+
+    if (defined($args->{all_passed})) {
+        record_info($args->{all_passed});
+        return;
+    }
+
     my $data = $args->{data};
     my $msg;
 

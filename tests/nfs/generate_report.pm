@@ -50,11 +50,15 @@ sub display_results {
 
         my $targs = OpenQA::Test::RunArgs->new();
         $targs->{data} = $test;
-        autotest::loadtest("tests/nfs/pynfs_failed.pm", name => $test->{code}, run_args => $targs);
+        autotest::loadtest("tests/nfs/pynfs_result.pm", name => $test->{code}, run_args => $targs);
         $fail = 1;
     }
 
-    record_info('ALL PASSED') if (!$fail);
+    if (!$fail) {
+        my $targs = OpenQA::Test::RunArgs->new();
+        $targs->{all_passed} = 'ALL TESTS PASSED';
+        autotest::loadtest("tests/nfs/pynfs_result.pm", name => $targs->{all_passed}, run_args => $targs);
+    }
 }
 
 sub upload_cthon04_log {
