@@ -2096,6 +2096,7 @@ sub load_common_x11 {
     elsif (check_var("REGRESSION", "firefox")) {
         loadtest "boot/boot_to_desktop";
         loadtest "x11/window_system";
+        loadtest 'x11/disable_screensaver';
         load_x11_webbrowser();
     }
     elsif (check_var('REGRESSION', 'remote')) {
