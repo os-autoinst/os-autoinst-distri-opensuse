@@ -72,6 +72,7 @@ sub dl_pause {
 # firefox 60.2 does not have option or shortcut to cancel only button
 sub dl_cancel {
     assert_and_click('firefox-downloading-cancel-button');
+    wait_still_screen(2, 4);
 }
 
 sub dl_resume {
