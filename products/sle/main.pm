@@ -156,10 +156,6 @@ if (is_sle('15+')) {
 diag('default desktop: ' . default_desktop);
 set_var('DESKTOP', get_var('DESKTOP', default_desktop));
 
-# don't want updates, as we don't test it or rely on it in any tests, if is executed during installation
-# For released products we want install updates during installation, only in minimal workflow disable
-set_var('DISABLE_SLE_UPDATES', get_var('DISABLE_SLE_UPDATES', get_var('QAM_MINIMAL')));
-
 # set remote connection variable for s390x, svirt and ipmi
 set_var('REMOTE_CONNECTION', 'vnc') if get_var('BACKEND', '') =~ /s390x|svirt|ipmi/;
 
