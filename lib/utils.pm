@@ -639,13 +639,13 @@ sub zypper_ar {
     $no_gpg_check = $no_gpg_check ? "--no-gpgcheck" : "";
     my $prioarg = defined($priority) && !is_sle('<=12') ? "-p $priority" : "";
     my $cmd_ar = "--gpg-auto-import-keys ar -f $prioarg $no_gpg_check $params $url";
-    my $cmd_mr = "mr -p $priority $url";
+    my $cmd_mr = "mr $prioarg $url";
     my $cmd_ref = "--gpg-auto-import-keys ref";
 
     # repo file
     if (!$name) {
         zypper_call($cmd_ar);
-        zypper_call($cmd_mr) if $priority && is_sle('<12');
+        zypper_call($cmd_mr) if defined($priority) && is_sle('<12');
         return zypper_call($cmd_ref);
     }
 
