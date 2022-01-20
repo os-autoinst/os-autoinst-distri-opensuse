@@ -33,6 +33,8 @@ sub run {
     if (check_var('MACHINE', 'uefi')) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
     }
+    # do zypper update bsc#1165180
+    zypper_call('up zypper');
 
     capture_state('before');
 
