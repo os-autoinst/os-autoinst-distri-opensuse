@@ -34,7 +34,7 @@ schedule:
   - installation/performing_installation/perform_installation
   - installation/performing_installation/stop_timeout_system_reboot_now
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/confirm_reboot
   - boot/reconnect_mgmt_console
   - installation/first_boot
   - console/system_prepare
