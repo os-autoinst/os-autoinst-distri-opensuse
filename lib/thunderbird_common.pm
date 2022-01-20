@@ -123,8 +123,11 @@ sub tb_setup_account {
         }
         else {
             assert_and_click 'thunderbird_startssl-selected-for-imap';
+            wait_still_screen(1);
             assert_and_click 'thunderbird_security-select-none';
+            wait_still_screen(1);
             assert_and_click 'thunderbird_startssl-selected-for-smtp';
+            wait_still_screen(1);
             assert_and_click 'thunderbird_security-select-none';
             if (check_screen 'thunderbird_username') {
                 record_info 'bsc#1191853';
