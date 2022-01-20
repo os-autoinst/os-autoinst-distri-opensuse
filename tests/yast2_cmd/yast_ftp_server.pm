@@ -121,9 +121,9 @@ sub run {
     assert_script_run 'yast ftp-server welcome_message set_message="hello everybody" ';
 
     #show, displays FTP server settings.
-    my @pattern = ('Start-Up:FTP daemon needs manual starting',
+    my @pattern = ('Start-Up:FTP daemon',
         'hello everybody',
-        'Anonymous and Authenticated Users');
+        'Create directories disabled');
 
     my $output;
     if (is_sle('<=12-sp2')) {
@@ -133,13 +133,8 @@ sub run {
         $output = script_output("yast ftp-server show 2>&1");
     }
 
-
     foreach my $item (@pattern) {
-        if ($item eq 'hello everybody') {
-            $output =~ m#$item#i || die '"yast ftp-server show" message error';
-        } else {
-            $output =~ m#$item#i || record_soft_failure 'known bug bsc#1142146, "yast ftp-server show" message error';
-        }
+        $output =~ m#$item#i || die "Expected text \"$item\" not shown";
     }
 
     assert_script_run 'yast ftp-server logging disable';
