@@ -41,7 +41,7 @@ sub check_containers_connectivity {
     my $container_ip = container_ip $container_name, 'podman';
 
     # Connectivity to host check
-    my $default_route = script_output "podman run " . registry_url('alpine') . " ip route show default | awk \'/default/ {print \$3}\'";
+    my $default_route = script_output "podman run " . registry_url('alpine') . " ip route show default 2>/dev/null | awk \'/default/ {print \$3}\'";
     assert_script_run "podman run --rm " . registry_url('alpine') . " ping -c3 " . $default_route;
 
     # Cross-container connectivity check
