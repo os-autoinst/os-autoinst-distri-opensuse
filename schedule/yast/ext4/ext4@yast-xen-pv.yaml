@@ -32,7 +32,9 @@ schedule:
   - installation/performing_installation/perform_installation
   - installation/performing_installation/stop_timeout_system_reboot_now
   - installation/logs_from_installation_system
-  - installation/reboot_after_installation
+  - installation/performing_installation/update_virsh_config_to_boot_from_hd
+  - installation/performing_installation/confirm_reboot
+  - installation/performing_installation/reconnect_after_reboot
   - installation/first_boot
   - console/validate_partition_table_via_blkid
   - console/validate_blockdevices
