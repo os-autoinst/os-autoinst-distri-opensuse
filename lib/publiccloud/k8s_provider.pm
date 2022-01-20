@@ -13,7 +13,6 @@ use testapi;
 use mmapi 'get_current_job_id';
 use publiccloud::gcp_client;
 
-has region => undef;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
@@ -26,25 +25,18 @@ sub init {
     if ($provider eq 'EC2') {
         $self->provider_client(
             publiccloud::aws_client->new(
-                region => $self->region,
                 service => $service
             ));
     }
     elsif ($provider eq 'GCE') {
         $self->provider_client(
             publiccloud::gcp_client->new(
-                region => $self->region,
                 service => $service
             ));
     }
     elsif ($provider eq 'AZURE') {
         $self->provider_client(
             publiccloud::azure_client->new(
-                key_id => $self->key_id,
-                key_secret => $self->key_secret,
-                subscription => $self->subscription,
-                tenantid => $self->tenantid,
-                region => $self->region,
                 service => $service
             ));
     }
