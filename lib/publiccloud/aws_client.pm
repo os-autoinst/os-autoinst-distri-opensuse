@@ -14,10 +14,10 @@ use publiccloud::vault;
 
 use constant CREDENTIALS_FILE => '/root/amazon_credentials';
 
-has key_id => undef;
-has key_secret => undef;
+has key_id => sub { get_var('PUBLIC_CLOUD_KEY_ID') };
+has key_secret => sub { get_var('PUBLIC_CLOUD_KEY_SECRET') };
 has security_token => undef;
-has region => undef;
+has region => sub { get_var('PUBLIC_CLOUD_REGION', 'eu-central-1') };
 has vault => undef;
 has aws_account_id => undef;
 has service => undef;
