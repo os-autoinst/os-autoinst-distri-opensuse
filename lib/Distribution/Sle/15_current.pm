@@ -20,6 +20,7 @@ use Installation::License::Sle::LicenseAgreementController;
 use Installation::License::Sle::Firstboot::LicenseAgreementController;
 use Installation::ProductSelection::ProductSelectionController;
 use Installation::Registration::RegistrationController;
+use Installation::ModuleRegistration::ModuleRegistrationController;
 use Installation::ModuleSelection::ModuleSelectionController;
 use Installation::AddOnProduct::AddOnProductController;
 use Installation::RepositoryURL::RepositoryURLController;
@@ -47,6 +48,10 @@ sub get_product_selection {
 
 sub get_registration {
     return Installation::Registration::RegistrationController->new();
+}
+
+sub get_module_registration {
+    return Installation::ModuleRegistration::ModuleRegistrationController->new();
 }
 
 sub get_module_selection {

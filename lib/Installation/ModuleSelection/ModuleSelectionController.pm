@@ -31,13 +31,13 @@ sub get_module_selection_page {
     return $self->{ModuleSelectionPage};
 }
 
-sub register_module {
+sub select_module {
     my ($self, $module) = @_;
     $self->get_module_selection_page()->select_module($module);
     $self->get_module_selection_page()->press_next();
 }
 
-sub register_modules {
+sub select_modules {
     my ($self, $modules) = @_;
     $self->get_module_selection_page()->select_modules($modules);
     $self->get_module_selection_page()->press_next();
@@ -46,21 +46,6 @@ sub register_modules {
 sub skip_selection {
     my ($self) = @_;
     $self->get_module_selection_page()->press_next();
-}
-
-sub view_development_versions {
-    my ($self) = @_;
-    $self->get_module_selection_page()->uncheck_hide_development_versions();
-}
-
-sub get_selected_modules {
-    my ($self) = @_;
-    return $self->get_module_selection_page()->get_selected_modules();
-}
-
-sub get_modules {
-    my ($self) = @_;
-    return $self->get_module_selection_page()->get_modules();
 }
 
 1;

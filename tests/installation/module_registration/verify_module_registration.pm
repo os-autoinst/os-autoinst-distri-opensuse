@@ -17,17 +17,17 @@ use utils 'arrays_differ';
 
 sub run {
     my @expected_modules = @{get_test_suite_data()->{modules}};
-    my @modules = @{$testapi::distri->get_module_selection()->get_modules()};
+    my @modules = @{$testapi::distri->get_module_registration()->get_modules()};
     die "Modules do not match with the expected ones."
       . "\nExpected:\n" . join(', ', @expected_modules)
       . "\nActual:\n" . join(', ', @modules)
       if arrays_differ(\@expected_modules, \@modules);
-    my @expected_selected_modules = @{get_test_suite_data()->{selected_modules}};
-    my @selected_modules = @{$testapi::distri->get_module_selection()->get_selected_modules()};
+    my @expected_registered_modules = @{get_test_suite_data()->{registered_modules}};
+    my @registered_modules = @{$testapi::distri->get_module_resgistration()->get_registered_modules()};
     die "Selected modules are not the default ones"
-      . "\nExpected:\n" . join(', ', @expected_selected_modules)
-      . "\nActual:\n" . join(', ', @selected_modules)
-      if arrays_differ(\@expected_selected_modules, \@selected_modules);
+      . "\nExpected:\n" . join(', ', @expected_registered_modules)
+      . "\nActual:\n" . join(', ', @registered_modules)
+      if arrays_differ(\@expected_registered_modules, \@registered_modules);
 }
 
 1;

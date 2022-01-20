@@ -23,58 +23,36 @@ sub new {
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
-    $self->{ch_hide_dev_versions} = $self->{app}->checkbox({id => 'filter_devel'});
-    $self->{rt_items} = $self->{app}->richtext({id => 'items'});
-    $self->{rt_item_containers} = 'sle-module-containers';
-    $self->{rt_item_desktop} = 'sle-module-desktop-applications';
-    $self->{rt_item_development} = 'sle-module-development-tools';
-    $self->{rt_item_legacy} = 'sle-module-legacy';
-    $self->{rt_item_transactional} = 'sle-module-transactional-server';
-    $self->{rt_item_web} = 'sle-module-web-scripting';
+    $self->{sbox_addons} = $self->{app}->selectionbox({id => 'addon_repos'});
     return $self;
 }
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{rt_items}->exist();
-}
-
-sub get_modules_full_name {
-    my ($self) = @_;
-    my @modules = ($self->{rt_items}->text() =~ /<a href="(.*?)">|<a href='(.*?)' /g);
-    @modules = grep defined, @modules;
-    return \@modules;
+    return $self->{sbox_addons}->exist();
 }
 
 sub get_modules {
     my ($self) = @_;
-    my @modules = ($self->{rt_items}->text() =~ /<a href='?"?(.*?)-\d+/g);
-    return \@modules;
+    return $self->{sbox_addons}->items();
 }
 
 sub get_selected_modules {
     my ($self) = @_;
-    my @modules = ($self->{rt_items}->text() =~ /<a href='(.*?)-\d+.*inst_checkbox-on|<a href="(.*?)-\d+.*\[x\]/g);
-    @modules = grep defined, @modules;
-    return \@modules;
+    return $self->{sbox_addons}->selected_items();
 }
 
 sub select_module {
     my ($self, $module) = @_;
-    my $module_name = $self->{"rt_item_$module"};
-    my ($module_full_name) = grep { /$module_name/ } $self->get_modules_full_name()->@*;
-    return $self->{rt_items}->activate_link($module_full_name);
+    my @modules = $self->get_modules();
+    my ($module_full_name) = grep(/$module/i, @modules);
+    return $self->{sbox_addons}->check($module_full_name);
 }
 
 sub select_modules {
     my ($self, $modules) = @_;
     $self->select_module($_) for ($modules->@*);
     return $self;
-}
-
-sub uncheck_hide_development_versions {
-    my ($self) = @_;
-    return $self->{ch_hide_dev_versions}->uncheck();
 }
 
 1;

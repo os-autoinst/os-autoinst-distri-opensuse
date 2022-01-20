@@ -3,7 +3,9 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Select Desktop Application module.
+# Summary: Select Desktop Application module
+#          in "Extension and Module Selection" dialog.
+# Medium:  Full (Description Text shows "Directory on the Media")
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 
@@ -12,7 +14,7 @@ use strict;
 use warnings;
 
 sub run {
-    $testapi::distri->get_module_selection()->register_module('desktop');
+    $testapi::distri->get_module_selection()->select_module('desktop');
 }
 
 1;

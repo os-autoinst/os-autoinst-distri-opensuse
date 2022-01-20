@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Skip extension and module selection
+#          in "Extension and Module Selection" dialog.
+# Medium:  Full (Description Text shows "Directory on the Media")
 #
 # Maintainer: QA SLE YaST team <qa-sle-yast@suse.de>
 

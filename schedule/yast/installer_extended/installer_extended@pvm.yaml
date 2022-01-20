@@ -23,9 +23,9 @@ schedule:
   - installation/licensing/verify_license_has_to_be_accepted
   - installation/licensing/accept_license
   - installation/registration/register_via_scc
-  - installation/module_selection/view_development_versions
-  - installation/module_selection/verify_module_selection
-  - installation/module_selection/skip_module_selection
+  - installation/module_registration/view_development_versions
+  - installation/module_registration/verify_module_registration
+  - installation/module_registration/skip_module_registration
   - installation/add_on_product/skip_install_addons
   - installation/system_role/accept_selected_role_text_mode
   - installation/partitioning/accept_proposed_layout
@@ -82,6 +82,6 @@ test_data:
     - sle-module-server-applications
     - sle-module-transactional-server
     - sle-module-web-scripting
-  selected_modules:
+  registered_modules:
     - sle-module-basesystem
     - sle-module-server-applications
