@@ -42,7 +42,7 @@ sub run {
 
     # Test multiple instance configuration
     # It is not supported in sle12sp2 and sle12sp3
-    if (!is_sle('<=12-SP3') && !is_ppc64le && !is_ppc64) {
+    if (!is_sle('<=12-SP3')) {
         assert_script_run "touch /etc/mynode{1,2}.cnf";
         assert_script_run "curl " . data_url('console/mariadb/mynode1.cnf') . " -o /etc/mynode1.cnf";
         assert_script_run "curl " . data_url('console/mariadb/mynode2.cnf') . " -o /etc/mynode2.cnf";
