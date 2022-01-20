@@ -22,6 +22,7 @@ has vault => undef;
 has aws_account_id => undef;
 has service => undef;
 has container_registry => sub { get_var("PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY", 'suse-qec-testing') };
+has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
 
 sub vault_create_credentials {
     my ($self) = @_;

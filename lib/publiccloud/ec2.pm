@@ -14,7 +14,6 @@ use testapi;
 use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 
-has username => sub { get_var('PUBLIC_CLOUD_USER', 'ec2-user') };
 has ssh_key => undef;
 has ssh_key_file => undef;
 
@@ -141,7 +140,7 @@ sub upload_img {
           . "--wait-count 3 "
           . "--ec2-ami '" . $helper_ami_id . "' "
           . "--type '" . $instance_type . "' "
-          . "--user '" . $self->username . "' "
+          . "--user '" . $self->provider_client->username . "' "
           . ($sec_group ? "--security-group-ids '" . $sec_group . "' " : '')
           . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' " : '')
           . "'$file'",
