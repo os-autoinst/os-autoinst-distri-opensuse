@@ -42,7 +42,7 @@ DEPENDENCY_RESOLVER_FLAG| boolean | false      | Control whether the resolve_dep
 DEV_IMAGE | boolean | false | This setting is used to set veriables properly when SDK or Development-Tools are required.
 DISABLE_ONLINE_REPOS | boolean | false | Enables `installation/disable_online_repos` test module, relevant for openSUSE only. Test module explicitly disables online repos not to be used during installation.
 DISABLE_SECUREBOOT | boolean | false | Disable secureboot in firmware of the SUT or in hypervisor's guest VM settings
-DISABLE_SLE_UPDATES | boolean | false | Disables online updates for the installation. Is true if `QAM_MINIMAL` is true for SLE.
+DISABLE_SLE_UPDATES | boolean | false | Disables online updates for the installation.
 DISTRI | string | | Defines distribution. Possible values: `sle`, `opensuse`, `microos`.
 DOCRUN | boolean | false |
 DUALBOOT | boolean | false | Enables dual boot configuration during the installation.
@@ -189,6 +189,7 @@ PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
 PKGMGR_ACTION_AT_EXIT | string | "" | Set the default behavior of the package manager when package installation has finished. Possible actions are: close, restart, summary. If PKGMGR_ACTION_AT_EXIT is not set in openQA, test module will read the default value from /etc/sysconfig/yast2.
 PXE_PRODUCT_NAME | string | false | Defines image name for PXE booting
 QA_TESTSUITE | string | | Comma or semicolon separated a list of the automation cases' name, and these cases will be installed and triggered if you call "start_testrun" function from qa_run.pm
+QAM_MINIMAL | string | "full" or "small" | Full is adding patterns x11, gnome-basic, base, apparmor in minimal/install_patterns test. Small is just base.
 RAIDLEVEL | integer | | Define raid level to be configured. Possible values: 0,1,5,6,10.
 REBOOT_TIMEOUT | integer | 0 | Set and handle reboot timeout available in YaST installer. 0 disables the timeout and needs explicit reboot confirmation.
 REGISTRY | string | docker.io | Registry to pull third-party container images from
