@@ -426,6 +426,8 @@ sub run {
     heartbeat_start;
     my $status_log_content = "";
     foreach my $test (@tests) {
+        # trim testname
+        $test =~ s/^\s+|\s+$//g;
         # Skip tests inside blacklist
         if (exists($BLACKLIST{$test})) {
             next;
