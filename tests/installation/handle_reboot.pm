@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021-2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Combine modules with the actions that are required after reboot.
@@ -20,7 +20,7 @@ use utils qw(reconnect_mgmt_console);
 
 sub run {
     if (is_remote_backend) {
-        record_info 'Reconnect mgmt console';
+        record_info 'Remote', 'Reconnect mgmt console';
         reconnect_mgmt_console();
     }
 
