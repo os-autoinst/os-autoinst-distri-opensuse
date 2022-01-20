@@ -40,7 +40,7 @@ sub instance_log_args
         get_required_var('PUBLIC_CLOUD_PROVIDER'),
         $self->{my_instance}->instance_id,
         $self->{my_instance}->public_ip,
-        $self->{provider}->region);
+        $self->{provider}->{provider_client}->region);
 }
 
 sub upload_ltp_logs
