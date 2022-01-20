@@ -2,7 +2,7 @@
 #
 # Copyright 2020-2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
-
+# Maintainer: QE-Core <qe-core@suse.de>
 package maintenance_smelt;
 
 use strict;
@@ -19,7 +19,12 @@ our @EXPORT = qw(query_smelt get_incident_packages get_packagebins_in_modules);
 
 sub query_smelt {
     my $graphql = $_[0];
-    return Mojo::UserAgent->new->post("https://smelt.suse.de/graphql/" => json => {query => "$graphql"})->result->body;
+    my $transaction = Mojo::UserAgent->new->post("https://smelt.suse.de/graphql/" => json => {query => "$graphql"});
+    if ($transaction->res->code != 200) {
+        record_info "Response: $transaction->res->code", "Unexpected response code from SMELT";
+        die "Unexpected response code from SMELT: $transaction->res->code";
+    }
+    return $transaction->res->body;
 }
 
 sub get_incident_packages {
@@ -28,6 +33,7 @@ sub get_incident_packages {
     my $graph = JSON->new->utf8->decode(query_smelt($gql_query));
     my @nodes = @{$graph->{data}{incidents}{edges}[0]{node}{incidentpackagesSet}{edges}};
     my @packages = map { $_->{node}{package}{name} } @nodes;
+    die "Test could not parse any packages in SMELT response" if not @packages;
     return @packages;
 }
 
