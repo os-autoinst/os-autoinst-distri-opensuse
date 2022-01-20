@@ -614,6 +614,7 @@ sub restart_firefox {
     enter_cmd "$cmd";
     enter_cmd "firefox $url >>firefox.log 2>&1 &";
     $self->firefox_check_default;
+    assert_screen 'firefox-url-loaded';
 }
 
 sub firefox_check_default {
