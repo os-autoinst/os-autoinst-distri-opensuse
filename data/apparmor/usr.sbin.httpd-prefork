@@ -69,6 +69,7 @@
 
     /proc/meminfo r,
     /srv/www/htdocs/adminer/** r,
+    /tmp/** rwk,
     /tmp/adminer.invalid rwk,
     /var/lib/php7/** rwk,
     /var/log/apache2/access_log w,
