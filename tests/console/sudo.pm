@@ -19,8 +19,7 @@ use strict;
 use warnings;
 use testapi;
 use utils 'zypper_call';
-use version_utils 'is_sle';
-use publiccloud::utils qw(is_publiccloud);
+use version_utils qw(is_sle is_public_cloud);
 
 sub sudo_with_pw {
     my ($command, %args) = @_;
@@ -58,7 +57,7 @@ sub run {
     # on publiccloud the root password is not yet set
     # note: due to security reasons, the root password must be reset afterwards
     my $password = $testapi::password;
-    assert_script_run("echo -e '$password\n$password' | passwd root") if is_publiccloud;
+    assert_script_run("echo -e '$password\n$password' | passwd root") if is_public_cloud;
     select_console 'user-console';
     # check if password is required
     assert_script_run 'sudo -K && ! timeout 5 sudo id -un';
@@ -108,7 +107,7 @@ sub post_run_hook {
     # remove test user
     assert_script_run 'userdel -r sudo_test && groupdel sudo_group';
     # remove root password on publiccloud again
-    assert_script_run("passwd root --lock") if is_publiccloud;
+    assert_script_run("passwd root --lock") if is_public_cloud;
 }
 
 1;
