@@ -110,9 +110,6 @@ sub set_sestatus {
     my $selinux_config_file = '/etc/selinux/config';
     $self->select_serial_terminal;
 
-    # SELinux by default
-    validate_script_output('sestatus', sub { m/SELinux status: .*disabled/ });
-
     # workaround for 'selinux-auto-relabel' in case: auto relabel then trigger reboot
     my $results = script_run("zypper --non-interactive se selinux-autorelabel");
     if (!$results) {

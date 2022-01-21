@@ -2378,6 +2378,8 @@ sub load_security_tests_selinux {
     loadtest "security/selinux/restorecon";
     loadtest "security/selinux/chcon";
     loadtest "security/selinux/chcat";
+    loadtest "security/selinux/set_get_enforce";
+    loadtest "security/selinux/selinuxexeccon";
 }
 
 sub load_security_tests_cc_audit_test {
