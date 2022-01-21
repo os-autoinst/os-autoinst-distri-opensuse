@@ -13,6 +13,7 @@ use testapi;
 use utils;
 use db_utils;
 use Mojo::JSON;
+use publiccloud::utils "is_byos";
 
 use constant NUMJOBS => 4;
 use constant IODEPTH => 4;
