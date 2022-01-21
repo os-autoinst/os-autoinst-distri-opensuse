@@ -238,7 +238,7 @@ variable set.
 =cut
 sub cleanup_registration {
     # Remove registration from the system
-    assert_script_run 'SUSEConnect --clean';
+    assert_script_run 'SUSEConnect --cleanup';
     # Define proxy SCC if provided
     my $proxyscc = get_var('SCC_URL');
     assert_script_run "echo \"url: $proxyscc\" > /etc/SUSEConnect" if $proxyscc;
