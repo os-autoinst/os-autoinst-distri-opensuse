@@ -46,7 +46,11 @@ sub run {
     }
 
     record_info('Version', 'VERSION=' . get_var('VERSION'));
-    reconnect_mgmt_console if is_pvm;
+    if (is_pvm) {
+        reconnect_mgmt_console;
+    } else {
+        reset_consoles_tty;
+    }
 }
 
 1;
