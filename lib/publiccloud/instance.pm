@@ -234,7 +234,7 @@ sub wait_for_ssh
                 return $duration;
             }
             elsif ($output =~ m/Permission denied (publickey).*/) {
-                die "We don't have ssh key to access VM no point to continue";
+                die "ssh permission denied (pubkey)";
             }
         }
         sleep 1;

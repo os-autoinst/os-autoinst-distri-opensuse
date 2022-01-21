@@ -260,14 +260,14 @@ sub do_systemd_analyze {
     # Wait for guest register, before calling syastemd-analyze
     $instance->wait_for_guestregister();
     while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
-        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', quiet => 1, proceed_on_failure => 1);
+        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
         sleep 5;
     }
 
     die("Unable to get system-analyze in $args{timeout} seconds") unless (time() - $start_time < $args{timeout});
     push @ret, extract_analyze($output);
 
-    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', quiet => 1);
+    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame');
     push @ret, extract_blame($output);
 
     return @ret;
@@ -326,7 +326,7 @@ sub measure_timings {
     $Data::Dumper::Sortkeys = 1;
     record_info("RESULTS", Dumper($ret));
 
-    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1, quiet => 1);
+    $instance->run_ssh_command(cmd => 'sudo tar -czvf /tmp/sle_cloud.tar.gz /var/log/cloudregister /var/log/cloud-init.log /var/log/cloud-init-output.log /var/log/messages /var/log/NetworkManager', proceed_on_failure => 1);
     $instance->upload_log('/tmp/sle_cloud.tar.gz');
 
     return $ret;
