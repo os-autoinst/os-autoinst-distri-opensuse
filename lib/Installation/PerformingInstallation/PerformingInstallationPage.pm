@@ -10,6 +10,7 @@
 package Installation::PerformingInstallation::PerformingInstallationPage;
 use strict;
 use warnings;
+use testapi 'save_screenshot';
 
 sub new {
     my ($class, $args) = @_;
@@ -27,7 +28,9 @@ sub init {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{pba_total_packages}->exist();
+    my $is_shown = $self->{pba_total_packages}->exist();
+    save_screenshot if $is_shown;
+    return $is_shown;
 }
 
 1;
