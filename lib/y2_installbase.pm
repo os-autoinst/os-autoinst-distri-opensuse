@@ -573,7 +573,6 @@ sub post_fail_hook {
 }
 
 sub workaround_bsc1189550 {
-    record_soft_failure('bsc#1189550 - Problem with scroll bar event in pattern selection');
     wait_screen_change { send_key 'end' };
     wait_screen_change { send_key 'home' };
     $workaround_bsc1189550_done = 1;
