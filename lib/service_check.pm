@@ -31,6 +31,7 @@ use services::ntpd;
 use services::cups;
 use services::rpcbind;
 use services::users;
+use services::sshd;
 use autofs_utils;
 use services::postfix;
 use services::firewall;
@@ -59,6 +60,13 @@ our %srv_check_results = (
 );
 
 our $default_services = {
+    sshd => {
+        srv_pkg_name => 'sshd',
+        srv_proc_name => 'sshd',
+        support_ver => $support_ver_ge15,
+        service_check_func => \&services::sshd::full_sshd_check,
+        service_cleanup_func => \&services::sshd::sshd_cleanup
+    },
     users => {
         srv_pkg_name => 'users',
         srv_proc_name => 'users',
