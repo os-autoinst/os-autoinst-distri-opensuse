@@ -1,0 +1,8 @@
+name:           btrfs
+description:    >
+  Validate default installation with btrfs and libstorage-ng.
+vars:
+  # DESKTOP: gnome
+  FILESYSTEM: btrfs
+  YUI_REST_API: 1
+schedule:

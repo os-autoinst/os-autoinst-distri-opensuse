@@ -1,0 +1,100 @@
+---
+default: &default
+  bootloader: &bootloader
+  - installation/bootloader_start
+  setup_libyui: &setup_libyui
+  - installation/setup_libyui
+  product_selection: &product_selection
+  - installation/access_beta_distribution
+  - installation/product_selection/install_SLES
+  license_agreement: &license_agreement
+  - installation/licensing/accept_license
+  disk_activation: &disk_activation
+  - installation/disk_activation/select_configure_dasd_disks
+  - installation/disk_activation/configure_dasd
+  - installation/disk_activation/finish_disk_activation
+  registration: &registration
+  - installation/registration/register_via_scc
+  extension_and_module_selection: &extension_and_module_selection
+  - installation/module_registration/skip_module_registration.pm
+  add_on_product: &add_on_product
+  - installation/add_on_product/skip_install_addons
+  system_role: &system_role
+  - installation/system_role/accept_selected_role_text_mode
+  accept_proposed_layout: &accept_proposed_layout
+  - installation/partitioning/accept_proposed_layout
+  clock_and_timezone: &clock_and_timezone
+  - installation/clock_and_timezone/accept_timezone_configuration
+  local_user: &local_user
+  - installation/authentication/use_same_password_for_root
+  - installation/authentication/default_user_simple_pwd
+  installation_settings_booting: &installation_settings_booting
+  - installation/bootloader_settings/disable_boot_menu_timeout
+  installation_settings_security: &installation_settings_security
+  - installation/installation_settings/validate_ssh_service_enabled
+  - installation/installation_settings/open_ssh_port
+  install: &install
+  - installation/launch_installation
+  - installation/confirm_installation
+  - installation/performing_installation/perform_installation
+  - installation/performing_installation/stop_timeout_system_reboot_now
+  install_logs: &install_logs
+  - installation/logs_from_installation_system
+  reboot: &reboot
+  - installation/reboot_after_installation
+  - installation/handle_reboot  
+  first_login: &first_login
+  - installation/first_boot
+  system_validation: &system_validation []
+
+guided: &guided
+  bootloader: *bootloader
+  setup_libyui: *setup_libyui
+  product_selection: *product_selection
+  license_agreement: *license_agreement
+  disk_activation: *disk_activation
+  registration: *registration
+  extension_and_module_selection: *extension_and_module_selection
+  add_on_product: *add_on_product
+  system_role: *system_role
+  select_guided_setup:
+  - installation/partitioning/select_guided_setup
+  select_hard_disks: []
+  partitioning_scheme:
+  - installation/partitioning/guided_setup/accept_default_part_scheme
+  filesystem_options:
+  - installation/partitioning/guided_setup/accept_default_fs_options
+  accept_proposed_layout: *accept_proposed_layout
+  clock_and_timezone: *clock_and_timezone
+  local_user: *local_user
+  installation_settings_booting: *installation_settings_booting
+  installation_settings_security: *installation_settings_security
+  install: *install
+  install_logs: *install_logs
+  reboot: *reboot
+  first_login: *first_login
+  system_validation: *system_validation
+
+# validation
+guided+gnome: &guided+gnome
+  <<: *guided
+  extension_and_module_selection:
+  - installation/module_registration/register_module_desktop
+  system_role:
+  - installation/system_role/accept_selected_role_SLES_with_GNOME
+  
+guided+part_val:
+  <<: *guided
+  system_validation:
+  - console/validate_partition_table_via_parted
+  - console/validate_blockdevices
+
+guided+gnome+btrfs_val:
+  <<: *guided+gnome
+  system_validation:
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - console/hibernation_disabled
+  - console/validate_product_installed_SLES
+  - console/validate_no_cow_attribute
+  - console/verify_no_separate_home

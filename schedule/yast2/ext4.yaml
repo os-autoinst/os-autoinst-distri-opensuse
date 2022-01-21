@@ -1,0 +1,15 @@
+---
+name:           ext4
+description:    >
+  Test for ext4 filesystem.
+vars:
+  # DESKTOP: gnome
+  YUI_REST_API: 1
+schedule:
+  filesystem_options:
+  - installation/partitioning/guided_setup/select_filesystem_option_ext4
+test_data:
+  guided_partitioning:
+    filesystem_options:
+      root_filesystem_type: ext4
+  <<: !include test_data/yast/ext4/ext4_no_separate_home.yaml
