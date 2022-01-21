@@ -52,14 +52,14 @@ sub assert_system_role {
     # Asserting screen with preselected role
     # Proper default role assertion will be addressed in poo#37504
     # Product might or might not have default selected
-    if (is_opensuse) {
-        assert_screen('before-role-selection', 180);
-        change_system_role(get_var('SYSTEM_ROLE', get_var('DESKTOP')));
+    assert_screen('before-role-selection', 180);
+    if (is_opensuse || (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'))) {
+        # on opensuse is system role 1:1 with DESKTOP, on SLE change system role if it's defined
+        my $system_role = is_opensuse ? get_var('SYSTEM_ROLE', get_var('DESKTOP')) : get_var('SYSTEM_ROLE');
+        change_system_role($system_role) unless check_screen("system-role-$system_role-selected");
     }
-    else {
-        assert_screen('system-role-default-system', 180);
-        my $system_role = get_var('SYSTEM_ROLE', 'default');
-        change_system_role($system_role) if (get_var('SYSTEM_ROLE') && !check_var('SYSTEM_ROLE', 'default'));
+    elsif (check_var('SYSTEM_ROLE', 'default') || !get_var('SYSTEM_ROLE')) {
+        record_info('Default', 'SYSTEM_ROLE is default or not defined, same result');
     }
     send_key $cmd{next};
 }
