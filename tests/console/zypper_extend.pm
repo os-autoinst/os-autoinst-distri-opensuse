@@ -81,7 +81,7 @@ sub run {
 
     #Install specific version of a package
     my $version = script_output q[zypper se -s star |grep " star " | awk 'END {print $6}'];
-    zypper_call 'in -f star-$version';
+    zypper_call "in -f star-$version";
 
     #Install and remove package combination
     zypper_call "in cmake -star";
