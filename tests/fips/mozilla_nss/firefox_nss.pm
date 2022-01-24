@@ -10,7 +10,7 @@
 #
 # Maintainer: Ben Chou <bchou@suse.com>
 # Tag: poo#47018, poo#58079, poo#71458, poo#77140, poo#77143,
-#      poo#80754, poo#104314, poo#104989
+#      poo#80754, poo#104314, poo#104989, poo#105343
 
 use base "x11test";
 use strict;
@@ -176,7 +176,7 @@ sub run {
         # Retype password again once the password missed input
         # The problem frequently happaned in aarch64
         if (check_screen("firefox-password-typefield-miss")) {
-            record_soft_failure "Firefox password is missing to input, see poo#77143";
+            record_info("aarch64 type_missing", "Firefox password is missing to input, please refer to bsc#1179749 & poo#105343");
             type_string($fips_password, max_interval => 2);
             send_key "ret";
         }
