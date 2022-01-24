@@ -399,6 +399,7 @@ sub terraform_apply {
 
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
     my $ret = script_run('terraform apply -no-color -input=false myplan', $terraform_timeout);
+    $self->terraform_applied(1);    # Must happen here to prevent resource leakage
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
@@ -413,8 +414,6 @@ sub terraform_apply {
         die('Terraform apply failed with timeout');
     }
     die('Terraform exit with ' . $ret) if ($ret != 0);
-
-    $self->terraform_applied(1);
 
     my $output = decode_json(script_output("terraform output -json"));
     my $vms;
