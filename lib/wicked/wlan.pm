@@ -13,7 +13,7 @@ use Mojo::Base 'wickedbase';
 use utils qw(random_string);
 use version_utils qw(is_sle);
 use repo_tools qw(add_qa_head_repo generate_version);
-use utils qw(zypper_call);
+use utils qw(zypper_call zypper_ar);
 use Mojo::File 'path';
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
 use Encode qw/encode_utf8/;
@@ -180,6 +180,9 @@ sub prepare_packages {
         set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
         add_qa_head_repo();
     }
+    my $hostapd_repo = 'https://download.opensuse.org/repositories/home:/cfconrad:/wicked-ci:/openQA/' . generate_version();
+    zypper_ar($hostapd_repo, name => 'cfconrad-wicked-ci', priority => 10);
+ 
     zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim');
     # make sure, we do not run these deamons, as we need to run them in network namespace
     assert_script_run('systemctl disable --now dnsmasq');
