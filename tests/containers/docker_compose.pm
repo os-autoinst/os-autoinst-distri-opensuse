@@ -28,18 +28,16 @@ use publiccloud::utils 'is_ondemand';
 sub run {
     my ($self) = @_;
     $self->select_serial_terminal;
-    my $docker = $self->containers_factory('docker');
 
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
     add_suseconnect_product(get_addon_fullname('python2')) if is_sle('=15-sp1');
+    add_suseconnect_product(get_addon_fullname('pcm'), '12') if (is_sle('=12-sp5'));
+
+    my $docker = $self->containers_factory('docker');
 
     record_info 'Test #1', 'Test: Installation';
 
     my $ret = zypper_call "in docker-compose", exitcode => [0, 4];
-    if ($ret == 4 && (is_sle('=12-sp4') || is_sle('=12-sp5'))) {
-        record_soft_failure "bsc#1186748 - [12-SP4][12-SP5] Can't install docker-compose on s390x due to missing python-docker-py dependency";
-        return 0;
-    }
 
     if (script_output('docker-compose --version', proceed_on_failure => 1) =~ /distribution was not found/) {
         record_soft_failure "bsc#1186691 - docker-compose probably missing dependency";
