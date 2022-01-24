@@ -70,8 +70,18 @@ sub run {
 
     # JeOS on generalhw
     mouse_hide;
+    # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
+    # and configuration continues on console where *Start* has been pressed
+    unless (is_leap('<=15.4') || is_sle('<=15-sp4')) {
+        assert_screen 'jeos-init-config-screen', 300;
+        # Without this 'ret' sometimes won't get to the dialog
+        wait_still_screen;
+        send_key 'ret';
+    }
+
     # kiwi-templates-JeOS images (sle, opensuse x86_64 only) are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
+    # TO BE REMOVED *soon*; keep only else part
     if ((is_sle('15+') && is_sle('<15-sp3')) || (is_leap('<15.3') && is_x86_64)) {
         assert_screen 'jeos-lang-notice', 300;
         # Without this 'ret' sometimes won't get to the dialog
