@@ -43,7 +43,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_sle);
+use version_utils qw(is_jeos is_microos is_sle is_selfinstall);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
@@ -120,21 +120,24 @@ sub run {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 10, 3);
         }
         elsif (!is_jeos && !is_microos('VMX')) {
+            send_key 'up';
             send_key_until_needlematch('inst-oninstallation', 'down', 10, 3);
         }
     }
 
     uefi_bootmenu_params;
     bootmenu_default_params;
-    bootmenu_remote_target;
-    specific_bootmenu_params unless is_microos || is_jeos;
+    unless (is_selfinstall) {
+        bootmenu_remote_target;
+        specific_bootmenu_params unless is_microos || is_jeos;
 
-    # JeOS is never deployed with Linuxrc involved,
-    # so 'regurl' does not apply there.
-    registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos;
+        # JeOS is never deployed with Linuxrc involved,
+        # so 'regurl' does not apply there.
+        registration_bootloader_params(utils::VERY_SLOW_TYPING_SPEED) unless is_jeos;
 
-    # boot
-    mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
+        # boot
+        mutex_wait 'support_server_ready' if get_var('USE_SUPPORT_SERVER');
+    }
     send_key "f10";
 }
 

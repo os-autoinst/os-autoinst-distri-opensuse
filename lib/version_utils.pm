@@ -20,6 +20,7 @@ use constant {
           is_pre_15
           is_microos
           is_sle_micro
+          is_selfinstall
           is_gnome_next
           is_jeos
           is_krypton_argon
@@ -230,6 +231,14 @@ Check if distribution is SUSE Linux Enterprise Micro
 =cut
 sub is_sle_micro {
     return check_var('DISTRI', 'sle-micro');
+}
+
+=head2 is_selfinstall
+
+Check if SLEM is in flavor of self installable iso
+=cut
+sub is_selfinstall {
+    return get_var('FLAVOR') =~ /selfinstall/i;
 }
 
 =head2 is_tumbleweed

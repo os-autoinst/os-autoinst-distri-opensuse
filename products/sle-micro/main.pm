@@ -16,7 +16,6 @@ my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(susedistribution->new());
 
-
 # Handle updates from repos defined in OS_TEST_TEMPLATE combined with the list
 # of issues defined in OS_TEST_ISSUES.
 # OS_TEST_ISSUES is set by openQABot and metadata repo used in maintenance

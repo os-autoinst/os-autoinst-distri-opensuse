@@ -11,7 +11,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use version_utils 'is_microos';
+use version_utils qw(is_microos is_selfinstall);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
 
@@ -19,7 +19,7 @@ our @EXPORT = qw(microos_reboot microos_login);
 
 # Assert login prompt and login as root
 sub microos_login {
-    my $login_timeout = is_aarch64 ? 300 : 150;
+    my $login_timeout = (is_aarch64 || is_selfinstall) ? 300 : 150;
     assert_screen 'linux-login-microos', $login_timeout;
 
     if (is_microos 'VMX') {

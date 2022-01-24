@@ -1,0 +1,37 @@
+name:           sle_micro_raw_image
+description:    >
+    Maintainer: jalausuch@suse.com, qa-c@suse.de.
+    SUSE Linux Enterprise Micro tests
+conditional_schedule:
+  registration:
+    SCC_REGISTER:
+      'installation':
+        - console/suseconnect_scc
+  maintenance:
+    FLAVOR:
+      'MicroOS-Image-Updates':
+        - transactional/install_updates
+  selinux:
+    ENABLE_SELINUX:
+      '1':
+        - transactional/enable_selinux
+schedule:
+  - installation/bootloader_uefi
+  - microos/selfinstall
+  - transactional/host_config
+  - '{{registration}}'
+  - '{{maintenance}}'
+  - '{{selinux}}'
+  - microos/networking
+  - microos/libzypp_config
+  - microos/image_checks
+  - microos/one_line_checks
+  - microos/services_enabled
+  - microos/cockpit_service
+  - transactional/trup_smoke
+  - transactional/filesystem_ro
+  - transactional/transactional_update
+  - transactional/rebootmgr
+  - transactional/health_check
+  - console/journal_check
+  - shutdown/shutdown
