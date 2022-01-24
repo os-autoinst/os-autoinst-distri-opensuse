@@ -8,7 +8,8 @@ use strict;
 use warnings;
 use testapi;
 use known_bugs;
-use publiccloud::utils qw(select_host_console is_publiccloud);
+use version_utils 'is_public_cloud';
+use publiccloud::utils 'select_host_console';
 
 =head1 consoletest
 
@@ -45,7 +46,7 @@ sub post_fail_hook {
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     $self->export_logs_desktop;
 
-    if (is_publiccloud()) {
+    if (is_public_cloud()) {
         select_host_console(force => 1);
 
         # Destroy the public cloud instance in case of fatal test failure

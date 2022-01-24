@@ -15,11 +15,11 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils;
+use version_utils qw(is_sle is_public_cloud);
 use publiccloud::ssh_interactive;
 use registration;
 
-our @EXPORT = qw(select_host_console is_publiccloud is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon);
+our @EXPORT = qw(select_host_console is_byos is_ondemand is_ec2 is_azure is_gce registercloudguest register_addon);
 
 # Select console on the test host, if force is set, the interactive session will
 # be destroyed. If called in TUNNELED environment, this function die.
@@ -95,35 +95,31 @@ sub registercloudguest {
     $instance->retry_ssh_command(cmd => "sudo registercloudguest -r $regcode", timeout => 420, retry => 3);
 }
 
-sub is_publiccloud() {
-    return (get_var('PUBLIC_CLOUD') == 1);
-}
-
 # Check if we are a BYOS test run
 sub is_byos() {
-    return is_publiccloud && get_var('FLAVOR') =~ 'BYOS';
+    return is_public_cloud && get_var('FLAVOR') =~ 'BYOS';
 }
 
 # Check if we are a OnDemand test run
 sub is_ondemand() {
     # By convention OnDemand images are not marked explicitly.
     # Check all the other flavors, and if they don't match, it must be on_demand.
-    return is_publiccloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
+    return is_public_cloud && (!is_byos());    # When introducing new flavors, add checks here accordingly.
 }
 
 # Check if we are on an AWS test run
 sub is_ec2() {
-    return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 }
 
 # Check if we are on an Azure test run
 sub is_azure() {
-    return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 }
 
 # Check if we are on an GCP test run
 sub is_gce() {
-    return is_publiccloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
+    return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
 }
 
 1;
