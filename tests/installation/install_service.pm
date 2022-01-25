@@ -16,7 +16,12 @@ use main_common 'is_desktop';
 
 sub run {
 
-    select_console 'root-console';
+    if (get_var('SEL_SERIAL_CONSOLE')) {
+        opensusebasetest::select_serial_terminal();
+    }
+    else {
+        select_console 'root-console';
+    }
 
     install_services($default_services)
       if is_sle
