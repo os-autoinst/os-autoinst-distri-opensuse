@@ -26,6 +26,12 @@ conditional_schedule:
                 - x11/steam
                 - x11/wine
                 - x11/chrome
+    python_liblouis:
+        ARCH:
+            'x86_64':
+                - console/python_liblouis
+            'aarch64':
+                - console/python_liblouis
     opensuse_tests:
         DISTRI:
             opensuse:
@@ -40,6 +46,7 @@ conditional_schedule:
                 - x11/network/hwsim_wpa2_enterprise_setup
                 - x11/network/yast2_network_use_nm
                 - x11/network/NM_wpa2_enterprise
+                - console/python_liblouis
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -55,4 +62,5 @@ schedule:
     - '{{keyboard_layout_gdm}}'
     - console/yast2_lan_device_settings
     - console/check_default_network_manager
+    - '{{python_liblouis}}'
     - console/coredump_collect
