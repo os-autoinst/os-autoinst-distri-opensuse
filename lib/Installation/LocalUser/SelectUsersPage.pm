@@ -10,6 +10,7 @@
 package Installation::LocalUser::SelectUsersPage;
 use strict;
 use warnings;
+use testapi 'save_screenshot';
 
 sub new {
     my ($class, $args) = @_;
@@ -28,7 +29,9 @@ sub init {
 
 sub is_shown {
     my ($self) = @_;
-    return $self->{ch_select_all}->exist();
+    my $is_shown = $self->{ch_select_all}->exist();
+    save_screenshot if $is_shown;
+    return $is_shown;
 }
 
 sub select_all {

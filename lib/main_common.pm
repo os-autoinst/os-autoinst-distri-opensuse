@@ -997,9 +997,6 @@ sub load_inst_tests {
                 loadtest "installation/user_settings";
             }    # sles4sap wizard installation doesn't have user_settings step
         }
-        elsif (get_var('IMPORT_USER_DATA')) {
-            loadtest 'installation/user_import';
-        }
         elsif (is_microos) {
             loadtest "installation/ntp_config_settings";
         } else {
