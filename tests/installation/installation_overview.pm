@@ -67,7 +67,7 @@ sub check_default_target {
     return if (!get_var('DESKTOP') || get_var('PATTERNS'));
 
     # Set expectations
-    my $expected_target = check_var('DESKTOP', 'textmode*') ? "multi-user" : "graphical";
+    my $expected_target = check_var('DESKTOP', 'textmode' | 'textmode-server' ) ? "multi-user" : "graphical";
 
     $self->validate_default_target($expected_target);
 }
