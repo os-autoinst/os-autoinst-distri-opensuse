@@ -42,9 +42,6 @@ sub change_system_role {
         send_key 'alt-' . $role_hotkey{$system_role};
         assert_screen "system-role-$system_role-selected";
     }
-    # every system role other than default will end up in textmode for SLE
-    # But can be minimalx/lxde/xfce
-    set_var('DESKTOP', 'textmode') unless is_opensuse;
 }
 
 sub assert_system_role {
