@@ -791,6 +791,13 @@ sub fill_in_reg_server {
         $regcode = $prdcode if ($prdcode);
     }
 
+    # rmt slp discovery, the smt server address will auto filled
+    # and selected. We do this kind of test on local openQA to avoid
+    # affecting the jobs on openqa.suse.de.
+    if (get_var('SLP_RMT_INSTALL')) {
+        wait_screen_change { send_key $cmd{next} };
+        return;
+    }
     if (!get_var("SMT_URL")) {
         if (is_sle('15+') && check_var('DESKTOP', 'textmode')) {
             send_key "alt-m";    # select email field if yast2 add-on
