@@ -134,6 +134,8 @@ sub restore_passwd {
 
 # remove test user
 sub remove_test_user {
+    # We need wait a bit more time for the user related process to quit even after logout the user.
+    assert_script_run('for ((i=5; i>0; i--)) do if (! ps -e -u test > /dev/null 2>&1); then break; else sleep 3; fi done');
     assert_script_run("userdel -r $newUser");
 }
 
