@@ -1,0 +1,21 @@
+---
+description: 'Real HW RPi test suite. Maintainer: dheidler.'
+name: 'jeos-realhw@aarch64'
+schedule:
+  - jeos/prepare_firstboot
+  - jeos/firstrun
+  - jeos/record_machine_id
+  - console/ntp_client
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - console/suseconnect_scc
+  - jeos/rpi_wifi
+  - jeos/rpi_bluetooth
+  - console/consoletest_setup
+  - console/salt
+  - console/nginx
+  - console/dns_srv
+  - console/postgresql_server
+  - console/hostname
+  - console/curl_https
+  - console/rsync

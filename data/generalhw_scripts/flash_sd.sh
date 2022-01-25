@@ -47,12 +47,19 @@ else
 fi
 
 # Cleanup target folder
-ssh $username@$flasher_ip rm -f "$destination_folder/*.{raw,xz,iso}"
+ssh $username@$flasher_ip mkdir -p "$destination_folder/"
+ssh $username@$flasher_ip rm -f "$destination_folder/*.{raw,xz,iso,qcow2}"
 echo "** Previous image deleted"
 
 image_to_flash_full_path="$destination_folder/$(basename $image_to_flash)"
 image_to_flash_extension="${image_to_flash##*.}"
-uncompressed_filename=$(basename $image_to_flash_full_path .xz)
+
+if [ "$image_to_flash_extension" == "qcow2" ] ; then
+	uncompressed_filename="$(basename $image_to_flash_full_path .qcow2).raw"
+else
+	uncompressed_filename=$(basename $image_to_flash_full_path .xz)
+fi
+
 # Copy current image
 scp $image_to_flash $username@$destination
 # Extract compressed image, if needed
@@ -60,6 +67,9 @@ if [[ "$image_to_flash_extension" == "xz" ]]; then
 	ssh $username@$flasher_ip unxz --threads=0 $image_to_flash_full_path
 	echo "*** xz image uncompressed"
 	# No need to resize since the SD card size is fixed
+elif [[ "$image_to_flash_extension" == "qcow2" ]]; then
+	ssh $username@$flasher_ip qemu-img convert $image_to_flash_full_path "$destination_folder/$uncompressed_filename"
+	echo "*** qcow2 image uncompressed"
 fi
 
 # Check /dev/$sdX_device is not mounted to prevent unexpected overwritting
@@ -67,7 +77,7 @@ fi
 set +e
 output=$(ssh root@$flasher_ip "mount | grep /dev/$sdX_device")
 set -e
-if [ "$output" = "" ]; then
+if [ "$output" == "" ]; then
 	# Copy to SD card
 	echo "** Copy to SD card"
 	ssh root@$flasher_ip dd if=$destination_folder/$uncompressed_filename of=/dev/$sdX_device oflag=sync bs=8M

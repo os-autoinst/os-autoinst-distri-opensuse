@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2015-2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Configure JeOS
@@ -120,6 +120,11 @@ sub run {
     if (is_sle) {
         assert_screen 'jeos-please-register';
         send_key 'ret';
+
+        if (is_generalhw) {
+            assert_screen 'jeos-please-configure-wifi';
+            send_key 'n';
+        }
     }
 
     # Our current Hyper-V host and it's spindles are quite slow. Especially
@@ -156,9 +161,12 @@ sub run {
 
     verify_user_info(user_is_root => 1);
 
-    # Create user account
-    assert_script_run "useradd -m $username -c '$realname'";
-    assert_script_run "echo $username:$password | chpasswd";
+    # Create user account, if image doesn't already contain user
+    # (which is the case for SLE images that were already prepared by openQA)
+    if (script_run("getent passwd $username") != 0) {
+        assert_script_run "useradd -m $username -c '$realname'";
+        assert_script_run "echo $username:$password | chpasswd";
+    }
 
     ensure_serialdev_permissions;
 
