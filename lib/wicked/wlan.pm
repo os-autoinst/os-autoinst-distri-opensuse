@@ -317,6 +317,13 @@ sub assert_sta_connected {
     die("This should never reached!");
 }
 
+sub hostapd_can_wep {
+    my ($self) = @_;
+    $self->write_cfg('/tmp/check_wep.conf', 'wep_key0=123456789a');
+    my $s = script_output('hostapd /tmp/check_wep.conf', proceed_on_failure => 1);
+    return $s !~ m/unknown configuration item 'wep_key0'/i;
+}
+
 sub hostapd_start {
     my ($self, $config, %args) = @_;
     $args{name} //= 'hostapd';
