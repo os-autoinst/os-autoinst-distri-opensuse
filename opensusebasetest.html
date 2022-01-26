@@ -23,6 +23,7 @@
       <li><a href="#detect_bsc_1063638">detect_bsc_1063638</a></li>
       <li><a href="#problem_detection">problem_detection</a></li>
       <li><a href="#investigate_yast2_failure">investigate_yast2_failure</a></li>
+      <li><a href="#export_healthcheck_basic">export_healthcheck_basic</a></li>
       <li><a href="#export_logs_basic">export_logs_basic</a></li>
       <li><a href="#select_log_console">select_log_console</a></li>
       <li><a href="#export_logs">export_logs</a></li>
@@ -101,6 +102,12 @@
 <pre><code> investigate_yast2_failure(logs_path =&gt; $logs_path);</code></pre>
 
 <p>Inspect the YaST2 logfile checking for known issues. logs_path can be a directory where logs are saved e.g. /tmp. In that case the function will parse /tmp/var/log/YaST2/y2logs* files.</p>
+
+<h2 id="export_healthcheck_basic">export_healthcheck_basic</h2>
+
+<pre><code> export_healthcheck_basic();</code></pre>
+
+<p>Upload healthcheck logs that make sense for any failure. This includes <code>cpu</code>, <code>memory</code> and <code>fdisk</code>.</p>
 
 <h2 id="export_logs_basic">export_logs_basic</h2>
 
