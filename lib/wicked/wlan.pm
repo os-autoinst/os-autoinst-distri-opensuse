@@ -162,16 +162,14 @@ sub stop_dhcp_server {
     assert_script_run(sprintf('test -e %s && kill $(cat %s) || true', $pidfile, $pidfile));
 }
 
-sub before_test {
+sub prepare_sut {
     my $self = shift // wicked::wlan->new();
-    $self->prepare_packages();
     $self->prepare_phys();
     $self->prepare_freeradius_server();
     $self->adopt_apparmor();
 }
 
 sub prepare_packages {
-    my $self = shift;
     if (is_sle()) {
         set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
         add_qa_head_repo();
