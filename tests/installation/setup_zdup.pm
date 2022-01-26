@@ -39,7 +39,10 @@ sub run {
         # snapper is not available at least on our version of openSUSE 13.1
         # HDD used for upgrade.
         if (get_var('HDDVERSION', '') !~ /13.1/) {
-            assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
+            if (script_run("mount | grep ' / ' | grep btrfs") == 0) {
+                # Create a snapshot only when btrfs is used (some images do not use btrfs)
+                assert_script_run "snapper create --type pre --cleanup-algorithm=number --print-number --userdata important=yes --description 'b_zdup migration'";
+            }
         }
 
         if (!is_jeos) {
