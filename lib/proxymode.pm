@@ -16,8 +16,8 @@ our $SLAVE_SERIALDEV = 'proxyserial';
 
 sub switch_power {
     my ($ipmi_machine, $ipmi_user, $ipmi_pass, $ipmi_status) = @_;
-    $ipmi_pass //= 'ADMIN';
-    $ipmi_user //= 'ADMIN';
+    $ipmi_pass //= get_var('IPMI_PASSWORD');
+    $ipmi_user //= get_var('IPMI_USER');
     $ipmi_status //= 'off';
     die "Variable ipmi_machine is invalid in function restart_host!" unless $ipmi_machine;
     my $ipmitool = "ipmitool -H " . $ipmi_machine . " -U " . $ipmi_user . " -P " . $ipmi_pass . " -I lanplus ";
@@ -43,8 +43,8 @@ sub restart_host {
 
 sub connect_slave {
     my ($self, $ipmi_machine, $ipmi_user, $ipmi_pass) = @_;
-    $ipmi_user //= 'ADMIN';
-    $ipmi_pass //= 'ADMIN';
+    $ipmi_user //= get_var('IPMI_PASSWORD');
+    $ipmi_pass //= get_var('IPMI_USER');
     die "Variable ipmi_machine is invalid in function connect_slave!" unless $ipmi_machine;
     script_run("clear");
     type_string("ipmitool -H " . $ipmi_machine . " -U " . $ipmi_user . " -P " . $ipmi_pass . " -I lanplus sol activate", 20);
