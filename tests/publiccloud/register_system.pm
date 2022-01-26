@@ -34,8 +34,8 @@ sub run {
             register_addon($remote, $addon);
         }
     }
-    record_info('LR', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr || true"));
-    record_info('LS', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls || true"));
+    record_info('repos (lr)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper lr"));
+    record_info('repos (ls)', $args->{my_instance}->run_ssh_command(cmd => "sudo zypper ls"));
 }
 
 1;
